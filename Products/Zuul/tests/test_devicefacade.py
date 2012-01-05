@@ -15,10 +15,14 @@ import unittest
 import zope.component
 from Products.Zuul.catalog.interfaces import IIndexingEvent
 from zope.interface.verify import verifyClass
+from zope.event import notify
 from Products import Zuul
 from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.Zuul.interfaces import IDeviceInfo
 from Products.Zuul.infos.device import DeviceInfo
+from Products.ZenModel.Location import manage_addLocation
+from Products.Zuul.catalog.events import IndexingEvent
+
 
 class DeviceFacadeTest(ZuulFacadeTestCase):
 
@@ -126,6 +130,18 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         self.assertTrue(blue_org in systems)
         self.assertTrue(not green_org in systems)
         self.assertTrue(yellow_org in systems)
+
+    def test_deviceSearchParams(self):
+        """
+        Search for something we defniitely do not have
+        in the global catalog indexes
+        """
+        dev = self.dmd.Devices.createInstance('dev')
+        manage_addLocation(self.dmd.Locations, "test1")
+        dev.setLocation("/test1")
+        notify(IndexingEvent(dev))
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(location="test1"))
+        self.assertEquals(1, results.total)
 
     def test_setProductionState(self):
         notified = []

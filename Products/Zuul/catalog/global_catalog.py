@@ -372,6 +372,14 @@ class GlobalCatalog(ZCatalog):
     def _get_forbidden_classes(self):
         return (Software, OperatingSystem)
 
+    def hasIndexForTypes(self, types, index):
+        """
+        @param types: List of python types (unused)
+        @param index: index we are inquiring if it exists
+        @return: boolean if have this index and can filter/sort on it without waking up the objects
+        """
+        cat = self._catalog
+        return cat.indexes.get(index)
 
 def createGlobalCatalog(portal):
     catalog = GlobalCatalog()

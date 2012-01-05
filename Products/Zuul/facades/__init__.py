@@ -129,11 +129,12 @@ class TreeFacade(ZuulFacade):
         reverse = dir=='DESC'
         qs = []
         query = None
-        if params:
-            if 'name' in params:
-                qs.append(MatchRegexp('name', '(?i).*%s.*' % params['name']))
-            if 'ipAddress' in params:
-                ip = ensureIp(params['ipAddress'])
+        globFilters = {}
+        if params is None:
+            params = {}
+        for key, value in params.iteritems():
+            if key == 'ipAddress':
+                ip = ensureIp(value)
                 try:
                     checkip(ip)
                 except IpAddressError:
@@ -142,18 +143,19 @@ class TreeFacade(ZuulFacade):
                     if numbip(ip):
                         minip, maxip = getSubnetBounds(ip)
                         qs.append(Between('ipAddress', str(minip), str(maxip)))
-            if 'deviceClass' in params:
+            elif key == 'deviceClass':
                 qs.append(MatchRegexp('uid', '(?i).*%s.*' %
-                                      params['deviceClass']))
-            if 'productionState' in params:
+                                      value))
+            elif key == 'productionState':
                 qs.append(Or(*[Eq('productionState', str(state))
-                             for state in params['productionState']]))
+                             for state in value]))
+            else:
+                globFilters[key] = value
         if qs:
             query = And(*qs)
-
         brains = cat.search('Products.ZenModel.Device.Device', start=start,
                            limit=limit, orderby=sort, reverse=reverse,
-                            query=query, hashcheck=hashcheck)
+                            query=query, globFilters=globFilters, hashcheck=hashcheck)
         return brains
 
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
@@ -166,7 +168,7 @@ class TreeFacade(ZuulFacade):
 
         uuids = set(dev.uuid for dev in devices)
         if uuids:
-            zep = getFacade('zep')
+            zep = getFacade('zep', self._dmd)
             severities = zep.getEventSeverities(uuids)
             for device in devices:
                 device.setEventSeverities(severities[device.uuid])

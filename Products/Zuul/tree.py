@@ -11,17 +11,19 @@
 #
 ###########################################################################
 import time
+import re
 import sre_constants
 from itertools import islice
 from zope.interface import implements, providedBy
 from BTrees.OOBTree import OOBTree
 from BTrees.IIBTree import IIBTree
-from Products.AdvancedQuery import Eq, Or, Generic, And, In
+from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool, IInfo
 from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
 from Products.Zuul.utils import UncataloguedObjectException, PathIndexCache
 from AccessControl import getSecurityManager
+from Products.Zuul.infos import InfoBase
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
 import logging
@@ -292,18 +294,32 @@ class CatalogTool(object):
 
     def search(self, types=(), start=0, limit=None, orderby=None,
                reverse=False, paths=(), depth=None, query=None,
-               hashcheck=None, filterPermissions=True, uses_count=True):
+               hashcheck=None, filterPermissions=True, globFilters=None, uses_count=True):
 
         # if orderby is not an index then _queryCatalog, then query results
         # will be unbrained and sorted
         areBrains = orderby in self.catalog._catalog.indexes or orderby is None
         queryOrderby = orderby if areBrains else None
+        infoFilters = {}
+
+        if globFilters:
+            for key, value in globFilters.iteritems():
+                if self.catalog.hasIndexForTypes(types, key):
+                    query = And(query, MatchRegexp(key, '(?i).*%s.*' % value))
+                else:
+                    areBrains = False
+                    infoFilters[key] = value
         try:
             queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query, filterPermissions)
         except sre_constants.error:
             # if there is an invalid regex in the query return an empty list
             log.error("Invalid regex in the following query: %s" % query)
             queryResults = []
+
+        # see if we need to filter by waking up every object
+        if infoFilters:
+            queryResults = self._filterQueryResults(queryResults, infoFilters)
+
         totalCount = len(queryResults)
         hash_ = totalCount
         if areBrains or not queryResults:
@@ -327,6 +343,34 @@ class CatalogTool(object):
 
     def update(self, obj):
         self.catalog.catalog_object(obj, idxs=())
+
+    def _filterQueryResults(self, queryResults, infoFilters):
+        """
+        filters the results by the passed in infoFilters dictionary. If the
+        property of the info object is another info object the "name" attribute is used.
+        The filters are applied as case-insensitive strings on the attribute of the info object.
+        @param queryResults list of brains
+        @param infoFilters dictionary: key/value pairs of filters
+        @return list of brains
+        """
+        results = []
+        for key, value in infoFilters.iteritems():
+            valRe = re.compile(".*" + value + ".*", re.IGNORECASE)
+            for result in queryResults:
+                info = IInfo(result.getObject())
+                testvalues = getattr(info, key)
+                if not hasattr(testvalues, "__iter__"):
+                    testvalues = [testvalues]
+
+                # if anyone of these values is satisfied then include the object
+                for testVal in testvalues:
+                    if isinstance(testVal, InfoBase):
+                        testVal = testVal.name
+                    if valRe.match(str(testVal)):
+                        results.append(result)
+                        # already included this one, continue on to the next result
+                        break
+        return results
 
     def _sortQueryResults(self, queryResults, orderby, reverse):
 

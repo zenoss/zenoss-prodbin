@@ -43,7 +43,7 @@ function objectRenderer(obj) {
     },{
         dataIndex: 'uid',
         header: _t('Device Class'),
-        id: 'uid',
+        id: 'deviceClass',
         sortable: false,
         width: 120,
         renderer: Zenoss.render.DeviceClass
@@ -60,53 +60,53 @@ function objectRenderer(obj) {
         }
 
     },{
-        id: 'getHWSerialNumber',
+        id: 'serialNumber',
         dataIndex: 'serialNumber',
         width: 100,
         hidden: true,
         header: _t('Serial Number')
     },{
-        id: 'getHWTag',
+        id: 'tagNumber',
         dataIndex: 'tagNumber',
         width: 100,
         hidden: true,
         header: _t('Tag Number')
     },{
-        id: 'getHWManufacturerName',
+        id: 'hwManufacturer',
         dataIndex: 'hwManufacturer',
         width: 100,
         header: _t('Hardware Manufacturer'),
         hidden: true,
         renderer: objectRenderer
     },{
-        id: 'getHWProductClass',
+        id: 'hwModel',
         dataIndex: 'hwModel',
         hidden: true,
         width: 100,
         header: _t('Hardware Model'),
         renderer: objectRenderer
     },{
-        id: 'getOSManufacturerName',
+        id: 'osManufacturer',
         dataIndex: 'osManufacturer',
         width: 100,
         header: _t('OS Manufacturer'),
         hidden: true,
         renderer: objectRenderer
     },{
-        id: 'getOSProductName',
+        id: 'osModel',
         dataIndex: 'osModel',
         width: 150,
         hidden: true,
         header: _t('OS Model'),
         renderer: objectRenderer
     },{
-        id: 'getPerformanceServerName',
+        id: 'collector',
         dataIndex: 'collector',
         width: 100,
         hidden: true,
         header: _t('Collector')
     },{
-        id: 'getPriorityString',
+        id: 'priority',
         dataIndex: 'priority',
         width: 100,
         hidden: true,
@@ -116,7 +116,6 @@ function objectRenderer(obj) {
             return Zenoss.env.PRIORITIES_MAP[value];
         }
     },{
-        id: 'getSystemNames',
         dataIndex: 'systems',
         width: 100,
         hidden: true,
@@ -132,7 +131,6 @@ function objectRenderer(obj) {
             return links.join(" | ");
         }
     },{
-        id: 'getDeviceGroupNames',
         dataIndex: 'groups',
         width: 100,
         hidden: true,
@@ -149,7 +147,6 @@ function objectRenderer(obj) {
 
         }
     },{
-        id: 'getLocationName',
         dataIndex: 'location',
         width: 100,
         hidden: true,

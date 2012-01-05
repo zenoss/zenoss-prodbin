@@ -125,7 +125,15 @@
                 defaultFilters = this.defaultFilters;
             // set the default params
             this.eachColumn(function(col) {
-                var filterDivId = this.getFilterDivId(col.id);
+                // this is the value we are going to send to the server
+                // for this filter
+                if (!col.filterKey) {
+                    col.filterKey = col.id;
+                    if (!col.filterKey || col.filterKey.startswith("gridcolumn")) {
+                        col.filterKey = col.dataIndex;
+                    }
+                }
+                var filterDivId = this.getFilterDivId(col.filterKey);
 
                 if (!col.filterField) {
                     if (Ext.isDefined(col.filter) && col.filter === false) {
@@ -150,7 +158,7 @@
                             margin: '1px 1px 1px 1px'
                         },
                         hideLabel: true,
-                        value: this.defaultFilters[col.id]
+                        value: this.defaultFilters[col.filterKey]
                     }, col.filter);
                     col.filterField = Ext.ComponentManager.create(col.filter);
 
@@ -205,11 +213,13 @@
                 this.applyTemplate();
             }
             this.eachColumn(function(col) {
-                if (Ext.isDefined(state[col.id]) && !Ext.isEmpty(state[col.id])) {
-                    col.filterField.setValue(state[col.id]);
+                if (Ext.isDefined(state[col.filterKey]) && !Ext.isEmpty(state[col.filterKey])) {
+                    col.filterField.setValue(state[col.filterKey]);
                 }
             });
-
+            // the state can make some columns that were hidden visible so
+            // reapply the template to render those columns filters
+            this.applyTemplate();
         },
         onChange: function(field, newValue, oldValue) {
 
@@ -249,7 +259,7 @@
                             excludeGlobChars.indexOf(query.charAt(query.length - 1)) === -1) {
                             query += '*';
                         }
-                        values[col.id] = query;
+                        values[col.filterKey] = query;
                     }
                 }
             });
@@ -331,7 +341,7 @@
         },
         setFilter: function(colId, value) {
             this.eachColumn(function(col) {
-                if (col.id == colId) {
+                if (col.filterKey == colId) {
                     col.filterField.setValue(value);
                 }
             });

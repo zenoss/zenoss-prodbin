@@ -17,7 +17,6 @@ if __name__ == '__main__':
 import logging
 
 from Products.ZenModel.IpInterface import IpInterface
-from Products.Zuul.tree import PermissionedCatalogTool
 from Products.AdvancedQuery import Eq
 from ZenModelBaseTest import ZenModelBaseTest
 
