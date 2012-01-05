@@ -17,17 +17,19 @@ Scripts with classes who extend ZenScriptBase have a zope instance with a
 dmd root and loaded ZenPacks, like zendmd.
 """
 
+from zope.component import getUtility
+
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from transaction import commit
-from Utils import getObjByPath, zenPath, set_context
+from Products.ZenUtils.Utils import getObjByPath, zenPath, set_context
 from Products.ZenUtils.CmdBase import CmdBase
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 
 from Products.Five import zcml
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
-from Exceptions import ZentinelException
+from Products.ZenUtils.Exceptions import ZentinelException
 
 defaultCacheDir = zenPath('var')
 
@@ -47,8 +49,6 @@ class ZenScriptBase(CmdBase):
 
     def connect(self):
         if not self.app:
-            from zope.component import getUtility
-            from ZodbFactory import IZodbFactoryLookup
             connectionFactory = getUtility(IZodbFactoryLookup).get()
             self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
         self.getDataRoot()
@@ -139,8 +139,6 @@ class ZenScriptBase(CmdBase):
         """basic options setup sub classes can add more options here"""
         CmdBase.buildOptions(self)
 
-        from zope.component import getUtility
-        from ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         connectionFactory.buildOptions(self.parser)
 

@@ -11,14 +11,13 @@
 #
 ###########################################################################
 
+from zope.component import getUtility
 from Products.ZenUtils.Utils import set_context
+from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 
 class ZeoConn(object):
 
     def __init__(self, **kwargs):
-        
-        from zope.component import getUtility
-        from ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         self.db, self.storage = connectionFactory.getConnection(**kwargs)
 

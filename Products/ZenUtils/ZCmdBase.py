@@ -18,13 +18,14 @@ $Id: ZC.py,v 1.9 2004/02/16 17:19:31 edahl Exp $"""
 __version__ = "$Revision: 1.9 $"[11:-2]
 
 from threading import Lock
+from zope.component import getUtility
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from Products.Five import zcml
-from zope.event import notify
 
-from Utils import getObjByPath, zenPath
+from Products.ZenUtils.Utils import getObjByPath, zenPath
+from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 
 from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
@@ -64,8 +65,6 @@ class ZCmdBase(ZenDaemon):
         setDescriptors(self.dmd.propertyTransformers)
 
     def zodbConnect(self):
-        from zope.component import getUtility
-        from ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
 
@@ -158,8 +157,6 @@ class ZCmdBase(ZenDaemon):
         """basic options setup sub classes can add more options here"""
         ZenDaemon.buildOptions(self)
 
-        from zope.component import getUtility
-        from ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         connectionFactory.buildOptions(self.parser)
 

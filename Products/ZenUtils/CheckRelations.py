@@ -33,6 +33,7 @@ class CheckRelations(ZenScriptBase):
     def rebuild(self):
         repair = self.options.repair
         ccount = 0
+        self.log.info("Checking relations...")
         for object in getAllConfmonObjects(self.dmd):
             ccount += 1
             self.log.debug("checking relations on object %s" 

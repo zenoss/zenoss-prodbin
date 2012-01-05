@@ -26,9 +26,8 @@ import relstorage.adapters.mysql
 import relstorage.options
 import _mysql_exceptions as db_exceptions
 
-
-from GlobalConfig import globalConfToDict
-from ZodbFactory import IZodbFactory
+from Products.ZenUtils.GlobalConfig import globalConfToDict
+from Products.ZenUtils.ZodbFactory import IZodbFactory
 
 def _getDefaults(options=None):
     if options is None:

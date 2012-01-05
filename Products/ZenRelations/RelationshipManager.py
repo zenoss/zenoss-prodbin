@@ -255,7 +255,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
 
     def checkRelations(self, repair=False):
         """Confirm the integrity of all relations on this object"""
-        log.info("checking relations on object %s", self.getPrimaryId())
+        log.debug("checking relations on object %s", self.getPrimaryId())
         for rel in self.getRelationships():
             rel.checkRelation(repair)
                 
