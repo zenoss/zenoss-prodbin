@@ -1445,3 +1445,12 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 .prioritycombo input{
     visibility:visible !important;
 }
+#collectorpanel-body *{
+    font-size:13px !important;
+}
+#collectorId, #collectorHostField, #rootPasswordField{
+    width:300px !important;
+}
+#collectorfieldset label{
+    width:120px !important;
+}
