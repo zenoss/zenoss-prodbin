@@ -41,7 +41,7 @@
         })();
         </script>
         <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all-debug.js"></script>
-        <!-- ext3 to 4 compat -->
+       <!--  ext3 to 4 compat -->
         <script type="text/javascript" id="extall" src="/++resource++zenui/js/zenoss/migrate/ext3-core-compat.js"></script>
         <script type="text/javascript" id="extall" src="/++resource++zenui/js/zenoss/migrate/ext3-compat.js"></script>
 

@@ -2,7 +2,6 @@
 <tal:block metal:fill-slot="head-local">
 <link rel="stylesheet" type="text/css" href="++resource++extjs/resources/css/ext-all.css"/>
 <link rel="stylesheet" type="text/css" href="/zport/quickstart.css"/>
-<script type="text/javascript" src="++resource++extjs/ext-all.js"></script>
 <style>
     #settings ul { margin: 1em; margin-left: 2em; }
 </style>
