@@ -46,11 +46,13 @@ Ext.onReady(function(){
         layout: 'fit',
         region: 'center'
     },{
-        width: '50%',
+        width: 400,
+        minWidth: 300,
         preventHeader: true,
         id: 'detail_panel',
         contentEl: 'detail_panel_content',
         region: 'east',
+        split: true,
         collapsible: true,
         collapseMode: 'mini',
         layout: 'fit'
