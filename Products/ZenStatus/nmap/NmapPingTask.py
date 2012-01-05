@@ -26,7 +26,6 @@ from twisted.internet import reactor
 import os.path
 from cStringIO import StringIO
 import stat
-import sys
 
 import Globals
 from zope import interface
@@ -56,6 +55,10 @@ _WARNING = 3
 
 # amount of IPs/events to process before giving time to the reactor
 _SENDEVENT_YIELD_INTERVAL = 100  # should always be >= 1
+
+# twisted.callLater has trouble with sys.maxint as call interval, 
+# just use a big interval, 100 years
+_NEVER_INTERVAL = 60 * 60 * 24 * 365 * 100
 
 class NmapPingCollectionPreferences(PingCollectionPreferences):
     
@@ -102,7 +105,7 @@ class NPingTaskFactory(object):
             )
             # don't run the tasks, they are used for storing config
             task.pauseOnScheduled = True
-            task.interval = sys.maxint
+            task.interval = _NEVER_INTERVAL
         return task
 
     def reset(self):
