@@ -66,7 +66,10 @@
         }, {
             "text": "DataSourceEditDialog.js",
             "path": "resources/js/zenoss/form/"
-        },{
+        }, {
+            "text": "Tree.js",
+            "path": "resources/js/zenoss/model/"
+        }, {
             "text": "HierarchyTreePanel.js",
             "path": "resources/js/zenoss/"
         }, {

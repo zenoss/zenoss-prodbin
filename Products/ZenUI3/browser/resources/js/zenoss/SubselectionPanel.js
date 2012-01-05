@@ -378,34 +378,10 @@ Ext.define("Zenoss.SubselectionPanel", {
 
 Ext.define("Zenoss.DetailNavTreeModel" ,{
     extend: 'Ext.data.Model',
-    fields: [{
-        name: 'hidden',
-        type: 'boolean'
-    }, {
-        name: 'leaf',
-        type: 'boolean'
-    }, {
-        name: 'uid',
-        type: 'string'
-    }, {
-        name: 'text',
-        type: 'object'
-    }, {
-        name: 'id',
-        type: 'string'
-    }, {
-        name: 'path',
-        type: 'string'
-    }, {
-        name: 'iconCls',
-        type: 'string'
-    }, {
-        name: 'uuid',
-        type: 'string'
-    }, {
+    fields: Zenoss.model.BASE_TREE_FIELDS.concat([{
         name: 'action',
         type: 'function'
-    }]
+    }])
 });
 
 Ext.define("Zenoss.DetailNavTreePanel", {

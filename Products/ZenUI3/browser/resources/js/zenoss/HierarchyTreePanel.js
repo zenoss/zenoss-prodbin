@@ -353,31 +353,7 @@ Ext.define('Zenoss.HierarchyTreePanel', {
                     directFn: config.directFn,
                     paramOrder: ['uid']
                 },
-                fields: [{
-                    name: 'hidden',
-                    type: 'boolean'
-                }, {
-                    name: 'leaf',
-                    type: 'boolean'
-                }, {
-                    name: 'uid',
-                    type: 'string'
-                }, {
-                    name: 'text',
-                    type: 'object'
-                }, {
-                    name: 'id',
-                    type: 'string'
-                }, {
-                    name: 'path',
-                    type: 'string'
-                }, {
-                    name: 'iconCls',
-                    type: 'string'
-                }, {
-                    name: 'uuid',
-                    type: 'string'
-                }].concat(config.extraFields || [])
+                fields: Zenoss.model.BASE_TREE_FIELDS.concat(config.extraFields || [])
             });
             config.store = new Ext.create('Ext.data.TreeStore', {
                 model: modelId,

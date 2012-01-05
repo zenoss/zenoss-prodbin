@@ -127,6 +127,7 @@ Ext.define("Zenoss.templates.MonTemplateTreePanel", {
         Ext.applyIf(config, {
             useArrows: true,
             cls: 'x-tree-noicon',
+            model: 'Zenoss.model.Tree',
             selModel: new Zenoss.MonTemplateSelectionModel({
                 bubbleTarget: config.bubbleTarget
             }),
