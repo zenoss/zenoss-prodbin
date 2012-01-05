@@ -105,7 +105,7 @@ function objectRenderer(obj) {
         hidden: true,
         header: _t('Collector')
     },{
-        id: 'priority',
+        id: 'priorityString',
         dataIndex: 'priority',
         width: 100,
         hidden: true,
