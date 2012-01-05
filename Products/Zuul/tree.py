@@ -305,7 +305,10 @@ class CatalogTool(object):
         if globFilters:
             for key, value in globFilters.iteritems():
                 if self.catalog.hasIndexForTypes(types, key):
-                    query = And(query, MatchRegexp(key, '(?i).*%s.*' % value))
+                    if query:
+                        query = And(query, MatchRegexp(key, '(?i).*%s.*' % value))
+                    else:
+                        query = MatchRegexp(key, '(?i).*%s.*' % value)
                 else:
                     areBrains = False
                     infoFilters[key] = value
