@@ -55,8 +55,8 @@
         alias: ['widget.PriorityCombo'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
-                //fieldLabel: _t('Priority'),
-                directFn: Zenoss.remote.DeviceRouter.getPriorities
+                directFn: Zenoss.remote.DeviceRouter.getPriorities,
+                cls: 'prioritycombo'
             });
             this.callParent([config]);
         }
