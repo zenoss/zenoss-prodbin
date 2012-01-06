@@ -1712,3 +1712,12 @@ def getAllParserOptionsGen(parser):
     for optContainer in chain((parser,), parser.option_groups):
         for option in optContainer.option_list:
             yield option
+
+
+def ipv6_available():
+    try:
+        socket.socket(socket.AF_INET6).close()
+        return True
+    except socket.error:
+        return False
+

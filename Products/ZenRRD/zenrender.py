@@ -11,6 +11,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from Products.ZenUtils.Utils import ipv6_available
+
 __doc__ = """zenrender
 
 Listens in order to process RRD files to generate graphs
@@ -90,7 +92,7 @@ class ZenRenderPreferences(object):
         log.info("Starting %s zenrender webserver on port %s",
                       collector, httpPort)
         renderer = HttpRender(collector)
-        interface = '::' if socket.has_ipv6 else ''
+        interface = '::' if ipv6_available() else ''
         reactor.listenTCP(httpPort, server.Site(renderer), interface=interface)
 
         # Add remote_ methods from renderer directly to the daemon

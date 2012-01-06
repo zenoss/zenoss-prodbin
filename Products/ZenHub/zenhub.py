@@ -39,7 +39,7 @@ from ZODB.POSException import POSKeyError
 from Products.DataCollector.Plugins import loadPlugins
 from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config_override
+from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config_override, ipv6_available
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -291,7 +291,7 @@ class ZenHub(ZCmdBase):
         er = HubRealm(self)
         checker = self.loadChecker()
         pt = portal.Portal(er, [checker])
-        interface = '::' if socket.has_ipv6 else ''
+        interface = '::' if ipv6_available() else ''
         reactor.listenTCP(self.options.pbport, pb.PBServerFactory(pt), interface=interface)
 
         xmlsvc = AuthXmlRpcService(self.dmd, checker)

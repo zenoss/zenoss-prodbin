@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from Products.ZenUtils.Utils import ipv6_available
 
 __doc__ = """RenderConfig
 zenhub service to start looking for requests to render performance graphs
@@ -135,7 +136,7 @@ class RenderConfig(NullConfigService):
             if not htmlResource:
                 htmlResource = Render()
                 log.info("Starting graph retrieval listener on port 8090")
-                interface = '::' if socket.has_ipv6 else ''
+                interface = '::' if ipv6_available() else ''
                 reactor.listenTCP(8090, server.Site(htmlResource), interface=interface)
             htmlResource.addRenderer(self)
         except CannotListenError, e:
