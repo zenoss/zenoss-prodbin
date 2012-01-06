@@ -68,6 +68,8 @@ class ReconnectingPBClientFactory(PBClientFactory,
         self._doingGetPerspective = False
 
     def clientConnectionFailed(self, connector, reason):
+        zenlog.debug("Failed to create connection to %s:%s - %s",
+                     connector.host, connector.port, reason)
         PBClientFactory.clientConnectionFailed(self, connector, reason)
         # Twisted-1.3 erroneously abandons the connection on non-UserErrors.
         # To avoid this bug, don't upcall, and implement the correct version
@@ -77,12 +79,15 @@ class ReconnectingPBClientFactory(PBClientFactory,
             self.retry()
 
     def clientConnectionLost(self, connector, reason, reconnecting=1):
+        zenlog.debug("Lost connection to %s:%s - %s", connector.host,
+                     connector.port, reason)
         PBClientFactory.clientConnectionLost(self, connector, reason,
                                              reconnecting=reconnecting)
         RCF = protocol.ReconnectingClientFactory
         RCF.clientConnectionLost(self, connector, reason)
 
     def clientConnectionMade(self, broker):
+        zenlog.debug("Connected")
         self.resetDelay()
         PBClientFactory.clientConnectionMade(self, broker)
         if self._doingLogin:
