@@ -1,4 +1,4 @@
-(function() {
+(function () {
 
 
     /**
@@ -6,30 +6,32 @@
      * @class Zenoss.DirectStore
      */
     Ext.define('Zenoss.DirectStore', {
-        extend: 'Ext.data.Store',
-        alias: 'store.zendirectstore',
-        constructor: function(config) {
+        extend:'Ext.data.Store',
+        alias:'store.zendirectstore',
+        constructor:function (config) {
             config = config || {};
             Ext.applyIf(config, {
-                remoteSort: true,
-                pageSize: config.pageSize || 50,
-                buffered: true,
-                sorters: [{
-                    property: config.initialSortColumn,
-                    direction: config.initialSortDirection || 'ASC'
-                }],
-                proxy: {
-                    type: 'direct',
-                    directFn: config.directFn,
-                    reader: {
-                        root: config.root || 'data',
-                        totalProperty: config.totalProperty || 'totalCount'
+                remoteSort:true,
+                pageSize:config.pageSize || 50,
+                buffered:true,
+                sorters:[
+                    {
+                        property:config.initialSortColumn,
+                        direction:config.initialSortDirection || 'ASC'
+                    }
+                ],
+                proxy:{
+                    type:'direct',
+                    directFn:config.directFn,
+                    reader:{
+                        root:config.root || 'data',
+                        totalProperty:config.totalProperty || 'totalCount'
                     }
                 }
             });
             this.callParent(arguments);
         },
-        setBaseParam: function(key, value) {
+        setBaseParam:function (key, value) {
             this.proxy.extraParams[key] = value;
         }
     });
@@ -43,43 +45,43 @@
      * a hundred or so since every request will load the entire grid without pagination.
      **/
     Ext.define('Zenoss.NonPaginatedStore', {
-        extend: 'Ext.data.Store',
-        alias: ['store.directcombo'],
-        constructor: function(config) {
+        extend:'Ext.data.Store',
+        alias:['store.directcombo'],
+        constructor:function (config) {
             config = config || {};
             Ext.applyIf(config, {
-                remoteSort: false,
-                buffered: false,
-                proxy: {
-                    type: 'direct',
-                    limitParam: undefined,
-                    startParam: undefined,
-                    pageParam: undefined,
-                    directFn: config.directFn,
-                    reader: {
-                        type: 'json',
-                        root: config.root || 'data'
+                remoteSort:false,
+                buffered:false,
+                proxy:{
+                    type:'direct',
+                    limitParam:undefined,
+                    startParam:undefined,
+                    pageParam:undefined,
+                    directFn:config.directFn,
+                    reader:{
+                        type:'json',
+                        root:config.root || 'data'
                     }
                 }
             });
             this.callParent(arguments);
         },
-        setContext: function(context) {
+        setContext:function (context) {
 
             if (this.proxy.extraParams) {
                 this.proxy.extraParams.uid = context;
             }
             this.load();
         },
-        setBaseParam: function(key, value) {
+        setBaseParam:function (key, value) {
             this.proxy.extraParams[key] = value;
         }
     });
 
     Ext.define('Ext.ux.grid.FilterRow', {
-        extend: 'Ext.util.Observable',
+        extend:'Ext.util.Observable',
 
-        init: function(grid) {
+        init:function (grid) {
             this.grid = grid;
 
             // when column width programmatically changed
@@ -101,17 +103,17 @@
         /**
          * Every time a column is moved on the grid destroy and rebuild the filters
          **/
-        onGridColumnMove: function() {
+        onGridColumnMove:function () {
             var grid = this.grid;
             // each column has a reference to its filter remove that first
-            this.eachColumn(function(col){
+            this.eachColumn(function (col) {
                 if (Ext.isDefined(col.filterField)) {
                     col.filterField.destroy();
                     delete col.filterField;
                 }
             });
             // destroy docked item the filters are rendered to
-            Ext.each(grid.getDockedItems(), function(item) {
+            Ext.each(grid.getDockedItems(), function (item) {
                 if (item.id == grid.id + 'docked-filter') {
                     grid.removeDocked(item, true);
                 }
@@ -120,11 +122,11 @@
             // rebuild the filters
             this.applyTemplate();
         },
-        applyTemplate: function() {
+        applyTemplate:function () {
             var searchItems = [],
                 defaultFilters = this.defaultFilters;
             // set the default params
-            this.eachColumn(function(col) {
+            this.eachColumn(function (col) {
                 // this is the value we are going to send to the server
                 // for this filter
                 if (!col.filterKey) {
@@ -148,17 +150,17 @@
                     }
 
                     col.filter = Ext.apply({
-                        id: filterDivId,
-                        hidden: col.isHidden(),
-                        xtype: 'component',
-                        baseCls: 'xfilter-row',
-                        width: col.width - 2,
-                        enableKeyEvents: true,
-                        style: {
-                            margin: '1px 1px 1px 1px'
+                        id:filterDivId,
+                        hidden:col.isHidden(),
+                        xtype:'component',
+                        baseCls:'xfilter-row',
+                        width:col.width - 2,
+                        enableKeyEvents:true,
+                        style:{
+                            margin:'1px 1px 1px 1px'
                         },
-                        hideLabel: true,
-                        value: this.defaultFilters[col.filterKey]
+                        hideLabel:true,
+                        value:this.defaultFilters[col.filterKey]
                     }, col.filter);
                     col.filterField = Ext.ComponentManager.create(col.filter);
 
@@ -175,44 +177,44 @@
 
             // make sure we send our default filters on the initial load
             if (!Ext.isEmpty(this.defaultFilters)) {
-                 if (!this.grid.store.proxy.extraParams) {
-                     this.grid.store.proxy.extraParams = {};
-                 }
+                if (!this.grid.store.proxy.extraParams) {
+                    this.grid.store.proxy.extraParams = {};
+                }
                 this.grid.store.proxy.extraParams.params = this.getSearchValues();
             }
 
             if (searchItems.length > 0) {
                 this.grid.addDocked(this.dockedFilter = Ext.create('Ext.container.Container', {
-                    id: this.grid.id + 'docked-filter',
-                    weight: 100,
-                    dock: 'top',
-                    border: false,
-                    baseCls: Ext.baseCSSPrefix + 'grid-header-ct',
-                    items: searchItems,
-                    layout: {
-                        type: 'hbox'
+                    id:this.grid.id + 'docked-filter',
+                    weight:100,
+                    dock:'top',
+                    border:false,
+                    baseCls:Ext.baseCSSPrefix + 'grid-header-ct',
+                    items:searchItems,
+                    layout:{
+                        type:'hbox'
                     }
                 }));
             }
         },
-        clearFilters: function() {
-            this.eachColumn(function(col) {
+        clearFilters:function () {
+            this.eachColumn(function (col) {
                 if (Ext.isDefined(col.filterField)) {
                     col.filterField.reset();
                 }
             });
         },
-        getState: function() {
+        getState:function () {
             return this.getSearchValues();
         },
-        applyState: function(state) {
+        applyState:function (state) {
             if (Ext.isEmpty(state)) {
                 return;
             }
             if (!this.dockedFilter) {
                 this.applyTemplate();
             }
-            this.eachColumn(function(col) {
+            this.eachColumn(function (col) {
                 if (Ext.isDefined(state[col.filterKey]) && !Ext.isEmpty(state[col.filterKey])) {
                     col.filterField.setValue(state[col.filterKey]);
                 }
@@ -221,10 +223,10 @@
             // reapply the template to render those columns filters
             this.applyTemplate();
         },
-        onChange: function(field, newValue, oldValue) {
+        onChange:function (field, newValue, oldValue) {
 
             if (!this.onChangeTask) {
-                this.onChangeTask = new Ext.util.DelayedTask(function() {
+                this.onChangeTask = new Ext.util.DelayedTask(function () {
                     this.storeSearch();
                 }, this);
             }
@@ -232,7 +234,7 @@
             this.onChangeTask.delay(1000);
 
         },
-        onKeyDown: function(field, e) {
+        onKeyDown:function (field, e) {
             // if live search is enabled fire the change delay
             // if live search is disabled then they have to explictly
             // hit enter to search
@@ -246,10 +248,10 @@
             }
         },
 
-        getSearchValues: function() {
+        getSearchValues:function () {
             var values = {},
                 globbing = (this.appendGlob && (Ext.isDefined(globbing) ? globbing : true));
-            this.eachColumn(function(col) {
+            this.eachColumn(function (col) {
                 var filter = col.filterField, excludeGlobChars = ['*', '"', '?'], query;
                 if (filter && filter.xtype != 'component') {
                     if (!Ext.isEmpty(filter.getValue())) {
@@ -267,7 +269,7 @@
             return values;
         },
 
-        storeSearch: function() {
+        storeSearch:function () {
             var values = this.getSearchValues();
             if (!this.grid.store.proxy.extraParams) {
                 this.grid.store.proxy.extraParams = {};
@@ -281,10 +283,10 @@
             // only load the store if a context has been applied
             if (Ext.isDefined(this.grid.getContext()) || this.grid.getStore().autoLoad) {
                 this.grid.getStore().load({
-                    callback: function() {
+                    callback:function () {
                         this.grid.fireEvent('filterschanged', this.grid, values);
                     },
-                    scope: this
+                    scope:this
                 });
             }
 
@@ -292,8 +294,8 @@
             this.grid.saveState();
         },
 
-        resetFilterRow: function() {
-            this.eachColumn(function(col) {
+        resetFilterRow:function () {
+            this.eachColumn(function (col) {
                 if (!col.filterField) {
                     return;
                 }
@@ -305,12 +307,15 @@
             }
         },
 
-        resizeFilterField: function(headerCt, column, newColumnWidth) {
+        resizeFilterField:function (headerCt, column, newColumnWidth) {
             var editor;
             if (!column.filterField) {
                 //This is because of the reconfigure
                 this.resetFilterRow();
-                editor = this.grid.headerCt.items.findBy(function(item) { return item.dataIndex == column.dataIndex; }).filterField;
+                editor = this.grid.headerCt.items.findBy(
+                    function (item) {
+                        return item.dataIndex == column.dataIndex;
+                    }).filterField;
             } else {
                 editor = column.filterField;
             }
@@ -320,72 +325,72 @@
             }
         },
 
-        scrollFilterField: function(e, target) {
+        scrollFilterField:function (e, target) {
             var width = this.grid.headerCt.el.dom.firstChild.style.width;
             this.dockedFilter.el.dom.firstChild.style.width = width;
             this.dockedFilter.el.dom.scrollLeft = target.scrollLeft;
         },
 
         // Returns HTML ID of element containing filter div
-        getFilterDivId: function(columnId) {
+        getFilterDivId:function (columnId) {
             return this.grid.id + '-filter-' + columnId;
         },
 
         // Iterates over each column that has filter
-        eachFilterColumn: function(func) {
-            this.eachColumn(function(col, i) {
+        eachFilterColumn:function (func) {
+            this.eachColumn(function (col, i) {
                 if (col.filterField) {
                     func.call(this, col, i);
                 }
             });
         },
-        setFilter: function(colId, value) {
-            this.eachColumn(function(col) {
+        setFilter:function (colId, value) {
+            this.eachColumn(function (col) {
                 if (col.filterKey == colId) {
                     col.filterField.setValue(value);
                 }
             });
         },
         // Iterates over each column in column config array
-        eachColumn: function(func) {
+        eachColumn:function (func) {
             Ext.each(this.grid.headerCt.getGridColumns(), func, this);
         }
     });
 
-     /**
+    /**
      * @class Zenoss.ContextGridPanel
      * @extends Ext.grid.GridPanel
      * Base class for all of our grids that have a context.
      * @constructor
      */
     Ext.define('Zenoss.ContextGridPanel', {
-        extend: 'Ext.grid.Panel',
-        alias: ['widget.contextgridpanel'],
-        selectedNodes: [],
-        constructor: function(config) {
+        extend:'Ext.grid.Panel',
+        alias:['widget.contextgridpanel'],
+        selectedNodes:[],
+        constructor:function (config) {
             var viewConfig = config.viewConfig || {};
 
             Zenoss.util.validateConfig(config,
-                                       'store',
-                                       'columns');
+                'store',
+                'columns');
             viewConfig = config.viewConfig || {};
 
             Ext.applyIf(viewConfig, {
-                autoScroll: false,
-                stripeRows: true,
-                loadMask: true
+                autoScroll:false,
+                stripeRows:true,
+                loadMask:true
             });
 
             Ext.applyIf(config, {
-                scroll: 'both',
-                viewConfig: viewConfig
+                scroll:'both',
+                viewConfig:viewConfig
             });
             this.callParent([config]);
-            this.getStore().on("load", function(store, records) {
-                      this.applySavedSelection();
-            }, this);               
+            this.getStore().on("load", function (store, records) {
+                this.applySavedSelection();
+            }, this);
             // once a uid is set always send that uid
-            this.getStore().on('beforeload', function(store, operation) {
+            this.getStore().on('beforeload', function (store, operation) {
                 if (!operation) {
                     return true;
                 }
@@ -413,49 +418,49 @@
                 'contextchange'
             );
         },
-        saveSelection: function(){
-            this.selectedNodes = this.getSelectionModel().getSelection(); 
+        saveSelection:function () {
+            this.selectedNodes = this.getSelectionModel().getSelection();
         },
-        applySavedSelection: function(){
-            var curStore = this.getStore();         
+        applySavedSelection:function () {
+            var curStore = this.getStore();
             var itemsFound = false;
             this.suspendEvents();
-            for(var i = 0;i < curStore.data.items.length; i++){
-                for(var j = 0;j < this.selectedNodes.length; j++){
-                    if(curStore.data.items[i].getId() == this.selectedNodes[j].getId()){
-                    // select row index by name in case something has been added or removed               
+            for (var i = 0; i < curStore.data.items.length; i++) {
+                for (var j = 0; j < this.selectedNodes.length; j++) {
+                    if (curStore.data.items[i].getId() == this.selectedNodes[j].getId()) {
+                        // select row index by name in case something has been added or removed
                         this.getSelectionModel().select(i, true);
                         itemsFound = true;
                     }
                 }
-            }   
+            }
             this.resumeEvents();
-            if(itemsFound == true) this.selectedNodes = [];
-        },        
-        applyOptions: function(options) {
+            if (itemsFound == true) this.selectedNodes = [];
+        },
+        applyOptions:function (options) {
             // Do nothing in the base implementation
         },
         /**
          * This will add a parameter to be sent
          * back to the server on every request for this store.
          **/
-        setStoreParameter: function(name, value) {
+        setStoreParameter:function (name, value) {
             var store = this.getStore();
             if (!store.proxy.extraParams) {
                 store.proxy.extraParams = {};
             }
             store.proxy.extraParams[name] = value;
         },
-        setContext: function(uid) {
+        setContext:function (uid) {
             this.uid = uid;
             this.setStoreParameter('uid', uid);
             this.fireEvent('contextchange', this, uid);
             this.refresh();
         },
-        getContext: function() {
+        getContext:function () {
             return this.uid;
         },
-        refresh: function() {
+        refresh:function () {
             // only refresh if we have a context set
             if (!this.getContext()) {
                 return;
@@ -474,21 +479,21 @@
      * @constructor
      */
     Ext.define('Zenoss.BaseGridPanel', {
-        extend: 'Zenoss.ContextGridPanel',
-        alias: ['widget.basegridpanel'],
-        constructor: function(config) {
+        extend:'Zenoss.ContextGridPanel',
+        alias:['widget.basegridpanel'],
+        constructor:function (config) {
             Ext.applyIf(config, {
-                verticalScrollerType: 'paginggridscroller',
-                invalidateScrollerOnRefresh: false,
-                scroll: 'both',
-                bbar: ['->', {
-                    xtype: 'livegridinfopanel',
-                    grid: this
+                verticalScrollerType:'paginggridscroller',
+                invalidateScrollerOnRefresh:false,
+                scroll:'both',
+                bbar:['->', {
+                    xtype:'livegridinfopanel',
+                    grid:this
                 }]
             });
             this.callParent([config]);
         },
-        refresh: function(callback, scope) {
+        refresh:function (callback, scope) {
             // only refresh if a context is set
             if (!this.getContext()) {
                 return;
@@ -497,7 +502,7 @@
             var store = this.getStore();
             store.currentPage = 1;
             store.load({
-                callback: function() {
+                callback:function () {
                     if (store.getCount()) {
                         // -1 so we don't prefetch multiple pages, we just need one until the user
                         // scrolls down a bit more
@@ -505,10 +510,10 @@
                     }
                     Ext.callback(callback, scope || this);
                 },
-                scope: this
+                scope:this
             });
         },
-        scrollToTop: function() {
+        scrollToTop:function () {
             var scroller = this.down('paginggridscroller');
             if (scroller) {
                 scroller.scrollToTop();
@@ -525,17 +530,17 @@
      * @constructor
      */
     Ext.define('Zenoss.FilterGridPanel', {
-        extend: 'Zenoss.BaseGridPanel',
-        alias: ['widget.filtergridpanel'],
-        constructor: function(config) {
+        extend:'Zenoss.BaseGridPanel',
+        alias:['widget.filtergridpanel'],
+        constructor:function (config) {
             config = config || {};
             Ext.applyIf(config, {
-                displayFilters: true
+                displayFilters:true
             });
 
             this.callParent(arguments);
         },
-        initComponent: function() {
+        initComponent:function () {
             /**
              * @event filterschanged
              * Fires after the filters are changed but after the store is reloaded
@@ -547,31 +552,31 @@
             this.callParent();
             // create the filter row
             var filters = Ext.create('Ext.ux.grid.FilterRow', {
-                grid: this,
-                appendGlob: this.appendGlob,
-                defaultFilters: this.defaultFilters || {}
+                grid:this,
+                appendGlob:this.appendGlob,
+                defaultFilters:this.defaultFilters || {}
             });
 
-            if (this.displayFilters){
+            if (this.displayFilters) {
                 filters.init(this);
             }
             this.filterRow = filters;
         },
-        getState: function() {
+        getState:function () {
             var state = this.callParent();
             state.filters = this.filterRow.getState();
             return state;
         },
-        applyState: function(state) {
+        applyState:function (state) {
             this.callParent([state]);
             if (this.displayFilters) {
                 this.filterRow.applyState(state.filters);
             }
         },
-        getFilters: function() {
+        getFilters:function () {
             return this.filterRow.getSearchValues();
         },
-        setFilter: function(colId, value) {
+        setFilter:function (colId, value) {
             this.filterRow.setFilter(colId, value);
         }
     });
@@ -584,51 +589,67 @@
      * @grid {Object} the GridPanel whose information should be displayed
      */
     Ext.define('Zenoss.LiveGridInfoPanel', {
-        extend: 'Ext.Toolbar.TextItem',
-        alias: ['widget.livegridinfopanel'],
-        displayMsg: 'Displaying {0} - {1} of {2} Rows',
-        emptyMsg: 'No Results',
-        cls: 'livegridinfopanel',
-        initComponent: function() {
+        extend:'Ext.Toolbar.TextItem',
+        alias:['widget.livegridinfopanel'],
+        displayMsg:'Displaying {0} - {1} of {2} Rows',
+        emptyMsg:'No Results',
+        cls:'livegridinfopanel',
+        initComponent:function () {
             this.setText(this.emptyMsg);
             if (this.grid) {
                 if (!Ext.isObject(this.grid)) {
                     this.grid = Ext.getCmp(this.grid);
                 }
-                this.grid.getStore().on('guaranteedrange', this.onGuaranteedRange, this);
-                this.grid.on('contextchange', function() {
-                    this.grid.getStore().on('load', this.onLoad, this, {single: true});
-                }, this);
-
-                this.grid.on('filterschanged', function() {
-                    this.onLoad();
-                }, this);
-
-
+                // We need to refresh this when one of two events happen:
+                //  1.  The data in the data store changes
+                //  2.  The user scrolls.
+                this.grid.getStore().on('datachanged', this.onDataChanged, this);
+                this.grid.getView().on('bodyscroll', this.onDataChanged, this);
             }
             this.callParent(arguments);
         },
-        onGuaranteedRange: function(range, start, end) {
+        onDataChanged:function () {
             var totalCount = this.grid.getStore().getTotalCount();
-            if (totalCount) {
-                var msg = Ext.String.format(this.displayMsg, start,
-                                       Math.min(end + 1, totalCount), totalCount);
-                this.setText(msg);
-            }else {
-                this.setText(this.emptyMsg);
-            }
-        },
-        onLoad: function() {
-
-            var store = this.grid.getStore(),
-                totalCount = store.getTotalCount(),
-                pageSize = store.pageSize;
-            if (totalCount) {
-                var msg = Ext.String.format(this.displayMsg, 0,
-                                            Math.min(pageSize, totalCount), totalCount);
-                this.setText(msg);
+            var start = -1;
+            var end = -1;
+            if (totalCount && totalCount > 0) {
+                // need to find out not just what is in the store but what is actually being displayed.
+                // let's hook into the paging grid scroller for information.
+                var pagingScroller;
+                var pagingScrollerArray = this.grid.getDockedItems("paginggridscroller");
+                if (pagingScrollerArray && pagingScrollerArray.length > 0) {
+                    pagingScroller = pagingScrollerArray[0];
+                }
+                if (pagingScroller) {
+                    // If a user hasn't scrolled at all, then we won't have
+                    // the visible Start and visible End fields yet,
+                    // if we do, just use them.
+                    if (pagingScroller.visibleStart) {
+                        start = pagingScroller.visibleStart + 1;  // users don't like counting from 0
+                        end = pagingScroller.visibleEnd;
+                    } else {
+                        // If we haven't scrolled yet then we need to manually calculate
+                        // how many records are here.
+                        start = 1;
+                        // This code stolen from   ExtJS 4 source code for calculating the rows
+                        var visibleHeight = pagingScroller.getPanel().down("tableview").el.getHeight();
+                        var rowHeight = pagingScroller.rowHeight;
+                        end = Math.ceil(visibleHeight / rowHeight);
+                    }
+                    // Do a little clean up to make sure our calculated end isn't greater than our actual end
+                    if(totalCount < pagingScroller.visibleEnd){
+                        end = totalCount;
+                    }
+                    var msg = Ext.String.format(this.displayMsg, start, end, totalCount);
+                    this.setText(_t(msg));
+                } else {
+                    // Drat, we didn't have the paging scroller, so assume we are showing all
+                    var showingAllMsg = 'Found {0} records';
+                    var msg = Ext.String.format(showingAllMsg, totalCount);
+                    this.setText(_t(msg));
+                }
             } else {
-                this.setText(this.emptyMsg);
+                this.setText(_t(this.emptyMsg));
             }
         }
     });
