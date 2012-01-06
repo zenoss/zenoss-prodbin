@@ -1,5 +1,14 @@
 (function() {
 
+    var directStoreWorkaroundListeners = {
+        beforedestroy: function() {
+            // This is to work around a bug in Sencha 4.x:
+            // http://www.sencha.com/forum/archive/index.php/t-136583.html?s=0737c51cf4da51fa8cb875c351c5b2b4
+            this.bindStore(null);                        
+        }
+    };
+
+
     var ZF = Ext.ns('Zenoss.form.rule'),
          unparen=/^\((.*)\)$/,
          nested=/\)( and | or )\(/,
@@ -694,6 +703,7 @@
                     root: 'data',
                     fields: ['name', 'uuid']
                 }),
+                listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
                 valueField: 'uuid',
                 displayField: 'name',
@@ -717,6 +727,7 @@
                     root: 'data',
                     fields: ['name', 'uuid']
                 }),
+                listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
                 valueField: 'uuid',
                 displayField: 'name',
@@ -740,6 +751,7 @@
                     root: 'deviceClasses',
                     fields: ['name']
                 }),
+                listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
                 valueField: 'name',
                 displayField: 'name',
@@ -760,6 +772,7 @@
                     root: 'systems',
                     fields: ['name']
                 }),
+                listeners: directStoreWorkaroundListeners,
                 defaultListConfig: {
                     maxWidth:200
                 },                
@@ -786,6 +799,7 @@
                     root: 'groups',
                     fields: ['name']
                 }),
+                listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
                 valueField: 'name',
                 displayField: 'name',
