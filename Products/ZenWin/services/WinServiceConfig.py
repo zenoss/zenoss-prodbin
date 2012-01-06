@@ -13,6 +13,8 @@
 
 "Provides Wmi config to zenwin clients."
 
+import Globals
+
 from Products.ZenCollector.services.config import CollectorConfigService
 
 import logging
@@ -99,3 +101,16 @@ class WinServiceConfig(CollectorConfigService):
             
         return proxy
         
+
+if __name__ == '__main__':
+    from Products.ZenHub.ServiceTester import ServiceTester
+    tester = ServiceTester(WinServiceConfig)
+    def printer(config):
+        print '\t'.join(['Start Modes', 'Running?', 'Severity', 'Name',  ])
+        for serviceName, data in sorted(config.services.items()):
+            running, severity, _, startModes = data
+            print '\t'.join(map(str, [startModes, running, '', severity, '', serviceName ]))
+
+    tester.printDeviceProxy = printer
+    tester.showDeviceInfo()
+

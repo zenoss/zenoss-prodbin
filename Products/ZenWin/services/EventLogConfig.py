@@ -16,6 +16,8 @@ __doc__='''EventLogConfig
 Provides configuration to zeneventlog clients.
 '''
 
+import Globals
+
 from Products.ZenCollector.services.config import CollectorConfigService
 
 import logging
@@ -54,3 +56,14 @@ class EventLogConfig(CollectorConfigService):
         proxy.configCycleInterval = self._prefs.eventlogCycleInterval
 
         return proxy
+
+
+if __name__ == '__main__':
+    from Products.ZenHub.ServiceTester import ServiceTester
+    tester = ServiceTester(EventLogConfig)
+    def printer(config):
+        print "zWinEventlogMinSeverity = %s" % config.zWinEventlogMinSeverity
+        print "zWinEventlogClause = '%s'" % config.zWinEventlogClause
+    tester.printDeviceProxy = printer
+    tester.showDeviceInfo()
+
