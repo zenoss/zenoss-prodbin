@@ -31,6 +31,7 @@ import tarfile
 import Globals
 from ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath, readable_time
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 from ZenBackupBase import *
 
 
@@ -69,21 +70,22 @@ class ZenBackup(ZenBackupBase):
 
     def readZEPSettings(self):
         '''
-        Read in and store the ZEP DB configuration options from
-        'zeneventserver.conf' to the 'options' object.
+        Read in and store the ZEP DB configuration options
+        to the 'options' object.
         '''
-        zepconf = os.path.join(zenPath('etc'), 'zeneventserver.conf')
-        zepsettings = {'username': 'zepdbuser', 'hostname': 'zepdbhost',
-                       'dbname': 'zepdbname', 'password': 'zepdbpass',
-                       'port': 'zepdbport'}
-        
-        with open(zepconf) as f_zepconf:
-            for line in f_zepconf:
-                line = line.strip()
-                if line.startswith('zep.jdbc.'):
-                    (key, _ignored, value) = line[9:].partition('=')
-                    if key in zepsettings:
-                        setattr(self.options, zepsettings[key], value)
+        globalSettings = globalConfToDict()
+        zepsettings = {
+            'zep-user': 'zepdbuser',
+            'zep-host': 'zepdbhost',
+            'zep-db': 'zepdbname',
+            'zep-password': 'zepdbpass',
+            'zep-port': 'zepdbport'
+        }
+
+        for key in zepsettings:
+            if key in globalSettings:
+                value = str(globalSettings[key])
+                setattr(self.options, zepsettings[key], value)
 
     def saveSettings(self):
         '''
@@ -92,12 +94,14 @@ class ZenBackup(ZenBackupBase):
         config = ConfigParser.SafeConfigParser()
         config.add_section(CONFIG_SECTION)
 
-        config.set(CONFIG_SECTION, 'host', self.options.host)
-        config.set(CONFIG_SECTION, 'port', self.options.port)
-        config.set(CONFIG_SECTION, 'mysqldb', self.options.mysqldb)
-        config.set(CONFIG_SECTION, 'mysqluser', self.options.mysqluser)
-        config.set(CONFIG_SECTION, 'mysqlpasswd', self.options.mysqlpasswd)
-        
+        config.set(CONFIG_SECTION, 'zodb_host', self.options.zodb_host)
+        config.set(CONFIG_SECTION, 'zodb_port', str(self.options.zodb_port))
+        config.set(CONFIG_SECTION, 'zodb_db', self.options.zodb_db)
+        config.set(CONFIG_SECTION, 'zodb_user', self.options.zodb_user)
+        config.set(CONFIG_SECTION, 'zodb_password', self.options.zodb_password)
+        if self.options.zodb_socket:
+            config.set(CONFIG_SECTION, 'zodb_socket', self.options.zodb_socket)
+
         config.set(CONFIG_SECTION, 'zepdbhost', self.options.zepdbhost)
         config.set(CONFIG_SECTION, 'zepdbport', self.options.zepdbport)
         config.set(CONFIG_SECTION, 'zepdbname', self.options.zepdbname)
@@ -194,9 +198,8 @@ class ZenBackup(ZenBackupBase):
                                 dest='saveSettings',
                                 default=True,
                                 action='store_false',
-                                help='Do not include mysqldb, mysqluser, mysqlpasswd, zepdbname, zepdbuser, and zendbpass'
-                                    ' in the backup'
-                                    ' file for use during restore.')
+                                help='Do not include zodb and zep credentials'
+                                    ' in the backup file for use during restore.')
 
         self.parser.remove_option('-v')
         self.parser.add_option('-v', '--logseverity',
@@ -206,7 +209,7 @@ class ZenBackup(ZenBackupBase):
                         help='Logging severity threshold')
 
 
-    def backupMySqlDb(self, host, port, db, user, passwdType, sqlFile):
+    def backupMySqlDb(self, host, port, db, user, passwdType, sqlFile, socket=None):
         cmd_p1 = ['mysqldump', '-u%s' % user]
         cmd_p2 = ['--single-transaction', db]
         if host and host != 'localhost':
@@ -215,6 +218,8 @@ class ZenBackup(ZenBackupBase):
                 cmd_p2.append('--compress')
         if port and port != '3306':
             cmd_p2.append('--port=%s' % port)
+        if socket:
+            cmd_p2.append('--socket=%s' % socket)
 
         cmd = cmd_p1 + self.getPassArg(passwdType) + cmd_p2
         obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
@@ -310,10 +315,10 @@ class ZenBackup(ZenBackupBase):
         self.log.info('Backing up the ZODB.')
         if self.options.saveSettings:
             self.saveSettings()
-        
-        self.backupMySqlDb(self.options.host, self.options.port,
-                           self.options.mysqldb, self.options.mysqluser,
-                           'mysqlpasswd', 'zodb.sql.gz')
+        self.backupMySqlDb(self.options.zodb_host, self.options.zodb_port,
+                           self.options.zodb_db, self.options.zodb_user,
+                           'zodb_password', 'zodb.sql.gz',
+                           socket=self.options.zodb_socket)
 
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)

@@ -89,7 +89,7 @@ class ZenRestore(ZenBackupBase):
         '''
         try:
             f = open(os.path.join(self.tempDir, CONFIG_FILE), 'r')
-        except:
+        except Exception:
             return
         try:
             config = ConfigParser.SafeConfigParser()
@@ -110,7 +110,7 @@ class ZenRestore(ZenBackupBase):
                 return path
         return None
 
-    def restoreMySqlDb(self, host, port, db, user, passwd, sqlFile):
+    def restoreMySqlDb(self, host, port, db, user, passwd, sqlFile, socket=None):
         """
         Create MySQL database if it doesn't exist.
         """
@@ -122,6 +122,8 @@ class ZenRestore(ZenBackupBase):
                 mysql_cmd.append('--compress')
         if port and str(port) != '3306':
             mysql_cmd.extend(['--port', str(port)])
+        if socket:
+            mysql_cmd.extend(['--socket', socket])
 
         mysql_cmd = subprocess.list2cmdline(mysql_cmd)
 
@@ -188,8 +190,8 @@ class ZenRestore(ZenBackupBase):
         # initial connection to the database. We have to expire everything
         # in the cache in order to prevent errors with overlapping
         # transactions from the backup.
-        if self.options.cacheservers:
-            self.flush_memcached(self.options.cacheservers.split())
+        if self.options.zodb_cacheservers:
+            self.flush_memcached(self.options.zodb_cacheservers.split())
         if self.hasSqlBackup():
             self.restoreZODBSQL()
         elif self.hasZeoBackup():
@@ -201,9 +203,10 @@ class ZenRestore(ZenBackupBase):
             self.msg('This archive does not contain a ZODB backup.')
             return
         self.msg('Restoring ZODB database.')
-        self.restoreMySqlDb(self.options.host, self.options.port,
-                            self.options.mysqldb, self.options.mysqluser,
-                            self.getPassArg('mysqlpasswd'), zodbSql)
+        self.restoreMySqlDb(self.options.zodb_host, self.options.zodb_port,
+                            self.options.zodb_db, self.options.zodb_user,
+                            self.getPassArg('zodb_password'), zodbSql,
+                            socket=self.options.zodb_socket)
 
     def restoreZODBZEO(self):
         repozoDir = os.path.join(self.tempDir, 'repozo')
@@ -233,11 +236,13 @@ class ZenRestore(ZenBackupBase):
 
         zodbconvert_conf.write('<relstorage destination>\n')
         zodbconvert_conf.write('  <mysql>\n')
-        zodbconvert_conf.write('    host %s\n' % self.options.host)
-        zodbconvert_conf.write('    port %s\n' % self.options.port)
-        zodbconvert_conf.write('    db %s\n' % self.options.mysqldb)
-        zodbconvert_conf.write('    user %s\n' % self.options.mysqluser)
-        zodbconvert_conf.write('    passwd %s\n' % self.options.mysqlpasswd or '')
+        zodbconvert_conf.write('    host %s\n' % self.options.zodb_host)
+        zodbconvert_conf.write('    port %s\n' % self.options.zodb_port)
+        zodbconvert_conf.write('    db %s\n' % self.options.zodb_db)
+        zodbconvert_conf.write('    user %s\n' % self.options.zodb_user)
+        zodbconvert_conf.write('    passwd %s\n' % self.options.zodb_password or '')
+        if self.options.zodb_socket:
+            zodbconvert_conf.write('    unix_socket %s\n' % self.options.zodb_socket)
         zodbconvert_conf.write('  </mysql>\n')
         zodbconvert_conf.write('</relstorage>\n')
         zodbconvert_conf.close()
