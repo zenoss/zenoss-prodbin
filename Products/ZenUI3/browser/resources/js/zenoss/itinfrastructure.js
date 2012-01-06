@@ -1194,28 +1194,11 @@ Zenoss.Security.onPermissionsChange(function(){
     Ext.getCmp('actions-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Change Device'));
 });
 
-function getInfrastructureDeviceColumns() {
-    var columns = [
-        'severity',
-        'device',
-        'component',
-        'eventClass',
-        'summary',
-        'firstTime',
-        'lastTime',
-        'status',
-        'count'
-    ];
-    var defs = Zenoss.env.getColumnDefinitions();
-    return  Zenoss.util.filter(defs, function(d){
-        return Ext.Array.contains(columns, d.id);
-    });
-}
 
 var event_console = Ext.create('Zenoss.EventGridPanel', {
     id: 'events_grid',
     stateId: 'infrastructure_events',
-    columns: getInfrastructureDeviceColumns(),
+    columns: Zenoss.env.getColumnDefinitions(['DeviceClass']),
     newwindowBtn: true,
     actionsMenu: false,
     commandsMenu: false,
