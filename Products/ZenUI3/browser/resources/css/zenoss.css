@@ -1449,8 +1449,11 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
     font-size:13px !important;
 }
 #collectorId, #collectorHostField, #rootPasswordField{
-    width:300px !important;
+    width:380px !important;
 }
 #collectorfieldset label{
     width:120px !important;
+}
+#collectorfieldset input{
+    width:250px !important;
 }
