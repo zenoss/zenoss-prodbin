@@ -1021,7 +1021,11 @@ Ext.define("Zenoss.InfraDetailNav", {
             contentPanel.setContext(this.contextId);
             detailPanel.layout.setActiveItem(node.data.id);
             var orgnode = treesm.getSelectedNode();
-            Ext.History.add([orgnode.getOwnerTree().id, orgnode.get("uid").replace(/\//g, '.'), node.get("id")].join(Ext.History.DELIMITER));
+            Ext.History.add([
+                orgnode.getOwnerTree().id,
+                orgnode.get("uid").replace(/\//g, '.'),
+                node.get("id")
+            ].join(Ext.History.DELIMITER));
         }
     }
 });
@@ -1091,8 +1095,11 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 width:152,
                 listeners: {
                     'render': function(me) {
-                        me.getEl().on('click', function(){
-                            Ext.History.add(Ext.History.getToken() + ':events_grid');
+                        me.getEl().on('click', function() {
+                            Ext.getCmp("master_panel").layout.setActiveItem(1);
+                            Ext.History.add(
+                                Ext.History.getToken() + ':events_grid'
+                            );
                         });
                     }
                 }
