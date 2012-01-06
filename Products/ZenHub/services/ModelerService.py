@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+import Globals
+
 from Acquisition import aq_base
 from twisted.internet import defer, reactor
 from ZODB.transact import transact
@@ -155,3 +157,30 @@ class ModelerService(PerformanceConfig):
     def pushConfig(self, device):
         from twisted.internet.defer import succeed
         return succeed(device)
+
+
+if __name__ == '__main__':
+    from Products.ZenHub.ServiceTester import ServiceTester
+    tester = ServiceTester(ModelerService)
+
+    def configprinter(config):
+        print "%s (%s) Plugins" % (config.id, config.manageIp)
+        print sorted(x.pluginName for x in config.plugins)
+
+    def showDeviceInfo():
+        if tester.options.device:
+            name = tester.options.device
+            config = tester.service.remote_getDeviceConfig([name])
+            if config:
+                print "Config for %s =" % name
+                configprinter(config[0])
+            else:
+                log.warn("No configs found for %s", name)
+        else:
+            collector = tester.options.monitor
+            devices = tester.service.remote_getDeviceListByMonitor(collector)
+            devices = sorted(devices)
+            print "Device list = %s" % devices
+
+    showDeviceInfo()
+
