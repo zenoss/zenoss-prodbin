@@ -11,12 +11,16 @@
 #
 ###########################################################################
 
+__doc__ = """WinServiceMap
+Collect Windows service information using WMI, which enables monitoring
+of Windows services via zenwin.
+"""
+
 from Products.ZenWin.WMIPlugin import WMIPlugin
 from Products.ZenUtils.Utils import prepId
 
 class WinServiceMap(WMIPlugin):
 
-    maptype = "WinServiceMap"
     compname = "os"
     relname = "winservices"
     modname = "Products.ZenModel.WinService"
