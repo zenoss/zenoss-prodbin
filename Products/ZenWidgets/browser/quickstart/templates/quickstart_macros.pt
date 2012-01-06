@@ -30,6 +30,9 @@
         <style>legend {width: 100%} legend span
             {display:block;margin-left:-23px} </style>
         <![endif]-->
+        <script type="text/javascript" src="++resource++extjs/ext-all-debug.js"></script>
+        <script type="text/javascript" src="++resource++zenui/js/zenoss/migrate/ext3-core-compat.js"></script>
+        <script type="text/javascript" src="++resource++zenui/js/zenoss/migrate/ext3-compat.js"></script>
     </head>
     <body><div class="yui-skin-sam">
 
