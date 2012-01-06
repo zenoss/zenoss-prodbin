@@ -1046,7 +1046,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 }
                 var title = result.data.name,
                 qtip,
-                desc = [];
+                desc = [''];
                 if ( result.data.address ) {
                     desc.push(result.data.address);
                 }
@@ -1056,7 +1056,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
 
                 if ( desc ) {
                     Ext.QuickTips.register({target: this.headerCt, text: Ext.util.Format.nl2br(desc.join('<hr>')), title: result.data.name});
-                    this.setTitle(Ext.String.format("{0} - {1}", title, desc.join(' - ')));
+                    this.setTitle(Ext.String.format("{0} {1}", title, desc.join(' - ')));
                 }else {
                     this.setTitle(title);
                 }
@@ -1194,11 +1194,28 @@ Zenoss.Security.onPermissionsChange(function(){
     Ext.getCmp('actions-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Change Device'));
 });
 
+function getInfrastructureDeviceColumns() {
+    var columns = [
+        'severity',
+        'device',
+        'component',
+        'eventClass',
+        'summary',
+        'firstTime',
+        'lastTime',
+        'status',
+        'count'
+    ];
+    var defs = Zenoss.env.getColumnDefinitions();
+    return  Zenoss.util.filter(defs, function(d){
+        return Ext.Array.contains(columns, d.id);
+    });
+}
 
 var event_console = Ext.create('Zenoss.EventGridPanel', {
     id: 'events_grid',
     stateId: 'infrastructure_events',
-    columns: Zenoss.env.getColumnDefinitions(['DeviceClass']),
+    columns: getInfrastructureDeviceColumns(),
     newwindowBtn: true,
     actionsMenu: false,
     commandsMenu: false,
