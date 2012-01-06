@@ -21,6 +21,7 @@ import logging
 log = logging.getLogger("zen.zenrender")
 
 import mimetypes
+import socket
 import xmlrpclib
 
 import Globals
@@ -89,7 +90,8 @@ class ZenRenderPreferences(object):
         log.info("Starting %s zenrender webserver on port %s",
                       collector, httpPort)
         renderer = HttpRender(collector)
-        reactor.listenTCP(httpPort, server.Site(renderer))
+        interface = '::' if socket.has_ipv6 else ''
+        reactor.listenTCP(httpPort, server.Site(renderer), interface=interface)
 
         # Add remote_ methods from renderer directly to the daemon
         for name in dir(renderer):

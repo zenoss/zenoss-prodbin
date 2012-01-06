@@ -21,6 +21,7 @@ import Globals
 
 from XmlRpcService import XmlRpcService
 
+import socket
 import time
 import pickle
 
@@ -290,10 +291,11 @@ class ZenHub(ZCmdBase):
         er = HubRealm(self)
         checker = self.loadChecker()
         pt = portal.Portal(er, [checker])
-        reactor.listenTCP(self.options.pbport, pb.PBServerFactory(pt))
+        interface = '::' if socket.has_ipv6 else ''
+        reactor.listenTCP(self.options.pbport, pb.PBServerFactory(pt), interface=interface)
 
         xmlsvc = AuthXmlRpcService(self.dmd, checker)
-        reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc))
+        reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc), interface=interface)
 
         #start listening for zenrender requests
         self.renderConfig = RenderConfig(self.dmd, ZENHUB_ZENRENDER )

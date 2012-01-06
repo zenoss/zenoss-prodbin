@@ -25,8 +25,8 @@ import logging
 from logging import handlers
 from twisted.python import log as twisted_log
 
-from CmdBase import CmdBase
-from Utils import zenPath, HtmlFormatter, binPath
+from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenUtils.Utils import zenPath, HtmlFormatter, binPath
 
 # Daemon creation code below based on Recipe by Chad J. Schroeder
 # File mode creation mask of the daemon.
@@ -377,7 +377,7 @@ class ZenDaemon(CmdBase):
         # through zensocket or other startup that results in closing
         # this socket
         if not self.reporter and self.options.watchdogPath:
-            from Watchdog import Reporter
+            from Products.Zenutils.Watchdog import Reporter
             self.reporter = Reporter(self.options.watchdogPath)
         if self.reporter:
            self.reporter.niceDoggie(timeout)

@@ -25,6 +25,7 @@ from Products.ZenRRD.zenrender import RenderServer
 from twisted.web import resource, server
 from twisted.internet import reactor
 from twisted.internet.error import CannotListenError
+import socket
 import xmlrpclib, mimetypes
 
 # Global variable
@@ -134,7 +135,8 @@ class RenderConfig(NullConfigService):
             if not htmlResource:
                 htmlResource = Render()
                 log.info("Starting graph retrieval listener on port 8090")
-                reactor.listenTCP(8090, server.Site(htmlResource))
+                interface = '::' if socket.has_ipv6 else ''
+                reactor.listenTCP(8090, server.Site(htmlResource), interface=interface)
             htmlResource.addRenderer(self)
         except CannotListenError, e:
             # Probably in a hub worker; no big deal
