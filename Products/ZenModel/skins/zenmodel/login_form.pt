@@ -92,33 +92,33 @@
 
     <body onload="if (window.location != window.top.location) {window.top.location.href = window.location.href;} document.getElementById('username').focus();">
         <div id="topbar"></div>
-        <form name="loginform" 
+        <form name="loginform"
             method="POST"
               tal:attributes="action string:${here/absolute_url}/login">
-                <input type="hidden" name="came_from" value="" 
+                <input type="hidden" name="came_from" value=""
                        tal:attributes="value request/came_from | string:"/>
                 <input type="hidden" name="submitted" value="true" />
             <div id="middlebar">
                 <div id="container">
-                    <div id="loginimg" 
+                    <div id="loginimg"
                         style="background:transparent url(zenoss-login.png)
                         no-repeat">
                     </div>
-                    <input id="username" type="text" name="__ac_name" 
+                    <input id="username" type="text" name="__ac_name"
                            class="inputbox" style="top:160px"/>
-                    <input type="password" name="__ac_password" 
+                    <input type="password" name="__ac_password"
                            class="inputbox" style="top:202px;"/>
                     <div id="errorbox">
                         <tal:block define="msg here/getLoginMessage"
                             tal:omit-tag=""
                             tal:on-error="string:">
-                            <span class="error" tal:condition="msg" 
+                            <span class="error" tal:condition="msg"
                                   tal:content="structure msg" />
                         </tal:block>
                     </div>
                     <tal:block tal:content="structure here/getLoginButton"/>
                     <div id="copyright">
-                        <p>Copyright &copy; 2005-2011 Zenoss, Inc. | Version
+                        <p>Copyright &copy; 2005-2012 Zenoss, Inc. | Version
                         <span tal:content="here/getZenossVersionShort"/>
                         </p>
                     </div>

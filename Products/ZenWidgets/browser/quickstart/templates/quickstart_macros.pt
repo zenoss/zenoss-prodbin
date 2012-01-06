@@ -34,8 +34,8 @@
             if(typeof(Ext) != "object"){
                 document.write("<script src='++resource++extjs/ext-all-debug.js'><\/script>");
                 document.write("<script src='++resource++zenui/js/zenoss/migrate/ext3-core-compat.js'><\/script>");
-                document.write("<script src='++resource++zenui/js/zenoss/migrate/ext3-compat.js'><\/script>"); 
-            }            
+                document.write("<script src='++resource++zenui/js/zenoss/migrate/ext3-compat.js'><\/script>");
+            }
         </script>
     </head>
     <body><div class="yui-skin-sam">
@@ -63,7 +63,7 @@
                 </tal:block>
             </div>
         </div>
-        <div id="footer">&copy; 2005-2011 Zenoss, Inc.</div>
+        <div id="footer">&copy; 2005-2012 Zenoss, Inc.</div>
 
 
     </div>
@@ -324,7 +324,7 @@ Ext.onReady(function() {
             items: [{
                 xtype: 'panel',
                 id: 'credstitle_' + index,
-                cls: 'credstitle',                
+                cls: 'credstitle',
                 style: {
                     'font-weight': 'bold',
                     'font-size': '1.3em',
@@ -408,7 +408,7 @@ Ext.onReady(function() {
                         anchor: '95%'
                     },
                     id: 'snmp_' + index,
-                    cls: 'creds_sub',                    
+                    cls: 'creds_sub',
                     title: 'SNMP Credentials',
                     items: [{
                         xtype: 'panel',
@@ -428,7 +428,7 @@ Ext.onReady(function() {
                 {
                     xtype: 'fieldset',
                     id: 'win_' + index,
-                    cls: 'creds_sub',                    
+                    cls: 'creds_sub',
                     border: false,
                     title: 'Windows Credentials',
                     defaultType: 'textfield',
@@ -568,8 +568,8 @@ Ext.onReady(function() {
                 xtype: 'panel',
                 items: [{
                     xtype: 'button',
-                    text: 'Submit',   
-                    cls:'step2submit',                    
+                    text: 'Submit',
+                    cls:'step2submit',
                     handler: function() {
                         Ext.getCmp('autodiscoverform').getForm().submit({
                             url: 'auto_add',
