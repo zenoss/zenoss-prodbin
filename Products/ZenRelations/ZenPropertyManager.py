@@ -559,7 +559,7 @@ class ZenPropertyManager(object, PropertyManager):
         return type
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getZ')
-    def getZ(self, id):
+    def getZ(self, id, default=None):
         """
         Return the value of a zProperty on this object.  This method is used to
         lookup zProperties for a user with a role that doesn't have direct
@@ -580,7 +580,7 @@ class ZenPropertyManager(object, PropertyManager):
                 and not self.zenPropIsPassword(id):
             returnValue = self.getProperty(id)
         else:
-            returnValue = None
+            returnValue = default
         return returnValue
 
     def exportZProperties(self, exclusionList=()):

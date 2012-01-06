@@ -116,7 +116,7 @@ class TemplateLeaf(TemplateInfo):
         # see if it is bound
         deviceClass = self._object.deviceClass()
         # if deviceClass is none it is a device template (and therefore bound)
-        if not deviceClass or (self._object.id in deviceClass.zDeviceTemplates):
+        if not deviceClass or (self._object.id in deviceClass.getZ('zDeviceTemplates', [])):
             return 'tree-template-icon-bound'
         return 'tree-node-no-icon'
 
