@@ -443,7 +443,6 @@ Ext.define("Zenoss.HideFitDialog", {
     extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
         Ext.applyIf(config, {
-            layout: 'fit',
             width: 600,
             height: 300,
             closeAction: 'hide',

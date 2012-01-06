@@ -30,8 +30,9 @@ function refreshTemplateTree() {
         cmp.refresh(function() {
             // select the first node
             var root = cmp.getRootNode();
+
             if (root.firstChild) {
-                root.firstChild.select();
+                cmp.getSelectionModel().select(root.firstChild);
             }
         });
 
@@ -119,10 +120,24 @@ Zenoss.MonTemplateSelectionModel = Ext.extend(Zenoss.BubblingSelectionModel, {
     }
 });
 
+
+Ext.define('Zenoss.templates.TemplateTreeModel', {
+    extend: 'Zenoss.model.Tree',
+    fields: [ 'text', 'uid'],
+    getId: function() {
+        return this.get("uid");
+    },
+    proxy: {
+        type: 'direct',
+        directFn: REMOTE.getTemplates,
+        paramOrder: ['uid']
+    }
+});
 Ext.define("Zenoss.templates.MonTemplateTreePanel", {
     alias:['widget.montemplatetreepanel'],
     extend:"Ext.tree.TreePanel",
     constructor: function(config){
+
         // create the model
         Ext.applyIf(config, {
             useArrows: true,
@@ -131,25 +146,41 @@ Ext.define("Zenoss.templates.MonTemplateTreePanel", {
             selModel: new Zenoss.MonTemplateSelectionModel({
                 bubbleTarget: config.bubbleTarget
             }),
+            store: Ext.create('Ext.data.TreeStore', {
+                model: 'Zenoss.templates.TemplateTreeModel',
+                nodeParam: 'uid'
+            }),
+            hideHeaders: true,
+            columns: [{
+                xtype: 'treecolumn',
+                flex: 1,
+                dataIndex: 'text'
+            }],
             root: {
                 text: _t('Monitoring Templates')
             }
         });
-        Zenoss.templates.MonTemplateTreePanel.superclass.constructor.call(this, config);
-    },
-    setContext: function(uid){
-        if ( uid.match('^/zport/dmd/Devices') ) {
-            REMOTE.getTemplates({id: uid}, function(response){
-                var root = {
-                    expanded: true,
-                    text: _t('Monitoring Templates'),
-                    children: response
-                };
 
-                this.setRootNode(root);
-                // resize ourself with the new data
-                this.doLayout();
-            } , this);
+        this.callParent([config]);
+    },
+    initComponent: function(){
+        this.callParent(arguments);
+        this.getStore().on('load', function() {
+            this.getRootNode().expand();
+        }, this);
+    },
+    setContext: function(uid, callback, scope) {
+        this.uid = uid;
+        if ( uid.match('^/zport/dmd/Devices') ) {
+            var root = this.getRootNode();
+            if (root) {
+                root.collapse();
+                root.data.uid = uid;
+                this.getStore().load({
+                    callback: callback,
+                    scope: scope
+                });
+            }
         } else {
             this.hide();
         }
@@ -171,6 +202,9 @@ Ext.define("Zenoss.templates.MonTemplateTreePanel", {
             detail.montemplate.setContext(uid);
             detail.getLayout().setActiveItem('montemplate');
         }
+    },
+    refresh: function(callback, scope) {
+        this.setContext(this.uid, callback, scope);
     }
 });
 
@@ -368,6 +402,8 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
     constructor: function(config){
         var me = this;
         Ext.applyIf(config, {
+            height: 200,
+            width: 300,
             title: _t('Override Templates'),
             listeners: {
                 show: function() {
@@ -377,7 +413,7 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
                     me.comboBox.setValue(null);
                     me.comboBox.store.setBaseParam('query', me.context);
                     me.comboBox.store.setBaseParam('uid', me.context);
-                    me.comboBox.store.load();
+
                 }
             },
             items: [{
@@ -394,13 +430,11 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
                 valueField: 'uid',
                 displayField: 'label',
                 resizable: true,
-                store: {
-                    xtype: 'directstore',
-                    ref:'store',
-                    directFn: REMOTE.getOverridableTemplates,
+                store: Ext.create('Zenoss.NonPaginatedStore', {
+                    root: 'data',
                     fields: ['uid', 'label'],
-                    root: 'data'
-                },
+                    directFn: REMOTE.getOverridableTemplates
+                }),
                 listeners: {
                     select: function(){
                         // disable submit if nothing is selected
@@ -445,6 +479,8 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
     constructor: function(config){
         var me = this;
         Ext.applyIf(config, {
+            height: 200,
+            width: 300,
             title: _t('Remove Local Template'),
             listeners: {
                 show: function() {
@@ -454,7 +490,6 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
                     me.comboBox.setValue(null);
                     me.comboBox.store.setBaseParam('query', me.context);
                     me.comboBox.store.setBaseParam('uid', me.context);
-                    me.comboBox.store.load();
                 }
             },
             items: [{
@@ -463,6 +498,7 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
             },{
                 xtype: 'combo',
                 forceSelection: true,
+                width: 200,
                 emptyText: _t('Select a template...'),
                 minChars: 0,
                 ref: 'comboBox',
@@ -470,13 +506,11 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
                 valueField: 'uid',
                 displayField: 'label',
                 typeAhead: true,
-                store: {
-                    xtype: 'directstore',
-                    ref:'store',
-                    directFn: REMOTE.getLocalTemplates,
+                store: Ext.create('Zenoss.NonPaginatedStore', {
+                    root: 'data',
                     fields: ['uid', 'label'],
-                    root: 'data'
-                },
+                    directFn: REMOTE.getLocalTemplates
+                }),
                 listeners: {
                     select: function(){
                         // disable submit if nothing is selected
