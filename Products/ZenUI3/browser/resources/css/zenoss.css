@@ -308,7 +308,7 @@ a.eventrainbow {
 
 
 .eventrainbow .severity-icon-small {
-  background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png);
+  background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png) !important;
 }
 
 
