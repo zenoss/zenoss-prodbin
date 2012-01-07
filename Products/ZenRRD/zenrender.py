@@ -11,7 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from Products.ZenUtils.Utils import ipv6_available
 
 __doc__ = """zenrender
 
@@ -40,6 +39,7 @@ from Products.ZenCollector.tasks import NullTaskSplitter
 
 from Products.ZenRRD.RenderServer import RenderServer as OrigRenderServer
 from Products.ZenUtils.ObjectCache import ObjectCache
+from Products.ZenUtils.Utils import ipv6_available
 
 
 class RenderServer(OrigRenderServer):
