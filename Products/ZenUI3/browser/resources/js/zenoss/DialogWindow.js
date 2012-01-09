@@ -472,6 +472,12 @@ Ext.define("Zenoss.dialog.DynamicDialog", {
         config = Ext.applyIf(config || {}, {
             layout: 'fit',
             modal: true,
+            stateful: false,
+            listeners:{
+                'afterRender':function(t){
+                    t.setHeight(t.el.getHeight() + t.getHeight());
+                }
+            },
             buttons: [{
                 xtype: 'DialogButton',
                 text: _t('Submit'),
