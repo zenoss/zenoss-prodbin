@@ -9581,8 +9581,8 @@ CORE TRIGGER PAGE STUFF
 #master_panel .x-panel-body {
   overflow: visible; }
 
-#master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner, #trigger-master_panel .x-grid-row-over .x-grid-cell, #trigger-master_panel .x-grid-row-over .x-grid-cell-inner {
-  background-color: #eeeeee !important;
+#master_panel .x-panel-hierarchy .x-grid-row-over, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over, #master_panel_navigation .x-grid-row-over, #trigger-master_panel .x-grid-row-over {
+  background-color: #eee;
   color: #454545; }
 
 #processForm .x-toolbar-footer, #serviceForm .x-toolbar-footer {

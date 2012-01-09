@@ -91,10 +91,12 @@ $include-missing-images: true;
 #master_panel .#{$prefix}panel-hierarchy, #master_panel #subselecttreepaneldetail_nav, 
 #master_panel_navigation, #trigger-master_panel{
     .#{$prefix}grid-row-over{
-        .#{$prefix}grid-cell, .#{$prefix}grid-cell-inner{
-            background-color:#eee !important;
-            color:#454545;
-        }
+            background-color:#eee;
+            color:#454545;    
+       // .#{$prefix}grid-cell, .#{$prefix}grid-cell-inner{
+       //     background-color:#eee;
+       //     color:#454545;
+       // }
     }
 }
 
