@@ -14,7 +14,7 @@
         inputValue: true,
         uncheckedValue: false
     });
-    
+
     /**
     * Splitter needs to be resized thinner based on the older UI. The default is 5
     **/
@@ -89,6 +89,13 @@
     });
 
 
+    /**
+     * Back compat for Ext3 Component grid definitions.
+     * NOTE: This only works if you follow the convention of having the xtype be the same
+     * as the last part of the namespace defitions. (e.g. "Zenoss.component.foo" having an xtype "foo")
+     * @param xtype
+     * @param cls
+     */
     Ext.reg = function(xtype, cls){
         if (Ext.isString(cls)) {
             Ext.ClassManager.setAlias(cls, 'widget.'+xtype);
@@ -203,5 +210,83 @@
         }
     });
 
+    /**
+     * This is a workaround to make sure that all of the rows show up in the
+     * infinite grid.
+     * See Trac Ticket #29726
+     * If we have more rows than the stretchEl allows for then resize it make room
+     * for the total rows. Unfortunately this assumes that the rows are of uniform height.
+     **/
+    Ext.override(Ext.grid.PagingScroller, {
+        onElScroll: function(e, t) {
+            var me = this,
+            panel = me.getPanel(),
+            store = panel.store,
+            pageSize = store.pageSize,
+            guaranteedStart = store.guaranteedStart,
+            guaranteedEnd = store.guaranteedEnd,
+            totalCount = store.getTotalCount(),
+            numFromEdge = Math.ceil(me.percentageFromEdge * store.pageSize),
+            position = t.scrollTop,
+            visibleStart = Math.floor(position / me.rowHeight),
+            view = panel.down('tableview'),
+            viewEl = view.el,
+            visibleHeight = viewEl.getHeight(),
+            visibleAhead = Math.ceil(visibleHeight / me.rowHeight),
+            visibleEnd = visibleStart + visibleAhead,
+            prevPage = Math.floor(visibleStart / store.pageSize),
+            nextPage = Math.floor(visibleEnd / store.pageSize) + 2,
+            lastPage = Math.ceil(totalCount / store.pageSize),
+            //requestStart = visibleStart,
+            requestStart = Math.floor(visibleStart / me.snapIncrement) * me.snapIncrement,
+            requestEnd = requestStart + pageSize - 1,
+            activePrefetch = me.activePrefetch;
+            /* Added below line JRH 1/6/2012 */
+            this.rowHeight = this.getPanel().down('tableview').el.first().dom.offsetHeight / this.store.pageSize;
+            me.visibleStart = visibleStart;
+            me.visibleEnd = visibleEnd;
 
+            me.syncScroll = true;
+            if (totalCount >= pageSize) {
+                // end of request was past what the total is, grab from the end back a pageSize
+                if (requestEnd > totalCount - 1) {
+                    this.cancelLoad();
+                    if (store.rangeSatisfied(totalCount - pageSize, totalCount - 1)) {
+                        me.syncScroll = true;
+                    }
+                    store.guaranteeRange(totalCount - pageSize, totalCount - 1);
+                    // Out of range, need to reset the current data set
+                } else if (visibleStart < guaranteedStart || visibleEnd > guaranteedEnd) {
+                    if (store.rangeSatisfied(requestStart, requestEnd)) {
+                        this.cancelLoad();
+                        store.guaranteeRange(requestStart, requestEnd);
+                    } else {
+                        store.mask();
+                        me.attemptLoad(requestStart, requestEnd);
+                    }
+                    // dont sync the scroll view immediately, sync after the range has been guaranteed
+                    me.syncScroll = false;
+                } else if (activePrefetch && visibleStart < (guaranteedStart + numFromEdge) && prevPage > 0) {
+                    me.syncScroll = true;
+                    store.prefetchPage(prevPage);
+                } else if (activePrefetch && visibleEnd > (guaranteedEnd - numFromEdge) && nextPage < lastPage) {
+                    me.syncScroll = true;
+                    store.prefetchPage(nextPage);
+                }
+            }
+            /* Added below line JRH 1/6/2012 */
+            var stretchEl = this.stretchEl.dom;
+
+            // check if the scroller has reached bottom but not all data has been displayed, if so expand the scroll view height
+            if(position + this.el.dom.offsetHeight >= stretchEl.offsetHeight && visibleEnd < totalCount - 1) {
+                stretchEl.style.height = (stretchEl.scrollHeight + (((totalCount - 1) - visibleEnd) * this.rowHeight)) + 'px';
+            }
+            /* END ADDED stuff */
+
+            if (me.syncScroll) {
+                me.syncTo();
+            }
+        }
+
+    });
 }());
