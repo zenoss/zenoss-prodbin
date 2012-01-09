@@ -140,7 +140,7 @@ class ReportRouter(TreeRouter):
         return self._getTreeUpdates(contextUid)
 
     def _getTreeUpdates(self, contextUid, newId=None):
-        marshalled = self._marshalPath(contextUid, newId)
+        marshalled = self._marshalPath(contextUid, newId, localKeys=self.keys)
         for parent, child in zip(marshalled[:-1], marshalled[1:]):
             parent['children'] = [child]
         result = {'tree': [marshalled[0]]}
@@ -169,9 +169,9 @@ class ReportRouter(TreeRouter):
     def _treeMoveUpdates(self, uid, target):
         oldPathTokens = uid.split('/')
         oldPath = '/'.join(oldPathTokens[:-1])
-        oldBranch = self._marshalPath(oldPath)
+        oldBranch = self._marshalPath(oldPath, localKeys=self.keys + ('id', 'children'))
         newId = oldPathTokens[-1]
-        newBranch = self._marshalPath(target, newId)
+        newBranch = self._marshalPath(target, newId, localKeys=self.keys + ('id', 'children'))
         for newParent, newChild, oldParent, oldChild in izip_longest(newBranch[:-1], newBranch[1:], oldBranch[:-1], oldBranch[1:], fillvalue=None):
             if newParent and oldParent and newParent['id'] != oldParent['id']:
                 newParent['children'] = [newChild]
@@ -187,9 +187,9 @@ class ReportRouter(TreeRouter):
         if oldBranch[0]['id'] != newBranch[0]['id']:
             tree.append(oldBranch[0])
         newNode = newBranch[-1]
-        return DirectResponse.succeed(tree=tree, newNode=newNode)
+        return DirectResponse.succeed()
 
-    def _marshalPath(self, contextUid, newId=None):
+    def _marshalPath(self, contextUid, newId=None, localKeys=None):
         tokens = contextUid.split('/')
         if newId:
             tokens.append(newId)
@@ -198,5 +198,5 @@ class ReportRouter(TreeRouter):
         for x in range(4, len(tokens) + 1):
             paths.append('/'.join(tokens[:x]))
         nodes = [self._getFacade().getTree(id) for id in paths]
-        return [Marshaller(node).marshal(self.keys) for node in nodes]
+        return [Marshaller(node).marshal(localKeys) for node in nodes]
 

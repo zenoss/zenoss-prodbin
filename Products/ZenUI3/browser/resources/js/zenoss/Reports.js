@@ -56,6 +56,10 @@ function initializeTreeDrop(tree) {
         Zenoss.remote.ReportRouter.moveNode({
             uid: uid,
             target: targetUid
+        }, function(response){
+            if(response.success){
+               tree.refresh();
+            }
         });
         return true;
 
