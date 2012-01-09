@@ -111,6 +111,7 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
                     if checkClass(obj.__class__, self.sub_class)]
 
 
+    security.declareProtected('Manage DMD', 'manage_removeMonitor')
     def manage_removeMonitor(self, ids = None, submon = "", REQUEST=None):
         'Add an object of sub_class, from a module of the same name'
         msg = ''
@@ -143,7 +144,7 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected('Manage DMD', 'manage_addMonitor')
     def manage_addMonitor(self, id, submon=None, REQUEST=None):
         'Remove an object from this one'
         values = {}
