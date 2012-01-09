@@ -544,6 +544,47 @@ class TestZenprocess(BaseTestCase):
         task._deviceStats.update(config)
         self.compareTestFile('remodel_bug-1', task, expectedStats)
 
+    def testSubsetCorrectMatch(self):
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'rpciod_3', False, 'rpc')
+        self.updateProcDefs(procDefs, 'rpciod_32', False, 'rpc')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'rpciod/3',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'rpciod/32'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': 'rpciod/3',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.2': 'rpciod/32'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': ''}}
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=2, MISSING=0))
+
+    def testSuffixCorrectMatch(self):
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'iod_3', False, 'iod')
+        self.updateProcDefs(procDefs, 'ciod_3', False, 'iod')
+        self.updateProcDefs(procDefs, 'pciod_3', False, 'iod')
+        self.updateProcDefs(procDefs, 'rpciod_3', False, 'iod')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'iod/3',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'ciod/3',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.3': 'pciod/3',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.4': 'rpciod/3'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/etc/iod/3',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.2': '/etc/ciod/3',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.3': '/etc/pciod/3',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.4': '/etc/rpciod/3'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': '',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.3': '',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.4': ''}}
+        self.compareTestData(data, task, self.expected(PROCESSES=4, AFTERBYCONFIG=4, MISSING=0))
+
+    def testRpciods(self):
+        procDefs = self.getProcDefsFromFile('rpciod_test_config')
+        task = self.makeTask(procDefs)
+        self.compareTestFile('rpciod_test', task, self.expected(PROCESSES=33, NEW=33, MISSING=0))
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

@@ -240,9 +240,11 @@ class ProcessStats:
 
         if result and useName:
             nameOnly = self._config.name.split(' ')[0]
-            cleanName = globalPrepId(name)
-            if not nameOnly in cleanName:
-                log.debug("Discarding match based on name mismatch: %s %s" % (cleanName, nameOnly))
+            cleanNameOnly = globalPrepId(name.split(' ')[0])
+            nameRe = '(.?)' + re.escape(nameOnly) + '$'
+            nameMatch = re.search(nameRe, cleanNameOnly)
+            if not nameMatch or nameMatch.group(1) not in ('', '_'):
+                log.debug("Discarding match based on name mismatch: %s %s" % (cleanNameOnly, nameOnly))
                 result = False
 
         return result
