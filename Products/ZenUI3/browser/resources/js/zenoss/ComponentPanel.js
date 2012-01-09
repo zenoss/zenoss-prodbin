@@ -21,11 +21,11 @@ var ZC = Ext.ns('Zenoss.component'),
 
 ZC.registerName = function(meta_type, name, plural) {
     NM[meta_type] = [name, plural];
-}
+};
 
 ZC.displayName = function(meta_type) {
     return NM[meta_type] || [meta_type, meta_type];
-}
+};
 
 ZC.displayNames = function() {
     return NM;
@@ -330,17 +330,8 @@ Ext.define("Zenoss.component.ComponentPanel", {
     },
     selectByToken: function(token) {
         if (token) {
-            var grid = this.componentgrid,
-                store = grid.getStore(),
-                sm = grid.getSelectionModel(),
-                view = grid.getView();
-            store.findByUid(token, function(record, index) {
-                if (!sm.isSelected(index)) {
-                    sm.selectRow(index);
-                    view.focusRow(index);
-                    sm.fireEvent('selectionchange', sm, sm.getSelection());
-                }
-            }, grid);
+            var grid = this.componentgrid;
+            grid.selectByToken(token);
         }
     },
     setContext: function(uid, type) {
@@ -463,15 +454,15 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         Zenoss.util.addLoadingMaskToGrid(this);
     },
     applyOptions: function(options){
-        Ext.apply(options.params, {
+        // apply options to all future parameters, not just this operation.
+        var params = this.getStore().getProxy().extraParams;
+
+        Ext.apply(params, {
             uid: this.contextUid,
             keys: Ext.pluck(this.fields, 'name'),
             meta_type: this.componentType,
             name: this.componentName
         });
-    },
-    refresh: function() {
-        this.setContext(this.contextUid);
     },
     filter: function(name) {
         this.componentName = name;
@@ -488,7 +479,50 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 this.fireEvent('selectionchange', this, this.getSelectionModel().getSelection());
             }
         }, this, {single:true});
-        this.getStore().load();
+        this.callParent(arguments);
+    },
+    selectByToken: function(uid) {
+        var store = this.getStore(),
+            selectionModel = this.getSelectionModel(),
+            view = this.getView(),
+            me = this,
+            selectToken = function() {
+                
+                var found = false, i=0;
+                store.each(function(r){
+                    if (r.get("uid") == uid) {
+                        selectionModel.select(r);
+                        view.focusRow(r.index);
+                        found = true;
+                        return false;
+                    }
+                    i++;
+                    return true;
+                });
+                if (!found) {
+                    var o = {componentUid:uid};
+                    Ext.apply(o, store.getProxy().extraParams);
+                    Zenoss.remote.DeviceRouter.findComponentIndex(o, function(r){
+                        // will return a null if not found
+                        if (Ext.isNumeric(r.index)) {
+                            // scroll to the correct location which will fire the guaranteedrange event
+                            // and select the correct r in the above code
+                            store.on('guaranteedrange', selectToken, this, {single: true});
+                            var scroller = me.down('paginggridscroller');
+                            if (scroller) {
+                                scroller.scrollByDeltaY(scroller.rowHeight * r.index);
+                            }
+                        }
+                    });
+                }
+        };
+
+        if (!store.loaded) {
+            store.on('guaranteedrange', selectToken, this, {single: true});
+        } else {
+            selectToken();
+        }
+
     }
 });
 
@@ -503,32 +537,6 @@ Ext.define("Zenoss.component.BaseComponentStore", {
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);
         this.on('load', function(){this.loaded = true;}, this);
-    },
-    findByUid: function(uid, callback, scope) {
-        var doit = function() {
-            var i = 0, found = false;
-            this.each(function(r){
-                if (r.data.uid==uid) {
-                    callback.call(scope||this, r, i);
-                    found = true;
-                    return false;
-                }
-                i++;
-                return true;
-            });
-            if (!found) {
-                var o = {componentUid:uid};
-                Ext.apply(o, this.lastOptions.params);
-                Zenoss.remote.DeviceRouter.findComponentIndex(o, function(r){
-                    callback.call(scope||this, null, r.index);
-                });
-            }
-        }.createDelegate(this);
-        if (!this.loaded) {
-            this.on('load', doit, this);
-        } else {
-            doit();
-        }
     }
 });
 

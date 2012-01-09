@@ -189,6 +189,7 @@ def filterUidsByPermission(dmd, permission, uids):
     @return:  All the Uids the logged in user has the passed in permission on
     """
     validUids = []
+    uids = (uids,) if isinstance(uids, basestring) else uids
     for uid in uids:
         obj = dmd.unrestrictedTraverse(uid)
         if checkPermission(permission, obj):
