@@ -243,14 +243,14 @@ class MinMaxThresholdInstance(ThresholdInstance):
 
         # Handle all cases where both minimum and maximum are set.
         if self.maximum is not None and self.minimum is not None:
-            if self.maximum >= self.minimum and value > self.maximum:
-                thresh = self.maximum
-                how = 'exceeded'
-            if self.maximum >= self.minimum and value < self.minimum:
-                thresh = self.maximum
-                how = 'not met'
-            elif self.maximum < self.minimum \
-                and (value < self.minimum and value > self.maximum):
+            if self.maximum >= self.minimum:
+                if value > self.maximum:
+                    thresh = self.maximum
+                    how = 'exceeded'
+                elif value < self.minimum:
+                    thresh = self.minimum
+                    how = 'not met'
+            elif self.maximum < value < self.minimum:
                 thresh = self.maximum
                 how = 'violated'
 
