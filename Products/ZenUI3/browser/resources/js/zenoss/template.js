@@ -40,7 +40,7 @@ resetCombo = function(combo, uid) {
  * 2. "deviceClass" : leaves are templates and nodes are deviceClasses
  **/
 function getCurrentView(){
-    var currentView = Ext.util.Cookies.get('template_view');
+    var currentView = Ext.state.Manager.get('template_view');
 
     if (Ext.History.getToken() && Ext.History.getToken().search('/devices/') != -1) {
         return 'template';
@@ -49,18 +49,21 @@ function getCurrentView(){
         return currentView;
     }
     currentView = 'template';
-    Ext.util.Cookies.set('template_view', currentView, new Date().add(Date.MONTH, 1));
+    Ext.state.Manager.set('template_view', currentView);
     return currentView;
 }
 
 /**
- * Will set the cookie for the default view. This will cause a page reload.
+ * Will set the state for the default view. This will cause a page reload.
  **/
 function setDefaultView(view) {
     var currentView = getCurrentView();
     if (currentView != view){
-        Ext.util.Cookies.set('template_view', view, new Date().add(Date.MONTH, 1));
-        window.location = "/zport/dmd/template";
+        Ext.state.Manager.set('template_view', view);
+        // make sure the state is saved before reloading
+        Ext.state.Manager.provider.saveStateNow(function() {
+            window.location = "/zport/dmd/template";
+        });
     }
 }
 

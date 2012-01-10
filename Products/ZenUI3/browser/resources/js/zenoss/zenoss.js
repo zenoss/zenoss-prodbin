@@ -109,6 +109,7 @@ Zenoss.env.initPriorities = function(){
 
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
+    directFn: Zenoss.remote.MessagingRouter.setBrowserState,
     constructor: function() {
         this.callParent(arguments);
         this.on('statechange', this.save, this);
@@ -124,13 +125,21 @@ Ext.define('Zenoss.state.PersistentProvider', {
         // update the state just send one request
         if(!this.onSaveTask) {
             this.onSaveTask = new Ext.util.DelayedTask(function(){
-                Zenoss.remote.MessagingRouter.setBrowserState(
+                this.directFn(
                     {state: Ext.encode(this.state)}
                 );
             }, this);
         }
         // delay for half a second
         this.onSaveTask.delay(500);
+    },
+    saveStateNow: function(callback, scope) {
+        this.directFn(
+            {state: Ext.encode(this.state)},
+            function() {
+                Ext.callback(callback, scope);
+            }
+        );
     }
 });
 Ext.state.Manager.setProvider(Ext.create('Zenoss.state.PersistentProvider'));
