@@ -585,7 +585,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         self.geocache = ''
         if REQUEST:
-            audit('UI.DataRoot.ClearGeocodeCache')
+            audit('UI.GeocodeCache.Clear')
 
     security.declareProtected(ZEN_COMMON, 'getGeoCache')
     @json
@@ -739,12 +739,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 os.kill(child.pid, signal.SIGKILL)
 
             write('DONE')
-        except:
+        except Exception:
             write('Exception while performing backup.')
             write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
         else:
-            if REQUEST:
-                audit('UI.DataRoot.Backup')
+            if REQUEST or writeMethod:
+                audit('UI.Backup.Create')
         write('')
         if REQUEST and footer:
             REQUEST.RESPONSE.write(footer)
@@ -756,7 +756,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         Delete the specified files from $ZENHOME/backups
         """
         backupsDir = zenPath('backups')
-        removed = ()
+        removed = []
         if os.path.isdir(backupsDir):
             for dirPath, dirNames, dirFileNames in os.walk(backupsDir):
                 dirNames[:] = []
@@ -764,10 +764,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     if fileName in dirFileNames:
                         toRemove = os.path.join(dirPath, fileName)
                         res = os.remove(toRemove)
-                        if res == 0:
+                        if not res:
                             removed.append(toRemove)
             if REQUEST:
-                audit('UI.DataRoot.DeleteBackups', removed=removed)
+                audit('UI.Backup.Delete', files=removed)
                 messaging.IMessageSender(self).sendToBrowser(
                     'Backups Deleted',
                     '%s backup files have been deleted.' % len(removed)
@@ -777,7 +777,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Backup Directory Missing',
                     'Unable to find $ZENHOME/backups.',
-                    priority=messaging.WARNING
+                    messaging.WARNING
                 )
         if REQUEST:
             return self.callZenScreen(REQUEST)

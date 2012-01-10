@@ -354,7 +354,7 @@ class ZenBackup(ZenBackupBase):
     def packageStagingBackups(self):
         """
         Gather all of the other data into one nice, neat file for easy
-        tracking.
+        tracking. Returns the filename created.
         """
         self.log.info('Packaging backup file.')
         if self.options.file:
@@ -369,8 +369,9 @@ class ZenBackup(ZenBackupBase):
         (output, warnings, returncode) = self.runCommand(cmd)
         if returncode:
             self.log.critical("Backup terminated abnormally.")
-            return -1
+            return None
         self.log.info('Backup written to %s' % outfile)
+        return outfile
 
 
     def cleanupTempDir(self):
@@ -424,13 +425,15 @@ class ZenBackup(ZenBackupBase):
             self.backupPerfData()
 
         # tar, gzip and send to outfile
-        self.packageStagingBackups()
+        outfile = self.packageStagingBackups()
 
         self.cleanupTempDir()
 
         backupEndTime = time.time()
         totalBackupTime = readable_time(backupEndTime - backupBeginTime)
         self.log.info('Backup completed successfully in %s.', totalBackupTime)
+        # TODO: There's no way to tell if this initiated through the UI.
+        # audit('Shell.Backup.Create', file=outfile)
         return 0
 
 

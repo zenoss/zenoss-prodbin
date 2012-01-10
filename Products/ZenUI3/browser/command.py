@@ -91,7 +91,7 @@ class BackupView(StreamingView):
         except ValueError:
             timeout = 120
         self.context.zport.dmd.manage_createBackup(includeEvents,
-                includeMysqlLogin, timeout, None, self.write)
+                includeMysqlLogin, timeout, self.request, self.write)
 
 
 class TestDataSourceView(StreamingView):

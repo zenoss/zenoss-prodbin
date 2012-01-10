@@ -382,6 +382,9 @@ class ZenRestore(ZenBackupBase):
             if os.system(cmd): return -1
 
         self.msg('Restore complete.')
+        # TODO: Audit from command-line without zenpacks loaded.
+        # audit('Shell.Backup.Restore', file=self.options.file,
+        #       dir=self.options.dir, zenpacks=self.options.zenpacks)
         return 0
 
     def flush_memcached(self, cacheservers):
