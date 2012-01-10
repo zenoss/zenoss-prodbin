@@ -323,7 +323,7 @@ Ext.onReady(function () {
 
                     buttons:[
                         {
-                            xtype:'button',
+                            xtype:'DialogButton',
                             text:_t('Close'),
                             handler:function () {
                                 me.hide();

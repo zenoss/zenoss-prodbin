@@ -116,9 +116,14 @@ function destroyWindow(button) {
     if (win){
         return win.destroy();
     }
-    var container = button.ownerCt.ownerCt;
-    if (container.ownerCt !== undefined) container.ownerCt.destroy();
-    else container.destroy();
+    if (button.ownerCt !== undefined){    
+        var container = button.ownerCt.ownerCt;    
+        if (container.ownerCt !== undefined){
+            container.ownerCt.destroy();
+        }else{
+            container.destroy();
+        }
+    }    
 }
 
 /**
