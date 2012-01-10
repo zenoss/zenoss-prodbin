@@ -120,13 +120,11 @@ class SnmpTrapConfig(CollectorConfigService):
     def mibsChanged(self, device, event):
         for listener in self.listeners:
             listener.callRemote('notifyConfigChanged')
-        self._procrastinator.doLater(device)
 
     @onDelete(MibBase)
     def mibsDeleted(self, device, event):
         for listener in self.listeners:
             listener.callRemote('notifyConfigChanged')
-        self._procrastinator.doLater(device)
 
 
 if __name__ == '__main__':

@@ -29,18 +29,18 @@ class Procrastinate(object):
     def clear(self):
         self.devices = set()
 
+    def stop(self):
+        self._stopping = True
+        if not self.devices:
+            return defer.succeed(True)
+        return self._stopping_deferred
+
     def doLater(self, device = None):
         if not self._stopping:
             if self.timer and not self.timer.called:
                 self.timer.cancel()
             self.devices.add(device)
             self.timer = reactor.callLater(Procrastinate._DO_LATER_DELAY, self._doNow)
-
-    def stop(self):
-        self._stopping = True
-        if not self.devices:
-            return defer.succeed(True)
-        return self._stopping_deferred
 
     def _doNow(self, *unused):
         if self.devices:
