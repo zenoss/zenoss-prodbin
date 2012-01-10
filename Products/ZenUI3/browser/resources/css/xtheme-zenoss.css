@@ -9662,3 +9662,13 @@ CORE TRIGGER PAGE STUFF
   width: 15px !important; }
 .x-flare-header .x-tool {
   left: 0px !important; }
+
+#category_tree-body {
+  background-color: transparent !important; }
+
+#manageSavedSearchesDialog .x-column-header-text {
+  color: #000000;
+  font-size: 11px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3); }
+#manageSavedSearchesDialog .x-box-inner .x-btn {
+  margin-left: 2px !important; }

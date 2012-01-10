@@ -257,8 +257,9 @@ Ext.onReady(function () {
                 Ext.apply(config, {
                     title:_t('Manage Saved Searches'),
                     layout:'form',
+                    stateful: false,
                     autoHeight:true,
-                    width:475,
+                    width:460,
                     modal:true,
                     listeners:{
                         show:function () {
@@ -274,6 +275,8 @@ Ext.onReady(function () {
                             autoScroll:true,
                             border:false,
                             autoHeight:true,
+                            sortableColumns:false,
+                            enableColumnHide:false,
                             tbar:[
                                 {
                                     xtype:'button',
@@ -309,9 +312,8 @@ Ext.onReady(function () {
                                 }
                             }),
                             columns:[
-                                {dataIndex:'name', header:_t('Name'), width:150},
-                                {dataIndex:'query', header:_t('Query'), width:150},
-                                {dataIndex:'creator', header:_t('Created By'), width:150}
+                                {dataIndex:'name', header:_t('Name'), width:225},
+                                {dataIndex:'query', header:_t('Query'), width:225}
                             ],
                             store:Ext.create('Zenoss.search.SavedSearchStore', {
                                 autoLoad:true
