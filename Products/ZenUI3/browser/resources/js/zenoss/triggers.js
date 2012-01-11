@@ -245,6 +245,7 @@ Ext.onReady(function () {
 
     Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         extend: 'Ext.grid.Panel',
+        alias: ['widget.usersPermissionGrid'],
         constructor: function(config) {
             var me = this;
             config = config || {};
@@ -541,12 +542,6 @@ Ext.onReady(function () {
             disableTabContents(tab_notification);
         }
 
-        var recipients_grid = Ext.create('Zenoss.triggers.UsersPermissionGrid', {
-            title: _t('Subscribers'),
-            allowManualEntry: true,
-            width: Ext.IsIE ? bigWindowWidth-50 : 'auto',
-            ref: 'recipients_grid'
-        });
 
         var tab_recipients = new NotificationTabContent({
             title: _t('Subscribers'),
@@ -578,8 +573,13 @@ Ext.onReady(function () {
                         hideLabel: true
                     }
                 ]
-            },
-            recipients_grid
+            },{
+                xtype: 'usersPermissionGrid',
+                title: _t('Subscribers'),
+                allowManualEntry: true,
+                width: Ext.IsIE ? bigWindowWidth-50 : 'auto',
+                ref: 'recipients_grid'
+            }
             ],
             loadData: function(data) {
                 this.recipients_grid.getStore().loadData(data.recipients);
@@ -1808,16 +1808,11 @@ Ext.onReady(function () {
         ]
     };
 
-    var users_grid = Ext.create('Zenoss.triggers.UsersPermissionGrid', {
-        title: _t('Users'),
-        allowManualEntry: false
-    });
 
     var trigger_tab_users = {
         xtype: 'panel',
         ref: '../../tab_users',
         id: 'users_rule',
-        users_grid: users_grid,
         title: _t('Users'),
         autoScroll: true,
         height: bigWindowHeight-110,
@@ -1850,8 +1845,12 @@ Ext.onReady(function () {
                     }
 
                 ]
-            },
-            users_grid
+            },{
+                xtype: 'usersPermissionGrid',
+                ref: 'users_grid',
+                title: _t('Users'),
+                allowManualEntry: false
+            }
         ]
     };
 
