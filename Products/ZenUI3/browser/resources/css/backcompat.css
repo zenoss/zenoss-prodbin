@@ -185,15 +185,15 @@
 }
 
 
-.ext-ie .z-bc-z-menu {
+.x-ie .z-bc-z-menu {
   width: 180px;
 }
 
-.ext-ie .z-bc-page-menu {
+.x-ie .z-bc-page-menu {
   padding: 10px 0 5px;
 }
 
-.ext-ie .z-bc-z-menu ul li a {
+.x-ie .z-bc-z-menu ul li a {
   display: inline-block;
   width: 100%;
 }
@@ -290,10 +290,14 @@
 
 
 .dialog_container {
-  width: 300px;
+    width: auto;
 }
 
-.ext-ie .dialog_close {
+.x-ie .dialog_container {
+    width: 500px;
+}
+
+.x-ie .dialog_close {
   right: 5px;
 }
 
@@ -339,19 +343,19 @@ div.zenportlet .yui-skin-sam .yui-dt-table td {
 }
 
 
-.ext-ie #portletContainer .yui-g .yui-u.first {
+.x-ie #portletContainer .yui-g .yui-u.first {
   width: 49.9%;
 }
 
-.ext-ie #portletContainer .yui-gb .yui-u.first {
+.x-ie #portletContainer .yui-gb .yui-u.first {
   width: 33.9%;
 }
 
-.ext-ie #portletContainer .yui-gc .yui-u.first {
+.x-ie #portletContainer .yui-gc .yui-u.first {
   width: 66.9%;
 }
 
-.ext-ie #portletContainer .yui-gd .yui-u.first {
+.x-ie #portletContainer .yui-gd .yui-u.first {
   width: 32.9%;
 }
 
@@ -428,15 +432,15 @@ div.portlet-settings {
 }
 
 
-.ext-ie div.portlet-settings {
+.x-ie div.portlet-settings {
   zoom: 1;
 }
 
-.ext-ie div.resize-handle {
+.x-ie div.resize-handle {
   overflow: hidden;
 }
 
-.ext-ie .yui-ac {
+.x-ie .yui-ac {
   height: 30px;
 }
 
