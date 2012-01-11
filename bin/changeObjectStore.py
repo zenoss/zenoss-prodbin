@@ -18,6 +18,7 @@ import sys
 import itertools
 from subprocess import Popen, PIPE, call
 from tempfile import mkstemp
+
 import MySQLdb
 import optparse
 from _mysql_exceptions import OperationalError
@@ -91,6 +92,7 @@ def getMySqlSettings():
 
 
 def createMySqlDatabase(host, port, db, user, passwd, root, socket):
+
     conn = None
     queries = (
         'DROP DATABASE IF EXISTS %s;' % db,
@@ -143,17 +145,14 @@ def updateConf(conf, toAdd=[], toRemove=[]):
     for option, value in toAdd:
         new_contents.append('%s %s\n' % (option, value))
 
-    conf_file = open(filename, 'w')
-    for line in new_contents:
-        conf_file.write(line)
-
-    conf_file.close()
+    with open(filename, 'w') as conf_file:
+        for line in new_contents:
+            conf_file.write(line)
     return '%s - UPDATED' % filename
 
 
 def convertFromZeoToMySql():
     host, port, db, user, passwd, root, socket = getMySqlSettings()
-
     print "Creating database..."
     print "-"*79
     createMySqlDatabase(host, port, db, user, passwd, root, socket)
@@ -251,12 +250,19 @@ def convertFromZeoToMySql():
             'host', 'port', 'mysqldb', 'mysqluser', 'mysqlpasswd']))
 
     toAdd = [
-        ('host', host), ('port', port), ('mysqldb', db), ('mysqluser', user),
-        ('mysqlpasswd', passwd)
+        ('zodb-db-type', 'mysql'),
+        ('zodb-host', host),
+        ('zodb-port', port),
+        ('zodb-db', db),
+        ('zodb-user', user),
+        ('zodb-password', passwd)
     ]
     if host=='localhost' and socket:
-       toAdd.append(('mysqlsocket', socket,))
+       toAdd.append(('zodb-socket', socket,))
     print "Global (%s)" % updateConf('global', toAdd=toAdd)
+    # sync the zodb_main.conf
+    call([zenPath("bin", "zenglobalconf"), "-s"])
+
 
 
 def convertZopeConfToMySql(host, port, db, user, passwd, socket):
@@ -275,18 +281,10 @@ def convertZopeConfToMySql(host, port, db, user, passwd, socket):
             nc.append('  %import relstorage\n')
             nc.append('  <relstorage>\n')
             nc.append('    # Uncomment these to use memcached\n')
-            nc.append('    # cache-servers 127.0.0.1:11211\n')
-            nc.append('    # cache-module-name memcache\n')
+            nc.append('    cache-servers 127.0.0.1:11211\n')
+            nc.append('    cache-module-name memcache\n')
             nc.append('    keep-history false\n')
-            nc.append('    <mysql>\n')
-            nc.append('      host %s\n' % host)
-            nc.append('      port %s\n' % port)
-            nc.append('      db %s\n' % db)
-            nc.append('      user %s\n' % user)
-            nc.append('      passwd %s\n' % passwd)
-            if host=='localhost' and socket:
-                nc.append('      unix_socket %s\n' % socket)
-            nc.append('    </mysql>\n')
+            nc.append('    %include zodb_db_main.conf\n')
             nc.append('  </relstorage>\n')
     zcf.close()
     with open(zc, 'w') as zcf:
@@ -344,7 +342,7 @@ if __name__ == '__main__':
            help='Name of database for MySQL object store')
     parser.add_option('--admin-user', dest='adminUser', default="root",
            help='Name of database admin user')
-    parser.add_option('--admin-password', dest='adminPassword',
+    parser.add_option('--admin-password', dest='adminPassword', default="",
            help='MySQL root password')
     parser.add_option('--socket', dest='socket', default=None,
            help='unix socket path of the database connection (if localhost)')

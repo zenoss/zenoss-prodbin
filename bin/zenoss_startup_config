@@ -61,6 +61,7 @@ export ZODB_ADMIN_USER="`get_var zodb-admin-user`"
 export ZODB_ADMIN_PASSWORD="`get_var zodb-admin-password`"
 export ZODB_USER="`get_var zodb-user`"
 export ZODB_PASSWORD="`get_var zodb-password`"
+export ZODB_SOCKET="`get_var zodb-socket`"
 
 export ZEP_DB_TYPE="`get_var zep-db-type`"
 export ZEP_HOST="`get_var zep-host`"

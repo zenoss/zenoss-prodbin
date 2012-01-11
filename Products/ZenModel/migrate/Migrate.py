@@ -44,7 +44,7 @@ def cleanup():
     import os
     count = 0
     for p, d, fs in os.walk(zenPath('Products')):
-        for f in fs: 
+        for f in fs:
             if f.endswith('.pyc'):
                 fullPath = os.path.join(p, f)
                 os.remove(fullPath)
@@ -52,7 +52,7 @@ def cleanup():
     log.debug('removed %d .pyc files from Products' % count)
 
 
-class Step:
+class Step(object):
     'A single migration step, to be subclassed for each new change'
 
     # Every subclass should set this so we know when to run it
@@ -124,7 +124,12 @@ class Migration(ZenScriptBase):
     def __init__(self, noopts=0):
         ZenScriptBase.__init__(self, noopts=noopts, connect=False)
         self.connect()
-        self.allSteps = sorted(allSteps, key=lambda x: x.name())
+        self.allSteps = allSteps[:]
+        # 2 phase sorting
+        # 1. sort by name
+        self.allSteps.sort(lambda x,y: cmp(x.name(), y.name()))
+        # 2. sort by dependencies
+        self.allSteps.sort()
 
         # Log output to a file
         # self.setupLogging() does *NOT* do what we want.
@@ -145,7 +150,7 @@ class Migration(ZenScriptBase):
     def _currentVersion(self):
         """
         Return a VersionBase instance representing the version of the database.
-        This also does some cleanup of dmd.version in case in is 
+        This also does some cleanup of dmd.version in case in is
         nonexistant, empty or set to a float value.
         """
         if not hasattr(self.dmd, 'version') or not self.dmd.version:
@@ -220,7 +225,7 @@ class Migration(ZenScriptBase):
             levelVers = VersionBase.parse('Zenoss ' + self.options.level)
             steps = [s for s in self.allSteps
                         if s.version >= levelVers]
-            
+
         # Step was specified
         elif self.options.steps:
             import re
@@ -250,7 +255,7 @@ class Migration(ZenScriptBase):
                 if self.options.newer:
                     steps = []
                 else:
-                    steps = [s for s in self.allSteps 
+                    steps = [s for s in self.allSteps
                                 if s.version == currentDbVers]
             else:
                 # There are steps newer than the current db version.
@@ -264,7 +269,7 @@ class Migration(ZenScriptBase):
     def migrate(self):
         """
         Determine the correct migrate steps to run and apply them
-        """        
+        """
         steps = self.determineSteps()
         if steps:
             for m in steps:
@@ -279,7 +284,7 @@ class Migration(ZenScriptBase):
             log.setLevel(HIGHER_THAN_CRITICAL)
             for m in steps:
 
-                self.message('Installing %s (%s)' 
+                self.message('Installing %s (%s)'
                                 % (m.name(), m.version.short()))
 
                 m.cutover(self.dmd)
@@ -418,5 +423,5 @@ class Migration(ZenScriptBase):
         if self.options.list:
             self.list()
             return
-                
+
         self.cutover()
