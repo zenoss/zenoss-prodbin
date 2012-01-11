@@ -20,6 +20,11 @@ communications with the Model and Event databases.
 
 import Globals
 
+if __name__ == "__main__":
+    # Install the 'best' reactor available, BUT only if run as a script.
+    from Products.ZenHub import installReactor
+    installReactor()
+
 from XmlRpcService import XmlRpcService
 
 import socket
