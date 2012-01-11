@@ -969,6 +969,12 @@ table.search-result {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.search-result ul{
+    margin:10px !important;
+}
+.search-result li{
+    list-style:none !important;
+}
 
 
 .x-tip .x-tip-mc li {

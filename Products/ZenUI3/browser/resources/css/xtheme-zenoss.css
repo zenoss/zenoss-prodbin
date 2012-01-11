@@ -9582,8 +9582,13 @@ CORE TRIGGER PAGE STUFF
   overflow: visible; }
 
 #master_panel .x-panel-hierarchy .x-grid-row-over, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over, #master_panel_navigation .x-grid-row-over, #trigger-master_panel .x-grid-row-over {
-  background-color: #eee;
-  color: #454545; }
+  background-color: #eeeeee !important;
+  color: #454545 !important; }
+#master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner, #trigger-master_panel .x-grid-row-over .x-grid-cell, #trigger-master_panel .x-grid-row-over .x-grid-cell-inner {
+  background-color: #eeeeee !important;
+  color: #454545 !important; }
+#master_panel .x-panel-hierarchy .x-grid-row-over span, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over span, #master_panel_navigation .x-grid-row-over span, #trigger-master_panel .x-grid-row-over span {
+  background: transparent !important; }
 
 #processForm .x-toolbar-footer, #serviceForm .x-toolbar-footer {
   background-color: #F5F9FD;
@@ -9641,6 +9646,7 @@ CORE TRIGGER PAGE STUFF
 .x-grid-row-selected, .x-grid-row-focused {
   background-color: #7199c6 !important; }
 .x-grid-row-selected .x-grid-cell-inner, .x-grid-row-selected span, .x-grid-row-focused .x-grid-cell-inner, .x-grid-row-focused span {
+  background-color: #7199c6 !important;
   color: white !important; }
 
 .x-grid-row-selected.x-grid-row-over .x-grid-cell-inner, .x-grid-row-selected.x-grid-row-over span {
@@ -9666,9 +9672,13 @@ CORE TRIGGER PAGE STUFF
 #category_tree-body {
   background-color: transparent !important; }
 
+#manageSavedSearchesDialog .x-frame-mr {
+  padding-left: 0 !important; }
 #manageSavedSearchesDialog .x-column-header-text {
   color: #000000;
   font-size: 11px;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3); }
 #manageSavedSearchesDialog .x-box-inner .x-btn {
   margin-left: 2px !important; }
+#manageSavedSearchesDialog th, #manageSavedSearchesDialog td {
+  padding: 0px !important; }

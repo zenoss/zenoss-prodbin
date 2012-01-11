@@ -91,12 +91,15 @@ $include-missing-images: true;
 #master_panel .#{$prefix}panel-hierarchy, #master_panel #subselecttreepaneldetail_nav, 
 #master_panel_navigation, #trigger-master_panel{
     .#{$prefix}grid-row-over{
-            background-color:#eee;
-            color:#454545;    
-       // .#{$prefix}grid-cell, .#{$prefix}grid-cell-inner{
-       //     background-color:#eee;
-       //     color:#454545;
-       // }
+            background-color:#eee !important;
+            color:#454545 !important;    
+        .#{$prefix}grid-cell, .#{$prefix}grid-cell-inner{
+            background-color:#eee !important;
+            color:#454545 !important;
+        }
+        span{
+            background:transparent !important;
+        }
     }
 }
 
@@ -175,6 +178,7 @@ $include-missing-images: true;
 .x-grid-row-selected, .x-grid-row-focused{
      background-color:#7199C6 !important;  
      .x-grid-cell-inner, span{
+         background-color:#7199C6 !important;      
          color:#fff !important;
     }
 } 
@@ -207,6 +211,9 @@ $include-missing-images: true;
 }
 
 #manageSavedSearchesDialog{
+    .x-frame-mr{
+        padding-left:0 !important;    
+    }
     .x-column-header-text{
         color:#000000;
         font-size: 11px;
@@ -215,4 +222,5 @@ $include-missing-images: true;
     .x-box-inner .x-btn{
        margin-left:2px !important;
     }
+    th, td{padding:0px !important;}
 }
