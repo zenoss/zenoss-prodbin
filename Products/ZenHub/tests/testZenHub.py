@@ -17,6 +17,9 @@ import Globals
 from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
 from Products.ZenUtils.Driver import drive
 
+# Import from zenhub before importing twisted.internet.reactor
+from Products.ZenHub.zenhub import ZenHub
+
 from twisted.internet import reactor
 from twisted.cred import credentials
 from twisted.spread import pb
@@ -36,13 +39,11 @@ def stop(ignored=None, connector=None):
     if connector:
         connector.disconnect()
 
-from Products.ZenHub.zenhub import ZenHub
-
 class TestClient(pb.Referenceable):
 
     success = False
     svc = 'Products.ZenHub.tests.TestService'
-    
+
     def __init__(self, tester, port):
         self.tester = tester
         factory = pb.PBClientFactory()
@@ -74,7 +75,7 @@ class SendEventClient(TestClient):
 
     def test(self, service):
         def Test(driver):
-            
+
             evt = dict(device='localhost',
                        severity='5',
                        summary='This is a test message')
@@ -126,7 +127,7 @@ class TestZenHub(unittest.TestCase):
     #  This test is too outdated and needs to be reworked.
     #  removing it from execution for now.
     def _testSendEvent(self):
-        client = SendEventClient(self, self.base + count)        
+        client = SendEventClient(self, self.base + count)
         self.zenhub.main()
         self.assertTrue(client.success)
 

@@ -11,11 +11,47 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
 """zenhub daemon
 
 Provide remote, authenticated, and possibly encrypted two-way
 communications with the Model and Event databases.
 """
+
+import sys
+
+def _installReactor(desiredReactor):
+    """
+    Install the given reactor as twisted's reactor.
+    """
+    currentReactor = sys.modules.get("twisted.internet.reactor")
+    if currentReactor is desiredReactor:
+        return
+    if currentReactor:
+        # Raise this exception having a more useful message than the
+        # exception raised by twisted.
+        from twisted.internet import error
+        raise error.ReactorAlreadyInstalledError(
+                "Do not import module %s if twisted.internet.reactor "
+                "is already imported." % __name__
+            )
+    desiredReactor.install()
+
+# Install the 'best' reactor available.  If the desired reactor is not
+# available, an ImportError is raised.  Tries to install epoll first, then
+# poll, and if neither are available, the default select reactor will
+# install when twisted.internet.reactor is imported later in this module.
+try:
+    from select import epoll
+    from twisted.internet import epollreactor
+    _installReactor(epollreactor)
+except ImportError:
+    try:
+        from select import poll
+        from twisted.internet import pollreactor
+        _installReactor(pollreactor)
+    except ImportError:
+        pass
 
 import Globals
 
@@ -69,9 +105,9 @@ sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
 import DataMaps
 unused(DataMaps, ObjectMap)
 
-XML_RPC_PORT = 8081
-PB_PORT = 8789
-ZENHUB_ZENRENDER = 'zenhubrender'
+from Products.ZenHub import XML_RPC_PORT
+from Products.ZenHub import PB_PORT
+from Products.ZenHub import ZENHUB_ZENRENDER
 
 class AuthXmlRpcService(XmlRpcService):
     """Provide some level of authentication for XML/RPC calls"""

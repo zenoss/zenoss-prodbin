@@ -10,9 +10,10 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
-from Products.ZenHub.zenhub import PB_PORT
+from Products.ZenHub import PB_PORT
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import unused
@@ -58,7 +59,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             self.log.error("Unable to report for work: %s", why)
             reactor.stop()
         d.addErrback(reportProblem)
-                        
+
     def _getService(self, name, instance):
         """Utility method to create the service (like PingConfig)
         for instance (like localhost)
@@ -87,16 +88,16 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         """Execute requests on behalf of zenhub
         @type service: string
         @param service: the name of a service, like PingConfig
-        
+
         @type instance: string
         @param instance: each service serves only one specific collector instances (like 'localhost').  instance defines the collector's instance name.
-        
+
         @type method: string
         @param method: the name of the called method, like getPingTree
-        
+
         @type args: tuple
         @param args: arguments to the method
-        
+
         @type kw: dictionary
         @param kw: keyword arguments to the method
         """
@@ -132,24 +133,24 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         These options should be passed (by file) from zenhub.
         """
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('--hubhost', 
+        self.parser.add_option('--hubhost',
                                dest='hubhost',
                                default='localhost',
                                help="Host to use for connecting to ZenHub")
-        self.parser.add_option('--hubport', 
+        self.parser.add_option('--hubport',
                                dest='hubport',
                                type='int',
                                help="Port to use for connecting to ZenHub",
                                default=PB_PORT)
-        self.parser.add_option('--username', 
+        self.parser.add_option('--username',
                                dest='username',
                                help="Login name to use when connecting to ZenHub",
                                default='zenoss')
-        self.parser.add_option('--password', 
+        self.parser.add_option('--password',
                                dest='password',
                                help="password to use when connecting to ZenHub",
                                default='zenoss')
-        
+
 if __name__ == '__main__':
     zhw = zenhubworker()
     reactor.run()

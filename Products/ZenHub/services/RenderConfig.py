@@ -10,11 +10,13 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from Products.ZenUtils.Utils import ipv6_available
 
-__doc__ = """RenderConfig
-zenhub service to start looking for requests to render performance graphs
+"""RenderConfig
+
+zenhub service to start looking for requests to render performance graphs.
 """
+
+from Products.ZenUtils.Utils import ipv6_available
 
 import logging
 log = logging.getLogger('zen.HubService.RenderConfig')
@@ -67,7 +69,7 @@ class Render(resource.Resource):
         def error(reason):
             log.error("Unable to fetch graph: %s", reason)
             request.finish()
-        from Products.ZenHub.zenhub  import ZENHUB_ZENRENDER
+        from Products.ZenHub import ZENHUB_ZENRENDER
         renderer = self.renderers.get(listener, False)
         if renderer and listener == ZENHUB_ZENRENDER:
             try:
@@ -124,7 +126,7 @@ class Render(resource.Resource):
 
 class RenderConfig(NullConfigService):
     def __init__(self, dmd, instance):
-        from Products.ZenHub.zenhub import ZENHUB_ZENRENDER
+        from Products.ZenHub import ZENHUB_ZENRENDER
         if instance == ZENHUB_ZENRENDER:
             self.dmd = dmd
             self.instance = instance

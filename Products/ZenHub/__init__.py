@@ -10,9 +10,15 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-"Turn ZenHub into a module"
+
+"""Turn ZenHub into a module"""
+
+XML_RPC_PORT = 8081
+PB_PORT = 8789
+ZENHUB_ZENRENDER = "zenhubrender"
 
 import sys
 if 'zope.testing' in sys.modules.keys():
     from twisted.python.runtime import platform
     platform.supportsThreads = lambda : None
+
