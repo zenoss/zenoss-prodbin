@@ -9545,6 +9545,9 @@ CORE TRIGGER PAGE STUFF
 .easyadddevice_shell .creds_sub, #newform .creds_sub {
   margin-right: 8px !important; }
 
+#templateTree .x-grid-cell {
+  background-color: transparent; }
+
 /* top search button sprite */
 #searchbox-container .x-form-trigger {
   background-image: url("../img/xtheme-zenoss/form/trigger.gif"); }
@@ -9581,13 +9584,13 @@ CORE TRIGGER PAGE STUFF
 #master_panel .x-panel-body {
   overflow: visible; }
 
-#master_panel .x-panel-hierarchy .x-grid-row-over, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over, #master_panel_navigation .x-grid-row-over, #trigger-master_panel .x-grid-row-over {
+#master_panel .x-panel-hierarchy .x-grid-row-over, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over, #master_panel_navigation .x-grid-row-over, #trigger-master_panel .x-grid-row-over, #templateTree .x-grid-row-over {
   background-color: #eeeeee !important;
   color: #454545 !important; }
-#master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner, #trigger-master_panel .x-grid-row-over .x-grid-cell, #trigger-master_panel .x-grid-row-over .x-grid-cell-inner {
+#master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner, #trigger-master_panel .x-grid-row-over .x-grid-cell, #trigger-master_panel .x-grid-row-over .x-grid-cell-inner, #templateTree .x-grid-row-over .x-grid-cell, #templateTree .x-grid-row-over .x-grid-cell-inner {
   background-color: #eeeeee !important;
   color: #454545 !important; }
-#master_panel .x-panel-hierarchy .x-grid-row-over span, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over span, #master_panel_navigation .x-grid-row-over span, #trigger-master_panel .x-grid-row-over span {
+#master_panel .x-panel-hierarchy .x-grid-row-over span, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over span, #master_panel_navigation .x-grid-row-over span, #trigger-master_panel .x-grid-row-over span, #templateTree .x-grid-row-over span {
   background: transparent !important; }
 
 #processForm .x-toolbar-footer, #serviceForm .x-toolbar-footer {
