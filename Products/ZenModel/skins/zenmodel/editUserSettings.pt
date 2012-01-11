@@ -17,8 +17,9 @@ function ConfirmPagerTest() {
 }
 
 function resetPassword(){
-    if(confirm("Are you sure you want to reset this user's password?"))
+    if (confirm("Are you sure you want to reset this user's password?")) {
         location.href = location.pathname + "?zenScreenName=editUserSettings&manage_resetPassword:method=1&redirect=True";
+    }
 }
 
 function clearBrowserState(event){
@@ -29,7 +30,7 @@ function clearBrowserState(event){
 </script>
 
 
-<form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
+
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
 
         <tal:block tal:define="message request/message | string:State at time:;
@@ -50,19 +51,22 @@ function clearBrowserState(event){
         <!-- BEGIN TABLE CONTENTS -->
     <tr>
     <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
+      <form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
         <div style="background:#ddd;width:372px;height:40px;">
             <div style="float:left;width:230px;height:40px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
                 Automatically generate a new password and send it to the email listed below.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
-            <button style="height:30px;width:132px;text-align:center;"
-                   onclick="resetPassword()"
-                   class="tableheader"
-                   name="manage_resetPassword:method">
-               Reset Password
-            </button>
+              <input type="submit" value="Reset Password"
+                     tabindex="-1"
+                     style="height:30px;width:132px;text-align:center;"
+                     onclick="resetPassword()"
+                     class="tableheader"
+                     name="manage_resetPassword:method" />
+
             </div>
         </div>
+      </form>
     </td>
     </tr>
     <tr tal:condition="here/isLoggedInUser">
@@ -87,6 +91,8 @@ function clearBrowserState(event){
         </div>
     </td>
     </tr>
+
+<form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
 
     <tr>
     <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
@@ -216,7 +222,7 @@ function clearBrowserState(event){
     </tr>
 
 
-
+</form>
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
@@ -224,7 +230,7 @@ function clearBrowserState(event){
         </tal:block>
 
 
-</form>
+
 <script>
     connect('pwconfirm', 'onkeyup', function(){
         if($('pwconfirm').value) {
