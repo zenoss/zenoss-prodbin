@@ -49,9 +49,7 @@ class TestRRDImpl(BaseTestCase):
         # Otherwise it will drive you insane, yelling
         # "SHUT UP! SHUT UP!" to your monitor.
         # Since no good will come of that...
-        logging.disable(logging.INFO)
-        logging.disable(logging.WARN)
-        logging.disable(logging.ERROR)
+        self.oldDisable = logging.root.manager.disable
         logging.disable(logging.CRITICAL)
 
         # Note: the docs (http://docs.python.org/library/logging.html#logging-levels)
@@ -166,6 +164,8 @@ class TestRRDImpl(BaseTestCase):
             shutil.rmtree( self.perfpath )
         except:
             pass
+
+        logging.disable(self.oldDisable)
 
         BaseTestCase.tearDown(self)
 

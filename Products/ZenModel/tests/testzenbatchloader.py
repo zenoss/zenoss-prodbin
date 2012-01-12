@@ -31,6 +31,7 @@ class Testzenbatchloader(BaseTestCase):
     def afterSetUp(self):
         BaseTestCase.afterSetUp(self)
 
+        self.oldDisable = logging.root.manager.disable
         logging.disable(logging.CRITICAL)
 
         self.zloader = BatchDeviceLoader(noopts=1)
@@ -43,7 +44,7 @@ class Testzenbatchloader(BaseTestCase):
 
     def beforeTearDown(self):
         BaseTestCase.beforeTearDown(self)
-        logging.disable(logging.NOTSET)
+        logging.disable(self.oldDisable)
 
     def testSampleConfig(self):
         """

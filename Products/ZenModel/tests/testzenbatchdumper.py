@@ -32,6 +32,7 @@ class Testzenbatchdumper(BaseTestCase):
     def afterSetUp(self):
         BaseTestCase.afterSetUp(self)
 
+        self.oldDisable = logging.root.manager.disable
         logging.disable(logging.CRITICAL)
 
         self.zdumper = BatchDeviceDumper(noopts=1)
@@ -55,7 +56,7 @@ class Testzenbatchdumper(BaseTestCase):
 
     def beforeTearDown(self):
         BaseTestCase.beforeTearDown(self)
-        logging.disable(logging.NOTSET)
+        logging.disable(self.oldDisable)
 
     def testDump(self):
 

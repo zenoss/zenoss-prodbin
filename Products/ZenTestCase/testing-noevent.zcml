@@ -13,6 +13,7 @@
   <include package="Products.ZenWidgets" file="scriptmessaging.zcml"/>
   <include package="Products.Jobber"/>
   <include package="Products.Zuul"/>
+  <include package="Products.ZenUtils"/>
 
 </configure>
 

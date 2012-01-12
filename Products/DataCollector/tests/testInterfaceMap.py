@@ -47,9 +47,13 @@ class TestInterfaceMap(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
+        self.oldDisable = logging.root.manager.disable
         self.imap = InterfaceMap()
         self.device = FakeDevice('testdevice')
 
+    def tearDown(self):
+        BaseTestCase.tearDown(self)
+        logging.disable(self.oldDisable)
 
     def testGoodResults(self):
         tabledata = {

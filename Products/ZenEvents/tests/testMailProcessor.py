@@ -31,11 +31,12 @@ class TestMailProcessor(TestCase):
         self.zem.sendEvent = self.sendEvent
         self.sent = {}
 
-        logging.disable(logging.INFO)
-        logging.disable(logging.WARN)
-        logging.disable(logging.ERROR)
+        self.oldDisable = logging.root.manager.disable
         logging.disable(logging.CRITICAL)
 
+    def tearDown(self):
+        TestCase.tearDown(self)
+        logging.disable(self.oldDisable)
 
     def sendEvent(self, evt):
         "Fakeout sendEvent() method"
