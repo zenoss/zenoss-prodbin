@@ -8,4 +8,6 @@
 
     <include package=".browser"/>
 
+    <subscriber handler=".zeneventd.onDaemonStartRun"/>
+
 </configure>

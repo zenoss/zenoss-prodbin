@@ -18,8 +18,9 @@ import socket
 from datetime import datetime, timedelta
 
 import Globals
-from zope.component import getUtility, getUtilitiesFor
+from zope.component import getUtility, adapter
 from zope.interface import implements
+from zope.component.event import objectEventNotify
 
 from amqplib.client_0_8.exceptions import AMQPConnectionException
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
@@ -27,7 +28,6 @@ from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.guid import guid
-from Products.ZenUtils.Utils import importClass
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.eventlet.amqp import getProtobufPubSub
 from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event
@@ -36,6 +36,8 @@ from zenoss.protocols.jsonformat import from_dict
 from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
 from Products.ZenEvents.events2.processing import *
 from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
+from Products.ZenEvents.daemonlifecycle import DaemonCreatedEvent, SigTermEvent, SigUsr1Event
+from Products.ZenEvents.daemonlifecycle import DaemonStartRunEvent, BuildOptionsEvent
 
 import logging
 log = logging.getLogger("zen.eventd")
@@ -220,19 +222,36 @@ class EventDWorker(ZCmdBase):
                     self._pubsub.shutdown()
                     self._pubsub = None
 
+    def buildOptions(self):
+        super(EventDWorker, self).buildOptions()
+        objectEventNotify(BuildOptionsEvent(self))
+
+    def parseOptions(self):
+        """
+        Don't ever allow a processor to be a daemon
+        """
+        super(EventDWorker, self).parseOptions()
+        self.options.daemon = False
+
+
 class ZenEventD(ZenDaemon):
 
     def __init__(self, *args, **kwargs):
+        from Products.Five import zcml
+        import Products.ZenossStartup
+        zcml.load_site()
         super(ZenEventD, self).__init__(*args, **kwargs)
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                      'zeneventd',
                                                      self.options.maintenancecycle *3)
         self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
                                   self._heartbeatSender)
+        objectEventNotify(DaemonCreatedEvent(self))
 
     def _shutdown(self, *ignored):
         log.info("Shutting down...")
         self._maintenanceCycle.stop()
+        objectEventNotify(SigTermEvent(self))
 
     def run(self):
         ProcessEventMessageTask.SYNC_EVERY_EVENT = self.options.syncEveryEvent
@@ -240,11 +259,16 @@ class ZenEventD(ZenDaemon):
         if self.options.daemon:
             reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
             self._maintenanceCycle.start()
-        EventDWorker().run()
+            objectEventNotify(DaemonStartRunEvent(self))
+        else:
+            EventDWorker().run()
+
+    def _sigUSR1_called(self, signum, frame):
+        log.debug('_sigUSR1_called %s' % signum)
+        objectEventNotify(SigUsr1Event(self, signum))
 
     def buildOptions(self):
         super(ZenEventD, self).buildOptions()
-
         maintenanceBuildOptions(self.parser)
         from zope.component import getUtility
         from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
@@ -254,10 +278,19 @@ class ZenEventD(ZenDaemon):
                     action="store_true", default=False,
                     help='Force sync() before processing every event; default is to sync() no more often '
                     'than once every 1/2 second.')
+        objectEventNotify(BuildOptionsEvent(self))
+
+
+@adapter(ZenEventD, DaemonStartRunEvent)
+def onDaemonStartRun(daemon, event):
+    """
+    Start up an EventDWorker.
+    """
+    EventDWorker().run()
 
 if __name__ == '__main__':
-    # activate enterprise extended features
-    ZenEventD = importClass('Products.ZenEvents.zeneventd','ZenEventD')
+    # explicit import of ZenEventD to activate enterprise extensions
+    from Products.ZenEvents.zeneventd import ZenEventD
     zed = ZenEventD()
     zed.run()
 
