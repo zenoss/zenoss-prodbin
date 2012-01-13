@@ -386,8 +386,17 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
     lastHash: null,
     constructor: function(config) {
         config = config || {};
-        config.fields = config.fields || [];
-        config.fields.push({'name': 'uuid'});
+        config.fields = config.fields || [{
+                                            name: 'name'
+                                        }, {
+                                            name: 'monitored'
+                                        }, {
+                                            name: 'status'
+                                        }, {
+                                            name: 'severity'
+                                        }];
+        config.fields.push({name: 'uuid'});
+        config.fields.push({name: 'uid'});
 
         // compat for autoExpandColumn
         var expandColumn = config.autoExpandColumn;
@@ -487,7 +496,6 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             view = this.getView(),
             me = this,
             selectToken = function() {
-                
                 var found = false, i=0;
                 store.each(function(r){
                     if (r.get("uid") == uid) {
