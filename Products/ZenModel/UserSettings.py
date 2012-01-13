@@ -838,44 +838,46 @@ class UserSettings(ZenModelRM):
         updates = {}
 
         # update user roles
-        if roles is not None:
-            origRolesSet = set(origRoles)
-            rolesSet = set(roles)
-            if rolesSet != origRolesSet and self.isManager():
-                # get roles to remove and then remove them
-                removeRoles = origRolesSet - rolesSet
-                for role in removeRoles:
-                    try:
-                        roleManager.removeRoleFromPrincipal(role, self.id)
-                    except KeyError:
-                        # User doesn't actually have that role; ignore
-                        pass
-                # get roles to add and then add them
-                addRoles = rolesSet - origRolesSet
-                for role in addRoles:
-                    roleManager.assignRoleToPrincipal(role, self.id)
-                updates['roles'] = roles
+        if roles is None:
+            roles = ()
+        origRolesSet = set(origRoles)
+        rolesSet = set(roles)
+        if rolesSet != origRolesSet and self.isManager():
+            # get roles to remove and then remove them
+            removeRoles = origRolesSet - rolesSet
+            for role in removeRoles:
+                try:
+                    roleManager.removeRoleFromPrincipal(role, self.id)
+                except KeyError:
+                    # User doesn't actually have that role; ignore
+                    pass
+            # get roles to add and then add them
+            addRoles = rolesSet - origRolesSet
+            for role in addRoles:
+                roleManager.assignRoleToPrincipal(role, self.id)
+            updates['roles'] = roles
 
         # update group info
-        if groups is not None:
-            groupManager = self.acl_users.groupManager
-            origGroupsSet = set(groupManager.getGroupsForPrincipal(user))
-            groupsSet = set(groups)
-            # if there's a change, then we need to update
-            if groupsSet != origGroupsSet and self.isManager():
-                # get groups to remove and then remove them
-                removeGroups = origGroupsSet - groupsSet
-                for groupid in removeGroups:
-                    groupManager.removePrincipalFromGroup(user.getId(), groupid)
-                # get groups to add and then add them
-                addGroups = groupsSet - origGroupsSet
-                for groupid in addGroups:
-                    try:
-                        groupManager.addPrincipalToGroup(user.getId(), groupid)
-                    except KeyError:
-                        # This can occur if the group came from an external source.
-                        pass
-                updates['groups'] = groups
+        if groups is None:
+            groups = ()
+        groupManager = self.acl_users.groupManager
+        origGroupsSet = set(groupManager.getGroupsForPrincipal(user))
+        groupsSet = set(groups)
+        # if there's a change, then we need to update
+        if groupsSet != origGroupsSet and self.isManager():
+            # get groups to remove and then remove them
+            removeGroups = origGroupsSet - groupsSet
+            for groupid in removeGroups:
+                groupManager.removePrincipalFromGroup(user.getId(), groupid)
+            # get groups to add and then add them
+            addGroups = groupsSet - origGroupsSet
+            for groupid in addGroups:
+                try:
+                    groupManager.addPrincipalToGroup(user.getId(), groupid)
+                except KeyError:
+                    # This can occur if the group came from an external source.
+                    pass
+            updates['groups'] = groups
 
         # we're not managing domains right now
         if domains:
