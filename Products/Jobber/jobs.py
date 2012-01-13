@@ -159,7 +159,7 @@ class ProcessRunner(ProcessProtocol):
 class ShellCommandJob(Job):
     _v_process = None
     pid = 0
-    def __init__(self, jobid, cmd):
+    def __init__(self, jobid, cmd, environ={}):
         """
         Initialization method.
 
@@ -170,9 +170,9 @@ class ShellCommandJob(Job):
         if isinstance(cmd, basestring):
             cmd = cmd.split()
         self.cmd = cmd
-        # We could conceivably want to know the environment in the future, so
-        # keep it around
+        # save the enviroment and allow the user to overrride
         self.environ = os.environ.copy()
+        self.environ.update(environ)
 
     def getDescription(self):
         return " ".join(self.cmd)
