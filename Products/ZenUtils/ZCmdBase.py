@@ -51,8 +51,6 @@ def login(context, name='admin', userfolder=None):
 class ZCmdBase(ZenDaemon):
 
     def __init__(self, noopts=0, app=None, keeproot=False):
-        import Products.ZenossStartup
-        zcml.load_site()
         ZenDaemon.__init__(self, noopts, keeproot)
         self.dataroot = None
         self.app = app

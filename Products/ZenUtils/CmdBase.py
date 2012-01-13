@@ -93,27 +93,15 @@ class CmdBase(object):
     doesLogging = True
 
     def __init__(self, noopts=0, args=None):
-
         zope.component.provideAdapter(DefaultTraversable, (None,))
+        # This explicitly loads all of the products - must happen first!
+        from OFS.Application import import_products
+        import_products()
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
         import Products.ZenossStartup
         unused(Products.ZenossStartup)
-        if not zcml._initialized:
-            import Products.Five, Products.ZenModel, Products.ZenRelations, Products.Zuul ,  Products.ZenUtils
-            try:
-                zcml.load_config('meta.zcml', Products.Five)
-                zcml.load_config('indexing.zcml', Products.ZenModel)
-                zcml.load_config('zendoc.zcml', Products.ZenModel)
-                zcml.load_config('configure.zcml', Products.ZenRelations)
-                zcml.load_config('configure.zcml', Products.Zuul)
-                zcml.load_config('configure.zcml', Products.ZenUtils)
-            except AttributeError:
-                # Could be that we're in a pre-Product-installation Zope, e.g. in
-                # zenwipe. No problem, we won't need this stuff now anyway.
-                pass
-        import Products.ZenMessaging
-        zcml.load_config('configure.zcml', Products.ZenMessaging)
+        zcml.load_site()
         import Products.ZenWidgets
         load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
 

@@ -57,12 +57,6 @@ from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.Location import Location
 from Products.ZenModel.System import System
 
-
-#lookup
-from Products.Five import zcml
-import Products.ZenossStartup
-zcml.load_site()
-
 log = logging.getLogger('zen.EventMigrate')
 
 class MappingEventContext(object):

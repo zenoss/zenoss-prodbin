@@ -38,8 +38,6 @@ class DataRootError(Exception):pass
 class ZenScriptBase(CmdBase):
 
     def __init__(self, noopts=0, app=None, connect=False):
-        import Products.ZenossStartup
-        zcml.load_site()
         CmdBase.__init__(self, noopts)
         self.dataroot = None
         self.app = app

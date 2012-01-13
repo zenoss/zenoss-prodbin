@@ -13,7 +13,7 @@
 
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
-from Products.ZenHub.zenhub import PB_PORT
+from Products.ZenHub import PB_PORT
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import unused
