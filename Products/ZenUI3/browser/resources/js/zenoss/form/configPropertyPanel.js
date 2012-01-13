@@ -15,7 +15,6 @@
 
 (function(){
     var router = Zenoss.remote.DeviceRouter,
-        ConfigPropertyGrid,
         ConfigPropertyPanel,
         zpropertyConfigs = {};
 
@@ -76,7 +75,6 @@
 
     function showEditConfigPropertyDialog(data, grid) {
         var handler, uid, config, editConfig, dialog, type;
-        uid = grid.uid;
         type = data.type;
         // Try the specific property id, next the type and finall default to string
         editConfig = zpropertyConfigs[data.id] || zpropertyConfigs[type] || zpropertyConfigs['string'];
@@ -167,7 +165,7 @@
     }
 
     /**
-     * @class Zenoss.ConfigProperty.Model'
+     * @class Zenoss.ConfigProperty.Model
      * @extends Ext.data.Model
      * Field definitions for the Config Properties
      **/
@@ -185,6 +183,7 @@
             {name: 'options'}
         ]
     });
+
     /**
      * @class Zenoss.ConfigProperty.Store
      * @extends Zenoss.DirectStore
@@ -197,6 +196,7 @@
             Ext.applyIf(config, {
                 model: 'Zenoss.ConfigProperty.Model',
                 initialSortColumn: 'id',
+                pageSize: 300,
                 directFn: Zenoss.remote.DeviceRouter.getZenProperties
             });
             this.callParent(arguments);
@@ -219,7 +219,6 @@
                 tbar:[
                      {
                         xtype: 'tbtext',
-                        height:30,
                         text: _t('Configuration Properties')
                     },
                     '-',
