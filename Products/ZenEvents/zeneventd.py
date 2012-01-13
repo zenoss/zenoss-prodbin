@@ -237,9 +237,6 @@ class EventDWorker(ZCmdBase):
 class ZenEventD(ZenDaemon):
 
     def __init__(self, *args, **kwargs):
-        from Products.Five import zcml
-        import Products.ZenossStartup
-        zcml.load_site()
         super(ZenEventD, self).__init__(*args, **kwargs)
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                      'zeneventd',
