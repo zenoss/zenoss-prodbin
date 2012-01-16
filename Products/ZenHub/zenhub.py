@@ -304,7 +304,8 @@ class ZenHub(ZCmdBase):
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc), interface=interface)
 
         #start listening for zenrender requests
-        self.renderConfig = RenderConfig(self.dmd, ZENHUB_ZENRENDER )
+        if self.options.graph_proxy:
+            self.renderConfig = RenderConfig(self.dmd, ZENHUB_ZENRENDER )
 
         # responsible for sending messages to the queues
         import Products.ZenMessaging.queuemessaging
@@ -669,6 +670,9 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--logworkerstats', dest='logworkerstats',
             action='store_true', default=False,
             help='Log current worker state to $ZENHOME/log/workerstats')
+        self.parser.add_option('--no-graph-proxy', dest='graph_proxy',
+            action='store_false', default=True,
+            help="Don't listen to proxy graph requests to zenrender")
         notify(ParserReadyForOptionsEvent(self.parser))
 
 if __name__ == '__main__':

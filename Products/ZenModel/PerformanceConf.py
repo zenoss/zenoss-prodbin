@@ -376,6 +376,23 @@ class PerformanceConf(Monitor, StatusColor):
         else:
             return url
 
+    def _get_xmlrpc_server(self, allow_none=False):
+        renderurl = str(self.renderurl)
+        if renderurl.startswith('proxy'):
+            renderurl = self.renderurl.replace('proxy', 'http')
+        if renderurl.startswith('/remote-collector/'):
+            # DistributedCollector + WebScale scenario
+            renderurl = 'http://%s%s' % (socket.getfqdn(), renderurl)
+        if renderurl.startswith('http'):
+            # Going through the hub or directly to zenrender
+            url = basicAuthUrl(str(self.renderuser),
+                               str(self.renderpass), renderurl)
+            server = xmlrpclib.Server(url, allow_none=allow_none)
+        else:
+            if not self.renderurl:
+                raise KeyError("No render URL is defined")
+            server = self.getObjByPath(renderurl)
+        return server
 
     def performanceCustomSummary(self, gopts):
         """
@@ -387,17 +404,8 @@ class PerformanceConf(Monitor, StatusColor):
         @rtype: string
         """
         gopts = self._fullPerformancePath(gopts)
-        renderurl = str(self.renderurl)
-        if renderurl.startswith('proxy'):
-            renderurl = self.renderurl.replace('proxy', 'http')
-        if renderurl.startswith('http'):
-            url = basicAuthUrl(str(self.renderuser),
-                               str(self.renderpass), renderurl)
-            server = xmlrpclib.Server(url)
-        else:
-            server = self.getObjByPath(renderurl)
+        server = self._get_xmlrpc_server()
         return server.summary(gopts)
-
 
     def fetchValues(self, paths, cf, resolution, start, end=""):
         """
@@ -416,14 +424,7 @@ class PerformanceConf(Monitor, StatusColor):
         @return: values
         @rtype: list
         """
-        url = self.renderurl
-        if url.startswith("http"):
-            url = basicAuthUrl(self.renderuser, self.renderpass, self.renderurl)
-            server = xmlrpclib.Server(url, allow_none=True)
-        else:
-            if not self.renderurl:
-                raise KeyError
-            server = self.getObjByPath(self.renderurl)
+        server = self._get_xmlrpc_server(allow_none=True)
         return server.fetchValues(map(performancePath, paths), cf,
                                   resolution, start, end)
 
@@ -437,17 +438,7 @@ class PerformanceConf(Monitor, StatusColor):
         @return: values
         @rtype: list
         """
-        url = self.renderurl
-        if url.startswith('proxy'):
-            url = self.renderurl.replace('proxy', 'http')
-        if url.startswith('http'):
-            url = basicAuthUrl(self.renderuser, self.renderpass,
-                               self.renderurl)
-            server = xmlrpclib.Server(url)
-        else:
-            if not self.renderurl:
-                raise KeyError
-            server = self.getObjByPath(self.renderurl)
+        server = self._get_xmlrpc_server()
         return server.currentValues(map(performancePath, paths))
 
 
@@ -528,7 +519,11 @@ class PerformanceConf(Monitor, StatusColor):
         @type datapoint: string
         """
         remoteUrl = None
-        if self.renderurl.startswith('http'):
+        renderurl = self.renderurl
+        if renderurl.startswith('/remote-collector/'):
+            # DistributedCollector + WebScale
+            renderurl = "http://%s%s" % (socket.getfqdn(), renderurl)
+        if renderurl.startswith('http'):
             if datapoint:
                 remoteUrl = '%s/deleteRRDFiles?device=%s&datapoint=%s' % (
                      self.renderurl, device, datapoint)
