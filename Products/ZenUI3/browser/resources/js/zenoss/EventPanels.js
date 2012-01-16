@@ -90,7 +90,7 @@
                             form.getForm().getValues(),
                             function(){
                                 addevent.hide();
-                                var grid = Ext.getCmp(addeventgridId);
+                                var grid = Ext.getCmp(gridId);
                                 grid.refresh();
                             }
                         );
