@@ -220,6 +220,7 @@ Ext.define("Zenoss.BindTemplatesItemSelector", {
             drawTopIcon: false,
             drawBotIcon: false,
             displayField: 'name',
+            width: 400,
             valueField: 'id',
             store:  Ext.create('Ext.data.ArrayStore', {
                 data: [],
@@ -319,6 +320,8 @@ Ext.define("Zenoss.BindTemplatesDialog", {
         var itemId = Ext.id();
 
         Ext.applyIf(config, {
+            width: 600,
+            height: 400,
             title: _t('Bind Templates'),
             items: {
                 xtype: 'bindtemplatesitemselector',
