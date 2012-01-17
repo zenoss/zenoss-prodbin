@@ -261,14 +261,7 @@ Ext.onReady(function () {
                     autoHeight:true,
                     width:460,
                     modal:true,
-                    listeners:{
-                        show:function () {
-                            this.savedSearchGrid.deleteButton.disable();
-                        },
-                        scope:this
-                    },
-                    items:[
-                        {
+                    items:[{
                             ref:'savedSearchGrid',
                             xtype:'grid',
                             stripeRows:true,
@@ -277,39 +270,36 @@ Ext.onReady(function () {
                             autoHeight:true,
                             sortableColumns:false,
                             enableColumnHide:false,
-                            tbar:[
-                                {
-                                    xtype:'button',
-                                    ref:'../deleteButton',
-                                    iconCls:'delete',
-                                    tooltip:_t('Delete the selected saved search'),
-                                    disabled:true,
-                                    handler:function (button, e) {
-                                        var grid = button.refOwner,
-                                            selectedRow = grid.getSelectionModel().getSelected(),
-                                            params = {
-                                                searchName:selectedRow.data.name
-                                            };
-
-                                        button.disable();
-                                        router.removeSavedSearch(params, me.reloadGrid.createDelegate(me));
+                            viewConfig: {
+                                style:{cursor: 'pointer'},
+                                listeners: {
+                                    itemdblclick: function(gridview,rowrecord,rowhtml,rowindex,e) {
+                                        window.location = "/zport/dmd/search?search="+rowrecord.data.name                                                  
                                     }
                                 }
-                            ],
+                            },
+                            dockedItems: [{
+                                xtype: 'toolbar',
+                                dock: 'top',
+                                height:30,
+                                items: [{
+                                        xtype:'button',
+                                        ref:'../deleteButton',
+                                        iconCls:'delete',
+                                        tooltip:_t('Delete the selected saved search'),
+                                        handler:function (button, e) {
+                                            var grid = button.refOwner,
+                                                selectedRow = grid.getSelectionModel().getSelected(),
+                                                params = {
+                                                    searchName:selectedRow.data.name
+                                                };
+                                            router.removeSavedSearch(params, me.reloadGrid.createDelegate(me));
+                                            if(selectedRow.data.name == searchId) window.location = "/zport/dmd/search";
+                                    }
+                                }]
+                            }],                           
                             selModel:new Zenoss.SingleRowSelectionModel({
-                                singleSelect:true,
-                                listeners:{
-                                    rowselect:function (grid, rowIndex, row) {
-
-                                        // do not allow them to delete the one they are editing
-                                        if (row.get("name") != searchId) {
-                                            me.savedSearchGrid.deleteButton.enable();
-                                        }
-                                    },
-                                    rowdeselect:function () {
-                                        me.savedSearchGrid.deleteButton.disable();
-                                    }
-                                }
+                                singleSelect:true
                             }),
                             columns:[
                                 {dataIndex:'name', header:_t('Name'), width:225},
