@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-01-12 13:23:20.067277
+    Zenoss RelationshipManager export completed on 2012-01-17 09:44:25.819219
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-12 13:23:20.067277" zenoss_server="epowell-dev" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-17 09:44:25.819219" zenoss_server="biscuit.local" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -679,6 +679,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high event queue' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf
+</property>
+<property type="int" id="severity" mode="w" >
+4
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zencommand_eventQueueLength', 'zeneventlog_eventQueueLength', 'zenmodeler_eventQueueLength', 'zenperfsnmp_eventQueueLength', 'zenping_eventQueueLength', 'zenprocess_eventQueueLength', 'zenstatus_eventQueueLength', 'zensyslog_eventQueueLength', 'zentrap_eventQueueLength', 'zenwin_eventQueueLength']
 </property>
@@ -688,17 +694,17 @@ True
 <property type="string" id="maxval" mode="w" >
 1000
 </property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
+</object>
+<object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="string" id="eventClass" mode="w" >
 /Perf
 </property>
 <property type="int" id="severity" mode="w" >
 4
 </property>
-<property type="int" id="escalateCount" mode="w" >
-0
-</property>
-</object>
-<object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenmodeler_cycleTime']
 </property>
@@ -707,12 +713,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 720*60*0.8
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf
-</property>
-<property type="int" id="severity" mode="w" >
-4
 </property>
 <property type="int" id="escalateCount" mode="w" >
 5
@@ -2729,6 +2729,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high event queue' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf
+</property>
+<property type="int" id="severity" mode="w" >
+4
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zencommand_eventQueueLength', 'zeneventlog_eventQueueLength', 'zenmodeler_eventQueueLength', 'zenperfsnmp_eventQueueLength', 'zenping_eventQueueLength', 'zenprocess_eventQueueLength', 'zenstatus_eventQueueLength', 'zensyslog_eventQueueLength', 'zentrap_eventQueueLength', 'zenwin_eventQueueLength']
 </property>
@@ -2738,17 +2744,17 @@ True
 <property type="string" id="maxval" mode="w" >
 1000
 </property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
+</object>
+<object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="string" id="eventClass" mode="w" >
 /Perf
 </property>
 <property type="int" id="severity" mode="w" >
 4
 </property>
-<property type="int" id="escalateCount" mode="w" >
-0
-</property>
-</object>
-<object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenmodeler_cycleTime']
 </property>
@@ -2757,12 +2763,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 720*60*0.8
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf
-</property>
-<property type="int" id="severity" mode="w" >
-4
 </property>
 <property type="int" id="escalateCount" mode="w" >
 5

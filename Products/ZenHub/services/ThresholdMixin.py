@@ -20,7 +20,8 @@ class ThresholdMixin:
     def remote_getThresholdClasses(self):
         if not self._cached_thresholdClasses:
             from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
-            classes = [MinMaxThreshold]
+            from Products.ZenModel.ValueChangeThreshold import ValueChangeThreshold
+            classes = [MinMaxThreshold, ValueChangeThreshold]
             for pack in self.dmd.ZenPackManager.packs():
                 classes += pack.getThresholdClasses()
             self._cached_thresholdClasses = map(lambda c: c.__module__, classes)

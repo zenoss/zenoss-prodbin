@@ -512,12 +512,9 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     def getAdminStatus(self):
         """
-        Get the current administrative state of the interface. Prefer real-time
-        value over modeled value.
+        Get the current administrative state of the interface. 
         """
-        s = self.cacheRRDValue('ifAdminStatus', None)
-        if s is None: s = self.adminStatus
-        return s
+        return self.adminStatus
 
 
     def getAdminStatusString(self):
@@ -531,13 +528,9 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     def getOperStatus(self):
         """
-        Get the current operational state of the interface. Prefer real-time
-        value over modeled value.
+        Get the current operational state of the interface.
         """
-        s = None
-        s = self.getRRDValue('ifOperStatus', cf="LAST")
-        if s is None: s = self.operStatus
-        return s
+        return self.operStatus
 
     def getOperStatusString(self):
         """

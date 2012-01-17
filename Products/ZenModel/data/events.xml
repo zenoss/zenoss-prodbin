@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-01-12 13:23:08.947126
+    Zenoss RelationshipManager export completed on 2012-01-17 09:44:15.539508
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-12 13:23:08.947126" zenoss_server="epowell-dev" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-17 09:44:15.539508" zenoss_server="biscuit.local" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -89,6 +89,17 @@ Check the Username and Password on the specified service to make sure it is corr
 <object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Perf' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w" >
+# SET OPERSTATUS ON IPINTERFACE COMPONENT
+if component is not None and evt.eventKey == 'ifOperStatus_ifOperStatus|ifOperStatusChange':
+    evt._action='drop'
+    operStatus = int(float(getattr(evt,'current', '0')))
+    if component.operStatus != operStatus:
+        @transact
+        def updateDb():
+            component.operStatus=operStatus
+        updateDb()
+</property>
 </object>
 <object id='Update' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>

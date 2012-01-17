@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from Products.ZenModel.ThresholdInstance import RRDThresholdInstance
 
 __doc__= """MinMaxThreshold
 Make threshold comparisons dynamic by using TALES expresssions,
@@ -55,8 +56,6 @@ class MinMaxThreshold(ThresholdClass):
     _properties = ThresholdClass._properties + (
         {'id':'minval',        'type':'string',  'mode':'w'},
         {'id':'maxval',        'type':'string',  'mode':'w'},
-        {'id':'eventClass',    'type':'string',  'mode':'w'},
-        {'id':'severity',      'type':'int',     'mode':'w'},
         {'id':'escalateCount', 'type':'int',     'mode':'w'}
         )
 
@@ -126,55 +125,18 @@ MinMaxThresholdClass = MinMaxThreshold
 
 
 
-class MinMaxThresholdInstance(ThresholdInstance):
+class MinMaxThresholdInstance(RRDThresholdInstance):
     # Not strictly necessary, but helps when restoring instances from
     # pickle files that were not constructed with a count member.
     count = {}
     
     def __init__(self, id, context, dpNames,
                  minval, maxval, eventClass, severity, escalateCount):
+        RRDThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
         self.count = {}
-        self._context = context
-        self.id = id
         self.minimum = minval
         self.maximum = maxval
-        self.eventClass = eventClass
-        self.severity = severity
         self.escalateCount = escalateCount
-        self.dataPointNames = dpNames
-        self._rrdInfoCache = {}
-
-    def name(self):
-        "return the name of this threshold (from the ThresholdClass)"
-        return self.id
-
-    def context(self):
-        "Return an identifying context (device, or device and component)"
-        return self._context
-
-    def dataPoints(self):
-        "Returns the names of the datapoints used to compute the threshold"
-        return self.dataPointNames
-
-    def rrdInfoCache(self, dp):
-        if dp in self._rrdInfoCache:
-            return self._rrdInfoCache[dp]
-
-        daemon_args = ()
-        daemon = rrd_daemon_running()
-        if daemon:
-            daemon_args = ('--daemon', daemon)
-
-        data = rrdtool.info(self.context().path(dp), *daemon_args)
-        # handle both old and new style RRD versions   
-        try:
-            # old style 1.2.x
-            value = data['step'], data['ds']['ds0']['type']
-        except KeyError: 
-            # new style 1.3.x
-            value = data['step'], data['ds[ds0].type']
-        self._rrdInfoCache[dp] = value
-        return value
 
     def countKey(self, dp):
         return ':'.join(self.context().key()) + ':' + dp
@@ -195,42 +157,6 @@ class MinMaxThresholdInstance(ThresholdInstance):
     def resetCount(self, dp):
         self.count[self.countKey(dp)] = 0
     
-    def fetchLastValue(self, dp, cycleTime):
-        """
-        Fetch the most recent value for a data point from the RRD file.
-        """
-        startStop, names, values = rrdtool.fetch(self.context().path(dp),
-            'AVERAGE', '-s', 'now-%d' % (cycleTime*2), '-e', 'now')
-        values = [ v[0] for v in values if v[0] is not None ]
-        if values: return values[-1]
-
-    def check(self, dataPoints):
-        """The given datapoints have been updated, so re-evaluate.
-        returns events or an empty sequence"""
-        unused(dataPoints)
-        result = []
-        for dp in self.dataPointNames:
-            cycleTime, rrdType = self.rrdInfoCache(dp)
-            result.extend(self.checkRange(
-                dp, self.fetchLastValue(dp, cycleTime)))
-        return result
-
-    def checkRaw(self, dataPoint, timeOf, value):
-        """A new datapoint has been collected, use the given _raw_
-        value to re-evalue the threshold."""
-        unused(timeOf)
-        result = []
-        if value is None: return result
-        try:
-            cycleTime, rrdType = self.rrdInfoCache(dataPoint)
-        except Exception:                                          
-            log.exception('Unable to read RRD file for %s' % dataPoint)
-            return result
-        if rrdType != 'GAUGE' and value is None:
-            value = self.fetchLastValue(dataPoint, cycleTime)
-        result.extend(self.checkRange(dataPoint, value))
-        return result
-
     def checkRange(self, dp, value):
         'Check the value for min/max thresholds'
         log.debug("Checking %s %s against min %s and max %s",
@@ -414,6 +340,9 @@ class MinMaxThresholdInstance(ThresholdInstance):
             if number < 1000:  
                 return "%0.2f%s" % (number, power)
         return "%.2f%s" % (number, powers[-1])
+
+    def _checkImpl(self, dataPoint, value):
+        return self.checkRange(dataPoint, value)
 
 from twisted.spread import pb
 pb.setUnjellyableForClass(MinMaxThresholdInstance, MinMaxThresholdInstance)

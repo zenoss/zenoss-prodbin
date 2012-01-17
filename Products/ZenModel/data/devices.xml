@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-01-12 13:22:54.838979
+    Zenoss RelationshipManager export completed on 2012-01-17 09:43:58.330300
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-12 13:22:54.838979" zenoss_server="epowell-dev" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-17 09:43:58.330300" zenoss_server="biscuit.local" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -1258,6 +1258,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Interface
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
@@ -1267,14 +1273,22 @@ True
 <property type="string" id="maxval" mode="w" >
 (here.speed or 1e9) / 8 * .75
 </property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/Interface
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
 <property type="int" id="escalateCount" mode="w" >
 0
+</property>
+</object>
+<object id='ifOperStatusChange' module='Products.ZenModel.ValueChangeThreshold' class='ValueChangeThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Status/Perf
+</property>
+<property type="int" id="severity" mode="w" >
+2
+</property>
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
+['ifOperStatus_ifOperStatus']
+</property>
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
+True
 </property>
 </object>
 </tomanycont>
@@ -2046,6 +2060,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Interface
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ifHCInOctets_ifHCInOctets', 'ifHCOutOctets_ifHCOutOctets']
 </property>
@@ -2055,14 +2075,22 @@ True
 <property type="string" id="maxval" mode="w" >
 (here.speed or 1e9) / 8 * .75
 </property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/Interface
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
 <property type="int" id="escalateCount" mode="w" >
 0
+</property>
+</object>
+<object id='ifOperStatusChange' module='Products.ZenModel.ValueChangeThreshold' class='ValueChangeThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Status/Perf
+</property>
+<property type="int" id="severity" mode="w" >
+2
+</property>
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
+['ifOperStatus_ifOperStatus']
+</property>
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
+True
 </property>
 </object>
 </tomanycont>
@@ -2626,6 +2654,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/CPU
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['cpu5min_cpu5min']
 </property>
@@ -2634,12 +2668,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 90
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/CPU
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
@@ -3541,6 +3569,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/CPU
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ssCpuRawIdle_ssCpuRawIdle']
 </property>
@@ -3549,12 +3583,6 @@ True
 </property>
 <property type="string" id="minval" mode="w" >
 2
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/CPU
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 5
@@ -4115,6 +4143,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high disk usage' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Filesystem
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['usedBlocks_usedBlocks']
 </property>
@@ -4123,12 +4157,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 here.getTotalBlocks() * .9
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/Filesystem
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
@@ -5145,6 +5173,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/CPU
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -5154,17 +5188,17 @@ True
 <property type="string" id="maxval" mode="w" >
 1200
 </property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
+</object>
+<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="escalateCount" mode="w" >
-0
-</property>
-</object>
-<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ssCpuIdle_ssCpuIdle']
 </property>
@@ -5173,12 +5207,6 @@ True
 </property>
 <property type="string" id="minval" mode="w" >
 2
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/CPU
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
@@ -6073,6 +6101,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU Utilization over 90' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/CPU
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['cpuPercentProcessorTime_cpuPercentProcessorTime']
 </property>
@@ -6081,12 +6115,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 90
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/CPU
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 5
@@ -7324,6 +7352,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/CPU
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -7333,17 +7367,17 @@ True
 <property type="string" id="maxval" mode="w" >
 1200
 </property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
+</object>
+<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="escalateCount" mode="w" >
-0
-</property>
-</object>
-<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ssCpuIdle_ssCpuIdle']
 </property>
@@ -7352,12 +7386,6 @@ True
 </property>
 <property type="string" id="minval" mode="w" >
 2
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/CPU
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
@@ -8647,6 +8675,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/CPU
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -8656,17 +8690,17 @@ True
 <property type="string" id="maxval" mode="w" >
 1200
 </property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
+</object>
+<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="escalateCount" mode="w" >
-0
-</property>
-</object>
-<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ssCpuIdle_ssCpuIdle']
 </property>
@@ -8675,12 +8709,6 @@ True
 </property>
 <property type="string" id="minval" mode="w" >
 2
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/CPU
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
@@ -9777,6 +9805,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/CPU
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['cpu_ssCpuRawIdle']
 </property>
@@ -9785,12 +9819,6 @@ True
 </property>
 <property type="string" id="minval" mode="w" >
 2
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/CPU
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 5
@@ -10443,6 +10471,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='Free Space 90 Percent' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Filesystem
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['disk_usedBlocks']
 </property>
@@ -10451,12 +10485,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 here.getTotalBlocks() * .9
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/Filesystem
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
@@ -10915,6 +10943,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='Utilization 75 perc' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Interface
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
 <property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
@@ -10923,12 +10957,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 here.speed / 8 * .75
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/Interface
-</property>
-<property type="int" id="severity" mode="w" >
-3
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0

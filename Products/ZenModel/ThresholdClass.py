@@ -38,6 +38,8 @@ class ThresholdClass(ZenModelRM, ZenPackable):
             self.buildRelations()
 
     _properties = (
+        {'id':'eventClass', 'type':'string', 'mode':'w'},
+        {'id':'severity',   'type':'int',    'mode':'w'},
         {'id':'dsnames', 'type':'lines', 'mode':'w', 'label': 'DataPoints'},
         {'id':'enabled', 'type':'boolean', 'mode':'w', 'label': 'Enabled'},
         )

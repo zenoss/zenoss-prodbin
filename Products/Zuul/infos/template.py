@@ -541,12 +541,12 @@ class ThresholdInfo(InfoBase):
 
     enabled = ProxyProperty("enabled")
 
+    eventClass = ProxyProperty("eventClass")
 
 class MinMaxThresholdInfo(ThresholdInfo):
     implements(templateInterfaces.IMinMaxThresholdInfo)
     minval = ProxyProperty("minval")
     maxval = ProxyProperty("maxval")
-    eventClass = ProxyProperty("eventClass")
     escalateCount = ProxyProperty("escalateCount")
 
 

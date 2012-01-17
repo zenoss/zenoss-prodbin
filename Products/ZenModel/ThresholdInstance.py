@@ -14,9 +14,9 @@
 import os
 
 import Globals
+import rrdtool
 from Products.ZenModel.PerformanceConf import PerformanceConf, performancePath
-from Products.ZenUtils.Utils import unused
-
+from Products.ZenUtils.Utils import unused, rrd_daemon_running
 
 from twisted.spread import pb
 class ThresholdContext(pb.Copyable, pb.RemoteCopy):
@@ -99,3 +99,91 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
 
 
 pb.setUnjellyableForClass(ThresholdInstance, ThresholdInstance)
+
+class RRDThresholdInstance(ThresholdInstance):
+
+    def __init__(self, id, context, dpNames, eventClass, severity):
+        self._context = context
+        self.id = id
+        self.eventClass = eventClass
+        self.severity = severity
+        self.dataPointNames = dpNames
+        self._rrdInfoCache = {}
+
+    def name(self):
+        "return the name of this threshold (from the ThresholdClass)"
+        return self.id
+
+    def context(self):
+        "Return an identifying context (device, or device and component)"
+        return self._context
+
+    def dataPoints(self):
+        "Returns the names of the datapoints used to compute the threshold"
+        return self.dataPointNames
+
+    def check(self, dataPoints):
+        """The given datapoints have been updated, so re-evaluate.
+        returns events or an empty sequence"""
+        unused(dataPoints)
+        result = []
+        for dp in self.dataPointNames:
+            cycleTime, rrdType = self._getRRDType(dp)
+            result.extend(self._checkImpl(
+                dp, self._fetchLastValue(dp, cycleTime)))
+        return result
+
+    def checkRaw(self, dataPoint, timeOf, value):
+        """A new datapoint has been collected, use the given _raw_
+        value to re-evalue the threshold."""
+        unused(timeOf)
+        result = []
+        if value is None: return result
+        try:
+            cycleTime, rrdType = self._getRRDType(dataPoint)
+        except Exception:
+            log.exception('Unable to read RRD file for %s' % dataPoint)
+            return result
+        if rrdType != 'GAUGE' and value is None:
+            value = self._fetchLastValue(dataPoint, cycleTime)
+        result.extend(self._checkImpl(dataPoint, value))
+        return result
+
+    def _getRRDType(self, dp):
+        """
+        get and cache rrd type inforomation
+        """
+        if dp in self._rrdInfoCache:
+            return self._rrdInfoCache[dp]
+
+        daemon_args = ()
+        daemon = rrd_daemon_running()
+        if daemon:
+            daemon_args = ('--daemon', daemon)
+
+        data = rrdtool.info(self.context().path(dp), *daemon_args)
+        # handle both old and new style RRD versions
+        try:
+            # old style 1.2.x
+            value = data['step'], data['ds']['ds0']['type']
+        except KeyError:
+            # new style 1.3.x
+            value = data['step'], data['ds[ds0].type']
+        self._rrdInfoCache[dp] = value
+        return value
+
+
+    def _fetchLastValue(self, dp, cycleTime):
+        """
+        Fetch the most recent value for a data point from the RRD file.
+        """
+        startStop, names, values = rrdtool.fetch(self.context().path(dp),
+            'AVERAGE', '-s', 'now-%d' % (cycleTime*2), '-e', 'now')
+        values = [ v[0] for v in values if v[0] is not None ]
+        if values: return values[-1]
+
+
+    def _checkImpl(self, dataPoint, value):
+        raise NotImplementedError()
+
+pb.setUnjellyableForClass(RRDThresholdInstance, RRDThresholdInstance)
