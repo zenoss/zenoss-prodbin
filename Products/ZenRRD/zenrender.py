@@ -33,9 +33,11 @@ from twisted.internet import reactor
 
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollectorPreferences,\
-                                             ITaskSplitter,\
                                              ICollector
 from Products.ZenCollector.tasks import NullTaskSplitter
+
+# Invalidation issues arise if we don't import
+from Products.ZenCollector.services.config import DeviceProxy
 
 from Products.ZenRRD.RenderServer import RenderServer as OrigRenderServer
 from Products.ZenUtils.ObjectCache import ObjectCache
