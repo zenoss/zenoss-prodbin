@@ -22,7 +22,7 @@ from Products.ZenModel.BasicDataSource import BasicDataSource
 log = logging.getLogger('zen.migrate')
 
 
-class ifOperStatusEternetCsmacd64(Migrate.Step):
+class ifOperStatusEthernetCsmacd64(Migrate.Step):
     version = Migrate.Version(4, 2, 0)
 
     def cutover(self, dmd):
@@ -49,4 +49,4 @@ class ifOperStatusEternetCsmacd64(Migrate.Step):
                     ))
 
 
-ifOperStatusEternetCsmacd64()
+ifOperStatusEthernetCsmacd64 = ifOperStatusEthernetCsmacd64()

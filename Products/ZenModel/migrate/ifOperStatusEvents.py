@@ -41,7 +41,7 @@ class ifOperStatusEvents(Migrate.Step):
     def __init__(self):
         Migrate.Step.__init__(self)
         import ifOperStatusEthernetCsmacd64
-        self.dependencies = [ ifOperStatusEthernetCsmacd64.ifOperStatusEternetCsmacd64 ]
+        self.dependencies = [ ifOperStatusEthernetCsmacd64.ifOperStatusEthernetCsmacd64 ]
 
     def cutover(self, dmd):
         template64Id = '/zport/dmd/Devices/rrdTemplates/ethernetCsmacd_64'

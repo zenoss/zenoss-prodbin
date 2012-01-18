@@ -234,3 +234,4 @@ import removeCycleTimesGraph
 import removeDeviceZenMenus
 import setIgnoreParamsOnZenDaemons
 import ifOperStatusEvents
+import clearUserSettings
