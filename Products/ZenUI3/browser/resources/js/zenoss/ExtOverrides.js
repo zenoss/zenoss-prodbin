@@ -4,7 +4,6 @@
      * and convenience methods on the main Ext classes.
      **/
 
-
     /**
      * This makes the default value for checkboxes getSubmitValue (called by getFieldValues on the form)
      * return true/false if it is checked or unchecked. The normal default is "on" or nothing which means the
@@ -218,6 +217,10 @@
      * for the total rows. Unfortunately this assumes that the rows are of uniform height.
      **/
     Ext.override(Ext.grid.PagingScroller, {
+        /**
+         * The default fetch percent is 35% this is a little too early for a smooth scrolling experience
+         **/
+        percentageFromEdge: 0.15,
         onElScroll: function(e, t) {
             var me = this,
             panel = me.getPanel(),
@@ -241,8 +244,7 @@
             requestStart = Math.floor(visibleStart / me.snapIncrement) * me.snapIncrement,
             requestEnd = requestStart + pageSize - 1,
             activePrefetch = me.activePrefetch;
-            /* Added below line JRH 1/6/2012 */
-            this.rowHeight = this.getPanel().down('tableview').el.first().dom.offsetHeight / this.store.pageSize;
+
             me.visibleStart = visibleStart;
             me.visibleEnd = visibleEnd;
 
@@ -277,10 +279,16 @@
             /* Added below line JRH 1/6/2012 */
             var stretchEl = this.stretchEl.dom;
 
-            // check if the scroller has reached bottom but not all data has been displayed, if so expand the scroll view height
-            if(position + this.el.dom.offsetHeight >= stretchEl.offsetHeight && visibleEnd < totalCount - 1) {
-                stretchEl.style.height = (stretchEl.scrollHeight + (((totalCount - 1) - visibleEnd) * this.rowHeight)) + 'px';
+            // only update the stretch el if we are at the bottom of the scrolling, it is expensive to do
+            // rows being missing was only a problem at the bottom of the grid
+            if (visibleEnd >= totalCount * .9) {
+                this.rowHeight = this.getPanel().down('tableview').el.first().dom.offsetHeight / this.store.pageSize;
+                // check if the scroller has reached bottom but not all data has been displayed, if so expand the scroll view height
+                if(position + this.el.dom.offsetHeight >= stretchEl.offsetHeight && visibleEnd < totalCount - 1) {
+                    stretchEl.style.height = (stretchEl.scrollHeight + (((totalCount - 1) - visibleEnd) * this.rowHeight)) + 'px';
+                }
             }
+
             /* END ADDED stuff */
 
             if (me.syncScroll) {

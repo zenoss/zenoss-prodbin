@@ -387,7 +387,9 @@
             });
             this.callParent([config]);
             this.getStore().on("load", function (store, records) {
-                this.applySavedSelection();
+                if (!this._disableSavedSelection) {
+                    this.applySavedSelection();
+                }
             }, this);
             // once a uid is set always send that uid
             this.getStore().on('beforeload', function (store, operation) {
@@ -421,21 +423,26 @@
         saveSelection:function () {
             this.selectedNodes = this.getSelectionModel().getSelection();
         },
+        disableSavedSelection: function(bool) {
+            this._disableSavedSelection = bool;
+        },
         applySavedSelection:function () {
-            var curStore = this.getStore();
-            var itemsFound = false;
-            this.suspendEvents();
-            for (var i = 0; i < curStore.data.items.length; i++) {
-                for (var j = 0; j < this.selectedNodes.length; j++) {
-                    if (curStore.data.items[i].getId() == this.selectedNodes[j].getId()) {
-                        // select row index by name in case something has been added or removed
-                        this.getSelectionModel().select(i, true);
-                        itemsFound = true;
-                    }
+            var curStore = this.getStore(),
+                selModel = this.getSelectionModel(),
+                items = [];
+            Ext.each(this.selectedNodes, function(node) {
+                var rec = curStore.getAt(node.index);
+                if (rec && rec.getId() == node.getId()) {
+                    items.push(rec);
                 }
+            });
+            if (items) {
+                this.suspendEvents();
+                this.getSelectionModel().select(items, true, true);
+                this.resumeEvents();
+                selModel.fireEvent('selectionchange', selModel);
+                this.selectedNodes = [];
             }
-            this.resumeEvents();
-            if (itemsFound == true) this.selectedNodes = [];
         },
         applyOptions:function (options) {
             // Do nothing in the base implementation

@@ -31,32 +31,6 @@ Ext.onReady(function(){
     // it doesn't interfere with the state of other instances of this panel.
     detail_panel.stateId = 'Zenoss.ui.EvConsole.detail_panel';
 
-
-
-    /*
-     * Select all events with a given state.
-     * This requires a call to the back end, since we don't know anything about
-     * records that are outside the current buffer. So we let the server
-     * perform a query to determine ranges, then we select the ranges.
-     */
-    function selectByState(state) {
-        var params = {'state':state, 'asof':Zenoss.env.asof},
-            grid = Ext.getCmp('events_grid');
-        Ext.apply(params, getQueryParameters());
-        Zenoss.remote.EventsRouter.state_ranges(
-            params,
-            function(result) {
-                var sm = grid.getSelectionModel();
-                sm.clearSelections();
-                Ext.each(result, function(range){
-                    if (range.length==1)
-                        range[1] = grid.getStore().totalLength + 1;
-                   sm.selectRange(range[0]-1, range[1]-1, true);
-                });
-            }
-        );
-    }
-
     // Get the container surrounding master/detail, for adding the toolbar
     var container = Ext.getCmp('center_panel_container');
 
@@ -120,6 +94,7 @@ Ext.onReady(function(){
 
         ]
     });
+    console_selection_model.grid = grid;
     // Add it to the layout
     master_panel.add(grid);
     Zenoss.util.callWhenReady('events_grid', function(){
@@ -148,7 +123,7 @@ Ext.onReady(function(){
     // and switch triggers (single select repopulates detail, esc to close)
     function showEventDetail(r) {
         Ext.getCmp('dpanelcontainer').load(r.data.evid);
-        grid.un('rowdblclick', toggleEventDetailContent);
+        grid.un('itemdblclick', toggleEventDetailContent);
 
         detail_panel.expand();
         detail_panel.show();
@@ -168,7 +143,7 @@ Ext.onReady(function(){
     }
     function eventDetailCollapsed(){
         wipeEventDetail();
-        grid.on('rowdblclick', toggleEventDetailContent);
+        grid.on('itemdblclick', toggleEventDetailContent);
         esckeymap.disable();
     };
     // Finally, add the detail panel (have to do it after function defs to hook

@@ -245,7 +245,8 @@ Ext.onReady(function(){
     // myView.on('render', function(){myView.showFilters();});
 
     // Selection model
-    var console_selection_model = new Zenoss.EventPanelSelectionModel();
+    var console_selection_model = new Zenoss.EventPanelSelectionModel({
+    });
 
     /*
      * THE GRID ITSELF!
@@ -283,6 +284,7 @@ Ext.onReady(function(){
         selModel: console_selection_model, // defined above
         bbar: []
     });
+    console_selection_model.grid = grid;
     // Add it to the layout
     master_panel.add(grid);
 

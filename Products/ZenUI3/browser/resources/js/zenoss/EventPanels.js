@@ -157,16 +157,16 @@
                     disabled: true,
                     handler: function(){
                         var cb = Ext.getCmp('evclass_combo'),
-                            grid = Ext.getCmp(gridId),
-                            sm = grid.getSelectionModel(),
-                            rs = sm.getSelections(),
-                            evrows = [];
+                        grid = Ext.getCmp(gridId),
+                        sm = grid.getSelectionModel(),
+                        rs = sm.getSelections(),
+                        evrows = [];
                         Ext.each(rs, function(record){
                             evrows[evrows.length] = record.data;
                         });
                         if (!evrows.length) {
                             win.hide();
-                                new Zenoss.dialog.ErrorDialog({message: _t('No events were selected.')});
+                            new Zenoss.dialog.ErrorDialog({message: _t('No events were selected.')});
                         } else {
                             Zenoss.remote.EventsRouter.classify({
                                 'evclass': cb.getValue(),
@@ -193,7 +193,7 @@
                 }]
             }]
 
-            });
+        });
 
         win.show();
     }
@@ -216,13 +216,13 @@
             }
         }),
         reclassify: new Zenoss.Action({
-             iconCls: 'classify',
-             tooltip: _t('Reclassify an event'),
-             permission: 'Manage Events',
-             handler: function(button) {
-                 var gridId = button.ownerCt.ownerCt.id;
-                 showClassifyDialog(gridId);
-             }
+            iconCls: 'classify',
+            tooltip: _t('Reclassify an event'),
+            permission: 'Manage Events',
+            handler: function(button) {
+                var gridId = button.ownerCt.ownerCt.id;
+                showClassifyDialog(gridId);
+            }
         }),
         reopen: new Zenoss.Action({
             iconCls: 'unacknowledge',
@@ -280,7 +280,7 @@
     Zenoss.EventConsoleTBar = Ext.extend(Zenoss.LargeToolbar, {
         constructor: function(config){
             var gridId = config.gridId,
-                showActions = true,
+            showActions = true,
                 showCommands = true,
                 configureMenuItems,
                 tbarItems = config.tbarItems || [];
@@ -311,9 +311,9 @@
                 handler: function(){
                     new Zenoss.dialog.SimpleMessageDialog({
                         message: String.format(_t('Are you sure you want to restore '
-                            + 'the default configuration? All'
-                            + ' filters, column sizing, and column order '
-                            + 'will be lost.')),
+                                                  + 'the default configuration? All'
+                                                  + ' filters, column sizing, and column order '
+                                                  + 'will be lost.')),
                         title: _t('Confirm Restore'),
                         buttons: [{
                             xtype: 'DialogButton',
@@ -337,13 +337,13 @@
                         link = grid.getPermalink();
                         new Zenoss.dialog.ErrorDialog({
                             message: String.format(_t('<div class="dialog-link">'
-                                + 'Drag this link to your bookmark bar '
-                                + '<br/>to return to this configuration later.'
-                                + '<br/><br/><a href="'
-                                + link
-                                + '">Resource Manager: Events</a></div>')),
+                                                      + 'Drag this link to your bookmark bar '
+                                                      + '<br/>to return to this configuration later.'
+                                                      + '<br/><br/><a href="'
+                                                      + link
+                                                      + '">Resource Manager: Events</a></div>')),
                             title: _t('Save Configuration')
-                            });
+                        });
                     }
                 });
             }
@@ -397,7 +397,7 @@
                             uid = '/zport/dmd/Devices';
                         }
                         var me = Ext.getCmp('event-commands-menu'),
-                            menu = me.menu;
+                        menu = me.menu;
                         // load the available commands from the server
                         // commands are based on context
                         Zenoss.remote.DeviceRouter.getUserCommands({uid:uid}, function(data) {
@@ -496,12 +496,10 @@
                     }
                 },
                 findParams: function() {
-                    var grid = Ext.getCmp(gridId), params = {};
+                    var grid = Ext.getCmp(gridId);
                     if (grid) {
-                        params.params = grid.filterRow.getSearchValues();
-                        params.evids = Ext.pluck(Ext.pluck(grid.getSelectionModel().getSelection(), 'data'), 'evid');
+                        return grid.getSelectionParameters();
                     }
-                    return params;
                 }
             });
 
@@ -510,9 +508,9 @@
                 listeners: {
                     afterrender: function(){
                         var grid = Ext.getCmp(gridId),
-                            store = grid.getStore(),
-                            tbar = this,
-                            view = grid.getView();
+                        store = grid.getStore(),
+                        tbar = this,
+                        view = grid.getView();
                         store.on('load', this.doLastUpdated);
                         view.on('buffer', this.doLastUpdated);
 
@@ -596,18 +594,18 @@
                                         context = location.pathname.replace('/viewEvents', '');
                                     }
                                     var grid = Ext.getCmp(gridId),
-                                        state = Ext.getCmp(gridId).getState(),
-                                        historyCombo = Ext.getCmp('history_combo'),
-                                        params = {
-                                            type: 'csv',
-                                            params: {
-                                                uid: context,
-                                                fields: Ext.pluck(state.columns, 'id'),
-                                                sort: state.sort.property,
-                                                dir: state.sort.direction,
-                                                params: grid.getExportParameters()
-                                            }
-                                        };
+                                    state = Ext.getCmp(gridId).getState(),
+                                    historyCombo = Ext.getCmp('history_combo'),
+                                    params = {
+                                        type: 'csv',
+                                        params: {
+                                            uid: context,
+                                            fields: Ext.pluck(state.columns, 'id'),
+                                            sort: state.sort.property,
+                                            dir: state.sort.direction,
+                                            params: grid.getExportParameters()
+                                        }
+                                    };
                                     if (historyCombo && historyCombo.getValue() == 1) {
                                         params.isHistory = true;
                                     }
@@ -652,8 +650,8 @@
         },
         doLastUpdated: function() {
             var box = Ext.getCmp('lastupdated'),
-                dt = new Date(),
-                dtext = dt.format('g:i:sA');
+            dt = new Date(),
+            dtext = dt.format('g:i:sA');
             box.setText(_t('Last updated at ') + dtext);
         },
         setContext: function(uid) {
@@ -669,207 +667,148 @@
      * @extends Zenoss.ExtraHooksSelectionModel
      *
      */
-    Ext.define("Zenoss.EventPanelSelectionModel", {
-        extend:"Zenoss.ExtraHooksSelectionModel",
-        selectState: null,
-        badIds: {},
-        mode: 'MULTI',
-        initEvents: function(){
-            Zenoss.EventPanelSelectionModel.superclass.initEvents.call(this);
-            this.on('beforerowselect', this.handleBeforeRowSelect, this);
-            this.on('rowselect', this.handleRowSelect, this);
-            this.on('rowdeselect', this.handleRowDeSelect, this);
-            this.on('selectionchange', function(selectionmodel) {
-                // Disable buttons if nothing selected (and vice-versa)
-                var actions = Zenoss.events.EventPanelToolbarActions;
-                var actionsToChange = [actions.acknowledge, actions.close, actions.unclose,
-                                       actions.reopen, actions.reclassify];
-                var newDisabledValue = !selectionmodel.hasSelection();
-                Ext.each(actionsToChange, function(actionButton) {
-                    actionButton.setDisabled(newDisabledValue);
+        Ext.define("Zenoss.EventPanelSelectionModel", {
+            extend:"Zenoss.ExtraHooksSelectionModel",
+            selectState: null,
+            badIds: {},
+            mode: 'MULTI',
+            constructor: function(config){
+                this.callParent([config]);
+                this.on('select', this.handleRowSelect, this);
+                this.on('deselect', this.handleRowDeSelect, this);
+                this.on('selectionchange', function(selectionmodel) {
+                    // Disable buttons if nothing selected (and vice-versa)
+                    var actions = Zenoss.events.EventPanelToolbarActions;
+                    var actionsToChange = [actions.acknowledge, actions.close, actions.unclose,
+                                           actions.reopen, actions.reclassify];
+                    var newDisabledValue = !selectionmodel.hasSelection() || !selectionmodel.selectState === 'All';
+                    Ext.each(actionsToChange, function(actionButton) {
+                        actionButton.setDisabled(newDisabledValue);
+                    });
                 });
-            });
 
-        },
-        getGrid: function() {
-            if (!Ext.isDefined(this.grid)) {
-                this.grid = Ext.getCmp(this.gridId);
-            }
-            return this.grid;
-        },
-        handleBeforeRowSelect: function(sm, index, keepExisting, record){
-            if (!keepExisting) {
-                this.selectNone();
-            }
-            return true;
-        },
-        handleRowSelect: function(sm, index, record){
-            if (record) {
-                delete this.badIds[record.id];
-            }
-        },
-        handleRowDeSelect: function(sm, index, record){
-            if (this.selectState && record) {
-                this.badIds[record.id] = 1;
-            }
-        },
-        selectEventState: function(state){
-            var record,
+
+            },
+            getGrid: function() {
+                if (!Ext.isDefined(this.grid)) {
+                    this.grid = Ext.getCmp(this.gridId);
+                }
+                return this.grid;
+            },
+            handleRowSelect: function(sm, record, index){
+                if (record) {
+                    delete this.badIds[record.get("evid")];
+                }
+            },
+            handleRowDeSelect: function(sm, record, index){
+                if (this.selectState && record) {
+                    this.badIds[record.get("evid")] = 1;
+                }
+            },
+            onStoreLoad: function() {
+                var store = this.grid.getStore();
+                if (this.selectState == 'All') {
+                    this.suspendEvents();
+                    var items = Zenoss.util.filter(store.data.items, function(item){
+                        return (! this.badIds[item.get('evid')]);
+                    }, this);
+                    this.select(items, false, true);
+                    this.resumeEvents();
+                    this.fireEvent('selectionchange', this);
+                }
+            },
+            selectEventState: function(state){
+                var record,
                 me = this,
                 grid = this.getGrid(),
                 store = grid.getStore();
-            if (state === 'All') {
-                // surpress events
-                return this.selectAll(true);
-            }
-            this.clearSelections(true);
+                if (state === 'All') {
 
-            // Suspend events to avoid firing the whole chain for every row
-            this.suspendEvents();
+                    // surpress events
+                    return this.selectAll(true);
+                    this.fireEvent('selectionchange', this);
+                }
+                this.clearSelections(true);
+                // Suspend events to avoid firing the whole chain for every row
+                this.suspendEvents();
 
-            Ext.each(store.data.items, function(record){
-                if (record) {
-                    if (record.data.eventState == state) {
-                        me.select(record, true);
+                Ext.each(store.data.items, function(record){
+                    if (record) {
+                        if (record.data.eventState == state) {
+                            me.select(record, true);
+                        }
                     }
-                }
-            });
-            this.selectState = state;
+                });
+                this.selectState = state;
 
-            // Bring events back and fire one selectionchange for the batch
-            this.resumeEvents();
-            this.fireEvent('selectionchange', this);
-        },
-
-        selectNone: function(){
-            this.clearSelections(true);
-            // Fire one selectionchange to make buttons figure out their
-            // disabledness
-            this.fireEvent('selectionchange', this);
-        },
-        selectAck: function(){
-            this.clearSelections();
-            this.selectEventState('Acknowledged');
-        },
-        selectNew: function(){
-            this.clearSelections();
-            this.selectEventState('New');
-        },
-        selectSuppressed: function(){
-            this.clearSelections();
-            this.selectEventState('Suppressed');
-        },
-        selectClosed: function(){
-            this.clearSelections();
-            this.selectEventState('Closed');
-        },
-        selectCleared: function(){
-            this.clearSelections();
-            this.selectEventState('Cleared');
-        },
-        selectAged: function(){
-            this.clearSelections();
-            this.selectEventState('Aged');
-        },
-        // /**
-        //  * Override handle mouse down method from "Ext.grid.RowSelectionModel"
-        //  * to handle shift select more intelligently.
-        //  * We need to disallow shift select when the selection range crosses
-        //  * a buffer to prevent a user from taking action upon an event they they
-        //  * may not have seen yet. See trac #6959
-        //  **/
-        // handleMouseDown: function(g, rowIndex, e){
-        //     if(e.button !== 0 || this.isLocked()){
-        //         return;
-        //     }
-        //     var view = this.grid.getView();
-        //     // handle shift select
-        //     if(e.shiftKey && !this.singleSelect && this.last !== false){
-        //         // last is the index of the previous row they selected
-        //         var last = this.last;
-
-        //         // bufferRange is the first and last item in our current view
-        //         var startIndex = this.grid.store.bufferRange[0];
-        //         var endIndex = this.grid.store.bufferRange[1];
-
-        //         // only allow shift select if the range is in our current view
-        //         if (last >= startIndex && last <= endIndex){
-        //             this.selectRange(last, rowIndex, e.ctrlKey);
-        //             this.last = last; // reset the last
-        //             view.focusRow(rowIndex);
-        //         }else{
-        //             // unselect everything (in case they shift select, then jump around buffers and shift select again)
-        //             this.clearSelections();
-        //             this.doSingleSelect(rowIndex, e);
-        //         }
-        //     }else{
-        //         this.doSingleSelect(rowIndex, e);
-        //     }
-        // },
-        // /**
-        //  * Used by handleMouseDown to handle a single selection
-        //  **/
-        // doSingleSelect: function(rowIndex, e){
-        //     var view = this.grid.getView();
-        //     var isSelected = this.isSelected(rowIndex);
-        //     if(e.ctrlKey && isSelected){
-        //         this.deselectRow(rowIndex);
-        //     }else if(!isSelected || this.getCount() > 1){
-        //         this.selectRow(rowIndex, e.ctrlKey || e.shiftKey);
-        //         view.focusRow(rowIndex);
-        //     }
-        // },
-        clearSelections: function(fast){
-            return;
-            var start, end, record;
-            if (this.isLocked()) {
-                return;
-            }
-            this.selectState = null;
-
-            // Suspend events to avoid firing the whole chain for every row
-            this.suspendEvents();
-            if(!fast){
-                //make sure all rows are deselected so that UI renders properly
-                //base class only deselects rows it knows are selected; so we need
-                //to deselect rows that may have been selected via selectstate
-                start = this.grid.store.bufferRange[0];
-                end = this.grid.store.bufferRange[1];
-                for (var i = start; i <= end; i++) {
-                    record = this.grid.store.getAt(i);
-                    this.deselectRow(i);
-                }
-            }
-            // Bring events back and fire one selectionchange for the batch
-            this.resumeEvents();
-            this.fireEvent('selectionchange', this);
-
-            this.badIds = {};
-            Zenoss.EventPanelSelectionModel.superclass.clearSelections.apply(this, arguments);
-        },
-        onRefresh: function(){
-            //override from base class to prevent reslect after sorting
-            var ds = this.grid.store, index;
-            var s = this.getSelections();
-            this.clearSelections(false);
-            if (s.length != this.selections.getCount()) {
+                // Bring events back and fire one selectionchange for the batch
+                this.resumeEvents();
                 this.fireEvent('selectionchange', this);
-            }
-        }
-        // isSelected: function(index){
-        //     var r = Ext.isNumber(index) ? this.grid.store.getAt(index) : index;
-        //     var selected = (r && this.selections.key(r.id) ? true : false);
-        //     var badId = false;
-        //     if (r && this.badIds[r.id]) {
-        //         selected = false;
-        //     }
-        //     else if (this.selectState == 'All') {
-        //         selected = true;
-        //     }
-        //     return selected;
+            },
+            clearSelectState: function() {
+                this.selectState = null;
+                this.grid.getStore().un('datachanged', this.onStoreLoad, this);
+                this.grid.disableSavedSelection(false);
+            },
+            setSelectState: function(state) {
+                this.selectState = state;
+                if (state === 'All') {
+                    this.grid.getStore().on('datachanged', this.onStoreLoad, this);
+                    this.grid.disableSavedSelection(true);
+                }
+            },
+            selectNone: function(){
+                this.clearSelections(true);
+                // Fire one selectionchange to make buttons figure out their
+                // disabledness
+                this.fireEvent('selectionchange', this);
+            },
+            selectAck: function(){
+                this.clearSelections();
+                this.selectEventState('Acknowledged');
+            },
+            selectNew: function(){
+                this.clearSelections();
+                this.selectEventState('New');
+            },
+            selectSuppressed: function(){
+                this.clearSelections();
+                this.selectEventState('Suppressed');
+            },
+            selectClosed: function(){
+                this.clearSelections();
+                this.selectEventState('Closed');
+            },
+            selectCleared: function(){
+                this.clearSelections();
+                this.selectEventState('Cleared');
+            },
+            selectAged: function(){
+                this.clearSelections();
+                this.selectEventState('Aged');
+            },
 
-        // }
-    });
+            clearSelections: function(fast){
+                if (this.isLocked()) {
+                    return;
+                }
+
+                // Suspend events to avoid firing the whole chain for every row
+                this.suspendEvents();
+                if(!fast){
+                    //make sure all rows are deselected so that UI renders properly
+                    //base class only deselects rows it knows are selected; so we need
+                    //to deselect rows that may have been selected via selectstate
+                    this.deselect(this.grid.getStore().data.items);
+                }
+                // Bring events back and fire one selectionchange for the batch
+                this.resumeEvents();
+                this.fireEvent('selectionchange', this);
+
+                this.badIds = {};
+                Zenoss.EventPanelSelectionModel.superclass.clearSelections.apply(this, arguments);
+            }
+        });
 
     /**
      * @class Zenoss.EventsJsonReader
@@ -971,18 +910,6 @@
         Zenoss.events.customColumns[dataIndex] = obj;
     };
 
-
-    Ext.define("Zenoss.FullEventColumnModel", {
-        extend: "Ext.grid.ColumnModel",
-        alias: ['widget.FullEventColumnModel'],
-        constructor: function(config) {
-            config = Ext.applyIf(config || {}, {
-                columns: Zenoss.env.getColumnDefinitions()
-            });
-            Zenoss.FullEventColumnModel.superclass.constructor.call(this, config);
-        }
-    });
-
     /**
      * @class Zenoss.events.Grid
      * @extends Zenoss.FilterGridPanel
@@ -1007,6 +934,10 @@
 
             });
             this.callParent(arguments);
+            this.on('itemclick', this.onItemClick, this );
+        },
+        onItemClick: function(){
+            this.getSelectionModel().clearSelectState();
         },
         listeners: {
             'beforerender': function(){
@@ -1021,10 +952,9 @@
         },
         getSelectionParameters: function() {
             var grid = this,
-                sm = grid.getSelectionModel(),
-                //ranges = sm.getPendingSelections(true),
-                evids = [],  // Event IDs selected
-                sels = sm.getSelections();  // UI records selected
+            sm = grid.getSelectionModel(),
+            evids = [],  // Event IDs selected
+            sels = sm.getSelections();  // UI records selected
 
             var selectedAll = (sm.selectState == 'All');
             if (selectedAll) {
@@ -1037,9 +967,6 @@
                     evids[evids.length] = record.data.evid;
                 });
             }
-
-            // This code did nothing because evids is never null...
-            //if (!ranges && !evids) return false;
 
             // Don't run if nothing is selected.
             if (!selectedAll && Ext.isEmpty(sels)) {
@@ -1088,13 +1015,13 @@
         restoreURLState: function() {
             var qs = window.location.search.replace(/^\?/, ''),
             state = Ext.urlDecode(qs).state;
-            if (state) {
-                try {
-                    state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));
-                    this.applyState(state);
+                if (state) {
+                    try {
+                        state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));
+                        this.applyState(state);
 
-                } catch(e) { }
-            }
+                    } catch(e) { }
+                }
         },
         clearURLState: function() {
             var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));
@@ -1119,14 +1046,14 @@
             this.clearFilters();
             Zenoss.remote.EventsRouter.column_config({}, function(result){
                 var results = [],
-                    store = this.getStore(),
-                    grid = this,
-                    filters = this.defaultFilters;
+                store = this.getStore(),
+                grid = this,
+                filters = this.defaultFilters;
                 Ext.each(result, function(r){
                     results[results.length] = Ext.decode(r);
                 });
                 var columns = results;
-                this.reconfigure(null, columns);
+                    this.reconfigure(null, columns);
                 this.filterRow.onGridColumnMove();
 
                 // need to resize the filters to be the same size as the column
@@ -1145,7 +1072,7 @@
                     }
                 });
                 // resort by default sorter
-                store.sort(store.sorters.get(0));
+                    store.sort(store.sorters.get(0));
             }, this);
         },
         updateRows: function(){
@@ -1158,25 +1085,25 @@
      * @extends Ext.ux.grid.livegrid.GridPanel
      * Shows events in a grid panel similar to that on the event console.
      * Fixed columns.
-     * @constructor
-     */
+         * @constructor
+         */
     Ext.define("Zenoss.SimpleEventGridPanel", {
-        extend:"Zenoss.events.Grid",
-        alias: ['widget.SimpleEventGridPanel'],
+            extend:"Zenoss.events.Grid",
+            alias: ['widget.SimpleEventGridPanel'],
         constructor: function(config){
 
             var id = config.id || Ext.id();
             config.viewConfig = config.viewConfig || {};
-            Ext.applyIf(config.viewConfig, {
-                getRowClass: function(record, index) {
-                    var stateclass = record.get('eventState')=='New' ?
-                        'unacknowledged':'acknowledged';
-                    var sev = Zenoss.util.convertSeverity(record.get('severity'));
-                    var rowcolors = Ext.state.Manager.get('rowcolor') ? 'rowcolor rowcolor-' : '';
-                    var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
-                    return cls;
-                }
-            });
+                Ext.applyIf(config.viewConfig, {
+                    getRowClass: function(record, index) {
+                        var stateclass = record.get('eventState')=='New' ?
+                            'unacknowledged':'acknowledged';
+                        var sev = Zenoss.util.convertSeverity(record.get('severity'));
+                        var rowcolors = Ext.state.Manager.get('rowcolor') ? 'rowcolor rowcolor-' : '';
+                        var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
+                        return cls;
+                    }
+                });
             Ext.applyIf(config, {
                 id: 'eventGrid' + id,
                 stripeRows: true,
@@ -1186,7 +1113,9 @@
                 rowSelectorDepth: 5,
                 store: Ext.create('Zenoss.events.Store', {}),
                 appendGlob: true,
-                selModel: new Zenoss.EventPanelSelectionModel(),
+                selModel: new Zenoss.EventPanelSelectionModel({
+                    grid: this
+                }),
                 autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
                 defaultFilters: {
                     severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
@@ -1258,16 +1187,16 @@
                 handler: function(){
                     var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                     sm = grid.getSelectionModel();
-                    sm.selectAll();
-                    grid.selectedState = 'all';
+                    sm.selectEventState('All');
+                    sm.setSelectState("All");
                 }
             },{
                 text: 'None',
                 handler: function(){
                     var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                     sm = grid.getSelectionModel();
-                    sm.deselectAll();
-                    sm.selectedState = 'none';
+                    sm.clearSelections();
+                    sm.clearSelectState();
                 }
             }]
         }
