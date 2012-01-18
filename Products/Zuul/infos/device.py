@@ -222,17 +222,19 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         return self._object.convertProdState(self._object.productionState)
 
     def getProductionState(self):
-        return "%d" % self._object.productionState
+        return self._object.productionState
 
     def setProductionState(self, prodState):
+        # prodState gets cast to an integer in the device facade.
         return getFacade('device').setProductionState(self.uid, prodState)
 
     productionState = property(getProductionState, setProductionState)
 
     def getPriority(self):
-        return "%d" % self._object.priority
+        return self._object.priority
 
     def setPriority(self, priority):
+        # priority is cast to an integer in Device.setPriority
         self._object.setPriority(priority)
 
     priority = property(getPriority, setPriority)

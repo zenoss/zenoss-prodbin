@@ -20,6 +20,7 @@
 
     Ext.define("Zenoss.form.SmartCombo", {
         extend: "Ext.form.ComboBox",
+        alias: ['widget.smartcombo'],
         constructor: function(config) {
             config = Ext.applyIf(config || {}, {
                 store: new Zenoss.DirectStore({
@@ -56,9 +57,29 @@
         constructor: function(config) {
             config = Ext.apply(config || {}, {
                 directFn: Zenoss.remote.DeviceRouter.getPriorities,
-                cls: 'prioritycombo'
+                cls: 'prioritycombo',
+                fields: [
+                    { name: 'name', type: 'string'},
+                    { name: 'value', type: 'int'}
+                ]
             });
             this.callParent([config]);
+        },
+        getValue: function() {
+            // This method is being overridden because the check in SmartCombo
+            // will not allow zero as a value; it will fallback and send the
+            // raw value, which for Priority is the string "Trivial".
+            var result = this.callParent(arguments);
+            if (Ext.isString(result)) {
+                Zenoss.env.initPriorities();
+                Ext.each(Zenoss.env.PRIORITIES, function(item) {
+                    if (item.name === result) {
+                        result = item.value;
+                        return false; // break
+                    }
+                });
+            }
+            return result;
         }
     });
 
@@ -90,7 +111,11 @@
         constructor: function(config) {
             config = Ext.apply(config || {}, {
                 //fieldLabel: _t('Production State'),
-                directFn: Zenoss.remote.DeviceRouter.getProductionStates
+                directFn: Zenoss.remote.DeviceRouter.getProductionStates,
+                fields: [
+                    { name: 'name', type: 'string'},
+                    { name: 'value', type: 'int'}
+                ]
             });
             this.callParent([config]);
         }

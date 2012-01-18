@@ -1269,7 +1269,7 @@ class DeviceRouter(TreeRouter):
         @return:  List of name/value pairs of available production states
         """
         return DirectResponse(data=[dict(name=s.split(':')[0],
-                                         value=s.split(':')[1]) for s in
+                                         value=int(s.split(':')[1])) for s in
                                     self.context.dmd.prodStateConversions])
 
     def getPriorities(self, **kwargs):
@@ -1280,7 +1280,7 @@ class DeviceRouter(TreeRouter):
         @return:  List of name/value pairs of available device priorities
         """
         return DirectResponse(data=[dict(name=s.split(':')[0],
-                                         value=s.split(':')[1]) for s in
+                                         value=int(s.split(':')[1])) for s in
                                     self.context.dmd.priorityConversions])
 
     def getCollectors(self):

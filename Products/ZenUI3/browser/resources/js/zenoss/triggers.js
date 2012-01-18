@@ -1519,6 +1519,20 @@ Ext.onReady(function () {
         ]
     };
 
+    var prod_state_rule = Ext.applyIf({
+        text: _t('Device Production State'),
+        value: 'dev.production_state'
+        },
+        ZFR.PRODUCTIONSTATE
+    );
+    var dev_priority_rule = Ext.applyIf(
+        {
+        text: _t('Device Priority'),
+        value: 'dev.priority'
+        },
+        ZFR.DEVICEPRIORITY
+    );
+
     var trigger_tab_content = {
         xtype:'panel',
         ref: '../../tab_content',
@@ -1558,20 +1572,9 @@ Ext.onReady(function () {
                 ref: 'rule',
                 id: 'trigger_rule',
                 subjects: [
-                Ext.applyIf(
-                    ZFR.DEVICEPRIORITY,
-                    {
-                    text: _t('Device Priority'),
-                    value: 'dev.priority'
-                    }
-                ),
-                Ext.applyIf(
-                    ZFR.PRODUCTIONSTATE,
-                    {
-                    text: _t('Device Production State'),
-                    value: 'dev.production_state'
-                    }
-                ),{
+                dev_priority_rule,
+                prod_state_rule,
+                {
                     text: _t('Device (Element)'),
                     value: 'elem.name',
                     comparisons: STRINGCMPS

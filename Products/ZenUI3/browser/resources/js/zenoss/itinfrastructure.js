@@ -469,12 +469,13 @@ Ext.apply(Zenoss.devices, {
                                 id: 'production-combo',
                                 width: 250,
                                 allowBlank: false,
+                                fieldLabel: _t("Production State"),
                                 listeners: {
                                     'afterrender': function(component) {
                                         component.store.load({callback:function(){
-                                            var index = component.store.find('value', '1000');
+                                            var index = component.store.find('value', 1000);
                                             if (index>=0) {
-                                                component.setValue('1000');
+                                                component.setValue(1000);
                                             }
                                         }});
                                     }
@@ -482,15 +483,16 @@ Ext.apply(Zenoss.devices, {
                             }, {
                                 xtype: 'PriorityCombo',
                                 name: 'priority',
+                                fieldLabel: _t("Device Priority"),
                                 minListWidth: 250,
                                 width: 250,
                                 allowBlank: false,
                                 listeners: {
                                     'afterrender': function(component) {
-                                        component.store.load({callback:function(){
-                                            var index = component.store.find('value', '3');
-                                            if (index>=0) {
-                                                component.setValue('3');
+                                        component.store.load({callback: function() {
+                                            var index = component.store.find('value', 3);
+                                            if (index >= 0) {
+                                                component.setValue(3);
                                             }
                                         }});
                                     }

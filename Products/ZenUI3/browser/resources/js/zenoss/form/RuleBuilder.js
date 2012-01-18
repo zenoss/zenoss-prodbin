@@ -626,11 +626,6 @@
         }
     };
 
-    var smarterSetIntValue = function(val) {
-        val = parseInt(val, 0);
-        smarterSetValue.call(this, val);
-    };
-
     Ext.apply(ZF, {
         EVENTSEVERITY: {
             text: _t('Severity'),
@@ -670,6 +665,7 @@
             value: 'productionState',
             field: {
                 xtype: 'ProductionStateCombo',
+                setValue: smarterSetValue,
                 defaultListConfig: {
                     maxWidth:200
                 }
@@ -681,6 +677,7 @@
             value: 'priority',
             field: {
                 xtype: 'PriorityCombo',
+                setValue: smarterSetValue,
                 defaultListConfig: {
                     maxWidth:200
                 }                
@@ -740,23 +737,19 @@
             value: 'dev.device_class',
             comparisons: ZF.STRINGCOMPARISONS,
             field: {
-                xtype: 'combo',
-                setValue: smarterSetValue,
-                mode: 'remote',
+                xtype: 'smartcombo',
                 defaultListConfig: {
                     maxWidth:200
-                },                
-                store: new Ext.data.DirectStore({
-                    directFn: Zenoss.remote.DeviceRouter.getDeviceClasses,
-                    root: 'deviceClasses',
-                    fields: ['name']
-                }),
+                },
+                fields: ['name'],
+                directFn: Zenoss.remote.DeviceRouter.getDeviceClasses,
+                root: 'deviceClasses',
                 listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
+                editable: true,
                 valueField: 'name',
                 displayField: 'name',
                 forceSelection: true,
-                triggerAction: 'all'
             }
         },
         SYSTEMS: {
@@ -764,23 +757,19 @@
             value: 'dev.systems',
             comparisons: ZF.LISTCOMPARISONS,
             field: {
-                xtype: 'combo',
-                setValue: smarterSetValue,
-                mode: 'remote',
-                store: new Ext.data.DirectStore({
-                    directFn: Zenoss.remote.DeviceRouter.getSystems,
-                    root: 'systems',
-                    fields: ['name']
-                }),
-                listeners: directStoreWorkaroundListeners,
+                xtype: 'smartcombo',
                 defaultListConfig: {
                     maxWidth:200
-                },                
+                },
+                directFn: Zenoss.remote.DeviceRouter.getSystems,
+                root: 'systems',
+                fields: ['name'],
+                listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
+                editable: true,
                 valueField: 'name',
                 displayField: 'name',
-                forceSelection: true,
-                triggerAction: 'all'
+                forceSelection: false
             }
         },
         DEVICEGROUPS: {
@@ -788,23 +777,19 @@
             value: 'dev.groups',
             comparisons: ZF.LISTCOMPARISONS,
             field: {
-                xtype: 'combo',
-                setValue: smarterSetValue,
-                mode: 'remote',
+                xtype: 'smartcombo',
                 defaultListConfig: {
                     maxWidth:200
-                },                
-                store: new Ext.data.DirectStore({
-                    directFn: Zenoss.remote.DeviceRouter.getGroups,
-                    root: 'groups',
-                    fields: ['name']
-                }),
+                },
+                directFn: Zenoss.remote.DeviceRouter.getGroups,
+                root: 'groups',
+                fields: ['name'],
                 listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
+                editable: true,
                 valueField: 'name',
                 displayField: 'name',
-                forceSelection: true,
-                triggerAction: 'all'
+                forceSelection: false
             }
         }
     });
