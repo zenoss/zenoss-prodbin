@@ -282,7 +282,7 @@
 
             // only load the store if a context has been applied
             if (Ext.isDefined(this.grid.getContext()) || this.grid.getStore().autoLoad) {
-                this.grid.getStore().load({
+                this.grid.refresh({
                     callback:function () {
                         this.grid.fireEvent('filterschanged', this.grid, values);
                     },
@@ -507,7 +507,12 @@
                         // -1 so we don't prefetch multiple pages, we just need one until the user
                         // scrolls down a bit more
                         store.guaranteeRange(0, store.pageSize - 1);
+                    } else{
+                        // if no records were returned then ExtJs doesn't handle
+                        // the scroll bar right, so this helps it along
+                        this.forceComponentLayout();
                     }
+                    // Add a callback if one was passed in to here.
                     Ext.callback(callback, scope || this);
                 },
                 scope:this
