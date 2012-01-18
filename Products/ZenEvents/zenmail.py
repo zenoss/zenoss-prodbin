@@ -50,6 +50,9 @@ from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
 from Products.ZenCollector.tasks import NullTaskSplitter,\
                                         BaseTask, TaskStates
 
+# Invalidation issues arise if we don't import
+from Products.ZenCollector.services.config import DeviceProxy
+
 from Products.ZenEvents.MailProcessor import MailProcessor
 
 
