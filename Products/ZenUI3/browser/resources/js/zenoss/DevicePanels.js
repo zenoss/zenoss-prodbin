@@ -239,11 +239,11 @@ Ext.define("Zenoss.DeviceGridPanel", {
             columns: deviceColumns
         });
         this.callParent(arguments);
-        this.on('rowdblclick', this.onRowDblClick, this);
+        this.on('itemdblclick', this.onItemDblClick, this);
     },
 
-    onRowDblClick: function(grid, rowIndex, e) {
-        window.location = grid.getStore().getAt(rowIndex).data.uid;
+    onItemDblClick: function(view, record) {
+        window.location = record.get("uid");
     },
     applyOptions: function(options){
         // only request the visible columns
