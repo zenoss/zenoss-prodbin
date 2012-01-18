@@ -15,6 +15,7 @@ __doc__ = """ZenPack
 ZenPacks base definitions
 """
 
+import datetime
 import string
 import subprocess
 import os
@@ -28,6 +29,7 @@ from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.PkgResources import pkg_resources
+from Products.ZenModel import ExampleLicenses
 from Products.ZenModel.ZenPackLoader import *
 from Products.ZenWidgets import messaging
 from AccessControl import ClassSecurityInfo
@@ -498,10 +500,14 @@ class ZenPack(ZenModelRM):
                     return self.callZenScreen(REQUEST)
                 REQUEST.form['compatZenossVers'] = compatZenossVers
 
+        if 'Select or specify your own' in REQUEST.get('license', ''):
+            REQUEST.form['license'] = ''
+
         result =  ZenModelRM.zmanage_editProperties(self, REQUEST, redirect)
 
         if self.isEggPack():
             self.writeSetupValues()
+            self.writeLicense()
             self.buildEggInfo()
         return result
 
@@ -923,6 +929,20 @@ registerDirectory("skins", globals())
             )
         ZenPackCmd.WriteSetup(self.eggPath('setup.py'), attrs)
 
+    def writeLicense(self):
+        """
+        Write LICENSE.txt file based on the ZenPack's license attribute.
+        """
+        if self.license not in ExampleLicenses.LICENSES:
+            return
+
+        license_text = ExampleLicenses.LICENSES[self.license] % {
+            'year': datetime.date.today().year,
+            'author': self.author and self.author or '<AUTHOR>',
+            }
+
+        with open(self.path('LICENSE.txt'), 'w') as license_file:
+            license_file.write(license_text.lstrip('\n'))
 
     def buildEggInfo(self):
         """
@@ -1065,6 +1085,8 @@ registerDirectory("skins", globals())
 
         return False
 
+    def getExampleLicenseNames(self):
+        return sorted(ExampleLicenses.LICENSES.keys())
 
 
 # ZenPackBase is here for backwards compatibility with older installed

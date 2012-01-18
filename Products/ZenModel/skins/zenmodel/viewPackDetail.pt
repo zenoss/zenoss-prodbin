@@ -13,6 +13,17 @@ addLoadEvent(doDownloadRedirect);
 </script>
 </tal:block>
 
+<script type="text/javascript">
+Ext.onReady(function() {
+    var betterLicenseSelect = Ext.create('Ext.form.field.ComboBox', {
+        width: 250,
+        typeAhead: false,
+        transform: 'license',
+        forceSelection: false
+    });
+});
+</script>
+
 <form method="POST" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
@@ -42,6 +53,27 @@ addLoadEvent(doDownloadRedirect);
         </td>
         <td class="tablevalues" tal:condition="not:here/isDevelopment"
             tal:content="here/author"/>
+    </tr>
+    <tr>
+        <td class="tableheader">License</td>
+        <td class="tablevalues" tal:condition="here/isDevelopment">
+            <select class="tablevalues" id="license" name="license"
+                onchange="toggleOtherLicense()">
+
+                <option>Select or specify your own..</option>
+
+                <option selected="selected"
+                    tal:condition="python:here.license and here.license not in here.getExampleLicenseNames()"
+                    tal:content="here/license"/>
+
+                <tal:block tal:repeat="license here/getExampleLicenseNames">
+                <option tal:content="license" tal:attributes="
+                    selected python:license==here.license"/>
+                </tal:block>
+            </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isDevelopment"
+            tal:content="here/license"/>
     </tr>
 
     <tr tal:condition="here/isDevelopment">

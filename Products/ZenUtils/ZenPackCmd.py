@@ -589,6 +589,11 @@ def CopyMetaDataToZenPackObject(dist, pack):
     pack.author = info.get('Author', '')
     if pack.author == 'UNKNOWN':
         pack.author = ''
+
+    pack.license = info.get('License', '')
+    if pack.license == 'UNKNOWN':
+        pack.license = ''
+
     pack.compatZenossVers = info.get('compatZenossVers', '')
     pack.prevZenPackName = info.get('prevZenPackName', '')
 
