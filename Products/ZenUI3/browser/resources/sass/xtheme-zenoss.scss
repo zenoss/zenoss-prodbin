@@ -178,7 +178,13 @@ $include-missing-images: true;
 }
 
 /* cascade level fix */
-
+.x-mask-msg-noicon {
+   z-index: 19080;
+ }
+.x-mask-msg-noicon div {
+   background-image: none;
+}
+ 
 .x-grid-row-selected, .x-grid-row-focused{
      background-color:#7199C6 !important;  
      .x-grid-cell-inner, span{

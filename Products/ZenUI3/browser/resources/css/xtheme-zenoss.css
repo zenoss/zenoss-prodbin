@@ -9646,6 +9646,12 @@ CORE TRIGGER PAGE STUFF
   top: 3px !important; }
 
 /* cascade level fix */
+.x-mask-msg-noicon {
+  z-index: 19080; }
+
+.x-mask-msg-noicon div {
+  background-image: none; }
+
 .x-grid-row-selected, .x-grid-row-focused {
   background-color: #7199c6 !important; }
 .x-grid-row-selected .x-grid-cell-inner, .x-grid-row-selected span, .x-grid-row-focused .x-grid-cell-inner, .x-grid-row-focused span {
