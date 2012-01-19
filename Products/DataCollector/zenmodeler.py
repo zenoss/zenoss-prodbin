@@ -52,6 +52,7 @@ import os.path
 import sys
 import traceback
 from random import randint
+from itertools import *
 
 defaultPortScanTimeout = 5
 defaultParallel = 1
@@ -753,6 +754,23 @@ class ZenModeler(PBDaemon):
             reactor.callLater(self.startDelay, self.main)
 
 
+    @property
+    def _devicegen_has_items(self):
+        """check it self.devicegen (an iterator) is not empty and has at least
+        one value. doing this check changes the iterator, so this method
+        restores it to its original state before returning"""
+        result = False
+        if self.devicegen is not None:
+            try:
+                first = self.devicegen.next()
+            except StopIteration:
+                pass
+            else:
+                result = True
+                self.devicegen = chain([first], self.devicegen)
+        return result
+
+
     def checkStop(self, unused = None):
         """
         Check to see if there's anything to do.
@@ -762,7 +780,7 @@ class ZenModeler(PBDaemon):
         @type unused: string
         """
         if self.clients: return
-        if self.devicegen: return
+        if self._devicegen_has_items: return
 
         if self.start:
             runTime = time.time() - self.start
@@ -787,7 +805,7 @@ class ZenModeler(PBDaemon):
         @type driver: driver object
         """
         count = len(self.clients)
-        while count < self.options.parallel and self.devicegen \
+        while count < self.options.parallel and self._devicegen_has_items \
             and not self.pendingNewClients:
             self.pendingNewClients = True
             try:
