@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-01-17 09:43:58.330300
+    Zenoss RelationshipManager export completed on 2012-01-18 16:23:55.804520
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-17 09:43:58.330300" zenoss_server="biscuit.local" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-18 16:23:55.804520" zenoss_server="ubuntu1010-64" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -5675,7 +5675,7 @@ Swap
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-1024,*,${here/os/totalSwap},/,1,-,-100,*
+1024,*,DUP,${here/os/totalSwap},LT,EXC,${here/os/totalSwap},/,1.0,-,-100,*,0.0,IF
 </property>
 <property type="string" id="dpName" mode="w" >
 memAvailSwap_memAvailSwap
@@ -7854,7 +7854,7 @@ Swap
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-1024,*,${here/os/totalSwap},/,1,-,-100,*
+1024,*,DUP,${here/os/totalSwap},LT,EXC,${here/os/totalSwap},/,1.0,-,-100,*,0.0,IF
 </property>
 <property type="string" id="dpName" mode="w" >
 memAvailSwap_memAvailSwap
@@ -9177,7 +9177,7 @@ Swap
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-1024,*,${here/os/totalSwap},/,1,-,-100,*
+1024,*,DUP,${here/os/totalSwap},LT,EXC,${here/os/totalSwap},/,1.0,-,-100,*,0.0,IF
 </property>
 <property type="string" id="dpName" mode="w" >
 memAvailSwap_memAvailSwap
