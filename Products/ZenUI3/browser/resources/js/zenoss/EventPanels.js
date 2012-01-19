@@ -789,7 +789,7 @@
             },
 
             clearSelections: function(fast){
-                if (this.isLocked()) {
+                if (this.isLocked() || !this.grid) {
                     return;
                 }
 
@@ -935,6 +935,10 @@
             });
             this.callParent(arguments);
             this.on('itemclick', this.onItemClick, this );
+        },
+        initComponent: function() {
+            this.getSelectionModel().grid = this;
+            this.callParent(arguments);
         },
         onItemClick: function(){
             this.getSelectionModel().clearSelectState();
