@@ -13,6 +13,18 @@
 import types
 import logging
 from Products.ZenUtils.jsonutils import json
+from zenoss.protocols.protobufs import zep_pb2 as eventConstants
+
+OLD_SYSLOG_MAPPING = {
+    0: eventConstants.SYSLOG_PRIORITY_DEBUG,
+    1: eventConstants.SYSLOG_PRIORITY_INFO,
+    2: eventConstants.SYSLOG_PRIORITY_NOTICE,
+    3: eventConstants.SYSLOG_PRIORITY_WARNING,
+    4: eventConstants.SYSLOG_PRIORITY_ERR,
+    5: eventConstants.SYSLOG_PRIORITY_CRIT,
+    6: eventConstants.SYSLOG_PRIORITY_ALERT,
+    7: eventConstants.SYSLOG_PRIORITY_EMERG,
+}
 
 log = logging.getLogger('zen.WhereClause')
 
@@ -487,6 +499,8 @@ def toPython(meta, clause):
                             value = int(value)
                         except ValueError:
                             raise PythonConversionException('Failed to convert ntevid to integer')
+                    if orig_name == 'priority':
+                        value = OLD_SYSLOG_MAPPING[value]
 
                     python_statement = meta[name].buildPython(name, op, value)
                     result.append('(%s)' % python_statement)
