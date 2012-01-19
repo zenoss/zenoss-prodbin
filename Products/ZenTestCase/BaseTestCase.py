@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import logging
 
 import zope.component
 from zope.traversing.adapters import DefaultTraversable
@@ -109,8 +110,13 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
 
     layer = ZenossTestCaseLayer
     _setup_fixture = 0
+    loggingDisabled = True
 
     def afterSetUp(self):
+
+        if self.loggingDisabled:
+            logging.disable(logging.CRITICAL)
+
         gen = PortalGenerator()
         if hasattr( self.app, 'zport' ):
             self.app._delObject( 'zport', suppress_events=True)
@@ -142,6 +148,9 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
             Transaction.commit=self._transaction_commit
         self.app = None
         self.dmd = None
+
+        logging.disable(logging.NOTSET)
+
         super(BaseTestCase, self).tearDown()
 
     def create(self, context, klass, id):

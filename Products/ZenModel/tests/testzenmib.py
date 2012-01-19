@@ -27,30 +27,14 @@ class FakeOptions:
 
 class Testzenmib(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
-
-        # Trap n toss all output to make the test prettier
-        # Otherwise it will drive you insane, yelling
-        # "SHUT UP! SHUT UP!" to your monitor.
-        # Since no good will come of that...
-        self.oldDisable = logging.root.manager.disable
-        logging.disable(logging.CRITICAL)
-
-        # Note: the docs (http://docs.python.org/library/logging.html#logging-levels)
-        #       imply that we can override the above behaviour by passing
-        #       a handler object to logging.getLogger().addHandler(handler),
-        #       but that doesn't seem to work.
+    def afterSetUp(self):
+        super(Testzenmib, self).afterSetUp()
 
         self.zmib = ZenMib(noopts=1)
         self.zmib.options = FakeOptions()
 
         self.mfo = MibFile('filename', '')
         self.log = logging.getLogger("zen.ZenMib")
-
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-        logging.disable(self.oldDisable)
 
     def testFindDependencies(self):
         """

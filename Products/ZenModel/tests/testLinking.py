@@ -25,8 +25,8 @@ from ZenModelBaseTest import ZenModelBaseTest
 
 class TestLayer2Linking(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestLayer2Linking, self).afterSetUp()
         self.dev = self.dmd.Devices.createInstance("testdev")
         manage_addIpInterface(self.dev.os.interfaces, 'eth0', True)
         self.iface = self.dev.os.interfaces._getOb('eth0')
@@ -50,8 +50,8 @@ class TestLayer2Linking(ZenModelBaseTest):
 
 class TestLayer3Linking(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestLayer3Linking, self).afterSetUp()
         self.globalInt = count()
         self.devices = {}
         self.evids = []
@@ -227,7 +227,7 @@ class TestLayer3Linking(ZenModelBaseTest):
         # Can't test event severity anymore because events are async
         # self.assertEqual(links[0][1], 5)
 
-    def tearDown(self):
+    def beforeTearDown(self):
         if self.evids:
             conn = self.zem.connect()
             try:
@@ -236,7 +236,7 @@ class TestLayer3Linking(ZenModelBaseTest):
                     curs.execute("delete from status where evid='%s'" % evid)
             finally: 
                 self.zem.close(conn)
-        ZenModelBaseTest.tearDown(self)
+        super(TestLayer3Linking, self).beforeTearDown()
 
 
 def test_suite():

@@ -29,10 +29,7 @@ class FakeOptions:
 class Testzenbatchloader(BaseTestCase):
 
     def afterSetUp(self):
-        BaseTestCase.afterSetUp(self)
-
-        self.oldDisable = logging.root.manager.disable
-        logging.disable(logging.CRITICAL)
+        super(Testzenbatchloader, self).afterSetUp()
 
         self.zloader = BatchDeviceLoader(noopts=1)
         self.zloader.options = FakeOptions()
@@ -41,10 +38,6 @@ class Testzenbatchloader(BaseTestCase):
 
         self.log = logging.getLogger("zen.BatchDeviceLoader")
         self.zloader.log = self.log
-
-    def beforeTearDown(self):
-        BaseTestCase.beforeTearDown(self)
-        logging.disable(self.oldDisable)
 
     def testSampleConfig(self):
         """

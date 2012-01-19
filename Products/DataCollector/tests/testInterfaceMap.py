@@ -44,16 +44,11 @@ def dumpObjectMapData(om):
 
 class TestInterfaceMap(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestInterfaceMap, self).afterSetUp()
 
-        self.oldDisable = logging.root.manager.disable
         self.imap = InterfaceMap()
         self.device = FakeDevice('testdevice')
-
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-        logging.disable(self.oldDisable)
 
     def testGoodResults(self):
         tabledata = {
@@ -197,7 +192,6 @@ class TestInterfaceMap(BaseTestCase):
             'ipNetToMediaTable': {}
         }
         results = ('ignored', tabledata)
-        logging.disable(logging.WARN)
         relmap = InterfaceMap().process(self.device, results, log)
 
         parsed_data = {

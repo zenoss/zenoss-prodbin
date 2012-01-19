@@ -13,12 +13,9 @@
 
 import os
 import os.path
-import logging
-from exceptions import *
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenHub.services.RRDImpl import RRDImpl
 from Products.ZenRRD.RRDUtil import RRDUtil
-from Products.ZenModel.Exceptions import *
 
 
 class TestRRDImpl(BaseTestCase):
@@ -42,20 +39,8 @@ class TestRRDImpl(BaseTestCase):
         thresh.dsnames = ('ds_dp',)
 
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
-
-        # Trap n toss all output to make the test prettier
-        # Otherwise it will drive you insane, yelling
-        # "SHUT UP! SHUT UP!" to your monitor.
-        # Since no good will come of that...
-        self.oldDisable = logging.root.manager.disable
-        logging.disable(logging.CRITICAL)
-
-        # Note: the docs (http://docs.python.org/library/logging.html#logging-levels)
-        #       imply that we can override the above behaviour by passing
-        #       a handler object to logging.getLogger().addHandler(handler),
-        #       but that doesn't seem to work.
+    def afterSetUp(self):
+        super(TestRRDImpl, self).afterSetUp()
 
         # Make a valid test device
         testdev = str(self.__class__.__name__)
@@ -63,11 +48,6 @@ class TestRRDImpl(BaseTestCase):
         self.createFakeDevice( testdev )
 
         self.zem = self.dmd.ZenEventManager
-        #self.dev = self.dmd.Devices.createInstance(testdev)
-        #tmpo = FileSystem('fs1')
-        #self.dev.os.filesystems._setObject('fs1',tmpo)
-        #self.fs = self.dev.os.filesystems()[0]
-        
 
         # We're not connected to zenhub so the following
         # always will be None
@@ -155,7 +135,7 @@ class TestRRDImpl(BaseTestCase):
         self.assertNotEquals(len(evts), 0)
 
 
-    def tearDown(self):
+    def beforeTearDown(self):
         """
         Clean up after our tests
         """
@@ -165,9 +145,7 @@ class TestRRDImpl(BaseTestCase):
         except:
             pass
 
-        logging.disable(self.oldDisable)
-
-        BaseTestCase.tearDown(self)
+        super(TestRRDImpl, self).beforeTearDown()
 
 
 

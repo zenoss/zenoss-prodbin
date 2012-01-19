@@ -11,10 +11,10 @@
 #
 ###########################################################################
 
-import logging
-from unittest import TestSuite, makeSuite, TestCase
+from unittest import TestSuite, makeSuite
 
 from Products.ZenEvents.MailProcessor import MessageProcessor
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 
 # Notes:
@@ -23,20 +23,15 @@ from Products.ZenEvents.MailProcessor import MessageProcessor
 #   Subversion hook that checks for tab characters will go
 #   insane with rage.
 
-class TestMailProcessor(TestCase):
+class TestMailProcessor(BaseTestCase):
 
-    def setUp(self):
+    def afterSetUp(self):
+        super(TestMailProcessor, self).afterSetUp()
+        
         class zemclass: pass
         self.zem = zemclass()
         self.zem.sendEvent = self.sendEvent
         self.sent = {}
-
-        self.oldDisable = logging.root.manager.disable
-        logging.disable(logging.CRITICAL)
-
-    def tearDown(self):
-        TestCase.tearDown(self)
-        logging.disable(self.oldDisable)
 
     def sendEvent(self, evt):
         "Fakeout sendEvent() method"

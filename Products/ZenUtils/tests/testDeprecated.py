@@ -18,7 +18,6 @@ If you would like to run these tests from python, simply do the following:
 """
 
 import unittest
-import logging
 import os
 import os.path
 import Globals
@@ -35,7 +34,10 @@ def add(x, y):
 
 
 class TestDeprecated(BaseTestCase):
-    """Test @deprecated in Develoment mode and Release mode."""
+    """Test @deprecated in Development mode and Release mode."""
+
+    #Enable logging for these tests
+    disableLogging = False
 
     def _doesLogFileExist(self, deleteIt=False):
         filepath = zenPath('log', TEST_LOGFILE)
@@ -45,11 +47,8 @@ class TestDeprecated(BaseTestCase):
             self.assertFalse(os.path.isfile(filepath))
         return exists
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
-        self.oldDisable = logging.root.manager.disable
-        # Enable all logging - we depend on it for tests
-        logging.disable(logging.NOTSET)
+    def afterSetUp(self):
+        super(TestDeprecated, self).afterSetUp()
         self.oldDevMode = Globals.DevelopmentMode
         self._doesLogFileExist(deleteIt=True)
 
@@ -79,11 +78,10 @@ class TestDeprecated(BaseTestCase):
         with open(zenPath('log', TEST_LOGFILE)) as f:
             self.assertTrue('Call to deprecated function add' in f.read())
 
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-        logging.disable(self.oldDisable)
+    def beforeTearDown(self):
         Globals.DevelopmentMode = self.oldDevMode
         self._doesLogFileExist(deleteIt=True)
+        super(TestDeprecated, self).beforeTearDown()
 
 
 def test_suite():

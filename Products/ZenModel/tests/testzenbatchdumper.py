@@ -30,10 +30,7 @@ class FakeOptions:
 class Testzenbatchdumper(BaseTestCase):
 
     def afterSetUp(self):
-        BaseTestCase.afterSetUp(self)
-
-        self.oldDisable = logging.root.manager.disable
-        logging.disable(logging.CRITICAL)
+        super(Testzenbatchdumper, self).afterSetUp()
 
         self.zdumper = BatchDeviceDumper(noopts=1)
         self.zdumper.options = FakeOptions()
@@ -54,14 +51,7 @@ class Testzenbatchdumper(BaseTestCase):
         self.zdumper.log = self.log
         self.zloader.log = logging.getLogger("zen.BatchDeviceLoader")
 
-    def beforeTearDown(self):
-        BaseTestCase.beforeTearDown(self)
-        logging.disable(self.oldDisable)
-
     def testDump(self):
-
-        logging.disable(logging.INFO)
-       
         self.zdumper.options.root = 'Devices'
         olympics = DateTime("2010/02/28")
         configs = ["device1 cDateTest=%s" % repr(olympics)]
