@@ -1058,8 +1058,14 @@ span.status-up {
   background-position: right -9px;
 }
 
+span.status-degraded {
+  color: #c96100;
+}
+span.status-at.risk {
+  color:#d1b700;
+}
 
-.ext-ie span.status-up {
+.x-ie span.status-up {
   background-position: right -8px;
 }
 
@@ -1069,7 +1075,7 @@ span.status-down {
 }
 
 
-.ext-ie span.status-down {
+.x-ie span.status-down {
   background-position: right -39px;
 }
 

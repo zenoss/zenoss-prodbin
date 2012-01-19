@@ -749,7 +749,7 @@
                 editable: true,
                 valueField: 'name',
                 displayField: 'name',
-                forceSelection: true,
+                forceSelection: true
             }
         },
         SYSTEMS: {
