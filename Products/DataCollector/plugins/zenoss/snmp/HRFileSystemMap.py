@@ -128,6 +128,15 @@ class HRFileSystemMap(SnmpPlugin):
             om.title = om.mount
             rm.append(om)
         maps.append(rm)
+
+        # look for any map 'm' with m.compname == 'os' and m.totalSwap > 0
+        if not any(getattr(m,'compname', None) == 'os' and 
+                   getattr(m,'totalSwap', 0) > 0
+                                    for m in maps):
+            # if no value set for device.os.totalSwap, set totalSwap to 0 
+            log.info("Swap space not detected for device %s, setting to 0", device.id)
+            maps.append(ObjectMap({'totalSwap': 0}, compname="os"))
+
         return maps
 
 
