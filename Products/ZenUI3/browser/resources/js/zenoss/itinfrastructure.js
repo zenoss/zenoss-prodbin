@@ -275,7 +275,7 @@ Ext.apply(Zenoss.devices, {
                                  function(response) {
                                      var devtree = Ext.getCmp('devices'),
                                          loctree = Ext.getCmp('locs'),
-                                         systree = Ext.getCmp('systems'),
+                                         systree = Ext.getCmp('systemsTree'),
                                          grptree = Ext.getCmp('groups'),
                                          deviceIds = [],
                                          flare;
@@ -837,7 +837,7 @@ var devtree = {
         filter: function(e) {
             Ext.getCmp('locs').filterTree(e);
             Ext.getCmp('groups').filterTree(e);
-            Ext.getCmp('systems').filterTree(e);
+            Ext.getCmp('systemsTree').filterTree(e);
         }
     }
 };
@@ -867,7 +867,7 @@ var grouptree = {
 var systree = {
     xtype: 'HierarchyTreePanel',
     loadMask: false,
-    id: 'systems',
+    id: 'systemsTree',
     stateful: treeStateful,
     stateId: 'systems_tree',
     searchField: false,
