@@ -436,11 +436,11 @@
                     items.push(rec);
                 }
             });
-            if (items) {
+            if (items.length > 0) {
                 this.suspendEvents();
-                this.getSelectionModel().select(items, true, true);
+                this.getSelectionModel().select(items, false, true);
                 this.resumeEvents();
-                selModel.fireEvent('selectionchange', selModel);
+                selModel.fireEvent('selectionchange', selModel, selModel.getSelection());
                 this.selectedNodes = [];
             }
         },
@@ -511,6 +511,10 @@
             store.load({
                 callback:function () {
                     if (store.getCount()) {
+                        // set store's internal cached of guaranteed records, so that
+                        // the guaranteeRange call below (which sets the view correctly)
+                        // doesn't have to fetch the record again
+                        store.prefetchData.addAll(store.data.items);
                         // -1 so we don't prefetch multiple pages, we just need one until the user
                         // scrolls down a bit more
                         store.guaranteeRange(0, store.pageSize - 1);
