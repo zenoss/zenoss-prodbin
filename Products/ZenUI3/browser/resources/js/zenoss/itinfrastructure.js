@@ -309,7 +309,7 @@ Ext.apply(Zenoss.devices, {
     addDevice: new Zenoss.Action({
         text: _t('Add a Single Device') + '...',
         id: 'addsingledevice-item',
-        permissions: 'Manage DMD',
+        permissions: 'Manage Device',
         handler: function() {
             var selnode = treesm.getSelectedNode();
             var isclass = Zenoss.types.type(selnode.data.uid) == 'DeviceClass';
