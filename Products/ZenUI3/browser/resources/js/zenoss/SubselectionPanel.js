@@ -686,7 +686,7 @@
             var lastItem = this.lastSelItem;
             this.lastSelItem = item || this.store.getAt(0);
             this.select(this.lastSelItem);
-            if (this.lastSelItem == lastItem) {
+            if (this.lastSelItem == lastItem || (!lastItem)) {
                 // Ext doesn't fire if the items are the same, but we want it to
                 this.fireEvent('select', this, [this.lastSelItem]);
             }
