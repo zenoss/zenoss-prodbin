@@ -310,14 +310,28 @@ class DeviceRouter(TreeRouter):
             raise Exception('You do not have permission to save changes.')
         the_uid = data['uid']  # gets deleted
         process = facade.getInfo(the_uid)
+        oldData = self._getInfoData(process, data.keys())
         Zuul.unmarshal(data, process)
+        newData = self._getInfoData(process, data.keys())
         # reindex the object if necessary
         if hasattr(process._object, 'index_object'):
             process._object.index_object()
 
         # Ex: ('UI.Device.Edit', '/zport/....', data_={'ProductionState': 'High'})
-        audit(['UI', process.meta_type, 'Edit'], the_uid, data_=data)
+        if 'name' in newData:
+            del newData['name']  # it gets printed automatically
+        audit(['UI', getDisplayType(self), 'Edit'], the_uid,
+              data_=newData, oldData_=oldData, skipFields_='uid')
         return DirectResponse.succeed()
+
+    def _getInfoData(self, info, keys):
+        # TODO: generalize this code for all object types, if possible.
+        values = {}
+        for key in keys:
+            val = getattr(info, key, None)
+            if val is not None:
+                values[key] = str(val)  # unmutable copy
+        return values
 
     @require('Manage Device')
     def setProductInfo(self, uid, **data):

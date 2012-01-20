@@ -305,13 +305,18 @@ def capitalizeFirstLetter(s):
     return s[0].capitalize() + s[1:] if s else s
 
 
+RENAME_DISPLAY_TYPES = {
+    'DeviceRouter': 'Device',
+}
+
 def getDisplayType(obj):
     """
     Get a printable string representing the type of this object
     """
     # TODO: better implementation, like meta_display_type per class.
     typename = str(getattr(obj, 'meta_type', None) or obj.__class__.__name__) if obj else 'None'
-    return capitalizeFirstLetter(typename)
+    typename = capitalizeFirstLetter(typename)
+    return RENAME_DISPLAY_TYPES.get(typename, typename)
 
 
 def _getName(obj):

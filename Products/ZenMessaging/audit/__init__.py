@@ -13,17 +13,16 @@
 """
 Announces messages so they can be tracked or handled.
 
-Messages have a category hierarchy, a target, and various passed data.
+Messages have a category hierarchy, an object/uid, and various passed data.
+If an object is passed it will attempt to determine its current name and uid.
 Values that evaluate to False are never shown, so pass str(value) if needed.
-If old values are passed it only shows the new/changed/deleted values.
-If old values are passed and nothing changed at all, there's no announcement.
 
 Examples:
     from Products.ZenMessaging.audit import audit
 
     audit('UI.Widget.Add',                     #category string or list
           widgetObjectOrUid,                   #object or UID
-          name='Widget', numUses=10, ...)      #pass data via kwargs
+          color='Red', numUses=10, ...)        #pass data via kwargs
 
     audit('UI.Widget.Edit',                    #Source.Kind.Action
           widget,                              #object
@@ -33,11 +32,20 @@ Examples:
           skipFields_=('Referrer','REQUEST'),  #ignore these keys if found
           maskFields_=('passwd','Password'))   #hide the values of these keys
 
-    # 'Same' will not be announced since its value didn't change.
+If old values are passed it shows the new/changed/deleted values.
+If old values are passed and nothing changed at all, there's no announcement.
+
+Example:
+    # 'Up' was edited, 'Uppp' and 'Away' are new, and 'Down' was deleted.
+    # 'Same' will not be shown since its value didn't change.
     category = [auditSource, objectKind, theAction]
-    data    = {'Same': 123, 'Up': newUp, 'Upp': newUpp, 'Away': newAway}
-    oldData = {'Same': 123, 'Up': oldUp, 'Down': oldDown}
-    audit(category, uid, data_=dyanmicData, oldData_=oldData)
+    data    = {'Up': 123, 'Uppp': 456, 'Away': 999, 'Same': 50}
+    oldData = {'Up': 100, 'Down': 'x', 'Same': 50}
+    audit(category, uid, data_=data, oldData_=oldData)
+
+    # Sample output
+    user=zenoss action=Add kind=Widget widget=/Widgets/xyz name='My Widget'
+        away=999 old_down=x up=123 old_up=100 uppp=456
 """
 
 from zope.component import getUtility, ComponentLookupError
