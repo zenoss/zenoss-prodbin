@@ -92,9 +92,13 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             items: options.onGetAddDialogItems(),
             title: String.format(template, options.onGetItemName())
         });
-
+         // we have some screens with a higher zindex then they should, so for these popups, seed the zindex to be higher
+        var oldSeed = Ext.WindowManager.zseed;
+         Ext.WindowManager.zseed = 20000;
         dialog = new Zenoss.SmartFormDialog(addDialogConfig);
         dialog.show();
+        // now set the seed down again so I don't mess up any others
+        Ext.WindowManager.zseed = oldSeed;
     }
 
     items = [
