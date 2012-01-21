@@ -110,11 +110,11 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
 
     layer = ZenossTestCaseLayer
     _setup_fixture = 0
-    loggingDisabled = True
+    disableLogging = True
 
     def afterSetUp(self):
 
-        if self.loggingDisabled:
+        if self.disableLogging:
             logging.disable(logging.CRITICAL)
 
         gen = PortalGenerator()
