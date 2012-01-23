@@ -210,6 +210,24 @@
     });
 
     /**
+     * This is a workaround to make sure the node isn't null as it has happened 
+     * to be on occasion. These only affect the UI class switches.
+     * See Trac Ticket #29912
+     **/
+    Ext.override(Ext.view.AbstractView, {
+        // invoked by the selection model to maintain visual UI cues
+        onItemDeselect: function(record) {
+            var node = this.getNode(record);
+            if(node) Ext.fly(node).removeCls(this.selectedItemCls);
+        },    
+        // invoked by the selection model to maintain visual UI cues
+        onItemSelect: function(record) {
+            var node = this.getNode(record);
+            if(node) Ext.fly(node).addCls(this.selectedItemCls);
+        }    
+    });
+    
+    /**
      * This is a workaround to make sure that all of the rows show up in the
      * infinite grid.
      * See Trac Ticket #29726
