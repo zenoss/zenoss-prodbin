@@ -33,8 +33,9 @@ def stop(ignored=None, connector=None):
     if isinstance(ignored, Exception):
         raise ignored
     if reactor.running:
-        reactor.threadpool.stop()
-        reactor.threadpool = None
+        if hasattr(reactor, 'threadpool'):
+            reactor.threadpool.stop()
+            reactor.threadpool = None
         reactor.crash()
     if connector:
         connector.disconnect()
@@ -99,7 +100,8 @@ class TestZenHub(unittest.TestCase):
         xbase = self.xbase + count
         self.before, sys.argv = sys.argv, ['run',
                                            '--pbport=%d' % base,
-                                           '--xmlrpcport=%d' % xbase]
+                                           '--xmlrpcport=%d' % xbase,
+                                           '--workers=0']
         self.zenhub = ZenHub()
         from zope.component import getGlobalSiteManager
         # The call to zenhub above overrides the queue so we need to
@@ -116,17 +118,12 @@ class TestZenHub(unittest.TestCase):
         self.assertTrue(unjellyableRegistry.has_key('DataMaps.ObjectMap'))
         self.assertTrue(unjellyableRegistry.has_key('Products.DataCollector.plugins.DataMaps.ObjectMap'))
 
-    # Thus says Ian:
-    #   This test is too outdated and needs to be reworked.
-    #   removing it from execution for now.
-    def _testGetService(self):
+    def testGetService(self):
         client = TestClient(self, self.base + count)
         self.zenhub.main()
         self.assertTrue(client.success)
-    # Thus says Ian:
-    #  This test is too outdated and needs to be reworked.
-    #  removing it from execution for now.
-    def _testSendEvent(self):
+
+    def testSendEvent(self):
         client = SendEventClient(self, self.base + count)
         self.zenhub.main()
         self.assertTrue(client.success)
