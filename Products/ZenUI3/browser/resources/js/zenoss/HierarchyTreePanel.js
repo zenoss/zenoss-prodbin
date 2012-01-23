@@ -125,7 +125,7 @@
                     for (i = 0; i < viewsLn; i++) {
                         var viewRowIdx = -1;
                         try {
-                            viewRowIdx = views[i].indexOf(rowIdx);
+                            viewRowIdx = views[i].indexOf(newFocused);
                         } catch (e) {
                             // For some reason the lookup is throwing an error
                             // when it should instead be just returning -1.
