@@ -27,7 +27,7 @@ class UserInterfaceSettings(ZenModelRM):
     _properties = (
         {'id': 'enableLiveSearch', 'type': 'boolean', 'mode': 'w'},
         {'id': 'incrementalTreeLoad', 'type': 'boolean', 'mode': 'w'},
-        {'id': 'enableTreeFilters', 'type': 'bool', 'mode': 'w'},
+        {'id': 'enableTreeFilters', 'type': 'boolean', 'mode': 'w'},
         {'id': 'deviceGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'componentGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'eventConsoleBufferSize', 'type': 'int', 'mode': 'w'},

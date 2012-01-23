@@ -41,7 +41,7 @@ class VruleGraphPoint(GraphPoint):
     legend = GraphPoint.DEFAULT_LEGEND
 
     _properties = GraphPoint._properties + (
-        {'id':'time', 'type':'integer', 'mode':'w'},
+        {'id':'time', 'type':'int', 'mode':'w'},
         {'id':'color', 'type':'string', 'mode':'w'},
         {'id':'legend', 'type':'string', 'mode':'w'},
         )
