@@ -247,7 +247,7 @@
                          * If they have permission and they select a row, show the
                          * edit and delete buttons
                          **/
-                        rowselect: function (selectionModel, rowIndex, record ) {
+                        select: function (selectionModel, rowIndex, record ) {
                             // enable the "Delete Threshold" button
                             if (Zenoss.Security.hasPermission('Manage DMD')) {
                                 me.deleteButton.enable();
@@ -258,7 +258,7 @@
                         /**
                          * When they deselect don't allow them to press the buttons
                          **/
-                        rowdeselect: function(selectionModel, rowIndex, record) {
+                        deselect: function(selectionModel, rowIndex, record) {
                             me.deleteButton.disable();
                             me.editButton.disable();
                         }
@@ -315,7 +315,7 @@
                                 xtype: 'DialogButton',
                                 text: _t('Cancel')
                             }]
-                        }).show();      
+                        }).show();
                         }
                     },
                     listeners: {

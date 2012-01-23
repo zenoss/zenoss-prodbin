@@ -487,7 +487,6 @@ footerBar.on('buttonClick', function(actionName, id, values) {
             };
             router.addTemplate(params, function(response) {
                 reloadTree(response.nodeConfig.uid);
-                tree.clearFilter();
             });
         break;
         case 'delete':
