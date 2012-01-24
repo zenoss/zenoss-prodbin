@@ -33,7 +33,7 @@ def stop(ignored=None, connector=None):
     if isinstance(ignored, Exception):
         raise ignored
     if reactor.running:
-        if hasattr(reactor, 'threadpool'):
+        if getattr(reactor, 'threadpool', None) is not None:
             reactor.threadpool.stop()
             reactor.threadpool = None
         reactor.crash()
