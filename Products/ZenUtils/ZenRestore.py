@@ -86,6 +86,10 @@ class ZenRestore(ZenBackupBase):
 
     def getSettings(self):
         ''' Retrieve some options from settings file
+        We want to take them in the following priority:
+            1.  command line
+            2.  settings file
+            3.  defaults from build options
         '''
         try:
             f = open(os.path.join(self.tempDir, CONFIG_FILE), 'r')
@@ -95,7 +99,16 @@ class ZenRestore(ZenBackupBase):
             config = ConfigParser.SafeConfigParser()
             config.readfp(f)
             for name, value in config.items(CONFIG_SECTION):
-                setattr(self.options, name, value)
+                # If we have a config, then change the default to match the config.
+                if name in self.parser.defaults:
+                    self.parser.defaults[name] = value
+                else:
+                    #we don't have that option with a default, so create it now
+                    self.parser.add_option('--'+name,
+                                           dest=name,
+                                        default=value)
+            #now reparse the command line to bring in anything the user actually set or the new defaults we created.
+            (self.options, self.args) = self.parser.parse_args(args=self.inputArgs)
         finally:
             f.close()
     
@@ -138,7 +151,6 @@ class ZenRestore(ZenBackupBase):
             cmd = '%s %s < %s' % (
                 mysql_cmd, db, os.path.join(self.tempDir, sqlFile)
             )
-        
         os.system(cmd)
 
 
@@ -152,6 +164,8 @@ class ZenRestore(ZenBackupBase):
             return
         
         self.msg('Restoring ZEP database.')
+        self.msg('  Note: Restoration of the ZEP database requires a user account with sufficient priveleges to create triggers.')
+        self.msg('        Alternative user account and password may be passed in with the -zepdbuser   and  --zepdbpass  commands.')
         self.restoreMySqlDb(self.options.zepdbhost, self.options.zepdbport,
                             self.options.zepdbname, self.options.zepdbuser,
                             self.getPassArg('zepdbpass'), zepSql)
@@ -207,6 +221,7 @@ class ZenRestore(ZenBackupBase):
                             self.options.zodb_db, self.options.zodb_user,
                             self.getPassArg('zodb_password'), zodbSql,
                             socket=self.options.zodb_socket)
+        self.msg('Done Restoring ZODB database.')
 
     def restoreZODBZEO(self):
         repozoDir = os.path.join(self.tempDir, 'repozo')
