@@ -41,7 +41,7 @@ class CommandView(StreamingView):
 
     def execute(self, cmd, target):
         try:
-            compiled = self.context.compile(cmd, target)
+            compiled = str(self.context.compile(cmd, target))
 
             timeout = getattr(target, 'zCommandCommandtimeout',
                               self.context.defaultTimeout)
