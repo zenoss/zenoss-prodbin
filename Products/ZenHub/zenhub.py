@@ -158,10 +158,15 @@ class HubAvitar(pb.Avatar):
         @param listener: the callback interface to the collector
         @return a remote reference to a service
         """
-        service = self.hub.getService(serviceName, instance)
-        if service is not None and listener:
-            service.addListener(listener)
-        return service
+        try:
+            service = self.hub.getService(serviceName, instance)
+        except Exception:
+            self.hub.log.exception("Failed to get service '%s'", serviceName)
+            return None
+        else:
+            if service is not None and listener:
+                service.addListener(listener)
+            return service
 
     def perspective_reportingForWork(self, worker):
         """
@@ -444,7 +449,6 @@ class ZenHub(ZCmdBase):
             self.log.exception("Unable to load %s", self.options.passwordfile)
         return []
 
-
     def getService(self, name, instance):
         """
         Helper method to load services dynamically for a collector.
@@ -474,12 +478,20 @@ class ZenHub(ZCmdBase):
                 ctor = importClass(name)
             except ImportError:
                 ctor = importClass('Products.ZenHub.services.%s' % name, name)
-            svc = ctor(self.dmd, instance)
-            if self.options.workers:
-                svc = WorkerInterceptor(self, svc)
-            self.services[name, instance] = svc
-            notify(ServiceAddedEvent(name, instance))
-            return svc
+            try:
+                svc = ctor(self.dmd, instance)
+            except Exception:
+                self.log.exception("Failed to initialize %s", ctor)
+                # Module can't be used, so unload it.
+                if ctor.__module__ in sys.modules:
+                    del sys.modules[ctor.__module__]
+                return None
+            else:
+                if self.options.workers:
+                    svc = WorkerInterceptor(self, svc)
+                self.services[name, instance] = svc
+                notify(ServiceAddedEvent(name, instance))
+                return svc
 
     def deferToWorker(self, args):
         """Take a remote request and queue it for worker processes.
