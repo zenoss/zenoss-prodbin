@@ -18,7 +18,11 @@ function ConfirmPagerTest() {
 
 function resetPassword(){
     if (confirm("Are you sure you want to reset this user's password?")) {
-        location.href = location.pathname + "?zenScreenName=editUserSettings&manage_resetPassword:method=1&redirect=True";
+        var submitButton = document.getElementById("passwordResetButton");
+        submitButton.type = "submit";
+        submitButton.name = "manage_resetPassword:method";
+        submitButton.onclick = null;
+        submitButton.click();
     }
 }
 
@@ -57,12 +61,12 @@ function clearBrowserState(event){
                 Automatically generate a new password and send it to the email listed below.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
-              <input type="submit" value="Reset Password"
+              <input type="button" value="Reset Password"
                      tabindex="-1"
                      style="height:30px;width:132px;text-align:center;"
                      onclick="resetPassword()"
                      class="tableheader"
-                     name="manage_resetPassword:method" />
+                     id="passwordResetButton" />
 
             </div>
         </div>
