@@ -11,7 +11,7 @@
      **/
     Ext.button.Button.override({
         disable: function(bool) {
-            if (bool) {
+            if (bool || !Ext.isDefined(bool)) {
                 this.callOverridden();
             } else {
                 this.enable();
