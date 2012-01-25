@@ -190,7 +190,7 @@ Ext.define("Zenoss.TemplateTreePanel", {
             this.templateViewSelectByToken(id);
         }
     },
-    addHistoryToken: function(node) {
+    addHistoryToken: function(view, node) {
         Ext.History.add(this.id + Ext.History.DELIMITER + node.get('uid'));
     },
     templateViewSelectByToken: function(uid) {
@@ -223,7 +223,7 @@ Ext.define("Zenoss.TemplateTreePanel", {
                     // all the DeviceClass names under Devices separated by dots
                     dmdPath = pathParts.slice(4).join('.');
                 }
-                path = String.format('/root/{0}/{0}..{1}', templateName, dmdPath);
+                path = Ext.String.format('/root/{0}/{0}..{1}', templateName, dmdPath);
                 this.selectPath(path);
             }, this);
         if (!root.isLoaded()) {

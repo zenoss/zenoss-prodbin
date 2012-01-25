@@ -51,7 +51,7 @@ Ext.define("Zenoss.form.IDField", {
         this._previousValue = value;
 
         if (this.vtransaction) {
-            Ext.lib.Ajax.abort(this.vtransaction);
+            Ext.Ajax.abort(this.vtransaction);
         }
         this.vtransaction = Ext.Ajax.request({
             url: context + '/checkValidId?id='+value,

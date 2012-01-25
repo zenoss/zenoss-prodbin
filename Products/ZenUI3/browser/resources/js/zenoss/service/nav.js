@@ -41,7 +41,7 @@
             result = response.result;
             loadHandler = function() {
                 view.focusRow(result.newIndex);
-                grid.getSelectionModel().selectRow(result.newIndex);
+                grid.getSelectionModel().selectRange(result.newIndex, result.newIndex);
             };
             store.on('load', loadHandler, store, {single: true});
             view.updateLiveRows(result.newIndex, true, true, false);
@@ -72,7 +72,7 @@
                     var newRowPos = view.rowIndex;
                     store.on('load', function(){
                         view.focusRow(newRowPos);
-                        grid.getSelectionModel().selectRow(newRowPos);},
+                        grid.getSelectionModel().selectRange(newRowPos, newRowPos);},
                         store, { single: true });
                     view.updateLiveRows(newRowPos, true, true, false);
                 } else {
@@ -151,7 +151,7 @@
             selModel: new Zenoss.ExtraHooksSelectionModel({
                 singleSelect: true,
                 listeners: {
-                    rowselect: zs.rowselectHandler
+                    select: zs.rowselectHandler
                 }
             })
         });

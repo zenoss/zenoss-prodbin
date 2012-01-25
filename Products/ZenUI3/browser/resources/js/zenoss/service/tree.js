@@ -144,7 +144,7 @@
         },
         onNodeDrop: function(element, event, target) {
             var sourceUids, targetUid, targetId;
-            sourceUids = Ext.pluck(Ext.pluck(event.records, "data"), "uid");
+            sourceUids = Ext.Array.pluck(Ext.Array.pluck(event.records, "data"), "uid");
             targetUid = target.get("uid");
             targetId = target.data.id;
 
@@ -191,7 +191,7 @@
             zs.ServiceTreePanel.superclass.initEvents.call(this);
             // don't add history token on click like HierarchyTreePanel does
             // this is handled in the selection model
-            this.un('click', this.addHistoryToken, this);
+            this.un('itemclick', this.addHistoryToken, this);
         }
 
     });

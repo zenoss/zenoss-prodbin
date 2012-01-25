@@ -116,14 +116,14 @@ function destroyWindow(button) {
     if (win){
         return win.destroy();
     }
-    if (button.ownerCt !== undefined){    
-        var container = button.ownerCt.ownerCt;    
+    if (button.ownerCt !== undefined){
+        var container = button.ownerCt.ownerCt;
         if (container.ownerCt !== undefined){
             container.ownerCt.destroy();
         }else{
             container.destroy();
         }
-    }    
+    }
 }
 
 /**
@@ -240,7 +240,7 @@ Ext.define("Zenoss.dialog.SimpleMessageDialog", {
             items: {
                 html: config.message
             },
-            closeAction: 'close'
+            closeAction: 'destroy'
         });
         Zenoss.MessageDialog.superclass.constructor.call(this, config);
     }
@@ -257,19 +257,28 @@ Ext.define("Zenoss.dialog.SimpleMessageDialog", {
 Ext.define("Zenoss.FormDialog", {
     extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
+        var me = this;
+        config = config || {};
+        config.formListeners = config.formListeners || {};
+        Ext.applyIf(config.formListeners, {
+            validitychange: function(form, isValid) {
+                me.query('DialogButton')[0].disable(!isValid);
+            }
+        });
         var form = new Ext.form.FormPanel({
             id: config.formId,
             minWidth: 300,
             ref: 'editForm',
-            labelAlign: 'top',
+            fieldDefaults: {
+                labelAlign: 'top'
+            },
             autoScroll: true,
             defaults: {
                 xtype: 'textfield'
             },
             items: config.items,
             html: config.html,
-            monitorValid: true,
-            listeners: config.formListeners || {},
+            listeners: config.formListeners,
             paramsAsHash: true,
             api: config.formApi || {}
         });
@@ -330,7 +339,9 @@ Ext.define("Zenoss.HideFormDialog", {
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'anchor',
-            labelAlign: 'top'
+            fieldDefaults: {
+                labelAlign: 'top'
+            }
         });
         Zenoss.HideFormDialog.superclass.constructor.call(this, config);
     }
@@ -368,7 +379,7 @@ Ext.define("Zenoss.SmartFormDialog", {
                 text: _t('Cancel')
             }],
             modal: true,
-            closeAction: 'close'
+            closeAction: 'destroy'
         });
 
         Zenoss.SmartFormDialog.superclass.constructor.call(this, config);
@@ -427,7 +438,7 @@ Ext.define("Zenoss.dialog.ErrorDialog", {
                     text: _t('OK')
                 }]
             }],
-            closeAction: 'close'
+            closeAction: 'destroy'
         });
          this.callParent([config]);
     },
@@ -486,7 +497,7 @@ Ext.define("Zenoss.dialog.DynamicDialog", {
             buttons: [{
                 xtype: 'DialogButton',
                 text: _t('Submit'),
-                handler: this.submitHandler.createDelegate(this)
+                handler: Ext.bind(this.submitHandler, this)
             }, Zenoss.dialog.CANCEL]
         });
         Ext.apply(config, {
@@ -503,9 +514,9 @@ Ext.define("Zenoss.dialog.DynamicDialog", {
         }
         form.submit({
             params: params,
-            success: function(form, action){
+            success: Ext.bind(function(form, action){
                 Zenoss.message.success(_t('{0} finished successfully'), this.title);
-            }.createDelegate(this),
+            }, this),
             failure: function(form, action){
                 Zenoss.message.error(_t('{0} had errors'), this.title);
             }

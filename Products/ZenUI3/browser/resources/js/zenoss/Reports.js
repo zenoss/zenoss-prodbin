@@ -133,7 +133,7 @@ Ext.define('Zenoss.ReportTreePanel', {
                 sm.select(parentNode);
                 parentNode.removeChild(node);
                 node.destroy();
-                this.addHistoryToken(parentNode);
+                this.addHistoryToken(this.getView(), parentNode);
                 this.refresh();
             }
         }
@@ -174,7 +174,6 @@ report_tree = new Zenoss.ReportTreePanel({
     ddGroup: 'reporttreedd',
     searchField: true,
     rootVisible: false,
-    enableDD: true,
     ddGroup: 'reporttreedd',
     bodyStyle: 'background-color:transparent;',
     directFn: Zenoss.remote.ReportRouter.asyncGetTree,

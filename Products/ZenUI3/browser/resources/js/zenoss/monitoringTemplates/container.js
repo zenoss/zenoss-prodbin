@@ -128,6 +128,7 @@ Ext.define('Zenoss.templates.TemplateTreeModel', {
         return this.get("uid");
     },
     proxy: {
+        simpleSortMode: true,
         type: 'direct',
         directFn: REMOTE.getTemplates,
         paramOrder: ['uid']
@@ -224,11 +225,10 @@ Ext.define("Zenoss.BindTemplatesItemSelector", {
             valueField: 'id',
             store:  Ext.create('Ext.data.ArrayStore', {
                 data: [],
-                fields: ['id','name'],
-                sortInfo: {
-                    field: 'value',
-                    direction: 'ASC'
-                }
+                model: 'Zenoss.model.IdName',
+                sorters: [{
+                    property: 'value'
+                }]
             })
         });
         Zenoss.BindTemplatesItemSelector.superclass.constructor.apply(this, arguments);
@@ -264,11 +264,9 @@ Ext.define("Zenoss.AddLocalTemplatesDialog", {
             items: [{
                 xtype: 'form',
                 ref: 'formPanel',
-                monitorValid: true,
                 listeners: {
-                    clientvalidation: function(formPanel, valid) {
-                        var dialogWindow = formPanel.refOwner;
-                        dialogWindow.submitButton.setDisabled( ! valid );
+                    validitychange: function(formPanel, valid) {
+                        me.submitButton.setDisabled( ! valid );
                     }
                 },
                 items: [{
@@ -431,11 +429,13 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
                 selectOnFocus: true,
                 typeAhead: true,
                 valueField: 'uid',
-                displayField: 'label',
-                resizable: true,
+                displayField: 'name',
+                listConfig: {
+                    resizable: true
+                },
                 store: Ext.create('Zenoss.NonPaginatedStore', {
                     root: 'data',
-                    fields: ['uid', 'label'],
+                    model: 'Zenoss.model.Basic',
                     directFn: REMOTE.getOverridableTemplates
                 }),
                 listeners: {
@@ -507,11 +507,11 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
                 ref: 'comboBox',
                 selectOnFocus: true,
                 valueField: 'uid',
-                displayField: 'label',
+                displayField: 'name',
                 typeAhead: true,
                 store: Ext.create('Zenoss.NonPaginatedStore', {
                     root: 'data',
-                    fields: ['uid', 'label'],
+                    model: 'Zenoss.model.Basic',
                     directFn: REMOTE.getLocalTemplates
                 }),
                 listeners: {

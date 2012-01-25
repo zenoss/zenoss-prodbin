@@ -34,11 +34,17 @@
             items: [{
                 id: 'addeventform',
                 xtype: 'form',
-                monitorValid: true,
                 defaults: {width: 290},
                 autoHeight: true,
                 frame: false,
-                labelWidth: 100,
+                listeners: {
+                    validitychange: function(form, isValid){
+                        addevent.query('DialogButton')[0].disable(!isValid);
+                    }
+                },
+                fieldDefaults: {
+                    labelWidth: 100
+                },
                 items: [{
                     xtype: 'textarea',
                     name: 'summary',
@@ -139,7 +145,9 @@
                     triggerAction: 'all',
                     width: 180,
                     style: {'margin-left':'100px'},
-                    resizable: true,
+                    listConfig: {
+                        resizable: true
+                    },
                     emptyText: _t('Select an event class'),
                     selectOnFocus: true,
                     id: 'evclass_combo'
@@ -159,7 +167,7 @@
                         var cb = Ext.getCmp('evclass_combo'),
                         grid = Ext.getCmp(gridId),
                         sm = grid.getSelectionModel(),
-                        rs = sm.getSelections(),
+                        rs = sm.getSelection(),
                         evrows = [];
                         Ext.each(rs, function(record){
                             evrows[evrows.length] = record.data;
@@ -277,6 +285,12 @@
         })
     };
 
+    Ext.define("Zenoss.model.EventType", {
+        extend: 'Ext.data.Model',
+        idProperty: 'id',
+        fields: ['id', 'event_type']
+    });
+
     Zenoss.EventConsoleTBar = Ext.extend(Zenoss.LargeToolbar, {
         constructor: function(config){
             var gridId = config.gridId,
@@ -310,7 +324,7 @@
                 text: "Restore defaults",
                 handler: function(){
                     new Zenoss.dialog.SimpleMessageDialog({
-                        message: String.format(_t('Are you sure you want to restore '
+                        message: Ext.String.format(_t('Are you sure you want to restore '
                                                   + 'the default configuration? All'
                                                   + ' filters, column sizing, and column order '
                                                   + 'will be lost.')),
@@ -336,7 +350,7 @@
                         var grid = Ext.getCmp(gridId),
                         link = grid.getPermalink();
                         new Zenoss.dialog.ErrorDialog({
-                            message: String.format(_t('<div class="dialog-link">'
+                            message: Ext.String.format(_t('<div class="dialog-link">'
                                                       + 'Drag this link to your bookmark bar '
                                                       + '<br/>to return to this configuration later.'
                                                       + '<br/><br/><a href="'
@@ -361,9 +375,9 @@
                     deviceFetcher: function() {
                         var grid = Ext.getCmp(gridId),
                         sm = grid.getSelectionModel(),
-                        rows = sm.getSelections(),
+                        rows = sm.getSelection(),
                         ranges = [],
-                        pluck = Ext.pluck,
+                        pluck = Ext.Array.pluck,
                         uids = pluck(pluck(pluck(rows, 'data'), 'device'), 'uid'),
                         opts =  {
                             uids: uids,
@@ -410,8 +424,8 @@
                                         var command = item.text,
                                             grid = Ext.getCmp(gridId),
                                             sm = grid.getSelectionModel(),
-                                            selections = sm.getSelections(),
-                                            devids = Ext.pluck(Ext.pluck(Ext.pluck(selections, 'data'), 'device'), 'uid');
+                                            selections = sm.getSelection(),
+                                            devids = Ext.Array.pluck(Ext.Array.pluck(Ext.Array.pluck(selections, 'data'), 'device'), 'uid');
 
                                         // filter out the none device events
                                         devids = Zenoss.util.filter(devids, function(uid){ return uid; });
@@ -445,9 +459,9 @@
                     id: 'history_combo',
                     hidden: config.hideDisplayCombo || false,
                     name: 'event_display',
-                    mode: 'local',
+                    queryMode: 'local',
                     store: new Ext.data.SimpleStore({
-                        fields: ['id', 'event_type'],
+                        model: 'Zenoss.model.EventType',
                         data: [[0,'Events'],[1,'Event Archive']]
                     }),
                     displayField: 'event_type',
@@ -573,7 +587,7 @@
                                             isHistory: false,
                                             params: {
                                                 uid: context,
-                                                fields: Ext.pluck(state.columns, 'id'),
+                                                fields: Ext.Array.pluck(state.columns, 'id'),
                                                 sort: state.sort.property,
                                                 dir: state.sort.direction,
                                                 params: grid.getExportParameters()
@@ -600,7 +614,7 @@
                                         type: 'csv',
                                         params: {
                                             uid: context,
-                                            fields: Ext.pluck(state.columns, 'id'),
+                                            fields: Ext.Array.pluck(state.columns, 'id'),
                                             sort: state.sort.property,
                                             dir: state.sort.direction,
                                             params: grid.getExportParameters()
@@ -651,7 +665,7 @@
         doLastUpdated: function() {
             var box = Ext.getCmp('lastupdated'),
             dt = new Date(),
-            dtext = dt.format('g:i:sA');
+            dtext = Ext.Date.format(dt, 'g:i:sA');
             box.setText(_t('Last updated at ') + dtext);
         },
         setContext: function(uid) {
@@ -848,6 +862,7 @@
                 pageSize: Zenoss.settings.eventConsoleBufferSize,
                 proxy: {
                     type: 'direct',
+                    simpleSortMode: true,
                     directFn: config.directFn || Zenoss.remote.EventsRouter.query,
                     reader: {
                         type: 'events',
@@ -861,49 +876,6 @@
             this.callParent(arguments);
         }
     });
-
-    Ext.define("Zenoss.SimpleEventColumnModel", {
-        extend: "Ext.grid.ColumnModel",
-        alias: ['widget.SimpleEventColumnModel'],
-        constructor: function(config){
-            config = Ext.applyIf(config || {}, {
-                defaults: {
-                    sortable: false,
-                    menuDisabled: true,
-                    width: 200
-                },
-                columns: [{
-                    dataIndex: 'severity',
-                    header: _t('Severity'),
-                    width: 60,
-                    id: 'severity',
-                    renderer: Zenoss.util.render_severity
-                }, {
-                    id: 'device',
-                    dataIndex: 'device',
-                    header: _t('Device'),
-                    renderer: Zenoss.render.linkFromGrid
-                }, {
-                    id: 'component',
-                    dataIndex: 'component',
-                    header: _t('Component'),
-                    renderer: Zenoss.render.linkFromGrid
-                }, {
-                    id: 'eventClass',
-                    dataIndex: 'eventClass',
-                    header: _t('Event Class'),
-                    renderer: Zenoss.render.linkFromGrid
-                }, {
-                    dataIndex: 'summary',
-                    header: _t('Summary'),
-                    id: 'summary'
-                }] // columns
-            }); // Ext.applyIf
-            Zenoss.SimpleEventColumnModel.superclass.constructor.call(
-                this, config);
-        } // constructor
-    }); // Ext.extend
-
 
     Zenoss.events.customColumns = {};
     Zenoss.events.registerCustomColumn = function(dataIndex, obj) {
@@ -958,7 +930,7 @@
             var grid = this,
             sm = grid.getSelectionModel(),
             evids = [],  // Event IDs selected
-            sels = sm.getSelections();  // UI records selected
+            sels = sm.getSelection();  // UI records selected
 
             var selectedAll = (sm.selectState == 'All');
             if (selectedAll) {
@@ -1110,7 +1082,6 @@
                 });
             Ext.applyIf(config, {
                 id: 'eventGrid' + id,
-                stripeRows: true,
                 stateId: Zenoss.env.EVENTSGRID_STATEID || 'default_eventsgrid',
                 enableDragDrop: false,
                 stateful: true,
@@ -1120,7 +1091,6 @@
                 selModel: new Zenoss.EventPanelSelectionModel({
                     grid: this
                 }),
-                autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
                 defaultFilters: {
                     severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
                     eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED]
@@ -1233,7 +1203,7 @@
         },
         setContext: function(uid){
             Zenoss.EventGridPanel.superclass.setContext.call(this, uid);
-            var toolbar = this.getTopToolbar();
+            var toolbar = this.getToolbars()[0];
             if (toolbar && Ext.isDefined(toolbar.setContext)) {
                 toolbar.setContext(uid);
             }

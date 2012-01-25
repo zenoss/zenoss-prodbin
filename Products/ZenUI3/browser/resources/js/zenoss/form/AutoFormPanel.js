@@ -43,7 +43,9 @@ ZF.getGeneratedForm = function(uid, callback, router) {
             defaults: {
                 layout: 'anchor',
                 bodyStyle: 'padding:10px',
-                labelAlign: 'top',
+                fieldDefaults: {
+                    labelAlign: 'top'
+                },
                 columnWidth: 0.5
             }
         }, response.form));
@@ -59,7 +61,7 @@ Ext.define("Zenoss.form.AutoFormCombo", {
              forceSelection: true,
              autoSelect: true,
              triggerAction: 'all',
-             mode: 'local',
+             queryMode: 'local',
              store: config.values || []
          });
          Zenoss.form.AutoFormCombo.superclass.constructor.call(this, config);

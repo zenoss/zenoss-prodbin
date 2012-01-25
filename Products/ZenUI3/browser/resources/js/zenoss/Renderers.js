@@ -373,7 +373,7 @@ Ext.apply(Zenoss.render, {
     },
 
     serviceClass: function(page, uid, name) {
-        var url = String.format('/zport/dmd/{0}#navTree:{1}', page, uid);
+        var url = Ext.String.format('/zport/dmd/{0}#navTree:{1}', page, uid);
         return Zenoss.render.link(null, url, name);
     },
 

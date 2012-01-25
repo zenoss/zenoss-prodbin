@@ -29,8 +29,10 @@
                  autoSelect: true,
                  triggerAction: 'all',
                  minListWidth: 250,
-                 resizable: true,
-                 mode: 'local',
+                 listConfig: {
+                     resizable: true
+                 },
+                 queryMode: 'local',
                  store: record.availableParsers
              });
              this.callParent(arguments);

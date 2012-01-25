@@ -19,7 +19,7 @@
 
 
     // handles the SelectionModel's rowselect event
-    zs.rowselectHandler = function(sm, rowIndex, dataRecord) {
+    zs.rowselectHandler = function(sm, dataRecord, rowIndex) {
         var token, tokenParts, detail, panel;
         Ext.getCmp('serviceForm').setContext(dataRecord.data.uid);
         detail = Ext.getCmp('detail_panel');

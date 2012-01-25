@@ -25,7 +25,9 @@
             var me = this;
             config = config || {};
             Ext.apply(config, {
-                labelAlign: 'top',
+                fieldDefaults: {
+                    labelAlign: 'top'
+                },
                 paramsAsHash: true,
                 frame: false,
                 autoScroll: 'y',
@@ -109,7 +111,7 @@
                     }
                 }],
                 cls: 'device-overview-form-wrapper',
-                bodyCssClass: 'device-overview-form'
+                bodyCls: 'device-overview-form'
             });
             this.callParent(arguments);
         },
@@ -159,9 +161,13 @@
                 this.toggleDeleteButton(data.path);
                 clickHandler = function(select, record) {
                     // display the docs for the record clicked
-                    var value = record.data.field1;
+                    var value = record.data.name;
                     panel.showDocFor(value);
                 };
+                var store = [];
+                Ext.each(data.options, function(item) {
+                    store.push([item]);
+                });
                 // add the multi select
                 this.add({
                     name: 'modelerPlugins',
@@ -173,7 +179,12 @@
                     drawDownIcon: true,
                     drawTopIcon: true,
                     drawBotIcon: true,
-                    store: data.options,
+                    displayField: 'name',
+                    valueField: 'name',
+                    store:  Ext.create('Ext.data.ArrayStore', {
+                        model: 'Zenoss.model.Name',
+                        data: store
+                    }),
                     value: data.value,
                     listeners: {
                         afterrender: function() {
@@ -193,7 +204,7 @@
             if (plugin && this.docs && this.docs[plugin]) {
                 this.doc.setValue(this.docs[plugin]);
             }else{
-                this.doc.setValue(String.format(_t('No documentation found for {0}'), plugin));
+                this.doc.setValue(Ext.String.format(_t('No documentation found for {0}'), plugin));
             }
         },
         loadDocs: function(response) {

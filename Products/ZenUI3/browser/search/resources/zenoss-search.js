@@ -49,17 +49,27 @@ Ext.onReady(function () {
             width:150,
             renderTo:'searchbox-container'
         });
-
-        // Create the Store for the Free Search
-        var freeSearchDataStore = Ext.create('Zenoss.NonPaginatedStore', {
-            storeId:freeSearchDataStoreID,
-            directFn:Zenoss.remote.SearchRouter.getLiveResults,
+        /**
+         * @class Zenoss.search.FreeSearchModel
+         * @extends Ext.data.Model
+         * Field definitions for free search
+         **/
+        Ext.define('Zenoss.search.FreeSearchModel', {
+            extend:'Ext.data.Model',
+            idProperty:'url',
             fields:[
                 {name:'url'},
                 {name:'content'},
                 {name:'popout'},
                 {name:'category'}
-            ],
+            ]
+        });
+
+        // Create the Store for the Free Search
+        var freeSearchDataStore = Ext.create('Zenoss.NonPaginatedStore', {
+            storeId:freeSearchDataStoreID,
+            directFn:Zenoss.remote.SearchRouter.getLiveResults,
+            model: 'Zenoss.search.FreeSearchModel',
             root:'results'
         });
 
@@ -109,11 +119,20 @@ Ext.onReady(function () {
             }
         });
 
+        function getSearchApplyTo(targetEl) {
+            var target = Ext.get(targetEl);
+            if (target) {
+                var parent = target.parent();
+                target.remove();
+                return parent;
+            }
+            return targetEl;
+        }
+
         // Create a searchable Combo Box and apply it to the Search Field that we defined above.
         var theSearchBox = new Ext.form.ComboBox({
             store:freeSearchDataStore,
             typeAhead:false,
-            loadingText:_t('Searching..'),
             triggerAction:'all',
             width:148,
             maxWidth:375,
@@ -122,10 +141,13 @@ Ext.onReady(function () {
             delayQuery:1000,
             minChars:3,
             hideTrigger:false,
-            applyTo:searchfield.getEl(),
+            renderTo: getSearchApplyTo(searchfield.getEl()),
             queryMode:'remote',
-            listClass:'search-result',
-            resizable:true,
+            listConfig: {
+                cls:'search-result',
+                loadingText:_t('Searching..'),
+                resizable:true
+            },
             matchFieldWidth:false,
             displayField:'name',
             valueField:'url',
@@ -256,7 +278,7 @@ Ext.onReady(function () {
                     me = this;
                 Ext.apply(config, {
                     title:_t('Manage Saved Searches'),
-                    layout:'form',
+                    layout: 'anchor',
                     stateful: false,
                     autoHeight:true,
                     width:460,
@@ -264,17 +286,17 @@ Ext.onReady(function () {
                     items:[{
                             ref:'savedSearchGrid',
                             xtype:'grid',
-                            stripeRows:true,
                             autoScroll:true,
                             border:false,
                             autoHeight:true,
                             sortableColumns:false,
                             enableColumnHide:false,
                             viewConfig: {
+                                striperows: true,
                                 style:{cursor: 'pointer'},
                                 listeners: {
                                     itemdblclick: function(gridview,rowrecord,rowhtml,rowindex,e) {
-                                        window.location = "/zport/dmd/search?search="+rowrecord.data.name                                                  
+                                        window.location = "/zport/dmd/search?search="+rowrecord.data.name;
                                     }
                                 }
                             },
@@ -297,7 +319,7 @@ Ext.onReady(function () {
                                             if(selectedRow.data.name == searchId) window.location = "/zport/dmd/search";
                                     }
                                 }]
-                            }],                           
+                            }],
                             selModel:new Zenoss.SingleRowSelectionModel({
                                 singleSelect:true
                             }),

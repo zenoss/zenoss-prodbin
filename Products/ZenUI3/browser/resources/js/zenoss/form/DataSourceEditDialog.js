@@ -31,10 +31,10 @@
 
             // verify we received the record we are editing
             var record = config.record,
-            items = config.items,
-            i,
-            autoHeight = true,
-            that = this; // used in the save handler closure
+                items = config.items,
+                i,
+                autoHeight = true,
+                that = this; // used in the save handler closure
             this.itemCount = 0;
             // make sure the record was passed in
             if (!record) {
@@ -64,7 +64,7 @@
             }
 
             Ext.apply(config, {
-                layout: (Ext.isIE) ? 'form': 'fit',
+                layout: 'anchor',
                 plain: true,
                 buttonAlign: 'left',
                 autoScroll: true,
@@ -77,9 +77,11 @@
                     xtype:'form',
                     minWidth: 300,
                     ref: 'editForm',
-                    labelAlign: 'top',
+                    fieldDefaults: {
+                        labelAlign: 'top'
+                    },
                     autoScroll:true,
-                    monitorValid: true,
+
                     defaults: {
                         xtype: 'textfield',
                         anchor: '85%'
@@ -88,9 +90,8 @@
                         /**
                          * Sets the windows submit button to be disabled when the form is not valid
                          **/
-                        clientvalidation: function(formPanel, valid){
-                            var dialogWindow;
-                            dialogWindow = formPanel.refOwner;
+                        validitychange: function(formPanel, valid){
+                            var dialogWindow = that;
                             // check security first
                             if (Zenoss.Security.hasPermission('Manage DMD')) {
                                 dialogWindow.submitButton.setDisabled(!valid);
@@ -103,7 +104,6 @@
                 buttons: [{
                     xtype: 'DialogButton',
                     ref: '../submitButton',
-                    formBind: true,
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     text: _t('Save'),
                     handler: function () {
@@ -171,12 +171,12 @@
                     xtype:'panel',
                     layout: 'column',
                     items: [{
-                        layout:'form',
+                        layout:'anchor',
                         border:false,
                         columnWidth: 0.5,
                         items: []
                     },{
-                        layout:'form',
+                        layout:'anchor',
                         border:false,
                         columnWidth: 0.5,
                         items: []

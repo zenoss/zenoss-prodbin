@@ -15,11 +15,11 @@
 
 (function(){
     var DATE_RANGES =[
-            [_t('Hourly'), 129600],
-            [_t('Daily'), 864000],
-            [_t('Weekly'), 3628800],
-            [_t('Monthly'), 41472000],
-            [_t('Yearly'), 62208000]
+            [129600, _t('Hourly')],
+            [864000, _t('Daily')],
+            [3628800, _t('Weekly')],
+            [41472000, _t('Monthly')],
+            [62208000, _t('Yearly')]
     ];
     /**********************************************************************
      *
@@ -86,30 +86,30 @@
                     },'->',{
                         text: '&lt;',
                         width: 67,
-                        handler: function(btn, e) {
+                        handler: Ext.bind(function(btn, e) {
                             this.onPanLeft(this);
-                        }.createDelegate(this)
+                        }, this)
                     },{
                         text: _t('Zoom In'),
                         enableToggle: true,
                         pressed: true,
                         ref: '../zoomin',
-                        handler: function(btn, e) {
+                        handler: Ext.bind(function(btn, e) {
                             this.fireEventsToAll("zoommodechange", this, !btn.pressed);
-                        }.createDelegate(this)
+                        }, this)
                     },{
                         text: _t('Zoom Out'),
                         ref: '../zoomout',
                         enableToggle: true,
-                        handler: function(btn, e) {
+                        handler: Ext.bind(function(btn, e) {
                             this.fireEventsToAll("zoommodechange", this, btn.pressed);
-                        }.createDelegate(this)
+                        }, this)
                     },{
                         text: '&gt;',
                         width: 67,
-                        handler: function(btn, e) {
+                        handler: Ext.bind(function(btn, e) {
                             this.onPanRight(this);
-                        }.createDelegate(this)
+                        }, this)
                     }]
                 }
             });
@@ -225,7 +225,7 @@
                 this.graphEl.dom.src = fullurl;
                 this.parseGraphParams(fullurl);
             } else {
-                Zenoss.SWOOP_CALLBACKS[graphid] = function(packet) {
+                Zenoss.SWOOP_CALLBACKS[graphid] = Ext.bind(function(packet) {
                     var ob = Ext.decode(packet);
                     if (ob.success) {
                         this.hideFailure();
@@ -237,7 +237,7 @@
                     // Clean up callbacks and script tags
                     delete Zenoss.SWOOP_CALLBACKS[graphid];
                     Ext.get(graphid).remove();
-                }.createDelegate(this);
+                }, this);
                 var sc = Ext.DomHelper.createDom({
                     tag: 'script',
                     id: graphid,
@@ -374,17 +374,14 @@
                     autoSelect: true,
                     triggerAction: 'all',
                     value: 129600,
-                    mode: 'local',
+                    queryMode: 'local',
                     store: new Ext.data.ArrayStore({
                         id: 0,
-                        fields: [
-                            'label',
-                            'id'
-                        ],
+                        model: 'Zenoss.model.IdName',
                         data: DATE_RANGES
                     }),
                     valueField: 'id',
-                    displayField: 'label'
+                    displayField: 'name'
             });
             this.callParent(arguments);
         }
@@ -474,7 +471,7 @@
                 drange: this.drange
             };
             this.uid = uid;
-            this.directFn(params, this.loadGraphs.createDelegate(this));
+            this.directFn(params, Ext.bind(this.loadGraphs, this));
         },
         loadGraphs: function(result){
             if (!result.success){

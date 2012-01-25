@@ -239,7 +239,7 @@ Ext.define("Zenoss.process.ProcessGrid", {
             selModel: new Zenoss.ExtraHooksSelectionModel({
                 singleSelect: true,
                 listeners: {
-                    rowselect: function(sm, rowIndex, record) {
+                    select: function(sm, record, rowIndex) {
                         var uid = record.data.uid, token, tokenParts, detail, cardpanel;
                         cardpanel = Ext.getCmp('detailCardPanel');
                         Ext.getCmp('processForm').setContext(uid);
@@ -422,8 +422,14 @@ var ignoreParametersSelect = {
     id: 'ignoreParametersSelect',
     fieldLabel: _t('Ignore Parameters'),
     name: 'ignoreParameters',
-    mode: 'local',
-    store: [[true, 'Yes'], [false, 'No']]
+    queryMode: 'local',
+    displayField: 'name',
+    valueField: 'value',
+    store: new Ext.data.ArrayStore({
+        data: [['Yes', true], ['No', false]],
+        model: 'Zenoss.model.NameValue'
+    })
+
 };
 
 var exampleTextField = {
@@ -441,8 +447,13 @@ var zMonitor = {
     name: 'zMonitor',
     localField: {
         xtype: 'select',
-        mode: 'local',
-        store: [[true, 'Yes'], [false, 'No']]
+        queryMode: 'local',
+        displayField: 'name',
+        valueField: 'value',
+        store: new Ext.data.ArrayStore({
+            data: [['Yes', true], ['No', false]],
+            model: 'Zenoss.model.NameValue'
+        })
     }
 };
 
@@ -453,8 +464,13 @@ var zAlertOnRestart = {
     name: 'zAlertOnRestart',
     localField: {
         xtype: 'select',
-        mode: 'local',
-        store: [[true, 'Yes'], [false, 'No']]
+        queryMode: 'local',
+        displayField: 'name',
+        valueField: 'value',
+        store: new Ext.data.ArrayStore({
+            data: [['Yes', true], ['No', false]],
+            model: 'Zenoss.model.NameValue'
+        })
     }
 };
 
@@ -465,7 +481,7 @@ var zFailSeverity = {
     name: 'zFailSeverity',
     localField: {
         xtype: 'select',
-        mode: 'local',
+        queryMode: 'local',
         store: Zenoss.env.SEVERITIES.slice(0, 5)
     }
 };
@@ -638,7 +654,6 @@ Ext.define("Zenoss.SequenceGrid", {
     extend:"Zenoss.BaseSequenceGrid",
     constructor: function(config) {
         Ext.applyIf(config, {
-            stripeRows: true,
             autoScroll: true,
             sortableColumns: false,
             layout: 'fit',
@@ -677,7 +692,7 @@ Ext.getCmp('footer_bar').query("button[ref='buttonContextMenu']")[0].menu.addIte
                     handler: function(button, event) {
                         var records, uids;
                         records = Ext.getCmp('sequenceGrid').getStore().getRange();
-                        uids = Ext.pluck(Ext.pluck(records, 'data'), 'uid');
+                        uids = Ext.Array.pluck(Ext.Array.pluck(records, 'data'), 'uid');
                         router.setSequence({'uids': uids});
                     }
                  }, {

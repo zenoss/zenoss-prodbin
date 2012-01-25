@@ -109,10 +109,13 @@ function addDataPointToGraph() {
 new Zenoss.HideFormDialog({
     id: 'addDataPointToGraphDialog',
     title: _t('Add Data Point'),
+    closeAction: 'hide',
     items:[{
         xtype: 'combo',
         ref: 'comboBox',
-        tpl: '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>',
+        getInnerTpl: function() {
+            return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
+        },
         fieldLabel: _t('Data Point'),
         valueField: 'uid',
         displayField: 'name',
@@ -130,7 +133,7 @@ new Zenoss.HideFormDialog({
         },
         store: Ext.create('Zenoss.NonPaginatedStore', {
             root: 'data',
-            fields: ['uid', 'name'],
+            model: 'Zenoss.model.Basic',
             directFn: router.getDataPoints
         })
     },{
@@ -186,7 +189,9 @@ new Zenoss.HideFormDialog({
     items: {
         xtype: 'combo',
         id: 'addThresholdToGraphCombo',
-        tpl: '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>',
+        getInnerTpl: function() {
+            return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
+        },
         fieldLabel: _t('Threshold'),
         valueField: 'uid',
         displayField: 'name',
@@ -204,7 +209,7 @@ new Zenoss.HideFormDialog({
         },
         store: Ext.create('Zenoss.NonPaginatedStore', {
             root: 'data',
-            fields: ['uid', 'name'],
+            model: 'Zenoss.model.Basic',
             directFn: router.getThresholds
         })
     },
@@ -236,6 +241,14 @@ new Zenoss.HideFormDialog({
 
 });
 
+Ext.define('Zenoss.InstructionTypeModel', {
+    extend: 'Ext.data.Model',
+    idProperty: 'pythonClassName',
+    fields: ['pythonClassName', 'label']
+});
+
+
+
 new Zenoss.HideFormDialog({
     id: 'addCustomToGraphDialog',
     title: _t('Add Custom Graph Point'),
@@ -264,7 +277,7 @@ new Zenoss.HideFormDialog({
         store: Ext.create('Zenoss.NonPaginatedStore', {
             root: 'data',
             autoLoad: false,
-            fields: ['pythonClassName', 'label'],
+            model: 'Zenoss.InstructionTypeModel',
             directFn: router.getGraphInstructionTypes
         })
     }],
@@ -312,8 +325,6 @@ Ext.create('Zenoss.dialog.BaseWindow', {
     items: [{
         xtype:'form',
         ref: 'formPanel',
-        labelAlign: 'top',
-        monitorValid: true,
         paramsAsHash: true,
         api: {
             load: router.getGraphDefinition,
@@ -448,7 +459,6 @@ Ext.define("Zenoss.GraphPointGrid", {
     extend:"Zenoss.ContextGridPanel",
     constructor: function(config){
         Ext.applyIf(config, {
-            stripeRows: true,
             autoScroll: true,
             viewConfig: {
                 forcefit: true,
@@ -509,7 +519,7 @@ Ext.define("Zenoss.GraphPointGrid", {
                     // format the confimation message
                     html = _t("Are you sure you want to remove the graph point, {0}?") + "<br />" +
                         _t("There is no undo.");
-                    html = String.format(html, getSelectedGraphPoint().data.name);
+                    html = Ext.String.format(html, getSelectedGraphPoint().data.name);
 
                     // show the dialog
                     dialog = Ext.getCmp('deleteGraphPointDialog');
@@ -589,7 +599,7 @@ new Zenoss.HideFitDialog({
             if (Zenoss.Security.hasPermission('Manage DMD')) {
                 var records, uids;
                 records = Ext.getCmp('graphPointGrid').getStore().getRange();
-                uids = Ext.pluck(Ext.pluck(records, 'data'), 'uid');
+                uids = Ext.Array.pluck(Ext.Array.pluck(records, 'data'), 'uid');
                 router.setGraphPointSequence({'uids': uids});
             }
         }
@@ -614,6 +624,7 @@ Ext.create('Zenoss.dialog.BaseWindow', {
     padding: 10,
     buttons: [{
         ref: '../submitButton',
+        xtype: 'HideDialogButton',
         ui: 'dialog-dark',
         text: _t('Submit'),
         disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
@@ -621,7 +632,7 @@ Ext.create('Zenoss.dialog.BaseWindow', {
             var dialogWindow, basicForm, params;
             dialogWindow = submitButton.refOwner;
             basicForm = dialogWindow.formPanel.getForm();
-            params = Ext.applyIf(basicForm.getFieldValues(), {
+            params = Ext.applyIf(basicForm.getValues(), {
                 uid: dialogWindow.uid,
                 hasSummary: false,
                 log: false,
@@ -630,32 +641,25 @@ Ext.create('Zenoss.dialog.BaseWindow', {
             basicForm.api.submit(params, function() {
                 Ext.getCmp('graphGrid').refresh();
             });
-            dialogWindow.hide();
         }
     },{
+        xtype: 'HideDialogButton',
         ref: '../cancelButton',
         ui: 'dialog-dark',
-        text: 'Cancel',
-        handler: function(cancelButton){
-            var dialogWindow = cancelButton.refOwner;
-            dialogWindow.hide();
-        }
+        text: 'Cancel'
     }],
     items: {
         xtype: 'form',
         ref: 'formPanel',
         autoScroll: true,
-        labelAlign: 'top',
-        monitorValid: true,
         paramsAsHash: true,
         api: {
             load: router.getGraphDefinition,
             submit: router.setGraphDefinition
         },
         listeners: {
-            clientvalidation: function(formPanel, valid){
-                var dialogWindow;
-                dialogWindow = formPanel.refOwner;
+            validitychange: function(formPanel, valid){
+                var dialogWindow = Ext.getCmp('viewGraphDefinitionDialog');
                 if (Zenoss.Security.hasPermission('Manage DMD')) {
                     dialogWindow.submitButton.setDisabled( ! valid );
                 }
@@ -758,7 +762,7 @@ new Ext.menu.Menu({
                 Ext.MessageBox.show({
                     title: _t('Graph Commands'),
                     minWidth: 700,
-                    msg: String.format('<pre>{0}</pre>', response.data.fakeGraphCommands),
+                    msg: Ext.String.format('<pre>{0}</pre>', response.data.fakeGraphCommands),
                     buttons: Ext.MessageBox.OK
                 });
             });
@@ -806,11 +810,11 @@ Ext.define("Zenoss.templates.GraphGrid", {
             },
             selModel: new Zenoss.SingleRowSelectionModel({
              listeners: {
-                    rowdeselect: function() {
+                    deselect: function() {
                         Ext.getCmp('deleteGraphDefinitionButton').disable();
                         Ext.getCmp('graphDefinitionMenuButton').disable();
                     },
-                    rowselect: function() {
+                    select: function() {
                         if (Zenoss.Security.hasPermission('Manage DMD')){
                             Ext.getCmp('deleteGraphDefinitionButton').enable();
                             Ext.getCmp('graphDefinitionMenuButton').enable();
@@ -887,7 +891,7 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     var msg, name, html, dialog;
                     msg = _t("Are you sure you want to remove {0}? There is no undo.");
                     name = getSelectedGraphDefinition().data.name;
-                    html = String.format(msg, name);
+                    html = Ext.String.format(msg, name);
                     dialog = Ext.getCmp('deleteGraphDefinitionDialog');
                     dialog.show();
                     dialog.getComponent('message').update(html);

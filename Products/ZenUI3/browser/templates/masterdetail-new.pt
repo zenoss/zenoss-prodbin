@@ -61,7 +61,7 @@ Ext.onReady(function(){
         items.push({
             region: 'north',
             height: 24,
-            bodyCssClass: 'z-bc-bread-crumb-pane',
+            bodyCls: 'z-bc-bread-crumb-pane',
             contentEl: 'breadCrumbPane'
         });
     }

@@ -42,7 +42,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         buttonContextMenu: {},
         contextGetter: null,
         onGetDeleteMessage: function (itemName) {
-            return String.format(_t('The selected {0} will be deleted.'), itemName.toLowerCase());
+            return Ext.String.format(_t('The selected {0} will be deleted.'), itemName.toLowerCase());
         },
         onGetAddDialogItems: function () {
             return [{
@@ -90,7 +90,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         addDialogConfig = Ext.applyIf(addDialogConfig, {
             submitHandler: handler,
             items: options.onGetAddDialogItems(),
-            title: String.format(template, options.onGetItemName())
+            title: Ext.String.format(template, options.onGetItemName())
         });
          // we have some screens with a higher zindex then they should, so for these popups, seed the zindex to be higher
         var oldSeed = Ext.WindowManager.zseed;
@@ -111,7 +111,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             menu: {
                 items: [
                     {
-                        text: String.format(_t('Add {0}'), itemName),
+                        text: Ext.String.format(_t('Add {0}'), itemName),
                         listeners: {
                             click: Ext.pass(showAddDialog, ['Add {0}', 'addClass'])
                         }
@@ -125,11 +125,11 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             id: 'footer_delete_button',
             iconCls: 'delete',
             hidden: Zenoss.Security.doesNotHavePermission('Delete objects'),
-            tooltip: String.format(_t('Delete {0}'), itemName),
+            tooltip: Ext.String.format(_t('Delete {0}'), itemName),
             menu: {
                 items: [{
 
-                    text: String.format(_t('Delete {0}'), options.onGetItemName()),
+                    text: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
                     listeners: {
                         click: function() {
                             var itemName = options.onGetItemName();
@@ -160,7 +160,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     {
         // add button
         items[0].menu.items.push({
-            text: String.format(_t('Add {0} Organizer'), itemName),
+            text: Ext.String.format(_t('Add {0} Organizer'), itemName),
             param: 'addOrganizer',
             listeners: {
                 click: Ext.pass(showAddDialog, [_t('Add {0} Organizer'), 'addOrganizer'])
@@ -172,14 +172,14 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         {
 
             items[1].menu.items.push({
-                text: String.format(_t('Delete {0} Organizer'), itemName),
+                text: Ext.String.format(_t('Delete {0} Organizer'), itemName),
                 ref: 'buttonDeleteOrganizer',
                 listeners: {
                     click: function() {
                         var itemName = options.onGetItemName();
                         Ext.MessageBox.show({
-                            title: String.format(_t('Delete {0} Organizer'), itemName),
-                            msg: String.format(_t('The selected {0} organizer will be deleted.'),
+                            title: Ext.String.format(_t('Delete {0} Organizer'), itemName),
+                            msg: Ext.String.format(_t('The selected {0} organizer will be deleted.'),
                                     itemName.toLowerCase()),
                             fn: function(buttonid){
                                 if (buttonid=='ok') {
@@ -198,7 +198,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         addToZenPackDialog = new Zenoss.AddToZenPackWindow();
         options.buttonContextMenu.menu.items.push({
             ref: 'buttonAddToZenPack',
-            text: String.format(_t('Add {0} to ZenPack'), itemName),
+            text: Ext.String.format(_t('Add {0} to ZenPack'), itemName),
             listeners: {
                 click: function() {
                     var target = options.contextGetter.getUid();
@@ -215,7 +215,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
 
             options.buttonContextMenu.menu.items.push({
                 ref: 'buttonAddOrganizerToZenPack',
-                text: String.format(_t('Add {0} Organizer to ZenPack'), itemName),
+                text: Ext.String.format(_t('Add {0} Organizer to ZenPack'), itemName),
                 listeners: {
                     click: function() {
                         var target = options.contextGetter.getOrganizerUid();

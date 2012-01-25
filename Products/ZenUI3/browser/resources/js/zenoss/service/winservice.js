@@ -35,8 +35,8 @@ Ext.onReady( function() {
                 store:  Ext.create('Ext.data.ArrayStore', {
                     data: [],
                     fields: ['startMode'],
-                    sortInfo: {
-                        field: 'startMode',
+                    sorter: {
+                        property: 'startMode',
                         direction: 'ASC'
                     }
                 })
@@ -92,7 +92,7 @@ Ext.onReady( function() {
     Ext.getCmp('serviceForm').on('render', function(){
         Ext.getCmp('monitoredStartModes').setDisabled(true);
     });
-    Ext.getCmp('navGrid').getSelectionModel().on('rowselect', function(sm, rowIndex, record) {
+    Ext.getCmp('navGrid').getSelectionModel().on('select', function(sm, record, rowIndex) {
         var monitoredStartModes = Ext.getCmp('serviceForm').monitoredStartModes;
         monitoredStartModes.setDisabled(false);
         monitoredStartModes.setContext(record.data.uid);

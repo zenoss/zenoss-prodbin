@@ -124,7 +124,7 @@ Ext.onReady( function() {
         name: 'zMonitor',
         localField: {
             xtype: 'select',
-            mode: 'local',
+            queryMode: 'local',
             store: [[true, 'Yes'], [false, 'No']]
         }
     };
@@ -133,10 +133,10 @@ Ext.onReady( function() {
         xtype: 'zprop',
         ref: '../../zFailSeverity',
         title: _t('Failure Event Severity (zFailSeverity)'),
-        name: 'zFailSeverity',        
+        name: 'zFailSeverity',
         localField: {
             xtype: 'select',
-            mode: 'local',
+            queryMode: 'local',
             store: Zenoss.env.SEVERITIES.slice(0, 5)
         }
     };

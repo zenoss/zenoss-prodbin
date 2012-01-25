@@ -30,7 +30,7 @@ Ext.onReady(function() {
                 forceSelection: true,
                 autoSelect: true,
                 triggerAction: 'all',
-                mode: 'local',
+                queryMode: 'local',
                 store: store
             });
             Zenoss.EventAgeSeverity.superclass.constructor.call(this, config);

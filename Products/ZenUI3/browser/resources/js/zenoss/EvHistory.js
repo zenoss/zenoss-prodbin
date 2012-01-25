@@ -106,7 +106,7 @@ Ext.onReady(function(){
                                 type: 'xml',
                                 isHistory: true,
                                 params: {
-                                    fields: Ext.pluck(state.columns, 'id'),
+                                    fields: Ext.Array.pluck(state.columns, 'id'),
                                     sort: state.sort.property,
                                     dir: state.sort.direction,
                                     params: grid.getExportParameters()
@@ -125,7 +125,7 @@ Ext.onReady(function(){
                                 type: 'csv',
                                 isHistory: true,
                                 params: {
-                                    fields: Ext.pluck(state.columns, 'id'),
+                                    fields: Ext.Array.pluck(state.columns, 'id'),
                                     sort: state.sort.property,
                                     dir: state.sort.direction,
                                     params: grid.getExportParameters()
@@ -178,20 +178,20 @@ Ext.onReady(function(){
                             var grid = Ext.getCmp('events_grid'),
                                 link = grid.getPermalink();
                         new Zenoss.dialog.ErrorDialog({
-                            message: String.format(_t('<div class="dialog-link">'
+                            message: Ext.String.format(_t('<div class="dialog-link">'
                                 + 'Drag this link to your bookmark bar '
                                 + '<br/>to return to this configuration later.'
                                 + '<br/><br/><a href="'
                                 + link
                                 + '">Resource Manager: Event Archive</a></div>')),
                             title: _t('Save Configuration')
-                            });                                  
+                            });
                         }
                     },{
                         text: "Restore defaults",
                         handler: function(){
                             new Zenoss.dialog.SimpleMessageDialog({
-                                message: String.format(_t('Are you sure you want to restore '
+                                message: Ext.String.format(_t('Are you sure you want to restore '
                                     + 'the default configuration? All'
                                     + ' filters, column sizing, and column order '
                                     + 'will be lost.')),
@@ -206,7 +206,7 @@ Ext.onReady(function(){
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
                                 }]
-                            }).show();                        
+                            }).show();
                         }
                     }]
                 }
@@ -273,7 +273,6 @@ Ext.onReady(function(){
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
         // the resultFields associated with the context.
         columns: Zenoss.env.COLUMN_DEFINITIONS,
-        stripeRows: true,
         // Map some other keys
         keys: [{
         // Enter to pop open the detail panel
@@ -297,7 +296,7 @@ Ext.onReady(function(){
      */
     // Pop open the event detail, depending on the number of rows selected
     function toggleEventDetailContent(){
-        var selections = console_selection_model.getSelections();
+        var selections = console_selection_model.getSelection();
         if (selections.length) {
             showEventDetail(selections[0]);
         } else {
@@ -358,7 +357,7 @@ Ext.onReady(function(){
 
     // Detail pane should pop open when double-click on event
     grid.on("itemdblclick", toggleEventDetailContent);
-    console_selection_model.on("rowselect", function(){
+    console_selection_model.on("select", function(){
         if(detail_panel.isVisible()){
             toggleEventDetailContent();
         }

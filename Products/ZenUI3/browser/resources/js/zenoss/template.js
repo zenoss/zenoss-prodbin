@@ -199,7 +199,7 @@ function showEditTemplateDialog(response) {
 
     // save function (also reloads the tree, in case we change the name)
     handler = function() {
-        var values = Ext.getCmp('editTemplateDialog').editForm.getForm().getFieldValues(dirtyOnly);
+        var values = Ext.getCmp('editTemplateDialog').editForm.getForm().getValues(false, dirtyOnly);
         values.uid = data.uid;
         router.setInfo(values, function(response){
             reloadTree(response.data.uid);
@@ -287,6 +287,15 @@ overrideHtml2 = function() {
     return html;
 };
 
+/**
+ *  Simple uid, label model used to the override targets
+ **/
+Ext.define("Zenoss.model.UidLabel", {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: ['uid', 'label']
+});
+
 new Zenoss.HideFormDialog({
     id: 'overrideDialog',
     title: _t('Copy / Override'),
@@ -330,7 +339,7 @@ new Zenoss.HideFormDialog({
             root: 'data',
             autoLoad: false,
             directFn: router.getCopyTargets,
-            fields: ['uid', 'label']
+            model: 'Zenoss.model.UidLabel'
         }),
         listeners: {
             validitychange: function(combo, isValid){
@@ -424,7 +433,9 @@ addTemplateDialogConfig = {
         ref: '../comboBox',
         selectOnFocus: true,
         typeAhead: true,
-        resizable: true,
+        listConfig: {
+            resizable: true
+        },
         displayField: 'label',
         valueField: 'uid',
         name: 'targetUid',
@@ -432,7 +443,7 @@ addTemplateDialogConfig = {
             root: 'data',
             autoLoad: true,
             directFn: router.getAddTemplateTargets,
-            fields: ['uid', 'label']
+            model: 'Zenoss.model.UidLabel'
         })
     }]
 };

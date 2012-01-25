@@ -4,8 +4,8 @@
  * Global Ext settings.
  */
 Ext.BLANK_IMAGE_URL = '/++resource++zenui/img/s.gif';
-//  Ext.Compat.showErrors = true;
-Ext.Compat.silent = true;
+Ext.Compat.showErrors = false;
+Ext.Compat.silent = false;
 
 /**
  * Enable this setting to log the stack trace of all direct requests to the browser console
@@ -246,7 +246,7 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
-    
+
     if(serverExceptionDialog) serverExceptionDialog.destroy();
 
     serverExceptionDialog = new Zenoss.dialog.SimpleMessageDialog({
@@ -411,7 +411,7 @@ Ext.define("Zenoss.ExtraHooksSelectionModel", {
     initEvents: function() {
         Zenoss.ExtraHooksSelectionModel.superclass.initEvents.call(this);
         this.addEvents('rangeselect');
-        this.on('beforerowselect', function(){
+        this.on('beforeselect', function(){
             if (this.suppressDeselectOnSelect) {
                 this.selectingRow = true;
             }
@@ -494,9 +494,9 @@ Ext.define("Zenoss.MultiselectMenu", {
     makeItemConfig: function(text, value) {
         var config = {
             hideOnClick: false,
-            handler: function() {
+            handler: Ext.bind(function() {
                 this.fireEvent('change');
-            }.createDelegate(this),
+            }, this),
             value: value,
             text: text
         };
@@ -758,7 +758,7 @@ Ext.define("EventActionManager", {
                         },
                         height: 20
                     },{
-                        xtype: 'progress',
+                        xtype: 'progressbar',
                         width: '100%',
                         unstyled: true,
                         ref: '../progressBar'
@@ -1162,7 +1162,7 @@ Zenoss.util.callWhenReady = function(componentId, func, scope) {
     var cmp = Ext.getCmp(componentId);
     if (Ext.isDefined(cmp)){
         if (scope){
-            func.createDelegate(scope)();
+            Ext.bind(func, scope)();
         }else{
             func();
         }

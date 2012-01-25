@@ -26,7 +26,7 @@
                 store: new Zenoss.DirectStore({
                     directFn: config.directFn,
                     root: config.root || 'data',
-                    fields: config.fields || ['name', 'value'],
+                    model: config.model || 'Zenoss.model.NameValue',
                     initialSortColumn: config.initialSortColumn || 'name'
                 }),
                 valueField: 'value',
@@ -41,7 +41,7 @@
             if (this.autoLoad!==false) {
                 this.getStore().load();
             }
-        },        
+        },
         getValue: function() {
             return this.callParent(arguments) || this.getRawValue();
         },
@@ -50,6 +50,14 @@
         }
     });
 
+    Ext.define("Zenoss.model.ValueIntModel", {
+        extend: 'Ext.data.Model',
+        idProperty: 'name',
+        fields: [
+            { name: 'name', type: 'string'},
+            { name: 'value', type: 'int'}
+        ]
+    });
 
     Ext.define("Zenoss.devices.PriorityCombo", {
         extend:"Zenoss.form.SmartCombo",
@@ -58,10 +66,8 @@
             config = Ext.apply(config || {}, {
                 directFn: Zenoss.remote.DeviceRouter.getPriorities,
                 cls: 'prioritycombo',
-                fields: [
-                    { name: 'name', type: 'string'},
-                    { name: 'value', type: 'int'}
-                ]
+                model: 'Zenoss.model.ValueIntModel'
+
             });
             this.callParent([config]);
         },
@@ -90,14 +96,14 @@
         alias: ['widget.multiselect-devicepriority'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
-                text:'...',           
-                cls: 'x-btn x-btn-default-toolbar-small',                
+                text:'...',
+                cls: 'x-btn x-btn-default-toolbar-small',
                 store: new Zenoss.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getPriorities,
                     root: 'data',
                     autoLoad: false,
                     initialSortColumn: 'name',
-                    fields: ['name', 'value']
+                    model: 'Zenoss.model.NameValue'
                 }),
                 defaultValues: []
             });
@@ -105,17 +111,14 @@
         }
     });
 
+
     Ext.define("Zenoss.devices.ProductionStateCombo", {
         extend:"Zenoss.form.SmartCombo",
         alias: ['widget.ProductionStateCombo'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
-                //fieldLabel: _t('Production State'),
                 directFn: Zenoss.remote.DeviceRouter.getProductionStates,
-                fields: [
-                    { name: 'name', type: 'string'},
-                    { name: 'value', type: 'int'}
-                ]
+                model: 'Zenoss.model.ValueIntModel'
             });
             this.callParent([config]);
         }
@@ -129,7 +132,7 @@
         constructor: function(config) {
             var defaults = [];
             if (Ext.isDefined(Zenoss.env.PRODUCTION_STATES)) {
-                defaults = Ext.pluck(Zenoss.env.PRODUCTION_STATES, 'value');
+                defaults.Array = Ext.pluck(Zenoss.env.PRODUCTION_STATES, 'value');
             }
             config = Ext.apply(config || {}, {
                 text:'...',
@@ -139,7 +142,7 @@
                     root: 'data',
                     initialSortColumn: 'name',
                     autoLoad: false,
-                    fields: ['name', 'value']
+                    model: 'Zenoss.model.ValueIntModel'
                 }),
                 defaultValues: defaults
             });
@@ -156,8 +159,8 @@
             Ext.applyIf(config, {
                 root: 'manufacturers',
                 totalProperty: 'totalCount',
-                fields: ['name'],
                 initialSortColumn: 'name',
+                model: 'Zenoss.model.Name',
                 directFn: router.getManufacturerNames
             });
             this.callParent([config]);
@@ -172,7 +175,7 @@
             Ext.applyIf(config, {
                 root: 'productNames',
                 totalProperty: 'totalCount',
-                fields: ['name'],
+                model: 'Zenoss.model.Name',
                 initialSortColumn: 'name',
                 directFn: router.getOSProductNames
             });
@@ -188,7 +191,7 @@
             Ext.applyIf(config, {
                 root: 'productNames',
                 totalProperty: 'totalCount',
-                fields: ['name'],
+                model: 'Zenoss.model.Name',
                 initialSortColumn: 'name',
                 directFn: router.getHardwareProductNames
             });
@@ -203,7 +206,8 @@
             var store = (config||{}).store || new ZD.ManufacturerDataStore();
             config = Ext.applyIf(config||{}, {
                 store: store,
-                width: 160
+                width: 160,
+                displayField: 'name'
             });
             this.callParent([config]);
         }
@@ -219,6 +223,7 @@
                     prodType=='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
             config = Ext.applyIf(config||{}, {
                 store: store,
+                displayField: 'name',
                 width: 160
             });
             this.callParent([config]);

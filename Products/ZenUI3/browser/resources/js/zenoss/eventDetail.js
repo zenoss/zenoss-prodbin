@@ -282,7 +282,9 @@ Ext.onReady(function() {
                         },
                         style: {'margin-left':'3em'},
                         hidden: false,
-                        labelWidth: 1,
+                        fieldDefaults: {
+                            labelWidth: 1
+                        },
                         items: [{
                             id: 'detail-logform-evid',
                             xtype: 'hidden',
@@ -470,7 +472,7 @@ Ext.onReady(function() {
                     id: section.id + '_title',
                     html: section.title + '...',
                     cls: 'show_details',
-                    toggleFn: this.toggleSection.createDelegate(this, [section.id])
+                    toggleFn: Ext.bind(this.toggleSection, this, [section.id])
                 };
                 this.getBody().add(section_title_config);
             }
@@ -594,14 +596,14 @@ Ext.onReady(function() {
         setSeverityIcon: function(severity){
             var panel = Ext.getCmp('severity-icon');
             this.clearSeverityIcon();
-            panel.addClass(severity);
+            panel.addCls(severity);
         },
 
         clearSeverityIcon: function() {
             var panel = Ext.getCmp('severity-icon');
             Ext.each(Zenoss.env.SEVERITIES, function(sev) {
                 sev = sev[1];
-                panel.removeClass(sev.toLowerCase());
+                panel.removeCls(sev.toLowerCase());
             });
         },
 

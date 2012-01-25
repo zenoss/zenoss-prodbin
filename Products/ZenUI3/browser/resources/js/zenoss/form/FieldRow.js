@@ -37,7 +37,9 @@ Ext.define("Zenoss.form.FieldRow", {
                 autoHeight: true,
                 minWidth: 10,
                 width: item.width,
-                labelAlign: item.labelAlign || 'top',
+                fieldDefaults: {
+                    labelAlign: item.labelAlign || 'top'
+                },
                 layout: 'anchor',
                 items: [item]
              };

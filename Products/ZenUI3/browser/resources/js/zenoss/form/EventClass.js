@@ -29,15 +29,17 @@
                  editable: true,
                  forceSelection: true,
                  autoSelect: true,
-                 resizable: true,
+                 listConfig:{
+                     resizable: true
+                 },
                  triggerAction: 'all',
                  defaultListConfig: {
                     maxWidth:250
-                 },                 
-                 mode: 'local',
+                 },
+                 queryMode: 'local',
                  store: Zenoss.env.EVENT_CLASSES
              });
-             this.callParent(arguments);
+             this.callParent([config]);
          }
      });
 

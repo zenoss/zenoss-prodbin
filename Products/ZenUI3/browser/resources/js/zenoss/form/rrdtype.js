@@ -21,6 +21,10 @@
          constructor: function(config) {
              var record = config.record;
              config = config || {};
+             var store = [];
+             Ext.each(record.availableRRDTypes, function(item) {
+                 store.push([item]);
+             });
              Ext.apply(config, {
                  fieldLabel: _t('RRD Type'),
                  name: 'rrdtype',
@@ -28,8 +32,13 @@
                  forceSelection: true,
                  autoSelect: true,
                  triggerAction: 'all',
-                 mode: 'local',
-                 store: record.availableRRDTypes
+                 queryMode: 'local',
+                 displayField: 'name',
+                 valueField: 'name',
+                 store:  Ext.create('Ext.data.ArrayStore', {
+                     model: 'Zenoss.model.Name',
+                     data: store
+                 })
              });
              this.callParent(arguments);
          }

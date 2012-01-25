@@ -114,7 +114,7 @@ var viewport = new Ext.Viewport({
         'border': false
     },
     items: [
-        new Ext.BoxComponent({
+        new Ext.Component({
             region: 'north',
             el: 'header',
             height: 75,

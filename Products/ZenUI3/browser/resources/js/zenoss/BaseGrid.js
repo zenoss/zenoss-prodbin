@@ -22,6 +22,7 @@
                 ],
                 proxy:{
                     type:'direct',
+                    simpleSortMode: true,
                     directFn:config.directFn,
                     reader:{
                         root:config.root || 'data',

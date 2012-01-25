@@ -36,7 +36,7 @@ ZF.createDirectSubmitFunction = function(router) {
         //   * have submitValue true
         //   * have an id or name set on them
         var info = {};
-        var dirtyFieldValues = form.getFieldValues(true);
+        var dirtyFieldValues = form.getValues(false, true);
 
         Ext.iterate(dirtyFieldValues, function(key, value) {
             var field = form.findField(key);
@@ -89,7 +89,9 @@ Ext.define("Zenoss.form.BaseDetailForm", {
             autoScroll: 'y',
             cls: 'detail-form-panel',
             buttonAlign: 'left',
-            labelAlign: 'top',
+            fieldDefaults: {
+                labelAlign: 'top'
+            },
             trackResetOnLoad: true,
             permission: 'Manage Device',
             api: {
@@ -163,7 +165,7 @@ Ext.define("Zenoss.form.BaseDetailForm", {
     },
     getFieldNames: function() {
         var keys = [];
-        for (var k in this.getForm().getFieldValues(false)) {
+        for (var k in this.getForm().getValues(false, false)) {
             if (keys.indexOf(k)==-1) {
                 keys.push(k);
             }

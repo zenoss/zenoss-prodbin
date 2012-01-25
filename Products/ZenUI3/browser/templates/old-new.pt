@@ -56,7 +56,7 @@ Ext.onReady(function(){
     innerItems = [{
         region: 'center',
         autoScroll: true,
-        bodyCssClass: 'z-bc-content-pane',
+        bodyCls: 'z-bc-content-pane',
         contentEl: 'contentPaneContainer',
         split: true
     }];
@@ -64,7 +64,7 @@ Ext.onReady(function(){
         outerItems.push({
             region: 'west',
             width: 200,
-            bodyCssClass: 'z-bc-tab-pane',
+            bodyCls: 'z-bc-tab-pane',
             contentEl: 'newTabsPane',
             split: true
         });
@@ -73,7 +73,7 @@ Ext.onReady(function(){
         innerItems.push({
             region: 'north',
             height: 24,
-            bodyCssClass: 'z-bc-bread-crumb-pane',
+            bodyCls: 'z-bc-bread-crumb-pane',
             contentEl: 'breadCrumbPane'
         });
     }
@@ -99,12 +99,12 @@ Ext.onReady(function(){
         });
     } catch(e) {}
     try {
-	    if (Ext.get('breadCrumbPane')) {
-			Ext.get('breadCrumbPane').setStyle({
-				marginLeft: 0,
-				position: 'static'
-			});
-		}
+        if (Ext.get('breadCrumbPane')) {
+            Ext.get('breadCrumbPane').setStyle({
+                marginLeft: 0,
+                position: 'static'
+            });
+        }
     } catch(e) {}
 
 
@@ -115,7 +115,7 @@ Ext.onReady(function(){
             defaults: {
                 border: false
             },
-            bodyCssClass: 'z-bc', // Zenoss back compat
+            bodyCls: 'z-bc', // Zenoss back compat
             items: outerItems
         });
         Ext.getCmp('center_panel').doLayout();

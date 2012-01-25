@@ -59,7 +59,9 @@ var hwProduct = {
     xtype: 'productcombo',
     prodType: 'HW',
     minListWidth: 250,
-    resizable: true,
+    listConfig: {
+        resizable: true
+    },
     name: 'hwProductName',
     fieldLabel: _t('HW Product'),
     id: 'hwproductcombo'
@@ -79,7 +81,9 @@ var osProduct = {
     xtype: 'productcombo',
     prodType: 'OS',
     minListWidth: 250,
-    resizable: true,
+    listConfig: {
+        resizable: true
+    },
     name: 'osProductName',
     id: 'osproductcombo',
     fieldLabel: _t('OS Product')
@@ -88,7 +92,9 @@ var osProduct = {
 var deviceClassCombo = {
     xtype: 'combo',
     minListWidth: 250,
-    resizable: true,
+    listConfig: {
+        resizable: true
+    },
     width: 250,
     name: 'deviceClass',
     fieldLabel: _t('Device Class'),
@@ -97,7 +103,7 @@ var deviceClassCombo = {
         id: 'deviceClassStore',
         root: 'deviceClasses',
         totalProperty: 'totalCount',
-        fields: ['name'],
+        model: 'Zenoss.model.Name',
         directFn: REMOTE.getDeviceClasses
     }),
     triggerAction: 'all',
@@ -171,10 +177,10 @@ treesm = Ext.create('Zenoss.TreeSelectionModel', {
 function selectedUids() {
     var grid = Ext.getCmp('device_grid'),
     sm = grid.getSelectionModel(),
-    rows = sm.getSelections(),
-    pluck = Ext.pluck,
+    rows = sm.getSelection(),
+    pluck = Ext.Array.pluck,
     uids = pluck(pluck(rows, 'data'), 'uid');
-    return uids
+    return uids;
 }
 
 function gridUidSelections() {
@@ -349,7 +355,7 @@ Ext.apply(Zenoss.devices, {
                     }
 
                     if (Ext.isDefined(response.groups)) {
-                        this.groups = Ext.pluck(response.groups, 'name');
+                        this.groups = Ext.Array.pluck(response.groups, 'name');
                     }
 
                     var panel = Ext.getCmp('add-device-organizer-column');
@@ -388,8 +394,8 @@ Ext.apply(Zenoss.devices, {
                 listeners: {
                     show: function(panel) {
                         if (!Ext.isDefined(this.systems) && !(Ext.isDefined(this.groups))) {
-                            REMOTE.getSystems({}, panel.addOrganizers.createDelegate(panel));
-                            REMOTE.getGroups({}, panel.addOrganizers.createDelegate(panel));
+                            REMOTE.getSystems({}, Ext.bind(panel.addOrganizers, panel));
+                            REMOTE.getGroups({}, Ext.bind(panel.addOrganizers, panel));
                         }
 
                     }
@@ -398,7 +404,9 @@ Ext.apply(Zenoss.devices, {
                     xtype: 'form',
                     buttonAlign: 'left',
                     monitorValid: true,
-                    labelAlign: 'top',
+                    fieldDefaults: {
+                        labelAlign: 'top'
+                    },
                     footerStyle: 'padding-left: 0',
                     ref: 'childPanel',
                     listeners: {
@@ -622,7 +630,7 @@ function commandMenuItemHandler(item) {
     var command = item.text,
         grid = Ext.getCmp('device_grid'),
         sm = grid.getSelectionModel(),
-        selections = sm.getSelections(),
+        selections = sm.getSelection(),
         devids = Ext.pluck(Ext.pluck(selections, 'data'), 'uid');
     function showWindow() {
         var win = new Zenoss.CommandWindow({
@@ -669,7 +677,7 @@ function initializeTreeDrop(tree) {
     tree.getView().on('beforedrop', function(element, e, targetnode) {
         var grid = Ext.getCmp('device_grid'),
             targetuid = targetnode.data.uid,
-            ranges = grid.getSelectionModel().getSelections(),
+            ranges = grid.getSelectionModel().getSelection(),
             devids,
             me = this,
             isOrganizer = true,
@@ -682,10 +690,10 @@ function initializeTreeDrop(tree) {
 
         if (!isOrganizer ) {
             // move devices to the target node
-            devids = Ext.pluck(Ext.pluck(e.records, 'data'), 'uid');
+            devids = Ext.Array.pluck(Ext.pluck(e.records, 'data'), 'uid');
             // show the confirmation about devices
              new Zenoss.dialog.SimpleMessageDialog({
-                    message: String.format(_t("Are you sure you want to move these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),devids.length, targetnode.data.text.text),
+                    message: Ext.String.format(_t("Are you sure you want to move these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),devids.length, targetnode.data.text.text),
                     title: _t('Move Devices'),
                     buttons: [{
                         xtype: 'DialogButton',
@@ -705,7 +713,7 @@ function initializeTreeDrop(tree) {
                                     if(data.exports) {
                                         new Zenoss.dialog.ErrorDialog({
                                             title: _t('Remodel Required'),
-                                            message: String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s)" +
+                                            message: Ext.String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s)" +
                                             "is required. Performance templates have been reset to the defaults for the device class."))
                                         });
                                     }
@@ -732,7 +740,7 @@ function initializeTreeDrop(tree) {
             // show a confirmation for organizer move
              new Zenoss.dialog.SimpleMessageDialog({
                     title: _t('Move Organizer'),
-                    message: String.format(_t("Are you sure you want to move {0} to {1}?"), record.get("text").text, targetnode.get("text").text),
+                    message: Ext.String.format(_t("Are you sure you want to move {0} to {1}?"), record.get("text").text, targetnode.get("text").text),
                     buttons: [{
                         xtype: 'DialogButton',
                         text: _t('OK'),
@@ -974,7 +982,7 @@ Ext.define("Zenoss.InfraDetailNav", {
         Zenoss.InfraDetailNav.superclass.constructor.call(this, config);
     },
     selectByToken: function(nodeId) {
-        var selNode = function () {
+        var selNode = Ext.bind(function () {
             var sel = this.getSelectionModel().getSelectedNode();
             if ( !(sel && nodeId === sel.id) ) {
                 var navtree = this.down('detailnavtreepanel');
@@ -985,7 +993,7 @@ Ext.define("Zenoss.InfraDetailNav", {
             }
             this.un('navloaded', this.selectFirst, this);
             this.on('navloaded', this.selectFirst, this);
-        }.createDelegate(this);
+        }, this);
         if (this.loaded) {
             selNode();
         } else {
@@ -1381,7 +1389,7 @@ var footerBar = Ext.getCmp('footer_bar');
                        _t(' This will also delete all devices in this {0}.'),
                        '<br/>'].join('');
             }
-            return String.format(msg, itemName.toLowerCase(), '/'+node.data.path);
+            return Ext.String.format(msg, itemName.toLowerCase(), '/'+node.data.path);
         },
         onGetAddDialogItems: function () { return getOrganizerFields('add'); },
         onGetItemName: function() {

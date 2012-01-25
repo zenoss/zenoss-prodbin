@@ -48,7 +48,7 @@
         <script>
         // Fix an IE bug
         Ext.override(Ext.Shadow, {
-            realign: Ext.Shadow.prototype.realign.createInterceptor(
+            realign: Ext.Function.createInterceptor(Ext.Shadow.prototype.realign,
                 function(l, t, w, h) {
                     if (Ext.isIE) {
                         var a = this.adjusts;
@@ -68,7 +68,7 @@
                 contentEl: menu,
                 border: false,
                 shadow: !Ext.isIE,
-                bodyCssClass: menu.id=='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
+                bodyCls: menu.id=='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
             });
 
             layer.render(Ext.getBody());

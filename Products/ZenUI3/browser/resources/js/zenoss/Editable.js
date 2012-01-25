@@ -43,10 +43,10 @@ Ext.define("Zenoss.EditorWithButtons", {
             buttonAlign: 'left',
             buttons: [{
                 text:_t('Save'),
-                handler: this.completeEdit.createDelegate(this)
+                handler: Ext.bind(this.completeEdit, this)
             }, {
                 text:_t('Cancel'),
-                handler: this.cancelEdit.createDelegate(this)
+                handler: Ext.bind(this.cancelEdit, this)
             }],
             items: this.field
         });
@@ -94,10 +94,10 @@ Ext.define("Zenoss.EditableField", {
         ed.on('beforecomplete', this.onBeforeComplete, this);
         if (Ext.isIE) {
             ed.field.origSetValue = ed.field.setValue;
-            ed.field.setValue = function(v){
+            ed.field.setValue = Ext.bind(function(v){
                 v = v.replace(/\<BR\>/g, '\n');
                 return this.origSetValue(v);
-            }.createDelegate(ed.field);
+            }, ed.field);
         }
     },
     getForm: function() {

@@ -4,6 +4,21 @@
      * and convenience methods on the main Ext classes.
      **/
 
+
+    /**
+     * We had previously used the bool passed into disable to
+     * toggle the disabledness of the button.
+     **/
+    Ext.button.Button.override({
+        disable: function(bool) {
+            if (bool) {
+                this.callOverridden();
+            } else {
+                this.enable();
+            }
+        }
+    });
+
     /**
      * This makes the default value for checkboxes getSubmitValue (called by getFieldValues on the form)
      * return true/false if it is checked or unchecked. The normal default is "on" or nothing which means the
@@ -210,7 +225,7 @@
     });
 
     /**
-     * This is a workaround to make sure the node isn't null as it has happened 
+     * This is a workaround to make sure the node isn't null as it has happened
      * to be on occasion. These only affect the UI class switches.
      * See Trac Ticket #29912
      **/
@@ -219,14 +234,14 @@
         onItemDeselect: function(record) {
             var node = this.getNode(record);
             if(node) Ext.fly(node).removeCls(this.selectedItemCls);
-        },    
+        },
         // invoked by the selection model to maintain visual UI cues
         onItemSelect: function(record) {
             var node = this.getNode(record);
             if(node) Ext.fly(node).addCls(this.selectedItemCls);
-        }    
+        }
     });
-    
+
     /**
      * This is a workaround to make sure that all of the rows show up in the
      * infinite grid.

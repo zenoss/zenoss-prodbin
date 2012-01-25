@@ -367,6 +367,7 @@
                         return this.get("uid");
                     },
                     proxy:{
+                        simpleSortMode: true,
                         type:'direct',
                         directFn:config.directFn,
                         paramOrder:['uid']
@@ -434,7 +435,7 @@
                 this.getRootNode().on('expand', function () {
                     // The first child is our real root
                     if (this.getRootNode().firstChild) {
-                        me.addHistoryToken(this.getRootNode().firstChild);
+                        me.addHistoryToken(me.getView(), this.getRootNode().firstChild);
                         me.getRootNode().firstChild.expand();
                         me.getSelectionModel().select(this.getRootNode().firstChild);
                     }
@@ -449,7 +450,7 @@
                 }, this, {single:true});
             }
             this.addEvents('filter');
-            this.on('click', this.addHistoryToken, this);
+            this.on('itemclick', this.addHistoryToken, this);
             this.on({
                 beforeexpandnode:function (node) {
                     this.stateHash[node.id] = node.getPath();
@@ -467,7 +468,7 @@
                 }
             });    // add some listeners for state
         },
-        addHistoryToken:function (node) {
+        addHistoryToken:function (view, node) {
             Ext.History.add(this.id + Ext.History.DELIMITER + node.get('id'));
         },
         update:function (data) {

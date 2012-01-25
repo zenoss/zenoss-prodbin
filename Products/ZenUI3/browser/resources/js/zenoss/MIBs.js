@@ -141,7 +141,7 @@ Ext.define('Zenoss.mibs.Grid',{
         this.callParent(arguments);
     }
 });
-    function rowSelect(sm, ri, rec) {
+    function rowSelect(sm, rec, ri) {
         var node = Ext.getCmp('node_details');
         node.name.setValue(rec.data.name);
         node.oid.setValue(rec.data.oid);
@@ -180,7 +180,7 @@ oid_grid = Ext.create('Zenoss.BaseGridPanel', {
     }],
     selModel: Ext.create('Zenoss.SingleRowSelectionModel', {
         listeners: {
-            rowselect: rowSelect
+            select: rowSelect
         }
     })
 });
@@ -210,7 +210,7 @@ trap_grid = Ext.create('Zenoss.BaseGridPanel', {
     }],
     selModel: Ext.create('Zenoss.SingleRowSelectionModel', {
         listeners: {
-            rowselect: rowSelect
+            select: rowSelect
         }
     })
 
@@ -350,7 +350,9 @@ MibBrowser = Ext.extend(Ext.Container, {
                                 items: [{
                                     xtype: 'form',
                                     buttonAlign: 'left',
-                                    labelAlign: 'top',
+                                    fieldDefaults: {
+                                        labelAlign: 'top'
+                                    },
                                     footerStyle: 'padding-left: 0',
                                     id: 'addNodeForm',
                                     items: [{
@@ -504,7 +506,6 @@ Ext.define("Zenoss.MibTreePanel", {
                 selModel: treesm,
                 relationshipIdentifier: 'mibs',
                 selectRootOnLoad: true,
-                enableDD: true,
                 ddGroup: 'serviceDragDrop',
                 ddAppendOnly: true,
                 listeners: {
@@ -522,8 +523,8 @@ Ext.define("Zenoss.MibTreePanel", {
                 sourceUids = [dropEvent.dropNode.data.uid];
             } else {
                 // moving a MIB from grid into a MibOrganizer
-                data = Ext.pluck(dropEvent.data.selections, 'data');
-                sourceUids = Ext.pluck(data, 'uid');
+                data = Ext.Array.pluck(dropEvent.data.selections, 'data');
+                sourceUids = Ext.Array.pluck(data, 'uid');
             }
             dropEvent.target.expand();
             targetUid = dropEvent.target.data.uid;
@@ -564,7 +565,7 @@ Ext.define("Zenoss.MibTreePanel", {
             Zenoss.MibTreePanel.superclass.initEvents.call(this);
             // don't add history token on click like HierarchyTreePanel does
             // this is handled in the selection model
-            this.un('click', this.addHistoryToken, this);
+            this.un('itemclick', this.addHistoryToken, this);
         }
 
 });
@@ -615,7 +616,6 @@ mib_tree = new Zenoss.MibTreePanel({
     cls: 'mib-tree',
     ddGroup: 'mibtreedd',
     searchField: true,
-    enableDD: true,
     router: router,
     root: {
         id: 'Mibs',
@@ -671,16 +671,17 @@ function showEditMibDialog(response){
         height: 360,
         width: 510,
         modal: true,
+        autoScroll: true,
         plain: true,
         buttonAlight: 'left',
         items:{
             xtype:'form',
             ref: 'editForm',
             buttonAlign: 'left',
-            monitorValid: true,
+
             items: items,
             listeners: {
-                clientvalidation: function(form, valid) {
+                validitychange: function(form, valid) {
                     if (win.isVisible()){
                         win.submitButton.setDisabled(!valid);
                     }
@@ -694,7 +695,7 @@ function showEditMibDialog(response){
             handler: function(button) {
                 var form = button.refOwner.editForm.getForm(),
                 dirtyOnly=true,
-                opts = form.getFieldValues(dirtyOnly);
+                opts = form.getValues(false, dirtyOnly);
                 opts.uid = data.uid;
                 router.setInfo(opts, function(response) {
                     reloadTree(response.data.uid);
@@ -782,7 +783,9 @@ function createLocalMIBAddAction() {
             items: [{
                 xtype: 'panel',
                 buttonAlign: 'left',
-                labelAlign: 'top',
+                fieldDefaults: {
+                    labelAlign: 'top'
+                },
                 footerStyle: 'padding-left: 0',
                 items: [{
                     xtype: 'panel',
@@ -812,7 +815,9 @@ function createDownloadMIBAddAction() {
                 xtype: 'form',
                 buttonAlign: 'left',
                 monitorValid: true,
-                labelAlign: 'top',
+                fieldDefaults: {
+                    labelAlign: 'top'
+                },
                 footerStyle: 'padding-left: 0',
                 items: [{
                     xtype: 'textfield',
@@ -827,7 +832,7 @@ function createDownloadMIBAddAction() {
                     formBind: true,
                     handler: function(b) {
                         var form = b.ownerCt.ownerCt.getForm(),
-                            opts = form.getFieldValues();
+                            opts = form.getValues();
                         opts.organizer = Zenoss.env.PARENT_CONTEXT.replace('/zport/dmd/Mibs', '');
                         router.addMIB(opts,
                         function(response) {
@@ -895,7 +900,7 @@ function deleteNode() {
         nodeType = "Organizer";
     }
     new Zenoss.dialog.SimpleMessageDialog({
-        message: String.format(_t('Are you sure you want to delete the selected {0}?'), nodeType),
+        message: Ext.String.format(_t('Are you sure you want to delete the selected {0}?'), nodeType),
         title: _t('Delete Mib'),
         buttons: [{
             xtype: 'DialogButton',

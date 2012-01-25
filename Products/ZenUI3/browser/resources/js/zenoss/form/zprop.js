@@ -158,10 +158,10 @@ Ext.define("Zenoss.form.ZProperty", {
         // update the boxLabel with the acquiredValue and ancestor
         var boxLabel;
         if ( values.acquiredValue !== null && values.ancestor !== null ) {
-            boxLabel = String.format('Inherit Value "{0}" from {1}', values.acquiredValue, values.ancestor);
+            boxLabel = Ext.String.format('Inherit Value "{0}" from {1}', values.acquiredValue, values.ancestor);
             this.acquiredRadio.enable();
         } else {
-            boxLabel = String.format('Inherit Value');
+            boxLabel = Ext.String.format('Inherit Value');
             this.acquiredRadio.disable();
         }
         this.acquiredRadio.setBoxLabel(boxLabel);

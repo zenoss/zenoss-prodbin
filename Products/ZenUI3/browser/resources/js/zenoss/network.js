@@ -113,7 +113,7 @@ var discoverDevicesDialogSubmit = function() {
                         xtype: 'button',
                         text: _t('View Job Log'),
                         handler: function() {
-                            window.location = String.format(
+                            window.location = Ext.String.format(
                                 '/zport/dmd/JobManager/jobs/{0}/viewlog',
                                 data.jobId);
                         }
@@ -212,7 +212,7 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
                 function selectIpAddress() {
                     store.each(function(record){
                         if ( record.data.name === ipAddress ) {
-                            selModel.selectRow( store.indexOf(record) );
+                            selModel.selectRange( store.indexOf(record), store.indexOf(record) );
                             return false;
                         }
                     });
@@ -376,7 +376,6 @@ var ipAddressGridConfig = {
         region: 'center',
         collapsed: false,
         split: true,
-        stripeRows: true,
         router: Zenoss.remote.NetworkRouter,
         instancesTitle: _t('IP Addresses'),
         columns: ipAddressColumnConfig,
@@ -390,14 +389,15 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
 
 (function(){
     // Remove extraneous toolbar items since we don't hide this panel
-    var detailCardPanel = Ext.getCmp('NetworkDetailCardPanel');
-    Ext.each(detailCardPanel.getTopToolbar().items.items.slice(2), function(item) {
-        detailCardPanel.getTopToolbar().remove(item);
+    var detailCardPanel = Ext.getCmp('NetworkDetailCardPanel'),
+        toolbar = detailCardPanel.getToolbars()[0];
+    Ext.each(toolbar.items.items.slice(2), function(item) {
+        toolbar.remove(item);
     });
     // Set the toolbar's height since we removed the large icon
-    detailCardPanel.getTopToolbar().setHeight(31);
+    toolbar.setHeight(31);
 
-    detailCardPanel.getTopToolbar().add( {
+    toolbar.add( {
             xtype: 'button',
             iconCls: 'delete',
             handler: deleteIpAddresses
@@ -456,7 +456,7 @@ function deleteIpAddresses(btn) {
         return;
     }
 
-    uids = Ext.pluck(Ext.pluck(selections, 'data'), 'uid');
+    uids = Ext.Array.pluck(Ext.Array.pluck(selections, 'data'), 'uid');
  new Zenoss.dialog.SimpleMessageDialog({
         title: _t('Delete IP Addresses'),
         message: _t("Are you sure you want to delete these IP addresses? Please note that only IP addresses without interfaces can be deleted."),

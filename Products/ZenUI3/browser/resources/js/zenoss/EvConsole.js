@@ -79,7 +79,6 @@ Ext.onReady(function(){
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
         // the resultFields associated with the context.
         columns: Zenoss.env.COLUMN_DEFINITIONS,
-        stripeRows: true,
         displayTotal: false,
         // Map some other keys
         keys: [{
@@ -111,7 +110,7 @@ Ext.onReady(function(){
      */
     // Pop open the event detail, depending on the number of rows selected
     function toggleEventDetailContent(){
-        var selections = console_selection_model.getSelections();
+        var selections = console_selection_model.getSelection();
         if (selections.length) {
             showEventDetail(selections[0]);
         } else {
@@ -167,7 +166,7 @@ Ext.onReady(function(){
 
     // Detail pane should pop open when double-click on event
     grid.on("itemdblclick", toggleEventDetailContent);
-    console_selection_model.on("rowselect", function(){
+    console_selection_model.on("select", function(){
         if(!detail_panel.collapsed){
             toggleEventDetailContent();
         }

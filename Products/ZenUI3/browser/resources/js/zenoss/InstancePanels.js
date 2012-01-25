@@ -128,7 +128,7 @@ Ext.define("Zenoss.SimpleCardPanel", {
                 leftItems: [{
                     xtype: 'select',
                     ref: '../displaySelect',
-                    mode: 'local',
+                    queryMode: 'local',
                     value: config.instancesTitle,
                     store: [config.instancesTitle, 'Configuration Properties'],
                     listeners: {

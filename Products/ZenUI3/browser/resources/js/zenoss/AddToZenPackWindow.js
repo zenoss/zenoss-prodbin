@@ -17,6 +17,8 @@
 
 Ext.ns('Zenoss');
 
+
+
 /**
  * @class Zenoss.AddToZenPackWindow
  * @extends Zenoss.dialog.BaseWindow
@@ -37,12 +39,18 @@ Ext.define("Zenoss.AddToZenPackWindow", {
             items: [{
                 id: 'addzenpackform',
                 xtype: 'form',
-                monitorValid: true,
+                listeners: {
+                    validitychange: function(form, isValid) {
+                        Ext.getCmp('addToZenPackWindow').query('DialogButton')[0].disable(!isValid);
+                    }
+                },
                 defaults: {width: 250},
                 autoHeight: true,
                 frame: false,
-                labelWidth: 100,
-                labelAlign: 'top',
+                fieldDefaults: {
+                    labelWidth: 100,
+                    labelAlign: 'top'
+                },
                 buttonAlign: 'left',
                 items: [{
                     fieldLabel: _t('Zen Pack'),
@@ -53,11 +61,10 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     allowBlank: false,
                     store: new Ext.data.DirectStore({
                         id: 'myzpstore',
-                        fields: ['name'],
                         root: 'packs',
+                        model: 'Zenoss.model.Name',
                         totalProperty: 'totalCount',
-                        directFn:
-                            Zenoss.remote.ZenPackRouter.getEligiblePacks
+                        directFn: Zenoss.remote.ZenPackRouter.getEligiblePacks
                     }),
                     valueField: 'name',
                     displayField: 'name',
@@ -67,9 +74,9 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     id: 'zpcombobox'
                 }],
                 buttons: [{
-                    text: _t('Submit'), 
-                    xtype: 'DialogButton',  
-                    formBind: true,
+                    text: _t('Submit'),
+                    xtype: 'DialogButton',
+                    disabled: true,
                     handler: function () {
                         var form;
                         form = Ext.getCmp('addzenpackform');

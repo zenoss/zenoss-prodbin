@@ -137,8 +137,8 @@
                             var setButtonText = function (text) {
                                 this.navButton.setText(text);
                             };
-                            card.setHeaderText = setHeaderText.createDelegate(card);
-                            card.setButtonText = setButtonText.createDelegate(card);
+                            card.setHeaderText = Ext.bind(setHeaderText, card);
+                            card.setButtonText = Ext.bind(setButtonText, card);
                         }
                     }
                 });
@@ -240,7 +240,7 @@
          * @param type
          */
         get:function (type) {
-            return this.all.key(type);
+            return this.all.getByKey(type);
         },
         /**
          * Add menu nodes to the end of a nav config
@@ -250,7 +250,7 @@
          */
         appendTo:function (type, items) {
             if (this.all.containsKey(type)) {
-                var nav = this.all.key(type);
+                var nav = this.all.getByKey(type);
                 nav.addAll(items);
             }
             else {
@@ -484,7 +484,7 @@
         constructor:function (config) {
             Ext.applyIf(config, {
                 id:Ext.id(),
-                bodyCssClass:'detailnav',
+                bodyCls:'detailnav',
                 layout:'fit',
                 bodyStyle:{ 'margin-top':10 }
             });
@@ -589,7 +589,7 @@
                 firstToken = me.id + Ext.History.DELIMITER + root.firstChild.id;
             if (!sel) {
                 if (!token || (token && token == firstToken)) {
-                    me.getSelectionModel().selectRow(0);
+                    me.getSelectionModel().selectRange(0, 0);
                 }
             }
         },
@@ -629,7 +629,7 @@
         contextUid:null,
         lastSelItem:null,
         panelConfigMap:null,
-        mode:'local',
+        queryMode:'local',
         editable:false,
         forceSelection:true,
         typeAhead:false,
@@ -646,7 +646,7 @@
             Ext.applyIf(config, {
                 store:new Ext.data.ArrayStore({
                     'id':0,
-                    fields:['value', 'text'],
+                    model: 'Zenoss.model.ValueText',
                     autoDestroy:true
                 })
             });
@@ -726,7 +726,7 @@
                 this.panelConfigMap = panelMap;
                 this.store = new Ext.data.ArrayStore({
                     'id':0,
-                    fields:['value', 'text'],
+                    model: 'Zenoss.model.ValueText',
                     data:items,
                     autoDestroy:true
                 });

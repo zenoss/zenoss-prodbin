@@ -4,7 +4,7 @@
         beforedestroy: function() {
             // This is to work around a bug in Sencha 4.x:
             // http://www.sencha.com/forum/archive/index.php/t-136583.html?s=0737c51cf4da51fa8cb875c351c5b2b4
-            this.bindStore(null);                        
+            this.bindStore(null);
         }
     };
 
@@ -167,14 +167,13 @@
                     editable: false,
                     forceSelection: true,
                     triggerAction: 'all',
-                    hiddenName: 'doesntmatter',
                     store: [[null,null]],
                     defaultListConfig: {
                         maxWidth:200
-                    },                    
-                    getSubject: function() {
+                    },
+                    getSubject: Ext.bind(function() {
                         return this.getBuilder().subject_map[this.subject.getValue()];
-                    }.createDelegate(this),
+                    }, this),
                     listeners: {
                         change: function() {
                             // Get the associated subject
@@ -205,7 +204,6 @@
                     }
                 },{
                     ref: 'comparison',
-                    hiddenName: 'doesntmatter',
                     xtype: 'combo',
                     autoSelect: true,
                     editable: false,
@@ -216,9 +214,9 @@
                     triggerAction: 'all',
                     defaultListConfig: {
                         maxWidth:200
-                    },                    
+                    },
                     listeners: {
-                        change: function() { 
+                        change: function() {
                             var cmp = ZF.COMPARISONS[this.comparison.getValue()],
                                 field = this.subject.getSubject().field || (cmp && cmp.field) || {xtype:'textfield'},
                                 idx = this.items.items.indexOf(this.predicate),
@@ -281,8 +279,8 @@
                 pred = this.predicate.getValue();
             if (!comparison || !sub || Ext.isEmpty(pred)) { return; }
             var cmp = ZF.COMPARISONS[comparison];
-            var clause = String.format(cmp.tpl, this.getBuilder().prefix + sub, Ext.encode(pred));
-            return String.format("({0})", clause);
+            var clause = Ext.String.format(cmp.tpl, this.getBuilder().prefix + sub, Ext.encode(pred));
+            return Ext.String.format("({0})", clause);
         },
         setValue: function(expression) {
             for (var cmp in comparison_patterns) {
@@ -429,7 +427,7 @@
             }, this);
             result = values.join(joiner);
             if (values.length > 1) {
-                result = String.format('({0})', result);
+                result = Ext.String.format('({0})', result);
             }
             return result;
         },
@@ -546,7 +544,7 @@
                 this.subject_map[subject.value] = subject;
             }, this);
             this.callParent([config]);
-            this.addEvents('rulechange');            
+            this.addEvents('rulechange');
         },
         getValue: function() {
             var result = this.rootrule.getValue();
@@ -641,9 +639,9 @@
                 triggerAction: 'all',
                 defaultListConfig: {
                     maxWidth:200
-                },                
+                },
                 store: new Ext.data.ArrayStore({
-                    fields: ['name', 'value'],
+                    model: 'Zenoss.model.NameValue',
                     data: [[
                         _t('Critical'), 5
                     ],[
@@ -680,7 +678,7 @@
                 setValue: smarterSetValue,
                 defaultListConfig: {
                     maxWidth:200
-                }                
+                }
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
@@ -694,11 +692,11 @@
                 mode: 'remote',
                 defaultListConfig: {
                     maxWidth:200
-                },                
+                },
                 store: new Ext.data.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
                     root: 'data',
-                    fields: ['name', 'uuid']
+                    model: 'Zenoss.model.BasicUUID'
                 }),
                 listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
@@ -718,11 +716,11 @@
                 mode: 'remote',
                 defaultListConfig: {
                     maxWidth:200
-                },                
+                },
                 store: new Ext.data.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
                     root: 'data',
-                    fields: ['name', 'uuid']
+                    model: 'Zenoss.model.BasicUUID'
                 }),
                 listeners: directStoreWorkaroundListeners,
                 typeAhead: true,

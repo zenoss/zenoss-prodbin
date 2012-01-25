@@ -30,7 +30,7 @@
                 forceSelection: true,
                 autoSelect: true,
                 triggerAction: 'all',
-                mode: 'local',
+                queryMode: 'local',
                 // this is defined in zenoss.js so should always be present
                 store: Zenoss.env.SEVERITIES
             });

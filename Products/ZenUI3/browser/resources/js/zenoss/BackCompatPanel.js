@@ -189,7 +189,7 @@ Zenoss.util.registerBackCompatMenu = function(menu, btn, align, offsets){
         contentEl: menu,
         border: false,
         shadow: !Ext.isIE,
-        bodyCssClass: menu.id=='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
+        bodyCls: menu.id=='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
     });
 
     layer.render(Ext.getBody());

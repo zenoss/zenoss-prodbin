@@ -110,7 +110,8 @@ Ext.define("Zenoss.trigger.TriggerSubscriptions", {
                 dataIndex: 'uuid',
                 flex: 1,
                 renderer: function(value, metaData, record, rowIndex, colIndex, store) {
-                    var comboStore = me.getTopToolbar().data_combo.store;
+                    var toolbar = me.getDockedItems('toolbar')[0];
+                    var comboStore = toolbar.data_combo.store;
                     var idx = comboStore.find('uuid', value);
                     if (idx > -1) {
                         return comboStore.getAt(idx).data.name;
@@ -128,7 +129,7 @@ Ext.define("Zenoss.trigger.TriggerSubscriptions", {
         this.callParent(arguments);
     },
     addValueFromCombo: function() {
-        var combo = this.getTopToolbar().data_combo,
+        var combo = this.getToolbars()[0].data_combo,
             val = combo.getValue(),
             rowIdx = combo.store.find('uuid', val),
             row = combo.store.getAt(rowIdx),

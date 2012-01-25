@@ -247,10 +247,10 @@ Ext.define("Zenoss.DeviceGridPanel", {
     },
     applyOptions: function(options){
         // only request the visible columns
-        var visibleColumns = Zenoss.util.filter(this.getColumnModel(), function(c){
+        var visibleColumns = Zenoss.util.filter(this.columns, function(c){
                 return !c.hidden;
             }),
-            keys = Ext.pluck(visibleColumns, 'dataIndex');
+            keys = Ext.Array.pluck(visibleColumns, 'dataIndex');
 
         keys.push('ipAddressString');
         keys.push('pythonClass');
@@ -314,7 +314,7 @@ Ext.define("Zenoss.DeviceGridPanel", {
                             permission: 'Change Device',
                             handler: function(){
                                 new Zenoss.dialog.SimpleMessageDialog({
-                                    message: String.format(_t('Are you sure you want to reset the IP addresses of these devices to the results of a DNS lookup?')),
+                                    message: Ext.String.format(_t('Are you sure you want to reset the IP addresses of these devices to the results of a DNS lookup?')),
                                     title: _t('Reset IP'),
                                     buttons: [{
                                         xtype: 'DialogButton',

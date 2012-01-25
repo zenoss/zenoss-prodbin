@@ -73,7 +73,9 @@
             prodType: 'HW',
             width: FIELDWIDTH,
             value: name(vals.hwModel),
-            resizable: true,
+            listConfig: {
+                resizable: true
+            },
             name: 'hwProductName',
             fieldLabel: _t('HW Product'),
             id: 'hwproductcombo'
@@ -97,7 +99,9 @@
             prodType: 'OS',
             width: FIELDWIDTH,
             value: name(vals.osModel),
-            resizable: true,
+            listConfig: {
+                resizable: true
+            },
             name: 'osProductName',
             id: 'osproductcombo',
             fieldLabel: _t('OS Product')
@@ -122,11 +126,11 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
-                xtype: 'DialogButton',                
+                xtype: 'DialogButton',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn){
                     var form = btn.refOwner.editForm.getForm(),
-                        vals = form.getFieldValues();
+                        vals = form.getValues();
                     Ext.apply(vals, {uid:uid});
                     REMOTE.setProductInfo(vals, function(r) {
                         Ext.getCmp('device_overview').load();
@@ -135,7 +139,7 @@
                 }
             },{
                 text: _t('Cancel'),
-                xtype: 'DialogButton',                
+                xtype: 'DialogButton',
                 handler: function(btn){
                     win.destroy();
                 }
@@ -162,9 +166,11 @@
             items: [{
                 xtype: 'combo',
                 name: 'collector',
-                resizable: true,
+                listConfig: {
+                    resizable: true
+                },
                 fieldLabel: _t('Select a collector'),
-                mode: 'local',
+                queryMode: 'local',
                 store: new Ext.data.ArrayStore({
                     data: Zenoss.env.COLLECTORS,
                     fields: ['name']
@@ -180,10 +186,10 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
-                xtype: 'DialogButton',                
+                xtype: 'DialogButton',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
-                    var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                    var vals = btn.refOwner.editForm.getForm().getValues();
                     var submitVals = {
                         uids: [uid],
                         collector: vals.collector,
@@ -196,7 +202,7 @@
                 }
             }, {
                 text: _t('Cancel'),
-                xtype: 'DialogButton',                
+                xtype: 'DialogButton',
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -234,7 +240,9 @@
                     valueField: 'name',
                     displayField: 'name',
                     forceSelection: true,
-                    resizable: true,
+                    listConfig: {
+                        resizable: true
+                    },
                     editable: false,
                     autoSelect: true,
                     triggerAction: 'all',
@@ -319,7 +327,7 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
-                xtype: 'DialogButton',                
+                xtype: 'DialogButton',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     Ext.iterate(btn.refOwner.grouplist.groups, function(group, op) {
@@ -345,7 +353,7 @@
                 }
             }, {
                 text: _t('Cancel'),
-                xtype: 'DialogButton',                
+                xtype: 'DialogButton',
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -375,7 +383,9 @@
                 value: values.location ? values.location.uid.slice(20) : '',
                 forceSelection: true,
                 editable: false,
-                resizable: true,
+                listConfig: {
+                    resizable: true
+                },
                 width: 250,
                 autoSelect: true,
                 triggerAction: 'all'
@@ -383,10 +393,10 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
-                xtype: 'DialogButton',                
+                xtype: 'DialogButton',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
-                    var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                    var vals = btn.refOwner.editForm.getForm().getValues();
                     if (vals.location) {
                         var submitVals = {
                             uids: [uid],
@@ -403,7 +413,7 @@
                 }
             }, {
                 text: _t('Cancel'),
-                xtype: 'DialogButton',                
+                xtype: 'DialogButton',
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -421,9 +431,11 @@
     Ext.define("Zenoss.DeviceOverviewForm", {
         alias:['widget.devformpanel'],
         extend:"Ext.form.FormPanel",
-        labelAlign: 'top',
+        fieldDefaults: {
+            labelAlign: 'top'
+        },
         paramsAsHash: true,
-        frame: false,        
+        frame: false,
         defaults: {
             anchor: '95%',
             labelStyle: 'font-size: 13px; color: #5a5a5a'
@@ -440,7 +452,7 @@
             }
         },{
             text: _t('Cancel'),
-            xtype: 'button',           
+            xtype: 'button',
             ref: '../cancelbtn',
             disabled: true,
             hidden: true,
@@ -449,7 +461,7 @@
             }
         }],
         cls: 'device-overview-form-wrapper',
-        bodyCssClass: 'device-overview-form',
+        bodyCls: 'device-overview-form',
         style:{'background-color':'#fafafa'},
         listeners: {
             'add': function(me, field, index){
@@ -537,7 +549,7 @@
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
                 autoScroll: true,
-                bodyCssClass: 'device-overview-panel',
+                bodyCls: 'device-overview-panel',
                 padding: '10',
                 frame: false,
                 forms: [],
@@ -558,8 +570,8 @@
                         type: 'hbox'
                     },
                     defaults: {
-                        bodyStyle: 'background-color:#fafafa;',                    
-                        minHeight: 350,                        
+                        bodyStyle: 'background-color:#fafafa;',
+                        minHeight: 350,
                         margin:'0 10 10 0',
                         flex: 1
                     },
@@ -592,7 +604,7 @@
                         id:'deviceoverviewpanel_idsummary',
                         defaultType: 'displayfield',
                         frame:false,
-                        
+
                         listeners: {
                             actioncomplete: function(form, action) {
                                 if (action.type=='directsubmit') {
@@ -628,7 +640,7 @@
                         id:'deviceoverviewpanel_descriptionsummary',
                         defaultType: 'textfield',
                         frame:false,
-                                                
+
                         items: [{
                             fieldLabel: _t('Rack Slot'),
                             name: 'rackSlot',
@@ -689,11 +701,11 @@
                     id:'deviceoverviewpanel_customsummary',
                     defaultType: 'devformpanel',
                     frame:false,
-                                        
+
                     layout: 'hbox',
                     defaults: {
-                        bodyStyle: 'background-color:#fafafa;',                    
-                        minHeight: 400,                     
+                        bodyStyle: 'background-color:#fafafa;',
+                        minHeight: 400,
                         margin:'0 10 10 0'
                     },
                     layoutConfig: {
@@ -704,7 +716,7 @@
                         flex: 2,
                         minHeight: 400,
                         frame:false,
-                                                
+
                         items: [{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -760,9 +772,9 @@
                         id:'deviceoverviewpanel_snmpsummary',
                         defaultType: 'displayfield',
                         frame:false,
-                                                
+
                         flex: 1,
-                        bodyStyle: 'background-color:#fafafa;',                        
+                        bodyStyle: 'background-color:#fafafa;',
                         minHeight: 400,
                         items: [{
                             fieldLabel: _t('SNMP SysName'),
@@ -794,7 +806,7 @@
             load: REMOTE.getInfo,
             submit: function(form, success, scope) {
                 var o = {},
-                vals = scope.form.getFieldValues(true);
+                vals = scope.form.getValues(true);
                 Ext.apply(o, vals, scope.form.baseParams);
                 REMOTE.setInfo(o, function(result){
                     this.form.clearInvalid();

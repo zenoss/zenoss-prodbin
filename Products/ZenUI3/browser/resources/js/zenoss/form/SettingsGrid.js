@@ -42,9 +42,15 @@
 
             Ext.applyIf(config, {
                 autoScroll: 'y',
-                labelAlign: 'top',
+                fieldDefaults: {
+                    labelAlign: 'top'
+                },
                 bodyStyle: 'padding: 10px',
-                monitorValid: true,
+                listeners: {
+                    validitychange: function(form, isValid) {
+                        me.query('button')[0].disable(!isValid);
+                    }
+                },
                 isDirty: function(){
                     return true;
                 },

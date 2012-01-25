@@ -22,7 +22,7 @@ Zenoss.env.initProductionStates();
 Zenoss.env.initPriorities();
 
 function selectOnRender(n, sm) {
-    sm.selectRow(n);
+    sm.selectRange(n, n);
 }
 
 function refreshComponentTreeAndGrid(compType) {
@@ -118,18 +118,7 @@ Zenoss.nav.register({
             } else {
                 selectOnRender(child, target.treepanel.getSelectionModel());
             }
-        },
-        loader: new Ext.tree.TreeLoader({
-            /*
-            baseAttrs: {
-                uiProvider: Zenoss.ComponentNodeUI
-            },
-            */
-            listeners: {
-                load: function(loader, node, response) {
-                }
-            }
-        })
+        }
     },{
         id: 'device_graphs',
         nodeType: 'subselect',
@@ -148,8 +137,8 @@ Zenoss.nav.register({
 function componentGridOptions() {
     var grid = Ext.getCmp('component_card').componentgrid,
         sm = grid.getSelectionModel(),
-        rows = sm.getSelections(),
-        pluck = Ext.pluck,
+        rows = sm.getSelection(),
+        pluck = Ext.Array.pluck,
         uids = pluck(pluck(rows, 'data'), 'uid'),
         name = Ext.getCmp('component_searchfield').getValue();
     return {
@@ -513,7 +502,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
         this.callParent(arguments);
     },
     loadComponents: function() {
-        var rootNode = this.treepanel.getNodeById(UID);
+        var rootNode = this.treepanel.getStore().getNodeById(UID);
         Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, function(data){
             rootNode.appendChild(Ext.Array.map(data, function(d) {
                 d.text = Ext.String.format("{0} <span title='{1}'>({2})</span>",
@@ -618,7 +607,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
         if ( node.data.action ) {
             action = node.data.action;
         } else {
-            action = function(node, target) {
+            action = Ext.bind(function(node, target) {
                 var id = node.data.id;
                 if (!(id in target.items.map)) {
                     var config = this.panelConfigMap[id];
@@ -629,7 +618,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
                 }
                 target.items.map[id].setContext(this.contextId);
                 target.layout.setActiveItem(id);
-            }.createDelegate(this);
+            }, this);
         }
         var token = Ext.History.getToken(),
             mytoken = this.id + Ext.History.DELIMITER + node.get('id');
@@ -753,7 +742,9 @@ var editDeviceClass = function(deviceClass, uid) {
             }),
             valueField: 'name',
             width: 250,
-            resizable: true,
+            listConfig: {
+                resizable: true
+            },
             displayField: 'name',
             value: deviceClass,
             forceSelection: true,
@@ -767,7 +758,7 @@ var editDeviceClass = function(deviceClass, uid) {
             ref: '../savebtn',
             disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
             handler: function(btn) {
-                var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                var vals = btn.refOwner.editForm.getForm().getValues();
                 var submitVals = {
                     uids: [uid],
                     target: '/zport/dmd/Devices' + vals.deviceClass,

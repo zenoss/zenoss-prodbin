@@ -265,7 +265,6 @@
                     }
                 }),
                 title: _t('Thresholds'),
-                autoExpandColumn: 'name',
                 store: Ext.create('Zenoss.thresholds.Store', { }),
                 listeners: listeners,
                 tbar: tbarItems.concat([{
@@ -297,7 +296,7 @@
                             // show a confirmation
                      new Zenoss.dialog.SimpleMessageDialog({
                                 title: _t('Delete Threshold'),
-                                message: String.format(_t("Are you sure you want to delete this threshold? There is no undo.")),
+                                message: Ext.String.format(_t("Are you sure you want to delete this threshold? There is no undo.")),
                             buttons: [{
                                 xtype: 'DialogButton',
                                 text: _t('OK'),

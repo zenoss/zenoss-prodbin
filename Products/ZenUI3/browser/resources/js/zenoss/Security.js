@@ -71,7 +71,7 @@
       **/
      Zenoss.Security.onPermissionsChange = function(callback, scope) {
          if (scope) {
-             callbacks.push(callback.createDelegate(scope));
+             callbacks.push(Ext.bind(callback, scope));
          }else {
              callbacks.push(callback);
          }

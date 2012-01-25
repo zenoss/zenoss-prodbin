@@ -65,7 +65,7 @@
                         ref: '../templates',
                         selModel: Ext.create('Zenoss.SingleRowSelectionModel', {
                             listeners : {
-                                rowselect: function (selectionModel, rowIndex, record ) {
+                                select: function (selectionModel, record, rowIndex) {
                                     var thresholds = me.thresholds,
                                         grid = me.templates;
                                     thresholds.setContext(record.get("uid"));
@@ -80,7 +80,7 @@
                                     // enable the threshold add button
                                     thresholds.addButton.enable();
                                 },
-                                rowdeselect: function(selectionModel) {
+                                deselect: function(selectionModel) {
                                     var thresholds = me.thresholds,
                                         grid = me.templates;
                                     thresholds.addButton.disable();
@@ -116,7 +116,7 @@
                                     // show a confirmation
                                  new Zenoss.dialog.SimpleMessageDialog({
                                         title: _t('Delete Copy'),
-                                        message: String.format(_t("Are you sure you want to delete the local copy of this template? There is no undo.")),
+                                        message: Ext.String.format(_t("Are you sure you want to delete the local copy of this template? There is no undo.")),
                                         buttons: [{
                                             xtype: 'DialogButton',
                                             text: _t('OK'),
@@ -127,7 +127,7 @@
                                             xtype: 'DialogButton',
                                             text: _t('Cancel')
                                         }]
-                                    }).show();       
+                                    }).show();
                                 }
                             }
                         }],
@@ -138,7 +138,7 @@
                             listeners: {
                                 load: function(store) {
                                     if (store.getCount()) {
-                                        me.templates.getSelectionModel().selectRow(0);
+                                        me.templates.getSelectionModel().selectRange(0, 0);
                                     }
                                     return true;
                                 }

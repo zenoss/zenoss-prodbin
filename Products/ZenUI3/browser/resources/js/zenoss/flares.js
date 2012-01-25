@@ -143,7 +143,7 @@
                 animateTarget: Zenoss.flares.Manager.container.el
             });
 
-            var existingFlare = Zenoss.flares.Manager._visibleFlares.item(flare._bodyHtml);
+            var existingFlare = Zenoss.flares.Manager._visibleFlares.get(flare._bodyHtml);
             if (existingFlare == undefined) {
                 Zenoss.flares.Manager.flare(flare);
                 return flare;
@@ -281,9 +281,9 @@
             this.el.ghost("t", {
                 duration: this.hideDuration,
                 remove: false,
-                callback : function () {
+                callback : Ext.bind(function () {
                     this.destroy();
-                }.createDelegate(this)
+                }, this)
             });
         },
         canLayout: function() {

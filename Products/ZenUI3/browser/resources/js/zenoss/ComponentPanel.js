@@ -59,7 +59,7 @@ Zenoss.nav.register({
             }
             target.layout.setActiveItem(cardid);
             target.layout.activeItem.setContext(uid);
-            var tbar = target.getTopToolbar();
+            var tbar = target.getToolbars()[0];
             if (tbar._btns) {
                 Ext.each(tbar._btns, tbar.remove, tbar);
             }
@@ -133,7 +133,7 @@ Zenoss.nav.register({
                     stateId: 'component-event-console',
                     columns:  Zenoss.env.getColumnDefinitions(['component', 'device'])
                 });
-                var tbar = target.getTopToolbar();
+                var tbar = target.getToolbars()[0];
                 if (tbar._btns) {
                     Ext.each(tbar._btns, tbar.remove, tbar);
                 }
@@ -315,9 +315,9 @@ Ext.define("Zenoss.component.ComponentPanel", {
                             return (excluded.indexOf(cfg.id)==-1);
                         },
                         ref: '../../componentnav',
-                        getTarget: function() {
+                        getTarget: Ext.bind(function() {
                             return this.detailcontainer;
-                        }.createDelegate(this)
+                        }, this)
                     }]
                 }
             }]
@@ -416,7 +416,6 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             });
         config = Ext.applyIf(config||{}, {
             autoExpandColumn: 'name',
-            stripeRows: true,
             bbar: {},
             store: new ZC.BaseComponentStore({
                 sortInfo: config.sortInfo,
@@ -468,7 +467,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
 
         Ext.apply(params, {
             uid: this.contextUid,
-            keys: Ext.pluck(this.fields, 'name'),
+            keys: Ext.Array.pluck(this.fields, 'name'),
             meta_type: this.componentType,
             name: this.componentName
         });
@@ -482,7 +481,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         this.getStore().on('load', function(){
             var token = Ext.History.getToken();
             if (token.split(Ext.History.DELIMITER).length!=3) {
-                this.getSelectionModel().selectRow(0);
+                this.getSelectionModel().selectRange(0, 0);
                 // Ext, for some reason, doesn't fire selectionchange at this
                 // point, so we'll do it ourselves.
                 this.fireEvent('selectionchange', this, this.getSelectionModel().getSelection());
@@ -548,19 +547,6 @@ Ext.define("Zenoss.component.BaseComponentStore", {
     }
 });
 
-Ext.define("Zenoss.component.BaseComponentColModel", {
-    extend:"Ext.grid.ColumnModel",
-    constructor: function(config) {
-        config = Ext.applyIf(config||{}, {
-            defaults: {
-                menuDisabled: true,
-                sortable: true
-            },
-            columns: cols
-        });
-        ZC.BaseComponentColModel.superclass.constructor.call(this, config);
-    }
-});
 
 Ext.define("Zenoss.component.IpInterfacePanel", {
     alias:['widget.IpInterfacePanel'],

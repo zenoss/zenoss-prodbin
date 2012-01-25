@@ -79,16 +79,21 @@ Ext.onReady(function () {
                 listeners: {
                     show: function(win) {
                         var form = win.addForm;
-                        form.startMonitoring();
                         form.newId.setValue('');
                     }
                 },
                 items:{
                     xtype:'form',
                     ref: 'addForm',
-                    monitorValid: true,
+                    listeners: {
+                        validitychange: function(form, isValid) {
+                            me.query('button')[0].disable(!isValid);
+                        }
+                    },
                     buttonAlign: 'left',
-                    labelWidth: 40,
+                    fieldDefaults: {
+                        labelWidth: 40
+                    },
                     items:[{
                         xtype: 'textfield',
                         name: 'newId',
@@ -114,7 +119,6 @@ Ext.onReady(function () {
                          */
                         handler: function(button) {
                             var form = button.refOwner.addForm;
-                            form.stopMonitoring();
                             // prevent further clicking
                             button.setDisabled(true);
                             if (config.submitHandler) {
@@ -195,7 +199,7 @@ Ext.onReady(function () {
 
     displayScheduleEditDialogue = function(data) {
         var dialogue = Ext.getCmp(editScheduleDialogueConfig.id);
-        dialogue.setTitle(String.format('{0} - {1}', editScheduleDialogueConfig.title, data['newId']));
+        dialogue.setTitle(Ext.String.format('{0} - {1}', editScheduleDialogueConfig.title, data['newId']));
         dialogue.loadData(data);
         dialogue.show();
     };
@@ -242,6 +246,11 @@ Ext.onReady(function () {
             { name: 'manage', type: 'bool'}
         ]
     });
+    Ext.define("Zenoss.model.UsersComboStore", {
+        extend: 'Ext.data.Model',
+        idProperty: 'id',
+        fields: ['type', 'label', 'value']
+    });
 
     Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         extend: 'Ext.grid.Panel',
@@ -275,12 +284,12 @@ Ext.onReady(function () {
                         typeAhead: true,
                         triggerAction: 'all',
                         lazyRender:true,
-                        mode: 'local',
+                        queryMode: 'local',
                         id: 'users_combo',
                         store: Ext.create('Zenoss.NonPaginatedStore', {
                             root: 'data',
                             autoLoad: true,
-                            fields: ['type', 'label', 'value'],
+                            model: 'Zenoss.model.UsersComboStore',
                             directFn: router.getRecipientOptions
                         }),
                         valueField: 'value',
@@ -345,14 +354,14 @@ Ext.onReady(function () {
             this.callParent(arguments);
         },
         addValueFromCombo: function() {
-
-            var val = this.getTopToolbar().users_combo.getValue(),
-                idx = this.getTopToolbar().users_combo.store.find('value', val),
+            var toolbar = this.getDockedItems('toolbar')[0],
+                val = toolbar.users_combo.getValue(),
+                idx = toolbar.users_combo.store.find('value', val),
                 row,
                 type = 'manual',
                 label;
             if (idx != -1) {
-                row = this.getTopToolbar().users_combo.store.getAt(idx);
+                row = toolbar.users_combo.store.getAt(idx);
             }
 
             if (row) {
@@ -360,7 +369,7 @@ Ext.onReady(function () {
                 label = row.data.label;
             }
             else {
-                val = this.getTopToolbar().users_combo.getRawValue();
+                val = toolbar.users_combo.getRawValue();
                 label = val;
             }
 
@@ -381,7 +390,7 @@ Ext.onReady(function () {
                     });
                     this.getStore().add(record);
                     this.getView().refresh();
-                    this.getTopToolbar().users_combo.clearValue();
+                    this.getDockedItems('toolbar')[0].users_combo.clearValue();
                 }
                 else if (existingIndex != -1) {
                     Zenoss.message.error(_t('Duplicate items not permitted here.'));
@@ -618,7 +627,7 @@ Ext.onReady(function () {
             tabPanel: tab_panel
         });
 
-        dialogue.title = String.format("{0} - {1} ({2})", dialogue.title, data['newId'], data['action']);
+        dialogue.title = Ext.String.format("{0} - {1} ({2})", dialogue.title, data['newId'], data['action']);
         dialogue.loadData(data);
         dialogue.show();
     };
@@ -628,10 +637,7 @@ Ext.onReady(function () {
             store: Ext.create('Zenoss.NonPaginatedStore', {
                 autoLoad: true,
                 directFn: router.getNotificationTypes,
-                idProperty: 'id',
-                fields: [
-                    'id', 'name'
-                ]
+                model: 'Zenoss.model.IdName'
             }),
             name:'action',
             ref: 'action_combo',
@@ -652,18 +658,18 @@ Ext.onReady(function () {
             width: 300,
             modal: true,
             plain: true,
-            listeners: {
-                    show: function(win) {
-                        var form = win.items.items[0];
-                        form.startMonitoring();
-                    }
-                },
             items: [{
                 xtype:'form',
                 ref: '../addForm',
-                monitorValid: true,
+                listeners: {
+                    validitychange: function(form, isValid) {
+                        dialogue.query('DialogButton')[0].disable(!isValid);
+                    }
+                },
                 buttonAlign: 'left',
-                labelWidth: 40,
+                fieldDefaults: {
+                    labelWidth: 40
+                },
                 items:[
                     {
                         xtype: 'textfield',
@@ -680,11 +686,10 @@ Ext.onReady(function () {
                     {
                         xtype: 'DialogButton',
                         ref: 'submitButton',
-                        formBind: true,
                         text: _t('Submit'),
                         handler: function(button) {
                             var form = button.refOwner.ownerCt,
-                                params = form.getForm().getFieldValues();
+                                params = form.getForm().getValues();
 
 
                             button.setDisabled(true);
@@ -728,15 +733,18 @@ Ext.onReady(function () {
                     xtype:'form',
                     ref: 'editForm',
                     buttonAlign: 'left',
-                    monitorValid: true,
+                    listeners: {
+                        validitychange: function(form, isValid) {
+                            me.query('DialogButton')[0].disable(!isValid);
+                        }
+                    },
                     items:[config.tabPanel],
                     buttons:[{
                         xtype: 'DialogButton',
                         text: _t('Submit'),
                         ref: '../../submitButton',
-                        formBind: true,
                         handler: function(button) {
-                            var params = button.refOwner.editForm.getForm().getFieldValues();
+                            var params = button.refOwner.editForm.getForm().getValues();
                             params.recipients = [];
                             params.subscriptions = [];
                             Ext.each(
@@ -792,7 +800,12 @@ Ext.onReady(function () {
                     xtype:'form',
                     ref: 'editForm',
                     buttonAlign: 'left',
-                    monitorValid: true,
+                    listeners: {
+                        validitychange: function(form, isValid) {
+                            this.query('HideDialogButton')[0].disable(!isValid);
+                        },
+                        scope: this
+                    },
                     autoWidth: true,
                     items:[
                         {
@@ -821,7 +834,7 @@ Ext.onReady(function () {
                         },
                         new Ext.form.ComboBox({
                             store: new Ext.data.ArrayStore({
-                                fields:['value'],
+                                model: 'Zenoss.model.Name',
                                 id: 0,
                                 data: [
                                     ['Never'],
@@ -832,13 +845,13 @@ Ext.onReady(function () {
                                     ['First Sunday of the Month']
                                 ]
                             }),
-                            mode: 'local',
+                            queryMode: 'local',
                             name: 'repeat',
                             allowBlank: false,
                             required: true,
                             editable: false,
-                            displayField: 'value',
-                            valueField: 'value',
+                            displayField: 'name',
+                            valueField: 'name',
                             triggerAction: 'all',
                             fieldLabel: _t('Repeat')
                         }),{
@@ -852,24 +865,20 @@ Ext.onReady(function () {
                     ],
                     buttons:[
                         {
-                            xtype: 'DialogButton',
+                            xtype: 'HideDialogButton',
                             text: _t('Submit'),
                             ref: '../../submitButton',
-                            formBind: true,
                             handler: function(button) {
-                                var params = button.refOwner.editForm.getForm().getFieldValues();
+                                var params = button.refOwner.editForm.getForm().getValues();
                                 config.directFn(params, function(){
                                     button.refOwner.hide();
-                                    config.reloadFn();
                                 });
                             }
                         },{
-                            xtype: 'DialogButton',
+                            xtype: 'HideDialogButton',
                             ref: '../../cancelButton',
-                            text: _t('Cancel'),
-                            handler: function(button) {
-                                button.refOwner.hide();
-                            }
+                            text: _t('Cancel')
+
                         }]
                     }
             });
@@ -959,7 +968,7 @@ Ext.onReady(function () {
                 },
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        rowselect: function(sm, rowIndex, record) {
+                        select: function(sm, record, rowIndex) {
                             var rows = sm.getSelection(),
                                 row,
                                 panel = Ext.getCmp(schedulesPanelConfig.id);
@@ -971,7 +980,7 @@ Ext.onReady(function () {
                             panel.disableButtons(false);
                             me.customizeButton.setDisabled(false);
                         },
-                        rowdeselect: function(sm, rowIndex, record) {
+                        deselect: function(sm, record, rowIndex) {
                             Ext.getCmp(schedulesPanelConfig.id).disableButtons(true);
                             me.customizeButton.setDisabled(true);
                         }
@@ -1045,7 +1054,7 @@ Ext.onReady(function () {
                             uid = row.data.uid;
                             // show a confirmation
                             new Zenoss.dialog.SimpleMessageDialog({
-                                message: String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.newId),
+                                message: Ext.String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.newId),
                                 title: _t('Delete Notification Subscription'),
                                 buttons: [{
                                     xtype: 'DialogButton',
@@ -1119,7 +1128,6 @@ Ext.onReady(function () {
         constructor: function(config) {
             var me = this;
             Ext.applyIf(config, {
-                stripeRows: true,
                 columns: [
                     {
                         id: 'enabled',
@@ -1145,12 +1153,12 @@ Ext.onReady(function () {
                 store: Ext.create('Zenoss.triggers.TriggersStore', {}),
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        rowselect: function(sm, rowIndex, record) {
+                        select: function(sm, record, rowIndex) {
                             // enable/disabled the edit button
                             me.deleteButton.setDisabled(false);
                             me.customizeButton.setDisabled(false);
                         },
-                        rowdeselect: function(sm, rowIndex, record) {
+                        deselect: function(sm, record, rowIndex) {
                             me.deleteButton.setDisabled(true);
                             me.customizeButton.setDisabled(true);
                         }
@@ -1185,7 +1193,7 @@ Ext.onReady(function () {
                                 uuid = row.data.uuid;
                                 // show a confirmation
                                  new Zenoss.dialog.SimpleMessageDialog({
-                                        message: String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.name),
+                                        message: Ext.String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.name),
                                         title: _t('Delete Trigger'),
                                         buttons: [{
                                             xtype: 'DialogButton',
@@ -1295,11 +1303,11 @@ Ext.onReady(function () {
                 },
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        rowselect: function(sm, rowIndex, record) {
+                        select: function(sm, record, rowIndex) {
                             var row = sm.getSelected();
                             me.customizeButton.setDisabled(false);
                         },
-                        rowdeselect: function(sm, rowIndex, record) {
+                        deselect: function(sm, record, rowIndex) {
                             me.customizeButton.setDisabled(true);
                         }
                     }
@@ -1346,7 +1354,7 @@ Ext.onReady(function () {
                             uid = row.data.uid;
                             // show a confirmation
                             new Zenoss.dialog.SimpleMessageDialog({
-                                message: String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.newId),
+                                message: Ext.String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.newId),
                                 title: _t('Delete Schedule'),
                                 buttons: [{
                                     xtype: 'DialogButton',
@@ -1471,6 +1479,7 @@ Ext.onReady(function () {
     });
 
     masterPanelTreeStore = Ext.create('Ext.data.TreeStore', {
+        model: 'Zenoss.model.Tree',
         root: {
             text: 'Trigger Navigation',
             draggable: false,
@@ -1546,7 +1555,9 @@ Ext.onReady(function () {
         layout: 'anchor',
         title: _t('Trigger'),
         padding: 10,
-        labelWidth: 75,
+        fieldDefaults: {
+            labelWidth: 75
+        },
         items:[
             {
                 xtype: 'hidden',
@@ -1588,17 +1599,17 @@ Ext.onReady(function () {
                     comparisons: ZFR.IDENTITYCOMPARISONS,
                     field: {
                         xtype: 'combo',
-                        mode: 'local',
+                        queryMode: 'local',
                         valueField: 'name',
                         displayField: 'name',
                         typeAhead: false,
                         forceSelection: true,
-                        triggerAction: 'all',  
+                        triggerAction: 'all',
                         defaultListConfig: {
                             maxWidth:200
-                        },                        
+                        },
                         store: new Ext.data.ArrayStore({
-                            fields: ['name'],
+                            model: 'Zenoss.model.Name',
                             data: [[
                                 'COMPONENT'
                             ],[
@@ -1616,7 +1627,7 @@ Ext.onReady(function () {
                     comparisons: ZFR.IDENTITYCOMPARISONS,
                     field: {
                         xtype: 'combo',
-                        mode: 'local',
+                        queryMode: 'local',
                         valueField: 'name',
                         displayField: 'name',
                         typeAhead: false,
@@ -1624,9 +1635,9 @@ Ext.onReady(function () {
                         triggerAction: 'all',
                         defaultListConfig: {
                             maxWidth:200
-                        },                        
+                        },
                         store: new Ext.data.ArrayStore({
-                            fields: ['name'],
+                            model: 'Zenoss.model.Name',
                             data: [[
                                 'COMPONENT'
                             ],[
@@ -1663,7 +1674,7 @@ Ext.onReady(function () {
                     comparisons: NUMCMPS,
                     field: {
                         xtype: 'combo',
-                        mode: 'local',
+                        queryMode: 'local',
                         valueField: 'value',
                         displayField: 'name',
                         typeAhead: false,
@@ -1671,9 +1682,9 @@ Ext.onReady(function () {
                         triggerAction: 'all',
                         defaultListConfig: {
                             maxWidth:200
-                        },                        
+                        },
                         store: new Ext.data.ArrayStore({
-                            fields: ['name', 'value'],
+                            model: 'Zenoss.model.NameValue',
                             data: [[
                                 _t('Critical'), 5
                             ],[
@@ -1714,7 +1725,7 @@ Ext.onReady(function () {
                     comparisons: NUMCMPS,
                     field: {
                         xtype: 'combo',
-                        mode: 'local',
+                        queryMode: 'local',
                         valueField: 'value',
                         displayField: 'name',
                         typeAhead: false,
@@ -1722,9 +1733,9 @@ Ext.onReady(function () {
                         triggerAction: 'all',
                         defaultListConfig: {
                             maxWidth:200
-                        },                        
+                        },
                         store: new Ext.data.ArrayStore({
-                            fields: ['name', 'value'],
+                            model: 'Zenoss.model.NameValue',
                             data: [[
                                 _t('New'), Zenoss.STATUS_NEW
                             ],[
@@ -1744,7 +1755,7 @@ Ext.onReady(function () {
                     comparisons: NUMCMPS,
                     field: {
                         xtype: 'combo',
-                        mode: 'local',
+                        queryMode: 'local',
                         valueField: 'value',
                         displayField: 'name',
                         typeAhead: false,
@@ -1752,9 +1763,9 @@ Ext.onReady(function () {
                         triggerAction: 'all',
                         defaultListConfig: {
                             maxWidth:200
-                        },                        
+                        },
                         store: new Ext.data.ArrayStore({
-                            fields: ['name', 'value'],
+                            model: 'Zenoss.model.NameValue',
                             data: [[
                                 _t('Emergency'), 0
                             ],[
@@ -1890,7 +1901,12 @@ Ext.onReady(function () {
                         xtype:'form',
                         ref: 'wrapping_form',
                         buttonAlign: 'left',
-                        monitorValid: true,
+                        listeners: {
+                            validitychange: function(form, isValid) {
+                                this.query('DialogButton')[0].disable(!isValid);
+                            },
+                            scope: this
+                        },
                         items: [
                             {
                                 xtype: 'tabpanel',
@@ -1914,7 +1930,6 @@ Ext.onReady(function () {
                                 xtype: 'DialogButton',
                                 text: _t('Submit'),
                                 ref: '../../submitButton',
-                                formBind: true,
                                 handler: function(button) {
                                     var tab_content = button.refOwner.tab_content,
                                         tab_users = button.refOwner.tab_users;
@@ -1987,7 +2002,7 @@ Ext.onReady(function () {
     displayEditTriggerDialogue = function(data) {
 
         editTriggerDialogue = Ext.create('Zenoss.trigger.EditTriggerDialogue', {
-            title: String.format("{0} - {1}", _t('Edit Trigger'), data['name']),
+            title: Ext.String.format("{0} - {1}", _t('Edit Trigger'), data['name']),
             directFn: router.updateTrigger,
             reloadFn: reloadTriggersGrid,
             validateFn: router.parseFilter
