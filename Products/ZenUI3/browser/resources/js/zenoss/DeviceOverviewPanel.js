@@ -806,7 +806,7 @@
             load: REMOTE.getInfo,
             submit: function(form, success, scope) {
                 var o = {},
-                vals = scope.form.getValues(true);
+                vals = scope.form.getValues(false, true);
                 Ext.apply(o, vals, scope.form.baseParams);
                 REMOTE.setInfo(o, function(result){
                     this.form.clearInvalid();
