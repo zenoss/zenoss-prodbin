@@ -324,11 +324,17 @@
                             if (Ext.isString(value)) {
                                 return value;
                             }
-                            var parentNode = n.parentNode;
-                            if (parentNode.data.root == true) {
-                                return Ext.String.format("<span class='rootNode'>{0} <span title='{1}'>({2})</span></span>", value.text, value.description, value.count);
+                            var parentNode = n.parentNode, 
+                                count;
+                            if (Ext.isEmpty(value.count)) {
+                                count = "";
                             } else {
-                                return Ext.String.format("<span class='subNode'>{0}</span> <span title='{1}'>({2})</span>", value.text, value.description, value.count);
+                                count = Ext.String.format(" <span title='{0}'>({1})</span>", value.description, value.count);
+                            }
+                            if (parentNode.data.root == true) {
+                                return Ext.String.format("<span class='rootNode'>{0}{1}</span>", value.text, count);
+                            } else {
+                                return Ext.String.format("<span class='subNode'>{0}</span>{1}", value.text, count);
                             }
 
                         }
