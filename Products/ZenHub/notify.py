@@ -69,6 +69,7 @@ class BatchNotifier(object):
     _DELAY = 0.05
 
     def __init__(self):
+        self._empty = None
         self._current_item = None
         self._queue = collections.deque()
         self._stopping = False
@@ -137,6 +138,10 @@ class BatchNotifier(object):
             self._switch_to_next_item()
         if self._current_item is not None:
             self._call_later(self._current_item.d)
+        elif self._empty and not self._queue:
+            empty, self._empty = (self._empty, None)
+            empty.callback(None)
+
 
     def _errback(self, failure):
         LOG.error("Failure in batch notifier: %s: %s" % (failure.type.__name__, failure.value))
@@ -146,5 +151,18 @@ class BatchNotifier(object):
         self._stopping = True
         return defer.DeferredList([item.d for item in self._queue])
 
+    def whenEmpty(self):
+        isEmptyDeferred = self._empty
+        def printEmpty(val):
+            LOG.debug("Notifier is now empty")
+        if not self._queue and not self._current_item:
+            isEmptyDeferred = defer.Deferred()
+            LOG.debug("Notifier is currently empty")
+            isEmptyDeferred.callback(None)
+        elif not self._empty:
+            LOG.debug("Notifier is not currently empty, returning deferred")
+            isEmptyDeferred = self._empty = defer.Deferred()
+            isEmptyDeferred.addCallback(printEmpty)
+        return isEmptyDeferred
 
 BATCH_NOTIFIER = BatchNotifier()

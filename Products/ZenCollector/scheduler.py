@@ -365,7 +365,7 @@ class Scheduler(object):
         """
         if newTask.name in self._tasks:
             raise ValueError("Task %s already exists" % newTask.name)
-        log.debug("add task %s, %s", newTask.name, newTask)
+        log.debug("add task %s, %s using %s second interval", newTask.name, newTask, newTask.interval)
         callableTask = self._callableTaskFactory.getCallableTask(newTask, self)
         loopingCall = task.LoopingCall(callableTask)
         self._loopingCalls[newTask.name] = loopingCall
