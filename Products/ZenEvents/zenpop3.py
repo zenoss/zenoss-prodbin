@@ -274,7 +274,7 @@ class MailCollectingTask(BaseTask):
         if self._connection:
             self._connection.disconnect()
         if self.factory:
-            message = "Last retrieved %d messages" % self.factory.protocl.totalMessages
+            message = "Last retrieved %d messages" % self.factory.protocol.totalMessages
         else:
             message = "Completed"
         return defer.succeed(message)
