@@ -233,6 +233,7 @@ class ZenPackCmd(ZenScriptBase):
                     else:
                         return True
 
+            prereqsMet = True
             for req in reqZenpacks:
                 zpName, zpVersion = req.strip(), None
                 operatorPos = req.find('>=')
@@ -245,13 +246,13 @@ class ZenPackCmd(ZenScriptBase):
                         self.log.error(
                             'Zenpack %s requires %s to be at version %s' %
                             (self.options.installPackName, zpName, zpVersion))
-                        return False
+                        prereqsMet = False
                 else:
                     self.log.error('Zenpack %s requires %s %s' %
                           (self.options.installPackName, zpName,
                                   zpVersion if zpVersion else ''))
-                    return False
-            return True
+                    prereqsMet = False
+            return prereqsMet
 
         if os.path.isfile(self.options.installPackName):
             zf = ZipFile(self.options.installPackName)
