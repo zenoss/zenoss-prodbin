@@ -40,6 +40,7 @@
             this.callParent([config]);
             if (this.autoLoad!==false) {
                 this.getStore().load();
+		this.queryMode = 'local';
             }
         },
         getValue: function() {
