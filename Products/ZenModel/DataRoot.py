@@ -584,8 +584,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         Clear the Google Maps cache.
         """
         self.geocache = ''
-        if REQUEST:
-            audit('UI.GeocodeCache.Clear')
 
     security.declareProtected(ZEN_COMMON, 'getGeoCache')
     @json

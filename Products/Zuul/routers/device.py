@@ -1733,6 +1733,7 @@ class DeviceRouter(TreeRouter):
         @return:  Success message
         """
         self.context.clearGeocodeCache()
+        audit('UI.GeocodeCache.Clear')
         return DirectResponse.succeed()
 
     @serviceConnectionError
