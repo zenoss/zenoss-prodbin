@@ -1118,9 +1118,8 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     'render': function(me) {
                         me.getEl().on('click', function() {
                             Ext.getCmp("master_panel").layout.setActiveItem(1);
-                            Ext.History.add(
-                                Ext.History.getToken() + ':events_grid'
-                            );
+                            var detailnav = Ext.getCmp('detail_nav');
+                            detailnav.selectByToken('events_grid');
                         });
                     }
                 }
