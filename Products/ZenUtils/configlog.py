@@ -21,6 +21,7 @@
 
 """Creates new loggers from a python logging configuration file."""
 
+import os
 import logging
 import logging.config
 from logging import FileHandler
@@ -61,7 +62,9 @@ class ZenTimedRotatingFileHandler(TimedRotatingFileHandler):
 
 
 def addLogsFromConfigFile(fname, configDefaults=None):
-    """Add new loggers, handlers, and fomatters from a file.
+    """
+    Add new loggers, handlers, and fomatters from a file.
+    Returns whether the file successfully loaded.
 
     The file should be in the standard Python log config format described here:
     http://docs.python.org/library/logging.config.html#configuration-file-format
@@ -71,6 +74,10 @@ def addLogsFromConfigFile(fname, configDefaults=None):
     Unfortunately the standard option "disable_existing_loggers=False" would
     still wipe out their settings and replace root, undoing Zope's log config.
     """
+    if not os.path.exists(fname):
+        log.debug('Log configuration file not found: %s' % fname)
+        return False
+
     import ConfigParser
 
     try:
@@ -82,8 +89,8 @@ def addLogsFromConfigFile(fname, configDefaults=None):
 
         formatters = logging.config._create_formatters(cp)
     except Exception:
-        log.exception('Problem with log configuration file: %s', fname)
-        return
+        log.exception('Problem loading log configuration file: %s', fname)
+        return False
 
     # critical section
     logging._acquireLock()
@@ -93,8 +100,10 @@ def addLogsFromConfigFile(fname, configDefaults=None):
         # Handlers add themselves to logging._handlers
         handlers = logging.config._install_handlers(cp, formatters)
         _zen_install_loggers(cp, handlers)
+        return True
     except Exception:
-        log.exception('Problem with log configuration file: %s', fname)
+        log.exception('Problem loading log configuration file: %s', fname)
+        return False
     finally:
         logging._releaseLock()
 
