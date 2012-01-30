@@ -43,7 +43,7 @@ import CollectorClient
 #     Expect to use str() to convert to ASCII before dumping out. :)
 
 
-def sendEvent( self, message="", device='', severity=Event.Error ):
+def sendEvent( self, message="", device='', severity=Event.Error, event_key=None):
     """
     Shortcut version of sendEvent()
 
@@ -53,6 +53,8 @@ def sendEvent( self, message="", device='', severity=Event.Error ):
     @type device: string
     @param severity: Zenoss severity from Products.ZenEvents
     @type severity: integer
+    @param event_key: The event key to use for event clearing.
+    @type event_key: string
     """
 
     # Parse out the daemon's name
@@ -96,6 +98,8 @@ def sendEvent( self, message="", device='', severity=Event.Error ):
        'component': component,
        'severity': severity,
     }
+    if event_key:
+        error_event['eventKey'] = event_key
 
     # At this point, we don't know what we have
     try:
@@ -263,6 +267,11 @@ class SshUserAuth(userauth.SSHUserAuthClient):
                 raise SshClientError( message )
 
         userauth.SSHUserAuthClient.__init__(self, user, instance)
+        self._sent_password = False
+        self._sent_pk = False
+        self._sent_kbint = False
+        self._auth_failures = []
+        self._auth_succeeded = False
         self.user = user
         self.factory = factory
         self._key = self._getKey()
@@ -280,11 +289,21 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: Twisted deferred object (defer.succeed or defer.fail)
         @rtype: Twisted deferred object
         """
+        # Don't re-send the same credentials if we have already been called
+        if self._sent_password:
+            return None
         try:
             password = self._getPassword()
             d = defer.succeed(password)
+            self._sent_password = True
         except NoPasswordException, e:
-            d = self._handleFailure(str(e))
+            # NOTE: Return None here - not a defer.fail(). If a failure deferred
+            # is returned, then the SSH client will retry until MaxAuthTries is
+            # met - which in some SSH server implementations means an infinite
+            # number of retries. Returning None here indicates that we don't
+            # want to try password authentication because we don't have a
+            # username or password.
+            d = None
         return d
 
     def getGenericAnswers(self, name, instruction, prompts):
@@ -301,23 +320,26 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         """
         log.debug('getGenericAnswers name:"%s" instruction:"%s" prompts:%s',
                 name, instruction, pformat(prompts))
-        if prompts == []:
+        if not prompts:
             # RFC 4256 - In the case that the server sends a `0' num-prompts
             # field in the request message, the client MUST send a response
             # message with a `0' num-responses field to complete the exchange.
             d = defer.succeed([])
         else:
+            responses = []
+            found_prompt = False
             for prompt, echo in prompts:
                 if 'password' in prompt.lower():
+                    found_prompt = True
                     try:
-                        password = self._getPassword()
-                        d = defer.succeed([password])
-                    except NoPasswordException, e:
-                        d = self._handleFailure(str(e))
-                    break
-            else:
-                message = 'No known prompts: %s' % pformat(prompts)
-                d = self._handleFailure(message)
+                        responses.append(self._getPassword())
+                    except NoPasswordException:
+                        # This shouldn't happen - we don't support keyboard interactive
+                        # auth unless a password is specified
+                        log.debug("getGenericAnswers called with empty password")
+            if not found_prompt:
+                log.warning('No known prompts: %s', pformat(prompts))
+            d = defer.succeed(responses)
         return d
 
     def _getPassword(self):
@@ -330,15 +352,12 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             raise NoPasswordException(message)
         return self.factory.password
 
-    def _handleFailure(self, message):
+    def _handleFailure(self, message, event_key=None):
         """
-        Handle a failure by logging a message, sending an event, calling
-        clientFinished, and returning a failure defered.
+        Handle a failure by logging a message and sending an event.
         """
         log.error( message )
-        sendEvent( self, message=message )
-        self.factory.clientFinished()
-        return defer.fail( SshClientError( message ) )
+        sendEvent( self, message=message, event_key=event_key )
 
     def _getKey(self):
         keyPath = os.path.expanduser(self.factory.keyPath)
@@ -372,7 +391,10 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: SSH public key
         @rtype: string
         """
-        if self._key is not None:
+        # Don't re-send the same public key if we have already been called.
+        # TODO: Would be good to expand to support sending multiple keys.
+        if self._key is not None and not self._sent_pk:
+            self._sent_pk = True
             return self._key.blob()
 
     def getPrivateKey(self):
@@ -388,79 +410,43 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             keyObject = self._key.keyObject
         return defer.succeed(keyObject)
 
-    def ssh_USERAUTH_FAILURE( self, packet):
-        """
-        Called when the SSH session can't authenticate.
-        NB: This function is also called as an initializer
-            to start the connections.
+    def auth_keyboard_interactive(self, *args, **kwargs):
+        # Don't authenticate multiple times with same credentials
+        if self._sent_kbint:
+            return False
+        # Only return that we support keyboard-interactive authentication if a
+        # password is specified.
+        try:
+            self._getPassword()
+            self._sent_kbint = True
+            return userauth.SSHUserAuthClient.auth_keyboard_interactive(self, *args, **kwargs)
+        except NoPasswordException:
+            return False
 
-        @param packet: returned packet from the host
-        @type packet: object
-        """
-        from twisted.conch.ssh.common import getNS
-        canContinue, partial = getNS(packet)
-        canContinue = canContinue.split(',')
+    def ssh_USERAUTH_FAILURE(self, *args, **kwargs):
+        if self.lastAuth != 'none' and self.lastAuth not in self._auth_failures:
+            self._auth_failures.append(self.lastAuth)
+        return userauth.SSHUserAuthClient.ssh_USERAUTH_FAILURE(self, *args, **kwargs)
 
-        from Products.ZenUtils.Utils import unused
-        unused(partial)
+    def ssh_USERAUTH_SUCCESS(self, *args, **kwargs):
+        self._auth_succeeded = True
+        return userauth.SSHUserAuthClient.ssh_USERAUTH_SUCCESS(self, *args, **kwargs)
 
-        lastAuth= getattr( self, "lastAuth", '')
-        if lastAuth == '' or lastAuth == 'none':
-            pass   # Start our connection
-
-        elif lastAuth == 'publickey':
-            self.authenticatedWith.append(self.lastAuth)
-            message= "SSH login to %s with SSH keys failed" % \
-                      self.factory.hostname
-            log.error( message )
-            sendEvent( self, message=message )
-
-        elif lastAuth == 'password':
-            message= "SSH login to %s with username %s failed" % \
-                     ( self.factory.hostname, self.user )
-            log.error( message )
-            sendEvent( self, message=message )
-
-            self.factory.loginTries -= 1
-            log.debug( "Decremented loginTries count to %d" % self.factory.loginTries )
-
-            if self.factory.loginTries <= 0:
-                message= "SSH connection aborted after maximum login attempts."
-                log.error( message )
-                sendEvent( self, message=message )
-
+    def serviceStopped(self, *args, **kwargs):
+        # Notify that the client has finished - authentication has failed.
+        if not self._auth_succeeded:
+            # If we sent some type of authentication, log an error and send an event.
+            if self._auth_failures:
+                log.debug("Authentication failed for auth type(s): %s", ','.join(self._auth_failures))
+                msg = "SSH login to %s with username %s failed" % (self.factory.hostname, self.user)
             else:
-                return self.tryAuth('password')
-
-
-            self.authenticatedWith.append(self.lastAuth)
-
-        # Adapted from the nasty Twisted code
-        def continueKey(x):
-            try:
-                return self.preferredOrder.index(x)
-            except ValueError:
-                return sys.maxint
-        canContinue.sort(key=continueKey)
-        
-        log.debug( 'Sorted list of authentication methods: %s' % canContinue)
-        for method in canContinue:
-            if method not in self.authenticatedWith:
-                if self._key is None and method == 'publickey':
-                    # Attempting a publickey authentication with a blank key
-                    # causes timeouts that would be hard to track down.
-                    log.debug("Skipping %s method as the key was blank",
-                              method )
-                    self.authenticatedWith.append(method)
-                    continue
-
-                log.debug( "Attempting method %s" % method )
-                if self.tryAuth(method):
-                    return
-
-        log.debug( "All authentication methods attempted" )
-        self.factory.clientFinished()
-        self.transport.sendDisconnect(transport.DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE, 'No more authentication methods available')
+                msg = "SSH authentication failed - no password or public key specified"
+            self._handleFailure(msg, event_key="sshClientAuth")
+            self.factory.clientFinished()
+        else:
+            sendEvent(self, "Authentication succeeded for username %s" % self.user, severity=Event.Clear,
+                      event_key="sshClientAuth")
+        return userauth.SSHUserAuthClient.serviceStopped(self, *args, **kwargs)
 
 class SshConnection(connection.SSHConnection):
     """
