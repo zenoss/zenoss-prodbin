@@ -832,6 +832,12 @@ class EventsRouter(DirectRouter):
                 'allowNegative': False,
                 'minValue': 1,
                 'value': self.context.dmd.ZenEventManager.defaultAvailabilityDays
+                },{
+                'id': 'event_max_size_bytes',
+                'name': _t('Max Event Size In Bytes'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                'minValue': 8192
                 }]
         return configSchema
 
