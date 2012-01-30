@@ -12,7 +12,7 @@
         $ui-body-background-color: $window-body-background-color,
         $ui-body-color: $window-body-color,
 
-        $ui-background-color: $window-background-color  
+        $ui-background-color: $window-background-color
 
     );
 
@@ -37,7 +37,7 @@
         }
         .#{$prefix}form-display-field{
             color:#fff;
-        }        
+        }
     }
     .#{$prefix}window-body {
         .#{$prefix}panel-body {
@@ -46,18 +46,21 @@
         }
         .#{$prefix}fieldset{
             border:none;
-        }        
+        }
+        .#{$prefix}fieldset-header {
+            color: white;
+        }
     }
-    
-    
+
+
        /* beat IE back with a stick */
-        .#{$prefix}nbr {   
+        .#{$prefix}nbr {
             .#{$prefix}window-#{$ui}{
-                background-color:transparent;     
+                background-color:transparent;
             }
             .#{$prefix}window-header{
-               background-color:#000; 
-            }            
+               background-color:#000;
+            }
             .#{$prefix}window-#{$ui}-tl,
             .#{$prefix}window-#{$ui}-tr{
                 background:transparent;
@@ -67,13 +70,13 @@
             }
             .#{$prefix}window-header-#{$ui}-tr{
                 background-position: right -16px !important;
-            }   
+            }
             .#{$prefix}window-#{$ui}-bl{
                 background-position: 0 -8px !important;
             }
             .#{$prefix}window-#{$ui}-br{
-                background-position: right -25px !important;  
-            }            
+                background-position: right -25px !important;
+            }
             .#{$prefix}window-header-#{$ui}-top-tc{
                 background-image:none;
                 background:$window-body-background-color;
@@ -82,20 +85,20 @@
             .#{$prefix}window-header-text{
                 padding-bottom:4px;
                 line-height:18px;
-            }            
+            }
             .#{$prefix}window-#{$ui}-ml{
                 padding-bottom:20px !important;
             }
-            .#{$prefix}window-#{$ui}-bc,            
+            .#{$prefix}window-#{$ui}-bc,
             .#{$prefix}window-#{$ui}-tc{
-                @include zenoss-background-image("window/bg.png"); 
-                background-position: 0 0;  
+                @include zenoss-background-image("window/bg.png");
+                background-position: 0 0;
                 background-repeat:repeat;
                 margin:0 8px 0 8px;
             }
- 
+
             .#{$prefix}window-header-#{$ui}-tl,
-            .#{$prefix}window-header-#{$ui}-tr,            
+            .#{$prefix}window-header-#{$ui}-tr,
             .#{$prefix}window-#{$ui}-bl,
             .#{$prefix}window-#{$ui}-br{
                 padding:0 !important;
@@ -103,39 +106,39 @@
                 overflow:hidden;
             }
             .#{$prefix}window-#{$ui}-ml{
-                @include zenoss-background-image("window/bg.png"); 
-                background-position: 0 0;   
+                @include zenoss-background-image("window/bg.png");
+                background-position: 0 0;
                 background-repeat:repeat;
             }
-            .#{$prefix}window-#{$ui}-mc,                      
+            .#{$prefix}window-#{$ui}-mc,
             .#{$prefix}window-header-#{$ui}-top-ml,
-            .#{$prefix}window-header-#{$ui}-top-mr,            
+            .#{$prefix}window-header-#{$ui}-top-mr,
             .#{$prefix}window-#{$ui}-mr{
-                background-image:none;   
-                background-color: $window-body-background-color; 
-            }      
+                background-image:none;
+                background-color: $window-body-background-color;
+            }
             .#{$prefix}window-#{$ui}-mr{
                 padding-left:10px;
             }
-            
-        
-        }
-        
-        
 
-        
+
+        }
+
+
+
+
         //#bindTemplatesDialog for targeting the bind template pop-up
 
     /*
     CORE TRIGGER PAGE STUFF
-    */  
-    
+    */
+
     .white-background-panel {
         font-size: 12px;
-        color: #454545;  
+        color: #454545;
         .#{$prefix}window-header {
             font-size: 12px;
-        }    
+        }
         .#{$prefix}window-mc {
             padding-top: 2px;
         }
@@ -158,10 +161,10 @@
             padding: 0;
         }
         .#{$prefix}panel-header {
-            height:25px; 
+            height:25px;
             .#{$prefix}panel-header-text-container{
                 top:1px !important;
-            }   
+            }
             .#{$prefix}box-inner{
                 height:15px !important;
                 padding-top:0 !important;
@@ -175,16 +178,7 @@
             line-height: 21px;
             font-size: 10pt;
         }
-    }        
-    
-    .errorbox{
-        .#{$prefix}toolbar .#{$prefix}box-inner{
-            text-align:center;
-        }
-        .#{$prefix}btn{
-            position:static !important;
-        }
-    }       
+    }
 
     .errorbox{
         .#{$prefix}toolbar .#{$prefix}box-inner{
@@ -193,6 +187,15 @@
         .#{$prefix}btn{
             position:static !important;
         }
-}    
+    }
+
+    .errorbox{
+        .#{$prefix}toolbar .#{$prefix}box-inner{
+            text-align:center;
+        }
+        .#{$prefix}btn{
+            position:static !important;
+        }
+}
 
 }

@@ -33,6 +33,13 @@
             }
         }    
     }
+
+   .#{$prefix}fieldset-header {
+        color: #5A5A5A;
+        font: 16px/16px bold helvetica,arial,sans-serif;
+        padding-top: 5px;
+        font-weight: bold;
+    }
     #device_modeler_plugins{
         .#{$prefix}form-itemselector-body{
             .#{$prefix}panel-header{
@@ -45,7 +52,5 @@
             }
         }     
     }
-
-
 }
   
