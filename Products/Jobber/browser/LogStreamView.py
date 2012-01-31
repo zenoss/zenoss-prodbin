@@ -23,6 +23,8 @@ class LogStreamView(BrowserView):
     Stream output from a job to the browser.
     """
     def __call__(self):
+        # tells nginx that we want to stream this text
+        self.request.response.setHeader('X-Accel-Buffering', 'no')
         self.request.response.setHeader("Content-Type", "text/html")
         self.request.response.write("""
             <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
@@ -36,6 +38,7 @@ class LogStreamView(BrowserView):
         return self.request.response
 
     def _stream(self):
+        self.request.response.write("Please Wait...\n")
         log = self.context.getLog()
         f = log.getFile()
         offset = 0
