@@ -100,13 +100,14 @@ class PingResult(object):
         Extract timestamp if it exists.
         """
         try:
-            starttime = hostTree.attrib['starttime']
-            timestamp = int(starttime)
-            return timestamp
+            timestamp = None
+            starttime = hostTree.attrib.get('starttime', None)
+            if starttime is not None:
+                timestamp = int(starttime)
         except Exception as ex:
             traceback = format_exc()
             log.debug("Error parsing timestamp %s %s " % (ex, traceback))
-            return None
+        return timestamp
 
     def _parseTimes(self, hostTree):
         """
