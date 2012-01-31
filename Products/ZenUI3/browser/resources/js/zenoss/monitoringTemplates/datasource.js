@@ -369,7 +369,7 @@ new Zenoss.dialog.BaseWindow({
                 ui: 'dialog-dark',
                 text: _t('Cancel'),
                 handler: function () {
-                    Ext.getCmp('addDataSourceDialog').hide();p
+                    Ext.getCmp('addDataSourceDialog').hide();
                 }
             }]}
 });
