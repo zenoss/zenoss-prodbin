@@ -241,8 +241,10 @@ class PingTask(BaseTask):
             avgRtt = sum(rtts) / received
             varianceRtt = sum([ math.pow(rtt - avgRtt, 2) for rtt in rtts ]) / received
             stddevRtt =  math.sqrt(varianceRtt)
-            pingLoss = len(rtts) / pingCount * 100.0
-                
+            pingLoss = 100.0
+            if pingCount > 0 :
+                pingLoss = (1 - (len(rtts) / pingCount)) * 100.0
+
             datapoints = {
                 'rtt' : avgRtt,
                 'rtt_avg' : avgRtt,
@@ -257,17 +259,16 @@ class PingTask(BaseTask):
                 'rtt_losspct': pingLoss,
             }
         
-        if self._pingResult is not None:
-            for rrdMeta in self.config.points:
-                name, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
-                value = datapoints.get(name, None)
-                if value:
-                    self._dataService.writeRRD(
-                        path, value, rrdType,
-                        rrdCommand=rrdCommand,
-                        min=rrdMin, max=rrdMax,
-                    )
-                else:
-                    log.debug("No datapoint '%s' found on the %s pingTask",
-                              name, self)
+        for rrdMeta in self.config.points:
+            name, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
+            value = datapoints.get(name, None)
+            if value is None:
+                log.debug("No datapoint '%s' found on the %s pingTask",
+                          name, self)
+            else:
+                self._dataService.writeRRD(
+                    path, value, rrdType,
+                    rrdCommand=rrdCommand,
+                    min=rrdMin, max=rrdMax,
+                )
 
