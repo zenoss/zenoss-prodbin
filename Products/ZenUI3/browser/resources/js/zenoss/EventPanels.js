@@ -1203,7 +1203,8 @@
         },
         setContext: function(uid){
             Zenoss.EventGridPanel.superclass.setContext.call(this, uid);
-            var toolbar = this.getToolbars()[0];
+
+            var toolbar = this.getDockedItems('toolbar')[0];
             if (toolbar && Ext.isDefined(toolbar.setContext)) {
                 toolbar.setContext(uid);
             }
