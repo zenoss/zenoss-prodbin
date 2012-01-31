@@ -17,6 +17,7 @@ Zenoss JSON API
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
 from Products.Zuul.marshalling import Marshaller
+from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
@@ -85,10 +86,17 @@ class TreeRouter(DirectRouter):
         if not self._canDeleteUid(uid):
             raise Exception('You cannot delete the root node')
         facade = self._getFacade()
-        display_type = getDisplayType(facade._getObject(uid))
+        node = facade._getObject(uid)
+        display_type = getDisplayType(node)
+        # Audit first so it can display details like "name" while they exist.
+        audit(['UI', display_type, 'Delete'], node)
+        # Trac #29148: If we're deleting a DeviceClass then we also delete its
+        #     devices, so audit them.
+        if isinstance(node, DeviceClass):
+            for dev in node.getSubDevicesGen():
+                audit('UI.Device.Delete', dev)
         facade.deleteNode(uid)
         msg = "Deleted node '%s'" % uid
-        audit(['UI', display_type, 'Delete'], uid)
         return DirectResponse.succeed(msg=msg)
 
     def moveOrganizer(self, targetUid, organizerUid):
