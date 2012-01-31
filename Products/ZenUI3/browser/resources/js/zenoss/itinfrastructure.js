@@ -50,6 +50,7 @@ var hwManufacturers = {
     name: 'hwManufacturer',
     fieldLabel: _t('HW Manufacturer'),
     listeners: {'select': function(combo, record, index){
+        var record = record[0];
         var productCombo = Ext.getCmp('hwproductcombo');
         resetCombo(productCombo, record.data.name);
     }}
@@ -72,6 +73,7 @@ var osManufacturers = {
     name: 'osManufacturer',
     fieldLabel: _t('OS Manufacturer'),
     listeners: {'select': function(combo, record, index){
+        var record = record[0];
         var productCombo = Ext.getCmp('osproductcombo');
         resetCombo(productCombo, record.data.name);
     }}

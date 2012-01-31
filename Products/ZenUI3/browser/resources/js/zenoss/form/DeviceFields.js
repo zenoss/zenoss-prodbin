@@ -23,6 +23,7 @@
         alias: ['widget.smartcombo'],
         constructor: function(config) {
             config = Ext.applyIf(config || {}, {
+                queryMode: config.autoLoad !== false ? 'local':'remote',
                 store: new Zenoss.DirectStore({
                     directFn: config.directFn,
                     root: config.root || 'data',
@@ -40,7 +41,6 @@
             this.callParent([config]);
             if (this.autoLoad!==false) {
                 this.getStore().load();
-		this.queryMode = 'local';
             }
         },
         getValue: function() {
@@ -208,7 +208,8 @@
             config = Ext.applyIf(config||{}, {
                 store: store,
                 width: 160,
-                displayField: 'name'
+                displayField: 'name',
+                valueField: 'name'
             });
             this.callParent([config]);
         }
@@ -219,13 +220,17 @@
         extend:"Zenoss.form.SmartCombo",
         alias: ['widget.productcombo'],
         constructor: function(config) {
-            var prodType = config.prodType || 'OS',
+            var manufacturer = config.manufacturer || "",
+                prodType = config.prodType || 'OS',
                 store = (config||{}).store ||
                     prodType=='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
+            store.setBaseParam('manufacturer', manufacturer);
             config = Ext.applyIf(config||{}, {
                 store: store,
                 displayField: 'name',
-                width: 160
+                valueField: 'name',
+                width: 160,
+                queryMode: 'remote'
             });
             this.callParent([config]);
         }

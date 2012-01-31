@@ -59,8 +59,8 @@
             xtype: 'manufacturercombo',
             width: FIELDWIDTH,
             name: 'hwManufacturer',
+            id: 'hwmanufacturercombo',
             fieldLabel: _t('HW Manufacturer'),
-            value: name(vals.hwManufacturer),
             listeners: {'select': function(combo, record, index){
                 record = record[0];
                 var productCombo = Ext.getCmp('hwproductcombo');
@@ -72,21 +72,22 @@
             xtype: 'productcombo',
             prodType: 'HW',
             width: FIELDWIDTH,
-            value: name(vals.hwModel),
             listConfig: {
                 resizable: true
             },
             name: 'hwProductName',
             fieldLabel: _t('HW Product'),
-            id: 'hwproductcombo'
+            id: 'hwproductcombo',
+            manufacturer: name(vals.hwManufacturer)
         };
 
         var osManufacturers = {
             xtype: 'manufacturercombo',
             width: FIELDWIDTH,
             name: 'osManufacturer',
-            value: name(vals.osManufacturer),
+            id: 'osmanufacturercombo',
             fieldLabel: _t('OS Manufacturer'),
+
             listeners: {'select': function(combo, record, index){
                 record = record[0];
                 var productCombo = Ext.getCmp('osproductcombo');
@@ -98,13 +99,13 @@
             xtype: 'productcombo',
             prodType: 'OS',
             width: FIELDWIDTH,
-            value: name(vals.osModel),
             listConfig: {
                 resizable: true
             },
             name: 'osProductName',
             id: 'osproductcombo',
-            fieldLabel: _t('OS Product')
+            fieldLabel: _t('OS Product'),
+            manufacturer: name(vals.osManufacturer)
         };
 
         var win = new Zenoss.FormDialog({
@@ -147,6 +148,22 @@
         });
         win.show();
         win.doLayout();
+        Ext.getCmp('hwmanufacturercombo').getStore().addListener('load', function fn(){
+            var manufacturerName = name(vals.hwManufacturer);
+            Ext.getCmp('hwmanufacturercombo').setValue(manufacturerName);
+        });
+        Ext.getCmp('hwproductcombo').getStore().addListener('load', function fn(){
+            var modelName = name(vals.hwModel);
+            Ext.getCmp('hwproductcombo').setValue(modelName);
+        });
+        Ext.getCmp('osmanufacturercombo').getStore().addListener('load', function fn(){
+            var manufacturerName = name(vals.osManufacturer);
+            Ext.getCmp('osmanufacturercombo').setValue(manufacturerName);
+        });
+        Ext.getCmp('osproductcombo').getStore().addListener('load', function fn(){
+            var modelName = name(vals.osModel);
+            Ext.getCmp('osproductcombo').setValue(modelName);
+        });
     }
 
 
