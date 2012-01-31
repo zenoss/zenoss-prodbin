@@ -61,7 +61,8 @@ Ext.define("Zenoss.ConsoleBar", {
         // when the page first loads the panel is expanded
         // we then collapse the panel so the toolbar is in the correct spot
         this.parentPanel.on('expand', function(){
-            this.getToolbars()[0].togglebutton.handler();
+            var consolebar = this.getDockedItems('consolebar')[0];
+            consolebar.togglebutton.handler();
         }, this.parentPanel, {single: true});
 
     },

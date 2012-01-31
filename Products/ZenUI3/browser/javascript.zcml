@@ -20,15 +20,6 @@
         permission="zope2.Public"
         />
 
-<browser:viewlet
-        name="extjs-compat"
-        weight="3"
-        manager=".interfaces.IJavaScriptSrcManager"
-        permission="zope2.Public"
-        class=".javascript.JavaScriptSrcBundleViewlet"
-        paths="/++resource++zenui/js/zenoss/migrate/ext3-core-compat.js
-               /++resource++zenui/js/zenoss/migrate/ext3-compat.js"
-        />
 
 <browser:viewlet
         name="swfobject"
@@ -39,13 +30,6 @@
         paths="/++resource++zenui/js/swfobject/2.2/swfobject.js"
         />
 
-<!-- <browser:viewlet -->
-<!--         name="livegrid-all" -->
-<!--         weight="4" -->
-<!--         manager=".interfaces.IJavaScriptSrcManager" -->
-<!--         class=".javascript.LiveGridJs" -->
-<!--         permission="zope2.Public" -->
-<!--         /> -->
 
 <browser:viewlet
         name="Ext-extensions"

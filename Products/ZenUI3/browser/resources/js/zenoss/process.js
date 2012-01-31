@@ -670,11 +670,12 @@ Ext.define("Zenoss.SequenceGrid", {
     }
 });
 
-Ext.getCmp('footer_bar').query("button[ref='buttonContextMenu']")[0].menu.addItem({
+
+Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
     id: 'sequenceButton',
     iconCls: 'set',
     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-    tooltip: 'Sequence the process classes',
+    tooltip: _t('Sequence the process classes'),
     text: _t('Change Sequence'),
     handler: function(button, event) {
         if ( ! Ext.getCmp('sequenceDialog') ) {

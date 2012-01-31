@@ -16,8 +16,6 @@
         <link rel="stylesheet" type="text/css"
             href="++resource++extjs/resources/css/ext-all.css"/>
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/js/zenoss/migrate/ext3-compat.css" />
-        <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/zenoss.css" />
@@ -32,9 +30,7 @@
         <![endif]-->
         <script type="text/javascript" >
             if(typeof(Ext) != "object"){
-                document.write("<script src='++resource++extjs/ext-all-debug.js'><\/script>");
-                document.write("<script src='++resource++zenui/js/zenoss/migrate/ext3-core-compat.js'><\/script>");
-                document.write("<script src='++resource++zenui/js/zenoss/migrate/ext3-compat.js'><\/script>");
+                document.write("<script src='++resource++extjs/ext-all-dev.js'><\/script>");
             }
         </script>
     </head>
@@ -134,10 +130,14 @@ Ext.onReady(function() {
         enableKeyEvents: true,
         listeners: {
             'blur': function(ob) {
-                ob.getEl().parent().parent().removeClass('selected_row');
+                if (ob.getEl().parent()) {
+                    ob.getEl().parent().removeCls('selected_row');
+                }
             },
             'focus': function(ob) {
-                ob.getEl().parent().parent().addClass('selected_row');
+                if (ob.getEl().parent()) {
+                    ob.getEl().parent().addCls('selected_row');
+                }
                 idx = Ext.getCmp('devices').items.indexOf(ob) - 1;
                 Ext.getCmp('manual_creds').layout.setActiveItem(idx);
             },
@@ -296,14 +296,26 @@ Ext.onReady(function() {
         }]
     };
 
-    var devtype_store = Ext.create('Ext.data.JsonStore', {
-        storeId: 'devtype_store',
-        root: 'types',
-        data: DEVICE_TYPES,
+    Ext.define('Zenoss.model.TypeStore', {
+        extend: 'Ext.data.Model',
         fields: ['value', 'description', 'protocol', 'shortdesc']
-    });
 
-    var resultTpl = new Ext.XTemplate('<' + 'tpl for=".">', '<' + 'div class="x-combo-list-item blah">' + '<' + 'h3 class="listitem_master"> {description} <' + '/h3><' + 'span class="listitem_detail">' + '{protocol}<' + '/span><' + '/div>', '<' + '/tpl>');
+    });
+    var devtype_store = Ext.create('Ext.data.Store', {
+        storeId: 'devtype_store',
+        model: 'Zenoss.model.TypeStore',
+        autoLoad: true,
+        data: DEVICE_TYPES,
+        proxy: {
+            type: 'memory',
+            reader: {
+                type: 'json',
+                root: 'types'
+            },
+        }
+
+
+    });
 
     function add_card() {
         var container = Ext.getCmp('manual_creds'),
@@ -338,23 +350,20 @@ Ext.onReady(function() {
                 id: 'combobox_' + index,
                 name: 'deviceclass_' + index,
                 queryMode: 'local',
-                selectOnFocus: true,
                 value: '/Server/Linux_snmp',
                 fieldLabel: 'Device Type',
                 editable: false,
                 store: devtype_store,
                 valueField: 'value',
                 displayField: 'shortdesc',
-                tpl: resultTpl,
                 listConfig: {
                     itemSelector: 'div.blah'
                 },
                 triggerAction: 'all',
                 forceSelection: true,
-                selectOnFocus: true,
                 listeners: {
                     'select': function(ob) {
-                        var type = ob.value.split('_')[1],
+                        var type = ob.getValue().split('_')[1],
                         types = ['ssh', 'snmp', 'win'],
                         container = Ext.getCmp('creds_' + index),
                         selectCard = function() {

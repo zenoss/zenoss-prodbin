@@ -1,8 +1,8 @@
 <tal:block metal:use-macro="here/page_macros/old-new-no-tabs">
 <tal:block metal:fill-slot="title">Dashboard</tal:block>
 <tal:block metal:fill-slot="infoBar">
-   <div style="float:right; padding:0px; 
-   font-weight:normal; font-style:normal; 
+   <div style="float:right; padding:0px;
+   font-weight:normal; font-style:normal;
    font-size:8pt;line-height:24px;">
    <span id="dashTime" style="padding:10px;display:inline;">
     Last Updated: 00:00:00
@@ -11,7 +11,7 @@
     <a tal:attributes=" href string:javascript:refreshData()">
     <img src="/zport/dmd/img/view-refresh.png" title="Refresh the Dashboard"
     alt="Refresh" style="border:medium none;"/>
-            
+
    </a>
    </div>
 </tal:block>
@@ -33,7 +33,7 @@ var updateTime = {
     },
     interval: 1000
 }
-Ext.TaskMgr.start(updateTime);
+Ext.TaskManager.start(updateTime);
 if (Ext.isIE) {
     var reloadLaterTask = new Ext.util.DelayedTask(function () {
         window.top.location.reload();

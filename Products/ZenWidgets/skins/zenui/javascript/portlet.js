@@ -14,7 +14,7 @@ function register_portlet(klass, name) {
 }
 YZP.register_portlet = register_portlet;
 
-YZP.DEFAULT_SITEWINDOW_URL = YZP.DEFAULT_SITEWINDOW_URL || 
+YZP.DEFAULT_SITEWINDOW_URL = YZP.DEFAULT_SITEWINDOW_URL ||
                              "http://www2.zenoss.com/in-app-welcome";
 
 var isIE/*@cc_on=1@*/;
@@ -215,8 +215,8 @@ Portlet.prototype = {
             connect(this.settingsToggle, 'onclick', this.toggleSettings);
             this.refreshRateInput = INPUT({'value':this.refreshTime}, null);
             this.titleInput = INPUT({'value':this.title}, null);
-            this.settingsSlot = DIV({'id':this.id+'_customsettings', 
-                'class':'settings-controls'}, 
+            this.settingsSlot = DIV({'id':this.id+'_customsettings',
+                'class':'settings-controls'},
                [
                 DIV({'class':'portlet-settings-control'}, [
                 DIV({'class':'control-label'}, 'Title'),
@@ -232,13 +232,13 @@ Portlet.prototype = {
                 {'class':'portlet-settings-control'}, 'Save Settings');
             connect(this.savesettingsbutton, 'onclick', this.submitSettings);
             connect(this.destroybutton, 'onclick', this.destroy);
-            this.buttonsSlot = DIV({'id':this.id+'_buttonslot', 
-                'class':'settings-controls buttonslot'}, 
+            this.buttonsSlot = DIV({'id':this.id+'_buttonslot',
+                'class':'settings-controls buttonslot'},
                     [this.destroybutton, this.savesettingsbutton]);
             this.settingsPane = DIV({'id':this.id+'_settings',
-                'class':'portlet-settings'}, 
-                [DIV({'class':'settings-controls'}, 
-                    [this.settingsSlot, this.buttonsSlot]), 
+                'class':'portlet-settings'},
+                [DIV({'class':'settings-controls'},
+                    [this.settingsSlot, this.buttonsSlot]),
                     DIV({'style':'clear:both'}, '')]);
             this.container = DIV({'class':'zenoss-portlet','id':this.id},
                DIV({'class':'zenportlet'},
@@ -285,7 +285,7 @@ Portlet.prototype = {
     },
     disable: function() {
         this.enable();
-        this.cover = DIV({'style':'position:absolute;top:0;left:0;height:100%;width:100%;'}, 
+        this.cover = DIV({'style':'position:absolute;top:0;left:0;height:100%;width:100%;'},
                     null);
         setStyle(this.body, {'position':'relative'});
         appendChildNodes(this.body, this.cover);
@@ -311,7 +311,7 @@ PortletContainer.prototype = {
         this.isDirty = false;
     },
     goodConnection: function() {
-        setInnerHTML($('connectionmessage'), 
+        setInnerHTML($('connectionmessage'),
                 'Last updated ' + getServerTimestamp() + '.');
     },
     brokenConnection: function() {
@@ -339,7 +339,7 @@ PortletContainer.prototype = {
         }
     },
     getColumnsAsDisplayed: function() {
-        // Due to the CSS, columns are displayed out of order in 
+        // Due to the CSS, columns are displayed out of order in
         // the 33-33-33 format.
         if (this.numCols()==3) {
             return [this.columns[0], this.columns[1], this.columns[2]];
@@ -350,7 +350,7 @@ PortletContainer.prototype = {
     columnElements: function() {
         return map(function(x){return x.domel}, this.columns);
     },
-    numCols: function() { 
+    numCols: function() {
         return this.columns.length;
     },
     leftCol: function() {
@@ -363,7 +363,7 @@ PortletContainer.prototype = {
             return this.rightCol();
         }
     },
-    rightCol: function() { 
+    rightCol: function() {
         return this.columns[this.columns.length-1];
     },
     addPortlet: function(klass, args) {
@@ -420,15 +420,15 @@ PortletContainer.prototype = {
                 var imagehtml = toHTML(el);
                 if (isIE) {
                     imagehtml = imagehtml.replace(
-                        'align', 
+                        'align',
                         'style="background-image:url(img/icons/'+type+
                             '.png)" align');
                 }
                 return imagehtml;
             }
-            var mybuttons = [ { text:getImage("1col"),handler:onecol},  
-                              { text:getImage("2coleq"),handler:twocoleq},  
-                              { text:getImage("2colsb"),handler:twocolsb},  
+            var mybuttons = [ { text:getImage("1col"),handler:onecol},
+                              { text:getImage("2coleq"),handler:twocoleq},
+                              { text:getImage("2colsb"),handler:twocolsb},
                               { text:getImage("2colbs"),handler:twocolbs},
                               { text:getImage("3col"),handler:threecol}
                             ];
@@ -460,10 +460,10 @@ PortletContainer.prototype = {
         connect(this.dialogLink, "onclick", this.showLayoutDialog);
         connect(this.portDialogLink, "onclick", this.showAddPortletDialog);
         connect(this.doRefresh, "onclick", this.stopRefresh);
-        var newContainer = DIV({'class':colsclass}, 
+        var newContainer = DIV({'class':colsclass},
             [DIV({'class':'tinylink-container'}, [
-                messagebox, 
-                this.doRefresh, this.portDialogLink, this.dialogLink]), 
+                messagebox,
+                this.doRefresh, this.portDialogLink, this.dialogLink]),
              this.columnElements()]);
         if (!this.columnContainer) {
             this.columnContainer = newContainer;
@@ -587,7 +587,7 @@ PortletContainer.prototype = {
         });
         p1 = new YZP.SiteWindowPortlet({
                 id:'welcome',
-                title:'Welcome', 
+                title:'Welcome',
                 url: YZP.DEFAULT_SITEWINDOW_URL,
                 bodyHeight: 500
              });
@@ -636,7 +636,7 @@ StaticDatasource.prototype = {
 XHRDatasource.prototype = {
     __class__: "YAHOO.zenoss.portlet.XHRDatasource",
     __init__: function(settings) {
-        this.url = settings.url;        
+        this.url = settings.url;
     },
     get: function(callback) {
         this.callback = callback;
@@ -676,23 +676,23 @@ ExtDatasource.prototype = {
         var randomId = 'extportlet' + Math.floor(Math.random()*1000000),
             thisPortlet = Zenoss.portlets[this.portletId],
             ds = this;
-        
+
         html = '<div id="' + randomId + '"' +
                'style="border:medium none;margin:0;padding:0;' +
                'width:100%;height:100%;"></>';
         callback({responseText:html});
-        
+
         var task = {
             run: function() {
                 if (Ext.get(randomId)) {
-                    Ext.TaskMgr.stop(task);
+                    Ext.TaskManager.stop(task);
                     ds.extPortlet = new Ext.Panel(thisPortlet);
                     ds.extPortlet.render(randomId);
                 }
             },
             interval: 100
         };
-        Ext.TaskMgr.start(task);
+        Ext.TaskManager.start(task);
     }
 }
 
@@ -700,7 +700,7 @@ TableDatasource.prototype = {
     __class__: "YAHOO.zenoss.portlet.TableDatasource",
     __init__: function(settings) {
         this.url = settings.url;
-        this.queryArguments = 'queryArguments' in settings? 
+        this.queryArguments = 'queryArguments' in settings?
             settings.queryArguments:{};
         this.postContent = 'postContent' in settings?
             settings.postContent:'';
@@ -758,7 +758,7 @@ TableDatasource.prototype = {
         forEach(columns, method(this, function(x) {
             if ('widths' in this) {
               if (x in this.widths) colwidths[x] = this.widths[x];
-              else if (x=='Events') colwidths[x] = '50px';  
+              else if (x=='Events') colwidths[x] = '50px';
               else colwidths[x] = '';
             } else if (x=='Events') {
                 colwidths[x] = '50px';
@@ -788,7 +788,7 @@ TableDatasource.prototype = {
             queryarguments['_dc'] = String(new Date().getTime());
         }
         return {url:this.url, queryArguments:queryarguments,
-                postContent: this.postContent, method:this.method, 
+                postContent: this.postContent, method:this.method,
                 __class__:this.__class__}
     }
 }
@@ -908,7 +908,7 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
     onMouseDown: function(e) {
         if (this.portlet.__class__=='YAHOO.zenoss.portlet.GoogleMapsPortlet')
             this.portlet.disable();
-        var panel = this.portlet.body; 
+        var panel = this.portlet.body;
         this.startWidth = panel.offsetWidth;
         this.startHeight = panel.offsetHeight;
         this.startPos = [YAHOO.util.Event.getPageX(e),

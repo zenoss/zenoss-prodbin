@@ -25,8 +25,6 @@
         <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <!-- link rel="stylesheet" type="text/css"
             href="/++resource++extjs/resources/css/ext-all.css" / -->
-        <!-- link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/js/zenoss/migrate/ext3-compat.css" / -->
         <!-- <link rel="stylesheet" type="text/css" -->
         <!--     href="/++resource++extjs/treegrid/treegrid.css" /> -->
         <link rel="stylesheet" type="text/css"

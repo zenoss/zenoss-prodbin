@@ -13,33 +13,33 @@ $portletId.prototype = {
         refreshTime = 'refreshTime' in args ? args.refreshTime : 60;
         this.superclass.__init__({id: id, title: title, datasource: datasource,
                                  refreshTime: refreshTime, bodyHeight: bodyHeight});
-        
+
         var thisPortlet = this,
             settingsSlot = this.settingsSlot;
-        
+
         var task = {
             run: function() {
                 if (thisPortlet.datasource.extPortlet) {
-                    Ext.TaskMgr.stop(task);
+                    Ext.TaskManager.stop(task);
                     var extP = thisPortlet.extPortlet = thisPortlet.datasource.extPortlet;
                     delete thisPortlet.datasource.extPortlet;
-                    
+
                     if (!thisPortlet.datasource.extSettings) {
                         thisPortlet.datasource.extSettings =
                             extP.portlet_settings_defaults();
                     }
-                    
+
                     if (extP.portlet_settings_render) {
                         extP.portlet_settings_render(settingsSlot,
                                                      thisPortlet.datasource.extSettings);
                     }
-                    
+
                     extP.portlet_render();
                 }
             },
             interval: 100
         };
-        Ext.TaskMgr.start(task);
+        Ext.TaskManager.start(task);
     },
     startRefresh: function(firsttime) {
         this.stopRefresh();

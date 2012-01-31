@@ -4,8 +4,6 @@
  * Global Ext settings.
  */
 Ext.BLANK_IMAGE_URL = '/++resource++zenui/img/s.gif';
-Ext.Compat.showErrors = false;
-Ext.Compat.silent = false;
 
 /**
  * Enable this setting to log the stack trace of all direct requests to the browser console
