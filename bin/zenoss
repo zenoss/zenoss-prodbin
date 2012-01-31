@@ -49,6 +49,26 @@ if [ `id -u` -eq 0 ] ; then
    exec su - $USERNAME $0 $@
 fi
 
+DAEMON_FILTER="*"
+ONLY_RUNNING=0
+while getopts "f:r" opt; do
+    case $opt in 
+        f)
+            # apply action to daemons matched by filter
+            DAEMON_FILTER="$OPTARG"
+            ;;
+        r)
+            # apply action to only running daemons
+            ONLY_RUNNING=1
+            ;;
+        \?)
+            echo "Invalid option -$OPTARG" >&2
+            exit 1
+            ;;
+   esac
+   shift `expr $OPTIND - 1`
+done
+
 . $ZENHOME/bin/zenfunctions
 
 WEBSERVERCTL=$(${ZENHOME}/bin/zenglobalconf -p webserverctl)
@@ -56,6 +76,7 @@ if [ -z "${WEBSERVERCTL}" ]; then
     WEBSERVERCTL=zopectl
 fi
 CATSERVICE=${ZENHOME}/bin/zencatalogservice
+
 
 C=
 if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
@@ -92,10 +113,12 @@ fi
 if [ -f "$ZENHOME/etc/daemons.txt" ]
 then
     D=`cat $ZENHOME/etc/daemons.txt`
-    C="$C $D"
+    # add to daemon list without new lines
+    for DD in $D
+    do
+        C="$C $DD"
+    done
 fi
-
-CMDS=$C
 
 reverse() {
     args=
@@ -106,6 +129,25 @@ reverse() {
     done
     echo $args
 }
+
+# are we interested in only running daemons?
+if [ $ONLY_RUNNING = "1" ]; then
+    C=`zenoss status | grep "pid=" | awk '{ print $2 }'`
+fi
+
+#filter the daemons
+DLIST=""
+for DAEMON in ${C}
+do
+    if echo $DAEMON | grep -E "$DAEMON_FILTER" 1>/dev/null; then
+        DLIST="$DLIST $DAEMON"
+    fi 
+done
+
+
+
+C="$DLIST"
+CMDS=$C
 
 FUNC=$CMD
 

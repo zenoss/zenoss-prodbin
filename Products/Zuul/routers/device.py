@@ -787,7 +787,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.exception(e, 'Failed to change priority.')
 
     def setCollector(self, uids, collector, hashcheck, uid=None, ranges=(),
-                     params=None, sort='name', dir='ASC'):
+                     params=None, sort='name', dir='ASC', moveData=False):
         """
         Set device(s) collector.
 
@@ -821,11 +821,10 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         uids = filterUidsByPermission(self.context.dmd, ZEN_ADMIN_DEVICE, uids)
         try:
-            for uid in uids:
-                info = facade.getInfo(uid)
-                info.collector = collector
-                notify(IndexingEvent(info._object))
-                audit('UI.Device.ChangeCollector', uid, collector=collector)
+            # iterate through uids so that logging works as expected
+            facade.setCollector(uids, collector, moveData)
+            for devUid in uids:
+                audit('UI.Device.ChangeCollector', devUid, collector=collector)
             return DirectResponse('Changed collector to %s for %s devices.' %
                                   (collector, len(uids)))
         except Exception, e:

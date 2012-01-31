@@ -441,7 +441,7 @@ Ext.define("Zenoss.DeviceGridPanel", {
                                     title: _t('Set Collector'),
                                     modal: true,
                                     width: 310,
-                                    height: 150,
+                                    height: 180,
                                     items: [{
                                         xtype: 'combo',
                                         fieldLabel: _t('Select a collector'),
@@ -460,6 +460,11 @@ Ext.define("Zenoss.DeviceGridPanel", {
                                                 Ext.getCmp('collectorok').enable();
                                             }
                                         }
+                                    },{
+                                         xtype: 'checkbox',
+                                         name: 'moveData',
+                                         id: 'moveData',
+                                         fieldLabel: _t('Move Data')
                                     }],
                                     buttons: [{
                                         xtype: 'DialogButton',
@@ -468,7 +473,8 @@ Ext.define("Zenoss.DeviceGridPanel", {
                                         text: _t('OK'),
                                         handler: function(){
                                             var opts = Ext.apply(fetcher(), {
-                                                collector: Ext.getCmp('collector').getValue()
+                                                collector: Ext.getCmp('collector').getValue(),
+                                                moveData: Ext.getCmp('moveData').getValue()
                                             });
                                             REMOTE.setCollector(opts, saveHandler);
                                         }

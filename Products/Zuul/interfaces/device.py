@@ -32,6 +32,15 @@ class IDeviceOrganizerInfo(IInfo):
     events = Attribute('A list of (severity, count) tuples for the three most'
                        ' severe event severities')
 
+class IDeviceCollectorChangeEvent(Interface):
+    """
+    Device's collector change event
+    """
+    context = Attribute("Reference to contextual database object.")
+    collector = Attribute("The collector the devices are moving to")
+    movedDevices = Attribute("Device moves (dict of device 'id' and 'fromCollector' references)")
+    moveData = Attribute("Attempt to move data associated with device to new collector")
+
 
 class IDeviceInfo(IInfo):
     """

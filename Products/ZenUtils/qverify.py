@@ -19,9 +19,13 @@ from amqplib.client_0_8.connection import Connection
 import Globals
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
+import logging
+LOG = logging.getLogger("zen.qverify")
+
 class Main(object):
 
-    def __init__(self):
+    def __init__(self, verbose=False):
+        LOG.debug("Getting global conf")
         self._global_conf = getGlobalConfiguration()
 
     def _get_setting(self, name):
@@ -42,7 +46,7 @@ class Main(object):
         use_ssl  = True if ssl in ('1', 'True', 'true') else False
 
         conn = None
-        rc = 0
+        rc = 1
         try:
             conn = Connection(host="%s:%s" % (hostname, port), userid=username,
                       password=password, virtual_host=vhost, ssl=use_ssl)
@@ -52,23 +56,30 @@ class Main(object):
             if s_ver < e_ver:
                 print >> sys.stderr, "Server version: %s < Expected version: %s" % (
                     server_version, expected_version)
-                rc = 1
+                rc = 2
+            else:
+                rc = 0
         finally:
             if conn:
                 conn.close()
         sys.exit(rc)
 
 if __name__=="__main__":
-    
-    epilog = "Verifies connectivity with the amqp server configued in global.conf."
-    parser = OptionParser(epilog=epilog)
+   
+    usage = "%prog VERSION_NUMBER" 
+    epilog = "Verifies connectivity with the amqp server configued in global.conf and " \
+             "checks if server version is >= VERSION_NUMBER. Returns exit code 1 if " \
+             "connection fails, 2 if server version < VERSION_NUMBER, and 0 if " \
+             "connection is OK and server version >= VERSION_NUMBER."
+    parser = OptionParser(usage=usage, epilog=epilog)
+    parser.add_option("--verbose", "-v", default=False, action='store_true')
     (options, args) = parser.parse_args()
 
     if len(args) != 1:
-        parser.print_usage()
+        parser.print_help()
         sys.exit(1)
 
-    main = Main()
+    main = Main(options.verbose)
     main.verify(args[0])
 
 

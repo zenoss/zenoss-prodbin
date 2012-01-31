@@ -35,6 +35,7 @@ from Products.ZenMessaging.ChangeEvents.events import ObjectAddedToOrganizerEven
 from Products.Zuul import getFacade
 from Products.Zuul.tree import PermissionedCatalogTool
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
+from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp, isip, getHostByName
 from Products.ZenUtils.IpUtil import getSubnetBounds
@@ -42,6 +43,34 @@ from Products.ZenEvents.Event import Event
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.jsonutils import unjson
 
+
+class DeviceCollectorChangeEvent(object):
+    implements(IDeviceCollectorChangeEvent)
+    """
+    Collector change event for device.
+    """
+
+    def __init__(self, context, collector, movedDevices, moveData):
+        self._context = context
+        self._collector = collector
+        self._movedDevices = movedDevices
+        self._moveData = moveData
+
+    @property
+    def context(self):
+        return self._context
+
+    @property
+    def collector(self):
+        return self._collector
+
+    @property
+    def movedDevices(self):
+        return self._movedDevices
+
+    @property
+    def moveData(self):
+        return self._moveData
 
 
 class DeviceFacade(TreeFacade):
@@ -310,6 +339,19 @@ class DeviceFacade(TreeFacade):
         for brain in brains:
             if brain.getObject().getPerformanceServerName() == collector:
                 return brain.getObject()
+
+    def setCollector(self, uids, collector, moveData=False):
+        movedDevices = []
+        for uid in uids:
+            info = self.getInfo(uid)
+            movedDevices.append({
+                'id': uid.split("/")[-1],
+                'fromCollector': info.collector,
+            })
+            info.collector = collector
+            notify(IndexingEvent(info._object))
+
+        notify(DeviceCollectorChangeEvent(self.context, collector, movedDevices, moveData))
 
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
                   snmpPort=161, model=False, collector='localhost',
