@@ -20,13 +20,14 @@ ZC.registerName('ExampleComponent', _t('Example'), _t('Examples'));
  * Custom component grid panel. This controls the grid that gets displayed for
  * components of the type set in "componenType".
  */
-ZC.ExampleComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define('Zenoss.component.ExampleComponentGridPanel',{
+    extend: 'Zenoss.component.ComponentGridPanel',
     subComponentGridPanel: false,
 
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
-            autoExpandColumn: 'name',
             componentType: 'ExampleComponent',
+            alias:['widget.ExampleComponentGridPanel'],
             sortInfo: {
                 field: 'name',
                 direction: 'ASC'
@@ -49,6 +50,7 @@ ZC.ExampleComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
                 width: 50
             },{
                 id: 'name',
+                flex: 1,
                 dataIndex: 'name',
                 header: _t('Name')
             },{
@@ -72,10 +74,9 @@ ZC.ExampleComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
                 width: 65
             }]
         });
-        ZC.ExampleComponentGridPanel.superclass.constructor.call(this, config);
+        this.callParent([config]);
     }
 });
 
-Ext.reg('ExampleComponentGridPanel', ZC.ExampleComponentGridPanel);
 
 })();

@@ -44,7 +44,7 @@
                 grid.getSelectionModel().selectRange(result.newIndex, result.newIndex);
             };
             store.on('load', loadHandler, store, {single: true});
-            view.updateLiveRows(result.newIndex, true, true, false);
+            grid.refresh();
         };
         Zenoss.remote.ServiceRouter.addClass(params, callback);
     };
@@ -74,7 +74,7 @@
                         view.focusRow(newRowPos);
                         grid.getSelectionModel().selectRange(newRowPos, newRowPos);},
                         store, { single: true });
-                    view.updateLiveRows(newRowPos, true, true, false);
+                    grid.refresh();
                 } else {
                     Zenoss.message.error(result.msg);
                 }
