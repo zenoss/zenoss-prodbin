@@ -180,6 +180,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         from Products.ZenModel.SoftwareClass import SoftwareClass
         prod = self._getProduct(prodName, manufacturer, SoftwareClass, **kwargs)
         prod.isOS = isOS
+        prod.index_object()
         return prod
 
 

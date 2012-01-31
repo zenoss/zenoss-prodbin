@@ -135,7 +135,7 @@ class Software(MEProduct):
                 manufacturer = 'Unknown'
 
             manufs = self.getDmdRoot("Manufacturers")
-            prodobj = manufs.createSoftwareProduct(prodKey, manufacturer)
+            prodobj = manufs.createSoftwareProduct(prodKey, manufacturer, isOS=True)
             self.productClass.addRelation(prodobj)
         else:
             self.productClass.removeRelation()
