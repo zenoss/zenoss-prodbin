@@ -390,7 +390,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
 (function(){
     // Remove extraneous toolbar items since we don't hide this panel
     var detailCardPanel = Ext.getCmp('NetworkDetailCardPanel'),
-        toolbar = detailCardPanel.getToolbars()[0];
+        toolbar = detailCardPanel.getDockedItems('toolbar')[0];
     Ext.each(toolbar.items.items.slice(2), function(item) {
         toolbar.remove(item);
     });

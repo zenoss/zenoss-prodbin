@@ -193,12 +193,12 @@ function gridUidSelections() {
 }
 
 function gridOptions() {
-    var grid = Ext.getCmp('device_grid'),
-    opts = Ext.apply(grid.filterRow.getSearchValues(), {
+    // we disallow selections past pages so just grab the selected uids
+    var opts = {
         uids: selectedUids(),
-        // FIXME: Actually implement hashcheck
         hashcheck: null
-    });
+    };
+
     return opts;
 }
 
