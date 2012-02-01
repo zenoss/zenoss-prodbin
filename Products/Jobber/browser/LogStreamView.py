@@ -31,14 +31,15 @@ class LogStreamView(BrowserView):
             "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
             <html>
                 <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
-                <body class="log-output"><pre class="log-output">""")
+                <body class="log-output">""")
         self._stream()
-        self.request.response.write(""" </pre></body></html> """)
+        self.request.response.write(""" </body></html> """)
         self.request.response.flush()
         return self.request.response
 
+
     def _stream(self):
-        self.request.response.write("Please Wait...\n")
+        self._write_line("Please Wait...")
         log = self.context.getLog()
         f = log.getFile()
         offset = 0
@@ -72,7 +73,13 @@ class LogStreamView(BrowserView):
            <pre style="
             font-family:Monaco,monospace;
             font-size:14px;">""" % line.lstrip(MESSAGE_MARKER)
+        else:
+            # remove trailing white space
+            line = line.rstrip()
+            line = '%s %s %s' % ('<pre class="log-output">',line, '</pre>')
+        print("LINE: %s" % line)
         self.request.response.write(line)
+        self.request.response.write(" " * 1024)
         self.request.response.flush()
 
 class LogStreamWrapper(BrowserView):
