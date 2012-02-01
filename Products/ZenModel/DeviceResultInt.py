@@ -61,7 +61,7 @@ class DeviceResultInt:
 
     security.declareProtected('View', 'getDeviceClassPath')
     def getDeviceClassPath(self):
-        '''Get the device class for this device'''
+        '''Get the device class name for this device'''
         d = self.device()
         if d:
             return d.deviceClass().getOrganizerName()

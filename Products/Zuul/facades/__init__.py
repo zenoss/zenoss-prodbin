@@ -77,8 +77,10 @@ class ZuulFacade(object):
         """
         Given a dictionary of {property name: property value}
         this will populate the datapoint
-        @param string uid unique identifier of the object we are editing
-        @param Dictionary of properties to update
+        @param uid unique identifier of the object we are editing
+        @type uid string
+        @param data properties to update
+        @type data Dictionary
         @return IInfo with the updated properties
         """
         info = self.getInfo(uid)

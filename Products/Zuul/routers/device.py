@@ -317,10 +317,11 @@ class DeviceRouter(TreeRouter):
         if hasattr(process._object, 'index_object'):
             process._object.index_object()
 
-        # Ex: ('UI.Device.Edit', '/zport/....', data_={'ProductionState': 'High'})
+        # Ex: ('UI.Device.Edit', uid, data_={'ProductionState': 'High'})
+        # Ex: ('UI.Location.Edit', uid, description='Blah', old_description='Foo')
         if 'name' in newData:
             del newData['name']  # it gets printed automatically
-        audit(['UI', getDisplayType(self), 'Edit'], the_uid,
+        audit(['UI', getDisplayType(process._object), 'Edit'], the_uid,
               data_=newData, oldData_=oldData, skipFields_='uid')
         return DirectResponse.succeed()
 
@@ -353,7 +354,7 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.setProductInfo(uid, **data)
-        audit('UI.Device.EditProductInfo', uid, data_=data)
+        audit('UI.Device.Edit', uid, data_=data)
         return DirectResponse()
 
     def getDeviceUuidsByName(self, query=""):
@@ -474,23 +475,35 @@ class DeviceRouter(TreeRouter):
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
 
         facade = self._getFacade()
+
+        # In order to display the device name and old location/device class,
+        # we must audit first. This means it's possible we can audit a change
+        # then the command fails, unfortunately.
+        # example: audit('UI.Device.ChangeLocation', uid, location=..., old_location=...)
+        targetType = getDisplayType(facade._getObject(target))
+        autoRemovalTypes = ('DeviceClass', 'Location')
+        action = ('Change' if targetType in autoRemovalTypes else 'AddTo') + targetType
+        for uid in uids:
+            oldData = {}
+            if targetType == 'Location':  # get old location
+                location = facade._getObject(uid).location()
+                locationPath = location.getPrimaryId() if location else ''
+                oldData[targetType] = locationPath
+            elif targetType == 'DeviceClass':
+                deviceClass = facade._getObject(uid).deviceClass()
+                deviceClassPath = deviceClass.getPrimaryId() if deviceClass else ''
+                oldData[targetType] = deviceClassPath
+            audit(['UI.Device', action], uid,
+                  data_={targetType:target}, oldData_=oldData)
+
         try:
             exports = facade.moveDevices(uids, target)
         except Exception, e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to move devices.')
         else:
-            targetUid = target
             target = '/'.join(target.split('/')[:4])
             tree = self.getTree(target)
-
-            # audit example: ('UI.Device.ChangeLocation', deviceUid, location=...)
-            targetType = getDisplayType(facade._getObject(targetUid))
-            autoRemovalTypes = ('DeviceClass', 'Location')
-            action = ('Change' if targetType in autoRemovalTypes else 'AddTo') + targetType
-            for uid in uids:
-                audit(['UI.Device', action], uid, data_={targetType:targetUid})
-
             return DirectResponse.succeed(tree=tree, exports=exports)
 
     @require('Manage Device')
@@ -777,7 +790,7 @@ class DeviceRouter(TreeRouter):
                 oldPriorityLabel = info.priorityLabel
                 info.priority = priority
                 notify(IndexingEvent(info._object))
-                audit('UI.Device.EditPriority', uid,
+                audit('UI.Device.Edit', uid,
                       priority=info.priorityLabel,
                       oldData_={'priority':oldPriorityLabel})
             return DirectResponse('Set %s devices to %s priority.' % (
@@ -1068,13 +1081,13 @@ class DeviceRouter(TreeRouter):
                     # Ex: ('UI.Device.RemoveFromLocation', deviceUid, location=...)
                     audit('UI.Device.%s' % action, devuid, data_={organizerType:uid})
             elif action == "delete":
-                facade.deleteDevices(uids,
-                                     deleteEvents=deleteEvents,
-                                     deletePerf=deletePerf)
                 for devuid in uids:
                     audit('UI.Device.Delete', devuid,
                           deleteEvents=deleteEvents,
                           deletePerf=deletePerf)
+                facade.deleteDevices(uids,
+                                     deleteEvents=deleteEvents,
+                                     deletePerf=deletePerf)
             return DirectResponse.succeed(
                 devtree=self.getTree('/zport/dmd/Devices'),
                 grptree=self.getTree('/zport/dmd/Groups'),
@@ -1510,12 +1523,15 @@ class DeviceRouter(TreeRouter):
                                                 )
 
         deviceUid = '/'.join([organizerUid, 'devices', deviceName])
+        # Zero groups or systems sends as [''] so exclude that case.
+        hasGroups = len(groupPaths) > 1 or (groupPaths and groupPaths[0])
+        hasSystems = len(systemPaths) > 1 or (systemPaths and systemPaths[0])
         auditData = {
             'deviceClass': '/Devices' + deviceClass,
             'location': '/Locations' + locationPath if locationPath else None,
-            'deviceGroups': ['/Groups' + x for x in groupPaths] if groupPaths else None,
-            'systems': ['/Systems' + x for x in systemPaths] if systemPaths else None,
-            'title': title,
+            'deviceGroups': ['/Groups' + x for x in groupPaths] if hasGroups else None,
+            'systems': ['/Systems' + x for x in systemPaths] if hasSystems else None,
+            'name': title,   # call 'name' for consistency with other audits.
             'collector': collector,
             'model': str(model)  # show value even if False
         }

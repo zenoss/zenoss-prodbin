@@ -306,7 +306,8 @@ def capitalizeFirstLetter(s):
 
 
 RENAME_DISPLAY_TYPES = {
-    'DeviceRouter': 'Device',
+    'RRDTemplate': 'Template',
+    'ThresholdClass': 'Threshold',
 }
 
 def getDisplayType(obj):
@@ -428,8 +429,8 @@ def cleanstring(value):
     """
     Take the trailing \x00 off the end of a string
 
-    @param unitstr: sample string
-    @type unitstr: string
+    @param value: sample string
+    @type value: string
     @return: cleaned string
     @rtype: string
     """
@@ -567,8 +568,8 @@ def zenpathjoin(pathar):
     """
     Build a zenpath in its string form
 
-    @param pathstring: a path
-    @type pathstring: string
+    @param pathar: a path
+    @type pathar: string
     @return: a path
     @rtype: string
     """
@@ -1463,10 +1464,10 @@ def readable_time(seconds, precision=1):
     """
     Convert some number of seconds into a human-readable string.
 
-    @param t: The number of seconds to convert
-    @type t: int
+    @param seconds: The number of seconds to convert
+    @type seconds: int
     @param precision: The maximum number of time units to include.
-    @type t: int
+    @type precision: int
     @rtype: str
 
         >>> readable_time(None)

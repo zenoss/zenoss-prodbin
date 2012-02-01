@@ -16,6 +16,7 @@ Zenoss JSON API
 
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
+from Products.Zuul.interfaces.tree import ICatalogTool
 from Products.Zuul.marshalling import Marshaller
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenMessaging.audit import audit
@@ -87,14 +88,20 @@ class TreeRouter(DirectRouter):
             raise Exception('You cannot delete the root node')
         facade = self._getFacade()
         node = facade._getObject(uid)
-        display_type = getDisplayType(node)
+
         # Audit first so it can display details like "name" while they exist.
-        audit(['UI', display_type, 'Delete'], node)
-        # Trac #29148: If we're deleting a DeviceClass then we also delete its
-        #     devices, so audit them.
+        # Trac #29148: When we delete a DeviceClass we also delete its devices
+        #     and child device classes and their devices, so audit them all.
         if isinstance(node, DeviceClass):
-            for dev in node.getSubDevicesGen():
-                audit('UI.Device.Delete', dev)
+            childBrains = ICatalogTool(node).search((
+                'Products.ZenModel.DeviceClass.DeviceClass',
+                'Products.ZenModel.Device.Device',
+            ))
+            for child in childBrains:
+                audit(['UI', getDisplayType(child), 'Delete'], child.getPath())
+        else:
+            audit(['UI', getDisplayType(node), 'Delete'], node)
+
         facade.deleteNode(uid)
         msg = "Deleted node '%s'" % uid
         return DirectResponse.succeed(msg=msg)
@@ -113,9 +120,9 @@ class TreeRouter(DirectRouter):
              - data: (dictionary) Moved organizer
         """
         facade = self._getFacade()
-        display_type = getDisplayType( facade._getObject(organizerUid))
+        display_type = getDisplayType(facade._getObject(organizerUid))
+        audit(['UI', display_type, 'Move'], organizerUid, to=targetUid)
         data = facade.moveOrganizer(targetUid, organizerUid)
-        audit(['UI', display_type, 'Move'], data.uid, old=organizerUid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def _getFacade(self):

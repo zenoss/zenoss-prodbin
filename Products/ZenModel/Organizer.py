@@ -218,6 +218,8 @@ class Organizer(ZenModelRM, EventView):
         
         >>> dmd.Devices.manage_deleteOrganizer('/Devices/Server/Linux')
         """
+        if REQUEST:
+            audit(('UI', getDisplayType(self), 'Delete'), orgname)
         if orgname.startswith("/"):
             try:
                 orgroot = self.getDmdRoot(self.dmdRootName)
@@ -229,7 +231,6 @@ class Organizer(ZenModelRM, EventView):
         else:
             self._delObject(orgname)
         if REQUEST:
-            audit(('UI', getDisplayType(self), 'Delete'), orgname)
             messaging.IMessageSender(self).sendToBrowser(
                 'Organizer Deleted',
                 '%s "%s" was deleted.' % (getDisplayType(self), orgname)
@@ -257,12 +258,12 @@ class Organizer(ZenModelRM, EventView):
             )
             return self.callZenScreen(REQUEST)
         for organizerName in organizerPaths:
+            if REQUEST:
+                audit(('UI',getDisplayType(self),'Delete'), organizerName)
             self.manage_deleteOrganizer(organizerName)
         if REQUEST:
             plural = ''
             if len(organizerPaths) > 1: plural = 's'
-            for organizerName in organizerPaths:
-                audit(('UI',getDisplayType(self),'Delete'), organizerName)
             messaging.IMessageSender(self).sendToBrowser(
                 'Organizers Deleted',
                 '%s%s %s were deleted.' % (getDisplayType(self),

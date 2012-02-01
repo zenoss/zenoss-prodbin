@@ -189,6 +189,7 @@ def findCommunity(context, ip, devicePath,
         raise NoSnmp("No SNMP found for IP = %s" % ip)
     return (goodcommunity, port, goodversion, devname)
 
+@deprecated  # 1/31/12
 def manage_addDevice(context, id, REQUEST=None):
     """
     Creates a device
@@ -358,7 +359,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.deviceClass().moveDevices(deviceClassPath, (self.id,))
         device = self.getDmdRoot('Devices').findDevice(self.id)
         if REQUEST:
-            audit('UI.Device.SetDeviceClass', self, deviceClass=deviceClassPath)
+            audit('UI.Device.ChangeDeviceClass', self, deviceClass=deviceClassPath)
         return device.absolute_url_path()
 
     def getRRDTemplate(self):
@@ -728,7 +729,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     security.declareProtected(ZEN_VIEW, 'getLocationName')
     def getLocationName(self):
         """
-        Return the full location name ie /Location/SubLocation/Rack
+        Return the location name. i.e. "Rack" from /Locations/Loc/SubLoc/Rack
 
         @rtype: string
         @permission: ZEN_VIEW
@@ -1290,7 +1291,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if isinstance(component, ManagedEntity) and self.productionState == component.productionState:
                 notify(IndexingEvent(component.primaryAq(), ('productionState',), True))
         if REQUEST:
-            audit('UI.Device.EditProductionState', self, productionState=state,
+            audit('UI.Device.Edit', self, productionState=state,
                   maintenanceWindowChange=maintWindowChange)
         return ret
 
@@ -1309,7 +1310,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 "Device priority has been set to %s." % (
                     self.getPriorityString())
             )
-            audit('UI.Device.EditPriority', self, priority=priority)
+            audit('UI.Device.Edit', self, priority=priority)
             return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setLastChange')
@@ -1775,12 +1776,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             perfserv = self.getPerformanceServer()
             if perfserv:
                 perfserv.deleteRRDFiles(self.id)
+        if REQUEST:
+            audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
+                  deleteHistory=deleteHistory, deletePerf=deletePerf)
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices':
                 parent = parent.getPrimaryParent()
-            audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
-                  deleteHistory=deleteHistory, deletePerf=deletePerf)
             REQUEST['RESPONSE'].redirect(parent.absolute_url() +
                                             "/deviceOrganizerStatus"
                                             '?message=Device deleted')
@@ -1817,6 +1819,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             message = 'Device already exists with id %s' % newId
             raise DeviceExistsError( message, device )
 
+        if REQUEST:
+            audit('UI.Device.ChangeId', self, id=newId)
+
         # side effect: self.getId() will return newId after this call
         try:
             # If there is a title, change the title to the newId
@@ -1826,8 +1831,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             parent.manage_renameObject(oldId, newId)
             self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
-            if REQUEST:
-                audit('UI.Device.Rename', self, oldId=oldId)
             return self.absolute_url_path()
 
         except CopyError, e:

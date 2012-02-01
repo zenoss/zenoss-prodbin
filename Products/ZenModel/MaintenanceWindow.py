@@ -191,17 +191,17 @@ class MaintenanceWindow(ZenModelRM):
                 v = v or '0'
             try:
                 v = int(v)
-                if minv != None and v < minv:
+                if minv is not None and v < minv:
                     raise ValueError
-                if maxv != None and v > maxv:
+                if maxv is not None and v > maxv:
                     raise ValueError
             except ValueError:
-                if minv == None and maxv == None:
+                if minv is None and maxv is None:
                     msg = '%s must be an integer.' % fieldName
-                elif minv != None and maxv != None:
+                elif minv is not None and maxv is not None:
                     msg = '%s must be between %s and %s inclusive.' % (
                                 fieldName, minv, maxv)
-                elif minv != None:
+                elif minv is not None:
                     msg = '%s must be at least %s' % (fieldName, minv)
                 else:
                     msg = '%s must be no greater than %s' % (fieldName, maxv)
@@ -245,7 +245,7 @@ class MaintenanceWindow(ZenModelRM):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Window Edit Failed',
                     '\n'.join(msgs),
-                    priority=messaging.WARNING
+                    messaging.WARNING
                 )
         else:
             self.start = t
@@ -393,7 +393,7 @@ class MaintenanceWindow(ZenModelRM):
         for entry in cat():
             try:
                 mw = entry.getObject()
-            except:
+            except Exception:
                 continue
 
             if not mw.isActive():
