@@ -228,12 +228,12 @@ Ext.onReady(function () {
                             // IE only supports these window names: _blank _media _parent _search _self _top
                             var windowname = Ext.isIE ? '_blank' : record.data.url;
                             if (record.get('popout')) {
-                                window.open(String.format('{0}', record.data.url),
+                                window.open(Ext.String.format('{0}', record.data.url),
                                     windowname, 'status=1,width=600,height=500');
                             }
                             else {
                                 window.location =
-                                    String.format('{0}', record.data.url);
+                                    Ext.String.format('{0}', record.data.url);
                             }
                         }
                     } else {
@@ -257,7 +257,7 @@ Ext.onReady(function () {
 
                         } else {
                             // otherwise go to the selected search results page
-                            window.location = String.format('/zport/dmd/search?search={0}', record.get("id"));
+                            window.location = Ext.String.format('/zport/dmd/search?search={0}', record.get("id"));
                         }
                     }
                 }
