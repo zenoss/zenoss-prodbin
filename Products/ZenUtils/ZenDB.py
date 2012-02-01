@@ -30,7 +30,7 @@ class ZenDBError(Exception):
         return repr('ZenDBError: %s' % self.msg)
 
 class ZenDB(object):
-    requiredParams = ('db-type', 'host', 'port', 'db', 'user', 'password')
+    requiredParams = ('db-type', 'host', 'port', 'db', 'user')
     
     def __init__(self, useDefault=None, dsn=None, useAdmin=False):
         if useDefault in ('zep', 'zodb'):
