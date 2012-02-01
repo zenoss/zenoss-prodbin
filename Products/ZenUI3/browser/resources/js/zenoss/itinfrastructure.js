@@ -1027,6 +1027,7 @@ Ext.define("Zenoss.InfraDetailNav", {
     onSelectionChange: function(nodes) {
         var node;
         if ( nodes.length ) {
+            if (this.contextId.split('/').length < 5) this.contextId = '/zport/dmd';
             node = nodes[0];
             var detailPanel = Ext.getCmp('detail_panel');
             var contentPanel = Ext.getCmp(node.data.id);
