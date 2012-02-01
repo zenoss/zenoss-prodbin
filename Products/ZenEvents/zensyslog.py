@@ -50,7 +50,7 @@ from Products.ZenUtils.IpUtil import asyncNameLookup
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
-unused(DeviceProxy)
+unused(Globals, DeviceProxy)
 
 COLLECTOR_NAME = 'zensyslog'
 log = logging.getLogger("zen.%s" % COLLECTOR_NAME)
@@ -345,10 +345,14 @@ class SyslogConfigTask(ObservableMixin):
         pass
 
 
+class SyslogDaemon(CollectorDaemon):
+
+    _frameworkFactoryName = "nosip"
+
 
 if __name__=='__main__':
     myPreferences = SyslogPreferences()
     myTaskFactory = SimpleTaskFactory(SyslogConfigTask)
     myTaskSplitter = SimpleTaskSplitter(myTaskFactory)
-    daemon = CollectorDaemon(myPreferences, myTaskSplitter)
+    daemon = SyslogDaemon(myPreferences, myTaskSplitter)
     daemon.run()

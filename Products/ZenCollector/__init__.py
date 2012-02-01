@@ -81,6 +81,8 @@ from Products.ZenCollector.interfaces import IFrameworkFactory
 from Products.ZenCollector.config import ConfigurationProxy, \
                     ConfigurationLoaderTask
 from Products.ZenCollector.scheduler import Scheduler
+from Products.ZenUtils.Utils import unused
+unused(Globals)
 
 
 class CoreCollectorFrameworkFactory(object):
@@ -109,3 +111,4 @@ class CoreCollectorFrameworkFactory(object):
 __factory__ = CoreCollectorFrameworkFactory()
 zope.component.provideUtility(__factory__, IFrameworkFactory)
 zope.component.provideUtility(__factory__, IFrameworkFactory, "core")
+zope.component.provideUtility(__factory__, IFrameworkFactory, "nosip")

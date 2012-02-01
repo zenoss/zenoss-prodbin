@@ -50,18 +50,14 @@ from Products.ZenUtils.observable import ObservableMixin
 
 from pynetsnmp import netsnmp, twistedsnmp
 
-from Products.ZenHub.PBDaemon import FakeRemote
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
-unused(DeviceProxy)
 from Products.ZenHub.services.SnmpTrapConfig import User
-unused(User)
+unused(Globals, DeviceProxy, User)
 
-from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
-                                                SEVERITY_WARNING, SEVERITY_INFO,
-                                                SEVERITY_DEBUG, SEVERITY_CLEAR)
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
 
 
 # This is what struct sockaddr_in {} looks like
@@ -746,6 +742,8 @@ class MibConfigTask(ObservableMixin):
 
 
 class TrapDaemon(CollectorDaemon):
+
+    _frameworkFactoryName = "nosip"
 
     def runPostConfigTasks(self, result=None):
         # 1) super sets self._prefs.task with the call to postStartupTasks

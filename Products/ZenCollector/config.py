@@ -129,6 +129,8 @@ class ConfigurationLoaderTask(ObservableMixin):
     STATE_FETCH_DEVICE_CONFIG = 'FETCHING_DEVICE_CONFIG'
     STATE_PROCESS_DEVICE_CONFIG = 'PROCESSING_DEVICE_CONFIG'
 
+    _frameworkFactoryName = "core"
+
     def __init__(self,
                  name,
                  configId=None,
@@ -154,7 +156,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         self._daemon.heartbeatTimeout = self._prefs.cycleInterval * 3
         log.debug("Heartbeat timeout set to %ds", self._daemon.heartbeatTimeout)
 
-        frameworkFactory = zope.component.queryUtility(IFrameworkFactory)
+        frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         self._configProxy = frameworkFactory.getConfigurationProxy()
 
         self.devices = []

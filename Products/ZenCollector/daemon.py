@@ -74,6 +74,8 @@ class CollectorDaemon(RRDDaemon):
                               IDataService,
                               IEventService)
 
+    _frameworkFactoryName = ""
+
     def __init__(self, preferences, taskSplitter, 
                  configurationListener=DUMMY_LISTENER,
                  initializationCallback=None,
@@ -152,7 +154,7 @@ class CollectorDaemon(RRDDaemon):
             self._completedTasks = 0
             self._pendingTasks = []
 
-        frameworkFactory = zope.component.queryUtility(IFrameworkFactory)
+        frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         self._configProxy = frameworkFactory.getConfigurationProxy()
         self._scheduler = frameworkFactory.getScheduler()
         self._scheduler.maxTasks = self.options.maxTasks
@@ -190,7 +192,8 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-        frameworkFactory = zope.component.queryUtility(IFrameworkFactory)
+
+        frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
             # During upgrades we'll be missing this option
             self._frameworkBuildOptions = frameworkFactory.getFrameworkBuildOptions()
@@ -279,7 +282,7 @@ class CollectorDaemon(RRDDaemon):
         if self._stoppingCallback is not None:
             try:
                 self._stoppingCallback()
-            except Exception, e:
+            except Exception:
                 self.log.exception('Exception while stopping daemon')
         super(CollectorDaemon, self).stop( ignored )
 
@@ -355,11 +358,11 @@ class CollectorDaemon(RRDDaemon):
         newTasks = self._taskSplitter.splitConfiguration([cfg])
         self.log.debug("Tasks for config %s: %s", configId, newTasks)
 
-        for (taskName, task) in newTasks.iteritems():
+        for (taskName, task_) in newTasks.iteritems():
             #if not cycling run the task immediately otherwise let the scheduler
             #decide when to run the task
             now = not self.options.cycle
-            self._scheduler.addTask(task, self._taskCompleteCallback, now)
+            self._scheduler.addTask(task_, self._taskCompleteCallback, now)
 
             # TODO: another hack?
             if hasattr(cfg, 'thresholds'):

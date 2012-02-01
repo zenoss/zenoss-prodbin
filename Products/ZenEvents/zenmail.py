@@ -54,6 +54,8 @@ from Products.ZenCollector.tasks import NullTaskSplitter,\
 from Products.ZenCollector.services.config import DeviceProxy
 
 from Products.ZenEvents.MailProcessor import MailProcessor
+from Products.ZenUtils.Utils import unused
+unused(Globals, DeviceProxy)
 
 
 COLLECTOR_NAME = 'zenmail'
@@ -261,8 +263,14 @@ class MailListeningTask(BaseTask):
     def cleanup(self):
         pass
 
+
+class MailDaemon(CollectorDaemon):
+
+    _frameworkFactoryName = "nosip"
+
+
 if __name__=='__main__':
     myPreferences = MailPreferences()
     myTaskSplitter = NullTaskSplitter()
-    daemon = CollectorDaemon(myPreferences, myTaskSplitter)
+    daemon = MailDaemon(myPreferences, myTaskSplitter)
     daemon.run()
