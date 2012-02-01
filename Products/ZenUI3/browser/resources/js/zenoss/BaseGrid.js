@@ -58,6 +58,7 @@
                     limitParam:undefined,
                     startParam:undefined,
                     pageParam:undefined,
+                    sortParam: undefined,
                     directFn:config.directFn,
                     reader:{
                         type:'json',
