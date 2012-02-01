@@ -77,7 +77,6 @@ class LogStreamView(BrowserView):
             # remove trailing white space
             line = line.rstrip()
             line = '%s %s %s' % ('<pre class="log-output">',line, '</pre>')
-        print("LINE: %s" % line)
         self.request.response.write(line)
         self.request.response.write(" " * 1024)
         self.request.response.flush()
