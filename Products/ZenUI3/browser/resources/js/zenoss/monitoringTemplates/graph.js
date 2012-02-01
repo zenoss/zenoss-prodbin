@@ -611,7 +611,7 @@ new Zenoss.HideFitDialog({
 });
 
 Ext.create('Zenoss.dialog.BaseWindow', {
-    layout: (Ext.isIE) ? 'form': 'fit',
+    layout: 'fit',
     id: 'viewGraphDefinitionDialog',
     title: _t('View and Edit Graph Definition'),
     closeAction: 'hide',

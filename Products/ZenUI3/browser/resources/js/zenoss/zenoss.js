@@ -63,7 +63,7 @@ Zenoss.env.getColumnDefinitions = function(except) {
     });
     if (except) {
         return Zenoss.util.filter(Zenoss.env.COLUMN_DEFINITIONS, function(d){
-            return except.indexOf(d.id)==-1;
+            return Ext.Array.indexOf(except, d.id)==-1;
         });
     }
     else {
@@ -509,7 +509,7 @@ Ext.define("Zenoss.MultiselectMenu", {
                 this.menu.removeAll();
                 Ext.each(rows, function(row){
                     var cfg = this.makeItemConfig(row.data.name, row.data.value);
-                    cfg.checked = (this.defaultValues.indexOf(row.data.value)>-1);
+                    cfg.checked = (Ext.Array.indexOf(this.defaultValues, row.data.value)>-1);
                     this.menu.add(cfg);
                 }, this);
                 this.hasLoaded = true;

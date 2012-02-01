@@ -296,7 +296,7 @@ Ext.apply(Zenoss.devices, {
                                          Ext.each(opts.uids, function(uid) {
                                              deviceIds.push( uid.split('/')[uid.split('/').length-1] );
                                          });
-                                         if (['delete', 'remove'].indexOf(opts.action) !== -1) {
+                                         if (Ext.Array.indexOf(['delete', 'remove'], opts.action) !== -1) {
                                              Zenoss.message.info('Successfully {0}d device{1}: {2}',
                                                                  opts.action,
                                                                  opts.uids.length > 1 ? 's' : '',
@@ -801,7 +801,7 @@ function detailSelectByToken(nodeId) {
         }, item, {single: true});
     }
     if (parts[1]) {
-        if (master.items.items.indexOf(container.activeItem)==1 ||
+        if (Ext.Array.indexOf(master.items.items, container.activeItem)==1 ||
             (node && node.id==parts[0])) {
             Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
             changeDetail();

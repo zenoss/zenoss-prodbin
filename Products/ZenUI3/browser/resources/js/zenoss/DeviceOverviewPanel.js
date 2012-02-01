@@ -849,7 +849,7 @@
             Ext.each(this.forms, function(f){
                 Ext.each(f.getForm().getFields().items, function(field) {
                     key = field.name;
-                    if (keys.indexOf(key)==-1) {
+                    if (Ext.Array.indexOf(keys, key)==-1) {
                         keys.push(key);
                     }
                 });

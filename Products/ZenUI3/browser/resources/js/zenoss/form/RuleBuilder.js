@@ -73,7 +73,7 @@
         if (ZF.CONJUNCTIONS.hasOwnProperty(conjunction)) {
             var conj = ZF.CONJUNCTIONS[conjunction];
             ZF.CONJUNCTION_STORE.push([conjunction, conj.text]);
-            conjunctions_inverse[conj.tpl.trim()] = conjunction;
+            conjunctions_inverse[Ext.String.trim(conj.tpl)] = conjunction;
         }
     }
 
@@ -219,7 +219,7 @@
                         change: function() {
                             var cmp = ZF.COMPARISONS[this.comparison.getValue()],
                                 field = this.subject.getSubject().field || (cmp && cmp.field) || {xtype:'textfield'},
-                                idx = this.items.items.indexOf(this.predicate),
+                                idx = Ext.Array.indexOf(this.items.items, this.predicate),
                                 oldvalue = this.predicate.getValue(),
                                 oldxtype = this.predicate.xtype;
                             this.remove(this.predicate);
@@ -436,7 +436,7 @@
                 funcflag=false;
             c = expression.charAt(i);
             var savetoken = function() {
-                var v = token.join('').trim();
+                var v = Ext.String.trim(token.join(''));
                 if (v) {
                     tokens.push(v);
                 }

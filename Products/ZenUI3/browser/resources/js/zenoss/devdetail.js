@@ -573,7 +573,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
             'historyevents',
             'objtemplates'
         ];
-        return (excluded.indexOf(config.id)==-1);
+        return (Ext.Array.indexOf(excluded, config.id)==-1);
     },
     onGetNavConfig: function(contextId) {
         return Zenoss.nav.get('Device');

@@ -227,7 +227,7 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
             'modeldevice',
             'historyevents'
         ];
-        return (excluded.indexOf(config.id)==-1);
+        return (Ext.Array.indexOf(excluded, config.id)==-1);
     },
     onSelectionChange: function(sm, node) {
         var target = this.target || Ext.getCmp('component_detail_panel'),
@@ -312,7 +312,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 'modeldevice',
                                 'historyevents'
                             ];
-                            return (excluded.indexOf(cfg.id)==-1);
+                            return (Ext.Array.indexOf(excluded, cfg.id)==-1);
                         },
                         ref: '../../componentnav',
                         getTarget: Ext.bind(function() {

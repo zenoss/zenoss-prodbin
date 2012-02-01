@@ -166,7 +166,7 @@ Ext.define("Zenoss.form.BaseDetailForm", {
     getFieldNames: function() {
         var keys = [];
         for (var k in this.getForm().getValues(false, false)) {
-            if (keys.indexOf(k)==-1) {
+            if (Ext.Array.indexOf(keys, k)==-1) {
                 keys.push(k);
             }
         }

@@ -24,7 +24,7 @@
                 B = C.body,
                 card = C.getComponent(index),
                 active = this.activeItem,
-                activeIndex = C.items.items.indexOf(active);
+                activeIndex = Ext.Array.indexOf(C.items.items, active);
             if (card != active) {
                 if (active) {
                     if (card) {
