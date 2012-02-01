@@ -21,9 +21,6 @@ log = logging.getLogger("zen.search")
 
 class TestQueryParser(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
-
     def testParsedQuery(self):
         operators = {'type':['events','devices','puddingpops'],
                      'op2':['nuttin','honey']}

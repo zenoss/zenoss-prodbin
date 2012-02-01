@@ -19,8 +19,8 @@ from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenWin.services.WinServiceConfig import WinServiceConfig
 
 class TestWinServiceConfig(ZenModelBaseTest):
-    def setUp(self):
-        super(TestWinServiceConfig, self).setUp()
+    def afterSetUp(self):
+        super(TestWinServiceConfig, self).afterSetUp()
 
         dev = manage_createDevice(self.dmd, "test-dev1",
                                   "/Server/Windows",
@@ -36,11 +36,11 @@ class TestWinServiceConfig(ZenModelBaseTest):
         self._deviceNames = [ "test-dev1" ]
         self._configService = WinServiceConfig(self.dmd, "localhost")
 
-    def tearDown(self):
-        super(TestWinServiceConfig, self).tearDown()
+    def beforeTearDown(self):
         self._testDev = None
         self._deviceNames = None
         self._configService = None
+        super(TestWinServiceConfig, self).beforeTearDown()
 
     def testProductionStateFilter(self):
         self._testDev.setProdState(-1)

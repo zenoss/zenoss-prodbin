@@ -43,8 +43,8 @@ class Identifiable(SimpleItem):
 
 class TestGuid(BaseTestCase):
 
-    def setUp(self):
-        super(TestGuid, self).setUp()
+    def afterSetUp(self):
+        super(TestGuid, self).afterSetUp()
 
         self.ob = Identifiable('identifiable', self.dmd)
         self.dmd._setOb(self.ob.id, self.ob)

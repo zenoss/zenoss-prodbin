@@ -90,8 +90,8 @@ class TestConfigOptions(BaseTestCase):
             argv.append(str(v))
         return argv
                 
-    def setUp(self):
-        super(TestConfigOptions, self).setUp()
+    def afterSetUp(self):
+        super(TestConfigOptions, self).afterSetUp()
         
         # test command line args
         args = self._get_args(self.example_cmds)

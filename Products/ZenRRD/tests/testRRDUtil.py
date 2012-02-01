@@ -22,8 +22,8 @@ from Products.ZenModel.Exceptions import *
 
 class TestRRDUtil(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestRRDUtil, self).afterSetUp()
 
         # Make a valid test device
         testdev = str(self.__class__.__name__)
@@ -142,7 +142,7 @@ class TestRRDUtil(BaseTestCase):
         self.assertRaises( Exception, rrd.save, "/", 666.0, 'COUNTER' )
 
 
-    def tearDown(self):
+    def beforeTearDown(self):
         """
         Clean up after our tests
         """
@@ -152,7 +152,7 @@ class TestRRDUtil(BaseTestCase):
         except:
             pass
 
-        BaseTestCase.tearDown(self)
+        super(TestRRDUtil, self).beforeTearDown()
 
 
 

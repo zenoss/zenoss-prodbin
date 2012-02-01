@@ -23,8 +23,8 @@ log = logging.getLogger("zen.testcases")
 
 
 class TestNewDeviceMap(BaseTestCase):
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestNewDeviceMap, self).afterSetUp()
         self.adm = ApplyDataMap()
         self.ndmap = NewDeviceMap()
         self.device = self.dmd.Devices.createInstance('testDevice')

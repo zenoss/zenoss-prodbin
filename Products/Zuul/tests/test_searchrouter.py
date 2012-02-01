@@ -78,22 +78,25 @@ def _createJSONInfo( index, popout ):
 
 class TestSearchRouter(BaseTestCase):
 
-    def setUp(self):
+    def afterSetUp(self):
+        super(TestSearchRouter, self).afterSetUp()
+
         global search_results
-        BaseTestCase.setUp(self)
         search_results = None
         gsm = getGlobalSiteManager()
         gsm.registerAdapter( DummyFacade, (DataRoot,), IFacade, 'search' )
         gsm.registerAdapter( DummySearchSnippet, (ISearchResult,), IQuickSearchResultSnippet )
         gsm.registerAdapter( Marshaller, (IQuickSearchResultSnippet,), IMarshaller )
 
-    def tearDown(self):
+    def beforeTearDown(self):
         global search_results
         search_results = None
         gsm = getGlobalSiteManager()
         gsm.unregisterAdapter( Marshaller )
         gsm.unregisterAdapter( DummySearchSnippet )
         gsm.unregisterAdapter( DummyFacade )
+
+        super(TestSearchRouter, self).beforeTearDown()
 
     def testGetLiveResults(self):
         global search_results

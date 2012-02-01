@@ -44,8 +44,8 @@ IpService._relations = IpService._relations + (("subcomponents",  ToManyCont(ToO
 
 class TestDeviceComponent(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestDeviceComponent, self).afterSetUp()
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = IpService('ipsvc')
         self.dev.os.ipservices._setObject('ipsvc',tmpo)

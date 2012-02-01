@@ -21,8 +21,8 @@ from ZenModelBaseTest import ZenModelBaseTest
 
 class TestHardDisk(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestHardDisk, self).afterSetUp()
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = HardDisk('hdd')
         self.dev.hw.harddisks._setObject('hdd',tmpo)

@@ -27,8 +27,8 @@ class TestDeviceOrganizers(ZenModelBaseTest):
         map(lambda x:x.sort(idsort), args)
         return self.assertEqual(*args)
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestDeviceOrganizers, self).afterSetUp()
         self.catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
 
         orgs = ("/aa/bb", "/aa/cc", "/bb/aa", "/bb/cc")

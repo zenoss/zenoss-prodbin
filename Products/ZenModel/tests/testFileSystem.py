@@ -22,8 +22,8 @@ from ZenModelBaseTest import ZenModelBaseTest
 class TestFileSystem(ZenModelBaseTest):
 
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestFileSystem, self).afterSetUp()
         self.dev = self.dmd.Devices.createInstance('testdev')
         tmpo = FileSystem('fs')
         self.dev.os.filesystems._setObject('fs',tmpo)

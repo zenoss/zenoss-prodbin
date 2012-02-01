@@ -29,8 +29,8 @@ log.warn = lambda *args, **kwds: None
 
 class TestIpRouteEntry(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestIpRouteEntry, self).afterSetUp()
 
         self.dev = self.dmd.Devices.createInstance('testdev')
 

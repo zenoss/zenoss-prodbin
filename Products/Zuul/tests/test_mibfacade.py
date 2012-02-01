@@ -25,8 +25,8 @@ class MibFacadeTest(ZuulFacadeTestCase):
     to test the trees that get generated from these sources.
     """
 
-    def setUp(self):
-        super(MibFacadeTest, self).setUp()
+    def afterSetUp(self):
+        super(MibFacadeTest, self).afterSetUp()
         self.facade = Zuul.getFacade('mibs', self.dmd)
         self.mibName = 'myTestMIB'
         self.mib = self.dmd.Mibs.createMibModule(self.mibName)

@@ -23,8 +23,9 @@ from Products.ZenEvents.ZenEventClasses import Unknown
 
 class TestZepFacade(ZuulFacadeTestCase):
 
-    def setUp(self):
-        super(TestZepFacade, self).setUp()
+    def afterSetUp(self):
+        super(TestZepFacade, self).afterSetUp()
+        
         self.eventClassId = "App"
         self.dmd.Events.createOrganizer(self.eventClassId)
         self.zep = getFacade('zep', self.dmd)

@@ -26,8 +26,8 @@ from Products.Zuul.catalog.events import IndexingEvent
 
 class DeviceFacadeTest(ZuulFacadeTestCase):
 
-    def setUp(self):
-        super(DeviceFacadeTest, self).setUp()
+    def afterSetUp(self):
+        super(DeviceFacadeTest, self).afterSetUp()
         self.facade = Zuul.getFacade('device', self.dmd)
 
     def test_interfaces(self):

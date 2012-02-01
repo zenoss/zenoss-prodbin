@@ -37,9 +37,6 @@ class _TestPlugin(AliasPlugin):
 
 class TestAliasPlugin(BaseTestCase):
         
-    def setUp(self):
-        BaseTestCase.setUp(self)
-
     @replaceGetRRDValue( attributeAsRRDValue )
     def testPropertyColumns(self):
         rackSlot=44

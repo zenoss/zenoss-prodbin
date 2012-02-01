@@ -47,9 +47,6 @@ class TestClass(FakeInfo):
 
 class MarshalTest(BaseTestCase):
 
-    def setUp(self):
-        super(MarshalTest, self).setUp()
-
     def match(self, dct, keys=None):
         if keys is None:
             # Implicit marshalling

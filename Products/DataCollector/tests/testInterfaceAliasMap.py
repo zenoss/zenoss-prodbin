@@ -24,8 +24,8 @@ log = logging.getLogger("zen.testcases")
 
 
 class TestInterfaceAliasMap(BaseTestCase):
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestInterfaceAliasMap, self).afterSetUp()
         self.adm = ApplyDataMap()
         self.iamap = InterfaceAliasMap()
         self.device = self.dmd.Devices.createInstance('testDevice')

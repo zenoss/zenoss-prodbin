@@ -32,8 +32,8 @@ NET = '10.1.2.0'
 
 class TestPathIndexing(ZenModelBaseTest):
 
-    def setUp(self):
-        super(TestPathIndexing,self).setUp()
+    def afterSetUp(self):
+        super(TestPathIndexing, self).afterSetUp()
         self.devcat = self.dmd.Devices.deviceSearch
 
         self.devclass = self.dmd.Devices.createOrganizer(DEVCLASS)
@@ -141,8 +141,8 @@ class TestPathIndexing(ZenModelBaseTest):
 
 class TestComponentIndexing(ZenModelBaseTest):
 
-    def setUp(self):
-        super(TestComponentIndexing,self).setUp()
+    def afterSetUp(self):
+        super(TestComponentIndexing, self).afterSetUp()
         self.devcat = self.dmd.Devices.deviceSearch
         self.layer2cat = self.dmd.ZenLinkManager._getCatalog(layer=2)
         self.layer3cat = self.dmd.ZenLinkManager._getCatalog(layer=3)

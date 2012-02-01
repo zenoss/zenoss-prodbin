@@ -184,8 +184,8 @@ class MockTriggersFacade(TriggersFacade):
         pass
 
 class TriggersFacadeTest(BaseTestCase):
-    def setUp(self):
-        super(TriggersFacadeTest, self).setUp()
+    def afterSetUp(self):
+        super(TriggersFacadeTest, self).afterSetUp()
 
         self.trigger_service = MockTriggersService()
         self.trigger_manager = MockTriggerManager()

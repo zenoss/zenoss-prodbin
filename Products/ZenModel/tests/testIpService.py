@@ -24,8 +24,8 @@ from ZenModelBaseTest import ZenModelBaseTest
 
 class TestIpService(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestIpService, self).afterSetUp()
 
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = IpService('ipsvc')

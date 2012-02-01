@@ -18,8 +18,8 @@ from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenWin.services.EventLogConfig import EventLogConfig
 
 class TestEventLogConfig(ZenModelBaseTest):
-    def setUp(self):
-        super(TestEventLogConfig, self).setUp()
+    def afterSetUp(self):
+        super(TestEventLogConfig, self).afterSetUp()
         dev = manage_createDevice(self.dmd, "test-dev1",
                                   "/Server/Windows",
                                   manageIp="10.0.10.1")
@@ -29,11 +29,11 @@ class TestEventLogConfig(ZenModelBaseTest):
         self._deviceNames = [ "test-dev1" ]
         self._configService = EventLogConfig(self.dmd, "localhost")
 
-    def tearDown(self):
-        super(TestEventLogConfig, self).tearDown()
+    def beforeTearDown(self):
         self._testDev = None
         self._deviceNames = None
         self._configService = None
+        super(TestEventLogConfig, self).beforeTearDown()
 
     def testProductionStateFilter(self):
         self._testDev.setProdState(-1)

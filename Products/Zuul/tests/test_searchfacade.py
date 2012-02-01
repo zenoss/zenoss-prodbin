@@ -61,23 +61,24 @@ def createResultsFromIds( ids, category='test' ):
 
 class TestSearchFacade(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestSearchFacade, self).afterSetUp()
+
         global search_results
-        BaseTestCase.setUp(self)
         search_results = None
         gsm = getGlobalSiteManager()
         self._parser = DummyParser()
         gsm.registerUtility( self._parser, ISearchQueryParser )
         gsm.registerSubscriptionAdapter( DummyProvider )
 
-    def tearDown(self):
+    def beforeTearDown(self):
         global search_results
         search_results = None
         gsm = getGlobalSiteManager()
         gsm.unregisterUtility( self._parser )
         gsm.unregisterSubscriptionAdapter( DummyProvider )
-        BaseTestCase.tearDown(self)
+
+        super(TestSearchFacade, self).beforeTearDown()
 
     def testGetQuickSearchResults(self):
         global search_results

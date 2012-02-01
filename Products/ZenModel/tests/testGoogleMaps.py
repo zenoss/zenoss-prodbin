@@ -22,8 +22,8 @@ class DummyRequest(object):
 
 class TestGoogleMaps(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestGoogleMaps, self).afterSetUp()
         self.dev = self.dmd.Devices.createInstance('testdev')
         self.loc = self.dmd.Locations.createOrganizer('annapolis')
         self.loc.address = 'Annapolis, MD'

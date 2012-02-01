@@ -22,8 +22,8 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class TestCollectorConfig(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestCollectorConfig, self).afterSetUp()
 
         self._devices = []
 
@@ -37,9 +37,6 @@ class TestCollectorConfig(BaseTestCase):
 
         device = self.dmd.Devices.createInstance("testdev3")
         self._devices.append(device)
-
-    def tearDown(self):
-        pass
 
     def testFilter(self):
         class MyCollectorConfig(CollectorConfigService):

@@ -18,8 +18,8 @@ from Products.ZenWidgets.messaging import BrowserMessageBox, UserMessageBox
 
 class TestMessaging(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestMessaging, self).afterSetUp()
         self.dmd.REQUEST.SESSION = {}
 
     def _login(self, name):

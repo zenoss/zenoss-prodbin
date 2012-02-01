@@ -21,15 +21,16 @@ from ZenModelBaseTest import ZenModelBaseTest
   
 class TestLocation(ZenModelBaseTest):
 
-    def setUp(self):
-        super(TestLocation, self).setUp()
+    def afterSetUp(self):
+        super(TestLocation, self).afterSetUp()
         # Monkeypatch Location since it doesn't have access to page templates
         # via acquisition
         Location.mapTooltip = lambda *x:'PAGE TEMPLATE'
 
-    def tearDown(self):
+    def beforeTearDown(self):
         # Remove the monkeypatch
         del Location.mapTooltip
+        super(TestLocation, self).beforeTearDown()
 
     def testGoogleMapsData(self):
         a = self.dmd.Locations.createOrganizer('A')

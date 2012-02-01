@@ -160,8 +160,9 @@ class PageMockAction(MockAction):
 
 class ProcessSignalTaskTest(BaseTestCase):
 
-    def setUp(self):
-        super(ProcessSignalTaskTest, self).setUp()
+    def afterSetUp(self):
+        super(ProcessSignalTaskTest, self).afterSetUp()
+        
         from zope.component import getGlobalSiteManager
         # register the component
         gsm = getGlobalSiteManager()

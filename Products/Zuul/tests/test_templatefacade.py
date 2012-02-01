@@ -17,8 +17,9 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class TemplateFacadeTest(BaseTestCase):
 
-    def setUp(self):
-        super(TemplateFacadeTest, self).setUp()
+    def afterSetUp(self):
+        super(TemplateFacadeTest, self).afterSetUp()
+        
         self.facade = Zuul.getFacade('template', self.dmd)
         #  uid for a template
         self.uid = '/zport/dmd/Devices/rrdTemplates/test1'

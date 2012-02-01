@@ -44,8 +44,9 @@ def dumpObjectMapData(om):
 
 class TestIpServiceMap(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestIpServiceMap, self).afterSetUp()
+        
         self.device = FakeDevice('testdevice')
 
     def checkResults(self, omMap, parsed_data):

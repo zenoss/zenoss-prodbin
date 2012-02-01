@@ -44,8 +44,8 @@ def dumpObjectMapData(om):
 
 class TestHRFileSystemMap(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestHRFileSystemMap, self).afterSetUp()
 
         self.fsmap = HRFileSystemMap()
         self.device = FakeDevice('testdevice')

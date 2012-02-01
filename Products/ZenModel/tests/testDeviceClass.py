@@ -24,8 +24,8 @@ from ZenModelBaseTest import ZenModelBaseTest
 
 class TestDeviceClass(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestDeviceClass, self).afterSetUp()
         devices = self.dmd.Devices
         self.routers = devices.createOrganizer("/NetworkDevice/Router")
         devices.createOrganizer("/NetworkDevice/Router/Firewall")

@@ -28,8 +28,8 @@ from Products.ZenModel.OSProcessOrganizer import manage_addOSProcessOrganizer
 
 class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
 
-    def setUp(self):
-        super(ProcessFacadeTest, self).setUp()
+    def afterSetUp(self):
+        super(ProcessFacadeTest, self).afterSetUp()
         self.facade = Zuul.getFacade('process', self.dmd)
         manage_addOSProcessOrganizer(self.dmd.Processes, 'foo')
         self.dmd.Processes.foo.manage_addOSProcessClass('bar')

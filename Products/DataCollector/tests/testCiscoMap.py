@@ -23,8 +23,8 @@ log = logging.getLogger("zen.testcases")
 
 
 class TestCiscoMap(BaseTestCase):
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        super(TestCiscoMap, self).afterSetUp()
         self.adm = ApplyDataMap()
         self.cmap = CiscoMap()
         self.device = self.dmd.Devices.createInstance('testDevice')

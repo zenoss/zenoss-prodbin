@@ -26,8 +26,8 @@ log.warn = lambda *args, **kwds: None
 
 class TestIpInterface(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestIpInterface, self).afterSetUp()
         tmpo = IpInterface('test')
         self.dev = self.dmd.Devices.createInstance('testdev')
         self.dev.os.interfaces._setObject('test',tmpo)

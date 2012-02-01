@@ -22,8 +22,8 @@ from ZenModelBaseTest import ZenModelBaseTest
 
 class TestWinService(ZenModelBaseTest):
 
-    def setUp(self):
-        ZenModelBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(TestWinService, self).afterSetUp()
 
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = WinService('wsvc')

@@ -14,18 +14,18 @@ from Products.ZenEvents.Event import buildEventFromDict
 
 class TestPublishEvents(BaseTestCase):
 
-    def setUp(self):
-        super(TestPublishEvents, self).setUp()
+    def afterSetUp(self):
+        super(TestPublishEvents, self).afterSetUp()
         self.publisher = getModelChangePublisher()
         # create a dummy device
         self.device = self.dmd.Devices.createInstance('testDevice')
         self.publisher.publishAdd(self.device)
 
 
-    def tearDown(self):
-        super(TestPublishEvents, self).tearDown()
+    def beforeTearDown(self):
         self.publisher = None
         self.device = None
+        super(TestPublishEvents, self).beforeTearDown()
 
     def _createDummyEvent(self):
         """

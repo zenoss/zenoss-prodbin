@@ -17,8 +17,9 @@ log = logging.getLogger("zen.dynamicservices")
 
 class TestPublishModelChanges(BaseTestCase):
 
-    def setUp(self):
-        super(TestPublishModelChanges, self).setUp()
+    def afterSetUp(self):
+        super(TestPublishModelChanges, self).afterSetUp()
+        
         self.publisher = getModelChangePublisher()
         from zope.component import getGlobalSiteManager
         # register the component
@@ -31,8 +32,8 @@ class TestPublishModelChanges(BaseTestCase):
         self.publisher.publishAdd(self.device)
 
 
-    def tearDown(self):
-        super(TestPublishModelChanges, self).tearDown()
+    def beforeTearDown(self):
+        super(TestPublishModelChanges, self).beforeTearDown()
         self.publisher = None
         self.device = None
         self.queue = None

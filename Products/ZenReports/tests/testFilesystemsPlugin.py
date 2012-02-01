@@ -65,9 +65,6 @@ def createTestDeviceWithFileSystemTemplateBound( dmd, deviceId ):
 
 class TestFilesystemsPlugin(BaseTestCase):
         
-    def setUp(self):
-        BaseTestCase.setUp(self)
-
     @replaceGetRRDValue( attributeAsRRDValue )
     def testNoValues(self):
         template=createTemplate(self.dmd, 'TestTemplate1')

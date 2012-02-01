@@ -32,8 +32,8 @@ from Products.ZenUtils.ZenTales import talesEval
 class ZenPropertyManagerTest(ZenRelationsBaseTest):
 
 
-    def setUp(self):
-        ZenRelationsBaseTest.setUp(self)
+    def afterSetUp(self):
+        super(ZenPropertyManagerTest, self).afterSetUp()
         self.orgroot = self.create(self.dmd, Organizer, "Orgs")
         self.orgroot.buildOrgProps()
 
@@ -186,12 +186,12 @@ class RelationshipManagerTest(TransformerBase, TestCase):
         
 class TransformerDmdTest(TransformerBase, BaseTestCase):
     
-    def setUp(self):
+    def afterSetUp(self):
         """
         Test getting the transformers dictionary from the well-known dmd
         location.
         """
-        BaseTestCase.setUp(self)
+        super(TransformerDmdTest, self).afterSetUp()
         managerId = 'manager'
         self.dmd._setObject(managerId, RelationshipManager(managerId))
         self.manager = self.dmd.manager

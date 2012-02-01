@@ -115,15 +115,15 @@ tg = lambda t: time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
 
 
 class TestActionRuleWindow(ZenModelBaseTest):
-    def setUp(self):
-        super(TestActionRuleWindow, self).setUp()
+    def afterSetUp(self):
+        super(TestActionRuleWindow, self).afterSetUp()
         self.dmd.ZenUsers.manage_addUser('user1', 'zenoss', ['Manager'])
         self.user = self.dmd.ZenUsers.user1
 
 
-    def tearDown(self):
+    def beforeTearDown(self):
         self.dmd.ZenUsers.manage_deleteUsers(['user1'])
-        super(TestActionRuleWindow, self).tearDown()
+        super(TestActionRuleWindow, self).beforeTearDown()
 
 
     def testSchedules(self):

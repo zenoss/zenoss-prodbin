@@ -63,9 +63,6 @@ def createTestDeviceWithInterfaceTemplateBound( dmd, deviceId ):
 
 class TestInterfacePlugin(BaseTestCase):
         
-    def setUp(self):
-        BaseTestCase.setUp(self)
-
     @replaceGetRRDValue( attributeAsRRDValue )
     def testNoValues(self):
         template=createTemplate(self.dmd, 'TestTemplate1')

@@ -21,8 +21,8 @@ from Products.Zuul.interfaces import IComponent
 
 class ServiceFacadeTest(ZuulFacadeTestCase):
 
-    def setUp(self):
-        super(ServiceFacadeTest, self).setUp()
+    def afterSetUp(self):
+        super(ServiceFacadeTest, self).afterSetUp()
         self.facade = Zuul.getFacade('service', self.dmd)
 
     def test_interfaces(self):

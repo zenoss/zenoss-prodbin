@@ -59,8 +59,8 @@ class TargetInfo(infos.InfoBase):
     
 class InfoTest(BaseTestCase):
 
-    def setUp(self):
-        super(InfoTest, self).setUp()
+    def afterSetUp(self):
+        super(InfoTest, self).afterSetUp()
         provideAdapter(TargetInfo)
         target = Target()
         self.info = TargetInfo(target)

@@ -72,8 +72,8 @@ class TestTransactions(ZopeTestCase):
     # must define this class constant to avoid problems with 'test_folder_1_'
     _setup_fixture = 0
 
-    def setUp(self):
-        super(TestTransactions,self).setUp()
+    def afterSetUp(self):
+        super(TestTransactions,self).afterSetUp()
 
         self.app.txn_test_objectx = 0
         transaction.commit()
@@ -94,7 +94,7 @@ class TestTransactions(ZopeTestCase):
             log.warning( "failed to setup amqp connection: %s",e )
 
 
-    def tearDown(self):
+    def beforeTearDown(self):
         try:
             if not self.connected_to_mq:
                 log.debug( "no connection to mq, skipping tearDown")
@@ -111,7 +111,7 @@ class TestTransactions(ZopeTestCase):
                 self.pub.publish("FIN")
 
         finally:
-            super(TestTransactions,self).tearDown()
+            super(TestTransactions,self).beforeTearDown()
             pass
 
     def template_test_transaction_fn(self, n=10, raise_exception=False, raise_internal_only=False):
