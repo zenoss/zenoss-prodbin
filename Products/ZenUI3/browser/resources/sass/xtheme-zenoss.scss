@@ -234,3 +234,8 @@ $include-missing-images: true;
     }
     th, td{padding:0px !important;}
 }
+
+.x-ie .searchfield{
+    height:21px !important;
+    overflow:hidden;
+}
