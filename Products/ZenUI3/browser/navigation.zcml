@@ -259,6 +259,7 @@
                       /zport/dmd/eventConfig
                       /zport/dmd/userInterfaceConfig
                       /zport/dmd/zepConfig
+                      /zport/dmd/manageLDAPConfig
                       /zport/About
                       /zport/dmd/backupInfo"
             weight="0"
