@@ -18,6 +18,7 @@ from ZODB.transact import transact
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath
 
+from Products.ZenModel import ZVersion
 from Products.ZenModel.ZenPack import ZenPackException, \
                                         ZenPackNotFoundException, \
                                         ZenPackNeedMigrateException
@@ -37,6 +38,8 @@ import socket
 import logging
 import zExceptions
 
+from urlparse import urlparse
+
 
 log = logging.getLogger('zen.ZenPackCMD')
 
@@ -44,7 +47,7 @@ log = logging.getLogger('zen.ZenPackCMD')
 
 FQDN = socket.getfqdn()
 
-ZEN_PACK_INDEX_URL = ''
+ZENPACKS_BASE_URL = 'http://zenpacks.zenoss.com/pypi'
 
 # All ZenPack eggs have to define exactly one entry point in this group.
 ZENPACK_ENTRY_POINT = 'zenoss.zenpacks'
@@ -637,7 +640,6 @@ def DoEasyInstall(eggPath):
         # Execute the easy_install
         args = ['--site-dirs', zenPath('ZenPacks'),
             '-d', zenPath('ZenPacks'),
-            # '-i', ZEN_PACK_INDEX_URL,
             '--allow-hosts', 'None',
             '--record', tempPath,
             '--quiet',
@@ -665,21 +667,23 @@ def DoEasyInstall(eggPath):
 ########################################
 
 
-def FetchAndInstallZenPack(dmd, zenPackName, zenPackVersion='', sendEvent=True):
+def FetchAndInstallZenPack(dmd, zenPackName, sendEvent=True):
     """
     Fetch the named zenpack and all its dependencies and install them.
     Return a list of the ZenPacks that were installed.
     """
     zenPacks = []
     try:
-        zpDists = FetchZenPack(zenPackName, zenPackVersion)
+        zpDists = FetchZenPack(dmd, zenPackName)
         for d in zpDists:
-            zenPacks.append(InstallDistAsZenPack(dmd, d))
-    except:
+            zenPacks.append(InstallDistAsZenPack(dmd, d, d.location))
+    except Exception, ex:
+        log.exception("Error fetching ZenPack %s" % zenPackName)
         if sendEvent:
             ZPEvent(dmd, 4, 'Failed to install ZenPack %s' % zenPackName,
                 '%s: %s' % sys.exc_info()[:2])
-        raise
+
+        raise ex
     if sendEvent:
         zenPackIds = [z.id for z in zenPacks]
         if zenPackIds:
@@ -689,22 +693,26 @@ def FetchAndInstallZenPack(dmd, zenPackName, zenPackVersion='', sendEvent=True):
     return zenPacks
 
 
-def FetchZenPack(zenPackName, zenPackVersion=''):
+def FetchZenPack(dmd, zenPackName):
     """
     Use easy_install to retrieve the given zenpack and any dependencies.
     easy_install will install the eggs, but does not install them into
     Zenoss as ZenPacks.
     Return a list of distributions just installed that appear to be
     ZenPacks.
-    
+
     NB: This should be refactored.  It shares most of its code with
     DoEasyInstall()
     """
     from setuptools.command import easy_install
-    
+
     # Make sure $ZENHOME/ZenPacks exists
     CreateZenPacksDir()
-    
+
+    # Create the proper package index URL.
+    index_url = '%s/%s/%s/' % (
+        ZENPACKS_BASE_URL, dmd.uuid, ZVersion.VERSION)
+
     # Create temp file for easy_install to write results to
     _, tempPath = tempfile.mkstemp(prefix='zenpackcmd-easyinstall')
     # eggPaths is a set of paths to eggs that were installed.  We need to
@@ -713,10 +721,11 @@ def FetchZenPack(zenPackName, zenPackVersion=''):
     eggPaths = set()
     try:
         # Execute the easy_install
-        args = ['--site-dirs', zenPath('ZenPacks'),
+        args = [
+            '--site-dirs', zenPath('ZenPacks'),
             '-d', zenPath('ZenPacks'),
-            '-i', ZEN_PACK_INDEX_URL,
-            '--allow-hosts', 'None',
+            '-i', index_url,
+            '--allow-hosts', urlparse(index_url).hostname,
             '--record', tempPath,
             '--quiet',
             zenPackName]
@@ -724,11 +733,11 @@ def FetchZenPack(zenPackName, zenPackVersion=''):
         # Collect the paths for eggs that were installed
         f = open(tempPath, 'r')
         marker = '.egg/'
-        markerOffset = len(marker)-1
+        markerOffset = len(marker) - 1
         for l in f.readlines():
             i = l.find(marker)
             if i > 0:
-                eggPaths.add(l[:i+markerOffset])
+                eggPaths.add(l[:i + markerOffset])
     finally:
         os.remove(tempPath)
     # Add any installed eggs to the current working set
