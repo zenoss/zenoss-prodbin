@@ -17,6 +17,7 @@ import optparse
 import os
 import subprocess
 import sys
+import copy
 
 from config import ConfigFile
 
@@ -32,7 +33,9 @@ class ZenDBError(Exception):
 class ZenDB(object):
     requiredParams = ('db-type', 'host', 'port', 'db', 'user')
     
-    def __init__(self, useDefault=None, dsn=None, useAdmin=False):
+    def __init__(self, useDefault, dsn={}, useAdmin=False):
+        # parameter is muteable, use a local copy
+        dsn = copy.deepcopy(dsn) 
         if useDefault in ('zep', 'zodb'):
             dbparams = self._getParamsFromGlobalConf(useDefault)
             for setting in dbparams:
@@ -77,6 +80,29 @@ class ZenDB(object):
                             key = key[len(defaultDb)+1:]
                             settings[key] = val
                 return settings
+
+    def getConnection(self, extraParams={}):
+        if self.dbtype == 'mysql':
+            try:
+                import MySQLdb
+            except ImportError:
+                import pymysql
+                pymysql.install_as_MySQLdb()
+                import MySQLdb
+            p = self.dbparams
+            params = {}
+            params['host'] = p['host']
+            params['port'] = int(p['port'])
+            params['user'] = p['user']
+            params['passwd'] = p['password']
+            params['db'] = p['db']
+            if 'socket' in p:
+                params['unix_socket'] = p['socket']
+            params.update(extraParams)
+            connection = MySQLdb.connect(**params)
+            return connection
+        else:
+            raise NotImplemented("This method does not support %s" % self.dbtype) 
     
     def dumpSql(self, outfile=None):
         # output to stdout if nothing passed in, open a file if a string is passed,
