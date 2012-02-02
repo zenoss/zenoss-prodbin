@@ -22,6 +22,7 @@ from StringIO import StringIO
 
 import Globals
 import transaction
+from zenoss.protocols.services import ServiceException
 from ZODB.POSException import ConflictError
 
 from Products.ZenModel.ZenPack import ZenPack, ZenPackException
@@ -35,7 +36,7 @@ from Products.Zuul import getFacade
 
 HIGHER_THAN_CRITICAL = 100
 
-def RemoveZenPack(dmd, packName, log=None, 
+def RemoveZenPack(dmd, packName, log=None,
                         skipDepsCheck=False, leaveObjects=True,
                         deleteFiles=True):
     if log:
@@ -84,8 +85,8 @@ class ZenPackCmd(ZenScriptBase):
         try:
             zep.getConfig()
             return True
-        except:
-            pass
+        except ServiceException:
+            return False
 
     def run(self):
         """Execute the user's request"""
@@ -97,7 +98,7 @@ class ZenPackCmd(ZenScriptBase):
         if self.options.installPackName:
             eggInstall = (self.options.installPackName.lower().endswith('.egg')
                 or os.path.exists(os.path.join(self.options.installPackName,
-                                                'setup.py')))                    
+                                                'setup.py')))
 
         # files-only just lays the files down and doesn't "install"
         # them into zeo
@@ -122,12 +123,12 @@ class ZenPackCmd(ZenScriptBase):
             proxy = ZPProxy(self.options.removePackName)
             for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
                 loader.unload(proxy, None)
-            os.system('rm -rf %s' % zenPath('Products', 
+            os.system('rm -rf %s' % zenPath('Products',
                                             self.options.removePackName))
             return
-            
-            
-            
+
+
+
         self.connect()
 
         if not getattr(self.dmd, 'ZenPackManager', None):
@@ -196,7 +197,7 @@ class ZenPackCmd(ZenScriptBase):
                 else:
                     desc = zp.path()
                 print('%s (%s)' % (zpId,  desc))
-            
+
         transaction.commit()
 
 
@@ -224,7 +225,7 @@ class ZenPackCmd(ZenScriptBase):
                     subprocess.call(cmd, shell=True,
                                     stdout=open('/dev/null', 'w'),
                                     cwd=self.options.installPackName)
-                    
+
                     eggRequires = os.path.join(tempEggDir,
                                     self.options.installPackName + '.egg-info',
                                     'requires.txt')
@@ -269,7 +270,7 @@ class ZenPackCmd(ZenScriptBase):
                 fp.close()
             else:
                 return True
-                
+
         parser = ConfigParser.SafeConfigParser()
         parser.readfp(sio, name)
         if parser.has_section(CONFIG_SECTION_ABOUT) \
@@ -277,7 +278,7 @@ class ZenPackCmd(ZenScriptBase):
             requires = eval(parser.get(CONFIG_SECTION_ABOUT, 'requires'))
             if not isinstance(requires, list):
                 requires = [zp.strip() for zp in requires.split(',')]
-            missing = [zp for zp in requires 
+            missing = [zp for zp in requires
                     if zp not in self.dataroot.ZenPackManager.packs.objectIds()]
             if missing:
                 self.log.error('ZenPack %s was not installed because'
@@ -344,8 +345,8 @@ class ZenPackCmd(ZenScriptBase):
                     os.makedirs(base, 0750)
                 file(fullname, 'wb').write(zf.read(name))
         return packName
-        
-        
+
+
     def copyDir(self, srcDir):
         """Copy an unzipped zenpack to the appropriate location.
         Return the name.
@@ -353,27 +354,27 @@ class ZenPackCmd(ZenScriptBase):
         # Normalize srcDir to not end with slash
         if srcDir.endswith('/'):
             srcDir = srcDir[:-1]
-        
+
         if not os.path.isdir(srcDir):
             self.stop('Specified directory does not appear to exist: %s' %
                         srcDir)
-        
-        # Determine name of pack and it's destination directory                
+
+        # Determine name of pack and it's destination directory
         packName = os.path.split(srcDir)[1]
         root = zenPath('Products', packName)
-        
+
         # Continue without copying if the srcDir is already in Products
         if os.path.exists(root) and os.path.samefile(root, srcDir):
             self.log.debug('Directory already in %s, not copying.',
                            zenPath('Products'))
             return packName
-        
+
         # Copy the source dir over to Products
         self.log.debug('Copying %s' % packName)
         result = os.system('cp -r %s %s' % (srcDir, zenPath('Products')))
         if result == -1:
             self.stop('Error copying %s to %s' % (srcDir, zenPath('Products')))
-        
+
         return packName
 
 
@@ -384,32 +385,32 @@ class ZenPackCmd(ZenScriptBase):
         # Normalize srcDir to not end with slash
         if srcDir.endswith('/'):
             srcDir = srcDir[:-1]
-            
+
         # Need absolute path for links
         srcDir = os.path.abspath(srcDir)
-        
+
         if not os.path.isdir(srcDir):
             self.stop('Specified directory does not appear to exist: %s' %
                         srcDir)
-        
-        # Determine name of pack and it's destination directory                
+
+        # Determine name of pack and it's destination directory
         packName = os.path.split(srcDir)[1]
         root = zenPath('Products', packName)
-        
+
         # Continue without copying if the srcDir is already in Products
         if os.path.exists(root) and os.path.samefile(root, srcDir):
             self.log.debug('Directory already in %s, not copying.',
                            zenPath('Products'))
             return packName
-      
+
         targetdir = zenPath("Products", packName)
         cmd = 'test -d %s && rm -rf %s' % (targetdir, targetdir)
         os.system(cmd)
         cmd = 'ln -s %s %s' % (srcDir, zenPath("Products"))
         os.system(cmd)
-        
+
         return packName
-        
+
 
     def stop(self, why):
         self.log.error("zenpack stopped: %s", why)
