@@ -585,6 +585,17 @@ class TestZenprocess(BaseTestCase):
         task = self.makeTask(procDefs)
         self.compareTestFile('rpciod_test', task, self.expected(PROCESSES=33, NEW=33, MISSING=0))
 
+    def testSpecialCharacterSuffix(self):
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'sendmail_ accepting connections', False, 'sendmail: accepting connections')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'sendmail: accepting connections'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': 'sendmail: accepting connections'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': ''}}
+        
+        self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0))
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

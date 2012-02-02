@@ -240,7 +240,7 @@ class ProcessStats:
 
         if result and useName:
             nameOnly = self._config.name.split(' ')[0]
-            cleanNameOnly = globalPrepId(name.split(' ')[0])
+            cleanNameOnly = globalPrepId(name).split(' ')[0]
             nameRe = '(.?)' + re.escape(nameOnly) + '$'
             nameMatch = re.search(nameRe, cleanNameOnly)
             if not nameMatch or nameMatch.group(1) not in ('', '_'):
