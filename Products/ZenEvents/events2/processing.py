@@ -179,14 +179,16 @@ class Manager(object):
 
         if results.total:
             return results.results.next().uuid
-        else:
+
+        elif ipAddress is not None:
             querySet = Eq('ipAddress', ipAddress)
 
             # search the components
             results = cat.search(types=DeviceComponent, query=querySet, limit=1, filterPermissions=False)
-            if results.total:
+            components = list(results)
+            if components:
                 return self.getElementUuid(
-                        results.results.next().getObject().device())
+                        components[0].getObject().device())
             else:
                 return None
 
