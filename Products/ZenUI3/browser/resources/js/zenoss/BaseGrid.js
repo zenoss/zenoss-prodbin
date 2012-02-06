@@ -542,7 +542,7 @@
 
 
     /**
-     * @class Zenoss.FilterGridPanl
+     * @class Zenoss.FilterGridPanel
      * @extends Zenoss.BaseGridPanel
      * Sub class of the base grid that allows adds filters to the columns.
      * @constructor

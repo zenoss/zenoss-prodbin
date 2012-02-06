@@ -18,14 +18,14 @@
 Ext.ns('Zenoss', 'Zenoss.dialog');
 
 /**
- * @class BaseWindow
- * @extends Ext.Window
+ * @class Zenoss.dialog.BaseWindow
+ * @extends Ext.window.Window
  * A modal window with some defaults. Will auto focus on the first
  * textfield and make the enter key hit submit
  *
  **/
 Ext.define("Zenoss.dialog.BaseWindow", {
-    extend: "Ext.Window",
+    extend: "Ext.window.Window",
     alias: ['widget.basewindow'],
     constructor: function(config) {
         config = config || {};
@@ -92,12 +92,12 @@ Ext.define("Zenoss.dialog.BaseWindow", {
 
 
 /**
- * @class BaseDialog
+ * @class Zenoss.dialog.BaseDialog
  * @extends Zenoss.dialog.BaseWindow
  * A modal dialog with Zenoss styling. Subclasses should specify a layout.
  * @constructor
  */
-Ext.define("BaseDialog", {
+Ext.define("Zenoss.dialog.BaseDialog", {
     extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -107,7 +107,7 @@ Ext.define("BaseDialog", {
             padding: 10,
             autoHeight: true
         });
-        BaseDialog.superclass.constructor.call(this, config);
+        this.callParent([config]);
     }
 });
 
@@ -184,14 +184,14 @@ Zenoss.dialog.CANCEL = {
 
 /**
  * @class Zenoss.MessageDialog
- * @extends BaseDialog
+ * @extends Zenoss.dialog.BaseDialog
  * A modal dialog window with Zenoss styling and a fit layout.  This window
  * meant to be instantiated once per page, and hidden each time the user
  * closes it.  Includes an OK and Cancel button.
  * @constructor
  */
 Ext.define("Zenoss.MessageDialog", {
-    extend: "BaseDialog",
+    extend: "Zenoss.dialog.BaseDialog",
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'fit',
@@ -222,13 +222,13 @@ Ext.define("Zenoss.MessageDialog", {
 
 /**
  * @class Zenoss.dialog.SimpleMessageDialog
- * @extends BaseDialog
+ * @extends Zenoss.dialog.BaseDialog
  * A modal dialog window with Zenoss styling and a fit layout. No buttons are
  * included
  * @constructor
  */
 Ext.define("Zenoss.dialog.SimpleMessageDialog", {
-    extend: "BaseDialog",
+    extend: "Zenoss.dialog.BaseDialog",
     /**
      * message to be displayed on dialog
      * @param {Object} config
@@ -328,14 +328,14 @@ Ext.define("Zenoss.dialog.CloseDialog",{
 
 /**
  * @class Zenoss.HideFormDialog
- * @extends BaseDialog
+ * @extends Zenoss.dialog.BaseDialog
  * A modal dialog window with Zenoss styling and a form layout.  This window
  * meant to be instantiated once per page, and hidden each time the user
  * closes it.
  * @constructor
  */
 Ext.define("Zenoss.HideFormDialog", {
-    extend: "BaseDialog",
+    extend: "Zenoss.dialog.BaseDialog",
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'anchor',
@@ -349,7 +349,7 @@ Ext.define("Zenoss.HideFormDialog", {
 
 /**
  * @class Zenoss.SmartFormDialog
- * @extends FormDialog
+ * @extends Zenoss.FormDialog
  * A modal dialog window with Zenoss styling and a form layout.  This window
  * meant to be instantiated once and then thrown away after use.
  *
@@ -419,12 +419,12 @@ Ext.define("Zenoss.SmartFormDialog", {
 
 /**
  * @class Zenoss.dialog.ErrorDialog
- * @extends BaseDialog
+ * @extends Zenoss.dialog.BaseDialog
  * A modal dialog window with Zenoss styling and a fit layout.
  * @constructor
  */
 Ext.define("Zenoss.dialog.ErrorDialog", {
-    extend: "BaseDialog",
+    extend: "Zenoss.dialog.BaseDialog",
     title:_t('Error'),
     message: null,
     constructor: function(config) {
@@ -477,7 +477,7 @@ Ext.define("Zenoss.HideFitDialog", {
  * submit button on this dialog is pressed.
  */
 Ext.define("Zenoss.dialog.DynamicDialog", {
-    extend: "BaseDialog",
+    extend: "Zenoss.dialog.BaseDialog",
     initEvents: function(){
         Zenoss.dialog.DynamicDialog.superclass.initEvents.call(this);
         this.body.getLoader().on('failure', function(el, response) {

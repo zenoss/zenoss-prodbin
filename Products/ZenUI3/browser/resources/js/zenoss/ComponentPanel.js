@@ -251,7 +251,10 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
 });
 
 
-
+/**
+ *@class Zenoss.component.ComponentPanel
+ *@extends Ext.Panel
+ **/
 Ext.define("Zenoss.component.ComponentPanel", {
     alias:['widget.componentpanel'],
     extend:"Ext.Panel",
@@ -382,7 +385,12 @@ Ext.define("Zenoss.component.ComponentPanel", {
     }
 });
 
-
+/**
+ *@class Zenoss.component.ComponentGridPanel
+ *@extends Zenoss.BaseGridPanel
+ * Base class for all of the component grids including the custom
+ * grids extended by zenpacks.
+ **/
 Ext.define("Zenoss.component.ComponentGridPanel", {
     alias:['widget.ComponentGridPanel'],
     extend:"Zenoss.BaseGridPanel",

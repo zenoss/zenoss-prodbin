@@ -1,13 +1,13 @@
 (function() { // Local scope
 
-var ZI = Ext.namespace('Zenoss.inspector');
+Ext.namespace('Zenoss.inspector');
 
 
 /**
  * Manages inspector windows to ensure that only one window matching
  * `uid` is active at a time.
  */
-ZI.SingleInstanceManager = Ext.extend(Object, {
+Zenoss.inspector.SingleInstanceManager = Ext.extend(Object, {
     _instances: null,
     constructor: function() {
         this._instances = {};
@@ -198,17 +198,17 @@ Ext.define('Zenoss.inspector.BaseInspector', {
 /**
  * An inspector that gets its data via a directFn remote call.
  */
-ZI.DirectInspector = Ext.extend(ZI.BaseInspector, {
+Zenoss.inspector.DirectInspector = Ext.extend(Zenoss.inspector.BaseInspector, {
     _contextUid: null,
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             directFn: Ext.emptyFn
         });
 
-        ZI.DirectInspector.superclass.constructor.call(this, config);
+        Zenoss.inspector.DirectInspector.superclass.constructor.call(this, config);
     },
     initComponent: function() {
-        ZI.DirectInspector.superclass.initComponent.call(this);
+        Zenoss.inspector.DirectInspector.superclass.initComponent.call(this);
         this.addEvents('contextchange');
         this.on('contextchange', this._onContextChange, this);
     },
@@ -293,8 +293,8 @@ Ext.define('Zenoss.inspector.ComponentInspector', {
     }
 });
 
-var windowManager = new ZI.SingleInstanceManager();
-ZI.createWindow = function(uid, xtype, x, y) {
+var windowManager = new Zenoss.inspector.SingleInstanceManager();
+Zenoss.inspector.createWindow = function(uid, xtype, x, y) {
 
     var win = new Ext.Window({
         x: (x || 0),
@@ -316,15 +316,15 @@ ZI.createWindow = function(uid, xtype, x, y) {
     return win;
 };
 
-ZI.registeredInspectors = {
+Zenoss.inspector.registeredInspectors = {
     device: 'deviceinspector'
 };
 
-ZI.registerInspector = function(inspector_type, inspector_xtype) {
-    ZI.registeredInspectors[inspector_type.toLowerCase()] = inspector_xtype;
+Zenoss.inspector.registerInspector = function(inspector_type, inspector_xtype) {
+    Zenoss.inspector.registeredInspectors[inspector_type.toLowerCase()] = inspector_xtype;
 };
 
-ZI.show = function(uid, x, y) {
+Zenoss.inspector.show = function(uid, x, y) {
     Zenoss.remote.DeviceRouter.getInfo({ uid: uid }, function(result) {
         if (result.success) {
             // Grasping at straws but assume it's a component unless otherwise stated
@@ -333,11 +333,11 @@ ZI.show = function(uid, x, y) {
             var itype = result.data.inspector_type || result.data.meta_type;
             if (itype) {
                 itype = itype.toLowerCase();
-                if (ZI.registeredInspectors[itype]) {
-                    xtype = ZI.registeredInspectors[itype];
+                if (Zenoss.inspector.registeredInspectors[itype]) {
+                    xtype = Zenoss.inspector.registeredInspectors[itype];
                 }
             }
-            var win = ZI.createWindow(uid, xtype, x, y);
+            var win = Zenoss.inspector.createWindow(uid, xtype, x, y);
             win.panelItem.setContext(uid, false);
             win.panelItem.update(result.data);
             win.show();

@@ -1,5 +1,5 @@
 Ext.onReady(function() {
-    var ns = Ext.ns('Zenoss.eventdetail');
+    Ext.ns('Zenoss.eventdetail');
 
     /**
      * This property is used by ZenPacks and other things to specify custom
@@ -31,9 +31,9 @@ Ext.onReady(function() {
 
     /**
      * The header used for the top of the event detail pane.
-     * WAS ns.detail_table_template
+     * WAS Zenoss.eventdetail.detail_table_template
      */
-    ns.detail_header_template = ['<table width="99%" id="evdetail_props_table">',
+    Zenoss.eventdetail.detail_header_template = ['<table width="99%" id="evdetail_props_table">',
         '<tr><td class="dt">',_t('Resource:'),'</td>',
             '<td>',
                 '<tpl if="device">',
@@ -61,9 +61,9 @@ Ext.onReady(function() {
 
     /**
      * The template used for regular event properties.
-     * WAS: ns.fullprop_table_template
+     * WAS: Zenoss.eventdetail.fullprop_table_template
      */
-    ns.detail_data_template = ['<table class="proptable" width="100%">',
+    Zenoss.eventdetail.detail_data_template = ['<table class="proptable" width="100%">',
         '<tpl for="properties">',
         '<tr class=\'{[xindex % 2 === 0 ? "even" : "odd"]}\'>',
         '<td class="proptable_key">{key}</td>',
@@ -73,9 +73,9 @@ Ext.onReady(function() {
 
     /**
      * Template for log messages.
-     * WAS: ns.log_table_template
+     * WAS: Zenoss.eventdetail.log_table_template
      */
-    ns.detail_log_template = ['<table>',
+    Zenoss.eventdetail.detail_log_template = ['<table>',
         '<tpl for="log">',
         '<tr><td class="time">{0} {1}: </td>',
             '<td class="message">{2}</td></tr>',
@@ -90,14 +90,14 @@ Ext.onReady(function() {
      *      "<p>{my_key}</p>"
      *
      */
-    ns.Section = Ext.extend(Object, {
+    Zenoss.eventdetail.Section = Ext.extend(Object, {
         constructor: function(config){
             Ext.applyIf(config || {}, {
-                template: ns.detail_data_template
+                template: Zenoss.eventdetail.detail_data_template
             });
             Ext.apply(this, config);
 
-            ns.Section.superclass.constructor.apply(this, arguments);
+            Zenoss.eventdetail.Section.superclass.constructor.apply(this, arguments);
         },
 
         /**
@@ -130,7 +130,7 @@ Ext.onReady(function() {
      *   </tpl>"
      *
      */
-    ns.RepeatedSection = Ext.extend(ns.Section, {
+    Zenoss.eventdetail.RepeatedSection = Ext.extend(Zenoss.eventdetail.Section, {
         constructor: function(config) {
             Ext.applyIf(config || {} , {
                 generateHtml: function(renderedData, eventData) {
@@ -147,7 +147,7 @@ Ext.onReady(function() {
                     return template.apply(props);
                 }
             });
-            ns.RepeatedSection.superclass.constructor.apply(this, arguments);
+            Zenoss.eventdetail.RepeatedSection.superclass.constructor.apply(this, arguments);
         }
     });
 
@@ -156,7 +156,7 @@ Ext.onReady(function() {
      * This special details section knows how to iterate over event details. Any
      * keys specified will be looked for in an event's details data.
      */
-    ns.DetailsSection = Ext.extend(ns.RepeatedSection, {
+    Zenoss.eventdetail.DetailsSection = Ext.extend(Zenoss.eventdetail.RepeatedSection, {
         constructor: function(config) {
             Ext.applyIf(config || {} , {
                 generateHtml: function(renderedData, eventData) {
@@ -180,7 +180,7 @@ Ext.onReady(function() {
                     return template.apply(props);
                 }
             });
-            ns.DetailsSection.superclass.constructor.apply(this, arguments);
+            Zenoss.eventdetail.DetailsSection.superclass.constructor.apply(this, arguments);
         }
     });
 
@@ -387,18 +387,18 @@ Ext.onReady(function() {
             };
             Ext.apply(this.renderers, default_renderers);
 
-            var eventInfoSection = new ns.Section({
+            var eventInfoSection = new Zenoss.eventdetail.Section({
                 id: "evdetail_props",
                 cls: 'evdetail_props',
-                template: ns.detail_header_template,
+                template: Zenoss.eventdetail.detail_header_template,
                 keys: ['device', 'component', 'eventClass', 'eventState', 'message']
             });
             this.addSection(eventInfoSection);
 
-            var eventManagementSection = new ns.RepeatedSection({
+            var eventManagementSection = new Zenoss.eventdetail.RepeatedSection({
                 id: "event_detail_management_section",
                 title: _t("Event Management"),
-                template: ns.detail_data_template,
+                template: Zenoss.eventdetail.detail_data_template,
                 keys: [ 'agent', 'component', 'dedupid', 'eventClass', 'eventClassKey',
                         'eventClassMapping', 'eventGroup', 'eventKey', 'eventState', 'evid',
                         'facility', 'message', 'ntevid', 'priority', 'severity', 'summary'
@@ -406,10 +406,10 @@ Ext.onReady(function() {
             });
             this.addSection(eventManagementSection);
 
-            var deviceStateSection = new ns.RepeatedSection({
+            var deviceStateSection = new Zenoss.eventdetail.RepeatedSection({
                 id: 'event_detail_device_state_section',
                 title: _t('Device State'),
-                template: ns.detail_data_template,
+                template: Zenoss.eventdetail.detail_data_template,
                 keys: [
                     'DeviceClass', 'DeviceGroups', 'DevicePriority',
                     'Location', 'Systems', 'device', 'ipAddress',
@@ -418,10 +418,10 @@ Ext.onReady(function() {
             });
             this.addSection(deviceStateSection);
 
-            var eventMetaSection = new ns.RepeatedSection({
+            var eventMetaSection = new Zenoss.eventdetail.RepeatedSection({
                 id: 'event_detail_meta_section',
                 title: _t('Event Data'),
-                template: ns.detail_data_template,
+                template: Zenoss.eventdetail.detail_data_template,
                 keys: [
                     'clearid', 'count', 'firstTime', 'lastTime',
                     'owner', 'stateChange'
@@ -429,10 +429,10 @@ Ext.onReady(function() {
             });
             this.addSection(eventMetaSection);
 
-            var eventDetailsSection = new ns.DetailsSection({
+            var eventDetailsSection = new Zenoss.eventdetail.DetailsSection({
                 id: 'event_detail_details_section',
                 title: _t('Event Details'),
-                template: ns.detail_data_template
+                template: Zenoss.eventdetail.detail_data_template
             });
             this.addSection(eventDetailsSection);
 
@@ -627,7 +627,7 @@ Ext.onReady(function() {
             }, this);
 
             // Update Logs
-            var logTemplate = new Ext.XTemplate(ns.detail_log_template),
+            var logTemplate = new Ext.XTemplate(Zenoss.eventdetail.detail_log_template),
                 logHtml;
             logHtml = logTemplate.apply(eventData);
             Ext.getCmp('evdetail_log').update(logHtml);
