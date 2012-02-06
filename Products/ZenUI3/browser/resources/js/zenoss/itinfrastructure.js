@@ -1369,6 +1369,9 @@ function getOrganizerFields(mode) {
     return items;
 }
 
+// Footer bar for the main Infrastructure page.
+// This extends Zenoss.footerHelper in FooterBar.js
+
 var footerBar = Ext.getCmp('footer_bar');
     Zenoss.footerHelper(
     '',
@@ -1380,6 +1383,7 @@ var footerBar = Ext.getCmp('footer_bar');
         // own in contrast to using the canned one in footerHelper
         addToZenPack: false,
 
+        // the message to display when user hits the [-] delete button.
         onGetDeleteMessage: function (itemName) {
             var node = treesm.getSelectedNode(),
                 tree = node.getOwnerTree(),

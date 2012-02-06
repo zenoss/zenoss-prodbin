@@ -713,13 +713,15 @@
             function callback(provider, response) {
                 // Only update the UI if the response indicates success
                 if (Zenoss.util.isSuccessful(response)) {
+                    // Select the parent node since the current one was deleted.
+                    me.getSelectionModel().select(parentNode);
+
+                    // Refresh the parent node's tree to remove our node.
                     me.getStore().load({
                         callback:function () {
                             me.selectByToken(parentNode.get('uid'));
                         }
                     });
-
-
                 }
             }
 
