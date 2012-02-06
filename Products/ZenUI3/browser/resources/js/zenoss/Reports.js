@@ -79,9 +79,13 @@ Ext.define('Zenoss.ReportTreePanel', {
     extend: 'Zenoss.HierarchyTreePanel',
     addNode: function (nodeType, id) {
         var selNode = this.getSelectionModel().getSelectedNode(),
-            parentNode = selNode.leaf ? selNode.parentNode : selNode,
             tree = this,
             newNode;
+        if(!selNode.data.uid){
+            this.getSelectionModel().selectByPosition({row: 0});
+            selNode = this.getSelectionModel().getSelectedNode();
+        }
+        var parentNode = selNode.leaf ? selNode.parentNode : selNode;        
         this.router.addNode({
             nodeType: nodeType,
             contextUid: parentNode.data.uid,
@@ -92,6 +96,7 @@ Ext.define('Zenoss.ReportTreePanel', {
                 if (newNode.data.edit_url) {
                     window.location = newNode.data.edit_url;
                 }
+                tree.refresh();
             }
         });
     },
