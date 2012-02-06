@@ -19,7 +19,6 @@ from Products.ZenModel.MibOrganizer import *
 from Products.ZenModel.MibOrganizer import _oid2name
 
 from ZenModelBaseTest import ZenModelBaseTest
-import unittest
 
 
 class MockBrain(object):
@@ -46,7 +45,7 @@ class MockCatalog(object):
         return matches
 
 
-class TestOid2Name(unittest.TestCase):
+class TestOid2Name(ZenModelBaseTest):
     """tests the oid2name function
     """
     

@@ -12,10 +12,10 @@
 #
 ###########################################################################
 
-import unittest
 import Globals
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class _dev(object):
     id = 'mydevid'
@@ -49,9 +49,10 @@ utf16_objmap =  { 'a': u'\xff\xfeabcdef'.encode('utf-16'),
                   # little-endian with BOM
                   'c': '\xff\xfe\x34\x6c\x7a\x00\x34\xd8\x13\xdd' }
 
-class ApplyDataMapTest(unittest.TestCase):
+class ApplyDataMapTest(BaseTestCase):
 
-    def setUp(self):
+    def afterSetUp(self):
+        super(ApplyDataMapTest, self).afterSetUp()
         self.adm = ApplyDataMap()
 
     def test_updateObject_encoding(self):

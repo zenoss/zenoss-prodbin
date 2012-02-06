@@ -14,12 +14,13 @@
 import unittest
 
 import pkg_resources # Import this so zenoss.protocols will be found
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zenoss.protocols.jsonformat import from_dict
 from Products.ZenEvents.events2.proxy import ZepRawEventProxy, EventProxy
 from zenoss.protocols.protobufs.zep_pb2 import (EventSummary, Event, EventNote, EventSummaryUpdate,
     EventSort, EventSummaryUpdateRequest, EventSummaryRequest, EventQuery, EventDetailSet, ZepRawEvent)
 
-class EventProxyTagsAndDetailsTest(unittest.TestCase):
+class EventProxyTagsAndDetailsTest(BaseTestCase):
     initialEvent = {
     }
 

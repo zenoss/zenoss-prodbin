@@ -15,10 +15,10 @@ import Globals
 
 from Products.ZenModel.Device import Device, manage_createDevice
 from Products.ZenModel.WinService import WinService, manage_addWinService
-from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenWin.services.WinServiceConfig import WinServiceConfig
 
-class TestWinServiceConfig(ZenModelBaseTest):
+class TestWinServiceConfig(BaseTestCase):
     def afterSetUp(self):
         super(TestWinServiceConfig, self).afterSetUp()
 

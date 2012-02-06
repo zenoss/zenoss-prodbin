@@ -68,6 +68,8 @@ def msg_publish(chan):
 
 
 class TestTransactions(ZopeTestCase):
+    # This class does not inherit from BaseTestCase because it's doing low-level transactions on ZODB,
+    # which we disable in BaseTestCase.
 
     # must define this class constant to avoid problems with 'test_folder_1_'
     _setup_fixture = 0
@@ -203,14 +205,6 @@ class TestTransactions(ZopeTestCase):
     def test_2nested_transaction_rollback(self):
         return self.template_test_transaction_fn(raise_exception=True, raise_internal_only=True)
 
-# class for easy disabling of these tests
-class DummyTester(unittest.TestCase):
-    def test_nada(self):
-        pass
-
 def test_suite():
-    if 0:
-        return unittest.makeSuite(TestTransactions)
-    else:
-        return unittest.makeSuite(DummyTester)
+    return unittest.makeSuite(TestTransactions)
 

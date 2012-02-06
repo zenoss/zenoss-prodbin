@@ -10,8 +10,9 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import os, sys, unittest
+import os, sys
 from Products.ZenModel.ValueChangeThreshold import ValueChangeThresholdInstance
+from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenUtils.mock import MockObject
 
 if __name__ == '__main__':
@@ -19,7 +20,7 @@ if __name__ == '__main__':
 
 
 
-class TestValueChangeThreshold(unittest.TestCase):
+class TestValueChangeThreshold(ZenModelBaseTest):
     def testImpl(self):
         mKey=MockObject(return__="testKey")
         context = MockObject(key=mKey)

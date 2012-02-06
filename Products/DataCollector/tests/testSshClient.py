@@ -14,6 +14,7 @@
 import unittest
 from twisted.conch.error import ConchError
 from Products.DataCollector import SshClient
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 def doNothing(*args, **kwargs):
     pass
@@ -52,10 +53,12 @@ class FakeOptions(object):
     existenceTest = ''
 
 
-class OpenFailedTestCase(unittest.TestCase):
+class OpenFailedTestCase(BaseTestCase):
     """Tests regression of ticket #1483"""
 
-    def setUp(self):
+    def afterSetUp(self):
+        super(OpenFailedTestCase, self).afterSetUp()
+
         self.log = SshClient.log
         SshClient.log = FakeLog()
         self.sendEvent = SshClient.sendEvent
@@ -117,9 +120,11 @@ class OpenFailedTestCase(unittest.TestCase):
         self.client.runCommands()
         self.assertEqual(len(self.client.workList), 0)
 
-    def tearDown(self):
+    def beforeTearDown(self):
         SshClient.log = self.log
         SshClient.sendEvent = self.sendEvent
+
+        super(OpenFailedTestCase, self).beforeTearDown()
 
 def test_suite():
     suite = unittest.TestSuite()

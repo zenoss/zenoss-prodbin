@@ -66,7 +66,7 @@ class EventTestLayer(ZenossTestCaseLayer):
         finally:
             cls.zem.close(conn)
 
-class EventTestCase(unittest.TestCase):
+class EventTestCase(BaseTestCase):
 
     layer = EventTestLayer
 

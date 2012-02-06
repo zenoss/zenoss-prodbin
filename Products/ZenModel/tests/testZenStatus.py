@@ -11,24 +11,26 @@
 #
 ###########################################################################
 
-import unittest
 import time
+import unittest
 
 from DateTime import DateTime
 
 import Globals
 
 from Products.ZenModel.ZenStatus import ZenAvailability
+from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
 
-class ZenStatusTest(unittest.TestCase):
+class TestZenStatus(ZenModelBaseTest):
     
 
-    def setUp(self):
+    def afterSetUp(self):
+        super(TestZenStatus, self).afterSetUp()
         self.za = ZenAvailability()
 
-    def tearDown(self):
+    def beforeTearDown(self):
         self.za = None
-
+        super(TestZenStatus, self).beforeTearDown()
 
     def testIncr(self):
         self.za.incr()
@@ -69,6 +71,11 @@ class ZenStatusTest(unittest.TestCase):
         self.za.incr()
         self.failUnless(99.9 < self.za.getAvailPercent(DateTime()-7) < 100.0)
 
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(TestZenStatus))
+    return suite
 
-if __name__ == "__main__":
-    unittest.main()
+if __name__=="__main__":
+    framework()

@@ -12,6 +12,7 @@
 ###########################################################################
 import unittest
 import subprocess
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 #  daemon, list of prefixes of expected output
 _daemons = [
@@ -45,7 +46,7 @@ def _startswithInList(testString, listToTest):
             return True
     return False
 
-class CmdLineProgs(unittest.TestCase):
+class CmdLineProgs(BaseTestCase):
     """Test the shipping command line tools and make sure they don't stack trace."""
 
     def testDaemons(self):

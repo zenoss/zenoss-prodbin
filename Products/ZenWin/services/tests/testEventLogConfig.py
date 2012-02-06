@@ -14,10 +14,10 @@
 import Globals
 
 from Products.ZenModel.Device import Device, manage_createDevice
-from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenWin.services.EventLogConfig import EventLogConfig
 
-class TestEventLogConfig(ZenModelBaseTest):
+class TestEventLogConfig(BaseTestCase):
     def afterSetUp(self):
         super(TestEventLogConfig, self).afterSetUp()
         dev = manage_createDevice(self.dmd, "test-dev1",

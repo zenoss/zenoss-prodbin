@@ -83,13 +83,17 @@ class TestRRDImpl(BaseTestCase):
         def append(evt):
             if evt['severity'] != 0:
                 evts.append(evt)
+        oldSendEvent = rimpl.zem.sendEvent
         rimpl.zem.sendEvent = append
 
-        rimpl.writeRRD(self.dev.id, '', '', 'ds_dp', 99)
-        self.assert_(len(evts) == 0)
+        try:
+            rimpl.writeRRD(self.dev.id, '', '', 'ds_dp', 99)
+            self.assert_(len(evts) == 0)
 
-        rimpl.writeRRD(self.dev.id, '', '', 'ds_dp', 101)
-        self.assert_(len(evts) != 0)
+            rimpl.writeRRD(self.dev.id, '', '', 'ds_dp', 101)
+            self.assert_(len(evts) != 0)
+        finally:
+            rimpl.zem.sendEvent = oldSendEvent
 
 
 

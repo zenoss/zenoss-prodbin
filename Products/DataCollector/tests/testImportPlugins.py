@@ -11,16 +11,16 @@
 #
 ###########################################################################
 
-import unittest
 import Globals
 import os.path
 
 from Products.DataCollector.Plugins import PluginLoader, CoreImporter
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 here = lambda *x:os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 TEST_PACKAGE = here('plugins')
 
-class ImportPlugins(unittest.TestCase):
+class ImportPlugins(BaseTestCase):
 
     def test_simple(self):
         """

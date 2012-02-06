@@ -23,19 +23,12 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 
 import unittest
 from Confmon import IpUtil
+from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
 
-class IpUtilTest(unittest.TestCase):
-    
-    def setUp(self):
-        '''No setup to do for this module'''
-        pass
-
-    def tearDown(self):
-        '''No cleanup to do for this module'''
-        pass
+class IpUtilTest(ZenModelBaseTest):
 
     def testCheckBadIpDot(self):
-        '''check to see that checkip raises an error when 
+        '''check to see that checkip raises an error when
         fed input consisting of a single dot'''
         self.assertRaises(
             IpUtil.IpAddressError,
@@ -91,7 +84,7 @@ class IpUtilTest(unittest.TestCase):
             IpUtil.ipasid(
                 'ip_192_168_9_8'),
             'ip_192_168_9_8')
-            
+
     def testIp2IdGoodIp(self):
         '''check to see that ipasid will succeed if passed
         a decent IP'''

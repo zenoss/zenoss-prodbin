@@ -15,6 +15,7 @@ from os.path import join
 import unittest
 from Products.DataCollector.Plugins import CoreLoaderFactory
 from Products.DataCollector.Plugins import PackLoaderFactory
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class TestWalker(object):
     """
@@ -31,7 +32,7 @@ class TestWalker(object):
         assert package == self.package
         yield join(package, self.path), [], [self.filename]
 
-class BasePluginTest(unittest.TestCase):
+class BasePluginTest(BaseTestCase):
     
     def runTest(self):
         loaders = list(self.factory.genLoaders(self.package, 'plugins'))
@@ -43,7 +44,8 @@ class BasePluginTest(unittest.TestCase):
 class CorePluginTest(BasePluginTest):
     "test the conventions used for core plugins"
     
-    def setUp(self):
+    def afterSetUp(self):
+        super(CorePluginTest, self).afterSetUp()
         self.package = '/usr/local/zenoss/Products/DataCollector/plugins'
         walker = TestWalker(self.package, 'zenoss/cmd', 'df.py')
         self.factory = CoreLoaderFactory(walker)
@@ -56,7 +58,8 @@ class EggPackPluginTest(BasePluginTest):
     egg-installed zenpack
     """
     
-    def setUp(self):
+    def afterSetUp(self):
+        super(EggPackPluginTest, self).afterSetUp()
         self.package = '/usr/local/zenoss/ZenPacks' \
                        '/ZenPacks.zenoss.LinuxMonitor-1.0.0-py2.4.egg' \
                        '/ZenPacks/zenoss/LinuxMonitor/modeler/plugins'
@@ -72,7 +75,8 @@ class LinkPackPluginTest(BasePluginTest):
     link-installed zenpack
     """
     
-    def setUp(self):
+    def afterSetUp(self):
+        super(LinkPackPluginTest, self).afterSetUp()
         self.package = '/home/zenoss/working_copies/enterprise_zenpacks' \
                        '/ZenPacks.zenoss.AixMonitor/ZenPacks/zenoss' \
                        '/AixMonitor/modeler/plugins/zenoss/cmd/aix'

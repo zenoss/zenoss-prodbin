@@ -11,18 +11,13 @@
 #
 ###########################################################################
 
-import unittest
-import time
-import subprocess
-from StringIO import StringIO
-
 from twisted.internet import reactor, defer
 
-from Products.Jobber.interfaces import *
-from Products.Jobber.jobs import Job, ShellCommandJob
+from Products.Jobber.jobs import Job
 from Products.Jobber.manager import JobManager
 from Products.Jobber.status import JobStatus, SUCCESS, FAILURE
 from Products.Jobber.logfile import LogFile
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class SucceedingJob(Job):
     def run(self, r):
@@ -47,7 +42,7 @@ class OneSecondJob(Job):
         reactor.callLater(1, done)
 
 
-class TestJob(unittest.TestCase):
+class TestJob(BaseTestCase):
 
     def test_id_required(self):
         self.assertRaises(TypeError, Job)
@@ -70,8 +65,9 @@ class TestJob(unittest.TestCase):
         d.addCallback(test_failure)
 
 
-class TestJobStatus(unittest.TestCase):
-    def setUp(self):
+class TestJobStatus(BaseTestCase):
+    def afterSetUp(self):
+        super(TestJobStatus, self).afterSetUp()
         self.j = JobStatus(Job('ajob'))
 
     def test_isFinished(self):
@@ -101,8 +97,9 @@ class TestJobStatus(unittest.TestCase):
         self.assert_(self.j.getProperties()['b']==3)
 
 
-class TestJobManager(unittest.TestCase):
-    def setUp(self):
+class TestJobManager(BaseTestCase):
+    def afterSetUp(self):
+        super(TestJobManager, self).afterSetUp()
         self.m = JobManager('jobmgr')
 
     def test_add_job_jobs_only(self):
@@ -124,8 +121,9 @@ class TestJobManager(unittest.TestCase):
 
 
 
-class TestLogFile(unittest.TestCase):
-    def setUp(self):
+class TestLogFile(BaseTestCase):
+    def afterSetUp(self):
+        super(TestLogFile, self).afterSetUp()
         self.stat = JobStatus(Job('ajob'))
         self.log = self.stat.getLog()
 
@@ -145,8 +143,9 @@ class TestLogFile(unittest.TestCase):
         self.log.write("".join(data[2:]))
         self.assertEqual(self.log.readlines(), ["".join(data)])
 
-class TestLogStream(unittest.TestCase):
-    def setUp(self):
+class TestLogStream(BaseTestCase):
+    def afterSetUp(self):
+        super(TestLogStream, self).afterSetUp()
         self.stat = JobStatus(Job('ajob'))
         self.log = self.stat.getLog()
         self.stream = self.stat.getLog()

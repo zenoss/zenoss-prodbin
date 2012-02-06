@@ -15,6 +15,7 @@ import unittest
 
 from Products.DataCollector.plugins.zenoss.cmd.linux.ifconfig \
         import parseDmesg
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 
 exampleLines = {
@@ -33,7 +34,7 @@ class Object(object):
         for key, value in kwargs.items():
             setattr(self, key, value)
             
-class ParseDmesgTest(unittest.TestCase):
+class ParseDmesgTest(BaseTestCase):
     
     def runTest(self):
         eth0 = Object(interfaceName='eth0')

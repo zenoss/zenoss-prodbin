@@ -11,12 +11,10 @@
 #
 ###########################################################################
 
-from unittest import TestSuite, makeSuite, TestCase
-
 from Products.ZenEvents.SyslogProcessing import SyslogProcessor
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
-class SyslogProcessingTest(TestCase):
-    "FIXME: add more tests"
+class SyslogProcessingTest(BaseTestCase):
 
     def sendEvent(self, evt):
         "Fakeout sendEvent() method"
@@ -111,6 +109,7 @@ class SyslogProcessingTest(TestCase):
 
 
 def test_suite():
+    from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(SyslogProcessingTest))
     return suite

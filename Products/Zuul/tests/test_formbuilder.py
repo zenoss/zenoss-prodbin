@@ -15,6 +15,7 @@ import unittest
 
 
 from zope.interface import implements, Interface
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.Zuul.form.builder import FormBuilder
 import Products.Zuul.form.schema as zs
 
@@ -39,8 +40,9 @@ class TestObject(object):
     blah = 'pony'
     thing = LinkedTo()
 
-class FormBuilderTest(unittest.TestCase):
-    def setUp(self):
+class FormBuilderTest(BaseTestCase):
+    def afterSetUp(self):
+        super(FormBuilderTest, self).afterSetUp()
         self.fb = FormBuilder(TestObject())
 
     def test_inherited_schema(self):

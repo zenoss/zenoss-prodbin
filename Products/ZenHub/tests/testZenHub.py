@@ -14,7 +14,7 @@
 import unittest
 import Globals
 
-from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
+from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer, BaseTestCase
 from Products.ZenUtils.Driver import drive
 
 # Import from zenhub before importing twisted.internet.reactor
@@ -86,14 +86,15 @@ class SendEventClient(TestClient):
         drive(Test).addBoth(stop)
 
 
-class TestZenHub(unittest.TestCase):
+class TestZenHub(BaseTestCase):
 
     layer = ZenossTestCaseLayer
 
     base = 7000
     xbase = 8000
 
-    def setUp(self):
+    def afterSetUp(self):
+        super(TestZenHub, self).afterSetUp()
         global count
         count += 1
         base = self.base + count
@@ -110,8 +111,9 @@ class TestZenHub(unittest.TestCase):
         queue = DummyQueuePublisher()
         gsm.registerUtility(queue, IQueuePublisher)
 
-    def tearDown(self):
+    def beforeTearDown(self):
         sys.argv = self.before
+        super(TestZenHub, self).beforeTearDown()
 
     def testPbRegistration(self):
         from twisted.spread.jelly import unjellyableRegistry

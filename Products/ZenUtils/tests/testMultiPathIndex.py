@@ -12,6 +12,7 @@
 ###########################################################################
 import unittest
 import Globals
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from Products.ZenUtils.MultiPathIndex import MultiPathIndex
 
@@ -35,10 +36,11 @@ class Dummy:
     __repr__ = __str__
 
 
-class MultiPathIndexTests(unittest.TestCase):
+class MultiPathIndexTests(BaseTestCase):
     """ Test MultiPathIndex objects """
 
-    def setUp(self):
+    def afterSetUp(self):
+        super(MultiPathIndexTests, self).afterSetUp()
         self._index = MultiPathIndex( 'path' )
         self._values = {
           1 : Dummy("/aa/aa/aa/1.html"),

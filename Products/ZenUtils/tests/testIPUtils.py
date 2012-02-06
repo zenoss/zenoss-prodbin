@@ -11,10 +11,11 @@
 #
 ###########################################################################
 import unittest
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.IpUtil import ensureIp
 
 
-class IpUtilsTest(unittest.TestCase):
+class IpUtilsTest(BaseTestCase):
     """ Tests functions on the IpUtils module"""
     
     def testEnsureIp(self):

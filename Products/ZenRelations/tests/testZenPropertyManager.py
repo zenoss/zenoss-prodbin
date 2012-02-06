@@ -21,7 +21,6 @@ from Products.ZenRelations.tests.TestSchema import *
 from Products.ZenRelations.Exceptions import *
 
 from ZenRelationsBaseTest import ZenRelationsBaseTest
-from unittest import TestCase
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRelations.ZenPropertyManager import PropertyDescriptor
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
@@ -140,10 +139,11 @@ class Transformer(object):
     def transformForGet(self, input):
         return 'bar_%s' % input
 
-class TransformerBase(object):
+class TransformerBaseTest(BaseTestCase):
     
-    def tearDown(self):
+    def beforeTearDown(self):
         self.manager = None
+        super(TransformerBaseTest, self).beforeTearDown()
         
     def testMyTestType(self):
         "test that property of type 'my test type' is transformed"
@@ -167,24 +167,27 @@ class TransformerBase(object):
         self.manager.dog = 'Ripley'
         self.assertEqual('Ripley', self.manager.dog)
         
-class TransformerTest(TransformerBase, TestCase):
+class TransformerTest(TransformerBaseTest):
     
-    def setUp(self):
+    def afterSetUp(self):
         """
         Test ZenPropertyManager that does not acquire a dmd attribute.
         """
+        super(TransformerTest, self).afterSetUp()
         self.manager = ZenPropertyManager()
         
-class RelationshipManagerTest(TransformerBase, TestCase):
+class RelationshipManagerTest(TransformerBaseTest):
     
-    def setUp(self):
+    def afterSetUp(self):
         """
         Test ZenPropertyManager subclass that does not acquire a dmd 
         attribute.
         """
+        super(RelationshipManagerTest, self).afterSetUp()
+
         self.manager = RelationshipManager('manager')
         
-class TransformerDmdTest(TransformerBase, BaseTestCase):
+class TransformerDmdTest(TransformerBaseTest):
     
     def afterSetUp(self):
         """
@@ -192,6 +195,7 @@ class TransformerDmdTest(TransformerBase, BaseTestCase):
         location.
         """
         super(TransformerDmdTest, self).afterSetUp()
+
         managerId = 'manager'
         self.dmd._setObject(managerId, RelationshipManager(managerId))
         self.manager = self.dmd.manager
@@ -236,13 +240,15 @@ class MyPropertyManager(object, OldStyleClass):
     _properties = [dict(id='myProp', value='', type='my test type'),
                    dict(id='myProp2', value='', type='string')]
     
-class PropertyDescriptorTest(TestCase):
+class PropertyDescriptorTest(BaseTestCase):
     
-    def setUp(self):
+    def afterSetUp(self):
+        super(PropertyDescriptorTest, self).afterSetUp()
         self.manager = MyPropertyManager()
         
-    def tearDown(self):
+    def beforeTearDown(self):
         del self.manager
+        super(PropertyDescriptorTest, self).beforeTearDown()
         
     def testProperty(self):
         self.manager.myProp = 'quux'

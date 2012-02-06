@@ -11,11 +11,8 @@
 #
 ###########################################################################
 
-import unittest
-
 import transaction
 
-from Testing import ZopeTestCase
 from Testing.ZopeTestCase.layer import ZopeLite
 
 from AccessControl.SecurityManagement import newSecurityManager
@@ -26,6 +23,7 @@ from OFS.Folder import Folder
 
 from zope import interface
 from zope import component
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.site.hooks import setHooks
 from zope.component.interfaces import IObjectEvent
 from zope.testing import cleanup
@@ -104,23 +102,15 @@ class EventLayer(ZopeLite):
         zcml._initialized = 0
 
 
-class EventTest(unittest.TestCase):
+class EventTest(BaseTestCase):
 
     layer = EventLayer
 
-    def setUp(self):
-        transaction.begin()
-        self.app = self.root = ZopeTestCase.app()
-
-    def tearDown(self):
-        transaction.abort()
-        ZopeTestCase.close(self.app)
-
-
 class TestToManyContRelationship(EventTest):
 
-    def setUp(self):
-        EventTest.setUp(self)
+    def afterSetUp(self):
+        super(TestToManyContRelationship, self).afterSetUp()
+
         self.app._setObject('root', TestToManyCont('root'))
         self.root = getattr(self.app, 'root')
         transaction.savepoint(1)
