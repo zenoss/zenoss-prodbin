@@ -9700,6 +9700,9 @@ CORE TRIGGER PAGE STUFF
 #manageSavedSearchesDialog th, #manageSavedSearchesDialog td {
   padding: 0px !important; }
 
-.x-ie .searchfield {
+.x-ie #component_card .searchfield {
   height: 21px !important;
   overflow: hidden; }
+
+#category_tree .x-grid-view {
+  width: 260px !important; }
