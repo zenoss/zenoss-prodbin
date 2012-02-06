@@ -35,7 +35,8 @@ class ZenDB(object):
     
     def __init__(self, useDefault, dsn={}, useAdmin=False):
         # parameter is muteable, use a local copy
-        dsn = copy.deepcopy(dsn) 
+        dsn = copy.deepcopy(dsn)
+        self._db = useDefault 
         if useDefault in ('zep', 'zodb'):
             dbparams = self._getParamsFromGlobalConf(useDefault)
             for setting in dbparams:
@@ -98,6 +99,14 @@ class ZenDB(object):
             params['db'] = p['db']
             if 'socket' in p:
                 params['unix_socket'] = p['socket']
+            elif self._db == 'zep':
+                # ZEP does not use unix_socket, its a java app
+                # assume the socket is the same as zodb's if the
+                # hosts are the same
+                zodbZenDB = ZenDB('zodb')
+                if zodbZenDB.dbparams['host'] == params['host']:
+                   if 'socket' in zodbZenDB.dbparams:
+                       params['unix_socket'] = zodbZenDB.dbparams['socket']
             params.update(extraParams)
             connection = MySQLdb.connect(**params)
             return connection
