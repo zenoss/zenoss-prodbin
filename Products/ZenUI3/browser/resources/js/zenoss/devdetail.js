@@ -321,7 +321,7 @@ var componentCard = {
             Ext.getCmp('component_type_label').setText(Zenoss.component.displayName(type)[1]);
             var sf = Ext.getCmp('component_searchfield');
             sf.setRawValue(sf.emptyText);
-            sf.el.addClass(sf.emptyClass);
+            sf.el.addCls(sf.emptyClass);
         }
     }
 };

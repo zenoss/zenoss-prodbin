@@ -44,9 +44,9 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'Graphs',
         text: _t('Graphs'),
-        action: function(node, target, combo) {
+        action: function(node, target, combo) {       
             var uid = combo.contextUid,
-                cardid = uid+'_graphs',
+                cardid = 'graph_panel',
                 graphs = {
                     id: cardid,
                     xtype: 'graphpanel',
@@ -54,12 +54,13 @@ Zenoss.nav.register({
                     showToolbar: false,
                     text: _t('Graphs')
                 };
-            if (!(cardid in target.items.keys)) {
+            if (!Ext.get('graph_panel')) {
                 target.add(graphs);
             }
+             
             target.layout.setActiveItem(cardid);
-            target.layout.activeItem.setContext(uid);
-            var tbar = target.getToolbars()[0];
+            target.layout.activeItem.setContext(uid);        
+            var tbar = target.getDockedItems()[0];
             if (tbar._btns) {
                 Ext.each(tbar._btns, tbar.remove, tbar);
             }
@@ -118,14 +119,14 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'Events',
         text: _t('Events'),
-        action: function(node, target, combo) {
+        action: function(node, target, combo) {        
             var uid = combo.contextUid,
-                cardid = uid + '_events',
+                cardid = 'event_panel',
                 showPanel = function() {
                     target.layout.setActiveItem(cardid);
                     target.layout.activeItem.setContext(uid);
                 };
-            if (!(cardid in target.items.keys)) {
+            if (!Ext.get('event_panel')) {
                 var panel = target.add({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
@@ -133,7 +134,7 @@ Zenoss.nav.register({
                     stateId: 'component-event-console',
                     columns:  Zenoss.env.getColumnDefinitions(['component', 'device'])
                 });
-                var tbar = target.getToolbars()[0];
+                var tbar = target.getDockedItems()[0];
                 if (tbar._btns) {
                     Ext.each(tbar._btns, tbar.remove, tbar);
                 }
@@ -160,29 +161,31 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'Edit',
         text: _t('Details'),
-        action: function(node, target, combo) {
+        action: function(node, target, combo) {        
             var uid = combo.contextUid;
-            if (!(uid in target.items.keys)) {
+            if (!Ext.get('edit_panel')) {
                 Zenoss.form.getGeneratedForm(uid, function(config){
-                    target.add(Ext.apply({id:uid}, config));
-                    target.layout.setActiveItem(uid);
+                    target.add(Ext.apply({id:'edit_panel'}, config));
+                    target.layout.setActiveItem('edit_panel');
                 });
             } else {
-                target.layout.setActiveItem(uid);
+                target.layout.setActiveItem('edit_panel');
             }
         }
     },{
         nodeType: 'subselect',
         id: 'ComponentTemplate',
         text: _t('Templates'),
-        action: function(node, target, combo) {
-            var uid = combo.contextUid;
-            target.add(Ext.create('Zenoss.ComponentTemplatePanel',{
-                ref: 'componentTemplatePanel',
-                id: 'componentTemplatePanel' + uid
-            }));
+        action: function(node, target, combo) {        
+            var uid = combo.contextUid;            
+            if (!Ext.get('templates_panel')) {            
+                target.add(Ext.create('Zenoss.ComponentTemplatePanel',{
+                    ref: 'componentTemplatePanel',
+                    id: 'templates_panel'
+                }));
+            }
             target.componentTemplatePanel.setContext(uid);
-            target.layout.setActiveItem('componentTemplatePanel' + uid);
+            target.layout.setActiveItem('templates_panel');
         }
     }]
 });
