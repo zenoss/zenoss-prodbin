@@ -446,4 +446,4 @@ class NmapPingTask(BaseTask):
         Called by the collector framework scheduler, and allows us to
         see how each task is doing.
         """
-        pass
+        return ''
