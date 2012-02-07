@@ -49,7 +49,7 @@ class DeviceClassInvalidationFilter(object):
         m = md5.new()
         s = StringIO()
         # Checksum includes all bound templates
-        for tpl in devclass.getRRDTemplates():
+        for tpl in devclass.rrdTemplates():
             s.seek(0)
             s.truncate()
             # TODO: exportXml is a bit of a hack. Sorted, etc. would be better.
