@@ -41,14 +41,13 @@ Ext.define("Zenoss.form.IDField", {
         if (Ext.isEmpty(value)) {
             return true;
         }
-
         // if the value has not changed do not send an ajax request
-        if (this._previousValue !== undefined) {
-            if (value === this._previousValue) {
-                return this.reportResponse(this._previousResponseText);
+        if(typeof _previousVar != 'undefined'){
+            if (value == _previousValue) {
+                return this.reportResponse(_previousResponseText);
             }
         }
-        this._previousValue = value;
+        _previousValue = value;
 
         if (this.vtransaction) {
             Ext.Ajax.abort(this.vtransaction);
@@ -76,7 +75,6 @@ Ext.define("Zenoss.form.IDField", {
         if (responseText === "True") {
             return true;
         }
-
         // the server responds with a string of why it is invalid
         this.markInvalid(
             _t('That name is invalid: ') + ' ' + responseText
