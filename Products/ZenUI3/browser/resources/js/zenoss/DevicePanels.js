@@ -270,7 +270,7 @@ Ext.define("Zenoss.DeviceGridPanel", {
      * a device. The two required parameters are
      *@param 1. saveHandler = function to be called after the action (refresh the grid etc)
      *@param 2. deviceFetcher = function that returns the list of device records
-     *@class DeviceActionMenu
+     *@class Zenoss.DeviceActionMenu
      *@extends Ext.Button
      **/
     Ext.define("Zenoss.DeviceActionMenu", {
