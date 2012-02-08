@@ -1047,7 +1047,6 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
     ddGroup: 'devicegriddd',
     id: 'device_grid',
     multiSelect: true,
-
     title: _t('/'),
     viewConfig: {
         plugins: {
@@ -1078,18 +1077,6 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     this.setTitle(title);
                 }
             }, this);
-        },
-        /*  When using the gridviewdragdrop plugin to allow for dragging multiple rows
-            we find that selecting on multiple rows then clicking in the middle to drag them
-            all is just dragging the one middle row you selected.
-            https://dev.zenoss.com/tracint/ticket/29748.
-            The Root Cause of this issue stems from the listeners for the itemmousedown event being in
-            the wrong order.  Everything we did should have put them in the correct order, but they aren't.
-            So, right before showing to the user, flip the order.
-            NOTE:  This is the only place that we have a multi select grid with drag and drop, so I thought
-                    it best to put this fix right here (as apposed to the Ext Overrides or any place else).*/
-        viewready: function(){
-            this.getView().events.itemmousedown.listeners.reverse();
         },
         scope: device_grid
     },
