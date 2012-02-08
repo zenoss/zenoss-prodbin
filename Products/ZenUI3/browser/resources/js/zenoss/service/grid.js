@@ -65,7 +65,7 @@
     });
 
     /**
-     * @class Zenoss.Serivce.Nav.Store
+     * @class Zenoss.Service.Nav.Store
      * @extend Zenoss.DirectStore
      * Direct store for the nav services
      */

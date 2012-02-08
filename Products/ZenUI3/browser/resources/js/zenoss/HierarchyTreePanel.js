@@ -324,7 +324,7 @@
                             if (Ext.isString(value)) {
                                 return value;
                             }
-                            var parentNode = n.parentNode, 
+                            var parentNode = n.parentNode,
                                 count;
                             if (Ext.isEmpty(value.count)) {
                                 count = "";
@@ -405,7 +405,7 @@
             Zenoss.HierarchyTreePanel.superclass.constructor.apply(this, arguments);
         },
         setNodeVisible:function (nodeId, visible) {
-            var node = this.getNodeById(nodeId),
+            var node = this.getStore().getNodeById(nodeId),
                 view = this.getView(),
                 el = Ext.fly(view.getNodeByRecord(node));
             if (el) {

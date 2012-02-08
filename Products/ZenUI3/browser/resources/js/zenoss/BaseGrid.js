@@ -171,7 +171,10 @@
                         col.filterField.setVisible(!col.hidden);
                     }
                 }
-                col.filterField.on('change', this.onChange, this);
+
+                if (Zenoss.settings.enableLiveSearch) {
+                    col.filterField.on('change', this.onChange, this);
+                }
                 col.filterField.on('keydown', this.onKeyDown, this);
 
                 searchItems.push(col.filterField);
@@ -226,7 +229,6 @@
             this.applyTemplate();
         },
         onChange:function (field, newValue, oldValue) {
-
             if (!this.onChangeTask) {
                 this.onChangeTask = new Ext.util.DelayedTask(function () {
                     this.storeSearch();
@@ -240,7 +242,7 @@
             // if live search is enabled fire the change delay
             // if live search is disabled then they have to explictly
             // hit enter to search
-            if (!Zenoss.settings.enableLiveSearch) {
+            if (Zenoss.settings.enableLiveSearch) {
                 this.onChange();
             }
 
