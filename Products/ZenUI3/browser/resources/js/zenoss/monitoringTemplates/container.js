@@ -173,6 +173,7 @@ Ext.define("Zenoss.templates.MonTemplateTreePanel", {
     setContext: function(uid, callback, scope) {
         this.uid = uid;
         if ( uid.match('^/zport/dmd/Devices') ) {
+            this.show();
             var root = this.getRootNode();
             if (root) {
                 root.collapse();
