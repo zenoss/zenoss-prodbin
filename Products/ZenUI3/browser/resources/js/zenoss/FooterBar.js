@@ -133,16 +133,22 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     listeners: {
                         click: function() {
                             var itemName = options.onGetItemName();
-                            Ext.MessageBox.show({
 
-                                msg: options.onGetDeleteMessage(itemName),
-                                fn: function(buttonid){
-                                    if (buttonid=='ok') {
+                            new Zenoss.dialog.SimpleMessageDialog({
+                                message: options.onGetDeleteMessage(itemName),
+                                title: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    text: _t('OK'),
+                                    handler: function(){
                                         footerBar.fireEvent('buttonClick', 'delete');
                                     }
-                                },
-                                buttons: Ext.MessageBox.OKCANCEL
-                            });
+                                }, {
+                                    xtype: 'DialogButton',
+                                    text: _t('Cancel')
+                                }]
+                            }).show();                            
+
                         }
                     }
                 }]
