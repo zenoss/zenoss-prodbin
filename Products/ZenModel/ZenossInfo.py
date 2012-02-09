@@ -283,7 +283,10 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
 
     def getWmiVersion(self):
-        from pysamba.version import VERSION
+        try:
+            from ZenPacks.zenoss.PySamba.version import VERSION
+        except ImportError:
+            VERSION = ''
         return Version.parse('Wmi %s ' % VERSION)
 
 
