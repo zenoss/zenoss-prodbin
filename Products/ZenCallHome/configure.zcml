@@ -1,0 +1,87 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2012, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 or (at your
+# option) any later version as published by the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:five="http://namespaces.zope.org/five">
+
+
+    <utility component="Products.ZenCallHome.callhome2.ZenossEnvDataCallHomeCollector"
+             provides="Products.ZenCallHome.IMasterCallHomeCollector"
+             name="zenossenvdata"/>
+
+    <utility component="Products.ZenCallHome.callhome2.ZenossDataCallHomeCollector"
+             provides="Products.ZenCallHome.IMasterCallHomeCollector"
+             name="zenossappdata"/>
+
+    <utility component="Products.ZenCallHome.callhome2.HostDataCallHomeCollector"
+             provides="Products.ZenCallHome.ICallHomeCollector"
+             name="zenosshostdata"/>
+
+    <utility component="Products.ZenCallHome.HostData.CpuProcFileData" provides="Products.ZenCallHome.IHostData"
+             name="hostcpudata"/>
+    <utility component="Products.ZenCallHome.HostData.MemProcFileData" provides="Products.ZenCallHome.IHostData"
+             name="hostmemdata"/>
+    <utility component="Products.ZenCallHome.HostData.CollectionVolumeData" provides="Products.ZenCallHome.IHostData"
+             name="hostcollectionvolumedata"/>
+    <utility component="Products.ZenCallHome.HostData.PlatformData" provides="Products.ZenCallHome.IHostData"
+             name="hostplatformdata"/>
+    <utility component="Products.ZenCallHome.HostData.DfData" provides="Products.ZenCallHome.IHostData"
+             name="hostdfdata"/>
+
+    <utility component="Products.ZenCallHome.HostData.ZenossRPMData" provides="Products.ZenCallHome.IZenossEnvData"
+             name="zenossrpmdata"/>
+    <utility component="Products.ZenCallHome.HostData.ZenDSRPMData" provides="Products.ZenCallHome.IZenossEnvData"
+             name="zendsrpmdata"/>
+    <utility component="Products.ZenCallHome.HostData.CoreZenpackRPMData"
+             provides="Products.ZenCallHome.IZenossEnvData"
+             name="corezenpackrpmdata"/>
+    <utility component="Products.ZenCallHome.HostData.EnterpriseZenpackRPMData"
+             provides="Products.ZenCallHome.IZenossEnvData"
+             name="enterprisezenpackrpmdata"/>
+
+    <utility component="Products.ZenCallHome.HostData.ZenHomeData" provides="Products.ZenCallHome.IZenossEnvData"
+             name="zenhomedata"/>
+    <utility component="Products.ZenCallHome.HostData.ZenDSHomeData" provides="Products.ZenCallHome.IZenossEnvData"
+             name="zendshomedata"/>
+    <utility component="Products.ZenCallHome.HostData.RabbitData" provides="Products.ZenCallHome.IZenossEnvData"
+             name="rabbitdata"/>
+
+    <utility component="Products.ZenCallHome.ZenossAppData.ZenossAppData" provides="Products.ZenCallHome.IZenossData"
+             name="zenossappdata"/>
+
+    <utility component="Products.ZenCallHome.ZenossAppData.ZenossResourceData"
+             provides="Products.ZenCallHome.IZenossData"
+             name="zenossresourcedata"/>
+
+    <subscriber provides="Products.ZenCallHome.IDeviceResource"
+                factory="Products.ZenCallHome.ZenossAppData.DeviceClassProductionStateCount"
+                for="Products.ZenModel.Device.Device"/>
+
+    <subscriber provides="Products.ZenCallHome.IDeviceResource"
+                factory="Products.ZenCallHome.ZenossAppData.DeviceTypeCounter"
+                for="Products.ZenModel.Device.Device"/>
+
+    <subscriber provides="Products.ZenCallHome.IVirtualDeviceType"
+                factory="Products.ZenCallHome.ZenossAppData.MacAddressVirtualDeviceType"
+                for="Products.ZenModel.Device.Device"/>
+
+    <adapter provides="Products.ZenCallHome.IDeviceType"
+                factory="Products.ZenCallHome.ZenossAppData.DeviceType"
+                for="Products.ZenModel.Device.Device"/>
+
+    <adapter provides="Products.ZenCallHome.IDeviceCpuCount"
+                factory="Products.ZenCallHome.ZenossAppData.DeviceCpuCounter"
+                for="Products.ZenModel.Device.Device"/>
+</configure>

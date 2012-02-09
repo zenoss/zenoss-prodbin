@@ -1,0 +1,427 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2012, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 or (at your
+# option) any later version as published by the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+import string
+import time
+import os
+import math
+import platform
+import socket
+import rrdtool
+
+from subprocess import Popen, PIPE
+from Products.ZenCallHome import IHostData, IZenossEnvData
+from zope.interface import implements
+
+import logging
+log = logging.getLogger("zen.callhome")
+
+LOCAL_HOSTNAMES = ["localhost",
+                   "localhost.localdomain",
+                   socket.gethostname(),
+                   socket.getfqdn()]
+
+class PlatformData(object):
+    implements(IHostData)
+    def callHomeData(self):
+        distro = " ".join(platform.linux_distribution())
+        processor = platform.processor()
+        system = platform.system()
+        release = platform.release()
+        yield "OS", "{distro} {processor} ({system} kernel {release})".format(**locals())
+
+class CollectionVolumeData(object):
+    implements(IHostData)
+    def callHomeData(self):
+        volume = 0.0
+        zenhome_ = zenhome.value
+        for dirpath, dirnames, filenames in os.walk("{zenhome_}/perf/Devices".format(**locals())):
+            for filename in filenames:
+                if filename.endswith(".rrd"):
+                    rrdinfo = rrdtool.info("{dirpath}/{filename}".format(**locals()))
+                    if time.time() - rrdinfo["last_update"] < rrdinfo["step"] * 12: # 12 is fudge factor to take rrdcached into consideration
+                        volume += 1.0 / rrdinfo["step"]
+        yield "Collection Volume", "{volume:.1f} datapoints per second".format(**locals())
+
+class ProcFileData(object):
+    """
+    Used to gather proc file  statistics for call home
+    """
+    implements(IHostData)
+    _proc_file = None
+    _parser = None
+    def callHomeData(self):
+        """
+        @return:: name, value pairs of host stats for call home
+        @rtype: list or generator of tuples
+        """
+        return self._parseProcFile()
+
+    def _parseProcFile(self):
+        parser = self._createParser()
+        try:
+            with open(self._proc_file) as f:
+                for line in f:
+                    parser.parse(line)
+            return parser.output
+        except IOError:
+            log.debug("Could not read %s", self._proc_file)
+            return self._ioErrorOutputHandler()
+
+    def _ioErrorOutputHandler(self):
+        return tuple()
+
+    @classmethod
+    def _parse_key_value(self, line):
+        if not line.strip():
+            return None, None
+        return [" ".join(word.split()) for word in line.split(":")]
+
+    def _createParser(self):
+        return self._parser()
+
+class ProcFileParser(object):
+
+    @classmethod
+    def _parse_key_value(cls, line):
+        if not line.strip():
+            return None, None
+        return [" ".join(word.split()) for word in line.split(":")]
+
+class CpuinfoParser(ProcFileParser):
+
+    def __init__(self):
+        self._processors = []
+        self._processor = None
+        self._summaries = None
+
+    def parse(self, line):
+        key, value = self._parse_key_value(line)
+        if key == "processor":
+            self._processor = {}
+            self._processors.append(self._processor)
+        elif key is not None:
+            self._processor[key] = value
+
+    @property
+    def output(self):
+        if self._summaries is None:
+            self._summarize()
+        cores = 0
+        for tuples, count in self._summaries.items():
+            cores += count
+            dct = dict(tuples)
+            cache_size = convert_kb(dct["cache size"])
+            yield "CPU", "{dct[model name]} ({cache_size} cache)".format(**locals())
+        yield "CPU Cores", cores
+
+    def _summarize(self):
+        """counts each type of CPU from cpuinfo
+        processors comes from CpuinfoParser
+        return value is a dictionary with tuples of cpuinfo to a count of the
+        number of times that cpuinfo shows up in /proc/cpuinfo
+        """
+        self._summaries = {}
+        for processor in self._processors:
+            key = tuple(processor.items())
+            if key in self._summaries:
+                self._summaries[key] += 1
+            else:
+                self._summaries[key] = 1
+
+
+class CpuProcFileData(ProcFileData ):
+    _proc_file = "/proc/cpuinfo"
+    _parser = CpuinfoParser
+
+    def _ioErrorOutputHandler(self):
+        yield 'CPU Cores', 'Not available'
+
+
+class MemoryStat(object):
+
+    def __init__(self, label, total_key, free_key):
+        self.label = label
+        self._total = [total_key, None]
+        self._free = [free_key, None]
+
+    def set(self, key, value):
+        for stat in self._total, self._free:
+            if key == stat[0]:
+                stat[1] = convert_kb(value, key.endswith("Total"))
+
+    def __repr__(self):
+        return "{self._free[1]} of {self._total[1]} available".format(**locals())
+
+class MeminfoParser(ProcFileParser):
+
+    def __init__(self):
+        self._stats = [MemoryStat("Memory", "MemTotal", "MemFree"),
+                       MemoryStat("Swap", "SwapTotal", "SwapFree")]
+
+    def parse(self, line):
+        key, value = self._parse_key_value(line)
+        for stat in self._stats:
+            stat.set(key, value)
+
+    @property
+    def output(self):
+        for stat in self._stats:
+            yield stat.label, str(stat)
+
+
+
+class MemProcFileData(ProcFileData):
+    _proc_file = "/proc/meminfo"
+    _parser = MeminfoParser
+
+    def _ioErrorOutputHandler(self):
+        for stat in self._parser()._stats:
+            yield stat.label, 'Not available'
+
+
+class CommandData(object):
+    """
+    Base class for executing and return data based on executing a command
+    """
+    _args = []
+    _parser = None
+    def callHomeData(self):
+        """
+        @return:: name, value pairs of host stats for call home
+        @rtype: list or generator of tuples
+        """
+        return self._parseCommand()
+
+    def _parseCommand(self):
+        try:
+            log.debug("Executing command args %s", self._args)
+            popen = Popen(self._args, stdout=PIPE, stderr=PIPE)
+            stdoutdata, stderrdata = popen.communicate()
+            parser = self._createParser()
+            for line in stdoutdata.splitlines():
+                parser.parse(line.strip())
+            return parser.output
+        except OSError:
+            return self._osErrorOutputHandler()
+
+    def _createParser(self):
+        return self._parser()
+
+    def _osErrorOutputHandler(self):
+        return tuple()
+
+class FilesystemInfo(object):
+
+    def __init__(self, mounted_on="", size=None, avail=None):
+        self.mounted_on = mounted_on
+        self.size = size
+        self.avail = avail
+        self.supporting = []
+
+    def __cmp__(self, other_fs_info):
+        return cmp(self.mounted_on, other_fs_info.mounted_on)
+
+    def __repr__(self):
+        repr_ = "'{self.mounted_on}', {self.avail} of {self.size} available".format(**locals())
+        if self.supporting:
+            supporting = ", ".join(self.supporting)
+            repr_ = "{repr_} (supports {supporting})".format(**locals())
+        return repr_
+
+
+class DfParser(object):
+
+    def __init__(self):
+        self._zenoss_mounts = {zenhome.environ_key: "",
+                               zendshome.environ_key: "",
+                               rabbitmq_mnesia_base.environ_key: ""}
+        self._filesystems = []
+
+    def parse(self, line):
+        if not line.startswith("/"):
+            return
+        filesystem, size, used, avail, use_pct, mounted_on = line.split()
+        fs_info = FilesystemInfo(mounted_on, convert_kb(size), convert_kb(avail, False))
+
+        for environ_var in zenhome, zendshome, rabbitmq_mnesia_base:
+            if environ_var.value is not None and environ_var.value.startswith(mounted_on):
+                if len(mounted_on) > len(self._zenoss_mounts[environ_var.environ_key]):
+                    fs_info.supporting.append(environ_var.environ_key)
+                    self._zenoss_mounts[environ_var.environ_key] = fs_info.mounted_on
+
+        self._filesystems.append(fs_info)
+
+    @property
+    def output(self):
+        for filesystem in self._filesystems:
+            yield "Filesystem", str(filesystem)
+
+class DfData(CommandData):
+    implements(IHostData)
+
+    _args = ["df", "-Pk"]
+    _parser = DfParser
+
+    def _osErrorOutputHandler(self):
+        yield "Filesystem", "Not Available"
+
+class RpmParser(object):
+
+    def __init__(self, key):
+        self._output = None
+        self._key = key
+
+    def parse(self, line):
+        self._output = line
+
+    @property
+    def output(self):
+        label = 'RPM'
+        if self._key:
+            label = "%s - %s" % (label, self._key)
+        yield label, self._output
+
+class RPMData(CommandData):
+
+    def __init__(self, rpm_arg):
+        super(RPMData,self).__init__()
+        self._rpm_arg = rpm_arg
+        self._args = ["rpm", "-q", rpm_arg]
+
+    def _createParser(self):
+        return RpmParser(self._rpm_arg)
+
+    def _osErrorOutputHandler(self):
+        label = 'RPM'
+        if self._rpm_arg:
+            label = "%s - %s" % (label, self._rpm_arg)
+        yield label, "Not Available"
+
+
+class ZenossRPMData(RPMData):
+    implements(IZenossEnvData)
+
+    def __init__(self):
+        super(ZenossRPMData,self).__init__('zenoss')
+
+class ZenDSRPMData(RPMData):
+    implements(IZenossEnvData)
+    def __init__(self):
+        super(ZenDSRPMData,self).__init__('zends')
+
+class CoreZenpackRPMData(RPMData):
+    implements(IZenossEnvData)
+    def __init__(self):
+        super(CoreZenpackRPMData,self).__init__('zenoss-core-zenpacks')
+
+class EnterpriseZenpackRPMData(RPMData):
+    implements(IZenossEnvData)
+    def __init__(self):
+        super(EnterpriseZenpackRPMData,self).__init__('zenoss-enterprise-zenpacks')
+
+class Zenhome(object):
+
+    environ_key = "ZENHOME"
+
+    def __init__(self):
+        self.value = os.environ[self.environ_key]
+
+    def generate(self):
+        yield self.environ_key, self.value
+
+
+zenhome = Zenhome()
+
+
+class Zendshome(object):
+
+    environ_key = "ZENDSHOME"
+
+    @classmethod
+    def _get_value(cls):
+        if cls.environ_key in os.environ:
+            return os.environ[cls.environ_key]
+
+    def __init__(self):
+        self.value = self._get_value()
+
+    def generate(self):
+        if self.value is not None:
+            yield self.environ_key, self.value
+
+
+zendshome = Zendshome()
+
+
+class RabbitmqMnesiaBase(object):
+
+    environ_key = "RABBITMQ_MNESIA_BASE"
+
+    @classmethod
+    def _get_value(cls):
+        zenhome_ = zenhome.value
+        with open("{zenhome_}/etc/global.conf".format(**locals())) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                words = [w.strip() for w in line.split()]
+                if len(words) == 2 and words[0] == "amqphost":
+                    amqphost = words[1]
+                    break
+            else:
+                amqphost = None
+        if amqphost in LOCAL_HOSTNAMES:
+            return os.environ.get(cls.environ_key, "/var/lib/rabbitmq/mnesia")
+
+    def __init__(self):
+        self.value = self._get_value()
+
+    def generate(self):
+        if self.value is not None:
+            yield self.environ_key, self.value
+
+
+rabbitmq_mnesia_base = RabbitmqMnesiaBase()
+
+
+class ZenHomeData(object):
+    implements(IZenossEnvData)
+    def callHomeData(self):
+        return zenhome.generate()
+
+class ZenDSHomeData(object):
+    implements(IZenossEnvData)
+    def callHomeData(self):
+        return zendshome.generate()
+
+class RabbitData(object):
+    implements(IZenossEnvData)
+    def callHomeData(self):
+        return rabbitmq_mnesia_base.generate()
+
+def convert_kb(kb_str, round_up=True):
+    units = ['YB', 'ZB', 'EB', 'PB', 'TB', 'GB', 'MB', 'KB']
+    quantity = int(kb_str.translate(None, string.ascii_letters))
+    while quantity > (1024 - (1024 * 0.05)): # 5 percent fudge factor for rounding up
+        quantity = quantity / 1024.0
+        units.pop()
+    unit = units.pop()
+    if round_up:
+        quantity = int(math.ceil(quantity))
+        return "{quantity} {unit}".format(**locals())
+    else:
+        return "{quantity:.1f} {unit}".format(**locals())
+
+
+

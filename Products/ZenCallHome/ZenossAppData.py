@@ -1,0 +1,232 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2012, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 or (at your
+# option) any later version as published by the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+import time
+from Products.ZenCallHome import IZenossData, IDeviceResource, IDeviceCpuCount, IDeviceType, IVirtualDeviceType
+from zope.interface import implements
+from zope.component import subscribers
+from Products.Zuul import getFacade
+from itertools import *
+
+import logging
+from Products.Zuul.interfaces.tree import ICatalogTool
+from zenoss.protocols.services.zep import ZepConnectionError
+
+log = logging.getLogger("zen.callhome")
+
+class ZenossAppData(object):
+    implements(IZenossData)
+
+    hub_class = "ZenPacks.zenoss.DistributedCollector.HubConf.HubConf"
+    collector_class = "Products.ZenModel.PerformanceConf.PerformanceConf"
+
+    def callHomeData(self, dmd):
+        self.dmd = dmd
+        self._catalog = ICatalogTool(self.dmd)
+        stats = (self.server_key,
+                      self.google_key,
+                      self.version,
+                      self.all_versions,
+                      self.event_classes,
+                      self.event_count,
+                      self.reports,
+                      self.templates,
+                      self.systems,
+                      self.groups,
+                      self.locations,
+                      self.total_hubs,
+                      self.total_collectors,
+                      self.zenpacks,
+                      self.user_count,
+                      self.product_count,
+                      self.product_name)
+        return chain.from_iterable(map(lambda fn: fn(), stats))
+
+    def product_name(self):
+        yield "Product", self.dmd.getProductName()
+
+    def product_count(self):
+        manufacturers = self.dmd.Manufacturers.objectValues(spec='Manufacturer')
+        prodCount = 0
+        for m in manufacturers:
+           prodCount += m.products.countObjects()
+
+        yield "Product Count", prodCount
+
+    def user_count(self):
+        yield "User Count", len(self.dmd.ZenUsers.objectIds())
+
+    def server_key(self):
+        key = self.dmd.uuid or "NOT ACTIVATED"
+        yield "Server Key", key
+
+    def google_key(self):
+        yield "Google Key", self.dmd.geomapapikey
+
+    def version(self):
+        yield "Zenoss Version", "{self.dmd.version}".format(**locals())
+
+    def zenpacks(self):
+        for zenpack in self.dmd.ZenPackManager.packs():
+            yield "Zenpack", "{zenpack.id} {zenpack.version}".format(**locals())
+
+    def all_versions(self):
+        for version in self.dmd.About.getAllVersions():
+            yield version["header"], version["data"]
+
+    def event_classes(self):
+        yield 'Evt Classes', self.dmd.Events.countInstances()
+
+    def reports(self):
+        yield "Reports", self.dmd.Reports.countReports()
+
+    def templates(self):
+        yield "Templates", self.dmd.Devices.rrdTemplates.countObjects()
+
+    def systems(self):
+        yield "Systems", self.dmd.Systems.countChildren()
+
+    def groups(self):
+        yield "Groups", self.dmd.Groups.countChildren()
+
+    def locations(self):
+        yield "Locations", self.dmd.Locations.countChildren()
+
+    def total_hubs(self):
+        results = self._catalog.search(self.hub_class, paths="dmd/Monitors/Hub")
+        yield "Hubs", results.total
+
+    def total_collectors(self):
+        results = self._catalog.search(self.collector_class, paths="dmd/Monitors/Performance")
+        yield "Collectors", results.total
+
+    def event_count(self):
+        zep = getFacade('zep')
+        try:
+            yield "Event Count", zep.countEventsSince(time.time() - 24 * 60 * 60)
+        except ZepConnectionError:
+            yield "Event Count: last 24hr", "Not Available"
+
+VM_MACS = {"00:0C:29": 'VMware Guest',
+           "00:50:56": 'VMware Guest',
+           "00:16:3e": 'Xen Guest'}
+
+class MacAddressVirtualDeviceType(object):
+    implements(IVirtualDeviceType)
+    def __init__(self, device):
+        self._device = device
+        self._vmType = None
+
+    def vmType(self):
+        if self._vmType is None:
+            for mac in self._device.getMacAddresses():
+                if mac and mac[:8] in VM_MACS.keys():
+                    self._vmType = VM_MACS[mac[:8]]
+        return self._vmType
+
+class DeviceType(object):
+    implements(IDeviceType)
+
+    def __init__(self, device):
+        self._device = device
+        self._isVM = None
+        self._vmType = None
+
+    def isVM(self):
+        if self._isVM is None:
+            self._isVM = False
+            for deviceType in subscribers((self._device,), IVirtualDeviceType):
+                vmType = deviceType.vmType()
+                if vmType is not None:
+                    self._vmType = vmType
+                    self._isVm = True
+                    break
+        return self._isVM
+
+    def type(self):
+        dType = 'Physical'
+        if self._isVM is None:
+            self.isVM()
+        if self._vmType:
+            dType = self._vmType
+        return dType
+
+class DeviceTypeCounter(object):
+    implements(IDeviceResource)
+    def __init__(self, device):
+        self._device = device
+
+    def processDevice(self, stats):
+        suffix = self._get_type()
+        log.debug("Device %s is type %s", self._device, suffix)
+        key = "Devices - %s" % suffix
+        if not stats.has_key(key):
+            stats[key] = 0
+        stats[key]+=1
+
+    def _get_type(self):
+        dev = IDeviceType(self._device)
+        return dev.type()
+
+class DeviceClassProductionStateCount(object):
+    implements(IDeviceResource)
+    def __init__(self, device):
+        self._device = device
+
+    def processDevice(self, stats):
+        key = "%s: %s" % (self._device.getDeviceClassPath(), self._device.getProductionStateString())
+        stats.setdefault(key, 0)
+        stats[key] += 1
+
+
+class DeviceCpuCounter(object):
+    implements(IDeviceCpuCount)
+    def __init__(self, device):
+        self._device = device
+
+    def cpuCount(self):
+        dev = IDeviceType(self._device)
+        if not dev.isVM():
+            return len(self._device.hw.cpus())
+        return 0
+
+class ZenossResourceData(object):
+    implements(IZenossData)
+
+    def __init__(self):
+        self._dmd = None
+        self._catalog = None
+
+    def callHomeData(self, dmd):
+        self._dmd = dmd
+        self._catalog = ICatalogTool(self._dmd)
+        stats = self._process_devices()
+        for key, value in stats.items():
+            yield key, value
+
+    def _process_devices(self):
+        stats = {'Device Count': 0,
+                 'Decommissioned Devices': 0,
+                 'CPU Cores':0}
+        for device in self._dmd.Devices.getSubDevicesGen_recursive():
+            stats['Device Count'] += 1
+            if device.productionState < 0:
+                stats["Decommissioned Devices"] += 1
+            cpuCount = IDeviceCpuCount(device).cpuCount()
+            log.debug("Devices %s has %s cpu cores", device, cpuCount)
+            stats['CPU Cores'] += cpuCount
+            for adapter in subscribers([device], IDeviceResource):
+                adapter.processDevice(stats)
+                
+        return stats
+
+

@@ -2214,4 +2214,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if ip:
             return str(numbip(ip))
 
+    def getMacAddresses(self):
+        macs = []
+        if hasattr(self, 'os') and hasattr(self.os, 'interfaces'):
+            for intf in self.os.interfaces():
+                if intf.macaddress:
+                    macs.append(intf.macaddress)
+        return macs
+
 InitializeClass(Device)
