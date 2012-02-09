@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+import subprocess
+import json
+
+import Globals
+from Products.ZenUtils.qverify import ZenAmqp
+
+
+def main():
+    q = ZenAmqp()
+    settings = q.getConnectionSettings()
+    settings['host'], settings['port'] = (settings['host'] + ":5672").split(":")[0:2]
+    settings['ssl'] = '-s' if settings.get('ssl', False) else ''
+    cmd = "rabbitmqadmin -u %(userid)s -p %(password)s -V %(virtual_host)s %(ssl)s --format raw_json list queues name messages consumers" % settings
+    output = subprocess.check_output(cmd, shell=True)
+    stats = json.loads(output)
+    for stat in stats:
+        print "messages.%(name)s=%(messages)s" % stat
+        print "consumers.%(name)s=%(consumers)s" % stat
+if __name__=='__main__':
+   main()
