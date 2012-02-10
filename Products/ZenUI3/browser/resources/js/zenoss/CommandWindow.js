@@ -71,10 +71,6 @@ Ext.define("Zenoss.CommandWindow", {
         this.commandData = config.data ||
             { uids: config.uids, command: config.command };
         this.target = config.target;
-        if (Ext.isDefined(config.redirectTarget)) {
-            config.closeAction = 'closeAndRedirect';
-            this.redirectTarget = config.redirectTarget;
-        }
         config = Ext.applyIf(config || {}, {
             layout: 'fit',
             title: config.command || config.title,
@@ -112,6 +108,11 @@ Ext.define("Zenoss.CommandWindow", {
         this.on('render', this.startScrolling, this);
         this.on('afterlayout', function(){this.center();}, this, {single:true});
         this.on('close', this.stopScrolling, this);
+            this.on('close', function() {
+                if(Ext.isDefined(config.redirectTarget)){
+                        this.closeAndRedirect();
+                }
+            });         
     },
     onRender: function() {
         Zenoss.CommandWindow.superclass.onRender.apply(this, arguments);
@@ -146,15 +147,11 @@ Ext.define("Zenoss.CommandWindow", {
         }
     },
     closeAndReload: function() {
-        (function() {window.top.location.reload();}).defer(1, this);
+        window.top.location.reload()
         this.destroy();
     },
     closeAndRedirect: function() {
-        this.on('close', function() {
-            (function() {
-                window.top.location = this.redirectTarget;
-            }).defer(1, this);
-        });
+        window.top.location = this.redirectTarget;
         this.destroy();
     }
 });
