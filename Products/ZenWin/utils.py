@@ -15,7 +15,7 @@
 This module provides common utilities for monitoring Windows devices.
 """
 
-import ZenPacks.zenoss.PySamba.twisted.reactor
+import pysamba.twisted.reactor
 
 def addNTLMv2Option(parser):
     """
@@ -38,4 +38,4 @@ def setNTLMv2Auth(options):
     flag = False
     if getattr(options, 'ntlmv2auth', False):
         flag = True
-    ZenPacks.zenoss.PySamba.twisted.reactor.setNTLMv2Authentication(flag)
+    pysamba.twisted.reactor.setNTLMv2Authentication(flag)

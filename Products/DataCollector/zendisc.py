@@ -20,10 +20,7 @@ import socket
 # any other libraries that might possibly use twisted. This will ensure that
 # the proper WmiReactor is installed before anyone else grabs a reference to
 # the wrong reactor.
-try:
-    import ZenPacks.zenoss.PySamba.twisted.reactor
-except ImportError:
-    pass
+import pysamba.twisted.reactor
 
 from ipaddr import IPAddress
 

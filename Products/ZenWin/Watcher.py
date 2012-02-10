@@ -11,15 +11,14 @@
 #
 ###########################################################################
 
-from ZenPacks.zenoss.PySamba.twisted.reactor import eventContext
-from ZenPacks.zenoss.PySamba.wbem.Query import Query
+from pysamba.twisted.reactor import eventContext
+from pysamba.wbem.Query import Query
 from Products.ZenUtils.Driver import drive
-from twisted.internet import defer
 
 import logging
 log = logging.getLogger("zen.Watcher")
 
-class Watcher(object):
+class Watcher:
 
     def __init__(self, device, query):
         self.wmi = Query()
@@ -30,10 +29,16 @@ class Watcher(object):
         self.closeRequested = False
         log.debug("Starting watcher on %s", device.id)
 
-    @defer.inlineCallbacks
     def connect(self):
         self.busy = True
-        try:
+
+        def finished(result):
+            self.busy = False
+            if self.closeRequested:
+                self.close()
+            return result
+
+        def inner(driver):
             log.debug("connecting to %s", self.device.id)
             d = self.device
 
@@ -41,32 +46,37 @@ class Watcher(object):
                                    d.id,
                                    d.manageIp,
                                    "%s%%%s" % (d.zWinUser, d.zWinPassword))
+            driver.next()
 
-            log.debug("connected to %s sending query %s", self.device.id, self.queryString)
-            self.enum = yield self.wmi.notificationQuery(self.queryString)
+            log.debug("connected to %s sending query", self.device.id)
+            log.debug("%s" % self.queryString)
+            yield self.wmi.notificationQuery(self.queryString)
+
+            self.enum = driver.next()
             log.debug("got query response from %s", self.device.id)
-        finally:
-            self.busy = False
-            if self.closeRequested:
-                self.close()
 
-    @defer.inlineCallbacks
+        return drive(inner).addBoth(finished)
+
     def getEvents(self, timeout=0, chunkSize=10):
         assert self.enum
         self.busy = True
         log.debug("Fetching events for %s", self.device.id)
-        result = []
 
-        try:
-            result = yield self.enum.fetchSome(timeoutMs=timeout, chunkSize=chunkSize)
-        finally:
+        def fetched(result):
+            log.debug("Events fetched for %s", self.device.id)
+            return result
+
+        def finished(result):
             self.busy = False
             if self.closeRequested:
                 self.close()
+            return result
 
-        log.debug("Events fetched for %s", self.device.id)
-        defer.returnValue(result)
-    
+        result = self.enum.fetchSome(timeoutMs=timeout, chunkSize=chunkSize)
+        result.addBoth(finished)
+        result.addCallback(fetched)
+        return result
+
     def close(self):
         if self.busy:
             log.debug("close requested on busy WMI Query for %s; deferring",
