@@ -6,7 +6,6 @@ YAHOO.namespace('zenoss.geomap');
 
 var Z = YAHOO.zenoss,             // Internal shorthand
     W = YAHOO.widget,             // Internal shorthand
-    GLOB_MARKERDATA = [],         // Cache for marker stuff
     ZenGeoMap = Z.Class.create(); // The main class
 
 /** ZenossLocationCache
@@ -220,10 +219,12 @@ ZenGeoMap.prototype = {
                                 currentWindow().parent.location.href = clicklink;
                                }
                             });
+                            GEvent.addListener(marker, "mouseover", function(){
+                                popTip(marker, clicklink, summarytext);
+                            });                             
                         } else {
                             marker.redraw(true);
                         }
-                        GLOB_MARKERDATA.push([marker, clicklink, summarytext]);
                     }
                 }, this)
             );
@@ -243,6 +244,7 @@ ZenGeoMap.prototype = {
         }
         var checkMarkers = method(this, checkMarkers);
         checkMarkers();
+
     },
     saveCache: function() {
         if (this.dirtycache) {
@@ -271,12 +273,6 @@ ZenGeoMap.prototype = {
         for (j=0;j<linkdata.length;j++) {
             this.addPolyline(linkdata[j]);
         }
-        callLater(0.5, function(){ // Don't understand why this is necessary, but it works
-            for (g=0;g<GLOB_MARKERDATA.length;g++) {
-                post_process(GLOB_MARKERDATA[g]);
-            }
-            GLOB_MARKERDATA = [];
-        });
     },
     refresh: function() {
         var results = {
@@ -290,6 +286,20 @@ ZenGeoMap.prototype = {
         var bigd = new DeferredList([myd, myd2], false, false, true);
         bigd.addCallback(method(this, function(){this.doDraw(results)}));
     }
+}
+
+function popTip(marker, clicklink, summarytext){
+        var uid = getuid(marker);
+        var markerimg = _getGMMarkerImage(marker);
+        addElementClass(markerimg.ownerDocument.body, "yui-skin-sam");
+        addElementClass(markerimg.ownerDocument.body, "zenoss-gmaps");
+        new W.Tooltip(
+            uid+"_tooltip",
+            {
+                context:markerimg, 
+                text:summarytext
+            }
+        ).doShow();
 }
 
 function _getGMMarkerImage(marker) {
@@ -309,26 +319,6 @@ function getuid(m) {
     p = m.getPoint();
     id = String(p.x) + String(p.y);
     return id.replace(/[^a-zA-Z0-9]+/g, '');
-}
-
-function post_process(m) {
-    var marker = m[0];
-    var uid = getuid(marker);
-    var clicklink = m[1];
-    var summarytext = m[2];
-    var markerimg = _getGMMarkerImage(marker);
-    addElementClass(markerimg.ownerDocument.body, 
-                    "yui-skin-sam")
-    addElementClass(markerimg.ownerDocument.body, 
-                    "zenoss-gmaps")
-    randint = parseInt(Math.random()*100000);
-    var ttip = new W.Tooltip(
-        uid+"_tooltip",
-        {
-            context:markerimg, 
-            text:summarytext
-        }
-    );
 }
 
 Z.geomap.initialize = function (container) {
