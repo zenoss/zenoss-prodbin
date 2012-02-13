@@ -13,6 +13,7 @@
 
 import os
 import os.path
+import time
 from random import random
 from exceptions import *
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
@@ -31,7 +32,7 @@ class TestRRDUtil(BaseTestCase):
         self.name = testdev
 
         # name, path, dataStorageType, rrdCreateCommand, minmax
-        self.path= os.path.join( "tests", testdev )
+        self.path= os.path.join( "tests", testdev )  
 
         self.dev = self.dmd.Devices.createInstance(testdev)
 
@@ -141,7 +142,55 @@ class TestRRDUtil(BaseTestCase):
         rrd.performancePath= lambda(x): "/"
         self.assertRaises( Exception, rrd.save, "/", 666.0, 'COUNTER' )
 
+    def testLowLevelFuncs(self):
+        """
+        Verify info function succeeds.
+        """
 
+        rrd= RRDUtil( self.createcmd, 60 )
+        path= os.path.join( self.path, "%f" % random() )
+
+        # setup RRD file, add values to it
+        startTime = time.time() - 10 * 60
+        for i in range (0, 10):
+            rrd.save( path, i * 100.0, 'COUNTER', useRRDDaemon=False, timestamp=int(startTime+i*60), start=startTime)
+
+        # check info function
+        import rrdtool
+        filename = rrd.performancePath(path) + '.rrd'
+        info = rrdtool.info(filename)
+        
+        self.assertEquals(info['ds[ds0].index'], 0L)
+        # self.assertEquals(info['ds[ds0].last_ds'], '90.0')
+        self.assertEquals(info['ds[ds0].max'], None)
+        self.assertEquals(info['ds[ds0].min'], None)
+        self.assertEquals(info['ds[ds0].minimal_heartbeat'], 180L)
+        self.assertEquals(info['ds[ds0].type'], 'COUNTER')
+
+        # test fetch
+        data = rrdtool.fetch(filename, 'AVERAGE', '--start', "%d" % startTime)
+
+        # check the middle of the fetch for 1.7/s rate
+        self.failUnlessAlmostEqual(data[2][2][0], 1.7, places=1)
+        self.failUnlessAlmostEqual(data[2][3][0], 1.7, places=1)
+        self.failUnlessAlmostEqual(data[2][4][0], 1.7, places=1)
+        self.failUnlessAlmostEqual(data[2][5][0], 1.7, places=1)
+        self.failUnlessAlmostEqual(data[2][6][0], 1.7, places=1)
+        self.failUnlessAlmostEqual(data[2][7][0], 1.7, places=1)
+
+        # test graph
+        imFile = rrd.performancePath(path) + ".png"
+        rrdtool.graph(imFile, 
+            "-w", "400",
+            "-h", "100",
+            "--full-size-mode",
+            "DEF:ds0a=%s:ds0:AVERAGE" % filename, 
+            "LINE1:ds0a#0000FF:'default'",
+        )
+        from PIL import Image
+        im = Image.open(imFile)
+        self.assertEquals(im.size, (400, 100))
+        
     def beforeTearDown(self):
         """
         Clean up after our tests

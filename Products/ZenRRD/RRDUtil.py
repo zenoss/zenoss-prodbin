@@ -182,7 +182,7 @@ class RRDUtil:
 
 
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-             min='U', max='U', useRRDDaemon=True, timestamp='N'):
+             min='U', max='U', useRRDDaemon=True, timestamp='N', start=None):
         """
         Save the value provided in the command to the RRD file specified in path.
 
@@ -234,9 +234,14 @@ class RRDUtil:
             min, max = map(_checkUndefined, (min, max))
             dataSource = 'DS:%s:%s:%d:%s:%s' % (
                 'ds0', rrdType, self.getHeartbeat(cycleTime), min, max)
-            rrdtool.create(str(filename), "--step",
-                str(self.getStep(cycleTime)),
-                str(dataSource), *rrdCommand.split())
+            args = [str(filename), "--step",
+                str(self.getStep(cycleTime)),]
+            if start is not None:
+                args.extend(["--start", "%d" % start])
+            args.append(str(dataSource))
+            args.extend(rrdCommand.split())
+            rrdtool.create(*args),
+      
 
         if rrdType in ('COUNTER', 'DERIVE'):
             try:
