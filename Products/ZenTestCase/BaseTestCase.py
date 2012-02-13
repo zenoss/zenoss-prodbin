@@ -114,6 +114,8 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
 
     def afterSetUp(self):
 
+        super(BaseTestCase, self).afterSetUp()
+
         if self.disableLogging:
             logging.disable(logging.CRITICAL)
 
@@ -143,7 +145,7 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         setDescriptors(self.dmd.propertyTransformers)
 
 
-    def tearDown(self):
+    def beforeTearDown(self):
         if hasattr( self, '_transaction_commit' ):
             Transaction.commit=self._transaction_commit
         self.app = None
@@ -151,7 +153,7 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
 
         logging.disable(logging.NOTSET)
 
-        super(BaseTestCase, self).tearDown()
+        super(BaseTestCase, self).beforeTearDown()
 
     def create(self, context, klass, id):
         """create an instance and attach it to the context passed"""
