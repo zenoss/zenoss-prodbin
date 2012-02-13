@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+#############################################################################
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2012, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#############################################################################
+
+# This script gets the number of messages/consumers for the rabbitmq
+# instace zenoss is configured to use. It outputs Naggios style output
+
+import os
+import subprocess
+import json
+import re
+import time
+
+import Globals
+from Products.ZenUtils.qverify import ZenAmqp
+
+def execCmdToTupleList(cmd, timeout = 10):
+    # perform a timeout in case sudo prompts for password
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    deadline = time.time() + timeout # 10 secs in the furture
+    while time.time() < deadline and p.poll() is None:
+        time.sleep(1)
+    if p.poll() is None:
+        p.kill()
+    elif p.returncode == 0:
+        out, err = p.communicate()
+        output = []
+        for line in out.splitlines():
+            parts = line.split()
+            output.append((parts[0], int(parts[1]),))
+        return output
+
+
+def main():
+    q = ZenAmqp()
+    stats = None
+    try:
+        settings = q.getAdminConnectionSettings()
+
+        rabbitmqadmin_file = subprocess.check_output('ls /var/lib/rabbitmq/mnesia/*/rabbitmq_management-*/priv/www/cli/rabbitmqadmin | head -1', shell=True).strip()
+        if rabbitmqadmin_file:
+            settings['ZENHOME'] = os.environ['ZENHOME']
+            settings['script'] = rabbitmqadmin_file
+            settings['host'], settings['port'] = (settings['host'] + ":5672").split(":")[0:2]
+            settings['ssl'] = '-s' if settings.get('ssl', False) else ''
+            cmd = "%(ZENHOME)s/bin/python '%(script)s' -u %(userid)s -p %(password)s -V %(virtual_host)s %(ssl)s --format raw_json list queues name messages consumers" % settings
+            output = subprocess.check_output(cmd, shell=True)
+            stats = json.loads(output)
+    except Exception:
+        pass
+
+    if stats is None:
+        try:
+            settings = q.getConnectionSettings()
+
+            output = execCmdToTupleList('sudo /usr/sbin/rabbitmqctl list_queues -p %(virtual_host)s | grep ^zenoss' % settings)
+            queues = {}
+            for name, count in output:
+                queues[name] = {'messages': count, 'consumers': 0,}
+
+            output = execCmdToTupleList("sudo /usr/sbin/rabbitmqctl list_consumers -p %(virtual_host)s | grep ^zenoss | awk '{ print $1, 1 }'" % settings)
+            for name, _ in output:
+                queues[name]['consumers'] += 1
+            stats = []
+            for queue, values in queues.items():
+                stats.append({'name': queue, 'messages': values['messages'], 'consumers': values['consumers']})
+
+        except Exception:
+            pass
+
+    if stats:  
+        for stat in stats:
+            print "messages.%(name)s=%(messages)s" % stat
+            print "consumers.%(name)s=%(consumers)s" % stat
+
+if __name__=='__main__':
+   main()
+

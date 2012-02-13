@@ -22,9 +22,72 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 import logging
 LOG = logging.getLogger("zen.qverify")
 
+def _addSetting(name, settings, globalSettings, default=None):
+    setting = globalSettings.get(name, default)
+    if setting is not None:
+        settings[name] = setting
+
+_ZEN_AMQP_SETTINGS =  {
+   'amqphost': 'localhost', 
+   'amqpport': 5672,
+   'amqpuser': 'zenoss', 
+   'amqppassword': 'zenoss',
+   'amqpvhost': '/zenoss',
+   'amqpusessl': False,
+   'amqpadminport': 55672,
+   'amqpadiusessl': False,
+}
+
+class ZenAmqp(object):
+
+    def __init__(self):
+        self._global_conf = getGlobalConfiguration()
+
+    def getAdminConnectionSettings(self, extraParams={}):
+        zenSettings = {}
+        for setting, default in _ZEN_AMQP_SETTINGS.items():
+            _addSetting(setting, zenSettings, self._global_conf, default)
+        zenSettings.update(extraParams)
+        ssl = zenSettings.get('amqpadminusessl', False) in ('1', 'True', 'true', 1, True) 
+        settings = { 
+            'host': '%(amqphost)s:%(amqpadminport)s' % zenSettings,
+            'userid': '%(amqpuser)s' % zenSettings,
+            'password': '%(amqppassword)s' % zenSettings,
+            'virtual_host': '%(amqpvhost)s' % zenSettings,
+            'ssl': ssl,
+        }
+        # provide a method for overriding system supplied values
+        for name, value in extraParams.items():
+            if name not in _ZEN_AMQP_SETTINGS:
+                settings[name] = value
+        return settings
+
+    def getConnectionSettings(self, extraParams={}):
+        zenSettings = {}
+        for setting, default in _ZEN_AMQP_SETTINGS.items():
+            _addSetting(setting, zenSettings, self._global_conf, default)
+        zenSettings.update(extraParams)
+        ssl = zenSettings.get('amqpusessl', False) in ('1', 'True', 'true', 1, True) 
+        settings = { 
+            'host': '%(amqphost)s:%(amqpport)s' % zenSettings,
+            'userid': '%(amqpuser)s' % zenSettings,
+            'password': '%(amqppassword)s' % zenSettings,
+            'virtual_host': '%(amqpvhost)s' % zenSettings,
+            'ssl': ssl,
+        }
+        # provide a method for overriding system supplied values
+        for name, value in extraParams.items():
+            if name not in _ZEN_AMQP_SETTINGS:
+                settings[name] = value
+        return settings
+    def getConnection(self):
+        settings = self.getConnectionSettings()
+        return Connection(**settings)
+
 class Main(object):
 
     def __init__(self, verbose=False):
+        self._verbose = verbose
         LOG.debug("Getting global conf")
         self._global_conf = getGlobalConfiguration()
 
@@ -37,19 +100,13 @@ class Main(object):
 
     def verify(self, expected_version):
         
-        hostname = self._get_setting('amqphost')
-        port     = self._get_setting('amqpport')
-        username = self._get_setting('amqpuser')
-        password = self._get_setting('amqppassword')
-        vhost    = self._get_setting('amqpvhost')
-        ssl      = self._get_setting('amqpusessl')
-        use_ssl  = True if ssl in ('1', 'True', 'true') else False
-
         conn = None
         rc = 1
         try:
-            conn = Connection(host="%s:%s" % (hostname, port), userid=username,
-                      password=password, virtual_host=vhost, ssl=use_ssl)
+            # verify all settings exist
+            for setting in _ZEN_AMQP_SETTINGS:
+                self._get_setting(setting)
+            conn = ZenAmqp().getConnection()
             server_version = conn.server_properties.get('version')
             e_ver = tuple(int(v) for v in expected_version.split('.'))
             s_ver = tuple(int(v) for v in server_version.split('.'))
@@ -58,6 +115,8 @@ class Main(object):
                     server_version, expected_version)
                 rc = 2
             else:
+                if self._verbose:
+                    print "Server version: %s" % server_version
                 rc = 0
         finally:
             if conn:

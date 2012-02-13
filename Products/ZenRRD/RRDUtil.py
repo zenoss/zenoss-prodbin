@@ -115,7 +115,7 @@ def read(path, consolidationFunction, start, end):
         msg = 'Failed to read RRD file %s. %s' % (path, err_str)
         raise StandardError(msg), None, sys.exc_info()[2]
 
-class RRDUtil:
+class RRDUtil(object):
     """
     Wrapper class around rrdtool
     """
@@ -127,7 +127,7 @@ class RRDUtil:
         The RRD creation command is only used if the RRD file doesn't
         exist and no rrdCommand was specified with the save() method.
 
-        @param defaultRrdCreateCommand: RRD creation command
+	@param defaultRrdCreateCommand: RRD creation command
         @type defaultRrdCreateCommand: string
         @param defaultCycleTime: expected time to periodically collect data
         @type defaultCycleTime: integer

@@ -1,4 +1,1 @@
-#!/usr/bin/env bash
-
-cat /proc/loadavg | awk '{ print "loadAvg1m="$1 }'
-
+../scripts/loadavg
