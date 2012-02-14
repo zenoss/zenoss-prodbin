@@ -174,7 +174,7 @@ Transform:
                 exec(eventclass.transform, variables_and_funcs)
                 log.debug('Results after transform: %s',
                           variables_and_funcs['evt'])
-            except Exception, ex:
+            except (Exception, SystemExit):
                 self.sendTransformException(eventclass, evt)
 
         return variables_and_funcs['evt']
