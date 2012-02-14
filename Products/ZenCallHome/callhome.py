@@ -110,7 +110,14 @@ class Main(ZenScriptBase):
 
         chd = CallHomeData(self.dmd, self.options.master)
         data = chd.getData()
-        print(json.dumps(data, indent=4))
+        if self.options.pretty:
+            from pprint import pprint
+            pprint(data)
+        else:
+            sort = False
+            if self.options.jsonIndent:
+                sort = True
+            print(json.dumps(data, indent=self.options.jsonIndent, sort_keys=sort))
 
 
     def buildOptions(self):
@@ -122,6 +129,18 @@ class Main(ZenScriptBase):
                     action='store_true',
                     help='Gather zenoss master data',
                     )
+
+        self.parser.add_option('-p',
+                    dest='pretty',
+                    default=False,
+                    action='store_true',
+                    help='pretty print the output',
+                    )
+        self.parser.add_option('-i','--json_indent',
+                               dest='jsonIndent',
+                               help='indent setting for json output',
+                               default=None,
+                               type='int')
 
 if __name__ == '__main__':
     main = Main(connect=False)

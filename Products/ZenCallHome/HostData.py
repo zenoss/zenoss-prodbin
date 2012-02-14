@@ -275,6 +275,24 @@ class DfData(CommandData):
     def _osErrorOutputHandler(self):
         yield "Filesystem", "Not Available"
 
+class HostId(CommandData):
+    implements  (IHostData)
+    _args =['hostid']
+    def __init__(self):
+        self._parser = HostId
+        self._hostId=None
+
+    def parse(self, line):
+        self._hostId = line
+
+    @property
+    def output(self):
+        yield "Host Id", self._hostId
+
+    def _osErrorOutputHandler(self):
+        yield "Host Id", "Not Available"
+
+
 class RpmParser(object):
 
     def __init__(self, key):

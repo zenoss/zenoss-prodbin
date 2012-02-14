@@ -39,7 +39,8 @@
              name="hostplatformdata"/>
     <utility component="Products.ZenCallHome.HostData.DfData" provides="Products.ZenCallHome.IHostData"
              name="hostdfdata"/>
-
+    <utility component="Products.ZenCallHome.HostData.HostId" provides="Products.ZenCallHome.IHostData"
+             name="hostid"/>
     <utility component="Products.ZenCallHome.HostData.ZenossRPMData" provides="Products.ZenCallHome.IZenossEnvData"
              name="zenossrpmdata"/>
     <utility component="Products.ZenCallHome.HostData.ZenDSRPMData" provides="Products.ZenCallHome.IZenossEnvData"
@@ -47,6 +48,7 @@
     <utility component="Products.ZenCallHome.HostData.CoreZenpackRPMData"
              provides="Products.ZenCallHome.IZenossEnvData"
              name="corezenpackrpmdata"/>
+
     <utility component="Products.ZenCallHome.HostData.EnterpriseZenpackRPMData"
              provides="Products.ZenCallHome.IZenossEnvData"
              name="enterprisezenpackrpmdata"/>
