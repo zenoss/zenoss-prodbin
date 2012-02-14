@@ -319,6 +319,9 @@ class DeviceRouter(TreeRouter):
 
         # Ex: ('UI.Device.Edit', uid, data_={'ProductionState': 'High'})
         # Ex: ('UI.Location.Edit', uid, description='Blah', old_description='Foo')
+        if 'name' in oldData:
+            oldData['device_name'] = oldData['name']  # we call it this now
+            del oldData['name']
         if 'name' in newData:
             del newData['name']  # it gets printed automatically
         audit(['UI', getDisplayType(process._object), 'Edit'], the_uid,
@@ -1116,16 +1119,24 @@ class DeviceRouter(TreeRouter):
         Sets the zProperty value
         """
         facade = self._getFacade()
+
+        # get old value for auditing
+        oldProperty = facade.getZenProperty(uid, zProperty)
+        oldValue = oldProperty['value'] if 'value' in oldProperty else ''
+
+        # change it
         facade.setZenProperty(uid, zProperty, value)
         data = facade.getZenProperty(uid, zProperty)
 
         # audit example: ('UI.zProperty.Edit, 'zPassword', maskFields_='value',
         #     data_={'Device': '/zport/...'}, value='abracadabra') #gets masked
+        value = str(value) if not value else value  # show 'False', '0', etc.
+        oldValue = str(oldValue) if not oldValue else oldValue  # must match
         obj = facade._getObject(uid)
-        value = str(value)  # show 'False', '0', etc.
         maskFields = 'value' if obj.zenPropIsPassword(zProperty) else None
         audit('UI.zProperty.Edit', zProperty, maskFields_=maskFields,
-              data_={obj.meta_type: uid}, value=value)
+              data_={obj.meta_type: uid, 'value': value},
+              oldData_={'value': oldValue})
         return DirectResponse(data=Zuul.marshal(data))
 
     @serviceConnectionError
@@ -1531,7 +1542,7 @@ class DeviceRouter(TreeRouter):
             'location': '/Locations' + locationPath if locationPath else None,
             'deviceGroups': ['/Groups' + x for x in groupPaths] if hasGroups else None,
             'systems': ['/Systems' + x for x in systemPaths] if hasSystems else None,
-            'name': title,   # call 'name' for consistency with other audits.
+            'device_name': title,   # call it this for consistency with other audits.
             'collector': collector,
             'model': str(model)  # show value even if False
         }

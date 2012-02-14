@@ -44,7 +44,7 @@ Example:
     audit(category, uid, data_=data, oldData_=oldData)
 
     # Sample output
-    user=zenoss action=Add kind=Widget widget=/Widgets/xyz name='My Widget'
+    user=zenoss action=Add kind=Widget widget=/Widgets/xyz
         away=999 old_down=x up=123 old_up=100 uppp=456
 """
 
