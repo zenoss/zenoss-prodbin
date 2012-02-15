@@ -384,13 +384,13 @@ function actioncompleteHandler(basicForm, action) {
         var selectionModel = processTree.getSelectionModel();
         var selectedNode = selectionModel.getSelectedNode();
         var nameTextField = Ext.getCmp('nameTextField2');
-
-        selectedNode.data.text.text = nameTextField.getValue();
-        selectedNode.setText(selectedNode.data.text);
+        if(selectedNode.data.text.text != nameTextField.getValue()){
+            selectedNode.data.text.text = nameTextField.getValue();
+            Ext.getCmp('navGrid').refresh();
+            processTree.refresh();
+        }
         Ext.getCmp('detail_panel').detailCardPanel.setContext(selectedNode.data.uid);
-        // reload the detail grid
-        var grid = Ext.getCmp('navGrid');
-        grid.refresh();
+
     }
 }
 
