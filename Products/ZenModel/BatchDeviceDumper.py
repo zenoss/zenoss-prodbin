@@ -172,7 +172,6 @@ class BatchDeviceDumper(ZCmdBase):
             props.append("setPerformanceMonitor=" + repr(obj.getPerformanceServerName()))
         return props
 
-
     def _emitDev(self, dev):
         """
         Returns a device and its zProperties in strings appropriate for ZenBatchLoader
@@ -200,7 +199,7 @@ class BatchDeviceDumper(ZCmdBase):
 
     def _emitOrg(self, org):
         """
-        Returns a device organizer it's type and local properties
+        Returns a device organizer with its type and local properties
 
         @parameter org: DeviceOrganizer to emit
         @type org: DeviceOrganizer
@@ -212,6 +211,10 @@ class BatchDeviceDumper(ZCmdBase):
         name = "'/%s' " % "/".join(path[3:])
         # Avoid things that override base classes for the moment (eg uses zPythonClass)
         props = [] if isinstance(org, DeviceClass) and 'ZenPacks' in org.zPythonClass else self._emitProps(org)
+
+        if '/Locations/' in path:
+            props.append('setAddress="%s"' % org.address)
+
         return (name, props)
 
     def _backtraceOrg(self, outFile, obj):
