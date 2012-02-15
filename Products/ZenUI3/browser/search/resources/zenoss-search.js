@@ -315,7 +315,7 @@ Ext.onReady(function () {
                                                 params = {
                                                     searchName:selectedRow.data.name
                                                 };
-                                            router.removeSavedSearch(params, me.reloadGrid.createDelegate(me));
+                                            router.removeSavedSearch(params, Ext.bind(me.reloadGrid, me));
                                             if(selectedRow.data.name == searchId) window.location = "/zport/dmd/search";
                                     }
                                 }]

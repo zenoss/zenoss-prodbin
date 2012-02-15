@@ -56,30 +56,30 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
                 },'->',{
                     text: '&lt;',
                     width: 67,
-                    handler: function(btn, e) {
+                    handler: Ext.bind(function(btn, e) {
                         this.onPanLeft(this);
-                    }.createDelegate(this)
+                    },this)
                 },{
                     text: 'Zoom In',
                     enableToggle: true,
                     pressed: true,
                     ref: '../zoomin',
-                    handler: function(btn, e) {
+                    handler: Ext.bind(function(btn, e) {
                         this.fireEventsToAll("zoommodechange", this, !btn.pressed);
-                    }.createDelegate(this)
+                    }, this)
                 },{
                     text: 'Zoom Out',
                     ref: '../zoomout',
                     enableToggle: true,
-                    handler: function(btn, e) {
+                    handler: Ext.bind(function(btn, e) {
                         this.fireEventsToAll("zoommodechange", this, btn.pressed);
-                    }.createDelegate(this)
+                    }, this)
                 },{
                     text: '&gt;',
                     width: 67,
-                    handler: function(btn, e) {
+                    handler: Ext.bind(function(btn, e) {
                         this.onPanRight(this);
-                    }.createDelegate(this)
+                    }, this)
                 }]
             }
         });
@@ -191,7 +191,7 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
             this.parseGraphParams(fullurl);
         }
         else {
-            Zenoss.SWOOP_CALLBACKS[graphid] = function(packet) {
+            Zenoss.SWOOP_CALLBACKS[graphid] = Ext.bind(function(packet) {
                 var ob = Ext.decode(packet);
                 if (ob.success) {
                     this.hideFailure();
@@ -203,7 +203,7 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
                 // Clean up callbacks and script tags
                 delete Zenoss.SWOOP_CALLBACKS[graphid];
                 Ext.get(graphid).remove();
-            }.createDelegate(this);
+            }, this);
             var sc = Ext.DomHelper.createDom({
                 tag: 'script',
                 id: graphid,
