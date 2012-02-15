@@ -12,7 +12,7 @@
             Ext.applyIf(config, {
                 submitFn: Zenoss.remote.DeviceRouter.lockDevices,
                 applyOptions: Ext.emptyFn,
-                height: 200,
+                height: 220,
                 title: _t('Locking'),
                 submitHandler: Ext.bind(this.lockObject, this),
                 listeners:  {
@@ -23,7 +23,7 @@
                     frame: false,
                     border: false,
                     layout: 'vbox',
-                    height: 100,
+                    height: 110,
                     defaults: {
                         xtype: 'checkbox',
                         flex: 1,

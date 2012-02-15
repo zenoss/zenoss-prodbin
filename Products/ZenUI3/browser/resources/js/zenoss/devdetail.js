@@ -134,21 +134,6 @@ Zenoss.nav.register({
     }]
 });
 
-function componentGridOptions() {
-    var grid = Ext.getCmp('component_card').componentgrid,
-        sm = grid.getSelectionModel(),
-        rows = sm.getSelection(),
-        pluck = Ext.Array.pluck,
-        uids = pluck(pluck(rows, 'data'), 'uid'),
-        name = Ext.getCmp('component_searchfield').getValue();
-    return {
-        uids: uids,
-        ranges: [],
-        name: name,
-        hashcheck: grid.lastHash
-    };
-}
-
 function showMonitoringDialog() {
     var win = new Ext.Window({
         height: 115,
@@ -191,18 +176,47 @@ function showMonitoringDialog() {
     win.doLayout();
 }
 
+function componentGridOptions() {
+    var grid = Ext.getCmp('component_card').componentgrid,
+        sm = grid.getSelectionModel(),
+        rows = sm.getSelection(),
+        pluck = Ext.Array.pluck,
+        uids = pluck(pluck(rows, 'data'), 'uid'),
+        name = Ext.getCmp('component_searchfield').getValue();
+    return {
+        uids: uids,
+        ranges: [],
+        name: name,
+        hashcheck: grid.lastHash
+    };
+}
+
 function showComponentLockingDialog() {
-    Ext.create('Zenoss.dialog.LockForm', {
-        applyOptions: function(values) {
-            Ext.apply(values, componentGridOptions());
-        },
-        submitFn: function(values) {
-            REMOTE.lockComponents(values, function(response) {
-                var grid = Ext.getCmp('component_card').componentgrid;
-                grid.refresh();
+            var sel = Ext.getCmp('deviceDetailNav').treepanel.getSelectionModel().getSelectedNode();
+            REMOTE.getInfo({
+                uid: componentGridOptions().uids[0],
+                keys: ['locking', 'name']
+            }, function(result){
+                if (result.success) {
+                    var locking = result.data.locking;
+                    Ext.create('Zenoss.dialog.LockForm', {
+                        applyOptions: function(values) {
+                            Ext.apply(values, componentGridOptions());
+                        },
+                        title: _t("Lock Component"),
+                        message: result.data.name,
+                        updatesChecked: locking.updates,
+                        deletionChecked: locking.deletion,
+                        sendEventChecked: locking.events,
+                        submitFn: function(values) {
+                            REMOTE.lockComponents(values, function(response) {
+                                var grid = Ext.getCmp('component_card').componentgrid;
+                                grid.refresh();
+                            });
+                        }                        
+                    }).show();
+                }
             });
-        }
-    }).show();
 }
 
 var componentCard = {
@@ -243,26 +257,6 @@ var componentCard = {
                     text: _t('Cancel')
                 }]
             }).show();
-       /*
-            this gives the error:
-            sm.getPendingSelections is not a function
-                    ranges = sm.getPendingSelections(true),
-            so couldn't fully test the dialog replacement.
-            ---------------------
-            Ext.Msg.show({
-                title: _t('Delete Components'),
-                msg: _t("Are you sure you want to delete these components?"),
-                buttons: Ext.Msg.YESNO,
-                fn: function(btn) {
-                    if (btn=="yes") {
-                        REMOTE.deleteComponents(componentGridOptions(), function(){
-                            refreshComponentTreeAndGrid();
-                        });
-                    } else {
-                        Ext.Msg.hide();
-                    }
-                }
-            }); */
         }
     },{
         text: _t('Select'),
@@ -1017,7 +1011,7 @@ Ext.getCmp('footer_bar').add([{
         handler: function() {
             REMOTE.getInfo({
                 uid: Zenoss.env.device_uid,
-                keys: ['locking']
+                keys: ['locking', 'name']
             }, function(result){
                 if (result.success) {
                     var locking = result.data.locking;
@@ -1026,6 +1020,8 @@ Ext.getCmp('footer_bar').add([{
                             values.uids = [Zenoss.env.device_uid];
                             values.hashcheck = 1;
                         },
+                        title: _t("Lock Device"),
+                        message: result.data.name,
                         updatesChecked: locking.updates,
                         deletionChecked: locking.deletion,
                         sendEventChecked: locking.events

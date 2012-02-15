@@ -260,6 +260,22 @@ Ext.define("Zenoss.DeviceGridPanel", {
     }
 });
 
+function showComponentLockingDialog(msg, locking, funcs) {
+        Ext.create('Zenoss.dialog.LockForm', {
+            applyOptions: function(values) {
+                Ext.applyIf(values, funcs.fetcher());
+            },
+            title: msg == "" ? _t("Lock Device") : _t("Lock Devices"),
+            message: msg,
+            updatesChecked: locking.updates,
+            deletionChecked: locking.deletion,
+            sendEventChecked: locking.events,
+            submitFn: function(values) {
+                funcs.REMOTE.lockDevices(values, funcs.saveHandler);
+            }                        
+        }).show();
+}
+
 /**********************************************************************
  *
  * Device Actions
@@ -298,14 +314,26 @@ Ext.define("Zenoss.DeviceGridPanel", {
                             iconCls: 'lock',
                             permission: 'Change Device',
                             handler: function() {
-                                Ext.create('Zenoss.dialog.LockForm', {
-                                    applyOptions: function(values) {
-                                        Ext.applyIf(values, fetcher());
-                                    },
-                                    submitFn: function(values) {
-                                        REMOTE.lockDevices(values, saveHandler);
-                                    }
-                                }).show();
+                            var sel = fetcher().uids,
+                                funcs = {'fetcher': fetcher, 'saveHandler': saveHandler, 'REMOTE': REMOTE};
+                                
+                                if(sel.length == 0){
+                                    Zenoss.message.warning(_t("Please select 1 or more devices to lock"));
+                                    return;
+                                }
+                                if(sel.length > 1){
+                                    showComponentLockingDialog(_t("To view locked state, select one device at a time."), "", funcs);                                
+                                }else{
+                                    REMOTE.getInfo({
+                                        uid: fetcher().uids[0],
+                                        keys: ['locking']
+                                    }, function(result){
+                                        if (result.success) {
+                                            showComponentLockingDialog("", result.data.locking, funcs);
+                                        }
+                                    });                               
+                                }
+
                             }
                         }),
                         new Zenoss.Action({
