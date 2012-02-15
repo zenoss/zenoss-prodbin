@@ -137,8 +137,10 @@ class OperatingSystem(Software):
             return ippath
 
         if nextdev:
-            ippath.append(ip)
-            return nextdev.traceRoute(target, ippath)
+            # Look for a bizarre case where we find a loop
+            if nextdev.manageIp not in ippath:
+                ippath.append(ip)
+                return nextdev.traceRoute(target, ippath)
 
         # Oops!  No route!
         log.debug("Unable to trace to %s, gap at %s", target.id,
