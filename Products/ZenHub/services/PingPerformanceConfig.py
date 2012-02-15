@@ -62,9 +62,10 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
             self.points.append(ipdData)
 
     def __str__(self):
-        return "IPv%d %s iface: '%s' cycleTime: %ss attempts: %d" % (
+        return "IPv%d %s iface: '%s' cycleTime: %ss ping_attempts: %d retries: %d" % (
                self.ipVersion, self.ip, self.iface, self.cycleTime,
-               self.tries)
+               self.sampleSize, self.tries)
+
 
 pb.setUnjellyableForClass(IpAddressProxy, IpAddressProxy)
 
@@ -188,6 +189,6 @@ if __name__ == '__main__':
     tester = ServiceTester(PingPerformanceConfig)
     def printer(config):
         for ip in config.monitoredIps:
-            print '\t', ip
+            print '\t', ip, '\t', [x[0] for x in ip.points]
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()
