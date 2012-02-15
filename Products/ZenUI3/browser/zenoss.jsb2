@@ -231,6 +231,9 @@
         },{
             "text": "LockForm.js",
             "path": "resources/js/zenoss/dialog/"
+        },{
+            "text": "ExampleTextField.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []

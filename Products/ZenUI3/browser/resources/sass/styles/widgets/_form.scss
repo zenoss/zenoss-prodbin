@@ -1,5 +1,11 @@
 @mixin zenoss-form {
-
+    
+    .example {
+        display: inline;
+        font-style: italic;
+        font-size: small;
+        float: right;
+    }
     $ui: 'fieldset-default';
     
     .#{$prefix}fieldset{
