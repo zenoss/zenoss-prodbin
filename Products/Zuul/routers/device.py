@@ -1542,7 +1542,7 @@ class DeviceRouter(TreeRouter):
             'location': '/Locations' + locationPath if locationPath else None,
             'deviceGroups': ['/Groups' + x for x in groupPaths] if hasGroups else None,
             'systems': ['/Systems' + x for x in systemPaths] if hasSystems else None,
-            'device_name': title,   # call it this for consistency with other audits.
+            'device_name': title if title else deviceName, # see Trac #30109
             'collector': collector,
             'model': str(model)  # show value even if False
         }
