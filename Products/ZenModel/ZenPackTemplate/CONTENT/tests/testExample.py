@@ -12,9 +12,13 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 
 class TestExample(BaseTestCase):
-    def afterSetup(self):
-        # You can use the afterSetup method to create a proper environment for
+    def afterSetUp(self):
+        # You can use the afterSetUp method to create a proper environment for
         # your tests to execute in, or to run common code between the tests.
+
+        #Always call the base class's afterSetUp method first, so things like self.dmd will be available.
+        super(TestExample, self).afterSetUp()
+
         self.device = self.dmd.Devices.createInstance('testDevice')
 
     def testExampleOne(self):
@@ -25,6 +29,16 @@ class TestExample(BaseTestCase):
         self.assertEqual(self.device.id, "testDevice")
         self.assertFalse(False)
 
+    def beforeTearDown(self):
+        # You can use the beforeTearDown method to un-do anything from the afterSetUp method
+        # that needs to be restored to its original state. The ZODB transaction for the test
+        # case will be rolled back, so this method is not be necessary in most cases.
+
+        self.device = None
+
+        # Always call the base class's beforeTearDown method last, so any changes are rolled back
+        # correctly.
+        super(TestExample, self).beforeTearDown()
 
 def test_suite():
     from unittest import TestSuite, makeSuite
