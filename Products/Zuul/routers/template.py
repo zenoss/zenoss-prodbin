@@ -327,8 +327,8 @@ class TemplateRouter(TreeRouter):
             if val is not None:
                 values[key] = str(val)  # unmutable copy
                 # Special case: empty dsnames is sometimes '' and sometimes '[]'
-                if key == 'dsnames' and values[key] == '[]':
-                    values[key] = ''
+                if key == 'dsnames' and values[key] == '':
+                    values[key] = '[]'
         values['name'] = info.getName()
         return values
 
