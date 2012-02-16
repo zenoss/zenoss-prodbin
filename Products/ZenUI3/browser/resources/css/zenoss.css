@@ -1473,3 +1473,7 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 #footer_extra .x-btn td, #propList .x-btn td{
     padding-right:0 !important;
 }
+
+.x-window-body .x-panel-body .x-boundlist li{
+  color: #000 !important;
+}

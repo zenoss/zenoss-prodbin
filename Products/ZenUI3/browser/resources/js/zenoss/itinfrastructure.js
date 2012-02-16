@@ -333,12 +333,19 @@ Ext.apply(Zenoss.devices, {
                         handler: function(b) {
                             var form = win.childPanel.getForm();
                             var opts = form.getValues();
-                            // adjust the system paths and grouppaths
+                            /* adjust the system paths and grouppaths
+                               What is this strange line with splits and joins you may ask?
+                               opts.* sends multiselect values in a , delimited string that looks like:
+                               /Something,/Somethingelse,/Name contains , here,/Etc
+                               Since we don't want to limit user on , usage in their names - we take the , delimiter and 
+                               replace it with something they most certainly will never use; ^ and split on that instead
+                               Ticket #29614 fix.
+                            */
                             if (opts.systemPaths) {
-                                opts.systemPaths = opts.systemPaths.split(",");
+                                opts.systemPaths = opts.systemPaths.split(",/").join("^/").split("^");
                             }
-                            if (opts.groupPaths) {
-                                opts.groupPaths = opts.groupPaths.split(",");
+                            if (opts.groupPaths) {                               
+                                opts.groupPaths = opts.groupPaths.split(",/").join("^/").split("^");
                             }
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
                                 if (response.success) {
