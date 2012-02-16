@@ -1,15 +1,15 @@
 # ZenReports.Utils contains some useful helpers for creating records to return.
-from Products.ZenReports import Utils
+from Products.ZenReports.Utils import Record
 
 
 # The class name must patch the filename.
-class example_plugin:
+class example_plugin(object):
 
     # The run method will be executed when your report calls the plugin.
     def run(self, dmd, args):
         report = []
         for device in dmd.Devices.getSubDevicesGen():
-            report.append(Utils.Record(
+            report.append(Record(
                 device=device.titleOrId(),
                 ip=device.manageIp,
                 hardware="%s %s" % (
