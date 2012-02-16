@@ -36,6 +36,7 @@ Ext.define('Zenoss.component.ExampleComponentGridPanel',{
                 {name: 'uid'},
                 {name: 'name'},
                 {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
                 {name: 'attributeOne'},
                 {name: 'attributeTwo'},
                 {name: 'monitor'},
