@@ -308,6 +308,7 @@ def capitalizeFirstLetter(s):
 RENAME_DISPLAY_TYPES = {
     'RRDTemplate': 'Template',
     'ThresholdClass': 'Threshold',
+    'HoltWintersFailure': 'Threshold',  # see Trac #29376
 }
 
 def getDisplayType(obj):

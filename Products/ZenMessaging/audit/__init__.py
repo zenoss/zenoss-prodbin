@@ -48,16 +48,13 @@ Example:
         away=999 old_down=x up=123 old_up=100 uppp=456
 """
 
-from zope.component import getUtility, ComponentLookupError
+from zope.component import queryUtility
 from .interfaces import IAuditManager
 
 
 def getAuditManager():
     """Convenience method."""
-    try:
-        return getUtility(IAuditManager)
-    except ComponentLookupError:
-        return None
+    return queryUtility(IAuditManager)
 
 
 def audit(*args, **kwargs):

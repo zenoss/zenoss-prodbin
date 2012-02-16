@@ -23,6 +23,7 @@ from Products.Zuul.decorators import require
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.routers import TreeRouter
 from Products.ZenMessaging.audit import audit
+from Products.ZenModel.ThresholdClass import ThresholdClass
 
 
 class TemplateRouter(TreeRouter):
@@ -310,7 +311,10 @@ class TemplateRouter(TreeRouter):
         oldData = self._getInfoData(obj, data)
         info = self._getFacade().setInfo(uid, data)
         newData = self._getInfoData(obj, data)
-        audit(['UI', getDisplayType(obj), 'Edit'], data_=newData, oldData_=oldData,
+        # Trac #29376: Consistently show thresholdType with threshold operations.
+        thresholdType = obj.getTypeName() if isinstance(obj, ThresholdClass) else None
+        audit(['UI', getDisplayType(obj), 'Edit'], obj, thresholdType=thresholdType,
+              data_=newData, oldData_=oldData,
               skipFields_=('newId',))  # special case in TemplateFacade.setInfo()
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
@@ -322,7 +326,10 @@ class TemplateRouter(TreeRouter):
             val = getattr(info, key, None)
             if val is not None:
                 values[key] = str(val)  # unmutable copy
-        values['id'] = str(info.id)
+                # Special case: empty dsnames is sometimes '' and sometimes '[]'
+                if key == 'dsnames' and values[key] == '[]':
+                    values[key] = ''
+        values['name'] = info.getName()
         return values
 
     @require('Manage DMD')
@@ -347,7 +354,8 @@ class TemplateRouter(TreeRouter):
         dataPoints = data.get('dataPoints', None)
         facade = self._getFacade()
         facade.addThreshold(uid, thresholdType, thresholdId, dataPoints)
-        audit('UI.Threshold.Add', thresholdId, template=uid, thresholdtype=thresholdType,
+        thresholdUid = uid + '/thresholds/' + thresholdId
+        audit('UI.Threshold.Add', thresholdUid, thresholdtype=thresholdType,
               datapoints=dataPoints)
         return DirectResponse.succeed()
 
@@ -362,8 +370,9 @@ class TemplateRouter(TreeRouter):
         @return: Success message
         """
         facade = self._getFacade()
+        thresholdType = facade._getThresholdClass(uid).getTypeName()
         facade.removeThreshold(uid)
-        audit('UI.Threshold.Delete', uid)
+        audit('UI.Threshold.Delete', uid, thresholdType=thresholdType)
         return DirectResponse.succeed()
 
     def getThresholdTypes(self, query=None):
