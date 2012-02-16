@@ -52,6 +52,15 @@ class DeviceAddView(BrowserView):
     """
     Specify devices to be added.
     """
+    @property
+    def hasLDAPInstalled(self):
+        try:
+            import ZenPacks.zenoss.LDAPAuthenticator
+            # return javascript true/false
+            return "true"
+        except ImportError:
+            return "false"
+
     @json
     def default_communities(self):
         """
@@ -70,7 +79,7 @@ class DeviceAddView(BrowserView):
         types = []
         for org in orgs:
             # Skip it if it doesn't have types registered
-            if not hasattr(aq_base(org), 'devtypes') or not org.devtypes: 
+            if not hasattr(aq_base(org), 'devtypes') or not org.devtypes:
                 continue
             for t in org.devtypes:
                 try:
@@ -123,7 +132,7 @@ class DeviceAddView(BrowserView):
             the format our ComboBox expects.
             """
             value = '%s_%s' % (classpath, credtype)
-            return dict(value=value, 
+            return dict(value=value,
                         shortdesc="%s (%s)" % (description, protocol),
                         description=description, protocol=protocol)
 
@@ -214,7 +223,7 @@ class DeviceAddView(BrowserView):
     def manual(self):
         # Pull all the device name keys
         response = Ext.FormResponse()
-        devs = filter(lambda x:x.startswith('device_'), 
+        devs = filter(lambda x:x.startswith('device_'),
                       self.request.form.keys())
         # Make sure we have at least one device name
         devnames = filter(lambda x:bool(self.request.form.get(x)), devs)
@@ -231,13 +240,13 @@ class DeviceAddView(BrowserView):
                 'deviceclass_%s' % idx).split('_')
             # Set zProps based on type
             if type_=='ssh':
-                zProps = { 
+                zProps = {
                     'zCommandUsername': self.request.form.get('sshuser_%s' % idx),
                     'zCommandPassword': self.request.form.get(
                         'sshpass_%s' % idx),
                 }
             elif type_=='win':
-                zProps = { 
+                zProps = {
                     'zWinUser': self.request.form.get('winuser_%s' % idx),
                     'zWinPassword': self.request.form.get('winpass_%s' % idx),
                 }

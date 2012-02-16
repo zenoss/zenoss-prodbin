@@ -1,16 +1,54 @@
 <tal:block metal:use-macro="context/quickstart_macros/base">
 <tal:block metal:fill-slot="username">
-<span id="header-username" 
+
+<span id="header-username"
     tal:content="here/dmd/ZenUsers/getUser">x</span>
 </tal:block>
-    <tal:block metal:fill-slot="headline"> 
+    <tal:block metal:fill-slot="headline">
     Step 2: Specify or Discover Devices to Monitor
     </tal:block>
     <tal:block metal:fill-slot="content">
     <tal:block metal:use-macro="here/quickstart_macros/deviceAdd"/>
     <br/>
     <br/>
-    <h1 style="text-align:center;">Or, <a href='/zport/dmd/Dashboard'>skip to the dashboard</a>.
+    <tal:block tal:content="structure provider:js-security"/>
+
+    <div id="bottomtoolbar">
+    </div>
+    <script tal:content='string:
+       Zenoss.env.hasLDAP = ${view/hasLDAPInstalled};
+
+    '></script>
+
+    <script type="text/javascript">
+    Ext.onReady(function(){
+        Ext.create('Ext.toolbar.Toolbar', {
+            renderTo: "bottomtoolbar",
+            layout: 'hbox',
+            items: [{
+                xtype: 'tbfill'
+            }, {
+                xtype: 'button',
+                text: 'LDAP Setup',
+                hidden: !Zenoss.env.hasLDAP,
+                handler: function(){
+                    window.location = "/zport/dmd/manageLDAPConfig?wizard=True";
+                }
+            },{
+                xtype: 'panel',
+                hidden: !Zenoss.env.hasLDAP,
+                width: 5
+            },{
+                xtype: 'button',
+                text: 'Finish',
+                handler: function() {
+                    window.location = "/zport/dmd/Dashboard";
+                }
+            }]
+        });
+
+    });
+    </script>
 
     </tal:block>
     <tal:block metal:fill-slot="buttons">

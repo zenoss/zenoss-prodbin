@@ -24,15 +24,15 @@
         <style tal:condition="python:here.dmd.getProductName()!='core'">
             html {background-color:#eae9dc}
         </style>
+
         <!--[if lt IE 8]>
         <style>legend {width: 100%} legend span
             {display:block;margin-left:-23px} </style>
         <![endif]-->
-        <script type="text/javascript" >
-            if(typeof(Ext) != "object"){
-                document.write("<script src='++resource++extjs/ext-all-dev.js'><\/script>");
-            }
-        </script>
+        <tal:block tal:content="structure provider:js-security"/>
+        <tal:block tal:content="structure provider:all-js"/>
+
+
     </head>
     <body><div class="yui-skin-sam">
 
@@ -559,13 +559,13 @@ Ext.onReady(function() {
                 xtype: 'panel',
                 items: [{
                     xtype: 'button',
-                    text: 'Submit',
+                    text: 'Save',
                     cls:'step2submit',
                     handler: function() {
                         Ext.getCmp('manualdiscoverform').getForm().submit({
                             url: 'manual_add',
                             success: function(form, action) {
-                                window.location = '/zport/dmd/Dashboard';
+                                window.location = '/zport/dmd/qs-step2';
                             }
                         });
                     }
@@ -583,7 +583,7 @@ Ext.onReady(function() {
                         Ext.getCmp('autodiscoverform').getForm().submit({
                             url: 'auto_add',
                             success: function(form, action) {
-                                window.location = '/zport/dmd/Dashboard';
+                                window.location = '/zport/dmd/qs-step2';
                             }
                         });
                     }

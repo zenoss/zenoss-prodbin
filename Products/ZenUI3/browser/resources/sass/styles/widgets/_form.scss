@@ -1,13 +1,14 @@
 @mixin zenoss-form {
-    
+
     .example {
         display: inline;
         font-style: italic;
-        font-size: small;
+        font-size: 12;
         float: right;
     }
+
     $ui: 'fieldset-default';
-    
+
     .#{$prefix}fieldset{
         padding-bottom:10px;
         border:0 !important;
@@ -18,14 +19,14 @@
     .#{$prefix}fieldset-header-text{
         padding-bottom:8px;
     }
-    
-    .#{$prefix}form-multiselect-body{  
+
+    .#{$prefix}form-multiselect-body{
         .#{$prefix}boundlist{
             border:1px solid #AABBCC;
             height:98% !important;
         }
     }
-    
+
     .#{$prefix}window{
         .#{$prefix}form-itemselector-body{
             .#{$prefix}panel-header{
@@ -37,7 +38,7 @@
             .#{$prefix}panel-body{
                 color:#000;
             }
-        }    
+        }
     }
 
    .#{$prefix}fieldset-header {
@@ -56,7 +57,6 @@
                     color:#000;
                 }
             }
-        }     
+        }
     }
 }
-  
