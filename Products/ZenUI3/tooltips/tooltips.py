@@ -128,6 +128,9 @@ class Tooltips(BrowserView):
     def __call__(self):
         results = []
         viewname = self.request['HTTP_REFERER'].rsplit('/', 1)[-1]
+        # incase there are query parameters in the url
+        if "?" in viewname:
+            viewname = viewname.split("?")[0]
         lang = negotiator.getLanguage(TooltipCatalog.langs(viewname),
                                       self.request)
         tips = TooltipCatalog.tips(viewname, lang)

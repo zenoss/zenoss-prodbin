@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+  <tooltip>
+    <target>loginNameAttr</target>
+    <anchor>left</anchor>
+    <html>The LDAP record attribute used as the username. The list of default choices can be changed by adding attributes on the LDAP mappings tab.</html>
+  </tooltip>
+  <tooltip>
+    <target>userBaseDN</target>
+    <anchor>left</anchor>
+    <html>The DN for the branch of your LDAP database that contains user records. Zenoss will look at the entire subtree of this DN for users.</html>
+  </tooltip>
+  <tooltip>
+    <target>groupBaseDN</target>
+    <anchor>left</anchor>
+    <html>The DN for the branch of your LDAP database that contains group records. These group records are of the LDAP class "groupOfUniqueNames" and the entry CN attribute constitutes the group name.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>managerDN</target>
+    <anchor>left</anchor>
+    <html>The manager DN and password that will be used for LDAP connections. All LDAP connections require a DN and password.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>defaultUserRoles</target>
+    <anchor>left</anchor>
+    <html>All users authenticated from your LDAP tree will be given the roles you put into this comma-delimited list. Zope expects all users - anonymous as well as authenticated - to have the role Anonymous.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>mapLDAPGroupsToZenossRoles</target>
+    <anchor>left</anchor>
+    <html>If your group information is stored in LDAP and you do not want to set up individual LDAP group to Zope role mappings, then you can simply map all LDAP groups to Zope roles. Each group a user is member of will show up as a role with the same name on the user object.</html>
+  </tooltip>
+
+</view>
