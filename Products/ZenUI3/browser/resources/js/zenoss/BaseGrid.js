@@ -497,10 +497,15 @@
                 verticalScrollerType:'paginggridscroller',
                 invalidateScrollerOnRefresh:false,
                 scroll:'both',
-                bbar:['->', {
-                    xtype:'livegridinfopanel',
-                    grid:this
-                }]
+                bbar: {
+                    cls: 'commonlivegridinfopanel',
+                    items: [
+                        '->',
+                    {
+                        xtype:'livegridinfopanel',
+                        grid:this
+                    }]
+                }
             });
             this.callParent([config]);
         },

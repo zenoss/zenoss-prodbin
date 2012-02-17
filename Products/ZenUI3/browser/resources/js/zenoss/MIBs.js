@@ -1,5 +1,4 @@
-/*
-############################################################################
+/* ############################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2010, Zenoss Inc.
@@ -132,29 +131,21 @@ Ext.define("Zenoss.mibs.OidStore", {
     }
 });
 
-Ext.define('Zenoss.mibs.Grid',{
-    extend: 'Zenoss.BaseGridPanel',
-    constructor: function(config){
-        Ext.applyIf(config, {
-
-        });
-        this.callParent(arguments);
-    }
-});
-    function rowSelect(sm, rec, ri) {
-        var node = Ext.getCmp('node_details');
-        node.name.setValue(rec.data.name);
-        node.oid.setValue(rec.data.oid);
+function rowSelect(sm, rec, ri) {
+    var node = Ext.getCmp('node_details');
+    node.name.setValue(rec.data.name);
+    node.oid.setValue(rec.data.oid);
+    node.accessOrObjects.setValue(rec.data.access);
+    if (rec.data.access == undefined) {
+        node.accessOrObjects.setValue(rec.data.objects);
+    } else {
         node.accessOrObjects.setValue(rec.data.access);
-        if (rec.data.access == undefined) {
-            node.accessOrObjects.setValue(rec.data.objects);
-        } else {
-            node.accessOrObjects.setValue(rec.data.access);
-        }
-        node.nodetype.setValue(rec.data.nodetype);
-        node.status.setValue(rec.data.status);
-        node.description.setValue(rec.data.description);
     }
+    node.nodetype.setValue(rec.data.nodetype);
+    node.status.setValue(rec.data.status);
+    node.description.setValue(rec.data.description);
+}
+
 oid_grid = Ext.create('Zenoss.BaseGridPanel', {
     id: 'oid_grid',
     store: Ext.create('Zenoss.mibs.OidStore', {}),

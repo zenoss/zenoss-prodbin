@@ -11,7 +11,7 @@ $base-gradient: 'bevel';
 $include-missing-images: true;
 
 @import "compass/css3/pie";
-@import "compass/css3"; 
+@import "compass/css3";
 @import "compass/support";
 @import 'ext4/default/variables';
 @import 'styles/variables';
@@ -29,28 +29,28 @@ $include-missing-images: true;
 @include zenoss-toolbar;
 @include zenoss-panel;
 @include zenoss-window;
-@include zenoss-grid;   
-@include zenoss-tips; 
+@include zenoss-grid;
+@include zenoss-tips;
 @include zenoss-form;
 @include zenoss-menu;
 @include zenoss-flares;
 @include zenoss-wizards;
-   
 
 
-#templateTree .x-grid-cell{  
+
+#templateTree .x-grid-cell{
     background-color:transparent;
 }
 
 /* top search button sprite */
-#searchbox-container{ 
+#searchbox-container{
     .x-form-trigger {
         background-image: url('../img/xtheme-zenoss/form/trigger.gif');
     }
     .searchfield-black{
         height:21px;
         overflow:hidden;
-    }     
+    }
 }
 #footer_bar{
     border:none !important;
@@ -69,9 +69,9 @@ $include-missing-images: true;
 #trigger-master_panel, #trigger-master_panel-body{
     background-color:#D4E0EE !important;
 }
-#trigger-master_panel_navigation{ 
+#trigger-master_panel_navigation{
     background:transparent !important;
-    .x-grid-cell, #trigger-master_panel_navigation-body, .x-grid-header-ct, 
+    .x-grid-cell, #trigger-master_panel_navigation-body, .x-grid-header-ct,
     .x-column-header, .x-tree-elbow-end, .x-tree-elbow{
         background:transparent;
         background-image:none;
@@ -82,7 +82,7 @@ $include-missing-images: true;
     #subselecttreepaneldetail_nav-body, .x-panel-body{
         border: 0 none !important;
     }
-    #subselecttreepaneldetail_nav .x-grid-cell, .x-panel-body-hierarchy, #templateTree{  
+    #subselecttreepaneldetail_nav .x-grid-cell, .x-panel-body-hierarchy, #templateTree{
         background-color:#D4E0EE !important;
         border:0 none !important;
     }
@@ -91,11 +91,11 @@ $include-missing-images: true;
     }
 }
 
-#master_panel .#{$prefix}panel-hierarchy, #master_panel #subselecttreepaneldetail_nav, 
+#master_panel .#{$prefix}panel-hierarchy, #master_panel #subselecttreepaneldetail_nav,
 #master_panel_navigation, #trigger-master_panel, #templateTree{
     .#{$prefix}grid-row-over{
             background-color:#eee !important;
-            color:#454545 !important;    
+            color:#454545 !important;
         .#{$prefix}grid-cell, .#{$prefix}grid-cell-inner{
             background-color:#eee !important;
             color:#454545 !important;
@@ -110,27 +110,24 @@ $include-missing-images: true;
     .#{$prefix}toolbar-footer{
         background-color:#F5F9FD;
         padding:8px !important;
-        border-top:1px solid!important;         
+        border-top:1px solid!important;
     }
     .#{$prefix}docked-bottom{
         border-top-width:1px !important;
         border-color:#808080 !important;
     }
 }
-#detailCardPanel, #gridCardPanel, #navGrid, #NetworkDetailCardPanel, #device_grid{
-    .#{$prefix}panel-body{
-        border:0 none !important;
-    }
-    .#{$prefix}toolbar-default-docked-bottom{
-       background:#fff !important;
-    }
+.commonlivegridinfopanel{
+    border:0 none !important;
+    background:#fff !important;
+
 }
 
 .x-docked.x-panel-default-collapsed{
     background-image:none !important;
-    background-color:#A5A5A5; 
+    background-color:#A5A5A5;
     border:0 none;
-}  
+}
 .livegridinfopanel{
     text-transform:uppercase;
     font-size:10px !important;
@@ -147,17 +144,17 @@ $include-missing-images: true;
         border-radius:0;
         #log-container-body{
             background:transparent;
-        }    
-    }   
+        }
+    }
     #event_detail_properties-body{
         .x-panel-body{
             border:0 none;
             color: #7199E6;
             cursor: pointer;
             font-size: 13px;
-            text-decoration: none;            
+            text-decoration: none;
         }
-    } 
+    }
 }
 
 /* ========================== */
@@ -169,7 +166,7 @@ $include-missing-images: true;
     border: 0 none !important;
 }
 
-#device_graphs .graph-panel{  
+#device_graphs .graph-panel{
     height: 260px !important;
 }
 
@@ -184,14 +181,14 @@ $include-missing-images: true;
 .x-mask-msg-noicon div {
    background-image: none;
 }
- 
+
 .x-grid-row-selected, .x-grid-row-focused{
-     background-color:#7199C6 !important;  
+     background-color:#7199C6 !important;
      .x-grid-cell-inner, span{
-         background-color:#7199C6 !important;      
+         background-color:#7199C6 !important;
          color:#fff !important;
     }
-} 
+}
 .x-grid-row-selected.x-grid-row-over{
      .x-grid-cell-inner, span{
          color:#222 !important;
@@ -201,20 +198,20 @@ $include-missing-images: true;
     padding-top:5px;
 }
 #evdetail_props_table td{
-    white-space: pre-wrap; 
+    white-space: pre-wrap;
     white-space: -moz-pre-wrap !important;
     white-space: -pre-wrap;
     white-space: -o-pre-wrap;
-    word-wrap: break-word;  
+    word-wrap: break-word;
 }
 
-// fixing a situation where links in the flares arent clickable due to the header overlay.  
-.x-flare-header{  
-	    left:auto !important; 
-	    right:15px !important; 
-	    width:15px !important; 
-	    .x-tool{ left:0px !important; } 
-}   
+// fixing a situation where links in the flares arent clickable due to the header overlay.
+.x-flare-header{
+        left:auto !important;
+        right:15px !important;
+        width:15px !important;
+        .x-tool{ left:0px !important; }
+}
 
 #category_tree-body{
     background-color:transparent !important;
@@ -222,12 +219,12 @@ $include-missing-images: true;
 
 #manageSavedSearchesDialog{
     .x-frame-mr{
-        padding-left:0 !important;    
+        padding-left:0 !important;
     }
     .x-column-header-text{
         color:#000000;
         font-size: 11px;
-        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);        
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
     }
     .x-box-inner .x-btn{
        margin-left:2px !important;

@@ -9615,9 +9615,8 @@ CORE TRIGGER PAGE STUFF
   border-top-width: 1px !important;
   border-color: #808080 !important; }
 
-#detailCardPanel .x-panel-body, #gridCardPanel .x-panel-body, #navGrid .x-panel-body, #NetworkDetailCardPanel .x-panel-body, #device_grid .x-panel-body {
-  border: 0 none !important; }
-#detailCardPanel .x-toolbar-default-docked-bottom, #gridCardPanel .x-toolbar-default-docked-bottom, #navGrid .x-toolbar-default-docked-bottom, #NetworkDetailCardPanel .x-toolbar-default-docked-bottom, #device_grid .x-toolbar-default-docked-bottom {
+.commonlivegridinfopanel {
+  border: 0 none !important;
   background: #fff !important; }
 
 .x-docked.x-panel-default-collapsed {
