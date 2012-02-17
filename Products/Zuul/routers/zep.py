@@ -281,7 +281,10 @@ class EventsRouter(DirectRouter):
             return self.queryArchive(limit=limit, start=start, sort=sort,
                                      dir=dir, params=params, uid=uid,
                                      detailFormat=detailFormat)
-
+        # special case for dmd/Devices in which case we want to show all events
+        # by default events are not tagged with the root device classes because it would be on all events
+        if uid == "/zport/dmd/Devices":
+            uid = "/zport/dmd"
         filter = self._buildFilter(uid, params)
         events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter)
         eventFormat = self._mapToOldEvent

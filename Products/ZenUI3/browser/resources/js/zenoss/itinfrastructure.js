@@ -337,14 +337,14 @@ Ext.apply(Zenoss.devices, {
                                What is this strange line with splits and joins you may ask?
                                opts.* sends multiselect values in a , delimited string that looks like:
                                /Something,/Somethingelse,/Name contains , here,/Etc
-                               Since we don't want to limit user on , usage in their names - we take the , delimiter and 
+                               Since we don't want to limit user on , usage in their names - we take the , delimiter and
                                replace it with something they most certainly will never use; ^ and split on that instead
                                Ticket #29614 fix.
                             */
                             if (opts.systemPaths) {
                                 opts.systemPaths = opts.systemPaths.split(",/").join("^/").split("^");
                             }
-                            if (opts.groupPaths) {                               
+                            if (opts.groupPaths) {
                                 opts.groupPaths = opts.groupPaths.split(",/").join("^/").split("^");
                             }
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
@@ -1034,7 +1034,6 @@ Ext.define("Zenoss.InfraDetailNav", {
     onSelectionChange: function(nodes) {
         var node;
         if ( nodes.length ) {
-            if (this.contextId.split('/').length < 5) this.contextId = '/zport/dmd';
             node = nodes[0];
             var detailPanel = Ext.getCmp('detail_panel');
             var contentPanel = Ext.getCmp(node.data.id);
