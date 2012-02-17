@@ -27,6 +27,8 @@ Related tickets:
 
 from AccessControl import getSecurityManager
 from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
+from zope.event import notify
 
 # monkey patch PAS to allow inituser files, but check to see if we need to
 # actually apply the patch, first -- support may have been added at some point
@@ -42,6 +44,7 @@ if not hasattr(pas, '_createInitialUser'):
 _originalResetCredentials = pas.resetCredentials
 def _resetCredentials(self, request, response=None):
     audit("UI.Authentication.Logout")
+    notify(UserLoggedOutEvent(getSecurityManager().getUser()))
     _originalResetCredentials(self, request, response)
 pas.resetCredentials = _resetCredentials
 
@@ -99,6 +102,7 @@ def login(self):
         else:
             # success
             audit('UI.Authentication.Login', ipaddress=ipaddress)
+            notify(UserLoggedInEvent(getSecurityManager().getUser()))
 
     came_from = request.form.get('came_from') or ''
     if came_from:
