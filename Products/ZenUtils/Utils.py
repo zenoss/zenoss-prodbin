@@ -24,6 +24,7 @@ import fcntl
 import time
 import os
 import types
+import tempfile
 import logging
 import re
 import socket
@@ -1727,4 +1728,38 @@ def ipv6_available():
         return True
     except socket.error:
         return False
+
+def atomicWrite(filename, data, raiseException=True, createDir=False):
+    """
+    atomicWrite writes data in an atmomic manner to filename.
+
+    @param filename Complete path of file to write to.
+    @type filename string
+    @param data Data to write to destination file.
+    @type data writeable object (eg, string)
+    @param raiseException Raise errors that occur during atomicWrite
+    @type raiseException Exception
+    @param createDir Create the destination directory if it does not exists.
+    @type createDir Bool
+    @rtype a suppressed exception, if any
+    """
+    dirName = os.path.dirname(filename)
+    if createDir and not os.path.exists(dirName):
+        os.makedirs(dirName)
+    tfile = None
+    ex = None
+    try:
+        # create a file in the same directory as the destination file
+        with tempfile.NamedTemporaryFile(dir=dirName, delete=False) as tfile:
+            tfile.write(data)
+        os.rename(tfile.name, filename) # atomic operation on POSIX systems
+    except Exception as ex:
+        if tfile is not None and os.path.exists(tfile.name):
+            try:
+                os.remove(tfile.name)
+            except Exception:
+                pass
+        if raiseException:
+            raise ex
+    return ex
 

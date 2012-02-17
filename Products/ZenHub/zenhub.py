@@ -27,6 +27,7 @@ if __name__ == "__main__":
 
 from XmlRpcService import XmlRpcService
 
+import collections
 import socket
 import time
 import pickle
@@ -45,7 +46,7 @@ from ZODB.POSException import POSKeyError
 from Products.DataCollector.Plugins import loadPlugins
 from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config_override, ipv6_available
+from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config_override, ipv6_available, atomicWrite
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -289,6 +290,7 @@ class ZenHub(ZCmdBase):
         self.workTracker = {}
         self.workList = []
         self.worker_processes=set()
+        self.counters = collections.Counter()
 
         ZCmdBase.__init__(self)
         import Products.ZenHub
@@ -544,6 +546,7 @@ class ZenHub(ZCmdBase):
                         self.giveWorkToWorkers()
                         return result
                     self.log.debug("Giving %s to worker %d", job[2][2], i)
+                    self.counters['workerItems'] += 1
                     if self.options.logworkerstats:
                         jobDesc = "%s:%s.%s" % (job[2][1], job[2][0], job[2][2])
                         self.workTracker[i] = (jobDesc, time.time())
@@ -634,13 +637,30 @@ class ZenHub(ZCmdBase):
         reactor.callLater(seconds, self.heartbeat)
         r = self.rrdStats
         totalTime = sum(s.callTime for s in self.services.values())
-        self.zem.sendEvents(
-            r.counter('totalTime', seconds, int(self.totalTime * 1000)) +
-            r.counter('totalEvents', seconds, self.totalEvents) +
-            r.gauge('services', seconds, len(self.services)) +
-            r.counter('totalCallTime', seconds, totalTime) +
-            r.gauge('workListLength', seconds, len(self.workList))
-            )
+        events = r.counter('totalTime', seconds, int(self.totalTime * 1000))
+        events += r.counter('totalEvents', seconds, self.totalEvents) 
+        events += r.gauge('services', seconds, len(self.services)) 
+        events += r.counter('totalCallTime', seconds, totalTime) 
+        events += r.gauge('workListLength', seconds, len(self.workList))
+        for name, value in self.counters.items():
+            events += r.counter(name, seconds, value)
+        self.zem.sendEvents(events)
+
+        # persist counters values
+        self.saveCounters()
+
+    def saveCounters(self):
+        atomicWrite(
+            zenPath('var/zenhub_counters.pickle'),
+            pickle.dumps(self.counters),
+            raiseException=False,
+        )
+
+    def loadCounters(self):
+        try:
+            self.counters = pickle.load(open(zenPath('var/zenhub_counters.pickle')))
+        except Exception:
+            pass
 
     def main(self):
         """
@@ -689,4 +709,12 @@ class ZenHub(ZCmdBase):
 
 if __name__ == '__main__':
     z = ZenHub()
+
+    # during startup, restore performance counters
+    z.loadCounters()
+
     z.main()
+
+    # during shutdown, attempt to save our performance counters
+    z.saveCounters()
+

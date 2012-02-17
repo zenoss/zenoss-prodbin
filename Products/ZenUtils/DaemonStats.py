@@ -71,6 +71,7 @@ class DaemonStats:
         fileName = fullname(base)
         if not os.path.exists(fileName):
             rrdtool.create(fileName,
+                           '--step', "%d" % cycleTime,
                            'DS:ds0:%s:%s:%s:%s' % (type,
                                                    cycleTime * 3,
                                                    minVal,
