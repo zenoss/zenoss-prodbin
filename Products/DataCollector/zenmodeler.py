@@ -16,16 +16,20 @@ For instance, find out what Ethernet interfaces and hard disks a server
 has available.
 This information should change much less frequently than performance metrics.
 """
+import Globals
 
 # IMPORTANT! The import of the pysamba.twisted.reactor module should come before
 # any other libraries that might possibly use twisted. This will ensure that
 # the proper WmiReactor is installed before anyone else grabs a reference to
 # the wrong reactor.
-import pysamba.twisted.reactor
+try:
+    import ZenPacks.zenoss.PySamba.twisted.reactor
+    from Products.ZenWin.WMIClient import WMIClient
+    from Products.ZenWin.utils import addNTLMv2Option, setNTLMv2Auth
+    USE_WMI = True
+except ImportError:
+    USE_WMI = False
 
-import Globals
-from Products.ZenWin.WMIClient import WMIClient
-from Products.ZenWin.utils import addNTLMv2Option, setNTLMv2Auth
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
@@ -52,7 +56,7 @@ import os.path
 import sys
 import traceback
 from random import randint
-from itertools import *
+from itertools import chain
 
 defaultPortScanTimeout = 5
 defaultParallel = 1
@@ -282,7 +286,10 @@ class ZenModeler(PBDaemon):
         clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
         ip = device.manageIp
         timeout = clientTimeout + time.time()
-        self.wmiCollect(device, ip, timeout)
+        if USE_WMI:
+            self.wmiCollect(device, ip, timeout)
+        else:
+            self.log.info("skipping WMI-based collection, PySamba zenpack not installed")
         self.pythonCollect(device, ip, timeout)
         self.cmdCollect(device, ip, timeout)
         self.snmpCollect(device, ip, timeout)
@@ -838,7 +845,7 @@ class ZenModeler(PBDaemon):
                 dest='debug', action="store_true", default=False,
                 help="Don't fork threads for processing")
         self.parser.add_option('--nowmi',
-                dest='nowmi', action="store_true", default=False,
+                dest='nowmi', action="store_true", default=not USE_WMI,
                 help="Do not execute WMI plugins")
         self.parser.add_option('--parallel', dest='parallel',
                 type='int', default=defaultParallel,
@@ -881,7 +888,8 @@ class ZenModeler(PBDaemon):
                 dest='checkStatus', action="store_true", default=False,
                 help="Don't model if the device is ping or snmp down")
         TCbuildOptions(self.parser, self.usage)
-        addNTLMv2Option(self.parser)
+        if USE_WMI:
+            addNTLMv2Option(self.parser)
 
     def processOptions(self):
         """
@@ -893,7 +901,8 @@ class ZenModeler(PBDaemon):
         if self.options.ignorePlugins and self.options.collectPlugins:
             raise SystemExit( "Only one of --ignore or --collect"
                              " can be used at a time")
-        setNTLMv2Auth(self.options)
+        if USE_WMI:
+            setNTLMv2Auth(self.options)
 
     def _timeoutClients(self):
         """

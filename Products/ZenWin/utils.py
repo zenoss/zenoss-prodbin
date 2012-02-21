@@ -15,8 +15,6 @@
 This module provides common utilities for monitoring Windows devices.
 """
 
-import pysamba.twisted.reactor
-
 def addNTLMv2Option(parser):
     """
     Adds the --ntlmv2auth option to the provided command-line parser.
@@ -35,7 +33,13 @@ def setNTLMv2Auth(options):
     upon the setting of the ntlmv2auth option.
     @param options: the command-line options object
     """
-    flag = False
-    if getattr(options, 'ntlmv2auth', False):
-        flag = True
-    pysamba.twisted.reactor.setNTLMv2Authentication(flag)
+    # DO NOT PROMOTE THIS IMPORT TO THE TOP OF THE MODULE
+    # only this method should depend on the successful import of the 
+    # PySamba zenpack
+    try:
+        from ZenPacks.zenoss.PySamba.twisted import reactor
+    except ImportError:
+        pass
+    else:
+        flag = bool(getattr(options, 'ntlmv2auth', False))
+        reactor.setNTLMv2Authentication(flag)
