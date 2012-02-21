@@ -19,6 +19,7 @@ import ConfigParser
 import subprocess
 from zipfile import ZipFile
 from StringIO import StringIO
+from pkg_resources import parse_version
 
 import Globals
 import transaction
@@ -242,17 +243,20 @@ class ZenPackCmd(ZenScriptBase):
                     zpName = req[:operatorPos].strip()
                     zpVersion = req[operatorPos+2:].strip()
 
-                if zpName in installedPacks:
-                    if zpVersion and installedPacks[zpName] < zpVersion:
-                        self.log.error(
-                            'Zenpack %s requires %s to be at version %s' %
-                            (self.options.installPackName, zpName, zpVersion))
-                        prereqsMet = False
-                else:
+                if zpName not in installedPacks:
                     self.log.error('Zenpack %s requires %s %s' %
                           (self.options.installPackName, zpName,
                                   zpVersion if zpVersion else ''))
                     prereqsMet = False
+                elif zpVersion:
+                    requiredVersion = parse_version(zpVersion)
+                    installedVersion = parse_version(installedPacks[zpName])
+                    if installedVersion < requiredVersion:
+                        self.log.error(
+                            'Zenpack %s requires %s to be at version %s, found: %s' %
+                            (self.options.installPackName, zpName, zpVersion,
+                             installedPacks[zpName]))
+                        prereqsMet = False
             return prereqsMet
 
         if os.path.isfile(self.options.installPackName):
