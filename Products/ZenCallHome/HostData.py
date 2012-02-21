@@ -314,7 +314,12 @@ class RPMData(CommandData):
     def __init__(self, rpm_arg):
         super(RPMData,self).__init__()
         self._rpm_arg = rpm_arg
-        self._args = ["rpm", "-q", rpm_arg]
+        if os.path.exists("/etc/redhat-release") or os.path.exists("/etc/SuSe-release"):
+            self._rpm_support = True
+            self._args = ["rpm", "-q", rpm_arg]
+        else:
+            self._rpm_support = False
+            self._args = ["exit", "1"]
 
     def _createParser(self):
         return RpmParser(self._rpm_arg)
@@ -323,7 +328,11 @@ class RPMData(CommandData):
         label = 'RPM'
         if self._rpm_arg:
             label = "%s - %s" % (label, self._rpm_arg)
-        yield label, "Not Available"
+        if self._rpm_support:
+            value = "Not Available"
+        else:
+            value = "Not Supported"
+        yield label, value
 
 
 class ZenossRPMData(RPMData):
