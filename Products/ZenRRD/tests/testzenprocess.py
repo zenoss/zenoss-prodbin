@@ -377,11 +377,11 @@ class TestZenprocess(BaseTestCase):
 
     def testMultipleMissing(self):
         procDefs = {}
-        self.updateProcDefs(procDefs, getProcessIdentifier('testFirst ',  'some'), False, '/fake/path/testFirst')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testSecond ', 'args'), False, '/fake/path/testSecond')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testThird ',  'went'), False, '/fake/path/testThird')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testFourth ', 'here'), False, '/fake/path/testFourth')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testFifth ',  'five'), False, '/fake/path/testFifth')
+        self.updateProcDefs(procDefs, getProcessIdentifier('testFirst',  'some'), False, '/fake/path/testFirst')
+        self.updateProcDefs(procDefs, getProcessIdentifier('testSecond', 'args'), False, '/fake/path/testSecond')
+        self.updateProcDefs(procDefs, getProcessIdentifier('testThird',  'went'), False, '/fake/path/testThird')
+        self.updateProcDefs(procDefs, getProcessIdentifier('testFourth', 'here'), False, '/fake/path/testFourth')
+        self.updateProcDefs(procDefs, getProcessIdentifier('testFifth',  'five'), False, '/fake/path/testFifth')
         task = self.makeTask(procDefs)
         
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testFirst',
@@ -444,15 +444,15 @@ class TestZenprocess(BaseTestCase):
 
     def testCase15875part1(self):
         procDefs = {}
-        self.updateProcDefs(procDefs, 'syslogd', False, '^syslogd')
-        self.updateProcDefs(procDefs, 'usr_bin_perl', False, '^.*?/usr/bin/perl\s+-w\s+/opt/sysadmin/packages/scooper/bin/scooperd\s+/opt.*')
-        self.updateProcDefs(procDefs, 'usr_java_jdk_bin_java', False, '/opt/gsp/')
-        self.updateProcDefs(procDefs, 'ntpd', False, '^ntpd')
-        self.updateProcDefs(procDefs, 'perl', False, 'aSecure\.rb|aSecure\.pl')
+        self.updateProcDefs(procDefs, getProcessIdentifier('syslogd', '-m 0'), False, '^syslogd')
+        self.updateProcDefs(procDefs, getProcessIdentifier('usr_bin_perl', '-w /opt/sysadmin/packages/scooper/bin/scooperd /opt/sysadmin/packages/scooper/config/config.xml /opt/sysadmin/packages/scooper/config/sanity.xml'), False, '^.*?/usr/bin/perl\s+-w\s+/opt/sysadmin/packages/scooper/bin/scooperd\s+/opt.*')
+        self.updateProcDefs(procDefs, getProcessIdentifier('usr_java_jdk_bin_java', '-Djava.awt.headless=true -Djava.endorsed.dirs=/opt/gsp/nationwideUKFraudCard-cqa/tomcat/common/endorsed -classpath /usr/java/jdk/lib/tools.jar:/opt/gsp/nationwideUKFraudCard-cqa/tomcat/bin/bootstrap.jar:/opt/gsp/nationwideUKFraudCard-cqa/tomcat/bin/commons-logging-api.jar -Dcatalina.base=/opt/gsp/nationwideUKFraudCard-cqa/tomcat -Dcatalina.home=/opt/gsp/nationwideUKFraudCard-cqa/tomcat -Djava.io.tmpdir=/opt/gsp/nationwideUKFraudCard-cqa/tomcat/temp org.apache.catalina.startup.Bootstrap start'), False, '/opt/gsp/')
+        self.updateProcDefs(procDefs, getProcessIdentifier('ntpd', '-u ntp:ntp -p /var/run/ntpd.pid'), False, '^ntpd')
+        self.updateProcDefs(procDefs, getProcessIdentifier('perl', './aSecure.pl -d'), False, 'aSecure\.rb|aSecure\.pl')
         self.updateProcDefs(procDefs, 'crond', True, '^crond')
 
         task = self.makeTask(procDefs)
-        expectedStats = self.expected(117, 6, 6, 0, 6, 0, 0, 0)
+        expectedStats = self.expected(117, 6, 7, 0, 7, 0, 0, 0)
         self.compareTestFile('case15875-0', task, expectedStats)
 
     def testCase15875part2(self):
@@ -529,17 +529,17 @@ class TestZenprocess(BaseTestCase):
         self.updateProcDefs(procDefs, 'crond', True, '^crond')
 
         task = self.makeTask(procDefs)
-        expectedStats = self.expected(253, 6, 14, 0, 14, 0, 0, 1)
+        expectedStats = self.expected(253, 7, 15, 0, 15, 0, 0, 0)
         self.compareTestFile('case15875-4', task, expectedStats)
 
     def testRemodels(self):
         procDefs = self.getProcDefsFromFile('remodel_bug-config-0')
         task = self.makeTask(procDefs)
-        expectedStats = self.expected(159, 31, 33, 0, 33, 0, 0, 0)
+        expectedStats = self.expected(159, 29, 31, 0, 31, 0, 0, 2)
         self.compareTestFile('remodel_bug-0', task, expectedStats)
 
         procDefs = self.getProcDefsFromFile('remodel_bug-config-1')
-        expectedStats = self.expected(157, 30, 32, 31, 1, 0, 2, 2)
+        expectedStats = self.expected(157, 30, 32, 29, 2, 0, 1, 1)
         config = TaskConfig(procDefs=procDefs)
         task._deviceStats.update(config)
         self.compareTestFile('remodel_bug-1', task, expectedStats)
@@ -587,7 +587,7 @@ class TestZenprocess(BaseTestCase):
 
     def testSpecialCharacterSuffix(self):
         procDefs = {}
-        self.updateProcDefs(procDefs, 'sendmail_ accepting connections', False, 'sendmail: accepting connections')
+        self.updateProcDefs(procDefs, 'sendmail_', False, 'sendmail: accepting connections')
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'sendmail: accepting connections'},

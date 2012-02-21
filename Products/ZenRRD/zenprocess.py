@@ -190,7 +190,7 @@ class ProcessStats:
         if not self._config.ignoreParameters:
             # The modeler plugin computes the MD5 hash of the args,
             # and then tosses that into the name of the process
-            result = self._config.name.rsplit(' ', -1)
+            result = self._config.name.rsplit(' ', 1)
             if len(result) == 2 and result[1] != '':
                 self.digest = result[1]
 
@@ -223,10 +223,7 @@ class ProcessStats:
 
         # SNMP agents return a 'flexible' number of characters,
         # so exact matching isn't always reliable.
-        if self._config.ignoreParameters:
-            processName = name
-        else:
-            processName = ('%s %s' % (name, args or '')).strip()
+        processName = ('%s %s' % (name, args or '')).strip()
 
         # Make the comparison
         result = re.search(self._config.regex, processName) is not None
@@ -660,23 +657,6 @@ class ZenProcessTask(ObservableMixin):
                         afterPidToProcessStats[pid] = pStats
                         break
 
-        # If the hashes get trashed by the SNMP agent, try to
-        # make sensible guesses.
-        missingModeledStats = sorted(set(self._deviceStats.processStats) -
-                                     set(afterPidToProcessStats.values()), key=lambda x:x._config.name)
-        if missingModeledStats:
-            log.info("Searching for possible matches for %s", missingModeledStats)
-        for pStats in missingModeledStats:
-            for pid, (name, args) in procs:
-                if pid in afterPidToProcessStats:
-                    continue
-
-                if pStats.match(name, args, useMd5Digest=False):
-                    log.debug("%s missingModeledStats - Found process %d on %s %s",
-                              self._devId, pid, pStats._config.originalName, pStats._config.name)
-                    afterPidToProcessStats[pid] = pStats
-                    break
-
         afterPids = set(afterPidToProcessStats.keys())
         afterByConfig = reverseDict(afterPidToProcessStats)
         newPids = afterPids - beforePids
@@ -712,7 +692,7 @@ class ZenProcessTask(ObservableMixin):
             if pStat._config.ignoreParameters:
                 pStatsWoArgs.append(pStat)
             else:
-                nameList = pStat._config.name.split()
+                nameList = pStat._config.name.rsplit(' ', 1)
                 if len(nameList) < 2: # (name, md5sum)
                     nameList = (nameList[0], md5('').hexdigest())
 
