@@ -100,7 +100,7 @@ if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
     C="$C zenprocess"
     C="$C zenrrdcached"
     #C="$C zenmail"
-    $ZENHOME/bin/python -c 'import pysamba' 2>/dev/null
+    $ZENHOME/bin/python -c 'import Globals; import ZenPacks.zenoss.PySamba' 2>/dev/null
     if [ $? -eq 0 ]
     then
         C="$C zenwin"
