@@ -141,7 +141,7 @@ class ZCollector(object):
             # get previous run time
             tfile = os.path.join(path, ".zcollector")
             last = utime(tfile)
-            if (time.time() - last) > interval:
+            if (time.time() - last) > interval or args.force:
                 if not args.silent:
                     print "Executing all daemons in: %s" % path
                 files = os.listdir(path)
@@ -179,9 +179,10 @@ class ZCollector(object):
         parser_run = subparsers.add_parser('run')
         parser_run.add_argument('--dirname', default=_DIRNAME)
         parser_run.add_argument('--perfdir', default=_PERFDIR)
+        parser_run.add_argument('--force', action='store_true')
         parser_run.set_defaults(func=self.run)
 
-        parser.add_argument('--silent', action='store_true', default=False)
+        parser.add_argument('--silent', action='store_true')
 
         args = parser.parse_args()
         args.func(args, parser)
