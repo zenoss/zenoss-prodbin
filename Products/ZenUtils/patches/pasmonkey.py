@@ -1,4 +1,4 @@
-###########################################################################
+ ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2007, Zenoss Inc.
@@ -44,7 +44,7 @@ if not hasattr(pas, '_createInitialUser'):
 _originalResetCredentials = pas.resetCredentials
 def _resetCredentials(self, request, response=None):
     audit("UI.Authentication.Logout")
-    notify(UserLoggedOutEvent(getSecurityManager().getUser()))
+    notify(UserLoggedOutEvent(self.zport.dmd.ZenUsers.getUserSettings()))
     _originalResetCredentials(self, request, response)
 pas.resetCredentials = _resetCredentials
 
@@ -102,7 +102,7 @@ def login(self):
         else:
             # success
             audit('UI.Authentication.Login', ipaddress=ipaddress)
-            notify(UserLoggedInEvent(getSecurityManager().getUser()))
+            notify(UserLoggedInEvent(self.zport.dmd.ZenUsers.getUserSettings()))
 
     came_from = request.form.get('came_from') or ''
     if came_from:

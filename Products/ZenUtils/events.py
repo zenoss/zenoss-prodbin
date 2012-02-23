@@ -21,7 +21,7 @@ class UserLoggedInEvent(PASEvent):
     Login notification event.
 
     Subscribe to this to run code when a user logs in.
-    The username can be obtained in the handler via: evt.object.getUserName()
+    The username can be obtained in the handler via: evt.object.id
 
     WARNING: Currently it doesn't notify when switching directly from
              a non-admin user to the admin user without logging out,
