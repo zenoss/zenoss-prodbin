@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-01-18 16:24:21.727240
+    Zenoss RelationshipManager export completed on 2012-02-24 15:35:37.226020
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-01-18 16:24:21.727240" zenoss_server="ubuntu1010-64" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2012-02-24 15:35:37.226020" zenoss_server="epowell-dev" >
 <object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
@@ -51,7 +51,7 @@ Sends out notifications based on triggers
 zenactiond
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenactiond.py.*
+.*zenactiond.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -71,7 +71,7 @@ Using protocols such as Telnet and SSH, runs a command on the remote machine and
 zencommand
 </property>
 <property type="string" id="regex" mode="w" >
-.*zencommand.py.*
+.*zencommand.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -88,7 +88,7 @@ Using protocols such as Telnet and SSH, runs a command on the remote machine and
 zeneventd
 </property>
 <property type="string" id="regex" mode="w" >
-.*zeneventd.py.*
+.*zeneventd.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -105,7 +105,7 @@ Gather Windows Event Log messages and convert them to Zenoss events.
 zeneventlog
 </property>
 <property type="string" id="regex" mode="w" >
-.*zeneventlog.py.*
+.*zeneventlog.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -145,7 +145,7 @@ This daemon provides a stable interface to ZODB, via services that are requested
 zenhub
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenhub.py.*
+.*zenhub.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -165,7 +165,7 @@ An 'at'-style scheduler for running long-running commands.
 zenjobs
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenjobs.py.*
+.*zenjobs.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -185,7 +185,7 @@ Listen on the SMTP port (default 25) and convert e-mails into Zenoss events.
 zenmail
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenmail.py.*
+.*zenmail.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 True
@@ -205,7 +205,7 @@ Model a device using protocols such as WMI, SNMP, SSH.
 zenmodeler
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenmodeler.py.*
+.*zenmodeler.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -225,7 +225,7 @@ SNMP performance metric poller daemon
 zenperfsnmp
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenperfsnmp.py.*
+.*zenperfsnmp.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -245,7 +245,7 @@ IPv4 and IPv6 ICMP ECHO sending daemon
 zenping
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenping.py.*
+.*zenping.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -265,7 +265,7 @@ Connect to a POP3 server and convert any messages into Zenoss events.
 zenpop3
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenpop3.py.*
+.*zenpop3.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -285,7 +285,7 @@ SNMP based daemon that gathers process information, and based on what has been m
 zenprocess
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenprocess.py.*
+.*zenprocess.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -302,10 +302,10 @@ SNMP based daemon that gathers process information, and based on what has been m
 Caching daemon that improves RRD write performance
 </property>
 <property type="string" id="name" mode="w" >
-zenrrdcached
+rrdcached
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenrrdcached
+.*rrdcached
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 True
@@ -325,7 +325,7 @@ A daemon that opens a TCP connection to the remote service to determine if it is
 zenstatus
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenstatus.py.*
+.*zenstatus.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -345,7 +345,7 @@ Daemon that runs on the syslog ports and converts syslog messages to Zenoss even
 zensyslog
 </property>
 <property type="string" id="regex" mode="w" >
-.*zensyslog.py.*
+.*zensyslog.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 True
@@ -365,7 +365,7 @@ Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss 
 zentrap
 </property>
 <property type="string" id="regex" mode="w" >
-.*zentrap.py.*
+.*zentrap.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 True
@@ -385,7 +385,7 @@ Gather information about running Windows services.
 zenwin
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenwin.py.*
+.*zenwin.py.*--daemon.*
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
