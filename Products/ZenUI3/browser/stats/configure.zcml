@@ -1,0 +1,54 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2012, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 or (at your
+# option) any later version as published by the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five"
+    >
+
+    <!-- create a monitoring page -->
+
+    <browser:page
+        name="zenossStatsView"
+        for="*"
+        class=".stats.StatsView"
+        permission="zope.Public"
+        />
+    
+    <!-- register adapters that provide statistics -->
+    <subscriber
+        provides="Products.Zuul.interfaces.ISystemMetric"
+        for="Products.ZenModel.DataRoot.DataRoot"
+        factory=".stats.MainZodbMetrics"
+        />
+
+    <subscriber
+        provides="Products.Zuul.interfaces.ISystemMetric"
+        for="Products.ZenModel.DataRoot.DataRoot"
+        factory=".stats.TempZodbMetrics"
+        />
+
+    <subscriber
+        provides="Products.Zuul.interfaces.ISystemMetric"
+        for="Products.ZenModel.DataRoot.DataRoot"
+        factory=".stats.ZopeMetrics"
+        />
+    
+    <!-- register request start/end handlers to compute request statistics -->
+    <subscriber handler=".stats.logRequestStart" />
+    <subscriber handler=".stats.logRequestEnd" />
+        
+
+</configure>

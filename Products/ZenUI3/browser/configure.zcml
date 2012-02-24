@@ -271,5 +271,6 @@
 
 <include package=".eventconsole"/>
 <include package=".search"/>
+<include package=".stats"/>
 
 </configure>
