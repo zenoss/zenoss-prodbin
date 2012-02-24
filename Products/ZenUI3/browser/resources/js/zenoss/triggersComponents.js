@@ -129,7 +129,7 @@ Ext.define("Zenoss.trigger.TriggerSubscriptions", {
         this.callParent(arguments);
     },
     addValueFromCombo: function() {
-        var combo = this.getToolbars()[0].data_combo,
+        var combo = this.getDockedItems('toolbar')[0].data_combo,
             val = combo.getValue(),
             rowIdx = combo.store.find('uuid', val),
             row = combo.store.getAt(rowIdx),

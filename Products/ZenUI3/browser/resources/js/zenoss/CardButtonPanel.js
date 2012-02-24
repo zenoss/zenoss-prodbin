@@ -66,7 +66,7 @@ Ext.define("Zenoss.CardButtonPanel", {
         }
 
         function syncButtons(me) {
-            var tb = me.getToolbars()[0];
+            var tb = me.getDockedItems('toolbar')[0];
             for (var idx=0; idx < me.items.getCount(); ++idx) {
                 var newComponent = me.items.get(idx);
 

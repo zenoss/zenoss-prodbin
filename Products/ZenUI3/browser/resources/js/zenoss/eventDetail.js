@@ -448,7 +448,6 @@ Ext.onReady(function() {
             // Add any sections that were registered before we loaded completely.
             Ext.each(Zenoss.event_detail_custom_sections, function(section) {
                 if (section.hasOwnProperty('section_class')) {
-                    var s = new ns[section.section_class](section);
                     this.addSection(section);
                 }
             }, this);
@@ -462,7 +461,7 @@ Ext.onReady(function() {
 
         addSection: function(section) {
             if (section.hasOwnProperty('renderers')) {
-                Ext.apply(this.renderers, section.renderers);
+                Ext.apply(this.renderers, section.renderers);  
             }
 
             this.sections.push(section);
