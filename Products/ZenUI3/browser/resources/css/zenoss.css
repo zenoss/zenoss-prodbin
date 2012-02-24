@@ -1454,9 +1454,6 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
     position:absolute;
     margin-right:3px !important;
 }
-.prioritycombo input{
-    visibility:visible !important;
-}
 #collectorpanel-body *{
     font-size:13px !important;
 }

@@ -648,7 +648,7 @@
                         },{
                             xtype: 'PriorityCombo',
                             fieldLabel: _t('Priority'),
-                            name: 'priority'
+                            name: 'priorityCombo'
                         },{
                             fieldLabel: _t('Tag'),
                             name: 'tagNumber',
