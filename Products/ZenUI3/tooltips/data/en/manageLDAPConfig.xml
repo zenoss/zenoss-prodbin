@@ -33,5 +33,9 @@
     <anchor>left</anchor>
     <html>If your group information is stored in LDAP and you do not want to set up individual LDAP group to Zope role mappings, then you can simply map all LDAP groups to Zope roles. Each group a user is member of will show up as a role with the same name on the user object.</html>
   </tooltip>
-
+  <tooltip>
+    <target>extraUserFilter</target>
+    <anchor>left</anchor>
+    <html>The additional user search filter allows the administrator to specify a free-form LDAP filter expression which will be added to the default user search filter. The default user search filter and this additional search filter are combined as an AND expression. Records must satisfy both filters to be found using the various user searches. Any value specified in this field must follow correct LDAP search filter syntax.</html>
+  </tooltip>
 </view>
