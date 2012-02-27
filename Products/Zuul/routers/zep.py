@@ -20,7 +20,6 @@ import time
 import logging
 import urllib
 from Products.ZenUtils.Ext import DirectRouter
-from Products.AdvancedQuery import MatchRegexp, Or, And, Eq
 from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenUtils.Time import isoDateTimeFromMilli, isoToTimestamp
@@ -30,7 +29,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
 from Products.ZenEvents.events2.proxy import EventProxy
 from Products.ZenMessaging.audit import audit
-from zenoss.protocols.services.zep import EventStatus, EventSeverity, ZepConnectionError
+from zenoss.protocols.services.zep import EventStatus, EventSeverity
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary
 from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
@@ -810,11 +809,36 @@ class EventsRouter(DirectRouter):
                 'minValue': 0,
                 'allowNegative': False,
                 },{
+                'id': 'aging_interval_milliseconds',
+                'name': _t('Event Aging Interval (milliseconds)'),
+                'xtype': 'numberfield',
+                'minValue': 0,
+                'allowNegative': False
+                },{
+                'id': 'aging_limit',
+                'name': _t('Event Aging Limit'),
+                'xtype': 'numberfield',
+                'minValue': 0,
+                'allowNegative': False
+                },{
                 'id': 'event_archive_interval_minutes',
-                'name': _t('Event Archive Interval (minutes)'),
+                'name': _t('Event Archive Threshold (minutes)'),
                 'xtype': 'numberfield',
                 'minValue': 1,
                 'maxValue': 43200,
+                'allowNegative': False,
+                },{
+                'id': 'archive_interval_milliseconds',
+                'name': _t('Event Archive Interval (milliseconds)'),
+                'xtype': 'numberfield',
+                'minValue': 1,
+                'maxValue': 43200,
+                'allowNegative': False,
+                },{
+                'id': 'archive_limit',
+                'name': _t('Event Archive Limit'),
+                'xtype': 'numberfield',
+                'minValue': 0,
                 'allowNegative': False,
                 },{
                 'id': 'event_archive_purge_interval_days',
@@ -841,6 +865,24 @@ class EventsRouter(DirectRouter):
                 'xtype': 'numberfield',
                 'allowNegative': False,
                 'minValue': 8192
+                },{
+                'id': 'index_summary_interval_milliseconds',
+                'name': _t('Summary Index Interval (milliseconds)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                'minValue': 0
+                },{
+                'id': 'index_archive_interval_milliseconds',
+                'name': _t('Archive Index Interval (milliseconds)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                'minValue': 0
+                },{
+                'id': 'index_limit',
+                'name': _t('Index Limit'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                'minValue': 0
                 }]
         return configSchema
 

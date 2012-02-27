@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+
+    <tooltip>
+        <target>event_age_disable_severity</target>
+        <anchor>top</anchor>
+        <html>Events with a lower severity than this are selected for aging
+            (along with event_age_interval_minutes). If you specify
+            SEVERITY_CLEAR for this setting, it disables event aging.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>event_age_interval_minutes</target>
+        <anchor>top</anchor>
+        <html>The number of minutes that elapse from the last time an event
+            was seen until it is a candidate for event aging. Setting this to
+            0 disables event aging.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>event_archive_interval_minutes</target>
+        <anchor>top</anchor>
+        <html>The number of minutes since a closed event was last seen before
+            it is moved to the event archive. The minimum value is 1 and the
+            maximum value is 43200.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>event_archive_purge_interval_days</target>
+        <anchor>top</anchor>
+        <html>The number of days that events in the event archive are saved. 
+            By default they are kept in the archive for 90 days. The minimum
+            value is 1 and the maximum value is determined by the range of
+            event archive partitions. With the default configuration, the
+            maximum value is 1000 days.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>event_time_purge_interval_days</target>
+        <anchor>top</anchor>
+        <html>The number of days that event occurrence times are kept. By
+            default they are kept for 7 days. The minimum value is 1 and the
+            maximum value is determined by the range of event time partitions.
+            With the default configuration, the maximum value is 7 days.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>event_age_severity_inclusive</target>
+        <anchor>top</anchor>
+        <html>If we want to include the selected severity as well as the
+            severties below it when aging</html>
+    </tooltip>
+
+    <tooltip>
+        <target>event_max_size_bytes</target>
+        <anchor>top</anchor>
+        <html>The maximum size of an event that will be processed in bytes.
+            Events that are too large will be logged and dropped. Events that
+            will *become* too big will have their details overwritten with new
+            details.
+        </html>
+    </tooltip>
+
+    <tooltip>
+        <target>index_summary_interval_milliseconds</target>
+        <anchor>top</anchor>
+        <html>The default indexing interval of the event summary (in milliseconds).</html>
+    </tooltip>
+
+    <tooltip>
+        <target>index_archive_interval_milliseconds</target>
+        <anchor>top</anchor>
+        <html>The default indexing interval of the event archive (in milliseconds).</html>
+    </tooltip>
+
+    <tooltip>
+        <target>index_limit</target>
+        <anchor>top</anchor>
+        <html>The number of events to index each index interval_milliseconds
+            interval.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>aging_limit</target>
+        <anchor>top</anchor>
+        <html>The maximum number of events to age in each interval. This limit
+            should be kept relatively low to prevent large database
+            transactions.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>archive_limit</target>
+        <anchor>top</anchor>
+        <html>The maximum number of events to archive in each interval. This
+            limit should be kept relatively low to prevent large database
+            transactions.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>aging_interval_milliseconds</target>
+        <anchor>top</anchor>
+        <html>The interval when events are scanned to perform auto-aging.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>archive_interval_milliseconds</target>
+        <anchor>top</anchor>
+        <html>The interval when events are scanned for moving to the archive.</html>
+    </tooltip>
+
+</view>
