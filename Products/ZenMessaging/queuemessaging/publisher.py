@@ -140,7 +140,6 @@ class ModelChangePublisher(object):
             fn(*args)
         return self._events
 
-
 def getModelChangePublisher():
     """
     Adds a synchronizer to the transaction and keep track if a
@@ -230,10 +229,20 @@ class PublishSynchronizer(object):
                 msgs = self.correlateEvents(publisher.events)
                 if msgs:
                     queuePublisher = getUtility(IQueuePublisher, '_txpublisher')
-                    dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
-                    tx.join(dataManager)
-                    for msg in msgs:
-                        queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
+                    if queuePublisher.channel is None:
+                        log.info('publisher.beforeCompletionHook: <%s>publisher channel is null, trying to reconnect',
+                                queuePublisher.__class__.__name__)
+                        queuePublisher.reconnect()
+                        if queuePublisher.channel is not None:
+                            log.info("reconnect successful")
+
+                    if queuePublisher.channel is not None:
+                        dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
+                        tx.join(dataManager)
+                        for msg in msgs:
+                            queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
+                    else:
+                        raise Exception("message publish failure, abort transaction")
             else:
                 log.debug("no publisher found on tx %s" % tx)
         finally:
@@ -311,6 +320,9 @@ class AsyncQueuePublisher(object):
     implements(IQueuePublisher)
 
     def __init__(self):
+        self.reconnect()
+    
+    def reconnect(self):
         connectionInfo = getUtility(IAMQPConnectionInfo)
         queueSchema = getUtility(IQueueSchema)
         self._amqpClient = AMQPFactory(connectionInfo, queueSchema)
@@ -345,6 +357,9 @@ class BlockingQueuePublisher(object):
     implements(IQueuePublisher)
 
     def __init__(self):
+        self.reconnect()
+
+    def reconnect(self):
         connectionInfo = getUtility(IAMQPConnectionInfo)
         queueSchema = getUtility(IQueueSchema)
         self._client = BlockingPublisher(connectionInfo, queueSchema)
@@ -382,6 +397,9 @@ class DummyQueuePublisher(object):
     @property
     def channel(self):
         return None
+
+    def reconnect(self):
+        pass
 
     def close(self):
         pass
