@@ -15,11 +15,6 @@
     <!--
     Internal publisher used for transactional model change events.
     -->
-    <utility factory=".publisher.BlockingQueuePublisher"
-             provides=".interfaces.IQueuePublisher"
-             name="_txpublisher"
-            />
-
     <utility factory=".publisher.ClosingEventPublisher"
              provides=".interfaces.IEventPublisher"
              />

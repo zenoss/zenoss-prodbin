@@ -55,7 +55,8 @@ class AmqpDataManager(object):
         """
         # discard any messages that have been buffered
         log.debug("abort'ed")
-        self.channel.tx_rollback()
+        if self.channel.is_open:
+            self.channel.tx_rollback()
 
     # Two-phase commit protocol.  These methods are called by the ITransaction
     # object associated with the transaction being committed.  The sequence

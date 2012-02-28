@@ -151,11 +151,16 @@ def getModelChangePublisher():
     log.debug("getting publisher on tx %s" % tx)
     if not getattr(tx, '_synchronizedPublisher', None):
         tx._synchronizedPublisher = ModelChangePublisher()
-        tx.addBeforeCommitHook(PUBLISH_SYNC.beforeCompletionHook, [tx])
+        # create new PublishSynchronizer also add after completion hook so that client/channel can be closed
+        pSync = PublishSynchronizer()
+        tx.addBeforeCommitHook(pSync.beforeCompletionHook, [tx])
+        tx.addAfterCommitHook(pSync.afterCompletionHook, [tx])
     return tx._synchronizedPublisher
 
 
 class PublishSynchronizer(object):
+
+    _queuePublisher = None
 
     def findNonImpactingEvents(self, events, attribute):
         removeEventIds = []
@@ -228,29 +233,27 @@ class PublishSynchronizer(object):
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
                 if msgs:
-                    queuePublisher = getUtility(IQueuePublisher, '_txpublisher')
-                    if queuePublisher.channel is None:
-                        log.info('publisher.beforeCompletionHook: <%s>publisher channel is null, trying to reconnect',
-                                queuePublisher.__class__.__name__)
-                        queuePublisher.reconnect()
-                        if queuePublisher.channel is not None:
-                            log.info("reconnect successful")
-
-                    if queuePublisher.channel is not None:
-                        dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
-                        tx.join(dataManager)
-                        for msg in msgs:
-                            queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
-                    else:
-                        raise Exception("message publish failure, abort transaction")
+                    self._queuePublisher = getUtility(IQueuePublisher, 'class')()
+                    dataManager = AmqpDataManager(self._queuePublisher.channel, tx._manager)
+                    tx.join(dataManager)
+                    for msg in msgs:
+                        self._queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
             else:
                 log.debug("no publisher found on tx %s" % tx)
         finally:
             if hasattr(tx, '_synchronizedPublisher'):
                 tx._synchronizedPublisher = None
 
-
-PUBLISH_SYNC = PublishSynchronizer()
+    def afterCompletionHook(self, status, tx):
+        try:
+            log.info("afterCompletionHook status:%s for tx %s" % (status, tx))
+            if self._queuePublisher:
+                try:
+                    self._queuePublisher.close()
+                except Exception:
+                    log.exception("Error closing queue publisher")
+        finally:
+            self._queuePublisher=None
 
 
 class EventPublisherBase(object):

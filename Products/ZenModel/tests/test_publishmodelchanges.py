@@ -8,7 +8,7 @@ import logging
 import transaction
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
-from Products.ZenMessaging.queuemessaging.publisher import getModelChangePublisher, PUBLISH_SYNC, DummyQueuePublisher
+from Products.ZenMessaging.queuemessaging.publisher import getModelChangePublisher, PublishSynchronizer, DummyQueuePublisher
 from zenoss.protocols.protobufs.modelevents_pb2 import ModelEventList
 from Products.ZenModel.DeviceClass import DeviceClass
 
@@ -75,7 +75,7 @@ class TestPublishModelChanges(BaseTestCase):
 
         # make sure only 1 event is fired
         self.publisher.moveObject(device, deviceClass, target)
-        sync = PUBLISH_SYNC
+        sync = PublishSynchronizer()
         events = sync.correlateEvents(self.publisher.events)
         self.assertEqual(len(events), 1, "should only be one move event")
 
