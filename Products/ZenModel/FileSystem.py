@@ -204,7 +204,7 @@ class FileSystem(OSComponent):
         """
 
         dskPercent = self.cacheRRDValue("dskPercent")
-        if dskPercent is not None and dskPercent is not "Unknown" and not isnan(dskPercent):
+        if dskPercent is not None and dskPercent != "Unknown" and not isnan(dskPercent):
             return self.getTotalBlocks() * dskPercent / 100.0
 
         blocks = self.cacheRRDValue('usedBlocks', default)
@@ -215,7 +215,7 @@ class FileSystem(OSComponent):
             # using perfmon for data collection and therefore we'll look for
             # the freeMegabytes datapoint
             freeMB = self.cacheRRDValue('FreeMegabytes', default)
-            if freeMB is not None:
+            if freeMB is not None and not isnan(freeMB):
                 usedBytes = self.totalBytes() - long(freeMB) * 1024 * 1024
                 return usedBytes / self.blockSize
         return None

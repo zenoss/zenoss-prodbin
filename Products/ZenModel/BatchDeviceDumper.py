@@ -103,7 +103,7 @@ class BatchDeviceDumper(ZCmdBase):
         @rtype: bool
         """
 
-        if self.options.root is "":
+        if self.options.root == "":
             self.root = self.dmd.Devices
             self.options.prune = False
         else:

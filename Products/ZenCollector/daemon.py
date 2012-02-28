@@ -617,22 +617,21 @@ class StatisticsService(object):
 
     def postStatistics(self, rrdStats, interval):
         events = []
-
         for stat in self._stats.values():
             # figure out which function to use to post this statistical data
-            if stat.type is 'COUNTER':
-                func = rrdStats.counter
-            elif stat.type is 'GAUGE':
-                func = rrdStats.gauge
-            elif stat.type is 'DERIVE':
-                func = rrdStats.derive
-            else:
+            try:
+                func = {
+                    'COUNTER' : rrdStats.counter,
+                    'GAUGE' : rrdStats.gauge,
+                    'DERIVE' : rrdStats.derive,
+                }[stat.type]
+            except KeyError:
                 raise TypeError("Statistic type %s not supported" % stat.type)
 
             events += func(stat.name, interval, stat.value)
 
             # counter is an ever-increasing value, but otherwise...
-            if stat.type is not 'COUNTER':
+            if stat.type != 'COUNTER':
                 stat.value = 0
 
         return events
