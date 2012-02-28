@@ -624,10 +624,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         try:
             devid = objid
             if not devid.endswith('*'): devid += '*'
-            obj = self.Devices.findDevice(devid)
+            obj = self.Networks.getNet(objid)
         except: obj=None
         if not obj:
-            obj = self.Networks.getNet(objid)
+            obj = self.Devices.findDevice(devid)
         if not obj:
             return '<graph><Start name="%s"/></graph>' % objid
         return obj.getXMLEdges(int(depth), filter,
