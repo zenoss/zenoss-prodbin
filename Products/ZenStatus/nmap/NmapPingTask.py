@@ -261,6 +261,7 @@ class NmapPingTask(BaseTask):
         # give up on a host after spending too much time on it
         args.extend(["--initial-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
         args.extend(["--min-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
+        args.extend(["--max-retries", "0"])
         
         if traceroute:
             args.append("--traceroute")
@@ -271,6 +272,8 @@ class NmapPingTask(BaseTask):
             raise ValueError("Unsupported nmap output type: %s" % outputType)
 
         # execute nmap
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("executing nmap %s", " ".join(args))
         out, err, exitCode = yield utils.getProcessOutputAndValue(
             _NMAP_BINARY, args)
 
@@ -364,9 +367,14 @@ class NmapPingTask(BaseTask):
                 if self._pings == 0 or (tracerouteInterval % self._pings) == 0:
                     doTraceroute = True # try to traceroute on next ping
 
+            import time
             for attempt in range(0, self._daemon._prefs.pingTries):
 
+                start = time.time()
                 results = yield self._executeNmapCmd(tfile.name, doTraceroute)
+                elapsed = time.time() - start
+                log.debug("Nmap execution took %f seconds", elapsed)
+
                 # only do traceroute on the first ping attempt, if at all
                 doTraceroute = False 
 
