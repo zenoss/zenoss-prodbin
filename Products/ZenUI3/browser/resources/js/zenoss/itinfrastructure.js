@@ -1347,8 +1347,8 @@ function getOrganizerFields(mode) {
         anchor: '80%',
         allowBlank: true
     });
-
-    var rootId = treesm.getSelectedNode().getOwnerTree().root.id;
+    var rootId = devtree.root.id;// sometimes the page loads with nothing selected and throws error. Need a default.
+    if(treesm.getSelectedNode()) rootId = treesm.getSelectedNode().getOwnerTree().root.id;
     if ( rootId === loctree.root.id ) {
         items.push({
             xtype: 'textarea',

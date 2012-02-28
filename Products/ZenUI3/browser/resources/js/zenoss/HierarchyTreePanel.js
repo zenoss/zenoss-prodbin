@@ -689,7 +689,8 @@
                     // TODO would be best to normalize the names of result node
                     var nodeId = Zenoss.env.PARENT_CONTEXT + '/' + params.id;
                     this.getStore().load({
-                        callback:function () {
+                        callback:function () { 
+                            nodeId = nodeId.replace(/\//g, '.');
                             me.selectByToken(nodeId);
                         }
                     });
@@ -699,7 +700,6 @@
                     Ext.Msg.alert('Error', result.msg);
                 }
             };
-
             this.addNodeFn(params, Ext.bind(callback, this));
         },
 
@@ -720,6 +720,7 @@
                     me.getStore().load({
                         callback:function () {
                             me.selectByToken(parentNode.get('uid'));
+                            me.getRootNode().firstChild.expand();                            
                         }
                     });
                 }
