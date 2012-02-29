@@ -1,0 +1,190 @@
+/**
+  * @class Ext.Tab
+  */
+
+@mixin zenoss-tabpanel-dark {
+    
+    .dark{
+    // ----------------------- The Tab Bar
+        .#{$prefix}tab-bar {
+            @include background-image(linear-gradient($tabbar-dark-base-color, $tabbar-dark-base-color)); 
+        }
+        .#{$prefix}nlg .#{$prefix}tab-bar {
+            background-image: url();
+            background-color:$tabbar-dark-base-color !important;
+        }
+        .#{$prefix}tab-bar-body {
+            border: none;
+        }    
+        .#{$prefix}tab-bar-strip-default,
+        .#{$prefix}tab-bar-strip-default-plain {
+            border-color: $tabbar-dark-strip-border-color;
+            background-color: $tabbar-dark-strip-background-color;
+        }    
+    // -------------------------- The Tabs    
+        .#{$prefix}tab {
+            border-color: $tab-dark-border-color;
+            @include background-image(linear-gradient(darken($tab-dark-sheen, 30%), darken($tab-dark-base-color, 30%)));
+            button {
+                color: $tab-dark-color;
+            }
+            box-shadow: none !important;
+            
+        }
+        .#{$prefix}tab-default-top {
+            border-bottom: 1px solid $tabbar-dark-strip-border-color !important;
+        }
+    
+        .#{$prefix}tab-default-top-active {
+            border-bottom-color: $tabbar-dark-strip-border-color !important;
+        }
+
+    
+        .#{$prefix}tab-default-disabled { 
+            border-color: $tab-dark-border-color-disabled;
+            @include background-image(linear-gradient($tab-dark-sheen, $tab-dark-base-color-disabled));
+    
+            button {
+                color: $tab-dark-color-disabled !important;
+            }
+        }
+    
+        //over
+        .#{$prefix}tab-over {
+            @include background-image(linear-gradient(darken($tab-dark-sheen, 20%), $tab-dark-base-color));
+            @if $tab-dark-border-color-over != $tab-dark-border-color {
+                border-color: $tab-dark-border-color-over;
+            }
+            button {
+                @if $tab-dark-color-over != $tab-dark-color {
+                    color: $tab-dark-color-over;
+                }
+            }
+        }
+    
+        //active
+        .#{$prefix}tab-active {
+            cursor: default !important;
+            *{cursor: default !important;}
+            @if $tab-dark-border-color-active != $tab-dark-border-color {
+                border-color: $tab-dark-border-color-active;
+            }
+            button {
+                @if $tab-dark-color-active != $tab-dark-color {
+                    color: $tab-dark-color-active;
+                }
+            }
+        }
+    
+        .#{$prefix}tab-top-active {
+            @include background-image(linear-gradient($tab-dark-sheen, $tab-dark-base-color-active)); 
+        }
+    
+        //disabled
+        .#{$prefix}tab-disabled {
+            @if $tab-dark-border-color-disabled != $tab-dark-border-color {
+                border-color: $tab-dark-border-color-disabled;
+            }
+    
+            button {
+                @if $tab-dark-color-disabled != $tab-dark-color {
+                    color: $tab-dark-color-disabled;
+                }
+            }
+        }
+    
+        .#{$prefix}tab-top-disabled {
+            @include background-image(linear-gradient($tab-dark-sheen, $tab-dark-base-color-disabled));
+        }
+    }
+
+    @if not $supports-gradients or $compile-all {
+        .#{$prefix}nlg {
+            em {font-style:normal;} 
+            .#{$prefix}tab-bar { background-image:url();background-color:transparent !important;}
+            .#{$prefix}tab-top { background-image:url();}
+            .#{$prefix}tab-over { background-image:url();}
+            .#{$prefix}tab-active { background-image:url();}
+            .#{$prefix}tab-disabled { background-image:url();}
+        }
+    }
+    @if not $supports-border-radius or $compile-all {
+        .#{$prefix}nbr {
+            .#{$prefix}tab-top{
+                background-color: darken($tab-dark-base-color, 10%);
+                .#{$prefix}frame-mc {
+                    background-color: transparent !important;
+                    background-image: url();
+                }            
+            }
+            .#{$prefix}tab-top-over {
+                 background-color: $tab-dark-base-color-over !important;
+                .#{$prefix}frame-tl,
+                .#{$prefix}frame-bl,
+                .#{$prefix}frame-tr,
+                .#{$prefix}frame-br,
+                .#{$prefix}frame-tc,
+                .#{$prefix}frame-bc {
+                    background-image: url();
+                }
+                .#{$prefix}frame-ml,
+                .#{$prefix}frame-mr {
+                    background-image: url();
+                }
+
+                .#{$prefix}frame-mc {
+                    background-color: transparent !important;
+                    background-image: url();
+                }
+
+            }
+
+
+            .#{$prefix}tab-top-active {
+                background-color: lighten($tab-dark-base-color-active, 10%) !important;
+                .#{$prefix}frame-tl,
+                .#{$prefix}frame-bl,
+                .#{$prefix}frame-tr,
+                .#{$prefix}frame-br,
+                .#{$prefix}frame-tc,
+                .#{$prefix}frame-bc {
+                    background-image: url();
+                }
+                .#{$prefix}frame-ml,
+                .#{$prefix}frame-mr {
+                    background-image: url();
+                }
+
+                .#{$prefix}frame-mc {
+                    background-color: transparent !important;
+                    background-image: url();
+                }
+
+            }
+
+            .#{$prefix}tab-top-disabled {
+                background-color: $tab-dark-base-color-disabled !important;
+                .#{$prefix}frame-tl,
+                .#{$prefix}frame-bl,
+                .#{$prefix}frame-tr,
+                .#{$prefix}frame-br,
+                .#{$prefix}frame-tc,
+                .#{$prefix}frame-bc {
+                    background-image: url();
+                }
+                .#{$prefix}frame-ml,
+                .#{$prefix}frame-mr {
+                    background-image: url();
+                }
+
+                .#{$prefix}frame-mc {
+                    background-color: transparent !important;
+                    background-image: url();
+                }
+
+            }
+
+        }
+    }    
+
+}

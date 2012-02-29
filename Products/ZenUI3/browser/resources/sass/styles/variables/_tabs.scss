@@ -1,0 +1,24 @@
+
+$tabbar-dark-base-color:rgba(0, 0, 0, 0.85);
+
+$tab-dark-sheen: #bbb;
+
+$tab-dark-base-color: #222;
+$tab-dark-border-color:#111; // outer border on the tabs
+$tab-dark-color: #999;
+
+$tab-dark-base-color-disabled:#222;
+$tab-dark-border-color-disabled:#222;
+$tab-dark-color-disabled: #666;
+
+$tab-dark-base-color-over:#ccc;
+$tab-dark-border-color-over:#222;
+$tab-dark-color-over:#fff;
+
+$tab-dark-base-color-active:#444;
+$tab-dark-border-color-active:#444;
+$tab-dark-color-active:#fff;
+
+// lines under the tabs
+$tabbar-dark-strip-border-color: #444; // line across stop
+$tabbar-dark-strip-background-color: #222; //2nd line across stop

@@ -324,13 +324,13 @@ input, textarea, select {
 
 .x-hidden, .x-hide-offsets {
   display: block !important;
-  position: absolute!important;
+  position: absolute !important;
   left: -10000px !important;
   top: -10000px !important; }
 
 .x-hide-nosize {
-  height: 0!important;
-  width: 0!important; }
+  height: 0 !important;
+  width: 0 !important; }
 
 .x-masked-relative {
   position: relative; }
@@ -2263,7 +2263,7 @@ input, textarea, select {
   background: transparent !important;
   border-width: 0 !important; }
 .x-datepicker-month span {
-  color: #fff !important; }
+  color: white !important; }
 .x-datepicker-month .x-btn-split-right {
   background: no-repeat right center !important;
   background-image: url('../img/xtheme-zenoss/button/s-arrow-light.gif');
@@ -2880,7 +2880,7 @@ browsers will do whacky things with it.
   background-repeat: no-repeat; }
 
 .x-grid-cell-selected {
-  background-color: #B8CFEE !important; }
+  background-color: #b8cfee !important; }
 
 .x-nlg .x-grid-cell-special {
   background-repeat: repeat-y;
@@ -7175,6 +7175,9 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 * @class Zenoss.HierarchyTreePanel
 */
 /**
+  * @class Ext.Tab
+  */
+/**
   * @class Ext.menu.*
   */
 .x-zenoss-master-panel .x-panel-body {
@@ -7315,7 +7318,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   color: #454545;
   padding-top: 2px; }
 #deviceDetailNav .x-grid-row-selected .x-grid-cell-inner, #deviceDetailNav .x-grid-row-focused .x-grid-cell-inner, #masterDetailNav .x-grid-row-selected .x-grid-cell-inner, #masterDetailNav .x-grid-row-focused .x-grid-cell-inner {
-  background-color: #7199C6 !important;
+  background-color: #7199c6 !important;
   color: #fff; }
 #deviceDetailNav #templateTree-body, #masterDetailNav #templateTree-body {
   padding-top: 0px !important; }
@@ -9235,13 +9238,13 @@ CORE TRIGGER PAGE STUFF
 .x-grid .x-column-header-text, #dataSourceTreeGrid .x-column-header-text {
   background-position: right 4px !important; }
 .x-grid .x-grid-row-selected .x-grid-cell, .x-grid .x-grid-row-selected .x-grid-rowwrap-div, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div {
-  background-color: #7199C6 !important; }
+  background-color: #7199c6 !important; }
 .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a {
   color: #fff; }
 .x-grid .rowcolor, #dataSourceTreeGrid .rowcolor {
   border-color: #999 #999 #999; }
 .x-grid .x-grid-row-over-rowcolor, .x-grid .x-grid-row-selected-rowcolor, #dataSourceTreeGrid .x-grid-row-over-rowcolor, #dataSourceTreeGrid .x-grid-row-selected-rowcolor {
-  background: #999 !important; }
+  background: #999999 !important; }
 .x-grid .x-grid-row-over-rowcolor .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-over-rowcolor .x-grid-cell-inner {
   color: white; }
 .x-grid .x-grid-row-over-rowcolor .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-over-rowcolor .x-grid-cell-inner a {
@@ -9282,7 +9285,7 @@ CORE TRIGGER PAGE STUFF
   width: 440px !important; }
 
 .x-tip {
-  background-color: #F8E585 !important; }
+  background-color: #f8e585 !important; }
 .x-tip .x-tool-close, .x-tip .x-tool-over {
   background-image: url("/++resource++zenui/img/ext4/qtip/close.png") ; }
 
@@ -9536,14 +9539,14 @@ CORE TRIGGER PAGE STUFF
   padding: 0px;
   text-decoration: underline; }
 .easyadddevice_shell .credstitle, #newform .credstitle {
-  border-bottom: 1px solid #ddd !important;
+  border-bottom: 1px solid #dddddd !important;
   margin-bottom: 8px !important;
   padding: 3px !important; }
 .easyadddevice_shell .credstitle .x-panel-body, #newform .credstitle .x-panel-body {
   font-size: 14px !important;
-  color: #444 !important; }
+  color: #444444 !important; }
 .easyadddevice_shell #userfieldset, #newform #userfieldset {
-  border-left: 1px solid #aaa !important;
+  border-left: 1px solid #aaaaaa !important;
   padding-left: 27px; }
 .easyadddevice_shell #manual_creds, #newform #manual_creds {
   padding: 5px;
@@ -9552,12 +9555,135 @@ CORE TRIGGER PAGE STUFF
   margin: 0px; }
 .easyadddevice_shell .helptext .x-panel-body-default, #newform .helptext .x-panel-body-default {
   font-size: 11px;
-  color: #666 !important;
+  color: #666666 !important;
   padding: 0 8px 8px 15px; }
 .easyadddevice_shell .creds_base, #newform .creds_base {
   margin: -10px !important; }
 .easyadddevice_shell .creds_sub, #newform .creds_sub {
   margin-right: 8px !important; }
+
+.dark .x-tab-bar {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, rgba(0, 0, 0, 0.85)), color-stop(100%, rgba(0, 0, 0, 0.85)));
+  background-image: -webkit-linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
+  background-image: -moz-linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
+  background-image: -o-linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
+  background-image: -ms-linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
+  background-image: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)); }
+.dark .x-nlg .x-tab-bar {
+  background-image: url();
+  background-color: rgba(0, 0, 0, 0.85) !important; }
+.dark .x-tab-bar-body {
+  border: none; }
+.dark .x-tab-bar-strip-default, .dark .x-tab-bar-strip-default-plain {
+  border-color: #444444;
+  background-color: #222222; }
+.dark .x-tab {
+  border-color: #111111;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #6e6e6e), color-stop(100%, #000000));
+  background-image: -webkit-linear-gradient(#6e6e6e, #000000);
+  background-image: -moz-linear-gradient(#6e6e6e, #000000);
+  background-image: -o-linear-gradient(#6e6e6e, #000000);
+  background-image: -ms-linear-gradient(#6e6e6e, #000000);
+  background-image: linear-gradient(#6e6e6e, #000000);
+  box-shadow: none !important; }
+.dark .x-tab button {
+  color: #999999; }
+.dark .x-tab-default-top {
+  border-bottom: 1px solid #444444 !important; }
+.dark .x-tab-default-top-active {
+  border-bottom-color: #444444 !important; }
+.dark .x-tab-default-disabled {
+  border-color: #222222;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #bbbbbb), color-stop(100%, #222222));
+  background-image: -webkit-linear-gradient(#bbbbbb, #222222);
+  background-image: -moz-linear-gradient(#bbbbbb, #222222);
+  background-image: -o-linear-gradient(#bbbbbb, #222222);
+  background-image: -ms-linear-gradient(#bbbbbb, #222222);
+  background-image: linear-gradient(#bbbbbb, #222222); }
+.dark .x-tab-default-disabled button {
+  color: #666666 !important; }
+.dark .x-tab-over {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #888888), color-stop(100%, #222222));
+  background-image: -webkit-linear-gradient(#888888, #222222);
+  background-image: -moz-linear-gradient(#888888, #222222);
+  background-image: -o-linear-gradient(#888888, #222222);
+  background-image: -ms-linear-gradient(#888888, #222222);
+  background-image: linear-gradient(#888888, #222222);
+  border-color: #222222; }
+.dark .x-tab-over button {
+  color: white; }
+.dark .x-tab-active {
+  cursor: default !important;
+  border-color: #444444; }
+.dark .x-tab-active * {
+  cursor: default !important; }
+.dark .x-tab-active button {
+  color: white; }
+.dark .x-tab-top-active {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #bbbbbb), color-stop(100%, #444444));
+  background-image: -webkit-linear-gradient(#bbbbbb, #444444);
+  background-image: -moz-linear-gradient(#bbbbbb, #444444);
+  background-image: -o-linear-gradient(#bbbbbb, #444444);
+  background-image: -ms-linear-gradient(#bbbbbb, #444444);
+  background-image: linear-gradient(#bbbbbb, #444444); }
+.dark .x-tab-disabled {
+  border-color: #222222; }
+.dark .x-tab-disabled button {
+  color: #666666; }
+.dark .x-tab-top-disabled {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #bbbbbb), color-stop(100%, #222222));
+  background-image: -webkit-linear-gradient(#bbbbbb, #222222);
+  background-image: -moz-linear-gradient(#bbbbbb, #222222);
+  background-image: -o-linear-gradient(#bbbbbb, #222222);
+  background-image: -ms-linear-gradient(#bbbbbb, #222222);
+  background-image: linear-gradient(#bbbbbb, #222222); }
+
+.x-nlg em {
+  font-style: normal; }
+.x-nlg .x-tab-bar {
+  background-image: url();
+  background-color: transparent !important; }
+.x-nlg .x-tab-top {
+  background-image: url(); }
+.x-nlg .x-tab-over {
+  background-image: url(); }
+.x-nlg .x-tab-active {
+  background-image: url(); }
+.x-nlg .x-tab-disabled {
+  background-image: url(); }
+
+.x-nbr .x-tab-top {
+  background-color: #090909; }
+.x-nbr .x-tab-top .x-frame-mc {
+  background-color: transparent !important;
+  background-image: url(); }
+.x-nbr .x-tab-top-over {
+  background-color: #cccccc !important; }
+.x-nbr .x-tab-top-over .x-frame-tl, .x-nbr .x-tab-top-over .x-frame-bl, .x-nbr .x-tab-top-over .x-frame-tr, .x-nbr .x-tab-top-over .x-frame-br, .x-nbr .x-tab-top-over .x-frame-tc, .x-nbr .x-tab-top-over .x-frame-bc {
+  background-image: url(); }
+.x-nbr .x-tab-top-over .x-frame-ml, .x-nbr .x-tab-top-over .x-frame-mr {
+  background-image: url(); }
+.x-nbr .x-tab-top-over .x-frame-mc {
+  background-color: transparent !important;
+  background-image: url(); }
+.x-nbr .x-tab-top-active {
+  background-color: #5e5e5e !important; }
+.x-nbr .x-tab-top-active .x-frame-tl, .x-nbr .x-tab-top-active .x-frame-bl, .x-nbr .x-tab-top-active .x-frame-tr, .x-nbr .x-tab-top-active .x-frame-br, .x-nbr .x-tab-top-active .x-frame-tc, .x-nbr .x-tab-top-active .x-frame-bc {
+  background-image: url(); }
+.x-nbr .x-tab-top-active .x-frame-ml, .x-nbr .x-tab-top-active .x-frame-mr {
+  background-image: url(); }
+.x-nbr .x-tab-top-active .x-frame-mc {
+  background-color: transparent !important;
+  background-image: url(); }
+.x-nbr .x-tab-top-disabled {
+  background-color: #222222 !important; }
+.x-nbr .x-tab-top-disabled .x-frame-tl, .x-nbr .x-tab-top-disabled .x-frame-bl, .x-nbr .x-tab-top-disabled .x-frame-tr, .x-nbr .x-tab-top-disabled .x-frame-br, .x-nbr .x-tab-top-disabled .x-frame-tc, .x-nbr .x-tab-top-disabled .x-frame-bc {
+  background-image: url(); }
+.x-nbr .x-tab-top-disabled .x-frame-ml, .x-nbr .x-tab-top-disabled .x-frame-mr {
+  background-image: url(); }
+.x-nbr .x-tab-top-disabled .x-frame-mc {
+  background-color: transparent !important;
+  background-image: url(); }
 
 #templateTree .x-grid-cell {
   background-color: transparent; }
@@ -9581,7 +9707,7 @@ CORE TRIGGER PAGE STUFF
   background-repeat: repeat-x; }
 
 #trigger-master_panel, #trigger-master_panel-body {
-  background-color: #D4E0EE !important; }
+  background-color: #d4e0ee !important; }
 
 #trigger-master_panel_navigation {
   background: transparent !important; }
@@ -9593,16 +9719,16 @@ CORE TRIGGER PAGE STUFF
 #master_panel #subselecttreepaneldetail_nav-body, #master_panel .x-panel-body {
   border: 0 none !important; }
 #master_panel #subselecttreepaneldetail_nav .x-grid-cell, #master_panel .x-panel-body-hierarchy, #master_panel #templateTree {
-  background-color: #D4E0EE !important;
+  background-color: #d4e0ee !important;
   border: 0 none !important; }
 #master_panel .x-panel-body {
   overflow: visible; }
 
 #master_panel .x-panel-hierarchy .x-grid-row-over, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over, #master_panel_navigation .x-grid-row-over, #trigger-master_panel .x-grid-row-over, #templateTree .x-grid-row-over {
-  background-color: #eee !important;
+  background-color: #eeeeee !important;
   color: #454545 !important; }
 #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner, #trigger-master_panel .x-grid-row-over .x-grid-cell, #trigger-master_panel .x-grid-row-over .x-grid-cell-inner, #templateTree .x-grid-row-over .x-grid-cell, #templateTree .x-grid-row-over .x-grid-cell-inner {
-  background-color: #eee !important;
+  background-color: #eeeeee !important;
   color: #454545 !important; }
 #master_panel .x-panel-hierarchy .x-grid-row-over span, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over span, #master_panel_navigation .x-grid-row-over span, #trigger-master_panel .x-grid-row-over span, #templateTree .x-grid-row-over span {
   background: transparent !important; }
@@ -9610,14 +9736,14 @@ CORE TRIGGER PAGE STUFF
 #processForm .x-toolbar-footer, #serviceForm .x-toolbar-footer {
   background-color: #F5F9FD;
   padding: 8px !important;
-  border-top: 1px solid!important; }
+  border-top: 1px solid !important; }
 #processForm .x-docked-bottom, #serviceForm .x-docked-bottom {
   border-top-width: 1px !important;
-  border-color: #808080 !important; }
+  border-color: gray !important; }
 
 .commonlivegridinfopanel {
   border: 0 none !important;
-  background: #fff !important; }
+  background: white !important; }
 
 .x-docked.x-panel-default-collapsed {
   background-image: none !important;
@@ -9628,7 +9754,7 @@ CORE TRIGGER PAGE STUFF
   text-transform: uppercase;
   font-size: 10px !important; }
 .livegridinfopanel.x-toolbar-text {
-  color: #000 !important;
+  color: black !important;
   font-weight: bold; }
 
 #evdetail_bd-body {
@@ -9666,13 +9792,13 @@ CORE TRIGGER PAGE STUFF
   background-image: none; }
 
 .x-grid-row-selected, .x-grid-row-focused {
-  background-color: #7199C6 !important; }
+  background-color: #7199c6 !important; }
 .x-grid-row-selected .x-grid-cell-inner, .x-grid-row-selected span, .x-grid-row-focused .x-grid-cell-inner, .x-grid-row-focused span {
-  background-color: #7199C6 !important;
-  color: #fff !important; }
+  background-color: #7199c6 !important;
+  color: white !important; }
 
 .x-grid-row-selected.x-grid-row-over .x-grid-cell-inner, .x-grid-row-selected.x-grid-row-over span {
-  color: #222 !important; }
+  color: #222222 !important; }
 
 .tabletitlecontainer {
   padding-top: 5px; }

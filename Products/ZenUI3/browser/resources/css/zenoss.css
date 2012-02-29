@@ -1302,6 +1302,15 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
   border-left: 5px solid #f2f2f3;
 }
 
+.dark .rule-clause-container {
+  padding-left: 3px;
+  border-left: 0;
+  padding-bottom:10px;
+}
+.dark .x-fieldset{
+    padding: 0 0 5px 0;
+}
+
 
 .rule-builder {
   border-right: 2px solid #f2f2f3;
