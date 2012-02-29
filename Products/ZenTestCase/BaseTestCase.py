@@ -101,8 +101,17 @@ class ZenossTestCaseLayer(ZopeLite):
         # Have to force registering these as they are torn down between tests
         from zenoss.protocols.adapters import registerAdapters
         registerAdapters()
+
+        from twisted.python.runtime import platform
+        platform.supportsThreads_orig = platform.supportsThreads
+        platform.supportsThreads = lambda : None
+
+
+
     @classmethod
     def testTearDown(cls):
+        from twisted.python.runtime import platform
+        platform.supportsThreads = platform.supportsThreads_orig
         cleanUp()
 
 

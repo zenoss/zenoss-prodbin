@@ -33,9 +33,3 @@ def installReactor():
         except ImportError:
             pass
 
-
-import sys
-if 'zope.testing' in sys.modules.keys():
-    from twisted.python.runtime import platform
-    platform.supportsThreads = lambda : None
-
