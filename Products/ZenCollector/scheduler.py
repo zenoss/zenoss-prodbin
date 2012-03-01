@@ -447,9 +447,15 @@ class Scheduler(object):
         @type configId: string
         """
         doomedTasks = []
+        # child ids are any task that are children of the current task being
+        # removed
+        childIds = []
         for (taskName, taskWrapper) in self._tasks.iteritems():
             task = taskWrapper.task
             if task.configId == configId:
+                subIds = getattr(task, "childIds", None)
+                if subIds:
+                    childIds.extend(subIds)
                 log.debug("Stopping task %s, %s", taskName, task)
 
                 if self._loopingCalls[taskName].running:
@@ -466,6 +472,9 @@ class Scheduler(object):
             self._displayTaskStatistics(task)
             del self._taskStats[taskName]
             # TODO: ponder task statistics and keeping them around?
+
+        for childId in childIds:
+            self.removeTasksForConfig(childId)
 
         # TODO: don't let any tasks for the same config start until
         # these old tasks are really gone

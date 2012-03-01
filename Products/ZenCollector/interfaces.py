@@ -266,6 +266,11 @@ class IScheduledTask(IObservable):
            needed.
         """)
 
+#    childIds = zope.interface.Attribute("""
+#        Optional attribute: List of configIds of tasks that are associated with this task. When a task is
+#        removed any tasks with a configId in childIds will be removed as well.
+#        """)
+
     def doTask(self):
         """
         Called whenever the task is scheduled to be executed by a scheduler.
