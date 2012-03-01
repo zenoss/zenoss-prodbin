@@ -246,7 +246,7 @@ class PublishSynchronizer(object):
 
     def afterCompletionHook(self, status, tx):
         try:
-            log.info("afterCompletionHook status:%s for tx %s" % (status, tx))
+            log.debug("afterCompletionHook status:%s for tx %s" % (status, tx))
             if self._queuePublisher:
                 try:
                     self._queuePublisher.close()
