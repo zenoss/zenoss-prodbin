@@ -110,7 +110,7 @@ Zenoss.nav.register({
             tbar.doLayout();
             tbar._btns = btns;
             combo.on('select', function(c, selected){
-                if (selected.id!="Graphs") {
+                if (c.value!="Graphs") {
                     Ext.each(btns, tbar.remove, tbar);
                 }
             }, this, {single:true});
@@ -133,28 +133,27 @@ Zenoss.nav.register({
                     displayFilters: false,
                     stateId: 'component-event-console',
                     columns:  Zenoss.env.getColumnDefinitions(['component', 'device'])
-                });
-                var tbar = target.getDockedItems()[0];
-                if (tbar._btns) {
-                    Ext.each(tbar._btns, tbar.remove, tbar);
-                }
-                var btns = tbar.add([
-                    '-',
-                    ZEvActions.acknowledge,
-                    ZEvActions.close,
-                    ZEvActions.refresh,
-                    '-',
-                    ZEvActions.newwindow
-                ]);
-                Ext.each(btns, function(b){b.grid = panel;});
-                tbar.doLayout();
-                tbar._btns = btns;
-                combo.on('select', function(c, selected){
-                    if (selected.id!="Events") {
-                        Ext.each(btns, tbar.remove, tbar);
-                    }
-                }, this, {single:true});
+                }); 
             }
+            var tbar = target.getDockedItems()[0];  
+            if (tbar._btns) {
+                Ext.each(tbar._btns, tbar.remove, tbar);
+            }
+            var btns = tbar.add([
+                '-',
+                ZEvActions.acknowledge,
+                ZEvActions.close,
+                ZEvActions.refresh,
+                '-',
+                ZEvActions.newwindow
+            ]);
+            tbar.doLayout();
+            tbar._btns = btns;            
+            combo.on('select', function(c, selected){
+                if (c.value!="Events") {
+                    Ext.each(btns, tbar.remove, tbar);
+                }
+            }, this, {single:true});
             showPanel();
         }
     },{
@@ -361,6 +360,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         this.componentnav.reset();
                     },
                     selectionchange: function(sm, selected) {
+                        // top grid selection change
                         var row = selected[0];
                         if (row) {
                             Zenoss.env.compUUID = row.data.uuid;

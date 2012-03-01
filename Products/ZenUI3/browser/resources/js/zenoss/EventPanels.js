@@ -280,6 +280,7 @@
             tooltip: _t('Refresh events'),
             handler: function(btn) {
                 var grid = btn.grid || this.ownerCt.ownerCt;
+                if(grid.getComponent("event_panel")) grid = grid.getComponent("event_panel");
                 grid.refresh();
             }
         })
@@ -294,15 +295,13 @@
     Zenoss.EventConsoleTBar = Ext.extend(Zenoss.LargeToolbar, {
         constructor: function(config){
             var gridId = config.gridId,
-            showActions = true,
+                showActions = true,
                 showCommands = true,
                 configureMenuItems,
                 tbarItems = config.tbarItems || [];
-
             if (!gridId) {
                 throw ("Event console tool bar did not receive a grid id");
-            }
-
+            }          
             configureMenuItems = [{
                 id: 'rowcolors_checkitem',
                 xtype: 'menucheckitem',
@@ -504,6 +503,9 @@
             Zenoss.EventActionManager.configure({
                 onFinishAction: function() {
                     var grid = Ext.getCmp(gridId);
+                    if(Ext.get('event_panel')){
+                        grid = Ext.getCmp('event_panel');
+                    }
                     if (grid) {
                         grid.updateRows();
                         grid.getSelectionModel().clearSelections();
@@ -511,6 +513,9 @@
                 },
                 findParams: function() {
                     var grid = Ext.getCmp(gridId);
+                    if(Ext.get('event_panel')){
+                        grid = Ext.getCmp('event_panel');
+                    }                   
                     if (grid) {
                         return grid.getSelectionParameters();
                     }
@@ -546,7 +551,7 @@
                         this.setContext(context);
                     },
                     scope: this
-                },
+                },                 
                 items: [
                     Zenoss.events.EventPanelToolbarActions.acknowledge,
                     Zenoss.events.EventPanelToolbarActions.close,
@@ -931,7 +936,9 @@
             sm = grid.getSelectionModel(),
             evids = [],  // Event IDs selected
             sels = sm.getSelection();  // UI records selected
-
+            if(Ext.isEmpty(sels)){ // if nothing is selected, check and see if there's an event_panel
+                if(Ext.get('event_panel')) sels = Ext.getCmp('event_panel').getSelectionModel().getSelection()
+            }
             var selectedAll = (sm.selectState == 'All');
             if (selectedAll) {
                 // If we are selecting all, we don't want to send back any evids.
@@ -1182,7 +1189,7 @@
         alias: ['widget.EventGridPanel'],
         border:false,
         constructor: function(config) {
-            var evtGrid = this;
+            var evtGrid = this;           
             Ext.applyIf(config, {
                 tbar: new Zenoss.EventConsoleTBar({
                     gridId: config.id,

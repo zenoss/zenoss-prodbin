@@ -110,13 +110,17 @@ Zenoss.nav.register({
             }
         },
         action: function(node, target) {
-            var child = node.firstChild;
+            var child = node.store.node.firstChild;
             if (!child) {
-                node.on('append', function(tree,me,n){
+                node.store.node.on('append', function(tree,me,n){
                     selectOnRender(n, tree.getSelectionModel());
                 }, node, {single:true});
             } else {
-                selectOnRender(child, target.treepanel.getSelectionModel());
+                if((typeof target.treepanel) != "undefined"){
+                    selectOnRender(child, target.treepanel.getSelectionModel());
+                }else if((typeof target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel) != "undefined"){
+                    selectOnRender(child, target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel.getSelectionModel());
+                }
             }
         }
     },{
