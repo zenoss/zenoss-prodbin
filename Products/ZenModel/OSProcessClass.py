@@ -42,6 +42,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
 
     name = ""
     regex = ""
+    ignoreParametersWhenModeling = False
     ignoreParameters = False
     description = ""
     example = ""
@@ -50,6 +51,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
     _properties = (
         {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
+        {'id': 'ignoreParametersWhenModeling', 'type':'boolean', 'mode':'w'},
         {'id':'ignoreParameters', 'type':'boolean', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         {'id':'sequence', 'type':'int', 'mode':'w'},
@@ -129,6 +131,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
                                   zFailSeverity=3,
                                   regex="",
                                   description="",
+                                  ignoreParametersWhenModeling=False,
                                   ignoreParameters=False,
                                   REQUEST=None):
                                  
@@ -144,6 +147,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
         redirect = self.rename(id)
         self.regex = regex        
         self.description = description
+        self.ignoreParametersWhenModeling = ignoreParametersWhenModeling
         self.ignoreParameters = ignoreParameters
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage

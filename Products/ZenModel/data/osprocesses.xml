@@ -33,6 +33,9 @@ Zope
 <property type="string" id="regex" mode="w" >
 .*runzope.*zenoss.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -52,6 +55,9 @@ zenactiond
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenactiond.py.*--daemon.*
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -73,6 +79,9 @@ zencommand
 <property type="string" id="regex" mode="w" >
 .*zencommand.py.*--daemon.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -90,6 +99,9 @@ zeneventd
 <property type="string" id="regex" mode="w" >
 .*zeneventd.py.*--daemon.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -106,6 +118,9 @@ zeneventlog
 </property>
 <property type="string" id="regex" mode="w" >
 .*zeneventlog.py.*--daemon.*
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -127,6 +142,9 @@ zeneventserver
 <property type="string" id="regex" mode="w" >
 .*zeneventserver.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -146,6 +164,9 @@ zenhub
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenhub.py.*--daemon.*
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -167,6 +188,9 @@ zenjobs
 <property type="string" id="regex" mode="w" >
 .*zenjobs.py.*--daemon.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -186,6 +210,9 @@ zenmail
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenmail.py.*--daemon.*
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 True
@@ -207,6 +234,9 @@ zenmodeler
 <property type="string" id="regex" mode="w" >
 .*zenmodeler.py.*--daemon.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -226,6 +256,9 @@ zenperfsnmp
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenperfsnmp.py.*--daemon.*
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -247,6 +280,9 @@ zenping
 <property type="string" id="regex" mode="w" >
 .*zenping.py.*--daemon.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -266,6 +302,9 @@ zenpop3
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenpop3.py.*--daemon.*
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
@@ -287,6 +326,9 @@ zenprocess
 <property type="string" id="regex" mode="w" >
 .*zenprocess.py.*--daemon.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -306,6 +348,9 @@ rrdcached
 </property>
 <property type="string" id="regex" mode="w" >
 .*rrdcached
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 True
@@ -327,6 +372,9 @@ zenstatus
 <property type="string" id="regex" mode="w" >
 .*zenstatus.py.*--daemon.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False
 </property>
@@ -346,6 +394,9 @@ zensyslog
 </property>
 <property type="string" id="regex" mode="w" >
 .*zensyslog.py.*--daemon.*
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 True
@@ -367,6 +418,9 @@ zentrap
 <property type="string" id="regex" mode="w" >
 .*zentrap.py.*--daemon.*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 True
 </property>
@@ -386,6 +440,9 @@ zenwin
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenwin.py.*--daemon.*
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
 False

@@ -417,6 +417,20 @@ var regexTextField = {
     allowBlank: false
 };
 
+var ignoreParametersWhenModelingSelect = {
+    xtype: 'select',
+    id: 'ignoreParametersWhenModelingSelect',
+    fieldLabel: _t('Ignore Parameters When Modeling'),
+    name: 'ignoreParametersWhenModeling',
+    queryMode: 'local',
+    displayField: 'name',
+    valueField: 'value',
+    store: new Ext.data.ArrayStore({
+        data: [['Yes', true], ['No', false]],
+        model: 'Zenoss.model.NameValue'
+    })
+};
+
 var ignoreParametersSelect = {
     xtype: 'select',
     id: 'ignoreParametersSelect',
@@ -429,7 +443,6 @@ var ignoreParametersSelect = {
         data: [['Yes', true], ['No', false]],
         model: 'Zenoss.model.NameValue'
     })
-
 };
 
 var exampleTextField = {
@@ -494,6 +507,7 @@ var regexFieldSet = {
     style: 'padding: 5px 0 0 0',
     items: [
         regexTextField,
+        ignoreParametersWhenModelingSelect,
         ignoreParametersSelect
         // , exampleTextField
     ]

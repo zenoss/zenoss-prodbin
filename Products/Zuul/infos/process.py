@@ -128,6 +128,15 @@ class ProcessInfo(InfoBase):
 
     regex = property(getRegex, setRegex)
 
+    def getIgnoreParametersWhenModeling(self):
+        return getattr(self._object, 'ignoreParametersWhenModeling', None)
+
+    def setIgnoreParametersWhenModeling(self, ignoreParametersWhenModeling):
+        if self.hasRegex:
+            self._object.ignoreParametersWhenModeling = ignoreParametersWhenModeling
+
+    ignoreParametersWhenModeling = property(getIgnoreParametersWhenModeling, setIgnoreParametersWhenModeling)
+
     def getIgnoreParameters(self):
         return getattr(self._object, 'ignoreParameters', None)
 

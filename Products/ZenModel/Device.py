@@ -2131,6 +2131,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         for pc in self.getDmdRoot("Processes").getSubOSProcessClassesSorted():
             matchers.append({
                 'regex': pc.regex,
+                'ignoreParametersWhenModeling': pc.ignoreParametersWhenModeling,
                 'ignoreParameters': pc.ignoreParameters,
                 'getPrimaryDmdId': pc.getPrimaryDmdId(),
                 })
