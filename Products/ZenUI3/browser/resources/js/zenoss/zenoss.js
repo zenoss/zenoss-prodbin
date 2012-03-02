@@ -850,7 +850,7 @@ Ext.define("EventActionManager", {
                         // but there is no next_request, so just show a one pass progress
                         me.dialog.progressBar.wait({
                             interval: 120, 
-                            duration: 1200,
+                            duration: 1200, 
                             increment: 10,
                             text: '',
                             scope: this,
