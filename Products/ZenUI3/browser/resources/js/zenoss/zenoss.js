@@ -840,7 +840,7 @@ Ext.define("EventActionManager", {
                     // been created due to this being a small request.
                     if (me.isLargeRequest()) {
                         var progress = data.next_request.offset/data.total;
-                        me.dialog.status.update(String.format(_t('Progress: {0}%'), Math.ceil(progress*100)));
+                        me.dialog.status.update(Ext.String.format(_t('Progress: {0}%'), Math.ceil(progress*100)));
                         me.dialog.progressBar.updateProgress(progress);
                     }
                     me.fireEvent('updateRequestIncomplete', {data:data});
