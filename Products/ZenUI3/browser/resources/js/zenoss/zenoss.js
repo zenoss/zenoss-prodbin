@@ -763,7 +763,7 @@ Ext.define("EventActionManager", {
                     }]
                 }],
                 buttons: [{
-                    xtype: 'button',
+                    xtype: 'DialogButton',
                     text: _t('Cancel'),
                     ref: '../cancelButton',
                     handler: function(btn, evt) {
@@ -834,7 +834,6 @@ Ext.define("EventActionManager", {
                 }
 
                 me.eventsUpdated += data.updated;
-
                 if (data.next_request) {
                     me.next_request = data.next_request;
                     // don't try to update the progress bar if it hasn't
@@ -845,10 +844,25 @@ Ext.define("EventActionManager", {
                         me.dialog.progressBar.updateProgress(progress);
                     }
                     me.fireEvent('updateRequestIncomplete', {data:data});
-                }
-                else {
-                    me.next_request = null;
-                    me.fireEvent('updateRequestComplete', {data:data});
+                }else {
+                    if(me.dialog.isVisible()){   
+                        // this is still flagged as being a large request so shows the dialog
+                        // but there is no next_request, so just show a one pass progress
+                        me.dialog.progressBar.wait({
+                            interval: 120, 
+                            duration: 1200,
+                            increment: 10,
+                            text: '',
+                            scope: this,
+                            fn: function(){
+                                me.next_request = null;
+                                me.fireEvent('updateRequestComplete', {data:data});
+                            }
+                        });
+                    }else{
+                        me.next_request = null;
+                        me.fireEvent('updateRequestComplete', {data:data});
+                    }
                 }
             },
             reset: function() {
