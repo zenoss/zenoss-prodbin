@@ -96,8 +96,11 @@ class Job(ZenModelRM):
         d = self._v_deferred
         # Tell the JobStatus we're done
         status = self.getStatus()
-        if status is not None:
-            status.jobFinished(results)
+        @transact
+        def finishJob(status, results):
+            if status is not None:
+                status.jobFinished(results)
+        finishJob(status, results)
         # Call back to the self.start() Deferred
         d.callback(results)
 
