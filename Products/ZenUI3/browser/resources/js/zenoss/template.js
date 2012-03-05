@@ -183,6 +183,7 @@ Ext.getCmp('master_panel').add({
     }]
 });
 
+
 /**********************************************************************
  *
  * Edit Template Information
