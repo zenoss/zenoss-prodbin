@@ -75,7 +75,7 @@
                 for (; i < viewsLn; i++) {
                     // do we have multiple trees?  If so, then check the
                     // index for each view.
-                    if (viewsLn > 2) {
+                    if (viewsLn > 1) {
                         try {
                             rowIdx = views[i].indexOf(record);
                         } catch (e) {

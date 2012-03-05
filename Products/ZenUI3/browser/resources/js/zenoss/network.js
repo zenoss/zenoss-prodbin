@@ -90,6 +90,7 @@ var deleteNetwork = function() {
                     scope: this,
                     callback: function() {
                         tree.selectByToken(parentNode.get("id"));
+                        tree.addHistoryToken(tree.getView(), parentNode);
                     }
                 });
             }
@@ -162,14 +163,14 @@ var treesm = new Zenoss.TreeSelectionModel({
                 return;
             }
             var newnode = newnodes[0];
-            var uid = newnode.data.uid,
-                fb = Ext.getCmp('footer_bar');
+            var uid = newnode.data.uid;
+
             Ext.getCmp('NetworkDetailCardPanel').setContext(uid);
 
             if (Zenoss.Security.doesNotHavePermission('Manage DMD')) {
                 return;
             }
-             Ext.getCmp('network_context_menu').setContext(uid);
+            Ext.getCmp('network_context_menu').setContext(uid);
             Zenoss.env.PARENT_CONTEXT = uid;
 
             Ext.getCmp('footer_delete_button').setDisabled(treeConfigs.containsKey(uid));
@@ -227,6 +228,7 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
             }
         }
         this.getRootNode().on('expand', selectTokenPath, this, {single:true});
+        Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, tokenTreePath);
     }
 });
 
