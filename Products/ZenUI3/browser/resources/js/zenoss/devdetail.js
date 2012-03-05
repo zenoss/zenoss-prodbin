@@ -32,10 +32,10 @@ function refreshComponentTreeAndGrid(compType) {
         sel = sm.getSelectedNode(),
         compsNode = tree.getRootNode().findChildBy(function(n){
             return n.get("text")=='Components';
-        });
-    compType = compType || sel.id;
-    sm.suspendEvents();
-
+        }),
+        gridpanel = Ext.getCmp('component_card').componentgrid;
+    compType = compType || sel.data.id;
+    sm.suspendEvents();  
     compsNode.removeAll();
     detailnav.loadComponents();
     detailnav.on('componenttreeloaded', function(){
@@ -49,6 +49,12 @@ function refreshComponentTreeAndGrid(compType) {
         }
     }, detailnav, {single: true});
     sm.resumeEvents();
+    // check if we're on the right grid, if so, refresh, if not, switch
+    if(gridpanel.id.split('-')[0].toLowerCase().indexOf(compType.toLowerCase()) > -1){   
+        gridpanel.refresh();
+    }else{
+        Ext.getCmp('component_card').setContext(UID, compType);
+    }
 }
 
 Zenoss.env.componentrefresh = refreshComponentTreeAndGrid;
@@ -553,6 +559,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
                 }
             }
                 this.doLayout();
+                this.fireEvent('componenttreeloaded'); 
         }, this);
     },
     filterNav: function(navpanel, config){
