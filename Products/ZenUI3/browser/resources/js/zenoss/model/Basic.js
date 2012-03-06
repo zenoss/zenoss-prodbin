@@ -24,6 +24,15 @@
         idProperty: 'uid',
         fields: ['uid', 'name']
     });
+    
+    /**
+     * Model that defines a uid and label
+     **/
+    Ext.define("Zenoss.model.Label", {
+        extend: 'Ext.data.Model',
+        idProperty: 'uid',
+        fields: ['uid', 'label']
+    });    
 
     /**
      * Like the basic model but defined with the UUID instead of the uid
