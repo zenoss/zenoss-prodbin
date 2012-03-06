@@ -29,7 +29,7 @@
                 xtype: 'tbfill'
             }, {
                 xtype: 'button',
-                text: 'LDAP Setup',
+                text: _t('LDAP Setup'),
                 hidden: !Zenoss.env.hasLDAP,
                 handler: function(){
                     window.location = "/zport/dmd/manageLDAPConfig?wizard=True";
@@ -40,7 +40,7 @@
                 width: 5
             },{
                 xtype: 'button',
-                text: 'Finish',
+                text: _t('Finish or Skip to Dashboard'),
                 handler: function() {
                     window.location = "/zport/dmd/Dashboard";
                 }
