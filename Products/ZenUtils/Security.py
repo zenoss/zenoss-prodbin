@@ -20,6 +20,8 @@ from Products.PluggableAuthService import plugins
 from Products.PluggableAuthService import interfaces
 from Products.PluggableAuthService import PluggableAuthService
 
+from zope import component
+import ZPublisher.interfaces
 
 ZENOSS_ROLES = ['ZenUser', 'ZenManager']
 
@@ -309,3 +311,10 @@ def migratePAS(context):
         # the next function calls all the setup functions, each of which do an
         # attriibute check and installs anything that's missing
         setupPASFolder(context)
+
+@component.adapter(ZPublisher.interfaces.IPubEnd)
+def secureSessionCookie(event):
+    """Zope session cookie should only accesible from the server side"""
+    if '_ZopeId' in event.request.response.cookies and 'http_only' not in event.request.response.cookies['_ZopeId']:
+        event.request.response.cookies['_ZopeId']['http_only'] = True
+
