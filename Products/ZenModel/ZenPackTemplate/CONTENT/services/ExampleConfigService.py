@@ -8,6 +8,7 @@ ZenHub service for providing configuration to the zenexample collector daemon.
 import logging
 log = logging.getLogger('zen.example')
 
+import Globals
 from Products.ZenCollector.services.config import CollectorConfigService
 
 
@@ -92,3 +93,20 @@ class ExampleConfigService(CollectorConfigService):
                             deviceOrComponent, 'dn', None)
 
                     proxy.datapoints.append(dpInfo)
+
+
+# For diagnostic purposes, allow the user to show the results of the
+# proxy creation.
+# Run this service as a script to see which devices will be sent to the daemon.
+# Add the --device=name flag to see the detailed contents of the proxy that
+# will be sent to the daemon
+#
+if __name__ == '__main__':
+    from Products.ZenHub.ServiceTester import ServiceTester
+    tester = ServiceTester(ExampleConfigService)
+    def printer(config):
+        # Fill this out
+        print config.datapoints
+    tester.printDeviceProxy = printer
+    tester.showDeviceInfo()
+
