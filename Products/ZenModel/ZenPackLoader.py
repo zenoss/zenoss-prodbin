@@ -529,7 +529,7 @@ class ZPZep(ZenPackLoader):
     def _prepare(self, pack, app):
         """
         Load in the Zep configuration file which should be located here:
-        $ZENPACK/zep/zep.conf
+        $ZENPACK/zep/zep.json
         """
 
         self.handlers = (EventDetailItemHandler(), )
