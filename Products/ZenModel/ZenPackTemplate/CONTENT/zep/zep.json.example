@@ -1,8 +1,29 @@
+//
+// **NOTE** Any line starting with '//' must be removed prior to use!
+//
 // This file is used to add custom event fields. It will be loaded when the
 // ZenPack is installed.
 //
 // The file should be renamed to zep.json to be picked up during the ZenPack's
 // installation.
+//
+// name:  Human-friendly description of the new field.  This shows up in the event console column header.
+//
+// key:   Name of the field stored in the event dictionary or proto-buf.  
+//        This name should follow the dot notation similar to ZenPacks. 
+//        Zenoss details are zenoss.{namespace}.{detail}.
+//        Third party ZenPacks should be something like: 'zenpack.community.myzenpack.{detail}' where
+//        the first three chunks correspond to the ZenPacks namespace.
+//
+// type:  One of the following codes:
+//            STRING = 1;
+//            INTEGER = 2;
+//            FLOAT = 3;
+//            LONG = 4;
+//            DOUBLE = 5;
+//            IP_ADDRESS = 6;
+//            // A slash-delimited path to a resource (event classes, locations, systems, groups, device classes).
+//            PATH = 7;
 {
     "EventDetailItem" : [
         {
@@ -12,3 +33,4 @@
         }
     ]
 }
+
