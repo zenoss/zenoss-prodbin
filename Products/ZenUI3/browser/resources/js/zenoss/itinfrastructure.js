@@ -1061,7 +1061,28 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
         }
     },
     listeners: {
-        contextchange: function(grid, uid) {
+        scrollerhide: function(){
+            // sometimes, items are a bit off the viewable, but not enough for paging scrollbars
+            // so force some scrolling action for the user
+            this.getView().applyConfig('autoScroll', true); 
+        },
+        scrollershow: function(scroller){
+            // paging scroll works, so turn off native scrolling (this will be native all the way in ext 4.1)
+            // also, check for scrollbar, and force it to redraw due to ext bug where by it loses connection
+            // to the container it's suppose to scroll
+            this.getView().applyConfig('autoScroll', false); 
+              if (scroller && scroller.scrollEl) {
+                scroller.clearManagedListeners(); 
+                scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
+              }            
+        },
+        render: function(){
+                // check and see if the loaded grid requires a native scroller or a paging scroller
+                if(!this.getDockedItems("paginggridscroller")[0]){
+                    this.getView().applyConfig('autoScroll', true);
+                }                
+        },
+        contextchange: function(grid, uid) {        
             REMOTE.getInfo({uid: uid, keys: ['name', 'description', 'address']}, function(result) {
                 if (Zenoss.env.contextUid && Zenoss.env.contextUid != uid) {
                     return;
@@ -1082,6 +1103,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 }else {
                     this.setTitle(title);
                 }
+                this.determineScrollbars();              
             }, this);
         },
         scope: device_grid

@@ -236,7 +236,7 @@ Ext.onReady(function(){
     function doLastUpdated() {
         var box = Ext.getCmp('lastupdated'),
             dt = new Date(),
-            dtext = dt.format('g:i:sA');
+            dtext = Ext.Date.format(dt, 'g:i:sA');
             box.setText(_t('Last updated at ') + dtext);
     }
 
