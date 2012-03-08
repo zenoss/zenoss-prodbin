@@ -73,11 +73,8 @@
             id: 'addThresholdDialog',
             title: _t('Add Threshold'),
             message: _t('Allow the user to add a threshold.'),
-            buttonAlign: 'left',
-            autoScroll: true,
-            plain: true,
-            width: 275,
-            autoHeight: true,
+            width: 295,
+            height: 250,
             modal: true,
             padding: 10,
             listeners:{
@@ -103,8 +100,8 @@
             }],
             items: {
                 xtype: 'form',
-                layout: 'auto',
                 ref: 'formPanel',
+                layout: 'fit',
                 leftAlign: 'top',
                 monitorValid: true,
                 paramsAsHash: true,
@@ -119,7 +116,7 @@
                     name: 'thresholdIdField',
                     xtype: 'idfield',
                     fieldLabel: _t('Name'),
-                    allowBlank: false
+                     allowBlank: false
                 },{
                     name: 'thresholdTypeField',
                     xtype: 'combo',
