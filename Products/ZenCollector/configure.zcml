@@ -1,0 +1,11 @@
+<configure xmlns="http://namespaces.zope.org/zope">
+
+    <utility factory=".tasks.SingleWorkerTaskFactory"
+             provides=".interfaces.IWorkerTaskFactory"
+             />
+
+    <utility factory=".tasks.NullWorkerExecutor"
+             provides=".interfaces.IWorkerExecutor"
+             />
+
+</configure>

@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, 2010 Zenoss Inc.
+# Copyright (C) 2009, 2010, 2012 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -76,6 +76,13 @@ class CollectorDaemon(RRDDaemon):
 
     _frameworkFactoryName = ""
 
+    @property
+    def preferences(self):
+        """
+        Preferences for this daemon
+        """
+        return self._prefs
+
     def __init__(self, preferences, taskSplitter, 
                  configurationListener=DUMMY_LISTENER,
                  initializationCallback=None,
@@ -136,11 +143,11 @@ class CollectorDaemon(RRDDaemon):
 
         # register the collector's own preferences object so it may be easily
         # retrieved by factories, tasks, etc.
-        zope.component.provideUtility(self._prefs,
+        zope.component.provideUtility(self.preferences,
                                       ICollectorPreferences,
-                                      self._prefs.collectorName)
+                                      self.preferences.collectorName)
 
-        super(CollectorDaemon, self).__init__(name=self._prefs.collectorName)
+        super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
 
         self._devices = set()
         self._thresholds = Thresholds()
@@ -163,13 +170,13 @@ class CollectorDaemon(RRDDaemon):
         # OLD - set the initialServices attribute so that the PBDaemon class
         # will load all of the remote services we need.
         self.initialServices = PBDaemon.initialServices +\
-            [self._prefs.configurationService]
+            [self.preferences.configurationService]
 
         # trap SIGUSR2 so that we can display detailed statistics
         signal.signal(signal.SIGUSR2, self._signalHandler)
 
         # let the configuration do any additional startup it might need
-        self._prefs.postStartup()
+        self.preferences.postStartup()
         self.addedPostStartupTasks = False
 
     def buildOptions(self):
@@ -179,7 +186,7 @@ class CollectorDaemon(RRDDaemon):
         """
         super(CollectorDaemon, self).buildOptions()
 
-        maxTasks = getattr(self._prefs, 'maxTasks', None)
+        maxTasks = getattr(self.preferences, 'maxTasks', None)
         defaultMax = maxTasks if maxTasks else 500
         
         self.parser.add_option('--maxparallel',
@@ -201,11 +208,11 @@ class CollectorDaemon(RRDDaemon):
                 self._frameworkBuildOptions(self.parser)
 
         # give the collector configuration a chance to add options, too
-        self._prefs.buildOptions(self.parser)
+        self.preferences.buildOptions(self.parser)
 
     def parseOptions(self):
         super(CollectorDaemon, self).parseOptions()
-        self._prefs.options = self.options
+        self.preferences.options = self.options
 
     def connected(self):
         """
@@ -240,13 +247,13 @@ class CollectorDaemon(RRDDaemon):
         @return: cycle time
         @rtype: integer
         """
-        return self._prefs.cycleInterval * 2
+        return self.preferences.cycleInterval * 2
 
     def getRemoteConfigServiceProxy(self):
         """
         Called to retrieve the remote configuration service proxy object.
         """
-        return self.services.get(self._prefs.configurationService,
+        return self.services.get(self.preferences.configurationService,
                                  FakeRemote())
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
@@ -300,7 +307,7 @@ class CollectorDaemon(RRDDaemon):
 
         if not self.options.device or self.options.device == config.id:
             self._updateConfig(config)
-            self._configProxy.updateConfigProxy(self._prefs, config)
+            self._configProxy.updateConfigProxy(self.preferences, config)
             
     def remote_notifyConfigChanged(self):
         """
@@ -409,7 +416,7 @@ class CollectorDaemon(RRDDaemon):
 
         self._devices.discard(deviceId)
         self._configListener.deleted(deviceId)
-        self._configProxy.deleteConfigProxy(self._prefs, deviceId)
+        self._configProxy.deleteConfigProxy(self.preferences, deviceId)
         self._scheduler.removeTasksForConfig(deviceId)
 
     def _errorStop(self, result):
@@ -428,7 +435,7 @@ class CollectorDaemon(RRDDaemon):
 
     def _startConfigCycle(self, result=None, startDelay=0):
         configLoader = self._ConfigurationLoaderTask(CONFIG_LOADER_NAME,
-                                               taskConfig=self._prefs)
+                                               taskConfig=self.preferences)
         configLoader.startDelay = startDelay
         # Run initial maintenance cycle as soon as possible
         # TODO: should we not run maintenance if running in non-cycle mode?
@@ -446,14 +453,14 @@ class CollectorDaemon(RRDDaemon):
 
     def _setCollectorPreferences(self, preferenceItems):
         for name, value in preferenceItems.iteritems():
-            if not hasattr(self._prefs, name):
+            if not hasattr(self.preferences, name):
                 # TODO: make a super-low level debug mode?  The following message isn't helpful
                 #self.log.debug("Preferences object does not have attribute %s",
                 #               name)
-                setattr(self._prefs, name, value)
-            elif getattr(self._prefs, name) != value:
+                setattr(self.preferences, name, value)
+            elif getattr(self.preferences, name) != value:
                 self.log.debug("Updated %s preference to %s", name, value)
-                setattr(self._prefs, name, value)
+                setattr(self.preferences, name, value)
 
     def _loadThresholdClasses(self, thresholdClasses):
         self.log.debug("Loading classes %s", thresholdClasses)
@@ -464,7 +471,7 @@ class CollectorDaemon(RRDDaemon):
                 log.exception("Unable to import class %s", c)
 
     def _configureRRD(self, rrdCreateCommand, thresholds):
-        self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self._prefs.cycleInterval)
+        self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
         self.rrdStats.config(self.options.monitor,
                              self.name,
                              thresholds,
@@ -482,7 +489,7 @@ class CollectorDaemon(RRDDaemon):
             log.debug("Starting Task Stat logging")
             loop = task.LoopingCall(self._displayStatistics, verbose=True)
             loop.start(self.options.logTaskStats, now=False)
-        interval = self._prefs.cycleInterval
+        interval = self.preferences.cycleInterval
         self.log.debug("Initializing maintenance Cycle")
         maintenanceCycle = MaintenanceCycle(interval, self, self._maintenanceCycle)
         maintenanceCycle.start()
@@ -540,13 +547,13 @@ class CollectorDaemon(RRDDaemon):
                 stat.value = self._scheduler._executor.queued
 
                 events = self._statService.postStatistics(self.rrdStats,
-                                                          self._prefs.cycleInterval)
+                                                          self.preferences.cycleInterval)
                 self.sendEvents(events)
 
         def _maintenance():
             if self.options.cycle:
                 d = defer.maybeDeferred(_postStatistics)
-                if getattr(self._prefs, 'pauseUnreachableDevices', True):
+                if getattr(self.preferences, 'pauseUnreachableDevices', True):
                     d.addCallback(_getDeviceIssues)
                     d.addCallback(_processDeviceIssues)
 
@@ -567,7 +574,7 @@ class CollectorDaemon(RRDDaemon):
             pass
 
         elif not self.addedPostStartupTasks:
-            postStartupTasks = getattr(self._prefs, 'postStartupTasks',
+            postStartupTasks = getattr(self.preferences, 'postStartupTasks',
                                        lambda : [])
             for task in postStartupTasks():
                 self._scheduler.addTask(task, now=True)

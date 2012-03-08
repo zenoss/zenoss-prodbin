@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, 2010 Zenoss Inc.
+# Copyright (C) 2009, 2010, 2012 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -12,14 +12,18 @@
 ###########################################################################
 
 import logging
+from twisted.internet import defer
+from Products.ZenEvents.ZenEventClasses import Cmd_Fail, Error
+import zope.component
+
 log = logging.getLogger("zen.collector.tasks")
 from copy import copy
 import random
 
 import zope.interface
 
-from Products.ZenCollector.interfaces import IScheduledTaskFactory,\
-                                             ITaskSplitter, ISubTaskSplitter
+from Products.ZenCollector.interfaces import IScheduledTaskFactory, ITaskSplitter, ISubTaskSplitter,\
+                                             IScheduledTask, ICollectorWorker, ICollector, IWorkerExecutor
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import readable_time
 
@@ -213,6 +217,181 @@ class SimpleTaskFactory(object):
         self.configId = None
         self.interval = None
         self.config = None
+
+
+class RRDWriter(object):
+    def __init__(self, delegate):
+        self.delegate = delegate
+
+    def writeRRD(self, counter, countervalue, countertype, **kwargs):
+        """
+        write given data to RRD streaming files
+        """
+        self.delegate.writeRRD(counter, countervalue, countertype, **kwargs)
+
+class EventSender(object):
+    def __init__(self, delegate):
+        self.delegate = delegate
+
+    def sendEvent(self, event, **eventData):
+        evt = event.copy()
+        evt.update(eventData)
+        self.delegate.sendEvent(evt)
+
+class WorkerOutputProxy(object):
+    def __init__(self, daemon=None, rrdWriter=None, eventSender=None):
+        self.daemon = daemon
+        self.rrdWriter = rrdWriter if not daemon else RRDWriter(daemon)
+        self.eventSender = eventSender if not daemon else EventSender(daemon)
+
+    @defer.inlineCallbacks
+    def sendOutput(self, data, events, intervalSeconds):
+        if self.rrdWriter:
+            for d in data:
+                yield self.rrdWriter.writeRRD(d['path'],
+                                d['value'],
+                                d['rrdType'],
+                                rrdCommand=d['rrdCommand'],
+                                cycleTime=intervalSeconds,
+                                min=d['min'],
+                                max=d['max']
+                )
+
+        if self.eventSender:
+            for ev in events:
+                self.sendEvent(ev)
+
+    @defer.inlineCallbacks
+    def sendEvent(self, event):
+        yield self.eventSender.sendEvent(event)
+
+class SingleWorkerTask(ObservableMixin):
+    zope.interface.implements(IScheduledTask)
+
+    def __init__(self,
+                 deviceId,
+                 taskName,
+                 scheduleIntervalSeconds,
+                 taskConfig):
+        """
+        Construct a new task instance to fetch data from the configured worker object
+
+        @param deviceId: the Zenoss deviceId to watch
+        @type deviceId: string
+        @param taskName: the unique identifier for this task
+        @type taskName: string
+        @param scheduleIntervalSeconds: the interval at which this task will be
+               collected
+        @type scheduleIntervalSeconds: int
+        @param taskConfig: the configuration for this task
+        """
+        super(SingleWorkerTask, self).__init__()
+
+        self.name = taskName
+        self.configId = deviceId
+        self.interval = scheduleIntervalSeconds
+        self.state = TaskStates.STATE_IDLE
+
+        self._taskConfig = taskConfig
+        self._devId = deviceId
+        self._manageIp = self._taskConfig.manageIp
+        self._worker = None
+
+        self.daemon = zope.component.getUtility(ICollector)
+        self.outputProxy = WorkerOutputProxy(self.daemon)
+        self.component = self.daemon.preferences.collectorName
+
+    @property
+    def deviceId(self):
+        return self._devId
+
+    @property
+    def worker(self):
+        """
+        Instance of the worker class to use for all tasks
+        """
+        return self._worker
+    @worker.setter
+    def worker(self, value):
+        self._worker = value
+
+    @defer.inlineCallbacks
+    def cleanup(self):
+        """
+        Delegate cleanup directly to the worker object
+        """
+        try:
+            self.state = TaskStates.STATE_CLEANING
+            if self.worker:
+                yield self.worker.stop()
+        finally:
+            self.state = TaskStates.STATE_COMPLETED
+
+    @defer.inlineCallbacks
+    def doTask(self):
+        """
+        Delegate collection directly work to the worker object
+        """
+        results = None
+        try:
+            self.state = TaskStates.STATE_RUNNING
+            if self.worker:
+                # perform data collection in the worker object
+                results = yield self.worker.collect(self._devId, self._taskConfig)
+
+        except Exception as ex:
+            log.error("worker collection: results (exception) = %r", results)
+            collectionErrorEvent = {'device':self.deviceId, 'severity':Error, 'eventClass':Cmd_Fail,
+                                    'summary':'Exception collecting:'+str(results),
+                                    'component':self.component, 'agent':self.component}
+            yield self.outputProxy.sendEvent(collectionErrorEvent)
+
+        else:
+            if results:
+                #send the data through the output proxy
+                data, events = results
+                yield self.outputProxy.sendOutput(data, events, self.interval)
+
+        finally:
+            self.state = TaskStates.STATE_IDLE
+
+class SingleWorkerTaskFactory(SimpleTaskFactory):
+    """
+    A task factory that creates a scheduled task using the provided
+    task class and the minimum attributes needed for a task, plus redirects
+    the 'doTask' and 'cleanup' methods to a single ICollectorWorker instance.
+    """
+    zope.interface.implements(IScheduledTaskFactory)
+
+    def __init__(self, taskClass=SingleWorkerTask, iCollectorWorker=None):
+        super(SingleWorkerTaskFactory, self).__init__(taskClass)
+        self.workerClass = iCollectorWorker
+
+    def setWorkerClass(self, iCollectorWorker):
+        self.workerClass = iCollectorWorker
+
+    def postInitialization(self):
+        pass
+    
+    def build(self):
+        task = super(SingleWorkerTaskFactory, self).build()
+        if self.workerClass and ICollectorWorker.implementedBy(self.workerClass):
+            worker = self.workerClass()
+            worker.prepareToRun()
+            task.worker = worker
+        return task
+
+class NullWorkerExecutor(object):
+    """
+    IWorkerExecutor that does nothing with the provided worker
+    """
+    zope.interface.implements(IWorkerExecutor)
+
+    def setWorkerClass(self, workerClass):
+        pass
+
+    def run(self):
+        pass
 
 
 class TaskStates(object):

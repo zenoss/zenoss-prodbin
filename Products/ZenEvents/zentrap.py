@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, 2011 Zenoss Inc.
+# Copyright (C) 2007, 2011-2012 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -757,7 +757,7 @@ class TrapDaemon(CollectorDaemon):
 
     def remote_createUser(self, user):
         log.debug("TrapDaemon.remote_createUser {0}".format(user))
-        task = self._prefs.task
+        task = self.preferences.task
         if task is not None:
             task.session.create_users([user])
 

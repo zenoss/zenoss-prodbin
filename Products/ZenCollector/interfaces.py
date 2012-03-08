@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009 Zenoss Inc.
+# Copyright (C) 2009, 2012 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -391,7 +391,6 @@ class ISubTaskSplitter(ITaskSplitter):
         """
         pass
 
-
 class IDataService(zope.interface.Interface):
     """
     A service that provides a mechanism to persist collected data.
@@ -533,5 +532,67 @@ class IStatisticsService(zope.interface.Interface):
         @type name: string
         @return: the statistic object for the given name
         @rtype: an object implementing IStatistic
+        """
+        pass
+
+class IWorkerTaskFactory(IScheduledTaskFactory):
+    """
+    An IScheduledTaskFactory that accepts an ICollectorWorker type for delegation
+    """
+    def setWorkerClass(self, iCollectorWorker):
+        """
+        Set up a worker type
+        """
+        pass
+
+    def postInitialization(self):
+        """
+        Called after collecter daemon initialization for final taskFactory setup
+        """
+        pass
+
+class ICollectorWorker(zope.interface.Interface):
+    """
+    A worker that has the capability of collecting data.
+    """
+
+    def prepareToRun(self):
+        """
+        Pre-run initialization
+        """
+        pass
+
+    def collect(self, device, taskConfig, *args):
+        """
+        Collect data for device
+        """
+        pass
+
+    def disconnect(self, device):
+        """
+        Disconnect from target device
+        """
+        pass
+
+    def stop(self):
+        """
+        Stop running
+        """
+        pass
+
+class IWorkerExecutor(zope.interface.Interface):
+    """
+    A service that instantiates and executes a provided ICollectorWorker
+    """
+
+    def setWorkerClass(self, workerClass):
+        """
+        Set up a worker
+        """
+        pass
+
+    def run(self):
+        """
+        run the provided worker
         """
         pass
