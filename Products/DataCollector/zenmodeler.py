@@ -24,8 +24,8 @@ import Globals
 # the wrong reactor.
 try:
     import ZenPacks.zenoss.PySamba.twisted.reactor
-    from Products.ZenWin.WMIClient import WMIClient
-    from Products.ZenWin.utils import addNTLMv2Option, setNTLMv2Auth
+    from ZenPacks.zenoss.WindowsMonitor.WMIClient import WMIClient
+    from ZenPacks.zenoss.WindowsMonitor.utils import addNTLMv2Option, setNTLMv2Auth
     USE_WMI = True
 except ImportError:
     USE_WMI = False

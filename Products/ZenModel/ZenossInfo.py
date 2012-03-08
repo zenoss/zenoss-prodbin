@@ -363,8 +363,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
       "zenperfsnmp": "High performance asynchronous SNMP performance collection",
       "zencommand": "Runs plug-ins on the local box or on remote boxes through SSH",
       "zenprocess": "Process monitoring using SNMP host resources MIB",
-      "zenwin": "Windows Service Monitoring (WMI)",
-      "zeneventlog": "Collect (WMI) event log events (aka NT Eventlog)",
       "zendisc": "Discover the network topology to find active IPs and devices",
       "zenrrdcached": "Controls the write cache for performance data",
       "zenmail": "Listen for e-mail and convert messages to Zenoss events",

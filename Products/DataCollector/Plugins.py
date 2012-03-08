@@ -307,8 +307,7 @@ class ModelingManager(object):
             cls.instance = PluginManager(
                     lastModName='plugins',
                     packPath=('modeler',),
-                    productsPaths=[('DataCollector',),
-                                   ('ZenWin', 'modeler',)])
+                    productsPaths=[('DataCollector',)])
         return cls.instance
 
 class MonitoringManager(object):

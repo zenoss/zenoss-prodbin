@@ -240,7 +240,6 @@ def findZenossProducts(include_zenpacks):
         'ZenStatus',
         'ZenUtils',
         'ZenWidgets',
-        'ZenWin',
         'Zuul',
         'ZenCollector',
     )]
