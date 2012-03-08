@@ -24,7 +24,7 @@ beans) that primarily contain a set of properties. Each info object adapts a
 particular class from the ZenModel module.
 
 The JSON API adheres to the Ext Direct protocol
-(http://www.extjs.com/products/extjs/direct.php). The Ext JS library makes it
+(http://www.sencha.com/products/extjs/extdirect). The Ext JS library makes it
 very easy to work with this protocol, but the data format is simple and it
 could be easily consumed within other javascript frameworks or clients written
 in any language that has a JSON library.  The JSON API is implented by
