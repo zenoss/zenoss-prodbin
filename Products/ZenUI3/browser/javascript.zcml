@@ -40,9 +40,8 @@
         paths=" /++resource++extjs/examples/ux/layout/component/form/MultiSelect.js
                /++resource++extjs/examples/ux/layout/component/form/ItemSelector.js
                /++resource++extjs/examples/ux/form/MultiSelect.js
-               /++resource++extjs/examples/ux/form/ItemSelector.js"
-
-
+               /++resource++extjs/examples/ux/form/ItemSelector.js
+               /++resource++extjs/examples/ux/RowExpander.js"
         />
 
 

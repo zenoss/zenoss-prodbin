@@ -14,6 +14,16 @@
 */
 (function(){
     Ext.ns('Zenoss.events');
+
+    Zenoss.events.getRowClass = function(record, index) {
+        var stateclass = record.get('eventState')=='New' ?
+            'unacknowledged':'acknowledged';
+        var sev = Zenoss.util.convertSeverity(record.get('severity'));
+        var rowcolors = Ext.state.Manager.get('rowcolor') ? 'rowcolor rowcolor-' : '';
+        var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
+        return cls;
+    };
+
     /*
      * Show the dialog that allows one to add an event.
      */
@@ -900,14 +910,7 @@
             config = config || {};
             config.viewConfig = config.viewConfig || {};
             Ext.applyIf(config.viewConfig, {
-                getRowClass: function(record, index) {
-                    var stateclass = record.get('eventState')=='New' ?
-                        'unacknowledged':'acknowledged';
-                    var sev = Zenoss.util.convertSeverity(record.get('severity'));
-                    var rowcolors = me.rowcolors ? 'rowcolor rowcolor-':'';
-                    var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
-                    return cls;
-                }
+                getRowClass: Zenoss.events.getRowClass
 
             });
             this.callParent(arguments);
@@ -1078,14 +1081,7 @@
             var id = config.id || Ext.id();
             config.viewConfig = config.viewConfig || {};
                 Ext.applyIf(config.viewConfig, {
-                    getRowClass: function(record, index) {
-                        var stateclass = record.get('eventState')=='New' ?
-                            'unacknowledged':'acknowledged';
-                        var sev = Zenoss.util.convertSeverity(record.get('severity'));
-                        var rowcolors = Ext.state.Manager.get('rowcolor') ? 'rowcolor rowcolor-' : '';
-                        var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
-                        return cls;
-                    }
+                    getRowClass:  Zenoss.events.getRowClass
                 });
             Ext.applyIf(config, {
                 id: 'eventGrid' + id,
@@ -1103,14 +1099,7 @@
                     eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED]
                 },
                 viewConfig: {
-                    getRowClass: function(record, index) {
-                        var stateclass = record.get('eventState')=='New' ?
-                            'unacknowledged':'acknowledged';
-                        var sev = Zenoss.util.convertSeverity(record.get('severity'));
-                        var rowcolors = Ext.state.Manager.get('rowcolor') ? 'rowcolor rowcolor-' : '';
-                        var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
-                        return cls;
-                    }
+                    getRowClass:  Zenoss.events.getRowClass
                 }
             }); // Ext.applyIf
             Zenoss.SimpleEventGridPanel.superclass.constructor.call(this, config);
