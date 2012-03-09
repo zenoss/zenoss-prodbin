@@ -1,12 +1,11 @@
-README.txt
 acyclic
 analyze.py
 bcomps
 bookify
 ccomps
 cftp
-check_catalog.py
 checkbtrees.py
+check_catalog.py
 circo
 ckeygen
 compilezpy.py
@@ -48,6 +47,7 @@ nop
 parsezeolog.py
 prune
 python
+README.txt
 reindex_catalog.py
 repozo.py
 requestprofiler.py
@@ -67,9 +67,9 @@ space.py
 tap2deb
 tap2rpm
 tapconvert
-test.py
 testgen-convert
 testgen-twill
+test.py
 timeout.py
 tkconch
 tkmktap
@@ -83,7 +83,9 @@ unflatten
 websetroot
 winexe
 yapps2
+zeneventlog
 zenoss.bak
+zenwin
 zeoctl
 zeopack.py
 zeoqueue.py
