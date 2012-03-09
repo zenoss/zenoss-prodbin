@@ -33,7 +33,7 @@ except ImportError:
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 
 from PythonClient   import PythonClient
@@ -47,6 +47,8 @@ from Products.DataCollector import Classifier
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
 
+import collections
+import cPickle as pickle
 import time
 import re
 import DateTime
@@ -103,6 +105,7 @@ class ZenModeler(PBDaemon):
         self.clients = []
         self.finished = []
         self.devicegen = None
+        self.counters = collections.Counter()
 
         # Delay start for between 10 and 60 minutes when run as a daemon.
         self.started = False
@@ -118,6 +121,8 @@ class ZenModeler(PBDaemon):
         else:
             self.log.debug("Run in foreground, starting immediately.")
 
+        # load performance counters
+        self.loadCounters()
 
     def reportError(self, error):
         """
@@ -696,6 +701,7 @@ class ZenModeler(PBDaemon):
             @param result: object (unused)
             @type result: object
             """
+            self.counters['modeledDevicesCount'] += 1
             if not result:
                 self.log.debug("Client %s finished" % device.id)
             else:
@@ -760,6 +766,24 @@ class ZenModeler(PBDaemon):
             self.started = True
             reactor.callLater(self.startDelay, self.main)
 
+        # persist counters values
+        self.saveCounters()
+    
+    def _getCountersFile(self):
+        return zenPath('var/%s_%s.pickle' % (self.name, self.options.monitor,))
+
+    def saveCounters(self):
+        atomicWrite(
+            self._getCountersFile(),
+            pickle.dumps(self.counters),
+            raiseException=False,
+        )
+
+    def loadCounters(self):
+        try:
+            self.counters = pickle.load(open(self._getCountersFile()))
+        except Exception:
+            self.counters = collections.Counter()
 
     @property
     def _devicegen_has_items(self):
@@ -1041,4 +1065,8 @@ if __name__ == '__main__':
     dc = ZenModeler()
     dc.processOptions()
     reactor.run = dc.reactorLoop
-    dc.run()
+    try:
+        dc.run()
+    finally:
+        dc.saveCounters()
+
