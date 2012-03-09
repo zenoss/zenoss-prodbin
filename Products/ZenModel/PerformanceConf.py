@@ -376,13 +376,37 @@ class PerformanceConf(Monitor, StatusColor):
         else:
             return url
 
+    def _get_webscale_port(self):
+        use_ssl = False
+        http_port = 8080
+        ssl_port = 443
+        conf_path = zenPath("etc", "zenwebserver.conf")
+        if not os.path.exists(conf_path):
+            return http_port
+        with open(conf_path) as file_:
+            for line in (l.strip() for l in file_):
+                if line and not line.startswith('#'):
+                    key, val = line.split(' ', 1)
+                    if key == "useSSL":
+                        use_ssl = val.lower() == 'true'
+                    elif key == "httpPort":
+                        http_port = int(val.strip())
+                    elif key == "sslPort":
+                        ssl_port = int(val.strip())
+        if use_ssl:
+            return ssl_port
+        return http_port
+
     def _get_xmlrpc_server(self, allow_none=False):
         renderurl = str(self.renderurl)
         if renderurl.startswith('proxy'):
             renderurl = self.renderurl.replace('proxy', 'http')
         if renderurl.startswith('/remote-collector/'):
             # DistributedCollector + WebScale scenario
-            renderurl = 'http://%s%s' % (socket.getfqdn(), renderurl)
+            fqdn = socket.getfqdn()
+            port = self._get_webscale_port()
+            path = renderurl.strip("/") + "/"
+            renderurl = 'http://{fqdn}:{port}/{path}'.format(**locals())
         if renderurl.startswith('http'):
             # Going through the hub or directly to zenrender
             url = basicAuthUrl(str(self.renderuser),
