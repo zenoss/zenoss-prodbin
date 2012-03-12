@@ -84,10 +84,10 @@ if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
         C="$C zencatalogservice"
     fi
     C="$C zeneventserver"
-    C="$C zeneventd"
     C="$C ${WEBSERVERCTL}"
     C="$C zenhub"
     C="$C zenjobs"
+    C="$C zeneventd"
     C="$C zenping"
     C="$C zensyslog"
     C="$C zenstatus"
