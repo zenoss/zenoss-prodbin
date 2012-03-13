@@ -10,15 +10,10 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from random import random
 from zope.interface import implements
-from itertools import imap
-from Products.Zuul.utils import unbrain, UncataloguedObjectException
-from Products.ZenModel.RRDTemplate import RRDTemplate
-from Products.AdvancedQuery import Eq
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
-from Products.Zuul.interfaces import template as templateInterfaces, ICatalogTool
+from Products.Zuul.interfaces import template as templateInterfaces
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
@@ -58,20 +53,6 @@ class TemplateNode(TemplateInfo):
 
     def getUIPath(self):
         return self._object.getUIPath()
-
-    @property
-    def children(self):
-        obj = self._object
-        query = Eq('id', obj.id)
-        catalog = ICatalogTool(obj.dmd)
-        brains = catalog.search(types=RRDTemplate, query=query)
-        templates = imap(unbrain, brains)
-        for template in templates:
-            try:
-                yield TemplateLeaf(template)
-            except UncataloguedObjectException:
-                pass
-
 
 class TemplateLeaf(TemplateInfo):
 
