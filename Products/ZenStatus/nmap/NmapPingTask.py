@@ -187,7 +187,7 @@ class NmapPingTask(BaseTask):
             eventClass=ZenEventClasses.Status_Ping,
             eventGroup='Ping',
             eventKey="nmap_missing",
-            eventseverity=severity,
+            severity=severity,
             summary=msg,
         )
         self._eventService.sendEvent(evt)
@@ -220,7 +220,7 @@ class NmapPingTask(BaseTask):
             eventClass=ZenEventClasses.Status_Ping,
             eventGroup='Ping',
             eventKey="nmap_suid",
-            eventseverity=severity,
+            severity=severity,
             summary=msg,
         )
         self._eventService.sendEvent(evt)
@@ -240,7 +240,7 @@ class NmapPingTask(BaseTask):
             eventClass=ZenEventClasses.Status_Ping,
             eventGroup='Ping',
             eventKey="nmap_execution",
-            eventseverity=severity,
+            severity=severity,
             summary=msg,
         )
         self._eventService.sendEvent(evt)
