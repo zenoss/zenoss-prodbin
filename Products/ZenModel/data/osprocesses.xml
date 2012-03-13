@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-02-24 15:35:37.226020
+    Zenoss RelationshipManager export completed on 2012-03-12 17:01:53.292068
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-02-24 15:35:37.226020" zenoss_server="epowell-dev" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2012-03-12 17:01:53.292068" zenoss_server="dgarcia-laptop" >
 <object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
@@ -66,7 +66,7 @@ False
 Sends out notifications based on triggers
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+1
 </property>
 </object>
 <object id='zencommand' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -89,7 +89,7 @@ False
 Using protocols such as Telnet and SSH, runs a command on the remote machine and parses the results into events and performance metrics.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+2
 </property>
 </object>
 <object id='zeneventd' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -106,7 +106,7 @@ False
 False
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+3
 </property>
 </object>
 <object id='zeneventlog' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -129,7 +129,7 @@ False
 Gather Windows Event Log messages and convert them to Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+4
 </property>
 </object>
 <object id='zeneventserver' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -152,7 +152,7 @@ False
 The Zenoss event processor.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+5
 </property>
 </object>
 <object id='zenhub' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -175,7 +175,7 @@ False
 This daemon provides a stable interface to ZODB, via services that are requested by daemons.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+6
 </property>
 </object>
 <object id='zenjobs' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -198,7 +198,7 @@ False
 An 'at'-style scheduler for running long-running commands.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+7
 </property>
 </object>
 <object id='zenmail' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -221,7 +221,7 @@ True
 Listen on the SMTP port (default 25) and convert e-mails into Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+8
 </property>
 </object>
 <object id='zenmodeler' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -244,7 +244,7 @@ False
 Model a device using protocols such as WMI, SNMP, SSH.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+9
 </property>
 </object>
 <object id='zenperfsnmp' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -267,7 +267,7 @@ False
 SNMP performance metric poller daemon
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+10
 </property>
 </object>
 <object id='zenping' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -290,7 +290,7 @@ False
 IPv4 and IPv6 ICMP ECHO sending daemon
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+11
 </property>
 </object>
 <object id='zenpop3' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -313,7 +313,7 @@ False
 Connect to a POP3 server and convert any messages into Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+12
 </property>
 </object>
 <object id='zenprocess' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -336,7 +336,7 @@ False
 SNMP based daemon that gathers process information, and based on what has been modeled, reports on process metrics such as memory and CPU utilization.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+13
 </property>
 </object>
 <object id='zenrrdcached' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -359,7 +359,7 @@ True
 Caching daemon that improves RRD write performance
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+14
 </property>
 </object>
 <object id='zenstatus' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -382,7 +382,7 @@ False
 A daemon that opens a TCP connection to the remote service to determine if it is available.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+15
 </property>
 </object>
 <object id='zensyslog' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -405,7 +405,7 @@ True
 Daemon that runs on the syslog ports and converts syslog messages to Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+16
 </property>
 </object>
 <object id='zentrap' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -428,7 +428,7 @@ True
 Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+17
 </property>
 </object>
 <object id='zenwin' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -451,7 +451,7 @@ False
 Gather information about running Windows services.
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+18
 </property>
 </object>
 </tomanycont>

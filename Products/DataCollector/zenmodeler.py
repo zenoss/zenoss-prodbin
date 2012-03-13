@@ -766,9 +766,15 @@ class ZenModeler(PBDaemon):
             self.started = True
             reactor.callLater(self.startDelay, self.main)
 
+        # save modeled device rate
+        self.rrdStats.derive('modeledDevices', ARBITRARY_BEAT, self.counters['modeledDevicesCount'])
+
+        # save running count
+        self.rrdStats.gauge('modeledDevicesCount', ARBITRARY_BEAT, self.counters['modeledDevicesCount'])
+
         # persist counters values
         self.saveCounters()
-    
+
     def _getCountersFile(self):
         return zenPath('var/%s_%s.pickle' % (self.name, self.options.monitor,))
 
