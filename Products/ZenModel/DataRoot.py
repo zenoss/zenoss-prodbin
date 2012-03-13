@@ -549,11 +549,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return self.getPrimaryUrlPath() + '/dataRootManage'
 
 
+    def getDefaultEmailFrom(self):
+        return 'zenossuser_%s@%s' % (getSecurityManager().getUser().getId(), socket.getfqdn())
+
+
     def getEmailFrom(self):
         ''' Return self.emailFrom or a suitable default
         '''
-        return self.emailFrom or 'zenossuser_%s@%s' % (
-            getSecurityManager().getUser().getId(), socket.getfqdn())
+        return self.emailFrom or self.getDefaultEmailFrom()
 
 
     def checkValidId(self, id, prep_id = False):
@@ -641,7 +644,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         $ZENHOME/backups.
         """
         import stat
-        import os
         import datetime
         import operator
 
@@ -830,6 +832,51 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return self.About.getZenossVersion().full().replace(
             'Zenoss','').replace(' ','').replace('.','')
 
+    def _updateEmailNotifications(self, REQUEST):
+        """update email notifications that use system-wide settings"""
+
+        # translates dmd property to notification content key
+        email_props = dict(smtpHost="host",
+                           smtpPort="port",
+                           smtpUser="user",
+                           smtpPass="password",
+                           smtpUseTLS="useTls",
+                           emailFrom="email_from")
+        
+        # did the system-wide email properties change?
+        email_props_changed = False
+        for prop in email_props:
+            if self.getProperty(prop) != REQUEST.get(prop):
+                email_props_changed = True
+                break
+        
+        # if so, find all email notifications that use the system-wide
+        # settings and update them
+        if email_props_changed:
+            for notif in self.NotificationSubscriptions.objectValues():
+                if notif.action == "email":
+
+                    notif_uses_system_props = True
+                    for prop, content_key in email_props.iteritems():
+                        if prop == "emailFrom":
+                            if notif.content[content_key] != self.getEmailFrom():
+                                notif_uses_system_props = False
+                                break
+                        if prop == "smtpPort":
+                            if int(notif.content[content_key]) != self.getProperty(prop):
+                                notif_uses_system_props = False
+                                break
+                        elif notif.content[content_key] != self.getProperty(prop):
+                            notif_uses_system_props = False
+                            break
+
+                    if notif_uses_system_props:
+                        notif._p_changed = True
+                        for prop, content_key in email_props.iteritems():
+                            notif.content[content_key] = REQUEST.get(prop)
+                        if not notif.content["email_from"]:
+                            notif.content["email_from"] = self.getDefaultEmailFrom()
+
     security.declareProtected('Manage DMD', 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Handle our authentication mechanism
@@ -842,6 +889,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             elif REQUEST.get('userAuthType') == self.AUTH_TYPE_COOKIE:
                 activateCookieBasedAuthentication(self.zport)
                 activateCookieBasedAuthentication(app) # for admin
+            self._updateEmailNotifications(REQUEST)
         return super(DataRoot, self).zmanage_editProperties(REQUEST, redirect)
 
 

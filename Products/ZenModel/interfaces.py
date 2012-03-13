@@ -68,6 +68,9 @@ class IAction(Interface):
     actionContentInfo = Attribute("The class that adapts a notification to an "
                                   "IInfo object for this class.")
 
+    def getDefaultData(dmd):
+        """Return a dictionary of the default data for the notification content"""
+
     def configure(options):
         """
         @param options: Options to configure the specified action.

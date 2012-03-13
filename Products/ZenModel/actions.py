@@ -12,6 +12,7 @@
 ###########################################################################
 
 import re
+from socket import getaddrinfo
 from traceback import format_exc
 from zope.interface import implements
 from zope.component import getUtilitiesFor
@@ -23,11 +24,12 @@ from twisted.internet.protocol import ProcessProtocol
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
-from Products.ZenEvents.events2.proxy import EventSummaryProxy
 
+from Products.ZenEvents.events2.proxy import EventSummaryProxy
+from Products.ZenUtils.Utils import sendEmail
 from Products.Zuul.interfaces.actions import IEmailActionContentInfo, IPageActionContentInfo, ICommandActionContentInfo, ISnmpTrapActionContentInfo
 from Products.Zuul.form.interfaces import IFormBuilder
-
+from Products.ZenModel.UserSettings import GroupSettings
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal, INotificationContextProvider
 from Products.ZenModel.NotificationSubscription import NotificationEventContextWrapper
 from Products.ZenEvents.Event import Event
@@ -171,6 +173,9 @@ class IActionBase(object):
         content = self.getInfo(notification)
         return IFormBuilder(content).render(fieldsets=False)
 
+    def getDefaultData(self, dmd):
+        return {}
+
 
 class TargetableAction(object):
     
@@ -255,18 +260,21 @@ class EmailAction(IActionBase, TargetableAction):
     def __init__(self):
         super(EmailAction, self).__init__()
 
+    def getDefaultData(self, dmd):
+        return dict(host=dmd.smtpHost,
+                    port=dmd.smtpPort,
+                    user=dmd.smtpUser,
+                    password=dmd.smtpPass,
+                    useTls=dmd.smtpUseTLS,
+                    email_from=dmd.getEmailFrom())
+
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
-        self.email_from = dmd.getEmailFrom()
-        self.host = dmd.smtpHost
-        self.port = dmd.smtpPort
-        self.useTls = dmd.smtpUseTLS
-        self.user = dmd.smtpUser
-        self.password = dmd.smtpPass
-    
+
     def executeBatch(self, notification, signal, targets):
-        log.debug("Executing action for targets: %s", targets)
-        
+        log.debug("Executing %s action for targets: %s", self.name, targets)
+        self.setupAction(notification.dmd)
+
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         if signal.clear:
             log.debug('This is a clearing signal.')
@@ -293,18 +301,23 @@ class EmailAction(IActionBase, TargetableAction):
 
             email_message.attach(email_message_alternative)
 
+        host = notification.content['host']
+        port = notification.content['port']
+        user = notification.content['user']
+        password = notification.content['password']
+        useTls = notification.content['useTls']
+        email_from = notification.content['email_from']
+
         email_message['Subject'] = subject
-        email_message['From'] = self.email_from
+        email_message['From'] = email_from
         email_message['To'] = ','.join(targets)
         email_message['Date'] = formatdate(None, True)
 
-        result, errorMsg = Utils.sendEmail(
+        result, errorMsg = sendEmail(
             email_message,
-            self.host,
-            self.port,
-            self.useTls,
-            self.user,
-            self.password
+            host, port,
+            useTls,
+            user, password
         )
 
         if result:
@@ -343,7 +356,8 @@ class EmailAction(IActionBase, TargetableAction):
         updates = dict()
         updates['body_content_type'] = data.get('body_content_type', 'html')
 
-        properties = ['subject_format', 'body_format', 'clear_subject_format', 'clear_body_format', ]
+        properties = ['subject_format', 'body_format', 'clear_subject_format', 'clear_body_format']
+        properties.extend(['host', 'port', 'user', 'password', 'useTls', 'email_from'])
         for k in properties:
             updates[k] = data.get(k)
 
@@ -420,18 +434,19 @@ class EventCommandProtocol(ProcessProtocol):
 
     def processEnded(self, reason):
         log.debug("Command finished: '%s'" % reason.getErrorMessage())
-        code = 1
-        try:
-            code = reason.value.exitCode
-        except AttributeError:
-            pass
 
-        if code == 0:
-            cmdData = self.data or "<command produced no output>"
-            # FIXME: send an event or something?
-        else:
-            cmdError = self.error or "<command produced no output>"
-            # FIXME: send an event or something?
+        # FIXME: send an event or something?
+        #
+        # code = 1
+        # try:
+        #     code = reason.value.exitCode
+        # except AttributeError:
+        #     pass
+        # code = reason.value.exitCode
+        # if code == 0:
+        #     cmdData = self.data or "<command produced no output>"
+        # else:
+        #     cmdError = self.error or "<command produced no output>"
 
     def outReceived(self, text):
         self.data += text
@@ -440,12 +455,14 @@ class EventCommandProtocol(ProcessProtocol):
         self.error += text
 
 
-class CommandAction(IActionBase):
+class CommandAction(IActionBase, TargetableAction):
     implements(IAction)
 
     id = 'command'
     name = 'Command'
     actionContentInfo = ICommandActionContentInfo
+
+    shouldExecuteInBatch = False
 
     def configure(self, options):
         super(CommandAction, self).configure(options)
@@ -454,18 +471,19 @@ class CommandAction(IActionBase):
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.dmd = dmd
 
-    def execute(self, notification, signal):
+    def executeOnTarget(self, notification, signal, target):
         self.setupAction(notification.dmd)
 
-        log.debug('Executing action: Command')
+        log.debug('Executing action: %s on %s', self.name, target)
 
         if signal.clear:
             command = notification.content['clear_body_format']
         else:
             command = notification.content['body_format']
 
-        log.debug('Executing this command: %s' % command)
+        log.debug('Executing this command: %s', command)
 
         actor = signal.event.occurrence[0].actor
         device = None
@@ -476,7 +494,11 @@ class CommandAction(IActionBase):
         if actor.element_sub_uuid:
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
-        environ = {'dev': device, 'component': component, 'dmd': notification.dmd}
+        user_env_format = notification.content.get('user_env_format', '')
+        env = dict( envvar.split('=') for envvar in user_env_format.split(';') if '=' in envvar)
+
+        environ = {'dev': device, 'component': component, 'dmd': notification.dmd,
+                   'env': env}
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         environ.update(data)
 
@@ -486,20 +508,40 @@ class CommandAction(IActionBase):
         if environ.get('clearEvt', None):
             environ['clearEvt'] = self._escapeEvent(environ['clearEvt'])
 
-        command = processTalSource(command, **environ)
-        log.debug('Executing this compiled command: "%s"' % command)
+        environ['user'] = getattr(self.dmd.ZenUsers, target, None)
 
+        try:
+            command = processTalSource(command, **environ)
+        except Exception:
+            raise ActionExecutionException('Unable to perform TALES evaluation on "%s" -- is there an unescaped $?' % command)
+
+        log.debug('Executing this compiled command: "%s"' % command)
         _protocol = EventCommandProtocol(command)
 
         log.debug('Queueing up command action process.')
         self.processQueue.queueProcess(
             '/bin/sh',
                 ('/bin/sh', '-c', command),
-            env=None,
+            env=environ['env'],
             processProtocol=_protocol,
             timeout=int(notification.content['action_timeout']),
             timeout_callback=_protocol.timedOut
         )
+
+    def getActionableTargets(self, target):
+        ids = [target.id]
+        if isinstance(target, GroupSettings):
+            ids = [x.id for x in target.getMemberUserSettings()]
+        return ids
+
+    def updateContent(self, content=None, data=None):
+        updates = dict()
+
+        properties = ['body_format', 'clear_body_format', 'action_timeout', 'user_env_format']
+        for k in properties:
+            updates[k] = data.get(k)
+
+        content.update(updates)
 
     def _escapeEvent(self, evt):
         """
@@ -522,22 +564,6 @@ class CommandAction(IActionBase):
         BACKSLASH = '\\'
         return ''.join((QUOTE, msg.replace(QUOTE, BACKSLASH + QUOTE), QUOTE))
 
-    def getActionableTargets(self, target):
-        """
-        Commands do not act _on_ targets, they are only executed.
-        """
-        pass
-
-    def updateContent(self, content=None, data=None):
-        updates = dict()
-
-        properties = ['body_format', 'clear_body_format', 'action_timeout']
-        for k in properties:
-            updates[k] = data.get(k)
-
-        content.update(updates)
-
-
 class SNMPTrapAction(IActionBase):
     implements(IAction)
 
@@ -546,15 +572,6 @@ class SNMPTrapAction(IActionBase):
     actionContentInfo = ISnmpTrapActionContentInfo
 
     _sessions = {}
-
-    def _getSession(self, destination):
-        if destination not in self._sessions:
-            log.debug("Creating SNMP trap session to %s", destination)
-            self._sessions[destination] = netsnmp.Session((
-                '-v2c', '-c', 'public', '%s:162' % destination))
-            self._sessions[destination].open()
-
-        return self._sessions.get(destination)
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
@@ -581,6 +598,7 @@ class SNMPTrapAction(IActionBase):
            'event_class' :                  ( 5, event),
            'event_key' :                    ( 6, event),
            'summary' :                      ( 7, event),
+           'message' :                      ( 8, event),
            'severity' :                     ( 9, event),
            'status' :                       (10, event),
            'event_class_key' :              (11, event),
@@ -605,20 +623,93 @@ class SNMPTrapAction(IActionBase):
            'event_class_mapping_uuid':      (33, event)
            }
 
-        varbinds = []
+        eventDict = self.creatEventDict(fields, event)
+        if signal.clear:
+            eventDict["severity"] = 0
+        self.processEventDict(eventDict, data, notification.dmd)
+        varbinds = self.makeVarBinds(baseOID, fields, eventDict)
 
-        for field, oidspec in sorted(fields.items(), key=lambda x: x[1][0]):
+        session = self._getSession(notification.content)
+        
+        for v in varbinds:
+            log.debug(v)
+        session.sendTrap(baseOID + '.0.0.1', varbinds=varbinds)
+
+    def creatEventDict(self, fields, event):
+        """
+        Create an event dictionary suitable for Python evaluation.
+        """
+        eventDict = {}
+        for field, oidspec in fields.items():
             i, source = oidspec
-            if source == event.details:
+            if source is event.details:
                 val = source.get(field, '')
             else:
                 val = getattr(source, field, '')
+            eventDict[field] = val
+        return eventDict
+
+    def processEventDict(self, eventDict, data, dmd):
+        """
+        Integration hook
+        """
+        pass
+
+    def makeVarBinds(self, baseOID, fields, eventDict):
+        """
+        Make the SNMP variable bindings in numeric order.
+        """
+        intValues = (9, 10, 26, 27)
+        varbinds = []
+        for field, oidspec in sorted(fields.items(), key=lambda x: x[1][0]):
+            i, source = oidspec
+            val = eventDict.get(field, '')
             if isinstance(val, (list, tuple, set)):
                 val = '|'.join(val)
-            varbinds.append(("%s.%d.0" % (baseOID,i), 's', str(val)))
 
-        self._getSession(notification.content['action_destination']).sendTrap(
-            baseOID + '.0.0.1', varbinds=varbinds)
+            # Create the binding
+            oid = "%s.%d" % (baseOID, i)
+            oidType = 's' if i not in intValues else 'i'
+            # No matter what the OID data type, send in strings as that's what is expected
+            val = str(val)
+
+            varbinds.append( (oid, oidType, val) )
+        return varbinds
 
     def updateContent(self, content=None, data=None):
         content['action_destination'] = data.get('action_destination')
+        content['community'] = data.get('community')
+        content['version'] = data.get('version')
+        content['port'] = int(data.get('port'))
+
+    def _getSession(self, content):
+        traphost = content['action_destination']
+        port = content.get('port', 162)
+        destination = '%s:%s' % (traphost, port)
+
+        if not traphost or port <= 0:
+            log.error("%s: SNMP trap host information %s is incorrect ", destination)
+            return None
+
+        community = content.get('community', 'public')
+        version = content.get('version', 'v2c')
+
+        session = self._sessions.get(destination, None)
+        if session is None:
+            log.debug("Creating SNMP trap session to %s", destination)
+
+            # Test that the hostname and port are sane.
+            try:
+                getaddrinfo(traphost, port)
+            except Exception:
+                raise ActionExecutionException("The destination %s is not resolvable." % destination)
+
+            session = netsnmp.Session((
+                '-%s' % version,
+                '-c', community,
+                destination)
+            )
+            session.open()
+            self._sessions[destination] = session
+
+        return session

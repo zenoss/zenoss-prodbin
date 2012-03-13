@@ -11,15 +11,14 @@
 #
 ###########################################################################
 
-from Products.ZenUtils.PkgResources import pkg_resources
 from datetime import datetime
 import logging
 import parser
 from Acquisition import aq_parent
 from zExceptions import BadRequest
-from zope.component import getUtility, queryUtility
+from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
-from zope.interface import implements, providedBy
+from zope.interface import providedBy
 
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
@@ -357,11 +356,11 @@ class TriggersFacade(ZuulFacade):
             yield IInfo(n)
 
 
-    def _updateContent(self, notification):
+    def _updateContent(self, notification, data=None):
 
         try:
             util = getUtility(IAction, notification.action)
-        except ComponentLookupError, e:
+        except ComponentLookupError:
             raise InvalidTriggerActionType("Invalid action type specified: %s" % notification.action)
 
         fields = {}
@@ -370,9 +369,10 @@ class TriggersFacade(ZuulFacade):
             if f:
                 fields.update(f)
 
-        data = dict()
+        data = util.getDefaultData(self._dmd)
         for k, v in fields.iteritems():
-            data[k] = v.default
+            if k not in data:
+                data[k] = v.default
 
         util.updateContent(notification.content, data)
 
@@ -383,7 +383,6 @@ class TriggersFacade(ZuulFacade):
     def createNotification(self, id, action, guid=None):
         notification = NotificationSubscription(id)
         notification.action = action
-
         self._updateContent(notification)
 
         self._getNotificationManager()._setObject(id, notification)

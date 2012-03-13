@@ -16,8 +16,6 @@ log = logging.getLogger('zen.actioninfos')
 
 from zope.interface import implements
 
-from Products.ZenModel.NotificationSubscription import NotificationSubscription
-
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces.actions import IEmailActionContentInfo, IPageActionContentInfo, ICommandActionContentInfo, ISnmpTrapActionContentInfo
 from zope.schema.fieldproperty import FieldProperty
@@ -70,11 +68,18 @@ class EmailActionContentInfo(InfoBase):
     body_format = ActionFieldProperty(IEmailActionContentInfo, 'body_format')
     clear_subject_format = ActionFieldProperty(IEmailActionContentInfo, 'clear_subject_format')
     clear_body_format = ActionFieldProperty(IEmailActionContentInfo, 'clear_body_format')
+    email_from = ActionFieldProperty(IEmailActionContentInfo, 'email_from')
+    host = ActionFieldProperty(IEmailActionContentInfo, 'host')
+    port = ActionFieldProperty(IEmailActionContentInfo, 'port')
+    useTls = ActionFieldProperty(IEmailActionContentInfo, 'useTls')
+    user = ActionFieldProperty(IEmailActionContentInfo, 'user')
+    password = ActionFieldProperty(IEmailActionContentInfo, 'password')
+
 
 class PageActionContentInfo(InfoBase):
     implements(IPageActionContentInfo)
 
-    clear_subject_format = ActionFieldProperty(IEmailActionContentInfo, 'clear_subject_format')
+    clear_subject_format = ActionFieldProperty(IPageActionContentInfo, 'clear_subject_format')
     subject_format = ActionFieldProperty(IPageActionContentInfo, 'subject_format')
 
 
@@ -84,21 +89,13 @@ class CommandActionContentInfo(InfoBase):
     action_timeout = ActionFieldProperty(ICommandActionContentInfo, 'action_timeout')
     body_format = ActionFieldProperty(ICommandActionContentInfo, 'body_format')
     clear_body_format = ActionFieldProperty(ICommandActionContentInfo, 'clear_body_format')
+    user_env_format = ActionFieldProperty(ICommandActionContentInfo, 'user_env_format')
 
 
 class SnmpTrapActionContentInfo(InfoBase):
     implements(ISnmpTrapActionContentInfo)
 
     action_destination = ActionFieldProperty(ISnmpTrapActionContentInfo, 'action_destination')
-
-
-
-
-
-
-
-
-
-
-
-
+    community = ActionFieldProperty(ISnmpTrapActionContentInfo, 'community')
+    version = ActionFieldProperty(ISnmpTrapActionContentInfo, 'version')
+    port = ActionFieldProperty(ISnmpTrapActionContentInfo, 'port')

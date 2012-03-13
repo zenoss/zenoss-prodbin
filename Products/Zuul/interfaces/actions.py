@@ -75,6 +75,36 @@ class IEmailActionContentInfo(IInfo):
         ''')
     )
 
+    email_from = schema.Text(
+        title       = _t(u'From Address for Emails'),
+        description = _t(u'The user from which the e-mail originated on the Zenoss server.'),
+    )
+
+    host = schema.Text(
+        title       = _t(u'SMTP Host'),
+        description = _t(u'Simple Mail Transport Protocol (aka E-mail server).'),
+    )
+
+    port = schema.Int(
+        title       = _t(u'SMTP Port (usually 25)'),
+        description = _t(u'TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server).'),
+    )
+
+    useTls = schema.Bool(
+        title       = _t(u'Use TLS?'),
+        description = _t(u'Use Transport Layer Security for E-mail?')
+    )
+
+    user = schema.Text(
+        title       = _t(u'SMTP Username (blank for none)'),
+        description = _t(u'Use this only if authentication is required.'),
+    )
+
+    password = schema.Password(
+        title       = _t(u'SMTP Password (blank for none)'),
+        description = _t(u'Use this only if authentication is required.'),
+    )
+
 
 class IPageActionContentInfo(IInfo):
 
@@ -109,6 +139,11 @@ class ICommandActionContentInfo(IInfo):
         description = _t(u'The template for the body for CLEAR commands.')
     )
 
+    user_env_format = schema.Text(
+        title       = _t(u'Environment variables'),
+        description = _t(u'A semi-colon separated list of environment variables.'),
+    )
+
 
 class ISnmpTrapActionContentInfo(IInfo):
 
@@ -116,4 +151,23 @@ class ISnmpTrapActionContentInfo(IInfo):
         title       = _t(u'SNMP Trap Destination'),
         description = _t(u'The template for the subject for the SNMP trap destination.'),
         default     = _t(u'traphost')
+    )
+
+    community = schema.Text(
+        title       = _t(u'SNMP Community'),
+        description = _t(u'SNMP authentication string.'),
+        default = _t(u'public')
+    )
+
+    version = schema.Choice(
+        title       = _t(u'SNMP Version'),
+        description = _t(u'SNMP trap protocol version.'),
+        vocabulary  = SimpleVocabulary.fromValues(['v1', 'v2c']),
+        default = _t(u'v2c')
+    )
+
+    port = schema.Int(
+        title       = _t(u'SNMP Port (usually 162)'),
+        description = _t(u'Port number used by the SNMP trap receiver process.'),
+        default = 162
     )
