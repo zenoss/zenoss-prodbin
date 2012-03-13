@@ -270,6 +270,7 @@
                 pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
                 matches = grid.view.getContext().match(pat),
                 st, url;
+                
                 // on the device page
                 if (matches) {
                     opts.device = matches[1];

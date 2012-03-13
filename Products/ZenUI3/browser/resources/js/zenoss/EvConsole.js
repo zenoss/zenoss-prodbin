@@ -54,7 +54,6 @@ Ext.onReady(function(){
     /*
      * THE GRID ITSELF!
      */
-
     var grid = Ext.create('Zenoss.events.Grid', {
         region: 'center',
         tbar: new Zenoss.EventConsoleTBar({

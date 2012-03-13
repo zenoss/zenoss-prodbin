@@ -145,7 +145,26 @@ Zenoss.nav.register({
                 ZEvActions.close,
                 ZEvActions.refresh,
                 '-',
-                ZEvActions.newwindow
+                new Zenoss.Action({
+                    iconCls: 'newwindow',
+                    permission: 'View',
+                    tooltip: _t('Go to event console'),
+                    handler: function(btn) {
+                        var curState = Ext.state.Manager.get('evconsole') || {},
+                        filters = curState.filters || {},
+                        pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
+                        st, url, matches = Ext.getCmp('event_panel').uid.match(pat);
+                        if (matches){ 
+                            filters.device = matches[1];
+                            // using "name" from the parent grid here as the UID doesn't contain the component as was expected
+                            filters.component = Ext.getCmp('component_card').componentgrid.getView().getSelectionModel().getSelected().get("name");
+                        }
+                        curState.filters = filters;
+                        st = encodeURIComponent(Zenoss.util.base64.encode(Ext.encode(curState)));
+                        url = '/zport/dmd/Events/evconsole?state=' + st;
+                        window.open(url, '_newtab', "");
+                    }
+                })                
             ]);
             tbar.doLayout();
             tbar._btns = btns;            

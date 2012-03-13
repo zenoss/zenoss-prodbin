@@ -221,7 +221,7 @@
             }
             this.eachColumn(function (col) {
                 if (Ext.isDefined(state[col.filterKey]) && !Ext.isEmpty(state[col.filterKey])) {
-                    col.filterField.setValue(state[col.filterKey]);
+                    col.filterField.setValue(state[col.filterKey]);          
                 }
             });
             // the state can make some columns that were hidden visible so
