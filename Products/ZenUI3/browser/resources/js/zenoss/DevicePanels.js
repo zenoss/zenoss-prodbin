@@ -23,8 +23,8 @@ function objectRenderer(obj) {
     }
     return "";
 }
-    var deviceColumns = [
-        {
+var deviceColumns = [
+    {
         dataIndex: 'name',
         header: _t('Device'),
         id: 'name',
@@ -172,7 +172,191 @@ function objectRenderer(obj) {
             }
             return table;
         }
-    }];
+    }
+];
+
+Ext.define("Zenoss.DeviceGridSelectionModel", {
+    extend:"Zenoss.ExtraHooksSelectionModel",
+
+    // Default to 'MULTI'-selection mode.
+    mode: 'MULTI',
+
+    /** _selectAll
+     *
+     * Set to true when the user has chosen the 'select all' records.
+     *
+     * @private
+     * @type boolean
+     */
+    _selectAll: false,
+
+    /** _excludedRecords
+     *
+     * Stores the set of records (IDs, hashes, ??) specifically
+     * deselected from the set of all selected records.
+     *
+     * @private
+     * @type dictionary
+     */
+    _excludedRecords: {},
+
+    constructor: function(config) {
+        this.callParent([config]);
+        this.on('select', this._includeRecord, this);
+        this.on('deselect', this._excludeRecord, this);
+    },
+
+    /** _includeRecord
+     *
+     * Include the record in the selection. Removes the record from the
+     * set of excluded records.
+     *
+     * @private
+     * @param sm {Zenoss.DeviceGridSelectionModel}
+     * @param record {Zenoss.device.DeviceModel}
+     * @param index {Integer}
+     */
+    _includeRecord: function(sm, record, index) {
+        if (record && this._selectAll) {
+            delete this._excludedRecords[record.getId()];
+        }
+    },
+
+    /** _excludeRecord
+     *
+     * Exclude the record from the selection. Includes the record in the
+     * set of excluded records.
+     *
+     * @private
+     * @param sm {Zenoss.DeviceGridSelectionModel}
+     * @param record {Zenoss.device.DeviceModel}
+     * @param index {Integer}
+     */
+    _excludeRecord: function(sm, record, index) {
+        if (record && this._selectAll) {
+            this._excludedRecords[record.getId()] = true;
+        }
+    },
+
+    /** _handleStoreDataChange
+     *
+     * Callback for handling changes to the grid's datastore.  When the
+     * _selectAll flag is set, this function removes the current selection
+     * and selects all the records currently in the datastore. 
+     *
+     * @private
+     */
+    _handleStoreDataChange: function() {
+        if (this._selectAll) {
+            this.suspendEvents();
+            var data = this.store.data.filterBy(
+                    function(item) {
+                        return (! this._excludedRecords[item.getId()]);
+                    },
+                    this
+                );
+            this.select(data.items, false, true);
+            this.resumeEvents();
+            this.fireEvent('selectionchange', this);
+        }
+    },
+
+    /** bind
+     *
+     * The grid will use this method to bind the datastore to the
+     * grid's selection model.
+     *
+     * @override
+     * @param store {Ext.data.Store}
+     * @param initial {boolean}
+     */
+    bind: function(store, initial){
+        if (!initial && this.store) {
+            if (store !== this.store && this.store.autoDestroy) {
+                this.store.destroyStore();
+            } else {
+                this.store.un("datachanged", this._handleStoreDataChange, this);
+            }
+        }
+        if (store) {
+            store = Ext.data.StoreManager.lookup(store);
+            store.on("datachanged", this._handleStoreDataChange, this);
+        }
+        this.store = store;
+        if (store && !initial) {
+            this.refresh();
+        }
+    },
+
+    /** selectAll
+     *
+     * Sets the _selectAll flag before selecting 'all' the records.
+     *
+     * @override
+     */
+    selectAll: function() {
+        this._selectAll = true;
+        this.callParent([true]);
+    },
+
+    /** selectNone
+     *
+     * Unsets the _selectAll flag before deselecting all the records.
+     */
+    selectNone: function() {
+        this._selectAll = false;
+        // reset the set of excluded records to the empty set.
+        this._excludedRecords = {};
+        // Deselect all the records without firing an event for each
+        // selected record.
+        this.deselectAll([true]);
+        this.fireEvent('selectionchange', this);
+    },
+
+    /** deselectAll
+     *
+     * Doesn't deselect anything if the _selectAll flag is set.
+     * This works around other parts of the ExtJS framework that
+     * invoke this method without passing suppressEvents = true.
+     *
+     * @override
+     */
+    deselectAll: function() {
+        if (! this._selectAll) {
+            this.callParent(arguments);
+        }
+    },
+
+    /** clearSelections
+     *
+     * Clears out all the selections only if the _selectAll flag
+     * is not set.
+     *
+     * @override
+     */
+    clearSelections: function() {
+        if (this.isLocked() || this._selectAll) {
+            return;
+        }
+
+        // Suspend events to avoid firing the whole chain for every row
+        this.suspendEvents();
+
+        // make sure all rows are deselected so that UI renders properly
+        // base class only deselects rows it knows are selected; so we need
+        // to deselect rows that may have been selected via selectstate
+        this.deselect(this.store.data.items, true);
+
+        // Bring events back and fire one selectionchange for the batch
+        this.resumeEvents();
+
+        this.fireEvent('selectionchange', this);
+
+        this.callParent(arguments);
+    }
+});
+
+
 Ext.define('Zenoss.device.DeviceModel',{
     extend: 'Ext.data.Model',
     fields: [
@@ -238,6 +422,7 @@ Ext.define("Zenoss.DeviceGridPanel", {
             store: store,
             columns: deviceColumns
         });
+
         this.callParent(arguments);
         this.on('itemdblclick', this.onItemDblClick, this);
     },

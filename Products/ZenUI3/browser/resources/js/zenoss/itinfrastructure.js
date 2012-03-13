@@ -1108,8 +1108,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
         },
         scope: device_grid
     },
-    selModel: new Zenoss.ExtraHooksSelectionModel({
-        mode: 'MULTI',
+    selModel: new Zenoss.DeviceGridSelectionModel({
         listeners: {
             selectionchange: function(sm) {
                 setDeviceButtonsDisabled(!sm.hasSelection());
@@ -1168,7 +1167,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         text: _t('None'),
                         handler: function() {
                             var grid = Ext.getCmp('device_grid');
-                            grid.getSelectionModel().deselectAll();
+                            grid.getSelectionModel().selectNone();
                         }
                     }
                 ]
