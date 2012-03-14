@@ -161,12 +161,12 @@ class CommandPerformanceConfig(CollectorConfigService):
                     self._sendCmdEvent('localhost', details)
                     continue
 
-                self.enrich(cmd, templ, ds)
+                self.enrich(comp, cmd, templ, ds)
                 cmds.add(cmd)
 
         return comp.getThresholdInstances(self.dsType)
 
-    def enrich(self, cmd, template, ds):
+    def enrich(self, comp, cmd, template, ds):
         """
         Hook routine available for subclassed services
         """
