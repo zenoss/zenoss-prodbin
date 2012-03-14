@@ -91,12 +91,12 @@ class MibFacade(TreeFacade):
     def getMibNodes(self, uid, limit=0, start=0, sort='name', dir='DESC', relation='nodes'):
         obj = self._getObject(uid)
         if isinstance(obj, MibOrganizer):
-            return []
+            return 0,[]
         functor = getattr(obj, relation, None)
         if functor is None:
             log.warn("Unable to retrieve the relation '%s' from %s",
                      relation, obj.id)
-            return []
+            return 0,[]
         all = [IInfo(node) for node in functor()]
         reverse = dir == 'DESC'
         return len(all), sorted(all, key=lambda info: getattr(info, sort), reverse=reverse)[start:limit + start]
