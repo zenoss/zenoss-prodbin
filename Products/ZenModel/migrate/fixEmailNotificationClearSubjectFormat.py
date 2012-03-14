@@ -11,7 +11,9 @@
 #
 ###########################################################################
 
-__doc__ = """Set the default values for E-mail notifications"""
+__doc__ = """addTriggersAndNotifications suffered from a bug in 4.0.0 through
+4.1.1 (ZEN-123). This migrate script fixes the notifications clear subject
+format on systems that were upgraded from 3.x to 4.[01].x and now to 4.2"""
 
 import logging
 import Globals
@@ -22,19 +24,18 @@ unused(Globals)
 
 log = logging.getLogger('zen.migrate')
 
-class setDefaultsOnEmailNotifications(Migrate.Step):
+BAD_STRING = "orEventSummary"
+
+class fixEmailNotificationClearSubjectFormat(Migrate.Step):
     version = Migrate.Version(4, 2, 0)
 
     def cutover(self, dmd):
         log.info("Setting default values for E-mail notifications.")
         for notif in dmd.NotificationSubscriptions.objectValues():
-            if notif.action == "email" and "host" not in notif.content:
-                notif._p_changed = True
-                notif.content["host"] = dmd.smtpHost
-                notif.content["port"] = dmd.smtpPort
-                notif.content["user"] = dmd.smtpUser
-                notif.content["password"] = dmd.smtpPass
-                notif.content["useTls"] = dmd.smtpUseTLS
-                notif.content["email_from"] = dmd.getEmailFrom()
+            if notif.action == "email":
+                for content_key in ("clear_subject_format", "clear_body_format"):
+                    if BAD_STRING in notif.content.get(content_key, ""):
+                        notif._p_changed = True
+                        notif.content[content_key] = notif.content[content_key].replace(BAD_STRING, "summary")
 
-setDefaultsOnEmailNotifications()
+fixEmailNotificationClearSubjectFormat()

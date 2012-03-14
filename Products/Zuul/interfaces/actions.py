@@ -56,7 +56,7 @@ class IEmailActionContentInfo(IInfo):
     clear_subject_format = schema.TextLine(
         title       = _t(u'Clear Message (Subject) Format'),
         description = _t(u'The template for the subject for CLEAR emails.'),
-        default     = _t(u'[zenoss] CLEAR: ${evt/device} ${evt/summary}/${clearEvt/summary}')
+        default     = _t(u'[zenoss] CLEAR: ${evt/device} ${clearEvt/summary}')
     )
 
     clear_body_format = schema.Text(
@@ -117,7 +117,7 @@ class IPageActionContentInfo(IInfo):
     clear_subject_format = schema.TextLine(
         title       = _t(u'Clear Message (Subject) Format'),
         description = _t(u'The template for the subject for CLEAR pages.'),
-        default     = _t(u'[zenoss] CLEAR: ${evt/device} ${evt/summary}/${clearEvt/summary}')
+        default     = _t(u'[zenoss] CLEAR: ${evt/device} ${clearEvt/summary}')
     )
 
 

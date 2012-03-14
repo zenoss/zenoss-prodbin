@@ -42,6 +42,10 @@ def _reformatEventAttributeReference(m):
         # if there is a new name, map to it; else just use the same attrname
         attrname = newUrlNames.get(attrname, attrname)
 
+    elif attrname == 'clearOrEventSummary':
+        root = "clearEvt"
+        attrname = "summary"
+
     elif attrname.startswith('clear') and attrname != 'clearid':
         # clearXxxAttribute refs change to clearEvt/xxxAttribute
         root = 'clearEvt'
