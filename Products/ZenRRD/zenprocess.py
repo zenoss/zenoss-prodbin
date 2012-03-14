@@ -158,6 +158,10 @@ class DeviceStats:
         #delete the left overs
         for id in unused:
             del self._processes[id]
+            nameOnly = id.rsplit(' ', -1)[0]
+            for key, value in self._pidToProcess.items():
+                if value._config.name.rsplit(' ', -1)[0] == nameOnly:
+                    del self._pidToProcess[key]
 
     @property
     def processStats(self):
@@ -436,6 +440,7 @@ class ZenProcessTask(ObservableMixin):
                 self._clearSnmpError("%s - v3 error cleared" % summary, 'table_scan_v3_error')
             processes = self._parseProcessNames(tableResult)
             self._clearSnmpError(summary, 'resource_mib')
+            self._deviceStats.update(self._device)
             processStatuses = self._determineProcessStatus(processes)
             self._sendProcessEvents(processStatuses)
             self._clearSnmpError(summary)
