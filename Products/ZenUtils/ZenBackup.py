@@ -18,6 +18,7 @@ __doc__='''zenbackup
 Creates backup of Zope data files, Zenoss conf files and the events database.
 '''
 
+import shlex
 import sys
 import os
 import os.path
@@ -228,10 +229,12 @@ class ZenBackup(ZenBackupBase):
         
         with open(os.path.join(self.tempDir, sqlFile), 'wb') as zipfile:
             mysqldump = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            gzip = subprocess.Popen(['gzip', '-c'], stdin=mysqldump.stdout, stdout=zipfile)
+            grep = subprocess.Popen(shlex.split(r"grep -v '^/\*!50013 DEFINER'"), stdin=mysqldump.stdout, stdout=subprocess.PIPE)
+            gzip = subprocess.Popen(['gzip', '-c'], stdin=grep.stdout, stdout=zipfile)
             mysqldump.wait()
+            grep.wait()
             gzip.wait()
-            if gzip.returncode or mysqldump.returncode:
+            if gzip.returncode or grep.returncode or mysqldump.returncode:
                 self.log.critical("Backup of (%s) terminated abnormally." % sqlFile)
                 return -1
 

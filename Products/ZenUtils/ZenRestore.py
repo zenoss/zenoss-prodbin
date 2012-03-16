@@ -143,14 +143,15 @@ class ZenRestore(ZenBackupBase):
         cmd = 'echo "create database if not exists %s" | %s' % (db, mysql_cmd)
         os.system(cmd)
         
+        # ZEN-326 explains '50013 DEFINER' (avoids errors on remote MySQL)
+        grep_definer = r"grep -v '^/\*!50013 DEFINER'"
+        sql_path = os.path.join(self.tempDir, sqlFile)
         if sqlFile.endswith('.gz'):
-            cmd = 'gzip -dc %s | %s %s' % (
-                os.path.join(self.tempDir, sqlFile), mysql_cmd, db
-            )
+            cmd_fmt = "gzip -dc {sql_path} | {grep_definer}"
         else:
-            cmd = '%s %s < %s' % (
-                mysql_cmd, db, os.path.join(self.tempDir, sqlFile)
-            )
+            cmd_fmt = "{grep_definer} {sql_path}"
+        cmd_fmt += " | {mysql_cmd} {db}"
+        cmd = cmd_fmt.format(**locals())
         os.system(cmd)
 
 
