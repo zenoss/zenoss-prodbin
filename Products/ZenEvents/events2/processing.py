@@ -24,6 +24,7 @@ from Products.AdvancedQuery import Eq, Or
 from zope.component import getUtilitiesFor
 from Acquisition import aq_chain
 from Products.ZenEvents import ZenEventClasses
+from itertools import ifilterfalse
 
 from zenoss.protocols.jsonformat import to_dict
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
@@ -293,14 +294,6 @@ class CheckInputPipe(EventProcessorPipe):
     EventField.ACTOR, EventField.SUMMARY, EventField.SEVERITY)
 
     def __call__(self, eventContext):
-        missingFields = []
-        for field in self.REQUIRED_EVENT_FIELDS:
-            if not eventContext.event.HasField(field):
-                missingFields.append(field)
-
-        if missingFields:
-            raise DropEvent('Required event fields %s not found' % ','.join(
-                    missingFields), eventContext.event)
 
         # Make sure summary and message are populated
         if not eventContext.event.HasField(
@@ -309,6 +302,11 @@ class CheckInputPipe(EventProcessorPipe):
         elif not eventContext.event.HasField(
                 'summary') and eventContext.event.HasField('message'):
             eventContext.event.summary = eventContext.event.message[:255]
+
+        missingFields = ','.join(ifilterfalse(eventContext.event.HasField, self.REQUIRED_EVENT_FIELDS))
+        if missingFields:
+            raise DropEvent('Required event fields %s not found' % missingFields, 
+                            eventContext.event)
 
         return eventContext
 

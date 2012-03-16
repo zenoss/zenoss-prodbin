@@ -167,7 +167,11 @@ class DeviceFacade(TreeFacade):
     def deleteComponents(self, uids):
         comps = imap(self._getObject, uids)
         for comp in comps:
-            comp.manage_deleteComponent()
+            if hasattr(comp, 'manage_deleteComponent'):
+                comp.manage_deleteComponent()
+            else:
+                raise Exception("%s %s cannot be manually deleted" % 
+                            (getattr(comp,'meta_type','component'),comp.id))
 
     def deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
         @transact

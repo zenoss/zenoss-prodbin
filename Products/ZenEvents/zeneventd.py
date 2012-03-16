@@ -178,9 +178,22 @@ class EventDWorker(ZCmdBase):
         self._amqpConnectionInfo = getUtility(IAMQPConnectionInfo)
         self._queueSchema = getUtility(IQueueSchema)
 
+    def setSigTerm(self):
+        log.info("set SIGTERM handler")
+        handler = signal.getsignal(signal.SIGTERM)
+        if callable(handler):
+            log.info("wrap existing handler with extra stuff")
+            def newHandler(*args):
+                handler(*args)
+                self._sigterm(*args)
+            signal.signal(signal.SIGTERM, newHandler)
+        else:
+            log.info("no handler defined, just use self._sigterm")
+            signal.signal(signal.SIGTERM, self._sigterm)
+        return self
+
     def run(self):
         self._shutdown = False
-        signal.signal(signal.SIGTERM, self._sigterm)
         task = ProcessEventMessageTask(self.dmd)
         self._listen(task)
 
@@ -193,6 +206,9 @@ class EventDWorker(ZCmdBase):
     def _sigterm(self, signum=None, frame=None):
         log.debug("worker sigterm...")
         self.shutdown()
+        if reactor.running:
+            log.debug("shutting down Twisted")
+            reactor.stop()
         
     def _listen(self, task, retry_wait=30):
         self._pubsub = None
@@ -254,10 +270,13 @@ class ZenEventD(ZenDaemon):
         ProcessEventMessageTask.SYNC_EVERY_EVENT = self.options.syncEveryEvent
 
         if self.options.daemon:
+            log.info("starting daemon")
             reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
             self._maintenanceCycle.start()
             objectEventNotify(DaemonStartRunEvent(self))
+            super(ZenEventD,self).run()
         else:
+            log.info("start worker without SIGTERM handler")
             EventDWorker().run()
 
     def _sigUSR1_called(self, signum, frame):
@@ -283,7 +302,15 @@ def onDaemonStartRun(daemon, event):
     """
     Start up an EventDWorker.
     """
-    EventDWorker().run()
+    log.info("start worker with SIGTERM handler")
+    w = EventDWorker()
+    w.setSigTerm()
+    w.run()
+
+@adapter(ZenEventD, SigTermEvent)
+def onDaemonSigTerm(daemon, event):
+    log.info("daemon sigterm received")
+    reactor.stop()
 
 if __name__ == '__main__':
     # explicit import of ZenEventD to activate enterprise extensions
