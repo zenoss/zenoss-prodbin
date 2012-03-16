@@ -63,6 +63,7 @@ function purge(d) {
 YAHOO.zenoss.purge = purge;
 
 var setInnerHTML = function (el, html) {
+
    el = YAHOO.util.Dom.get(el);
    if (!el || typeof html !== 'string') {
        return null;
@@ -73,9 +74,14 @@ var setInnerHTML = function (el, html) {
        if (a) {
            l = a.length;
            for (i = 0; i <l; i += 1) {
-               n = a[i].name;
-               if (typeof o[n] === 'function') {
-                   o[n] = null;
+               try{
+                   n = a[i].name;
+                   if (typeof o[n] === 'function') {
+                       o[n] = null;
+                   }
+               }catch(e){
+                    // this is here because sometimes, IE chokes on the .name and an IF doesn't work
+                    // we swollow it for IE and everything runs fine. 
                }
            }
        }
@@ -91,6 +97,7 @@ var setInnerHTML = function (el, html) {
            }
        }
    })(el);
+  
    // Remove scripts from HTML string, and set innerHTML property
    el.innerHTML = html.replace(/<script[^>]*>((.|[\r\n])*?)<\\?\/script>/ig, "");
    // Return a reference to the first child
@@ -986,8 +993,6 @@ Dialog.Box.prototype = {
     },
     hide: function() {
         fade(this.dimbg, {duration:0.1});
-        var header = Ext.fly(this.framework).select('.dbox_tc h2');
-        if (header) header.remove();
         if (this.curid in this.unloadEvents)
             forEach(this.unloadEvents[this.curid], function(f){f();});
         YAHOO.zenoss.setInnerHTML(this.defaultContent);
@@ -1004,9 +1009,10 @@ Dialog.Box.prototype = {
         d.addCallback(method(this, function(req){this.fill(id, req);}));
     },
     fill: function(dialogid, request) {
-        YAHOO.zenoss.setInnerHTML($('dialog_innercontent'), request.responseText);
-        if (dialogid in this.loadEvents)
+        YAHOO.zenoss.setInnerHTML($('dialog_innercontent'), request.responseText);     
+        if (dialogid in this.loadEvents){
             forEach(this.loadEvents[dialogid], function(f){f();});
+        }    
         var elements = getFormElements($('dialog_innercontent'));
         var first = elements[0];
         var textboxes = elements[1];
@@ -1019,9 +1025,6 @@ Dialog.Box.prototype = {
             });
         };
         if (submits.length==1) map(connectTextboxes, textboxes);
-        var head = Ext.get('dialog_content').select('h2'),
-            header = Ext.fly(this.framework).select('.dbox_tc');
-        if (header && head) head.appendTo(header);
         first.focus();
         if (this.lock.locked) this.lock.release();
     },

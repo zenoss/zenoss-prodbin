@@ -1247,14 +1247,21 @@ top: 10px;
     position: relative;
     top: -5px;
 }
-
+#dialog h2{
+    position:absolute !important;
+    top: -17px !important;
+    font:bold 13px arial;
+}
 .dialog_container {
     min-height: 200px;
     min-width: 300px;
+    width:300px !important;
     display:none;
     padding: 0;
 }
-
+.dialog_container p{
+    text-align:left !important;
+}
 .dialog_container div.control-label {
     color: white;
     font-size: 12px;
@@ -1278,7 +1285,7 @@ top: 10px;
 
 #dialog_buttons {
     padding: 1em;
-    text-align:right;
+    text-align:left;
     position: relative;
     top: 10px;
 }
