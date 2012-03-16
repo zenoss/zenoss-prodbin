@@ -1489,6 +1489,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                                     performanceMonitor)
         self.addRelation("perfServer", obj)
         self.setLastChange()
+        notify(IndexingEvent(self))
 
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
