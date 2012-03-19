@@ -97,7 +97,7 @@ var deviceClassCombo = {
     listConfig: {
         resizable: true
     },
-    width: 250,
+    width: 300,
     name: 'deviceClass',
     fieldLabel: _t('Device Class'),
     id: 'add-device_class',
@@ -434,13 +434,13 @@ Ext.apply(Zenoss.devices, {
                                 xtype: 'textfield',
                                 vtype: 'hostnameorIP',
                                 name: 'deviceName',
-                                width:250,
+                                width:300,
                                 fieldLabel: _t('Name or IP'),
                                 id: "add-device-name",
                                 allowBlank: false
                             }, deviceClassCombo, {
                                 xtype: 'combo',
-                                width: 250,
+                                width: 300,
                                 name: 'collector',
                                 fieldLabel: _t('Collector'),
                                 id: 'add-device-collector',
@@ -466,7 +466,7 @@ Ext.apply(Zenoss.devices, {
                             }, {
                                 xtype: 'checkbox',
                                 name: 'model',
-                                width:250,
+                                width:300,
                                 fieldLabel: _t('Model Device'),
                                 id: 'add-device-protocol',
                                 checked: true
