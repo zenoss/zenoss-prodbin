@@ -539,7 +539,7 @@ class TestZenprocess(BaseTestCase):
         self.compareTestFile('remodel_bug-0', task, expectedStats)
 
         procDefs = self.getProcDefsFromFile('remodel_bug-config-1')
-        expectedStats = self.expected(157, 30, 32, 29, 2, 0, 1, 1)
+        expectedStats = self.expected(157, 30, 32, 4, 28, 0, 0, 1)
         config = TaskConfig(procDefs=procDefs)
         task._deviceStats.update(config)
         self.compareTestFile('remodel_bug-1', task, expectedStats)
