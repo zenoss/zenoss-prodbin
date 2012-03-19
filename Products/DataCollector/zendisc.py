@@ -484,7 +484,6 @@ class ZenDisc(ZenModeler):
                     raise ZentinelException(result.value)
                 dev, created = result
 
-                import pdb; pdb.set_trace()
                 # if no device came back from createDevice we assume that it
                 # was told to not auto-discover the device.  This seems very
                 # dubious to me! -EAD
