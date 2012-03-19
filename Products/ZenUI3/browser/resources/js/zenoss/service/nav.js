@@ -29,7 +29,7 @@
             store = grid.getStore(),
             params;
 
-        grid.clearFilters();
+        grid.filterRow.clearFilters();
         params = {
             contextUid: grid.getContext(),
             id: newId,
