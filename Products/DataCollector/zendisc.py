@@ -21,7 +21,7 @@ import socket
 # the proper WmiReactor is installed before anyone else grabs a reference to
 # the wrong reactor.
 try:
-    import ZenPacks.zenoss.PySamba.twisted.reactor
+    import pysamba.twisted.reactor
 except ImportError:
     pass
 
