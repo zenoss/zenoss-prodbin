@@ -543,6 +543,10 @@ class TriggersFacade(ZuulFacade):
                 setattr(window, 'start', int(startDT.strftime('%s')))
             elif field['id'] == 'duration':
                 setattr(window, 'duration', int(data['duration']))
+            elif field['id'] == 'skip':
+                skip = data.get('skip')
+                if skip is not None:
+                    window.skip = skip
             else:
                 setattr(window, field['id'], data.get(field['id']))
 
