@@ -187,9 +187,20 @@ class TestRRDUtil(BaseTestCase):
             "DEF:ds0a=%s:ds0:AVERAGE" % filename, 
             "LINE1:ds0a#0000FF:'default'",
         )
-        from PIL import Image
-        im = Image.open(imFile)
-        self.assertEquals(im.size, (400, 100))
+        
+        def readPNGsize(fname):
+            """
+            PNG spec defines 16-byte header, followed by width and height as 
+            unsigned 4-byte integers.
+            """
+            import struct
+            with open(fname, "rb") as pngfile:
+                first24 = pngfile.read(24)
+                sizebytes = first24[-8:]
+                width,height = struct.unpack_from(">II",sizebytes)
+                return width,height
+        
+        self.assertEquals(readPNGsize(imFile), (400, 100))
         
     def beforeTearDown(self):
         """
