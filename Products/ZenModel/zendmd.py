@@ -68,7 +68,12 @@ if opts.use_ipython:
 # Zope magic ensues!
 import Zope2
 CONF_FILE = os.path.join(os.environ['ZENHOME'], 'etc', 'zope.conf')
+
+# hide any positional arguments during Zope2 configure
+_argv = sys.argv
+sys.argv = [sys.argv[0], ] + [x for x in sys.argv[1:] if x.startswith("-")]
 Zope2.configure(CONF_FILE)
+sys.argv = _argv # restore normality
 
 # Now we have the right paths, so we can do the rest of the imports
 from Products.CMFCore.utils import getToolByName
@@ -439,6 +444,11 @@ if __name__=="__main__":
         set_db_config(opts.host, opts.port)
 
     vars = _customStuff()
+    # set the first positional argument as the --script arg
+    for arg in sys.argv[1:]:
+        if not arg.startswith("-") and os.path.exists(arg):
+           opts.script = arg
+           break
     if opts.script:
         if not os.path.exists(opts.script):
             print "Unable to open script file '%s' -- exiting" % opts.script

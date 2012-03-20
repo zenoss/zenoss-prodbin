@@ -25,7 +25,7 @@ def utime(fname):
 _NAGIOS_VALUE = re.compile(r"(?P<key>[^=\s]+)=(?P<value>[-+]?[0-9]*\.?[0-9]+)(?P<uom>(us|ms|s|%|MB|KB|TB|B))?")
 _CRONTAB_TOKEN = '# zcollector DO NOT EDIT'
 if 'ZENHOME' in os.environ:
-   _PERFDIR = os.path.join(os.environ['ZENHOME'], 'perf/Daemons/zcollector')
+   _PERFDIR = os.path.join(os.environ['ZENHOME'], 'perf/Daemons/localhost')
 else:
    _PERFDIR = '/tmp'
 
