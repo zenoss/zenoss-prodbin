@@ -396,7 +396,8 @@ class ZenDisc(ZenModeler):
                 kw = dict(deviceName=ip,
                           discoverProto=None,
                           devicePath=devicepath,
-                          performanceMonitor=self.options.monitor)
+                          performanceMonitor=self.options.monitor,
+                          productionState=prodState)
 
                 # If zProperties are set via a job, get them and pass them in
                 if self.options.job:
