@@ -158,9 +158,8 @@ class DeviceStats:
         #delete the left overs
         for id in unused:
             del self._processes[id]
-            nameOnly = id.rsplit(' ', -1)[0]
             for key, value in self._pidToProcess.items():
-                if value._config.name.rsplit(' ', -1)[0] == nameOnly:
+                if value._config.name == id:
                     del self._pidToProcess[key]
 
     @property
