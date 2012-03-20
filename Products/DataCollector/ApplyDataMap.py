@@ -177,6 +177,7 @@ class ApplyDataMap(object):
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
         """
+        transaction.abort()
         persist = True
         try:
             device.dmd._p_jar.sync()
