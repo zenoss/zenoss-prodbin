@@ -23,17 +23,25 @@ Related tickets:
   http://dev.zenoss.org/trac/ticket/443
   http://dev.zenoss.org/trac/ticket/1042
   http://dev.zenoss.org/trac/ticket/4225
+  http://jira.zenoss.com/jira/browse/ZEN-110
 '''
 
-from AccessControl import getSecurityManager
+import urllib
+import urlparse
+from uuid import uuid1
+from cgi import parse_qs
+from Acquisition import aq_base
+from AccessControl.SpecialUsers import emergency_user
+from zope.event import notify
+from Products.PluggableAuthService import PluggableAuthService
+from Products.PluggableAuthService.plugins import CookieAuthHelper
+from Products.PluggableAuthService.interfaces.authservice import _noroles
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
-from zope.event import notify
+from Products.ZenUtils.Security import _createInitialUser
 
 # monkey patch PAS to allow inituser files, but check to see if we need to
 # actually apply the patch, first -- support may have been added at some point
-from Products.PluggableAuthService import PluggableAuthService
-from Products.ZenUtils.Security import _createInitialUser
 pas = PluggableAuthService.PluggableAuthService
 if not hasattr(pas, '_createInitialUser'):
     pas._createInitialUser =  _createInitialUser
@@ -48,10 +56,57 @@ def _resetCredentials(self, request, response=None):
     _originalResetCredentials(self, request, response)
 pas.resetCredentials = _resetCredentials
 
+# Monkey patch PAS to audit log successful and failed login attempts
+def validate(self, request, auth='', roles=_noroles):
+    """
+    Here is a run down of how this method is called and where it ends up returning
+    in various login situations.
+    
+    Failure (admin, local, LDAP, and Active Directory)
+       is_top=0, user_ids=[], name=login, if not is_top: return None (outside loop)
+       is_top=1, user_ids=[], name=login, return anonymous
+
+   Success (admin)
+      is_top=0, user_ids=[], name=login, if not is_top: return (outside loop)
+      is_top=1, user_ids=[('admin', 'admin')], name=login, if self._authorizeUser(...): return user
+
+    Success (local, LDAP, and Active Directory)
+       is_top=0, user_ids=[('username', 'username')], name=login, if self._authorizeUser(...): return user
+    """
+    plugins = self._getOb( 'plugins' )
+    is_top = self._isTop()
+    user_ids = self._extractUserIds(request, plugins)
+    accessed, container, name, value = self._getObjectContext(request['PUBLISHED'], request)
+    ipaddress = getattr(request, '_client_addr', 'Unknown')
+    for user_id, login in user_ids:
+        user = self._findUser(plugins, user_id, login, request=request)
+        if aq_base(user) is emergency_user:
+            if is_top:
+                return user
+            else:
+                return None
+
+        if self._authorizeUser(user, accessed, container, name, value, roles):
+            if name == 'login':
+                audit('UI.Authentication.Valid', ipaddress=ipaddress)
+                notify(UserLoggedInEvent(self.zport.dmd.ZenUsers.getUserSettings()))
+            return user
+
+    if not is_top:
+        return None
+
+    anonymous = self._createAnonymousUser(plugins)
+    if self._authorizeUser(anonymous, accessed, container, name, value, roles):
+        if name == 'login':
+            username_ = request.form.get('__ac_name', 'Unknown')
+            audit('UI.Authentication.Failed', username_=username_, ipaddress=ipaddress)
+        return anonymous
+
+    return None
+
+pas.validate = validate
+
 # monkey patches for the PAS login form
-from Products.PluggableAuthService.plugins import CookieAuthHelper
-import urlparse
-from cgi import parse_qs
 
 def manage_afterAdd(self, item, container):
     """We don't want CookieAuthHelper setting the login attribute, we we'll
@@ -71,7 +126,6 @@ def login(self):
 
     FIXME - I don't think we need this any more now that the EULA is gone -EAD
     """
-    import urllib
 
     request = self.REQUEST
     response = request['RESPONSE']
@@ -84,25 +138,6 @@ def login(self):
 
     if pas_instance is not None:
         pas_instance.updateCredentials(request, response, login, password)
-
-        # Track the user logging in, or the login failure.
-
-        # This is the user we are now authenticated as - this will be the same as 'login'
-        # if authentication succeeded (and we are not switching to the admin account)
-        authenticatedUser = getSecurityManager().getUser().getUserName()
-
-        ipaddress = getattr(request, '_client_addr', 'Unknown')
-        if authenticatedUser != login or login == 'Anonymous User':
-            if authenticatedUser != 'Anonymous User' and login == 'admin':
-                # no way to tell success from failure when switching to admin
-                audit('UI.Authentication.AttemptAdminLogin', ipaddress=ipaddress)
-            else:
-                # actual failure
-                audit('UI.Authentication.Fail', username=login, ipaddress=ipaddress)
-        else:
-            # success
-            audit('UI.Authentication.Login', ipaddress=ipaddress)
-            notify(UserLoggedInEvent(self.zport.dmd.ZenUsers.getUserSettings()))
 
     came_from = request.form.get('came_from') or ''
     if came_from:
@@ -124,7 +159,6 @@ def login(self):
         url = came_from
 
     if self.dmd.uuid is None:
-        from uuid import uuid1
         self.dmd.uuid = str(uuid1())
     return response.redirect(url)
 
@@ -149,8 +183,9 @@ def termsCheck(self):
         url += 'terms=Decline'
     else:
         self.dmd.acceptedTerms = True
-        from uuid import uuid1
         self.dmd.uuid = str(uuid1())
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.termsCheck = termsCheck
+
+
