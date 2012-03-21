@@ -171,12 +171,10 @@ def main():
     else:
         argsdict = {}
         for arg in args:
-            splitargs = arg.split('=', 1)
-            if len(splitargs) != 2:
-                parser.error("invalid argument: %s" % arg)
+            splitargs = arg.split('=', 1) + ['',]
             name = splitargs[0].strip()
             value = splitargs[1].strip()
-            if len(name) == 0 or len(value) == 0:
+            if len(name) == 0:
                 parser.error("invalid argument: %s" % arg)
             argsdict[name] = value
         update_settings(argsdict)

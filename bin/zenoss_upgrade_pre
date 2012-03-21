@@ -40,12 +40,18 @@ fi
 # Confirm Sun/Oracle flavored jre
 confirm_jre
 
+# set the python shebang to be the proper python
+shebang
+
 # copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
 # already exist (we don't want to clobber people's configs)
 update_conf_files
 
 # Upgrade < 4.2 config files to 4.2 syntax
 upgrade_conf_options_42
+
+# reload startup parameters
+. ${ZENHOME}/bin/zenoss_startup_config
 
 # version 2.1.1 and below used the system python, but in 2.1.70 we
 # started shipping our own.  replace the old scripts with references
@@ -54,9 +60,6 @@ upgrade_conf_options_42
 # zenstatus was updated in Avalon to remove the command-line
 # option 'configpath'
 sed -i -e 's/[ \t]*configpath .*//' $ZENHOME/etc/zenstatus.conf
-
-# set the python shebang to be the proper python
-shebang
 
 # restart external server daemons
 restart_snmpd
