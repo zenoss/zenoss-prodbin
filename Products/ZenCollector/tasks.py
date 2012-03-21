@@ -301,6 +301,12 @@ class SingleWorkerTask(ObservableMixin):
         self.outputProxy = WorkerOutputProxy(self.daemon)
         self.component = self.daemon.preferences.collectorName
 
+        options = self.daemon.options
+        taskOptionDict = dict((attr, value) for (attr, value) in options.__dict__.items()
+            if value is not None and not attr.startswith('_') and not callable(value))
+        self._taskConfig.options = taskOptionDict
+
+
     @property
     def deviceId(self):
         return self._devId
@@ -340,9 +346,9 @@ class SingleWorkerTask(ObservableMixin):
                 results = yield self.worker.collect(self._devId, self._taskConfig)
 
         except Exception as ex:
-            log.error("worker collection: results (exception) = %r", results)
+            log.error("worker collection: results (exception) = %r (%s)", results, ex)
             collectionErrorEvent = {'device':self.deviceId, 'severity':Error, 'eventClass':Cmd_Fail,
-                                    'summary':'Exception collecting:'+str(results),
+                                    'summary':'Exception collecting:'+str(ex),
                                     'component':self.component, 'agent':self.component}
             yield self.outputProxy.sendEvent(collectionErrorEvent)
 
@@ -350,6 +356,16 @@ class SingleWorkerTask(ObservableMixin):
             if results:
                 #send the data through the output proxy
                 data, events = results
+                if 'testcounter' in self._taskConfig.options:
+                    testCounter = self._taskConfig.options['testcounter']
+                    for dp in data:
+                        if dp['counter'] == testCounter:
+                            log.info("Collected value for %s: %s (%s)", dp['counter'], dp['value'], dp['path'])
+                            break
+                    else:
+                        log.info("No value collected for %s from device %s", testCounter, self._devId)
+                        log.debug("Valid counters: %s", [dp['counter'] for dp in data])
+
                 yield self.outputProxy.sendOutput(data, events, self.interval)
 
         finally:
