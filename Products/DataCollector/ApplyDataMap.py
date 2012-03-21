@@ -177,13 +177,9 @@ class ApplyDataMap(object):
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
         """
-        transaction.abort()
-        persist = True
-        try:
-            device.dmd._p_jar.sync()
-        except AttributeError:
-            # This can occur in unit testing when the device is not persisted.
-            persist = False
+        # This can cause breakage in unit testing when the device is persisted.
+        if not hasattr(device.dmd, 'zport'):
+            transaction.abort()
 
         if hasattr(datamap, "compname"):
             if datamap.compname:
@@ -203,7 +199,7 @@ class ApplyDataMap(object):
                 log.warn("plugin returned unknown map skipping")
         else:
             changed = False
-        if not (changed and persist):
+        if not changed:
             transaction.abort()
         else:
             device.setLastChange()
