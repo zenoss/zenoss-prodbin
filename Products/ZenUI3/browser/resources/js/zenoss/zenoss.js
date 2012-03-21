@@ -743,6 +743,7 @@ Ext.define("EventActionManager", {
                 hideBorders: true,
                 plain: true,
                 buttonAlign: 'left',
+                stateful:false,
                 items: [{
                     xtype: 'panel',
                     ref: 'panel',
@@ -757,7 +758,7 @@ Ext.define("EventActionManager", {
                         height: 20
                     },{
                         xtype: 'progressbar',
-                        width: '100%',
+                        width: 270,
                         unstyled: true,
                         ref: '../progressBar'
                     }]
