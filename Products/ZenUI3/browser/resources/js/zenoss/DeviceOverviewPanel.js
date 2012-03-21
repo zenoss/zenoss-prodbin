@@ -490,6 +490,10 @@
                 if (isField(field)) {
                     this.onFieldAdd.call(this, field);
                 }
+            },
+            'validitychange': function(me, isValid, eOpts) {
+                // disable the save button if the form isn't valid
+                this.savebtn.setDisabled(!isValid);
             }
         },
         constructor: function(config) {
@@ -640,7 +644,8 @@
                         items: [{
                             xtype: 'textfield',
                             name: 'name',
-                            fieldLabel: _t('Device Name')
+                            fieldLabel: _t('Device Name'),
+                            allowBlank: false
                         },{
                             xtype: 'ProductionStateCombo',
                             fieldLabel: _t('Production State'),

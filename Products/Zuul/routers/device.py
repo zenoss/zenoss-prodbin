@@ -360,7 +360,7 @@ class DeviceRouter(TreeRouter):
         audit('UI.Device.Edit', uid, data_=data)
         return DirectResponse()
 
-    def getDeviceUuidsByName(self, query=""):
+    def getDeviceUuidsByName(self, query="", start=0, limit=25, page=1):
         """
         Retrieves a list of device uuids. For use in combos.
         """

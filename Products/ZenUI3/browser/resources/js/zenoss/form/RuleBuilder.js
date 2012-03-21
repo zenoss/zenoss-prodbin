@@ -682,6 +682,9 @@
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
+        // TODO: Fix DEVICE and COMPONENT (see ZEN-294).
+        //       When you hit cancel twice quickly the device field can become blank.
+        //       Also, sometimes it shows the GUID instead of the device name.
         DEVICE: {
             text: _t('Device'),
             value: 'device_uuid',
