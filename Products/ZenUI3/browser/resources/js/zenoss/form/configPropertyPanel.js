@@ -106,7 +106,7 @@
                 value = values[data.id];
             if (type == 'lines') {
                 // send back as an array separated by a new line
-                value = value.split('\n');
+                value = Ext.Array.map(value.split('\n'), function(s) {return Ext.String.trim(s);});
             }
             var params = {
                 uid: grid.uid,
