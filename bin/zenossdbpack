@@ -14,11 +14,11 @@ CONFIG = """
     pack-duty-cycle 0.9
     keep-history false
     <mysql>
-        host %(host)s
-        port %(port)s
-        db %(mysqldb)s
-        user %(mysqluser)s
-        passwd %(mysqlpasswd)s
+        host %(zodb-host)s
+        port %(zodb-port)s
+        db %(zodb-db)s
+        user %(zodb-user)s
+        passwd %(zodb-password)s
     </mysql>
 </relstorage>
 """ % getGlobalConfiguration()
