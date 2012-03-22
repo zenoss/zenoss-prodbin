@@ -45,7 +45,7 @@ def main():
     try:
         settings = q.getAdminConnectionSettings()
 
-        rabbitmqadmin_file = subprocess.check_output('ls /var/lib/rabbitmq/mnesia/*/rabbitmq_management-*/priv/www/cli/rabbitmqadmin | head -1', shell=True).strip()
+        rabbitmqadmin_file = subprocess.check_output('sudo ls /var/lib/rabbitmq/mnesia/*/rabbitmq_management-*/priv/www/cli/rabbitmqadmin', shell=True, stderr=subprocess.PIPE).strip()
         if rabbitmqadmin_file:
             settings['ZENHOME'] = os.environ['ZENHOME']
             settings['script'] = rabbitmqadmin_file
