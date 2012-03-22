@@ -165,8 +165,6 @@ class ZenRestore(ZenBackupBase):
             return
         
         self.msg('Restoring ZEP database.')
-        self.msg('  Note: Restoration of the ZEP database requires a user account with sufficient priveleges to create triggers.')
-        self.msg('        Alternative user account and password may be passed in with the --zepdbuser and --zepdbpass  commands.')
         self.restoreMySqlDb(self.options.zepdbhost, self.options.zepdbport,
                             self.options.zepdbname, self.options.zepdbuser,
                             self.getPassArg('zepdbpass'), zepSql)
