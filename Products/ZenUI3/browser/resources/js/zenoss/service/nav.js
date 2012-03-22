@@ -28,23 +28,21 @@
             view = grid.getView(),
             store = grid.getStore(),
             params;
-
         grid.filterRow.clearFilters();
         params = {
             contextUid: grid.getContext(),
             id: newId,
             posQuery: grid.getFilters()
         };
-
-        var callback = function(p, response) {
-            var result, loadHandler;
-            result = response.result;
-            loadHandler = function() {
-                view.focusRow(result.newIndex);
-                grid.getSelectionModel().selectRange(result.newIndex, result.newIndex);
-            };
-            store.on('load', loadHandler, store, {single: true});
-            grid.refresh();
+        var callback = function(p, response) { 	 
+            grid.setFilter('name', newId);
+            store.on('load', function() {
+                store.each(function(record){
+                    if (record.get("name") == newId) {
+                        grid.getSelectionModel().select(record);
+                    }
+                }, this);
+            }, this, {single: true});	 	 
         };
         Zenoss.remote.ServiceRouter.addClass(params, callback);
     };
@@ -59,7 +57,6 @@
             view = grid.getView(),
             store = grid.getStore(),
             selected = grid.getSelectionModel().getSelected();
-
         if (selected) {
             var params = {
                 uid: selected.data.uid
@@ -69,10 +66,16 @@
                 var result = response.result;
                 if (result.success) {
                     grid.getSelectionModel().clearSelections();
-                    var newRowPos = view.rowIndex;
                     store.on('load', function(){
-                        view.focusRow(newRowPos);
-                        grid.getSelectionModel().selectRange(newRowPos, newRowPos);},
+                        grid.filterRow.clearFilters();
+                        if(!selected.index) return false;
+                           try{
+                                grid.getSelectionModel().select(selected.index);
+                           }catch(e){ 
+                                /* sometimes, there is an index, but it's still out of range */
+                                grid.getSelectionModel().select(0);
+                           }        
+                        },
                         store, { single: true });
                     grid.refresh();
                 } else {
