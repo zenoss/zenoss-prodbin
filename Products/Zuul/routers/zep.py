@@ -883,6 +883,12 @@ class EventsRouter(DirectRouter):
                 'xtype': 'numberfield',
                 'allowNegative': False,
                 'minValue': 0
+                },{
+                'id': 'event_time_purge_interval_days',
+                'name': _t('Event Time Purge Interval (days)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                'minValue': 1
                 }]
         return configSchema
 
