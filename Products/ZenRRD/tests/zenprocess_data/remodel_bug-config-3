@@ -1,5 +1,0 @@
-opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e   True  python
-opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
-java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
-python   False  python
-usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python

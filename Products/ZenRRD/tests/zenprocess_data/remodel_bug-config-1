@@ -1,8 +1,0 @@
-opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
-opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
-vim 91ff9650aeb2217a2e393e63efd08723    False   .*zenprocess.py.*
-opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d   False  python
-java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
-opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
-python   False  python
-usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python

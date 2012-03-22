@@ -218,6 +218,24 @@ class TestZenprocess(BaseTestCase):
         procDef.ignoreParameters = ignoreParams
         procDefs[procDef.name] = procDef
 
+    def getProcDefsFrom(self, procDefString):
+        """
+        Expects a multiline string from a dump of
+
+        python ProcessConfig.py --device=XX
+
+        The string should be trimmed to remove any headers, and just contain config output
+        """
+        procDefs = {}
+        for line in procDefString.split("\n"):
+            line = line.strip()
+            if line == '':
+                continue
+            modeler_match, useArgs, regex = line.rsplit(None, 2)
+            useArgs = True if useArgs.strip() == 'True' else False
+            self.updateProcDefs(procDefs, modeler_match.strip(), useArgs, regex.strip())
+        return procDefs
+
     def getProcDefsFromFile(self, procDefFile):
         """
         Expects to read a file that's a dump of
@@ -611,40 +629,79 @@ class TestZenprocess(BaseTestCase):
 
 
     def testRemodels(self):
-        procDefs = self.getProcDefsFromFile('remodel_bug-config-0')
+        """ names only from "diff remodel_bug-0 remodel_bug-1" :
+        119,120d118
+        <                              '.1.3.6.1.2.1.25.4.2.1.2.6945': 'bash',
+        <                              '.1.3.6.1.2.1.25.4.2.1.2.6948': 'python',
+        128,129c126,127
+        <                              '.1.3.6.1.2.1.25.4.2.1.2.8450': 'python',
+        <                              '.1.3.6.1.2.1.25.4.2.1.2.8470': 'python',
+        ---
+        >                              '.1.3.6.1.2.1.25.4.2.1.2.8478': 'vim',
+        >                              '.1.3.6.1.2.1.25.4.2.1.2.8501': 'pyraw',
+        """
+
+        procDefs = self.getProcDefsFrom("""
+        opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
+        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
+        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
+        opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
+        python   False  python
+        opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f   False  python
+        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
+        opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca   False  python
+        """)
+
         task = self.makeTask(procDefs)
-        expectedStats = self.expected(136, {
-                'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f': [8450],
+        expectedStats = self.expected(PROCESSES=136,
+            AFTERBYCONFIG={
                 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
                 'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
                 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
                                                                            32075,
                                                                            32076],
-                'opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f': [8447],
                 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004],
                 'opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca': [6948]
-            }, {
+            },
+            AFTERPIDTOPS={
                 1004: 'python d41d8cd98f00b204e9800998ecf8427e',
                 3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
                 6948: 'opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca',
-                8447: 'opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f',
-                8450: 'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f',
                 31948: 'java ad3a6a186ca1dbfba40db6645f4135ff',
                 32073: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32075: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32076: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
             },
-            {},
-            set([8450, 3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004, 8447]),
-            0,
-            set([]),
-            [])
+            BEFOREBYCONFIG={
+            },
+            NEW=set([
+                3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004
+            ]),
+            RESTARTED=0,
+            DEAD=set([
+            ]),
+            MISSING=[
+                'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f',
+                'opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f',
+            ])
+
         actual = self.compareTestFile('remodel_bug-0', task, expectedStats)
 
-        procDefs = self.getProcDefsFromFile('remodel_bug-config-1')
-        expectedStats = self.expected(134, {
+        procDefs = self.getProcDefsFrom("""
+        opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
+        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
+        vim 91ff9650aeb2217a2e393e63efd08723    False   .*zenprocess.py.*
+        opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d   False  python
+        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
+        opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
+        python   False  python
+        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
+        """)
+
+        expectedStats = self.expected(PROCESSES=134,
+            AFTERBYCONFIG={
                 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
                 'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
                 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
@@ -654,7 +711,8 @@ class TestZenprocess(BaseTestCase):
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004],
                 'opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d': [8447],
                 'vim 91ff9650aeb2217a2e393e63efd08723': [8478]
-            },{
+            },
+            AFTERPIDTOPS={
                 1004: 'python d41d8cd98f00b204e9800998ecf8427e',
                 3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
                 8447: 'opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d',
@@ -664,8 +722,8 @@ class TestZenprocess(BaseTestCase):
                 32075: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32076: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
-            },{
-                'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f': [8450],
+            },
+            BEFOREBYCONFIG={
                 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
                 'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
                 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
@@ -674,10 +732,10 @@ class TestZenprocess(BaseTestCase):
                 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004]
             },
-            set([8478, 8447]),
-            0,
-            set([8450]),
-            ['opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f'])
+            NEW=set([8478, 8447]),
+            RESTARTED=0,
+            DEAD=set([]),
+            MISSING=['opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f'])
         config = TaskConfig(procDefs=procDefs)
         task._deviceStats.update(config)
         actual = self.compareTestFile('remodel_bug-1', task, expectedStats)
@@ -735,40 +793,63 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0))
 
     def testRemodelsAndChangeToIgnoreParamsTrue(self):
-        procDefs = self.getProcDefsFromFile('remodel_bug-config-0')
+
+        procDefs = self.getProcDefsFrom("""
+        opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
+        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
+        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
+        opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
+        python   False  python
+        opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f   False  python
+        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
+        opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca   False  python
+        """)
+
         task = self.makeTask(procDefs)
-        expectedStats = self.expected(136, {
-                'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f': [8450],
+        expectedStats = self.expected(PROCESSES=136,
+            AFTERBYCONFIG={
                 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
                 'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
                 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
                                                                            32075,
                                                                            32076],
-                'opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f': [8447],
                 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004],
                 'opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca': [6948]
-            }, {
+            }, 
+            AFTERPIDTOPS={
                 1004: 'python d41d8cd98f00b204e9800998ecf8427e',
                 3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
                 6948: 'opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca',
-                8447: 'opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f',
-                8450: 'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f',
                 31948: 'java ad3a6a186ca1dbfba40db6645f4135ff',
                 32073: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32075: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32076: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
             },
-            {},
-            set([8450, 3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004, 8447]),
-            0,
-            set([]),
-            [])
+            BEFOREBYCONFIG={},
+            NEW=set([
+                3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004,
+            ]),
+            RESTARTED=0,
+            DEAD=set([]),
+            MISSING=[
+                'opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f',
+                'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f',
+            ])
         actual = self.compareTestFile('remodel_bug-0', task, expectedStats)
 
-        procDefs = self.getProcDefsFromFile('remodel_bug-config-2')
-        expectedStats = self.expected(134, {
+        procDefs = self.getProcDefsFrom("""
+        opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e   True  python
+        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
+        vim 91ff9650aeb2217a2e393e63efd08723    False   .*zenprocess.py.*
+        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
+        python   False  python
+        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
+        """)
+
+        expectedStats = self.expected(PROCESSES=134,
+            AFTERBYCONFIG={
                 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e': [32073,
                                                                            32075,
                                                                            32076,
@@ -778,7 +859,8 @@ class TestZenprocess(BaseTestCase):
                 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
                 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004]
-            },{
+            },
+            AFTERPIDTOPS={
                 1004: 'python d41d8cd98f00b204e9800998ecf8427e',
                 3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
                 8447: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
@@ -788,24 +870,35 @@ class TestZenprocess(BaseTestCase):
                 32075: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
                 32076: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
                 32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
-            },{
+            },
+            BEFOREBYCONFIG={
                 'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
                 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
                 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004]
             },
-            set([8478, 32073, 32075, 32076, 8447]),
-            0,
-            set([]),
-            [])
+            NEW=set([8478, 32073, 32075, 32076, 8447]),
+            RESTARTED=0,
+            DEAD=set([]),
+            MISSING=[])
+
         config = TaskConfig(procDefs=procDefs)
         task._deviceStats.update(config)
         actual = self.compareTestFile('remodel_bug-1', task, expectedStats)
 
     def testRemodelsAndChangeToIgnoreParamsFalse(self):
-        procDefs = self.getProcDefsFromFile('remodel_bug-config-3')
+
+        procDefs = self.getProcDefsFrom("""
+        opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e   True  python
+        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
+        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
+        python   False  python
+        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
+        """)
+
         task = self.makeTask(procDefs)
-        expectedStats = self.expected(136, {
+        expectedStats = self.expected(PROCESSES=136,
+            AFTERBYCONFIG={
                 'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
                 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e': [8450,
                                                                            8470,
@@ -817,7 +910,8 @@ class TestZenprocess(BaseTestCase):
                 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004],
                 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209]
-            },{
+            },
+            AFTERPIDTOPS={
                 1004: 'python d41d8cd98f00b204e9800998ecf8427e',
                 3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
                 6948: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
@@ -830,15 +924,26 @@ class TestZenprocess(BaseTestCase):
                 32076: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
                 32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
             },
-            {},
-            set([8450, 8470, 3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004, 8447]),
-            0,
-            set([]),
-            [])
+            BEFOREBYCONFIG={},
+            NEW=set([8450, 8470, 3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004, 8447]),
+            RESTARTED=0,
+            DEAD=set([]),
+            MISSING=[])
         actual = self.compareTestFile('remodel_bug-0', task, expectedStats)
 
-        procDefs = self.getProcDefsFromFile('remodel_bug-config-1')
-        expectedStats = self.expected(134, {
+        procDefs = self.getProcDefsFrom("""
+        opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
+        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
+        vim 91ff9650aeb2217a2e393e63efd08723    False   .*zenprocess.py.*
+        opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d   False  python
+        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
+        opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
+        python   False  python
+        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
+        """)
+
+        expectedStats = self.expected(PROCESSES=134,
+            AFTERBYCONFIG={
                 'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
                 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004],
@@ -848,7 +953,8 @@ class TestZenprocess(BaseTestCase):
                 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
                                                                            32075,
                                                                            32076]
-            },{
+            },
+            AFTERPIDTOPS={
                 1004: 'python d41d8cd98f00b204e9800998ecf8427e',
                 3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
                 8447: 'opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d',
@@ -858,16 +964,18 @@ class TestZenprocess(BaseTestCase):
                 32075: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32076: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
                 32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
-            },{
+            },
+            BEFOREBYCONFIG={
                 'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
                 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
                 'python d41d8cd98f00b204e9800998ecf8427e': [1004],
                 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209]
             },
-            set([8478, 32073, 32075, 32076, 8447]),
-            0,
-            set([]),
-            ['opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f'])
+            NEW=set([8478, 32073, 32075, 32076, 8447]),
+            RESTARTED=0,
+            DEAD=set([]),
+            MISSING=['opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f'])
+
         config = TaskConfig(procDefs=procDefs)
         task._deviceStats.update(config)
         actual = self.compareTestFile('remodel_bug-1', task, expectedStats)
