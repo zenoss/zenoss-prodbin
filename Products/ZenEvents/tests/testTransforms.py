@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, 2011, Zenoss Inc.
+# Copyright (C) 2009, 2011, 2012 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -12,7 +12,7 @@
 ###########################################################################
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.ZenEvents.zeneventd import ProcessEventMessageTask
+from Products.ZenEvents.zeneventd import EventPipelineProcessor
 from Products.ZenEvents.events2.processing import DropEvent
 from zenoss.protocols.protobufs.zep_pb2 import Event, STATUS_CLOSED, STATUS_SUPPRESSED, SEVERITY_ERROR,\
     SEVERITY_WARNING, SEVERITY_CLEAR
@@ -64,11 +64,10 @@ class testTransforms(BaseTestCase):
                 pass
         self.dmd._p_jar = MockConnection()
 
-        self.zeneventd = ProcessEventMessageTask(self.dmd)
+        self.processor = EventPipelineProcessor(self.dmd)
 
     def _processEvent(self, event):
-        processed = self.zeneventd.processMessage(event).next()
-        return processed.message.event
+        return self.processor.processMessage(event).event
     
     def testPerfFileSystemTransform(self):
         """

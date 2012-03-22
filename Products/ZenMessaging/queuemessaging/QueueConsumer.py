@@ -100,12 +100,13 @@ class QueueConsumer(object):
         """
         self.consumer.reject(message, requeue)
 
-    def publishMessage(self, exchange, routing_key, message, mandatory=False, immediate=False, headers=None):
+    def publishMessage(self, exchange, routing_key, message, mandatory=False, immediate=False, headers=None,
+                       declareExchange=True):
         """
         Publishes a message to another queue. This is for tasks that are both
         consumers and producers.
         """
-        return self.consumer.send(exchange, routing_key, message, mandatory, immediate, headers)
+        return self.consumer.send(exchange, routing_key, message, mandatory, immediate, headers, declareExchange)
 
     def syncdb(self):
         self.dmd.getPhysicalRoot()._p_jar.sync()

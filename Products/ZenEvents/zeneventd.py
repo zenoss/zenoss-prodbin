@@ -11,10 +11,9 @@
 #
 ###########################################################################
 from twisted.internet import reactor
+from twisted.internet import defer
 
-import signal
 import time
-import socket
 from datetime import datetime, timedelta
 
 import Globals
@@ -22,19 +21,19 @@ from zope.component import getUtility, adapter
 from zope.interface import implements
 from zope.component.event import objectEventNotify
 
-from amqplib.client_0_8.exceptions import AMQPConnectionException
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.guid import guid
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
-from zenoss.protocols.eventlet.amqp import getProtobufPubSub
-from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event
-from zenoss.protocols.eventlet.amqp import Publishable
-from zenoss.protocols.jsonformat import from_dict
-from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
-from Products.ZenEvents.events2.processing import *
+from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event, STATUS_DROPPED
+from zenoss.protocols.jsonformat import from_dict, to_dict
+from zenoss.protocols import hydrateQueueMessage
+from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
+from Products.ZenEvents.events2.processing import (Manager, EventPluginPipe, CheckInputPipe, IdentifierPipe,
+    AddDeviceContextAndTagsPipe, TransformAndReidentPipe, TransformPipe, UpdateDeviceContextAndTagsPipe,
+    AssignDefaultEventClassAndTagPipe, FingerprintPipe, SerializeContextPipe, ClearClassRefreshPipe,
+    EventContext, DropEvent, ProcessingException)
 from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
 from Products.ZenEvents.daemonlifecycle import DaemonCreatedEvent, SigTermEvent, SigUsr1Event
 from Products.ZenEvents.daemonlifecycle import DaemonStartRunEvent, BuildOptionsEvent
@@ -42,18 +41,15 @@ from Products.ZenEvents.daemonlifecycle import DaemonStartRunEvent, BuildOptions
 import logging
 log = logging.getLogger("zen.eventd")
 
-class ProcessEventMessageTask(BasePubSubMessageTask):
+EXCHANGE_ZEP_ZEN_EVENTS = '$ZepZenEvents'
+QUEUE_RAW_ZEN_EVENTS = '$RawZenEvents'
 
-    implements(IQueueConsumerTask)
+class EventPipelineProcessor(object):
 
     SYNC_EVERY_EVENT = False
 
     def __init__(self, dmd):
         self.dmd = dmd
-        self._queueSchema = getUtility(IQueueSchema)
-        self.dest_routing_key_prefix = 'zenoss.zenevent'
-
-        self._dest_exchange = self._queueSchema.getExchange("$ZepZenEvents")
         self._manager = Manager(self.dmd)
         self._pipes = (
             EventPluginPipe(self._manager, IPreEventPlugin, 'PreEventPluginPipe'),
@@ -78,10 +74,6 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             # when receiving events in bursts
             self.nextSync = datetime.now()
             self.syncInterval = timedelta(0,0,500000)
-
-    def _routing_key(self, event):
-        return (self.dest_routing_key_prefix +
-                event.event.event_class.replace('/', '.').lower())
 
     def processMessage(self, message):
         """
@@ -165,79 +157,82 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
 
-        yield Publishable(eventContext.zepRawEvent,
-                          exchange=self._dest_exchange,
-                          routingKey=self._routing_key(
-                              eventContext.zepRawEvent))
+        return eventContext.zepRawEvent
+
+class BaseQueueConsumerTask(object):
+
+    implements(IQueueConsumerTask)
+
+    def __init__(self, processor):
+        self.processor = processor
+        self._queueSchema = getUtility(IQueueSchema)
+        self.dest_routing_key_prefix = 'zenoss.zenevent'
+        self._dest_exchange = self._queueSchema.getExchange(EXCHANGE_ZEP_ZEN_EVENTS)
+
+    def _routing_key(self, event):
+        return (self.dest_routing_key_prefix +
+                event.event.event_class.replace('/', '.').lower())
+
+class TwistedQueueConsumerTask(BaseQueueConsumerTask):
+
+    def __init__(self, processor):
+        BaseQueueConsumerTask.__init__(self, processor)
+        self.queue = self._queueSchema.getQueue(QUEUE_RAW_ZEN_EVENTS)
+
+    @defer.inlineCallbacks
+    def processMessage(self, message):
+        try:
+            hydrated = hydrateQueueMessage(message, self._queueSchema)
+        except Exception as e:
+            log.error("Failed to hydrate raw event: %s", e)
+            yield self.queueConsumer.acknowledge(message)
+        else:
+            try:
+                zepRawEvent = self.processor.processMessage(hydrated)
+                if log.isEnabledFor(logging.DEBUG):
+                    log.debug("Publishing event: %s", to_dict(zepRawEvent))
+                yield self.queueConsumer.publishMessage(EXCHANGE_ZEP_ZEN_EVENTS,
+                    self._routing_key(zepRawEvent), zepRawEvent, declareExchange=False)
+                yield self.queueConsumer.acknowledge(message)
+            except DropEvent as e:
+                if log.isEnabledFor(logging.DEBUG):
+                    log.debug('%s - %s' % (e.message, to_dict(e.event)))
+                yield self.queueConsumer.acknowledge(message)
+            except ProcessingException as e:
+                log.error('%s - %s' % (e.message, to_dict(e.event)))
+                log.exception(e)
+                yield self.queueConsumer.reject(message)
+            except Exception as e:
+                log.exception(e)
+                yield self.queueConsumer.reject(message)
 
 
-class EventDWorker(ZCmdBase):
-
-    def __init__(self):
-        super(EventDWorker, self).__init__()
+class EventDTwistedWorker(object):
+    def __init__(self, dmd):
+        super(EventDTwistedWorker, self).__init__()
         self._amqpConnectionInfo = getUtility(IAMQPConnectionInfo)
         self._queueSchema = getUtility(IQueueSchema)
+        self._consumer_task = TwistedQueueConsumerTask(EventPipelineProcessor(dmd))
+        self._consumer = QueueConsumer(self._consumer_task, dmd)
 
     def run(self):
-        self._shutdown = False
-        signal.signal(signal.SIGTERM, self._sigterm)
-        task = ProcessEventMessageTask(self.dmd)
-        self._listen(task)
+        reactor.callWhenRunning(self._start)
+        reactor.run()
 
-    def shutdown(self):
-        self._shutdown = True
-        if self._pubsub:
-            self._pubsub.shutdown()
-            self._pubsub = None
+    def _start(self):
+        reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
+        self._consumer.run()
 
-    def _sigterm(self, signum=None, frame=None):
-        log.debug("worker sigterm...")
-        self.shutdown()
-        
-    def _listen(self, task, retry_wait=30):
-        self._pubsub = None
-        keepTrying = True
-        sleep = 0
-        while keepTrying and not self._shutdown:
-            try:
-                if sleep:
-                    log.info("Waiting %s seconds to reconnect..." % sleep)
-                    time.sleep(sleep)
-                    sleep = min(retry_wait, sleep * 2)
-                else:
-                    sleep = .1
-                log.info("Connecting to RabbitMQ...")
-                self._pubsub = getProtobufPubSub(self._amqpConnectionInfo, self._queueSchema, '$RawZenEvents')
-                self._pubsub.registerHandler('$Event', task)
-                self._pubsub.registerExchange('$ZepZenEvents')
-                #reset sleep time
-                sleep=0
-                self._pubsub.run()
-            except (socket.error, AMQPConnectionException) as e:
-                log.warn("RabbitMQ Connection error %s" % e)
-            except KeyboardInterrupt:
-                keepTrying = False
-            finally:
-                if self._pubsub:
-                    self._pubsub.shutdown()
-                    self._pubsub = None
+    @defer.inlineCallbacks
+    def _shutdown(self):
+        if self._consumer:
+            yield self._consumer.shutdown()
 
-    def buildOptions(self):
-        super(EventDWorker, self).buildOptions()
-        objectEventNotify(BuildOptionsEvent(self))
-
-    def parseOptions(self):
-        """
-        Don't ever allow a processor to be a daemon
-        """
-        super(EventDWorker, self).parseOptions()
-        self.options.daemon = False
-
-
-class ZenEventD(ZenDaemon):
+class ZenEventD(ZCmdBase):
 
     def __init__(self, *args, **kwargs):
         super(ZenEventD, self).__init__(*args, **kwargs)
+        EventPipelineProcessor.SYNC_EVERY_EVENT = self.options.syncEveryEvent
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                      'zeneventd',
                                                      self.options.maintenancecycle *3)
@@ -245,32 +240,25 @@ class ZenEventD(ZenDaemon):
                                   self._heartbeatSender)
         objectEventNotify(DaemonCreatedEvent(self))
 
-    def _shutdown(self, *ignored):
+    def sigTerm(self, signum=None, frame=None):
         log.info("Shutting down...")
         self._maintenanceCycle.stop()
         objectEventNotify(SigTermEvent(self))
+        super(ZenEventD, self).sigTerm(signum, frame)
 
     def run(self):
-        ProcessEventMessageTask.SYNC_EVERY_EVENT = self.options.syncEveryEvent
-
         if self.options.daemon:
-            reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
             self._maintenanceCycle.start()
-            objectEventNotify(DaemonStartRunEvent(self))
-        else:
-            EventDWorker().run()
+        objectEventNotify(DaemonStartRunEvent(self))
 
-    def _sigUSR1_called(self, signum, frame):
-        log.debug('_sigUSR1_called %s' % signum)
+    def sighandler_USR1(self, signum, frame):
+        super(ZenEventD, self).sighandler_USR1(signum, frame)
+        log.debug('sighandler_USR1 called %s' % signum)
         objectEventNotify(SigUsr1Event(self, signum))
 
     def buildOptions(self):
         super(ZenEventD, self).buildOptions()
         maintenanceBuildOptions(self.parser)
-        from zope.component import getUtility
-        from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
-        connectionFactory = getUtility(IZodbFactoryLookup).get()
-        connectionFactory.buildOptions(self.parser)
         self.parser.add_option('--synceveryevent', dest='syncEveryEvent',
                     action="store_true", default=False,
                     help='Force sync() before processing every event; default is to sync() no more often '
@@ -283,7 +271,7 @@ def onDaemonStartRun(daemon, event):
     """
     Start up an EventDWorker.
     """
-    EventDWorker().run()
+    EventDTwistedWorker(daemon.dmd).run()
 
 if __name__ == '__main__':
     # explicit import of ZenEventD to activate enterprise extensions
