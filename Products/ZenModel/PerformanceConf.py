@@ -397,16 +397,19 @@ class PerformanceConf(Monitor, StatusColor):
             return ssl_port
         return http_port
 
+    def _get_webscale_renderurl(self):
+        # DistributedCollector + WebScale scenario
+        kwargs = dict(fqdn=socket.getfqdn(),
+                      port=self._get_webscale_port(),
+                      path=str(self.renderurl).strip("/") + "/")
+        return 'http://{fqdn}:{port}/{path}'.format(**kwargs)
+
     def _get_xmlrpc_server(self, allow_none=False):
         renderurl = str(self.renderurl)
         if renderurl.startswith('proxy'):
             renderurl = self.renderurl.replace('proxy', 'http')
         if renderurl.startswith('/remote-collector/'):
-            # DistributedCollector + WebScale scenario
-            fqdn = socket.getfqdn()
-            port = self._get_webscale_port()
-            path = renderurl.strip("/") + "/"
-            renderurl = 'http://{fqdn}:{port}/{path}'.format(**locals())
+            renderurl = self._get_webscale_renderurl()
         if renderurl.startswith('http'):
             # Going through the hub or directly to zenrender
             url = basicAuthUrl(str(self.renderuser),
@@ -545,8 +548,7 @@ class PerformanceConf(Monitor, StatusColor):
         remoteUrl = None
         renderurl = self.renderurl
         if renderurl.startswith('/remote-collector/'):
-            # DistributedCollector + WebScale
-            renderurl = "http://%s%s" % (socket.getfqdn(), renderurl)
+            renderurl = self._get_webscale_renderurl()
         if renderurl.startswith('http'):
             if datapoint:
                 remoteUrl = '%s/deleteRRDFiles?device=%s&datapoint=%s' % (
