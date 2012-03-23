@@ -18,7 +18,6 @@ __doc__='''zenbackup
 Creates backup of Zope data files, Zenoss conf files and the events database.
 '''
 
-import shlex
 import sys
 import os
 import os.path
@@ -28,16 +27,29 @@ import logging
 import ConfigParser
 import subprocess
 import tarfile
+import tempfile
+import re
 
 import Globals
 from ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, binPath, readable_time
+from Products.ZenUtils.Utils import zenPath, binPath, readable_time, unused
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 from ZenBackupBase import *
 
+unused(Globals)
 
 MAX_UNIQUE_NAME_ATTEMPTS = 1000
 
+DEFINER_PATTERN = re.compile(r'/\*((?!/\*).)*DEFINER.*?\*/')
+
+def strip_definer(mysqldump_line):
+    """Strips DEFINER statements from mysqldump lines. See ZEN-326."""
+    if not mysqldump_line.startswith("/*") or len(mysqldump_line) > 500:
+        # speed things up, lines with DEFINER in them 
+        #    (1) start with '/*'
+        #    (2) are shorter than 500 characters.
+        return mysqldump_line
+    return DEFINER_PATTERN.sub('', mysqldump_line)
 
 class ZenBackup(ZenBackupBase):
 
@@ -229,12 +241,13 @@ class ZenBackup(ZenBackupBase):
         
         with open(os.path.join(self.tempDir, sqlFile), 'wb') as zipfile:
             mysqldump = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            grep = subprocess.Popen(shlex.split(r"grep -v '^/\*!50013 DEFINER'"), stdin=mysqldump.stdout, stdout=subprocess.PIPE)
-            gzip = subprocess.Popen(['gzip', '-c'], stdin=grep.stdout, stdout=zipfile)
+            gzip = subprocess.Popen(['gzip', '-c'], stdin=subprocess.PIPE, stdout=zipfile)
+            for mysqldump_line in mysqldump.stdout:
+                gzip.stdin.write(strip_definer(mysqldump_line))
+            gzip.stdin.close()
             mysqldump.wait()
-            grep.wait()
             gzip.wait()
-            if gzip.returncode or grep.returncode or mysqldump.returncode:
+            if gzip.returncode or mysqldump.returncode:
                 self.log.critical("Backup of (%s) terminated abnormally." % sqlFile)
                 return -1
 
