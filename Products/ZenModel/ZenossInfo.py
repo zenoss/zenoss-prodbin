@@ -28,13 +28,13 @@ from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelItem import ZenModelItem
+from Products.ZenCallHome.transport.methods.versioncheck import version_check
 from Products.ZenUtils import Time
 from Products.ZenUtils.Version import *
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
 
-from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
 
 def manage_addZenossInfo(context, id='About', REQUEST=None):
     """
@@ -819,8 +819,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if self.dmd.versionCheckOptIn \
           and REQUEST \
           and isinstance(REQUEST.form['manage_checkVersion'], list):
-            uc = UpdateCheck()
-            uc.check(self.dmd, self.dmd.ZenEventManager, manual=True)
+            version_check(self.dmd)
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_checkVersion')
 
@@ -832,9 +831,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
 
     def versionBehind(self):
-        if self.dmd.availableVersion is None:
+        if not self.dmd.availableVersion:
             return False
-        if parseVersion(self.dmd.availableVersion) > self.getZenossVersion():
+        if Version.parse('Zenoss ' + self.dmd.availableVersion) > self.getZenossVersion():
             return True
         return False
 

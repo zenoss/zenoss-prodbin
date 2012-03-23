@@ -96,9 +96,6 @@ class CallHomeData(object):
                     data.update(chData)
         return data
 
-    def getJsonData(self):
-        return json.dumps(self.getData())
-
 class Main(ZenScriptBase):
     def run(self):
         if self.options.master:

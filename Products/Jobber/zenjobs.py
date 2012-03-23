@@ -14,11 +14,11 @@
 import logging
 from Globals import *
 from ZODB.transact import transact
-from Products.ZenEvents.UpdateCheck import UpdateCheck
 from Products.ZenEvents.Schedule import Schedule
 from twisted.internet import reactor, defer
 from Products.ZenEvents.Event import Event
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
+from Products.ZenCallHome.transport.cycler import CallHomeCycler
 from Products.ZenUtils.CyclingDaemon import CyclingDaemon
 import transaction
 from status import FAILURE
@@ -39,8 +39,6 @@ class ZenJobs(CyclingDaemon):
         self.schedule = Schedule(self.options, self.dmd)
         self.schedule.sendEvent = self.dmd.ZenEventManager.sendEvent
         self.schedule.monitor = self.options.monitor
-
-        self.updateCheck = UpdateCheck()
 
         # Send startup event
         if self.options.cycle:
@@ -77,15 +75,9 @@ class ZenJobs(CyclingDaemon):
     def waitUntilRunningJobsFinish(self):
         return defer.DeferredList(self.runningjobs)
 
-    @transact
-    def checkVersion(self, zem):
-        self.syncdb()
-        self.updateCheck.check(self.dmd, zem)
-
     @defer.inlineCallbacks
     def main_loop(self):
         zem = self.dmd.ZenEventManager
-        self.checkVersion(zem)
         for job in self.get_new_jobs():
             yield self.run_job(job)
         yield self.finish_loop()
@@ -109,6 +101,8 @@ class ZenJobs(CyclingDaemon):
 
     def run(self):
         def startup():
+            chc = CallHomeCycler(self.dmd)
+            chc.start()
             self.schedule.start()
             self.runCycle()
         reactor.callWhenRunning(startup)

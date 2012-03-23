@@ -1,0 +1,24 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser">
+    
+    <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+    <include package="Products.ZenModel" file="permissions.zcml"/>
+    
+    <browser:viewlet
+        class=".methods.browserjs.ScriptTag"
+        manager="Products.ZenUI3.browser.interfaces.IHeadExtraManager"
+        name="callhome_scripttag"
+        permission="zenoss.Common"
+        />
+
+    <browser:directRouter
+        name="callhome_router"
+        for="*"
+        class=".methods.browserjs.CallhomeRouter"
+        namespace="Zenoss.remote"
+        permission="zenoss.View"
+        />
+
+</configure>

@@ -15,7 +15,7 @@
 
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
-
+    <include package=".transport"/>
 
     <utility component="Products.ZenCallHome.callhome.ZenossEnvDataCallHomeCollector"
              provides="Products.ZenCallHome.IMasterCallHomeCollector"
