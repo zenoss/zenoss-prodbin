@@ -77,7 +77,6 @@ class ZenJobs(CyclingDaemon):
 
     @defer.inlineCallbacks
     def main_loop(self):
-        zem = self.dmd.ZenEventManager
         for job in self.get_new_jobs():
             yield self.run_job(job)
         yield self.finish_loop()
