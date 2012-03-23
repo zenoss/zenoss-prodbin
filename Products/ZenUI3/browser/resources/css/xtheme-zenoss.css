@@ -5119,9 +5119,9 @@ textarea.x-form-field {
 .x-window-header-text-default {
   color: white;
   font-weight: bold;
-  line-height: 26px;
+  line-height: 20px;
   font-family: helvetica, arial, sans-serif;
-  font-size: 18px; }
+  font-size: 14px; }
 
 .x-window-header-default-top {
   -moz-border-radius-topleft: 7px;
@@ -7972,7 +7972,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   font-style: normal; }
 
 .x-nlg .x-btn-dialog-dark-small .x-btn-center {
-  padding: 2px 15px 2px 14px !important;
+  padding: 3px !important;
   background-repeat: repeat-x;
   background-position: 0 -51px !important;
   background-image: url("/++resource++zenui/img/ext4/btn/btn-sprite.png") ; }
@@ -8856,9 +8856,9 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-window-header-text-default {
   color: white;
   font-weight: bold;
-  line-height: 26px;
+  line-height: 20px;
   font-family: helvetica, arial, sans-serif;
-  font-size: 18px; }
+  font-size: 14px; }
 
 .x-window-header-default-top {
   -moz-border-radius-topleft: 7px;

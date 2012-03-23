@@ -318,7 +318,7 @@
     .#{$prefix}nlg {
         .#{$prefix}btn-#{$ui}{ 
             .#{$prefix}btn-center{
-                padding:2px 15px 2px 14px !important;
+                padding:3px !important;
                 background-repeat:repeat-x;
                 background-position:0 -51px !important;
                 @include zenoss-background-image("btn/btn-sprite.png");

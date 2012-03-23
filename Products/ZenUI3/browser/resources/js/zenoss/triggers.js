@@ -791,9 +791,9 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 modal: true,
                 plain: true,
-                width: 350,
+                width: 450,
                 height: 250,
-                maxWidth: 350,
+                maxWidth: 450,
                 maxHeight: 250,
                 closeAction: 'hide',
                 items:{
@@ -802,11 +802,10 @@ Ext.onReady(function () {
                     buttonAlign: 'left',
                     listeners: {
                         validitychange: function(form, isValid) {
-                            this.query('HideDialogButton')[0].disable(!isValid);
+                            this.query('button')[0].disable(!isValid);
                         },
                         scope: this
                     },
-                    autoWidth: true,
                     items:[
                         {
                             xtype: 'hidden',
@@ -865,21 +864,30 @@ Ext.onReady(function () {
                     ],
                     buttons:[
                         {
-                            xtype: 'HideDialogButton',
+                            xtype: 'button',
+                            ui: 'dialog-dark',
                             text: _t('Submit'),
                             ref: '../../submitButton',
                             handler: function(button) {
-                                var params = button.refOwner.editForm.getForm().getValues();
-                                config.directFn(params, function(){
-                                    button.refOwner.hide();
-                                });
-                            }
+                                if (config.submitHandler) {
+                                    config.submitHandler(button);
+                                } else {
+                                    var params = button.refOwner.editForm.getForm().getValues();
+                                    config.directFn(params, function(){
+                                        config.reloadFn();
+                                        button.refOwner.hide();
+                                    });
+                                }                                
+                            }   
                         },{
-                            xtype: 'HideDialogButton',
+                            xtype: 'button',
+                            ui: 'dialog-dark',
                             ref: '../../cancelButton',
-                            text: _t('Cancel')
-
-                        }]
+                            text: _t('Cancel'),
+                            handler: function(button) {
+                                button.refOwner.hide();
+                            }                       
+                        }]                    
                     }
             });
             Zenoss.trigger.EditScheduleDialogue.superclass.constructor.apply(this, arguments);
