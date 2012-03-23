@@ -35,7 +35,7 @@ _ZEN_AMQP_SETTINGS =  {
    'amqpvhost': '/zenoss',
    'amqpusessl': False,
    'amqpadminport': 55672,
-   'amqpadiusessl': False,
+   'amqpadminusessl': False,
 }
 
 class ZenAmqp(object):
@@ -80,6 +80,7 @@ class ZenAmqp(object):
             if name not in _ZEN_AMQP_SETTINGS:
                 settings[name] = value
         return settings
+
     def getConnection(self):
         settings = self.getConnectionSettings()
         return Connection(**settings)
@@ -94,12 +95,11 @@ class Main(object):
     def _get_setting(self, name):
         val = self._global_conf.get(name, None)
         if val is None:
-            print >> sys.stderr, "global.conf setting %s must be set."
+            print >> sys.stderr, "global.conf setting %s must be set." % name
             sys.exit(1)
         return val
 
     def verify(self, expected_version):
-        
         conn = None
         rc = 1
         try:
@@ -124,7 +124,6 @@ class Main(object):
         sys.exit(rc)
 
 if __name__=="__main__":
-   
     usage = "%prog VERSION_NUMBER" 
     epilog = "Verifies connectivity with the amqp server configued in global.conf and " \
              "checks if server version is >= VERSION_NUMBER. Returns exit code 1 if " \
