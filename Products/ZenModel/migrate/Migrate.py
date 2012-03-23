@@ -247,7 +247,7 @@ class Migration(ZenScriptBase):
             currentDbVers = self._currentVersion()
             # The user did not specify steps to be run, so we run the default
             # steps.
-            newDbVers = self.allSteps[-1].version
+            newDbVers = max(self.allSteps, key = lambda x:x.version).version
             if currentDbVers == newDbVers:
                 # There are no steps newer than the current db version.
                 # By default we rerun the steps for the current version.
