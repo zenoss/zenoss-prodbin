@@ -218,7 +218,7 @@
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.ManageDMD"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -229,7 +229,7 @@
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.ManageDMD"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -240,7 +240,7 @@
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.ManageDMD"
             layer="..navigation.interfaces.IZenossNav"
             subviews="/zport/dmd/Mibs"
             />
@@ -266,9 +266,8 @@
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.ManageDMD"
             layer="..navigation.interfaces.IZenossNav"
             />
 
 </configure>
-
