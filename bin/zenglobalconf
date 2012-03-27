@@ -23,6 +23,8 @@ import tempfile
 # updates are performed atomically using a temporary file to prevent losing
 # configuration.
 
+CONF_FILE = ''
+
 SETTINGS_DELIM = re.compile(r'\s+')
 
 def zenPath(*args):
@@ -50,14 +52,14 @@ def create_tmpfile(path):
     return tmpfd, tmpname
 
 def print_setting(setting_name):
-    filename = zenPath('etc', 'global.conf')
+    filename = CONF_FILE
     for line, name, value in parse_settings(filename):
         if name == setting_name:
             print value
             break
 
 def remove_settings(settings_to_remove):
-    filename = zenPath('etc', 'global.conf')
+    filename = CONF_FILE
     (tmpfd,tmpname) = create_tmpfile(filename)
     output_file = os.fdopen(tmpfd, 'wb')
     found_settings = set()
@@ -77,7 +79,7 @@ def remove_settings(settings_to_remove):
             pass
 
 def update_settings(settings_dict):
-    filename = zenPath('etc', 'global.conf')
+    filename = CONF_FILE
     (tmpfd,tmpname) = create_tmpfile(filename)
     output_file = os.fdopen(tmpfd, 'wb')
     found_settings = set()
@@ -117,7 +119,13 @@ def main():
                       help='Adds or updates settings in the configuration file.')
     parser.add_option('-s', '--sync-zope-conf', dest='synczope', action="store_true", default=False,
                       help='Syncs the ZODB db conf from global from to zodb_db_main.conf.')
+    parser.add_option('-f', '--conffile', dest='conffile', default=zenPath('etc','global.conf'),
+                      help='Zenoss conf file')
+    
     (options, args) = parser.parse_args(args=sys.argv[1:])
+
+    global CONF_FILE
+    CONF_FILE = options.conffile
 
     numcmds = int(options.get) + int(options.remove) + int(options.update) + int(options.synczope)
     if not numcmds:
@@ -129,6 +137,9 @@ def main():
         parser.error("required property names not provided")
 
     if options.synczope:
+        if CONF_FILE != zenPath('etc', 'global.conf'):
+            print "--sync-zope-conf only valid with global.conf"
+            sys.exit(1)
         # load zcml for the product
         import Globals
         import Products.ZenossStartup
