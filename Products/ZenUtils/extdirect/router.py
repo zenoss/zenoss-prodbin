@@ -114,7 +114,10 @@ class DirectRouter(object):
     @json
     def __call__(self, body):
         # Decode the request data
-        body = unjson(body)
+        try:
+            body = unjson(body)
+        except Exception:
+            raise DirectException("Request body is not unjson()-able: %s" % body)
         self._body = body
 
         if isinstance(body, list):
