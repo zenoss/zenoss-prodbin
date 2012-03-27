@@ -61,6 +61,9 @@
             name: 'hwManufacturer',
             id: 'hwmanufacturercombo',
             fieldLabel: _t('HW Manufacturer'),
+            listConfig: {
+                resizable: true, resizeHandles: 'e' 
+            },            
             listeners: {'select': function(combo, record, index){
                 record = record[0];
                 var productCombo = Ext.getCmp('hwproductcombo');
@@ -73,7 +76,7 @@
             prodType: 'HW',
             width: FIELDWIDTH,
             listConfig: {
-                resizable: true
+                resizable: true, resizeHandles: 'e' 
             },
             name: 'hwProductName',
             fieldLabel: _t('HW Product'),
@@ -87,7 +90,9 @@
             name: 'osManufacturer',
             id: 'osmanufacturercombo',
             fieldLabel: _t('OS Manufacturer'),
-
+            listConfig: {
+                resizable: true, resizeHandles: 'e' 
+            },
             listeners: {'select': function(combo, record, index){
                 record = record[0];
                 var productCombo = Ext.getCmp('osproductcombo');
@@ -100,7 +105,7 @@
             prodType: 'OS',
             width: FIELDWIDTH,
             listConfig: {
-                resizable: true
+                resizable: true, resizeHandles: 'e' 
             },
             name: 'osProductName',
             id: 'osproductcombo',
@@ -184,7 +189,7 @@
                 xtype: 'combo',
                 name: 'collector',
                 listConfig: {
-                    resizable: true
+                    resizable: true, resizeHandles: 'e' 
                 },
                 fieldLabel: _t('Select a collector'),
                 queryMode: 'local',
@@ -263,7 +268,7 @@
                     displayField: 'name',
                     forceSelection: true,
                     listConfig: {
-                        resizable: true
+                        resizable: true, resizeHandles: 'e' 
                     },
                     editable: false,
                     autoSelect: true,
@@ -406,7 +411,7 @@
                 forceSelection: true,
                 editable: false,
                 listConfig: {
-                    resizable: true
+                    resizable: true, resizeHandles: 'e' 
                 },
                 width: 250,
                 autoSelect: true,
