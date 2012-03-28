@@ -1489,6 +1489,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                                     performanceMonitor)
         self.addRelation("perfServer", obj)
         self.setLastChange()
+        self.index_object()
         notify(IndexingEvent(self))
 
         if REQUEST:
