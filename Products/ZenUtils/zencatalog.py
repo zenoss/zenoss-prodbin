@@ -25,7 +25,7 @@ from ZEO.zrpc.error import DisconnectedError
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.Zuul.catalog.global_catalog import createGlobalCatalog
+from Products.Zuul.catalog.global_catalog import createGlobalCatalog, globalCatalogId
 
 log = logging.getLogger("zen.Catalog")
 
@@ -165,12 +165,13 @@ class ZenCatalog(ZCmdBase):
 
         catalog = self._getCatalog(zport)
         if self.options.forceindex and catalog:
-            zport._delObject(catalog.getId())
+            zport._delObject(globalCatalogId)
             catalog = self._getCatalog(zport)
 
         if catalog is None:
             # Create the catalog
             log.debug("Creating global catalog")
+            zport = self.dmd.getPhysicalRoot().zport
             createGlobalCatalog(zport)
             catalog = self._getCatalog(zport)
             transaction.commit()
@@ -273,6 +274,7 @@ class ZenCatalog(ZCmdBase):
             self.syncdb()
             zport._zencatalog_completed = True
             transaction.commit()
+            log.info("Reindexing completed.")
 
         log.info("Reindexing your system. This may take some time.")
         d = chunk(recurse(zport), handle_chunk, reconnect, CHUNK_SIZE, 5)
@@ -281,7 +283,7 @@ class ZenCatalog(ZCmdBase):
 
 
     def _getCatalog(self, zport):
-        return getattr(zport, 'global_catalog', None)
+        return getattr(zport, globalCatalogId, None)
 
 def reindex_catalog(globalCat, permissionsOnly=False, printProgress=True, commit=True):
     msg = 'objects'

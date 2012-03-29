@@ -15,7 +15,9 @@ import time
 from itertools import ifilterfalse, chain
 
 import zExceptions
+from zope.component import getUtility
 from zope.interface import providedBy, ro, implements
+from Products.Zuul.catalog.interfaces import IGlobalCatalog
 from zope.component import adapts
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
@@ -38,6 +40,7 @@ from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
 
 from interfaces import IGloballyIndexed, IPathReporter, IIndexableWrapper
 
+globalCatalogId = 'global_catalog'
 
 def _allowedRoles(user):
     roles = list(user.getRoles())
@@ -319,11 +322,12 @@ class IpInterfaceWrapper(ComponentWrapper):
 
 
 class GlobalCatalog(ZCatalog):
+    implements(IGlobalCatalog)
 
-    id = 'global_catalog'
+    id = globalCatalogId
 
     def __init__(self):
-        ZCatalog.__init__(self, self.getId())
+        ZCatalog.__init__(self, self.id)
 
     def searchResults(self, **kw):
         user = getSecurityManager().getUser()
@@ -380,25 +384,28 @@ class GlobalCatalog(ZCatalog):
         """
         cat = self._catalog
         return cat.indexes.get(index)
+    
+    def addIndex(self, id, index):
+        """
+        Dispatches to self._catalog.addIndex
+        """
+        return self._catalog.addIndex(id, index)
 
-def createGlobalCatalog(portal):
-    catalog = GlobalCatalog()
+def initializeGlobalCatalog(catalog):
 
-    cat = catalog._catalog
-    cat.addIndex('id', makeCaseSensitiveFieldIndex('id'))
-    cat.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
-    cat.addIndex('meta_type', makeCaseSensitiveFieldIndex('meta_type'))
-    cat.addIndex('name', makeCaseInsensitiveFieldIndex('name'))
-    cat.addIndex('ipAddress', makeCaseSensitiveFieldIndex('ipAddress'))
-    cat.addIndex('objectImplements', makeCaseSensitiveKeywordIndex('objectImplements'))
-    cat.addIndex('allowedRolesAndUsers', makeCaseSensitiveKeywordIndex('allowedRolesAndUsers'))
-    cat.addIndex('productionState', makeCaseSensitiveFieldIndex('productionState'))
-    cat.addIndex('monitored', makeCaseSensitiveFieldIndex('monitored'))
-    cat.addIndex('path', makeMultiPathIndex('path'))
-    cat.addIndex('collectors', makeCaseSensitiveKeywordIndex('collectors'))
-    cat.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
-    cat.addIndex('searchKeywords',
-                 makeCaseInsensitiveKeywordIndex('searchKeywords'))
+    catalog.addIndex('id', makeCaseSensitiveFieldIndex('id'))
+    catalog.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
+    catalog.addIndex('meta_type', makeCaseSensitiveFieldIndex('meta_type'))
+    catalog.addIndex('name', makeCaseInsensitiveFieldIndex('name'))
+    catalog.addIndex('ipAddress', makeCaseSensitiveFieldIndex('ipAddress'))
+    catalog.addIndex('objectImplements', makeCaseSensitiveKeywordIndex('objectImplements'))
+    catalog.addIndex('allowedRolesAndUsers', makeCaseSensitiveKeywordIndex('allowedRolesAndUsers'))
+    catalog.addIndex('productionState', makeCaseSensitiveFieldIndex('productionState'))
+    catalog.addIndex('monitored', makeCaseSensitiveFieldIndex('monitored'))
+    catalog.addIndex('path', makeMultiPathIndex('path'))
+    catalog.addIndex('collectors', makeCaseSensitiveKeywordIndex('collectors'))
+    catalog.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
+    catalog.addIndex('searchKeywords', makeCaseInsensitiveKeywordIndex('searchKeywords'))
 
     catalog.addColumn('id')
     catalog.addColumn('uuid')
@@ -411,5 +418,7 @@ def createGlobalCatalog(portal):
     catalog.addColumn('searchIcon')
     catalog.addColumn('searchExcerpt')
 
-    portal._setObject(catalog.getId(), catalog)
-
+def createGlobalCatalog(portal):
+    catalog = getUtility(IGlobalCatalog)
+    initializeGlobalCatalog(catalog)
+    portal._setObject(globalCatalogId, catalog)

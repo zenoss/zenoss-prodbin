@@ -66,3 +66,13 @@ class IPathReporter(Interface):
         Return all paths by which this object may be found.
         """
 
+
+class IGlobalCatalog(Interface):
+    """
+    Marker interface for creating global catalog objects
+    """
+    def addIndex(self, name, index):
+        pass
+
+    def addColumn(self, name):
+        pass
