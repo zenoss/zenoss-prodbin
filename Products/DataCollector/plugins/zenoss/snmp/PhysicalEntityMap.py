@@ -43,8 +43,9 @@ class Card(object):
     def __init__(self, i, index=None, descr="", parent=0, slot=0, name="", serial="", manuf="", model=""):
         # Required values
         self.index     = index is None and i or index
-        self.name      = name or descr or str(self.index)
         self.snmpindex = i
+
+        name = name or descr or str(self.index)
 
         # Make sure all values are in ascii'ish range (i.e. <128)
         # These should all be ASCII, but some broken devices
