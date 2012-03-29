@@ -27,6 +27,7 @@ import mimetypes
 import glob
 import tarfile
 import md5
+import tempfile
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -37,7 +38,8 @@ try:
 except ImportError:
     pass
 
-from base64 import b64encode, urlsafe_b64decode
+from base64 import b64encode, urlsafe_b64decode, urlsafe_b64encode
+from urllib import urlencode
 
 from Products.ZenRRD.RRDUtil import fixMissingRRDs
 from Products.ZenUtils.PObjectCache import PObjectCache
@@ -84,7 +86,7 @@ class RenderServer(RRDToolItem):
     security.declareProtected('View', 'render')
     def render(self, gopts=None, start=None, end=None, drange=None, 
                remoteUrl=None, width=None, ftype='PNG', getImage=True, 
-               graphid='', comment=None, ms=None, REQUEST=None, zenrenderRequest=None):
+               graphid='', comment=None, ms=None, remoteHost=None, REQUEST=None, zenrenderRequest=None):
         """
         Render a graph and return it
 
@@ -92,17 +94,17 @@ class RenderServer(RRDToolItem):
         @param start: requested start of data to graph
         @param end: requested start of data to graph
         @param drange: min/max values of the graph
-        @param remoteUrl: if the RRD is not here, where it lives
+        @param remoteUrl: if the RRD is not here, where it lives -DEPRECATED use remoteHost instead
         @param width: size of graphic to create
         @param ftype: file type of graphic (eg PNG)
         @param getImage: return the graph or a script location
         @param graphid: (hopefully) unique identifier of a graph
         @param comment: RRD graph comment
         @param ms: a timestamp used to force IE to reload images
+        @param remoteHost: Forward current RRD request to renderserver at remoteHost. eg http://remotezenrender:8091/
         @param REQUEST: URL-marshalled object containg URL options
         @return: graph or script location
         """
-
         # gopts may have repeated url quoting, possibly from multiple hops thru remote zenhubs
         # extra quoting will create invalid zlib padding characters ('%3D' instead of '=')
         for tries in range(3):
@@ -129,10 +131,22 @@ class RenderServer(RRDToolItem):
         if not graph:
             if not os.path.exists(self.tmpdir):
                 os.makedirs(self.tmpdir, 0750)
-            filename = "%s/graph-%s" % (self.tmpdir,id)
-            if remoteUrl:
+            fd, filename = tempfile.mkstemp(dir=self.tmpdir, suffix=id) 
+            if remoteHost or remoteUrl:
+                if remoteHost:
+                    encodedOpts = urlsafe_b64encode(
+                        zlib.compress('|'.join(gopts), 9))
+                    params = {
+                        'gopts': encodedOpts,
+                        'drange': drange,
+                        'width': width,
+                    }
+                    remote = "%s/render?%s" %(remoteHost, urlencode(params))
+                else:
+                    remote = remoteUrl
                 f = open(filename, "w")
-                f.write(urllib.urlopen(remoteUrl).read())
+                response = urllib.urlopen(remote).read()
+                f.write(response)
                 f.close()
             else:
                 if ftype.lower()=='html':
@@ -287,8 +301,8 @@ class RenderServer(RRDToolItem):
 
         # send the file to Zope
         perfMon = self.dmd.getDmdRoot("Monitors").getPerformanceMonitor(server)
-        if perfMon.renderurl.startswith('http'):
-            remoteUrl = '%s/receiveRRDFiles' % (perfMon.renderurl)
+        if perfMon.getRemoteRenderUrl().startswith('http'):
+            remoteUrl = '%s/receiveRRDFiles' % (perfMon.getRemoteRenderUrl())
             log.debug( "Sending %s to %s ..." % ( tarfilename, remoteUrl ))
             urllib.urlopen(remoteUrl, params)
             
@@ -306,14 +320,14 @@ class RenderServer(RRDToolItem):
         destPerfMon = monitors.getPerformanceMonitor(destServer)
         if srcServer:
             srcPerfMon = monitors.getPerformanceMonitor(srcServer)
-            remoteUrl = '%s/moveRRDFiles?device=%s&destServer=%s' % (srcPerfMon.renderurl, device, destServer)
+            remoteUrl = '%s/moveRRDFiles?device=%s&destServer=%s' % (srcPerfMon.getRemoteRenderUrl(), device, destServer)
             urllib.urlopen(remoteUrl)
 
         else:
             self.packageRRDFiles(device, REQUEST)
             self.sendRRDFiles(device, destServer, REQUEST)
-            if destPerfMon.renderurl.startswith('http'):
-                remoteUrl = '%s/unpackageRRDFiles?device=%s' % (destPerfMon.renderurl, device)
+            if destPerfMon.getRemoteRenderUrl().startswith('http'):
+                remoteUrl = '%s/unpackageRRDFiles?device=%s' % (destPerfMon.getRemoteRenderUrl(), device)
                 urllib.urlopen(remoteUrl)
             else:
                 self.unpackageRRDFiles(device, REQUEST)

@@ -125,7 +125,6 @@ productNames = (
     'OperatingSystem',
     'Organizer',
     'PerformanceConf',
-    'PerformanceView',
     'PingDataSource',
     'PowerSupply',
     'PrintGraphPoint',

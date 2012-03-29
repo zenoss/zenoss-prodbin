@@ -58,17 +58,12 @@ from AccessControl import Permissions as permissions
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Monitor import Monitor
-from Products.PythonScripts.standard import url_quote
 from Products.Jobber.jobs import ShellCommandJob
-from Products.ZenModel.ZenossSecurity import *
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToMany, ToOne
 from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Utils import isXmlRpc
-from Products.ZenUtils.Utils import setupLoggingHeader
 from Products.ZenUtils.Utils import executeCommand
-from Products.ZenUtils.Utils import clearWebLoggingStream
-from Products.ZenModel.Device import manage_createDevice
 from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
@@ -76,6 +71,12 @@ from StatusColor import StatusColor
 
 PERF_ROOT = None
 
+"""
+Prefix for renderurl if zenoss is running a reverse proxy on the master. Prefix will be stripped when appropriate and
+requests for data will be made to the proxy server when appropriate.  Render url should be of the form "rev_proxy:/<path>" eg:
+"rev_proxy:/mypath" where /mypath should be proxied to an appropriate zenrender/renderserver by the installed proxy server
+"""
+REVERSE_PROXY = "rev_proxy:"
 
 def performancePath(target):
     """
@@ -292,14 +293,33 @@ class PerformanceConf(Monitor, StatusColor):
             'gopts': encodedOpts,
             'drange': drange,
             'width': width,
-        }
-        if self.renderurl.startswith('proxy'):
-            url = url.replace('proxy', 'http', 1)
-            params['remoteUrl'] = url
-            return '/zport/RenderServer/render?%s' % (urlencode(params),)
-        else:
-            return '%s/render?%s' % (self.renderurl, urlencode(params),)
+            }
 
+        url = self._getSanitizedRenderURL()
+        if self._isZenossProxied():
+            params['remoteHost'] = self.getRemoteRenderUrl()
+            url = '/zport/RenderServer'
+
+        url = '%s/render?%s' % (url, urlencode(params),)
+        return url
+
+    def _getSanitizedRenderURL(self):
+        """
+        remove any keywords/directives from renderurl.
+        example is "proxy://host:8091" is changed to "http://host:8091"
+        """
+        renderurl = self.renderurl
+        if renderurl.startswith('proxy'):
+            renderurl = renderurl.replace('proxy', 'http')
+        elif renderurl.startswith(REVERSE_PROXY):
+            renderurl = renderurl.replace(REVERSE_PROXY, '', 1)
+        return renderurl
+
+    def _isZenossProxied(self):
+        """
+        Should the render request be proxied by zenoss/zope
+        """
+        return self.renderurl.startswith('proxy')
 
     def performanceGraphUrl(self, context, targetpath, targettype, view, drange):
         """
@@ -324,59 +344,7 @@ class PerformanceConf(Monitor, StatusColor):
         return self.buildGraphUrlFromCommands(gopts, drange)
 
 
-    def performanceMGraphUrl(self, context, targetsmap, view, drange):
-        """
-        Set the full paths for all targts in map and send to view
-
-        @param context: Where you are in the Zope acquisition path
-        @type context: Zope context object
-        @param targetsmap: list of (target, targettype) tuples
-        @type targetsmap: list
-        @param view: view object
-        @type view: Zope object
-        @param drange: date range
-        @type drange: string
-        @return: URL to graph
-        @rtype: string
-        """
-        ntm = []
-        for (target, targettype) in targetsmap:
-            if target.find('.rrd') == -1:
-                target += '.rrd'
-            fulltarget = performancePath(target)
-            ntm.append((fulltarget, targettype))
-        gopts = view.multiGraphOpts(context, ntm)
-        gopts = url_quote('|'.join(gopts))
-        url = '%s/render?gopts=%s&drange=%d' % (self.renderurl, gopts, drange)
-        if self.renderurl.startswith('http'):
-            return '/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d' % (
-                 url_quote(url), gopts, drange)
-        else:
-            return url
-
-
-    def renderCustomUrl(self, gopts, drange):
-        """
-        Return the URL for a list of custom gopts for a graph
-
-        @param gopts: graph options
-        @type gopts: string
-        @param drange: date range
-        @type drange: string
-        @return: URL to graph
-        @rtype: string
-        """
-        gopts = self._fullPerformancePath(gopts)
-        gopts = url_quote('|'.join(gopts))
-        url = '%s/render?gopts=%s&drange=%d' % (self.renderurl, gopts,
-                drange)
-        if self.renderurl.startswith('http'):
-            return '/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d'\
-                 % (url_quote(url), gopts, drange)
-        else:
-            return url
-
-    def _get_webscale_port(self):
+    def _get_reverseproxy_port(self):
         use_ssl = False
         http_port = 8080
         ssl_port = 443
@@ -397,28 +365,46 @@ class PerformanceConf(Monitor, StatusColor):
             return ssl_port
         return http_port
 
-    def _get_webscale_renderurl(self):
+    def _get_reverseproxy_renderurl(self, force=False):
         # DistributedCollector + WebScale scenario
+        if not force and not self.renderurl.startswith(REVERSE_PROXY):
+            raise Exception("Renderurl, %s, should start with %s to be proxied", self.renderurl, REVERSE_PROXY)
         kwargs = dict(fqdn=socket.getfqdn(),
-                      port=self._get_webscale_port(),
-                      path=str(self.renderurl).strip("/") + "/")
+                      port=self._get_reverseproxy_port(),
+                      path=str(self._getSanitizedRenderURL()).strip("/") + "/")
         return 'http://{fqdn}:{port}/{path}'.format(**kwargs)
 
-    def _get_xmlrpc_server(self, allow_none=False):
+    def getRemoteRenderUrl(self):
+        """
+        return the full render url with http protocol prepended if the renderserver is remote.
+        Return empty string otherwise
+        """
         renderurl = str(self.renderurl)
         if renderurl.startswith('proxy'):
             renderurl = self.renderurl.replace('proxy', 'http')
-        if renderurl.startswith('/remote-collector/'):
-            renderurl = self._get_webscale_renderurl()
-        if renderurl.startswith('http'):
+        elif renderurl.startswith(REVERSE_PROXY):
+            renderurl =  self._get_reverseproxy_renderurl()
+        else:
+            # lookup utilities from zenpacks
+            if renderurl.startswith('/remote-collector/'):
+                renderurl =  self._get_reverseproxy_renderurl(force=True)
+
+        if renderurl.lower().startswith('http://'):
+            return renderurl
+        return ''
+
+    def _get_render_server(self, allow_none=False):
+        if self.getRemoteRenderUrl():
+            renderurl = self.getRemoteRenderUrl()
             # Going through the hub or directly to zenrender
+            log.info("Remote renderserver at %s", renderurl)
             url = basicAuthUrl(str(self.renderuser),
                                str(self.renderpass), renderurl)
             server = xmlrpclib.Server(url, allow_none=allow_none)
         else:
             if not self.renderurl:
                 raise KeyError("No render URL is defined")
-            server = self.getObjByPath(renderurl)
+            server = self.getObjByPath(self.renderurl)
         return server
 
     def performanceCustomSummary(self, gopts):
@@ -431,7 +417,7 @@ class PerformanceConf(Monitor, StatusColor):
         @rtype: string
         """
         gopts = self._fullPerformancePath(gopts)
-        server = self._get_xmlrpc_server()
+        server = self._get_render_server()
         return server.summary(gopts)
 
     def fetchValues(self, paths, cf, resolution, start, end=""):
@@ -451,7 +437,7 @@ class PerformanceConf(Monitor, StatusColor):
         @return: values
         @rtype: list
         """
-        server = self._get_xmlrpc_server(allow_none=True)
+        server = self._get_render_server(allow_none=True)
         return server.fetchValues(map(performancePath, paths), cf,
                                   resolution, start, end)
 
@@ -465,7 +451,7 @@ class PerformanceConf(Monitor, StatusColor):
         @return: values
         @rtype: list
         """
-        server = self._get_xmlrpc_server()
+        server = self._get_render_server()
         return server.currentValues(map(performancePath, paths))
 
 
@@ -546,19 +532,17 @@ class PerformanceConf(Monitor, StatusColor):
         @type datapoint: string
         """
         remoteUrl = None
-        renderurl = self.renderurl
-        if renderurl.startswith('/remote-collector/'):
-            renderurl = self._get_webscale_renderurl()
+        renderurl = self.getRemoteRenderUrl() or self._getSanitizedRenderURL()
         if renderurl.startswith('http'):
             if datapoint:
                 remoteUrl = '%s/deleteRRDFiles?device=%s&datapoint=%s' % (
-                     self.renderurl, device, datapoint)
+                     renderurl, device, datapoint)
             elif datasource:
                 remoteUrl = '%s/deleteRRDFiles?device=%s&datasource=%s' % (
-                     self.renderurl, device, datasource)
+                     renderurl, device, datasource)
             else:
                 remoteUrl = '%s/deleteRRDFiles?device=%s' % (
-                     self.renderurl, device)
+                     renderurl, device)
         rs = self.getDmd().getParentNode().RenderServer
         rs.deleteRRDFiles(device, datasource, datapoint, remoteUrl)
 
@@ -628,7 +612,7 @@ class PerformanceConf(Monitor, StatusColor):
 
         # Check to see if we got passed in an IPv6 address
         try:
-            ipv6addr = IPAddress(deviceName)
+            IPAddress(deviceName)
             if not title:
                 title = deviceName
             deviceName = ipwrap(deviceName)
