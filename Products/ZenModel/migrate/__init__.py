@@ -240,4 +240,3 @@ import addIgnoreParametersWhenModeling
 import zenmodelerModeledDevices
 import setDefaultsOnEmailNotifications
 import fixEmailNotificationClearSubjectFormat
-import addSelfMonitorGraphs
