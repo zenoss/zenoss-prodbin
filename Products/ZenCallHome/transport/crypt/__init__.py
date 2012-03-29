@@ -22,11 +22,17 @@ logger = logging.getLogger('zen.callhome')
 CRYPTPATH = zenPath('Products','ZenCallHome','transport','crypt')
 GPGCMD = 'gpg --batch --no-tty --quiet '
 
+def _getEnv():
+    env = os.environ.copy()
+    envi.pop('GPG_AGENT_INFO', None)
+    return env
+
 def encrypt(stringToEncrypt, publicKey):
     cmd = GPGCMD + '--keyring %s --trustdb-name %s -e -r %s' % \
           (CRYPTPATH + '/pubring.gpg', CRYPTPATH + '/trustdb.gpg', publicKey)
+
     
-    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
+    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, env=_getEnv(),
                          stdout=subprocess.PIPE, stderr=open(os.devnull))
     out = p.communicate(input=stringToEncrypt)[0]
     
@@ -38,7 +44,7 @@ def encrypt(stringToEncrypt, publicKey):
 def decrypt(stringToDecrypt, symKey):
     cmd = GPGCMD + '--passphrase %s -d' % symKey
     
-    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
+    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, env=_getEnv(),
                          stdout=subprocess.PIPE, stderr=open(os.devnull))
     out = p.communicate(input=stringToDecrypt)[0]
     
