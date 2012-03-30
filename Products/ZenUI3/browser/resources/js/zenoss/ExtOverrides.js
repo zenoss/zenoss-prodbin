@@ -251,6 +251,27 @@
        percentageFromEdge: 0.15
 
    }); 
+   
+   /**
+    * workaround for scrollbars missing in IE. IE ignores the parent size between parent and child
+    * so we end up with the part that should have scrollbars the same size as the child, thus
+    * no scrollbars. This normalizes the sizes between elements in IE only.
+    **/
+   Ext.override(Ext.form.ComboBox, {
+    onExpand: function() {
+        var me = this,
+            picker = this.getPicker();
+
+        if(Ext.isIE){
+            var parent, child = Ext.DomQuery.selectNode('#'+picker.id+' .list-ct'); 
+            Ext.defer(function(){ // defer a bit so the grandpaw will have a height 
+                    grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
+                    child.style.cssText = 'width:'+me.width+'px; height:'+grandpaw.style.height+';overflow:auto;';
+                }, 100, me);
+        }
+        
+    }   
+   });
     
     
 }());
