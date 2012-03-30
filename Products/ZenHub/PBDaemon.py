@@ -193,7 +193,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         
     def getServiceNow(self, svcName):
         if not svcName in self.services:
-            self.log.warning('No service %s named: ZenHub may be disconnected' % svcName)
+            self.log.warning('No service named %r: ZenHub may be disconnected' % svcName)
         return self.services.get(svcName, None) or FakeRemote()
 
 
