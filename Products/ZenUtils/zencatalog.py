@@ -22,10 +22,12 @@ from OFS.ObjectManager import ObjectManager
 from ZODB.POSException import ConflictError
 from ZEO.Exceptions import ClientDisconnected
 from ZEO.zrpc.error import DisconnectedError
+from zope.component import getUtility
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.Zuul.catalog.global_catalog import createGlobalCatalog, globalCatalogId
+from Products.Zuul.catalog.global_catalog import globalCatalogId
+from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 
 log = logging.getLogger("zen.Catalog")
 
@@ -143,7 +145,7 @@ class ZenCatalog(ZCmdBase):
             d.addBoth(stop)
 
         if not self.options.createcatalog and not self.options.reindex:
-            self.parser.error("Must use --createcatalog or --reindex") 
+            self.parser.error("Must use one of --createcatalog, --reindex")
         reactor.callWhenRunning(main)
         reactor.run()
 
@@ -172,7 +174,8 @@ class ZenCatalog(ZCmdBase):
             # Create the catalog
             log.debug("Creating global catalog")
             zport = self.dmd.getPhysicalRoot().zport
-            createGlobalCatalog(zport)
+            factory = getUtility(IGlobalCatalogFactory)
+            factory.create(zport)
             catalog = self._getCatalog(zport)
             transaction.commit()
         else:

@@ -12,7 +12,9 @@
 ###########################################################################
 
 import Migrate
-from Products.Zuul.catalog.global_catalog import createGlobalCatalog
+
+from zope.component import getUtility
+from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 
 class GlobalCatalog(Migrate.Step):
     version = Migrate.Version(3, 0, 0)
@@ -28,7 +30,8 @@ class GlobalCatalog(Migrate.Step):
         if getattr(zport, 'global_catalog', None) is None:
 
             # Create the catalog
-            createGlobalCatalog(zport)
+            factory = getUtility(IGlobalCatalogFactory)
+            factory.create(zport)
 
 
 GlobalCatalog()

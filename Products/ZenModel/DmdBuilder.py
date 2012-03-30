@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+
 __doc__="""DmdBuilder
 DmdBuilder builds out the core containment structure used in the dmd database.
 
@@ -23,6 +24,7 @@ Services
 Systems
 """
 
+from zope.component import getUtility
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceGroup import DeviceGroup
@@ -57,7 +59,7 @@ from Products.Jobber.manager import manage_addJobManager
 from Products.ZenModel.ZenPackPersistence import CreateZenPackPersistenceCatalog
 from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog
 from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
-from Products.Zuul.catalog.global_catalog import createGlobalCatalog
+from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 from Products.ZenModel.ZenossSecurity import \
      MANAGER_ROLE, ZEN_MANAGER_ROLE, ZEN_USER_ROLE, OWNER_ROLE
 from Products.ZenModel.NotificationSubscription import manage_addNotificationSubscriptionManager
@@ -159,7 +161,9 @@ class DmdBuilder(object):
         ZenossPortlets.register_default_portlets(zpmgr)
 
     def build(self):
-        createGlobalCatalog(self.portal)
+        factory = getUtility(IGlobalCatalogFactory)
+        factory.create(self.portal)
+
         self.buildRoots()
         self.buildMonitors()
         self.buildUserCommands()

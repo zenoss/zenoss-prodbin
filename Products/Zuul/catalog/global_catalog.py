@@ -17,7 +17,7 @@ from itertools import ifilterfalse, chain
 import zExceptions
 from zope.component import getUtility
 from zope.interface import providedBy, ro, implements
-from Products.Zuul.catalog.interfaces import IGlobalCatalog
+from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 from zope.component import adapts
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
@@ -322,7 +322,6 @@ class IpInterfaceWrapper(ComponentWrapper):
 
 
 class GlobalCatalog(ZCatalog):
-    implements(IGlobalCatalog)
 
     id = globalCatalogId
 
@@ -391,8 +390,8 @@ class GlobalCatalog(ZCatalog):
         """
         return self._catalog.addIndex(id, index)
 
-def initializeGlobalCatalog(catalog):
 
+def initializeGlobalCatalog(catalog):
     catalog.addIndex('id', makeCaseSensitiveFieldIndex('id'))
     catalog.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
     catalog.addIndex('meta_type', makeCaseSensitiveFieldIndex('meta_type'))
@@ -418,7 +417,14 @@ def initializeGlobalCatalog(catalog):
     catalog.addColumn('searchIcon')
     catalog.addColumn('searchExcerpt')
 
-def createGlobalCatalog(portal):
-    catalog = getUtility(IGlobalCatalog)
-    initializeGlobalCatalog(catalog)
-    portal._setObject(globalCatalogId, catalog)
+
+class GlobalCatalogFactory(object):
+    implements(IGlobalCatalogFactory)
+
+    def create(self, portal):
+        catalog = GlobalCatalog()
+        self.setupCatalog(portal, catalog)
+
+    def setupCatalog(self, portal, catalog):
+        initializeGlobalCatalog(catalog)
+        portal._setObject(globalCatalogId, catalog)

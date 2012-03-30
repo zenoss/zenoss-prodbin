@@ -85,8 +85,8 @@
     <subscriber handler=".events.onOrganizerBeforeDelete"/>
     <subscriber handler=".events.onTreeSpanningComponentAfterAddOrMove"/>
 
-    <utility factory="Products.Zuul.catalog.global_catalog.GlobalCatalog"
-        provides="Products.Zuul.catalog.interfaces.IGlobalCatalog"
+    <utility factory="Products.Zuul.catalog.global_catalog.GlobalCatalogFactory"
+        provides="Products.Zuul.catalog.interfaces.IGlobalCatalogFactory"
         />
 
 </configure>

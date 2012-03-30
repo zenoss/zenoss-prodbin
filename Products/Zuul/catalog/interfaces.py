@@ -67,12 +67,11 @@ class IPathReporter(Interface):
         """
 
 
-class IGlobalCatalog(Interface):
-    """
-    Marker interface for creating global catalog objects
-    """
-    def addIndex(self, name, index):
-        pass
+class IGlobalCatalogFactory(Interface):
+    def create(portal_object):
+        """
+        Creates and sets the global catalog
 
-    def addColumn(self, name):
-        pass
+        @param portal_object: The portal object on which to create the global catalog.
+        @type portal_object: zport
+        """
