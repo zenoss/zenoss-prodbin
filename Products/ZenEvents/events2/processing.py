@@ -173,10 +173,12 @@ class Manager(object):
                 pass
 
         querySet = Or(Eq('id', identifier),
-                      Eq('name', identifier),
-                      Eq('ipAddress', ipAddress))
+                      Eq('name', identifier))
+        if ipAddress:
+            querySet.addSubquery(Eq('ipAddress', ipAddress))
 
-        results = cat.search(types=Device, query=querySet, limit=1, filterPermissions=False)
+        results = cat.search(types=Device, query=querySet, limit=1, filterPermissions=False,
+            uses_count=False)
 
         if results.total:
             return results.results.next().uuid
@@ -185,7 +187,8 @@ class Manager(object):
             querySet = Eq('ipAddress', ipAddress)
 
             # search the components
-            results = cat.search(types=DeviceComponent, query=querySet, limit=1, filterPermissions=False)
+            results = cat.search(types=DeviceComponent, query=querySet, limit=1, filterPermissions=False,
+                uses_count=False)
             components = list(results)
             if components:
                 return self.getElementUuid(
