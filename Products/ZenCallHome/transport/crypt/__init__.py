@@ -24,7 +24,7 @@ GPGCMD = 'gpg --batch --no-tty --quiet '
 
 def _getEnv():
     env = os.environ.copy()
-    envi.pop('GPG_AGENT_INFO', None)
+    env.pop('GPG_AGENT_INFO', None)
     return env
 
 def encrypt(stringToEncrypt, publicKey):
