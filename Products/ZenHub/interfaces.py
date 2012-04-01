@@ -114,3 +114,11 @@ class IInvalidationFilter(Interface):
         L{FILTER_CONTINUE}).
         """
 
+class IInvalidationOid(Interface):
+    """
+    Allows an invalidation OID to be changed to a different OID or dropped
+    """
+    def tranformOid(self, oid):
+        """
+        Given an OID, return the same oid, a different one or None.
+        """

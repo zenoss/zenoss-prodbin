@@ -54,7 +54,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenHub.services.RenderConfig import RenderConfig
-from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent
+from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
 
@@ -397,7 +397,13 @@ class ZenHub(ZCmdBase):
                                 included = (result == FILTER_INCLUDE)
                                 break
                         if included:
-                            yield oid
+                            oid = self._transformOid(oid, obj)
+                            if oid:
+                                yield oid
+
+    def _transformOid(self, oid, obj):
+        oidTransform = IInvalidationOid(obj)
+        return oidTransform.transformOid(oid)
 
     def doProcessQueue(self):
         """
