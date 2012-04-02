@@ -275,7 +275,8 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
             o.monitorDevice() and "monitored" or "unmonitored",
             ) \
             + tuple(o.getSystemNames()) + tuple(o.getDeviceGroupNames()) \
-            + tuple(ipAddresses)
+            + tuple(ipAddresses) \
+            + ( self._context.snmpSysName, self._context.snmpLocation)
 
     def searchExcerpt(self):
         o = self._context
