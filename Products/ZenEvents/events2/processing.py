@@ -183,7 +183,7 @@ class Manager(object):
         if results.total:
             return results.results.next().uuid
 
-        elif ipAddress is not None:
+        elif ipAddress:
             querySet = Eq('ipAddress', ipAddress)
 
             # search the components
