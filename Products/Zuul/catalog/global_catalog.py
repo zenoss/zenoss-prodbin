@@ -428,3 +428,6 @@ class GlobalCatalogFactory(object):
     def setupCatalog(self, portal, catalog):
         initializeGlobalCatalog(catalog)
         portal._setObject(globalCatalogId, catalog)
+
+    def remove(self, portal):
+        portal._delObject(globalCatalogId)

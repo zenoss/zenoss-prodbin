@@ -166,15 +166,15 @@ class ZenCatalog(ZCmdBase):
 
 
         catalog = self._getCatalog(zport)
+        factory = getUtility(IGlobalCatalogFactory)
         if self.options.forceindex and catalog:
-            zport._delObject(globalCatalogId)
+            factory.remove(zport)
             catalog = self._getCatalog(zport)
 
         if catalog is None:
             # Create the catalog
             log.debug("Creating global catalog")
             zport = self.dmd.getPhysicalRoot().zport
-            factory = getUtility(IGlobalCatalogFactory)
             factory.create(zport)
             catalog = self._getCatalog(zport)
             transaction.commit()

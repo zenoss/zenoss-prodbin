@@ -75,3 +75,11 @@ class IGlobalCatalogFactory(Interface):
         @param portal_object: The portal object on which to create the global catalog.
         @type portal_object: zport
         """
+
+    def remove(portal_object):
+        """
+        Removes the global catalog.
+
+        @param portal_object: The portal object on which to remove the global catalog.
+        @type portal_object: zport
+        """
