@@ -245,8 +245,21 @@ class WorkerInterceptor(pb.Referenceable):
         # hide the types in the args: subverting the jelly protection mechanism,
         # but the types just passed through and the worker may not have loaded
         # the required service before we try passing types for that service
-        args = pickle.dumps( (args, kw) )
-        result = self.zenhub.deferToWorker( (svc, instance, message, args) )
+        # PB has a 640k limit, not bytes but len of sequences. When args are
+        # pickled the resulting string may be larger than 640k, split into
+        # 100k chunks
+        pickledArgs = pickle.dumps( (args, kw) )
+        chunkedArgs=[]
+        chunkSize = 102400
+        while len(pickledArgs) > chunkSize:
+            x = pickledArgs[:chunkSize]
+            chunkedArgs.append(x)
+            pickledArgs = pickledArgs[chunkSize:]
+        else:
+            #add any leftovers
+            chunkedArgs.append(pickledArgs)
+
+        result = self.zenhub.deferToWorker( (svc, instance, message, chunkedArgs) )
         return broker.serialize(result, self.perspective)
 
     def __getattr__(self, attr):

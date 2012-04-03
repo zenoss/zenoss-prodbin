@@ -110,7 +110,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         service = self._getService(service, instance)
         m = getattr(service, 'remote_' + method)
         # now that the service is loaded, we can unpack the arguments
-        args, kw = pickle.loads(args)
+        joinedArgs = "".join(args)
+        args, kw = pickle.loads(joinedArgs)
         def runOnce():
             self.syncdb()
             res = m(*args, **kw)
