@@ -1811,3 +1811,17 @@ def atomicWrite(filename, data, raiseException=True, createDir=False):
         if raiseException:
             raise ex
     return ex
+
+def setLogLevel(level=logging.DEBUG):
+    """
+    Change the logging level to allow for more insight into the
+    in-flight mechanics of Zenoss.
+
+    @parameter level: logging level at which messages display (eg logging.INFO)
+    @type level: integer
+    """
+    log = logging.getLogger()
+    log.setLevel(level)
+    for handler in log.handlers:
+        if isinstance(handler, logging.StreamHandler):
+            handler.setLevel(level)

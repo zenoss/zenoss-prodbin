@@ -27,7 +27,10 @@ import zope.component
 from zope.traversing.adapters import DefaultTraversable
 from Products.Five import zcml
 
-from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT, OptionValueError, BadOptionError, Values, Option
+from optparse import (
+        OptionParser, OptionGroup, Values, Option,
+        SUPPRESS_HELP, NO_DEFAULT, OptionValueError, BadOptionError,
+    )
 from urllib import quote
 
 # There is a nasty incompatibility between pkg_resources and twisted.
@@ -159,27 +162,27 @@ class CmdBase(object):
         """
         self.buildParser()
         if self.doesLogging:
-            self.parser.add_option('-v', '--logseverity',
-                        dest='logseverity',
-                        default='INFO',
-                        type='loglevel',
-                        help='Logging severity threshold',
-                        )
-
-            self.parser.add_option('--logpath',dest='logpath',
-                        help='Override the default logging path')
-
-            self.parser.add_option('--maxlogsize',
-                        dest='maxLogKiloBytes',
-                        help='Max size of log file in KB; default 10240',
-                        default=10240,
-                        type='int')
-
-            self.parser.add_option('--maxbackuplogs',
-                        dest='maxBackupLogs',
-                        help='Max number of back up log files; default 3',
-                        default=3,
-                        type='int')
+            group = OptionGroup(self.parser, "Logging Options")
+            group.add_option(
+                '-v', '--logseverity',
+                dest='logseverity', default='INFO', type='loglevel',
+                help='Logging severity threshold',
+            )
+            group.add_option(
+                '--logpath', dest='logpath',
+                help='Override the default logging path'
+            )
+            group.add_option(
+                '--maxlogsize',
+                dest='maxLogKiloBytes', default=10240, type='int',
+                help='Max size of log file in KB; default 10240',
+            )
+            group.add_option(
+                '--maxbackuplogs',
+                dest='maxBackupLogs', default=3, type='int',
+                help='Max number of back up log files; default 3',
+            )
+            self.parser.add_option_group(group)
 
         self.parser.add_option("-C", "--configfile",
                     dest="configfile",

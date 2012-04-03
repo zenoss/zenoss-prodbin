@@ -104,6 +104,7 @@ def _customStuff():
     import socket
     from transaction import commit
     from pprint import pprint
+    from Products.ZenUtils.Utils import setLogLevel
     from Products.Zuul import getFacade, listFacades
 
     # Connect to the database, set everything up
@@ -222,20 +223,6 @@ def _customStuff():
                     print i, readline.get_history_item(i)
                 else:
                     print readline.get_history_item(i)
-
-    def setLogLevel(level=10):
-        """
-        Change the logging level to allow for more insight into the
-        in-flight mechanics of Zenoss.
-
-        @parameter level: logging level at which messages display (eg logging.INFO)
-        @type level: integer
-        """
-        log = logging.getLogger()
-        log.setLevel(level)
-        for handler in log.handlers:
-            if isinstance(handler, logging.StreamHandler):
-                handler.setLevel(level)
 
     def sh(cmd, interactive=True):
         """

@@ -37,6 +37,7 @@ log = logging.getLogger('zen.ServiceTester')
 
 import Globals
 
+from Products.ZenUtils.Utils import setLogLevel
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 
@@ -47,7 +48,7 @@ class ServiceTester(ZCmdBase):
         ZCmdBase.__init__(self, False, False, False)
         # It's super annoying to try to figure out how to get the
         # zenhub service to drop into debug mode.  Use the following.
-        self.setLogLevel(10)
+        setLogLevel(logging.DEBUG)
         logging.basicConfig()
         self.service = Klass(self.dmd, self.options.monitor)
 
@@ -57,20 +58,6 @@ class ServiceTester(ZCmdBase):
                                help="Specify the collector to collect against.")
         self.parser.add_option('-d', '--device', dest='device',
                                help="Show the configs for a single device")
-
-    def setLogLevel(self, level=10):
-        """
-        Change the logging level to allow for more insight into the
-        in-flight mechanics of Zenoss.
-
-        @parameter level: logging level at which messages display (eg logging.INFO)
-        @type level: integer
-        """
-        rootlog = logging.getLogger()
-        rootlog.setLevel(level)
-        for handler in rootlog.handlers:
-            if isinstance(handler, logging.StreamHandler):
-                handler.setLevel(level)
 
     def pprint(self, arg):
         pprint(arg)
