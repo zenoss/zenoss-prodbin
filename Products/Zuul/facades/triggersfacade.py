@@ -709,10 +709,15 @@ class NotificationPermissionManager(object):
         notification.manage_delLocalRoles(removeUserIds)
 
     def updatePermissions(self, guidManager, notification):
-       # then add local roles back for all the users/groups that we just added
+        # then add local roles back for all the users/groups that we just added
+        recipientsForRemoval = {}
         for recipient in notification.recipients:
             if recipient['type'] != 'manual':
                 userOrGroup = guidManager.getObject(recipient['value'])
+                if not userOrGroup:
+                    recipientsForRemoval[recipient['value']]= recipient
+                    log.info('Recipient %s not found: it may have been deleted. This recipient will be removed from the notification %s.', recipient['label'], notification.id)
+                    continue
 
                 notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_VIEW_ROLE])
                 log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_VIEW_ROLE, userOrGroup.id))
@@ -726,6 +731,9 @@ class NotificationPermissionManager(object):
                 if recipient.get('manage'):
                     notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE])
                     log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, userOrGroup.id))
+
+        notification.recipients = [recip for recip in notification.recipients if recip['value'] not in recipientsForRemoval]
+
 
     def setupNotification(self, notification):
         # Permissions are managed here because managing these default permissions

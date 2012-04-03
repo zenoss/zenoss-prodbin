@@ -194,8 +194,9 @@ class TargetableAction(object):
             if recipient['type'] in ['group', 'user']:
                 guid = recipient['value']
                 target_obj = self.guidManager.getObject(guid)
-                for target in self.getActionableTargets(target_obj):
-                    targets.add(target)
+                if target_obj:
+                    for target in self.getActionableTargets(target_obj):
+                        targets.add(target)
             else:
                 targets.add(recipient['value'])
         return targets
