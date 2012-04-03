@@ -10,11 +10,6 @@
   Events
 </tal:block>
 
-<tal:block metal:fill-slot="script_beforeLayout">
-<link rel="stylesheet"
-    href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
-
-</tal:block>
 
 <tal:block metal:fill-slot="script_layout">
 

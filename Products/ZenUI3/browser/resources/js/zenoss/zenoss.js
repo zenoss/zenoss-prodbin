@@ -400,7 +400,7 @@ Ext.define('Zenoss.SingleRowSelectionModel', {
 
 /**
  * @class Zenoss.ExtraHooksSelectionModel
- * @extends Ext.ux.grid.livegrid.RowSelectionModel
+ * @extends Zenoss.SingleRowSelectionModel
  * A selection model that fires extra events.
  */
 Ext.define("Zenoss.ExtraHooksSelectionModel", {
@@ -846,12 +846,12 @@ Ext.define("EventActionManager", {
                     }
                     me.fireEvent('updateRequestIncomplete', {data:data});
                 }else {
-                    if(me.dialog.isVisible()){   
+                    if(me.dialog.isVisible()){
                         // this is still flagged as being a large request so shows the dialog
                         // but there is no next_request, so just show a one pass progress
                         me.dialog.progressBar.wait({
-                            interval: 120, 
-                            duration: 1200, 
+                            interval: 120,
+                            duration: 1200,
                             increment: 10,
                             text: '',
                             scope: this,

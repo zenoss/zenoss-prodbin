@@ -54,8 +54,6 @@
 })();
 </script>
 <script type="text/javascript" src="/++resource++extjs/ext-all.js"></script>
-<script type="text/javascript"
-        src="/++resource++zenui/js/livegrid/livegrid-all.js"></script>
 <script type="text/javascript" src="/++resource++zenui/js/zenoss.js"></script>
 <script type="text/javascript" src="zenoss-all.js"></script>
 <style>#contentPane{padding:0}</style>
@@ -103,4 +101,3 @@ Ext.onReady(function(){
 </tal:block>
 </tal:block>
 </tal:block>
-

@@ -54,6 +54,8 @@ class AutoGCObjectReader(ObjectReader):
 
     def garbage_collect_cache(self):
         self._cache.incrgc()
+        # self._conn.cacheGC()
+        # self._conn.cacheMinimize()
         transaction.abort()
         self._counter = 0
 
@@ -118,4 +120,3 @@ def gc_cache_every_decorator(chunk_size=1000, db=None):
                 return f(*args, **kwargs)
         return inner
     return decorator
-

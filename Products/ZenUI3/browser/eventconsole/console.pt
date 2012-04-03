@@ -11,10 +11,7 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_beforeLayout">
-<link rel="stylesheet"
-    href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
-<script type="text/javascript"
-    src="/++resource++zenui/js/livegrid/livegrid-all-debug.js"></script>
+
 <script src="extdirect.js"></script>
 </tal:block>
 

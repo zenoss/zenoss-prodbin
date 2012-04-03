@@ -22,7 +22,6 @@
         <tal:block metal:define-slot="head-local"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
         <link rel="stylesheet" type="text/css" href="/++resource++extjs/resources/css/ext-all.css" />
-        <link rel="stylesheet" href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />

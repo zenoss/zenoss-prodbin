@@ -1,13 +1,11 @@
 <html>
     <head>
-        <link rel="stylesheet" type="text/css" 
+        <link rel="stylesheet" type="text/css"
             href="/++resource++extjs/resources/css/ext-all.css" />
-        <link rel="stylesheet" type="text/css" 
+        <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/xtheme-zenoss.css" />
-        <link rel="stylesheet" type="text/css" 
+        <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/zenoss.css" />
-        <link rel="stylesheet"
-            href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
         <tal:block tal:content="structure provider:head-extra"/>
@@ -21,10 +19,10 @@
 </script>
 
 <script tal:content="python: 'var EVENT_ID = ' + '\'' + request.form['evid'].replace('\'', '') + '\';'">
-</script> 
-    
+</script>
+
 <style>
-#evdetail-tools { display:none; } 
+#evdetail-tools { display:none; }
 </style>
 <script>
 Ext.onReady(function(){

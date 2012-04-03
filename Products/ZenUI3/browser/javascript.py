@@ -92,16 +92,6 @@ class ExtAllJs(JavaScriptSrcViewlet):
             self.path = "/++resource++extjs/ext-all.js"
 
 
-class LiveGridJs(JavaScriptSrcViewlet):
-    zope.interface.implements(IJavaScriptSrcViewlet)
-
-    def update(self):
-        if Globals.DevelopmentMode:
-            self.path = "/++resource++zenui/js/livegrid/livegrid-all-debug.js"
-        else:
-            self.path = "/++resource++zenui/js/livegrid/livegrid-all.js"
-
-
 class FireFoxExtCompat(JavaScriptSnippet):
 
     def snippet(self):

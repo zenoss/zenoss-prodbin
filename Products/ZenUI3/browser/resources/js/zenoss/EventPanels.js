@@ -270,7 +270,7 @@
                 pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
                 matches = grid.view.getContext().match(pat),
                 st, url;
-                
+
                 // on the device page
                 if (matches) {
                     opts.device = matches[1];
@@ -312,7 +312,7 @@
                 tbarItems = config.tbarItems || [];
             if (!gridId) {
                 throw ("Event console tool bar did not receive a grid id");
-            }          
+            }
             configureMenuItems = [{
                 id: 'rowcolors_checkitem',
                 xtype: 'menucheckitem',
@@ -526,7 +526,7 @@
                     var grid = Ext.getCmp(gridId);
                     if(Ext.get('event_panel')){
                         grid = Ext.getCmp('event_panel');
-                    }                   
+                    }
                     if (grid) {
                         return grid.getSelectionParameters();
                     }
@@ -562,7 +562,7 @@
                         this.setContext(context);
                     },
                     scope: this
-                },                 
+                },
                 items: [
                     Zenoss.events.EventPanelToolbarActions.acknowledge,
                     Zenoss.events.EventPanelToolbarActions.close,
@@ -844,7 +844,7 @@
      * @class Zenoss.EventsJsonReader
      * @extends Zenoss.ExtraHooksSelectionModel
      *
-     * Subclass the LiveGrid JsonReader so that we can override how data is fetched
+     * Subclass the Ext JsonReader so that we can override how data is fetched
      * from a record that is returned by the router. Custom details use keys that
      * contain dots (zenpacks.foo.bar.baz) so we need to force key-method access.
      */
@@ -1069,7 +1069,7 @@
 
     /**
      * @class Zenoss.SimpleEventGridPanel
-     * @extends Ext.ux.grid.livegrid.GridPanel
+     * @extends Zenoss.events.Grid
      * Shows events in a grid panel similar to that on the event console.
      * Fixed columns.
          * @constructor
@@ -1179,7 +1179,7 @@
         alias: ['widget.EventGridPanel'],
         border:false,
         constructor: function(config) {
-            var evtGrid = this;           
+            var evtGrid = this;
             Ext.applyIf(config, {
                 tbar: new Zenoss.EventConsoleTBar({
                     gridId: config.id,

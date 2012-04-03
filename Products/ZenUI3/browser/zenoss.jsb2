@@ -205,18 +205,6 @@
             "text": "organizerdropdown.js",
             "path": "resources/js/zenoss/form/"
         },{
-            "text": "CardLayout.js",
-            "path": "resources/js/wizard/"
-        },{
-            "text": "Wizard.js",
-            "path": "resources/js/wizard/"
-        },{
-            "text": "Header.js",
-            "path": "resources/js/wizard/"
-        },{
-            "text": "Card.js",
-            "path": "resources/js/wizard/"
-        },{
             "text": "modelerPluginPanel.js",
             "path": "resources/js/zenoss/form/"
         },{
