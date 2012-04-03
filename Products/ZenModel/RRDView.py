@@ -65,23 +65,30 @@ class RRDView(object):
                                                   template, graph, drange)
 
     def cacheRRDValue(self, dsname, default = "Unknown"):
-        "read an RRDValue with and cache it"
+        """
+        Cache RRD values for up to CACHE_TIME seconds.
+        """
+        # Notes:
+        #  * _cache takes care of the time-limited-offer bits
+        #  * rrdcached does cache results, but the first query
+        #    could potentially cause a flush()
+        #  * Remote collectors need this call to prevent extra
+        #    calls across the network
         filename = self.getRRDFileName(dsname)
-        value = None
         try:
             value = _cache[filename]
-            if value is None:
-                return default
         except KeyError:
-            pass
-        try:
-            value = self.getRRDValue(dsname)
-        except Exception:
-            log.error('Unable to cache value for %s', dsname)
-        _cache[filename] = value
-        if value is None:
-            return default
-        return value
+            try:
+                # Grab rrdcached value locally or from network
+                value = self.getRRDValue(dsname)
+            except Exception, ex:
+                # Generally a remote collector issue
+                # We'll cache this for a minute and then try again
+                value = None
+                log.error('Unable to get RRD value for %s: %s', dsname, ex)
+            _cache[filename] = value
+        
+        return value if value is not None else default
 
 
     def getRRDValue(self, dsname, start=None, end=None, function="LAST",
@@ -94,35 +101,27 @@ class RRDView(object):
         if results and dsname in results:
             return results[dsname]
 
-
-    def getRRDDataPoints(self):
-        result = []
-        for t in self.getRRDTemplates():
-            result += t.getRRDDataPoints()
-        return result
-
-
-    def getRRDDataPoint(self, dpName):
-        result = None
+    def _getRRDDataPointsGen(self):
         for t in self.getRRDTemplates():
             for dp in t.getRRDDataPoints():
-                if dp.name() == dpName:
-                    result = dp
-                    break
-        return result
+                yield dp
 
+    def getRRDDataPoints(self):
+        return list(self._getRRDDataPointsGen())
+
+    def getRRDDataPoint(self, dpName):
+        return next((dp for dp in self._getRRDDataPointsGen() 
+                                    if dp.name() == dpName), None)
 
     def fetchRRDValues(self, dpnames, cf, resolution, start, end=""):
-        paths = []
-        for dpname in dpnames:
-            paths.append(self.getRRDFileName(dpname))
+        paths = [self.getRRDFileName(dpname) for dpname in dpnames]
         return self.device().getPerformanceServer().fetchValues(paths,
             cf, resolution, start, end)
 
 
     def fetchRRDValue(self, dpname, cf, resolution, start, end=""):
         r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end)
-        if r is not None:
+        if r:
             return r[0]
         return None
 
@@ -136,12 +135,11 @@ class RRDView(object):
             if not start:
                 start = time.time() - self.defaultDateRange
             gopts = []
-            names = list(dsnames[:])
+            names = dsnames[:]
             for dsname in dsnames:
-                for dp in self.getRRDDataPoints():
-                    if dp.name().find(dsname) > -1:
-                        break
-                else:
+                dp = next((d for d in self._getRRDDataPointsGen() 
+                                        if dsname in d.name()), None)
+                if dp is None:
                     names.remove(dsname)
                     continue
                 filename = self.getRRDFileName(dp.name())
@@ -186,11 +184,11 @@ class RRDView(object):
                 end = time.time()
             gopts = []
             for name in points:
-                for dp in self.getRRDDataPoints():
-                    if dp.name().find(name) > -1:
-                        break
-                else:
+                dp = next((dp_ for dp_ in self._getRRDDataPointsGen() 
+                                    if name in dp_.name()), None)
+                if dp is None:
                     raise RRDViewError("Unable to find data point %s" % name)
+                    
                 filename = self.getRRDFileName(dp.name())
                 rpn = str(dp.rpn)
                 if rpn:
@@ -231,12 +229,10 @@ class RRDView(object):
     def getGraphDef(self, graphId):
         ''' Fetch a graph by id.  if not found return None
         '''
-        for t in self.getRRDTemplates():
-            for g in t.getGraphDefs():
-                if g.id == graphId:
-                    return g
-        return None
-
+        return next((g for t in self.getRRDTemplates() 
+                                for g in t.getGraphDefs() 
+                                    if g.id == graphId), 
+                         None)
 
     def getRRDTemplateName(self):
         """Return the target type name of this component.  By default meta_type.
@@ -247,12 +243,9 @@ class RRDView(object):
 
     def getRRDFileName(self, dsname):
         """Look up an rrd file based on its data point name"""
-        names = [p.name() for p in self.getRRDDataPoints()
-                 if p.name().endswith(dsname)]
-        if names:
-            return '%s/%s.rrd' % (self.rrdPath(), names[0])
-        else:
-            return '%s/%s.rrd' % (self.rrdPath(), dsname)
+        nm = next((p.name() for p in self._getRRDDataPointsGen() 
+                            if p.name().endswith(dsname)), dsname)
+        return '%s/%s.rrd' % (self.rrdPath(), nm)
 
 
     def getRRDNames(self):
@@ -303,7 +296,6 @@ class RRDView(object):
                 threshdef.append(thresh.getConfig(self))
         return result
 
-
     def rrdPath(self):
         return GetRRDPath(self)
 
@@ -321,10 +313,8 @@ class RRDView(object):
         for template in self.getRRDTemplates():
             # if the template refers to a data source name of the right type
             # include it
-            names = []
-            for ds in template.getRRDDataSources(dsType):
-                for dp in ds.datapoints():
-                    names.append(dp.name())
+            names = set(dp.name() for ds in template.getRRDDataSources(dsType) 
+                                for dp in ds.datapoints())
             for threshold in template.thresholds():
                 if not threshold.enabled: continue
                 for ds in threshold.dsnames:

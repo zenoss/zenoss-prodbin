@@ -15,6 +15,7 @@ import threading
 import time
 from functools import wraps
 
+_POP_DEFAULT=object()
 
 class Timed(object):
     "Store elements in a map for the given time"
@@ -61,7 +62,15 @@ class Timed(object):
         self.clean(now)
         self.map[key] = (value, now)
 
+    def __contains__(self, key):
+        return key in self.map
 
+    def pop(self, key, default=_POP_DEFAULT):
+        if default is _POP_DEFAULT:
+            return self.map.pop(key)
+        else:
+            return self.map.pop(key, default)
+        
     def update(self, d):
         now = time.time()
         self.clean(now)
@@ -92,6 +101,13 @@ class Locked(object):
         "Deprecated, convert to using 'key in map' form"
         return key in self
 
+    @Locked_synchronize
+    def pop(self, key, default=_POP_DEFAULT):
+        if default is _POP_DEFAULT:
+            return self.map.pop(key)
+        else:
+            return self.map.pop(key, default)
+        
     @Locked_synchronize
     def get(self, *args):
         if not args:

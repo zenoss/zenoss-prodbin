@@ -21,8 +21,9 @@ log = logging.getLogger("zen.RRDUtil")
 
 import os
 import re
+import rrdtool
 
-from Products.ZenUtils.Utils import zenPath, rrd_daemon_running
+from Products.ZenUtils.Utils import zenPath, rrd_daemon_args, rrd_daemon_retry
 
 
 EMPTY_RRD = zenPath('perf', 'empty.rrd')
@@ -99,16 +100,17 @@ def fixRRDFilename(filename):
         return filename
 
     if not os.path.isfile(EMPTY_RRD):
-        import rrdtool
         rrdtool.create(EMPTY_RRD, "--step", '300', 'DS:ds0:GAUGE:900:U:U',
             'RRA:AVERAGE:0.5:1:1', 'RRA:MAX:0.5:1:1', 'RRA:LAST:0.5:1:1')
 
     return EMPTY_RRD
 
 def read(path, consolidationFunction, start, end):
-    import rrdtool
     try:
-        return rrdtool.fetch(path, consolidationFunction, start, end)
+        @rrd_daemon_retry
+        def rrdtool_fn():
+            return rrdtool.fetch(path, consolidationFunction, start, end, *rrd_daemon_args())
+        return rrdtool_fn()
     except rrdtool.error, err:
         import sys
         err_str = '%s: %s' % (err.__class__.__name__, err)
@@ -181,7 +183,7 @@ class RRDUtil(object):
         return int(cycleTime) * 3
 
 
-    def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
+    def put(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
              min='U', max='U', useRRDDaemon=True, timestamp='N', start=None):
         """
         Save the value provided in the command to the RRD file specified in path.
@@ -206,14 +208,6 @@ class RRDUtil(object):
         @return: the parameter value converted to a number
         @rtype: number or None
         """
-        import rrdtool, os
-
-        daemon_args = ()
-        if useRRDDaemon:
-            daemon = rrd_daemon_running()
-            if daemon:
-                daemon_args = ('--daemon', daemon)
-
         if value is None: return None
 
         self.dataPoints += 1
@@ -254,17 +248,64 @@ class RRDUtil(object):
             except (TypeError, ValueError):
                 return None
         try:
-            rrdtool.update(str(filename), *(daemon_args + ('%s:%s' % (timestamp, value),)))
+            @rrd_daemon_retry
+            def rrdtool_fn():
+                daemon_args = rrd_daemon_args() if useRRDDaemon else tuple()
+                return rrdtool.update(str(filename), *(daemon_args + ('%s:%s' % (timestamp, value),)))
+            rrdtool_fn()
+            
             log.debug('%s: %r', str(filename), value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
             log.error('rrdtool reported error %s %s', err, path)
+        
+        return value
 
-        if rrdType in ('COUNTER', 'DERIVE'):
-            startStop, names, values = \
-                rrdtool.fetch(filename, 'AVERAGE',
-                    '-s', 'now-%d' % (cycleTime*2),
-                    '-e', 'now', *daemon_args)
+            
+    def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
+             min='U', max='U', useRRDDaemon=True, timestamp='N', start=None):
+        """
+        Save the value provided in the command to the RRD file specified in path.
+        Afterward, fetch the latest value for this point and return it.
+
+        If the RRD file does not exist, use the rrdType, rrdCommand, min and
+        max parameters to create the file.
+
+        @param path: name for a datapoint in a path (eg device/component/datasource_datapoint)
+        @type path: string
+        @param value: value to store into the RRD file
+        @type value: number
+        @param rrdType: RRD data type (eg ABSOLUTE, DERIVE, COUNTER)
+        @type rrdType: string
+        @param rrdCommand: RRD file creation command
+        @type rrdCommand: string
+        @param cycleTime: length of a cycle
+        @type cycleTime: number
+        @param min: minimum value acceptable for this metric
+        @type min: number
+        @param max: maximum value acceptable for this metric
+        @type max: number
+        @return: the parameter value converted to a number
+        @rtype: number or None
+        """
+        value = self.put(path, value, rrdType, rrdCommand, cycleTime, min, max, useRRDDaemon, timestamp, start)
+        
+        if value is None:
+            return None
+            
+        if rrdType in ('COUNTER', 'DERIVE'):            
+            filename = self.performancePath(path) + '.rrd'
+            if cycleTime is None:
+                cycleTime = self.defaultCycleTime
+
+            @rrd_daemon_retry
+            def rrdtool_fn():
+                daemon_args = rrd_daemon_args() if useRRDDaemon else tuple()
+                return rrdtool.fetch(filename, 'AVERAGE',
+                                    '-s', 'now-%d' % (cycleTime*2),
+                                    '-e', 'now', *daemon_args)
+            startStop, names, values = rrdtool_fn()
+                
             values = [ v[0] for v in values if v[0] is not None ]
             if values: value = values[-1]
             else: value = None

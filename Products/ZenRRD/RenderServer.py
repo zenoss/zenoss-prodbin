@@ -43,7 +43,7 @@ from urllib import urlencode
 
 from Products.ZenRRD.RRDUtil import fixMissingRRDs
 from Products.ZenUtils.PObjectCache import PObjectCache
-from Products.ZenUtils.Utils import zenPath, rrd_daemon_running
+from Products.ZenUtils.Utils import zenPath, rrd_daemon_args, rrd_daemon_retry
 
 from RRDToolItem import RRDToolItem
 
@@ -153,9 +153,6 @@ class RenderServer(RRDToolItem):
                     imgtype = 'PNG'
                 else:
                     imgtype = ftype
-                daemon = rrd_daemon_running()
-                if daemon:
-                    gopts.insert(0, '--daemon=%s' % daemon)
                 gopts.insert(0, "--imgformat=%s" % imgtype)
                 #gopts.insert(0, "--lazy")
                 end = int(time.time())-300
@@ -167,7 +164,11 @@ class RenderServer(RRDToolItem):
                 gopts.insert(0, filename)
                 log.debug("RRD graphing options: %r", (gopts,))
                 try:
-                    rrdtool.graph(*gopts)
+                    @rrd_daemon_retry
+                    def rrdtool_fn():
+                        rrdtool.graph(*(gopts + list(rrd_daemon_args())))
+                    rrdtool_fn()
+                    
                 except Exception, ex:
                     if ex.args[0].find('No such file or directory') > -1:
                         return None
@@ -361,12 +362,12 @@ class RenderServer(RRDToolItem):
         """
         gopts = fixMissingRRDs(gopts)
         gopts.insert(0, '/dev/null') #no graph generated
-        daemon = rrd_daemon_running()
-        if daemon:
-            gopts.insert(0, '--daemon=%s' % daemon)
         log.debug("RRD summary options: %r", (gopts,))
         try:
-            values = rrdtool.graph(*gopts)[2]
+            @rrd_daemon_retry
+            def rrdtool_fn():
+                return rrdtool.graph(*(gopts+list(rrd_daemon_args())))[2]
+            values = rrdtool_fn()
         except Exception, ex:
             if ex.args[0].find('No such file or directory') > -1:
                 return None
@@ -391,12 +392,13 @@ class RenderServer(RRDToolItem):
         if not end:
             end = "now"
         values = []
-        daemon = rrd_daemon_running()
-        args = ('--daemon', daemon) if daemon else ()
         try:
             for path in paths:
-                values.append(rrdtool.fetch(path, cf, "-r %d" % resolution,
-                    "-s %s" % start,"-e %s" % end, *args))
+                @rrd_daemon_retry
+                def rrdtool_fn():
+                    values.append(rrdtool.fetch(path, cf, "-r %d" % resolution,
+                        "-s %s" % start,"-e %s" % end, *rrd_daemon_args()))
+                rrdtool_fn()
             return values
         except NameError:
             log.exception("It appears that the rrdtool bindings are not installed properly.")
@@ -420,8 +422,11 @@ class RenderServer(RRDToolItem):
                 v = None
                 info = None
                 try:
-                    info = rrdtool.info(p)
-                except:
+                    @rrd_daemon_retry
+                    def rrdtool_fn():
+                        return rrdtool.info(p, *rrd_daemon_args())
+                    info = rrdtool_fn()
+                except Exception:
                     log.debug('%s not found' % p)
                 if info:
                     last = info['last_update']
@@ -433,7 +438,10 @@ class RenderServer(RRDToolItem):
                              '--start=%d'%(last-step),
                              '--end=%d'%last]
                     log.debug("RRD currentValue options: %r", (gopts,))
-                    v = rrdtool.graph(*gopts)
+                    @rrd_daemon_retry
+                    def rrdtool_fn():
+                        return rrdtool.graph(*(gopts+list(rrd_daemon_args())))
+                    v = rrdtool_fn()
                     v = float(v[2][0])
                     if str(v) == 'nan': v = None
                 return v

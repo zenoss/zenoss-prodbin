@@ -28,7 +28,7 @@ log = logging.getLogger("zenhub")
 
 
 
-class RRDImpl:
+class RRDImpl(object):
     """
     RRDUtil wrapper class for zenhub
     """
@@ -43,7 +43,7 @@ class RRDImpl:
         @param dmd: Device Management Database (DMD) reference
         @type dmd: dmd object
         """
-        # RRD is a dictionary of RRDUtil instances
+        # RRD is a dictionary of RRDUtil instances, keyed by (device,datapoint) tuples
         self.rrd = {}
         # counts is a dictionary of integers tracking how many times
         # each threshold has been exceeded sequentially.
@@ -79,10 +79,11 @@ class RRDImpl:
             log.warn('Did not find datapoint %s on device %s', dpName, devId)
             return None
         rrdKey = (dev.getPrimaryPath(), dp.getPrimaryPath())
-        rrdCreateCmd = dp.createCmd or self.getDefaultRRDCreateCommand(dev)
+        rrdCreateCmd = None
         if rrdKey in self.rrd:
             rrd = self.rrd[rrdKey]
         else:
+            rrdCreateCmd = dp.createCmd or self.getDefaultRRDCreateCommand(dev)
             rrd = RRDUtil(rrdCreateCmd, dp.datasource.cycletime)
             self.rrd[rrdKey] = rrd
 
@@ -95,9 +96,17 @@ class RRDImpl:
                          "could not be converted to a long" % \
                          (value, dp.rrdtype))
 
+        # see if there are any thresholds defined for this datapoint, so we can
+        # choose a more optimal RRD storage method if there aren't any
+        dp_has_threshold = self.hasThreshold(dp)
+        if dp_has_threshold:
+            rrd_write_fn = rrd.save
+        else:
+            rrd_write_fn = rrd.put
+            
         path = os.path.join(dev.rrdPath(), dp.name())
         try:
-            value = rrd.save( path,
+            value = rrd_write_fn( path,
                         value, 
                         dp.rrdtype,
                         rrdCreateCmd,
@@ -134,7 +143,8 @@ class RRDImpl:
             # Skip thresholds
             return
 
-        self.checkThresholds(dev, dp, value)
+        if dp_has_threshold:
+            self.checkThresholds(dev, dp, value)
         return value
 
 
@@ -165,18 +175,22 @@ class RRDImpl:
         @return: device or component object
         @rtype: object
         """
-        d = None
+        retobj = None
         device = self.dmd.Devices.findDevice(devId)
         if device:
             if compId:
-                for comp in device.getDeviceComponents():
-                    if comp.meta_type == compType and comp.id == compId:
-                        d = comp
-                        break
+                retobj = next((comp for comp in device.getDeviceComponents() 
+                                if comp.meta_type == compType and comp.id == compId), 
+                            None)
+
             else:
-                d = device
-        return d
-        
+                retobj = device
+        return retobj
+    
+    def hasThreshold(self, dp):
+        dp_name = dp.name()
+        return any(thresh.enabled and dp_name in thresh.dsnames 
+                    for thresh in dp.datasource.rrdTemplate.thresholds())
 
     def checkThresholds(self, dev, dp, value):
         """
@@ -196,10 +210,11 @@ class RRDImpl:
 
         # Loop through the enabled thresholds on the template containing
         # this datapoint.
+        dp_name = dp.name()
         for t in [t for t in dp.datasource.rrdTemplate.thresholds()
-                  if t.enabled and dp.name() in t.dsnames]:
+                  if t.enabled and dp_name in t.dsnames]:
             log.debug('Checking %s value of %s against threshold %s: %s:%s' %
-                (dp.name(), value, t.id, t.getMinval(dev), t.getMaxval(dev)))
+                (dp_name, value, t.id, t.getMinval(dev), t.getMaxval(dev)))
             inst = t.createThresholdInstance(dev)
             # storing the count external to the instances is a little
             # broken, but I don't want to cache the instances

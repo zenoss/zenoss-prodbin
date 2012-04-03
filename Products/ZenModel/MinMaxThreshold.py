@@ -17,8 +17,6 @@ Make threshold comparisons dynamic by using TALES expresssions,
 rather than just number bounds checking.
 """
 
-import os
-import rrdtool
 from AccessControl import Permissions
 
 from Globals import InitializeClass
@@ -27,7 +25,6 @@ from ThresholdInstance import ThresholdInstance, ThresholdContext
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
-from Products.ZenUtils.Utils import zenPath, rrd_daemon_running
 from Products.ZenEvents.Exceptions import pythonThresholdException, \
         rpnThresholdException
 

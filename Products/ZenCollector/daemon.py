@@ -260,8 +260,14 @@ class CollectorDaemon(RRDDaemon):
                  min='U', max='U', threshEventData=None, timestamp='N'):
         now = time.time()
 
+        hasThresholds = bool(self._thresholds.byFilename(path))
+        if hasThresholds:
+            rrd_write_fn = self._rrd.save
+        else:
+            rrd_write_fn = self._rrd.put            
+        
         # save the raw data directly to the RRD files
-        value = self._rrd.save(
+        value = rrd_write_fn(
             path,
             value,
             rrdType,
@@ -269,18 +275,19 @@ class CollectorDaemon(RRDDaemon):
             cycleTime,
             min,
             max,
-            timestamp,
+            timestamp=timestamp,
         )
 
         # check for threshold breaches and send events when needed
-        for ev in self._thresholds.check(path, now, value):
-            parts = [path.rsplit('/')[-1]]
-            if 'eventKey' in ev:
-                parts.append(ev['eventKey'])
-            ev['eventKey'] = '|'.join(parts)
-            if threshEventData:
-                ev.update(threshEventData)
-            self.sendEvent(ev)
+        if hasThresholds:
+            for ev in self._thresholds.check(path, now, value):
+                parts = [path.rsplit('/')[-1]]
+                if 'eventKey' in ev:
+                    parts.append(ev['eventKey'])
+                ev['eventKey'] = '|'.join(parts)
+                if threshEventData:
+                    ev.update(threshEventData)
+                self.sendEvent(ev)
 
     def readRRD(self, path, consolidationFunction, start, end):
         return RRDUtil.read(path, consolidationFunction, start, end)

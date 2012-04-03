@@ -16,7 +16,7 @@ import os
 import Globals
 import rrdtool
 from Products.ZenModel.PerformanceConf import PerformanceConf, performancePath
-from Products.ZenUtils.Utils import unused, rrd_daemon_running
+from Products.ZenUtils.Utils import unused, rrd_daemon_args, rrd_daemon_retry
 
 from twisted.spread import pb
 class ThresholdContext(pb.Copyable, pb.RemoteCopy):
@@ -156,12 +156,11 @@ class RRDThresholdInstance(ThresholdInstance):
         if dp in self._rrdInfoCache:
             return self._rrdInfoCache[dp]
 
-        daemon_args = ()
-        daemon = rrd_daemon_running()
-        if daemon:
-            daemon_args = ('--daemon', daemon)
-
-        data = rrdtool.info(self.context().path(dp), *daemon_args)
+        @rrd_daemon_retry
+        def rrdtool_fn():
+            return rrdtool.info(self.context().path(dp), *rrd_daemon_args())
+        data = rrdtool_fn()
+                
         # handle both old and new style RRD versions
         try:
             # old style 1.2.x
@@ -177,8 +176,12 @@ class RRDThresholdInstance(ThresholdInstance):
         """
         Fetch the most recent value for a data point from the RRD file.
         """
-        startStop, names, values = rrdtool.fetch(self.context().path(dp),
-            'AVERAGE', '-s', 'now-%d' % (cycleTime*2), '-e', 'now')
+        @rrd_daemon_retry
+        def rrdtool_fn():
+            return rrdtool.fetch(self.context().path(dp),
+                'AVERAGE', '-s', 'now-%d' % (cycleTime*2), '-e', 'now',
+                *rrd_daemon_args())
+        startStop, names, values = rrdtool_fn()
         values = [ v[0] for v in values if v[0] is not None ]
         if values: return values[-1]
 

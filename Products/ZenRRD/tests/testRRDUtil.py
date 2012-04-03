@@ -178,6 +178,9 @@ class TestRRDUtil(BaseTestCase):
         self.failUnlessAlmostEqual(data[2][6][0], 1.7, places=1)
         self.failUnlessAlmostEqual(data[2][7][0], 1.7, places=1)
 
+        # test fetch, with daemon pointing to bad socket file
+        self.assertRaises(rrdtool.error, rrdtool.fetch, filename, 'AVERAGE', '--start', "%d" % startTime, '--daemon' '/tmp/blah')
+        
         # test graph
         imFile = rrd.performancePath(path) + ".png"
         rrdtool.graph(imFile, 

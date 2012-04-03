@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from Products.ZenUtils import Map
 
 __doc__="""Utils
 
@@ -36,6 +37,7 @@ import asyncore
 import copy
 from decorator import decorator
 from itertools import chain
+import rrdtool
 from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
 
@@ -1653,10 +1655,57 @@ def load_config_override(file, package=None, execute=True):
         _context.execute_actions()
 
 
+CACHE_TIME = 30
+_rrdDaemonStatus = Map.Locked(Map.Timed({}, CACHE_TIME))
+_RRD_DAEMON_STATUS_KEY = "RRD_daemon_running"
+
 def rrd_daemon_running():
-    sockfile = zenPath('var', 'rrdcached.sock')
-    if os.path.exists(sockfile):
+    """
+    Look to see if the rrdcached daemon is running. Use a timed map so that we don't 
+    have to actually *look* every time an RRD function is called - instead we only check every
+    CACHE_TIME seconds. Function callers should still handle rrdtool.error exceptions if the
+    daemon turns out *not* to be running, and should call rrd_daemon_reset() in that event.
+    (Or just wrap rrd behavior in an internal function, and decorate that function with
+    the rrd_daemon_retry decorator.)
+    """
+    try:
+        return _rrdDaemonStatus[_RRD_DAEMON_STATUS_KEY]
+    except KeyError:
+        sockfile = zenPath('var', 'rrdcached.sock')
+        if not os.path.exists(sockfile):
+            sockfile = None
+        _rrdDaemonStatus[_RRD_DAEMON_STATUS_KEY] = sockfile
         return sockfile
+
+def rrd_daemon_args():
+    """
+    Return tuple of RRD arguments for rrdcached access, depending on whether the 
+    daemon is running or not.
+    """
+    daemon = rrd_daemon_running()
+    if daemon:
+        return '--daemon', daemon
+    else:
+        return tuple()
+
+def rrd_daemon_reset():
+    """
+    Exception handlers should call this method to clear the rrdcached daemon socketfile,
+    in case the daemon has shutdown since the last time we looked.
+    """
+    _rrdDaemonStatus.pop(_RRD_DAEMON_STATUS_KEY, None)
+
+def rrd_daemon_retry(fn):
+    def _inner(*args, **kwargs):
+        for tries in range(2):
+            try:
+                return fn(*args,**kwargs)
+            except rrdtool.error:
+                if not tries and rrd_daemon_running():
+                    rrd_daemon_reset()
+                else:
+                    raise
+    return _inner
 
 @contextlib.contextmanager
 def get_temp_dir():
@@ -1762,4 +1811,3 @@ def atomicWrite(filename, data, raiseException=True, createDir=False):
         if raiseException:
             raise ex
     return ex
-
