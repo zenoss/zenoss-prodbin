@@ -668,16 +668,15 @@ Ext.define("Zenoss.SequenceGrid", {
     extend:"Zenoss.BaseSequenceGrid",
     constructor: function(config) {
         Ext.applyIf(config, {
-            autoScroll: true,
             sortableColumns: false,
-            layout: 'fit',
+            forceFit: true,
             store: Ext.create('Zenoss.SequenceStore', {}),
             columns: [
                 {dataIndex: 'folder', header: 'Folder', menuDisabled: true},
                 {dataIndex: 'name', header: 'Name', menuDisabled: true},
                 {dataIndex: 'regex', header: 'Regex', menuDisabled: true },
                 {dataIndex: 'monitor', header: 'Monitor', menuDisabled: true},
-                {dataIndex: 'count', header: 'Count', menuDisabled: true}
+                {dataIndex: 'count', layout:'anchor', header: 'Count', menuDisabled: true}
             ]
         });
         this.callParent(arguments);
@@ -691,11 +690,12 @@ Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     tooltip: _t('Sequence the process classes'),
     text: _t('Change Sequence'),
-    handler: function(button, event) {
+    handler: function(button, event) { 
         if ( ! Ext.getCmp('sequenceDialog') ) {
             new Zenoss.HideFitDialog({
                 id: 'sequenceDialog',
                 title: _t('Sequence'),
+                layout: 'fit',
                 items: [
                 {
                     xtype: 'sequencegrid',
@@ -716,8 +716,8 @@ Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
                 }]
             });
         }
-        Ext.getCmp('sequenceGrid').getStore().load();
-        Ext.getCmp('sequenceDialog').show();
+       Ext.getCmp('sequenceGrid').getStore().load();
+       Ext.getCmp('sequenceDialog').show();
     }
 });
     // expand the detail panel so it can render the toolbar
