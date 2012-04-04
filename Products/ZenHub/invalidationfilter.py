@@ -11,7 +11,7 @@
 #
 ###########################################################################
 import re
-import md5
+from hashlib import md5
 import logging
 from cStringIO import StringIO
 from zope.interface import implements
@@ -46,7 +46,7 @@ class DeviceClassInvalidationFilter(object):
         pertains to configuration. This takes into account templates and
         zProperties, nothing more.
         """
-        m = md5.new()
+        m = md5()
         s = StringIO()
         # Checksum includes all bound templates
         for tpl in devclass.rrdTemplates():
@@ -57,7 +57,11 @@ class DeviceClassInvalidationFilter(object):
             m.update(s.getvalue())
         # Checksum all zProperties and custom properties
         for zId in sorted(devclass.zenPropertyIds(pfilt=self.iszorcustprop)):
-            m.update('%s|%s' % (zId, devclass.zenPropertyString(zId)))
+            if devclass.zenPropIsPassword(zId):
+                propertyString = devclass.getProperty(zId, '')
+            else:
+                propertyString = devclass.zenPropertyString(zId)
+            m.update('%s|%s' % (zId, propertyString))
         # Return the final checksum
         return m.hexdigest()
 
@@ -81,28 +85,3 @@ class DeviceClassInvalidationFilter(object):
             return FILTER_CONTINUE
         log.debug('%r checksum unchanged. Skipping.' % obj)
         return FILTER_EXCLUDE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
