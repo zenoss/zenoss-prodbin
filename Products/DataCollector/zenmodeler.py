@@ -857,7 +857,8 @@ class ZenModeler(PBDaemon):
                     self.log.info("Device %s not returned is it down?", device)
             except StopIteration:
                 self.devicegen = None
-            self.pendingNewClients = False
+            finally:
+                self.pendingNewClients = False
             break
         update = len(self.clients)
         if update != count and update != 1:
