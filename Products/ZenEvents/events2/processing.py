@@ -181,9 +181,11 @@ class Manager(object):
             uses_count=False)
 
         if results.total:
-            return results.results.next().uuid
+            result = next(results.results, None)
+            if result and hasattr(result, 'uuid'):
+                return result.uuid
 
-        elif ipAddress:
+        if ipAddress:
             querySet = Eq('ipAddress', ipAddress)
 
             # search the components
@@ -193,8 +195,8 @@ class Manager(object):
             if components:
                 return self.getElementUuid(
                         components[0].getObject().device())
-            else:
-                return None
+
+        return None
 
     def findDevice(self, identifier, ipAddress):
         uuid = self.findDeviceUuid(identifier, ipAddress)
