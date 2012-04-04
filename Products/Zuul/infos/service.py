@@ -36,14 +36,6 @@ class ServiceOrganizerNode(TreeNode):
         return ''
 
     @property
-    def _get_cache(self):
-        cache = getattr(self._root, '_cache', None)
-        if cache is None:
-            cache = TreeNode._buildCache(self, ServiceOrganizer, ServiceClass,
-                                         'serviceclasses')
-        return cache
-
-    @property
     def text(self):
         text = super(ServiceOrganizerNode, self).text
         obj = self._object.getObject()

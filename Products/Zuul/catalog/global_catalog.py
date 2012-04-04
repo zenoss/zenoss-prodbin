@@ -385,7 +385,7 @@ class GlobalCatalog(ZCatalog):
         cat = self._catalog
         return cat.indexes.get(index)
     
-    def addIndex(self, id, index):
+    def addIndex(self, id, index, extra=None):
         """
         Dispatches to self._catalog.addIndex
         """

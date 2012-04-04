@@ -28,7 +28,7 @@ from zope.component import adapts
 from .interfaces import IGloballyIdentifiable, IGlobalIdentifier, IGUIDManager
 
 from Products.ZenUtils.guid.event import GUIDEvent
-from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
+from Products.ZCatalog.interfaces import ICatalogBrain
 
 # Dictionary of known UUID types
 known_uuid_types= {
@@ -124,7 +124,7 @@ class GUIDManager(object):
             del self.table[guid]
 
 class BrainGlobalIdentifier(object):
-    adapts(AbstractCatalogBrain)
+    adapts(ICatalogBrain)
     implements(IGlobalIdentifier)
 
     def __init__(self, context):

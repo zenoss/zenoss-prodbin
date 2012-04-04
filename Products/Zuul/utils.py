@@ -22,7 +22,7 @@ from BTrees.OOBTree import OOBTree
 from BTrees.IOBTree import IOBTree
 from AccessControl import getSecurityManager
 from zope.i18nmessageid import MessageFactory
-from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
+from Products.ZCatalog.interfaces import ICatalogBrain
 from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 
@@ -133,7 +133,7 @@ def safe_hasattr(object, name):
 
 
 def unbrain(item):
-    if isinstance(item, AbstractCatalogBrain):
+    if ICatalogBrain.providedBy(item):
         return item.getObject()
     return item
 
@@ -180,7 +180,7 @@ class BrainWhilePossible(object):
 
     @property
     def _is_brain(self):
-        return isinstance(self._ob, AbstractCatalogBrain)
+        return ICatalogBrain.providedBy(self._ob)
 
     def __getattr__(self, attr):
         if self._is_brain:
@@ -331,7 +331,6 @@ class PathIndexCache(object):
         for brain in results:
             rid = brain.getRID()
             path = brain.getPath()
-            paths = None
             if treePrefix and not path.startswith(treePrefix):
                 paths = brain.global_catalog._catalog.indexes['path']._unindex[rid]
                 for p in paths:

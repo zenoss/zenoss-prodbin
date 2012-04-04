@@ -14,11 +14,11 @@ import time
 import re
 import sre_constants
 from itertools import islice
-from zope.interface import implements, providedBy
+from zope.interface import implements
 from BTrees.OOBTree import OOBTree
 from BTrees.IIBTree import IIBTree
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp
-from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
+from Products.ZCatalog.interfaces import ICatalogBrain
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool, IInfo
 from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
 from Products.Zuul.utils import UncataloguedObjectException, PathIndexCache
@@ -37,7 +37,7 @@ class TreeNode(object):
     implements(ITreeNode)
 
     def __init__(self, ob, root=None, parent=None):
-        if not isinstance(ob, AbstractCatalogBrain):
+        if not ICatalogBrain.providedBy(ob):
             brain = ICatalogTool(ob).getBrain(ob)
             if brain is None:
                 raise UncataloguedObjectException(ob)
@@ -248,8 +248,7 @@ class CatalogTool(object):
             caches[path][types] = cache
             return len(results)
 
-    def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
-                     depth=None, query=None, filterPermissions=True):
+    def _buildQuery(self, types, paths, depth, query, filterPermissions):
         qs = []
         if query is not None:
             qs.append(query)
@@ -267,26 +266,32 @@ class CatalogTool(object):
         # Build the type query
         if not isinstance(types, (tuple, list)):
             types = (types,)
-        subqs = (Eq('objectImplements', dottedname(t)) for t in types)
-        typeq = Or(*subqs)
-        qs.append(typeq)
+        subqs = [Eq('objectImplements', dottedname(t)) for t in types]
+        if subqs:
+            # Don't unnecessarily nest in an Or if there is only one type query
+            typeq = subqs[0] if len(subqs) == 1 else Or(*subqs)
+            qs.append(typeq)
 
         # filter based on permissions
         if filterPermissions:
             qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
 
         # Consolidate into one query
-        query = And(*qs)
+        return And(*qs)
 
-        # Sort information
+    def _buildSort(self, orderby, reverse):
         if orderby:
             if reverse:
                 sortinfo = (orderby, 'desc')
             else:
                 sortinfo = (orderby, 'asc')
-            args = (query, (sortinfo,))
-        else:
-            args = (query,)
+            return (sortinfo,)
+
+    def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
+                     depth=None, query=None, filterPermissions=True):
+        query = self._buildQuery(types, paths, depth, query, filterPermissions)
+        sort = self._buildSort(orderby, reverse)
+        args = (query, sort) if sort else (query, )
 
         # Get the brains
         result = self.catalog.evalAdvancedQuery(*args)
@@ -294,7 +299,7 @@ class CatalogTool(object):
 
     def search(self, types=(), start=0, limit=None, orderby=None,
                reverse=False, paths=(), depth=None, query=None,
-               hashcheck=None, filterPermissions=True, globFilters=None, uses_count=True):
+               hashcheck=None, filterPermissions=True, globFilters=None):
 
         # if orderby is not an index then _queryCatalog, then query results
         # will be unbrained and sorted
@@ -410,36 +415,10 @@ class PermissionedCatalogTool(CatalogTool):
 
     def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
                      depth=None, query=None, filterPermissions=True):
-        qs = []
-        if query is not None:
-            qs.append(query)
-
-        # Build the path query
-        if not paths:
-            paths = ('/'.join(self.context.getPhysicalPath()),)
-
-        q = {'query':paths}
-        if depth is not None:
-            q['depth'] = depth
-        pathq = Generic('path', q)
-        qs.append(pathq)
-
-        # filter based on permissions
-        if filterPermissions:
-            qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
-
-        # Consolidate into one query
-        query = And(*qs)
-
-        # Sort information
-        if orderby:
-            if reverse:
-                sortinfo = (orderby, 'desc')
-            else:
-                sortinfo = (orderby, 'asc')
-            args = (query, (sortinfo,))
-        else:
-            args = (query,)
+        # Identical to global catalog query, except without types
+        query = self._buildQuery((), paths, depth, query, filterPermissions)
+        sort = self._buildSort(orderby, reverse)
+        args = (query, sort) if sort else (query, )
 
         # Get the brains
         result = self.catalog.evalAdvancedQuery(*args)

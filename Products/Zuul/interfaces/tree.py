@@ -45,7 +45,7 @@ class ICatalogTool(Interface):
     """
     def search(types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
-               hashcheck=None, filterPermissions=True, globFilters= {}, uses_count=True):
+               hashcheck=None, filterPermissions=True, globFilters=None):
         """
         Build and execute a query against the global catalog.
         """

@@ -47,17 +47,6 @@ class ProcessNode(TreeNode):
         }
 
     @property
-    def _get_cache(self):
-        cache = getattr(self._root, '_cache', None)
-        if cache is None:
-            cache = TreeNode._buildCache(self, OSProcessOrganizer)
-            cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
-            cache.insert(cache._instanceidx, cat.search(OSProcess),
-                         ('osProcessClasses', 'instances'),
-                         '/zport/dmd/Processes')
-        return cache
-
-    @property
     def children(self):
         orgs = self._object.getObject().children()
         orgs.sort(key=lambda x: x.titleOrId())
