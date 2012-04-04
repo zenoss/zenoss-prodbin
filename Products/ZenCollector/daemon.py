@@ -260,7 +260,7 @@ class CollectorDaemon(RRDDaemon):
                  min='U', max='U', threshEventData=None, timestamp='N'):
         now = time.time()
 
-        hasThresholds = bool(self._thresholds.byFilename(path))
+        hasThresholds = bool(self._thresholds.byFilename.get(path))
         if hasThresholds:
             rrd_write_fn = self._rrd.save
         else:
