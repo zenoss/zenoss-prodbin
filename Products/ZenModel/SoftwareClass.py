@@ -49,6 +49,11 @@ class SoftwareClass(ProductClass):
         {'id':'build', 'type':'string', 'mode':'w'},
         )
 
+    def __init__(self, id, title="", prodName=None,
+                 productKey=None, partNumber="",description="", isOS=False):
+        super(SoftwareClass, self).__init__(id, title, prodName, productKey, partNumber, description)
+        self.isOS = isOS
+
     def type(self):
         """Return the type name of this product (Hardware, Software).
         """
@@ -66,6 +71,10 @@ class OSSoftwareClass(SoftwareClass):
     """OSSoftwareClass object"""
 
     portal_type = meta_type = 'OSSoftwareClass'
-    isOS = True
+
+    def __init__(self, id, title="", prodName=None,
+                 productKey=None, partNumber="",description="", isOS=True):
+        super(OSSoftwareClass, self).__init__(id, title, prodName, productKey, partNumber, description, isOS)
+
 
 InitializeClass(OSSoftwareClass)

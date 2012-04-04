@@ -149,11 +149,11 @@ class ProductClass(ZenModelRM, ZenPackable):
         if productKeys != self.productKeys:
             self.unindex_object()
             self.productKeys = productKeys
-            self.index_object()
         self.partNumber = partNumber
         self.description = description
         self.isOS = isOS
         self.name = name
+        self.index_object()
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             messaging.IMessageSender(self).sendToBrowser(

@@ -1062,8 +1062,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if osManufacturer != "_no_change" and osProductName != "_no_change":
                 log.info("setting os manufacturer to %r productName to %r"
                                 % (osManufacturer, osProductName))
-                self.os.setProduct(osProductName, osManufacturer)
-                self.os.productClass().isOS = True
+                self.os.setProduct(osProductName, osManufacturer, isOS=True)
         else:
             self.os.productClass.removeRelation()
 

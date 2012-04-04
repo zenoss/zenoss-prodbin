@@ -168,19 +168,17 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
 
     
     def createHardwareProduct(self,prodName,manufacturer="Unknown",**kwargs):
-        """Return and create if nessesary a HardwareClass object.
+        """Return and create if necessary a HardwareClass object.
         """
         from Products.ZenModel.HardwareClass import HardwareClass
         return self._getProduct(prodName, manufacturer, HardwareClass, **kwargs)
 
 
     def createSoftwareProduct(self, prodName, manufacturer="Unknown", isOS=False, **kwargs):
-        """Return and create if nesseary a SoftwareClass object.
+        """Return and create if necessary a SoftwareClass object.
         """
         from Products.ZenModel.SoftwareClass import SoftwareClass
-        prod = self._getProduct(prodName, manufacturer, SoftwareClass, **kwargs)
-        prod.isOS = isOS
-        prod.index_object()
+        prod = self._getProduct(prodName, manufacturer, SoftwareClass, isOS=isOS, **kwargs)
         return prod
 
 
@@ -189,15 +187,10 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         if prod:
             # Product already exists. Return it.
             return prod
-        
-        # Product doesn't already exist. Create it.
-        prodid = self.prepId(prodName)
+
+        #delegate find/create to the manufacturer
         manufobj = self.getManufacturer(manufacturer)
-        prod = manufobj.products._getOb(prodid, None)
-        if prod is None:
-            prod = factory(prodid, prodName=prodName, **kwargs)
-            manufobj.products._setObject(prodid, prod)
-            prod = manufobj.products._getOb(prodid)
+        prod = manufobj._getProduct(prodName, factory, **kwargs)
         return prod
 
 

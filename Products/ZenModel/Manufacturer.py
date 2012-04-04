@@ -26,6 +26,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenWidgets import messaging
+from Products.ZenUtils.deprecated import deprecated
 
 from Products.ZenRelations.RelSchema import *
 
@@ -152,11 +153,13 @@ class Manufacturer(ZenModelRM, ZenPackable):
         """
         prod = self.products._getOb(prodName, None)
         if not prod:
-            prod = factory(prodName)
+            prodid = self.prepId(prodName)
+            prod = factory(prodid, **kwargs)
             for k, v in kwargs.iteritems():
-                setattr(prod, k, v)
-            self.products._setObject(prod.id, prod)
-            prod = self.products._getOb(prod.id)
+                if not hasattr(prod, k):
+                    setattr(prod, k, v)
+            self.products._setObject(prodid, prod)
+            prod = self.products._getOb(prodid)
         return prod 
 
 
@@ -167,12 +170,12 @@ class Manufacturer(ZenModelRM, ZenPackable):
         for id in ids: self.products._delObject(id)
         if REQUEST: return self.callZenScreen(REQUEST)
 
-
+    @deprecated
     def getProductNames(self):
         """return a list of all products this Manufacturer makes"""
         prods = [""]
         prods.extend(map(lambda x: x.getId(),
-                         Manufacturer.products.objectValuesAll()))
+                         self.products.objectValuesAll()))
         prods.sort()
         return prods
 
