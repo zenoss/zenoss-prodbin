@@ -68,6 +68,7 @@ class ZepFacade(ZuulFacade):
         'ownerid':     { 'field': EventSort.CURRENT_USER_NAME },
         'agent':       { 'field': EventSort.AGENT },
         'monitor':     { 'field': EventSort.MONITOR },
+        'eventkey':    { 'field': EventSort.EVENT_KEY },
         'evid':        { 'field': EventSort.UUID },
         'statechange': { 'field': EventSort.STATUS_CHANGE },
         'dedupid':     { 'field': EventSort.FINGERPRINT },
@@ -125,6 +126,7 @@ class ZepFacade(ZuulFacade):
         fingerprint=(),
         agent=(),
         monitor=(),
+        event_key=(),
         current_user_name=(),
         subfilter=(),
         operator=None,
@@ -208,6 +210,9 @@ class ZepFacade(ZuulFacade):
 
         if monitor:
             filter['monitor'] = monitor
+
+        if event_key:
+            filter['event_key'] = event_key
 
         if current_user_name:
             filter['current_user_name'] = current_user_name

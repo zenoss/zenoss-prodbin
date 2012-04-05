@@ -408,6 +408,7 @@ class EventsRouter(DirectRouter):
                 tags = params.get('tags'),
 
                 details = details,
+                event_key = params.get('eventKey'),
 
             )
             log.debug('Found params for building filter, ended up building  the following:')

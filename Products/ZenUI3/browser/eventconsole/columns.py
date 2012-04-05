@@ -256,7 +256,8 @@ COLUMN_CONFIG = {
 
     'eventKey'  : dict(
         header='Event Key',
-        filter=None),
+        filter='textfield',
+        sortable=True),
 
     'agent'     : dict(
         header='Agent',
