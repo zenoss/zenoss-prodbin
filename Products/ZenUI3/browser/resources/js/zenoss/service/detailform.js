@@ -68,7 +68,7 @@ Ext.onReady( function() {
                     treeSNode = treeSM.getSelectedNode();
 
                 treeSNode.data.text.text = form.form.getValues().name;
-                treeSNode.setText(treeSNode.data.text);
+                treeSNode.set('text', treeSNode.data.text);
                 Ext.getCmp('detail_panel').detailCardPanel.setContext(treeSNode.data.uid);
             }
 

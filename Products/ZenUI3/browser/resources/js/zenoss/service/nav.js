@@ -98,10 +98,7 @@
         params = {uid: selected.data.uid};
         function callback(){
             var tree = Ext.getCmp('navTree');
-            tree.getRootNode().reload(function() {
-                tree.getRootNode().select();
-                tree.getRootNode().expand(true);
-            });
+            tree.refresh();
         }
         Zenoss.remote.ServiceRouter.deleteNode(params, callback);
     };
