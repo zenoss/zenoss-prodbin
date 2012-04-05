@@ -138,42 +138,6 @@ def unbrain(item):
     return item
 
 
-class LazySortableList(object):
-
-    def __init__(self, iterable, cmp=None, key=None, orderby=None,
-                 reverse=False):
-        self.iterator = iter(iterable)
-        if cmp is not None or key is not None or orderby is not None:
-            # Might as well exhaust it now
-            if orderby is not None:
-                key = attrgetter(orderby)
-            self.seen = sorted(self.iterator, cmp=cmp, key=key,
-                               reverse=reverse)
-        else:
-            self.seen = []
-
-    def __getitem__(self, index):
-        self.exhaust(index)
-        return self.seen[index]
-
-    def __getslice__(self, start, stop):
-        self.exhaust(stop-1)
-        return self.seen[start:stop]
-
-    def __len__(self):
-        return len(self.seen)
-
-    def __repr__(self):
-        return repr(self.seen)
-
-    def exhaust(self, i):
-        if i<0:
-            raise ValueError("Negative indices not supported")
-        delta = i-len(self)
-        if delta > 0:
-            self.seen.extend(islice(self.iterator, delta+1))
-
-
 class BrainWhilePossible(object):
     def __init__(self, ob):
         self._ob = ob
