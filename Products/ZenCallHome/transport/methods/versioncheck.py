@@ -14,26 +14,28 @@
 import cPickle
 import logging
 import time
-import urllib
+from urllib import urlencode
+import urllib2
 
 from Products.ZenUtils.Version import Version
 
 VERSION_CHECK_URL = 'http://callhome.zenoss.com/callhome/v1/versioncheck'
-
+_URL_TIMEOUT=5
 logger = logging.getLogger('zen.callhome')
 
 def version_check(dmd):
-    params = urllib.urlencode({'product': dmd.getProductName()})
-    
+    params = urlencode({'product': dmd.getProductName()})
     try:
-        httpreq = urllib.urlopen(VERSION_CHECK_URL, params)
+        httpreq = urllib2.urlopen(VERSION_CHECK_URL, params, _URL_TIMEOUT)
         returnPayload = cPickle.loads(httpreq.read())
-    except:
-        logger.warning('Error retrieving version from callhome server')
+    except Exception as e:
+        logger.warning('Error retrieving version from callhome server: %s', e)
     else:
-        dmd.lastVersionCheck = long(time.time())
         available = Version.parse('Zenoss ' + returnPayload['latest'])
-        if getattr(dmd, 'availableVersion', '') != available.short():
-            dmd.availableVersion = available.short()
-    
-    return
+        version  = available.short()
+        dmd.lastVersionCheck = long(time.time())
+        if getattr(dmd, 'availableVersion', '') != version:
+            dmd.availableVersion = version
+
+
+
