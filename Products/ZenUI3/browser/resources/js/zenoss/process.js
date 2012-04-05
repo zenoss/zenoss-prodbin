@@ -363,7 +363,7 @@ var panel = new Ext.Panel({
 
 // when the form loads, show/hide the regex fieldset
 function actioncompleteHandler(basicForm, action) {
-    if (action.type == 'directload') {
+    if (action.type == 'directload') {        
         var formPanel = Ext.getCmp('processForm');
         formPanel.isLoadInProgress = false;
         var processInfo = action.result.data;
@@ -373,9 +373,10 @@ function actioncompleteHandler(basicForm, action) {
         }
         var isRoot = processInfo.name == 'Processes';
         Ext.getCmp('nameTextField2').setDisabled(isRoot);
-        Ext.getCmp('regexTextField').setDisabled(!processInfo.hasRegex);
-        Ext.getCmp('ignoreParametersSelect').setDisabled(!processInfo.hasRegex);
-        //Ext.getCmp('exampleTextField').setDisabled(!processInfo.hasRegex);
+        Ext.getCmp('regexTextField').setDisabled(!processInfo.hasRegex).allowBlank = !processInfo.hasRegex;
+        Ext.getCmp('ignoreParametersSelect').setDisabled(!processInfo.hasRegex).allowBlank = !processInfo.hasRegex;
+        Ext.getCmp('ignoreParametersWhenModelingSelect').allowBlank = !processInfo.hasRegex;
+       // Ext.getCmp('exampleTextField').setDisabled(!processInfo.hasRegex);
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
