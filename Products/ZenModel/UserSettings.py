@@ -162,14 +162,14 @@ class UserSettingsManager(ZenModelRM):
         """Return list of all zenoss usernames.
         """
         filtNames = set(filtNames)
-        return [ u.id for u in self.getAllUserSettings() 
+        return [ u.id for u in self.getAllUserSettings()
                     if u.id not in filtNames ]
 
     def getAllGroupSettingsNames(self, filtNames=()):
         """Return list of all zenoss groupnames.
         """
         filtNames = set(filtNames)
-        return [ g.id for g in self.getAllGroupSettings() 
+        return [ g.id for g in self.getAllGroupSettings()
                     if g.id not in filtNames ]
 
     def getUsers(self):
@@ -669,6 +669,15 @@ class UserSettings(ZenModelRM):
             return filter(rolefilter, user.getRoles())
         return []
 
+    def getUserRolesNoCache(self):
+        """
+        This is used by the UI to make sure that we are always looking at the
+        latest version of the roles for this user.
+        """
+        # make sure we are always getting the most up-to-date roles
+        self.acl_users.ZCacheable_invalidate()
+
+        return self.getUserRoles()
 
     def getUserGroupSettingsNames(self):
         """Return group settings objects for user

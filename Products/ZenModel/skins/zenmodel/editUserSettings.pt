@@ -110,7 +110,7 @@ function clearBrowserState(event){
       <td class="tableheader" align="left">Roles</td>
       <td class="tablevalues">
         <select class="tablevalues" name="roles:list" multiple
-            tal:define="allroles here/getAllRoles;curroles here/getUserRoles">
+            tal:define="allroles here/getAllRoles;curroles here/getUserRolesNoCache">
             <option tal:repeat="r allroles" tal:content="r"
                     tal:attributes="value r; selected python:r in curroles"/>
         </select>
