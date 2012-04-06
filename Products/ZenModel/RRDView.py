@@ -135,7 +135,8 @@ class RRDView(object):
             if not start:
                 start = time.time() - self.defaultDateRange
             gopts = []
-            names = dsnames[:]
+            # must copy dsnames into mutable list
+            names = list(dsnames)
             for dsname in dsnames:
                 dp = next((d for d in self._getRRDDataPointsGen() 
                                         if dsname in d.name()), None)

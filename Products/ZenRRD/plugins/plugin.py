@@ -70,7 +70,9 @@ def basicArgs(env):
             '--height=%(height)s' % env,
             '--width=%(width)s' % env,
             '--vertical-label=%(label)s' % env]
-    args.append('--%s=%s' % rrd_daemon_args())
+    daemon_args = rrd_daemon_args()
+    if daemon_args:
+        args.append('='.join(daemon_args))
     return args
 
 def getArgs(REQUEST, env):
