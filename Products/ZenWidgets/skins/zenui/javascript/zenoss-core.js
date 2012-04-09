@@ -5,7 +5,8 @@ var DEBUG_MODE = false;
 
 // Graceful degradation of Firebug console object
 // via http://ajaxian.com/archives/graceful-degradation-of-firebug-console-object
-if (! ("console" in window) || !("firebug" in console)) {
+if (! ("console" in window)) {
+
     var names = ["log", "debug", "info", "warn", "error", "assert",
                  "dir", "dirxml", "group", "groupEnd", "time", "timeEnd",
                  "count", "trace", "profile", "profileEnd"];
