@@ -53,10 +53,7 @@ class AutoGCObjectReader(ObjectReader):
         self._chunk_size = chunk_size
 
     def garbage_collect_cache(self):
-        self._cache.incrgc()
-        # self._conn.cacheGC()
-        # self._conn.cacheMinimize()
-        transaction.abort()
+        self._conn.sync()
         self._counter = 0
 
     def load_persistent(self, oid, klass):
