@@ -128,6 +128,17 @@ class EventsRouter(DirectRouter):
             paths.append({'uid': prefix + value, 'name': value})
         return paths
 
+    def _get_device_url(self, eventDetails):
+        url_and_path = [self._singleDetail(eventDetails.get(k)) for k in 'zenoss.device.url', 'zenoss.device.path']
+        if len(url_and_path) != 2:
+            return None
+        url, path = url_and_path
+        try:
+            self.context.dmd.findChild(path)
+        except:
+            return None
+        return url
+
     def _mapToOldEvent(self, event_summary):
 
         eventOccurrence = event_summary['occurrence'][0]
@@ -142,12 +153,6 @@ class EventsRouter(DirectRouter):
 
             'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'severity' : eventOccurrence['severity'],
-            'device' : {
-                'text': eventActor.get('element_title'),
-                'uid': self._getPathFromUuid(eventActor.get('element_uuid')),
-                'url' : self._uuidUrl(eventActor.get('element_uuid')),
-                'uuid' : eventActor.get('element_uuid')
-            },
             'component' : {
                 'text': eventActor.get('element_sub_title'),
                 'uid': self._getPathFromUuid(eventActor.get('element_sub_uuid')),
@@ -178,6 +183,19 @@ class EventsRouter(DirectRouter):
             'Systems' : self._lookupDetailPath('/zport/dmd/Systems', eventDetails.get(EventProxy.DEVICE_SYSTEMS_DETAIL_KEY)),
             'DeviceClass' : self._lookupDetailPath('/zport/dmd/Devices', eventDetails.get(EventProxy.DEVICE_CLASS_DETAIL_KEY)),
         }
+
+        # if zenoss.device.url and zenoss.device.path are set and valid, 
+        #     then use those (use case is hub and collector daemon self-monitoring)
+        #     otherwise determine the URL from actor.element_uuid
+        device_url = self._get_device_url(eventDetails)
+        if device_url is None:
+            event['device'] = dict(text=eventActor.get('element_title'),
+                                   uid=self._getPathFromUuid(eventActor.get('element_uuid')),
+                                   url=self._uuidUrl(eventActor.get('element_uuid')),
+                                   uuid=eventActor.get('element_uuid'))
+        else:
+            event['device'] = dict(text=eventActor.get('element_title'),
+                                   url=device_url)
 
         prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
         if prodState is not None:
@@ -462,8 +480,6 @@ class EventsRouter(DirectRouter):
         eventData = {
             'evid':event_summary['uuid'],
             'device': eventActor.get('element_identifier'),
-            'device_title': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_title'),
-            'device_url':self._uuidUrl(eventActor.get('element_uuid')),
             'ipAddress': eventDetails.get('zenoss.device.ip_address', ''),
             'device_uuid':eventActor.get('element_uuid'),
             'component': eventActor.get('element_sub_identifier'),
@@ -499,6 +515,16 @@ class EventsRouter(DirectRouter):
             'clearid': event_summary.get('cleared_by_event_uuid'),
             'log':[]}
 
+        # if zenoss.device.url and zenoss.device.path are set and valid, 
+        #     then use those (use case is hub and collector daemon self-monitoring)
+        #     otherwise determine the URL from actor.element_uuid
+        device_url = self._get_device_url(eventDetails)
+        if device_url is None:
+            eventData['device_title'] = self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_title')
+            eventData['device_url'] = self._uuidUrl(eventActor.get('element_uuid'))
+        else:
+            eventData['device_title'] = eventActor.get('element_title')
+            eventData['device_url'] = device_url
 
         prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
         if prodState is not None:

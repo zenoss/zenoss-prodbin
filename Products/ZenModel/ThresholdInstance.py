@@ -16,9 +16,16 @@ import os
 import Globals
 import rrdtool
 from Products.ZenModel.PerformanceConf import PerformanceConf, performancePath
+from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenUtils.Utils import unused, rrd_daemon_args, rrd_daemon_retry
 
 from twisted.spread import pb
+
+import logging
+log = logging.getLogger('zen.ThresholdInstance')
+
+unused(Globals)
+
 class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     """Remember all the little details about a specific data point
     within a context.  This is useful for error messages and path
@@ -26,19 +33,25 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     information from the Model."""
     
     def __init__(self, context):
+        if isinstance(context, MonitorClass):
+            self.deviceName = "{context.id} hub".format(context=context)
+            self.componentName = ''
+            self.deviceUrl = 'zport/dmd/Monitors/Hub/{context.id}/viewHubPerformance'.format(context=context)
+            self.devicePath = 'Monitors/Hub/{context.id}'.format(context=context)
         if isinstance(context, PerformanceConf):
-            # Collector threshold events should have their device field set
-            # to the collector's hostname if possible, and id otherwise.
-            self.deviceName = getattr(context, 'hostname', context.id)
+            self.deviceName = "{context.id} collector".format(context=context)
+            self.componentName = ''
+            self.deviceUrl = 'zport/dmd/Monitors/Performance/{context.id}/viewDaemonPerformance'.format(context=context)
+            self.devicePath = 'Monitors/Performance/{context.id}'.format(context=context)
         else:
             self.deviceName = context.device().id
+            if hasattr( context, 'name' ) and callable( getattr( context, 'name' ) ):
+                self.componentName = context.name()
+            else:
+                self.componentName = context.id
+            if self.componentName == self.deviceName:
+                self.componentName = ''
 
-        if hasattr( context, 'name' ) and callable( getattr( context, 'name' ) ):
-            self.componentName = context.name()
-        else:
-            self.componentName = context.id
-        if self.componentName == self.deviceName:
-            self.componentName = ''
         self.rrdPath = context.rrdPath()
 
 

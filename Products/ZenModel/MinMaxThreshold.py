@@ -21,7 +21,7 @@ from AccessControl import Permissions
 
 from Globals import InitializeClass
 from ThresholdClass import ThresholdClass
-from ThresholdInstance import ThresholdInstance, ThresholdContext
+from ThresholdInstance import ThresholdContext
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
@@ -192,34 +192,36 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
                 severity = min(severity + 1, 5)
             summary = 'threshold of %s %s: current value %f' % (
                 self.name(), how, float(value))
-            return self.processEvent(dict(
-                         device=self.context().deviceName,
-                         summary=summary,
-                         eventKey=self.id,
-                         eventClass=self.eventClass,
-                         component=self.context().componentName,
-                         how=how,
-                         min=self.minimum,
-                         max=self.maximum,
-                         current=value,
-                         severity=severity))
+            return self.processEvent(self._create_event_dict(value, summary, severity, how))
         else:
             count = self.getCount(dp)
             if count is None or count > 0:
                 summary = 'threshold of %s restored: current value %f' % (
                     self.name(), value)
                 self.resetCount(dp)
-                return self.processClearEvent(dict(
-                             device=self.context().deviceName,
-                             summary=summary,
-                             eventKey=self.id,
-                             eventClass=self.eventClass,
-                             component=self.context().componentName,
-                             min=self.minimum,
-                             max=self.maximum,
-                             current=value,
-                             severity=Event.Clear))
+                return self.processClearEvent(self._create_event_dict(value, summary, Event.Clear))
         return []
+
+    def _create_event_dict(self, current, summary, severity, how=None):
+        event_dict = dict(device=self.context().deviceName,
+                          summary=summary,
+                          eventKey=self.id,
+                          eventClass=self.eventClass,
+                          component=self.context().componentName,
+                          min=self.minimum,
+                          max=self.maximum,
+                          current=current,
+                          severity=severity)
+        deviceUrl = getattr(self.context(), "deviceUrl", None)
+        if deviceUrl is not None:
+            event_dict["zenoss.device.url"] = deviceUrl
+        devicePath = getattr(self.context(), "devicePath", None)
+        if devicePath is not None:
+            event_dict["zenoss.device.path"] = devicePath
+        if how is not None:
+            event_dict['how'] = how
+        return event_dict
+    
 
     def processEvent(self, evt):
         """
