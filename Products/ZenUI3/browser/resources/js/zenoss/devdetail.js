@@ -484,19 +484,23 @@ Ext.define('Zenoss.DeviceDetailNav', {
         Ext.applyIf(config, {
             target: 'detail_card_panel',
             menuIds: ['More','Add','TopLevel','Manage'],
+            hasComponents: false,
             listeners:{
                 render: function(panel) {
                     this.setContext(UID);
                 },
                 navloaded: function() {
+                    this.on('statesave', function(){
+                        if(!this.hasComponents) return;
+                        this.loadComponents();       
+                    }, this, {single: true});                      
                     Ext.History.init(function(mgr){
                         Ext.History.selectByToken(mgr.getToken());
-                    });
+                    });                   
                 },
                 nodeloaded: function(tree, node) {
                     if (node.id==UID) {
-                        // Ready to load components!
-                        Ext.defer(this.loadComponents, 500, this);
+                        this.hasComponents = true;                      
                     }
                 },
                 scope: this
