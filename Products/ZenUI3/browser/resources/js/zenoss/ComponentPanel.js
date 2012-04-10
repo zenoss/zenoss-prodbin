@@ -132,7 +132,35 @@ Zenoss.nav.register({
                     xtype: 'SimpleEventGridPanel',
                     displayFilters: false,
                     stateId: 'component-event-console',
-                    columns:  Zenoss.env.getColumnDefinitions(['component', 'device'])
+                    columns:[{
+                        dataIndex: 'eventState',
+                        width:58,
+                        header: _t('Status')
+                    },{
+                        dataIndex: 'severity',
+                        width:73,
+                        header: _t('Severity')
+                    },{
+                        dataIndex: 'eventsClass',
+                        width:78,
+                        header: _t('Events Class')
+                    },{
+                        dataIndex: 'summary',
+                        flex:1,
+                        header: _t('Summary')
+                    },{
+                        dataIndex: 'firstTime',
+                        width:98,
+                        header: _t('First Seen')
+                    },{
+                        dataIndex: 'lastTime',
+                        width:98,
+                        header: _t('Last Seen')
+                    },{
+                        dataIndex: 'count',
+                        width:60,
+                        header: _t('Count')
+                    }]
                 }); 
             }
             var tbar = target.getDockedItems()[0];  
