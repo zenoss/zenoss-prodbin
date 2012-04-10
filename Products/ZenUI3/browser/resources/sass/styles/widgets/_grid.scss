@@ -1,4 +1,21 @@
 @mixin zenoss-grid {
+
+
+    #master_panel .#{$prefix}panel-hierarchy, #master_panel #subselecttreepaneldetail_nav,
+    #master_panel_navigation, #trigger-master_panel, #templateTree{
+        .#{$prefix}grid-row-over{
+                background-color:#eee !important;
+                color:#454545 !important;
+            .#{$prefix}grid-cell, .#{$prefix}grid-cell-inner{
+                background-color:#eee;
+                color:#454545 !important;
+            }
+            span{
+                background:transparent !important;
+            }
+        }
+    }
+
     .#{$prefix}grid, #dataSourceTreeGrid{
 
         .#{$prefix}column-header{
@@ -29,6 +46,11 @@
         .#{$prefix}column-header-text{
             background-position:right 4px !important;
         }
+        
+        
+        .#{$prefix}grid-row-over-rowcolor, .#{$prefix}grid-row-selected-rowcolor {
+          background: #999 !important;
+        }        
  
         .#{$prefix}grid-row-selected .#{$prefix}grid-cell, .#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
             background-color: #7199C6 !important;
@@ -41,10 +63,7 @@
           border-color: #999 #999 #999;
         }
         
-        
-        .#{$prefix}grid-row-over-rowcolor, .#{$prefix}grid-row-selected-rowcolor {
-          background: #999 !important;
-        }
+
         
         
         .#{$prefix}grid-row-over-rowcolor .#{$prefix}grid-cell-inner {

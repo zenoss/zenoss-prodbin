@@ -92,21 +92,6 @@ $include-missing-images: true;
     }
 }
 
-#master_panel .#{$prefix}panel-hierarchy, #master_panel #subselecttreepaneldetail_nav,
-#master_panel_navigation, #trigger-master_panel, #templateTree{
-    .#{$prefix}grid-row-over{
-            background-color:#eee !important;
-            color:#454545 !important;
-        .#{$prefix}grid-cell, .#{$prefix}grid-cell-inner{
-            background-color:#eee !important;
-            color:#454545 !important;
-        }
-        span{
-            background:transparent !important;
-        }
-    }
-}
-
 #processForm, #serviceForm{
     .#{$prefix}toolbar-footer{
         background-color:#F5F9FD;
