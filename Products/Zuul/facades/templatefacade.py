@@ -306,19 +306,26 @@ class TemplateFacade(ZuulFacade):
         datasource = template.manage_addRRDDataSource(name, selectedOption)
         return datasource
 
+    def _getDummyTemplate(self):
+        """
+        This returns the first template found in the template catalog.
+        This method should only be called when you know at least one exists.
+        """
+        return self._dmd.searchRRDTemplates()[0].getObject()
+
     def getDataSourceTypes(self):
         """
         @returns [] List of all of the datasource types (in string form)
         """
         data = []
-        template = self._dmd.Devices.rrdTemplates.Device
+        template = self._getDummyTemplate()
         for name, dsOption in template.getDataSourceOptions():
             data.append({'type': name})
         return data
 
     def getThresholdTypes(self):
         data = []
-        template = self._dmd.Devices.rrdTemplates.Device
+        template = self._getDummyTemplate()
         for pythonClass, type in template.getThresholdClasses():
             data.append({'type': type})
         return data
