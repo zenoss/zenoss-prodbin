@@ -38,6 +38,7 @@ import copy
 from decorator import decorator
 from itertools import chain
 import rrdtool
+from subprocess import check_call, call, PIPE, STDOUT, CalledProcessError
 from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
 
@@ -1825,3 +1826,43 @@ def setLogLevel(level=logging.DEBUG):
     for handler in log.handlers:
         if isinstance(handler, logging.StreamHandler):
             handler.setLevel(level)
+
+def requiresDaemonShutdown(daemon, logger=log):
+    """
+    Performs an operation while the requested daemon is not running. Will stop
+    and restart the daemon automatically. Throws a CalledProcessError if either
+    shutdown or restart fails.
+
+    @param daemon        Which daemon to bring down for the operation.
+    @param logger        Which logger to use, or None to not log.
+    """
+    @decorator
+    def callWithShutdown(func, *args, **kwargs):
+        cmd = binPath(daemon)
+        running = call([cmd, 'status'], stdout=PIPE, stderr=STDOUT) == 0
+        if running:
+            if logger: logger.info('Shutting down %s for %s operation...', daemon, func.__name__)
+            check_call([cmd, 'stop'])
+
+            # make sure the daemon is actually shut down
+            for i in range(30):
+                nowrunning = call([cmd, 'status'], stdout=PIPE, stderr=STDOUT) == 0
+                if not nowrunning: break
+                time.sleep(1)
+            else:
+                raise Exception('Failed to terminate daemon %s with command %s' % (daemon, cmd + ' stop'))
+
+        try:
+            return func(*args, **kwargs)
+
+        except Exception as ex:
+            if logger: logger.error('Error performing %s operation: %s', func.__name__, ex)
+            raise
+
+        finally:
+            if running:
+                if logger: logger.info('Starting %s after %s operation...', daemon, func.__name__)
+                check_call([cmd, 'start'])
+
+    return callWithShutdown
+
