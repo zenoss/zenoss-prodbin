@@ -1872,4 +1872,4 @@ def isZenBinFile(name):
     """
     if os.path.sep in name:
         return False
-    return os.path.isfile(binPath(name)
+    return os.path.isfile(binPath(name))
