@@ -115,7 +115,6 @@
             Ext.applyIf(config, {
                 id: 'navGrid',
                 flex: 3,
-                layout: 'auto',
                 stateId: 'servicesNavGridState',
 
                 viewConfig: {
