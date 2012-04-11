@@ -1866,3 +1866,10 @@ def requiresDaemonShutdown(daemon, logger=log):
 
     return callWithShutdown
 
+def isZenBinFile(name):
+    """
+    Check if given name is a valid file in $ZENHOME/bin.
+    """
+    if os.path.sep in name:
+        return False
+    return os.path.isfile(binPath(name)

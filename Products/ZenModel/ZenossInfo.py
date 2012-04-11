@@ -27,14 +27,14 @@ from Globals import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 
+from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenCallHome.transport.methods.versioncheck import version_check
 from Products.ZenUtils import Time
 from Products.ZenUtils.Version import *
-from Products.ZenUtils.Utils import zenPath, binPath
+from Products.ZenUtils.Utils import zenPath, binPath, isZenBinFile
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
-
 
 def manage_addZenossInfo(context, id='About', REQUEST=None):
     """
@@ -486,12 +486,22 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         in the distributed collector zenpack to support the localhost
         subdirectory.
         """
+        if not isZenBinFile(daemon):
+            raise ValueError("%r is not a valid daemon name" % daemon)
         return zenPath('log', "%s.log" % daemon)
 
     def getLogData(self, daemon, kb=500):
         """
         Get the last kb kilobytes of a daemon's log file contents.
         """
+        if not isZenBinFile(daemon):
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error',
+                '%s is not a valid daemon name' % daemon,
+                priority=messaging.WARNING
+            )
+            return ' '
+            
         maxBytes = 1024 * int(kb)
         if daemon in ('zopectl', 'zenwebserver'):
             daemon = 'event'
@@ -532,6 +542,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         Return the contents of the daemon's config file.
         """
+        if not isZenBinFile(daemon):
+            return 'The daemon name is invalid.'
+        
         filename = self._getConfigFilename(daemon)
         # if there is no data read, we don't want to return something that can
         # be interptreted as "None", so we make the default a single white
@@ -549,6 +562,14 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         Save config data from REQUEST to the daemon's config file.
         """
         daemon = REQUEST.form.get('daemon')
+        if isZenBinFile(daemon):
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error',
+                'The daemon name %r is invalid' % daemon,
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(REQUEST, redirect=True)
+
         filename = self._getConfigFilename(daemon)
         try:
             fh = open(filename, 'w+')
@@ -599,12 +620,20 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
         if daemon in [ 'zeoctl', 'zopectl' ]:
             return []
+            
+        if isZenBinFile(daemon):
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error',
+                '%s is not a valid daemon name' % daemon,
+                priority=messaging.WARNING
+            )
+            return []
 
         xml_default_name = zenPath( "etc", daemon + ".xml" )
         try:
             # Always recreate the defaults file in order to avoid caching issues
             log.debug("Creating XML config file for %s" % daemon)
-            make_xml = ' '.join([daemon, "genxmlconfigs", ">", xml_default_name])
+            make_xml = ' '.join([binPath(daemon), "genxmlconfigs", ">", xml_default_name])
             proc = Popen(make_xml, shell=True, stdout=PIPE, stderr=PIPE)
             output, errors = proc.communicate()
             proc.wait()
@@ -713,6 +742,13 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         for item in ignore_names:
             del formdata[item]
 
+        if isZenBinFile(daemon):
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', "%r is not a valid daemon name" % daemon,
+                priority=messaging.CRITICAL
+            )
+            return
+            
         if not formdata: # If empty, don't overwrite -- assume an error
             msg = "Received empty form data for %s config -- ignoring" % (
                       daemon)
@@ -769,6 +805,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             )
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_daemonAction')
     def manage_daemonAction(self, REQUEST):
         """
         Start, stop, or restart Zenoss daemons from a web interface.
@@ -778,12 +815,19 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if action not in legalValues:
             return self.callZenScreen(REQUEST)
         daemonName = REQUEST.form.get('daemon')
+        if isZenBinFile(daemonName):
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', "%r is not a valid daemon name" % daemonName,
+                priority=messaging.CRITICAL
+            )
+            return self.callZenScreen(REQUEST)
         if self.doDaemonAction(daemonName, action):
             audit(['UI.Daemon', action], daemonName)
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_daemonAction')
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'doDaemonAction')
     def doDaemonAction(self, daemonName, action):
         """
         Do the given action (start, stop, restart) or the given daemon.
@@ -793,7 +837,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         import time
         import subprocess
         daemonPath = binPath(daemonName)
-        if not os.path.isfile(daemonPath):
+        if isZenBinFile(daemonName):
             return
         log.info('Telling %s to %s' % (daemonName, action))
         proc = subprocess.Popen([daemonPath, action], stdout=subprocess.PIPE,
@@ -836,6 +880,5 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if Version.parse('Zenoss ' + self.dmd.availableVersion) > self.getZenossVersion():
             return True
         return False
-
-
+    
 InitializeClass(ZenossInfo)
