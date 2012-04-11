@@ -5,6 +5,7 @@
     i18n_domain="Products.Jobber">
 
     <include package=".browser"/>
+    <include file="meta.zcml"/>
 
     <adapter
         provides="Products.ZenWidgets.interfaces.IMessageSender"
@@ -17,5 +18,7 @@
         for=".interfaces.IJobStatus"
         factory=".jobs.JobMessenger"
         />
+
+    <job class=".jobs.GetDmdId" name="GetDmdId"/>
 
 </configure>

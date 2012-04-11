@@ -1,0 +1,12 @@
+<configure xmlns="http://namespaces.zope.org/meta">
+
+<directives namespace="http://namespaces.zope.org/zope">
+
+    <directive
+        name="job"
+        schema=".metadirectives.IJob"
+        handler=".metaconfigure.job"
+        />
+
+</directives>
+</configure>

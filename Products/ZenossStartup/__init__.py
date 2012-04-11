@@ -21,6 +21,8 @@ from Products.CMFCore.utils import ProductsPath
 
 from Products.ZenUtils.PkgResources import pkg_resources
 
+
+
 # Iterate over all ZenPack eggs and load them
 for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
     try:
@@ -40,3 +42,4 @@ for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
         logging.basicConfig()
         log.exception("Error encountered while processing %s",
                       zpkg.module_name)
+

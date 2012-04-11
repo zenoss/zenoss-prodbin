@@ -36,11 +36,11 @@ class JobManager(ZenModelRM):
     meta_type = portal_type = 'JobManager'
 
     _relations = (
-        ("jobs",
-         ToManyCont(
-             ToOne, "Products.Jobber.status.JobStatus", "jobmanager"
-         )
-        ),
+          ("jobs",
+           ToManyCont(
+               ToOne, "Products.Jobber.status.JobStatus", "jobmanager"
+           )
+         ),
     )
 
     def _getId(self, klass=None):

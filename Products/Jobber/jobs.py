@@ -19,7 +19,6 @@ from ZODB.transact import transact
 from twisted.internet import defer, reactor
 from twisted.internet.protocol import ProcessProtocol
 from zope.interface import implements
-from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import basicAuthUrl, zenPath
@@ -28,6 +27,46 @@ from Products.ZenWidgets import messaging
 from interfaces import IJob
 from status import SUCCESS, FAILURE
 from logfile import LogFile
+
+from Products.ZenUtils.celeryintegration import Task
+from celery.utils import fun_takes_kwargs
+
+
+class Job(Task):
+    """
+    Base class for jobs.
+    """
+    abstract = True
+
+    @property
+    def dmd(self):
+        """
+        Gets the dmd object from the backend
+        """
+        return self.app.backend.dmd
+
+    @transact
+    def run(self, *args, **kwargs):
+        # Have to find appropriate kwargs ourselves, because celery accepts
+        # everything but only passes into run() what is defined. Since we're
+        # inserting a layer we have to do the same.  All of args will be
+        # destined for _run(), but we need to filter out things from kwargs
+        # that aren't (task_id, task_name, delivery_info, etc.) Luckily celery
+        # provides fun_takes_kwargs which figures it out.
+        accepted = fun_takes_kwargs(self._run, kwargs)
+        d = dict((k, v) for k, v in kwargs.iteritems() if k in accepted)
+        return self._run(*args, **d)
+
+    def _run(self, *args, **kwargs):
+        raise NotImplementedError("_run must be implemented")
+
+
+class GetDmdId(Job):
+
+    def _run(self, a, i):
+        setattr(self.dmd, a, i)
+        return "%s = %s" % (a, i)
+
 
 class Job(ZenModelRM):
 

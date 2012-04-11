@@ -117,6 +117,38 @@ class ZenJobs(CyclingDaemon):
                              summary="zenjobs stopped",
                              severity=3, component="zenjobs"))
 
+
+
+from Products.ZenUtils.celeryintegration import ZenossCelery
+from celery.bin.celeryd import main as run_celery
+from Products.ZenUtils.ZenDaemon import ZenDaemon
+
+try:
+    from celery.concurrency.processes.forking import freeze_support
+except ImportError:
+    freeze_support = lambda: True
+
+
+class CeleryZenJobs(ZenDaemon):
+
+    def __init__(self, *args, **kwargs):
+        ZenDaemon.__init__(self, *args, **kwargs)
+        self.setup_celery()
+
+    def setup_celery(self):
+        self.celery = ZenossCelery(
+           loader="Products.ZenUtils.celeryintegration.ZenossLoader",
+           options=self.options)
+
+    def run(self):
+        freeze_support()
+        from celery import concurrency
+        kwargs = {}
+        kwargs["pool_cls"] = concurrency.get_implementation(
+                    kwargs.get("pool_cls") or self.celery.conf.CELERYD_POOL)
+        return self.celery.Worker(**kwargs).run()
+
+
 if __name__ == "__main__":
     zj = ZenJobs()
     zj.run()
