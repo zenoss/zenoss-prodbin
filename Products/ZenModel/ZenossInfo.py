@@ -562,7 +562,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         Save config data from REQUEST to the daemon's config file.
         """
         daemon = REQUEST.form.get('daemon')
-        if isZenBinFile(daemon):
+        if not isZenBinFile(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error',
                 'The daemon name %r is invalid' % daemon,
@@ -621,7 +621,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if daemon in [ 'zeoctl', 'zopectl' ]:
             return []
             
-        if isZenBinFile(daemon):
+        if not isZenBinFile(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error',
                 '%s is not a valid daemon name' % daemon,
@@ -742,7 +742,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         for item in ignore_names:
             del formdata[item]
 
-        if isZenBinFile(daemon):
+        if not isZenBinFile(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error', "%r is not a valid daemon name" % daemon,
                 priority=messaging.CRITICAL
@@ -815,7 +815,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if action not in legalValues:
             return self.callZenScreen(REQUEST)
         daemonName = REQUEST.form.get('daemon')
-        if isZenBinFile(daemonName):
+        if not isZenBinFile(daemonName):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error', "%r is not a valid daemon name" % daemonName,
                 priority=messaging.CRITICAL
@@ -837,7 +837,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         import time
         import subprocess
         daemonPath = binPath(daemonName)
-        if isZenBinFile(daemonName):
+        if not isZenBinFile(daemonName):
             return
         log.info('Telling %s to %s' % (daemonName, action))
         proc = subprocess.Popen([daemonPath, action], stdout=subprocess.PIPE,
