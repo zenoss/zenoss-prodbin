@@ -1629,6 +1629,20 @@ def dumpCallbacks(deferred):
         print "%-39.39s %-39.39s" % (callbackName, errbackName)
 
 
+# add __iter__ method to LazyMap (used to implement catalog queries) to handle
+# errors while iterating over the query results using __getitem__
+from Products.ZCatalog.Lazy import LazyMap
+def LazyMap__iter__(self):
+    for i in range(len(self._seq)):
+        try:
+            brain = self[i]
+            yield brain
+        except (NotFound, KeyError, AttributeError):
+            if log:
+                log.warn("Stale record in catalog: (key) %s", self._seq[i])
+
+LazyMap.__iter__ = LazyMap__iter__
+
 def getObjectsFromCatalog(catalog, query=None, log=None):
     """
     Generator that can be used to load all objects of out a catalog and skip
