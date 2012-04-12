@@ -77,7 +77,7 @@ Ext.onReady(function(){
         store: console_store, // defined above
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
         // the resultFields associated with the context.
-        columns: Zenoss.env.COLUMN_DEFINITIONS,
+        columns: Zenoss.env.getColumnDefinitions(),
         displayTotal: false,
         // Map some other keys
         keys: [{

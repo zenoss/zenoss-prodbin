@@ -941,7 +941,7 @@
             evids = [],  // Event IDs selected
             sels = sm.getSelection();  // UI records selected
             if(Ext.isEmpty(sels)){ // if nothing is selected, check and see if there's an event_panel
-                if(Ext.get('event_panel')) sels = Ext.getCmp('event_panel').getSelectionModel().getSelection()
+                if(Ext.get('event_panel')) sels = Ext.getCmp('event_panel').getSelectionModel().getSelection();
             }
             var selectedAll = (sm.selectState == 'All');
             if (selectedAll) {
