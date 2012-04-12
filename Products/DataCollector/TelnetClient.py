@@ -37,12 +37,7 @@ zCommandExistanceCheck - shell command issued to look for executible
 
 import Globals
 
-#FIXME take away except when we are totally migrated
-try:
-    from twisted.conch import telnet
-except:
-    from twisted.protocols import telnet
-
+from twisted.conch import telnet
 from twisted.internet import reactor
 
 import re
