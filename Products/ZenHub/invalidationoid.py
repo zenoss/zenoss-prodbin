@@ -14,6 +14,7 @@ import logging
 from zope.interface import implements
 from zope.component import adapts
 from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.ZenModel.DeviceHW import DeviceHW
 from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenHub.interfaces import IInvalidationOid
 
@@ -30,9 +31,8 @@ class DefaultOidTransform(object):
     def transformOid(self, oid):
         return oid
 
-class ComponentOidTransform(object):
+class DeviceOidTransform(object):
     implements(IInvalidationOid)
-    adapts(DeviceComponent)
 
     def __init__(self, obj):
         self._obj = obj
@@ -43,5 +43,6 @@ class ComponentOidTransform(object):
         device = getattr(self._obj, 'device', lambda : None)()
         if device:
             result = device._p_oid
-            log.debug("Component oid %s changed to device oid %s",oid, result)
+            log.debug("oid for %s changed to device oid for %s", self._obj, device )
         return result
+

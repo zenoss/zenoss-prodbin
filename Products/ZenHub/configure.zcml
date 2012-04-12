@@ -21,14 +21,4 @@
     />
 
 
-    <adapter provides=".interfaces.IInvalidationOid"
-             for="Products.ZenModel.DeviceComponent.DeviceComponent"
-             factory=".invalidationoid.ComponentOidTransform"
-            />
-
-    <adapter provides=".interfaces.IInvalidationOid"
-             for="Products.ZenRelations.PrimaryPathObjectManager.PrimaryPathObjectManager"
-             factory=".invalidationoid.DefaultOidTransform"
-            />
-
 </configure>

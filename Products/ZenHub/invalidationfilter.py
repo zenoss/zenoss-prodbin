@@ -16,12 +16,24 @@ import logging
 from cStringIO import StringIO
 from zope.interface import implements
 from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.IpAddress import IpAddress
+from Products.ZenModel.IpNetwork import IpNetwork
 from Products.Zuul.interfaces import ICatalogTool
 
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 
 log = logging.getLogger('zen.InvalidationFilter')
 
+class IpInvalidationFilter(object):
+    implements(IInvalidationFilter)
+
+    def initialize(self, context):
+        pass
+
+    def include(self, obj):
+        if isinstance(obj, IpAddress) or isinstance(obj, IpNetwork):
+            return FILTER_EXCLUDE
+        return FILTER_CONTINUE
 
 class DeviceClassInvalidationFilter(object):
     implements(IInvalidationFilter)
