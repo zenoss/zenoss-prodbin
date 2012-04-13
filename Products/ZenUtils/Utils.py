@@ -1841,6 +1841,12 @@ def setLogLevel(level=logging.DEBUG):
         if isinstance(handler, logging.StreamHandler):
             handler.setLevel(level)
 
+def isRunning(daemon):
+    """
+    Determines whether a specific daemon is running by calling 'daemon status'
+    """
+    return call([daemon, 'status'], stdout=PIPE, stderr=STDOUT) == 0
+
 def requiresDaemonShutdown(daemon, logger=log):
     """
     Performs an operation while the requested daemon is not running. Will stop
@@ -1853,14 +1859,14 @@ def requiresDaemonShutdown(daemon, logger=log):
     @decorator
     def callWithShutdown(func, *args, **kwargs):
         cmd = binPath(daemon)
-        running = call([cmd, 'status'], stdout=PIPE, stderr=STDOUT) == 0
+        running = isRunning(cmd)
         if running:
             if logger: logger.info('Shutting down %s for %s operation...', daemon, func.__name__)
             check_call([cmd, 'stop'])
 
             # make sure the daemon is actually shut down
             for i in range(30):
-                nowrunning = call([cmd, 'status'], stdout=PIPE, stderr=STDOUT) == 0
+                nowrunning = isRunning(cmd)
                 if not nowrunning: break
                 time.sleep(1)
             else:
