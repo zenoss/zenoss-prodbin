@@ -496,6 +496,7 @@ Ext.define("Zenoss.MibTreePanel", {
                 router: router,
                 selModel: treesm,
                 relationshipIdentifier: 'mibs',
+                pathSeparator: '/',
                 selectRootOnLoad: true,
                 ddGroup: 'serviceDragDrop',
                 ddAppendOnly: true,
