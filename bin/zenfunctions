@@ -70,36 +70,36 @@ running() {
     return 1
 }
 
+pyexec() {
+    WRAPPER=$PYTHON
+    if [ "$PRGNAME" = "zendisc.py" ] ; then
+        WRAPPER=$PYRAW
+    fi
+    if [ -z "$PRGMODULE" ]; then
+        PRG="$PRGHOME/$PRGNAME"
+    else
+        PRG="$PRGMODULE"
+        MODULE_OPT="-m"
+    fi
+    if [ -n "$CFGFILE" ]; then
+        set -- "$@" --configfile $CFGFILE
+    fi
+    exec $WRAPPER $MODULE_OPT $PRG "$@"
+
+}
+
 start() {
     PIDFILE=`pidFile $CFGFILE`
     if running; then    
         echo is already running
     else
         echo starting...
-        WRAPPER=$PYTHON
-        if [ "$PRGNAME" = "zendisc.py" ] ; then
-           WRAPPER=$PYRAW
-        fi
-        if [ "$CFGFILE" = "" ]; then
-            exec $WRAPPER $PRGHOME/$PRGNAME --cycle --daemon "$@"
-        else
-            exec $WRAPPER $PRGHOME/$PRGNAME --configfile $CFGFILE \
-                --cycle --daemon "$@"
-        fi
+        pyexec --cycle --daemon "$@"
     fi
 }
 
 run() {
-    WRAPPER=$PYTHON
-    if [ "$PRGNAME" = "zenping.py" -o "$PRGNAME" = "zendisc.py" ] ; then
-        WRAPPER=$PYRAW
-    fi
-
-    if [ "$CFGFILE" = "" ]; then
-        exec $WRAPPER $PRGHOME/$PRGNAME "$@"
-    else        
-        exec $WRAPPER $PRGHOME/$PRGNAME --configfile $CFGFILE "$@"
-    fi
+    pyexec "$@"
 }
 
 stop() {
@@ -174,7 +174,7 @@ status() {
 }
 
 help() {
-    exec $PYTHON $PRGHOME/$PRGNAME -h
+    pyexec -h
 }
 
 
@@ -182,14 +182,14 @@ genconf() {
     #
     # Create a suitable default configuration file
     #
-    exec $PYTHON $PRGHOME/$PRGNAME --genconf
+    pyexec --genconf
 }
 
 genxmlconfigs() {
     #
     # Create a suitable default configuration file
     #
-    exec $PYTHON $PRGHOME/$PRGNAME --genxmlconfigs
+    pyexec --genxmlconfigs
 }
 
 debug() {
