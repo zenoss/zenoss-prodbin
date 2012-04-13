@@ -24,6 +24,7 @@
                     type:'direct',
                     simpleSortMode: true,
                     directFn:config.directFn,
+                    extraParams: config.baseParams || {},
                     reader:{
                         root:config.root || 'data',
                         totalProperty:config.totalProperty || 'totalCount'
@@ -59,6 +60,7 @@
                     startParam:undefined,
                     pageParam:undefined,
                     sortParam: undefined,
+                    extraParams: config.baseParams || {},
                     directFn:config.directFn,
                     reader:{
                         type:'json',
