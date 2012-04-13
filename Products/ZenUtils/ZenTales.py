@@ -20,6 +20,10 @@ from zope.tales.engine import Engine
 from zope.tal.talinterpreter import TALInterpreter
 from DateTime import DateTime
 
+class InvalidTalesException(Exception):
+    pass
+
+
 _compiled = {}
 
 def talesEvalStr(expression, context, extra=None):
@@ -37,7 +41,13 @@ def talesEval(express, context, extra=None):
                     }
     if isinstance(extra, dict):
         contextDict.update(extra)
-    res = compiled(getEngine().getContext(contextDict))
+    try:
+        res = compiled(getEngine().getContext(contextDict))
+    except Exception, e:
+        msg = "Error when processing tales expression %s on context %s : Exception Class %s Message: %s" % (express,
+                                                                                                            context,
+                                                                                                            type(e), e)
+        raise InvalidTalesException(msg)
     if isinstance(res, Exception):
         raise res
     return res
