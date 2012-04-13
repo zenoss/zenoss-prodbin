@@ -195,6 +195,12 @@ class ProcessRunner(ProcessProtocol):
                 result==SUCCESS and 'success' or 'failure'))
             self.log.finish()
 
+        # LET'S UPDATE THE CURRENT STATE
+        # TO PULL IN CHANGES COMMITTED
+        # BY THE JOB WE RAN (SEE ZEN-1242)
+        self.job._p_jar.sync()
+        ##############################
+
         self.whenComplete.callback(result)
 
 
