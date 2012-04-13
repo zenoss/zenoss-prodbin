@@ -220,13 +220,16 @@
                 this.applyTemplate();
             }
             this.eachColumn(function (col) {
-                if (Ext.isDefined(state[col.filterKey]) && !Ext.isEmpty(state[col.filterKey])) {
-                    col.filterField.setValue(state[col.filterKey]);          
+                // do not apply a filter to a hidden column (will be confusing for the user)
+                if (!col.isHidden()) {
+                    if (Ext.isDefined(state[col.filterKey]) && !Ext.isEmpty(state[col.filterKey])) {
+                        col.filterField.setValue(state[col.filterKey]);
+                    }
+                } else {
+                    // column is hidden so hide the filter
+                    col.filterField.setVisible(false);
                 }
             });
-            // the state can make some columns that were hidden visible so
-            // reapply the template to render those columns filters
-            this.applyTemplate();
         },
         onChange:function (field, newValue, oldValue) {
             if (!this.onChangeTask) {

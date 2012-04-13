@@ -182,4 +182,9 @@ Ext.onReady(function(){
     // Start disabled since pane is collapsed
     esckeymap.disable();
 
+
+    // if there is a state apply it now
+    if (window.location.search) {
+        grid.restoreURLState();
+    }
 });

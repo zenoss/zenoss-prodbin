@@ -1002,13 +1002,12 @@
         restoreURLState: function() {
             var qs = window.location.search.replace(/^\?/, ''),
             state = Ext.urlDecode(qs).state;
-                if (state) {
-                    try {
-                        state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));
-                        this.applyState(state);
-
-                    } catch(e) { }
-                }
+            if (state) {
+                try {
+                    state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));
+                    this.applyState(state);
+                } catch(e) { }
+            }
         },
         clearURLState: function() {
             var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));
