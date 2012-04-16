@@ -33,13 +33,17 @@ log = logging.getLogger('zen.ZPLoader')
 CONFIG_FILE = 'about.txt'
 CONFIG_SECTION_ABOUT = 'about'
 
-def findFiles(pack, directory, filter=None):
+def findFiles(pack, directory, filter=None, excludedDirs=('.svn',)):
     result = []
     if isinstance(pack, basestring):
         path = os.path.join(pack, directory)
     else:
         path = pack.path(directory)
     for p, ds, fs in os.walk(path):
+        # Don't visit excluded directories - os.walk with topdown=True
+        for excludedDir in excludedDirs:
+            if excludedDir in ds:
+                ds.remove(excludedDir)
         if not os.path.split(p)[-1].startswith('.'):
             for f in fs:
                 if filter is None or filter(f):
