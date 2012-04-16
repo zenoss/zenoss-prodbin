@@ -82,7 +82,7 @@ pyexec() {
         MODULE_OPT="-m"
     fi
     if [ -n "$CFGFILE" ]; then
-        set -- "$@" --configfile $CFGFILE
+        set -- --configfile $CFGFILE "$@"
     fi
     exec $WRAPPER $MODULE_OPT $PRG "$@"
 
