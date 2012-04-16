@@ -252,6 +252,7 @@ class PingTask(BaseTask):
                 'rtt_max' : maxRtt,
                 'rtt_losspct': pingLoss,
                 'rtt_stddev': stddevRtt,
+                'rcvCount': received,
             }
         else:
             pingLoss = 100
