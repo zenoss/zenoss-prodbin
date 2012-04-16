@@ -1229,8 +1229,14 @@
             Zenoss.EventRainbow.superclass.constructor.call(this, config);
         },
         setContext: function(uid){
-            this.directFn({uid:uid, keys:['events']}, function(result){
-                if (Zenoss.env.contextUid && Zenoss.env.contextUid != uid) {
+            if (uid) {
+                this.uid = uid;
+                this.refresh();
+            }
+        },
+        refresh: function(){
+            this.directFn({uid:this.uid, keys:['events']}, function(result){
+                if (Zenoss.env.contextUid && Zenoss.env.contextUid != this.uid) {
                     return;
                 }
                 this.updateRainbow(result.data.events);
