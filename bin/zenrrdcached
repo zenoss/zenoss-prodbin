@@ -22,6 +22,16 @@ RRDCACHED_ADDRESS=$ZENHOME/var/rrdcached.sock
 JOURNALDIR=$ZENHOME/var/rrd_journals
 PIDFILE=$ZENHOME/var/rrdcached.pid
 
+if [ -z "$RRDCACHED" ]; then
+    RRDCACHED=`which rrdcached`
+fi
+
+if [ ! -f "$RRDCACHED" ]; then
+    echo rrdcached could not be found in '$RRDCACHED' or in the path.  Ensure \
+that rrdcached is in the path or define '$RRDCACHED'.
+    exit 1
+fi
+
 running() {
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE 2>/dev/null`
@@ -38,7 +48,7 @@ start() {
         echo is already running
     else
         echo starting...
-        $ZENHOME/bin/rrdcached -p $PIDFILE -l $RRDCACHED_ADDRESS -j $JOURNALDIR $OPTS
+        "$RRDCACHED" -p $PIDFILE -l $RRDCACHED_ADDRESS -j $JOURNALDIR $OPTS
     fi
 }
 
