@@ -216,6 +216,7 @@ Zenoss.nav.register({
                 });
             } else {
                 target.layout.setActiveItem('edit_panel');
+                target.layout.activeItem.setContext(uid);
             }
         }
     },{
