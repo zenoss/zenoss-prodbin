@@ -487,7 +487,7 @@ class MaintenanceWindow(ZenModelRM):
                      minProdState)
             device.setProdState(minProdState, maintWindowChange=True)
             audit('Maintenance.Device.Edit', device, ending=ending, 
-                maintenanceWindow=self.displayName, 
+                maintenanceWindow=self.displayName(), 
                 fromProductionState=device.productionState,
                 toProductionState=minProdState)
 
