@@ -184,7 +184,7 @@ class EventsRouter(DirectRouter):
             'DeviceClass' : self._lookupDetailPath('/zport/dmd/Devices', eventDetails.get(EventProxy.DEVICE_CLASS_DETAIL_KEY)),
         }
 
-        # if zenoss.device.url and zenoss.device.path are set and valid, 
+        # if zenoss.device.url and zenoss.device.path are set and valid,
         #     then use those (use case is hub and collector daemon self-monitoring)
         #     otherwise determine the URL from actor.element_uuid
         device_url = self._get_device_url(eventDetails)
@@ -431,6 +431,11 @@ class EventsRouter(DirectRouter):
             )
             log.debug('Found params for building filter, ended up building  the following:')
             log.debug(event_filter)
+        elif specificEventUuids:
+            # if they passed in specific uuids but not other params
+            event_filter = self.zep.createEventFilter(
+                uuid = specificEventUuids
+                )
         else:
             log.debug('Did not get parameters, using empty filter.')
             event_filter = {}
@@ -515,7 +520,7 @@ class EventsRouter(DirectRouter):
             'clearid': event_summary.get('cleared_by_event_uuid'),
             'log':[]}
 
-        # if zenoss.device.url and zenoss.device.path are set and valid, 
+        # if zenoss.device.url and zenoss.device.path are set and valid,
         #     then use those (use case is hub and collector daemon self-monitoring)
         #     otherwise determine the URL from actor.element_uuid
         device_url = self._get_device_url(eventDetails)

@@ -219,7 +219,7 @@ Ext.onReady(function() {
                             id: 'evdetail-sep',
                             cls: 'evdetail-sep'
                         }]
-                    },{
+                    }, {
                         region: 'center',
                         id: 'evdetail-summary',
                         html: ''
@@ -245,7 +245,26 @@ Ext.onReady(function() {
                     width: "90%",
                     autoScroll: true,
                     cls: 'evdetail_bd',
-                    items: [
+                    items: [   {
+                        xtype:'toolbar',
+                        width: "105%",
+                        style: {
+                            position: "relative",
+                            top: -1
+                        },
+                        hidden: !config.showActions,
+                        id: 'actiontoolbar',
+                        items:[ {
+                                xtype: 'tbtext',
+                                text: _t('Event Actions:')
+                            },
+                            Zenoss.events.EventPanelToolbarActions.acknowledge,
+                            Zenoss.events.EventPanelToolbarActions.close,
+                            Zenoss.events.EventPanelToolbarActions.reopen,
+                            Zenoss.events.EventPanelToolbarActions.unclose
+
+                        ]
+                    },
                     {
                         id: 'event_detail_properties',
                         frame: false,
@@ -437,7 +456,6 @@ Ext.onReady(function() {
             this.addSection(eventDetailsSection);
 
             this.checkCustomizations();
-
         },
 
         checkCustomizations: function() {
@@ -461,7 +479,7 @@ Ext.onReady(function() {
 
         addSection: function(section) {
             if (section.hasOwnProperty('renderers')) {
-                Ext.apply(this.renderers, section.renderers);  
+                Ext.apply(this.renderers, section.renderers);
             }
 
             this.sections.push(section);
@@ -631,6 +649,43 @@ Ext.onReady(function() {
             logHtml = logTemplate.apply(eventData);
             Ext.getCmp('evdetail_log').update(logHtml);
             this.doLayout();
+
+            this.updateEventActions(eventData);
+        },
+        updateEventActions: function(eventData) {
+            Zenoss.EventActionManager.configure({
+                onFinishAction: Ext.bind(this.refresh, this),
+
+                findParams: function() {
+                    var params = {
+                            evids: [eventData['evid']]
+                        };
+                    return params;
+                }
+            });
+            var actiontoolbar = Ext.getCmp('actiontoolbar'),
+                ackButton = actiontoolbar.query("button[iconCls='acknowledge']")[0],
+                closeButton = actiontoolbar.query("button[iconCls='close']")[0],
+                unAckButton = actiontoolbar.query("button[iconCls='unacknowledge']")[0],
+                reopenButton = actiontoolbar.query("button[iconCls='reopen']")[0],
+                state = eventData['eventState'].toLowerCase();
+
+            // disable all buttons
+            ackButton.disable();
+            closeButton.disable();
+            unAckButton.disable();
+            reopenButton.disable();
+
+            // enable based on state (i.e. Which state can I go to from my current?)
+            if (state == "new") {
+                ackButton.enable();
+                closeButton.enable();
+            } else if (state == "acknowledged") {
+                unAckButton.enable();
+                closeButton.enable();
+            } else if ((state == "closed") || (state == "cleared"))  {
+                reopenButton.enable();
+            }
         },
         bind: function() {
             var close_btn = Ext.getCmp('evdetail_tool_close').getEl(),

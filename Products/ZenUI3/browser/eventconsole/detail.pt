@@ -31,6 +31,7 @@ Ext.onReady(function(){
         renderTo: Ext.getBody().dom,
         items: [{
             xtype: 'detailpanel',
+            showActions: true,
             id: 'dpanelcontainer'
         }]
     });
