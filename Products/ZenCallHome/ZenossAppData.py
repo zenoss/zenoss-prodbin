@@ -90,7 +90,7 @@ class ZenossAppData(object):
         yield "Reports", self.dmd.Reports.countReports()
 
     def templates(self):
-        yield "Templates", self.dmd.Devices.rrdTemplates.countObjects()
+        yield "Templates", len(self.dmd.searchRRDTemplates)
 
     def systems(self):
         yield "Systems", self.dmd.Systems.countChildren()
