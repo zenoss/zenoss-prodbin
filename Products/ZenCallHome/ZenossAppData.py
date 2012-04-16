@@ -84,7 +84,7 @@ class ZenossAppData(object):
             yield version["header"], version["data"]
 
     def event_classes(self):
-        yield 'Evt Classes', self.dmd.Events.countInstances()
+        yield 'Evt Mappings', self.dmd.Events.countInstances()
 
     def reports(self):
         yield "Reports", self.dmd.Reports.countReports()
