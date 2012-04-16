@@ -192,7 +192,10 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
                 severity = min(severity + 1, 5)
             summary = 'threshold of %s %s: current value %f' % (
                 self.name(), how, float(value))
-            return self.processEvent(self._create_event_dict(value, summary, severity, how))
+            evtdict = self._create_event_dict(value, summary, severity, how)
+            if self.escalateCount:
+                evtdict['escalation_count'] = count
+            return self.processEvent(evtdict)
         else:
             count = self.getCount(dp)
             if count is None or count > 0:
