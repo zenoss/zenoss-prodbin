@@ -34,6 +34,7 @@ from Products.ZenModel.interfaces import IIndexed
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenWidgets import messaging
+from Products.ZenMessaging.audit import audit
 
 def lastDayPreviousMonth(seconds):
     parts = list(time.localtime(seconds))
@@ -485,6 +486,10 @@ class MaintenanceWindow(ZenModelRM):
                      self.displayName(), device.id, device.productionState,
                      minProdState)
             device.setProdState(minProdState, maintWindowChange=True)
+            audit('Maintenance.Device.Edit', device, ending=ending, 
+                maintenanceWindow=self.displayName, 
+                fromProductionState=device.productionState,
+                toProductionState=minProdState)
 
 
     def begin(self, now = None):
