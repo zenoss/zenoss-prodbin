@@ -166,16 +166,18 @@ class DeviceTypeCounter(object):
         self._device = device
 
     def processDevice(self, stats):
-        suffix = self._get_type()
+        suffix, isVm = self._get_type()
         log.debug("Device %s is type %s", self._device, suffix)
-        key = "Devices - %s" % suffix
-        if not stats.has_key(key):
-            stats[key] = 0
-        stats[key]+=1
+        devTypes = [suffix]
+        if isVm:
+            devTypes.append("Virtual")
+        for type in devTypes:
+            key = "Devices - %s" % type
+            stats[key] = stats.get(key, 0) + 1
 
     def _get_type(self):
         dev = IDeviceType(self._device)
-        return dev.type()
+        return dev.type(), dev.isVM()
 
 class DeviceClassProductionStateCount(object):
     implements(IDeviceResource)
