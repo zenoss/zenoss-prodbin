@@ -17,6 +17,7 @@ ToOneRelationship is a class used on a RelationshipManager
 to give it toOne management Functions.
 """
 
+import sys
 import logging
 log = logging.getLogger("zen.Relations")
 
@@ -33,6 +34,7 @@ from Acquisition import aq_base
 from zExceptions import NotFound
 from Products.ZenRelations.Exceptions import *
 from Products.ZenUtils.Utils import unused, getObjByPath
+from Products.ZenUtils.tbdetail import log_tb
 
 def manage_addToOneRelationship(context, id, REQUEST = None):
     """ToOneRelationship Factory"""
@@ -100,7 +102,11 @@ class ToOneRelationship(RelationshipBase):
                         (obj.getPrimaryId(), self.getPrimaryId(),
                         self.obj.getPrimaryId()))
             remoteRel = getattr(aq_base(self.obj), self.remoteName())
-            remoteRel._remove(self.__primary_parent__)
+            try:
+                remoteRel._remove(self.__primary_parent__)
+            except ObjectNotFound:
+                message = log_tb(sys.exc_info())
+                log.error('Remote remove failed. Run "zenchkrels -r -x1". ' + message)
 
 
     security.declareProtected('View', 'getRelatedId')

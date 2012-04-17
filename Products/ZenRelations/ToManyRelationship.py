@@ -15,6 +15,7 @@ __doc__="""$Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
 
 __version__ = "$Revision: 1.48 $"[11:-2]
 
+import sys
 import logging
 log = logging.getLogger("zen.Relations")
 
@@ -25,6 +26,7 @@ from Acquisition import aq_base
 
 from zExceptions import NotFound
 from Products.ZenUtils.Utils import getObjByPath, unused
+from Products.ZenUtils.tbdetail import log_tb
 
 from ToManyRelationshipBase import ToManyRelationshipBase
 
@@ -121,7 +123,11 @@ class ToManyRelationship(ToManyRelationshipBase):
         remoteName = self.remoteName()
         for obj in objs:
             rel = getattr(obj, remoteName)
-            rel._remove(self.__primary_parent__)
+            try:
+                rel._remove(self.__primary_parent__)
+            except ObjectNotFound:
+                message = log_tb(sys.exc_info())
+                log.error('Remote remove failed. Run "zenchkrels -r -x1". ' + message)
 
 
     def _setObject(self,id,object,roles=None,user=None,set_owner=1):

@@ -15,7 +15,7 @@ __doc__ = """ToManyContRelationship
 A to-many container relationship
 """
 
-
+import sys
 import logging
 log = logging.getLogger("zen.Relations")
 
@@ -41,6 +41,7 @@ from ToManyRelationshipBase import ToManyRelationshipBase
 from Products.ZenRelations.Exceptions import *
 
 from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.tbdetail import log_tb
 
 def manage_addToManyContRelationship(context, id, REQUEST=None):
     """factory for ToManyRelationship"""
@@ -194,7 +195,12 @@ class ToManyContRelationship(ToManyRelationshipBase):
         remoteName = self.remoteName()
         for obj in objs:
             rel = getattr(obj, remoteName)
-            rel._remove(self.__primary_parent__)
+            try:
+                rel._remove(self.__primary_parent__)
+            except ObjectNotFound:
+                message = log_tb(sys.exc_info())
+                log.error('Remote remove failed. Run "zenchkrels -r -x1". ' + message)
+                continue
 
 
     def _getOb(self, id, default=zenmarker):
