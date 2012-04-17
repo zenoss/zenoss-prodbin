@@ -105,8 +105,13 @@
             var values = dialog.getForm().getForm().getValues(),
                 value = values[data.id];
             if (type == 'lines') {
-                // send back as an array separated by a new line
-                value = Ext.Array.map(value.split('\n'), function(s) {return Ext.String.trim(s);});
+                if (value) {
+                    // send back as an array separated by a new line
+                    value = Ext.Array.map(value.split('\n'), function(s) {return Ext.String.trim(s);});
+                } else {
+                    // send back an empty list if nothing is set
+                    value = [];
+                }
             }
             var params = {
                 uid: grid.uid,
