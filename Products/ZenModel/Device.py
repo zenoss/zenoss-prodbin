@@ -1263,7 +1263,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         @rtype: string
         """
-        return self.convertStatus(self.getPingStatus())
+        result = self.getPingStatus()
+        if result <= 0:
+            return self.convertStatus(self.getPingStatus())
+        return "Down"
 
     def getSnmpStatusString(self):
         """
