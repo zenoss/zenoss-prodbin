@@ -46,7 +46,7 @@ details are added via zenpacks, they will show up as custom details.
 These details are added to the grid with the following specifications:
 
     header = item.name
-    filter = 'textfield' # or None if not filterable
+    filter = 'textfield' # or False if not filterable
     sortable = True
 
 
@@ -248,11 +248,11 @@ COLUMN_CONFIG = {
 
     'eventClassKey': dict(
         header='Event Class Key',
-        filter=None),
+        filter=False),
 
     'eventGroup': dict(
         header='Event Group',
-        filter=None),
+        filter=False),
 
     'eventKey'  : dict(
         header='Event Key',
@@ -278,27 +278,27 @@ COLUMN_CONFIG = {
     'facility' : dict(
         header='Syslog Facility',
         sortable=False,
-        filter=None),
+        filter=False),
 
     'priority' : dict(
         header='Syslog Priority',
         sortable=False,
-        filter=None),
+        filter=False),
 
     'eventClassMapping': dict(
         header='Event Class Mapping',
         sortable=False,
-        filter=None,
+        filter=False,
         renderer='Zenoss.render.LinkFromGridGuidGroup'),
 
     'clearid': dict(
         header='Cleared by Event ID',
-        filter=None),
+        filter=False),
 
     'ntevid': dict(
         header='NT Event Code',
         sortable=False,
-        filter=None),
+        filter=False),
 
     'ipAddress' : dict(
         header='IP Address',
@@ -307,7 +307,7 @@ COLUMN_CONFIG = {
 
     'message'   : dict(
         header='Message',
-        filter=None),
+        filter=False),
 
     'Location'  : dict(
         header='Location',
