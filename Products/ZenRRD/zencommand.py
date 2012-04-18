@@ -100,6 +100,7 @@ class SshPerformanceCollectionPreferences(object):
         parser.add_option('--maxbackoffminutes',
                           dest='maxbackoffminutes',
                           default=MAX_BACK_OFF_MINUTES,
+                          type='int',
                           help="When a device fails to respond, increase the time to" \
                                " check on the device until this limit.")
 

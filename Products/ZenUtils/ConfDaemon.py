@@ -168,10 +168,12 @@ class ConfDaemon(CmdBase):
         self.parser.add_option('-T', '--configtries',
                     dest='configtries',
                     default=5,
+                    type='int',
                     action="store",
                     help="How many times to retry config connection")
         self.parser.add_option('-S', '--configsleep',
                     dest='configsleep',
                     default=20,
+                    type='int',
                     action="store",
                     help="How long to sleep between config connections")

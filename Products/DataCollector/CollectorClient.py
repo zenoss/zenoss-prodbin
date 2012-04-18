@@ -254,6 +254,7 @@ def buildOptions(parser=None, usage=None):
                 help='Path to use when looking for SSH keys')
     parser.add_option('-S', '--concurrentSessions',
                 dest='concurrentSessions',
+                type='int',
                 default = defaultConcurrentSessions,
                 help='Allowable number of concurrent SSH sessions')
     parser.add_option('-s', '--searchPath',

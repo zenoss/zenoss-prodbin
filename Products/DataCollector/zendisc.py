@@ -791,7 +791,7 @@ class ZenDisc(ZenModeler):
                     default="/Discovered",
                     help="Default device class for discovered devices")
         self.parser.add_option('--prod_state', dest='productionState',
-                    default=1000,
+                    default=1000, type='int',
                     help="Initial production state for discovered devices")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true", default=False,

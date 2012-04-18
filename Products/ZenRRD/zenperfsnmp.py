@@ -87,6 +87,7 @@ class SnmpPerformanceCollectionPreferences(object):
         parser.add_option('--maxbackoffminutes',
                           dest='maxbackoffminutes',
                           default=MAX_BACK_OFF_MINUTES,
+                          type='int',
                           help="Deprecated since 4.1.1. No longer used")
         
         parser.add_option('--triespercycle',

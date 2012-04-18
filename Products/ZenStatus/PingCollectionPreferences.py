@@ -74,6 +74,7 @@ class PingCollectionPreferences(object):
         parser.add_option('--traceroute-interval',
             dest='tracerouteInterval',
             default=5,
+            type='int',
             help="Traceroute every N ping intervals; default is 5, traceroute every time" \
                 " a ping is performed.")
 
