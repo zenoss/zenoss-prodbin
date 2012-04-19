@@ -41,8 +41,8 @@ def flushDevice(device):
         p = subprocess.Popen([os.path.abspath(__file__), '-'], stdin=t)
         p.wait()
 
-
-def commandLoop():
+def commandLoop(cmds=None):
+    s = None
     try:
         zenhome = os.environ['ZENHOME']
 
@@ -55,7 +55,10 @@ def commandLoop():
 
         while True:
             try:
-                cmd = raw_input(prompt)
+                if cmds is not None:
+                   cmd = cmds.pop(0)
+                else:
+                   cmd = raw_input(prompt)
             except EOFError as e:
                 sys.exit()
             if cmd.lower() in ('\q', 'quit', 'exit', 'bye', ':q'):
@@ -66,7 +69,14 @@ def commandLoop():
                 data = s.recv(1024)
                 print data,
 
+            if cmds is not None and len(cmds) == 0:
+                break
+
     finally:
+        if s:
+            s.send("QUIT\n")
+            s.recv(1024)
+            s.close()
         # reset the terminal in case things go south
         devnull = open(os.devnull, 'rw')
         subprocess.call('stty sane', shell=True, stdout=devnull, stderr=devnull)
@@ -78,7 +88,8 @@ if __name__=="__main__":
     usage = """usage: %prog COMMAND
 
  -                  Interactively send commands to rrdcached.
- flush DEVICE_ID    Flush all the RRD files for the given device. """
+ flush DEVICE_ID    Flush all the RRD files for the given device. 
+ stats              Print zenrrdcached STATS."""
     parser = optparse.OptionParser(usage=usage)    
     options, args = parser.parse_args()
 
@@ -86,11 +97,13 @@ if __name__=="__main__":
         parser.print_usage()
     elif args[0] == "-":
         commandLoop()
-    elif args[0] == "flush":
+    elif args[0].lower() == "flush":
         if len(args) < 2:
             parser.print_usage()
         for d in args[1:]:
             flushDevice(d)
+    elif args[0].lower() == 'stats':
+        commandLoop(['STATS'])
     else:
         parser.print_usage()
 

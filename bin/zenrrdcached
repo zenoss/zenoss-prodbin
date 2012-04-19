@@ -32,6 +32,11 @@ that rrdcached is in the path or define '$RRDCACHED'.
     exit 1
 fi
 
+stats() { 
+    $ZENHOME/bin/python $ZENHOME/Products/ZenRRD/zenrrdcached_util.py stats 
+} 
+
+
 running() {
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE 2>/dev/null`
@@ -80,7 +85,7 @@ status() {
 }
 
 usage() {
-    echo "Usage: zenrrdcached [run|start|restart|stop|status] [options]"
+    echo "Usage: zenrrdcached [run|start|restart|stop|status|stats] [options]"
 }
 
 
