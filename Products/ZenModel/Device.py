@@ -1255,7 +1255,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         @rtype: string
         """
-        return self.convertPriority(self.priority)
+        return str(self.convertPriority(self.priority))
 
     def getPingStatusString(self):
         """
@@ -1265,7 +1265,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         result = self.getPingStatus()
         if result <= 0:
-            return self.convertStatus(self.getPingStatus())
+            return str(self.convertStatus(self.getPingStatus()))
         return "Down"
 
     def getSnmpStatusString(self):
@@ -1274,7 +1274,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         @rtype: string
         """
-        return self.convertStatus(self.getSnmpStatus())
+        result = self.getSnmpStatus()
+        if result <= 0:
+            return str(self.convertStatus(self.getSnmpStatus()))
+        return "Down"
 
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, maintWindowChange=False, REQUEST=None):
