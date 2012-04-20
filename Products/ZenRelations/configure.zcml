@@ -30,4 +30,9 @@
         handler=".subscribers.resetUnderscoreOperation"
         />
 
+    <subscriber
+            for="Products.ZenUtils.events.IZopeApplicationOpenedEvent"
+            handler=".registerDescriptors"
+            />
+
 </configure>

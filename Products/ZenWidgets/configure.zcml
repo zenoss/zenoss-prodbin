@@ -7,4 +7,9 @@
     <include package=".browser"/>
     <include file="messaging.zcml"/>
 
+    <subscriber
+            for="Products.ZenUtils.events.IZopeApplicationOpenedEvent"
+            handler=".registerPortlets"
+            />
+
 </configure>

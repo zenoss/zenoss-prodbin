@@ -14,7 +14,9 @@
 from Products.PluggableAuthService.interfaces.events import IUserLoggedInEvent
 from Products.PluggableAuthService.interfaces.events import IUserLoggedOutEvent
 from Products.PluggableAuthService.events import PASEvent
-from zope.interface import implements
+from zope.interface import implements, Interface, Attribute
+from zope.event import notify
+from ZODB.transact import transact
 
 class UserLoggedInEvent(PASEvent):
     """
@@ -37,3 +39,29 @@ class UserLoggedOutEvent(PASEvent):
     This does not fire for session timeouts.
     """
     implements(IUserLoggedOutEvent)
+
+class IZopeApplicationOpenedEvent(Interface):
+    """
+    Returns the Zope application.
+    """
+    app = Attribute("The Zope Application")
+
+class ZopeApplicationOpenedEvent(object):
+    implements(IZopeApplicationOpenedEvent)
+
+    def __init__(self, app):
+        self.app = app
+
+def notifyZopeApplicationOpenedSubscribers(event):
+    """
+    Re-fires the IDatabaseOpenedWithRoot notification to subscribers with an
+    open handle to the application defined in the database.
+    """
+    db = event.database
+    conn = db.open()
+    try:
+        app = conn.root()['Application']
+        transact(notify)(ZopeApplicationOpenedEvent(app))
+    finally:
+        conn.close()
+

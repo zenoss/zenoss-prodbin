@@ -26,4 +26,10 @@
     <!-- attempt to secure the Zope Session cookie -->
     <subscriber handler=".Security.secureSessionCookie" />
 
+    <!-- Re-fires IDatabaseOpenedWithRoot as IZopeApplicationOpenedEvent for subscribers -->
+    <subscriber
+            for="zope.processlifetime.IDatabaseOpenedWithRoot"
+            handler=".events.notifyZopeApplicationOpenedSubscribers"
+            />
+
 </configure>

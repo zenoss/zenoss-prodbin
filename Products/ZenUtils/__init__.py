@@ -30,12 +30,6 @@ def initialize(context):
         constructors=(manage_addMultiPathIndexForm, manage_addMultiPathIndex),
         #icon="www/index.gif",
         visibility=None)
-    # Initialize the MySQL talkingz
-    app = context._ProductContext__app
-    try:
-        zem = app.zport.dmd.ZenEventManager
-    except AttributeError, e:
-        pass
 
 def safeTuple(arg):
     """

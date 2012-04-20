@@ -19,7 +19,6 @@ $Id: __init__.py,v 1.9 2002/12/06 14:25:57 edahl Exp $"""
 __version__ = "$Revision: 1.9 $"[11:-2]
 
 import logging
-
 from RelationshipManager import RelationshipManager, addRelationshipManager, \
                                 manage_addRelationshipManager
 from ToOneRelationship import ToOneRelationship, addToOneRelationship, \
@@ -54,22 +53,16 @@ def initialize(registrar):
         constructors = (addToManyContRelationship, 
                         manage_addToManyContRelationship),
         icon = 'www/ToManyContRelationship_icon.gif')
-    app = registrar._ProductContext__app
-    if app is None:
-        log.error("Could not connect to the zodb.")
-        raise ZODBConnectionError("registered app is None")
 
-    # during the execution of runtests, zport may not be set
-    # swallow that exception until root cause of this is discovered
+def registerDescriptors(event):
+    """
+    Handler for IZopeApplicationOpenedEvent which registers property descriptors.
+    """
+    zport = event.app.zport
+    dmd = zport.dmd
     try:
-        zport = app.zport
-        dmd = zport.dmd
-    except AttributeError as ex:
-        log.debug("Problem with zport or dmd attribute on app: %r" % ex)
-    else:
-        try:
-            setDescriptors(dmd.propertyTransformers)
-        except Exception, e:
-            args = (e.__class__.__name__, e)
-            log.info("Unable to set property descriptors: %s: %s", *args)
+        setDescriptors(dmd.propertyTransformers)
+    except Exception, e:
+        args = (e.__class__.__name__, e)
+        log.info("Unable to set property descriptors: %s: %s", *args)
 

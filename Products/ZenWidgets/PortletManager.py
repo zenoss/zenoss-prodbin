@@ -63,8 +63,14 @@ class PortletManager(ZenModelRM):
         Registers a new source file and creates an associated Portlet to store
         the metadata and provide access methods.
         """
-        p = self.find(id, sourcepath) 
-        if p: self.unregister_portlet(p.id)
+        p = self.find(id, sourcepath)
+        if p:
+            old_values = (p.sourcepath, p.id, p.title, p.description, p.preview, p.height, p.permission)
+            new_values = (sourcepath, id, title, description, preview, height, permission)
+            if old_values == new_values:
+                # Portlet unchanged - don't re-register
+                return
+            self.unregister_portlet(p.id)
         p = Portlet(sourcepath, id, title, description, preview, height, permission)
         self.portlets._setObject(id, p)
 

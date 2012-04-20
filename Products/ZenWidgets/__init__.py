@@ -50,7 +50,12 @@ def initialize(registrar):
         constructors = (manage_addZenTableManager,),
         icon = "ZenTableManager_icon.gif"
     )
-    update_portlets(registrar._ProductContext__app)
+
+def registerPortlets(event):
+    """
+    Handler for IZopeApplicationOpenedEvent which registers portlets.
+    """
+    update_portlets(event.app)
 
 # Enable gzip compression of static files
 import FileGzipper
