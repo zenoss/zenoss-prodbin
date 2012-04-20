@@ -20,38 +20,35 @@ v\:* {
         tal:condition="here/dmd/geomapapikey"
         tal:define="apikey here/dmd/geomapapikey"
         tal:attributes="
-            src string:http://maps.google.com/maps?file=api&v=2&key=${apikey};
-    "></script>
+            src string:http://maps.googleapis.com/maps/api/js?key=${apikey}&sensor=false"></script>                       
     <script tal:content="string:
         var eventsdb=true,
             nodedata = ${here/getChildGeomapData},
             linkdata = ${here/getChildLinks},
             geocodecache = ${here/dmd/getGeoCache};
-    " tal:on-error="string:var eventsdb=false;"></script>
+    " tal:on-error="string:var eventsdb=false;"></script>                        
+   
 <script>
+
 var IS_MAP_PORTLET = true;
+
 (function(){ // Private namespace
-
-function maximizeMapHeight() {
-    mapdiv = $('geomapcontainer');
-    mapoffset = getElementPosition(mapdiv).y;
-    maxbottom = getViewportDimensions().h;
-    newdims = {'h':maxbottom-mapoffset};
-    setElementDimensions(mapdiv, newdims);
-}
-
-connect(currentWindow(), 'onresize', maximizeMapHeight);
-
-addLoadEvent(maximizeMapHeight);
-
-if (eventsdb /* eventsdb is defined above */) {
-    loader = YAHOO.zenoss.getLoader();
-    loader.require(['geomap']);
-    loader.insert({onSuccess:function(){
-            YAHOO.zenoss.geomap.initialize('geomapcontainer')}
-    });
-}
-
+    // let google listen and initiate everything
+    if(typeof google == 'undefined'){
+        alert("The server returned an error while trying to retrieve a map from Google. Please check your client key in the services page.");
+        return false; // no google object returned so something was wrong
+    }    
+    google.maps.event.addDomListener(window, 'load', function(){
+         if (eventsdb) { 
+            loader = YAHOO.zenoss.getLoader(); 	                
+            loader.require(['geomap']); 	
+            loader.insert(
+            {onSuccess:function(){ 	
+                    YAHOO.zenoss.geomap.initialize('geomapcontainer'); 
+                }
+            }); 	
+        }         
+    });    
 })(); // End private namespace
 </script>
 </tal:block>
@@ -60,7 +57,7 @@ if (eventsdb /* eventsdb is defined above */) {
 <div id="geomapcontainer" tal:define="dummy here/getChildGeomapData"
     tal:on-error="structure python:here.dmd.error_handler(error)"
     tal:attributes="class python:test(here.dmd.geomapapikey, '', 'noapikey')">
-
+    
     <!-- Google Maps javascript adds map here -->
 
     <div tal:condition="python:not here.dmd.geomapapikey" id="geomaperrormsg">
@@ -71,4 +68,15 @@ if (eventsdb /* eventsdb is defined above */) {
        page <br/>to set one up.
     </div>
 
-</div></body></html>
+</div>
+
+<div id='geocodingdialog' 
+     style="width:100%;height:100px;
+            text-align:center;font-size:16px;
+            position:absolute;top:40%;left:0;
+            background:rgba(220, 220, 220, 0.7);z-index:9000;
+            padding:20px;display:none;">
+    Geocoding, please wait...            
+</div>
+
+</body></html>

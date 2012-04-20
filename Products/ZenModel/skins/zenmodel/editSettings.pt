@@ -16,12 +16,8 @@ function popupMapHelp() {
     mySimpleDialog.setBody(
        "To access the free Google Maps API, you must specify an API key linked to a base URL." +
        "You can obtain a free API key from Google at <"+"a href='" +
-       "http://www.google.com/apis/maps/signup.html' target='blank'>"+
-       "http://www.google.com/apis/maps/signup.html<"+"/a>. " +
-       "For your Web site URL, use the base URL, <"+"em>including port<"+
-       "/em>, "+
-       "that you use to access this Web interface. " +
-       "You used "+baseurl+" to access this interface.");
+       "https://code.google.com/apis/console' target='blank'>"+
+       "https://code.google.com/apis/console<"+"/a>. ");
     addElementClass(currentDocument().body, 'yui-skin-sam');
     mySimpleDialog.render(currentDocument().body);
     mySimpleDialog.show();

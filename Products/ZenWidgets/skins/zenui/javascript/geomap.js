@@ -2,253 +2,234 @@ var IS_MAP_PORTLET = IS_MAP_PORTLET || false;
 
 YAHOO.namespace('zenoss.geomap');
 
-(function() { // Private namespace
-
-var Z = YAHOO.zenoss,             // Internal shorthand
-    W = YAHOO.widget,             // Internal shorthand
-    ZenGeoMap = Z.Class.create(); // The main class
-
-/** ZenossLocationCache
- *  A Google GGeocodeCache with the ability to restore from a serialized version
- *  of the cache object.
- */
-
-function ZenossLocationCache() {
-    GGeocodeCache.apply(this);
-}
-
-ZenossLocationCache.prototype = new GGeocodeCache();
-ZenossLocationCache.prototype.reset = function() {
-    GGeocodeCache.prototype.reset.call(this);
-    // Iterate over the attributes at the top level to get the name of the main
-    // cache. Google likes to rename them arbitrarily; this makes it so we
-    // don't care.
-    if (geocodecache) {
-        if (typeof(geocodecache)=="string")
-            geocodecache = YAHOO.lang.JSON.parse(geocodecache);
-      for (key in geocodecache)
-          var mycache = geocodecache[key];
-    } else {
-      var mycache = [];
+(function() { 
+     /* PRIVATE GLOBALS */     
+        var ZenGeoMapPortlet = YAHOO.zenoss.Class.create(); // The main class        
+        var gmap = null;// global "map"
+        var geocoder = new google.maps.Geocoder();
+        var gcache = [];
+        var scache = {};
+        var nodes = [];
+        var linepoints = [];
+        var index = 0;
+        var infowindow = null;    
+        var markers = [];
+        var polylineregistry = [];
+        var dialog = null;
+    
+    /* PUBLICIZE */
+    ZenGeoMapPortlet.prototype = {
+        __init__: function(container){
+            this.map = gmap;
+        },
+        refresh: function(){
+            _engine.refresh();
+        }
     }
-    // Now put each record into the current cache.
-    forEach(keys(mycache), method(this, function(x) {
-        this.put(mycache[x].name, mycache[x]);
-    }));
-}
-
-/* ZenGeoMap
- * A class wrapping Google Maps that manages node creation and communication
- * with Zenoss.
- */
-
-ZenGeoMap.prototype = {
-    __init__: function(container){
-        this.lock = new DeferredLock();
-        this.map = new GMap2(container);
-        this.map.addControl(new GSmallMapControl());
-        this.map.setCenter(new GLatLng(0,0),0);
-        this.bounds = new GLatLngBounds();
-        this.cache = new ZenossLocationCache();
-        this.dirtycache = false;
-        this.geocoder = new GClientGeocoder(this.cache);
-        var icon = new GIcon();
-        icon.iconSize = new GSize(18,18);
-        icon.iconAnchor = new GPoint(9,9);
-        this.baseIcon = icon;
-        this.geocodelock = new DeferredLock();
-        this.mgr = new GMarkerManager(this.map);
-        this.geocodetimeout = 500;
-        this.markerchecking = null;
-        this._markerregistry = {};
-        this._polylineregistry = [];
-        bindMethods(this);
-    },
-    geocode: function(address, callback) {
-        var checkStatus = method(this, function(ob) {
-            if (ob.Status.code == G_GEO_SUCCESS) {
-                callLater(this.geocodetimeout/1000, method(this, function(){
-                        this.geocodelock.release()}));
-                coords = ob.Placemark[0].Point.coordinates;
-                lat = coords[1];
-                lng = coords[0];
-                callback(new GLatLng(lat, lng));
-            } else if (ob.Status.code == 620) {
-                this.geocodetimeout += 50;
-                callLater(5, method(this, function(){makereq()}));
-            } else {
-                callback(null);
-                callLater(this.geocodetimeout/1000, method(this, function(){
-                        this.geocodelock.release()}));
+        
+    /* BASE ENGINE */
+    var _engine = {   
+        initMap: function(container) { 
+            _engine.maximizeMapHeight();
+            var myOptions = {
+                zoom: 6,
+                center: new google.maps.LatLng(43.907787,-79.359741),
+                mapTypeControl: false,
+                disableDefaultUI: true, 
+                streetViewControl: false,
+                navigationControl: true,             
+                mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU},
+                mapTypeId: google.maps.MapTypeId.ROADMAP
             }
-        });
-        var makereq = method(this, function(){
-            if (!!this.cache.get(address)) {
-                this.geocodelock.release();
-                this.geocoder.getLatLng(address, callback);
-            } else if (!address) {
-                callback(null);
-                callLater(this.geocodetimeout/1000, method(this, function(){
-                        this.geocodelock.release()}));
-            } else {
-                Z.geomap.geocodingdialog.show();
-                this.geocoder.getLocations(address, checkStatus);
+            gmap = new google.maps.Map(document.getElementById(container), myOptions); 
+            // initialize the global popup window for reuse:
+            infowindow = new google.maps.InfoWindow({
+                content: "holding..."
+            });      
+            _engine.refresh();
+        },  
+        refresh: function() {
+            // this is called when the page loads, and when it refreshes.
+            var results = {
+                'nodedata':[],
+                'linkdata':[]
+            };           
+            var myd = loadJSONDoc('getChildGeomapData');
+            myd.addCallback(function(x){results['nodedata']=x});
+            var myd2 = loadJSONDoc('getChildLinks');
+            myd2.addCallback(function(x){results['linkdata']=x;});
+            var bigd = new DeferredList([myd, myd2], false, false, true);
+            bigd.addCallback(method(this, function(){
+                if(!_utils.checkMemCache()){// this is only used for refresh checking
+                    _overlay.doDraw(results);                    
+                }
+            }));
+        },
+        maximizeMapHeight: function() {
+            mapdiv = $('geomapcontainer');
+            mapoffset = getElementPosition(mapdiv).y;
+            maxbottom = getViewportDimensions().h;
+            newdims = {'h':maxbottom-mapoffset};
+            setElementDimensions(mapdiv, newdims);        
+        }        
+    }
+   /* DRAWING OVERLAY AND MARKERS */ 
+    var _overlay = {
+        addMarkers: function() {
+            // check server cache to see if we need to geocode or not
+            if(geocodecache && geocodecache.nodes.length > 0){
+                _overlay.constructMarker(geocodecache.nodes[index], false);                
+            }else{
+                geocoder.geocode( { 'address': nodedata[index][0]}, function(results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {              
+                        // got a result, store it for the server cache builder                       
+                        nodes.push(results);
+                        dialog.style.display = 'block';
+                        var content = "Geocoding " + index + " of " + nodedata.length + " addresses, please wait...<br><br>";
+                        content += '<img src="http://us.i1.yimg.com/us.yimg.com/i/us/per/gr/gp/rel_interstitial_loading.gif" />';
+                        dialog.innerHTML = content;                 
+                        _overlay.constructMarker(results, true); 
+                    }else{
+                        _utils.statusDialog(status);
+                        dialog.style.display = 'block';
+                        dialog.innerHTML = "";                     
+                    }
+                });  
             }
-        });
-        var lockedreq = method(this, function(){
-            this.geocodelock.acquire().addCallback(method(this, makereq));
-        });
-        // Test for latitude/longitude and bypass geocoding if match
-        var r = address.match(/^(-?\d+\.?\d*)[ ,]\s*(-?\d+\.?\d*)$/);
-        if (r && r.length==3) {
-            callback(new GLatLng(Number(r[1]), Number(r[2])))
-        } else {
-            lockedreq();
-        }
-    },
-    showAllMarkers: function(markers){
-        this.mgr.refresh();
-        this.map.setZoom(this.map.getBoundsZoomLevel(this.bounds));
-        this.map.setCenter(this.bounds.getCenter());
-        this.saveCache();
-    },
-    Dot: function(p, color) {
-        colors = ['green', 'grey', 'blue', 'yellow', 'orange', 'red'];
-        severity = findValue(colors, color);
-        newsize = 16 + severity;
-        this.baseIcon.iconSize = new GSize(newsize, newsize)
-        function colorImportance (marker, b) {
-            return GOverlay.getZIndex(marker.getPoint().lat()) + 
-                      findValue(colors, color)*10000000;
-        };
-        var icon = new GIcon(this.baseIcon);
-        icon.image = "img/"+color+"_dot.png";
-        return new GMarker(p, {zIndexProcess:colorImportance, icon:icon});
-    },
-    addPolyline: function(addresses) {
-        var addys = addresses[0];
-        var severity = addresses[1];
-        var colors = ['#00ff00', '#888888', '#0000ff', '#ffd700', 
-                      '#ff8c00', '#ff0000']
-        var color = colors[severity];
-        var points = []
-        var lock = new DeferredLock();
-        var lock2 = new DeferredLock();
-        var addadd = bind(function(address) {
-            var d = lock.acquire();
-            d.addCallback(bind(function(p){
-                this.geocode(
-                    address,
-                    function(p){
-                        points.push(p);
-                        if(points.length==addys.length){
-                            if (lock2.locked) lock2.release();
-                        }
-                        lock.release();
-                    });
-            }, this));
-        }, this);
-        var e = lock2.acquire();
-        e.addCallback(bind(function(){
-            map(addadd, addys);
-        }, this));
-        var f = lock2.acquire();
-        f.addCallback(bind(function(p){
-            var polyline = new GPolyline(points, color, 3);
-            this.map.addOverlay(polyline);
-            this._polylineregistry.push(polyline);
-            lock2.release();
-        }, this));
-    },
-    getOrCreateMarker: function(p, color){
-        var marker = this._markerregistry[p];
-        var isnew = (typeof(marker)=='undefined');
-        if (isnew) {
-            marker = this.Dot(p, color);
-        } else {
-            newimage = "img/" + color + "_dot.png";
-            if (marker.getIcon().image!=newimage) {
-                this.map.removeOverlay(marker);
-                marker = this.Dot(p, color);
-                isnew = true;
+           
+        }, 
+        addPolyline: function() {
+            if(linkdata.length == 0){
+                // there's no linkdata
+                scache.lines = [];
+                dialog.style.display = 'none';
+                return;
             }
-        }
-        this._markerregistry[p] = marker;
-        return [marker, isnew];
-    },
-    isPortlet: function() {
-        return document.body.innerHTML.search('breadCrumbPane')==-1;
-    },
-    addMarkers: function(nodedata){
-        var ready_markers = [];
-        var nummarkers = 0;
-        var nodelen = nodedata.length;
-        Z.geomap.geocodingdialog.setHeader(
-            "Geocoding " + nummarkers + " of " + nodelen + " addresses..."
-        );
-        function makeMarker(node) {
-            var address = node[0];
-            var color = node[1];
-            var clicklink = node[2];
-            if (this.isPortlet()) {
+            var severity = linkdata[index][1];
+            var colors = ['#00ff00', '#888888', '#0000ff', '#ffd700', 
+                          '#ff8c00', '#ff0000']
+            var color = colors[severity];
+            var points = [];
+            // check geocodecache to see if we need to geocode or not
+            if(geocodecache && geocodecache.nodes.length > 0){
+                // get points from cache and pass them
+                _overlay.constructLine(color, geocodecache.lines[index], false);
+            }else{
+                geocoder.geocode( { 'address': linkdata[index][0][0]}, function(results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {   
+                        points.push(results[0].geometry.location);
+                        geocoder.geocode( { 'address': linkdata[index][0][1]}, function(results, status) {
+                            if (status == google.maps.GeocoderStatus.OK) {
+                                points.push(results[0].geometry.location); 
+                                linepoints.push(points);
+                                _overlay.constructLine(color, points, true);
+                            }else{
+                                _utils.statusDialog(status);
+                            }
+                        });                 
+                    }else{
+                        _utils.statusDialog(status);
+                    }
+                });
+            }
+        },     
+        constructMarker: function(results, geocoding){
+            var colors = ['green', 'grey', 'blue', 'yellow', 'orange', 'red'];
+            var severity = findValue(colors, nodedata[index][1]);
+            var newsize = 16 + severity;                
+            var pinImage = new google.maps.MarkerImage("img/"+nodedata[index][1]+"_dot.png",
+                new google.maps.Size(newsize, newsize),// size
+                null, //origin null so google will handle it on the fly
+                new google.maps.Point((newsize/2),(newsize/2)), // anchor offset so dot is RIGHT on top of location
+                new google.maps.Size(newsize, newsize)// scale                    
+            );
+            var clicklink = nodedata[index][2];
+            if (IS_MAP_PORTLET) {
                 clicklink = clicklink.replace('locationGeoMap', 
                         'simpleLocationGeoMap');
-            }
-            var summarytext = node[3];
-            if (address) {
-            if (typeof(this.cache.get(address))=='undefined')
-                this.dirtycache = true;
-            this.geocode(
-                address,
-                bind(function(p){
-                    nummarkers += 1;
-                    Z.geomap.geocodingdialog.setHeader(
-                        "Geocoding " + nummarkers + " of " + nodelen + " addresses..."
-                    );
-                    if (p) {
-                        markerpair = this.getOrCreateMarker(p, color);
-                        var marker = markerpair[0];
-                        var isNew = markerpair[1];
-                        if (isNew) {
-                            this.bounds.extend(p);
-                            ready_markers.push(marker);
-                            GEvent.addListener(marker, "click", function(){
-                               if (clicklink.search('ocationGeoMap')>0){
-                                   location.href = clicklink;
-                               } else {
-                                currentWindow().parent.location.href = clicklink;
-                               }
-                            });
-                            GEvent.addListener(marker, "mouseover", function(){
-                                popTip(marker, clicklink, summarytext);
-                            });                             
-                        } else {
-                            marker.redraw(true);
-                        }
-                    }
-                }, this)
-            );
-            } else { nummarkers += 1 }
-        }
-        var makeMarker = method(this, makeMarker);
-        forEach(nodedata, makeMarker);
-        function checkMarkers() {
-            if (nodelen == nummarkers) {
-                this.mgr.addMarkers(ready_markers, 0);
-                Z.geomap.geocodingdialog.hide();
-                this.showAllMarkers();
-            } else {
-                try {this.markerchecking.cancel()}catch(e){noop();}
-                this.markerchecking = callLater(0.2, checkMarkers);
-            }
-        }
-        var checkMarkers = method(this, checkMarkers);
-        checkMarkers();
+            }             
+            var contentString = _utils.hrefize(nodedata[index][3]);
+                // for some reason, the template language parser chokes when I close the anchor /a
+                // it works like this so leaving it for now (even stranger is that you can have /a
+                // in a comment, and the parser still picks it up and crashes!
+                contentString += '<a target="_top" href="'+clicklink+'">Go to the Infrastructure Location Organizer >';
+            var marker = new google.maps.Marker( {
+                position: new google.maps.LatLng(results[0].geometry.location.Za,results[0].geometry.location.$a),
+                icon: pinImage,                    
+                map: gmap,
+                title: nodedata[index][0] 
+            });
+            if(nodedata[index][1] == "red"){
+                // if it's bad, make sure it's visible and not covered up by other markers:
+                marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);                
+            }             
 
-    },
-    saveCache: function() {
-        if (this.dirtycache) {
-            cachestr = YAHOO.lang.JSON.stringify(this.cache);
+            markers.push(marker);
+            google.maps.event.addListener(marker, 'click', (function(marker, index) { 
+                return function(){  
+                    infowindow.setContent(contentString); 
+                    infowindow.open(gmap, marker);
+                    marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1); 
+                } 
+            })(marker, index)); 
+            index++;     
+            if(index >= nodedata.length){
+                if(geocoding) scache.nodes = nodes;
+                // done with markers, let's get outta here.
+                index = 0; // reset this to use it with polylines
+                // center and add polyLines now
+                _utils.autoCenter(markers);
+                _overlay.addPolyline();
+                return;
+            }
+            // done with that marker, but wait, there's more...
+            _overlay.addMarkers();             
+        },
+        constructLine: function(color, points, geocoding){
+            points = [new google.maps.LatLng(points[0].Za,points[0].$a),new google.maps.LatLng(points[1].Za,points[1].$a)];        
+            var polyline = new google.maps.Polyline({
+              path: points,
+              strokeColor: color,
+              strokeOpacity: 1.0,
+              strokeWeight: 2
+            }); 
+            polyline.setMap(gmap);
+            polylineregistry.push(polyline); 
+            index++;
+            if(index >= linkdata.length){
+                // done with lines, and done with map drawing completely - let's get outta here.
+                if(geocoding){
+                    scache.lines = linepoints;
+                    // I only want to save the cache after a geocode                
+                    _utils.saveCache();
+                }    
+                dialog.style.display = 'none';
+                index = 0;
+                return;
+            }
+            // done with that line, but wait, there's more...
+            _overlay.addPolyline();           
+        },
+        doDraw: function(results) {      
+            nodedata = results.nodedata;
+            linkdata = results.linkdata;
+            // set cache for refresh
+            gcache = nodedata;
+            if(geocodecache){
+                geocodecache = YAHOO.lang.JSON.parse(geocodecache);
+            }
+            // remove lines:
+            forEach(polylineregistry, function(o){
+                gmap.remove_overlay(o);
+            });
+            _overlay.addMarkers();
+        }
+    }
+    /* UTILS AND HELPERS */
+    var _utils = {  
+        saveCache: function() {
+            cachestr = YAHOO.lang.JSON.stringify(scache);
+            //console.log(cachestr);
             savereq = doXHR( 
                 '/zport/dmd/setGeocodeCache', 
                 {'sendContent':cachestr,
@@ -256,101 +237,73 @@ ZenGeoMap.prototype = {
                  'mimeType':'text/plain'
                 }
             );
-        }
-        this.dirtycache = false;
-    },
-    clearPolylines: function() {
-        forEach(this._polylineregistry, function(o){
-            this.map.removeOverlay(o);
-        });
-    },
-    doDraw: function(results) {
-        var nodedata = results.nodedata;
-        var linkdata = results.linkdata;
-        this.mgr = new GMarkerManager(this.map);
-        this.addMarkers(nodedata);
-        this.clearPolylines();
-        for (j=0;j<linkdata.length;j++) {
-            this.addPolyline(linkdata[j]);
-        }
-    },
-    refresh: function() {
-        var results = {
-            'nodedata':[],
-            'linkdata':[]
-        };
-        var myd = loadJSONDoc('getChildGeomapData');
-        myd.addCallback(function(x){results['nodedata']=x});
-        var myd2 = loadJSONDoc('getChildLinks');
-        myd2.addCallback(function(x){results['linkdata']=x});
-        var bigd = new DeferredList([myd, myd2], false, false, true);
-        bigd.addCallback(method(this, function(){this.doDraw(results)}));
-    }
-}
+            scache = {};
+            nodes = [];
+            linepoints = [];
+        },    
+        checkMemCache: function(){
+            // check if there is a cache, return false if not = newmap
+            // if there IS a cache then this is a refresh, check diff
+            if(gcache.length > 0){ // have cache
+                // make sure there's no new nodes or color changes              
+                var nodeMap = {};
+                var i = null;
+                for (i = 0; i < gcache.length; i++) {
+                    nodeMap[gcache[i][2]] = gcache[i]; // UID based keymap
+                }    
 
-function popTip(marker, clicklink, summarytext){
-        var uid = getuid(marker);
-        var markerimg = _getGMMarkerImage(marker);
-        addElementClass(markerimg.ownerDocument.body, "yui-skin-sam");
-        addElementClass(markerimg.ownerDocument.body, "zenoss-gmaps");
-        new W.Tooltip(
-            uid+"_tooltip",
-            {
-                context:markerimg, 
-                text:summarytext
+                for (i = 0;i < nodedata.length; i++){
+                    if(nodeMap[nodedata[i][2]]){
+                        //check colors on the existing nodes for changes
+                       if(nodeMap[nodedata[i][2]][1] != nodedata[i][1]){
+                            geocodecache = null;
+                            return false;// status (color) changed, refresh                        
+                        }
+                    }else{
+                        // this is a new node
+                        geocodecache = null;
+                        return false;                    
+                    }
+                }
+                return true;
+            }else{
+                return false; // new map
             }
-        ).doShow();
-}
-
-function _getGMMarkerImage(marker) {
-    var myval;
-    forEach(values(marker), function(val){
-        try {
-            if (val.tagName=='IMG') {
-                myval = val;
-            }
-        } catch(e) {noop()}
-    });
-    return myval;
-}
-
-function getuid(m) {
-    // Gives you a (sort of) unique id for a marker
-    p = m.getPoint();
-    id = String(p.x) + String(p.y);
-    return id.replace(/[^a-zA-Z0-9]+/g, '');
-}
-
-Z.geomap.initialize = function (container) {
-    Z.geomap.geocodingdialog = new W.Panel("geocoding",
-        {   width:"240px",
-            fixedcenter:true,
-            close:false,
-            draggable:false,
-            zindex:40000,
-            modal:false,
-            visible:false
+       
+        },
+        hrefize: function(h){
+            return h.replace(/location.href/g, 'self.parent.location.href');
+        },
+        autoCenter: function(markers) {
+            //  Create a new viewpoint bound
+            var bounds = new google.maps.LatLngBounds();
+            //  Go through each...
+            for(var i = 0; i < markers.length; i++){
+                bounds.extend(markers[i].position);
+            }        
+            //  Fit these bounds to the map
+            gmap.fitBounds(bounds);
+        },
+        statusDialog: function(status){
+            alert("Google could not process addresses. Reason: " + status);
         }
-    );
-    Z.geomap.geocodingdialog.setHeader("Geocoding 1 of 30 addresses...")
-    Z.geomap.geocodingdialog.setBody(
-            '<img src="http://us.i1.yimg.com/us.yimg.com/'+
-            'i/us/per/gr/gp/rel_interstitial_loading.gif" />'
-    );
-    var x = new ZenGeoMap($(container));
-    connect(currentWindow(), 'onunload', GUnload);
-
-    addElementClass($('geomapcontainer'), "yui-skin-sam");
-    Z.geomap.geocodingdialog.render($('geomapcontainer'));
-    x.refresh();
-    if (IS_MAP_PORTLET) {
-        var portlet_id = currentWindow().frameElement.parentNode.id.replace(
-            '_body', '');
-        var pobj = currentWindow().parent.ContainerObject.portlets[portlet_id];
-        pobj.mapobject = x;
     }
-}
+    /* SET UP AND RUN THE MAP */
+    YAHOO.zenoss.geomap.initialize = function (container) {
+        addElementClass($('geomapcontainer'), "yui-skin-sam");
+  
+        dialog = document.getElementById('geocodingdialog'); 
 
-})(); // End private namespace
+        _engine.initMap(container);
+
+        connect(currentWindow(), 'onresize', _engine.maximizeMapHeight);        
+        if (IS_MAP_PORTLET) {
+            var portlet_id = currentWindow().frameElement.parentNode.id.replace('_body', '');
+            var pobj = currentWindow().parent.ContainerObject.portlets[portlet_id];
+            pobj.mapobject = new ZenGeoMapPortlet();
+        }        
+    }
+
+})(); 
 
 YAHOO.register('geomap', YAHOO.zenoss.geomap, {});
