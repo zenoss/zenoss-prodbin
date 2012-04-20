@@ -1486,3 +1486,6 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 .x-ie .x-progress-bar {
     background-color:#73A3E0 !important;
 }
+.x-ie #definition_description{
+    width:100%;
+}

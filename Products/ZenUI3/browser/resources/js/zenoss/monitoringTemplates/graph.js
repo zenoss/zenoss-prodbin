@@ -459,7 +459,7 @@ Ext.define("Zenoss.GraphPointGrid", {
     extend:"Zenoss.ContextGridPanel",
     constructor: function(config){
         Ext.applyIf(config, {
-            autoScroll: true,
+            layout: 'fit',
             viewConfig: {
                 forcefit: true,
                 plugins: {
@@ -490,7 +490,7 @@ Ext.define("Zenoss.GraphPointGrid", {
                 {
                     dataIndex: 'description',
                     header: _t('Description'),
-                    id: 'description',
+                    id: 'definition_description', 
                     flex: 1
                 }
             ],
