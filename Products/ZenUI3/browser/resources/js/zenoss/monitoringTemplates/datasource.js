@@ -105,6 +105,7 @@ showAddToGraphDialog = function() {
                 width:300,
                 minChars: 999, // only do an all query
                 resizeable: true,
+                editable: false,
                 emptyText: 'Select a graph...',
                 store: new Zenoss.GraphStore({}),
                 listeners: {select: function(){
@@ -212,7 +213,7 @@ function showAddDataPointDialog() {
     /**
      * Add Data Point Dialog Configuration
      **/
-    Ext.create('Zenoss.dialog.BaseWindow', { 
+    Ext.create('Zenoss.dialog.BaseWindow', {
         id: 'addDataPointDialog',
         title: _t('Add Data Point'),
         height: 160,
@@ -246,7 +247,7 @@ function showAddDataPointDialog() {
                 text: _t('Cancel')
             }]
           }
-        }).show();   
+        }).show();
 }
 
 /**********************************************************************
@@ -298,7 +299,7 @@ function showAddDataSourceDialog() {
         return;
     }
     // clear the entries (all of our forms are blank when you load them)
-    Ext.create('Zenoss.dialog.BaseWindow', { 
+    Ext.create('Zenoss.dialog.BaseWindow', {
             id: 'addDataSourceDialog',
             title: _t('Add Data Source'),
             height: 180,
@@ -309,7 +310,7 @@ function showAddDataSourceDialog() {
                     Ext.getCmp('dataSourceName').setValue('');
                     Ext.getCmp('dataSourceName').clearInvalid();
                 }
-    
+
             },
             items:{
                 xtype:'form',
@@ -355,7 +356,7 @@ function showAddDataSourceDialog() {
                 },Zenoss.dialog.CANCEL
                 ]
             }
-    }).show();    
+    }).show();
 }
 
 /**********************************************************************

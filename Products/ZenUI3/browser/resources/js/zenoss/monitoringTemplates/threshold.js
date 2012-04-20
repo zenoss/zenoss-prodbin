@@ -69,7 +69,7 @@
         if (!grid.getTemplateUid()) {
             return;
         }
-        var addThresholdDialog = new Zenoss.dialog.BaseWindow({
+        var addThresholdDialog = Ext.create('Zenoss.dialog.BaseWindow', {
             id: 'addThresholdDialog',
             title: _t('Add Threshold'),
             message: _t('Allow the user to add a threshold.'),
@@ -86,6 +86,7 @@
             buttons: [{
                 ref: '../submitButton',
                 text: _t('Add'),
+                disabled: true,
                 xtype: 'DialogButton',
                 handler: function(submitButton) {
                     var dialogWindow, basicForm;
@@ -106,10 +107,8 @@
                 monitorValid: true,
                 paramsAsHash: true,
                 listeners: {
-                    clientValidation: function(formPanel, valid) {
-                        var dialogWindow;
-                        dialogWindow = formPanel.refOwner;
-                        dialogWindow.submitButton.setDisabled( !valid );
+                    validitychange: function(formPanel, valid) {
+                        addThresholdDialog.submitButton.setDisabled( !valid );
                     }
                 },
                 items: [{
@@ -250,14 +249,6 @@
                                 me.deleteButton.enable();
                                 me.editButton.enable();
                             }
-                        },
-
-                        /**
-                         * When they deselect don't allow them to press the buttons
-                         **/
-                        deselect: function(selectionModel, rowIndex, record) {
-                            me.deleteButton.disable();
-                            me.editButton.disable();
                         }
                     }
                 }),
@@ -365,4 +356,3 @@
     });
 
 }());
-

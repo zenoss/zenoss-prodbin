@@ -254,44 +254,54 @@ new Zenoss.HideFormDialog({
     title: _t('Add Custom Graph Point'),
     listeners: {
         show: function(dialog) {
-            dialog.idField.reset();
-            dialog.typeCombo.reset();
-            dialog.typeCombo.store.load();
+            dialog.addForm.idField.reset();
+            dialog.addForm.typeCombo.reset();
+            dialog.addForm.typeCombo.store.load();
         }
     },
     items: [{
-        xtype: 'idfield',
-        ref: 'idField',
-        fieldLabel: _t('Name'),
-        allowBlank: false
-    }, {
-        xtype: 'combo',
-        ref: 'typeCombo',
-        fieldLabel: _t('Instruction Type'),
-        valueField: 'pythonClassName',
-        displayField: 'label',
-        triggerAction: 'all',
-        forceSelection: true,
-        editable: false,
-        allowBlank: false,
-        store: Ext.create('Zenoss.NonPaginatedStore', {
-            root: 'data',
-            autoLoad: false,
-            model: 'Zenoss.InstructionTypeModel',
-            directFn: router.getGraphInstructionTypes
-        })
+        xtype: 'form',
+        ref: 'addForm',
+        listeners: {
+            validitychange: function(formPanel, valid) {
+                Ext.getCmp('addCustomToGraphDialog').submitButton.setDisabled( !valid );
+            }
+        },
+        items: [{
+            xtype: 'idfield',
+            ref: 'idField',
+            fieldLabel: _t('Name'),
+            allowBlank: false
+        }, {
+            xtype: 'combo',
+            ref: 'typeCombo',
+            fieldLabel: _t('Instruction Type'),
+            valueField: 'pythonClassName',
+            displayField: 'label',
+            triggerAction: 'all',
+            forceSelection: true,
+            editable: false,
+            allowBlank: false,
+            store: Ext.create('Zenoss.NonPaginatedStore', {
+                root: 'data',
+                autoLoad: false,
+                model: 'Zenoss.InstructionTypeModel',
+                directFn: router.getGraphInstructionTypes
+            })
+        }]
     }],
     buttons: [{
         xtype: 'HideDialogButton',
         ui: 'dialog-dark',
-        ref: '../_addButton',
+        disabled: true,
+        ref: '../submitButton',
         text: _t('Add'),
         handler: function(addButton) {
-            var params, callback;
+            var params, callback, form = Ext.getCmp('addCustomToGraphDialog').addForm;
             params = {
                 graphUid: getSelectedGraphDefinition().get("uid"),
-                customId: addButton.refOwner.idField.getValue(),
-                customType: addButton.refOwner.typeCombo.getValue()
+                customId: form.idField.getValue(),
+                customType: form.typeCombo.getValue()
             };
             callback = function() {
                 Ext.getCmp('graphPointGrid').refresh();
@@ -490,7 +500,7 @@ Ext.define("Zenoss.GraphPointGrid", {
                 {
                     dataIndex: 'description',
                     header: _t('Description'),
-                    id: 'definition_description', 
+                    id: 'definition_description',
                     flex: 1
                 }
             ],
@@ -810,10 +820,6 @@ Ext.define("Zenoss.templates.GraphGrid", {
             },
             selModel: new Zenoss.SingleRowSelectionModel({
              listeners: {
-                    deselect: function() {
-                        Ext.getCmp('deleteGraphDefinitionButton').disable();
-                        Ext.getCmp('graphDefinitionMenuButton').disable();
-                    },
                     select: function() {
                         if (Zenoss.Security.hasPermission('Manage DMD')){
                             Ext.getCmp('deleteGraphDefinitionButton').enable();
@@ -836,7 +842,7 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     }
                 },
                 handler: function() {
-                    var dialog = new Zenoss.dialog.BaseWindow({
+                    var dialog = Ext.create('Zenoss.dialog.BaseWindow', {
                         title: _t('Add Graph Definition'),
                         buttonAlign: 'left',
                         autoScroll: true,
@@ -845,18 +851,28 @@ Ext.define("Zenoss.templates.GraphGrid", {
                         autoHeight: true,
                         modal: true,
                         padding: 10,
-                        items: [
-                            {
-                                xtype: 'idfield',
-                                id: 'graphDefinitionIdTextfield',
-                                fieldLabel: _t('Name'),
-                                allowBlank: false
-                            }
-                        ],
+                        items: [{
+                            xtype: 'form',
+                            listeners: {
+                                validitychange: function(formPanel, valid) {
+                                    dialog.submitButton.setDisabled( !valid );
+                                }
+                            },
+                            items: [
+                                {
+                                    xtype: 'idfield',
+                                    id: 'graphDefinitionIdTextfield',
+                                    fieldLabel: _t('Name'),
+                                    allowBlank: false
+                                }
+                            ]
+
+                        }],
                         buttons: [
                             {
                                 xtype: 'DialogButton',
                                 ref: '../submitButton',
+                                disabled: true,
                                 text: _t('Submit'),
                                 handler: function() {
                                     var params, callback;
