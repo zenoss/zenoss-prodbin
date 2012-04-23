@@ -48,7 +48,10 @@
                 bodyStyle: 'padding: 10px',
                 listeners: {
                     validitychange: function(form, isValid) {
-                        me.query('button')[0].disable(!isValid);
+                       me.query('button')[0].disable(!isValid);
+                    },
+                    afterrender: function(form){
+                        form.items.items[0].triggerBlur();
                     }
                 },
                 isDirty: function(){
