@@ -18,13 +18,18 @@ function ConfirmPagerTest() {
 
 function resetPassword(){
     if (confirm("Are you sure you want to reset this user's password?")) {
-        var submitButton = document.getElementById("passwordResetButton");
-        submitButton.type = "submit";
-        submitButton.name = "manage_resetPassword:method";
-        submitButton.onclick = null;
-        submitButton.click();
+        /*  added a hidden input to act as the 'real' submit button 
+            next to the visible submit button. This 'real' submit button
+            gets us around the use of the popup confirm submit button conflict.
+            We simulate a click on this hidden 'real' submit button below
+        */
+        var pwdButton = Ext.getDom("passwordResetButton");
+        pwdButton.value="Please wait...";
+        pwdButton.onclick = null;
+        Ext.getDom("resetInitiator").click();
     }
 }
+
 
 function clearBrowserState(event){
     if(confirm("Are you sure you want to reset your preferences to their default values?")){
@@ -61,6 +66,7 @@ function clearBrowserState(event){
                 Automatically generate a new password and send it to the email listed below.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
+              <input type="submit" name="manage_resetPassword:method" id="resetInitiator" style="display:none;" />
               <input type="button" value="Reset Password"
                      tabindex="-1"
                      style="height:30px;width:132px;text-align:center;"
