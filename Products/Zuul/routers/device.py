@@ -1685,7 +1685,7 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.setBoundTemplates(uid, templateIds)
-        audit('UI.Device.BindTemplatess', uid, templates=templateIds)
+        audit('UI.Device.BindTemplates', uid, templates=templateIds)
         return DirectResponse.succeed()
 
     @require('Edit Local Templates')
