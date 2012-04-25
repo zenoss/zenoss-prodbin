@@ -17,7 +17,7 @@ var newSubmitHandler = function(button, event) {
         onFinishAction: function() {
             Ext.getCmp('device_events').updateRows();
             Ext.getCmp('devdetailbar').refresh();
-            Zenoss.message.info(String.format(
+            Zenoss.message.info(Ext.String.format(
                 '{0} {1}',
                 this.eventsUpdated,
                 _t('events were updated.')
@@ -39,6 +39,6 @@ var newSubmitHandler = function(button, event) {
 };
 // This is pretty dependent on the submit button being the first button,
 // but then again this entire .pt depends on the DynamicForm anyway.
-var elements = dynamicDialog.getToolbars();
-elements[0].items.items[0].setHandler(newSubmitHandler);
+var elements = dynamicDialog.getDockedItems('toolbar')[0];
+elements.items.items[0].setHandler(newSubmitHandler);
 </script>
