@@ -20,7 +20,7 @@ from Products.ZenUtils.Utils import zenPath
 logger = logging.getLogger('zen.callhome')
 
 CRYPTPATH = zenPath('Products','ZenCallHome','transport','crypt')
-GPGCMD = 'gpg --batch --no-tty --quiet '
+GPGCMD = 'gpg --batch --no-tty --quiet --no-auto-check-trustdb '
 
 def _getEnv():
     env = os.environ.copy()

@@ -70,17 +70,22 @@ class GatherMetricsProtocol(ProcessProtocol):
         self.data = None
         self.failed = False
         self.output = []
+        self.error = []
         chPath = zenPath('Products', 'ZenCallHome', 'callhome.py')
         reactor.spawnProcess(self, 'python', args=['python', chPath, '-M'],
                              env=os.environ)
 
     def outReceived(self, data):
         self.output.append(data)
+
+    def errReceived(self, data):
+        self.error.append(data)
     
     def processEnded(self, reason):
         out = ''.join(self.output)
+        err = ''.join(self.error)
         if reason.value.exitCode != 0:
             self.failed = True
-            logger.warning('Callhome metrics gathering failed: %s' % out)
+            logger.warning('Callhome metrics gathering failed: stdout: %s, stderr: %s', out, err)
         else:
             self.data = out
