@@ -26,6 +26,7 @@ from AccessControl import getSecurityManager
 from Products.Zuul.infos import InfoBase
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
+from Products.Zuul.decorators import memoize
 import logging
 log = logging.getLogger("zen.tree")
 
@@ -37,20 +38,27 @@ class TreeNode(object):
     implements(ITreeNode)
 
     def __init__(self, ob, root=None, parent=None):
+        self._root = root or self
+        if getattr(self._root, '_ob_cache', None) is None:
+            self._root._ob_cache = {}
         if not ICatalogBrain.providedBy(ob):
             brain = ICatalogTool(ob).getBrain(ob)
             if brain is None:
                 raise UncataloguedObjectException(ob)
-            else:
-                ob = brain
+            # We already have the object - cache it here so _get_object doesn't
+            # have to look it up again.
+            self._root._ob_cache[brain.uuid] = ob
+            ob = brain
         self._object = ob
-        self._root = root or self
         self._parent = parent or None
-        self._root_ob_cache = {}
         self._severity = None
 
     def _get_object(self):
-        return self._root_ob_cache.setdefault(self.uuid, self._object._unrestrictedGetObject())
+        obj = self._root._ob_cache.get(self.uuid)
+        if not obj:
+            obj = self._object._unrestrictedGetObject()
+            self._root._ob_cache[self.uuid] = obj
+        return obj
 
     def _buildCache(self, orgtype=None, instancetype=None, relname=None,
                     treePrefix=None, orderby=None):
@@ -85,7 +93,7 @@ class TreeNode(object):
 
     @property
     def id(self):
-        return self._object.getPath().replace('/', '.')
+        return self.uid.replace('/', '.')
 
     @property
     def text(self):
@@ -118,19 +126,20 @@ class TreeNode(object):
         return "<TreeNode %s>" % self.uid
 
     @property
+    @memoize
     def hidden(self):
         """
         Make sure we don't show the root node of a tree
         if we don't have permission on it or any of its children
         """
-        # make sure we are looking at a root node
-        pieces = self.uid.split('/')
-        if len(pieces) != 4:
-            return False
-
         # always show the root Device organizer so restricted users can see
         # all of the devices they have access to
         if self.uid == '/zport/dmd/Devices':
+            return False
+
+        # make sure we are looking at a root node
+        pieces = self.uid.split('/')
+        if len(pieces) != 4:
             return False
 
         # check for our permission
@@ -219,13 +228,13 @@ class CatalogTool(object):
     def getBrain(self, path):
         # Make sure it's actually a path
         if not isinstance(path, (tuple, basestring)):
-            path = path.getPhysicalPath()
-        if isinstance(path, tuple):
+            path = '/'.join(path.getPhysicalPath())
+        elif isinstance(path, tuple):
             path = '/'.join(path)
         cat = self.catalog._catalog
         rid = cat.uids[path]
-        brain = cat.__getitem__(rid)
-        return brain
+        if rid:
+            return cat.__getitem__(rid)
 
     def parents(self, path):
         # Make sure it's actually a path

@@ -41,7 +41,13 @@ class DeviceOrganizerNode(TreeNode):
     def __init__(self, ob, root=None, parent=None):
         super(DeviceOrganizerNode, self).__init__(ob, root, parent)
         obj = self._get_object()
-        self.hasNoGlobalRoles = obj.dmd.ZenUsers.getUserSettings().hasNoGlobalRoles()
+        # Calling hasNoGlobalRoles() is expensive in the context of a very large
+        # organizer tree. Use the same value from the root node if it is
+        # available (it doesn't change based on the context of the organizer).
+        if root:
+            self.hasNoGlobalRoles = root.hasNoGlobalRoles
+        else:
+            self.hasNoGlobalRoles = obj.dmd.ZenUsers.getUserSettings().hasNoGlobalRoles()
 
     @property
     def children(self):
@@ -126,7 +132,7 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
 
     def _getNodeUuid(self, node):
         if node not in self._uuids:
-            self._uuids[node] = IGlobalIdentifier(node._object._unrestrictedGetObject()).getGUID()
+            self._uuids[node] = node.uuid
 
         return self._uuids[node]
 
