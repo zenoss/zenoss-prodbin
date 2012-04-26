@@ -51,8 +51,9 @@
                        me.query('button')[0].disable(!isValid);
                     },
                     afterrender: function(form){
-                        form.items.items[0].triggerBlur();
-                    }
+                        this.getForm().checkValidity();
+                    },
+                    scope: this
                 },
                 isDirty: function(){
                     return true;
@@ -104,5 +105,3 @@
 
 
 }());
-
-
