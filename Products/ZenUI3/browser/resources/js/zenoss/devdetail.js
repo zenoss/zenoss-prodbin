@@ -492,7 +492,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
                 navloaded: function() {
                     this.on('statesave', function(){
                         if(!this.hasComponents) return;
-                        this.loadComponents();       
+                        Ext.defer(this.loadComponents, 500, this);      
                     }, this, {single: true});                      
                     Ext.History.init(function(mgr){
                         Ext.History.selectByToken(mgr.getToken());
