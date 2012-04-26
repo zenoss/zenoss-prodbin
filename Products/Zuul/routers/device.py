@@ -1072,15 +1072,17 @@ class DeviceRouter(TreeRouter):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
+        removedUids = tuple()
         try:
             if action == "remove":
-                facade.removeDevices(uids, organizer=uid)
+                removed = facade.removeDevices(uids, organizer=uid)
 
                 # uid could be an object or string.
                 organizer = facade._getObject(uid) if isinstance(uid, basestring) else uid
                 organizerType = organizer.meta_type
                 action = 'RemoveFrom' + organizerType   # Ex: RemoveFromLocation
-                for devuid in uids:
+                removedUids = map(lambda x: x.uid, removed)
+                for devuid in removedUids:
                     # Ex: ('UI.Device.RemoveFromLocation', deviceUid, location=...)
                     audit('UI.Device.%s' % action, devuid, data_={organizerType:uid})
             elif action == "delete":
@@ -1091,11 +1093,10 @@ class DeviceRouter(TreeRouter):
                 facade.deleteDevices(uids,
                                      deleteEvents=deleteEvents,
                                      deletePerf=deletePerf)
+            notRemovedUids = list(set(uids) - set(removedUids))
             return DirectResponse.succeed(
-                devtree=self.getTree('/zport/dmd/Devices'),
-                grptree=self.getTree('/zport/dmd/Groups'),
-                systree=self.getTree('/zport/dmd/Systems'),
-                loctree=self.getTree('/zport/dmd/Locations'))
+                removedUids=removedUids,
+                notRemovedUids=notRemovedUids)
         except Exception, e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to remove devices.')

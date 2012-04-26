@@ -200,22 +200,22 @@ class DeviceFacade(TreeFacade):
                     severity=2, #info
                     eventClass='/Change/Remove', #zEventAction=history
                     device=devid))
-
+    @info
     def removeDevices(self, uids, organizer):
         # Resolve target if a path
         if isinstance(organizer, basestring):
             organizer = self._getObject(organizer)
         assert isinstance(organizer, DeviceOrganizer)
         devs = map(self._getObject, uids)
-        for dev in devs:
-            notify(ObjectRemovedFromOrganizerEvent(dev, organizer))
-
+        removed = []
         if isinstance(organizer, DeviceGroup):
             for dev in devs:
                 oldGroupNames = dev.getDeviceGroupNames()
                 newGroupNames = self._removeOrganizer(organizer, list(oldGroupNames))
                 if oldGroupNames != newGroupNames:
                     dev.setGroups(newGroupNames)
+                    notify(ObjectRemovedFromOrganizerEvent(dev, organizer))
+                    removed.append(dev)
 
         elif isinstance(organizer, System):
             for dev in devs:
@@ -223,10 +223,16 @@ class DeviceFacade(TreeFacade):
                 newSystemNames = self._removeOrganizer(organizer, list(oldSystemNames))
                 if newSystemNames != oldSystemNames:
                     dev.setSystems(newSystemNames)
+                    notify(ObjectRemovedFromOrganizerEvent(dev, organizer))
+                    removed.append(dev)
 
         elif isinstance(organizer, Location):
             for dev in devs:
                 dev.setLocation(None)
+                notify(ObjectRemovedFromOrganizerEvent(dev, organizer))
+                removed.append(dev)
+
+        return removed
 
     def _removeOrganizer(self, organizer, items):
         organizerName = organizer.getOrganizerName()

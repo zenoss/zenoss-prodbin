@@ -280,30 +280,65 @@ Ext.apply(Zenoss.devices, {
                         });
                         if (opts.uids.length > 0) {
                             Zenoss.remote.DeviceRouter.removeDevices(opts,
-                                 function(response) {
-                                     var devtree = Ext.getCmp('devices'),
-                                         loctree = Ext.getCmp('locs'),
-                                         systree = Ext.getCmp('systemsTree'),
-                                         grptree = Ext.getCmp('groups'),
-                                         deviceIds = [],
-                                         flare;
-                                     resetGrid();
-                                     devtree.refresh();
-                                     loctree.refresh();
-                                     grptree.refresh();
-                                     systree.refresh();
-                                     if (!Ext.isDefined(response.success) || response.success) {
-                                         Ext.each(opts.uids, function(uid) {
-                                             deviceIds.push( uid.split('/')[uid.split('/').length-1] );
-                                         });
-                                         if (Ext.Array.indexOf(['delete', 'remove'], opts.action) !== -1) {
-                                             Zenoss.message.info('Successfully {0}d device{1}: {2}',
-                                                                 opts.action,
-                                                                 opts.uids.length > 1 ? 's' : '',
-                                                                 deviceIds.join(', '));
-                                         }
-                                     }
-                                 }
+                                    function (response) {
+                                        var devtree = Ext.getCmp('devices'),
+                                                loctree = Ext.getCmp('locs'),
+                                                systree = Ext.getCmp('systemsTree'),
+                                                grptree = Ext.getCmp('groups'),
+                                                removedIds = [],
+                                                notRemovedIds = [],
+                                                flare;
+                                        if (!Ext.isDefined(response.success) || response.success) {
+                                            if (response.removedUids.length > 0) {
+                                                var treeName = Zenoss.env.PARENT_CONTEXT.split('/')[3];
+                                                switch (treeName) {
+                                                    case 'Devices' :
+                                                        devtree.refresh();
+                                                        loctree.refresh();
+                                                        grouptree.refresh();
+                                                        systree.refresh();
+                                                        break;
+                                                    case 'Systems' :
+                                                        systree.refresh();
+                                                        break;
+                                                    case 'Locations' :
+                                                        loctree.refresh();
+                                                        break;
+                                                    case 'Groups' :
+                                                        grptree.refresh();
+                                                        break;
+                                                }
+                                                resetGrid()
+                                            }
+
+                                            Ext.each(response.removedUids, function (uid) {
+                                                removedIds.push(uid.split('/')[uid.split('/').length - 1]);
+                                            });
+                                            Ext.each(response.notRemovedUids, function (uid) {
+                                                notRemovedIds.push(uid.split('/')[uid.split('/').length - 1]);
+                                            });
+
+                                            if (Ext.Array.indexOf(['delete', 'remove'], opts.action) !== -1) {
+                                                var msg = '',
+                                                        msgTemplate;
+
+                                                if (removedIds.length > 0) {
+                                                    msgTemplate = new Ext.Template('Successfully {0}d device{1}: {2}');
+                                                    msg += msgTemplate.applyTemplate([opts.action,
+                                                        opts.uids.length > 1 ? 's' : '',
+                                                        removedIds.join(', ')]);
+                                                }
+                                                if (notRemovedIds.length > 0) {
+                                                    msgTemplate = new Ext.Template('The following {0} not {1}d because they were not in the selected organizer: {2}');
+                                                    msg += msgTemplate.applyTemplate([
+                                                        opts.uids.length > 1 ? 'devices were' : 'device was',
+                                                        opts.action,
+                                                        notRemovedIds.join(', ')]);
+                                                }
+                                                Zenoss.message.info(msg);
+                                            }
+                                        }
+                                    }
                             );
                         }
                     }
