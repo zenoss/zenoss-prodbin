@@ -47,6 +47,7 @@ class TreeNode(object):
         self._root = root or self
         self._parent = parent or None
         self._root_ob_cache = {}
+        self._severity = None
 
     def _get_object(self):
         return self._root_ob_cache.setdefault(self.uuid, self._object._unrestrictedGetObject())
@@ -90,12 +91,20 @@ class TreeNode(object):
     def text(self):
         return self._object.name
 
+    def setSeverity(self, severity):
+        self._severity = severity
+
+    def _loadSeverity(self):
+        if self._severity is None:
+            if self.uuid:
+                zep = getFacade('zep')
+                sev = zep.getSeverityName(zep.getWorstSeverity([self.uuid]).get(self.uuid, 0)).lower()
+                self._severity = sev
+        return self._severity
+
     @property
     def iconCls(self):
-        sev = None
-        if self.uuid:
-            zep = getFacade('zep')
-            sev = zep.getSeverityName(zep.getWorstSeverity([self.uuid]).get(self.uuid, 0)).lower()
+        sev = self._loadSeverity();
         return self.getIconCls(sev)
 
     def getIconCls(self, sev):
@@ -423,5 +432,3 @@ class PermissionedCatalogTool(CatalogTool):
         # Get the brains
         result = self.catalog.evalAdvancedQuery(*args)
         return result
-
-

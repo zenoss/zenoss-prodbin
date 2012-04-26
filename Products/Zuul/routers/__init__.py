@@ -149,12 +149,22 @@ class TreeRouter(DirectRouter):
         currentNode = facade.getTree(id)
         # we want every tree property except the "children" one
         keys = ('id', 'path', 'uid', 'iconCls', 'text', 'hidden', 'leaf') + additionalKeys
+
+        # load the severities in one request
+        childNodes = currentNode.children
+        uuids = [n.uuid for n in childNodes]
+        zep = Zuul.getFacade('zep', self.context.dmd)
+        severities = zep.getWorstSeverity(uuids)
+        for child in childNodes:
+            child.setSeverity(zep.getSeverityName(severities.get(child.uuid, 0)).lower())
+
         children = []
         # explicitly marshall the children
-        for child in currentNode.children:
+        for child in childNodes:
             childData = Marshaller(child).marshal(keys)
             children.append(childData)
         obj = currentNode._object._unrestrictedGetObject()
+
         # check to see if we are asking for the root
         primaryId = obj.getDmdRoot(obj.dmdRootName).getPrimaryId()
         if id == primaryId:
