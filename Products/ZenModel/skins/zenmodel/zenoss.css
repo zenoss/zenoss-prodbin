@@ -1255,7 +1255,6 @@ top: 10px;
 .dialog_container {
     min-height: 200px;
     min-width: 300px;
-    width:300px !important;
     display:none;
     padding: 0;
 }
