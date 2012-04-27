@@ -532,13 +532,6 @@
     permission="zenoss.View"
     />
 
-<browser:page
-    template="../../Jobber/browser/joblogview.pt"
-    name="JobManager"
-    for="*"
-    permission="zenoss.View"
-    />
-
 <adapter
     for="Products.ZenModel.ZenModelBase.ZenModelBase"
     provides=".interfaces.INewPath"

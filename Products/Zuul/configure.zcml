@@ -162,6 +162,12 @@
              for="*"
              />
 
+    <adapter factory=".facades.JobsFacade"
+             provides=".interfaces.IFacade"
+             name="jobs"
+             for="*"
+             />
+
     <include package=".routers"/>
     <include package=".catalog"/>
     <include package=".search"/>

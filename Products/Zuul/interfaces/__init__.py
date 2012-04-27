@@ -81,4 +81,5 @@ from zep import *
 from reportable import *
 from report import *
 from stats import *
+from jobs import *
 

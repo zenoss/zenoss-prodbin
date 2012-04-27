@@ -20,6 +20,7 @@ from Products.Zuul import getFacade
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import ITreeFacade, INetworkFacade
 from Products.Zuul.interfaces import IInfo, ICatalogTool
+from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.tree import SearchResults
 from Products.Zuul.tree import PermissionedCatalogTool
@@ -152,6 +153,7 @@ class NetworkFacade(TreeFacade):
 
         return SearchResults(infos, brains.total, brains.hash_)
 
+    @info
     def discoverDevices(self, uid):
         """
         Discover devices on input subnetwork
@@ -177,7 +179,9 @@ class NetworkFacade(TreeFacade):
                 cmd += ["--prefer-snmp-naming"]
         zd = binPath('zendisc')
         zendiscCmd = [zd] + cmd[1:]
-        return self._dmd.JobManager.addJob(ShellCommandJob, zendiscCmd)
+        return self._dmd.JobManager.addJob(ShellCommandJob,
+           description="Discover devices in network %s" % organizer.getNetworkName(),
+           args=(zendiscCmd,))
 
     @property
     def _root(self):

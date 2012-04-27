@@ -244,15 +244,9 @@ class MibOrganizer(Organizer, ZenPackable):
             mypath = '/'
         commandArgs = [binPath('zenmib'), 'run', path,
                 '--path=%s' % mypath]
-        jobStatus = self.dmd.JobManager.addJob(ShellCommandJob, cmd=commandArgs)
-        
-        # send a user flare with the job id as a link
-        joblink = "<a href=\"%s\"> View Job Log </a>" % (jobStatus.absolute_url_path() + '/viewlog')
-        messaging.IMessageSender(self).sendToBrowser(
-            'Job Created',
-            'Successfully uploaded the MIB file, beginning processing now ' + joblink,
-            priority=messaging.INFO
-        )
+        return self.dmd.JobManager.addJob(ShellCommandJob,
+                   description="Load MIB at %s" % mypath,
+                   kwargs=dict(cmd=commandArgs))
         
 
 InitializeClass(MibOrganizer)

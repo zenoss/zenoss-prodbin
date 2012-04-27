@@ -20,16 +20,33 @@ LOADERFQDN = "Products.ZenUtils.celeryintegration.ZenossLoader"
 
 os.environ.setdefault('CELERY_LOADER', LOADERFQDN)
 
+from celery import states
 
 from .loader import ZenossLoader
 from .backend import ZODBBackend
 from .app import ZenossCelery
 
+from celery.contrib.abortable import AbortableTask as Task, ABORTED
 
-# Set the default app to be ours
-import celery.app
-celery.app.default_app = ZenossCelery(loader=LOADERFQDN,
-                                      set_as_current=False,
-                                      accept_magic_kwargs=True)
+for _attr in ('PROPAGATE_STATES', 'EXCEPTION_STATES', 'READY_STATES', 'ALL_STATES'):
+    setattr(states, _attr, frozenset(set((ABORTED,)) | getattr(states, _attr)))
+del _attr
 
-from celery.task import Task
+from celery.app.state import current_app
+
+
+def reconfigure_celery(config, updateonly=True):
+    """
+    Reconfigure Celery with new config.
+
+    @param config: The new configuration to be applied.
+    @type config: dict
+    @param updateonly: Whether to update the existing config (versus replace)
+    @type updateonly: bool
+    """
+    newconfig = {}
+    if updateonly:
+        newconfig.update(current_app.conf)
+    newconfig.update(config)
+    current_app.config_from_object(newconfig)
+

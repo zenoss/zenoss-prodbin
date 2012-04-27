@@ -159,8 +159,10 @@ class MibFacade(TreeFacade):
     def addMibPackage(self, package, organizer):
         args = [binPath('zenmib'), 'run', package,
                 '--path=%s' % organizer]
-        jobStatus = self._dmd.JobManager.addJob(ShellCommandJob, cmd=args)
-        return True, jobStatus.id
+        jobStatus = self._dmd.JobManager.addJob(ShellCommandJob, 
+            description="Add MIB package %s" % package,
+            kwargs=dict(cmd=args))
+        return jobStatus
 
     def moveMibs(self, sourceUids, targetUid):
         moveTarget = targetUid.replace('/zport/dmd/Mibs/', '')

@@ -120,12 +120,13 @@ class MibRouter(TreeRouter):
            - jobId: (string) ID of the add MIB job
         """
         facade = self._getFacade()
-        success, message = facade.addMibPackage(package, organizer)
-        if success:
+        jobrecord = facade.addMibPackage(package, organizer)
+        if jobrecord:
             audit('UI.Mib.AddFromPackage', mibpackage=package, organizer=organizer)
-            return DirectResponse.succeed(jobId=message)
+            return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], 
+                                  keys=('uuid', 'description', 'started')))
         else:
-            return DirectResponse.fail(message)
+            return DirectResponse.fail("Failed to add MIB package %s" % package)
 
     @require('Manage DMD')
     def deleteNode(self, uid):

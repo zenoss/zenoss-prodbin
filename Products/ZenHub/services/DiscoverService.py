@@ -18,28 +18,35 @@ import logging
 log = logging.getLogger('zen.DiscoverService')
 
 import Globals
+import transaction
+from twisted.spread import pb
 from ZODB.transact import transact
 
 from Products.ZenUtils.IpUtil import strip, ipwrap, ipunwrap, isip
 from Products.ZenEvents.Event import Event
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenModel.Device import manage_createDevice
-from Products.Jobber.status import JobStatusProxy
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Exceptions import DeviceExistsError
+from Products.ZenRelations.ZenPropertyManager import iszprop
 
-import transaction
+from .ModelerService import ModelerService
 
-from twisted.spread import pb
-
-from ModelerService import ModelerService
 
 DEFAULT_PING_THRESH = 168
 
 
+class JobPropertiesProxy(object):
+    def __init__(self, jobrecord):
+        self.zProperties = {}
+        for prop in jobrecord.__dict__:
+            if iszprop(prop):
+                self.zProperties[prop] = getattr(jobrecord, prop)
+
+
 class IpNetProxy(pb.Copyable, pb.RemoteCopy):
     "A class that will represent a ZenModel/IpNetwork in zendisc"
-    
+
     id = ''
     _children = None
     netmask = None
@@ -196,9 +203,9 @@ class DiscoverService(ModelerService):
 
     @translateError
     def remote_getJobProperties(self, jobid):
-        jobstatus = self.dmd.JobManager.getJob(jobid)
-        if jobstatus: 
-            return JobStatusProxy(jobstatus)
+        jobrecord = self.dmd.JobManager.getJob(jobid)
+        if jobrecord:
+            return JobPropertiesProxy(jobrecord)
 
     @translateError
     def remote_succeedDiscovery(self, id):

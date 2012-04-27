@@ -57,7 +57,8 @@ class NetworkRouter(TreeRouter):
         jobStatus = self.api.discoverDevices(uid)
         if jobStatus:
             audit('UI.Network.DiscoverDevices', uid)
-            return DirectResponse.succeed(jobId=jobStatus.id)
+            return DirectResponse.succeed(new_jobs=Zuul.marshal([jobStatus],
+                                        keys=('uuid', 'description','started')))
         else:
             return DirectResponse.fail()
 

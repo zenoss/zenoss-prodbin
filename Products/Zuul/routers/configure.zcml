@@ -108,4 +108,11 @@
     namespace="Zenoss.remote"
     />
 
+<browser:directRouter
+    name="jobs_router"
+    for="*"
+    class=".jobs.JobsRouter"
+    namespace="Zenoss.remote"
+    />
+
 </configure>

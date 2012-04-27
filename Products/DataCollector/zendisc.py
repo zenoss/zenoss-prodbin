@@ -406,7 +406,7 @@ class ZenDisc(ZenModeler):
                     job_props = driver.next()
                     if job_props is not None:
                         # grab zProperties from Job
-                        kw['zProperties'] = job_props.get('zProperties', {})
+                        kw['zProperties'] = getattr(job_props, 'zProperties', {})
                         # grab other Device properties from jobs
                         #deviceProps = job_props.get('deviceProps', {})
                         #kw.update(deviceProps)

@@ -623,26 +623,28 @@ class PerformanceConf(Monitor, StatusColor):
                                              performanceMonitor)
 
         jobStatus = self.dmd.JobManager.addJob(DeviceCreationJob,
-                                        deviceName=deviceName,
-                                        devicePath=devicePath,
-                                        title=title,
-                                        discoverProto=discoverProto,
-                                        performanceMonitor=performanceMonitor,
-                                        rackSlot=rackSlot,
-                                        productionState=productionState,
-                                        comments=comments,
-                                        hwManufacturer=hwManufacturer,
-                                        hwProductName=hwProductName,
-                                        osManufacturer=osManufacturer,
-                                        osProductName=osProductName,
-                                        priority=priority,
-                                        tag=tag,
-                                        serialNumber=serialNumber,
-                                        locationPath=locationPath,
-                                        systemPaths=systemPaths,
-                                        groupPaths=groupPaths,
-                                        zProperties=zProperties,
-                                        zendiscCmd=zendiscCmd)
+                description="Add device %s" % deviceName,
+                kwargs=dict(
+                    deviceName=deviceName,
+                    devicePath=devicePath,
+                    title=title,
+                    discoverProto=discoverProto,
+                    performanceMonitor=performanceMonitor,
+                    rackSlot=rackSlot,
+                    productionState=productionState,
+                    comments=comments,
+                    hwManufacturer=hwManufacturer,
+                    hwProductName=hwProductName,
+                    osManufacturer=osManufacturer,
+                    osProductName=osProductName,
+                    priority=priority,
+                    tag=tag,
+                    serialNumber=serialNumber,
+                    locationPath=locationPath,
+                    systemPaths=systemPaths,
+                    groupPaths=groupPaths,
+                    zProperties=zProperties,
+                    zendiscCmd=zendiscCmd))
         return jobStatus
 
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered",
@@ -669,7 +671,8 @@ class PerformanceConf(Monitor, StatusColor):
         if background:
             log.info('queued job: %s', " ".join(zendiscCmd))
             result = self.dmd.JobManager.addJob(ShellCommandJob,
-                                                    zendiscCmd)
+                description="Discover and model device %s" % deviceName,
+                args=(zendiscCmd,))
         else:
             result = executeCommand(zendiscCmd, REQUEST)
         return result
@@ -756,7 +759,9 @@ class PerformanceConf(Monitor, StatusColor):
         zenmodelerCmd.extend(zenmodelerOpts)
         if background:
             log.info('queued job: %s', " ".join(zenmodelerCmd))
-            result = self.dmd.JobManager.addJob(ShellCommandJob,zenmodelerCmd)
+            result = self.dmd.JobManager.addJob(ShellCommandJob,
+                description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
+                args=(zenmodelerCmd,))
         else:
             result = executeCommand(zenmodelerCmd, REQUEST, write)
         return result

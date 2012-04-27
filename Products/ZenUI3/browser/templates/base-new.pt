@@ -121,13 +121,31 @@ var viewport = new Ext.Viewport({
             id: 'footer_panel',
             region: 'south',
             height: 30,
-            layout: 'fit',
             el: 'footer',
             items: [
                 new Ext.Toolbar({
                     border: false,
                     id: 'footer_bar',
+                    items: ['->', {
+                        xtype: 'jobswidget',
+                        id: 'jobswidget'
+                    }],
                     listeners: {
+                        beforeadd: function(bar, item, index) {
+                            if (bar instanceof Ext.toolbar.Toolbar) {
+                                var numitems = bar.items.length,
+                                    lastitem = bar.items.items[numitems - 1];
+                                if (lastitem && lastitem.xtype == 'jobswidget'
+                                        && index == numitems) {
+                                    // We have the jobs widget already, so
+                                    // change the index passed in by 2 (one for
+                                    // widget, one for filler) so that the jobs
+                                    // widget stays on the right
+                                    bar.insert(index-2, item);
+                                    return false;
+                                }
+                            }
+                        },
                         render: function(bar){
                             Ext.get('footer_extra').appendTo(bar.getEl());
                         }

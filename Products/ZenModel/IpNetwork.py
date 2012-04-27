@@ -46,8 +46,7 @@ from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils.Utils import unused
-from Products.Jobber.jobs import ShellCommandJob, JobMessenger
-from Products.Jobber.status import SUCCESS, FAILURE
+from Products.Jobber.jobs import ShellCommandJob
 from Products.ZenWidgets import messaging
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
@@ -578,7 +577,9 @@ class IpNetwork(DeviceOrganizer):
                     cmd += ["--prefer-snmp-naming"]
             zd = binPath('zendisc')
             zendiscCmd = [zd] + cmd[1:]
-            status = self.dmd.JobManager.addJob(ShellCommandJob, zendiscCmd)
+            status = self.dmd.JobManager.addJob(ShellCommandJob,
+                description="Discover devices in network %s" % organizer.getNetworkName(),
+                args=(zendiscCmd,))
 
         log.info('Done')
 
@@ -666,23 +667,14 @@ class AutoDiscoveryJob(ShellCommandJob):
     specifying IP ranges, not both. Also accepts a set of zProperties to be
     set on devices that are discovered.
     """
-    def __init__(self, jobid, nets=(), ranges=(), zProperties=()):
+    def _run(self, nets=(), ranges=(), zProperties=()):
         # Store the nets and ranges
         self.nets = nets
         self.ranges = ranges
-        self.zProperties = zProperties
-
-        # Set up the job, passing in a blank command (gets set later)
-        super(AutoDiscoveryJob, self).__init__(jobid, '')
-
-    def run(self, r):
-        transaction.commit()
-        log = self.getStatus().getLog()
 
         # Store zProperties on the job
-        if self.zProperties:
-            self.getStatus().setZProperties(**self.zProperties)
-            transaction.commit()
+        if zProperties:
+            self.setProperties(**zProperties)
 
         # Build the zendisc command
         cmd = [binPath('zendisc')]
@@ -690,17 +682,14 @@ class AutoDiscoveryJob(ShellCommandJob):
                    '--monitor', 'localhost',
                    '--deviceclass', '/Discovered',
                    '--parallel', '8',
-                   '--job', self.getUid()
+                   '--job', self.request.id
                    ])
         if not self.nets and not self.ranges:
             # Gotta have something
-            log.write("ERROR: Must pass in a network or a range.")
-            self.finished(FAILURE)
+            self.log.error("Must pass in either a network or a range.")
         elif self.nets and self.ranges:
             # Can't have both
-            log.write("ERROR: Must pass in either networks or ranges, "
-                      "not both.")
-            self.finished(FAILURE)
+            self.log.error("Must pass in either networks or ranges, not both")
         else:
             if self.nets:
                 for net in self.nets:
@@ -708,26 +697,7 @@ class AutoDiscoveryJob(ShellCommandJob):
             elif self.ranges:
                 for iprange in self.ranges:
                     cmd.extend(['--range', iprange])
-            self.cmd = cmd
-            super(AutoDiscoveryJob, self).run(r)
-
-    def finished(self, r):
-        if self.nets:
-            details = 'networks %s' % ', '.join(self.nets)
-        elif self.ranges:
-            details = 'IP ranges %s' % ', '.join(self.ranges)
-        if r==SUCCESS:
-            JobMessenger(self).sendToUser(
-                'Discovery Complete',
-                'Discovery of %s has completed successfully.' % details
-            )
-        elif r==FAILURE:
-            JobMessenger(self).sendToUser(
-                'Discovery Failed',
-                'An error occurred discovering %s.' % details,
-                priority=messaging.WARNING
-            )
-        super(AutoDiscoveryJob, self).finished(r)
+            ShellCommandJob._run(self, cmd)
 
 
 class IpNetworkPrinter(object):

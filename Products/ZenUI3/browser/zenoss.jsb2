@@ -222,6 +222,9 @@
         },{
             "text": "ExampleTextField.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "JobsWidget.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

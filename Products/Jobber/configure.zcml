@@ -4,21 +4,9 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.Jobber">
 
-    <include package=".browser"/>
     <include file="meta.zcml"/>
 
-    <adapter
-        provides="Products.ZenWidgets.interfaces.IMessageSender"
-        for=".interfaces.IJob"
-        factory=".jobs.JobMessenger"
-        />
-
-    <adapter
-        provides="Products.ZenWidgets.interfaces.IMessageSender"
-        for=".interfaces.IJobStatus"
-        factory=".jobs.JobMessenger"
-        />
-
-    <job class=".jobs.GetDmdId" name="GetDmdId"/>
+    <job class=".jobs.ShellCommandJob"/>
+    <job class=".facade.FacadeMethodJob"/>
 
 </configure>

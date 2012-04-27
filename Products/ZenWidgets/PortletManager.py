@@ -75,9 +75,7 @@ class PortletManager(ZenModelRM):
         self.portlets._setObject(id, p)
 
     def unregister_portlet(self, id):
-        try:
-            self.portlets._delObject(id)
-        except: pass
+        self.portlets._delObject(id)
 
     def get_portlets(self):
         """

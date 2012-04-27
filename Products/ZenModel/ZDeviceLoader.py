@@ -39,9 +39,7 @@ from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenWidgets import messaging
-from Products.Jobber.interfaces import IJobStatus
 from Products.Jobber.jobs import ShellCommandJob
-from Products.Jobber.status import SUCCESS, FAILURE
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
 from Products.ZenModel.interfaces import IDeviceLoader
@@ -175,13 +173,23 @@ class JobDeviceLoader(BaseDeviceLoader):
 
 
 class DeviceCreationJob(ShellCommandJob):
-    def __init__(self, jobid, deviceName, devicePath="/Discovered", tag="",
-                 serialNumber="", rackSlot=0, productionState=1000,
-                 comments="", hwManufacturer="", hwProductName="",
-                 osManufacturer="", osProductName="", locationPath="",
-                 groupPaths=[], systemPaths=[], performanceMonitor="localhost",
-                 discoverProto="snmp", priority=3, manageIp="",
-                 zProperties=None, title=None, zendiscCmd=[]):
+
+    @classmethod
+    def getJobType(cls):
+        return "Add Device"
+
+    @classmethod
+    def getJobDescription(cls, *args, **kwargs):
+        return "Add %(deviceName)s under %(devicePath)s" % kwargs
+
+    def _run(self, deviceName, devicePath="/Discovered", tag="",
+            serialNumber="", rackSlot=0, productionState=1000, comments="",
+            hwManufacturer="", hwProductName="", osManufacturer="",
+            osProductName="", locationPath="", groupPaths=[], systemPaths=[],
+            performanceMonitor="localhost", discoverProto="snmp", priority=3,
+            manageIp="", zProperties=None, title=None, zendiscCmd=[]):
+
+        loader = JobDeviceLoader(self.dmd)
 
         # Store device name for later finding
         self.deviceName = deviceName
@@ -191,8 +199,7 @@ class DeviceCreationJob(ShellCommandJob):
         self.manageIp = manageIp.replace(' ', '')
 
         # Save the device stuff to set after adding
-        self.zProperties = zProperties
-        self.deviceProps = dict(tag=tag,
+        deviceProps = dict(tag=tag,
                           serialNumber=serialNumber,
                           rackSlot=rackSlot,
                           productionState=productionState,
@@ -206,57 +213,32 @@ class DeviceCreationJob(ShellCommandJob):
                           systemPaths = systemPaths,
                           priority = priority,
                           title= title)
-
-        zendiscCmd.extend(['--job', jobid])
-        super(DeviceCreationJob, self).__init__(jobid, zendiscCmd)
-
-
-    def run(self, r):
-
-        self._v_loader = JobDeviceLoader(self)
+        zendiscCmd.extend(['--job', self.request.id])
 
         @transact
-        def createDevice(loader, zProperties):
+        def createDevice():
             # set the status properties that were modified up until this
             # point in case of a Conflict Error
-            loader.getStatus().setZProperties(**zProperties)
+            self.setProperties(**zProperties)
+            self.setProperties(**deviceProps)
             # create the device
-            loader._v_loader.load_device(loader.deviceName, loader.devicePath,
-                                       loader.discoverProto,
-                                       loader.performanceMonitor, loader.manageIp,
-                                       loader.zProperties, loader.deviceProps)
+            loader.load_device(deviceName, devicePath, discoverProto,
+                               performanceMonitor, manageIp, zProperties,
+                               deviceProps)
 
         # Create the device object and generate the zendisc command
         try:
-            createDevice(self, self.zProperties)
+            createDevice()
         except Exception, e:
-            log.exception("Encountered error. Rolling back initial device add.")
             transaction.abort()
-            job_log = self.getStatus().getLog()
-            job_log.write(str(e.args[0]))
-            job_log.finish()
-            self.finished(FAILURE)
-            transaction.commit()
+            self.log.exception("Encountered error. Rolling back initial device add.")
+            raise
         else:
             if self.discoverProto != 'none':
-                super(DeviceCreationJob, self).run(r)
+                return ShellCommandJob._run(self, zendiscCmd)
             else:
-                job_log = self.getStatus().getLog()
-                job_log.write("device added without modeling")
-                job_log.finish()
-                self.finished(SUCCESS)
+                self.log.info("Device added without modeling")
 
-    def finished(self, r):
-        if self._v_loader.deviceobj is not None and r!=FAILURE:
-            result = SUCCESS
-            self.dmd.ZenEventManager.sendEvent(Event(
-                    summary='Added device: '+self.deviceName,
-                    severity=2, #info
-                    eventClass='/Change/Add', #zEventAction=history
-                    device=self.deviceName))
-        else:
-            result = FAILURE
-        super(DeviceCreationJob, self).finished(result)
 
 class WeblogDeviceLoader(BaseDeviceLoader):
     def __init__(self, context, request):

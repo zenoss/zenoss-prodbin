@@ -1320,6 +1320,40 @@ String.prototype.endswith = function(str){
 };
 
 
+/* Readable dates */
+
+var _time_units = [
+    ['year',   60*60*24*365], 
+    ['month',  60*60*24*30],
+    ['week',   60*60*24*7],
+    ['day',    60*60*24],
+    ['hour',   60*60], 
+    ['minute', 60],
+    ['second', 1]
+];
+
+Date.prototype.readable = function(precision) {
+    var diff = (new Date().getTime() - this.getTime())/1000,
+        remaining = Math.abs(diff),
+        result = [];
+    for (i=0;i<_time_units.length;i++) {
+        var unit = _time_units[i],
+            unit_name = unit[0],
+            unit_mult = unit[1],
+            num = Math.floor(remaining/unit_mult);
+        remaining = remaining - num * unit_mult;
+        if (num) {
+            result.push(num + " " + unit_name + (num>1 ? 's' : ''));
+        }
+        if (result.length == precision) {
+            break;
+        }
+    }
+    var base = result.join(' ');
+    return diff >= 0 ? base + " ago" : "in " + base;
+}
+
+
 /* Cross-Browser Split 1.0.1
 (c) Steven Levithan <stevenlevithan.com>; MIT License
 An ECMA-compliant, uniform cross-browser split method

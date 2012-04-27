@@ -81,11 +81,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : '../dmd/ZenPackManager/viewZenPacks'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'jobs'
-                , 'name'          : 'Jobs'
-                , 'action'        : '../dmd/joblist'
-                , 'permissions'   : ( "Manage DMD", )
-                },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../dmd/editPortletPerms'

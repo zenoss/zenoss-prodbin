@@ -25,10 +25,13 @@ import fcntl
 import time
 import os
 import types
+import ctypes
 import tempfile
 import logging
 import re
 import socket
+import inspect
+import threading
 import warnings
 import math
 import contextlib
@@ -1893,3 +1896,39 @@ def isZenBinFile(name):
     if os.path.sep in name:
         return False
     return os.path.isfile(binPath(name))
+
+
+
+class ThreadInterrupt(Exception):
+    """
+    An exception that can be raised in a thread from another thread.
+    """
+
+
+class InterruptableThread(threading.Thread):
+    """
+    A thread class that supports being interrupted. Target functions should
+    catch ThreadInterrupt to perform cleanup.
+
+    Code is a somewhat modified version of Bluebird75's solution found at
+    http://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread-in-python
+    """
+    def _raise(self, exception_type=ThreadInterrupt):
+        threadid = ctypes.c_long(self.ident)
+        exception = ctypes.py_object(exception_type)
+        result = ctypes.pythonapi.PyThreadState_SetAsyncExc(threadid, exception)
+        if result == 0:
+            raise ValueError("Invalid thread id: %s" % self.ident)
+        elif result != 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(threadid, None)
+            raise SystemError("Failed to interrupt thread")
+
+    def interrupt(self, exception_type=ThreadInterrupt):
+        if not inspect.isclass(exception_type):
+            raise TypeError("Can't raise exception instances into a thread.")
+        self._raise(exception_type)
+
+    def kill(self):
+        self.interrupt(SystemExit)
+
+

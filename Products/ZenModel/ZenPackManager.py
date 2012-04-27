@@ -75,11 +75,6 @@ class ZenPackManager(ZenModelRM):
                 , 'action'        : 'viewZenPacks'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'jobs'
-                , 'name'          : 'Jobs'
-                , 'action'        : '../joblist'
-                , 'permissions'   : ( "Manage DMD", )
-                },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'

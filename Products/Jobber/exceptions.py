@@ -10,8 +10,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from celery.app import App
 
-class ZenossCelery(App):
-    def __init__(self, *args, **kwargs):
-        App.__init__(self, *args, **kwargs)
+class NoSuchJobException(Exception):
+    """
+    No such job exists.
+    """

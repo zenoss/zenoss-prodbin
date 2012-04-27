@@ -11,15 +11,24 @@
 #
 ###########################################################################
 import Globals
+import time
 import threading
+import Queue
 import transaction
 from zope.component import getUtility
 from datetime import datetime
-from celery.backends.base import BaseDictBackend
-from celery import states
-from ZODB.transact import transact
-from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from persistent.dict import PersistentDict
+from celery.backends.base import BaseDictBackend
+from celery.exceptions import TimeoutError
+from celery.signals import task_prerun
+from ZODB.transact import transact
+from ZODB.POSException import ReadConflictError
+import AccessControl.User
+from AccessControl.SecurityManagement import newSecurityManager
+from AccessControl.SecurityManagement import noSecurityManager
+from Products.ZenUtils.celeryintegration import states
+from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+from Products.Jobber.exceptions import NoSuchJobException
 
 
 CONNECTION_ENVIRONMENT = threading.local()
@@ -34,7 +43,11 @@ class ConnectionCloser(object):
             transaction.abort()
         except Exception:
             pass
-        self.connection.close()
+        try:
+            noSecurityManager()
+            self.connection.close()
+        except Exception:
+            pass
 
 
 class ZODBBackend(BaseDictBackend):
@@ -94,6 +107,7 @@ class ZODBBackend(BaseDictBackend):
             conn = self.db.open()
             setattr(CONNECTION_ENVIRONMENT, self.CONN_MARKER,
                     ConnectionCloser(conn))
+            newSecurityManager(None, AccessControl.User.system)
         else:
             conn = closer.connection
 
@@ -104,34 +118,91 @@ class ZODBBackend(BaseDictBackend):
     def jobmgr(self):
         return self.dmd.JobManager
 
-    @transact
+    def update(self, task_id, **properties):
+        """
+        Store properties on a JobRecord.
+        """
+        def _update():
+            @transact
+            def inner():
+                try:
+                    self.jobmgr.update(task_id, **properties)
+                except NoSuchJobException, e:
+                    # Race condition. Wait.
+                    time.sleep(0.25)
+                    # Force a retry
+                    raise ReadConflictError("Retry in @transact")
+            try:
+                self.dmd._p_jar.sync()
+                inner()
+            finally:
+                self.reset()
+
+        t = threading.Thread(target=_update)
+        t.start()
+        t.join()
+
     def _store_result(self, task_id, result, status, traceback=None):
         """
         Store return value and status of an executed task.
+
+        This runs in a separate thread with a short-lived connection, thereby
+        guaranteeing isolation from the current transaction.
         """
-        self.jobmgr._p_jar.sync()
-        meta = PersistentDict()
-        meta.update({
-            "id": task_id,
-            "status": status,
-            "result": result,
-            "date_done": datetime.utcnow(),
-            "traceback": traceback
-        })
-        self.jobmgr._setOb(task_id, meta)
+        self.update(task_id, result=result, status=status,
+                    date_done=datetime.utcnow(), traceback=traceback)
         return result
 
     def _get_task_meta_for(self, task_id):
         """
         Get task metadata for a task by id.
         """
-        self.jobmgr._p_jar.sync()
-        d = {}
-        try:
-            d.update(self.jobmgr._getOb(task_id))
-        except AttributeError:
-            return {"status": states.PENDING, "result": None}
-        return d
+        return self.jobmgr.getJob(task_id)
+
+    def wait_for(self, task_id, timeout=None, propagate=True, interval=0.5):
+        """
+        Check status of a task and return its result when complete.
+
+        This runs in a separate thread with a short-lived connection, thereby
+        guaranteeing isolation from the current transaction.
+        """
+        status = self.get_status(task_id)
+        if status in states.READY_STATES:
+            # Already done, no need to spin up a thread to poll
+            result = self.get_result(task_id)
+        else:
+            result_queue = Queue.Queue()
+
+            def do_wait():
+                try:
+                    time_elapsed = 0.0
+                    while True:
+                        self.jobmgr._p_jar.sync()
+                        status = self.get_status(task_id)
+                        if status in states.READY_STATES:
+                            result_queue.put((status, self.get_result(task_id)))
+                            return
+                        # avoid hammering the CPU checking status.
+                        time.sleep(interval)
+                        time_elapsed += interval
+                        if timeout and time_elapsed >= timeout:
+                            raise TimeoutError("The operation timed out.")
+                finally:
+                    self.reset()
+
+            t = threading.Thread(target=do_wait)
+            t.start()
+            t.join()
+
+            try:
+                status, result = result_queue.get_nowait()
+            except Queue.Empty:
+                return
+
+        if status in states.PROPAGATE_STATES and propagate:
+            raise result
+        else:
+            return result
 
     def _forget(self, task_id):
         """

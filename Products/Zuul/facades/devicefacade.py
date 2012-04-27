@@ -22,6 +22,7 @@ from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, ILocationOrganizerInfo
+from Products.Jobber.facade import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
@@ -173,7 +174,7 @@ class DeviceFacade(TreeFacade):
                 raise Exception("%s %s cannot be manually deleted" % 
                             (getattr(comp,'meta_type','component'),comp.id))
 
-    def deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
+    def _deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
         @transact
         def dbDeleteDevices(uids):
             devs = imap(self._getObject, uids)
@@ -200,7 +201,21 @@ class DeviceFacade(TreeFacade):
                     severity=2, #info
                     eventClass='/Change/Remove', #zEventAction=history
                     device=devid))
+
     @info
+    def deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
+        devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1 
+                   else "%s devices" % len(uids))
+        return self._dmd.JobManager.addJob(
+            FacadeMethodJob, description="Delete %s" % devdesc, 
+            kwargs=dict(
+                facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade", 
+                method="_deleteDevices",
+                uids=uids,
+                deleteEvents=deleteEvents,
+                deletePerf=deletePerf
+            ))
+
     def removeDevices(self, uids, organizer):
         # Resolve target if a path
         if isinstance(organizer, basestring):
@@ -300,7 +315,7 @@ class DeviceFacade(TreeFacade):
         # pass in the request for the audit
         return dev.renameDevice(newId, self.context.REQUEST)
 
-    def moveDevices(self, uids, target):
+    def _moveDevices(self, uids, target):
         # Resolve target if a path
         if isinstance(target, basestring):
             target = self._getObject(target)
@@ -329,6 +344,19 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
         return exports
+
+    @info
+    def moveDevices(self, uids, target):
+        devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1 
+                   else "%s devices" % len(uids))
+        return self._dmd.JobManager.addJob(
+            FacadeMethodJob, description="Move %s to %s" % (devdesc, target), 
+            kwargs=dict(
+                facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
+                method="_moveDevices",
+                uids=uids,
+                target=target
+            ))
 
     def getDeviceByIpAddress(self, deviceName, collector="localhost"):
         # convert device name to an ip address

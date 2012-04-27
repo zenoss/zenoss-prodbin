@@ -101,29 +101,7 @@ var deleteNetwork = function() {
 var discoverDevicesDialogSubmit = function() {
     var tree = Ext.getCmp(getRootId()),
         node = tree.getSelectionModel().getSelectedNode();
-
-    tree.router.discoverDevices( {uid: node.get("uid")},
-        function(data) {
-            if (data.success) {
-                var dialog = new Zenoss.dialog.SimpleMessageDialog( {
-                    message: _t('Discover subnetwork job submitted'),
-                    buttons: [{
-                        xtype: 'DialogButton',
-                        text: _t('OK')
-                    }, {
-                        xtype: 'button',
-                        text: _t('View Job Log'),
-                        handler: function() {
-                            window.location = Ext.String.format(
-                                '/zport/dmd/JobManager/jobs/{0}/viewlog',
-                                data.jobId);
-                        }
-                    }]
-                });
-                dialog.show();
-            }
-        }
-    );
+    tree.router.discoverDevices({uid: node.get("uid")});
 };
 
 var addNetworkDialogConfig = {

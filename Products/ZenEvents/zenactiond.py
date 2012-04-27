@@ -21,9 +21,11 @@ from twisted.internet import reactor, defer
 from zenoss.protocols.queueschema import SchemaException
 from zenoss.protocols import hydrateQueueMessage
 from zenoss.protocols.interfaces import IQueueSchema
+from Products.ZenCallHome.transport.cycler import CallHomeCycler
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
+from Products.ZenEvents.Schedule import Schedule
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getDefaultZopeUrl
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
@@ -43,6 +45,9 @@ from zope.interface import implements
 
 import logging
 log = logging.getLogger("zen.zenactiond")
+
+
+DEFAULT_MONITOR = "localhost"
 
 
 class NotificationDao(object):
@@ -201,6 +206,10 @@ class ZenActionD(ZCmdBase):
 
         self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
                                                   self._heartbeatSender)
+        self._callHomeCycler = CallHomeCycler(self.dmd)
+        self._schedule = Schedule(self.options, self.dmd)
+        self._schedule.sendEvent = self.dmd.ZenEventManager.sendEvent
+        self._schedule.monitor = self.options.monitor
 
     def buildOptions(self):
         super(ZenActionD, self).buildOptions()
@@ -214,6 +223,10 @@ class ZenActionD(ZCmdBase):
         default_url = getDefaultZopeUrl()
         self.parser.add_option('--zopeurl', dest='zopeurl', default=default_url,
                                help="http path to the root of the zope server (default: %s)" % default_url)
+        self.parser.add_option("--monitor", dest="monitor",
+            default=DEFAULT_MONITOR,
+            help="Name of monitor instance to use for heartbeat "
+                " events. Default is %s." % DEFAULT_MONITOR)
 
 
     def run(self):
@@ -225,7 +238,9 @@ class ZenActionD(ZCmdBase):
         task = ProcessSignalTask(NotificationDao(self.dmd))
 
         if self.options.daemon:
+            self._callHomeCycler.start()
             self._maintenanceCycle.start()
+            self._schedule.start()
         if self.options.daemon and self.options.workers > 1:
             self._workers.startWorkers()
 

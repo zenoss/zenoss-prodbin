@@ -318,7 +318,7 @@ Ext.apply(Zenoss.devices, {
                                                 notRemovedIds.push(uid.split('/')[uid.split('/').length - 1]);
                                             });
 
-                                            if (Ext.Array.indexOf(['delete', 'remove'], opts.action) !== -1) {
+                                            if (Ext.Array.indexOf(['remove'], opts.action) !== -1) {
                                                 var msg = '',
                                                         msgTemplate;
 
@@ -383,10 +383,7 @@ Ext.apply(Zenoss.devices, {
                                 opts.groupPaths = opts.groupPaths.split(",/").join("^/").split("^");
                             }
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
-                                if (response.success) {
-                                    Zenoss.message.success(_t('Add Device Job submitted. <a href="/zport/dmd/JobManager/jobs/{0}/viewlog">View Job Log</a>'), response.jobId);
-                                }
-                                else {
+                                if (!response.success) {
                                     Zenoss.message.error(_t('Error adding device job.'));
                                 }
                             });

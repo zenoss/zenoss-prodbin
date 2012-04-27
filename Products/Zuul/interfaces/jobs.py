@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -10,18 +10,9 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from info import IInfo
 
-from Products.Five.browser import BrowserView
-from Products.ZenMessaging.audit import audit
-
-class ManageJobView(BrowserView):
+class IJobInfo(IInfo):
     """
-    Provides a management API for jobs.
+    An asynchronous job.
     """
-    def delete(self):
-        self.context.delete()
-
-    def interrupt(self):
-        job = self.context.getJob()
-        job.interrupt()
-        audit('UI.Job.Stop', job.id)

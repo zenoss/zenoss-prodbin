@@ -10,26 +10,36 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
+import sys
 import os
 import time
-from datetime import datetime
-import transaction
+import logging
+import Queue
+
+import errno
+import subprocess
+from AccessControl.SecurityManagement import newSecurityManager
+from AccessControl.SecurityManagement import noSecurityManager
+from Products.CMFCore.utils import getToolByName
 from ZODB.transact import transact
-from twisted.internet import defer, reactor
-from twisted.internet.protocol import ProcessProtocol
-from zope.interface import implements
-from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Utils import basicAuthUrl, zenPath
-from Products.ZenWidgets import messaging
 
-from interfaces import IJob
-from status import SUCCESS, FAILURE
-from logfile import LogFile
-
-from Products.ZenUtils.celeryintegration import Task
 from celery.utils import fun_takes_kwargs
+
+from Products.ZenUtils.Utils import InterruptableThread, ThreadInterrupt
+from Products.ZenUtils.celeryintegration import Task, states
+
+states.ABORTED = "ABORTED"
+
+from .exceptions import NoSuchJobException
+
+
+_MARKER = object()
+
+
+class JobAborted(ThreadInterrupt):
+    """
+    The job has been aborted.
+    """
 
 
 class Job(Task):
@@ -37,6 +47,58 @@ class Job(Task):
     Base class for jobs.
     """
     abstract = True
+    initialize_timeout = 30 # seconds
+    _runner_thread = None
+    _aborter_thread = None
+    _result_queue = Queue.Queue()
+    _log = None
+
+    @classmethod
+    def getJobType(cls):
+        """
+        This is expected to be overridden in subclasses for pretty names.
+        """
+        return cls.__name__
+
+    @classmethod
+    def getJobDescription(cls, *args, **kwargs):
+        """
+        This is expected to be overridden in subclasses for nice descriptions.
+        """
+        raise NotImplementedError
+
+    def setProperties(self, **properties):
+        self.app.backend.update(self.request.id, **properties)
+
+    def _get_config(self, key, default=_MARKER):
+        opts = getattr(self.app, 'db_options', None)
+        sanitized_key = key.replace("-", "_")
+        value = getattr(opts, sanitized_key, _MARKER)
+        if value is _MARKER:
+            raise ValueError("Config option %s is not defined" % key)
+        return value
+
+    @property
+    def log(self):
+        if self._log is None:
+            # Get log directory, ensure it exists
+            logdir = self._get_config('job-log-path')
+            try:
+                os.makedirs(logdir)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+            # Make the logfile path and store it in the backend for later
+            # retrieval
+            logfile = os.path.join(logdir, '%s.log' % self.request.id)
+            self.setProperties(logfile=logfile)
+            self._log = self.get_logger(logger_name=self.request.id)
+            self._log.setLevel(self._get_config('logseverity'))
+            handler = logging.FileHandler(logfile)
+            handler.setFormatter(logging.Formatter(
+                "%(asctime)s %(levelname)s zen.Job: %(message)s"))
+            self._log.handlers = [handler]
+        return self._log
 
     @property
     def dmd(self):
@@ -45,8 +107,83 @@ class Job(Task):
         """
         return self.app.backend.dmd
 
+    def _wait_for_pending_job(self):
+        i = 0
+        # Exactly one job executes at a time, so it's fine to block waiting for
+        # the database to get the pending job
+        jmgr = self.dmd.JobManager
+        while i < self.initialize_timeout:
+            try:
+                jmgr._p_jar.sync()
+                return jmgr.getJob(self.request.id)
+            except NoSuchJobException:
+                i += 1
+                time.sleep(1)
+        raise
+
+    def _check_aborted(self, task_id):
+        while True:
+            self.dmd._p_jar.sync()
+            try:
+                status = self.backend.get_status(task_id)
+            except NoSuchJobException:
+                status = states.ABORTED
+            if (status == states.ABORTED and self._runner_thread is not None):
+                    self._runner_thread.interrupt(JobAborted)
+                    break
+            time.sleep(0.5)
+
+    def _do_run(self, *args, **kwargs):
+        # self.request.id is thread-local, so store this from parent
+        if self.request.id is None:
+            self.request.id = kwargs.get('task_id')
+        try:
+            del kwargs['task_id']
+        except KeyError: 
+            pass
+
+        job_record = self.dmd.JobManager.getJob(self.request.id)
+
+        # Log in as the job's user
+        self.log.debug("Logging in as %s" % job_record.user)
+        utool = getToolByName(self.dmd.getPhysicalRoot(), 'acl_users')
+        user = utool.getUserById(job_record.user)
+        if user is None:
+            user = self.dmd.zport.acl_users.getUserById(job_record.user)
+        user = user.__of__(utool)
+        newSecurityManager(None, user)
+
+        # Run it!
+        self.log.info("Beginning job")
+        try:
+            try:
+                result = self._run(*args, **kwargs)
+                self._result_queue.put(result)
+            except JobAborted:
+                self.log.warning("Job aborted.")
+                raise
+        except Exception, e:
+            # TODO: possibly swallow JobAborted here; not sure what's best yet
+            e.exc_info = sys.exc_info()
+            self._result_queue.put(e)
+        finally:
+            # Log out; probably unnecessary but can't hurt
+            noSecurityManager()
+
+
     @transact
     def run(self, *args, **kwargs):
+        self.log.debug("Job received, waiting for other side to commit")
+        try:
+            # Wait for the job creator (i.e. the 1%) to complete the
+            # transaction, pushing a pending job into the database
+            self._wait_for_pending_job()
+        except NoSuchJobException:
+            # Timed out waiting for the other side to commit, so let's cancel
+            # this guy and move on
+            self.update_state(state=states.ABORTED)
+            return
+
         # Have to find appropriate kwargs ourselves, because celery accepts
         # everything but only passes into run() what is defined. Since we're
         # inserting a layer we have to do the same.  All of args will be
@@ -55,212 +192,89 @@ class Job(Task):
         # provides fun_takes_kwargs which figures it out.
         accepted = fun_takes_kwargs(self._run, kwargs)
         d = dict((k, v) for k, v in kwargs.iteritems() if k in accepted)
-        return self._run(*args, **d)
+
+        self._aborter_thread = InterruptableThread(target=self._check_aborted,
+                                                   args=(self.request.id,))
+        if not d.get('task_id'):
+            d['task_id'] = self.request.id
+        self._runner_thread = InterruptableThread(target=self._do_run,
+                                                  args=args, kwargs=d)
+        self._runner_thread.start()
+        self._aborter_thread.start()
+        try:
+            self._runner_thread.join()
+            result = self._result_queue.get_nowait()
+            if isinstance(result, Exception):
+                if not isinstance(result, JobAborted):
+                    self.log.error("Job raised exception", result.exc_info[2])
+                raise result.exc_info[0], result.exc_info[1], result.exc_info[2]
+            return result
+        except Queue.Empty:
+            return None
+        finally:
+            # Kill the aborter
+            try:
+                self._aborter_thread.kill()
+            except ValueError:
+                pass
+            # Clean up the logger
+            try:
+                del self._log.logger.manager.loggerDict[self.request.id]
+            except (AttributeError, KeyError):
+                pass
+            self._log = None
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        # Because JobAborted is an exception, celery will change the state to
+        # FAILURE once the task completes. Since we want it to remain ABORTED,
+        # we'll set it back here.
+        if isinstance(exc, JobAborted):
+            self.update_state(state=states.ABORTED)
 
     def _run(self, *args, **kwargs):
         raise NotImplementedError("_run must be implemented")
 
 
-class GetDmdId(Job):
-
-    def _run(self, a, i):
-        setattr(self.dmd, a, i)
-        return "%s = %s" % (a, i)
-
-
-class Job(ZenModelRM):
-
-    implements(IJob)
-    meta_type = 'Job'
-    __primary_parent__ = None
-
-    def getUid(self):
-        return self.id.split('_')[-1]
-
-    def getDescription(self):
-        return self.id
-
-    def getJobType(self):
-        return self.__class__.__name__
-
-    def getStatus(self):
-        """
-        @return: The L{JobStatus} associated with this job.
-        @rtype: L{JobStatus}
-        """
-        if self.__primary_parent__ is not None:
-            return self.getPrimaryParent()
-
-    def interrupt(self, why):
-        """
-        Halt the job, for whatever reason.
-
-        This will almost certainly be implemented differently in various
-        subclasses.
-
-        @param why: The reason why the build is interrupted
-        @type why: str
-        """
-        pass
-
-    @defer.inlineCallbacks
-    def start(self):
-        """
-        This starts off the job. Returns a Deferred that will fire when the
-        step finishes.
-        """
-        whendone = defer.Deferred()
-        self._v_deferred = whendone
-        status = self.getStatus()
-        # make sure that the started flag is set and persisted
-        @transact
-        def startJob(status):
-            if status is not None:
-                status.jobStarted()
-        startJob(status)
-        self.run(None)
-        yield whendone
-
-    def run(self, r):
-        """
-        Should call self.finished(results) when done, where results is one of
-        SUCCESS, FAILURE.
-        """
-        raise NotImplementedError("Your subclass must implement this method.")
-
-    def finished(self, results):
-        """
-        Called to signify the end of the job.
-        """
-        d = self._v_deferred
-        # Tell the JobStatus we're done
-        status = self.getStatus()
-        @transact
-        def finishJob(status, results):
-            if status is not None:
-                status.jobFinished(results)
-        finishJob(status, results)
-        # Call back to the self.start() Deferred
-        d.callback(results)
-
-
-class ProcessRunner(ProcessProtocol):
-    log = None
-    def __init__(self, job, whenComplete):
-        """
-        Initialization method. Accepts a reference to the relevant Job
-        instance and a defer.Deferred that will be called back.
-        """
-        self.job = job
-        self.whenComplete = whenComplete
-
-    def getLog(self):
-        """
-        Return the log for the status for the job.
-        """
-        if self.log is None:
-            status = self.job.getStatus()
-            if status is not None:
-                self.log = status.getLog()
-        return self.log
-
-    def outReceived(self, text):
-        """
-        Send output to the log file
-        """
-        log = self.getLog()
-        if log is not None:
-            log.write(text)
-
-    # Send error to same place as other output
-    errReceived = outReceived
-
-    def processEnded(self, reason):
-        """
-        We're done. End the job.
-        """
-        code = 1
-        try:
-            code = reason.value.exitCode
-        except AttributeError:
-            pass
-        if code==0:
-            result = SUCCESS
-        else:
-            result = FAILURE
-
-        if self.log is not None:
-            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            self.log.msg('Job completed at %s. Result: %s.' % (now,
-                result==SUCCESS and 'success' or 'failure'))
-            self.log.finish()
-
-        # LET'S UPDATE THE CURRENT STATE
-        # TO PULL IN CHANGES COMMITTED
-        # BY THE JOB WE RAN (SEE ZEN-1242)
-        self.job._p_jar.sync()
-        ##############################
-
-        self.whenComplete.callback(result)
-
-
 class ShellCommandJob(Job):
-    _v_process = None
-    pid = 0
-    def __init__(self, jobid, cmd, environ={}):
-        """
-        Initialization method.
 
-        @param cmd: The command that will be run by the job.
-        @type cmd: list or string
-        """
-        super(ShellCommandJob, self).__init__(jobid)
-        if isinstance(cmd, basestring):
-            cmd = cmd.split()
-        self.cmd = cmd
-        # save the enviroment and allow the user to overrride
-        self.environ = os.environ.copy()
-        self.environ.update(environ)
+    @classmethod
+    def getJobType(cls):
+        return "Shell Command"
 
-    def getDescription(self):
-        return " ".join(self.cmd)
+    @classmethod
+    def getJobDescription(cls, cmd, environ=None):
+        return cmd if isinstance(cmd, basestring) else ' '.join(cmd)
 
-    def run(self, r):
-        cmd = self.cmd
-        d = defer.Deferred()
-        protocol = ProcessRunner(self, d)
-        self._v_process = reactor.spawnProcess(protocol, cmd[0], cmd,
-                            env=self.environ, usePTY=True)
-        self.pid = self._v_process.pid
-        transaction.commit()
-        d.addBoth(self.finished)
-        return d
+    def _run(self, cmd, environ=None):
+        if environ is not None:
+            newenviron = os.environ.copy()
+            newenviron.update(environ)
+            environ = newenviron
+        self.log.info("Spawning subprocess: %s" % ShellCommandJob.getJobDescription(cmd))
+        process = subprocess.Popen(cmd, bufsize=1, env=environ,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
 
-    def interrupt(self):
-        # If we're still in the reactor, use the PTYProcess. This will probably
-        # never happen.
-        if self._v_process is not None:
-            self._v_process.signalProcess('STOP')
-        # Our only hope is still having a pid
-        elif self.pid:
-            try: os.kill(self.pid, 15)
-            except OSError: pass # We can't do anything else anyway
-
-
-class JobMessenger(messaging.MessageSender):
-    """
-    Adapts IJobs to send messages. Differs from MessageSender insofar as it
-    forces a commit to the database after sending.
-    """
-    def sendToBrowser(self, *args, **kwargs):
-        super(JobMessenger, self).sendToBrowser(*args, **kwargs)
-        transaction.commit()
-
-    def sendToUser(self, *args, **kwargs):
-        super(JobMessenger, self).sendToUser(*args, **kwargs)
-        transaction.commit()
-
-    def sendToAll(self, *args, **kwargs):
-        super(JobMessenger, self).sendToAll(*args, **kwargs)
-        transaction.commit()
+        exitcode = None
+        while exitcode is None:
+            orig = None
+            try:
+                line = process.stdout.readline()
+                if line:
+                    handler = self.log.handlers[0]
+                    orig = handler.formatter
+                    handler.setFormatter(logging.Formatter('%(message)s'))
+                    self.log.info(line.strip())
+                else:
+                    exitcode = process.poll()
+                    time.sleep(0.1)
+            except JobAborted:
+                self.log.error("Job aborted. Killing subprocess...")
+                process.kill()
+                self.log.info("Subprocess killed.")
+                raise
+            finally:
+                if orig is not None:
+                    handler.setFormatter(orig)
+        return exitcode
 

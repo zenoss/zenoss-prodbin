@@ -246,14 +246,23 @@
             />
 
         <browser:viewlet
+            name="Jobs"
+            url="/zport/dmd/joblist"
+            weight="3.5"
+            parentItem="Advanced"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zenoss.ManageDMD"
+            layer="..navigation.interfaces.IZenossNav"
+            />
+
+        <browser:viewlet
             name="Settings"
             url="/zport/dmd/editSettings"
             subviews="/zport/dmd/dataRootManage
                       /zport/dmd/userCommands
                       /zport/dmd/ZenUsers
                       /zport/dmd/ZenPackManager
-                      /zport/dmd/joblist
-                      /zport/dmd/JobManager
                       /zport/dmd/editMenus
                       /zport/dmd/editPortletPerms
                       /zport/dmd/eventConfig

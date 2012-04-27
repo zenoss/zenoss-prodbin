@@ -500,14 +500,14 @@ class DeviceRouter(TreeRouter):
                   data_={targetType:target}, oldData_=oldData)
 
         try:
-            exports = facade.moveDevices(uids, target)
+            # Start a job
+            jobrecord = facade.moveDevices(uids, target)
         except Exception, e:
-            log.exception(e)
+            log.exception("Failed to move devices")
             return DirectResponse.exception(e, 'Failed to move devices.')
         else:
-            target = '/'.join(target.split('/')[:4])
-            tree = self.getTree(target)
-            return DirectResponse.succeed(tree=tree, exports=exports)
+            return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], 
+                                  keys=('uuid', 'description', 'started')))
 
     @require('Manage Device')
     def pushChanges(self, uids, hashcheck, ranges=(), uid=None, params=None,
@@ -1085,18 +1085,20 @@ class DeviceRouter(TreeRouter):
                 for devuid in removedUids:
                     # Ex: ('UI.Device.RemoveFromLocation', deviceUid, location=...)
                     audit('UI.Device.%s' % action, devuid, data_={organizerType:uid})
+                notRemovedUids = list(set(uids) - set(removedUids))
+                return DirectResponse.succeed(
+                    removedUids=removedUids,
+                    notRemovedUids=notRemovedUids)
             elif action == "delete":
                 for devuid in uids:
                     audit('UI.Device.Delete', devuid,
                           deleteEvents=deleteEvents,
                           deletePerf=deletePerf)
-                facade.deleteDevices(uids,
+                jobrecord = facade.deleteDevices(uids,
                                      deleteEvents=deleteEvents,
                                      deletePerf=deletePerf)
-            notRemovedUids = list(set(uids) - set(removedUids))
-            return DirectResponse.succeed(
-                removedUids=removedUids,
-                notRemovedUids=notRemovedUids)
+                return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], 
+                                      keys=('uuid', 'description', 'started')))
         except Exception, e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to remove devices.')

@@ -240,3 +240,4 @@ from mibfacade import MibFacade
 from triggersfacade import TriggersFacade
 from zepfacade import ZepFacade
 from reportfacade import ReportFacade
+from jobsfacade import JobsFacade
