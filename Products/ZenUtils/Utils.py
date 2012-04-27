@@ -1643,6 +1643,8 @@ def LazyMap__iter__(self):
         except (NotFound, KeyError, AttributeError):
             if log:
                 log.warn("Stale record in catalog: (key) %s", self._seq[i])
+        except IndexError:
+            break
 
 LazyMap.__iter__ = LazyMap__iter__
 
