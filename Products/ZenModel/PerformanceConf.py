@@ -620,7 +620,7 @@ class PerformanceConf(Monitor, StatusColor):
             pass
 
         zendiscCmd = self._getZenDiscCommand(deviceName, devicePath,
-                                             performanceMonitor)
+                                             performanceMonitor, productionState)
 
         jobStatus = self.dmd.JobManager.addJob(DeviceCreationJob,
                 description="Add device %s" % deviceName,
@@ -648,7 +648,7 @@ class PerformanceConf(Monitor, StatusColor):
         return jobStatus
 
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered",
-                               performanceMonitor="localhost",
+                               performanceMonitor="localhost", productionState=1000,
                                background=False, REQUEST=None):
         """
         Execute zendisc on the new device and return result
@@ -667,7 +667,8 @@ class PerformanceConf(Monitor, StatusColor):
         @rtype:
         """
         zendiscCmd = self._getZenDiscCommand(deviceName, devicePath,
-                                             performanceMonitor, REQUEST)
+                                             performanceMonitor,
+                                             productionState, REQUEST)
         if background:
             log.info('queued job: %s', " ".join(zendiscCmd))
             result = self.dmd.JobManager.addJob(ShellCommandJob,
@@ -678,13 +679,14 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
     def _getZenDiscCommand(self, deviceName, devicePath,
-                           performanceMonitor, REQUEST=None):
+                           performanceMonitor, productionState, REQUEST=None):
 
         zm = binPath('zendisc')
         zendiscCmd = [zm]
         zendiscOptions = ['run', '--now','-d', deviceName,
                      '--monitor', performanceMonitor,
-                     '--deviceclass', devicePath]
+                     '--deviceclass', devicePath,
+                     '--prod_state', str(productionState)]
         if REQUEST:
             zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)

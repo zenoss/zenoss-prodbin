@@ -66,7 +66,7 @@ class BaseDeviceLoader(object):
     def __init__(self, context):
         self.context = context
 
-    def run_zendisc(self, deviceName, devicePath, performanceMonitor):
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor, productionState):
         """
         Various ways of doing this should be implemented in subclasses.
         """
@@ -145,8 +145,11 @@ class BaseDeviceLoader(object):
             if discoverProto=='none':
                 return self.deviceobj
 
+            # Pass production state from device properties
+            productionState = deviceProperties.get('productionState', 1000)
+
             # Otherwise, time for zendisc to do its thing
-            self.run_zendisc(deviceName, devicePath, performanceMonitor)
+            self.run_zendisc(deviceName, devicePath, performanceMonitor, productionState)
 
         finally:
             # Check discovery's success and clean up accordingly
@@ -158,7 +161,7 @@ class BaseDeviceLoader(object):
 class JobDeviceLoader(BaseDeviceLoader):
     implements(IDeviceLoader)
 
-    def run_zendisc(self, deviceName, devicePath, performanceMonitor):
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor, productionState):
         """
         In this subclass, just commit to database,
         so everybody can find the new device
@@ -245,12 +248,12 @@ class WeblogDeviceLoader(BaseDeviceLoader):
         self.context = context
         self.request = request
 
-    def run_zendisc(self, deviceName, devicePath, performanceMonitor):
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor, productionState):
         # Commit to database so everybody can find the new device
         transaction.commit()
         collector = self.deviceobj.getPerformanceServer()
         collector._executeZenDiscCommand(deviceName, devicePath,
-                                         performanceMonitor,
+                                         performanceMonitor, productionState,
                                          REQUEST=self.request)
 
 
