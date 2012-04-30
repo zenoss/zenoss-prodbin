@@ -58,11 +58,12 @@ def registerDescriptors(event):
     """
     Handler for IZopeApplicationOpenedEvent which registers property descriptors.
     """
-    zport = event.app.zport
-    dmd = zport.dmd
-    try:
-        setDescriptors(dmd.propertyTransformers)
-    except Exception, e:
-        args = (e.__class__.__name__, e)
-        log.info("Unable to set property descriptors: %s: %s", *args)
+    zport = getattr(event.app, 'zport', None)
+    # zport may not exist if we are using zenbuild to initialize the database
+    if zport:
+        try:
+            setDescriptors(zport.dmd.propertyTransformers)
+        except Exception, e:
+            args = (e.__class__.__name__, e)
+            log.info("Unable to set property descriptors: %s: %s", *args)
 
