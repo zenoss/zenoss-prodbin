@@ -47,6 +47,9 @@
 
 <browser:defaultSkin name="zenossSkin"/>
 
+<!-- registers the etag adapter -->
+<include package="zope.browserresource" />
+
 <!-- Viewlet manager for generic snippets -->
 <browser:viewletManager
     name="jssnippets"
@@ -62,6 +65,8 @@
     class=".javascript.JavaScriptSrcManager"
     permission="zope2.Public"
     />
+
+
 
 <!-- Viewlet manager for javascript src includes -->
 <browser:viewletManager
