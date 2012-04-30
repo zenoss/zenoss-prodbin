@@ -855,9 +855,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         # That means that when user hits the Check Now button we will receive
         # 2 values for that field.  (button is that same field name.)
         # We want to initiate only when the button is pressed.
-        if self.dmd.versionCheckOptIn \
-          and REQUEST \
-          and isinstance(REQUEST.form['manage_checkVersion'], list):
+        #if self.dmd.versionCheckOptIn \
+        #  and REQUEST \
+        if REQUEST and isinstance(REQUEST.form['manage_checkVersion'], list):
             version_check(self.dmd)
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_checkVersion')

@@ -120,14 +120,6 @@
             <td class="tableheader">Last Checked</td>
             <td class="tablevalues" tal:content="here/lastVersionCheckedString"/>
         </tr>
-        <tr class="odd">
-            <td class="tableheader">Check For Updates Daily</td>
-            <td class="tablevalues">
-                <input type="checkbox" name="optInOut"
-                       tal:attributes="checked here/dmd/versionCheckOptIn; value here/dmd/versionCheckOptIn"
-                      onchange="form.submit()"/>
-            </td>
-        </tr>
         
         <tal:block metal:use-macro="here/optInMacro/macros/optIn"/>
         
