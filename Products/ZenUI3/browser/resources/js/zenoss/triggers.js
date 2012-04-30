@@ -252,7 +252,7 @@ Ext.onReady(function () {
         fields: ['type', 'label', 'value']
     });
 
-    Ext.define('Zenoss.triggers.UsersPermissionGrid', {
+Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         extend: 'Ext.grid.Panel',
         alias: ['widget.usersPermissionGrid'],
         constructor: function(config) {
@@ -262,13 +262,8 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 ref: 'users_grid',
                 title: config.title,
-                height: 200,
-                autoHeight: true,
-                plugins: [
-                    Ext.create('Ext.grid.plugin.CellEditing', {
-                        clicksToEdit: 1
-                    })
-                ],
+                height: 200,                
+                autoHeight: true, 
                 keys: [{
                     key: [Ext.EventObject.ENTER],
                     handler: function() {
@@ -331,31 +326,47 @@ Ext.onReady(function () {
                         header: config.title,
                         dataIndex: 'label',
                         width: 120,
-                        flex: 1,
+                        flex: 1,                       
                         sortable: true
                     },{
                         header: _t('Write'),
                         dataIndex: 'write',
-                        editor: {
-                            xtype: 'checkbox',
-                            cls: 'x-grid-checkheader-editor'
-                        }
+                        listeners:{
+                            click: function(e, f, rowi, coli, event){
+                                var newVal = event.target.checked;
+                                me.getView().getSelectionModel().getSelected().data.write = newVal;                                 
+                                me.reconfigure();
+                                
+                            }
+                        },
+                        renderer: function(val, e, record, rowIndex){
+                            var checked = val ? "checked": "";                            
+                            return '<input '+checked+' id="write_'+rowIndex+'" name="write_'+rowIndex+'" type="checkbox" value="'+val+'">';
+                        }                         
                     }, {
                         header: _t('Manage'),
                         dataIndex: 'manage',
-                        editor: {
-                            xtype: 'checkbox',
-                            cls: 'x-grid-checkheader-editor'
-                        }
-                    }
+                        listeners:{
+                            click: function(e, f, rowi, coli, event){
+                                var newVal = event.target.checked;
+                                me.getView().getSelectionModel().getSelected().data.manage = newVal;                                 
+                                me.reconfigure();
+                                
+                            }
+                        },
+                        renderer: function(val, e, record, rowIndex){
+                            var checked = val ? "checked": "";                            
+                            return '<input '+checked+' id="manage_'+rowIndex+'" name="manage_'+rowIndex+'" type="checkbox" value="'+val+'">';
+                        } 
+                    }      
                 ],
                 selModel: new Zenoss.SingleRowSelectionModel({})
             });
             this.callParent(arguments);
         },
         addValueFromCombo: function() {
-            var toolbar = this.getDockedItems('toolbar')[0],
-                val = toolbar.users_combo.getValue(),
+            var toolbar = this.getDockedItems('toolbar')[0];
+            var val = toolbar.users_combo.getValue(),
                 idx = toolbar.users_combo.store.find('value', val),
                 row,
                 type = 'manual',
@@ -375,7 +386,7 @@ Ext.onReady(function () {
 
 
             if (!this.allowManualEntry && type == 'manual') {
-                Zenoss.message.error(_t('Manual entry not permitted here.'));
+                Zenoss.message.error(_t('Manual entry not permitted.'));
             }
             else {
                 var existingIndex = this.getStore().findExact('value', val);
@@ -393,7 +404,7 @@ Ext.onReady(function () {
                     this.getDockedItems('toolbar')[0].users_combo.clearValue();
                 }
                 else if (existingIndex != -1) {
-                    Zenoss.message.error(_t('Duplicate items not permitted here.'));
+                    Zenoss.message.error(_t('Duplicate items not permitted.'));
                 }
             }
 
@@ -402,7 +413,6 @@ Ext.onReady(function () {
             this.getStore().loadData(data.users);
         }
     });
-
 
 
     var NotificationTabContent = Ext.extend(Ext.Panel, {
