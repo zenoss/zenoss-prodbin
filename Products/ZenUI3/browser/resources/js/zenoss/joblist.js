@@ -24,9 +24,8 @@ var dateRenderer = Ext.util.Format.dateRenderer('m/d/Y h:i:s A');
 
 function renderDate(utcseconds) {
     if (utcseconds) {
-        var adjusted = utcseconds - new Date().getTimezoneOffset()*60,
-            d = new Date(0);
-        d.setUTCSeconds(adjusted);
+        var d = new Date(0);
+        d.setUTCSeconds(utcseconds);
         return d.readable(1);
     }
     return "--"

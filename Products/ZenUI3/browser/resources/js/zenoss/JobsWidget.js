@@ -19,7 +19,7 @@ Ext.ns('Zenoss');
 var REMOTE = Zenoss.remote.JobsRouter;
 
 function lengthOrZero(o) {
-    return o==null ? 0 : o.length;
+    return o==null ? 0 : o;
 }
 
 function isObjectEmpty(o) {
@@ -41,7 +41,6 @@ function jobLinkRenderer(value, metadata, record) {
 function readableRenderer(value, metadata, record) {
     var adjective,
         job = record.data,
-        secondsdiff = new Date().getTimezoneOffset() * 60,
         date = new Date(0);
     switch (job.status) {
         case "SUCCESS":
@@ -54,7 +53,7 @@ function readableRenderer(value, metadata, record) {
             adjective = _t("Scheduled");
             break;
     }
-    date.setUTCSeconds(value - secondsdiff);
+    date.setUTCSeconds(value);
     return adjective + " " + date.readable(1);
 }
 
@@ -268,47 +267,6 @@ Ext.define("Zenoss.JobsWidget", {
         }
         this.setText(text);
     },
-    add_menu_job: function(job) {
-        var adjective,
-            relevant_time,
-            secondsdiff = new Date().getTimezoneOffset() * 60,
-            date = new Date(0);
-        switch (job.status) {
-            case "SUCCESS":
-                adjective = _t("Finished");
-                relevant_time = job.finished;
-                break;
-            case "STARTED":
-                adjective = _t("Started");
-                relevant_time = job.started;
-                break;
-            case "PENDING":
-                adjective = _t("Scheduled");
-                relevant_time = job.scheduled;
-                break;
-        }
-        date.setUTCSeconds(relevant_time - secondsdiff);
-        this.menucontainer.add({
-            xtype: 'panel',
-            width: 425,
-            layout: {
-                type: 'hbox',
-                align: 'stretchmax'
-            },
-            defaults: {
-                style: {
-                    padding: 2
-                }
-            },
-            items: [{
-                html: job.description.length > 48 ? job.description.substring(0, 45) + '...' : job.description,
-                flex: 2
-            },{
-                html: adjective + " " + date.readable(1),
-                flex: 1
-            }]
-        });
-    },
     update_menu: function(jobs) {
         if (!isObjectEmpty(jobs)) {
             Ext.getCmp('nojobspanel').hide();
@@ -334,8 +292,7 @@ Ext.define("Zenoss.JobsWidget", {
         }
     },
     set_lastchecked: function() {
-        var secondsdiff = new Date().getTimezoneOffset()*60;
-        this.lastchecked = (new Date().getTime()/1000) + secondsdiff;
+        this.lastchecked = (new Date().getTime()/1000);
         this.fireEvent('update', this);
     },
     update: function() {

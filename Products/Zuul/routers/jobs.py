@@ -80,7 +80,7 @@ class JobsRouter(DirectRouter):
             jobs.sort(key=lambda j:getattr(j, validstates[status]),
                       reverse=True)
             totals[status] = len(jobs)
-            results[status] = jobs[-10:]
+            results[status] = jobs[:10]
         return DirectResponse(jobs=Zuul.marshal(results, keys=JOBKEYS),
                               totals=totals)
 

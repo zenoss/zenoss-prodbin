@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from time import mktime
+from calendar import timegm
 from Products.Zuul.infos import InfoBase
 
 class JobInfo(InfoBase):
@@ -29,15 +29,15 @@ class JobInfo(InfoBase):
 
     @property
     def scheduled(self):
-        return mktime(self._object.scheduled.timetuple())
+        return timegm(self._object.scheduled.timetuple())
 
     @property
     def started(self):
-        return mktime(self._object.started.timetuple())
+        return timegm(self._object.started.timetuple())
 
     @property
     def finished(self):
-        return mktime(self._object.finished.timetuple())
+        return timegm(self._object.finished.timetuple())
 
     @property
     def status(self):
