@@ -786,7 +786,7 @@ class EventsRouter(DirectRouter):
 
 
     @require('Manage Events')
-    def add_event(self, summary, device, component, severity, evclasskey, evclass):
+    def add_event(self, summary, device, component, severity, evclasskey, evclass=None):
         """
         Create a new event.
 
