@@ -39,7 +39,9 @@ def parse_settings(conf_file):
             value = None
             if line and not line.lstrip().startswith('#'):
                 fields = re.split(SETTINGS_DELIM, line.rstrip(), 1)
-                if len(fields) > 1:
+                if len(fields) == 1:
+                    name, value = fields[0],None
+                elif len(fields) > 1:
                     name, value = fields
             yield (line, name, value)
 
@@ -54,9 +56,12 @@ def create_tmpfile(path):
 def print_setting(setting_name):
     filename = CONF_FILE
     for line, name, value in parse_settings(filename):
-        if name == setting_name:
-            print value
+        if name == setting_name :
+            if value is not None:
+                print value
             break
+    else:
+        sys.exit(-1)
 
 def remove_settings(settings_to_remove):
     filename = CONF_FILE
