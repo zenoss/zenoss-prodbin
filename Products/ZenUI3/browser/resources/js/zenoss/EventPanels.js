@@ -1154,10 +1154,15 @@
     Zenoss.events.EventPanelToolbarSelectMenu = {
         text: _t('Select'),
         id: 'select-button',
+        listeners: {
+            afterrender: function(e){
+                e.menu.items.items[0].setText(Ext.String.format(_t("{0} at a time"),  e.up().ownerCt.getStore().pageSize) );
+            }
+        },        
         menu:{
             xtype: 'menu',
-            items: [{
-                text: 'All',
+            items: [{  
+                text: _t("All"),
                 handler: function(){
                     var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                     sm = grid.getSelectionModel();

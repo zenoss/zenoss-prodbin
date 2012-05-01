@@ -1187,9 +1187,14 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
             Zenoss.devices.deleteDevices,
              {
                 text: _t('Select'),
+                listeners: {
+                    afterrender: function(e){
+                        e.menu.items.items[0].setText(Ext.String.format(_t("{0} at a time"),  e.up().ownerCt.getStore().pageSize) );
+                    }
+                },
                 menu:[
                     {
-                        text: _t('All'),
+                        text: _t("All"),
                         handler: function() {
                             var grid = Ext.getCmp('device_grid');
                             grid.getSelectionModel().selectAll();
