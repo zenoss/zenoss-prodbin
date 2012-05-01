@@ -32,6 +32,10 @@
             Ext.getCmp('addeventwindow').show();
             return;
         }
+        var device;
+        if (Zenoss.env.device_uid) {
+            device = Zenoss.env.device_uid.split("/").reverse()[0];
+        }
         var addevent = Ext.create('Zenoss.dialog.BaseWindow', {
             title: _t('Create Event'),
             id: 'addeventwindow',
@@ -64,7 +68,8 @@
                     xtype: 'textfield',
                     fieldLabel: _t('Device'),
                     name: 'device',
-                    allowBlank: false
+                    allowBlank: false,
+                    value: device
                 },{
                     xtype: 'textfield',
                     fieldLabel: _t('Component'),

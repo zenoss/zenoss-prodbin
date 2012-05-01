@@ -46,96 +46,102 @@
         .#{$prefix}column-header-text{
             background-position:right 4px !important;
         }
-        
-        
+
+
         .#{$prefix}grid-row-over-rowcolor, .#{$prefix}grid-row-selected-rowcolor {
           background: #999 !important;
-        }        
- 
+        }
+
         .#{$prefix}grid-row-selected .#{$prefix}grid-cell, .#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
             background-color: #7199C6 !important;
             .#{$prefix}grid-cell-inner, .#{$prefix}grid-cell-inner a{color:#fff;}
-        }      
-        
-        
+        }
+
+
 
         .rowcolor {
           border-color: #999 #999 #999;
         }
-        
 
-        
-        
+
+
+
         .#{$prefix}grid-row-over-rowcolor .#{$prefix}grid-cell-inner {
           color: white;
         }
-        
+
         .#{$prefix}grid-row-over-rowcolor .#{$prefix}grid-cell-inner a {
           color: white;
         }
-        
+
+        .acknowledged div {
+          font-weight: bolder;
+
+        }
+
+
        .#{$prefix}grid-row{
             &.rowcolor-critical-acknowledged td{
               background-color: #cd7474 !important;
             }
-            
+
             &.rowcolor-error-acknowledged td{
               background-color: #d69f87 !important;
             }
-            
+
             &.rowcolor-warning-acknowledged td{
               background-color: #e0dc95 !important;
             }
-            
+
             &.rowcolor-info-acknowledged td{
               background-color: #95a5c2 !important;
             }
-            
+
             &.rowcolor-debug-acknowledged td{
               background-color: #c8c8c8 !important;
             }
-            
+
             &.rowcolor-clear-acknowledged td{
               background-color: #82a77e !important;
             }
-            
+
             &.rowcolor-critical-unacknowledged td{
               background-color: #d53a3a !important;
             }
-            
+
             &.rowcolor-error-unacknowledged td{
               background-color: #e5763a !important;
             }
-            
+
             &.rowcolor-warning-unacknowledged td{
               background-color: #e9e458 !important;
             }
-            
+
             &.rowcolor-info-unacknowledged td{
               background-color: #5277c6 !important;
             }
-            
+
             &.rowcolor-debug-unacknowledged td{
               background-color: #afafaf !important;
             }
-            
+
             &.rowcolor-clear-unacknowledged td{
               background-color: #488d43 !important;
             }
         }
-   
+
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     #events_grid{
        .#{$prefix}grid-row .#{$prefix}grid-cell-inner{
             font-weight:bold !important;
        }
-    }   
-    #dataSourceTreeGrid, #thresholdGrid, #graphGrid{    
+    }
+    #dataSourceTreeGrid, #thresholdGrid, #graphGrid{
         .#{$prefix}grid-row{
             .#{$prefix}grid-cell{border:0 none;
             border-bottom:1px solid #eeeeee !important;}
@@ -143,12 +149,11 @@
     }
 
 
-    
-    
+
+
 
 
 
 
 
 }
-

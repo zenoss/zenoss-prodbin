@@ -38,13 +38,36 @@ function render_link(ob) {
         return ob;
     }
 }
+function getComponentEventPanelColumnDefinitions() {
+    var fields = ['eventState',
+                  'severity',
+                  'eventClass',
+                  'summary',
+                  'firstTime',
+                  'lastTime',
+                  'count'],
+        cols;
+    cols = Zenoss.util.filter(Zenoss.env.COLUMN_DEFINITIONS, function(col){
+        return Ext.Array.indexOf(fields, col.dataIndex) != -1;
+    });
+
+    // delete the ids to make sure we do not have duplicates,
+    // they are not needed
+    Ext.Array.each(cols, function(col){
+        if (col.id) {
+            delete col.id;
+        }
+    });
+
+    return cols;
+}
 
 Zenoss.nav.register({
     Component: [{
         nodeType: 'subselect',
         id: 'Graphs',
         text: _t('Graphs'),
-        action: function(node, target, combo) {       
+        action: function(node, target, combo) {
             var uid = combo.contextUid,
                 cardid = 'graph_panel',
                 graphs = {
@@ -57,9 +80,9 @@ Zenoss.nav.register({
             if (!Ext.get('graph_panel')) {
                 target.add(graphs);
             }
-             
+
             target.layout.setActiveItem(cardid);
-            target.layout.activeItem.setContext(uid);        
+            target.layout.activeItem.setContext(uid);
             var tbar = target.getDockedItems()[0];
             if (tbar._btns) {
                 Ext.each(tbar._btns, tbar.remove, tbar);
@@ -119,7 +142,7 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'Events',
         text: _t('Events'),
-        action: function(node, target, combo) {        
+        action: function(node, target, combo) {
             var uid = combo.contextUid,
                 cardid = 'event_panel',
                 showPanel = function() {
@@ -132,38 +155,10 @@ Zenoss.nav.register({
                     xtype: 'SimpleEventGridPanel',
                     displayFilters: false,
                     stateId: 'component-event-console',
-                    columns:[{
-                        dataIndex: 'eventState',
-                        width:58,
-                        header: _t('Status')
-                    },{
-                        dataIndex: 'severity',
-                        width:73,
-                        header: _t('Severity')
-                    },{
-                        dataIndex: 'eventsClass',
-                        width:78,
-                        header: _t('Events Class')
-                    },{
-                        dataIndex: 'summary',
-                        flex:1,
-                        header: _t('Summary')
-                    },{
-                        dataIndex: 'firstTime',
-                        width:98,
-                        header: _t('First Seen')
-                    },{
-                        dataIndex: 'lastTime',
-                        width:98,
-                        header: _t('Last Seen')
-                    },{
-                        dataIndex: 'count',
-                        width:60,
-                        header: _t('Count')
-                    }]
-                }); 
+                    columns: getComponentEventPanelColumnDefinitions()
+                });
             }
-            var tbar = target.getDockedItems()[0];  
+            var tbar = target.getDockedItems()[0];
             if (tbar._btns) {
                 Ext.each(tbar._btns, tbar.remove, tbar);
             }
@@ -182,7 +177,7 @@ Zenoss.nav.register({
                         filters = curState.filters || {},
                         pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
                         st, url, matches = Ext.getCmp('event_panel').uid.match(pat);
-                        if (matches){ 
+                        if (matches){
                             filters.device = matches[1];
                             // using "name" from the parent grid here as the UID doesn't contain the component as was expected
                             filters.component = Ext.getCmp('component_card').componentgrid.getView().getSelectionModel().getSelected().get("name");
@@ -192,10 +187,10 @@ Zenoss.nav.register({
                         url = '/zport/dmd/Events/evconsole?state=' + st;
                         window.open(url, '_newtab', "");
                     }
-                })                
+                })
             ]);
             tbar.doLayout();
-            tbar._btns = btns;            
+            tbar._btns = btns;
             combo.on('select', function(c, selected){
                 if (c.value!="Events") {
                     Ext.each(btns, tbar.remove, tbar);
@@ -207,7 +202,7 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'Edit',
         text: _t('Details'),
-        action: function(node, target, combo) {        
+        action: function(node, target, combo) {
             var uid = combo.contextUid;
             if (!Ext.get('edit_panel')) {
                 Zenoss.form.getGeneratedForm(uid, function(config){
@@ -223,9 +218,9 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'ComponentTemplate',
         text: _t('Templates'),
-        action: function(node, target, combo) {        
-            var uid = combo.contextUid;            
-            if (!Ext.get('templates_panel')) {            
+        action: function(node, target, combo) {
+            var uid = combo.contextUid;
+            if (!Ext.get('templates_panel')) {
                 target.add(Ext.create('Zenoss.ComponentTemplatePanel',{
                     ref: 'componentTemplatePanel',
                     id: 'templates_panel'
