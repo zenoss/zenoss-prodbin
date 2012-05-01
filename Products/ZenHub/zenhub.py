@@ -40,7 +40,7 @@ from twisted.internet import reactor, protocol, defer
 from twisted.web import server, xmlrpc
 from zope.event import notify
 from zope.interface import implements
-from zope.component import getUtility, getUtilitiesFor
+from zope.component import getUtility, getUtilitiesFor, adapts
 from ZODB.POSException import POSKeyError
 
 from Products.DataCollector.Plugins import loadPlugins
@@ -54,7 +54,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenHub.services.RenderConfig import RenderConfig
-from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid
+from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid, IHubConfProvider, IHubHeartBeatCheck
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
 
@@ -344,7 +344,8 @@ class ZenHub(ZCmdBase):
 
 
     def _getConf(self):
-        return self.dmd.Monitors.Performance._getOb(self.options.monitor, None)
+        confProvider = IHubConfProvider(self)
+        return confProvider.getHubConf()
 
     def getRRDStats(self):
         """
@@ -657,9 +658,9 @@ class ZenHub(ZCmdBase):
         r = self.rrdStats
         totalTime = sum(s.callTime for s in self.services.values())
         events = r.counter('totalTime', seconds, int(self.totalTime * 1000))
-        events += r.counter('totalEvents', seconds, self.totalEvents) 
-        events += r.gauge('services', seconds, len(self.services)) 
-        events += r.counter('totalCallTime', seconds, totalTime) 
+        events += r.counter('totalEvents', seconds, self.totalEvents)
+        events += r.gauge('services', seconds, len(self.services))
+        events += r.counter('totalCallTime', seconds, totalTime)
         events += r.gauge('workListLength', seconds, len(self.workList))
         for name, value in self.counters.items():
             events += r.counter(name, seconds, value)
@@ -667,6 +668,11 @@ class ZenHub(ZCmdBase):
 
         # persist counters values
         self.saveCounters()
+        try:
+            hbcheck = IHubHeartBeatCheck(self)
+            hbcheck.check()
+        except:
+            self.log.exception("Error processing heartbeat hook")
 
     def saveCounters(self):
         atomicWrite(
@@ -726,7 +732,30 @@ class ZenHub(ZCmdBase):
             help="Don't listen to proxy graph requests to zenrender")
         notify(ParserReadyForOptionsEvent(self.parser))
 
+class DefaultConfProvider(object):
+    implements(IHubConfProvider)
+    adapts(ZenHub)
+
+    def __init__(self, zenhub):
+        self._zenhub = zenhub
+
+    def getHubConf(self):
+        zenhub = self._zenhub
+        return zenhub.dmd.Monitors.Performance._getOb(zenhub.options.monitor, None)
+
+class DefaultHubHeartBeatCheck(object):
+    implements(IHubHeartBeatCheck)
+    adapts(ZenHub)
+
+    def __init__(self, zenhub):
+        self._zenhub = zenhub
+
+    def check(self):
+        pass
+
+
 if __name__ == '__main__':
+    from Products.ZenHub.zenhub import ZenHub
     z = ZenHub()
 
     # during startup, restore performance counters

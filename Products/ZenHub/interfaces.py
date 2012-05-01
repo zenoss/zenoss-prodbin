@@ -122,3 +122,20 @@ class IInvalidationOid(Interface):
         """
         Given an OID, return the same oid, a different one or None.
         """
+
+
+class IHubConfProvider(Interface):
+    """
+    """
+
+    def getHubConf():
+        """
+        """
+
+class IHubHeartBeatCheck(Interface):
+    """
+    """
+
+    def check():
+        """
+        """

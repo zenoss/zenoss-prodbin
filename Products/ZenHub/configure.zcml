@@ -20,5 +20,7 @@
     provides=".interfaces.IBatchNotifier"
     />
 
+    <adapter factory=".zenhub.DefaultConfProvider"/>
+    <adapter factory=".zenhub.DefaultHubHeartBeatCheck"/>
 
 </configure>
