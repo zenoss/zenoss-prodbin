@@ -25,10 +25,15 @@ can be used to send commands to the rrdcached daemon managed by
 zenrrdcached.
 """
 
+
 def flushDevice(device):
+    path = "%s/perf/Devices/%s" % (os.environ['ZENHOME'], device)
+    if not os.path.isdir(path):
+        # No RRD files for the specified device
+        return
     with tempfile.NamedTemporaryFile('r+w') as t:
-        path = "%s/perf/Devices/%s" % (os.environ['ZENHOME'], device)
-        p = subprocess.Popen(["find", path, "-name", "*.rrd"], stdout=subprocess.PIPE)
+        p = subprocess.Popen(["find", path, "-name", "*.rrd"],
+                             stdout=subprocess.PIPE)
         stdout, err = p.communicate()
 
         for rrds in stdout.splitlines():
@@ -41,56 +46,76 @@ def flushDevice(device):
         p = subprocess.Popen([os.path.abspath(__file__), '-'], stdin=t)
         p.wait()
 
+
 def commandLoop(cmds=None):
     s = None
+    sockfile = None
     try:
         zenhome = os.environ['ZENHOME']
 
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.connect(zenhome + "/var/rrdcached.sock")
+        sockfile = s.makefile('rw', 1024)
         if sys.stdin.isatty():
             prompt = "rrdcached> "
         else:
             prompt = ""
 
+        in_batch = False
         while True:
-            try:
-                if cmds is not None:
-                   cmd = cmds.pop(0)
-                else:
-                   cmd = raw_input(prompt)
-            except EOFError as e:
-                sys.exit()
-            if cmd.lower() in ('\q', 'quit', 'exit', 'bye', ':q'):
-                sys.exit()
+            if cmds is not None:
+                cmd = cmds.pop(0).upper()
+            else:
+                try:
+                    cmd = raw_input(prompt).upper()
+                    if cmd in ('\Q', 'QUIT', 'EXIT', 'BYE', ':Q'):
+                        break
+                except EOFError:
+                    break
 
-            if len(cmd) > 0:
-                s.send(cmd + "\n")
-                data = s.recv(1024)
-                print data,
+            if cmd:
+                sockfile.write(cmd + "\n")
+                sockfile.flush()
+                # Read response which consists of '<status_code> <message>'.
+                # If <status_code> is > 0, then it signals the number of lines
+                # which follow in the response. If it is negative, there was an
+                # error.
+                if in_batch and cmd == ".":
+                    in_batch = False
+
+                if not in_batch:
+                    data = sockfile.readline().rstrip()
+                    numlines, message = data.split(None, 1)
+                    numlines = int(numlines)
+                    print data
+                    for i in range(numlines):
+                        print sockfile.readline(),
+                if cmd == "BATCH":
+                    in_batch = True
 
             if cmds is not None and len(cmds) == 0:
                 break
 
     finally:
+        if sockfile:
+            sockfile.write("QUIT\n")
+            sockfile.flush()
+            sockfile.readline()
+            sockfile.close()
         if s:
-            s.send("QUIT\n")
-            s.recv(1024)
             s.close()
         # reset the terminal in case things go south
-        devnull = open(os.devnull, 'rw')
-        subprocess.call('stty sane', shell=True, stdout=devnull, stderr=devnull)
-        devnull.close()
-        print
+        with open(os.devnull, 'rw') as devnull:
+            subprocess.call('stty sane', shell=True, stdout=devnull,
+                            stderr=devnull)
 
-if __name__=="__main__":
- 
+if __name__ == "__main__":
     usage = """usage: %prog COMMAND
 
  -                  Interactively send commands to rrdcached.
- flush DEVICE_ID    Flush all the RRD files for the given device. 
+ flush DEVICE_ID    Flush all the RRD files for the given device.
  stats              Print zenrrdcached STATS."""
-    parser = optparse.OptionParser(usage=usage)    
+    parser = optparse.OptionParser(usage=usage)
     options, args = parser.parse_args()
 
     if len(args) == 0:
@@ -106,5 +131,3 @@ if __name__=="__main__":
         commandLoop(['STATS'])
     else:
         parser.print_usage()
-
-
