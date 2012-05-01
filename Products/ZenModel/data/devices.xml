@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-03-12 17:01:24.977555
+    Zenoss RelationshipManager export completed on 2012-05-01 13:57:11.812600
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-03-12 17:01:24.977555" zenoss_server="dgarcia-laptop" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2012-05-01 13:57:11.812600" zenoss_server="unknownf81edfda3713" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -2383,6 +2383,9 @@ False
 </property>
 <property visible="True" type="lines" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.wmi.WinServiceMap', 'zenoss.cmd.lin ux.ifconfig', 'zenoss.cmd.linux.netstat_rn', 'zenoss.cmd.df', 'zenoss.cmd.uname', 'zenoss.cmd.uname_a')
+</property>
+<property visible="True" type="int" id="zMaxOIDPerRequest" >
+10
 </property>
 </object>
 <object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
