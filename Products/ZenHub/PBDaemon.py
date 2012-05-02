@@ -17,6 +17,7 @@ Base for daemons that connect to zenhub
 
 """
 
+import collections
 import sys
 import time
 import traceback
@@ -149,6 +150,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.initialConnect = defer.Deferred()
         self.stopped = False
         self._eventStatus = {}
+        self._eventStatusCount = collections.defaultdict(int)
 
     def gotPerspective(self, perspective):
         """
@@ -320,17 +322,27 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         event['monitor'] = self.options.monitor
         event['manager'] = self.fqdn
         event.update(kw)
-        if not self.options.allowduplicateclears:
+        if not self.options.allowduplicateclears or self.options.duplicateclearinterval > 0:
             statusKey = ( event['device'],
                           event.get('component', ''),
                           event.get('eventKey', ''),
                           event.get('eventClass', '') )
             severity = event.get('severity', -1)
             status = self._eventStatus.get(statusKey, -1)
+            if severity != -1:
+               if severity != status:
+                   self._eventStatusCount[statusKey] = 0
+               else:
+                   self._eventStatusCount[statusKey] += 1
             self._eventStatus[statusKey] = severity
             if severity == Clear and status == Clear:
-                self.log.debug("Dropping useless clear event %r", event)
-                return
+                if not self.options.allowduplicateclears:
+                    self.log.debug("allowduplicateclears dropping useless clear event %r", event)
+                    return
+                if self.options.duplicateclearinterval > 0 \
+                    and self._eventStatusCount[statusKey] % self.options.duplicateclearinterval != 0:
+                    self.log.debug("duplicateclearinterval dropping useless clear event %r", event)
+                    return
         self.eventQueue.append(event)
         self.log.debug("Queued event (total of %d) %r",
                        len(self.eventQueue),
@@ -467,6 +479,14 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                action='store_true',
                                help='Send clear events even when the most '
                                'recent event was also a clear event.')
+
+        self.parser.add_option('--duplicateclearinterval',
+                               dest='duplicateclearinterval',
+                               default=0,
+                               type='int',
+                               help=('Send a clear event every [DUPLICATECLEARINTEVAL] '
+                                     'events.')
+        )
 
         self.parser.add_option('--eventflushseconds',
                                dest='eventflushseconds',
