@@ -270,18 +270,23 @@ var componentCard = {
         }
     },{
         text: _t('Select'),
+        listeners: {
+            click: function(e){
+                e.menu.items.items[0].setText(Ext.String.format(_t("{0} at a time"), Ext.getCmp('component_card').componentgrid.getStore().pageSize) );
+            }
+        },        
         disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
         menu: [{
             text: _t('All'),
             handler: function(){
                 var grid = Ext.getCmp('component_card').componentgrid;
-                grid.getSelectionModel().selectRange(0, grid.store.totalLength);
+                grid.getSelectionModel().selectRange(0, grid.store.getCount()-1);
             }
         },{
             text: _t('None'),
             handler: function(){
                 var grid = Ext.getCmp('component_card').componentgrid;
-                grid.getSelectionModel().clearSelections();
+                grid.getSelectionModel().deselectAll();
             }
         }]
     }, '->', {
