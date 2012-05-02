@@ -902,6 +902,17 @@
         Zenoss.events.customColumns[dataIndex] = obj;
     };
 
+    Zenoss.events.eventFields = [];
+    /**
+     * This is how zenpack authors can register event fields that they want pulled from the server,
+     * but may not be visible in a colum. So if you add the following line to your javascript:
+     *     Zenoss.events.registerEventField("ipAddress");
+     * On every browser request the ipAddress field will be populated
+     **/
+    Zenoss.events.registerEventField = function(dataIndex) {
+        Zenoss.events.eventFields.push(dataIndex);
+    };
+
     /**
      * @class Zenoss.events.Grid
      * @extends Zenoss.FilterGridPanel
@@ -924,12 +935,30 @@
         initComponent: function() {
             this.getSelectionModel().grid = this;
             this.callParent(arguments);
+
+            this.headerCt.on('columnhide', this.onColumnChange, this);
+            this.headerCt.on('columnshow', this.onColumnChange, this);
+        },
+        /**
+         * Listeners for when you hide/show a column, the data isn't fetched yet so
+         * we need to refresh the grid to get it. Otherwise there will be a blank column
+         * until the page is manually refreshed.
+         **/
+        onColumnChange:function () {
+            if (!this.onColumnChangeTask) {
+                this.onColumnChangeTask = new Ext.util.DelayedTask(function () {
+                    this.refresh();
+                }, this);
+            }
+
+            // give them one second to hide/show other columns
+            this.onColumnChangeTask.delay(1000);
         },
         onItemClick: function(){
             this.getSelectionModel().clearSelectState();
         },
         listeners: {
-            'beforerender': function(){
+            beforerender: function(){
                 this.rowcolors = Ext.state.Manager.get('rowcolor');
                 // Some event consoles (Impact Events) do not use severity
                 // config colors.  Check and see if it's being used before
@@ -938,6 +967,20 @@
                 if (rowcolorsCheckItem)
                     rowcolorsCheckItem.setChecked(this.rowcolors);
             }
+        },
+        applyOptions: function() {
+            var store = this.getStore(),
+                keys,
+                columns = this.headerCt.getGridColumns();
+
+            columns = Zenoss.util.filter(columns, function(col) {
+                return !col.hidden;
+            });
+            keys = Ext.Array.pluck(columns, "dataIndex");
+            keys.push("evid");
+            // grab any fields zenpack authors may add
+            keys = Ext.Array.union(keys, Zenoss.events.eventFields);
+            store.setBaseParam("keys", keys);
         },
         getSelectionParameters: function() {
             var grid = this,
@@ -1158,10 +1201,10 @@
             afterrender: function(e){
                 e.menu.items.items[0].setText(Ext.String.format(_t("{0} at a time"),  e.up().ownerCt.getStore().pageSize) );
             }
-        },        
+        },
         menu:{
             xtype: 'menu',
-            items: [{  
+            items: [{
                 text: _t("All"),
                 handler: function(){
                     var grid = Ext.getCmp('select-button').ownerCt.ownerCt,

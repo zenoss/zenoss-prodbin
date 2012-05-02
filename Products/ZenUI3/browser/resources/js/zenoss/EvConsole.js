@@ -85,12 +85,7 @@ Ext.onReady(function(){
             key: Ext.EventObject.ENTER,
             fn: toggleEventDetailContent
         }],
-        selModel: console_selection_model, // defined above
-
-        // no explicit toolbar at the bottom
-        bbar: [
-
-        ]
+        selModel: console_selection_model // defined above
     });
     console_selection_model.grid = grid;
     // Add it to the layout

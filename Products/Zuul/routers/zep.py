@@ -18,45 +18,27 @@ Available at:  /zport/dmd/evconsole_router
 
 import time
 import logging
-import urllib
-from Products.ZenUtils.Ext import DirectRouter
+from json import loads
 from AccessControl import getSecurityManager
+from zenoss.protocols.exceptions import NoConsumersException, PublishException
+from Products import Zuul
+from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
-from Products.ZenUtils.Time import isoDateTimeFromMilli, isoToTimestamp
-from Products.Zuul import getFacade
+from Products.ZenUtils.Time import isoToTimestamp
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
-from Products.ZenEvents.events2.proxy import EventProxy
 from Products.ZenMessaging.audit import audit
-from zenoss.protocols.services.zep import EventStatus, EventSeverity
-from zenoss.protocols.protobufs.zep_pb2 import EventSummary
-from zenoss.protocols.protobufutil import ProtobufEnum
-from zenoss.protocols.exceptions import NoConsumersException, PublishException
-from json import loads
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
+
 
 log = logging.getLogger('zen.%s' % __name__)
 
-_status_name = ProtobufEnum(EventSummary,'status').getPrettyName
-def _mergeAuditLogToNotes(evtsumm):
-    if 'audit_log' in evtsumm:
-        mergedNotes = evtsumm.get('notes',[])
-        for auditNote in evtsumm['audit_log']:
-            mergedNotes.append(
-                {
-                'created_time' : auditNote['timestamp'],
-                'user_uuid' : auditNote.get('user_uuid', ''),
-                'user_name' : auditNote.get('user_name', ''),
-                'message' : 'state changed to %s' % _status_name(auditNote['new_status']),
-                }
-            )
-        evtsumm['notes'] = mergedNotes
-    return evtsumm
 
 class EventsRouter(DirectRouter):
     """
@@ -65,154 +47,9 @@ class EventsRouter(DirectRouter):
 
     def __init__(self, context, request):
         super(EventsRouter, self).__init__(context, request)
-        self.zep = getFacade('zep', context)
+        self.zep = Zuul.getFacade('zep', context)
         self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
-
-    def _getPathFromUuid(self, uuid):
-        if uuid:
-            path = self.manager.getPath(uuid)
-            if path:
-                return urllib.unquote(path)
-
-    def _getNameFromUuid(self, uuid):
-        """
-        Given a uuid this returns the objects name
-        from the catalog, it does not wake the object up
-        """
-        if uuid:
-            path = self._getPathFromUuid(uuid)
-            if path:
-                brain = self.catalog.getBrain(path)
-                if brain:
-                    return brain.name
-
-    def _lookupEventClassMapping(self, mappingUuid):
-        if not mappingUuid:
-            return ""
-
-        return {'uuid': mappingUuid, 'name': self._getNameFromUuid(mappingUuid)}
-
-    def _findDetails(self, event):
-        """
-        Event details are created as a dictionary like the following:
-            detail = {
-                'name': 'zenoss.foo.bar',
-                'value': 'baz'
-            }
-        This method maps these detail items to a flat dictionary to facilitate
-        looking up details by key easier.
-
-        @rtype dict
-        """
-        details = {}
-        if 'details' in event:
-            for d in event['details']:
-                details[d['name']] = d.get('value', ())
-        return details
-
-
-    def _singleDetail(self, value):
-        """
-        A convenience method for fetching a single detail from a property which
-        correlates to a repeated field on the protobuf.
-        """
-        if isinstance(value, (tuple, list, set)) and value:
-            return value[0]
-
-    def _lookupDetailPath(self, prefix, values):
-        if not values:
-            return ()
-        paths = []
-        for value in values:
-            paths.append({'uid': prefix + value, 'name': value})
-        return paths
-
-    def _get_device_url(self, eventDetails):
-        url_and_path = [self._singleDetail(eventDetails.get(k)) for k in 'zenoss.device.url', 'zenoss.device.path']
-        if len(url_and_path) != 2:
-            return None
-        url, path = url_and_path
-        try:
-            self.context.dmd.findChild(path)
-        except:
-            return None
-        return url
-
-    def _mapToOldEvent(self, event_summary):
-
-        eventOccurrence = event_summary['occurrence'][0]
-        eventActor = eventOccurrence['actor']
-        eventClass = eventOccurrence['event_class']
-        eventDetails = self._findDetails(eventOccurrence)
-
-        event = {
-            'id' : event_summary['uuid'],
-            'evid' : event_summary['uuid'],
-            'dedupid': eventOccurrence.get('fingerprint'),
-
-            'eventState' : EventStatus.getPrettyName(event_summary['status']),
-            'severity' : eventOccurrence['severity'],
-            'component' : {
-                'text': eventActor.get('element_sub_title'),
-                'uid': self._getPathFromUuid(eventActor.get('element_sub_uuid')),
-                'url' : self._uuidUrl(eventActor.get('element_sub_uuid')),
-                'uuid' : eventActor.get('element_sub_uuid')
-            },
-            'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
-            'summary' : eventOccurrence['summary'],
-            'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
-            'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time'] ),
-            'count' : event_summary['count'],
-            'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
-            'eventClassKey': eventOccurrence.get('event_class_key'),
-            'eventGroup': eventOccurrence.get('event_group'),
-            'eventKey' : eventOccurrence.get('event_key'),
-            'agent': eventOccurrence.get('agent'),
-            'monitor': eventOccurrence.get('monitor'),
-            'ownerid': event_summary.get('current_user_name'),
-            'facility' : eventOccurrence.get('syslog_facility'),
-            'priority' : eventOccurrence.get('syslog_priority'),
-            'eventClassMapping' : self._lookupEventClassMapping(eventOccurrence.get('event_class_mapping_uuid')),
-            'clearid' : event_summary.get('cleared_by_event_uuid'),
-            'ntevid' : eventOccurrence.get('nt_event_code'),
-            'ipAddress' : eventDetails.get('zenoss.device.ip_address', ''),
-            'message' : eventOccurrence.get('message', ''),
-            'Location' : self._lookupDetailPath('/zport/dmd/Locations', eventDetails.get(EventProxy.DEVICE_LOCATION_DETAIL_KEY)),
-            'DeviceGroups' : self._lookupDetailPath('/zport/dmd/Groups', eventDetails.get(EventProxy.DEVICE_GROUPS_DETAIL_KEY)),
-            'Systems' : self._lookupDetailPath('/zport/dmd/Systems', eventDetails.get(EventProxy.DEVICE_SYSTEMS_DETAIL_KEY)),
-            'DeviceClass' : self._lookupDetailPath('/zport/dmd/Devices', eventDetails.get(EventProxy.DEVICE_CLASS_DETAIL_KEY)),
-        }
-
-        # if zenoss.device.url and zenoss.device.path are set and valid,
-        #     then use those (use case is hub and collector daemon self-monitoring)
-        #     otherwise determine the URL from actor.element_uuid
-        device_url = self._get_device_url(eventDetails)
-        if device_url is None:
-            event['device'] = dict(text=eventActor.get('element_title'),
-                                   uid=self._getPathFromUuid(eventActor.get('element_uuid')),
-                                   url=self._uuidUrl(eventActor.get('element_uuid')),
-                                   uuid=eventActor.get('element_uuid'))
-        else:
-            event['device'] = dict(text=eventActor.get('element_title'),
-                                   url=device_url)
-
-        prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
-        if prodState is not None:
-            event['prodState'] = self.context.convertProdState(prodState)
-
-        DevicePriority = self._singleDetail(eventDetails.get('zenoss.device.priority'))
-        if DevicePriority is not None:
-            event['DevicePriority'] = self.context.convertPriority(DevicePriority)
-
-
-        # make custom details actually show up. This does not include the manually
-        # mapped zenoss details.
-        for d in self.zep.getUnmappedDetails():
-            event[d['key']] = eventDetails.get(d['key'])
-
-        return event
-
 
     def _timeRange(self, value):
         try:
@@ -246,26 +83,27 @@ class EventsRouter(DirectRouter):
 
     @serviceConnectionError
     @require('ZenCommon')
-    def queryArchive(self, page=None, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
+    def queryArchive(self, page=None, limit=0, start=0, sort='lastTime', dir='desc', params=None, keys=None, uid=None, detailFormat=False):
         filter = self._buildFilter(uid, params)
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
                                                        filter=filter)
-
-        eventFormat = self._mapToOldEvent
+        eventFormat = EventCompatInfo
         if detailFormat:
-            eventFormat = self._mapToDetailEvent
+            eventFormat = EventCompatDetailInfo
+
+        dmd = self.context.dmd
         # filter out the component and device UUIDs that no longer exist in our system
         evdata = self._filterInvalidUuids(events['events'])
+        eventObs = [eventFormat(dmd, e) for e in evdata]
         return DirectResponse.succeed(
-            events = [eventFormat(e) for e in evdata],
+            events = Zuul.marshal(eventObs, keys),
             totalCount = events['total'],
             asof = time.time()
         )
 
-
     @serviceConnectionError
     @require('ZenCommon')
-    def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
+    def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, keys=None,
               page=None, archive=False, uid=None, detailFormat=False):
         """
         Query for events.
@@ -296,7 +134,7 @@ class EventsRouter(DirectRouter):
         """
         if archive:
             return self.queryArchive(limit=limit, start=start, sort=sort,
-                                     dir=dir, params=params, uid=uid,
+                                     dir=dir, params=params, keys=keys, uid=uid,
                                      detailFormat=detailFormat)
         # special case for dmd/Devices in which case we want to show all events
         # by default events are not tagged with the root device classes because it would be on all events
@@ -304,11 +142,15 @@ class EventsRouter(DirectRouter):
             uid = "/zport/dmd"
         filter = self._buildFilter(uid, params)
         events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter)
-        eventFormat = self._mapToOldEvent
+        eventFormat = EventCompatInfo
         if detailFormat:
-            eventFormat = self._mapToDetailEvent
+            eventFormat = EventCompatDetailInfo
+
+        dmd = self.context.dmd
+        eventObs = [eventFormat(dmd, e) for e in events['events']]
+
         return DirectResponse.succeed(
-            events = [eventFormat(e) for e in events['events']],
+            events = Zuul.marshal(eventObs, keys),
             totalCount = events['total'],
             asof = time.time()
         )
@@ -342,11 +184,11 @@ class EventsRouter(DirectRouter):
 
         events = self.zep.getEventSummariesGenerator(filter=includeFilter, exclude=excludeFilter,
                                                       sort=self._buildSort(sort,dir), archive=archive)
-        eventFormat = self._mapToOldEvent
+        eventFormat = EventCompatInfo
         if detailFormat:
-            eventFormat = self._mapToDetailEvent
+            eventFormat = EventCompatDetailInfo
         for event in events:
-            yield eventFormat(event)
+            yield Zuul.marshal(eventFormat(self.context.dmd, event))
 
     def _buildSort(self, sort='lastTime', dir='desc'):
         sort_list = [(sort,dir)]
@@ -366,8 +208,6 @@ class EventsRouter(DirectRouter):
         @type  uid: string
         @param uid: (optional) Context for the query (default: None)
         """
-
-
         if params:
             log.debug('logging params for building filter: %s', params)
             if isinstance(params, basestring):
@@ -466,96 +306,6 @@ class EventsRouter(DirectRouter):
 
         return event_filter
 
-    def _uuidUrl(self, uuid):
-        if uuid:
-            return '/zport/dmd/goto?guid=%s' % uuid
-
-    def _mapToDetailEvent(self, event_summary):
-        eventOccurrence = event_summary['occurrence'][0]
-        eventClass = eventOccurrence['event_class']
-        eventActor = eventOccurrence['actor']
-        eventDetails = self._findDetails(eventOccurrence)
-        eventClassMapping = self._lookupEventClassMapping(eventOccurrence.get('event_class_mapping_uuid'))
-        eventClassMappingName = eventClassMappingUrl = None
-        if eventClassMapping:
-            eventClassMappingName = eventClassMapping['name']
-            eventClassMappingUrl = self._uuidUrl(eventClassMapping['uuid'])
-
-        # TODO: Update this mapping to more reflect _mapToOldEvent.
-        eventData = {
-            'evid':event_summary['uuid'],
-            'device': eventActor.get('element_identifier'),
-            'ipAddress': eventDetails.get('zenoss.device.ip_address', ''),
-            'device_uuid':eventActor.get('element_uuid'),
-            'component': eventActor.get('element_sub_identifier'),
-            'component_title':self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_title'),
-            'component_url':self._uuidUrl(eventActor.get('element_sub_uuid')),
-            'component_uuid':eventActor.get('element_sub_uuid'),
-            'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
-            'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']),
-            'stateChange':isoDateTimeFromMilli(event_summary['status_change_time']),
-            'eventClass':eventClass,
-            'eventClass_url':"/zport/dmd/Events%s" % eventClass,
-            'eventKey':eventOccurrence.get('event_key'),
-            'severity':eventOccurrence['severity'],
-            'eventState':EventStatus.getPrettyName(event_summary['status']),
-            'count':event_summary['count'],
-            'summary':eventOccurrence.get('summary'),
-            'message':eventOccurrence.get('message', ''),
-            'dedupid':eventOccurrence['fingerprint'],
-            'monitor':eventOccurrence.get('monitor'),
-            'facility': eventOccurrence.get('syslog_facility'),
-            'ntevid': eventOccurrence.get('nt_event_code'),
-            'agent':eventOccurrence.get('agent'),
-            'eventGroup': eventOccurrence.get('event_group'),
-            'eventClassKey':eventOccurrence.get('event_class_key'),
-            'Location' : self._lookupDetailPath('/zport/dmd/Locations', eventDetails.get(EventProxy.DEVICE_LOCATION_DETAIL_KEY)),
-            'DeviceGroups' : self._lookupDetailPath('/zport/dmd/Groups', eventDetails.get(EventProxy.DEVICE_GROUPS_DETAIL_KEY)),
-            'Systems' : self._lookupDetailPath('/zport/dmd/Systems', eventDetails.get(EventProxy.DEVICE_SYSTEMS_DETAIL_KEY)),
-            'DeviceClass' : self._lookupDetailPath('/zport/dmd/Devices', eventDetails.get(EventProxy.DEVICE_CLASS_DETAIL_KEY)),
-            'eventClassMapping': eventClassMappingName,
-            'eventClassMapping_url': eventClassMappingUrl,
-            'owner': event_summary.get('current_user_name'),
-            'priority': eventOccurrence.get('syslog_priority'),
-            'clearid': event_summary.get('cleared_by_event_uuid'),
-            'log':[]}
-
-        # if zenoss.device.url and zenoss.device.path are set and valid,
-        #     then use those (use case is hub and collector daemon self-monitoring)
-        #     otherwise determine the URL from actor.element_uuid
-        device_url = self._get_device_url(eventDetails)
-        if device_url is None:
-            eventData['device_title'] = self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_title')
-            eventData['device_url'] = self._uuidUrl(eventActor.get('element_uuid'))
-        else:
-            eventData['device_title'] = eventActor.get('element_title')
-            eventData['device_url'] = device_url
-
-        prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
-        if prodState is not None:
-            eventData['prodState'] = self.context.convertProdState(prodState)
-
-        DevicePriority = self._singleDetail(eventDetails.get('zenoss.device.priority'))
-        if DevicePriority is not None:
-            eventData['DevicePriority'] = self.context.convertPriority(DevicePriority)
-
-        event_summary = _mergeAuditLogToNotes(event_summary)
-        if 'notes' in event_summary:
-            event_summary['notes'].sort(key=lambda a:a['created_time'], reverse=True)
-            for note in event_summary['notes']:
-                eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
-
-        eventData['details'] = []
-        if 'details' in eventOccurrence:
-            for detail in sorted(eventOccurrence['details'], key=lambda detail: detail['name'].lower()):
-                values = detail.get('value', ())
-                if not isinstance(values, list):
-                    values = list(values)
-                for value in (v for v in values if v):
-                    if not detail['name'].startswith('__meta__'):
-                        eventData['details'].append(dict(key=detail['name'], value=value))
-        return eventData
-
     def detail(self, evid):
         """
         Get event details.
@@ -571,8 +321,7 @@ class EventsRouter(DirectRouter):
         """
         event_summary = self.zep.getEventSummary(evid)
         if event_summary:
-            eventData = self._mapToDetailEvent(event_summary)
-
+            eventData = Zuul.marshal(EventCompatDetailInfo(self.context.dmd, event_summary))
             return DirectResponse.succeed(event=[eventData])
         else:
             raise Exception('Could not find event %s' % evid)
@@ -818,12 +567,6 @@ class EventsRouter(DirectRouter):
             # This occurs if there is a failure publishing the event to the queue.
             log.exception("Failed creating event")
             return DirectResponse.exception(e, "Failed to create event")
-
-    def _convertSeverityToNumber(self, sev):
-        return EventSeverity.getNumber(sev)
-
-    def _convertSeverityToName(self, sevId):
-        return EventSeverity.getName(sevId)
 
     @property
     def configSchema(self):

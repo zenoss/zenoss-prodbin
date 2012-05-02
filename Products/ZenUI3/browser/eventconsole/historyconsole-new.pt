@@ -18,21 +18,7 @@
 "></script>
 <script src="/++resource++zenui/js/zenoss/EvHistory.js">
 </script>
-<script>
-Ext.onReady(function(){
-    var toolbar_items = [
-        '->',
-        Ext.create('Zenoss.LiveGridInfoPanel', {
-            grid: 'events_grid'
-         })
 
-    ];
-
-    Ext.each(toolbar_items,
-            function(item) {this.add(item);},
-            Ext.getCmp('footer_bar'));
-});
-</script>
 </tal:block>
 
 </tal:block>

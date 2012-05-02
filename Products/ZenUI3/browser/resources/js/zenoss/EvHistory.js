@@ -280,8 +280,8 @@ Ext.onReady(function(){
             fn: toggleEventDetailContent
         }],
         displayTotal: false,
-        selModel: console_selection_model, // defined above
-        bbar: []
+        selModel: console_selection_model // defined above
+
     });
     console_selection_model.grid = grid;
     // Add it to the layout
