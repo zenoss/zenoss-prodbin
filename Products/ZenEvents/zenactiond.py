@@ -227,7 +227,9 @@ class ZenActionD(ZCmdBase):
             default=DEFAULT_MONITOR,
             help="Name of monitor instance to use for heartbeat "
                 " events. Default is %s." % DEFAULT_MONITOR)
-
+        self.parser.add_option('--maintenance-window-cycletime',
+            dest='maintenceWindowCycletime', default=60, type="int",
+            help="How often to check to see if there are any maintenance windows to execute")
 
     def run(self):
         # Configure all actions with the command-line options

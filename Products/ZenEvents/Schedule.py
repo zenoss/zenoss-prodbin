@@ -53,8 +53,8 @@ class Schedule:
         try:
             self.run()
         except Exception:
-            self.log.exception("Error processing maintenance windows - will try again in % seconds", self.options.cycletime)
-        reactor.callLater(self.options.cycletime, self.configCycle)
+            self.log.exception("Error processing maintenance windows - will try again in % seconds", self.options.maintenceWindowCycletime)
+        reactor.callLater(self.options.maintenceWindowCycletime, self.configCycle)
 
 
     def sync(self):
