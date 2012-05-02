@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import os
 import time
 from copy import copy
 from datetime import datetime
@@ -21,6 +22,7 @@ from celery import states
 from OFS.ObjectManager import ObjectManager
 from persistent.dict import PersistentDict
 from Products.PluginIndexes.DateIndex.DateIndex import DateIndex
+from Products.Five.browser import BrowserView
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.celeryintegration import Task
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
@@ -191,6 +193,13 @@ class JobManager(ZenModelRM):
         job = self.getJob(jobid)
         if not job.isFinished():
             job.abort()
+        # Clean up the log file
+        if getattr(job, 'logfile', None) is not None:
+            try:
+                os.remove(job.logfile)
+            except IOError:
+                # Did our best!
+                pass
         self.getCatalog().uncatalog_object('/'.join(job.getPhysicalPath()))
         return self._delObject(jobid)
 
@@ -253,3 +262,21 @@ class JobManager(ZenModelRM):
         """
         for job in self.getUnfinishedJobs():
             job.abort()
+
+
+class JobLogDownload(BrowserView):
+
+    def __call__(self):
+        response = self.request.response
+        try:
+            jobid = self.request.get('job')
+            jobrecord = self.context.JobManager.getJob(jobid)
+            logfile = jobrecord.logfile
+        except (KeyError, AttributeError, NoSuchJobException):
+            response.setStatus(404)
+        else:
+            response.setHeader('Content-Type', 'text/plain')
+            response.setHeader('Content-Disposition', 'attachment;filename=%s' % os.path.basename(logfile))
+            with open(logfile, 'r') as f:
+                return f.read()
+

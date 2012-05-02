@@ -225,7 +225,7 @@ Ext.getCmp('center_panel').add({
         refresh: function() {
             if (this.job == null) return;
             REMOTE.detail({jobid:this.jobid}, function(r){
-                var html = "<b>Log file: " + r.logfile + "</b><br/><br/>";
+                var html = "<b>Log file: <a href='joblog?job=" + this.jobid + "'>" + r.logfile + "</a></b><br/><br/>";
                 for (var i=0; i < r.content.length; i++) {
                     var color = i%2 ? '#b58900' : '#657B83';
                     html += "<pre style='font-family:Monaco,monospaced;font-size:12px;color:" + 

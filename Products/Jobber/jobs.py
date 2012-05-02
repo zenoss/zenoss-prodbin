@@ -278,3 +278,5 @@ class ShellCommandJob(Job):
                     handler.setFormatter(orig)
         return exitcode
 
+
+
