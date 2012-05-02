@@ -21,6 +21,8 @@ fi
 RRDCACHED_ADDRESS=$ZENHOME/var/rrdcached.sock
 JOURNALDIR=$ZENHOME/var/rrd_journals
 PIDFILE=$ZENHOME/var/rrdcached.pid
+CONFFILE=$ZENHOME/etc/zenrrdcached.conf
+PERFDIR=$ZENHOME/perf
 
 if [ -z "$RRDCACHED" ]; then
     RRDCACHED=`which rrdcached`
@@ -52,8 +54,33 @@ start() {
     if running; then
         echo is already running
     else
+
+        if [ -f "$CONFFILE" ]; then
+
+            THREADS=`${ZENHOME}/bin/zenglobalconf -f $CONFFILE -p write_threads`
+            echo "threads is $THREADS"
+            if [ -n "${THREADS}"  ]; then
+                OPTS="${OPTS} -t $THREADS"
+            fi
+
+            WRITE_TIMEOUT=`${ZENHOME}/bin/zenglobalconf -f $CONFFILE -p write_timeout`
+            if [ -n "${WRITE_TIMEOUT}" ]; then
+                OPTS="$OPTS -w $WRITE_TIMEOUT"
+            fi
+
+            DELAY=`${ZENHOME}/bin/zenglobalconf -f $CONFFILE -p write_delay`
+            if [ -n "${DELAY}" ]; then
+                OPTS="$OPTS -z $DELAY"
+            fi
+
+            FLUSH=`${ZENHOME}/bin/zenglobalconf -f $CONFFILE -p flush_timeout`
+            if [ -n "${FLUSH}" ]; then
+                OPTS="$OPTS -f $FLUSH"
+            fi
+        fi
+
         echo starting...
-        "$RRDCACHED" -p $PIDFILE -l $RRDCACHED_ADDRESS -j $JOURNALDIR $OPTS
+        "$RRDCACHED" -b $PERFDIR -p $PIDFILE -l $RRDCACHED_ADDRESS -j $JOURNALDIR $OPTS
     fi
 }
 
@@ -84,6 +111,21 @@ status() {
     fi
 }
 
+genconf() {
+
+ echo "#The number of thread for writing files. See -t option for rrdcached"
+ echo "#write_threads 4"
+ echo ""
+ echo "#Data is written to disk every timeout seconds. See -w option for rrdcached"
+ echo "#write_timeout 300"
+ echo ""
+ echo "#delay for writing. See -z option for rrdcached"
+ echo "#write_delay 0"
+ echo ""
+ echo "#Timeout for flushing old data. See -f option for rrdcached"
+ echo "#flush_timeout 3600"
+
+}
 usage() {
     echo "Usage: zenrrdcached [run|start|restart|stop|status|stats] [options]"
 }
