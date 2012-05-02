@@ -30,6 +30,9 @@
 # Test for Sun/Oracle flavored jre
 confirm_jre
 
+# Confirm installed RRDtool
+confirm_rrd
+
 # set the python shebang line
 shebang
 

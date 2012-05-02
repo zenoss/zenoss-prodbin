@@ -40,6 +40,9 @@ fi
 # Confirm Sun/Oracle flavored jre
 confirm_jre
 
+# Confirm installed RRDtool
+confirm_rrd
+
 # set the python shebang to be the proper python
 shebang
 
