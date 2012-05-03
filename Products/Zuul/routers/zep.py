@@ -267,7 +267,8 @@ class EventsRouter(DirectRouter):
 
                 details = details,
                 event_key = params.get('eventKey'),
-
+                event_class_key = params.get('eventClassKey'),
+                event_group = params.get('eventGroup'),
             )
             log.debug('Found params for building filter, ended up building  the following:')
             log.debug(event_filter)

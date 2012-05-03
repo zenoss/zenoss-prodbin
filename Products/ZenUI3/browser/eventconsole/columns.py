@@ -248,11 +248,13 @@ COLUMN_CONFIG = {
 
     'eventClassKey': dict(
         header='Event Class Key',
-        filter=False),
+        filter='textfield',
+        sortable=True),
 
     'eventGroup': dict(
         header='Event Group',
-        filter=False),
+        filter='textfield',
+        sortable=True),
 
     'eventKey'  : dict(
         header='Event Key',

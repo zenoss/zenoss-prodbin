@@ -56,22 +56,24 @@ class ZepFacade(ZuulFacade):
     OR = OR
 
     DEFAULT_SORT_MAP = {
-        'eventstate':  { 'field': EventSort.STATUS },
-        'severity':    { 'field': EventSort.SEVERITY },
-        'firsttime':   { 'field': EventSort.FIRST_SEEN },
-        'lasttime':    { 'field': EventSort.LAST_SEEN },
-        'eventclass':  { 'field': EventSort.EVENT_CLASS },
-        'device':      { 'field': EventSort.ELEMENT_TITLE },
-        'component':   { 'field': EventSort.ELEMENT_SUB_TITLE },
-        'count':       { 'field': EventSort.COUNT },
-        'summary':     { 'field': EventSort.EVENT_SUMMARY },
-        'ownerid':     { 'field': EventSort.CURRENT_USER_NAME },
-        'agent':       { 'field': EventSort.AGENT },
-        'monitor':     { 'field': EventSort.MONITOR },
-        'eventkey':    { 'field': EventSort.EVENT_KEY },
-        'evid':        { 'field': EventSort.UUID },
-        'statechange': { 'field': EventSort.STATUS_CHANGE },
-        'dedupid':     { 'field': EventSort.FINGERPRINT },
+        'eventstate':    { 'field': EventSort.STATUS },
+        'severity':      { 'field': EventSort.SEVERITY },
+        'firsttime':     { 'field': EventSort.FIRST_SEEN },
+        'lasttime':      { 'field': EventSort.LAST_SEEN },
+        'eventclass':    { 'field': EventSort.EVENT_CLASS },
+        'device':        { 'field': EventSort.ELEMENT_TITLE },
+        'component':     { 'field': EventSort.ELEMENT_SUB_TITLE },
+        'count':         { 'field': EventSort.COUNT },
+        'summary':       { 'field': EventSort.EVENT_SUMMARY },
+        'ownerid':       { 'field': EventSort.CURRENT_USER_NAME },
+        'agent':         { 'field': EventSort.AGENT },
+        'monitor':       { 'field': EventSort.MONITOR },
+        'eventkey':      { 'field': EventSort.EVENT_KEY },
+        'evid':          { 'field': EventSort.UUID },
+        'statechange':   { 'field': EventSort.STATUS_CHANGE },
+        'dedupid':       { 'field': EventSort.FINGERPRINT },
+        'eventclasskey': { 'field': EventSort.EVENT_CLASS_KEY },
+        'eventgroup':    { 'field': EventSort.EVENT_GROUP },
     }
 
     SORT_DIRECTIONAL_MAP = {
@@ -130,7 +132,9 @@ class ZepFacade(ZuulFacade):
         current_user_name=(),
         subfilter=(),
         operator=None,
-        details=None):
+        details=None,
+        event_class_key=(),
+        event_group=()):
         """
         Creates a filter based on passed arguments.
         Caller is responsible for handling the include-zero-items case.
@@ -223,6 +227,11 @@ class ZepFacade(ZuulFacade):
         if details:
             filter['details'] = self._createEventDetailFilter(details)
 
+        if event_class_key:
+            filter['event_class_key'] = event_class_key
+
+        if event_group:
+            filter['event_group'] = event_group
 
         # Everything's repeated on the protobuf, so listify
         result = dict((k, listify(v)) for k,v in filter.iteritems())
