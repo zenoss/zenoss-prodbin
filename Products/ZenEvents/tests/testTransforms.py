@@ -14,10 +14,10 @@
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenEvents.zeneventd import EventPipelineProcessor
 from Products.ZenEvents.events2.processing import DropEvent
+from Products.ZenEvents.events2.proxy import EventProxy
 from zenoss.protocols.protobufs.zep_pb2 import Event, STATUS_CLOSED, STATUS_SUPPRESSED, SEVERITY_ERROR,\
     SEVERITY_WARNING, SEVERITY_CLEAR
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
-
 
 perfFilesystemTransform = """
 if device and evt.eventKey:
@@ -139,7 +139,61 @@ class testTransforms(BaseTestCase):
 
         processed = self._processEvent(event)
         self.assertEquals(processed.summary, 'disk space threshold: 49.1% used (72.6GB free)')
+    
+    def testActorReidentificationFromEventClassKeyTransform(self):
+        """
+        Verify that changing the device in a transform properly reidentifies the device
+        when matching an event by eventClassKey.
+        """
 
+        device_a = self.dmd.Devices.createInstance("transform_device_a")
+
+        # Related: ZEN-1419
+        # If you change a device from within a transform like so:
+        # 
+        #   evt.device = 'my_new_device'
+        #
+        # The processing pipeline will recognize this and re-run the 
+        # identification pipes. Before it re-runs these pipes though, it will
+        # clear several properties related to the device, one of which is the
+        # device/element UUID. During the Identification pipe, if the UUID
+        # is missing, it will try one last time to lookup the element
+        # using the identifier and the ip address. If we do not set an
+        # ip address here, this test will not be completely testing the
+        # reidentification logic.
+        device_a.setManageIp("192.168.100.100")
+
+        device_b = self.dmd.Devices.createInstance("transform_device_b")
+
+        _transform_key = 'transform_test_key'
+        _transform = """
+evt.device = '%s'
+        """
+        self.dmd.Events.createOrganizer('/transform_test')
+        self.dmd.Events.transform_test.transform = _transform % device_b.id
+
+        # the organizer above contains the transform, no create an instance
+        # that actually contains the event class key.
+        self.dmd.Events.transform_test.createInstance(_transform_key)
+
+        event = Event()
+        event.actor.element_identifier = device_a.id
+        event.actor.element_type_id = DEVICE
+        event.severity = SEVERITY_WARNING
+        event.summary = 'Testing transforms.'
+
+        detail = event.details.add()
+        detail.name = EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY
+        detail.value.append(device_a.getManageIp())
+
+        # Match the transform by event_class_key
+        event.event_class_key = _transform_key
+        
+        processed = self._processEvent(event)
+
+        self.assertEquals(device_b.id, processed.actor.element_identifier)
+
+        
     def testIntSeverityTransform(self):
         """
         Transform the event severity to a string and see if it evaluates.

@@ -30,8 +30,8 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         super(DeviceFacadeTest, self).afterSetUp()
         self.facade = Zuul.getFacade('device', self.dmd)
         # Un-jobify jobby methods
-        self.facade.moveDevices = self.facade.moveDevices._underlying_func.__get__(self.facade)
-        self.facade.deleteDevices = self.facade.deleteDevices._underlying_func.__get__(self.facade)
+        self.facade.moveDevices = self.facade._moveDevices
+        self.facade.deleteDevices = self.facade._deleteDevices
 
     def test_interfaces(self):
         verifyClass(IDeviceInfo, DeviceInfo)

@@ -565,6 +565,7 @@ class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
             # Clear title fields
             actor = eventContext.event.actor
             actor.ClearField(EventField.Actor.ELEMENT_TITLE)
+            actor.ClearField(EventField.Actor.ELEMENT_UUID)
             actor.ClearField(EventField.Actor.ELEMENT_SUB_TITLE)
 
             eventContext.log.debug("device was cleared, must purge references in current event: %s" % to_dict(eventContext._zepRawEvent))
