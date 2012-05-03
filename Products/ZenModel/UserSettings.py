@@ -1304,18 +1304,20 @@ class GroupSettings(UserSettings):
             return self.callZenScreen(REQUEST)
 
     def getMemberUserSettings(self):
-        return [ self.getUserSettings(u[0])
-         for u in self._getG().listAssignedPrincipals(self.id) ]
+        """
+        Returns a list of UserSetting instances that are members of this group.
+        """
+        # We must using reverse mapping of all users to their groups rather
+        # than going directly to the group's assigned principals because
+        # some group backends don't support listAssignedPrincipals.
+        return [ u for u in self.ZenUsers.getAllUserSettings()
+            if self.id in u.getUserGroupSettingsNames() ]
 
     def getMemberUserIds(self):
         """
         Returns a list of user ids that are members of this group.
         """
-        # We must using reverse mapping of all users to their groups rather
-        # than going directly to the group's assigned principals because
-        # some group backends don't support listAssignedPrincipals.
-        return [ u.id for u in self.ZenUsers.getAllUserSettings()
-            if self.id in u.getUserGroupSettingsNames() ]
+        return [ u.id for u in self.getMemberUserSettings() ]
 
     def printUsers(self):
         try:
