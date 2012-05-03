@@ -264,7 +264,7 @@
     class=".views.GotoRedirect"
     name="goto"
     for="Products.ZenModel.interfaces.IDataRoot"
-    permission="zenoss.View"
+    permission="zenoss.Common"
     />
 
 <browser:viewlet
