@@ -49,8 +49,8 @@ except ImportError:
 exitcodes = []
 
 def runZopeTests(options):
-    from zope.testing import testrunner
-    from zope.testing.testrunner.options import setup
+    from zope import testrunner
+    from zope.testrunner.options import setup
 
     def load_config_file(option, opt, config_file, *ignored):
         print "Parsing %s" % config_file
@@ -275,9 +275,9 @@ def findSeleniumTestableProducts(packages=[], regex=None, testdir='tests'):
                 continue
 
             for dir in dirs:
-                if (packages and 
+                if (packages and
                     # ZenPacks have a problem unless you do this
-                    target.split('/')[-1] not in packages and 
+                    target.split('/')[-1] not in packages and
                     dir not in packages):
                         continue
                 # Sigh. We need to make sure no-one ends a ZenPack with 'Products'
@@ -398,7 +398,7 @@ def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0, includ
 usage = \
     """%prog [options] [package1 [package2]]
 
-Run Zenoss tests against specified packages.  
+Run Zenoss tests against specified packages.
 
 Packages are the names of directories in $ZENHOME/Products. If no
 packages are specified, tests will be executed against all testable
@@ -417,13 +417,13 @@ the Device tests, use:
 
 def main():
     parser = optparse.OptionParser(prog='runtests', usage=usage)
-    parser.add_option('-t', '--type', help='The test types to run.', 
+    parser.add_option('-t', '--type', help='The test types to run.',
                       default='unit')
     parser.add_option('-c', '--coverage', help='Dir to store coverage stats')
     parser.add_option('-v', dest="count", action="count", help="Verbosity of test output")
-    parser.add_option('-m', '--module', action="append", 
+    parser.add_option('-m', '--module', action="append",
                       help='The name of a test module.')
-    parser.add_option('-n', '--name', action="append", 
+    parser.add_option('-n', '--name', action="append",
                       help='The name of an individual test')
     parser.add_option('--selenium-server',
                       help='The server hosting the Selenium jar')
@@ -456,4 +456,3 @@ if __name__ == '__main__':
     else:
         code = 0
     sys.exit(code)
-
