@@ -282,8 +282,6 @@
                         listeners: {
                             beforeload: function(store, operation){
                                 operation.params.uid = '/zport/dmd/Services/IpService';
-                                delete operation.params['query'];
-
                             }
                         }
                     })
@@ -342,7 +340,6 @@
                     width: 150,
                     typeAhead:true,
                     forceSelection: true,
-                    triggerAction: 'all',
                     displayField: 'name',
                     valueField: 'value',
                     triggerAction: 'all',
@@ -352,8 +349,6 @@
                         listeners: {
                             beforeload: function(store, operation){
                                 operation.params.uid = '/zport/dmd/Services/WinService';
-                                delete operation.params['query'];
-
                             }
                         }
                     })
@@ -373,5 +368,3 @@
     });
 
 }());
-
-

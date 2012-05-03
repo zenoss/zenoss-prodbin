@@ -35,7 +35,7 @@ function refreshComponentTreeAndGrid(compType) {
         }),
         gridpanel = Ext.getCmp('component_card').componentgrid;
     compType = compType || sel.data.id;
-    sm.suspendEvents();  
+    sm.suspendEvents();
     compsNode.removeAll();
     detailnav.loadComponents();
     detailnav.on('componenttreeloaded', function(){
@@ -44,16 +44,18 @@ function refreshComponentTreeAndGrid(compType) {
         });
         if (node) {
             sm.select(node);
-        }else {
+        }else if (compsNode.firstChild) {
             sm.select(compsNode.firstChild);
         }
     }, detailnav, {single: true});
     sm.resumeEvents();
-    // check if we're on the right grid, if so, refresh, if not, switch
-    if(gridpanel.id.split('-')[0].toLowerCase().indexOf(compType.toLowerCase()) > -1){   
-        gridpanel.refresh();
-    }else{
-        Ext.getCmp('component_card').setContext(UID, compType);
+    if (gridpanel){
+        // check if we're on the right grid, if so, refresh, if not, switch
+        if(gridpanel.id.split('-')[0].toLowerCase().indexOf(compType.toLowerCase()) > -1){
+            gridpanel.refresh();
+        }else{
+            Ext.getCmp('component_card').setContext(UID, compType);
+        }
     }
 }
 
@@ -223,7 +225,7 @@ function showComponentLockingDialog() {
                                 var grid = Ext.getCmp('component_card').componentgrid;
                                 grid.refresh();
                             });
-                        }                        
+                        }
                     }).show();
                 }
             });
@@ -274,7 +276,7 @@ var componentCard = {
             click: function(e){
                 e.menu.items.items[0].setText(Ext.String.format(_t("{0} at a time"), Ext.getCmp('component_card').componentgrid.getStore().pageSize) );
             }
-        },        
+        },
         disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
         menu: [{
             text: _t('All'),
@@ -497,15 +499,15 @@ Ext.define('Zenoss.DeviceDetailNav', {
                 navloaded: function() {
                     this.on('statesave', function(){
                         if(!this.hasComponents) return;
-                        Ext.defer(this.loadComponents, 500, this);      
-                    }, this, {single: true});                      
+                        Ext.defer(this.loadComponents, 500, this);
+                    }, this, {single: true});
                     Ext.History.init(function(mgr){
                         Ext.History.selectByToken(mgr.getToken());
-                    });                   
+                    });
                 },
                 nodeloaded: function(tree, node) {
                     if (node.id==UID) {
-                        this.hasComponents = true;                      
+                        this.hasComponents = true;
                     }
                 },
                 scope: this
@@ -568,7 +570,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
                 }
             }
                 this.doLayout();
-                this.fireEvent('componenttreeloaded'); 
+                this.fireEvent('componenttreeloaded');
         }, this);
     },
     filterNav: function(navpanel, config){
