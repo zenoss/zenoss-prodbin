@@ -171,7 +171,7 @@ class DeviceFacade(TreeFacade):
             if hasattr(comp, 'manage_deleteComponent'):
                 comp.manage_deleteComponent()
             else:
-                raise Exception("%s %s cannot be manually deleted" % 
+                raise Exception("%s %s cannot be manually deleted" %
                             (getattr(comp,'meta_type','component'),comp.id))
 
     def _deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
@@ -204,12 +204,12 @@ class DeviceFacade(TreeFacade):
 
     @info
     def deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
-        devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1 
+        devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1
                    else "%s devices" % len(uids))
         return self._dmd.JobManager.addJob(
-            FacadeMethodJob, description="Delete %s" % devdesc, 
+            FacadeMethodJob, description="Delete %s" % devdesc,
             kwargs=dict(
-                facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade", 
+                facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
                 method="_deleteDevices",
                 uids=uids,
                 deleteEvents=deleteEvents,
@@ -347,10 +347,10 @@ class DeviceFacade(TreeFacade):
 
     @info
     def moveDevices(self, uids, target):
-        devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1 
+        devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1
                    else "%s devices" % len(uids))
         return self._dmd.JobManager.addJob(
-            FacadeMethodJob, description="Move %s to %s" % (devdesc, target), 
+            FacadeMethodJob, description="Move %s to %s" % (devdesc, target),
             kwargs=dict(
                 facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
                 method="_moveDevices",
@@ -391,6 +391,7 @@ class DeviceFacade(TreeFacade):
 
         notify(DeviceCollectorChangeEvent(self.context, collector, movedDevices, moveData))
 
+    @info
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
                   snmpPort=161, model=False, collector='localhost',
                   rackSlot=0, productionState=1000, comments="",

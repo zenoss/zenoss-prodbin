@@ -506,7 +506,7 @@ class DeviceRouter(TreeRouter):
             log.exception("Failed to move devices")
             return DirectResponse.exception(e, 'Failed to move devices.')
         else:
-            return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], 
+            return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord],
                                   keys=('uuid', 'description', 'started')))
 
     @require('Manage Device')
@@ -1097,7 +1097,7 @@ class DeviceRouter(TreeRouter):
                 jobrecord = facade.deleteDevices(uids,
                                      deleteEvents=deleteEvents,
                                      deletePerf=deletePerf)
-                return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], 
+                return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord],
                                       keys=('uuid', 'description', 'started')))
         except Exception, e:
             log.exception(e)
@@ -1514,7 +1514,7 @@ class DeviceRouter(TreeRouter):
         if isinstance(groupPaths, basestring):
             groupPaths = [groupPaths]
 
-        jobStatus = self._getFacade().addDevice(deviceName,
+        jobrecord = self._getFacade().addDevice(deviceName,
                                                deviceClass,
                                                title,
                                                snmpCommunity,
@@ -1550,8 +1550,7 @@ class DeviceRouter(TreeRouter):
             'model': str(model)  # show value even if False
         }
         audit('UI.Device.Add', deviceUid, data_=auditData)
-
-        return DirectResponse.succeed(jobId=jobStatus.id)
+        return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], keys=('uuid', 'description')))
 
     @require('Manage Device')
     def remodel(self, deviceUid):
@@ -1841,5 +1840,3 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.addWinService(uid, newClassName, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
-
-
