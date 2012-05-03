@@ -443,7 +443,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(uid=newUid)
 
     def moveDevices(self, uids, target, hashcheck=None, ranges=(), uid=None,
-                    params=None, sort='name', dir='ASC'):
+                    params=None, sort='name', dir='ASC', runasjob=True):
         """
         Moves the devices specified by uids to the organizer specified by 'target'.
 
@@ -498,16 +498,19 @@ class DeviceRouter(TreeRouter):
                 oldData[targetType] = deviceClassPath
             audit(['UI.Device', action], uid,
                   data_={targetType:target}, oldData_=oldData)
-
-        try:
-            # Start a job
-            jobrecord = facade.moveDevices(uids, target)
-        except Exception, e:
-            log.exception("Failed to move devices")
-            return DirectResponse.exception(e, 'Failed to move devices.')
+        if runasjob:
+            try:
+                # Start a job
+                jobrecord = facade.moveDevices(uids, target)
+            except Exception, e:
+                log.exception("Failed to move devices")
+                return DirectResponse.exception(e, 'Failed to move devices.')
+            else:
+                return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord],
+                                      keys=('uuid', 'description', 'started')))
         else:
-            return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord],
-                                  keys=('uuid', 'description', 'started')))
+            exports=facade._moveDevices(uids, target)
+            return DirectResponse.succeed(exports=exports)
 
     @require('Manage Device')
     def pushChanges(self, uids, hashcheck, ranges=(), uid=None, params=None,

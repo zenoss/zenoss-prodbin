@@ -30,7 +30,7 @@ function refreshComponentTreeAndGrid(compType) {
         sm = tree.getSelectionModel(),
         detailnav = Ext.getCmp('deviceDetailNav'),
         sel = sm.getSelectedNode(),
-        compsNode = tree.getRootNode().findChildBy(function(n){ 
+        compsNode = tree.getRootNode().findChildBy(function(n){
             return n.get("text")=='Components';
         }),
         gridpanel = Ext.getCmp('component_card').componentgrid;
@@ -777,6 +777,7 @@ var editDeviceClass = function(deviceClass, uid) {
                 var vals = btn.refOwner.editForm.getForm().getValues();
                 var submitVals = {
                     uids: [uid],
+                    runasjob: false,
                     target: '/zport/dmd/Devices' + vals.deviceClass,
                     hashcheck: ''
                 };
@@ -784,7 +785,9 @@ var editDeviceClass = function(deviceClass, uid) {
                     var moveToNewDevicePage = function() {
                         var hostString = window.location.protocol + '//' +
                             window.location.host;
-                        window.location = hostString + '/zport/dmd/Devices' + vals.deviceClass;
+                        window.location = hostString + '/zport/dmd/Devices' +
+                            vals.deviceClass + '/devices' +
+                            uid.slice(uid.lastIndexOf('/'));
                     };
                     if (data.success) {
                         if (data.exports) {
@@ -804,8 +807,7 @@ var editDeviceClass = function(deviceClass, uid) {
                             }).show();
                         }
                         else {
-                            // send them to the infrastructure page after they have seen the job notification
-                            Ext.defer(moveToNewDevicePage, 2000);
+                            moveToNewDevicePage();
                         }
                     }
                 });
