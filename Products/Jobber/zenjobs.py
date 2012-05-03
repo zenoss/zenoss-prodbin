@@ -11,10 +11,12 @@
 #
 ###########################################################################
 import Globals
+from zope.component import getUtility
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.celeryintegration import reconfigure_celery
 from Products.ZenUtils.celeryintegration import constants, states
+from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from celery import concurrency
 from celery.app.state import current_app
 from datetime import datetime
@@ -63,6 +65,8 @@ class CeleryZenJobs(ZenDaemon):
         self.parser.add_option('--concurrent-jobs',
             dest='num_workers', type='int', default=2,
             help='Number of jobs to process concurrently')
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
+        connectionFactory.buildOptions(self.parser)
 
 
 @task_prerun.connect
