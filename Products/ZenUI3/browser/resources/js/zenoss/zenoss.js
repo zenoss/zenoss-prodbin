@@ -42,6 +42,8 @@ Zenoss.STATUS_CLEARED = 4; // Closed by a matching clear event.
 Zenoss.STATUS_DROPPED = 5; // Dropped via a transform.
 Zenoss.STATUS_AGED = 6; // Closed via automatic aging.
 
+Zenoss.SELENIUM = 0;
+
 /**
  * Namespace for anonymous scripts to attach data to avoid dumping it into
  * the global namespace.
@@ -178,7 +180,7 @@ Ext.Direct.on('event', function(e){
             sticky = e.result.sticky || false,
             flare;
         if (success) {
-            flare = Zenoss.message.success(e.result.msg);
+            flare = Zenoss.message.success(e.result.msg); 
         } else {
             flare = Zenoss.message.error(e.result.msg);
         }

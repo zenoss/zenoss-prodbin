@@ -173,6 +173,19 @@
                         col.filterField.setVisible(!col.hidden);
                     }
                 }
+                if(Zenoss.SELENIUM){ 
+                    col.filterField.on('afterrender', function(e){ 
+                        if(Ext.getCmp(e.id).inputEl){
+                            /*  add an id to the input element of filters if 
+                                it has one. If not, don't worry about it.
+                                example: events_grid-filter-devices-input
+                                -- for selenium automation --
+                            */ 
+                            var filterInput = Ext.getCmp(e.id).inputEl;
+                            filterInput.dom.id = e.id+"-input";
+                        }
+                    }, this);
+                }
 
                 if (Zenoss.settings.enableLiveSearch) {
                     col.filterField.on('change', this.onChange, this);

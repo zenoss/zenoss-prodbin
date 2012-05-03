@@ -724,10 +724,10 @@ Ext.onReady(function() {
                 url = this.isHistory ? 'viewHistoryDetail' : 'viewDetail';
             url = url +'?evid='+evid;
             window.open(url, evid.replace(/-/g,'_'),
-                        "status=1,width=600,height=500,resizable=1");
+                        "status=1,width=600,height=500,resizable=1,name=EventDetails");
         },
         wipe: function() {
-            // hook to perform clean up actions when the panel is closed
+            // hook to perform clean up actions when the panel is closed 
         },
         load: function(event_id) {
             if (event_id !== this.event_id) {

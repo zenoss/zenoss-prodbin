@@ -29,7 +29,6 @@
             });
             this.body = this.el.child('.' + this.baseCls + '-body');
             this.el = new Ext.Layer({ zindex: this.zindex }, this.el);
-
             Zenoss.flares.Container.superclass.onRender.apply(this, arguments);
             this.el.alignTo(document, this.alignment);
         },
@@ -37,7 +36,7 @@
             return this.body;
         },
         onShow: function() {
-            this.el.show();
+            this.el.show();          
             Zenoss.flares.Container.superclass.onShow.apply(this, arguments);
         },
         onRemove: function() {
@@ -96,11 +95,16 @@
             // previous flares
             if (otherFlare) {
                 flare.on('afterrender', function(fl){
-                    fl.alignTo(otherFlare.getEl(), 'bl-bl', [0, 32]);
+                    fl.alignTo(otherFlare.getEl(), 'bl-bl', [0, 32]); 
                 });
             }else {
                 flare.on('afterrender', function(fl){
                     fl.alignTo(Ext.getBody(), 'tl-tl');
+                });
+            }
+            if(Zenoss.SELENIUM){
+                flare.on('afterrender', function(fl){
+                    fl.getEl().query('.x-flare-message')[0].id = "flare-message-span";
                 });
             }
             Zenoss.flares.Manager.container.add(flare);

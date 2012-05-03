@@ -271,6 +271,7 @@ Ext.apply(Zenoss.devices, {
                 buttons: [{
                     xtype: 'DialogButton',
                     text: _t('Remove'),
+                    id: 'delete_device_remove_btn',
                     handler: function(b) {
                         var opts = Ext.apply(gridOptions(), {
                             uid: Zenoss.env.PARENT_CONTEXT,
@@ -437,6 +438,15 @@ Ext.apply(Zenoss.devices, {
                         if (!Ext.isDefined(this.systems) && !(Ext.isDefined(this.groups))) {
                             REMOTE.getSystems({}, Ext.bind(panel.addOrganizers, panel));
                             REMOTE.getGroups({}, Ext.bind(panel.addOrganizers, panel));
+                            // iterate through all the 'inputs' and generate our own IDs for them
+                            if(Zenoss.SELENIUM){
+                                var formArray = panel.childPanel.query('.field');
+                                var i = 0;
+                                for(i = 0; i < formArray.length; i++){
+                                    Ext.getDom(formArray[i].getInputId()).id = "add_device-input-"+i; 
+                                }
+                                panel.query('.button')[1].id = "addsingledevice-cancel";
+                            }
                         }
 
                     }

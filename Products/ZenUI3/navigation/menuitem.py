@@ -33,6 +33,10 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
     @property
     def title(self):
         return self.__name__
+        
+    @property
+    def elementid(self):
+        return self.__name__ + "-nav-button"    
 
     def update(self):
         super(PrimaryNavigationMenuItem, self).update()

@@ -29,6 +29,7 @@
                 xtype: 'tbfill'
             }, {
                 xtype: 'button',
+                id: 'ldap-setup-button',
                 text: _t('LDAP Setup'),
                 hidden: !Zenoss.env.hasLDAP,
                 handler: function(){
@@ -40,6 +41,7 @@
                 width: 5
             },{
                 xtype: 'button',
+                id: 'finish-button',
                 text: _t('Finish or Skip to Dashboard'),
                 handler: function() {
                     window.location = "/zport/dmd/Dashboard";

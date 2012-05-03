@@ -30,7 +30,7 @@ function refreshComponentTreeAndGrid(compType) {
         sm = tree.getSelectionModel(),
         detailnav = Ext.getCmp('deviceDetailNav'),
         sel = sm.getSelectedNode(),
-        compsNode = tree.getRootNode().findChildBy(function(n){
+        compsNode = tree.getRootNode().findChildBy(function(n){ 
             return n.get("text")=='Components';
         }),
         gridpanel = Ext.getCmp('component_card').componentgrid;

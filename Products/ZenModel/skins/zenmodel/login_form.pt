@@ -106,7 +106,7 @@
                     </div>
                     <input id="username" type="text" name="__ac_name"
                            class="inputbox" style="top:160px"/>
-                    <input type="password" name="__ac_password"
+                    <input type="password" name="__ac_password" 
                            class="inputbox" style="top:202px;"/>
                     <div id="errorbox">
                         <tal:block define="msg here/getLoginMessage"
