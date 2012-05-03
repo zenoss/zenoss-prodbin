@@ -784,9 +784,7 @@ var editDeviceClass = function(deviceClass, uid) {
                     var moveToNewDevicePage = function() {
                         var hostString = window.location.protocol + '//' +
                             window.location.host;
-                        window.location = hostString + '/zport/dmd/Devices' +
-                            vals.deviceClass + '/devices' +
-                            uid.slice(uid.lastIndexOf('/'));
+                        window.location = hostString + '/zport/dmd/Devices' + vals.deviceClass;
                     };
                     if (data.success) {
                         if (data.exports) {
@@ -806,7 +804,8 @@ var editDeviceClass = function(deviceClass, uid) {
                             }).show();
                         }
                         else {
-                            moveToNewDevicePage();
+                            // send them to the infrastructure page after they have seen the job notification
+                            Ext.defer(moveToNewDevicePage, 2000);
                         }
                     }
                 });
