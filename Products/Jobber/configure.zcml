@@ -7,7 +7,7 @@
     <include package="Products.ZenModel" file="permissions.zcml"/>
     <include file="meta.zcml"/>
 
-    <job class=".jobs.ShellCommandJob"/>
+    <job class=".jobs.SubprocessJob"/>
     <job class=".facade.FacadeMethodJob"/>
 
     <browser:page

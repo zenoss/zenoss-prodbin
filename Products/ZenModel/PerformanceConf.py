@@ -58,7 +58,7 @@ from AccessControl import Permissions as permissions
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Monitor import Monitor
-from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.jobs import SubprocessJob
 from Products.ZenRelations.RelSchema import ToMany, ToOne
 from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
 from Products.ZenUtils.Utils import unused
@@ -671,7 +671,7 @@ class PerformanceConf(Monitor, StatusColor):
                                              productionState, REQUEST)
         if background:
             log.info('queued job: %s', " ".join(zendiscCmd))
-            result = self.dmd.JobManager.addJob(ShellCommandJob,
+            result = self.dmd.JobManager.addJob(SubprocessJob,
                 description="Discover and model device %s" % deviceName,
                 args=(zendiscCmd,))
         else:
@@ -761,7 +761,7 @@ class PerformanceConf(Monitor, StatusColor):
         zenmodelerCmd.extend(zenmodelerOpts)
         if background:
             log.info('queued job: %s', " ".join(zenmodelerCmd))
-            result = self.dmd.JobManager.addJob(ShellCommandJob,
+            result = self.dmd.JobManager.addJob(SubprocessJob,
                 description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
                 args=(zenmodelerCmd,))
         else:

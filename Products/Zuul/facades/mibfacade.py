@@ -22,7 +22,7 @@ from Products.Zuul.utils import UncataloguedObjectException
 from Products.Zuul.interfaces import ITreeFacade, IMibFacade, IInfo
 from Products.Zuul.infos.mib import MibOrganizerNode, MibNode, FakeTopLevelNodeInfo
 
-from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.jobs import SubprocessJob
 from Products.ZenUtils.Utils import binPath
 
 from Products.ZenModel.MibOrganizer import MibOrganizer
@@ -159,7 +159,7 @@ class MibFacade(TreeFacade):
     def addMibPackage(self, package, organizer):
         args = [binPath('zenmib'), 'run', package,
                 '--path=%s' % organizer]
-        jobStatus = self._dmd.JobManager.addJob(ShellCommandJob, 
+        jobStatus = self._dmd.JobManager.addJob(SubprocessJob, 
             description="Add MIB package %s" % package,
             kwargs=dict(cmd=args))
         return jobStatus

@@ -235,7 +235,7 @@ class Job(Task):
         raise NotImplementedError("_run must be implemented")
 
 
-class ShellCommandJob(Job):
+class SubprocessJob(Job):
 
     @classmethod
     def getJobType(cls):
@@ -250,7 +250,7 @@ class ShellCommandJob(Job):
             newenviron = os.environ.copy()
             newenviron.update(environ)
             environ = newenviron
-        self.log.info("Spawning subprocess: %s" % ShellCommandJob.getJobDescription(cmd))
+        self.log.info("Spawning subprocess: %s" % SubprocessJob.getJobDescription(cmd))
         process = subprocess.Popen(cmd, bufsize=1, env=environ,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
@@ -280,3 +280,7 @@ class ShellCommandJob(Job):
 
 
 
+class ShellCommandJob(object):
+    """
+    Backwards compatibility. Will be removed in the release after 4.2.
+    """

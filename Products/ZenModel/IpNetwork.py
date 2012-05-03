@@ -46,7 +46,7 @@ from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils.Utils import unused
-from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
@@ -577,7 +577,7 @@ class IpNetwork(DeviceOrganizer):
                     cmd += ["--prefer-snmp-naming"]
             zd = binPath('zendisc')
             zendiscCmd = [zd] + cmd[1:]
-            status = self.dmd.JobManager.addJob(ShellCommandJob,
+            status = self.dmd.JobManager.addJob(SubprocessJob,
                 description="Discover devices in network %s" % organizer.getNetworkName(),
                 args=(zendiscCmd,))
 
@@ -659,7 +659,7 @@ class IpNetwork(DeviceOrganizer):
 InitializeClass(IpNetwork)
 
 
-class AutoDiscoveryJob(ShellCommandJob):
+class AutoDiscoveryJob(SubprocessJob):
     """
     Job encapsulating autodiscovery over a set of IP addresses.
 
@@ -697,7 +697,7 @@ class AutoDiscoveryJob(ShellCommandJob):
             elif self.ranges:
                 for iprange in self.ranges:
                     cmd.extend(['--range', iprange])
-            ShellCommandJob._run(self, cmd)
+            SubprocessJob._run(self, cmd)
 
 
 class IpNetworkPrinter(object):

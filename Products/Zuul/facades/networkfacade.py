@@ -14,7 +14,7 @@
 import logging
 from Acquisition import aq_parent
 from zope.interface import implements
-from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.jobs import SubprocessJob
 from Products.ZenUtils.Utils import binPath
 from Products.Zuul import getFacade
 from Products.Zuul.facades import TreeFacade
@@ -179,7 +179,7 @@ class NetworkFacade(TreeFacade):
                 cmd += ["--prefer-snmp-naming"]
         zd = binPath('zendisc')
         zendiscCmd = [zd] + cmd[1:]
-        return self._dmd.JobManager.addJob(ShellCommandJob,
+        return self._dmd.JobManager.addJob(SubprocessJob,
            description="Discover devices in network %s" % organizer.getNetworkName(),
            args=(zendiscCmd,))
 

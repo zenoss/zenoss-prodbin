@@ -19,7 +19,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
-from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.jobs import SubprocessJob
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
@@ -244,7 +244,7 @@ class MibOrganizer(Organizer, ZenPackable):
             mypath = '/'
         commandArgs = [binPath('zenmib'), 'run', path,
                 '--path=%s' % mypath]
-        return self.dmd.JobManager.addJob(ShellCommandJob,
+        return self.dmd.JobManager.addJob(SubprocessJob,
                    description="Load MIB at %s" % mypath,
                    kwargs=dict(cmd=commandArgs))
         

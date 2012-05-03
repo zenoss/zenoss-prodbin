@@ -25,7 +25,6 @@ except ImportError:
     freeze_support = lambda *_: None
 
 
-
 class CeleryZenJobs(ZenDaemon):
 
     def __init__(self, *args, **kwargs):
@@ -75,4 +74,12 @@ def task_prerun_handler(signal=None, sender=None, task_id=None, task=None, args=
 if __name__ == "__main__":
     zj = CeleryZenJobs()
     zj.run()
+
+
+
+class ZenJobs(object):
+    """
+    Retained for backwards compatibility. Will be removed in the release after
+    4.2.
+    """
 

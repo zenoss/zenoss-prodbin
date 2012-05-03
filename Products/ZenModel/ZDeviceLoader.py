@@ -39,7 +39,7 @@ from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenWidgets import messaging
-from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.jobs import SubprocessJob
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
 from Products.ZenModel.interfaces import IDeviceLoader
@@ -175,7 +175,7 @@ class JobDeviceLoader(BaseDeviceLoader):
         pass
 
 
-class DeviceCreationJob(ShellCommandJob):
+class DeviceCreationJob(SubprocessJob):
 
     @classmethod
     def getJobType(cls):
@@ -238,7 +238,7 @@ class DeviceCreationJob(ShellCommandJob):
             raise
         else:
             if self.discoverProto != 'none':
-                return ShellCommandJob._run(self, zendiscCmd)
+                return SubprocessJob._run(self, zendiscCmd)
             else:
                 self.log.info("Device added without modeling")
 
