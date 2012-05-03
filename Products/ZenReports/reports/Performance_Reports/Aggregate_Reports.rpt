@@ -35,6 +35,12 @@ function hideForms() {
        }
     }
 }
+
+function imageError(source) {
+    source.src = "/zport/dmd/img/blank_graph.png";
+    source.onerror = "";
+    return true;
+}
 //-->
 </script>
 
@@ -51,7 +57,8 @@ function hideForms() {
     </table>
 </form>
 <img id="aggregateCpu:image" onclick="toggleForm(this)" 
-     alt="Unknown error rendering graph."/>
+     alt="No CPU data, or error rendering graph."
+     onError="imageError(this);"/>
 
 
 <br/>
@@ -66,7 +73,8 @@ function hideForms() {
     </table>
 </form>
 <img id="aggregateFreeMemory:image" onclick="toggleForm(this)" 
-     alt="Unknown error rendering graph."/>
+     alt="No memory data, or error rendering graph."
+     onError="imageError(this);"/>
 
 <br/>
 <form name="aggregateSwap" action="/zport/RenderServer/plugin" 
@@ -80,7 +88,8 @@ function hideForms() {
     </table>
 </form>
 <img id="aggregateSwap:image" onclick="toggleForm(this)" 
-     alt="Unknown error rendering graph."/>
+     alt="No swap data, or error rendering graph."
+     onError="imageError(this);"/>
 
 <br/>
 <form name="aggregateDisks" action="/zport/RenderServer/plugin" 
@@ -103,7 +112,8 @@ function hideForms() {
     </table>
 </form>
 <img id="aggregateDisks:image" onclick="toggleForm(this)" 
-     alt="Unknown error rendering graph."/>
+     alt="No disk use data, or error rendering graph."
+     onError="imageError(this);"/>
 
 
 <br/>
@@ -126,7 +136,8 @@ function hideForms() {
    </table>
 </form>
 <img id="upperLower:image" onclick="toggleForm(this)" 
-     alt="Unknown error rendering graph."/>
+     alt="No network data, or error rendering graph."
+     onError="imageError(this);"/>
 
 
 <script language="javascript">

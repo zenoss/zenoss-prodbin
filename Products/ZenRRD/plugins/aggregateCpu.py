@@ -47,8 +47,8 @@ for d, _, fs in os.walk(perf):
     if not devicePat.match(d): continue
     parts = []
     for f in fs:
-        for n in 'Wait System User'.split():
-            if f.find('ssCpuRaw' + n) >= 0:
+        for n in 'RawWait System User'.split():
+            if f.find('ssCpu' + n) >= 0:
                 parts.append(f)
     if len(parts) == 3:
         parts.sort()
