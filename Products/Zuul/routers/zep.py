@@ -640,7 +640,8 @@ class EventsRouter(DirectRouter):
                 'name': _t('Max Event Size In Bytes'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
-                'minValue': 8192
+                'minValue': 8192,
+                'maxValue': 102400,
                 },{
                 'id': 'index_summary_interval_milliseconds',
                 'name': _t('Summary Index Interval (milliseconds)'),
