@@ -54,12 +54,10 @@ start() {
     if running; then
         echo is already running
     else
-
         if [ -f "$CONFFILE" ]; then
 
             THREADS=`${ZENHOME}/bin/zenglobalconf -f $CONFFILE -p write_threads`
-            echo "threads is $THREADS"
-            if [ -n "${THREADS}"  ]; then
+            if [ -n "${THREADS}" ]; then
                 OPTS="${OPTS} -t $THREADS"
             fi
 
