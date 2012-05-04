@@ -296,7 +296,7 @@ class PerformanceConf(Monitor, StatusColor):
             }
 
         url = self._getSanitizedRenderURL()
-        if self._isZenossProxied():
+        if RenderURLUtil(self.renderurl).proxiedByZenoss():
             params['remoteHost'] = self.getRemoteRenderUrl()
             url = '/zport/RenderServer'
 
@@ -308,18 +308,7 @@ class PerformanceConf(Monitor, StatusColor):
         remove any keywords/directives from renderurl.
         example is "proxy://host:8091" is changed to "http://host:8091"
         """
-        renderurl = self.renderurl
-        if renderurl.startswith('proxy'):
-            renderurl = renderurl.replace('proxy', 'http')
-        elif renderurl.startswith(REVERSE_PROXY):
-            renderurl = renderurl.replace(REVERSE_PROXY, '', 1)
-        return renderurl
-
-    def _isZenossProxied(self):
-        """
-        Should the render request be proxied by zenoss/zope
-        """
-        return self.renderurl.startswith('proxy')
+        return RenderURLUtil(self.renderurl).getSanitizedRenderURL()
 
     def performanceGraphUrl(self, context, targetpath, targettype, view, drange):
         """
@@ -344,54 +333,12 @@ class PerformanceConf(Monitor, StatusColor):
         return self.buildGraphUrlFromCommands(gopts, drange)
 
 
-    def _get_reverseproxy_port(self):
-        use_ssl = False
-        http_port = 8080
-        ssl_port = 443
-        conf_path = zenPath("etc", "zenwebserver.conf")
-        if not os.path.exists(conf_path):
-            return http_port
-        with open(conf_path) as file_:
-            for line in (l.strip() for l in file_):
-                if line and not line.startswith('#'):
-                    key, val = line.split(' ', 1)
-                    if key == "useSSL":
-                        use_ssl = val.lower() == 'true'
-                    elif key == "httpPort":
-                        http_port = int(val.strip())
-                    elif key == "sslPort":
-                        ssl_port = int(val.strip())
-        if use_ssl:
-            return ssl_port
-        return http_port
-
-    def _get_reverseproxy_renderurl(self, force=False):
-        # DistributedCollector + WebScale scenario
-        if not force and not self.renderurl.startswith(REVERSE_PROXY):
-            raise Exception("Renderurl, %s, should start with %s to be proxied", self.renderurl, REVERSE_PROXY)
-        kwargs = dict(fqdn=socket.getfqdn(),
-                      port=self._get_reverseproxy_port(),
-                      path=str(self._getSanitizedRenderURL()).strip("/") + "/")
-        return 'http://{fqdn}:{port}/{path}'.format(**kwargs)
-
     def getRemoteRenderUrl(self):
         """
         return the full render url with http protocol prepended if the renderserver is remote.
         Return empty string otherwise
         """
-        renderurl = str(self.renderurl)
-        if renderurl.startswith('proxy'):
-            renderurl = self.renderurl.replace('proxy', 'http')
-        elif renderurl.startswith(REVERSE_PROXY):
-            renderurl =  self._get_reverseproxy_renderurl()
-        else:
-            # lookup utilities from zenpacks
-            if renderurl.startswith('/remote-collector/'):
-                renderurl =  self._get_reverseproxy_renderurl(force=True)
-
-        if renderurl.lower().startswith('http://'):
-            return renderurl
-        return ''
+        return RenderURLUtil(self.renderurl).getRemoteRenderUrl()
 
     def _get_render_server(self, allow_none=False):
         if self.getRemoteRenderUrl():
@@ -768,5 +715,77 @@ class PerformanceConf(Monitor, StatusColor):
             result = executeCommand(zenmodelerCmd, REQUEST, write)
         return result
 
+class RenderURLUtil(object):
+
+    def __init__(self, renderurl):
+        self._renderurl = renderurl
+
+    def getSanitizedRenderURL(self):
+        """
+        remove any keywords/directives from renderurl.
+        example is "proxy://host:8091" is changed to "http://host:8091"
+        """
+        renderurl = self._renderurl
+        if renderurl.startswith('proxy'):
+            renderurl = renderurl.replace('proxy', 'http')
+        elif renderurl.startswith(REVERSE_PROXY):
+            renderurl = renderurl.replace(REVERSE_PROXY, '', 1)
+        return renderurl
+
+    def getRemoteRenderUrl(self):
+            """
+            return the full render url with http protocol prepended if the renderserver is remote.
+            Return empty string otherwise
+            """
+            renderurl = str(self._renderurl)
+            if renderurl.startswith('proxy'):
+                renderurl = renderurl.replace('proxy', 'http')
+            elif renderurl.startswith(REVERSE_PROXY):
+                renderurl =  self._get_reverseproxy_renderurl()
+            else:
+                # lookup utilities from zenpacks
+                if renderurl.startswith('/remote-collector/'):
+                    renderurl =  self._get_reverseproxy_renderurl(force=True)
+
+            if renderurl.lower().startswith('http://'):
+                return renderurl
+            return ''
+
+    def proxiedByZenoss(self):
+        """
+        Should the render request be proxied by zenoss/zope
+        """
+        return self._renderurl.startswith('proxy')
+
+    def _get_reverseproxy_renderurl(self, force=False):
+        # DistributedCollector + WebScale scenario
+        renderurl = self._renderurl
+        if not force and not renderurl.startswith(REVERSE_PROXY):
+            raise Exception("Renderurl, %s, should start with %s to be proxied", renderurl, REVERSE_PROXY)
+        kwargs = dict(fqdn=socket.getfqdn(),
+                      port=self._get_reverseproxy_port(),
+                      path=str(self.getSanitizedRenderURL()).strip("/") + "/")
+        return 'http://{fqdn}:{port}/{path}'.format(**kwargs)
+
+    def _get_reverseproxy_port(self):
+        use_ssl = False
+        http_port = 8080
+        ssl_port = 443
+        conf_path = zenPath("etc", "zenwebserver.conf")
+        if not os.path.exists(conf_path):
+            return http_port
+        with open(conf_path) as file_:
+            for line in (l.strip() for l in file_):
+                if line and not line.startswith('#'):
+                    key, val = line.split(' ', 1)
+                    if key == "useSSL":
+                        use_ssl = val.lower() == 'true'
+                    elif key == "httpPort":
+                        http_port = int(val.strip())
+                    elif key == "sslPort":
+                        ssl_port = int(val.strip())
+        if use_ssl:
+            return ssl_port
+        return http_port
 
 InitializeClass(PerformanceConf)
