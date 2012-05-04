@@ -34,10 +34,11 @@ class IMonitorScript(Interface):
     daemon flag is set. If the flag is set, the script is assumed to be long
     lived and will emit data like that above on a periodic basis.
     """
-    cmd = Attribute("Command line for to execute the script.")
+    cmd = Attribute("Command line to execute the script.")
     collectionInterval = Attribute("Number of seconds between collections.")
     name = Attribute("Datasource name")
-    location = Attribute("comma seperated list of contexts this script "
+    location = Attribute("comma separated list of contexts this script "
         "should run in: master, hub, collector.")
     daemon = Attribute("Is this a long running script?")
+    testcmd = Attribute("Is this script initially viable?")
 
