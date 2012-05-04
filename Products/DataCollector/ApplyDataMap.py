@@ -482,8 +482,7 @@ class ApplyDataMapThread(threading.Thread, ApplyDataMap):
                 device = getObjByPath(self.app, devpath)
                 ApplyDataMap.processClient(self, device, collectorClient)
             except Queue.Empty: pass
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
+            except Exception:
                 transaction.abort()
                 log.exception("processing device %s", "/".join(devpath))
         log.info("stopping applyDataMap thread")
