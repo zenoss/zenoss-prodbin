@@ -30,7 +30,7 @@ from Products.ZenUtils.celeryintegration import Task, states
 
 states.ABORTED = "ABORTED"
 
-from .exceptions import NoSuchJobException
+from .exceptions import NoSuchJobException, SubprocessJobFailed
 
 
 _MARKER = object()
@@ -276,8 +276,8 @@ class SubprocessJob(Job):
             finally:
                 if orig is not None:
                     handler.setFormatter(orig)
-        return exitcode
-
+        if exitcode != 0:
+            raise SubprocessJobFailed(exitcode)
 
 
 class ShellCommandJob(object):

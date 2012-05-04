@@ -17,6 +17,7 @@ log = logging.getLogger('zen.MibFacade')
 from zope.interface import implements
 from Acquisition import aq_parent
 
+from Products.Zuul.decorators import info
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import UncataloguedObjectException
 from Products.Zuul.interfaces import ITreeFacade, IMibFacade, IInfo
@@ -156,6 +157,7 @@ class MibFacade(TreeFacade):
         except UncataloguedObjectException:
             pass
 
+    @info
     def addMibPackage(self, package, organizer):
         args = [binPath('zenmib'), 'run', package,
                 '--path=%s' % organizer]

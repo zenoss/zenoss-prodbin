@@ -15,3 +15,10 @@ class NoSuchJobException(Exception):
     """
     No such job exists.
     """
+
+class SubprocessJobFailed(Exception):
+    """
+    A subprocess job exited with a non-zero return code.
+    """
+    def __init__(self, exitcode):
+        self.exitcode = exitcode

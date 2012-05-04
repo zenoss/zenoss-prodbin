@@ -828,24 +828,7 @@ function createDownloadMIBAddAction() {
                         opts.organizer = Zenoss.env.PARENT_CONTEXT.replace('/zport/dmd/Mibs', '');
                         router.addMIB(opts,
                         function(response) {
-                            if (response.success) {
-                                new Zenoss.dialog.SimpleMessageDialog({
-                                    message: _t('Add MIB job submitted'),
-                                    buttons: [{
-                                        xtype: 'DialogButton',
-                                        text: _t('OK')
-                                    }, {
-                                        xtype: 'button',
-                                        text: _t('View Job Log'),
-                                        handler: function() {
-                                            window.location =
-                                                '/zport/dmd/JobManager/jobs/' +
-                                                response.jobId + '/viewlog';
-                                        }
-                                    }]
-                                }).show();
-                            }
-                            else {
+                            if (!response.success) {
                                 new Zenoss.dialog.SimpleMessageDialog({
                                     message: response.msg,
                                     buttons: [{
