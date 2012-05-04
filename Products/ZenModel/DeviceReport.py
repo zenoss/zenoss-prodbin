@@ -157,7 +157,10 @@ class DeviceReport(ZenModelRM):
                     if field == "getId": field += "Link"
 
                     # Allow the ability to parse Python
-                    attr = getattr(dev, field, 'Unknown column')
+                    if dev.zenPropIsPassword(field):
+                        attr = '*****'
+                    else:
+                        attr = getattr(dev, field, 'Unknown column')
                     variables_and_funcs = {
                        'device':dev, 'dev':dev, 'attr':attr,
                        'convToUnits':convToUnits, 'zdecode':zdecode,
