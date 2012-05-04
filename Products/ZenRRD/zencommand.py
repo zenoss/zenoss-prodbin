@@ -17,7 +17,6 @@ Run Command plugins periodically.
 
 """
 
-import random
 import time
 from pprint import pformat
 import logging
@@ -34,9 +33,9 @@ from twisted.spread import pb
 import Globals
 import zope.interface
 
-from Products.ZenUtils.Utils import unused, getExitMessage, readable_time
+from Products.ZenUtils.Utils import unused, getExitMessage
 from Products.DataCollector.SshClient import SshClient
-from Products.ZenEvents.ZenEventClasses import Clear, Error, Cmd_Fail, Cmd_Ok
+from Products.ZenEvents.ZenEventClasses import Clear, Cmd_Fail
 from Products.ZenRRD.CommandParser import ParsedResults
 
 from Products.ZenCollector.daemon import CollectorDaemon
@@ -179,13 +178,23 @@ class ProcessRunner(ProcessProtocol):
 
     def timeout(self, value):
         """
-        Kill a process if it takes too long
+        Kill a process gracefully if it takes too long
         """
         try:
-            self.transport.signalProcess('KILL')
+            self.transport.signalProcess('INT')
+            reactor.callLater(2, self._reap)
         except error.ProcessExitedAlready:
             log.debug("Command already exited: %s", self.command.split()[0])
         return value
+
+    def _reap(self): 
+        """
+        Kill a process forcefully if it takes too long
+        """
+        try:
+            self.transport.signalProcess('KILL')
+        except Exception:
+            pass
 
     def outReceived(self, data):
         """
@@ -781,7 +790,7 @@ class SshPerformanceCollectionTask(BaseTask):
         parser = None
         try:
             parser = datasource.parser.create()
-        except Exception, ex:
+        except Exception:
             msg = "Error loading parser %s" % datasource.parser
             log.exception("%s %s %s", self.name, datasource.name, msg)
             ev = self._makeCmdEvent(datasource, msg)
@@ -824,7 +833,7 @@ class SshPerformanceCollectionTask(BaseTask):
             if datasource.result.stderr:
                 self._addStderrMsg(datasource.result.stderr,
                                                results.events)
-        except Exception, ex:
+        except Exception:
             msg = "Error running parser %s" % datasource.parser
             log.exception("%s %s %s", self.name, datasource.name, msg)
             ev = self._makeCmdEvent(datasource, msg)
