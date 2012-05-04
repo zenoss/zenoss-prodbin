@@ -163,6 +163,7 @@ class TreeRouter(DirectRouter):
         for child in childNodes:
             childData = Marshaller(child).marshal(keys)
             children.append(childData)
+        children.sort(key=lambda e: (e['leaf'], e['uid'].lower()))
         obj = currentNode._object._unrestrictedGetObject()
 
         # check to see if we are asking for the root
