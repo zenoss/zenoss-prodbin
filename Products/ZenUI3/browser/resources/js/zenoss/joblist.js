@@ -212,6 +212,17 @@ Ext.getCmp('center_panel').add({
         bodyStyle: 'padding:8px;background:#fff',
         listeners: {
             expand: function(panel) {
+                var grid = Ext.getCmp('jobs'),
+                    view = grid.getView(),
+                    selected = grid.getSelectionModel().getSelection();
+                if (selected.length > 0) {
+                    var index = selected[0].index;
+                    view.focusRow(index);
+                    // It takes two. I have no idea why nor do I wish to 
+                    // spend the time to find out. One scrolls the scroller but
+                    // does not update the grid. Two makes it all work.
+                    view.focusRow(index);
+                }   
                 panel.poll();
             },
             collapse: function(panel) {
