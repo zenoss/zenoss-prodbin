@@ -2206,10 +2206,22 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
                 SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
             # Override normal behavior - we only care if the manage IP is down
+
+            # need to add the ipinterface component id to search since we may be
+            # pinging interfaces and only care about status of the one that
+            # matches the manage ip.  This is potentially expensive
+            element_sub_identifier = [""]
+            ifaces = self.getDeviceComponents(type='IpInterface')
+            for iface in ifaces:
+                if self.manageIp in [ip.partition("/")[0] for ip in iface.getIpAddresses()]:
+                    element_sub_identifier.append(iface.id)
+                    break
+
             zep = getFacade('zep', self)
             event_filter = zep.createEventFilter(tags=[self.getUUID()],
                                                  severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
                                                  status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
+                                                 element_sub_identifier=element_sub_identifier,
                                                  event_class=filter(None, [statusclass]),
                                                  details={EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY: self.getManageIp()})
             result = zep.getEventSummaries(0, filter=event_filter, limit=0)
