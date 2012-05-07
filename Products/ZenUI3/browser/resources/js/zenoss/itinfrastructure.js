@@ -751,11 +751,12 @@ function initializeTreeDrop(tree) {
                         text: _t('OK'),
                         handler: function() {
                             // move the devices
-                            var opts= {
+                            var opts = {
                                 uids: devids,
                                 ranges: [],
-                                target: targetuid
-                            };
+                                target: targetuid,
+                                asynchronous: Zenoss.settings.deviceMoveIsAsync(devids)
+                            }; 
                             REMOTE.moveDevices(opts, function(data){
                                 if(data.success) {
                                     resetGrid();

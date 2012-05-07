@@ -689,6 +689,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                                 collector: Ext.getCmp('collector').getValue(),
                                                 moveData: Ext.getCmp('moveData').getValue()
                                             });
+                                            opts['asynchronous'] = Zenoss.settings.deviceMoveIsAsync(opts.uids);
                                             REMOTE.setCollector(opts, saveHandler);
                                         }
                                     }, Zenoss.dialog.CANCEL

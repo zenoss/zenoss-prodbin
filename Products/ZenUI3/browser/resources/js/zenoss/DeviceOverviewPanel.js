@@ -218,6 +218,7 @@
                     var vals = btn.refOwner.editForm.getForm().getValues();
                     var submitVals = {
                         uids: [uid],
+                        asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
                         collector: vals.collector,
                         hashcheck: '',
                         moveData: vals.moveData
@@ -371,6 +372,7 @@
                         }
                         if (op == 'add') {
                             submitVals['target'] = config.dmdPrefix + group;
+                            submitVals['asynchronous'] = Zenoss.settings.deviceMoveIsAsync(submitVals.uids);
                             Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
                                 Ext.getCmp('device_overview').load();
                             });
@@ -427,6 +429,7 @@
                     if (vals.location) {
                         var submitVals = {
                             uids: [uid],
+                            asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
                             target: '/zport/dmd/Locations' + vals.location,
                             hashcheck: ''
                         };

@@ -51,11 +51,13 @@ class DeviceCollectorChangeEvent(object):
     Collector change event for device.
     """
 
-    def __init__(self, context, collector, movedDevices, moveData):
+    def __init__(self, context, collector, movedDevices, moveData, asynchronous):
         self._context = context
         self._collector = collector
         self._movedDevices = movedDevices
         self._moveData = moveData
+        self._asynchronous = asynchronous
+        self.jobs = []
 
     @property
     def context(self):
@@ -72,6 +74,10 @@ class DeviceCollectorChangeEvent(object):
     @property
     def moveData(self):
         return self._moveData
+
+    @property
+    def asynchronous(self):
+        return self._asynchronous
 
 
 class DeviceFacade(TreeFacade):
@@ -346,17 +352,20 @@ class DeviceFacade(TreeFacade):
         return exports
 
     @info
-    def moveDevices(self, uids, target):
-        devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1
-                   else "%s devices" % len(uids))
-        return self._dmd.JobManager.addJob(
-            FacadeMethodJob, description="Move %s to %s" % (devdesc, target),
-            kwargs=dict(
-                facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
-                method="_moveDevices",
-                uids=uids,
-                target=target
-            ))
+    def moveDevices(self, uids, target, asynchronous=True):
+        if asynchronous:
+            devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1
+                       else "%s devices" % len(uids))
+            return self._dmd.JobManager.addJob(
+                FacadeMethodJob, description="Move %s to %s" % (devdesc, target),
+                kwargs=dict(
+                    facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
+                    method="_moveDevices",
+                    uids=uids,
+                    target=target
+                ))
+        else:
+            return self._moveDevices(uids, target)
 
     def getDeviceByIpAddress(self, deviceName, collector="localhost"):
         # convert device name to an ip address
@@ -378,7 +387,8 @@ class DeviceFacade(TreeFacade):
             if brain.getObject().getPerformanceServerName() == collector:
                 return brain.getObject()
 
-    def setCollector(self, uids, collector, moveData=False):
+    @info
+    def setCollector(self, uids, collector, moveData=False, asynchronous=True):
         movedDevices = []
         for uid in uids:
             info = self.getInfo(uid)
@@ -389,7 +399,10 @@ class DeviceFacade(TreeFacade):
             info.collector = collector
             notify(IndexingEvent(info._object))
 
-        notify(DeviceCollectorChangeEvent(self.context, collector, movedDevices, moveData))
+        event = DeviceCollectorChangeEvent(self.context, collector,
+                                          movedDevices, moveData, asynchronous)
+        notify(event) # This will put the job records on the event, maybe
+        return event.jobs if event.jobs else None
 
     @info
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",

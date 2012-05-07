@@ -443,7 +443,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(uid=newUid)
 
     def moveDevices(self, uids, target, hashcheck=None, ranges=(), uid=None,
-                    params=None, sort='name', dir='ASC', runasjob=True):
+                    params=None, sort='name', dir='ASC', asynchronous=True):
         """
         Moves the devices specified by uids to the organizer specified by 'target'.
 
@@ -498,19 +498,16 @@ class DeviceRouter(TreeRouter):
                 oldData[targetType] = deviceClassPath
             audit(['UI.Device', action], uid,
                   data_={targetType:target}, oldData_=oldData)
-        if runasjob:
-            try:
-                # Start a job
-                jobrecord = facade.moveDevices(uids, target)
-            except Exception, e:
-                log.exception("Failed to move devices")
-                return DirectResponse.exception(e, 'Failed to move devices.')
-            else:
-                return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord],
-                                      keys=('uuid', 'description', 'started')))
+        try:
+            result = facade.moveDevices(uids, target, asynchronous=asynchronous)
+        except Exception, e:
+            log.exception("Failed to move devices")
+            return DirectResponse.exception(e, 'Failed to move devices.')
+        if asynchronous:
+            return DirectResponse.succeed(new_jobs=Zuul.marshal([result],
+                                  keys=('uuid', 'description', 'started')))
         else:
-            exports=facade._moveDevices(uids, target)
-            return DirectResponse.succeed(exports=exports)
+            return DirectResponse.succeed(exports=result)
 
     @require('Manage Device')
     def pushChanges(self, uids, hashcheck, ranges=(), uid=None, params=None,
@@ -806,7 +803,8 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.exception(e, 'Failed to change priority.')
 
     def setCollector(self, uids, collector, hashcheck, uid=None, ranges=(),
-                     params=None, sort='name', dir='ASC', moveData=False):
+                     params=None, sort='name', dir='ASC', moveData=False,
+                     asynchronous=True):
         """
         Set device(s) collector.
 
@@ -841,11 +839,15 @@ class DeviceRouter(TreeRouter):
         uids = filterUidsByPermission(self.context.dmd, ZEN_ADMIN_DEVICE, uids)
         try:
             # iterate through uids so that logging works as expected
-            facade.setCollector(uids, collector, moveData)
+            result = facade.setCollector(uids, collector, moveData, asynchronous)
             for devUid in uids:
                 audit('UI.Device.ChangeCollector', devUid, collector=collector)
-            return DirectResponse('Changed collector to %s for %s devices.' %
-                                  (collector, len(uids)))
+            if asynchronous and result:
+                return DirectResponse.succeed(new_jobs=Zuul.marshal(result,
+                                      keys=('uuid', 'description', 'started')))
+            else:
+                return DirectResponse.succeed('Changed collector to %s for %s devices.' %
+                                      (collector, len(uids)))
         except Exception, e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change the collector.')

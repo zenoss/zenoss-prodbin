@@ -16,6 +16,7 @@
 Ext.onReady(function() {
 
     Ext.ns('Zenoss.settings');
+
     var router = Zenoss.remote.SettingsRouter;
 
 

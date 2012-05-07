@@ -1456,6 +1456,26 @@ String.prototype.xsplit = function (separator, limit) {
     return cbSplit(this, separator, limit);
 };
 
+Ext.ns("Zenoss.settings");
+
+Zenoss.settings.deviceMoveIsAsync = function(devices) {
+    switch (Zenoss.settings.deviceMoveJobThreshold) {
+        case 0:
+            return true;
+        case -1:
+            return false;
+        default:
+            var len, threshold = Zenoss.settings.deviceMoveJobThreshold || 5;
+            if (devices == null) {
+                len = 0;
+            } else if (!Ext.isArray(devices)) {
+                len = 1;
+            } else {
+                len = devices.length;
+            }
+            return threshold <= len;
+    }
+}
 
 
 })(); // End local scope

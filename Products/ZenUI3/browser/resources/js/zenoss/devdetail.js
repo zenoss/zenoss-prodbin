@@ -777,7 +777,7 @@ var editDeviceClass = function(deviceClass, uid) {
                 var vals = btn.refOwner.editForm.getForm().getValues();
                 var submitVals = {
                     uids: [uid],
-                    runasjob: false,
+                    asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
                     target: '/zport/dmd/Devices' + vals.deviceClass,
                     hashcheck: ''
                 };

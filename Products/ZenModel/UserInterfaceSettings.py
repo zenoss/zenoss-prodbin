@@ -31,6 +31,7 @@ class UserInterfaceSettings(ZenModelRM):
         {'id': 'deviceGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'componentGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'eventConsoleBufferSize', 'type': 'int', 'mode': 'w'},
+        {'id': 'deviceMoveJobThreshold', 'type': 'int', 'mode': 'w'},
         )
 
     # information about the properties that is used for the UI
@@ -41,7 +42,8 @@ class UserInterfaceSettings(ZenModelRM):
         'deviceGridBufferSize': {'xtype': 'numberfield', 'name': _t('Device Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'allowBlank': False},
         'componentGridBufferSize': {'xtype': 'numberfield', 'name': _t('Component Grid Buffer Size'), 'defaultValue': 50, 'minValue': 25, 'allowBlank': False},
         'eventConsoleBufferSize': {'xtype': 'numberfield', 'name': _t('Event Console Buffer Size'), 'defaultValue': 200, 'minValue': 50, 'allowBlank': False},
-        }
+        'deviceMoveJobThreshold': {'xtype': 'numberfield', 'name': _t('Device Move Job Threshold'), 'defaultValue': 5, 'minValue': 0, 'allowBlank': False}, 
+    }
 
     def getInterfaceSettings(self):
         """
