@@ -210,7 +210,19 @@ class PingTask(BaseTask):
             devId = rootCause._devid
             evt['rootCause'] = devId
             evt['eventState'] = SUPPRESSED
-        return self._eventService.sendEvent(evt)
+
+        # mark this event with a flag if it applies to the managedIp component
+        if self.config.ip == self._manageIp:
+            evt['isManageIp'] = True
+
+        self._eventService.sendEvent(evt)
+
+        # ZEN-1584: if this proxy is for a component
+        # that handles the manageIp, send a device level clear
+        if severity==events.SEVERITY_CLEAR and \
+            'isManageIp' in evt and evt['component']:
+            evt['component'] = ''
+            self._eventService.sendEvent(evt)
 
     def sendPingUp(self, msgTpl='%s is UP!'):
         """
