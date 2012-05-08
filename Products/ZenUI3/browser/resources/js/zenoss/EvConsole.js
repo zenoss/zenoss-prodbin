@@ -56,7 +56,7 @@ Ext.onReady(function(){
      */
     var grid = Ext.create('Zenoss.events.Grid', {
         region: 'center',
-        tbar: new Zenoss.EventConsoleTBar({
+        tbar: Ext.create('Zenoss.EventConsoleTBar', {
             region: 'north',
             gridId: 'events_grid',
             hideDisplayCombo: true,
@@ -90,6 +90,8 @@ Ext.onReady(function(){
     console_selection_model.grid = grid;
     // Add it to the layout
     master_panel.add(grid);
+
+
     Zenoss.util.callWhenReady('events_grid', function(){
         Ext.getCmp('events_grid').setContext(Zenoss.env.PARENT_CONTEXT);
     });
@@ -148,10 +150,10 @@ Ext.onReady(function(){
     });
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
+
     // render so that the detail panel has html elements
     detail_panel.show();
     detail_panel.collapse();
-
 
     detail_panel.on('collapse', function(ob, state) {
         eventDetailCollapsed();

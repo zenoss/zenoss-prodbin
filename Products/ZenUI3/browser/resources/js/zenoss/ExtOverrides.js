@@ -5,19 +5,40 @@
      **/
 
 
+
+
     /**
-     * We had previously used the bool passed into disable to
-     * toggle the disabledness of the button.
+     * This ovverides the defeault field template for hidden fields.
+     * This change is removing the maxLength property because if you do not you end up with
+     * this error all over the place:
+     *     XTemplate Error: maxLength is not defined
+     *
+     * http://www.sencha.com/forum/showthread.php?199148-4.1.0-The-field-of-the-type-hiddenfield-occupies-the-visile-place-in-the-form&p=795553
      **/
-    Ext.button.Button.override({
-        disable: function(bool) {
-            if (bool || !Ext.isDefined(bool)) {
-                this.callOverridden();
-            } else {
-                this.enable();
+    Ext.override(Ext.form.field.Hidden, {
+        fieldSubTpl: [ // note: {id} here is really {inputId}, but {cmpId} is available
+            '<input id="{id}" type="{type}" {inputAttrTpl}',
+            ' size="1"', // allows inputs to fully respect CSS widths across all browsers
+            '<tpl if="name"> name="{name}"</tpl>',
+            '<tpl if="value"> value="{[Ext.util.Format.htmlEncode(values.value)]}"</tpl>',
+            '<tpl if="placeholder"> placeholder="{placeholder}"</tpl>',
+            '<tpl if="readOnly"> readonly="readonly"</tpl>',
+            '<tpl if="disabled"> disabled="disabled"</tpl>',
+            '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
+            '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
+            ' class="{fieldCls} {typeCls} {editableCls}" autocomplete="off"/>',
+            {
+                disableFormats: true
             }
-        }
+        ]
     });
+    /**
+      * Auto Types do not have a conversion
+      * http://www.sencha.com/forum/showthread.php?198250-4.1-Ext.data.Model-regression
+      * This breaks model fields that either do not have a type specified or are explicitly set
+      * to auto. This is supposed to be fixed in 4.1.1
+      **/
+    Ext.data.Types.AUTO.convert = function (v) { return v; };
 
     /**
      * This makes the default value for checkboxes getSubmitValue (called by getFieldValues on the form)
@@ -249,7 +270,7 @@
     * grid /body/ instead of the entire grid. The function is copied except one
     * line
     */
-    Ext.override(Ext.panel.Table, {
+   /* Ext.override(Ext.panel.Table, {
        determineScrollbars: function() {
            var me = this,
                box,
@@ -270,19 +291,10 @@
                // Calculate maximum, *scrollbarless* space which the view has available.
                // It will be the Fit Layout's calculated size, plus the widths of any currently shown scrollbars
 
-               /********************************
-               *
-               * BEGIN ZENOSS CHANGE
-               *
-               *********************************/
+               //BEGIN ZENOSS CHANGE
                // box = me.getSize();
                box = me.view.getSize();
-               /********************************
-               *
-               * END ZENOSS CHANGE
-               *
-               *********************************/
-
+               //END ZENOSS CHANGE
 
                clientWidth  = box.width  + ((curScrollbars & 1) ? verticalScroller.width : 0);
                clientHeight = box.height + ((curScrollbars & 2) ? horizontalScroller.height : 0);
@@ -349,17 +361,17 @@
                me.changingScrollBars = false;
            }
        }
-    });
+    }); */
 
     /**
      * This is a workaround to make scrolling smoother
      **/
- 
+
     Ext.override(Ext.grid.PagingScroller, {
         // The default fetch percent is 35% this is a little too early for a smooth scrolling experience
        percentageFromEdge: 0.15
-   }); 
-   
+   });
+
    /**
     * workaround for scrollbars missing in IE. IE ignores the parent size between parent and child
     * so we end up with the part that should have scrollbars the same size as the child, thus
@@ -371,15 +383,64 @@
             picker = this.getPicker();
 
         if(Ext.isIE){
-            var parent, child = Ext.DomQuery.selectNode('#'+picker.id+' .list-ct'); 
-            Ext.defer(function(){ // defer a bit so the grandpaw will have a height 
-                    grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
+            var parent, child = Ext.DomQuery.selectNode('#'+picker.id+' .list-ct');
+            Ext.defer(function(){ // defer a bit so the grandpaw will have a height
+                    var grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
                     child.style.cssText = 'width:'+me.width+'px; height:'+grandpaw.style.height+';overflow:auto;';
                 }, 100, me);
         }
-        
-    }   
+
+    }
    });
-    
-    
+
+
+    /**
+     * The Event console filters are not rendering correctly in our application. This override is a temporary workaround
+     * until we can figure out exactly why it is not rendering. Instead of aborting on an failed layout, just keep
+     * running (flush) and ignore the failed layout.
+     **/
+    Ext.override(Ext.layout.Context, {
+        runComplete: function () {
+            var me = this;
+
+            me.state = 2;
+
+            if (me.remainingLayouts) {
+                me.handleFailure();
+                // return false;
+            }
+
+            me.flush();
+
+            // Call finishedLayout on all layouts, but do not clear the queue.
+            me.flushLayouts('finishQueue', 'finishedLayout', true);
+
+            // Call notifyOwner on all layouts and then clear the queue.
+            me.flushLayouts('finishQueue', 'notifyOwner');
+
+            me.flush(); // in case any setProp calls were made
+
+            me.flushAnimations();
+
+            return true;
+        }
+
+    });
+
+    /**
+     * The multiselect doesn't test to see if it has a valid return value.
+     *
+     **/
+    Ext.override(Ext.ux.form.MultiSelect, {
+        getSubmitValue: function() {
+            var me = this,
+                delimiter = me.delimiter,
+                val = me.getValue();
+            if (Ext.isString(val)) {
+                return Ext.isString(delimiter) ? val.join(delimiter) : val;
+            }
+            return "";
+        }
+    });
+
 }());

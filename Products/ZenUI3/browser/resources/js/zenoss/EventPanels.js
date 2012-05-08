@@ -53,7 +53,7 @@
                 frame: false,
                 listeners: {
                     validitychange: function(form, isValid){
-                        addevent.query('DialogButton')[0].disable(!isValid);
+                        addevent.query('DialogButton')[0].setDisabled(!isValid);
                     }
                 },
                 fieldDefaults: {
@@ -221,7 +221,7 @@
     }
 
     Zenoss.events.EventPanelToolbarActions = {
-        acknowledge: new Zenoss.Action({
+        acknowledge: new Zenoss.ActionButton({
             iconCls: 'acknowledge',
             tooltip: _t('Acknowledge events'),
             permission: 'Manage Events',
@@ -229,7 +229,7 @@
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.acknowledge);
             }
         }),
-        close: new Zenoss.Action({
+        close: new Zenoss.ActionButton({
             iconCls: 'close',
             tooltip: _t('Close events'),
             permission: 'Manage Events',
@@ -237,7 +237,7 @@
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
             }
         }),
-        reclassify: new Zenoss.Action({
+        reclassify: new Zenoss.ActionButton({
             iconCls: 'classify',
             tooltip: _t('Reclassify an event'),
             permission: 'Manage Events',
@@ -246,7 +246,7 @@
                 showClassifyDialog(gridId);
             }
         }),
-        reopen: new Zenoss.Action({
+        reopen: new Zenoss.ActionButton({
             iconCls: 'unacknowledge',
             tooltip: _t('Unacknowledge events'),
             permission: 'Manage Events',
@@ -254,7 +254,7 @@
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
             }
         }),
-        unclose: new Zenoss.Action({
+        unclose: new Zenoss.ActionButton({
             iconCls: 'reopen',
             tooltip: _t('Reopen events'),
             permission: 'Manage Events',
@@ -262,7 +262,7 @@
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
             }
         }),
-        newwindow: new Zenoss.Action({
+        newwindow: new Zenoss.ActionButton({
             iconCls: 'newwindow',
             permission: 'View',
             tooltip: _t('Go to event console'),
@@ -289,7 +289,7 @@
                 window.open(url, '_newtab', "");
             }
         }),
-        refresh: new Zenoss.Action({
+        refresh: new Zenoss.ActionButton({
             iconCls: 'refresh',
             permission: 'View',
             tooltip: _t('Refresh events'),
@@ -545,7 +545,7 @@
                         store = grid.getStore(),
                         tbar = this,
                         view = grid.getView();
-                        store.on('load', this.doLastUpdated);
+                        store.on('guaranteedrange', this.doLastUpdated);
                         view.on('buffer', this.doLastUpdated);
 
                         view.on('filterchange', function(){
@@ -567,13 +567,14 @@
                     },
                     scope: this
                 },
-                items: [
-                    Zenoss.events.EventPanelToolbarActions.acknowledge,
-                    Zenoss.events.EventPanelToolbarActions.close,
-                    Zenoss.events.EventPanelToolbarActions.reclassify,
-                    Zenoss.events.EventPanelToolbarActions.reopen,
-                    Zenoss.events.EventPanelToolbarActions.unclose,
-                    new Zenoss.Action({
+                items: Ext.Array.union([
+                    // create new instances of the action otherwise Ext won't render them (probably a bug in 4.1)
+                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.acknowledge.initialConfig),
+                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.close.initialConfig),
+                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.reclassify.initialConfig),
+                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.reopen.initialConfig),
+                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.unclose.initialConfig),
+                    new Zenoss.ActionButton({
                         iconCls: 'add',
                         tooltip: _t('Add an event'),
                         permission: 'Manage Events',
@@ -676,9 +677,8 @@
                                 grid.refresh();
                             }
                         }
-                    },
-                    tbarItems
-                ]
+                    }
+                ], tbarItems)
             });
             Zenoss.EventConsoleTBar.superclass.constructor.call(this, config);
         },
@@ -1259,10 +1259,8 @@
         }
     });
 
-
-
     Ext.define("Zenoss.EventRainbow", {
-        extend:"Ext.Toolbar.TextItem",
+        extend:"Ext.toolbar.TextItem",
         alias: ['widget.eventrainbow'],
         constructor: function(config) {
             var severityCounts = {

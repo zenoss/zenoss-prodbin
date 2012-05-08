@@ -314,7 +314,7 @@
             config = config || {};
             var menu = {
                 xtype: 'statefulrefreshmenu',
-                id: config.stateId || 'graph_refresh',
+                id: config.stateId || Ext.id(),
                 trigger: this,
                 items: [{
                     cls: 'refreshevery',

@@ -88,6 +88,7 @@
                 </div>
             </div>
         </div>
+
         <div id="center">
             <tal:block metal:define-slot="center_panel_content"/>
         </div>
@@ -112,16 +113,20 @@ var viewport = new Ext.Viewport({
         'border': false
     },
     items: [
-        new Ext.Component({
+        {
             region: 'north',
-            el: 'header',
+            renderTo: 'header',
             height: 75,
-            id: 'header_panel'
-        }),{
+            id: 'header_panel',
+            xtype: 'component',
+            style: {
+                display: "none"
+            }
+        },{
             id: 'footer_panel',
             region: 'south',
             height: 30,
-            el: 'footer',
+            renderTo: 'footer',
             items: [
                 new Ext.Toolbar({
                     border: false,
@@ -156,7 +161,7 @@ var viewport = new Ext.Viewport({
         },{
             id: 'center_panel',
             region: 'center',
-            el: 'center',
+            renderTo: 'center',
             layout: 'fit',
             border: false,
             defaults: {
@@ -182,9 +187,6 @@ Ext.onReady(function(){
 </tal:block>
 
 <!-- Make sure everything on the page gets laid out -->
-<script type="text/javascript">
-    Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});
-</script>
 
 <tal:block metal:define-slot="script_afterLayout">
 <!-- Use this slot to perform any post-layout steps. -->

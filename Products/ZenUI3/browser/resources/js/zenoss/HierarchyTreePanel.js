@@ -48,96 +48,8 @@
                 return selections[0];
             }
             return null;
-        },
-
-
-        // Overwriting the default onSelectChange method.
-        //
-        // On some of the screens we are using we have mutliple
-        // trees all using the same selection model.  In particular
-        // the Infrastructure/Devices and Infrastructure/Networks.
-        // Since we will have 2 views for each tree, just do a check to see
-        //  how many trees we have and if it is > 2, then add in my extra
-        //  bit for checking multiple trees.
-        onSelectChange:function (record, isSelected, suppressEvent, commitFn) {
-            var me = this,
-                views = me.views,
-                viewsLn = views.length,
-                store = me.store,
-                rowIdx = store.indexOf(record),
-                originalRowIdx = rowIdx,
-                eventName = isSelected ? 'select' : 'deselect',
-                i = 0;
-
-            if ((suppressEvent || me.fireEvent('before' + eventName, me, record, rowIdx)) !== false &&
-                commitFn() !== false) {
-
-                for (; i < viewsLn; i++) {
-                    // do we have multiple trees?  If so, then check the
-                    // index for each view.
-                    if (viewsLn > 1) {
-                        try {
-                            rowIdx = views[i].indexOf(record);
-                        } catch (e) {
-                            // For some reason the lookup is throwing an error
-                            // when it should instead be just returning -1.
-                            rowIdx = -1;
-                        }
-                    }
-                    if (rowIdx > -1) {
-                        if (isSelected) {
-                            views[i].onRowSelect(rowIdx, suppressEvent);
-                        } else {
-                            views[i].onRowDeselect(rowIdx, suppressEvent);
-                        }
-                        if (!suppressEvent) {
-                            me.fireEvent(eventName, me, record, rowIdx);
-                        }
-                    }
-                }
-            }
-        },
-
-        // Override the default on Last Focus Changed
-        // Provide indication of what row was last focused via
-        // the gridview.
-        onLastFocusChanged:function (oldFocused, newFocused, supressFocus) {
-            var views = this.views,
-                viewsLn = views.length,
-                store = this.store,
-                rowIdx,
-                i = 0;
-
-            if (oldFocused) {
-                rowIdx = store.indexOf(oldFocused);
-                if (rowIdx != -1) {
-                    for (; i < viewsLn; i++) {
-                        views[i].onRowFocus(rowIdx, false);
-                    }
-                }
-            }
-
-            if (newFocused) {
-                rowIdx = store.indexOf(newFocused);
-                if (rowIdx != -1) {
-                    // so we know it is in the store, but we actually want to figure out
-                    // which views it is highlighted in
-                    for (i = 0; i < viewsLn; i++) {
-                        var viewRowIdx = -1;
-                        try {
-                            viewRowIdx = views[i].indexOf(newFocused);
-                        } catch (e) {
-                            // For some reason the lookup is throwing an error
-                            // when it should instead be just returning -1.
-                            viewRowIdx = -1;
-                        }
-                        if (viewRowIdx > -1) {
-                            views[i].onRowFocus(rowIdx, true, supressFocus);
-                        }
-                    }
-                }
-            }
         }
+
     });
 
     Ext.define('Zenoss.HierarchyTreePanelSearch', {
@@ -306,6 +218,7 @@
                 frame:false,
                 useArrows:true,
                 autoScroll:true,
+                manageHeight: false,
                 relationshipIdentifier:null,
                 containerScroll:true,
                 selectRootOnLoad:true,
@@ -315,7 +228,6 @@
                 pathSeparator:"/",
                 nodeIdSeparator:".",
                 hideHeaders:true,
-                layout:'fit',
                 columns:[
                     {
                         xtype:'treecolumn',
@@ -716,7 +628,7 @@
                     // TODO would be best to normalize the names of result node
                     var nodeId = Zenoss.env.PARENT_CONTEXT + '/' + params.id;
                     this.getStore().load({
-                        callback:function () { 
+                        callback:function () {
                             nodeId = nodeId.replace(/\//g, '.');
                             me.selectByToken(nodeId);
                         }
@@ -747,7 +659,7 @@
                     me.getStore().load({
                         callback:function () {
                             me.selectByToken(parentNode.get('uid'));
-                            me.getRootNode().firstChild.expand();                            
+                            me.getRootNode().firstChild.expand();
                         }
                     });
                 }

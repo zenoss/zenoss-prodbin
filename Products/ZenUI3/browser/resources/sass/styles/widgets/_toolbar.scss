@@ -15,8 +15,8 @@
     }   
     .largetoolbar{
         .#{$prefix}btn{
-            top:8px !important;
-            margin-right:6px;
+            //top:8px !important;
+            //margin-right:6px;
         }   
     }
     .#{$prefix}toolbar{ 
@@ -37,7 +37,7 @@
             top:3px !important;
         }
         .largetoolbar{
-            height:35px !important;
+            //height:35px !important;
         }     
     }
     .consolebar .#{$prefix}toolbar-text{

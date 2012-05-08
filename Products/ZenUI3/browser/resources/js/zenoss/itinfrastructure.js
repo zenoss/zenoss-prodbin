@@ -137,10 +137,15 @@ function setDeviceButtonsDisabled(bool){
     // 'deleteDevices' button
     Zenoss.devices.deleteDevices.setDisabled(bool ||
         Zenoss.Security.doesNotHavePermission('Delete Device'));
-    Ext.getCmp('commands-menu').setDisabled(bool ||
-        Zenoss.Security.doesNotHavePermission('Run Commands'));
-    Ext.getCmp('actions-menu').setDisabled(bool ||
-        Zenoss.Security.doesNotHavePermission('Manage Device'));
+    if (Ext.getCmp('commands-menu')) {
+        Ext.getCmp('commands-menu').setDisabled(bool ||
+            Zenoss.Security.doesNotHavePermission('Run Commands'));
+    }
+    if (Ext.getCmp('actions-menu')) {
+        Ext.getCmp('actions-menu').setDisabled(bool ||
+            Zenoss.Security.doesNotHavePermission('Manage Device'));
+    }
+
 
 }
 
@@ -210,7 +215,7 @@ function disableSendEvent() {
 }
 
 Ext.apply(Zenoss.devices, {
-    deleteDevices: new Zenoss.Action({
+    deleteDevices: new Zenoss.ActionButton({
         //text: _t('Delete Devices'),
         iconCls: 'delete',
         id: 'delete-button',
@@ -443,7 +448,7 @@ Ext.apply(Zenoss.devices, {
                                 var formArray = panel.childPanel.query('.field');
                                 var i = 0;
                                 for(i = 0; i < formArray.length; i++){
-                                    Ext.getDom(formArray[i].getInputId()).id = "add_device-input-"+i; 
+                                    Ext.getDom(formArray[i].getInputId()).id = "add_device-input-"+i;
                                 }
                                 panel.query('.button')[1].id = "addsingledevice-cancel";
                             }
@@ -1119,12 +1124,6 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller);
               }
         },
-        render: function(){
-                // check and see if the loaded grid requires a native scroller or a paging scroller
-                if(!this.getDockedItems("paginggridscroller")[0]){
-                    this.getView().applyConfig('autoScroll', true);
-                }
-        },
         contextchange: function(grid, uid) {
             REMOTE.getInfo({uid: uid, keys: ['name', 'description', 'address']}, function(result) {
                 if (Zenoss.env.contextUid && Zenoss.env.contextUid != uid) {
@@ -1146,7 +1145,6 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 }else {
                     this.setTitle(title);
                 }
-                this.determineScrollbars();
             }, this);
         },
         scope: device_grid

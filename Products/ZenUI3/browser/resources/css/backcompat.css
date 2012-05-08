@@ -137,13 +137,6 @@
   background: transparent url();
 }
 
-
-
-.z-bc-menu {
-  display: none !important;
-}
-
-
 .z-bc-z-menu {
   background: #f0f0f0 url("/++resource++zenui/img/xtheme-zenoss/menu/menu.gif") repeat-y scroll 0 0;
 }
@@ -453,11 +446,3 @@ div.portlet-settings {
 .yui-skin-sam th.tabletitle {
   line-height: 0;
 }
-
-
-
-
-
-
-
-

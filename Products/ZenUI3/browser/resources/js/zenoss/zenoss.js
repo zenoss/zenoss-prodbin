@@ -13,11 +13,11 @@ if (Zenoss.logDirectRequests) {
     Ext.apply(Ext.direct.RemotingProvider.prototype, {
         queueTransaction: Ext.Function.createInterceptor(Ext.direct.RemotingProvider.prototype.queueTransaction, function(transaction) {
             // will render a stack trace on firefox
-            console.error(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+            console.log(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+            console.trace(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
         })
     });
 }
-
 
 /**
  * Base namespace to contain all Zenoss-specific JavaScript.
@@ -180,7 +180,7 @@ Ext.Direct.on('event', function(e){
             sticky = e.result.sticky || false,
             flare;
         if (success) {
-            flare = Zenoss.message.success(e.result.msg); 
+            flare = Zenoss.message.success(e.result.msg);
         } else {
             flare = Zenoss.message.error(e.result.msg);
         }
@@ -1325,11 +1325,11 @@ String.prototype.endswith = function(str){
 /* Readable dates */
 
 var _time_units = [
-    ['year',   60*60*24*365], 
+    ['year',   60*60*24*365],
     ['month',  60*60*24*30],
     ['week',   60*60*24*7],
     ['day',    60*60*24],
-    ['hour',   60*60], 
+    ['hour',   60*60],
     ['minute', 60],
     ['second', 1]
 ];

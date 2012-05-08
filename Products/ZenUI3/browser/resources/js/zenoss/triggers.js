@@ -87,7 +87,7 @@ Ext.onReady(function () {
                     ref: 'addForm',
                     listeners: {
                         validitychange: function(form, isValid) {
-                            me.query('button')[0].disable(!isValid);
+                            me.query('button')[0].setDisabled(!isValid);
                         }
                     },
                     buttonAlign: 'left',
@@ -262,8 +262,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             Ext.applyIf(config, {
                 ref: 'users_grid',
                 title: config.title,
-                height: 200,                
-                autoHeight: true, 
+                height: 200,
+                autoHeight: true,
                 keys: [{
                     key: [Ext.EventObject.ENTER],
                     handler: function() {
@@ -326,7 +326,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         header: config.title,
                         dataIndex: 'label',
                         width: 120,
-                        flex: 1,                       
+                        flex: 1,
                         sortable: true
                     },{
                         header: _t('Write'),
@@ -334,31 +334,31 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         listeners:{
                             click: function(e, f, rowi, coli, event){
                                 var newVal = event.target.checked;
-                                me.getView().getSelectionModel().getSelected().data.write = newVal;                                 
+                                me.getView().getSelectionModel().getSelected().data.write = newVal;
                                 me.reconfigure();
-                                
+
                             }
                         },
                         renderer: function(val, e, record, rowIndex){
-                            var checked = val ? "checked": "";                            
+                            var checked = val ? "checked": "";
                             return '<input '+checked+' id="write_'+rowIndex+'" name="write_'+rowIndex+'" type="checkbox" value="'+val+'">';
-                        }                         
+                        }
                     }, {
                         header: _t('Manage'),
                         dataIndex: 'manage',
                         listeners:{
                             click: function(e, f, rowi, coli, event){
                                 var newVal = event.target.checked;
-                                me.getView().getSelectionModel().getSelected().data.manage = newVal;                                 
+                                me.getView().getSelectionModel().getSelected().data.manage = newVal;
                                 me.reconfigure();
-                                
+
                             }
                         },
                         renderer: function(val, e, record, rowIndex){
-                            var checked = val ? "checked": "";                            
+                            var checked = val ? "checked": "";
                             return '<input '+checked+' id="manage_'+rowIndex+'" name="manage_'+rowIndex+'" type="checkbox" value="'+val+'">';
-                        } 
-                    }      
+                        }
+                    }
                 ],
                 selModel: new Zenoss.SingleRowSelectionModel({})
             });
@@ -673,7 +673,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 ref: '../addForm',
                 listeners: {
                     validitychange: function(form, isValid) {
-                        dialogue.query('DialogButton')[0].disable(!isValid);
+                        dialogue.query('DialogButton')[0].setDisabled(!isValid);
                     }
                 },
                 buttonAlign: 'left',
@@ -745,7 +745,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     buttonAlign: 'left',
                     listeners: {
                         validitychange: function(form, isValid) {
-                            me.query('DialogButton')[0].disable(!isValid);
+                            me.query('DialogButton')[0].setDisabled(!isValid);
                         }
                     },
                     items:[config.tabPanel],
@@ -812,7 +812,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     buttonAlign: 'left',
                     listeners: {
                         validitychange: function(form, isValid) {
-                            this.query('button')[0].disable(!isValid);
+                            this.query('button')[0].setDisabled(!isValid);
                         },
                         scope: this
                     },
@@ -887,8 +887,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                         config.reloadFn();
                                         button.refOwner.hide();
                                     });
-                                }                                
-                            }   
+                                }
+                            }
                         },{
                             xtype: 'button',
                             ui: 'dialog-dark',
@@ -896,8 +896,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             text: _t('Cancel'),
                             handler: function(button) {
                                 button.refOwner.hide();
-                            }                       
-                        }]                    
+                            }
+                        }]
                     }
             });
             Zenoss.trigger.EditScheduleDialogue.superclass.constructor.apply(this, arguments);
@@ -1921,7 +1921,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         buttonAlign: 'left',
                         listeners: {
                             validitychange: function(form, isValid) {
-                                this.query('DialogButton')[0].disable(!isValid);
+                                this.query('DialogButton')[0].setDisabled(!isValid);
                             },
                             scope: this
                         },

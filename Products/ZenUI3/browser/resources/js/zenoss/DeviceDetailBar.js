@@ -36,7 +36,6 @@ Ext.define("Zenoss.DeviceNameItem", {
     extend:"Ext.Container",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
-            //layout: 'vbox',
             defaults: {
                 xtype: 'tbtext'
             },
@@ -48,7 +47,6 @@ Ext.define("Zenoss.DeviceNameItem", {
                 cls: 'devdetail-devclass'
             },{
                 ref: 'ipAddress',
-                style: 'margin-top:0;',
                 cls: 'devdetail-ipaddress'
             }]
         });
@@ -71,17 +69,15 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 ref: 'iconitem',
                 cls: 'devdetail-icon'
             },{
-                cls: 'evdetail-sep',
-                style: 'margin-right:4px;'
+                cls: 'evdetail-sep'
             },{
                 xtype: 'devnameitem',
-                ref: 'deviditem',
-                style: 'margin-right: 8px;'
+                height: 45,
+                ref: 'deviditem'
             },'-',{
                 xtype: "eventrainbow",
                 width:202,
                 ref: 'eventsitem',
-                style: 'padding-top:6px;',
                 id: 'detailrainbow',
                 label: _t('Events'),
                 listeners: {
@@ -136,6 +132,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
     setContext: function(uid) {
         this.contextUid = uid;
         this.directFn({uid:uid, keys:this.contextKeys}, function(result){
+            this.layout.targetEl.setWidth(this.getWidth());
             var ZR = Zenoss.render,
                 data = result.data;
             Zenoss.env.icon = this.iconitem;
@@ -144,7 +141,6 @@ Ext.define("Zenoss.DeviceDetailBar", {
             });
             this.deviditem.devname.setText(data.name);
             var ipAddress = data.ipAddressString;
-            this.deviditem.ipAddress.setHeight(Ext.isEmpty(ipAddress) ? 0 : 'auto');
             this.deviditem.ipAddress.setText(ipAddress);
             this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));
             this.eventsitem.updateRainbow(data.events);
@@ -152,6 +148,18 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 ZR.pingStatusLarge(data.status));
             this.prodstateitem.setText(Zenoss.env.PRODUCTION_STATES_MAP[data.productionState]);
             this.priorityitem.setText(Zenoss.env.PRIORITIES_MAP[data.priority]);
+
+            // reset the positions based on text width and what not: 
+            this.iconitem.setPosition(0, 0);            
+            Ext.getCmp(Ext.query('.evdetail-sep')[0].id).setPosition(this.iconitem.getWidth()+this.iconitem.x, 0);
+            this.deviditem.setPosition(this.iconitem.getWidth() +this.iconitem.x + 30, 7);
+            Ext.getCmp('detailrainbow').setPosition(this.deviditem.devname.getWidth() +this.deviditem.x + 30, 3);
+            this.statusitem.setPosition(Ext.getCmp('detailrainbow').getWidth() +Ext.getCmp('detailrainbow').x + 30, -2);
+            Ext.getCmp(Ext.query('.x-toolbar-separator')[0].id).setPosition(this.statusitem.getWidth()+this.statusitem.x+10, 14);            
+            this.prodstateitem.setPosition(this.statusitem.getWidth() +this.statusitem.x + 30, -2);
+            Ext.getCmp(Ext.query('.x-toolbar-separator')[1].id).setPosition(this.prodstateitem.getWidth()+this.prodstateitem.x+10, 14);             
+            this.priorityitem.setPosition(this.prodstateitem.getWidth() +this.prodstateitem.x + 30, -2);
+            
             this.fireEvent('contextchange', this, data);
         }, this);
     }

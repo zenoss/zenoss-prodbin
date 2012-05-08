@@ -99,7 +99,6 @@ var deviceColumns = [
         header: _t('OS Model'),
         renderer: objectRenderer
     },{
-        id: 'collector',
         dataIndex: 'collector',
         width: 100,
         hidden: true,
@@ -242,7 +241,7 @@ Ext.define("Zenoss.DeviceGridSelectionModel", {
      *
      * Callback for handling changes to the grid's datastore.  When the
      * _selectAll flag is set, this function removes the current selection
-     * and selects all the records currently in the datastore. 
+     * and selects all the records currently in the datastore.
      *
      * @private
      */
@@ -457,7 +456,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
             sendEventChecked: locking.events,
             submitFn: function(values) {
                 funcs.REMOTE.lockDevices(values, funcs.saveHandler);
-            }                        
+            }
         }).show();
 }
 
@@ -501,13 +500,13 @@ function showComponentLockingDialog(msg, locking, funcs) {
                             handler: function() {
                             var sel = fetcher().uids,
                                 funcs = {'fetcher': fetcher, 'saveHandler': saveHandler, 'REMOTE': REMOTE};
-                                
+
                                 if(sel.length == 0){
                                     Zenoss.message.warning(_t("Please select 1 or more devices to lock"));
                                     return;
                                 }
                                 if(sel.length > 1){
-                                    showComponentLockingDialog(_t("To view locked state, select one device at a time."), "", funcs);                                
+                                    showComponentLockingDialog(_t("To view locked state, select one device at a time."), "", funcs);
                                 }else{
                                     REMOTE.getInfo({
                                         uid: fetcher().uids[0],
@@ -516,7 +515,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                         if (result.success) {
                                             showComponentLockingDialog("", result.data.locking, funcs);
                                         }
-                                    });                               
+                                    });
                                 }
 
                             }

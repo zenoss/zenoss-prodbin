@@ -85,7 +85,7 @@ Ext.define('Zenoss.ReportTreePanel', {
             this.getSelectionModel().selectByPosition({row: 0});
             selNode = this.getSelectionModel().getSelectedNode();
         }
-        var parentNode = selNode.leaf ? selNode.parentNode : selNode;        
+        var parentNode = selNode.leaf ? selNode.parentNode : selNode;
         this.router.addNode({
             nodeType: nodeType,
             contextUid: parentNode.data.uid,

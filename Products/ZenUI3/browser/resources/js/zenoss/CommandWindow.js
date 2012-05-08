@@ -33,13 +33,7 @@ Ext.define("Zenoss.CommandPanel", {
     extend:"Zenoss.IFramePanel",
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
-            ignoreClassName: true,
-            autoEl: {
-                tag: 'iframe allowtransparency="true"',
-                id: Ext.id(),
-                src: config.url || '',
-                frameborder: 0
-            }
+            ignoreClassName: true
         });
         Zenoss.CommandPanel.superclass.constructor.call(this, config);
         this.on('frameload', this.injectForm, this, {single:true});
@@ -112,7 +106,7 @@ Ext.define("Zenoss.CommandWindow", {
                 if(Ext.isDefined(config.redirectTarget)){
                         this.closeAndRedirect();
                 }
-            });         
+            });
     },
     onRender: function() {
         Zenoss.CommandWindow.superclass.onRender.apply(this, arguments);
@@ -134,7 +128,7 @@ Ext.define("Zenoss.CommandWindow", {
     scrollToBottom: function() {
         try {
             var win = this.getCommandPanel().getWindow(),
-                body = win.document.body;
+                body = this.getCommandPanel().getBody();
             Zenoss.env.BODY = body;
             win.scrollBy(0, body.scrollHeight);
         } catch(e) {
@@ -147,7 +141,7 @@ Ext.define("Zenoss.CommandWindow", {
         }
     },
     closeAndReload: function() {
-        window.top.location.reload()
+        window.top.location.reload();
         this.destroy();
     },
     closeAndRedirect: function() {

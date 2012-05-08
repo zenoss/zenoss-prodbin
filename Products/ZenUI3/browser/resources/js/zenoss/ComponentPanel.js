@@ -107,7 +107,7 @@ Zenoss.nav.register({
                     }
                 },'-',{
                     xtype: 'tbtext',
-                    text: _t('Link Graphs?:')
+                    text: _t('Link Graphs?')
                 },{
                     xtype: 'checkbox',
                     ref: '../linkGraphs',
@@ -120,7 +120,7 @@ Zenoss.nav.register({
                     }
                 }, '-', {
                     xtype: 'graphrefreshbutton',
-                    stateId: 'graphRefresh',
+                    stateId: 'ComponentGraphRefresh',
                     iconCls: 'refresh',
                     text: _t('Refresh'),
                     handler: function(btn) {
@@ -168,7 +168,7 @@ Zenoss.nav.register({
                 ZEvActions.close,
                 ZEvActions.refresh,
                 '-',
-                new Zenoss.Action({
+                new Zenoss.ActionButton({
                     iconCls: 'newwindow',
                     permission: 'View',
                     tooltip: _t('Go to event console'),
@@ -461,7 +461,10 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 }
             });
         }
-
+        // delete the id fields so there are no duplicate ids
+        Ext.each(config.columns, function(col){
+            delete col.id;
+        });
         var modelId = Ext.id(),
             model = Ext.define(modelId, {
                 extend: 'Ext.data.Model',
@@ -532,7 +535,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
     },
     setContext: function(uid) {
         this.contextUid = uid;
-        this.getStore().on('load', function(){
+        this.getStore().on('guaranteedrange', function(){
             var token = Ext.History.getToken();
             if (token.split(Ext.History.DELIMITER).length!=3) {
                 this.getSelectionModel().selectRange(0, 0);
@@ -597,7 +600,7 @@ Ext.define("Zenoss.component.BaseComponentStore", {
             directFn: config.directFn
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);
-        this.on('load', function(){this.loaded = true;}, this);
+        this.on('guaranteedrange', function(){this.loaded = true;}, this);
     }
 });
 
@@ -731,6 +734,7 @@ Ext.define("Zenoss.component.WinServicePanel", {
             },{
                 id: 'name',
                 dataIndex: 'name',
+                flex: 1,
                 header: _t('Service Name'),
                 renderer: Zenoss.render.WinServiceClass
             },{
@@ -862,6 +866,7 @@ Ext.define("Zenoss.component.IpServicePanel", {
                 id: 'name',
                 dataIndex: 'name',
                 header: _t('Name'),
+                flex: 1,
                 renderer: Zenoss.render.IpServiceClass
             },{
                 id: 'protocol',

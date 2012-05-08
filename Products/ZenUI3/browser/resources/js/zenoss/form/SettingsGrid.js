@@ -48,7 +48,7 @@
                 bodyStyle: 'padding: 10px',
                 listeners: {
                     validitychange: function(form, isValid) {
-                       me.query('button')[0].disable(!isValid);
+                       me.query('button')[0].setDisabled(!isValid);
                     },
                     afterrender: function(form){
                         this.getForm().checkValidity();

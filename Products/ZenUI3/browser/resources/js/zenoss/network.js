@@ -364,7 +364,6 @@ var ipAddressGridConfig = {
             mode: 'MULTI'
         })
     };
-
 Ext.getCmp('detail_panel').add(ipAddressGridConfig);
 
 (function(){
@@ -437,7 +436,7 @@ function deleteIpAddresses(btn) {
     }
 
     uids = Ext.Array.pluck(Ext.Array.pluck(selections, 'data'), 'uid');
- new Zenoss.dialog.SimpleMessageDialog({
+    new Zenoss.dialog.SimpleMessageDialog({
         title: _t('Delete IP Addresses'),
         message: _t("Are you sure you want to delete these IP addresses? Please note that only IP addresses without interfaces can be deleted."),
         buttons: [{

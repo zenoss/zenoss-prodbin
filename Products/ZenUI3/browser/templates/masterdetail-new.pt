@@ -42,7 +42,7 @@
 Ext.onReady(function(){
     var items = [{
         id: 'master_panel',
-        contentEl: 'master_panel_content',
+        renderTo: 'master_panel_content',
         layout: 'fit',
         region: 'center'
     },{
@@ -62,7 +62,7 @@ Ext.onReady(function(){
             region: 'north',
             height: 24,
             bodyCls: 'z-bc-bread-crumb-pane',
-            contentEl: 'breadCrumbPane'
+            renderTo: 'breadCrumbPane'
         });
     }
     Ext.getCmp('center_panel').add(new Ext.Panel({

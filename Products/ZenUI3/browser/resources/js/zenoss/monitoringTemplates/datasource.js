@@ -224,7 +224,7 @@ function showAddDataPointDialog() {
                 Ext.getCmp('metricName').clearInvalid();
             },
             validitychange: function(form, isValid) {
-                Ext.getCmp('addDataPointDialog').query('DialogButton')[0].disable(!isValid);
+                Ext.getCmp('addDataPointDialog').query('DialogButton')[0].setDisabled(!isValid);
             }
         },
         items:{

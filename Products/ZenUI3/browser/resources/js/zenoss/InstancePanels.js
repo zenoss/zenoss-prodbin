@@ -183,7 +183,7 @@ Ext.define("Zenoss.InstanceCardPanel", {
         var gridId = config.gridId || Ext.id();
 
         Ext.applyIf(config, {
-            instances: [{
+            instances: {
                 xtype: 'SimpleInstanceGridPanel',
                 id: gridId,
                 bufferSize: config.bufferSize,
@@ -193,7 +193,7 @@ Ext.define("Zenoss.InstanceCardPanel", {
                 columns: config.columns,
                 sm: config.sm,
                 store: config.store
-            }]
+            }
         });
         this.callParent(arguments);
         this.gridId = gridId;

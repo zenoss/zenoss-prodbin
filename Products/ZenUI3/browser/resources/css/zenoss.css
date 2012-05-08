@@ -190,6 +190,7 @@ a:link, a:visited {
   height: 50px;
   margin-right: 2px;
   margin-left: -3px;
+  border:0 !important;
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png) center center no-repeat;
 }
 
@@ -698,7 +699,7 @@ table.innerzentable table.eventrainbow tr td {
 
 
 div.zenportlet .eventrainbow td, .largetoolbar .eventrainbow td {
-  padding-left: 25px;
+  /*padding-left: 25px;*/
 }
 
 
@@ -754,19 +755,19 @@ table.eventrainbow td.clear {
 }
 
 .largetoolbar.devdetailbar table.eventrainbow {
-  margin-top: 3px;
+ /* margin-top: 3px;*/
 }
 
 
 .devdetailbar .devdetailitem {
-  margin-left: 8px;
-  margin-right: 8px;
+  /*margin-left: 8px;
+  margin-right: 8px;*/
 }
 
 .devdetailbar .devdetailitem div {
   text-align: center;
   font-weight: normal;
-  margin-top: -3px;
+  /*margin-top: -3px;*/
 }
 
 .devdetailbar .devdetailitem div.devdetail-textitem {
@@ -812,17 +813,13 @@ table.eventrainbow td.clear {
   text-align: left;
   font-size: 9pt;
   font-weight: normal;
-  margin-top: -7px;
+  /* margin-top: -7px; */
 }
-
-.devdetailbar .devdetail-devclass {
-  margin-top: -2px;
-}
-
 
 .devdetail-icon {
   height: 50px;
   width: 52px;
+  border:0 !important;
   background: transparent url() center center no-repeat;
 }
 
@@ -1453,7 +1450,7 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
     position:relative;
     background:transparent !important;
     padding-bottom:26px;
-    top:26px !important; 
+    top:26px !important;
     z-index:1 !important;
 }
 #PerformanceGraphs .x-toolbar .x-box-inner{
@@ -1491,4 +1488,10 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 }
 .x-ie #definition_description{
     width:100%;
+}
+table {
+    display: table;
+}
+.x-toolbar-separator{
+    border-width:1px !important;
 }

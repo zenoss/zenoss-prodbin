@@ -134,6 +134,7 @@ Ext.define('Zenoss.templates.TemplateTreeModel', {
         paramOrder: ['uid']
     }
 });
+
 Ext.define("Zenoss.templates.MonTemplateTreePanel", {
     alias:['widget.montemplatetreepanel'],
     extend:"Ext.tree.TreePanel",
@@ -142,6 +143,7 @@ Ext.define("Zenoss.templates.MonTemplateTreePanel", {
         // create the model
         Ext.applyIf(config, {
             useArrows: true,
+            manageHeight: false,
             cls: 'x-tree-noicon',
             model: 'Zenoss.model.Tree',
             selModel: new Zenoss.MonTemplateSelectionModel({

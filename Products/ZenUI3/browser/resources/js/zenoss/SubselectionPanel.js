@@ -67,7 +67,7 @@
                     }
                 }
                 this.activeItem = card;
-                this.layout();
+                this.initLayout();
             }
 
         }
@@ -81,7 +81,7 @@
         alias:['widget.horizontalslide'],
         extend:"Ext.Panel",
         constructor:function (config) {
-            this.headerText = new Ext.Toolbar.TextItem({
+            this.headerText = Ext.create('Ext.toolbar.TextItem', {
                 html:(config && config.text) ? config.text : ''
             });
             config = Ext.applyIf(config || {}, {
@@ -91,10 +91,10 @@
             });
             var items = [];
             Ext.each(config.items, function (item, index) {
-                var headerText = new Ext.Toolbar.TextItem({
+                var headerText = Ext.create('Ext.toolbar.TextItem', {
                     html:(item && item.text) ? item.text : ''
                 });
-                var navButton = new Ext.Button({
+                var navButton = Ext.create('Ext.Button', {
                     text:(item && item.buttonText) ? item.buttonText : '',
                     // make the button belong to the owner panel
                     ref:(item.buttonRef || 'navButton'),
@@ -112,7 +112,6 @@
                     layout:'fit',
                     tbar:{
                         cls:'subselect-head',
-                        id:'master_panel-header',
                         height:37,
                         items:[headerText, '->', navButton]
                     },
@@ -404,7 +403,15 @@
                     autoLoad:false
                 }),
                 useArrows:true,
-                autoHeight:true,
+                manageHeight: false,
+                hideHeaders:true,
+                columns:[
+                    {
+                        xtype:'treecolumn',
+                        flex:1,
+                        dataIndex:'text'
+                    }
+                ],
                 selModel:new Zenoss.BubblingSelectionModel({
                     bubbleTarget:config.bubbleTarget
                 }),
@@ -414,14 +421,7 @@
                 iconCls:'x-tree-noicon',
                 root:{nodeType:'node'}
             });
-            this.callParent(arguments);
-            // FIXME: hack to expand the tree panel when it grows dynamically
-            this.on('itemexpand', function () {
-                return Ext.defer(Ext.bind(this.doLayout, this), 500);
-            }, this);
-            this.on('itemcollapse', function () {
-                return Ext.defer(Ext.bind(this.doLayout, this), 500);
-            }, this);
+            this.callParent([config]);
         },
         setNodeVisible:function (node, visible) {
             if (Ext.isString(node)) {
@@ -553,7 +553,6 @@
                 };
 
                 detailConfigs = Zenoss.util.filter(detailConfigs, filterFn, me);
-
                 var nodes = me.onGetNavConfig(me.contextId);
                 if (!Ext.isDefined(nodes) || nodes === null) {
                     nodes = [];
@@ -589,7 +588,7 @@
                 firstToken = me.id + Ext.History.DELIMITER + root.firstChild.id;
             if (!sel) {
                 if (!token || (token && token == firstToken)) {
-                    me.getSelectionModel().selectRange(0, 0);
+                    me.getSelectionModel().select(root.firstChild);
                 }
             }
         },
@@ -601,7 +600,7 @@
             //get any configs registered by the page
             var root;
             if (nodes) {
-                root = this.reset();
+                root = this.treepanel.getRootNode();
                 Zenoss.util.each(nodes, function (node) {
                     Ext.applyIf(node, {
                         nodeType:'subselect',
@@ -617,6 +616,7 @@
             }
             this.loaded = true;
             this.fireEvent('navloaded', this, root);
+            root.expand();
             this.doLayout();
         }
     });

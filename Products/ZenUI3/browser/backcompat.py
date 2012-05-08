@@ -37,7 +37,7 @@ def Location(ob):
 
 def System(ob):
     id = '.'.join(ob.getPhysicalPath())
-    return '/zport/dmd/itinfrastructure#systems:' + id
+    return '/zport/dmd/itinfrastructure#systemsTree:' + id
 
 
 def DeviceGroup(ob):
@@ -90,7 +90,7 @@ def CustomReport(ob):
     The reportmail utility needs to get at what is the content of the
     backcompat iframe on the reports screen, and existing reportmail setups
     exist that are sending out reports using the old urls with paths
-    that resemble the model hierarchy. 
+    that resemble the model hierarchy.
 
     On the other hand, those same old model based urls exist in some places
     in the app (ZenPack provides table for instance) and need to take the user
@@ -117,4 +117,3 @@ def MibNotification(ob):
 def MibClass(ob):
     id = '/'.join(ob.getPhysicalPath())
     return '/zport/dmd/mibs#mibtree:' + id
-

@@ -22,7 +22,7 @@ Zenoss.env.initProductionStates();
 Zenoss.env.initPriorities();
 
 function selectOnRender(n, sm) {
-    sm.selectRange(n, n);
+    sm.select(n);
 }
 
 function refreshComponentTreeAndGrid(compType) {
@@ -203,33 +203,33 @@ function componentGridOptions() {
     };
 }
 
-function showComponentLockingDialog() {
-            var sel = Ext.getCmp('deviceDetailNav').treepanel.getSelectionModel().getSelectedNode();
-            REMOTE.getInfo({
-                uid: componentGridOptions().uids[0],
-                keys: ['locking', 'name']
-            }, function(result){
-                if (result.success) {
-                    var locking = result.data.locking;
-                    Ext.create('Zenoss.dialog.LockForm', {
-                        applyOptions: function(values) {
-                            Ext.apply(values, componentGridOptions());
-                        },
-                        title: _t("Lock Component"),
-                        message: result.data.name,
-                        updatesChecked: locking.updates,
-                        deletionChecked: locking.deletion,
-                        sendEventChecked: locking.events,
-                        submitFn: function(values) {
-                            REMOTE.lockComponents(values, function(response) {
-                                var grid = Ext.getCmp('component_card').componentgrid;
-                                grid.refresh();
-                            });
-                        }
-                    }).show();
-                }
-            });
-}
+    function showComponentLockingDialog() {
+        var sel = Ext.getCmp('deviceDetailNav').treepanel.getSelectionModel().getSelectedNode();
+        REMOTE.getInfo({
+            uid: componentGridOptions().uids[0],
+            keys: ['locking', 'name']
+        }, function(result){
+            if (result.success) {
+                var locking = result.data.locking;
+                Ext.create('Zenoss.dialog.LockForm', {
+                    applyOptions: function(values) {
+                        Ext.apply(values, componentGridOptions());
+                    },
+                    title: _t("Lock Component"),
+                    message: result.data.name,
+                    updatesChecked: locking.updates,
+                    deletionChecked: locking.deletion,
+                    sendEventChecked: locking.events,
+                    submitFn: function(values) {
+                        REMOTE.lockComponents(values, function(response) {
+                            var grid = Ext.getCmp('component_card').componentgrid;
+                            grid.refresh();
+                        });
+                    }
+                }).show();
+            }
+        });
+    }
 
 var componentCard = {
     xtype: 'componentpanel',
@@ -497,10 +497,8 @@ Ext.define('Zenoss.DeviceDetailNav', {
                     this.setContext(UID);
                 },
                 navloaded: function() {
-                    this.on('statesave', function(){
-                        if(!this.hasComponents) return;
-                        Ext.defer(this.loadComponents, 500, this);
-                    }, this, {single: true});
+                    if(!this.hasComponents) return;
+                    this.loadComponents();
                     Ext.History.init(function(mgr){
                         Ext.History.selectByToken(mgr.getToken());
                     });
@@ -519,16 +517,18 @@ Ext.define('Zenoss.DeviceDetailNav', {
     loadComponents: function() {
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, function(data){
-            rootNode.appendChild(Ext.Array.map(data, function(d) {
-                d.text = Ext.String.format("{0} <span title='{1}'>({2})</span>",
-                       Zenoss.component.displayName(d.text.text)[1],
-                       d.text.description, d.text.count);
-                d.action = function(node, target) {
-                    target.layout.setActiveItem('component_card');
-                    target.layout.activeItem.setContext(UID, node.get('id'));
-                };
-                return d;
-            }));
+            if (data.length) {
+                rootNode.appendChild(Ext.Array.map(data, function(d) {
+                    d.text = Ext.String.format("{0} <span title='{1}'>({2})</span>",
+                                               Zenoss.component.displayName(d.text.text)[1],
+                                               d.text.description, d.text.count);
+                    d.action = function(node, target) {
+                        target.layout.setActiveItem('component_card');
+                        target.layout.activeItem.setContext(UID, node.get('id'));
+                    };
+                    return d;
+                }));
+            }
             var card = Ext.getCmp('component_card'),
                 tbar = card.getGridToolbar();
             if (rootNode.hasChildNodes()) {
@@ -569,8 +569,8 @@ Ext.define('Zenoss.DeviceDetailNav', {
                     }
                 }
             }
-                this.doLayout();
-                this.fireEvent('componenttreeloaded');
+            this.doLayout();
+            this.fireEvent('componenttreeloaded');
         }, this);
     },
     filterNav: function(navpanel, config){
@@ -644,7 +644,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
         action(node, target);
     }
 
-})
+});
 
 
 Ext.getCmp('center_panel').add({
@@ -703,7 +703,6 @@ Ext.getCmp('center_panel').add({
                 id: 'templateTree',
                 ui: 'hierarchy',
                 detailPanelId: 'detail_card_panel'
-
             }]
         }
     },{
@@ -751,7 +750,7 @@ var editDeviceClass = function(deviceClass, uid) {
             xtype: 'combo',
             name: 'deviceClass',
             fieldLabel: _t('Select a device class'),
-            store: new Ext.data.DirectStore({
+            store: new Zenoss.NonPaginatedStore({
                 directFn: Zenoss.remote.DeviceRouter.getDeviceClasses,
                 root: 'deviceClasses',
                 fields: ['name']

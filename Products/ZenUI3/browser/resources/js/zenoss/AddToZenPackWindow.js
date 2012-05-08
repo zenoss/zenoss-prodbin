@@ -41,7 +41,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                 xtype: 'form',
                 listeners: {
                     validitychange: function(form, isValid) {
-                        Ext.getCmp('addToZenPackWindow').query('DialogButton')[0].disable(!isValid);
+                        Ext.getCmp('addToZenPackWindow').query('DialogButton')[0].setDisabled(!isValid);
                     }
                 },
                 defaults: {width: 250},

@@ -17,22 +17,22 @@
 
 Ext.define("Zenoss.IFramePanel", {
     alias:['widget.iframe'],
-    extend:"Ext.Component",
+    extend:"Ext.ux.IFrame",
     frameLoaded: false,
     testEarlyReadiness: false,
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             timeout: 5000, // Wait 5s for iframe to initialize before failing
             pollInterval: 50,
-            ignoreClassName: false,
-            autoEl: {
-                tag: 'iframe',
-                id: Ext.id(),
-                src: config.url || '',
-                frameborder: 0
-            }
+            loadMask: _t('Loading...'),
+            src: config.url || 'about:blank',
+            ignoreClassName: false
         });
         Zenoss.IFramePanel.superclass.constructor.call(this, config);
+
+    },
+    initComponent: function(){
+        this.callParent(arguments);
         this.addEvents('frameload', 'framefailed', 'isReady');
         this.on('frameload', function(win) {
             // Load any messages that may have been created by the frame
@@ -53,6 +53,7 @@ Ext.define("Zenoss.IFramePanel", {
             this.setSize(size.width - pos[0], size.height-pos[1]);
         }
     },
+
     waitForLoad: function() {
         var doc = this.getDocument(),
             currentUrl = doc ? doc.location.href : null,
@@ -98,28 +99,19 @@ Ext.define("Zenoss.IFramePanel", {
             }
         }, this)();
     },
-    getBody: function() {
-        var doc = this.getDocument();
-        return doc.body || doc.documentElement;
-    },
     getDocument: function() {
-        var window = this.getWindow();
-        return (Ext.isIE && window ? window.document : null) ||
-                this.frame.dom.contentDocument ||
-                window.frames[this.frame.dom.name].document ||
-                null;
+        return this.getDoc();
     },
     getWindow: function() {
-        return this.frame.dom.contentWindow
-                || window.frames[this.frame.dom.name];
+        return this.getWin();
     },
     setSrc: function(url) {
         this.frameLoaded = false;
         if (url == 'about:blank' || url == '') {
-            this.frame.dom.src = url;
+            this.load(url);
         } else {
-            this.frame.dom.src = Ext.urlAppend(url,
-                    '_dc=' + new Date().getTime());
+            this.load(Ext.urlAppend(url,
+                    '_dc=' + new Date().getTime()));
         }
         this.waitForLoad();
     }

@@ -61,13 +61,13 @@ Ext.define("Zenoss.model.Job", {
     extend: 'Ext.data.Model',
     idProperty: 'uuid',
     fields: [
-        'uuid', 
-        'type', 
-        'description', 
+        'uuid',
+        'type',
+        'description',
         'scheduled',
-        'started', 
+        'started',
         'finished',
-        'status', 
+        'status',
         'result'
     ]
 });
@@ -93,7 +93,7 @@ Ext.define("Zenoss.JobsWidget", {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             stateful: true,
-            stateEvents: 'update', 
+            stateEvents: 'update',
             menuAlign: 'br-tr?',
             menu: {
                 layout: 'fit',
@@ -126,12 +126,12 @@ Ext.define("Zenoss.JobsWidget", {
                         title: _t('Running jobs'),
                         store: runningJobsStore,
                         columns: [{
-                            header: 'description', 
-                            dataIndex: 'description', 
+                            header: 'description',
+                            dataIndex: 'description',
                             renderer: jobLinkRenderer
                         }, {
-                            header: 'started', 
-                            dataIndex: 'started', 
+                            header: 'started',
+                            dataIndex: 'started',
                             renderer: readableRenderer,
                             width: 150
                         }]
@@ -145,12 +145,12 @@ Ext.define("Zenoss.JobsWidget", {
                         title: _t('Pending jobs'),
                         store: pendingJobsStore,
                         columns: [{
-                            header: 'description', 
-                            dataIndex: 'description', 
+                            header: 'description',
+                            dataIndex: 'description',
                             renderer: jobLinkRenderer
                         }, {
-                            header: 'scheduled', 
-                            dataIndex: 'scheduled', 
+                            header: 'scheduled',
+                            dataIndex: 'scheduled',
                             renderer: readableRenderer,
                             width: 150
                         }]
@@ -164,13 +164,13 @@ Ext.define("Zenoss.JobsWidget", {
                         title: _t('Finished jobs'),
                         store: finishedJobsStore,
                         columns: [{
-                            header: 'description', 
-                            dataIndex: 'description', 
+                            header: 'description',
+                            dataIndex: 'description',
                             renderer: jobLinkRenderer,
                             flex: 1
                         }, {
-                            header: 'finished', 
-                            dataIndex: 'finished', 
+                            header: 'finished',
+                            dataIndex: 'finished',
                             renderer: readableRenderer,
                             width: 150
                         }]
@@ -201,7 +201,7 @@ Ext.define("Zenoss.JobsWidget", {
             if (Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.new_jobs)) {
                 Ext.each(e.result.new_jobs, function(job) {
                     this.alert_new(job);
-                }, this); 
+                }, this);
             }
         }, this);
     },
@@ -213,7 +213,7 @@ Ext.define("Zenoss.JobsWidget", {
     },
     init_tip: function() {
         var me = this,
-            klass = Ext.ClassManager.getByAlias("widget.tooltip");
+            klass = Ext.ClassManager.getByAlias("widget.tooltip"),
             tip = this.tip = Ext.create('Ext.tip.ToolTip', {
                 target: this,
                 dismissDelay: 9000,
@@ -231,7 +231,7 @@ Ext.define("Zenoss.JobsWidget", {
     },
     alert: function(msg) {
         if (this.tip.isVisible()) {
-            msg = this.tip.body.dom.innerHTML + '<br/><br/>' + msg
+            msg = this.tip.body.dom.innerHTML + '<br/><br/>' + msg;
         }
         this.tip.update(msg);
         this.tip.show();
@@ -240,7 +240,7 @@ Ext.define("Zenoss.JobsWidget", {
         this.alert("<b>New job</b>: " + job.description);
     },
     alert_finished: function(job) {
-        this.alert("<b>Finished job</b>: " + job.get('description'));
+        this.alert("<b>Finished job</b>: " + job.description);
     },
     poll: function() {
         this.update();
@@ -249,7 +249,7 @@ Ext.define("Zenoss.JobsWidget", {
     check_for_recently_finished: function(jobs) {
         if (Ext.isDefined(jobs.SUCCESS)) {
             Ext.each(jobs.SUCCESS, function(job) {
-                if (job.get('finished') >= this.lastchecked) {
+                if (job.finished >= this.lastchecked) {
                     this.alert_finished(job);
                 }
             }, this);
@@ -280,7 +280,7 @@ Ext.define("Zenoss.JobsWidget", {
             }
             Ext.getCmp('jobs-grid-finished').setVisible(jobs.SUCCESS);
             if (jobs.SUCCESS) {
-                finishedJobsStore.loadData(jobs.SUCCESS)
+                finishedJobsStore.loadData(jobs.SUCCESS);
             }
             Ext.getCmp('more-jobs-link').show();
         } else {

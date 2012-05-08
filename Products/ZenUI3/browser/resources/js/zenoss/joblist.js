@@ -28,12 +28,12 @@ function renderDate(utcseconds) {
         d.setUTCSeconds(utcseconds);
         return d.readable(1);
     }
-    return "--"
+    return "--";
 }
 
 
 Ext.getCmp('center_panel').add({
-    layout: 'border', 
+    layout: 'border',
     items: [{
         id: 'jobs',
         region: 'center',
@@ -182,10 +182,8 @@ Ext.getCmp('center_panel').add({
                     Ext.History.add('jobs:' + selected[0].data.uuid);
                 } else {
                     detail_panel.update('');
-                    try {
+                    if (detail_panel.updateTask) {
                         detail_panel.updateTask.cancel();
-                    } catch (e) {
-                        // Nothing
                     }
                 }
             },
@@ -218,18 +216,16 @@ Ext.getCmp('center_panel').add({
                 if (selected.length > 0) {
                     var index = selected[0].index;
                     view.focusRow(index);
-                    // It takes two. I have no idea why nor do I wish to 
+                    // It takes two. I have no idea why nor do I wish to
                     // spend the time to find out. One scrolls the scroller but
                     // does not update the grid. Two makes it all work.
                     view.focusRow(index);
-                }   
+                }
                 panel.poll();
             },
             collapse: function(panel) {
-                try {
+                if (panel.updateTask) {
                     panel.updateTask.cancel();
-                } catch (e) {
-                    // pass
                 }
             }
         },
@@ -239,7 +235,7 @@ Ext.getCmp('center_panel').add({
                 var html = "<b>Log file: <a href='joblog?job=" + this.jobid + "'>" + r.logfile + "</a></b><br/><br/>";
                 for (var i=0; i < r.content.length; i++) {
                     var color = i%2 ? '#b58900' : '#657B83';
-                    html += "<pre style='font-family:Monaco,monospaced;font-size:12px;color:" + 
+                    html += "<pre style='font-family:Monaco,monospaced;font-size:12px;color:" +
                         color + ";'>" + r.content[i] + '</pre>';
                 }
                 this.update(html);

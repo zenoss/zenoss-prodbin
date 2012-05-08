@@ -79,16 +79,24 @@ Ext.define("Zenoss.ConsoleBar", {
             this.moveToCenterRegion();
         }
     },
+    _getRegion: function(region) {
+        var reg = null;
+        Ext.getCmp(this.centerPanel).items.each(function(item){
+            if (item.region == region) {
+                reg = item;
+            }
+        });
+        return reg;
+    },
     moveToSouthRegion: function() {
         this.dock = "top";
-        Ext.getCmp(this.centerPanel).layout.regions.south.addDocked(this);
+        this._getRegion("south").addDocked(this);
         this.parentPanel.setHeight(this.oldHeight);
         this.parentPanel.expand();
     },
     moveToCenterRegion: function() {
         this.dock = "bottom";
-
-        Ext.getCmp(this.centerPanel).layout.regions.center.addDocked(this, 0);
+        this._getRegion("center").addDocked(this, 0);
         // remember the old height for when we expand
         this.oldHeight = Math.max(this.parentPanel.getEl().getComputedHeight(), this.parentPanel.initialConfig.height);
         this.parentPanel.collapse();

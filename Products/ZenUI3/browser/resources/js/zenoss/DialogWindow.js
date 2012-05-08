@@ -197,7 +197,6 @@ Ext.define("Zenoss.MessageDialog", {
             layout: 'fit',
             items: [ {
                 xtype: 'label',
-                id: 'message',
                 text: config.message,
                 ref: 'messagelabel'
                 } ],
@@ -262,7 +261,7 @@ Ext.define("Zenoss.FormDialog", {
         config.formListeners = config.formListeners || {};
         Ext.applyIf(config.formListeners, {
             validitychange: function(form, isValid) {
-                me.query('DialogButton')[0].disable(!isValid);
+                me.query('DialogButton')[0].setDisabled(!isValid);
             }
         });
         var form = new Ext.form.FormPanel({

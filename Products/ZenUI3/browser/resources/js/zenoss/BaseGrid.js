@@ -13,7 +13,7 @@
             Ext.applyIf(config, {
                 remoteSort:true,
                 pageSize:config.pageSize || 50,
-                buffered:true,
+                buffered: true,
                 sorters:[
                     {
                         property:config.initialSortColumn,
@@ -94,13 +94,13 @@
             grid.headerCt.on('columnmove', this.resetFilterRow, this);
             grid.headerCt.on('columnshow', this.resetFilterRow, this);
             grid.headerCt.on('columnhide', this.resetFilterRow, this);
-            if (grid.horizontalScroller) {
-                grid.horizontalScroller.on('bodyscroll', this.scrollFilterField, this);
-            }
+            // if (grid.horizontalScroller) {
+            //     grid.horizontalScroller.on('bodyscroll', this.scrollFilterField, this);
+            // }
 
-            if (grid.verticalScroller) {
-                grid.verticalScroller.on('bodyscroll', this.scrollFilterField, this);
-            }
+            // if (grid.verticalScroller) {
+            //     grid.verticalScroller.on('bodyscroll', this.scrollFilterField, this);
+            // }
 
             grid.on('columnmove', this.onGridColumnMove, this);
         },
@@ -173,14 +173,14 @@
                         col.filterField.setVisible(!col.hidden);
                     }
                 }
-                if(Zenoss.SELENIUM){ 
-                    col.filterField.on('afterrender', function(e){ 
+                if(Zenoss.SELENIUM){
+                    col.filterField.on('afterrender', function(e){
                         if(Ext.getCmp(e.id).inputEl){
-                            /*  add an id to the input element of filters if 
+                            /*  add an id to the input element of filters if
                                 it has one. If not, don't worry about it.
                                 example: events_grid-filter-devices-input
                                 -- for selenium automation --
-                            */ 
+                            */
                             var filterInput = Ext.getCmp(e.id).inputEl;
                             filterInput.dom.id = e.id+"-input";
                         }
@@ -414,7 +414,7 @@
                 }
             }, this);
             // once a uid is set always send that uid
-            this.getStore().on('beforeload', function (store, operation) {
+            this.getStore().on('beforeprefetch', function (store, operation) {
                 if (!operation) {
                     return true;
                 }
@@ -538,17 +538,9 @@
             store.load({
                 callback:function () {
                     if (store.getCount()) {
-                        // set store's internal cached of guaranteed records, so that
-                        // the guaranteeRange call below (which sets the view correctly)
-                        // doesn't have to fetch the record again
-                        store.prefetchData.addAll(store.data.items);
                         // -1 so we don't prefetch multiple pages, we just need one until the user
                         // scrolls down a bit more
                         store.guaranteeRange(0, store.pageSize - 1);
-                    } else{
-                        // if no records were returned then ExtJs doesn't handle
-                        // the scroll bar right, so this helps it along
-                        this.forceComponentLayout();
                     }
                     // Add a callback if one was passed in to here.
                     Ext.callback(callback, scope || this);
@@ -626,13 +618,13 @@
 
     /**
      * @class Zenoss.LiveGridInfoPanel
-     * @extends Ext.Toolbar.TextItem
+     * @extends Ext.toolbar.TextItem
      * Toolbar addition that displays, e.g., "Showing 1-10 of 100 Rows"
      * @constructor
      * @grid {Object} the GridPanel whose information should be displayed
      */
     Ext.define('Zenoss.LiveGridInfoPanel', {
-        extend:'Ext.Toolbar.TextItem',
+        extend:'Ext.toolbar.TextItem',
         alias:['widget.livegridinfopanel'],
         displayMsg:'Displaying {0} - {1} of {2} Rows',
         emptyMsg:'No Results',

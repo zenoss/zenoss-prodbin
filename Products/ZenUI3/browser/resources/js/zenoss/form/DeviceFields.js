@@ -24,7 +24,7 @@
         constructor: function(config) {
             config = Ext.applyIf(config || {}, {
                 queryMode: config.autoLoad !== false ? 'local':'remote',
-                store: new Zenoss.DirectStore({
+                store: new Zenoss.NonPaginatedStore({
                     directFn: config.directFn,
                     root: config.root || 'data',
                     model: config.model || 'Zenoss.model.NameValue',
@@ -99,7 +99,7 @@
             config = Ext.apply(config || {}, {
                 text:'...',
                 cls: 'x-btn x-btn-default-toolbar-small',
-                store: new Zenoss.DirectStore({
+                store: new Zenoss.NonPaginatedStore({
                     directFn: Zenoss.remote.DeviceRouter.getPriorities,
                     root: 'data',
                     autoLoad: false,
@@ -153,7 +153,7 @@
 
 
     Ext.define("Zenoss.devices.ManufacturerDataStore", {
-        extend:"Zenoss.DirectStore",
+        extend:"Zenoss.NonPaginatedStore",
         constructor: function(config) {
             config = config || {};
             var router = config.router || Zenoss.remote.DeviceRouter;
@@ -169,7 +169,7 @@
     });
 
     Ext.define("Zenoss.devices.OSProductDataStore", {
-        extend:"Zenoss.DirectStore",
+        extend:"Zenoss.NonPaginatedStore",
         constructor: function(config) {
             config = config || {};
             var router = config.router || Zenoss.remote.DeviceRouter;
@@ -185,7 +185,7 @@
     });
 
     Ext.define("Zenoss.devices.HWProductDataStore", {
-        extend:"Zenoss.DirectStore",
+        extend:"Zenoss.NonPaginatedStore",
         constructor: function(config) {
             config = config || {};
             var router = config.router || Zenoss.remote.DeviceRouter;

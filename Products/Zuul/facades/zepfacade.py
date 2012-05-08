@@ -528,7 +528,7 @@ class ZepFacade(ZuulFacade):
         for tag in eventTagSeverities:
             for sev in tag.severities:
                 if sev.severity not in ignore:
-                    severities[tag.tag_uuid] = max(sev.severity, severities[tag.tag_uuid])
+                    severities[tag.tag_uuid] = max(sev.severity, severities.get(tag.tag_uuid, 0))
         return severities
 
     def getSeverityName(self, severity):

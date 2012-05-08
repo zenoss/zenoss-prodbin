@@ -12,7 +12,7 @@
         permission="zope2.Public"
         />
 
-<browser:viewlet
+    <browser:viewlet
         name="extjs-all"
         weight="2"
         manager=".interfaces.IJavaScriptSrcManager"
@@ -37,10 +37,9 @@
         manager=".interfaces.IJavaScriptSrcManager"
         permission="zope2.Public"
         class=".javascript.JavaScriptSrcBundleViewlet"
-        paths=" /++resource++extjs/examples/ux/layout/component/form/MultiSelect.js
-               /++resource++extjs/examples/ux/layout/component/form/ItemSelector.js
-               /++resource++extjs/examples/ux/form/MultiSelect.js
+        paths="/++resource++extjs/examples/ux/form/MultiSelect.js
                /++resource++extjs/examples/ux/form/ItemSelector.js
+               /++resource++extjs/examples/ux/IFrame.js
                /++resource++extjs/examples/ux/RowExpander.js"
         />
 

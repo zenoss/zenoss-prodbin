@@ -31,8 +31,7 @@
             type: 'string'
         },
         {
-            name: 'text',
-            type: 'object'
+            name: 'text'
         },
         {
             name: 'id',
