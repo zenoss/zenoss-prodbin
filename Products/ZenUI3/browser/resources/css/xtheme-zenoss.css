@@ -9008,6 +9008,9 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-toolbar td, .x-toolbar span, .x-toolbar input, .x-toolbar div, .x-toolbar select, .x-toolbar label {
   font-size: 11px; }
 
+.subselect-head {
+  background-image: url("../img/xtheme-zenoss/toolbar/bg-subselect.png");
+  line-height: 37px; }
 .subselect-head .x-toolbar-text {
   font-weight: bold;
   font-size: 13px; }
@@ -10063,10 +10066,9 @@ CORE TRIGGER PAGE STUFF
 
 .x-menu-item-link {
   display: block;
-  padding: 0px 2px 0;
+  padding: 3px 21px 3px 27px;
   margin: 2px;
   text-decoration: none !important;
-  line-height: 11px;
   cursor: default; }
 
 .x-opera .x-menu-item-link {
@@ -10080,8 +10082,7 @@ CORE TRIGGER PAGE STUFF
 
 .x-menu-item-text {
   position: relative;
-  color: #222222;
-  top: -3px; }
+  color: #222222; }
 
 .x-menu-item-checked .x-menu-item-icon {
   background-image: url('../img/xtheme-zenoss/menu/checked.gif'); }

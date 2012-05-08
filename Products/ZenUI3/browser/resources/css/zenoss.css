@@ -1495,3 +1495,12 @@ table {
 .x-toolbar-separator{
     border-width:1px !important;
 }
+#master_panel .x-toolbar-default{
+    background-image: url("../img/xtheme-zenoss/toolbar/bg-subselect.png") !important;     
+}  
+#master_panel .x-hierarchy-search{
+    top:4px !important; left:5px !important;
+}
+.x-window-body, .x-window-body .x-form-item-label{
+    color:#fafafa;
+}

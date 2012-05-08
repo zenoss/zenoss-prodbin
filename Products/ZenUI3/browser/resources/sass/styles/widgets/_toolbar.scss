@@ -25,11 +25,13 @@
         }    
     }    
     .subselect-head{
+        background-image: url("../img/xtheme-zenoss/toolbar/bg-subselect.png");
+        line-height: 37px;    
         .#{$prefix}toolbar-text{
             font-weight:bold;
             font-size:13px;
         }        
-    } 
+    }
    
     /* consolebar overrides */
     #NetworkDetailCardPanel{

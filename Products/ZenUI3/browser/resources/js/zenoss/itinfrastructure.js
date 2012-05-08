@@ -899,6 +899,10 @@ var devtree = {
     nodeName: 'Device',
     listeners: {
         render: initializeTreeDrop,
+        viewready: function(t){
+            // fixes 20000px width bug on the targetEl div bug in Ext
+            t.ownerCt.ownerCt.searchfield.container.setWidth(t.body.getWidth())
+        },
         filter: function(e) {
             Ext.getCmp('locs').filterTree(e);
             Ext.getCmp('groups').filterTree(e);
@@ -1398,7 +1402,7 @@ function getOrganizerFields(mode) {
     if ( mode == 'add' ) {
         items.push({
             xtype: 'textfield',
-            id: 'id',
+            id: 'add_id',
             name: 'id',
             fieldLabel: _t('Name'),
             anchor: '80%',
