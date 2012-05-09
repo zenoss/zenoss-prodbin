@@ -901,7 +901,7 @@ var devtree = {
         render: initializeTreeDrop,
         viewready: function(t){
             // fixes 20000px width bug on the targetEl div bug in Ext
-            t.ownerCt.ownerCt.searchfield.container.setWidth(t.body.getWidth())
+            t.ownerCt.ownerCt.searchfield.container.setWidth(t.body.getWidth());
         },
         filter: function(e) {
             Ext.getCmp('locs').filterTree(e);

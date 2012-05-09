@@ -10151,6 +10151,7 @@ CORE TRIGGER PAGE STUFF
 .x-flare {
   width: 100%;
   line-height: 30px;
+  height: 35px !important;
   color: #282828;
   font-size: 11px;
   padding-left: 15px;
@@ -10470,11 +10471,11 @@ CORE TRIGGER PAGE STUFF
   word-wrap: break-word; }
 
 .x-flare-header {
-  left: auto !important;
   right: 15px !important;
-  width: 15px !important; }
+  width: 15px !important;
+  z-index: 0; }
 .x-flare-header .x-tool {
-  left: 0px !important; }
+  margin-right: 15px !important; }
 
 #category_tree-body {
   background-color: transparent !important; }

@@ -102,6 +102,12 @@
                     fl.alignTo(Ext.getBody(), 'tl-tl');
                 });
             }
+            if(Ext.isIE){
+                flare.on('afterrender', function(fl){
+                // ie isn't calc width correct. must set after render to known width
+                       fl.setWidth(fl.getWidth());
+                });
+            }
             if(Zenoss.SELENIUM){
                 flare.on('afterrender', function(fl){
                     fl.getEl().query('.x-flare-message')[0].id = "flare-message-span";

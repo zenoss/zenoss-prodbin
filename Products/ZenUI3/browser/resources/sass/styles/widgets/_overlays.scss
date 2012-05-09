@@ -55,14 +55,13 @@
 
 
 @mixin zenoss-flares {
-
-
     .#{$prefix}flare {
         div{
             background: transparent;
         }
         width: 100%;
         line-height: 30px;
+        height:35px !important;
         color: #282828;
         font-size: 11px;
         padding-left: 15px;

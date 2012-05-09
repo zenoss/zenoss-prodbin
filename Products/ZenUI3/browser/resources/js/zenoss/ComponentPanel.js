@@ -162,11 +162,35 @@ Zenoss.nav.register({
             if (tbar._btns) {
                 Ext.each(tbar._btns, tbar.remove, tbar);
             }
+
             var btns = tbar.add([
                 '-',
-                ZEvActions.acknowledge,
-                ZEvActions.close,
-                ZEvActions.refresh,
+                new Zenoss.ActionButton({
+                    iconCls: 'acknowledge',
+                    tooltip: _t('Acknowledge events'),
+                    permission: 'Manage Events',
+                    handler: function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.acknowledge);
+                    }
+                }),
+                new Zenoss.ActionButton({
+                    iconCls: 'close',
+                    tooltip: _t('Close events'),
+                    permission: 'Manage Events',
+                    handler: function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
+                    }
+                }),
+                new Zenoss.ActionButton({
+                    iconCls: 'refresh',
+                    permission: 'View',
+                    tooltip: _t('Refresh events'),
+                    handler: function(btn) {
+                        var grid = btn.grid || this.ownerCt.ownerCt;
+                        if(grid.getComponent("event_panel")) grid = grid.getComponent("event_panel");
+                        grid.refresh();
+                    }
+                }),            
                 '-',
                 new Zenoss.ActionButton({
                     iconCls: 'newwindow',
@@ -189,6 +213,7 @@ Zenoss.nav.register({
                     }
                 })
             ]);
+
             tbar.doLayout();
             tbar._btns = btns;
             combo.on('select', function(c, selected){
@@ -362,7 +387,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                             ];
                             return (Ext.Array.indexOf(excluded, cfg.id)==-1);
                         },
-                        ref: '../../componentnav',
+                        ref: '../../componentnavcombo',
                         getTarget: Ext.bind(function() {
                             return this.detailcontainer;
                         }, this)
@@ -400,21 +425,21 @@ Ext.define("Zenoss.component.ComponentPanel", {
                     },
                     rangeselect: function(sm) {
                         this.detailcontainer.removeAll();
-                        this.componentnav.reset();
+                        this.componentnavcombo.reset();
                     },
                     selectionchange: function(sm, selected) {
-                        // top grid selection change
+                        // top grid selection change         
                         var row = selected[0];
                         if (row) {
                             Zenoss.env.compUUID = row.data.uuid;
-                            this.componentnav.setContext(row.data.uid);
+                            this.componentnavcombo.setContext(row.data.uid); 
                             var delimiter = Ext.History.DELIMITER,
                                 token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
                             Ext.History.add(token + delimiter + row.data.uid);
                             Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.usesMonitorAttribute);
                         } else {
                             this.detailcontainer.removeAll();
-                            this.componentnav.reset();
+                            this.componentnavcombo.reset();
                         }
                     },
                     scope: this
@@ -541,7 +566,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 this.getSelectionModel().selectRange(0, 0);
                 // Ext, for some reason, doesn't fire selectionchange at this
                 // point, so we'll do it ourselves.
-                this.fireEvent('selectionchange', this, this.getSelectionModel().getSelection());
+               this.fireEvent('selectionchange', this, this.getSelectionModel().getSelection());
             }
         }, this, {single:true});
         this.callParent(arguments);

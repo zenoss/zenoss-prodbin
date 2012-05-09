@@ -734,7 +734,7 @@
                 this.displayField = 'text';
                 this.list = null;
                 this.doComponentLayout();
-                // "sticky" menu selection, show same item as was shown for last context
+                // "sticky" menu selection, show same item as was shown for last context                
                 this.selectByItem(this.lastSelItem);
             }, this);
         }

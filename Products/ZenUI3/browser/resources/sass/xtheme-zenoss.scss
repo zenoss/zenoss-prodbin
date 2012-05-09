@@ -193,10 +193,12 @@ $include-missing-images: true;
 
 // fixing a situation where links in the flares arent clickable due to the header overlay.
 .x-flare-header{
-        left:auto !important;
         right:15px !important;
         width:15px !important;
-        .x-tool{ left:0px !important; }
+        z-index:0;
+       .x-tool{ 
+            margin-right:15px !important;
+       }
 }
 
 #category_tree-body{
