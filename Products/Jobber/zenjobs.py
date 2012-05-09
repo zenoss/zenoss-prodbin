@@ -29,6 +29,8 @@ except ImportError:
 
 class CeleryZenJobs(ZenDaemon):
 
+    mname = 'zenjobs' # For logging
+
     def __init__(self, *args, **kwargs):
         ZenDaemon.__init__(self, *args, **kwargs)
         self.setup_celery()
