@@ -26,14 +26,14 @@ log = logging.getLogger("zen.DaemonStats")
 def fullname(partial):
     return zenPath('perf', partial + '.rrd')
 
-class DaemonStats:
+class DaemonStats(object):
     "Utility for a daemon to write out internal performance statistics"
 
-    name = ""
-    monitor = ""
-    rrdCreateCommand = ""
-
     def __init__(self):
+        self.name = ""
+        self.monitor = ""
+        self.rrdCreateCommand = ""
+
         self.thresholds = Thresholds()
 
 

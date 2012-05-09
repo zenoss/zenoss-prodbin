@@ -104,6 +104,8 @@ class PingResult(object):
             starttime = hostTree.attrib.get('starttime', None)
             if starttime is not None:
                 timestamp = int(starttime)
+        except KeyError:
+            return None
         except Exception as ex:
             traceback = format_exc()
             log.debug("Error parsing timestamp %s %s " % (ex, traceback))

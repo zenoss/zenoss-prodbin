@@ -17,6 +17,7 @@ Base for daemons that connect to zenhub
 
 """
 
+import cPickle as pickle
 import collections
 import sys
 import time
@@ -28,6 +29,7 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
+from Products.ZenUtils.Utils import zenPath, atomicWrite
 from Products.ZenUtils.Driver import drive
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
                                                 Clear, Warning
@@ -151,6 +153,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.stopped = False
         self._eventStatus = {}
         self._eventStatusCount = collections.defaultdict(int)
+        self.counters = collections.Counter()
+        self.loadCounters()
+        self._heartbeatEvent = None
+        self._performanceEventsQueue = None 
 
     def gotPerspective(self, perspective):
         """
@@ -261,10 +267,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         pass
 
     def run(self):
+        self.rrdStats.config(self.options.monitor, self.name, [])
         self.log.debug('Starting PBDaemon initialization')
         d = self.connect()
         def callback(result):
             self.sendEvent(self.startEvent)
+            self.heartbeat()
             self.pushEventsLoop()
             self.log.debug('Calling connected.')
             self.connected()
@@ -288,6 +296,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         def stopNow(ignored):
             if reactor.running:
                 try:
+                    self.saveCounters()
                     reactor.stop()
                 except ReactorNotRunning:
                     self.log.debug("Tried to stop reactor that was stopped")
@@ -313,6 +322,21 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         map(self.sendEvent, events)
         
     def sendEvent(self, event, **kw):
+        ''' Add event to queue of events to be sent.  If we have an event
+        service then process the queue.
+        '''
+        generatedEvent = self.generateEvent(event, **kw)
+        if generatedEvent:
+            self.eventQueue.append(generatedEvent)
+            self.counters['eventCount'] += 1 
+            self.log.debug("Queued event (total of %d) %r",
+                       len(self.eventQueue),
+                       event)
+
+            # keep the queue in check, but don't trim it all the time
+            self._trimEventQueue(maxOver=self.options.eventflushchunksize)
+
+    def generateEvent(self, event, **kw):
         ''' Add event to queue of events to be sent.  If we have an event
         service then process the queue.
         '''
@@ -343,77 +367,124 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                     and self._eventStatusCount[statusKey] % self.options.duplicateclearinterval != 0:
                     self.log.debug("duplicateclearinterval dropping useless clear event %r", event)
                     return
-        self.eventQueue.append(event)
-        self.log.debug("Queued event (total of %d) %r",
-                       len(self.eventQueue),
-                       event)
+        return event 
+
+    def _trimEventQueue(self, maxOver=0):
+        queueLen = len(self.eventQueue)
+        if queueLen > (self.options.maxqueuelen + maxOver):
+            diff = queueLen - self.options.maxqueuelen
+            self.log.error(
+                'Discarding oldest %d events because maxqueuelen was '
+                'exceeded: %d/%d',
+                queueLen - self.options.maxqueuelen,
+                queueLen, self.options.maxqueuelen)
+            self.counters['discardedEvents'] += diff
+            self.eventQueue = self.eventQueue[diff:]
+
+    @property
+    def _performanceEvents(self):
+        if self._performanceEventsQueue is None:
+            self._performanceEventsQueue = collections.deque(maxlen=self.options.maxqueuelen)
+        return self._performanceEventsQueue
+      
+    def _getPerformanceEventsChunk(self):
+        events = []
+        for i in xrange(0, min(len(self._performanceEvents), self.options.eventflushchunksize)):
+            events.append(self._performanceEvents.pop())
+        return events
 
     def pushEventsLoop(self):
         """Periodially, wake up and flush events to ZenHub.
         """
         reactor.callLater(self.options.eventflushseconds, self.pushEventsLoop)
         drive(self.pushEvents)
-        
+   
         # Record the number of events in the queue every 5 minutes.
         now = time.time()
         if self.rrdStats.name and now >= (self.lastStats + 300):
             self.lastStats = now
-            self.sendEvents(self.rrdStats.gauge('eventQueueLength',
-                300, len(self.eventQueue)))
+            events = self.rrdStats.gauge('eventQueueLength',
+                300, len(self.eventQueue))
+            self._performanceEvents.extendleft(events)
 
     def pushEvents(self, driver):
         """Flush events to ZenHub.
         """
+        # are we already shutting down?
+        if not reactor.running:
+            return
+        if self._sendingEvents:
+            return
         try:
-            # Set a maximum size on the eventQueue to avoid consuming all RAM.
-            queueLen = len(self.eventQueue)
-            if queueLen > self.options.maxqueuelen:
-                self.log.error(
-                    'Discarding oldest %d events because maxqueuelen was '
-                    'exceeded: %d/%d',
-                    queueLen - self.options.maxqueuelen,
-                    queueLen, self.options.maxqueuelen)
-                diff = queueLen - self.options.maxqueuelen
-                self.eventQueue = self.eventQueue[diff:]
-
-            # are we already shutting down?
-            if not reactor.running:
-                return
-            if self._sendingEvents:
-                return
             # try to send everything we have, serially
             self._sendingEvents = True
-            while self.eventQueue:
+            while len(self.eventQueue) or self._heartbeatEvent or len(self._performanceEvents):
+
                 # are still connected to ZenHub?
                 evtSvc = self.services.get('EventService', None)
-                if not evtSvc: break
+                if not evtSvc: 
+                    self.log.error("No event service: %r", evtSvc)
+                    break
                 # send the events in large bundles, carefully reducing
                 # the eventQueue in case we get in here more than once
                 chunkSize = self.options.eventflushchunksize
                 events = self.eventQueue[:chunkSize]
                 self.eventQueue = self.eventQueue[chunkSize:]
+
+                performanceEvents = self._getPerformanceEventsChunk()
+
                 # send the events and wait for the response
-                yield evtSvc.callRemote('sendEvents', events)
+                heartBeat = [self._heartbeatEvent] if self._heartbeatEvent else []
+
+                self.log.debug("Sending %d events, %d perfevents, %d heartbeats.", len(events), len(performanceEvents), len(heartBeat))
+                yield evtSvc.callRemote('sendEvents', events + heartBeat + performanceEvents)
                 try:
                     driver.next()
+                    performanceEvents = []
+                    events = []
                 except ConnectionLost, ex:
                     self.log.error('Error sending event: %s' % ex)
                     self.eventQueue = events + self.eventQueue
+                    performanceEvents.reverse()
+                    self._performanceEvents.extend(performanceEvents)
                     break
-            self._sendingEvents = False
+                self._heartbeatEvent = None
         except Exception, ex:
-            self._sendingEvents = False
             self.log.exception(ex)
+        finally:
+            self._sendingEvents = False
 
     def heartbeat(self):
         'if cycling, send a heartbeat, else, shutdown'
         if not self.options.cycle:
             self.stop()
             return
-        self.sendEvent(self.heartbeatEvent, timeout=self.heartbeatTimeout)
+        self._heartbeatEvent = self.generateEvent(self.heartbeatEvent, timeout=self.heartbeatTimeout)
         # heartbeat is normally 3x cycle time
         self.niceDoggie(self.heartbeatTimeout / 3)
 
+        events = []
+        # save daemon counter stats
+        for name, value in self.counters.items():
+            self.log.info("Counter %s, value %d", name, value)
+            events += self.rrdStats.counter(name, 300, value)
+        self.sendEvents(events)
+
+        # persist counters values
+        self.saveCounters()
+
+    def saveCounters(self):
+        atomicWrite(
+            zenPath('var/%s_counters.pickle' % self.name),
+            pickle.dumps(self.counters),
+            raiseException=False,
+        )
+
+    def loadCounters(self):
+        try:
+            self.counters = pickle.load(open(zenPath('var/%s_counters.pickle'% self.name)))
+        except Exception:
+            pass
 
     def remote_getName(self):
         return self.name

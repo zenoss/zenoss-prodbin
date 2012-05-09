@@ -241,3 +241,5 @@ import setDefaultsOnEmailNotifications
 import fixEmailNotificationClearSubjectFormat
 import discoveryMaxOidsPerRequest
 import jobmanager_jobs_delete
+import addDiscardedEventsRate
+
