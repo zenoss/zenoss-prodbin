@@ -1504,7 +1504,7 @@ table {
 #master_panel .x-hierarchy-search{
     top:4px !important; left:5px !important;
 }
-.x-window-body, .x-window-body .x-form-item-label{
+.x-window-body, .x-window-body .x-form-item-label, .x-window-body .x-form-cb-label{
     color:#fafafa;
 }
 #footer_extra{

@@ -39,16 +39,20 @@
              items: [{
                  aliasType: 'id',
                  xtype: 'textfield',
+                 width:'150',
                  value: id
              },{
                  aliasType: 'formula',
                  xtype: 'textfield',
+                 width:'150',
+                 style: {'margin-left':'10px;'},                 
                  value: formula
              },{
                  xtype: 'button',
                  ui: 'dialog-dark',
                  text: 'Delete',
                  width: '10',
+                 style: {'margin-left':'10px;'},
                  handler: function() {
                      var container = this.findParentByType('container'),
                          cmp = that;
@@ -76,7 +80,7 @@
              items.push({
                 xtype: 'panel',
                 layout: 'anchor',
-                html: _t('ID / FORMULA')
+                html: _t('Alias:<br>ID / FORMULA')
              });
              config = config || {};
              // add a row for each alias defined
