@@ -35,6 +35,7 @@ class Portlet(ZenModelRM):
     by a PortletManager object.
     """
     source = ''
+    height = 200
 
     portal_type = meta_type = 'Portlet'
 
