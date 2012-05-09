@@ -11,7 +11,7 @@
 #
 ###########################################################################
 import Migrate
-from Products.ZenUtils.Utils import safe_hasattr as hasattr
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 class JobsDelete(Migrate.Step):
     version = Migrate.Version(4, 2, 0)
