@@ -676,14 +676,14 @@ class ZenHub(ZCmdBase):
 
     def saveCounters(self):
         atomicWrite(
-            zenPath('var/zenhub_counters.pickle'),
+            zenPath('var/zenhub_%s_counters.pickle' % self.name),
             pickle.dumps(self.counters),
             raiseException=False,
         )
 
     def loadCounters(self):
         try:
-            self.counters = pickle.load(open(zenPath('var/zenhub_counters.pickle')))
+            self.counters = pickle.load(open(zenPath('var/zenhub_%s_counters.pickle' % self.name)))
         except Exception:
             pass
 

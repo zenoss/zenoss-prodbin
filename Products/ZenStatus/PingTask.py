@@ -207,8 +207,7 @@ class PingTask(BaseTask):
                 evt['lastTraceroute'] = str(self._pingResult.trace)
 
         if rootCause:
-            devId = rootCause._devid
-            evt['rootCause'] = devId
+            evt['rootCause'] = rootCause
             evt['eventState'] = SUPPRESSED
 
         # mark this event with a flag if it applies to the managedIp component

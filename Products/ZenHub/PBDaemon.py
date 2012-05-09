@@ -17,6 +17,7 @@ Base for daemons that connect to zenhub
 
 """
 
+import cPickle as pickle
 import collections
 import sys
 import time
@@ -28,6 +29,7 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
+from Products.ZenUtils.Utils import zenPath, atomicWrite
 from Products.ZenUtils.Driver import drive
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
                                                 Clear, Warning
@@ -151,6 +153,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.stopped = False
         self._eventStatus = {}
         self._eventStatusCount = collections.defaultdict(int)
+        self.counters = collections.Counter()
+        self.loadCounters()
 
     def gotPerspective(self, perspective):
         """
@@ -285,9 +289,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self._customexitcode = exitcode
 
     def stop(self, ignored=''):
+        self.saveCounters()
         def stopNow(ignored):
             if reactor.running:
                 try:
+                    self.saveCounters()
                     reactor.stop()
                 except ReactorNotRunning:
                     self.log.debug("Tried to stop reactor that was stopped")
@@ -343,10 +349,34 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                     and self._eventStatusCount[statusKey] % self.options.duplicateclearinterval != 0:
                     self.log.debug("duplicateclearinterval dropping useless clear event %r", event)
                     return
+
+        # drop heartbeat events if qevent queue is full 
+        queueLen = len(self.eventQueue)
+        if event.get('eventClass', None) == Heartbeat and \
+            queueLen >= self.options.maxqueuelen:
+            self.log.warn("Discarding heartbeat event because "
+                "queue is at capacity: %d", queueLen)
+            return
+
         self.eventQueue.append(event)
+        self.counters['eventCount'] += 1 
         self.log.debug("Queued event (total of %d) %r",
                        len(self.eventQueue),
                        event)
+
+        # keep the queue in check, but don't trim it all the time
+        self._trimEventQueue(maxOver=self.options.eventflushchunksize)
+
+    def _trimEventQueue(self, maxOver=0):
+        queueLen = len(self.eventQueue)
+        if queueLen > (self.options.maxqueuelen + maxOver):
+            self.log.error(
+                'Discarding oldest %d events because maxqueuelen was '
+                'exceeded: %d/%d',
+                queueLen - self.options.maxqueuelen,
+                queueLen, self.options.maxqueuelen)
+            self.counters['discardedEvents'] += diff
+            self.eventQueue = self.eventQueue[diff:]
 
     def pushEventsLoop(self):
         """Periodially, wake up and flush events to ZenHub.
@@ -366,15 +396,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         try:
             # Set a maximum size on the eventQueue to avoid consuming all RAM.
-            queueLen = len(self.eventQueue)
-            if queueLen > self.options.maxqueuelen:
-                self.log.error(
-                    'Discarding oldest %d events because maxqueuelen was '
-                    'exceeded: %d/%d',
-                    queueLen - self.options.maxqueuelen,
-                    queueLen, self.options.maxqueuelen)
-                diff = queueLen - self.options.maxqueuelen
-                self.eventQueue = self.eventQueue[diff:]
+            self._trimEventQueue()
 
             # are we already shutting down?
             if not reactor.running:
@@ -400,10 +422,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                     self.log.error('Error sending event: %s' % ex)
                     self.eventQueue = events + self.eventQueue
                     break
-            self._sendingEvents = False
         except Exception, ex:
-            self._sendingEvents = False
             self.log.exception(ex)
+        finally:
+            self._sendingEvents = False
 
     def heartbeat(self):
         'if cycling, send a heartbeat, else, shutdown'
@@ -414,6 +436,27 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         # heartbeat is normally 3x cycle time
         self.niceDoggie(self.heartbeatTimeout / 3)
 
+        events = []
+        # save daemon counter stats
+        for name, value in self.counters.items():
+            events += self.rrdStats.counter(name, self.heartbeatTimeout, value)
+        self.sendEvents(events)
+
+        # persist counters values
+        self.saveCounters()
+
+    def saveCounters(self):
+        atomicWrite(
+            zenPath('var/%s_counters.pickle' % self.name),
+            pickle.dumps(self.counters),
+            raiseException=False,
+        )
+
+    def loadCounters(self):
+        try:
+            self.counters = pickle.load(open(zenPath('var/%s_counters.pickle'% self.name)))
+        except Exception:
+            pass
 
     def remote_getName(self):
         return self.name
