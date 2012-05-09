@@ -626,8 +626,6 @@
     Ext.define('Zenoss.LiveGridInfoPanel', {
         extend:'Ext.toolbar.TextItem',
         alias:['widget.livegridinfopanel'],
-        displayMsg:'Displaying {0} - {1} of {2} Rows',
-        emptyMsg:'No Results',
         cls:'livegridinfopanel',
         initComponent:function () {
             this.setText(this.emptyMsg);
@@ -639,53 +637,41 @@
                 //  1.  The data in the data store changes
                 //  2.  The user scrolls.
                 this.grid.getStore().on('datachanged', this.onDataChanged, this);
-                this.grid.getView().on('bodyscroll', this.onDataChanged, this);
+                this.grid.getView().on('bodyscroll', this.onScroll, this);
             }
+
+            this.displayMsg = _t('Displaying {0} - {1} of {2} Rows');
+            this.emptyMsg = _t('No Results');
             this.callParent(arguments);
         },
         onDataChanged:function () {
             var totalCount = this.grid.getStore().getTotalCount();
-            var start = -1;
-            var end = -1;
+            this.totalCount = totalCount;
             if (totalCount && totalCount > 0) {
-                // need to find out not just what is in the store but what is actually being displayed.
-                // let's hook into the paging grid scroller for information.
-                var pagingScroller;
-                var pagingScrollerArray = this.grid.getDockedItems("paginggridscroller");
-                if (pagingScrollerArray && pagingScrollerArray.length > 0) {
-                    pagingScroller = pagingScrollerArray[0];
-                }
-                if (pagingScroller) {
-                    // If a user hasn't scrolled at all, then we won't have
-                    // the visible Start and visible End fields yet,
-                    // if we do, just use them.
-                    if (pagingScroller.visibleStart) {
-                        start = pagingScroller.visibleStart + 1;  // users don't like counting from 0
-                        end = pagingScroller.visibleEnd;
-                    } else {
-                        // If we haven't scrolled yet then we need to manually calculate
-                        // how many records are here.
-                        start = 1;
-                        // This code stolen from   ExtJS 4 source code for calculating the rows
-                        var visibleHeight = pagingScroller.getPanel().down("tableview").el.getHeight();
-                        var rowHeight = pagingScroller.rowHeight;
-                        end = Math.ceil(visibleHeight / rowHeight);
-                    }
-                    // Do a little clean up to make sure our calculated end isn't greater than our actual end
-                    if(totalCount < pagingScroller.visibleEnd){
-                        end = totalCount;
-                    }
-                    var msg = Ext.String.format(this.displayMsg, start, end, totalCount);
-                    this.setText(_t(msg));
-                } else {
-                    // Drat, we didn't have the paging scroller, so assume we are showing all
-                    var showingAllMsg = 'Found {0} records';
-                    var msg = Ext.String.format(showingAllMsg, totalCount);
-                    this.setText(_t(msg));
-                }
+                this.onScroll();
             } else {
-                this.setText(_t(this.emptyMsg));
+                this.setText(this.emptyMsg);
             }
+        },
+        onScroll: function() {
+            var pagingScroller = this.grid.verticalScroller;
+
+            if (pagingScroller) {
+                var  start = pagingScroller.getFirstVisibleRowIndex() || 0,
+                     end = pagingScroller.getLastVisibleRowIndex(),
+                     msg;
+                if (end > this.totalCount) {
+                    end = this.totalCount;
+                }
+                msg = Ext.String.format(this.displayMsg, start + 1, end, this.totalCount);
+                this.setText(msg);
+            } else {
+                // Drat, we didn't have the paging scroller, so assume we are showing all
+                var showingAllMsg = _t('Found {0} records');
+                var msg = Ext.String.format(showingAllMsg, this.totalCount);
+                this.setText(msg);
+            }
+
         }
     });
 

@@ -363,14 +363,6 @@
        }
     }); */
 
-    /**
-     * This is a workaround to make scrolling smoother
-     **/
-
-    Ext.override(Ext.grid.PagingScroller, {
-        // The default fetch percent is 35% this is a little too early for a smooth scrolling experience
-       percentageFromEdge: 0.15
-   });
 
    /**
     * workaround for scrollbars missing in IE. IE ignores the parent size between parent and child
