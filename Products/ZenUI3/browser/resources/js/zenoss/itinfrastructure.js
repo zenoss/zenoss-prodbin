@@ -1326,7 +1326,8 @@ Ext.getCmp('center_panel').add({
             items: [{
                 xtype: 'infradetailnav',
                 id: 'detail_nav',
-                padding: '0 0 10px 0'
+                padding: '0 0 10px 0',
+                style: {'position':'relative', 'top':'25px'}
             }, {
                 xtype: 'montemplatetreepanel',
                 id: 'templateTree',
