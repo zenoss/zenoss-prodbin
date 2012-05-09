@@ -65,8 +65,8 @@ class PortletManager(ZenModelRM):
         """
         p = self.find(id, sourcepath)
         if p:
-            old_values = (p.sourcepath, p.id, p.title, p.description, p.preview, p.height, p.permission)
-            new_values = (sourcepath, id, title, description, preview, height, permission)
+            old_values = (p.sourcepath, p.id, p.title, p.description, p.preview, p.permission)
+            new_values = (sourcepath, id, title, description, preview, permission)
             if old_values == new_values:
                 # Portlet unchanged - don't re-register
                 return
