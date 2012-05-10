@@ -224,7 +224,7 @@ Ext.define("Zenoss.BindTemplatesItemSelector", {
             drawTopIcon: false,
             drawBotIcon: false,
             displayField: 'name',
-            width: 400,
+            width: 380,
             valueField: 'id',
             store:  Ext.create('Ext.data.ArrayStore', {
                 data: [],
@@ -324,12 +324,30 @@ Ext.define("Zenoss.BindTemplatesDialog", {
             width: 600,
             height: 400,
             title: _t('Bind Templates'),
-            items: {
+            items: [{
+                xtype: 'panel',
+                width:  550,
+                layout: 'column',
+                defaults: {
+                    columnWidth: 0.5
+                },
+                items: [{
+                    xtype: 'label',
+                    style: {'padding':'0 0 5px 7px'},
+                    text: 'Available'
+                },{
+                    xtype: 'label',
+                    style: {'padding':'0 0 5px 0'},
+                    text: 'Selected'
+                }]
+            },{
                 xtype: 'bindtemplatesitemselector',
                 ref: 'itemselector',
+                width:500,
+                height:200,
                 id: itemId,
                 context: config.context
-            },
+            }],
             listeners: {
                 show: function() {
                     Ext.getCmp(itemId).setContext(this.context);
