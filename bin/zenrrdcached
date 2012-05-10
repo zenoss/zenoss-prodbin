@@ -130,6 +130,17 @@ usage() {
 
 
 ACTION=$1
+case "${ACTION}" in
+  status)
+    ;;
+  help)
+    ;;
+  *)
+    if [ -e $ZENHOME/bin/zensendaudit ] ; then
+      zensendaudit kind=Daemon action=$ACTION daemon=zenrrdcached
+    fi
+    ;;
+esac
 shift
 export OPTS="$@"
 mkdir -p $JOURNALDIR

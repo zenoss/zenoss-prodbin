@@ -26,6 +26,7 @@ import transaction
 from zenoss.protocols.services import ServiceException
 from ZODB.POSException import ConflictError
 
+from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ZenPack import ZenPack, ZenPackException
 from Products.ZenModel.ZenPack import ZenPackNeedMigrateException
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -95,6 +96,13 @@ class ZenPackCmd(ZenScriptBase):
             print "Require one of --install, --remove or --list flags."
             self.parser.print_help()
             return
+
+        if self.options.installPackName:
+            audit('Shell.ZenPack.Install', zenpack=self.options.installPackName)
+        elif self.options.fetch:
+            audit('Shell.ZenPack.Fetch', zenpack=self.options.fetch)
+        elif self.options.removePackName:
+            audit('Shell.ZenPack.Remove', zenpack=self.options.removePackName)
 
         if self.options.installPackName:
             eggInstall = (self.options.installPackName.lower().endswith('.egg')

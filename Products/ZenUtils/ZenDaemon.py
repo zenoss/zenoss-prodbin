@@ -16,7 +16,7 @@ __doc__="""ZenDaemon
 Base class for making deamon programs
 """
 
-
+import re
 import sys
 import os
 import pwd
@@ -25,6 +25,7 @@ import logging
 from logging import handlers
 from twisted.python import log as twisted_log
 
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.Utils import zenPath, HtmlFormatter, binPath
 from Products.ZenUtils.Watchdog import Reporter
@@ -78,6 +79,12 @@ class ZenDaemon(CmdBase):
 
         if self.options.watchdog and not self.options.watchdogPath:
             self.becomeWatchdog()
+        self.audit('Start')
+
+    def audit(self, action):
+        processName = re.sub(r'^.*/', '', sys.argv[0])
+        daemon = re.sub('.py$', '', processName)
+        audit('Shell.Daemon.' + action, daemon=daemon)
 
     def convertSocketOption(self, optString):
         """
@@ -224,6 +231,7 @@ class ZenDaemon(CmdBase):
             log.info("Setting logging level to DEBUG")
             getTwistedLogger().start()
         self._sigUSR1_called(signum, frame)
+        self.audit('Debug')
 
     def _sigUSR1_called(self, signum, frame):
         pass
@@ -298,6 +306,7 @@ class ZenDaemon(CmdBase):
             self.log.info("Deleting PID file %s ...", self.pidfile)
             os.remove(self.pidfile)
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
+        self.audit('Stop')
         raise SystemExit
 
 
