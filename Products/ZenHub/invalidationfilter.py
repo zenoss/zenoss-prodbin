@@ -20,12 +20,33 @@ from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.Zuul.interfaces import ICatalogTool
 
+from twisted.internet import reactor, task
+from twisted.internet.defer import inlineCallbacks
+
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 
 log = logging.getLogger('zen.InvalidationFilter')
 
+# adjust this to higher values to include checksum initialization 
+# of deeper levels of DeviceClass during zenhub startup
+DEVICE_CLASS_HIERARCHY_INIT_CUTOFF = 5
+
+def divideWhere(seq, cond):
+    """
+    Divide seq into items that match cond and items that don't.
+    """
+    t_items,f_items = [],[]
+    for item in seq:
+        if cond(item):
+            t_items.append(item)
+        else:
+            f_items.append(item)
+    return t_items,f_items
+
 class IpInvalidationFilter(object):
     implements(IInvalidationFilter)
+
+    weight = 1
 
     def initialize(self, context):
         pass
@@ -41,16 +62,34 @@ class DeviceClassInvalidationFilter(object):
     iszorcustprop = re.compile("^[zc][A-Z]").search
     weight = 10
 
+    @inlineCallbacks
+    def _updateRemainingClassChecksums(self, brains):
+        for pathlen,brain in brains:
+            objpath = brain.getPath()
+            if objpath not in self.checksum_map:
+                log.debug("Initializing device class checksum for %s (deferred)", objpath)
+                self.checksum_map[objpath] = self._deviceClassChecksum(brain.getObject())
+                yield task.deferLater(reactor, 0, lambda : None)
+        
     def _updateDeviceClassChecksumMap(self, context):
         """
         Iterate over all device classes and generate a checksum.
         """
         root = context.dmd.Devices.primaryAq()
         brains = ICatalogTool(root).search(DeviceClass)
+        orderedBrains = sorted(((b.getPath().count('/'), b) for b in brains),
+                               key=lambda x: x[0])
+        highlevel,remaining = divideWhere(orderedBrains, 
+                                          lambda x: x[0] <= DEVICE_CLASS_HIERARCHY_INIT_CUTOFF)
         results = {}
-        for brain in brains:
-            results[brain.getPath()] = self._deviceClassChecksum(brain.getObject())
+        for pathlen,brain in highlevel:
+            objpath = brain.getPath()
+            log.debug("Initializing device class checksum for %s", objpath)
+            results[objpath] = self._deviceClassChecksum(brain.getObject())
         self.checksum_map = results
+        
+        # submit remaining class checksums to be computed during reactor free time
+        reactor.callWhenRunning(self._updateRemainingClassChecksums, remaining)
 
     def _deviceClassChecksum(self, devclass):
         """
