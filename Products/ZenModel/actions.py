@@ -25,6 +25,7 @@ from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
 
+from zenoss.protocols.protobufs import zep_pb2
 from Products.ZenEvents.events2.proxy import EventSummaryProxy
 from Products.ZenUtils.Utils import sendEmail
 from Products.Zuul.interfaces.actions import IEmailActionContentInfo, IPageActionContentInfo, ICommandActionContentInfo, ISnmpTrapActionContentInfo
@@ -79,6 +80,16 @@ def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
     summary = signal.event
     # build basic event context wrapper for notifications
     if signal.clear:
+        # aged and closed events have clear == True, but they don't have an associated clear event
+        #   spoof a clear event in those cases, so the notification messages contain useful info
+        if summary.status == zep_pb2.STATUS_AGED:
+            occur = signal.clear_event.occurrence.add()
+            occur.summary = "Event aging task aged out the event."
+            summary.cleared_by_event_uuid = "Event aging task"
+        elif summary.status == zep_pb2.STATUS_CLOSED:
+            occur = signal.clear_event.occurrence.add()
+            occur.summary = "User '" + summary.current_user_name + "' closed the event in the Zenoss event console."
+            summary.cleared_by_event_uuid = "User action"
         data = NotificationEventContextWrapper(summary, signal.clear_event)
     else:
         data = NotificationEventContextWrapper(summary)
