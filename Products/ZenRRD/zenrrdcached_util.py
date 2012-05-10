@@ -64,11 +64,12 @@ def commandLoop(cmds=None):
         in_batch = False
         while True:
             if cmds is not None:
-                cmd = cmds.pop(0).upper()
+                cmd = cmds.pop(0)
             else:
                 try:
-                    cmd = raw_input(prompt).upper()
-                    if cmd in ('\Q', 'QUIT', 'EXIT', 'BYE', ':Q'):
+                    cmd = raw_input(prompt)
+                    upper_cmd = cmd.rstrip().upper()
+                    if upper_cmd in ('\Q', 'QUIT', 'EXIT', 'BYE', ':Q'):
                         break
                 except EOFError:
                     break
@@ -90,7 +91,7 @@ def commandLoop(cmds=None):
                     print data
                     for i in range(numlines):
                         print sockfile.readline(),
-                if cmd == "BATCH":
+                if cmd.upper() == "BATCH":
                     in_batch = True
 
             if cmds is not None and len(cmds) == 0:
