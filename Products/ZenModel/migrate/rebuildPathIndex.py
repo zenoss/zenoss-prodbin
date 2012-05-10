@@ -24,6 +24,11 @@ import time
 class RebuildPathIndex(Migrate.Step):
     version = Migrate.Version(4, 0, 0)
 
+    def __init__(self):
+        Migrate.Step.__init__(self)
+        import jobmanager_jobs_delete_4_0
+        self.dependencies = [ jobmanager_jobs_delete_4_0.jobDelete_4_0]
+
     def cutover(self, dmd):
         if getattr(dmd, "_pathReindexed", None) is not None:
             log.info('path has already been reindexed')

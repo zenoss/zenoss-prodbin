@@ -5,9 +5,3 @@ Retained for backwards compatibility. Will be removed in the release following
 from Products.ZenModel.ZenModelRM import ZenModelRM
 
 SUCCESS = None
-
-class JobStatus(ZenModelRM):
-    """
-    Here for backwards compatibility
-    """
-    pass

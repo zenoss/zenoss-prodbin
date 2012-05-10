@@ -16,8 +16,8 @@ from Products.Zuul.utils import safe_hasattr as hasattr
 import logging
 log = logging.getLogger('zen.migrate')
 
-class JobsDelete(Migrate.Step):
-    version = Migrate.Version(4, 2, 0)
+class JobsDelete_4_0(Migrate.Step):
+    version = Migrate.Version(4, 0, 0)
 
     def cutover(self, dmd):
         jmgr = getattr(dmd, 'JobManager', None)
@@ -33,4 +33,5 @@ class JobsDelete(Migrate.Step):
             if hasattr(jmgr, 'jobs'):
                 jmgr._delOb('jobs')
 
-JobsDelete()
+
+jobDelete_4_0 = JobsDelete_4_0()
