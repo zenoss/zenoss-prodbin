@@ -1898,7 +1898,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 cls: 'white-background-panel',
                 autoScroll: false,
                 constrain: true,
-                resizable: false,
+                resizable: true,
                 modal: true,
                 height: bigWindowHeight,
                 width: bigWindowWidth+235,

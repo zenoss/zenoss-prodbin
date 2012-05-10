@@ -176,6 +176,11 @@
                     }, this),
                     listeners: {
                         change: function() {
+                            // when opening a second window this
+                            // change fires before the component is rendered
+                            if (!this.subject) {
+                                return;
+                            }
                             // Get the associated subject
                             var subject = this.subject.getSubject(),
                                 comparisons = [];
@@ -194,7 +199,7 @@
                             }
 
                             this.comparison.store.loadData(comparisons);
-                            this.comparison.setValue(comparisons[0]);
+                            this.comparison.setValue(comparisons[0][0]);
                             this.getBuilder().fireEvent(
                                 'rulechange',
                                 this
@@ -294,13 +299,21 @@
                             value = sorted[1],
                             cleansub = subject.replace(
                                 new RegExp("^"+this.getBuilder().prefix), '');
+
                         this.subject.on('change', function(){
                             this.comparison.setValue(cmp);
                         }, this, {single:true});
                         this.comparison.on('change', function(){
                             this.predicate.setValue(Ext.decode(value));
                         }, this, {single:true});
+                        var oldval = this.subject.getValue();
                         this.subject.setValue(cleansub);
+                        // the predicate depends on a chain of change events
+                        // being fired so manually fire it even if the value didn't
+                        // change
+                        if (cleansub == oldval) {
+                            this.subject.fireEvent('change', this.subject, [cleansub]);
+                        }
                         break;
                     }
                 }
@@ -359,6 +372,7 @@
                 items: [{
                     xtype: 'toolbar',
                     cls: 'rule-clause nested-rule-header',
+
                     items: [{
                         ref: '../conjunction',
                         xtype: 'combo',
@@ -491,6 +505,7 @@
                 c = expression.charAt(i);
             }
             savetoken();
+
             if (tokens) {
                 this.clauses.removeAll();
                 var conjunction, rule;
@@ -606,23 +621,6 @@
         'doesnotcontain'
     ];
 
-    var smarterSetValue = function(val) {
-        if (!this.loaded) {
-            this.store.load({
-                callback: function(){
-                    this.loaded = true;
-                    Ext.form.ComboBox.prototype.setValue.call(this, val);
-                    if (this.taTask) {
-                        this.taTask.cancel();
-                    }
-                    this.collapse();
-                },
-                scope: this
-            });
-        } else {
-            Ext.form.ComboBox.prototype.setValue.call(this, val);
-        }
-    };
 
     Ext.apply(ZF, {
         EVENTSEVERITY: {
@@ -663,7 +661,6 @@
             value: 'productionState',
             field: {
                 xtype: 'ProductionStateCombo',
-                setValue: smarterSetValue,
                 defaultListConfig: {
                     maxWidth:200
                 }
@@ -675,7 +672,6 @@
             value: 'priority',
             field: {
                 xtype: 'PriorityCombo',
-                setValue: smarterSetValue,
                 defaultListConfig: {
                     maxWidth:200
                 }
@@ -691,7 +687,6 @@
             comparisons: ZF.IDENTITYCOMPARISONS,
             field: {
                 xtype: 'combo',
-                setValue: smarterSetValue,
                 mode: 'remote',
                 defaultListConfig: {
                     maxWidth:200
@@ -715,7 +710,6 @@
             comparisons: ZF.IDENTITYCOMPARISONS,
             field: {
                 xtype: 'combo',
-                setValue: smarterSetValue,
                 mode: 'remote',
                 defaultListConfig: {
                     maxWidth:200

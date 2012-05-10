@@ -1316,9 +1316,6 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
   border-right: 2px solid #f2f2f3;
 }
 
-#trigger_rule .x-form-item-body {
-  width:697px !important;
-}
 
 .x-tree-node img.folder, .x-tree-node-collapsed img.folder {
   background: url("/++resource++extjs/resources/images/default/tree/folder.gif");
@@ -1499,8 +1496,8 @@ table {
     border-width:1px !important;
 }
 #master_panel .x-toolbar-default{
-    background-image: url("../img/xtheme-zenoss/toolbar/bg-subselect.png") !important;     
-}  
+    background-image: url("../img/xtheme-zenoss/toolbar/bg-subselect.png") !important;
+}
 #events_grid .x-toolbar-default{
     background-image: url() !important;
 }
@@ -1510,6 +1507,11 @@ table {
 .x-window-body, .x-window-body .x-form-item-label, .x-window-body .x-form-cb-label{
     color:#fafafa;
 }
+.white-background-panel, .white-background-panel .x-form-item-label, .white-background-panel .x-form-cb-label{
+    color:black;
+}
+
+
 #footer_extra{
     position:absolute;
     top:2px;
