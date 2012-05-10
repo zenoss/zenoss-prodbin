@@ -341,7 +341,11 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     for rrdMeta in self._oids[oid]:
                         try:
                             cname, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
-                            self._dataService.writeRRD(path, value, rrdType, rrdCommand=rrdCommand, min=rrdMin, max=rrdMax)
+                            self._dataService.writeRRD(
+                                path, value, rrdType,
+                                rrdCommand=rrdCommand,
+                                cycleTime=self._device.cycleInterval,
+                                min=rrdMin, max=rrdMax)
                         except Exception, e:
                             log.error("Failed to write to RRD file: {0} {1.__class__.__name__} {1}".format(path, e))
                             continue
