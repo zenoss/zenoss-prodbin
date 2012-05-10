@@ -118,12 +118,12 @@ Ext.define("Zenoss.SimpleCardPanel", {
         Ext.applyIf(config, {
             layout: 'card',
             activeItem: 0,
+            placeholder: {},
             height: Math.min(((Ext.getCmp('viewport').getHeight() - 75)/5)+30, 200),
             tbar: {
                 xtype: 'consolebar',
                 centerPanel: 'detail_panel',
                 title: _t('Display: '),
-                hideCollapseTool: true,
                 parentPanel: this,
                 leftItems: [{
                     xtype: 'select',
@@ -134,7 +134,6 @@ Ext.define("Zenoss.SimpleCardPanel", {
                     listeners: {
                         select: function(displaySelect, records) {
                             var index = records[0].index;
-                            me.layout.setActiveItem(index);
                         }
                     }
                 }]
@@ -200,7 +199,7 @@ Ext.define("Zenoss.InstanceCardPanel", {
     },
     getInstancesGrid: function() {
         return Ext.getCmp(this.gridId);
-    }
+    }    
 
 });
 

@@ -138,7 +138,7 @@
             config = Ext.apply(config || {}, {
                 text:'...',
                 cls: 'x-btn x-btn-default-toolbar-small',
-                store: new Zenoss.DirectStore({
+                store: new Zenoss.NonPaginatedStore({
                     directFn: Zenoss.remote.DeviceRouter.getProductionStates,
                     root: 'data',
                     initialSortColumn: 'name',

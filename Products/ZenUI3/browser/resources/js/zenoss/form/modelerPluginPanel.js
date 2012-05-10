@@ -175,6 +175,7 @@
                     xtype: 'itemselector',
                     fieldLabel: _t('Modeler Plugins'),
                     imagePath: "/++resource++zenui/img/xtheme-zenoss/icon",
+                    height: 250,
                     drawUpIcon: true,
                     drawDownIcon: true,
                     drawTopIcon: true,

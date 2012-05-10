@@ -33,7 +33,7 @@ function isObjectEmpty(o) {
 
 function jobLinkRenderer(value, metadata, record) {
     var job = record.data,
-        description = job.description;
+    description = job.description;
     description = description.length > 58 ? description.substring(0, 55) + '...' : description;
     return "<a href='/zport/dmd/joblist#jobs:" + job.uuid + "'>" + description + "</a>";
 }
@@ -167,6 +167,7 @@ Ext.define("Zenoss.JobsWidget", {
                             header: 'description',
                             dataIndex: 'description',
                             renderer: jobLinkRenderer,
+                            width:60,
                             flex: 1
                         }, {
                             header: 'finished',
@@ -186,6 +187,14 @@ Ext.define("Zenoss.JobsWidget", {
         this.lastchecked = 0;
         this.callParent([config]);
         this.on('render', this.on_render, this, {single:true});
+        this.on('menushow', function(e){
+            /*  forcing a recalc of x y when new items are added */
+            new Ext.util.DelayedTask(function(){
+                e.menu.hide();
+                e.menu.show();
+            }).delay(100);       
+        
+        }, this, {single:true});
         this.pollTask = new Ext.util.DelayedTask(this.poll, this);
     },
     on_render: function() {

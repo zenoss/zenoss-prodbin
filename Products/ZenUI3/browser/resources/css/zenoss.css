@@ -1122,6 +1122,9 @@ span.status-down-large {
 
 .device-overview-form {
   padding: 13px;
+  overflow:scroll;
+  overflow-y:scroll;
+  overflow-x:hidden;
 }
 
 .device-overview-form .x-form-display-field, .device-overview-form .display-field {
@@ -1513,4 +1516,17 @@ table {
 }
 #component_searchfield-inputEl{
     background: url("../img/xtheme-zenoss/compsearch.png") no-repeat 0 2px;
+}
+pre {
+	white-space: pre;           
+	white-space: pre-wrap;      
+	white-space: pre-line;      
+	white-space: -moz-pre-wrap; 
+	word-wrap: break-word;  
+}
+#device_overview-body .device-overview-form{
+    overflow:hidden;
+}
+#detailCardPanel-placeholder{
+   /*display:none !important;*/
 }
