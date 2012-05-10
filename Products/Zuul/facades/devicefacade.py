@@ -222,6 +222,7 @@ class DeviceFacade(TreeFacade):
                 deletePerf=deletePerf
             ))
 
+    @info
     def removeDevices(self, uids, organizer):
         # Resolve target if a path
         if isinstance(organizer, basestring):
