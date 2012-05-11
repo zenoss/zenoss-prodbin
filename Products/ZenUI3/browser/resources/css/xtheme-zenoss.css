@@ -10497,3 +10497,7 @@ CORE TRIGGER PAGE STUFF
 
 #category_tree .x-grid-view {
   width: 260px !important; }
+
+#searchInput-inputEl {
+  margin-top: 5px !important;
+  padding-left: 30px !important; }

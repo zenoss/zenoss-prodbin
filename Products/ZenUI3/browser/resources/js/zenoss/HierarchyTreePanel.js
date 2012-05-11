@@ -86,6 +86,12 @@
                 layout:{
                     type:'vbox',
                     align:'stretch'
+                },
+                listeners: {
+                    afterrender: function(t){
+                        // fixes 20000px width bug on the targetEl div bug in Ext
+                        t.searchfield.container.setWidth(t.ownerCt.getWidth());                        
+                    }
                 }
             };
 
