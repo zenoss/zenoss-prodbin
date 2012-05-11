@@ -110,7 +110,6 @@ Ext.define("Zenoss.CommandWindow", {
             });
     },
     resizeOnRender: function() {
-        Zenoss.CommandWindow.superclass.onRender.apply(this, arguments);
         var vsize = Ext.getBody().getViewSize();
         this.setSize({width:vsize.width*0.95, height:vsize.height*0.95});
     },
