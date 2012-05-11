@@ -115,6 +115,10 @@ class ps(CommandParser):
                        cpu[0] * 60 +
                        cpu[1])
 
+                # cpu is ticks per second per cpu, tick is a centisecond, we
+                # want seconds
+                cpu *= 100
+
                 rss = int(rss)
                 pid = int(pid)
 
