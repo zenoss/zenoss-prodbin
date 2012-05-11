@@ -222,11 +222,7 @@
                 stateId: config.id || 'config_property_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
                 tbar:[
-                     {
-                        xtype: 'tbtext',
-                        text: _t('Configuration Properties')
-                    },
-                    '-',
+
                     {
                     xtype: 'button',
                     iconCls: 'customize',

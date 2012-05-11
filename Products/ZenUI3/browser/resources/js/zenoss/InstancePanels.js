@@ -130,11 +130,13 @@ Ext.define("Zenoss.SimpleCardPanel", {
                     ref: '../displaySelect',
                     queryMode: 'local',
                     value: config.instancesTitle,
-                    store: [config.instancesTitle, 'Configuration Properties'],
+                    store: [config.instancesTitle, _t('Configuration Properties')],
                     listeners: {
                         select: function(displaySelect, records) {
                             var index = records[0].index;
-                        }
+                            this.layout.setActiveItem(index);
+                        },
+                        scope: this
                     }
                 }]
             },
@@ -199,7 +201,7 @@ Ext.define("Zenoss.InstanceCardPanel", {
     },
     getInstancesGrid: function() {
         return Ext.getCmp(this.gridId);
-    }    
+    }
 
 });
 
