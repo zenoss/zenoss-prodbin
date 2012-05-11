@@ -619,7 +619,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                     height: 150,
                                     items: [{
                                         xtype: 'PriorityCombo',
-                                        id: 'priority',
+                                        id: 'device_action_priority',
                                         fieldLabel: _t('Select a priority'),
                                         listeners: {
                                             'select': function(){
@@ -634,7 +634,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                         text: _t('OK'),
                                         handler: function(){
                                             var opts = Ext.apply(fetcher(), {
-                                                priority: Ext.getCmp('priority').getValue()
+                                                priority: Ext.getCmp('device_action_priority').getValue()
                                             });
                                             REMOTE.setPriority(opts, saveHandler);
                                         }
