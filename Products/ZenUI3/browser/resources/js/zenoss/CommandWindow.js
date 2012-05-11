@@ -99,7 +99,8 @@ Ext.define("Zenoss.CommandWindow", {
         });
         Zenoss.CommandWindow.superclass.constructor.call(this, config);
         this.task = new Ext.util.DelayedTask(this.scrollToBottom, this);
-        this.on('render', this.startScrolling, this);
+        this.on('afterrender', this.startScrolling, this);
+        this.on('afterrender', this.resizeOnRender, this);
         this.on('afterlayout', function(){this.center();}, this, {single:true});
         this.on('close', this.stopScrolling, this);
             this.on('close', function() {
@@ -108,7 +109,7 @@ Ext.define("Zenoss.CommandWindow", {
                 }
             });
     },
-    onRender: function() {
+    resizeOnRender: function() {
         Zenoss.CommandWindow.superclass.onRender.apply(this, arguments);
         var vsize = Ext.getBody().getViewSize();
         this.setSize({width:vsize.width*0.95, height:vsize.height*0.95});
