@@ -30,7 +30,6 @@ import App.Undo
 from ZItem import ZItem
 
 
-from Products.ZenUtils.Utils import getObjByPath
 
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2
 
@@ -72,13 +71,13 @@ class PrimaryPathManager(ZItem, Implicit, RoleManager):
         if full: return objaq.absolute_url()
         return objaq.absolute_url_path()
         
-
-
     def primaryAq(self):
         """Return self with is acquisition path set to primary path"""
-        app = self.getPhysicalRoot()
-        return getObjByPath(app, self.getPrimaryPath())
-       
+        parent = getattr(self, "__primary_parent__", None)
+        if parent is None: # dmd
+            base = self.getPhysicalRoot().zport
+            return aq_base(self).__of__(base)
+        return aq_base(self).__of__(parent.primaryAq())
 
     def getPrimaryParent(self):
         """Return our parent object by our primary path"""

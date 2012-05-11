@@ -26,7 +26,7 @@ from zope.component import getUtility
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.Zuul.catalog.global_catalog import globalCatalogId
+from Products.Zuul.catalog.global_catalog import globalCatalogId, catalog_caching
 from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 
 log = logging.getLogger("zen.Catalog")
@@ -147,7 +147,8 @@ class ZenCatalog(ZCmdBase):
         if not self.options.createcatalog and not self.options.reindex:
             self.parser.error("Must use one of --createcatalog, --reindex")
         reactor.callWhenRunning(main)
-        reactor.run()
+        with catalog_caching():
+            reactor.run()
 
     def _reindex(self, zport):
         globalCat = self._getCatalog(zport)
@@ -271,7 +272,7 @@ class ZenCatalog(ZCmdBase):
             """
             Set a flag in the database saying we've finished indexing.
             """
-            if self.options.daemon:
+            if not self.options.daemon:
                 sys.stdout.write('\n')
             log.debug("Marking the indexing as completed in the database")
             self.syncdb()
@@ -289,48 +290,49 @@ class ZenCatalog(ZCmdBase):
         return getattr(zport, globalCatalogId, None)
 
 def reindex_catalog(globalCat, permissionsOnly=False, printProgress=True, commit=True):
-    msg = 'objects'
-    if permissionsOnly:
-        msg = 'permissions'
-    log.info('reindexing %s in catalog' % msg)
-    i = 0
-    catObj = globalCat.catalog_object
-    for brain in globalCat():
-        log.debug('indexing %s' % brain.getPath())
-        try:
-            obj = brain.getObject()
-        except Exception:
-            log.debug("Could not load object: %s" % brain.getPath())
-            globalCat.uncatalog_object(brain.getPath())
-            continue
-        if obj is not None:
-            #None defaults to all inedexs
-            kwargs = {}
-            if permissionsOnly:
-                kwargs = {'update_metadata': False,
-                          'idxs': ("allowedRolesAndUsers",)}
-            elif hasattr(obj, 'index_object'):
-                obj.index_object()
+    with catalog_caching():
+        msg = 'objects'
+        if permissionsOnly:
+            msg = 'permissions'
+        log.info('reindexing %s in catalog' % msg)
+        i = 0
+        catObj = globalCat.catalog_object
+        for brain in globalCat():
+            log.debug('indexing %s' % brain.getPath())
+            try:
+                obj = brain.getObject()
+            except Exception:
+                log.debug("Could not load object: %s" % brain.getPath())
+                globalCat.uncatalog_object(brain.getPath())
+                continue
+            if obj is not None:
+                #None defaults to all inedexs
+                kwargs = {}
+                if permissionsOnly:
+                    kwargs = {'update_metadata': False,
+                              'idxs': ("allowedRolesAndUsers",)}
+                elif hasattr(obj, 'index_object'):
+                    obj.index_object()
 
-            catObj(obj, **kwargs)
-            log.debug('Catalogued object %s' % obj.absolute_url_path())
-        else:
-            log.debug('%s does not exists' % brain.getPath())
-            globalCat.uncatalog_object(brain.getPath())
-        i += 1
-        if not i % CHUNK_SIZE:
-            if printProgress:
-                sys.stdout.write(".")
-                sys.stdout.flush()
+                catObj(obj, **kwargs)
+                log.debug('Catalogued object %s' % obj.absolute_url_path())
             else:
-                log.info('Catalogued %s objects' % i)
-            if commit:
-                transaction.commit()
-    if printProgress:
-        sys.stdout.write('\n')
-        sys.stdout.flush()
-    if commit:
-        transaction.commit()
+                log.debug('%s does not exists' % brain.getPath())
+                globalCat.uncatalog_object(brain.getPath())
+            i += 1
+            if not i % CHUNK_SIZE:
+                if printProgress:
+                    sys.stdout.write(".")
+                    sys.stdout.flush()
+                else:
+                    log.info('Catalogued %s objects' % i)
+                if commit:
+                    transaction.commit()
+        if printProgress:
+            sys.stdout.write('\n')
+            sys.stdout.flush()
+        if commit:
+            transaction.commit()
 
 if __name__ == "__main__":
     zc = ZenCatalog()

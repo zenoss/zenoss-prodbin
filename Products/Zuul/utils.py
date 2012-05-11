@@ -24,7 +24,8 @@ from AccessControl import getSecurityManager
 from zope.i18nmessageid import MessageFactory
 from Products.ZCatalog.interfaces import ICatalogBrain
 from AccessControl.PermissionRole import rolesForPermissionOn
-from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
+from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager, iszprop
+from OFS.PropertyManager import PropertyManager
 
 import logging
 log = logging.getLogger('zen.Zuul')
@@ -180,13 +181,8 @@ def getZProperties(context):
     if not isinstance(context, ZenPropertyManager):
         return properties
 
-    # get all of the property ids from Devices
-    propertyIds = context.dmd.Devices.zenPropertyIds()
-    for propertyId in propertyIds:
-        # has property does not take acquisition into account by default
-        if context.hasProperty(propertyId):
-            properties[propertyId] = context.getProperty(propertyId)
-
+    for zprop in filter(iszprop, context.propertyIds()):
+        properties[zprop] = PropertyManager.getProperty(context, zprop)
     return properties
 
 def _translateZPropertyValue(zProp, translate, value):

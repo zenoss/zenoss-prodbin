@@ -15,11 +15,14 @@ import time
 from itertools import ifilterfalse, chain
 
 import zExceptions
+from collections import defaultdict
 from zope.component import getUtility
 from zope.interface import providedBy, ro, implements
 from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
+from decorator import decorator
+from contextlib import contextmanager
 from zope.component import adapts
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_parent
 from AccessControl import getSecurityManager
 from ZODB.POSException import ConflictError
 from Products.ZCatalog.ZCatalog import ZCatalog
@@ -40,13 +43,53 @@ from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
 
 from interfaces import IGloballyIndexed, IPathReporter, IIndexableWrapper
 
+_MARKER = object()
+_CACHE = defaultdict(dict)
+_CACHE_RESULTS = []
+
 globalCatalogId = 'global_catalog'
+
 
 def _allowedRoles(user):
     roles = list(user.getRoles())
     roles.append('Anonymous')
     roles.append('user:%s' % user.getId())
     return roles
+
+
+@contextmanager
+def catalog_caching():
+    """
+    The C{memoized_in_context} decorator will apply throughout the lifetime of
+    this context manager.
+    """
+    try:
+        _CACHE_RESULTS.append(1)
+        yield
+    finally:
+        _CACHE_RESULTS.pop()
+        if not _CACHE_RESULTS:
+            _CACHE.clear()
+
+
+@decorator
+def memoized_in_context(f, wrapper, *args, **kwargs):
+    """
+    Memoize the result of an IndexableWrapper property as long as CACHE_RESULTS
+    is True (that is, inside the C{catalog_caching} context manager, above).
+
+    Results will be memoized on a per-wrapped-object basis (two different
+    IndexableWrapper instances wrapping the same object will use the same cache
+    for the same method).
+    """
+    if _CACHE_RESULTS:
+        path = wrapper.getPath()
+        result = _CACHE[path].get(f.__name__, _MARKER)
+        if result is _MARKER:
+            result = f(wrapper, *args, **kwargs)
+            _CACHE[path][f.__name__] = result
+        return result
+    return f(wrapper, *args, **kwargs)
 
 
 class IndexableWrapper(object):
@@ -249,6 +292,7 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
     def productionState(self):
         return str(self._context.productionState)
 
+    @memoized_in_context
     def searchKeywordsForChildren(self):
         o = self._context
         ipAddresses = []
@@ -261,7 +305,6 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
                 ipAddresses = ifilterfalse(lambda x: x.startswith('127.0.0.1/') or
                                                      x.startswith('::1/'),
                                            ipAddresses)
-
         except Exception:
             ipAddresses = []
 
@@ -276,7 +319,7 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
             ) \
             + tuple(o.getSystemNames()) + tuple(o.getDeviceGroupNames()) \
             + tuple(ipAddresses) \
-            + ( self._context.snmpSysName, self._context.snmpLocation)
+            + (self._context.snmpSysName, self._context.snmpLocation)
 
     def searchExcerpt(self):
         o = self._context
@@ -300,18 +343,11 @@ class IpInterfaceWrapper(ComponentWrapper):
         if self._context.titleOrId() in ('lo', 'sit0'):
             # Ignore noisy interfaces
             return ()
-
-        try:
-            # If we find an interface IP address, link it to an interface
-            ipAddresses = [x for x in self._context.getIpAddresses() \
-                                 if not x.startswith('127.0.0.1/') and \
-                                    not x.startswith('::1/')]
-        except Exception:
-            ipAddresses = []
-
+        # We don't need to include the ip addresses for this interface, because
+        # all ips on a device are included in the keywords of every one of its
+        # components.
         return super(IpInterfaceWrapper, self).searchKeywordsForChildren() + (
-               self._context.description,
-               ) + tuple(ipAddresses)
+               self._context.description,)
 
     def searchExcerpt(self):
         """
