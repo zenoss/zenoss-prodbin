@@ -151,7 +151,7 @@
         }
         .#{$prefix}box-inner {
             padding-bottom: 15px;
-            padding-top: 20px;
+            padding-top: 0px !important;
             left: 0 !important;
         }
         .#{$prefix}form-check-wrap .#{$prefix}form-field {

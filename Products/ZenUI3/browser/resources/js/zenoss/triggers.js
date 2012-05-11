@@ -483,7 +483,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 {
                     xtype: 'panel',
                     layout: 'column',
-                    padding: panelPadding,
+                    //padding: panelPadding,
                     defaults: {
                         layout: 'anchor',
                         padding: 10,

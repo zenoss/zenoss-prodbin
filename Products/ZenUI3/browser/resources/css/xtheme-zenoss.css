@@ -9841,7 +9841,7 @@ CORE TRIGGER PAGE STUFF
   color: #454545; }
 .white-background-panel .x-box-inner {
   padding-bottom: 15px;
-  padding-top: 20px;
+  padding-top: 0px !important;
   left: 0 !important; }
 .white-background-panel .x-form-check-wrap .x-form-field {
   margin-top: 5px; }
