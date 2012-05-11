@@ -98,7 +98,10 @@
                     typeAhead: true,
                     forceSelection: true,
                     triggerAction: 'all',
-                    selectOnFocus: true
+                    selectOnFocus: true,
+                    listConfig: {
+                        resizable: true
+                    }
                 }],
                 buttons: [{
                     text: _t('Submit'),
@@ -977,7 +980,9 @@
                 return !col.hidden;
             });
             keys = Ext.Array.pluck(columns, "dataIndex");
-            keys.push("evid");
+            // always have these fields for reclassifying
+            keys = Ext.Array.union(keys, ["evid", "eventClass", "eventClassKey", "message"]);
+
             // grab any fields zenpack authors may add
             keys = Ext.Array.union(keys, Zenoss.events.eventFields);
             store.setBaseParam("keys", keys);
