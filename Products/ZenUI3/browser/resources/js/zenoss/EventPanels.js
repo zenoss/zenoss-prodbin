@@ -858,6 +858,7 @@
     Ext.define("Zenoss.EventsJsonReader", {
         extend: "Ext.data.reader.Json",
         alias: 'reader.events',
+        useSimpleAccessors: true,
         createAccessor : function(){
             return function(expr) {
                 return function(obj){

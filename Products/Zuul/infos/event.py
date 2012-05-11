@@ -322,6 +322,10 @@ class EventCompatDetailInfo(EventCompatInfo):
         return self.device.get("text")
 
     @property
+    def device_uuid(self):
+        return self._eventActor.get('element_uuid')
+
+    @property
     def device_url(self):
         return self.device.get("url")
 
