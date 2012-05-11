@@ -137,7 +137,7 @@ case "${ACTION}" in
     ;;
   *)
     if [ -e $ZENHOME/bin/zensendaudit ] ; then
-      zensendaudit kind=Daemon action=$ACTION daemon=zenrrdcached
+      zensendaudit kind=Daemon action=$ACTION daemon=zenrrdcached > /dev/null 2>&1
     fi
     ;;
 esac
