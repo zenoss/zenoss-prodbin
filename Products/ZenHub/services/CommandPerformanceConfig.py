@@ -27,6 +27,7 @@ from Products.ZenRRD.zencommand import Cmd, DataPointConfig
 from Products.DataCollector.Plugins import getParserLoader
 from Products.ZenEvents.ZenEventClasses import Error, Clear, Cmd_Fail
 
+_ZCOMMAND_USERNAME_NOT_SET = 'zCommandUsername is not set so SSH-based commands will not run'
 
 class CommandPerformanceConfig(CollectorConfigService):
     dsType = 'COMMAND'
@@ -100,13 +101,11 @@ class CommandPerformanceConfig(CollectorConfigService):
             if threshs:
                 thresholds.extend(threshs)
         except ConflictError: raise
-        except Exception, ex:
+        except Exception:
             msg = "Unable to process %s datasource(s) for device %s -- skipping" % (
                               self.dsType, device.id)
             log.exception(msg)
-            details = dict(traceback=traceback.format_exc(),
-                           msg=msg)
-            self._sendCmdEvent(device.id, details)
+            self._sendCmdEvent(device.id, msg, traceback=traceback.format_exc())
 
     def _getComponentConfig(self, comp, device, perfServer, cmds):
         for templ in comp.getRRDTemplates():
@@ -148,7 +147,6 @@ class CommandPerformanceConfig(CollectorConfigService):
                     msg = "TALES error for device %s datasource %s" % (
                                device.id, ds.id)
                     details = dict(
-                           msg=msg,
                            template=templ.id,
                            datasource=ds.id,
                            affected_device=device.id,
@@ -158,7 +156,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                                       ' cause is unescaped special characters in the command.' \
                                       ' eg $ or %')
                     # This error might occur many, many times
-                    self._sendCmdEvent('localhost', details)
+                    self._sendCmdEvent('localhost', msg, **details)
                     continue
 
                 self.enrich(comp, cmd, templ, ds)
@@ -203,18 +201,17 @@ class CommandPerformanceConfig(CollectorConfigService):
             return proxy
         return None
 
-    def _sendCmdEvent(self, name, details=None):
-        msg = 'zCommandUsername is not set so SSH-based commands will not run'
+    def _sendCmdEvent(self, device, summary, eventClass=Cmd_Fail, severity=Error,
+                      component='zencommand', **kwargs):
         ev = dict(
-                device=name,
-                eventClass=Cmd_Fail,
-                eventKey='zCommandUsername',
-                severity=Error,
-                component='zencommand',
-                summary=msg,
+                device=device,
+                eventClass=eventClass,
+                severity=severity,
+                component=component,
+                summary=summary,
         )
-        if details:
-            ev.update(details)
+        if kwargs:
+            ev.update(kwargs)
         self.sendEvent(ev)
 
     def _warnUsernameNotSet(self, device):
@@ -225,17 +222,18 @@ class CommandPerformanceConfig(CollectorConfigService):
         if self._sentNoUsernameSetWarning:
             return
 
-        msg = 'zCommandUsername is not set so SSH-based commands will not run'
         name = device.titleOrId()
-        log.error('%s for %s', msg, name)
-        self._sendCmdEvent(name)
+        log.error('%s for %s', _ZCOMMAND_USERNAME_NOT_SET, name)
+        self._sendCmdEvent(name, _ZCOMMAND_USERNAME_NOT_SET,
+            eventKey='zCommandUsername')
         self._sentNoUsernameSetWarning = True
 
     def _clearUsernameNotSet(self, device):
         if self._sentNoUsernameSetClear:
             return
 
-        self._sendCmdEvent(device.titleOrId(), {'severity':Clear})
+        self._sendCmdEvent(device.titleOrId(), _ZCOMMAND_USERNAME_NOT_SET,
+            eventKey='zCommandUsername', severity=Clear)
         self._sentNoUsernameSetClear = True
 
 if __name__ == '__main__':
