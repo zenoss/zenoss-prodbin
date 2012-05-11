@@ -18,7 +18,7 @@
     Ext.ns('Zenoss.form');
     Ext.define("Zenoss.form.SettingsGrid", {
         alias:['widget.settingsgrid'],
-        extend:"Zenoss.DeviceOverviewForm",
+        extend:"Ext.form.FormPanel",
         constructor: function(config, itemsConfig) {
             config = config || {};
             var i,
@@ -42,8 +42,16 @@
 
             Ext.applyIf(config, {
                 autoScroll: 'y',
+                layout: 'anchor',
                 fieldDefaults: {
                     labelAlign: 'top'
+                },
+                paramsAsHash: true,
+                frame: false,
+                buttonAlign: 'left',
+                defaults: {
+                    anchor: '95%',
+                    labelStyle: 'font-size: 13px; color: #5a5a5a'
                 },
                 bodyStyle: 'padding: 10px',
                 listeners: {
@@ -61,7 +69,6 @@
                 buttons: [{
                     text: _t('Save'),
                     ref: '../savebtn',
-                    hidden: true,
                     formBind: true,
                     handler: function(btn){
                         var values = {};
@@ -80,7 +87,6 @@
                 },{
                     text: _t('Cancel'),
                     ref: '../cancelbtn',
-                    hidden: true,
                     handler: function(btn) {
                         var form = btn.refOwner;
                         form.setInfo(form.lastValues);

@@ -30,6 +30,23 @@
         config: {
             example: null
         },
+        fieldSubTpl: [ // note: {id} here is really {inputId}, but {cmpId} is available
+            '<input id="{id}" type="{type}" {inputAttrTpl}',
+            ' size="1"', // allows inputs to fully respect CSS widths across all browsers
+            '<tpl if="name"> name="{name}"</tpl>',
+            '<tpl if="value"> value="{[Ext.util.Format.htmlEncode(values.value)]}"</tpl>',
+            '<tpl if="placeholder"> placeholder="{placeholder}"</tpl>',
+            '<tpl if="maxLength !== undefined"> maxlength="{maxLength}"</tpl>',
+            '<tpl if="readOnly"> readonly="readonly"</tpl>',
+            '<tpl if="disabled"> disabled="disabled"</tpl>',
+            '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
+            '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
+            ' class="{fieldCls} {typeCls} {editableCls}" autocomplete="off"/><span class="example">Example: {example}</span>',
+            {
+                disableFormats: true
+            }
+        ],
+
         constructor: function(config){
             config = config || {};
             config.style = config.style || {};
@@ -39,18 +56,14 @@
             });
             this.callParent([config]);
         },
-        onRender: function() {
-            this.callParent(arguments);
-            if (this.example) {
-                Ext.DomHelper.append(this.el.id, {
-                    tag: 'span',
-                    cls: 'example',
-                    html: _t('Example:') + " " + this.example
-                });
-            }
+        getSubTplData: function() {
+            var me = this;
+
+            return Ext.apply(me.callParent(), {
+                example   : me.example
+            });
         }
     });
 
 
 }());
-
