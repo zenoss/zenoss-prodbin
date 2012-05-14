@@ -407,21 +407,14 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
 }
 
 
-.x-grid3-filter {
-  height: 30px;
+.x-grid-filter {
   background-color: #bdbdbd;
   border-bottom: 1px solid black;
 }
 
-.x-grid3-filter .x-panel-body, .x-grid3-filter td {
+.x-grid-filter .x-panel-body, .x-grid-filter td {
   background-color: #bdbdbd;
 }
-
-
-.x-grid3-row.unacknowledged td .x-grid3-cell-inner {
-  font-weight: bold;
-}
-
 
 .status-icon-small {
   width: 16px;
@@ -1520,11 +1513,11 @@ table {
     background: url("../img/xtheme-zenoss/compsearch.png") no-repeat 0 2px;
 }
 pre {
-	white-space: pre;           
-	white-space: pre-wrap;      
-	white-space: pre-line;      
-	white-space: -moz-pre-wrap; 
-	word-wrap: break-word;  
+    white-space: pre;
+    white-space: pre-wrap;
+    white-space: pre-line;
+    white-space: -moz-pre-wrap;
+    word-wrap: break-word;
 }
 #device_overview-body .device-overview-form{
     overflow:hidden;

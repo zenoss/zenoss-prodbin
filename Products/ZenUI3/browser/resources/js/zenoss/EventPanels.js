@@ -467,7 +467,7 @@
             this.gridId = gridId;
 
             if (!config.hideDisplayCombo) {
-                tbarItems.push('->');
+                tbarItems.push('-');
                 tbarItems.push(Ext.create('Ext.toolbar.TextItem', {
                     hidden: config.hideDisplayCombo || false,
                     text: _t('Display: ')

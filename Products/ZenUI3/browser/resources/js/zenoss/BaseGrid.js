@@ -157,7 +157,7 @@
                         id:filterDivId,
                         hidden:col.isHidden(),
                         xtype:'component',
-                        baseCls:'xfilter-row',
+                        baseCls:'x-grid-filter',
                         width:col.width - 2,
                         enableKeyEvents:true,
                         style:{

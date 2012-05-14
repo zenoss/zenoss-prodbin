@@ -59,7 +59,10 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     emptyText: _t('Please select a zenpack...'),
                     listEmptyText: _t('No zenpacks available'),
                     allowBlank: false,
-                    store: new Ext.data.DirectStore({
+                    listConfig:{
+                        resizable: true
+                    },
+                    store: new Zenoss.NonPaginatedStore({
                         id: 'myzpstore',
                         root: 'packs',
                         model: 'Zenoss.model.Name',

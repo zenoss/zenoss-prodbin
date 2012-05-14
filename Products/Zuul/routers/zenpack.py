@@ -42,6 +42,7 @@ class ZenPackRouter(DirectRouter):
         """
         devZenPacks = self._getFacade().getDevelopmentZenPacks()
         packs = [{'name': zp.getId()} for zp in devZenPacks]
+        packs = sorted(packs, key=lambda pack: pack['name'])
         return DirectResponse(packs=packs, totalCount=len(packs))
 
     @require('Manage DMD')

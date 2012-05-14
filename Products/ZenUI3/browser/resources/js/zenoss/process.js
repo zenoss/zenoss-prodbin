@@ -335,12 +335,8 @@ var treepanel = {
     xtype: 'panel',
     layout: 'fit',
     flex: 1,
-    items: [
-        {
-            xtype: 'HierarchyTreePanelSearch',
-            items: [tree]
-        }
-    ]
+    items: [tree]
+
 };
 
 var grid =  Ext.create('Zenoss.process.ProcessGrid', {});
@@ -363,7 +359,7 @@ var panel = new Ext.Panel({
 
 // when the form loads, show/hide the regex fieldset
 function actioncompleteHandler(basicForm, action) {
-    if (action.type == 'directload') {        
+    if (action.type == 'directload') {
         var formPanel = Ext.getCmp('processForm');
         formPanel.isLoadInProgress = false;
         var processInfo = action.result.data;
@@ -691,7 +687,7 @@ Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     tooltip: _t('Sequence the process classes'),
     text: _t('Change Sequence'),
-    handler: function(button, event) { 
+    handler: function(button, event) {
         if ( ! Ext.getCmp('sequenceDialog') ) {
             new Zenoss.HideFitDialog({
                 id: 'sequenceDialog',

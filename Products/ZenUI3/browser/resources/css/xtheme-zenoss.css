@@ -9915,7 +9915,7 @@ CORE TRIGGER PAGE STUFF
   color: white; }
 .x-grid .x-grid-row-over-rowcolor .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-over-rowcolor .x-grid-cell-inner a {
   color: white; }
-.x-grid .acknowledged div, #dataSourceTreeGrid .acknowledged div {
+.x-grid .unacknowledged div, #dataSourceTreeGrid .unacknowledged div {
   font-weight: bolder; }
 .x-grid .x-grid-row.rowcolor-critical-acknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-critical-acknowledged td {
   background-color: #cd7474 !important; }
