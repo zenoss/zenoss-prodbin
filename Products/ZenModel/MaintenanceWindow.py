@@ -485,11 +485,11 @@ class MaintenanceWindow(ZenModelRM):
             log.info("MW %s changes %s's production state from %s to %s",
                      self.displayName(), device.id, device.productionState,
                      minProdState)
-            device.setProdState(minProdState, maintWindowChange=True)
-            audit('Maintenance.Device.Edit', device, ending=ending, 
+            audit('System.Device.Edit', device, ending=ending,
                 maintenanceWindow=self.displayName(), 
-                fromProductionState=device.productionState,
-                toProductionState=minProdState)
+                productionState=str(minProdState),
+                oldData_={'productionState':str(device.productionState)})
+            device.setProdState(minProdState, maintWindowChange=True)
 
 
     def begin(self, now = None):
