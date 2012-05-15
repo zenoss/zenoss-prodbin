@@ -36,6 +36,7 @@ from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Acquisition import aq_parent
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
+from Products.ZenMessaging.audit import audit
 
 
 class ZenPackException(Exception):
@@ -503,7 +504,14 @@ class ZenPack(ZenModelRM):
         if 'Select or specify your own' in REQUEST.get('license', ''):
             REQUEST.form['license'] = ''
 
-        result =  ZenModelRM.zmanage_editProperties(self, REQUEST, redirect)
+        result =  ZenModelRM.zmanage_editProperties(self, REQUEST, redirect,
+                audit=False)
+        audit('UI.ZenPack.Edit',
+                self.id,
+                data_=REQUEST.form,
+                skipFields_=('redirect',
+                        'zenScreenName',
+                        'zmanage_editProperties'))
 
         if self.isEggPack():
             self.writeSetupValues()
@@ -658,6 +666,8 @@ registerDirectory("skins", globals())
                 ds[:] = [d for d in ds if d[0] != '.']
             zf.close()
             exportFileName = '%s.zip' % self.id
+
+        audit('UI.ZenPack.Export', exportFileName)
 
         if REQUEST:
             dlLink = '- <a target="_blank" href="%s/manage_download">' \

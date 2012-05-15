@@ -20,6 +20,7 @@ from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import binPath
 from Products.ZenWidgets import messaging
 import os
@@ -150,6 +151,7 @@ class ZenPackManager(ZenModelRM):
         zenPacks = ZenPackCmd.InstallEggAndZenPack(self.dmd, zpDir, link=True,
                                                    forceRunExternal=True)
         zenPack = self.packs._getOb(packId, None)
+        audit('UI.ZenPack.Create', packId)
         if REQUEST:
             if zenPack:
                 return REQUEST['RESPONSE'].redirect(zenPack.getPrimaryUrlPath())
@@ -193,6 +195,7 @@ class ZenPackManager(ZenModelRM):
             if zp:
                 if zp.isEggPack():
                     ZenPackCmd.RemoveZenPack(self.dmd, zpId, skipDepsCheck=True)
+                    audit('UI.ZenPack.Remove', zpId)
                 else:
                     os.system('%s --remove %s' % (
                                             binPath('zenpack'), zpId))

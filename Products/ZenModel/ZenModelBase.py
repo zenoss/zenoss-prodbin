@@ -372,7 +372,7 @@ class ZenModelBase(object):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
-    def zmanage_editProperties(self, REQUEST=None, redirect=False):
+    def zmanage_editProperties(self, REQUEST=None, redirect=False, audit=True):
         """
         Edit a ZenModel object and return its proper page template.
         Object will be reindexed if nessesary.
@@ -389,11 +389,15 @@ class ZenModelBase(object):
                 SaveMessage()
             )
 
-            auditType = getDisplayType(self)
-            audit(['UI', 'Setting' if auditType == 'DataRoot' else auditType, 'Edit'],
-                  data_=REQUEST.form,
-                  skipFields_=('redirect', 'zenScreenName', 'zmanage_editProperties'),
-                  maskFields_=('smtpPass'))
+            if audit:
+                auditType = getDisplayType(self)
+                auditKind = 'Setting' if auditType == 'DataRoot' else auditType
+                audit(['UI', auditKind, 'Edit'],
+                        data_=REQUEST.form,
+                        skipFields_=('redirect',
+                                'zenScreenName',
+                                'zmanage_editProperties'),
+                        maskFields_=('smtpPass'))
             return self.callZenScreen(REQUEST, redirect=redirect)
 
 

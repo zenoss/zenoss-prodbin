@@ -80,13 +80,13 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
 
 
     security.declareProtected('Manage DMD', 'zmanage_editProperties')
-    def zmanage_editProperties(self, REQUEST=None, redirect=False):
+    def zmanage_editProperties(self, REQUEST=None, redirect=False, audit=True):
         """Edit a ZenModel object and return its proper page template
         """
         redirect = False
         if REQUEST.form.has_key("newId"):
             redirect = self.rename(REQUEST.form["newId"])
-        return ZenModelBase.zmanage_editProperties(self, REQUEST, redirect)
+        return ZenModelBase.zmanage_editProperties(self, REQUEST, redirect, audit)
 
 
     def zmanage_addProperty(self, id, value, type, label, visible,
