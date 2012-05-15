@@ -26,9 +26,6 @@ log = logging.getLogger("zen.callhome")
 class ZenossAppData(object):
     implements(IZenossData)
 
-    hub_class = "ZenPacks.zenoss.DistributedCollector.HubConf.HubConf"
-    collector_class = "Products.ZenModel.PerformanceConf.PerformanceConf"
-
     def callHomeData(self, dmd):
         self.dmd = dmd
         self._catalog = ICatalogTool(self.dmd)
@@ -43,7 +40,6 @@ class ZenossAppData(object):
                       self.systems,
                       self.groups,
                       self.locations,
-                      self.total_hubs,
                       self.total_collectors,
                       self.zenpacks,
                       self.user_count,
@@ -101,13 +97,9 @@ class ZenossAppData(object):
     def locations(self):
         yield "Locations", self.dmd.Locations.countChildren()
 
-    def total_hubs(self):
-        results = self._catalog.search(self.hub_class, paths="dmd/Monitors/Hub")
-        yield "Hubs", results.total
-
     def total_collectors(self):
-        results = self._catalog.search(self.collector_class, paths="dmd/Monitors/Performance")
-        yield "Collectors", results.total
+        results = self.dmd.Monitors.getPerformanceMonitorNames()
+        yield "Collectors", len(results)
 
     def event_count(self):
         zep = getFacade('zep')
