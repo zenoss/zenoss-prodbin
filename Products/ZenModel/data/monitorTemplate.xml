@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-05-14 11:14:01.434241
+    Zenoss RelationshipManager export completed on 2012-05-01 13:57:49.517945
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-05-14 11:14:01.434241" zenoss_server="speedy" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2012-05-01 13:57:49.517945" zenoss_server="unknownf81edfda3713" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass

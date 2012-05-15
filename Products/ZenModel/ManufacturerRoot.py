@@ -250,6 +250,14 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
                 obj.exportXml(ofile, ignorerels)
         ofile.write("</object>\n")
 
+    def primaryAq(self):
+        """Return self with is acquisition path set to primary path"""
+        # This is copied from PrimaryPathObjectManager - ZenModelItem one is bogus
+        parent = getattr(self, "__primary_parent__", None)
+        if parent is None: # dmd
+            base = self.getPhysicalRoot().zport
+            return aq_base(self).__of__(base)
+        return aq_base(self).__of__(parent.primaryAq())
         
     def buildzProperties(self):
         if getattr(aq_base(self), "zDeviceClass", False): return
