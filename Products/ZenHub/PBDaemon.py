@@ -272,7 +272,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         d = self.connect()
         def callback(result):
             self.sendEvent(self.startEvent)
-            self.heartbeat()
             self.pushEventsLoop()
             self.log.debug('Calling connected.')
             self.connected()
