@@ -16,7 +16,7 @@ from Globals import InitializeClass, DevelopmentMode
 from AccessControl import getSecurityManager
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
-
+from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenWidgets import messaging
 
@@ -130,6 +130,7 @@ class PortletManager(ZenModelRM):
                 SaveMessage()
             )
             REQUEST['RESPONSE'].redirect('/zport/dmd/editPortletPerms')
+        audit('UI.Portlet.Edit', data_=REQUEST.form)
 
 
 InitializeClass(PortletManager)
