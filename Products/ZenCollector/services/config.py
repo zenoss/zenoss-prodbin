@@ -274,7 +274,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
             try:
                 device = dev.primaryAq() # still black magic to me...
 
-                if self._filterDevice(device):
+                if device.perfServer.getRelatedId() == self.instance \
+                and self._filterDevice(device):
                     filteredDevices.append(device)
                     self.log.debug("Device %s included by filter", device.id)
                 else:
@@ -288,19 +289,19 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
     def _notifyAll(self, object):
         """
-        TODO
+        Notify all instances (daemons) of a change for the device
         """
-        # TODO doc me
-        if object.perfServer.getRelatedId() == self.instance:
-            self._procrastinator.doLater(object)
+        # procrastinator schedules a call to _pushConfig
+        self._procrastinator.doLater(object)
 
     def _pushConfig(self, device):
         """
-        TODO
+        push device config and deletes to relevent collectors/instances
         """
         deferreds = []
 
-        if self._filterDevice(device):
+        if device.perfServer.getRelatedId() == self.instance \
+        and self._filterDevice(device):
             proxies = self._wrapFunction(self._createDeviceProxies, device)
             if proxies:
                 self._wrapFunction(self._postCreateDeviceProxy, proxies)
