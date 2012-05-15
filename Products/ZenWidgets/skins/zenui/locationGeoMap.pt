@@ -28,6 +28,7 @@
         return false; // no google object returned so something was wrong
     }
     google.maps.event.addDomListener(window, 'load', function(){
+         if(typeof geocodecache == 'undefined') geocodecache = null;      
          if (eventsdb) { 
             loader = YAHOO.zenoss.getLoader(); 	                
             loader.require(['geomap']); 	

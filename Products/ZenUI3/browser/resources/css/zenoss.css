@@ -1537,3 +1537,6 @@ pre {
 .x-ie .white-background-panel .x-fieldset-body, .x-ie .white-background-panel .x-fieldset{
     overflow:visible !important;
 }
+.zenportlet .x-container-default{
+    padding: 3px 0 0 5px;
+}

@@ -41,7 +41,7 @@ YAHOO.namespace('zenoss.geomap');
                 mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU},
                 mapTypeId: google.maps.MapTypeId.ROADMAP
             }
-            gmap = new google.maps.Map(document.getElementById(container), myOptions); 
+            gmap = new google.maps.Map(document.getElementById(container), myOptions);
             // initialize the global popup window for reuse:
             infowindow = new google.maps.InfoWindow({
                 content: "holding..."
@@ -85,10 +85,10 @@ YAHOO.namespace('zenoss.geomap');
                         // got a result, store it for the server cache builder                       
                         nodes.push(results);
                         dialog.style.display = 'block';
-                        var content = "Geocoding " + index + " of " + nodedata.length + " addresses, please wait...<br><br>";
+                        var content = "Geocoding " + (index+1) + " of " + nodedata.length + " addresses, please wait...<br><br>";
                         content += '<img src="http://us.i1.yimg.com/us.yimg.com/i/us/per/gr/gp/rel_interstitial_loading.gif" />';
                         dialog.innerHTML = content;                 
-                        _overlay.constructMarker(results, true); 
+                        _overlay.constructMarker(results, true);
                     }else{
                         _utils.statusDialog(status);
                         dialog.style.display = 'block';
@@ -154,7 +154,7 @@ YAHOO.namespace('zenoss.geomap');
                 // in a comment, and the parser still picks it up and crashes!
                 contentString += '<a target="_top" href="'+clicklink+'">Go to the Infrastructure Location Organizer >';
             var marker = new google.maps.Marker( {
-                position: new google.maps.LatLng(results[0].geometry.location.Za,results[0].geometry.location.$a),
+                position: new google.maps.LatLng(results[0].geometry.location.$a,results[0].geometry.location.ab),
                 icon: pinImage,                    
                 map: gmap,
                 title: nodedata[index][0] 
@@ -176,17 +176,19 @@ YAHOO.namespace('zenoss.geomap');
             if(index >= nodedata.length){
                 if(geocoding) scache.nodes = nodes;
                 // done with markers, let's get outta here.
-                index = 0; // reset this to use it with polylines
                 // center and add polyLines now
                 _utils.autoCenter(markers);
+                index = 0;
                 _overlay.addPolyline();
                 return;
+            }else{
+                // done with that marker, but wait, there's more...
+                _overlay.addMarkers(); 
             }
-            // done with that marker, but wait, there's more...
-            _overlay.addMarkers();             
+                        
         },
         constructLine: function(color, points, geocoding){
-            points = [new google.maps.LatLng(points[0].Za,points[0].$a),new google.maps.LatLng(points[1].Za,points[1].$a)];        
+            points = [new google.maps.LatLng(points[0].$a,points[0].ab),new google.maps.LatLng(points[1].$a,points[1].ab)]; 
             var polyline = new google.maps.Polyline({
               path: points,
               strokeColor: color,
@@ -199,29 +201,35 @@ YAHOO.namespace('zenoss.geomap');
             if(index >= linkdata.length){
                 // done with lines, and done with map drawing completely - let's get outta here.
                 if(geocoding){
-                    scache.lines = linepoints;
-                    // I only want to save the cache after a geocode                
+                     scache.lines = linepoints;
+                    // save the cache after a geocode                
                     _utils.saveCache();
                 }    
                 dialog.style.display = 'none';
                 index = 0;
                 return;
+            }else{
+                // done with that line, but wait, there's more...
+                _overlay.addPolyline();           
             }
-            // done with that line, but wait, there's more...
-            _overlay.addPolyline();           
         },
         doDraw: function(results) {      
             nodedata = results.nodedata;
             linkdata = results.linkdata;
             // set cache for refresh
             gcache = nodedata;
+            
             if(geocodecache){
-                geocodecache = YAHOO.lang.JSON.parse(geocodecache);
+               try{
+                    geocodecache = YAHOO.lang.JSON.parse(geocodecache);
+               }catch(e){
+                    geocodecache = null;
+               };
             }
             // remove lines:
             forEach(polylineregistry, function(o){
                 gmap.remove_overlay(o);
-            });
+            });            
             _overlay.addMarkers();
         }
     }
@@ -229,7 +237,6 @@ YAHOO.namespace('zenoss.geomap');
     var _utils = {  
         saveCache: function() {
             cachestr = YAHOO.lang.JSON.stringify(scache);
-            //console.log(cachestr);
             savereq = doXHR( 
                 '/zport/dmd/setGeocodeCache', 
                 {'sendContent':cachestr,
@@ -280,7 +287,7 @@ YAHOO.namespace('zenoss.geomap');
             //  Go through each...
             for(var i = 0; i < markers.length; i++){
                 bounds.extend(markers[i].position);
-            }        
+            }     
             //  Fit these bounds to the map
             gmap.fitBounds(bounds);
         },
