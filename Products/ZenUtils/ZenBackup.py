@@ -202,6 +202,12 @@ class ZenBackup(ZenBackupBase):
                                action='store_true',
                                help='Do not include performance data'
                                     ' in the backup.')
+        self.parser.add_option('--no-zenpacks',
+                               dest="noZenPacks",
+                               default=False,
+                               action='store_true',
+                               help='Do not include ZenPack data'
+                                    ' in the backup.')
         self.parser.add_option('--stdout',
                                dest="stdout",
                                default=False,
@@ -432,8 +438,12 @@ class ZenBackup(ZenBackupBase):
         etcTar.close()
         self.log.info("Backup of config files completed.")
 
-        self.backupZenPacks()
-        self.backupZenPackContents()
+        if self.options.noZenPacks:
+            self.log.info('Skipping backup of ZenPack data.')
+        else:
+            self.backupZenPacks()
+            self.backupZenPackContents()
+            self.log.info("Backup of ZenPacks completed.")
 
         if self.options.noPerfData:
             self.log.info('Skipping backup of performance data.')
