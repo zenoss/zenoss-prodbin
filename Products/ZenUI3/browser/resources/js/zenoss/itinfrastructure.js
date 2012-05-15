@@ -22,10 +22,9 @@ Ext.ns('Zenoss.devices');
 Ext.ns('Zenoss.extensions');
 var EXTENSIONS_adddevice = Zenoss.extensions.adddevice instanceof Array ?
                            Zenoss.extensions.adddevice : [];
-
+Zenoss.env.treesm = null;
 // page level variables
 var REMOTE = Zenoss.remote.DeviceRouter,
-    treesm,
     treeId = 'groups',
     nodeType = 'Organizer';
 
@@ -115,7 +114,7 @@ var deviceClassCombo = {
     allowBlank: false,
     listeners: {
         'afterrender': function(component) {
-            var selnode = treesm.getSelectedNode();
+            var selnode = getSelectionModel().getSelectedNode();
             var isclass = selnode.data.uid.startswith('/zport/dmd/Devices');
 
             if(selnode.data.uid === "/zport/dmd/Devices" || !isclass ){
@@ -154,32 +153,63 @@ function resetGrid() {
     setDeviceButtonsDisabled(true);
 }
 
-treesm = Ext.create('Zenoss.TreeSelectionModel', {
-    mode: 'single',
-    listeners: {
-        'selectionchange': function(sm, newnodes, oldnode){
-            if (newnodes.length) {
-                var newnode = newnodes[0];
-                var uid = newnode.data.uid;
-
-                Zenoss.env.contextUid = uid;
-
-                Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
-                                       'commands-menu', 'footer_bar');
-                setDeviceButtonsDisabled(true);
-
-                // explicitly set the new security context (to update permissions)
-                Zenoss.Security.setContext(uid);
-
-                //should "ask" the DetailNav if there are any details before showing
-                //the button
-                Ext.getCmp('master_panel').items.each(function(card){
-                    card.navButton.setVisible(!newnode.data.hidden);
-                });
-            }
-        }
+/**
+  * Returns the selection model for the last selected tree, if no
+  * trees have been selected then return the selection model for devices
+  **/
+function getSelectionModel(){
+    if (Zenoss.env.treesm) {
+        return Zenoss.env.treesm;
     }
-});
+    return Ext.getCmp('devices').getSelectionModel();
+}
+
+/**
+ * Each tree has a selection model but to the user
+ * we only want to show one selection at any time.
+ **/
+function deselectOtherTrees(treeid) {
+    var treeids = Zenoss.util.filter(['devices', 'groups', 'systemsTree', 'locs'],
+                                     function (t) {
+                                         return t != treeid;
+                                     });
+    Ext.each(treeids, function(t) {
+        var tree = Ext.getCmp(t), sm = tree.getSelectionModel();
+        if (sm.getSelectedNode()) {
+            // do not fire deselect listeners
+            sm.deselect(sm.getSelectedNode(), true);
+        }
+    });
+}
+
+/**
+ * Anytime a node is clicked on one of the organizer trees this method is called.
+ **/
+function treeselectionchange(sm, newnodes, oldnode) {
+    if (newnodes.length) {
+        deselectOtherTrees(sm.tree);
+        // update the treesm
+        Zenoss.env.treesm = sm;
+        var newnode = newnodes[0];
+        var uid = newnode.data.uid;
+
+        Zenoss.env.contextUid = uid;
+
+        Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
+                               'commands-menu', 'footer_bar');
+        setDeviceButtonsDisabled(true);
+
+        // explicitly set the new security context (to update permissions)
+        Zenoss.Security.setContext(uid);
+
+        //should "ask" the DetailNav if there are any details before showing
+        //the button
+        Ext.getCmp('master_panel').items.each(function(card){
+            card.navButton.setVisible(!newnode.data.hidden);
+        });
+    }
+}
+
 
 function selectedUids() {
     var grid = Ext.getCmp('device_grid'),
@@ -222,7 +252,7 @@ Ext.apply(Zenoss.devices, {
         permission: 'Delete Device',
         handler: function(btn, e) {
             var grid = Ext.getCmp('device_grid'),
-                selnode = treesm.getSelectedNode(),
+                selnode = getSelectionModel().getSelectedNode(),
                 isclass = Zenoss.types.type(selnode.data.uid)=='DeviceClass',
                 grpText = selnode.data.text.text;
             var win = new Zenoss.FormDialog({
@@ -360,7 +390,7 @@ Ext.apply(Zenoss.devices, {
         id: 'addsingledevice-item',
         permissions: 'Manage Device',
         handler: function() {
-            var selnode = treesm.getSelectedNode();
+            var selnode = getSelectionModel().getSelectedNode();
             var isclass = Zenoss.types.type(selnode.data.uid) == 'DeviceClass';
             var grpText = selnode.data.text.text;
             var win = new Zenoss.dialog.CloseDialog({
@@ -691,7 +721,7 @@ function commandMenuItemHandler(item) {
     function showWindow() {
         var win = new Zenoss.CommandWindow({
             uids: devids,
-            target: treesm.getSelectedNode().data.uid + '/run_command',
+            target: getSelectionModel().getSelectedNode().data.uid + '/run_command',
             command: command
         });
         win.show();
@@ -703,7 +733,7 @@ function commandMenuItemHandler(item) {
 
 
 function updateNavTextWithCount(node) {
-    var sel = treesm.getSelectedNode();
+    var sel = getSelectionModel().getSelectedNode();
     if (sel && Ext.isDefined(sel.data.text.count)) {
         var count = sel.data.text.count;
         node.setText('Devices ('+count+')');
@@ -761,7 +791,7 @@ function initializeTreeDrop(tree) {
                                 ranges: [],
                                 target: targetuid,
                                 asynchronous: Zenoss.settings.deviceMoveIsAsync(devids)
-                            }; 
+                            };
                             REMOTE.moveDevices(opts, function(data){
                                 if(data.success) {
                                     resetGrid();
@@ -841,7 +871,7 @@ function detailSelectByToken(nodeId) {
     var parts = nodeId.split(Ext.History.DELIMITER),
         master = Ext.getCmp('master_panel'),
         container = master.layout,
-        node = treesm.getSelectedNode(),
+        node = getSelectionModel().getSelectedNode(),
         item = Ext.getCmp('detail_nav');
     function changeDetail() {
         item.un('navloaded', item.selectFirst, item);
@@ -861,7 +891,7 @@ function detailSelectByToken(nodeId) {
             Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
             changeDetail();
         } else {
-            treesm.on('selectionchange', changeDetail, treesm, {single:true});
+            this.getSelectionModel().on('selectionchange', changeDetail, this.getSelectionModel(), {single:true});
             Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
         }
     } else {
@@ -894,7 +924,12 @@ var devtree = {
     },
     ddGroup: 'devicegriddd',
     selectByToken: detailSelectByToken,
-    selModel: treesm,
+    selModel: Ext.create('Zenoss.TreeSelectionModel',{
+        tree: 'devices',
+        listeners: {
+            selectionchange: treeselectionchange
+        }
+    }),
     router: REMOTE,
     nodeName: 'Device',
     listeners: {
@@ -927,7 +962,12 @@ var grouptree = {
     },
     ddGroup: 'devicegriddd',
     nodeName: 'Group',
-    selModel: treesm,
+    selModel: Ext.create('Zenoss.TreeSelectionModel',{
+        tree: 'groups',
+        listeners: {
+            selectionchange: treeselectionchange
+        }
+    }),
     router: REMOTE,
     selectRootOnLoad: false,
     listeners: { render: initializeTreeDrop }
@@ -951,7 +991,12 @@ var systree = {
     nodeName: 'System',
     router: REMOTE,
     selectRootOnLoad: false,
-    selModel: treesm,
+    selModel: Ext.create('Zenoss.TreeSelectionModel',{
+        tree: 'systemsTree',
+        listeners: {
+            selectionchange: treeselectionchange
+        }
+    }),
     listeners: {
         render: initializeTreeDrop
     }
@@ -976,7 +1021,12 @@ var loctree = {
     router: REMOTE,
     addNodeFn: REMOTE.addLocationNode,
     selectRootOnLoad: false,
-    selModel: treesm,
+    selModel: Ext.create('Zenoss.TreeSelectionModel',{
+        tree: 'locs',
+        listeners: {
+            selectionchange: treeselectionchange
+        }
+    }),
     listeners: { render: initializeTreeDrop }
 };
 
@@ -1091,7 +1141,7 @@ Ext.define("Zenoss.InfraDetailNav", {
             var contentPanel = Ext.getCmp(node.data.id);
             contentPanel.setContext(this.contextId);
             detailPanel.layout.setActiveItem(node.data.id);
-            var orgnode = treesm.getSelectedNode();
+            var orgnode = getSelectionModel().getSelectedNode();
             Ext.History.add([
                 orgnode.getOwnerTree().id,
                 orgnode.get("uid").replace(/\//g, '.'),
@@ -1338,7 +1388,7 @@ Ext.getCmp('center_panel').add({
             beforecardchange: function(me, card, index, from, fromidx) {
                 var node, selectedNode, tree;
                 if (index==1) {
-                    node = treesm.getSelectedNode().data;
+                    node = getSelectionModel().getSelectedNode().data;
                     card.setHeaderText(node.text.text, node.path);
                 } else if (index===0) {
                     tree = Ext.getCmp('detail_nav').treepanel;
@@ -1352,7 +1402,7 @@ Ext.getCmp('center_panel').add({
                 }
             },
             cardchange: function(me, card, index, from , fromidx) {
-                var node = treesm.getSelectedNode(),
+                var node = getSelectionModel().getSelectedNode(),
                     footer = Ext.getCmp('footer_bar');
                 if (index===1) {
                     card.card.setContext(node.data.uid);
@@ -1420,7 +1470,7 @@ function getOrganizerFields(mode) {
         allowBlank: true
     });
     var rootId = devtree.root.id;// sometimes the page loads with nothing selected and throws error. Need a default.
-    if(treesm.getSelectedNode()) rootId = treesm.getSelectedNode().getOwnerTree().root.id;
+    if(getSelectionModel().getSelectedNode()) rootId = getSelectionModel().getSelectedNode().getOwnerTree().root.id;
     if ( rootId === loctree.root.id ) {
         items.push({
             xtype: 'textarea',
@@ -1450,7 +1500,7 @@ var footerBar = Ext.getCmp('footer_bar');
 
         // the message to display when user hits the [-] delete button.
         onGetDeleteMessage: function (itemName) {
-            var node = treesm.getSelectedNode(),
+            var node = getSelectionModel().getSelectedNode(),
                 tree = node.getOwnerTree(),
                 rootId = tree.getRootNode().data.id,
                 msg = _t('Are you sure you want to delete the {0} {1}? <br/>There is <strong>no</strong> undo.');
@@ -1464,7 +1514,7 @@ var footerBar = Ext.getCmp('footer_bar');
         },
         onGetAddDialogItems: function () { return getOrganizerFields('add'); },
         onGetItemName: function() {
-            var node = treesm.getSelectedNode();
+            var node = getSelectionModel().getSelectedNode();
             if ( node ) {
                 var tree = node.getOwnerTree();
                 return tree.nodeName=='Device'?'Device Class':tree.nodeName;
@@ -1531,7 +1581,7 @@ var footerBar = Ext.getCmp('footer_bar');
                     text: _t('Edit'),
                     hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function() {
-                        var node = treesm.getSelectedNode();
+                        var node = getSelectionModel().getSelectedNode();
 
                         var dialog = new Zenoss.SmartFormDialog({
                             title: _t('Edit Organizer'),
@@ -1566,7 +1616,7 @@ var footerBar = Ext.getCmp('footer_bar');
 );
 
 footerBar.on('buttonClick', function(actionName, id, values) {
-    var tree = treesm.getSelectedNode().getOwnerTree();
+    var tree = getSelectionModel().getSelectedNode().getOwnerTree();
     switch (actionName) {
         // All items on this are organizers, no classes
         case 'addClass': tree.addChildNode(Ext.apply(values, {type: 'organizer'})); break;

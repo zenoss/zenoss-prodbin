@@ -133,28 +133,38 @@ var discoverDevicesDialog = new Zenoss.MessageDialog({
 //********************************************
 // Navigation tree (select subnetwork)
 //********************************************
-
-var treesm = new Zenoss.TreeSelectionModel({
-    listeners: {
-        'selectionchange': function (sm, newnodes) {
-            if (!newnodes.length) {
-                return;
-            }
-            var newnode = newnodes[0];
-            var uid = newnode.data.uid;
-
-            Ext.getCmp('NetworkDetailCardPanel').setContext(uid);
-
-            if (Zenoss.Security.doesNotHavePermission('Manage DMD')) {
-                return;
-            }
-            Ext.getCmp('network_context_menu').setContext(uid);
-            Zenoss.env.PARENT_CONTEXT = uid;
-
-            Ext.getCmp('footer_delete_button').setDisabled(treeConfigs.containsKey(uid));
-        }
+function deselectOtherTree(treeid) {
+    var tree, sm;
+    if (treeid == 'ipv6networks') {
+        tree = Ext.getCmp('networks');
+    } else {
+        tree = Ext.getCmp('ipv6networks');
     }
-});
+    sm = tree.getSelectionModel();
+    if (sm.getSelectedNode()) {
+        sm.deselect(sm.getSelectedNode(), true);
+    }
+}
+
+function treeselectionchange(sm, newnodes) {
+    deselectOtherTree(sm.id);
+    Zenoss.env.treems = sm;
+    if (!newnodes.length) {
+        return;
+    }
+    var newnode = newnodes[0];
+    var uid = newnode.data.uid;
+
+    Ext.getCmp('NetworkDetailCardPanel').setContext(uid);
+
+    if (Zenoss.Security.doesNotHavePermission('Manage DMD')) {
+        return;
+    }
+    Ext.getCmp('network_context_menu').setContext(uid);
+    Zenoss.env.PARENT_CONTEXT = uid;
+
+    Ext.getCmp('footer_delete_button').setDisabled(treeConfigs.containsKey(uid));
+}
 
 Ext.define("Zenoss.Network.NetworkNavTree", {
     alias:['widget.networknavtree'],
@@ -162,7 +172,12 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
 
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
-            selModel: treesm
+            selModel: Ext.create('Zenoss.TreeSelectionModel', {
+                id: config.id,
+                listeners: {
+                    selectionchange: treeselectionchange
+                }
+            })
         });
 
         Zenoss.Network.NetworkNavTree.superclass.constructor.call(this, config);
