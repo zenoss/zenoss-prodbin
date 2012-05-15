@@ -68,7 +68,7 @@ class TestParsers(BaseTestCase):
         # Check time of 10:23 equals 623 minutes
         #print "623 number = %s" % results.values[0][1]
         #assert results.values[0][1] == 623
-        assert len([value for dp, value in results.values if value == 623]) == 1
+        assert len([value for dp, value in results.values if value == 62300]) == 1
         assert len([ev for ev in results.events if ev['severity'] == 0]) == 3
         assert len([ev for ev in results.events if ev['severity'] == 1]) == 1
         results = ParsedResults()
@@ -150,7 +150,7 @@ class TestParsers(BaseTestCase):
                 else:
                     self.assertEquals(value, 3)
             elif 'cpu' in dp.id:
-                self.assertEquals(value, 239985.0)
+                self.assertEquals(value, 23998500.0)
             elif 'mem' in dp.id:
                 self.assertEquals(value, 421320.0)
             else:

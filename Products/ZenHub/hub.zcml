@@ -13,7 +13,8 @@
 ###########################################################################
 -->
 
-<configure xmlns="http://namespaces.zope.org/zope">
+<configure xmlns="http://namespaces.zope.org/zope"
+           >
 
   <!-- Only load this in a ZenHub process -->
   <utility
@@ -21,13 +22,13 @@
     provides=".interfaces.IInvalidationProcessor"
     />
 
-  <utility 
+  <utility
     factory=".invalidationfilter.DeviceClassInvalidationFilter"
     provides=".interfaces.IInvalidationFilter"
     name="DeviceClass"
     />
 
-  <utility 
+  <utility
     factory=".invalidationfilter.IpInvalidationFilter"
     provides=".interfaces.IInvalidationFilter"
     name="IpAddress"
