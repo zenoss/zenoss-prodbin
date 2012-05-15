@@ -20,14 +20,13 @@ Restores a zenoss backup created by zenbackup.
 import logging
 import sys
 import os
-import os.path
 import subprocess
 import tarfile
 import ConfigParser
 
 import Globals
 from ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, binPath
+from Products.ZenUtils.Utils import zenPath, binPath, requiresDaemonShutdown
 
 from ZenBackupBase import *
 
@@ -153,6 +152,7 @@ class ZenRestore(ZenBackupBase):
         os.system(cmd)
 
 
+    @requiresDaemonShutdown('zeneventserver')
     def restoreZEP(self):
         '''
         Restore ZEP DB and indexes
@@ -370,9 +370,11 @@ class ZenRestore(ZenBackupBase):
             tempPacks = os.path.join(self.tempDir, 'ZenPacks.tar')
             if os.path.isfile(tempPacks):
                 self.restoreZenPacks()
-                self.restoreZenPackContents()
             else:
                 self.msg('Backup contains no ZenPacks.')
+
+        # Allow each installed ZenPack to restore state from the backup
+        self.restoreZenPackContents()
 
         # Performance Data
         tempPerf = os.path.join(self.tempDir, 'perf.tar')
