@@ -21,7 +21,7 @@
     <script type="text/javascript" tal:define="classlist python:[dict(label=x,data=x) for x in 
                         here.dmd.Devices.deviceMoveTargets()];
                         initobj python:here.dmd.ZenUsers.getUserSettings(
-                                       )['netMapStartObject']"
+                                       ).netMapStartObject"
         tal:content="string:
        _deviceClasses = ${classlist};
        _initialObjId = '${initobj}';
