@@ -202,6 +202,7 @@ function treeselectionchange(sm, newnodes, oldnode) {
         // explicitly set the new security context (to update permissions)
         Zenoss.Security.setContext(uid);
 
+
         //should "ask" the DetailNav if there are any details before showing
         //the button
         Ext.getCmp('master_panel').items.each(function(card){
@@ -325,54 +326,28 @@ Ext.apply(Zenoss.devices, {
                                                 notRemovedIds = [],
                                                 flare;
                                         if (!Ext.isDefined(response.success) || response.success) {
-                                            if (response.removedUids.length > 0) {
-                                                var treeName = Zenoss.env.PARENT_CONTEXT.split('/')[3];
-                                                switch (treeName) {
-                                                    case 'Devices' :
-                                                        devtree.refresh();
-                                                        loctree.refresh();
-                                                        grouptree.refresh();
-                                                        systree.refresh();
-                                                        break;
-                                                    case 'Systems' :
-                                                        systree.refresh();
-                                                        break;
-                                                    case 'Locations' :
-                                                        loctree.refresh();
-                                                        break;
-                                                    case 'Groups' :
-                                                        grptree.refresh();
-                                                        break;
-                                                }
-                                                resetGrid()
-                                            }
 
-                                            Ext.each(response.removedUids, function (uid) {
+                                            Ext.each(response.removedUids || [], function (uid) {
                                                 removedIds.push(uid.split('/')[uid.split('/').length - 1]);
                                             });
-                                            Ext.each(response.notRemovedUids, function (uid) {
+                                            Ext.each(response.notRemovedUids || [], function (uid) {
                                                 notRemovedIds.push(uid.split('/')[uid.split('/').length - 1]);
                                             });
+                                            // if we weren't able to schedule all the device ids then warn about it.
+                                            // the job notification will take care of letting them know if the device was deleted
+                                            var msg = '',
+                                                msgTemplate;
 
-                                            if (Ext.Array.indexOf(['remove'], opts.action) !== -1) {
-                                                var msg = '',
-                                                        msgTemplate;
-
-                                                if (removedIds.length > 0) {
-                                                    msgTemplate = new Ext.Template('Successfully {0}d device{1}: {2}');
-                                                    msg += msgTemplate.applyTemplate([opts.action,
-                                                        opts.uids.length > 1 ? 's' : '',
-                                                        removedIds.join(', ')]);
-                                                }
-                                                if (notRemovedIds.length > 0) {
-                                                    msgTemplate = new Ext.Template('The following {0} not {1}d because they were not in the selected organizer: {2}');
-                                                    msg += msgTemplate.applyTemplate([
-                                                        opts.uids.length > 1 ? 'devices were' : 'device was',
-                                                        opts.action,
-                                                        notRemovedIds.join(', ')]);
-                                                }
+                                            if (notRemovedIds.length > 0) {
+                                                msgTemplate = new Ext.Template(_t('The following {0} not {1}d because they were not in the selected organizer: {2}'));
+                                                msg += msgTemplate.applyTemplate([
+                                                    opts.uids.length > 1 ? _t('devices were') : _t('device was'),
+                                                    opts.action,
+                                                    notRemovedIds.join(', ')]);
                                                 Zenoss.message.info(msg);
                                             }
+
+
                                         }
                                     }
                             );
@@ -388,7 +363,7 @@ Ext.apply(Zenoss.devices, {
     addDevice: new Zenoss.Action({
         text: _t('Add a Single Device') + '...',
         id: 'addsingledevice-item',
-        permissions: 'Manage Device',
+        permission: 'Manage Device',
         handler: function() {
             var selnode = getSelectionModel().getSelectedNode();
             var isclass = Zenoss.types.type(selnode.data.uid) == 'DeviceClass';

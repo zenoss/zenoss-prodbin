@@ -45,15 +45,17 @@
             }
 
 
-        },
-        setDisabled : function(disable){
-            var enable = !disable;
-            if (disable || (Ext.isDefined(this.initialConfig.permission) && enable &&
-                            Zenoss.Security.hasPermission(this.initialConfig.permission)===true)) {
-                Zenoss.Action.superclass.setDisabled.apply(this, arguments);
-            }
         }
+
     });
+
+    function setDisabled(disable){
+        var enable = !disable;
+        if (disable || (Ext.isDefined(this.initialConfig.permission) && enable &&
+                        Zenoss.Security.hasPermission(this.initialConfig.permission)===true)) {
+            this.callParent([disable]);
+        }
+    }
 
     Ext.define("Zenoss.Action", {
         extend: "Ext.menu.Item",
@@ -64,7 +66,8 @@
         constructor: function(config){
             this.setPermission(config);
             this.callParent([config]);
-        }
+        },
+        setDisabled: setDisabled
     });
 
     Ext.define("Zenoss.ActionButton", {
@@ -76,6 +79,7 @@
         constructor: function(config){
             this.setPermission(config);
             this.callParent([config]);
-        }
+        },
+        setDisabled: setDisabled
     });
 }());

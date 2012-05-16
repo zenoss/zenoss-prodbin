@@ -25,7 +25,7 @@ from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MANAGE_DMD, \
-    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_ZPROPERTIES_EDIT
+    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_ZPROPERTIES_EDIT, ZEN_DELETE_DEVICE
 from Products.Zuul import filterUidsByPermission
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.interfaces import IInfo
@@ -1031,8 +1031,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.succeed('Components deleted.')
         except Exception, e:
             return DirectResponse.exception(e, 'Failed to delete components.')
-
-    @require('Delete Device')
+    
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
                       ranges=(), params=None, sort='name', dir='ASC',
                       deleteEvents=False, deletePerf=False
@@ -1073,11 +1072,12 @@ class DeviceRouter(TreeRouter):
              - grptree: ([dictionary]) Object representing the new group tree
              - systree: ([dictionary]) Object representing the new system tree
              - loctree: ([dictionary]) Object representing the new location tree
-        """
+        """        
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
         removedUids = tuple()
+        uids = filterUidsByPermission(self.context.dmd, ZEN_DELETE_DEVICE, uids)        
         try:
             if action == "remove":
                 removed = facade.removeDevices(uids, organizer=uid)
@@ -1101,9 +1101,9 @@ class DeviceRouter(TreeRouter):
                           deletePerf=deletePerf)
                 jobrecord = facade.deleteDevices(uids,
                                      deleteEvents=deleteEvents,
-                                     deletePerf=deletePerf)
+                                     deletePerf=deletePerf)                
                 return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord],
-                                      keys=('uuid', 'description', 'started')))
+                                                                    keys=('uuid', 'description', 'started')))
         except Exception, e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to remove devices.')
