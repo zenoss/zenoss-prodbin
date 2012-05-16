@@ -45,6 +45,7 @@ Ext.define("Zenoss.CommandPanel", {
                 target: this.target
             });
         this.getBody().innerHTML = form;
+        this.getFrame().setAttribute("allowtransparency", "true");   
         doc.commandform.submit();
         this.parentWindow.setSize(this.parentWindow.getSize());
     }

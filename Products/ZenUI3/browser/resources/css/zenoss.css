@@ -1525,7 +1525,7 @@ pre {
 .white-background-panel .x-column-header-inner{
     padding-top: 2px !important;
 }
-.x-ie .white-background-panel .x-window-default-mr{
+.x-ie .white-background-panel .x-window-default-mr, .x-ie .x-window-default-mr{
     padding-left: 0px !important;
 }
 .x-ie .white-background-panel .x-tab-top{
