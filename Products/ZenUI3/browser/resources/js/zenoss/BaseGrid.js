@@ -280,7 +280,7 @@
                         query = filter.getValue();
                         if (globbing && filter.xtype == 'textfield' && filter.vtype != 'numcmp' &&
                             filter.vtype != 'numrange' && filter.vtype != 'floatrange' &&
-                            excludeGlobChars.indexOf(query.charAt(query.length - 1)) === -1) {
+                            Ext.Array.indexOf(excludeGlobChars,query.charAt(query.length - 1)) === -1) {
                             query += '*';
                         }
                         values[col.filterKey] = query;
