@@ -352,8 +352,8 @@ Ext.onReady(function(){
     // Hook up the "Last Updated" text
     var store = grid.getStore(),
         view = grid.getView();
-    store.on('load', doLastUpdated);
-    view.on('buffer', doLastUpdated);
+    store.on('beforeprefetch', doLastUpdated);
+    doLastUpdated();
 
     // Detail pane should pop open when double-click on event
     grid.on("itemdblclick", toggleEventDetailContent);
