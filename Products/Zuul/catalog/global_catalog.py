@@ -376,6 +376,12 @@ class GlobalCatalog(ZCatalog):
     def catalog_object(self, obj, uid=None, **kwargs):
         if not isinstance(obj, self._get_forbidden_classes()):
             ob = IIndexableWrapper(obj)
+            if kwargs.get('idxs'):
+                # the first time we catalog an object we must catalog the
+                # entire object
+                uid = uid or "/".join(obj.getPhysicalPath())
+                if not uid in self._catalog.uids:
+                    del kwargs['idxs']
             ZCatalog.catalog_object(self, ob, uid, **kwargs)
 
     def uncatalog_object(self, path):
@@ -420,7 +426,7 @@ class GlobalCatalog(ZCatalog):
         """
         cat = self._catalog
         return cat.indexes.get(index)
-    
+
     def addIndex(self, id, index, extra=None):
         """
         Dispatches to self._catalog.addIndex
