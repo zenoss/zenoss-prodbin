@@ -1,12 +1,23 @@
 @mixin zenoss-tips {
     #page-level-help-tip{
-        width:440px !important;
+        width:400px !important;
     }
     .#{$prefix}tip {
         background-color:#F8E585 !important;
         .#{$prefix}tool-close, .#{$prefix}tool-over {
             @include zenoss-background-image("qtip/close.png");
+
         }
+        .#{$prefix}tool{
+            left: 380px !important;        
+        }
+    }
+    #page-level-help-tip_header, 
+    #page-level-help-tip-body, 
+    #page-level-help-tip_header-body,
+    #page-level-help-tip_header-innerCt,
+    page-level-help-tip_header-targetEl{
+        width: 395px !important;
     }
     
     // IE FIXES

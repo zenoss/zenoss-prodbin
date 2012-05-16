@@ -340,13 +340,13 @@ input, textarea, select {
 .x-hidden, .x-hide-offsets {
   display: block !important;
   visibility: hidden !important;
-  position: absolute!important;
+  position: absolute !important;
   left: -10000px !important;
   top: -10000px !important; }
 
 .x-hide-nosize {
-  height: 0!important;
-  width: 0!important; }
+  height: 0 !important;
+  width: 0 !important; }
 
 .x-masked-relative {
   position: relative; }
@@ -699,7 +699,7 @@ table.x-container:before, tbody.x-container:before, tr.x-container:before {
 
 /* IE9 shows scrollbars in a button unless this is set  */
 .x-ie9 .x-btn button {
-  overflow: visible!important; }
+  overflow: visible !important; }
 
 * html .x-ie .x-btn button {
   width: 1px; }
@@ -2273,7 +2273,7 @@ table.x-container:before, tbody.x-container:before, tr.x-container:before {
   background: transparent !important;
   border-width: 0 !important; }
 .x-datepicker-month span {
-  color: #fff !important; }
+  color: white !important; }
 .x-datepicker-month .x-btn-split-right {
   background-image: url('../img/xtheme-zenoss/button/s-arrow-light.gif');
   padding-right: 12px; }
@@ -2669,7 +2669,7 @@ table.x-datepicker-inner .x-datepicker-disabled a {
 
 .x-autowidth-table table.x-grid-table {
   table-layout: auto;
-  width: auto!important; }
+  width: auto !important; }
 
 .x-grid-row .x-grid-table {
   border-collapse: collapse; }
@@ -2694,7 +2694,7 @@ table.x-datepicker-inner .x-datepicker-disabled a {
   background-image: linear-gradient(top, #e8e8e8, #d1d3d6); }
 
 .x-accordion-item .x-grid-header-ct {
-  border-width: 0 0 1px 0!important; }
+  border-width: 0 0 1px 0 !important; }
 
 .x-column-header {
   padding: 0;
@@ -2903,7 +2903,7 @@ browsers will do whacky things with it.
   background-repeat: no-repeat; }
 
 .x-grid-cell-selected {
-  background-color: #B8CFEE !important; }
+  background-color: #b8cfee !important; }
 
 .x-nlg .x-grid-cell-special {
   background-repeat: repeat-y;
@@ -6379,7 +6379,7 @@ a.x-tab-close-btn:hover {
 
 .x-autowidth-table table.x-grid-table {
   table-layout: auto;
-  width: auto!important; }
+  width: auto !important; }
 
 .x-tree-no-lines .x-tree-elbow {
   background-color: transparent; }
@@ -6623,7 +6623,7 @@ svg, vml {
   position: static; }
 
 .x-dd-drag-proxy {
-  z-index: 1000000!important; }
+  z-index: 1000000 !important; }
 
 .x-dd-drag-repair .x-dd-drag-ghost {
   filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=60);
@@ -7459,7 +7459,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 */
 .x-autowidth-table table.x-grid-table {
   table-layout: auto;
-  width: auto!important; }
+  width: auto !important; }
 
 .x-tree-no-lines .x-tree-elbow {
   background-color: transparent; }
@@ -7775,7 +7775,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   color: #454545;
   padding-top: 2px; }
 #deviceDetailNav .x-grid-row-selected .x-grid-cell-inner, #deviceDetailNav .x-grid-row-focused .x-grid-cell-inner, #masterDetailNav .x-grid-row-selected .x-grid-cell-inner, #masterDetailNav .x-grid-row-focused .x-grid-cell-inner {
-  background-color: #7199C6 !important;
+  background-color: #7199c6 !important;
   color: #fff; }
 #deviceDetailNav #templateTree-body, #masterDetailNav #templateTree-body {
   padding-top: 0px !important; }
@@ -9872,7 +9872,7 @@ CORE TRIGGER PAGE STUFF
   position: static !important; }
 
 #master_panel .x-panel-hierarchy .x-grid-row-over, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over, #master_panel_navigation .x-grid-row-over, #trigger-master_panel .x-grid-row-over, #templateTree .x-grid-row-over {
-  background-color: #eee !important;
+  background-color: #eeeeee !important;
   color: #454545 !important; }
 #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner, #trigger-master_panel .x-grid-row-over .x-grid-cell, #trigger-master_panel .x-grid-row-over .x-grid-cell-inner, #templateTree .x-grid-row-over .x-grid-cell, #templateTree .x-grid-row-over .x-grid-cell-inner {
   background-color: #eee;
@@ -9904,9 +9904,9 @@ CORE TRIGGER PAGE STUFF
 .x-grid .x-column-header-text, #dataSourceTreeGrid .x-column-header-text {
   background-position: right 4px !important; }
 .x-grid .x-grid-row-over-rowcolor, .x-grid .x-grid-row-selected-rowcolor, #dataSourceTreeGrid .x-grid-row-over-rowcolor, #dataSourceTreeGrid .x-grid-row-selected-rowcolor {
-  background: #999 !important; }
+  background: #999999 !important; }
 .x-grid .x-grid-row-selected .x-grid-cell, .x-grid .x-grid-row-selected .x-grid-rowwrap-div, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div {
-  background-color: #7199C6 !important; }
+  background-color: #7199c6 !important; }
 .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a {
   color: #fff; }
 .x-grid .rowcolor, #dataSourceTreeGrid .rowcolor {
@@ -9950,12 +9950,17 @@ CORE TRIGGER PAGE STUFF
   border-bottom: 1px solid #eeeeee !important; }
 
 #page-level-help-tip {
-  width: 440px !important; }
+  width: 400px !important; }
 
 .x-tip {
-  background-color: #F8E585 !important; }
+  background-color: #f8e585 !important; }
 .x-tip .x-tool-close, .x-tip .x-tool-over {
   background-image: url("/++resource++zenui/img/ext4/qtip/close.png") ; }
+.x-tip .x-tool {
+  left: 380px !important; }
+
+#page-level-help-tip_header, #page-level-help-tip-body, #page-level-help-tip_header-body, #page-level-help-tip_header-innerCt, page-level-help-tip_header-targetEl {
+  width: 395px !important; }
 
 .x-ie #page-help {
   margin-top: 5px; }
@@ -10210,14 +10215,14 @@ CORE TRIGGER PAGE STUFF
   padding: 0px;
   text-decoration: underline; }
 .easyadddevice_shell .credstitle, #newform .credstitle {
-  border-bottom: 1px solid #ddd !important;
+  border-bottom: 1px solid #dddddd !important;
   margin-bottom: 8px !important;
   padding: 3px !important; }
 .easyadddevice_shell .credstitle .x-panel-body, #newform .credstitle .x-panel-body {
   font-size: 14px !important;
-  color: #444 !important; }
+  color: #444444 !important; }
 .easyadddevice_shell #userfieldset, #newform #userfieldset {
-  border-left: 1px solid #aaa !important;
+  border-left: 1px solid #aaaaaa !important;
   padding-left: 27px; }
 .easyadddevice_shell #manual_creds, #newform #manual_creds {
   padding: 5px;
@@ -10226,7 +10231,7 @@ CORE TRIGGER PAGE STUFF
   margin: 0px; }
 .easyadddevice_shell .helptext .x-panel-body-default, #newform .helptext .x-panel-body-default {
   font-size: 11px;
-  color: #666 !important;
+  color: #666666 !important;
   padding: 0 8px 8px 15px; }
 .easyadddevice_shell .creds_base, #newform .creds_base {
   margin: -10px !important; }
@@ -10378,7 +10383,7 @@ CORE TRIGGER PAGE STUFF
   background-repeat: repeat-x; }
 
 #trigger-master_panel, #trigger-master_panel-body {
-  background-color: #D4E0EE !important; }
+  background-color: #d4e0ee !important; }
 
 #trigger-master_panel_navigation {
   background: transparent !important; }
@@ -10390,7 +10395,7 @@ CORE TRIGGER PAGE STUFF
 #master_panel #subselecttreepaneldetail_nav-body, #master_panel .x-panel-body {
   border: 0 none !important; }
 #master_panel #subselecttreepaneldetail_nav .x-grid-cell, #master_panel .x-panel-body-hierarchy, #master_panel #templateTree {
-  background-color: #D4E0EE !important;
+  background-color: #d4e0ee !important;
   border: 0 none !important; }
 #master_panel .x-panel-body {
   overflow: visible; }
@@ -10398,14 +10403,14 @@ CORE TRIGGER PAGE STUFF
 #processForm .x-toolbar-footer, #serviceForm .x-toolbar-footer {
   background-color: #F5F9FD;
   padding: 8px !important;
-  border-top: 1px solid!important; }
+  border-top: 1px solid !important; }
 #processForm .x-docked-bottom, #serviceForm .x-docked-bottom {
   border-top-width: 1px !important;
-  border-color: #808080 !important; }
+  border-color: gray !important; }
 
 .commonlivegridinfopanel {
   border: 0 none !important;
-  background: #fff !important; }
+  background: white !important; }
 
 .x-docked.x-panel-default-collapsed {
   background-image: none !important;
@@ -10416,7 +10421,7 @@ CORE TRIGGER PAGE STUFF
   text-transform: uppercase;
   font-size: 10px !important; }
 .livegridinfopanel.x-toolbar-text {
-  color: #000 !important;
+  color: black !important;
   font-weight: bold; }
 
 #evdetail_bd-body {
@@ -10454,13 +10459,13 @@ CORE TRIGGER PAGE STUFF
   background-image: none; }
 
 .x-grid-row-selected, .x-grid-row-focused {
-  background-color: #7199C6 !important; }
+  background-color: #7199c6 !important; }
 .x-grid-row-selected .x-grid-cell-inner, .x-grid-row-selected span, .x-grid-row-focused .x-grid-cell-inner, .x-grid-row-focused span {
-  background-color: #7199C6 !important;
-  color: #fff !important; }
+  background-color: #7199c6 !important;
+  color: white !important; }
 
 .x-grid-row-selected.x-grid-row-over .x-grid-cell-inner, .x-grid-row-selected.x-grid-row-over span {
-  color: #222 !important; }
+  color: #222222 !important; }
 
 .tabletitlecontainer {
   padding-top: 5px; }
