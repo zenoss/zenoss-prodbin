@@ -569,14 +569,22 @@ Ext.define('Zenoss.DeviceDetailNav', {
                     }
                 }
             }
-
+            tree.on('afteritemcollapse', function(t){
+                Ext.defer(function(){
+                    Ext.getCmp('master_panel').doLayout();
+                }, 300);                
+            });
+            tree.on('afteritemexpand', function(t){
+                Ext.defer(function(){
+                    Ext.getCmp('master_panel').doLayout();
+                }, 300);                  
+            });       
+            tree.on('afterrender', function(t){
+                Ext.defer(function(){
+                    Ext.getCmp('master_panel').doLayout();
+                }, 300);                  
+            });
             this.fireEvent('componenttreeloaded');
-            // give the tree time to redraw and then let
-            // the master panel know that we have a new height
-            // (because of the expanded component tree)
-            Ext.defer(function(){
-                Ext.getCmp('master_panel').doLayout();
-            }, 300);
 
         }, this);
     },
