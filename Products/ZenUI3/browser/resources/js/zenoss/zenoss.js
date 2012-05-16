@@ -274,13 +274,9 @@ Ext.Direct.on('exception', function(e) {
  * inability to reach the server.
  */
 Ext.Direct.on('event', function(e){
-    if (Ext.Msg.isVisible()) {
-        var message_box = Ext.Msg.getDialog();
-        if (message_box != null && message_box.title == 'Server Exception') {
-            if (Ext.isDefined(e.result)) {
-                Ext.Msg.hide();
-            }
-        }
+    if (serverExceptionDialog && Ext.isDefined(e.result)){
+        serverExceptionDialog.hide();
+        serverExceptionDialog.destroy();
     }
 });
 
