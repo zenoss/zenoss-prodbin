@@ -393,6 +393,23 @@ Ext.onReady(function() {
                 Systems: function(value, sourceData) {
                     return Zenoss.render.LinkFromGridUidGroup(value);
                 },
+
+
+                /* We don't totally control what the source looks like, so escape any HTML*/
+                eventState: function(value, sourceData) {
+                    return Ext.htmlEncode(value);
+                },
+                summary: function(value, sourceData) {
+                    return Ext.htmlEncode(value);
+                },
+                dedupid: function(value, sourceData) {
+                    return Ext.htmlEncode(value);
+                },
+                message: function(value, sourceData) {
+                    return Ext.htmlEncode(value);
+                },
+
+
                 DeviceGroups: function(value, sourceData) {
                     return Zenoss.render.LinkFromGridUidGroup(value);
                 },
