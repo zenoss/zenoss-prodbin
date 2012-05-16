@@ -569,8 +569,15 @@ Ext.define('Zenoss.DeviceDetailNav', {
                     }
                 }
             }
-            this.doLayout();
+
             this.fireEvent('componenttreeloaded');
+            // give the tree time to redraw and then let
+            // the master panel know that we have a new height
+            // (because of the expanded component tree)
+            Ext.defer(function(){
+                Ext.getCmp('master_panel').doLayout();
+            }, 300);
+
         }, this);
     },
     filterNav: function(navpanel, config){
@@ -654,7 +661,7 @@ Ext.getCmp('center_panel').add({
         xtype: 'devdetailbar',
         id: 'devdetailbar',
         listeners: {
-            render: function(me) {
+            afterrender: function(me) {
                 // refresh once every minute
                 var delay = 60 * 1000, eventsGrid;
                 me.setContext(UID);
@@ -690,6 +697,7 @@ Ext.getCmp('center_panel').add({
         width: 275,
         maxWidth: 275,
         autoScroll: true,
+        layout: 'fit',
         items: {
             xtype: 'detailcontainer',
             ui: 'hierarchy',
@@ -987,7 +995,11 @@ Ext.getCmp('footer_bar').add([{
             var win = new Zenoss.CommandWindow({
                 uids: [UID],
                 target: 'run_model',
-                closeAction: 'closeAndReload',
+                listeners: {
+                    close: function(){
+                        Ext.defer(window.top.location.reload, 1000);
+                    }
+                },
                 title: _t('Model Device')
             });
             win.show();
