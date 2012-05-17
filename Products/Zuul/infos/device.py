@@ -18,7 +18,7 @@ from Products.ZenUtils import IpUtil
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceOrganizerInfo
-from Products.Zuul.interfaces import IDeviceInfo, IDevice
+from Products.Zuul.interfaces import IDeviceInfo, IDevice, IInfo
 from Products.Zuul.infos import InfoBase, HasEventsInfoMixin, ProxyProperty, LockableMixin
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
@@ -268,18 +268,27 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
     def deviceClass(self):
         return info(self._object.deviceClass())
 
+    def _organizerInfo(self, objs):
+        result = []
+        for obj in objs:
+            info = IInfo(obj)
+            result.append(dict(name=info.name, uid=info.uid, uuid=info.uuid, path=info.path))
+        return result
+
     @property
     def groups(self):
-        return info(self._object.groups())
+        return self._organizerInfo(self._object.groups())
 
     @property
     def systems(self):
-        return info(self._object.systems())
+        return self._organizerInfo(self._object.systems())
 
     @property
     def location(self):
-        return info(self._object.location())
-
+        loc = self._object.location()
+        if loc:
+            info = IInfo(loc)
+            return dict(name=info.name, uid=info.uid, uuid=info.uuid)
     @property
     def uptime(self):
         return self._object.uptimeStr()

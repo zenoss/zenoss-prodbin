@@ -55,14 +55,6 @@ class InfoBase(object):
         self._object = object
 
     @property
-    def objectProperties(self):
-        """
-        @returns the _properties from the object that
-        this info is wrapping (ZenModel)
-        """
-        return self._object._properties
-
-    @property
     def uid(self):
         _uid = getattr(self, '_v_uid', None)
         if _uid is None:

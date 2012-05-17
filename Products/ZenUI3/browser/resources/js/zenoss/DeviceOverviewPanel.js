@@ -62,8 +62,8 @@
             id: 'hwmanufacturercombo',
             fieldLabel: _t('HW Manufacturer'),
             listConfig: {
-                resizable: true, resizeHandles: 'e' 
-            },            
+                resizable: true, resizeHandles: 'e'
+            },
             listeners: {'select': function(combo, record, index){
                 record = record[0];
                 var productCombo = Ext.getCmp('hwproductcombo');
@@ -76,7 +76,7 @@
             prodType: 'HW',
             width: FIELDWIDTH,
             listConfig: {
-                resizable: true, resizeHandles: 'e' 
+                resizable: true, resizeHandles: 'e'
             },
             name: 'hwProductName',
             fieldLabel: _t('HW Product'),
@@ -91,7 +91,7 @@
             id: 'osmanufacturercombo',
             fieldLabel: _t('OS Manufacturer'),
             listConfig: {
-                resizable: true, resizeHandles: 'e' 
+                resizable: true, resizeHandles: 'e'
             },
             listeners: {'select': function(combo, record, index){
                 record = record[0];
@@ -105,7 +105,7 @@
             prodType: 'OS',
             width: FIELDWIDTH,
             listConfig: {
-                resizable: true, resizeHandles: 'e' 
+                resizable: true, resizeHandles: 'e'
             },
             name: 'osProductName',
             id: 'osproductcombo',
@@ -189,7 +189,7 @@
                 xtype: 'combo',
                 name: 'collector',
                 listConfig: {
-                    resizable: true, resizeHandles: 'e' 
+                    resizable: true, resizeHandles: 'e'
                 },
                 fieldLabel: _t('Select a collector'),
                 queryMode: 'local',
@@ -269,7 +269,7 @@
                     displayField: 'name',
                     forceSelection: true,
                     listConfig: {
-                        resizable: true, resizeHandles: 'e' 
+                        resizable: true, resizeHandles: 'e'
                     },
                     editable: false,
                     autoSelect: true,
@@ -278,6 +278,7 @@
                 }, {
                     xtype: 'button',
                     ref: '../../addgroupbutton',
+                    ui: 'dialog-dark',
                     text: _t('Add'),
                     handler: function(btn) {
                         var selectedGroup = btn.refOwner.selectgroup.getValue();
@@ -319,6 +320,7 @@
                             flex: 1
                         }, {
                             xtype: 'button',
+                            ui: 'dialog-dark',
                             text: _t('Remove'),
                             ref: 'delbutton',
                             group: group,
@@ -403,6 +405,7 @@
                 name: 'location',
                 fieldLabel: _t('Select a location'),
                 store: new Ext.data.DirectStore({
+                    autoload: true,
                     directFn: Zenoss.remote.DeviceRouter.getLocations,
                     root: 'locations',
                     fields: ['name']
@@ -410,13 +413,10 @@
                 valueField: 'name',
                 displayField: 'name',
                 value: values.location ? values.location.uid.slice(20) : '',
-                forceSelection: true,
-                editable: false,
                 listConfig: {
-                    resizable: true, resizeHandles: 'e' 
+                    resizable: true, resizeHandles: 'e'
                 },
                 width: 250,
-                autoSelect: true,
                 triggerAction: 'all'
             }],
             buttons: [{
