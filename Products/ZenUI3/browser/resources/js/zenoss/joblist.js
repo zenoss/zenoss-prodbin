@@ -106,6 +106,11 @@ Ext.getCmp('center_panel').add({
             width: 150,
             sortable: true,
             renderer: renderDate
+        },{
+            dataIndex: 'user',
+            header: _t('Created By'),
+            width: 150,
+            sortable: true
         }],
         multiSelect: true,
         selectByToken: function(token) {

@@ -43,5 +43,6 @@ class JobInfo(InfoBase):
     def status(self):
         return self._object.status
 
-
-
+    @property
+    def user(self):
+        return self._object.user

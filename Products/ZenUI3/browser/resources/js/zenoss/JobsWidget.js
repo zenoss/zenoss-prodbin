@@ -68,7 +68,8 @@ Ext.define("Zenoss.model.Job", {
         'started',
         'finished',
         'status',
-        'result'
+        'result',
+        'user'
     ]
 });
 
@@ -192,8 +193,8 @@ Ext.define("Zenoss.JobsWidget", {
             new Ext.util.DelayedTask(function(){
                 e.menu.hide();
                 e.menu.show();
-            }).delay(100);       
-        
+            }).delay(100);
+
         }, this, {single:true});
         this.pollTask = new Ext.util.DelayedTask(this.poll, this);
     },

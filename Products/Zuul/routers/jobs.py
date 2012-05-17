@@ -29,7 +29,7 @@ log = logging.getLogger('zen.JobsRouter')
 
 
 JOBKEYS = ['uuid', 'type', 'description', 'scheduled', 'started', 'finished',
-           'status']
+           'status', 'user']
 
 
 class JobsRouter(DirectRouter):
@@ -83,4 +83,3 @@ class JobsRouter(DirectRouter):
             results[status] = jobs[:10]
         return DirectResponse(jobs=Zuul.marshal(results, keys=JOBKEYS),
                               totals=totals)
-
