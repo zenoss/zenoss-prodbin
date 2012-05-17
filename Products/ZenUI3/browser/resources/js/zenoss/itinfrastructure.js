@@ -319,12 +319,10 @@ Ext.apply(Zenoss.devices, {
                             Zenoss.remote.DeviceRouter.removeDevices(opts,
                                     function (response) {
                                         var devtree = Ext.getCmp('devices'),
-                                                loctree = Ext.getCmp('locs'),
-                                                systree = Ext.getCmp('systemsTree'),
-                                                grptree = Ext.getCmp('groups'),
                                                 removedIds = [],
                                                 notRemovedIds = [],
                                                 flare;
+                                        resetGrid();
                                         if (!Ext.isDefined(response.success) || response.success) {
 
                                             Ext.each(response.removedUids || [], function (uid) {

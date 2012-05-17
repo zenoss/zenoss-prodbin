@@ -15,7 +15,6 @@ import os
 import time
 import logging
 import Queue
-
 import errno
 import subprocess
 from AccessControl.SecurityManagement import newSecurityManager
@@ -52,6 +51,7 @@ class Job(Task):
     _aborter_thread = None
     _result_queue = Queue.Queue()
     _log = None
+    _aborted_tasks = set()
 
     @classmethod
     def getJobType(cls):
@@ -129,21 +129,27 @@ class Job(Task):
             except NoSuchJobException:
                 status = states.ABORTED
             if (status == states.ABORTED and self._runner_thread is not None):
-                    self._runner_thread.interrupt(JobAborted)
-                    break
+                self.log.info("Job %s is aborted", task_id)
+                # sometimes the thread is about to commit before it can get interrupted
+                # self._aborted_tasks is an in memory shared set so the other thread
+                # can check on it before it commits
+                self._aborted_tasks.add(task_id)
+                self._runner_thread.interrupt(JobAborted)
+                break
             time.sleep(0.5)
 
+    @transact
     def _do_run(self, *args, **kwargs):
         # self.request.id is thread-local, so store this from parent
         if self.request.id is None:
             self.request.id = kwargs.get('task_id')
         try:
             del kwargs['task_id']
-        except KeyError: 
+        except KeyError:
             pass
 
         job_record = self.dmd.JobManager.getJob(self.request.id)
-
+        job_id = job_record.id
         # Log in as the job's user
         self.log.debug("Logging in as %s" % job_record.user)
         utool = getToolByName(self.dmd.getPhysicalRoot(), 'acl_users')
@@ -158,6 +164,12 @@ class Job(Task):
         try:
             try:
                 result = self._run(*args, **kwargs)
+                self.log.info("Job %s Finished with result %s" , job_record.id, result)
+                if job_id in self._aborted_tasks:
+                    self.log.info("Job %s aborted rolling back thread local transaction", job_record.id)
+                    import transaction
+                    transaction.abort()
+                    return
                 self._result_queue.put(result)
             except JobAborted:
                 self.log.warning("Job aborted.")
@@ -169,11 +181,10 @@ class Job(Task):
         finally:
             # Log out; probably unnecessary but can't hurt
             noSecurityManager()
+            self._aborted_tasks.discard(job_id)
 
-
-    @transact
     def run(self, *args, **kwargs):
-        self.log.debug("Job received, waiting for other side to commit")
+        self.log.info("Job received, waiting for other side to commit")
         try:
             # Wait for the job creator (i.e. the 1%) to complete the
             # transaction, pushing a pending job into the database
@@ -206,8 +217,9 @@ class Job(Task):
             result = self._result_queue.get_nowait()
             if isinstance(result, Exception):
                 if not isinstance(result, JobAborted):
-                    self.log.error("Job raised exception", result.exc_info[2])
+                    self.log.error("Job raised exception %s", result.exc_info[2])
                 raise result.exc_info[0], result.exc_info[1], result.exc_info[2]
+
             return result
         except Queue.Empty:
             return None
