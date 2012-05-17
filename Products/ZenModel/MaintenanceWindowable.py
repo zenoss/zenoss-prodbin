@@ -26,6 +26,7 @@ from ZenossSecurity import *
 from MaintenanceWindow import MaintenanceWindow
 from Products.ZenUtils.Utils import prepId
 from Products.ZenWidgets import messaging
+from Products.ZenMessaging.audit import audit
 
 class MaintenanceWindowable:
 
@@ -56,6 +57,7 @@ class MaintenanceWindowable:
                     'Window Added',
                     'Maintenance window "%s" has been created.' % mw.name
                 )
+                audit('UI.MaintenanceWindow.Add', mw)
             return self.callZenScreen(REQUEST)
 
 
@@ -79,6 +81,8 @@ class MaintenanceWindowable:
                     )
                 mw.end()
 
+            if REQUEST:
+                audit('UI.MaintenanceWindow.Delete', mw)
             self.maintenanceWindows._delObject(id)
         if hasattr(self, 'setLastChange'):
             # Only Device and DeviceClass have setLastChange for now.

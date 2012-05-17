@@ -263,6 +263,7 @@ class MaintenanceWindow(ZenModelRM):
                     'Window Updated',
                     'Maintenance window changes were saved.'
                 )
+                audit('UI.MaintenanceWindow.Edit', self)
         if REQUEST:
             return REQUEST.RESPONSE.redirect(self.getUrlForUserCommands())
 
