@@ -257,7 +257,7 @@ class ServiceRouter(TreeRouter):
         data = self.api.getUnmonitoredStartModes(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    def getMonitoredStartModes(self, uid):
+    def getMonitoredStartModes(self, uid, query=''):
         """
         Get a list of monitored start modes for a Windows service.
 

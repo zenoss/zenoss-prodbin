@@ -142,7 +142,7 @@ class WinServiceClassInfo(ServiceInfo):
         return self._object.monitoredStartModes
 
     def setMonitoredStartModes(self, value):
-        self._object.monitoredStartModes = value.split(',')
+        self._object.monitoredStartModes = value
 
     monitoredStartModes = property(getMonitoredStartModes, setMonitoredStartModes)
 

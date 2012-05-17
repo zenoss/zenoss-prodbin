@@ -18,46 +18,28 @@ Ext.onReady( function() {
 
     var zsf = Zenoss.Service.DetailForm;
 
-    Ext.define("Zenoss.Service.DetailForm.MonitoredStartModesItemSelector", {
-        alias: ['widget.monitoredstartmodesitemselector'],
-        extend:"Ext.ux.form.ItemSelector",
+    Ext.define("Zenoss.Service.DetailForm.MonitoredStartModes", {
+        alias: ['widget.monitoredstartmodes'],
+        extend:"Ext.form.field.ComboBox",
         constructor: function(config) {
             Ext.applyIf(config, {
                 imagePath: "/++resource++zenui/img/xtheme-zenoss/icon",
-                drawUpIcon: false,
-                drawDownIcon: false,
-                drawTopIcon: false,
-                drawBotIcon: false,
-                displayField: 'startMode',
-                valueField: 'startMode',
                 fieldLabel: _t('Monitored Start Modes'),
-                width: 300,
-                store:  Ext.create('Ext.data.ArrayStore', {
-                    data: [],
-                    fields: ['startMode'],
-                    sorter: {
-                        property: 'startMode',
-                        direction: 'ASC'
-                    }
+                width: 450,
+                editable:false,
+                multiSelect: true,
+                displayField: 'name',
+                valueField: 'name',
+                store: Ext.create("Ext.data.ArrayStore", {
+                    model: 'Zenoss.model.Name',
+                    data: [['Auto'], ['Manual'], ['Disabled'], ['Not Installed']]
                 })
-
             });
             this.callParent(arguments);
         },
         setContext: function(uid) {
-            this.uid = uid;
-            Zenoss.remote.ServiceRouter.getUnmonitoredStartModes({uid: uid}, function(provider, response){
-                var data = response.result.data;
-                Zenoss.remote.ServiceRouter.getMonitoredStartModes({uid: uid}, function(provider, response){
-                    var results = [];
-                    Ext.each(response.result.data, function(row){
-                        results.push(row[0]);
-                        data.push(row);
-                    });
-                    this.store.loadData(data);
-                    this.bindStore(this.store);
-                    this.setValue(results);
-                }, this);
+            Zenoss.remote.ServiceRouter.getMonitoredStartModes({uid: uid}, function(provider, response){
+                this.setValue(response.result.data);
             }, this);
         },
         refresh: function() {
@@ -74,7 +56,7 @@ Ext.onReady( function() {
             zsf.descriptionTextField,
             zsf.serviceKeysTextField,
             {
-                xtype: 'monitoredstartmodesitemselector',
+                xtype: 'monitoredstartmodes',
                 id: 'monitoredStartModes',
                 ref: '../../monitoredStartModes',
                 name: 'monitoredStartModes'

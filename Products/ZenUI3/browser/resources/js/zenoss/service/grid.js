@@ -146,7 +146,7 @@
 
                 if ( ! selectedRecord || selectedRecord.data.name !== serviceClassName ) {
                     this.serviceClassName = serviceClassName;
-                    this.getStore().on('load', this.filterGrid, this, {single: true});
+                    this.getStore().on('datachanged', this.filterGrid, this, {single: true});
                 }
             }else{
                 this.setFilter('name', '');
@@ -154,18 +154,27 @@
         },
 
         filterGrid: function() {
-            var serviceClassName = this.serviceClassName;
-            if (serviceClassName) {
-                this.setFilter('name', serviceClassName);
+            var me = this,
+                serviceClassName = this.serviceClassName;
+            if (!serviceClassName) {
+                return;
             }
-
-            this.getStore().on('load', function() {
-                this.getStore().each(function(record){
+            // look for it in our current store
+            function selectrow() {
+                var found = false;
+                me.getStore().each(function(record){
                     if (record.get("name") == serviceClassName) {
-                        this.getSelectionModel().select(record);
+                        me.getSelectionModel().select(record);
+                        found = true;
                     }
-                }, this);
-            }, this, {single: true});
+                });
+                return found;
+            }
+            if (!selectrow()) {
+                // otherwise filter for it and find the service then
+                this.setFilter('name', serviceClassName);
+                this.getStore().on('datachanged', selectrow, this, {single: true});
+            }
         }
 
     });
