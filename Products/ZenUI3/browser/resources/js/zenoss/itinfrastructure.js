@@ -367,7 +367,7 @@ Ext.apply(Zenoss.devices, {
             var isclass = Zenoss.types.type(selnode.data.uid) == 'DeviceClass';
             var grpText = selnode.data.text.text;
             var win = new Zenoss.dialog.CloseDialog({
-                width: 800,
+                width: 850,
                 height: 500,
                 autoScroll: true,
                 buttons: [{
@@ -616,6 +616,9 @@ Ext.apply(Zenoss.devices, {
                         items: [{
                             columnWidth: 0.33,
                             layout: 'anchor',
+                            defaults: {
+                                anchor: '65%'
+                            },
                             items: [{
                                 xtype: 'textfield',
                                 name: 'snmpCommunity',
