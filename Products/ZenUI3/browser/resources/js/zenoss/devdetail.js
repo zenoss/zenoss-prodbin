@@ -572,17 +572,17 @@ Ext.define('Zenoss.DeviceDetailNav', {
             tree.on('afteritemcollapse', function(t){
                 Ext.defer(function(){
                     Ext.getCmp('master_panel').doLayout();
-                }, 300);                
+                }, 300);
             });
             tree.on('afteritemexpand', function(t){
                 Ext.defer(function(){
                     Ext.getCmp('master_panel').doLayout();
-                }, 300);                  
-            });       
+                }, 300);
+            });
             tree.on('afterrender', function(t){
                 Ext.defer(function(){
                     Ext.getCmp('master_panel').doLayout();
-                }, 300);                  
+                }, 300);
             });
             this.fireEvent('componenttreeloaded');
 
@@ -1005,7 +1005,9 @@ Ext.getCmp('footer_bar').add([{
                 target: 'run_model',
                 listeners: {
                     close: function(){
-                        Ext.defer(window.top.location.reload, 1000);
+                        Ext.defer(function() {
+                            window.top.location.reload();
+                        }, 1000);
                     }
                 },
                 title: _t('Model Device')
