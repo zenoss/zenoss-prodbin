@@ -188,8 +188,13 @@ class DeviceFacade(TreeFacade):
             for dev in devs:
                 devid = dev.getId()
                 deletedIds.append(devid)
+                parent = dev.getPrimaryParent()
                 dev.deleteDevice(deleteStatus=deleteEvents,
                                  deletePerf=deletePerf)
+                # Make absolutely sure that the count gets updated
+                # when we delete a device.
+                parent = self._dmd.unrestrictedTraverse("/".join(parent.getPhysicalPath()))
+                parent.setCount()
             return deletedIds
 
         def uidChunks(uids, chunksize=10):

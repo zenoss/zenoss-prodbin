@@ -318,11 +318,9 @@ Ext.apply(Zenoss.devices, {
                         if (opts.uids.length > 0) {
                             Zenoss.remote.DeviceRouter.removeDevices(opts,
                                     function (response) {
-                                        var devtree = Ext.getCmp('devices'),
-                                                removedIds = [],
-                                                notRemovedIds = [],
-                                                flare;
-                                        resetGrid();
+                                        var removedIds = [],
+                                            notRemovedIds = [];
+
                                         if (!Ext.isDefined(response.success) || response.success) {
 
                                             Ext.each(response.removedUids || [], function (uid) {
@@ -336,12 +334,24 @@ Ext.apply(Zenoss.devices, {
                                             var msg = '',
                                                 msgTemplate;
 
-                                            if (notRemovedIds.length > 0) {
-                                                msgTemplate = new Ext.Template(_t('The following {0} not {1}d because they were not in the selected organizer: {2}'));
-                                                msg += msgTemplate.applyTemplate([
-                                                    opts.uids.length > 1 ? _t('devices were') : _t('device was'),
-                                                    opts.action,
-                                                    notRemovedIds.join(', ')]);
+                                            if (notRemovedIds.length > 0 || removedIds.length > 0) {
+
+                                                if (removedIds.length > 0) {
+                                                    // only refresh if there were items removed
+                                                    Ext.getCmp(getSelectionModel().tree).refresh();
+                                                    resetGrid();
+                                                    msgTemplate = new Ext.Template('Successfully {0}d device{1}: {2}');
+                                                    msg += msgTemplate.applyTemplate([opts.action,
+                                                                                      opts.uids.length > 1 ? 's' : '',
+                                                                                      removedIds.join(', ')]);
+                                                } else {
+                                                    msgTemplate = new Ext.Template(_t('The following {0} not {1}d because they were not in the selected organizer: {2}'));
+                                                    msg += msgTemplate.applyTemplate([
+                                                        opts.uids.length > 1 ? _t('devices were') : _t('device was'),
+                                                        opts.action,
+                                                        notRemovedIds.join(', ')]);
+                                                }
+
                                                 Zenoss.message.info(msg);
                                             }
 
