@@ -14,6 +14,12 @@
         />
 
     <adapter
+        provides=".interfaces.IIndexableWrapper"
+        factory=".global_catalog.FileSystemWrapper"
+        for="Products.ZenModel.FileSystem.FileSystem"
+        />
+
+    <adapter
         factory = ".paths.DefaultPathReporter"
         for = ".interfaces.IGloballyIndexed"
         provides = ".interfaces.IPathReporter"
@@ -49,31 +55,31 @@
         provides = ".interfaces.IPathReporter"
         />
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IGloballyIndexed"
         class="Products.ZenModel.ZenModelRM.ZenModelRM"/>
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.ITreeSpanningComponent"
         class="Products.ZenModel.Service.Service"/>
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.ITreeSpanningComponent"
         class="Products.ZenModel.IpInterface.IpInterface"/>
-    
-    <five:implements 
+
+    <five:implements
         interface=".interfaces.ITreeSpanningComponent"
         class="Products.ZenModel.OSProcess.OSProcess"/>
-    
-    <five:implements 
+
+    <five:implements
         interface=".interfaces.IDeviceOrganizer"
         class="Products.ZenModel.DeviceGroup.DeviceGroup"/>
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IDeviceOrganizer"
         class="Products.ZenModel.Location.Location"/>
-    
-    <five:implements 
+
+    <five:implements
         interface=".interfaces.IDeviceOrganizer"
         class="Products.ZenModel.System.System"/>
 

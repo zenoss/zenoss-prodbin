@@ -109,7 +109,7 @@
                     handler: function () {
                         var form = that.editForm.form,
                             dirtyOnly = true,
-                            values = form.getValues();
+                            values = form.getFieldValues(dirtyOnly);
 
                         values.uid = record.uid;
                         config.directFn(values, config.saveHandler);

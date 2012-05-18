@@ -327,7 +327,6 @@
                     }
                 }]),
                 columns: [{
-                    id: 'thresholdName',
                     dataIndex: 'name',
                     flex: 1,
                     header: _t('Name')

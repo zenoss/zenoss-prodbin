@@ -37,6 +37,7 @@ from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.Device import Device
+from Products.ZenModel.FileSystem import FileSystem
 from Products.ZenModel.Software import Software
 from Products.ZenModel.OperatingSystem import OperatingSystem
 from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
@@ -356,6 +357,13 @@ class IpInterfaceWrapper(ComponentWrapper):
         return super(IpInterfaceWrapper, self).searchExcerpt() + ' ' + ' '.join([
                self._context.description,
                ])
+
+
+class FileSystemWrapper(ComponentWrapper):
+    adapts(FileSystem)
+
+    def name(self):
+        return self._context.name()
 
 
 class GlobalCatalog(ZCatalog):
