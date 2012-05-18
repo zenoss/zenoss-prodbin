@@ -38,6 +38,7 @@ banana.SIZE_LIMIT = 1024 * 1024 * 10
 
 from twisted.internet import reactor, protocol, defer
 from twisted.web import server, xmlrpc
+from twisted.internet.error import ProcessExitedAlready
 from zope.event import notify
 from zope.interface import implements
 from zope.component import getUtility, getUtilitiesFor, adapts
@@ -182,7 +183,6 @@ class HubAvitar(pb.Avatar):
         def removeWorker(worker):
             if worker in self.hub.workers:
                 self.hub.workers.remove(worker)
-            reactor.callLater(1, self.hub.createWorker)
         worker.notifyOnDisconnect(removeWorker)
 
 
@@ -238,7 +238,7 @@ class WorkerInterceptor(pb.Referenceable):
 
     def remoteMessageReceived(self, broker, message, args, kw):
         "Intercept requests and send them down to workers"
-        svc = str(self.service.__class__).rsplit('.', 1)[0]
+        svc = str(self.service.__class__).rpartition('.')[0]
         instance = self.service.instance
         args = broker.unserialize(args)
         kw = broker.unserialize(kw)
@@ -287,6 +287,22 @@ class ZenHub(ZCmdBase):
 
     ZenHub also provides an XmlRPC interface to some common services
     to support collectors written in other languages.
+    
+    ZenHub does very little work in its own process, but instead dispatches
+    the work to a pool of zenhubworkers, running zenhubworker.py. zenhub
+    manages these workers with 3 data structures:
+    - workers - a list of remote PB instances
+    - worker_processes - a set of WorkerRunningProtocol instances
+    - workerprocessmap - a dict mapping pid to process instance created
+        by reactor.spawnprocess
+    Callbacks and handlers that detect worker shutdown update these
+    structures automatically. ONLY ONE HANDLER must take care of restarting
+    new workers, to avoid accidentally spawning too many workers. This
+    handler also verifies that zenhub is not in the process of shutting 
+    down, so that callbacks triggered during daemon shutdown don't keep
+    starting new workers.
+    
+    TODO: document invalidation workers
     """
 
     totalTime = 0.
@@ -299,10 +315,15 @@ class ZenHub(ZCmdBase):
         Hook ourselves up to the Zeo database and wait for collectors
         to connect.
         """
+        # list of remote worker references
         self.workers = []
         self.workTracker = {}
         self.workList = []
+        # set of worker protocols
         self.worker_processes=set()
+        # map of worker pids -> worker processes
+        self.workerprocessmap = {}
+        self.shutdown = False
         self.counters = collections.Counter()
 
         ZCmdBase.__init__(self)
@@ -342,6 +363,8 @@ class ZenHub(ZCmdBase):
         for i in range(int(self.options.workers)):
             self.createWorker()
 
+    def stop(self):
+        self.shutdown = True
 
     def _getConf(self):
         confProvider = IHubConfProvider(self)
@@ -428,7 +451,7 @@ class ZenHub(ZCmdBase):
         changes_dict = self.storage.poll_invalidations()
         if changes_dict is not None:
             processor = getUtility(IInvalidationProcessor)
-            d = processor.processQueue(tuple(self._filter_oids(changes_dict)))
+            d = processor.processQueue(tuple(set(self._filter_oids(changes_dict))))
             def done(n):
                 if n:
                     self.log.debug('Processed %s oids' % n)
@@ -607,7 +630,8 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         # this probably can't happen, but let's make sure
-        if len(self.workers) >= self.options.workers:
+        if len(self.worker_processes) >= self.options.workers:
+            self.log.info("already at maximum number of worker processes, no worker will be created")
             return
         # create a config file for the slave to pass credentials
         import os, tempfile
@@ -626,22 +650,45 @@ class ZenHub(ZCmdBase):
         # watch for output, and generally just take notice
         class WorkerRunningProtocol(protocol.ProcessProtocol):
 
-            def outReceived(s, data):
-                self.log.debug("Worker reports %s" % (data,))
+            def __init__(self, parent):
+                self._pid = 0
+                self.parent = parent
+                self.log = parent.log
+                self.tmp = tmp
 
-            def errReceived(s, data):
-                self.log.info("Worker reports %s" % (data,))
+            @property
+            def pid(self):
+                return self._pid
 
-            def processEnded(s, reason):
-                os.unlink(tmp)
-                self.worker_processes.discard(s)
-                self.log.warning("Worker exited with status: %d (%s)",
-                                 reason.value.exitCode,
-                                 getExitMessage(reason.value.exitCode))
+            def connectionMade(self):
+                self._pid = self.transport.pid
+                reactor.callLater(1, self.parent.giveWorkToWorkers)
+
+            def outReceived(self, data):
+                self.log.debug("Worker (%d) reports %s" % (self.pid, data.rstrip(),))
+
+            def errReceived(self, data):
+                self.log.info("Worker (%d) reports %s" % (self.pid, data.rstrip(),))
+
+            def processEnded(self, reason):
+                os.unlink(self.tmp)
+                self.parent.worker_processes.discard(self)
+                self.parent.workerprocessmap.pop(self.pid, None)
+                self.log.warning("Worker (%d) exited with status: %d (%s)",
+                                 self.pid,
+                                  reason.value.exitCode,
+                                  getExitMessage(reason.value.exitCode))
+                # if not shutting down, restart a new worker
+                if not self.parent.shutdown:
+                    self.log.info("Starting new zenhubworker")
+                    self.parent.createWorker()
+
         args = (exe, 'run', '-C', tmp)
         self.log.debug("Starting %s", ' '.join(args))
-        proc = reactor.spawnProcess(WorkerRunningProtocol(), exe, args, os.environ)
-        self.worker_processes.add(proc)
+        prot = WorkerRunningProtocol(self)
+        proc = reactor.spawnProcess(prot, exe, args, os.environ)
+        self.workerprocessmap[proc.pid] = proc
+        self.worker_processes.add(prot)
 
     def heartbeat(self):
         """
@@ -694,8 +741,13 @@ class ZenHub(ZCmdBase):
         if self.options.cycle:
             self.heartbeat()
         reactor.run()
-        for proc in self.worker_processes:
-            proc.signalProcess('KILL')
+        for proc in self.workerprocessmap.itervalues():
+            try:
+                proc.signalProcess('KILL')
+            except ProcessExitedAlready:
+                pass
+            except Exception:
+                pass
         getUtility(IEventPublisher).close()
 
     def buildOptions(self):

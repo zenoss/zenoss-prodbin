@@ -26,17 +26,34 @@ from twisted.cred import credentials
 from twisted.spread import pb
 from twisted.internet import reactor
 from ZODB.POSException import ConflictError
+from collections import defaultdict
 
 import pickle
 import time
+import signal
+import os
 
+IDLE = "None/None"
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
 
     def __init__(self):
         ZCmdBase.__init__(self)
+
+        self.current = IDLE
+        self.currentStart = 0
+        try:
+            self.log.debug("establishing SIGUSR2 signal handler")
+            signal.signal(signal.SIGUSR2, self.sighandler_USR2)
+        except ValueError:
+            # If we get called multiple times, this will generate an exception:
+            # ValueError: signal only works in main thread
+            # Ignore it as we've already set up the signal handler.
+            pass
+
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
+        self.pid = os.getpid()
         self.services = {}
         factory = ReconnectingPBClientFactory()
         self.log.debug("Connecting to %s:%d",
@@ -51,6 +68,24 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             reactor.callLater(0, reactor.stop)
         factory.clientConnectionLost = stop
         factory.startLogin(c)
+
+    def sighandler_USR2(self, *args):
+        if self.current != IDLE:
+            now = time.time()
+            self.log.info("(%d) Currently performing %s, elapsed %.2f s", 
+                            self.pid, self.current, now-self.currentStart)
+        else:
+            self.log.info("(%d) Currently IDLE", self.pid)
+        if self.services:
+            loglines = ["(%d) Running statistics:" % self.pid]
+            for svc,svcob in sorted(self.services.iteritems()):
+                svc = "%s/%s" % (svc[1], svc[0].rpartition('.')[-1])
+                for method,stats in sorted(svcob.callStats.items()):
+                    loglines.append(" - %-48s %-32s %8d %12.2f %8.2f" % 
+                                    (svc, method, stats[0], stats[1], stats[1]/stats[0]))
+            self.log.info('\n'.join(loglines))
+        else:
+            self.log.info("no service activity statistics")
 
     def gotPerspective(self, perspective):
         "Once we are connected to zenhub, register ourselves"
@@ -81,6 +116,12 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                 ctor = importClass('Products.ZenHub.services.%s' % name, name)
             svc = ctor(self.dmd, instance)
             self.services[name, instance] = svc
+
+            # dict for tracking statistics on method calls invoked on this service,
+            # including number of times called and total elapsed time, keyed
+            # by method name
+            svc.callStats = defaultdict(lambda : [0, 0.0])
+
             return svc
 
     @translateError
@@ -101,8 +142,11 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         @type kw: dictionary
         @param kw: keyword arguments to the method
         """
+        svcstr = service.rpartition('.')[-1]
+        self.current = "%s/%s" % (svcstr, method)
         self.log.debug("Servicing %s in %s", method, service)
         now = time.time()
+        self.currentStart = now
         try:
             self.syncdb()
         except RemoteConflictError, ex:
@@ -127,7 +171,11 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         finally:
             secs = time.time() - now
             self.log.debug("Time in %s: %.2f", method, secs)
+            # update call stats for this method on this service
+            service.callStats[method][0] += 1
+            service.callStats[method][1] += secs
             service.callTime += secs
+            self.current = IDLE
 
     def buildOptions(self):
         """Options, mostly to find where zenhub lives
