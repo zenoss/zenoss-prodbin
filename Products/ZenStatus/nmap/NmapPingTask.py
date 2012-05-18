@@ -19,6 +19,7 @@ Pings a all devices in the current device list.
 import logging
 log = logging.getLogger("zen.NmapPingTask")
 import tempfile
+import subprocess
 from twisted.internet import utils
 from twisted.internet import task as twistedTask
 from twisted.internet import defer
@@ -209,12 +210,19 @@ class NmapPingTask(BaseTask):
         """
         Send/Clear event to show that nmap is set SUID.
         """
+        resolution = None
         if self._nmapIsSuid:
             msg = "nmap is set SUID" 
             severity = _CLEAR
         else:
             msg = "nmap is NOT SUID: %s" % _NMAP_BINARY
-            severity = _WARNING
+            try:
+               import socket
+               cmd = subprocess.check_output('echo "chown root.`id -gn` $ZENHOME/bin/nmap && chmod u+s $ZENHOME/bin/nmap"', shell=True).strip()
+               resolution = "Log on to %s and execute the following as root: %s" % (socket.getfqdn(), cmd)
+            except Exception as ex:
+               log.exception("There was an error generating a help message related to sudo nmap.")
+            severity = _CRITICAL
         evt = dict(
             device=self.collectorName,
             eventClass=ZenEventClasses.Status_Ping,
@@ -223,6 +231,8 @@ class NmapPingTask(BaseTask):
             severity=severity,
             summary=msg,
         )
+        if resolution:
+            evt['resolution'] = resolution
         self._eventService.sendEvent(evt)
 
     def _nmapExecution(self, ex=None):
