@@ -43,13 +43,12 @@ class JobsRouter(DirectRouter):
         super(DirectRouter, self).__init__(context, request)
 
     def getJobs(self, start, limit, page, sort, dir, uid=None):
-        try:
-            jobs, total = self.api.getJobs(start=start, limit=limit, sort=sort, dir=dir)
-            return DirectResponse(jobs=Zuul.marshal(jobs, keys=JOBKEYS), totalCount=total)
-        except:
-            log.exception("Broken")
-            raise
+        # if user isn't global only show them the jobs they created
+        user = self.context.dmd.ZenUsers.getUserSettings()
+        createdBy = user.id if user.hasNoGlobalRoles() else None
 
+        jobs, total = self.api.getJobs(start=start, limit=limit, sort=sort, dir=dir, createdBy=createdBy)
+        return DirectResponse(jobs=Zuul.marshal(jobs, keys=JOBKEYS), totalCount=total)
     def abort(self, jobids):
         for id_ in jobids:
             self.api.abortJob(id_)

@@ -24,19 +24,22 @@ class JobsFacade(ZuulFacade):
 
     @info
     def getJobs(self, start=0, limit=50, sort='scheduled', dir='ASC',
-                query=None):
+                createdBy=None):
         start = max(start, 0)
         if limit is None:
             stop = None
         else:
             stop = start + limit
+        kwargs = dict(sort_on=sort, sort_limit=stop,
+            sort_order='descending' if dir=='DESC' else 'ascending')
+        if createdBy:
+            kwargs['user'] = createdBy
         brains = self._dmd.JobManager.getCatalog()(
-            sort_on=sort, sort_limit=stop,
-            sort_order='descending' if dir=='DESC' else 'ascending'
+            **kwargs
         )
         total = len(brains)
         results = islice(brains, start, stop)
-        return [b.getObject() for b in results], len(brains)
+        return [b.getObject() for b in results], total
 
     def abortJob(self, id_):
         self._dmd.JobManager.getJob(id_).abort()
