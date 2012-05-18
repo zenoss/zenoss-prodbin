@@ -106,10 +106,14 @@ patch_zopectl_and_runzope
 # Upgrade to persistent sessions if necessary
 upgrade_to_persistent_sessions
 
-# remove the zenwinperf so it doesn't throw an error
-# this will be replaced with the MSMonitor rpm
-rm $ZENHOME/ZenPacks/ZenPacks.zenoss.ZenWinPerf*/ZenPacks/zenoss/ZenWinPerf/daemons/zenwinperf 1>/dev/null 2>&1
-rm $ZENHOME/bin/zenwinperf 1>/dev/null 2>&1
+# If the zenwinperf primitive is associated with the obsolete ZenWinPerf zenpack (as of Zenoss 4.2),
+# remove it so it doesn't throw an error.  It will get reinstalled as part of the uplevel WindowsMonitor egg.
+if [ -f ${ZENHOME}/ZenPacks/ZenPacks.zenoss.ZenWinPerf*/ZenPacks/zenoss/ZenWinPerf/daemons/zenwinperf ];then
+	rm ${ZENHOME}/ZenPacks/ZenPacks.zenoss.ZenWinPerf*/ZenPacks/zenoss/ZenWinPerf/daemons/zenwinperf
+	if [ -f ${ZENHOME}/bin/zenwinperf ];then
+		rm ${ZENHOME}/bin/zenwinperf 
+	fi
+fi
 
 # migrate the zeo database
 run_zenmigrate
