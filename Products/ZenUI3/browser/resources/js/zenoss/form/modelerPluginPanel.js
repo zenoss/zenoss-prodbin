@@ -119,6 +119,12 @@
             if (this.modelerPlugins) {
                 this.modelerPlugins.destroy();
             }
+            if(this.pluginsHeader){
+                this.pluginsHeader.destroy();
+            }
+            if(this.panelHeaders){
+                this.panelHeaders.destroy();
+            }
             Ext.getCmp('modeler-plugin-doc').setValue('');
             this.uid = uid;
             // get the modeler plugins
@@ -170,10 +176,33 @@
                 });
                 // add the multi select
                 this.add({
+                        xtype:'label',
+                        text: 'Modeler Plugins:',
+                        ref: 'pluginsHeader',
+                        style: {'color':'#5A5A5A', 'fontWeight':'bold', 'display':'block', 'padding':'0 0 8px 0'}
+                });
+                this.add({
+                    xtype: 'panel',
+                    width: 800,
+                    layout:'column',
+                    ref: 'panelHeaders',
+                    items: [
+                    {
+                        xtype:'label',
+                        columnWidth: 0.515,
+                        text: 'Available',
+                        style: {'color':'#5A5A5A'}
+                    },{
+                        xtype: 'label',
+                        columnWidth: 0.485,
+                        text: 'Selected',
+                        style: {'color':'#5A5A5A'}
+                    }]
+                });
+                this.add({
                     name: 'modelerPlugins',
                     ref: 'modelerPlugins',
                     xtype: 'itemselector',
-                    fieldLabel: _t('Modeler Plugins'),
                     imagePath: "/++resource++zenui/img/xtheme-zenoss/icon",
                     height: 250,
                     drawUpIcon: true,
