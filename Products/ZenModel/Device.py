@@ -1097,7 +1097,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
           performanceMonitor -- collector name [string]
 
         """
-        if 'title' in kwargs and kwargs['title'] is not None:
+        if 'title' in kwargs and kwargs['title'] is not None and str(kwargs['title']).strip():
             log.info("setting title to %r" % kwargs['title'])
             self.title = kwargs['title']
         if 'tag' in kwargs and kwargs['tag'] is not None:
