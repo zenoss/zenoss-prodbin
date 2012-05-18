@@ -102,7 +102,7 @@
             items: {
                 xtype: 'form',
                 ref: 'formPanel',
-                layout: 'fit',
+                height: 75,
                 leftAlign: 'top',
                 monitorValid: true,
                 paramsAsHash: true,
