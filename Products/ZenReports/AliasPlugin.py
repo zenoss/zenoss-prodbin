@@ -10,20 +10,22 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__="""AliasPlugin
+
+__doc__ = """AliasPlugin
 
 In order to more easily create reports, there is now a base class (AliasPlugin)
 that plugins can subclass and provide minimal information.  The plugin is
 meant to be run from an rpt file.
 """
+
 import Globals
 
-from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
 from Products.ZenModel.RRDDataPoint import getDataPointsByAliases
-from Products.ZenModel.RRDDataPointAlias import EVAL_KEY
 from Products.ZenReports import Utils, Utilization
+from Products.ZenUtils.ZenTales import talesEval
 
-class Column( object ):
+
+class Column(object):
     """
     Represents a column in a report row.  Returns a value when given the
     context represented by the row.  For example, a brain-dead report
@@ -44,7 +46,7 @@ class Column( object ):
     def getColumnName(self):
         return self._columnName
 
-    def getValue(self, device, component=None, extra=None ):
+    def getValue(self, device, component=None, extra=None):
         """
         @param device: the device represented by this row
         @param component: the component represented by this row (if present)
@@ -53,7 +55,7 @@ class Column( object ):
         """
         value = None
         if self._columnHandler is not None:
-            value = self._columnHandler( device, component, extra )
+            value = self._columnHandler(device, component, extra)
         return value
 
     def getAliasName(self):
@@ -63,45 +65,47 @@ class Column( object ):
         # This ugly type-check is needed for performance.  We
         # gather up aliases so we can get all the necessary datapoints
         # at one time.
-        return getattr( self._columnHandler, 'aliasName', None )
+        return getattr(self._columnHandler, 'aliasName', None)
 
-def _fetchValueWithAlias( entity, datapoint, alias, summary  ):
+
+def _fetchValueWithAlias(entity, datapoint, alias, summary):
     """
     Generates the alias RPN formula with the entity as the context, then
     retrieves the RRD value of the datapoint with the RPN formula
     """
     if alias:
-        summary['extraRpn'] = alias.evaluate( entity )
-    return entity.getRRDValue( datapoint.id, **summary )
+        summary['extraRpn'] = alias.evaluate(entity)
+    return entity.getRRDValue(datapoint.id, **summary)
 
 
-class RRDColumnHandler( object ):
+class RRDColumnHandler(object):
     """
-    A handler that return RRD data for the value given the row context
+    A handler that return RRD data for the value given the row context.
     """
-    def __init__(self, aliasName ):
+
+    def __init__(self, aliasName):
         """
         @param aliasName: the alias or datapoint name to fetch
-        @param columnHandler: optional columnHandler method or object
-                       for post-processing of the RRD data
+        @param columnHandler: optional columnHandler method or object for
+            post-processing of the RRD data
         """
         self.aliasName = aliasName
 
-    def __call__( self, device, component=None, extra=None ):
+    def __call__(self, device, component=None, extra=None):
         """
         @param device: the device represented by this row
         @param component: the component represented by this row (if present)
         @param extra: extra context passed to the columnHandler that will
-                      generate the column value
+            generate the column value
         """
         # The summary dict has the request key/values
-        summary=extra['summary']
+        summary = extra['summary']
 
         # The aliasDatapointPairs are the datapoints that
         # have the desired values along with the aliases
         # that may have formulas for transforming them
-        aliasDatapointPairs=extra['aliasDatapointPairs']
-        if aliasDatapointPairs is None or len( aliasDatapointPairs ) == 0:
+        aliasDatapointPairs = extra['aliasDatapointPairs']
+        if aliasDatapointPairs is None or len(aliasDatapointPairs) == 0:
             return None
 
         value = None
@@ -114,8 +118,9 @@ class RRDColumnHandler( object ):
             # Only fetch the value if the template is bound
             # to this device or component
             if template in deviceTemplates:
-                value = _fetchValueWithAlias( perfObject, datapoint,
-                                              alias, summary )
+                value = _fetchValueWithAlias(
+                        perfObject, datapoint, alias, summary)
+
             # Return the first value we find
             if value is not None:
                 break
@@ -123,7 +128,7 @@ class RRDColumnHandler( object ):
         return value
 
 
-class PythonColumnHandler( object ):
+class PythonColumnHandler(object):
     """
     A column handler accepts row context (like a device, component, or extra
     information) and returns the column value.  This class specifically
@@ -133,6 +138,7 @@ class PythonColumnHandler( object ):
     the component object ('component').  It also includes report information
     such as the start date ('start') and end date ('end') of the report.
     """
+
     def __init__(self, talesExpression, extraContext={}):
         """
         @param talesExpression: A python expression that can use the context
@@ -140,23 +146,24 @@ class PythonColumnHandler( object ):
         self._talesExpression = 'python:%s' % talesExpression
         self._extraContext = extraContext
 
-    def __call__(self, device, component=None, extra=None, value=None ):
-        kw=dict( device=device, component=component, value=value )
-        kw.update( self._extraContext )
+    def __call__(self, device, component=None, extra=None, value=None):
+        kw = dict(device=device, component=component, value=value)
+        kw.update(self._extraContext)
         if extra is not None:
             kw.update(extra)
-        return talesEval( self._talesExpression, device, kw )
+        return talesEval(self._talesExpression, device, kw)
 
 
-class AliasPlugin( object ):
+class AliasPlugin(object):
     """
     A base class for performance report plugins that use aliases to
     choose datapoints
     """
+
     def _getComponents(self, device, componentPath):
-        componentPath='here/%s' % componentPath
+        componentPath = 'here/%s' % componentPath
         try:
-            return talesEval( componentPath, device )
+            return talesEval(componentPath, device)
         except AttributeError:
             return []
 
@@ -167,8 +174,10 @@ class AliasPlugin( object ):
 
         This is meant to be overridden.
         """
-        raise Exception( 'Unimplemented: Only subclasses of AliasPlugin' +
-                         ' should be instantiated directly' )
+        raise Exception(
+                'Unimplemented: Only subclasses of AliasPlugin '
+                'should be instantiated directly'
+            )
 
     def getCompositeColumns(self):
         """
@@ -196,9 +205,8 @@ class AliasPlugin( object ):
         """
         return None
 
-
     def _createRecord(self, device, component=None,
-                      columnDatapointsMap={}, summary={} ):
+            columnDatapointsMap={}, summary={}):
         """
         Creates a record for the given row context
         (that is, the device and/or component)
@@ -213,37 +221,36 @@ class AliasPlugin( object ):
                         end date, and rrd summary function
         @rtype L{Utils.Record}
         """
-        def localGetValue( device, component, extra ):
+        def localGetValue(device, component, extra):
             try:
-                val=column.getValue( device, component,
-                                     extra=extra )
-            except TypeError:
-                val=None
-            except NameError:
-                val=None
-            return val
+                return column.getValue(device, component, extra=extra)
+            except (TypeError, NameError):
+                return None
         columnValueMap = {}
         for column, aliasDatapointPairs in columnDatapointsMap.iteritems():
             columnName = column.getColumnName()
-            extra=dict( aliasDatapointPairs=aliasDatapointPairs,
-                        summary=summary )
-            value = localGetValue( device, component, extra )
+            extra = dict(
+                    aliasDatapointPairs=aliasDatapointPairs,
+                    summary=summary
+                )
+            value = localGetValue(device, component, extra)
             columnValueMap[columnName] = value
 
         # The composite columns cannot be RRD columns, because we do
         # not pass datapoints.
-        extra=dict( summary=summary )
-        extra.update( columnValueMap )
+        extra = dict(summary=summary)
+        extra.update(columnValueMap)
         for column in self.getCompositeColumns():
             columnName = column.getColumnName()
-            value = localGetValue( device, component, extra )
-            columnValueMap[columnName]=value
-            extra.update( { columnName : value } )
+            value = localGetValue(device, component, extra)
+            columnValueMap[columnName] = value
+            extra.update({columnName: value})
 
-        return Utils.Record(device=device, component=component,
-                            **columnValueMap)
+        return Utils.Record(
+                device=device, component=component, **columnValueMap
+            )
 
-    def _mapColumnsToDatapoints( self, dmd ):
+    def _mapColumnsToDatapoints(self, dmd):
         """
         Create a map of columns->alias/datapoint pairs.  For each
         column we need both the datapoint/alias-- the datapoint to
@@ -252,42 +259,35 @@ class AliasPlugin( object ):
 
         Non-perf columns will be mapped to None
         """
-        def getAliasName( column ):
+        def getAliasName(column):
             return column.getAliasName()
 
         # First, split the columns into perf and non-perf columns
         columns = self.getColumns()
-        nonAliasColumns = filter( lambda x: getAliasName( x ) is None,
-                                  columns )
-        aliasColumns = filter( lambda x: getAliasName( x ) is not None,
-                               columns )
+        aliasColumns = filter(
+                lambda x: getAliasName(x) is not None, columns
+            )
 
         # Second, map the alias names to their columns
-        aliasColumnMap = dict( zip( map( getAliasName, aliasColumns ),
-                                    aliasColumns ) )
+        aliasColumnMap = \
+                dict(zip(map(getAliasName, aliasColumns), aliasColumns))
 
         columnDatapointsMap = {}
 
-        # Map the columns to empty list to ensure that
-        # there will be placeholders for all columns
-        # even if there are not aliased datapoints
+        # Map columns to empty list to ensure that there are placeholders
+        # for all columns even if there are not aliased datapoints.
         for column in columns:
             columnDatapointsMap[column] = []
 
         # Fourth, match up the columns with the corresponding alias/datapoint
         # pairs
-        aliasDatapointPairs = getDataPointsByAliases( dmd,
-                                                      aliasColumnMap.keys() )
+        aliasDatapointPairs = \
+                getDataPointsByAliases(dmd, aliasColumnMap.keys())
         for alias, datapoint in aliasDatapointPairs:
-            if alias:
-                column = aliasColumnMap[ alias.id ]
-            else:
-                # If the alias-datapoint pair is missing
-                # the alias, then the column's aliasName
-                # was really the datapoint name
-                column = aliasColumnMap[ datapoint.id ]
-
-            columnDatapointsMap[column].append( (alias,datapoint) )
+            # If the alias-datapoint pair is missing the alias, then
+            # the column's aliasName was really the datapoint name.
+            column = aliasColumnMap[alias.id if alias else datapoint.id]
+            columnDatapointsMap[column].append((alias, datapoint))
 
         return columnDatapointsMap
 
@@ -305,31 +305,25 @@ class AliasPlugin( object ):
 
         # Create a dict of column to the datapoint/alias pairs
         # that return a value for the column
-        columnDatapointsMap = self._mapColumnsToDatapoints( dmd )
+        columnDatapointsMap = self._mapColumnsToDatapoints(dmd)
 
         # Don't run against all devices, which kills large systems
         if args.get('deviceClass', '/') == '/':
             return []
 
-        componentPath = self.getComponentPath()
-
         # Filter the device list down according to the
         # values from the filter widget
+        componentPath = self.getComponentPath()
         report = []
         for device in Utilization.filteredDevices(dmd, args):
             if componentPath is None:
-
-                record = self._createRecord( device, None,
-                                             columnDatapointsMap, summary )
+                record = self._createRecord(
+                        device, None, columnDatapointsMap, summary)
                 report.append(record)
-
             else:
-                components = self._getComponents( device,
-                                                  componentPath )
+                components = self._getComponents(device, componentPath)
                 for component in components:
-                    record = self._createRecord(device, component,
-                                                columnDatapointsMap, summary)
+                    record = self._createRecord(
+                            device, component, columnDatapointsMap, summary)
                     report.append(record)
-
         return report
-

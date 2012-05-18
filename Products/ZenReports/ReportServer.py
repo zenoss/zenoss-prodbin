@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
 __doc__ = """ReportServer
 
 A front end to all the report plugins.
@@ -17,18 +18,20 @@ A front end to all the report plugins.
 """
 
 
+import logging
 import os
 import sys
+
 from glob import glob
-import logging
-log = logging.getLogger('zen.reportserver')
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenModel.ZenossSecurity import ZEN_COMMON
 from Products.ZenUtils.Utils import importClass, zenPath
-from Products.ZenModel.ZenossSecurity import *
+
+log = logging.getLogger('zen.reportserver')
 
 
 class ReportServer(ZenModelRM):
@@ -51,10 +54,12 @@ class ReportServer(ZenModelRM):
 
     def listPlugins(self):
         allPlugins = []
-        for dir in self._getPluginDirectories():
-            plugins = [fn.replace('.py','') for fn in glob('%s/*.py' % dir) \
-                         if not fn.endswith('__init__.py')]
-            allPlugins.extend(plugins)
+        for dirpath in self._getPluginDirectories():
+            allPlugins.extend(
+                fn.replace('.py', '')
+                    for fn in glob('%s/*.py' % dirpath)
+                        if not fn.endswith('__init__.py')
+            )
         return allPlugins
 
     def _importPluginClass(self, name):
@@ -72,7 +77,6 @@ class ReportServer(ZenModelRM):
                     klass = importClass(name)
                 finally:
                     sys.path.remove(d)
-
         else:
             for d in self._getPluginDirectories():
                 if os.path.exists('%s/%s.py' % (d, name)):
@@ -85,7 +89,7 @@ class ReportServer(ZenModelRM):
         return klass
 
     security.declareProtected(ZEN_COMMON, 'plugin')
-    def plugin(self, name, REQUEST, templateArgs = None):
+    def plugin(self, name, REQUEST, templateArgs=None):
         "Run a plugin to generate the report object"
         dmd = self.dmd
         args = dict(zip(REQUEST.keys(), REQUEST.values()))
@@ -95,23 +99,26 @@ class ReportServer(ZenModelRM):
         # and cause problems upstream.
         if 'RESPONSE' in args:
             del args['RESPONSE']
-
         klass = self._importPluginClass(name)
         if not klass:
             raise IOError('Unable to find plugin named "%s"' % name)
         instance = klass()
         log.debug("Running plugin %s", name)
-        if templateArgs == None:
-            return instance.run(dmd, args)
-        else:
+        try:
+            if templateArgs is None:
+                return instance.run(dmd, args)
             return instance.run(dmd, args, templateArgs)
+        except Exception:
+            log.exception("Failed to run plugin %s (%s)", name, instance)
+            return []
 
-def manage_addReportServer(context, id, REQUEST = None):
+
+def manage_addReportServer(context, id, REQUEST=None):
     """make a ReportServer"""
     rs = ReportServer(id)
     context._setObject(id, rs)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
-        
+
 InitializeClass(ReportServer)
