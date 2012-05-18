@@ -506,6 +506,7 @@ Ext.onReady(function() {
                     id: section.id + '_title',
                     html: section.title + '...',
                     cls: 'show_details',
+                    height: 30,
                     toggleFn: Ext.bind(this.toggleSection, this, [section.id])
                 };
                 this.getBody().add(section_title_config);
