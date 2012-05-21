@@ -839,6 +839,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             ref: 'starttime',
                             allowBlank: false,
                             format: 'H:i',
+                            submitFormat: 'H:i',
                             fieldLabel: _t('Start Time')
                         },
                         new Ext.form.ComboBox({
@@ -948,7 +949,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
      * Direct store for loading notifications
      */
     Ext.define("Zenoss.triggers.NotificationStore", {
-        extend: "Zenoss.DirectStore",
+        extend: "Zenoss.NonPaginatedStore",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
@@ -1286,7 +1287,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
      * Direct store loading schedules
      */
     Ext.define("Zenoss.triggers.ScheduleStore", {
-        extend: "Zenoss.DirectStore",
+        extend: "Zenoss.NonPaginatedStore",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
@@ -1345,7 +1346,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     dataIndex: 'start',
                     header: _t('Start'),
                     width: 200,
-                    sortable: true
+                    sortable: true,
+                    renderer: Ext.util.Format.dateRenderer(Zenoss.date.ShortDate)
                 }],
 
                 tbar:[{

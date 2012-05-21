@@ -84,7 +84,7 @@ class TriggersRouter(DirectRouter):
 
     # notification subscriptions
     @serviceConnectionError
-    def getNotifications(self, sort=None, dir=None, page=None, start=None, limit=None):
+    def getNotifications(self):
         response = self._getFacade().getNotifications()
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
