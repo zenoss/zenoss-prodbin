@@ -275,12 +275,12 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 },
                 tbar: [{
                         xtype: 'combo',
-                        ref: 'users_combo',
+                        ref: 'usersCombo',
                         typeAhead: true,
                         triggerAction: 'all',
                         lazyRender:true,
                         queryMode: 'local',
-                        id: 'users_combo',
+                        id: 'usersCombo',
                         store: Ext.create('Zenoss.NonPaginatedStore', {
                             root: 'data',
                             autoLoad: true,
@@ -366,13 +366,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         },
         addValueFromCombo: function() {
             var toolbar = this.getDockedItems('toolbar')[0];
-            var val = toolbar.users_combo.getValue(),
-                idx = toolbar.users_combo.store.find('value', val),
+            var val = toolbar.usersCombo.getValue(),
+                idx = toolbar.usersCombo.store.find('value', val),
                 row,
                 type = 'manual',
                 label;
             if (idx != -1) {
-                row = toolbar.users_combo.store.getAt(idx);
+                row = toolbar.usersCombo.store.getAt(idx);
             }
 
             if (row) {
@@ -380,7 +380,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 label = row.data.label;
             }
             else {
-                val = toolbar.users_combo.getRawValue();
+                val = toolbar.usersCombo.getRawValue();
                 label = val;
             }
 
@@ -401,7 +401,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     });
                     this.getStore().add(record);
                     this.getView().refresh();
-                    this.getDockedItems('toolbar')[0].users_combo.clearValue();
+                    this.getDockedItems('toolbar')[0].usersCombo.clearValue();
                 }
                 else if (existingIndex != -1) {
                     Zenoss.message.error(_t('Duplicate items not permitted.'));
@@ -1602,7 +1602,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 margin:'0 0 0 5px',
                 name: 'criteria',
                 ref: 'rule',
-                id: 'trigger_rule',
+                id: 'triggerRule',
                 subjects: [
                 dev_priority_rule,
                 prod_state_rule,

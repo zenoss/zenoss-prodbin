@@ -1505,6 +1505,26 @@ table {
     color:black;
 }
 
+ 
+.x-ie .white-background-panel .x-tab-default-mc, 
+.x-ie .white-background-panel .x-tab-default-ml, 
+.x-ie .white-background-panel .x-tab-default-mr,
+.x-ie .white-background-panel .x-tab-default-tr, 
+.x-ie .white-background-panel .x-tab-default-tl, 
+.x-ie .white-background-panel .x-tab-default-tc{
+    background-color: #d3e0f2 !important;
+}
+.x-ie .white-background-panel .x-tab-top-active .x-frame-mc, 
+.x-ie .white-background-panel .x-tab-top-active .x-frame-ml, 
+.x-ie .white-background-panel .x-tab-top-active .x-frame-mr,
+.x-ie .white-background-panel .x-tab-top-active .x-frame-tr, 
+.x-ie .white-background-panel .x-tab-top-active .x-frame-tl, 
+.x-ie .white-background-panel .x-tab-top-active .x-frame-tc{
+    background-repeat: repeat-x;
+    background-color: rgb(222, 236, 253) !important;
+}
+
+
 
 #footer_extra{
     position:absolute;
@@ -1529,12 +1549,14 @@ pre {
 .x-ie .white-background-panel .x-window-default-mr, .x-ie .x-window-default-mr{
     padding-left: 0px !important;
 }
+/*
 .x-ie .white-background-panel .x-tab-top{
     background-color: rgb(150, 150, 150) !important;
 }
 .x-ie .white-background-panel .x-tab-top-active{
     background-color: rgb(240, 240, 240) !important;
 }
+*/
 .x-ie .white-background-panel .x-fieldset-body, .x-ie .white-background-panel .x-fieldset{
     overflow:visible !important;
 }
