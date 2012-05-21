@@ -388,14 +388,22 @@ class CatalogTool(object):
                 if not hasattr(testvalues, "__iter__"):
                     testvalues = [testvalues]
 
-                # if anyone of these values is satisfied then include the object
-                for testVal in testvalues:
-                    if isinstance(testVal, InfoBase):
-                        testVal = testVal.name
-                    if valRe.match(str(testVal)):
+                # if the property was a dictionary see if the "key" is valid
+                # or if it is a dict representation of an info object, then check for the
+                # name attribute.
+                if isinstance(testvalues, dict):
+                    val = testvalues.get(key, testvalues.get('name'))
+                    if val and valRe.match(str(val)):
                         results.append(result)
-                        # already included this one, continue on to the next result
-                        break
+                else:
+                    # if anyone of these values is satisfied then include the object
+                    for testVal in testvalues:
+                        if isinstance(testVal, InfoBase):
+                            testVal = testVal.name
+                        if valRe.match(str(testVal)):
+                            results.append(result)
+                            # already included this one, continue on to the next result
+                            break
         return results
 
     def _sortQueryResults(self, queryResults, orderby, reverse):
