@@ -97,7 +97,7 @@
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zenoss.Common"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 

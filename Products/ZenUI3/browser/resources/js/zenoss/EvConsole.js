@@ -39,13 +39,6 @@ Ext.onReady(function(){
 
     var console_store = Ext.create('Zenoss.events.Store', { });
 
-    // if the user has no global roles and does not have any admin. objects
-    // do not show any events.
-    if (!_has_global_roles() && _managed_objects().length == 0){
-        console_store =  Ext.create('Zenoss.events.Store', {
-        });
-    }
-
     // Selection model
     var console_selection_model = Ext.create('Zenoss.EventPanelSelectionModel', {
         gridId: 'events_grid'

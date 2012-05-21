@@ -51,6 +51,17 @@ class EventsRouter(DirectRouter):
         self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
 
+    def _canViewEvents(self):
+        """
+        To view any events you either have to have administered roles or
+        be a global roled user
+        """
+        user = self.context.dmd.ZenUsers.getUserSettings()
+        if not user.hasNoGlobalRoles():
+            return True
+        # make sure they have view permission on something
+        return len(user.getAllAdminRoles()) > 0
+
     def _timeRange(self, value):
         try:
             values = []
@@ -84,6 +95,13 @@ class EventsRouter(DirectRouter):
     @serviceConnectionError
     @require('ZenCommon')
     def queryArchive(self, page=None, limit=0, start=0, sort='lastTime', dir='desc', params=None, keys=None, uid=None, detailFormat=False):
+        if not self._canViewEvents():
+            return DirectResponse.succeed(
+                events = [],
+                totalCount = 0,
+                asof = time.time()
+                )
+
         filter = self._buildFilter(uid, params)
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
                                                        filter=filter)
@@ -132,6 +150,13 @@ class EventsRouter(DirectRouter):
            - totalCount: (integer) Total count of events returned
            - asof: (float) Current time
         """
+        if not self._canViewEvents():
+            return DirectResponse.succeed(
+                events = [],
+                totalCount = 0,
+                asof = time.time()
+                )
+
         if archive:
             return self.queryArchive(limit=limit, start=start, sort=sort,
                                      dir=dir, params=params, keys=keys, uid=uid,
@@ -180,6 +205,8 @@ class EventsRouter(DirectRouter):
         @rtype:   generator
         @return:  Generator returning events.
         """
+        if not self._canViewEvents():
+            return
         includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
 
         events = self.zep.getEventSummariesGenerator(filter=includeFilter, exclude=excludeFilter,
