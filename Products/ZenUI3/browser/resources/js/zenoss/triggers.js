@@ -1309,6 +1309,10 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             Ext.applyIf(config, {
                 autoScroll: true,
                 height: "100%",
+                minHeight: 400, // force IE to show something
+                viewConfig: {
+                    forceFit: true
+                },
                 listeners: {
                     itemdblclick: function(grid, rowIndex, event){
                         var row = grid.getSelectionModel().getSelected();
