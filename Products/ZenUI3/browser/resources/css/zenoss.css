@@ -1557,7 +1557,7 @@ pre {
     background-color: rgb(240, 240, 240) !important;
 }
 */
-.x-ie .white-background-panel .x-fieldset-body, .x-ie .white-background-panel .x-fieldset{
+.x-ie .white-background-panel .x-fieldset-body, .x-ie .white-background-panel .x-fieldset, legend{
     overflow:visible !important;
 }
 .zenportlet .x-container-default{
