@@ -41,7 +41,7 @@ from Products.ZenUtils.Utils import getObjByPath
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
 from Products.ZenWidgets import messaging
 from Products.ZenUI3.browser.interfaces import INewPath
-from Products.ZenMessaging.audit import audit
+from Products.ZenMessaging.audit import audit as auditFn
 from ZenossSecurity import *
 
 _MARKER = object()
@@ -392,7 +392,7 @@ class ZenModelBase(object):
             if audit:
                 auditType = getDisplayType(self)
                 auditKind = 'Setting' if auditType == 'DataRoot' else auditType
-                audit(['UI', auditKind, 'Edit'],
+                auditFn(['UI', auditKind, 'Edit'],
                         data_=REQUEST.form,
                         skipFields_=('redirect',
                                 'zenScreenName',
@@ -603,7 +603,7 @@ class ZenModelBase(object):
         @permission: ZEN_MANAGE_DMD
         """
         redirect = self.saveZenProperties(iscustprop, REQUEST)
-        audit(['UI', getDisplayType(self), 'Edit'], self, data_=REQUEST.form,
+        auditFn(['UI', getDisplayType(self), 'Edit'], self, data_=REQUEST.form,
               skipFields_=('zenScreenName', 'saveCustProperties'))
         return redirect
 
