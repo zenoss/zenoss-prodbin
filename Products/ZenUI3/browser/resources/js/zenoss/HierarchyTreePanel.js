@@ -60,12 +60,11 @@
             config = {
                 cls:'x-hierarchy-search-panel',
                 bodyStyle:'background-color:#d4e0ee;',
-                border:false,
-                defaults:{border:false},
                 items:[
                     {
                         xtype:'searchfield',
                         id:config.id || Ext.id(),
+                        height: 25,
                         hidden:!Zenoss.settings.enableTreeFilters,
                         cls:'x-hierarchy-search',
                         enableKeyEvents:true,
