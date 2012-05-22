@@ -335,4 +335,36 @@
         }
     });
 
+    /**
+     *  Fixes a bug in Ext where when the store is canceling
+     *  requests and there are not any outstanding requests.
+     **/
+    Ext.override(Ext.data.Store, {
+        cancelAllPrefetches: function() {
+            var me = this,
+            reqs = me.pageRequests,
+            req,
+            page;
+
+            // If any requests return, we no longer respond to them.
+            if (me.pageMap.events.pageadded) {
+                me.pageMap.events.pageadded.clearListeners();
+            }
+
+            // Cancel all outstanding requests
+            for (page in reqs) {
+                if (reqs.hasOwnProperty(page)) {
+                    req = reqs[page];
+                    delete reqs[page];
+                    if (req) {
+                        delete req.callback;
+                    }
+                }
+            }
+        }
+    });
+
+
+
+
 }());
