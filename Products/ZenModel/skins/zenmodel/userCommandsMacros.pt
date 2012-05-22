@@ -1,4 +1,4 @@
-<form method="post" tal:attributes="action here/absolute_url_path"
+<form method="post" tal:attributes="action string:${here/absolute_url}/dataRootManage"
     metal:define-macro="userCommandsTable"
     tal:condition="python:here.has_permission('Define Commands View', here)">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
@@ -11,6 +11,7 @@
         tableName string:userCommands;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         menu_id string:UserCommand_list">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!--==================== 
