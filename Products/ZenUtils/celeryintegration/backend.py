@@ -29,6 +29,7 @@ from AccessControl.SecurityManagement import noSecurityManager
 from Products.ZenUtils.celeryintegration import states
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from Products.Jobber.exceptions import NoSuchJobException
+from Products.ZenRelations.ZenPropertyManager import setDescriptors
 
 
 CONNECTION_ENVIRONMENT = threading.local()
@@ -79,8 +80,7 @@ class ZODBBackend(BaseDictBackend):
         """
         Get a handle to the database by whatever means necessary
         """
-        self._db_lock.acquire()
-        try:
+        with self._db_lock:
             # Get the current database
             db = self._db
             if db is None:
@@ -92,15 +92,12 @@ class ZODBBackend(BaseDictBackend):
                     db, storage = connectionFactory.getConnection(**self.get_db_options())
                 self._db = db
             return db
-        finally:
-            self._db_lock.release()
 
     @property
     def dmd(self):
         """
         Use a well-known connection to get a reliable dmd object.
         """
-        conn = None
         closer = getattr(CONNECTION_ENVIRONMENT, self.CONN_MARKER, None)
 
         if closer is None:
@@ -108,10 +105,12 @@ class ZODBBackend(BaseDictBackend):
             setattr(CONNECTION_ENVIRONMENT, self.CONN_MARKER,
                     ConnectionCloser(conn))
             newSecurityManager(None, AccessControl.User.system)
+            app = conn.root()['Application']
+            # Configure zProperty descriptors
+            setDescriptors(app.zport.dmd.propertyTransformers)
         else:
-            conn = closer.connection
+            app = closer.connection.root()['Application']
 
-        app = conn.root()['Application']
         return app.zport.dmd
 
     @property
