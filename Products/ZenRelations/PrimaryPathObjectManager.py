@@ -33,7 +33,7 @@ from ZItem import ZItem
 
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2
 
-
+_MARKER = object()
 
 class PrimaryPathManager(ZItem, Implicit, RoleManager):
 
@@ -73,10 +73,12 @@ class PrimaryPathManager(ZItem, Implicit, RoleManager):
         
     def primaryAq(self):
         """Return self with is acquisition path set to primary path"""
-        parent = getattr(self, "__primary_parent__", None)
-        if parent is None: # dmd
+        parent = getattr(self, "__primary_parent__", _MARKER)
+        if parent is _MARKER: # dmd - no __primary_parent__
             base = self.getPhysicalRoot().zport
             return aq_base(self).__of__(base)
+        if parent is None: # Deleted object
+            raise KeyError(self.id)
         return aq_base(self).__of__(parent.primaryAq())
 
     def getPrimaryParent(self):
