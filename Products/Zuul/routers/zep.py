@@ -615,13 +615,13 @@ class EventsRouter(DirectRouter):
                 'id': 'aging_interval_milliseconds',
                 'name': _t('Event Aging Interval (milliseconds)'),
                 'xtype': 'numberfield',
-                'minValue': 0,
+                'minValue': 1,
                 'allowNegative': False
                 },{
                 'id': 'aging_limit',
                 'name': _t('Event Aging Limit'),
                 'xtype': 'numberfield',
-                'minValue': 0,
+                'minValue': 1,
                 'allowNegative': False
                 },{
                 'id': 'event_archive_interval_minutes',
@@ -635,13 +635,12 @@ class EventsRouter(DirectRouter):
                 'name': _t('Event Archive Interval (milliseconds)'),
                 'xtype': 'numberfield',
                 'minValue': 1,
-                'maxValue': 43200,
                 'allowNegative': False,
                 },{
                 'id': 'archive_limit',
                 'name': _t('Event Archive Limit'),
                 'xtype': 'numberfield',
-                'minValue': 0,
+                'minValue': 1,
                 'allowNegative': False,
                 },{
                 'id': 'event_archive_purge_interval_days',
@@ -674,19 +673,19 @@ class EventsRouter(DirectRouter):
                 'name': _t('Summary Index Interval (milliseconds)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
-                'minValue': 0
+                'minValue': 1
                 },{
                 'id': 'index_archive_interval_milliseconds',
                 'name': _t('Archive Index Interval (milliseconds)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
-                'minValue': 0
+                'minValue': 1
                 },{
                 'id': 'index_limit',
                 'name': _t('Index Limit'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
-                'minValue': 0
+                'minValue': 1
                 },{
                 'id': 'event_time_purge_interval_days',
                 'name': _t('Event Time Purge Interval (days)'),
