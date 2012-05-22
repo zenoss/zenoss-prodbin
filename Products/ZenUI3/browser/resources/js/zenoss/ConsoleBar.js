@@ -29,41 +29,17 @@ Ext.define("Zenoss.ConsoleBar", {
             cls: 'largetoolbar consolebar',
             height: 35,
             collapseTitle: 'Instances',
+
             items: [{
                 xtype: 'tbtext',
                 text: title
             }].concat(config.leftItems||[]).concat([{
                 xtype: 'tbfill'
-            }]).concat(config.items||[]).concat(['-',{
-                iconCls: 'collapse',
-                ref: 'togglebutton',
-                cls: 'openclose',
-                handler: function() {
-                    me.toggleDockedItemPosition();
-                }
             }])
+
         });
 
-        if (config.collapsed) {
-            config.iconCls = 'expand';
-        }
         this.callParent(arguments);
-
-
-
-        // Set the icons properly
-        panel.on('collapse', function(p) {
-            this.togglebutton.setIconCls('expand');
-        }, this);
-        panel.on('expand', function(p) {
-            this.togglebutton.setIconCls('collapse');
-        }, this);
-        // when the page first loads the panel is expanded
-        // we then collapse the panel so the toolbar is in the correct spot
-        this.parentPanel.on('expand', function(){
-            var consolebar = this.getDockedItems('consolebar')[0];
-            consolebar.togglebutton.handler();
-        }, this.parentPanel, {single: true});
 
     },
     /**

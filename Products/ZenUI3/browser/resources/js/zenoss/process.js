@@ -570,7 +570,8 @@ Ext.getCmp('center_panel').add(
                     ref: 'detailCardPanel',
                     region: 'south',
                     split: true,
-                    collapsed: true,
+                    collapsed: false,
+                    collapsible: false,
                     listeners: {
                         afterrender: function(panel){
                             panel.collapse();

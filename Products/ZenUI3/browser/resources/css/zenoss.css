@@ -513,7 +513,7 @@ table.proptable {
 .xtb-text.livegridinfopanel {
   font-size: 10px;
   color: #373737;
-  font-weight: bold;
+  font-weight: bold !important;
   padding-right: 1em;
   padding-bottom: 3px;
   margin-top: 4px;
