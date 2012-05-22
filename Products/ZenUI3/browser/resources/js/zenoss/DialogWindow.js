@@ -488,16 +488,16 @@ Ext.define("Zenoss.dialog.DynamicDialog", {
             layout: 'fit',
             modal: true,
             stateful: false,
-            listeners:{
-                'afterRender':function(t){
-                    t.setHeight(t.el.getHeight() + t.getHeight());
-                }
-            },
+            closeAction: 'close',
+            minHeight: '150',
             buttons: [{
                 xtype: 'DialogButton',
                 text: _t('Submit'),
                 handler: Ext.bind(this.submitHandler, this)
-            }, Zenoss.dialog.CANCEL]
+            },{
+                xtype: 'DialogButton',
+                text: _t('Cancel')
+            }]
         });
         Ext.apply(config, {
             id: 'dynamic-dialog'
