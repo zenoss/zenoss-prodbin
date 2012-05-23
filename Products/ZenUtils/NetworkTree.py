@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
 from Products.ZenModel.Link import ILink
 
 def _fromDeviceToNetworks(dev):
@@ -22,17 +21,17 @@ def _fromDeviceToNetworks(dev):
             else:
                 yield net
 
-def _fromNetworkToDevices(net, devclass):
+def _fromNetworkToDevices(net, organizer):
+    from Products.Zuul.catalog.global_catalog import IIndexableWrapper
     for ip in net.ipaddresses():
         dev = ip.device()
         if dev is None:
             continue
-        dcp = dev.getDeviceClassPath()
-        if not ( dcp.startswith(devclass) or
-            dcp.startswith('/Network/Router')):
-            continue
-        else:
-            yield dev
+        paths = map('/'.join, IIndexableWrapper(dev).path())
+        for path in paths:
+            if path.startswith(organizer) or path.startswith('/zport/dmd/Devices/Network/Router'):
+                yield dev
+                break
 
 def _get_related(node, filter='/'):
     if node.meta_type=='IpNetwork':

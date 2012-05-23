@@ -18,17 +18,50 @@
 <tal:block metal:fill-slot="title">Network Map</tal:block>
 
 <tal:block metal:fill-slot="head-local">
-    <script type="text/javascript" tal:define="classlist python:[dict(label=x,data=x) for x in 
+    <script type="text/javascript" tal:define="classlist python:[dict(label=x,data='/zport/dmd/Devices'+x) for x in
                         here.dmd.Devices.deviceMoveTargets()];
+                        loclist python:[dict(label=x, data='/zport/dmd/Locations'+x) for x in here.dmd.Locations.deviceMoveTargets()];
+                        grouplist python:[dict(label=x, data='/zport/dmd/Groups'+x) for x in here.dmd.Groups.deviceMoveTargets()];
+                        syslist python:[dict(label=x, data='/zport/dmd/Systems'+x) for x in here.dmd.Systems.deviceMoveTargets()];
                         initobj python:here.dmd.ZenUsers.getUserSettings(
                                        ).netMapStartObject"
         tal:content="string:
        _deviceClasses = ${classlist};
+       _locations = [{label:'/', data:'/'}].concat(${loclist});
+       _groups = [{label:'/', data:'/'}].concat(${grouplist});
+       _systems = [{label:'/', data:'/'}].concat(${syslist});
        _initialObjId = '${initobj}';
     "></script>
     <script language="javascript" type="text/javascript">
+        function getOrganizerList(type) {
+            var result;
+            switch (type) {
+                case "Location":
+                    result =  _locations;
+                    break;
+                case "Group":
+                    result = _groups;
+                    break;
+                case "System":
+                    result = _systems;
+                    break;
+                case "Device Class":
+                default:
+                    result = _deviceClasses;
+            }
+            return result;
+        }
         function getDevClassList() {
             return _deviceClasses;
+        }
+        function getLocationList() {
+            return _locations;
+        }
+        function getGroupList() {
+            return _groups;
+        }
+        function getSystemList() {
+            return _systems;
         }
         function getInitialObjId() {
             return _initialObjId;
@@ -70,7 +103,7 @@
             params.allowscriptaccess = "always";
             params.allownetworking = "all";
             var attributes = {};
-            swfobject.embedSWF("/zport/dmd/flex/ZenNetMap.swf",
+            swfobject.embedSWF("/zport/dmd/flex/ZenNetMap.swf" + window.location.search,
                 "zennetmap", "100%", "100%", "9.0.0",
                 "/++resource++zenui/js/swfobject/2.2/expressInstall.swf",
                 flashvars, params, attributes);
