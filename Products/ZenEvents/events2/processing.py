@@ -149,14 +149,9 @@ class Manager(object):
         if obj:
             return IGlobalIdentifier(obj).getGUID()
 
-    def findDeviceUuid(self, identifier, ipAddress):
-        """
-        This will return the device's
-        @type  identifier: string
-        @param identifier: The IP address or id of a device
-        @type  ipaddress: string
-        @param ipaddress: The known ipaddress of the device
-        """
+    def _findDevices(self, identifier, ipAddress, limit=None):
+        """returns a tuple ([device brains], [devices]) searching manage IP and interface IPs. limit is the maximum
+        total number in both lists."""
         cat = ICatalogTool(self._devices)
 
         if ipAddress:
@@ -171,28 +166,35 @@ class Manager(object):
             except IpAddressError:
                 pass
 
-        querySet = Or(Eq('id', identifier),
-                      Eq('name', identifier))
+        querySet = Or(Eq('id', identifier), Eq('name', identifier))
+
         if ipAddress:
             querySet.addSubquery(Eq('ipAddress', ipAddress))
 
-        results = cat.search(types=Device, query=querySet, limit=1, filterPermissions=False)
+        device_brains = list(cat.search(types=Device, query=querySet, limit=limit, filterPermissions=False))
 
-        if results.total:
-            result = next(results.results, None)
-            if result and hasattr(result, 'uuid'):
-                return result.uuid
+        if not ipAddress or (limit is not None and len(device_brains) >= limit):
+            return device_brains, []
 
-        if ipAddress:
-            querySet = Eq('ipAddress', ipAddress)
+        querySet = Eq('ipAddress', ipAddress)
+        component_limit = None if limit is None else limit - len(device_brains)
+        component_results = cat.search(types=DeviceComponent, query=querySet, limit=component_limit, filterPermissions=False)
+        devices = [component_brain.getObject().device() for component_brain in component_results]
+        return device_brains, devices
 
-            # search the components
-            results = cat.search(types=DeviceComponent, query=querySet, limit=1, filterPermissions=False)
-            components = list(results)
-            if components:
-                return self.getElementUuid(
-                        components[0].getObject().device())
-
+    def findDeviceUuid(self, identifier, ipAddress):
+        """
+        This will return the device's
+        @type  identifier: string
+        @param identifier: The IP address or id of a device
+        @type  ipaddress: string
+        @param ipaddress: The known ipaddress of the device
+        """
+        device_brains, devices = self._findDevices(identifier, ipAddress, limit=1)
+        if device_brains:
+            return device_brains[0].uuid
+        if devices:
+            return self.getElementUuid(devices[0])
         return None
 
     def findDevice(self, identifier, ipAddress):
