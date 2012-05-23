@@ -241,7 +241,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
         '''
         Escapes characters like colon ':' for use by RRDTool which would
         '''
-        value = value.replace(":", "\:")
+        value = value.replace(":", "\:")[:198]
         return value
 
 
