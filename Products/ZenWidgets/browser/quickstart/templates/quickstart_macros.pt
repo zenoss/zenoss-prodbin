@@ -103,11 +103,35 @@ Ext.onReady(function() {
 
     Ext.apply(Ext.form.VTypes, {
         iprangeOrNetwork: function(val, field) {
-            return (val.match(/^(\d+\.){3}\d+\-\d+/) || val.match(/^(\d+\.){3}\d+\/\d+/));
+            return isIPv4(val) || isIPv6(val);
         },
         iprangeOrNetworkText: "Please enter a valid IP range or " + "<br/>network with subnet mask.<br/>" + "e.g., 10.1.1.1-50  or 10.1.1.1/24"
     });
-
+    function isIPv4(s){
+        var valid = false, split = [];
+        if(s.match(/\//g)){
+            split = s.split("/");
+        }else if(s.match(/\-/g)){
+            split = s.split("-");
+        }else{
+            split.push(s);
+        }
+        var match = split[0].match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+        valid = match != null &&
+                match[1] <= 255 && match[2] <= 255 &&
+                match[3] <= 255 && match[4] <= 255;
+        if(valid == true && split[1] != undefined){
+            if(split[1].length != 0){
+                valid = split[1] <= 255;
+            }else{
+                valid = false;
+            }
+        }
+        return valid;
+    }
+    function isIPv6(str){
+        return (/^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/.test(str));
+    }    
     var closeWindowIfPopup = function(form, action) {
         // opener is defined as the window that opened the popup
         if (!Ext.isEmpty(opener)) {
