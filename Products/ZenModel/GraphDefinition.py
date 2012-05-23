@@ -505,7 +505,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     def graphsetup(self):
         """Setup global graph parameters.
         """
-        gopts = ['-F', '-E']
+        gopts = ['-F', '-E', '--disable-rrdtool-tag']
         if self.height:
             gopts.append('--height=%d' % int(self.height))
         if self.width:
