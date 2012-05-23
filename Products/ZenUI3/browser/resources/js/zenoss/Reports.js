@@ -16,8 +16,7 @@ Ext.ns('Zenoss.ui.Reports');
 
 Ext.onReady(function () {
 
-var addtozenpack,
-    report_panel = new Zenoss.BackCompatPanel({}),
+var report_panel = new Zenoss.BackCompatPanel({}),
     treesm,
     REPORT_PERMISSION = 'Manage DMD',
     report_tree;
@@ -33,9 +32,7 @@ function deleteNode(e) {
  * add report class to zenpack
  */
 function addToZenPack(e) {
-    if (!addtozenpack) {
-        addtozenpack = new Zenoss.AddToZenPackWindow();
-    }
+    var addtozenpack = new Zenoss.AddToZenPackWindow();
     addtozenpack.setTarget(treesm.getSelectedNode().data.uid);
     addtozenpack.show();
 }

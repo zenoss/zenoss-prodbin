@@ -22,7 +22,6 @@ var MibBrowser,
     oid_grid,
     trap_grid,
     node_details,
-    addtozenpack,
     treesm,
     mib_tree,
     footerBar,
@@ -910,9 +909,7 @@ footerBar.add({
  * add mib class to zenpack
  */
 function addToZenPack(e) {
-    if (!addtozenpack) {
-        addtozenpack = new Zenoss.AddToZenPackWindow();
-    }
+    var addtozenpack = new Zenoss.AddToZenPackWindow();
     addtozenpack.setTarget(treesm.getSelectedNode().data.uid);
     addtozenpack.show();
 }

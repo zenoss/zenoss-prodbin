@@ -31,7 +31,7 @@ function createClickHandler(bubbleTargetId) {
 //      contextGetter: fetches the context UIDs for the specific page
 
 Zenoss.footerHelper = function(itemName, footerBar, options) {
-    var addToZenPackDialog, items;
+    var items;
 
     options = Ext.applyIf(options || {}, {
         addToZenPack: true,
@@ -147,7 +147,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
                                 }]
-                            }).show();                            
+                            }).show();
 
                         }
                     }
@@ -201,12 +201,12 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     }
 
     if (options.addToZenPack) {
-        addToZenPackDialog = new Zenoss.AddToZenPackWindow();
         options.buttonContextMenu.menu.items.push({
             ref: 'buttonAddToZenPack',
             text: Ext.String.format(_t('Add {0} to ZenPack'), itemName),
             listeners: {
                 click: function() {
+                    var addToZenPackDialog = new Zenoss.AddToZenPackWindow({});
                     var target = options.contextGetter.getUid();
                     if ( ! target ) {
                         return;
@@ -224,6 +224,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                 text: Ext.String.format(_t('Add {0} Organizer to ZenPack'), itemName),
                 listeners: {
                     click: function() {
+                        var addToZenPackDialog = new Zenoss.AddToZenPackWindow({});
                         var target = options.contextGetter.getOrganizerUid();
                         if ( ! target ) {
                             return;

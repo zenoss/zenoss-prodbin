@@ -27,21 +27,20 @@ Ext.define("Zenoss.AddToZenPackWindow", {
     alias:['widget.AddToZenPackWindow'],
     extend:"Zenoss.dialog.BaseWindow",
     constructor: function(config) {
+        var me = this;
         config = Ext.applyIf(config || {}, {
-            id: 'addToZenPackWindow',
             title: _t('Add to Zen Pack'),
             layout: 'fit',
             modal: true,
             autoHeight: true,
             width: 310,
-            closeAction: 'hide',
             plain: true,
             items: [{
                 id: 'addzenpackform',
                 xtype: 'form',
                 listeners: {
                     validitychange: function(form, isValid) {
-                        Ext.getCmp('addToZenPackWindow').query('DialogButton')[0].setDisabled(!isValid);
+                        me.query('DialogButton')[0].setDisabled(!isValid);
                     }
                 },
                 defaults: {width: 250},
@@ -86,21 +85,17 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                         var chosenzenpack =
                             form.getForm().findField('zpname').getValue();
                             Zenoss.remote.ZenPackRouter.addToZenPack({
-                                topack: Ext.getCmp('addToZenPackWindow').target,
+                                topack: me.target,
                                 zenpack: chosenzenpack
                             },
                             function (data) {
-                                Ext.getCmp('addToZenPackWindow').hide();
                                 Zenoss.message.info(_t("The item was added to the zenpack, {0}"), chosenzenpack);
                             }
                         );
                     }
                 },{
                     text: _t('Cancel'),
-                    xtype: 'DialogButton',
-                    handler: function () {
-                        Ext.getCmp('addToZenPackWindow').hide();
-                    }
+                    xtype: 'DialogButton'
                 }]
             }]
         });

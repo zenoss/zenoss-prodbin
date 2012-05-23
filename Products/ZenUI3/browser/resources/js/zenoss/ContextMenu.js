@@ -95,11 +95,9 @@ Ext.define("Zenoss.ContextConfigureMenu", {
      * @param {Object} uid
      */
      addToZenPackHandler: function(e) {
-       if (!this.addtozenpack) {
-                this.addtozenpack = new Zenoss.AddToZenPackWindow();
-            }
-            this.addtozenpack.setTarget(this.contextUid);
-            this.addtozenpack.show();
+        var dialog = Ext.create('Zenoss.AddToZenPackWindow', {});
+        dialog.setTarget(this.contextUid);
+        dialog.show();
     },
     /**
      * private

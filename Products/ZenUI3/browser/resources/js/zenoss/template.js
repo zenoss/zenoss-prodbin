@@ -19,7 +19,7 @@ var router, treeId, dataSourcesId, thresholdsId, graphsId,
     beforeselectHandler, updateDataSources, updateThresholds, updateGraphs,
     selectionchangeHandler, selModel, footerBar, override, overrideHtml1,
     overrideHtml2, showOverrideDialog, resetCombo, addTemplateDialogConfig,
-    addToZenPack, currentView;
+    currentView;
 
 Ext.ns('Zenoss', 'Zenoss.templates');
 router = Zenoss.remote.TemplateRouter;
@@ -454,10 +454,9 @@ addTemplateDialogConfig = {
  * Add to zenpack
  *
  */
-addToZenPack = Ext.create('Zenoss.AddToZenPackWindow',  {});
 function showAddToZenPackDialog() {
     var tree = Ext.getCmp(treeId),
-    win = addToZenPack;
+        win = Ext.create('Zenoss.AddToZenPackWindow',  {});
     win.target = tree.getSelectionModel().getSelectedNode().data.uid;
     win.show();
 }
