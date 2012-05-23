@@ -158,11 +158,18 @@ Ext.getCmp('center_panel').add({
                 iconCls: 'suppress',
                 text: _t('Abort'),
                 tooltip: _t("Abort Jobs"),
+                disabled: true,
                 handler: function(btn) {
                     var grid = Ext.getCmp('jobs'),
                     jobids = [];
                     Ext.each(grid.getSelectionModel().getSelection(), function(row) {
-                        jobids.push(row.data.uuid);
+
+                        switch (row.data.status) {
+                            case 'STARTED':
+                            case 'PENDING':
+                                jobids.push(row.data.uuid);
+                        }
+
                     });
                     REMOTE.abort({jobids:jobids}, function() {
                         grid.refresh();
@@ -185,6 +192,22 @@ Ext.getCmp('center_panel').add({
         listeners: {
             selectionchange: function(grid, selected) {
                 var detail_panel = Ext.getCmp('job_detail_panel');
+                var enableAbort = false;
+                var abort_button = Ext.getCmp('abortjob-button');
+
+                for (var i = 0; i < selected.length; i++) {
+                    switch(selected[i].data.status) {
+                        case 'STARTED':
+                        case 'PENDING':
+                            enableAbort = true;
+                    }
+
+                    if (enableAbort) {
+                        break;
+                    }
+                }
+                enableAbort?abort_button.enable():abort_button.disable();
+
                 if (selected.length==1) {
                     detail_panel.setJob.call(detail_panel, selected[0]);
                     Ext.History.add('jobs:' + selected[0].data.uuid);
