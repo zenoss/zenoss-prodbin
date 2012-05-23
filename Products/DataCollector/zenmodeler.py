@@ -816,7 +816,7 @@ class ZenModeler(PBDaemon):
         @param unused: unused (unused)
         @type unused: string
         """
-        if self.clients: return
+        if self.pendingNewClients or self.clients: return
         if self._devicegen_has_items: return
 
         if self.start:
