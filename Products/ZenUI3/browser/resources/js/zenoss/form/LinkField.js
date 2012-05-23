@@ -21,10 +21,16 @@ Ext.ns('Zenoss.form');
 Ext.define("Zenoss.form.LinkField", {
     extend: "Ext.form.DisplayField",
     alias: ['widget.linkfield'],
-     getValue: function() {
+    initComponent: function() {
+        this.callParent(arguments);
+        // make sure our value is established
+        // before rendering
+        this.setValue(this.value);
+    },
+    getValue: function() {
         return this.rawValue;
-     },
-     setValue: function(value) {
+    },
+    setValue: function(value) {
         var origValue = value;
         if (Ext.isEmpty(value)) {
             value = _t('None');
@@ -39,9 +45,9 @@ Ext.define("Zenoss.form.LinkField", {
                 value = Zenoss.render.link(value);
             }
         }
-        Zenoss.form.LinkField.superclass.setValue.call(this, value);
+        this.callParent([value]);
         this.rawValue = origValue;
-     }
+    }
  });
 
 
