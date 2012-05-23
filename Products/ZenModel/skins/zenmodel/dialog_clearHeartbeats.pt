@@ -27,15 +27,13 @@ var newSubmitHandler = function(button, event) {
         findParams: function() {
             return {
                 params: Ext.encode({
-                    eventState : [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
-                    eventClass : '/Status/Heartbeat',
                     device : Zenoss.env.device_uid.split('/').pop()
                 })
             };
         }
     });
 
-    eam.execute(Zenoss.remote.EventsRouter.close);
+    eam.execute(Zenoss.remote.EventsRouter.clear_device_heartbeats);
 };
 // This is pretty dependent on the submit button being the first button,
 // but then again this entire .pt depends on the DynamicForm anyway.

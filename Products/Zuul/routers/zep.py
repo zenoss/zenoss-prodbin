@@ -21,6 +21,7 @@ import logging
 from json import loads
 from AccessControl import getSecurityManager
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
+from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
@@ -429,6 +430,36 @@ class EventsRouter(DirectRouter):
         status, summaryUpdateResponse = self.zep.nextEventSummaryUpdate(next_request)
 
         log.debug('Completed updates: %s', summaryUpdateResponse)
+        return DirectResponse.succeed(data=summaryUpdateResponse)
+
+    @require('Manage Events')
+    def clear_device_heartbeats(self, params, limit=None):
+        """
+        @type  params: dictionary
+        @param params: Key-value pair of filters for this search.
+        """
+        if isinstance(params, basestring):
+            params = loads(params)
+
+        device = params['device']
+
+        log.debug('Clearing heartbeats for device: {device}'.format(device=device))
+
+        params['eventState'] = [STATUS_NEW, STATUS_ACKNOWLEDGED]
+        params['eventClass'] = '/Status/Heartbeat'
+
+        includeFilter, excludeFilter = self._buildRequestFilters(None, params, None, None)
+
+        status, summaryUpdateResponse = self.zep.closeEventSummaries(
+            eventFilter=includeFilter,
+            exclusionFilter=excludeFilter,
+            limit=limit,
+        )
+
+        log.debug('Done clearing heartbeats for device: {device}'.format(device=device))
+        log.debug(summaryUpdateResponse)
+        audit('UI.Device.ClearHeartbeats', device=device)
+
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
     @require('Manage Events')
