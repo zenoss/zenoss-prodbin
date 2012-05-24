@@ -639,9 +639,8 @@
                 this.grid.getStore().on('datachanged', this.onDataChanged, this);
                 this.grid.getView().on('bodyscroll', this.onScroll, this);
             }
-
-            this.displayMsg = _t('Displaying {0} - {1} of {2} Rows');
-            this.emptyMsg = _t('No Results');
+            this.displayMsg = _t('DISPLAYING {0} - {1} of {2} ROWS');
+            this.emptyMsg = _t('NO RESULTS');
             this.callParent(arguments);
         },
         onDataChanged:function () {
