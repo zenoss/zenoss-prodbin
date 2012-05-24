@@ -150,9 +150,9 @@ Ext.onReady(function(){
                         xtype: 'menucheckitem',
                         text: 'Show severity row colors',
                         handler: function(checkitem) {
-                            var checked = !checkitem.checked;
-                            var view = Ext.getCmp('events_grid').getView();
-                            view.toggleRowColors(checked);
+                            var checked = checkitem.checked;
+                            var grid = Ext.getCmp('events_grid');
+                            grid.toggleRowColors(checked);
                         }
                     },{
                         id: 'clearfilters',
