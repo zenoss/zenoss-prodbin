@@ -56,7 +56,7 @@
                 bodyStyle: 'padding: 10px',
                 listeners: {
                     validitychange: function(form, isValid) {
-                       me.query('button')[0].setDisabled(!isValid);
+                        me.query('button')[0].setDisabled(!isValid);
                     },
                     afterrender: function(form){
                         this.getForm().checkValidity();
@@ -79,8 +79,6 @@
                             if (response.success){
                                 var message = _t("Configuration updated");
                                 Zenoss.message.info(message);
-                                btn.setDisabled(true);
-                                btn.refOwner.cancelbtn.setDisabled(true);
                             }
                         });
                     }
