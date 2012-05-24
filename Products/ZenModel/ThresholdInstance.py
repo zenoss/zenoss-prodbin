@@ -45,10 +45,7 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
             self.devicePath = 'Monitors/Performance/{context.id}'.format(context=context)
         else:
             self.deviceName = context.device().id
-            if hasattr( context, 'name' ) and callable( getattr( context, 'name' ) ):
-                self.componentName = context.name()
-            else:
-                self.componentName = context.id
+            self.componentName = context.id
             if self.componentName == self.deviceName:
                 self.componentName = ''
 
