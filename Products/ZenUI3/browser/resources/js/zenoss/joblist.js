@@ -146,12 +146,11 @@ Ext.getCmp('center_panel').add({
                     Ext.each(grid.getSelectionModel().getSelection(), function(row) {
                         jobids.push(row.data.uuid);
                     });
-                    /*  throws an error that seems to javascript in IE to be an extra coma. But I don't see
-                        any extra coma anywhere in this js file.
-                    REMOTE.delete({jobids:jobids}, function() {
+
+                    REMOTE.deleteJobs({jobids:jobids}, function() {
                         grid.refresh();
                     });
-                    */
+
                 }
             },{
                 id: 'abortjob-button',

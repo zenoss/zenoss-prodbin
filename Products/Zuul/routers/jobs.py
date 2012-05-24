@@ -53,7 +53,7 @@ class JobsRouter(DirectRouter):
         for id_ in jobids:
             self.api.abortJob(id_)
 
-    def delete(self, jobids):
+    def deleteJobs(self, jobids):
         for id_ in jobids:
             self.api.deleteJob(id_)
 
