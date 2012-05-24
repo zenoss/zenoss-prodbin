@@ -95,7 +95,7 @@ class EventsRouter(DirectRouter):
 
     @serviceConnectionError
     @require('ZenCommon')
-    def queryArchive(self, page=None, limit=0, start=0, sort='lastTime', dir='desc', params=None, keys=None, uid=None, detailFormat=False):
+    def queryArchive(self, page=None, limit=0, start=0, sort='lastTime', dir='desc', params=None, exclusion_filter=None, keys=None, uid=None, detailFormat=False):
         if not self._canViewEvents():
             return DirectResponse.succeed(
                 events = [],
@@ -104,8 +104,10 @@ class EventsRouter(DirectRouter):
                 )
 
         filter = self._buildFilter(uid, params)
+        if exclusion_filter is not None:
+            exclusion_filter = self._buildFilter(uid, exclusion_filter)
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
-                                                       filter=filter)
+                                                       filter=filter, exclusion_filter=exclusion_filter)
         eventFormat = EventCompatInfo
         if detailFormat:
             eventFormat = EventCompatDetailInfo
@@ -122,7 +124,7 @@ class EventsRouter(DirectRouter):
 
     @serviceConnectionError
     @require('ZenCommon')
-    def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, keys=None,
+    def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, exclusion_filter=None, keys=None,
               page=None, archive=False, uid=None, detailFormat=False):
         """
         Query for events.
@@ -160,14 +162,16 @@ class EventsRouter(DirectRouter):
 
         if archive:
             return self.queryArchive(limit=limit, start=start, sort=sort,
-                                     dir=dir, params=params, keys=keys, uid=uid,
+                                     dir=dir, params=params, exclusion_filter=exclusion_filter, keys=keys, uid=uid,
                                      detailFormat=detailFormat)
         # special case for dmd/Devices in which case we want to show all events
         # by default events are not tagged with the root device classes because it would be on all events
         if uid == "/zport/dmd/Devices":
             uid = "/zport/dmd"
         filter = self._buildFilter(uid, params)
-        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter)
+        if exclusion_filter is not None:
+            exclusion_filter = self._buildFilter(uid, exclusion_filter)
+        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter, exclusion_filter=exclusion_filter)
         eventFormat = EventCompatInfo
         if detailFormat:
             eventFormat = EventCompatDetailInfo

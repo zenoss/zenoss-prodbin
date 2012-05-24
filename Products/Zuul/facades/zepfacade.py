@@ -19,7 +19,6 @@ from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
 
-import pkg_resources
 from zenoss.protocols.interfaces import IQueueSchema
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
@@ -323,15 +322,18 @@ class ZepFacade(ZuulFacade):
         return self.getEventSummaries(offset, limit, sort, filter,
                                       client_fn=self.client.getEventSummariesFromArchive)
 
-    def getEventSummaries(self, offset, limit=1000, sort=None, filter=None, client_fn=None):
+    def getEventSummaries(self, offset, limit=1000, sort=None, filter=None, exclusion_filter=None, client_fn=None):
         if client_fn is None:
             client_fn = self.client.getEventSummaries
         if filter is not None and isinstance(filter,dict):
             filter = from_dict(EventFilter, filter)
+        if exclusion_filter is not None and isinstance(exclusion_filter, dict):
+            exclusion_filter = from_dict(EventFilter, exclusion_filter)
         if sort is not None:
             sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
         return self._getEventSummaries(source=partial(client_fn,
                                                filter=filter,
+                                               exclusion_filter=exclusion_filter,
                                                sort=sort
                                                ),
                                        offset=offset, limit=limit
