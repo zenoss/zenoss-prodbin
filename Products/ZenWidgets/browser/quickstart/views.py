@@ -12,6 +12,7 @@
 ###########################################################################
 
 import re
+import logging
 from Acquisition import aq_base
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
@@ -23,6 +24,7 @@ from Products.ZenMessaging.audit import audit
 
 _is_network = lambda x: bool(re.compile(r'^(\d+\.){3}\d+\/\d+$').search(x))
 _is_range = lambda x: bool(re.compile(r'^(\d+\.){3}\d+\-\d+$').search(x))
+log = logging.getLogger("zen.quickstart")
 
 class QuickstartBase(BrowserView):
     """
@@ -181,7 +183,7 @@ class DeviceAddView(BrowserView):
                 # something to discover
                 _n = self.context.dmd.Networks.createNet(net)
             try:
-                netdesc = ("network %s" % nets[0].getNetworkName() if len(nets)==1 
+                netdesc = ("network %s" % nets[0] if len(nets)==1
                            else "%s networks" % len(nets))
                 self.context.JobManager.addJob(
                     AutoDiscoveryJob,
@@ -191,7 +193,8 @@ class DeviceAddView(BrowserView):
                         zProperties=zProperties
                     )
                 )
-            except:
+            except Exception, e:
+                log.exception(e)
                 response.error('network', 'There was an error scheduling this '
                                'job. Please check your installation and try '
                                'again.')
@@ -205,8 +208,8 @@ class DeviceAddView(BrowserView):
             # Ranges can just be sent to zendisc, as they are merely sets of
             # IPs
             try:
-                rangedesc = ("IP range %s" % ranges[0].getNetworkName() 
-                             if len(ranges)==1 
+                rangedesc = ("IP range %s" % ranges[0]
+                             if len(ranges)==1
                              else "%s IP ranges" % len(ranges))
                 self.context.JobManager.addJob(
                     AutoDiscoveryJob,
@@ -216,7 +219,8 @@ class DeviceAddView(BrowserView):
                         zProperties=zProperties
                     )
                 )
-            except:
+            except Exception, e:
+                log.exception(e)
                 response.error('network', 'There was an error scheduling this '
                                'job. Please check your installation and try '
                                'again.')
@@ -285,4 +289,3 @@ class DeviceAddView(BrowserView):
         )
         response.redirect('/zport/dmd')
         return response
-
