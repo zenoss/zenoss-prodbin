@@ -420,7 +420,7 @@ new Zenoss.MessageDialog({
  * This is called after the router request to save the edit dialog
  **/
 function closeEditDialog(response) {
-    var dialog = Ext.getCmp('editDataSources');
+    var dialog = Ext.getCmp(editDataSourcesId);
     refreshDataSourceGrid(editingReSelectId);
 
     // hide the dialog
