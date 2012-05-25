@@ -376,9 +376,11 @@ class CatalogTool(object):
         property of the info object is another info object the "name" attribute is used.
         The filters are applied as case-insensitive strings on the attribute of the info object.
         @param queryResults list of brains
-        @param infoFilters dictionary: key/value pairs of filters
+        @param infoFilters dict: key/value pairs of filters
         @return list of brains
         """
+        if not infoFilters:
+            return list(queryResults)
         results = []
         for key, value in infoFilters.iteritems():
             valRe = re.compile(".*" + value + ".*", re.IGNORECASE)
