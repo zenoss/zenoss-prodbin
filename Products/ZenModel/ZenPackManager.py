@@ -308,7 +308,7 @@ class ZenPackManager(ZenModelRM):
     def getBrokenPackName(self, ob):
         ''' Extract the zenpack name from the broken module
         '''
-        return ob.id if ob.id else ob.__class__.__module__
+        return ob.id if ob.id and ob.id != 'broken' else ob.__class__.__module__
 
 
 InitializeClass(ZenPackManager)
