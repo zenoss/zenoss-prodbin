@@ -239,10 +239,10 @@ class ZenActionD(ZCmdBase):
 
         task = ProcessSignalTask(NotificationDao(self.dmd))
 
+        self._callHomeCycler.start()
+        self._schedule.start()  # maintenance windows
         if self.options.daemon:
-            self._callHomeCycler.start()
-            self._maintenanceCycle.start()
-            self._schedule.start()
+            self._maintenanceCycle.start()  # heartbeats, etc.
         if self.options.daemon and self.options.workers > 1:
             self._workers.startWorkers()
 
