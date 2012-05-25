@@ -176,7 +176,7 @@ class RenderServer(RRDToolItem):
                     log.warn(" ".join(gopts))
                     return None
 
-            self.addGraph(id, filename)
+            self.addGraph(id, filename, fd)
             graph = self.getGraph(id, ftype, REQUEST)
 
         if getImage:
@@ -507,7 +507,7 @@ class RenderServer(RRDToolItem):
         return self._v_cache
 
 
-    def addGraph(self, id, filename):
+    def addGraph(self, id, filename, fd):
         """
         Add a graph to temporary folder
 
@@ -518,7 +518,8 @@ class RenderServer(RRDToolItem):
         graph = self._loadfile(filename)
         if graph: 
             cache.addToCache(id, graph)
-            try: 
+            try:
+                os.close(fd)
                 os.remove(filename)
             except OSError, e:
                 if e.errno == 2: 
