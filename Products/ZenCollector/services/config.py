@@ -13,6 +13,7 @@
 
 from twisted.internet import defer
 from twisted.spread import pb
+import logging
 
 from Acquisition import aq_parent
 from zope import component
@@ -274,18 +275,22 @@ class CollectorConfigService(HubService, ThresholdMixin):
             try:
                 device = dev.primaryAq() # still black magic to me...
 
-                if device.perfServer.getRelatedId() == self.instance \
-                and self._filterDevice(device):
+                if self._perfIdFilter(device) and self._filterDevice(device):
                     filteredDevices.append(device)
                     self.log.debug("Device %s included by filter", device.id)
                 else:
                     # don't use .id just in case there is something crazy returned
                     self.log.debug("Device %r excluded by filter", device)
             except Exception as e:
-                self.log.warn("Got an exception filtering %r", dev)
-                self.log.debug(e)
+                if self.log.isEnabledFor(logging.DEBUG):
+                    self.log.exception("Got an exception filtering %r", dev)
+                else:
+                    self.log.warn("Got an exception filtering %r", dev)
 
         return filteredDevices
+
+    def _perfIdFilter(self, obj):
+        return not hasattr(obj, 'perfserver') or obj.perfServer.getRelatedId() == self.instance
 
     def _notifyAll(self, object):
         """
@@ -300,8 +305,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         """
         deferreds = []
 
-        if device.perfServer.getRelatedId() == self.instance \
-        and self._filterDevice(device):
+        if self._perfIdFilter(device) and self._filterDevice(device):
             proxies = self._wrapFunction(self._createDeviceProxies, device)
             if proxies:
                 self._wrapFunction(self._postCreateDeviceProxy, proxies)
