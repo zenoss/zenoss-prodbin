@@ -240,17 +240,9 @@ Ext.define("Zenoss.process.ProcessGrid", {
                 singleSelect: true,
                 listeners: {
                     select: function(sm, record, rowIndex) {
-                        var uid = record.data.uid, token, tokenParts, detail, cardpanel;
+                        var uid = record.data.uid, token, tokenParts, cardpanel;
                         cardpanel = Ext.getCmp('detailCardPanel');
                         Ext.getCmp('processForm').setContext(uid);
-                        detail = Ext.getCmp('detail_panel');
-                        if (cardpanel.collapsed) {
-                            cardpanel.on('expand', function(p){
-                                p.setHeight(250).doLayout();
-                                Ext.getCmp('detail_panel').doLayout();
-                            }, this, {single: true});
-                            cardpanel.expand();
-                        }
                         cardpanel.setContext(uid);
                         Ext.getCmp('footer_bar').setContext(uid);
                         // add to history
@@ -572,11 +564,6 @@ Ext.getCmp('center_panel').add(
                     split: true,
                     collapsed: false,
                     collapsible: false,
-                    listeners: {
-                        afterrender: function(panel){
-                            panel.collapse();
-                        }
-                    },
                     router: router,
                     bufferSize: 100,
                     nearLimit: 20,
@@ -724,8 +711,5 @@ Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
        Ext.getCmp('sequenceDialog').show();
     }
 });
-    // expand the detail panel so it can render the toolbar
-    var detailpanel = Ext.getCmp('detailCardPanel');
-    detailpanel.expand();
 
 }); // Ext.onReady
