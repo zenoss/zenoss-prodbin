@@ -19,7 +19,7 @@ import ConfigParser
 import subprocess
 from zipfile import ZipFile
 from StringIO import StringIO
-from pkg_resources import parse_version
+from pkg_resources import parse_requirements
 
 import Globals
 import transaction
@@ -245,26 +245,18 @@ class ZenPackCmd(ZenScriptBase):
 
             prereqsMet = True
             for req in reqZenpacks:
-                zpName, zpVersion = req.strip(), None
-                operatorPos = req.find('>=')
-                if operatorPos > 0:
-                    zpName = req[:operatorPos].strip()
-                    zpVersion = req[operatorPos+2:].strip()
-
-                if zpName not in installedPacks:
-                    self.log.error('Zenpack %s requires %s %s' %
-                          (self.options.installPackName, zpName,
-                                  zpVersion if zpVersion else ''))
-                    prereqsMet = False
-                elif zpVersion:
-                    requiredVersion = parse_version(zpVersion)
-                    installedVersion = parse_version(installedPacks[zpName])
-                    if installedVersion < requiredVersion:
-                        self.log.error(
-                            'Zenpack %s requires %s to be at version %s, found: %s' %
-                            (self.options.installPackName, zpName, zpVersion,
-                             installedPacks[zpName]))
+                for parsed_req in parse_requirements([req]):
+                    installed_version = installedPacks.get(parsed_req.project_name, None)
+                    if installed_version is None:
+                        self.log.error('Zenpack %s requires %s' %
+                              (self.options.installPackName, parsed_req))
                         prereqsMet = False
+                    else:
+                        if not installed_version in parsed_req:
+                            self.log.error(
+                                'Zenpack %s requires %s, found: %s' %
+                                (self.options.installPackName, parsed_req, installed_version))
+                            prereqsMet = False
             return prereqsMet
 
         if os.path.isfile(self.options.installPackName):
