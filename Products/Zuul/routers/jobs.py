@@ -49,13 +49,20 @@ class JobsRouter(DirectRouter):
 
         jobs, total = self.api.getJobs(start=start, limit=limit, sort=sort, dir=dir, createdBy=createdBy)
         return DirectResponse(jobs=Zuul.marshal(jobs, keys=JOBKEYS), totalCount=total)
+
     def abort(self, jobids):
         for id_ in jobids:
-            self.api.abortJob(id_)
+            try:
+                self.api.abortJob(id_)
+            except NoSuchJobException:
+                log.debug("Unable to abort job: %s No such job found.", id_)
 
     def deleteJobs(self, jobids):
         for id_ in jobids:
-            self.api.deleteJob(id_)
+            try:
+                self.api.deleteJob(id_)
+            except NoSuchJobException:
+                log.debug("Unable to delete job: %s No such job found.", id_)
 
     def detail(self, jobid):
         try:

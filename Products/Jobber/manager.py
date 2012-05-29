@@ -181,7 +181,7 @@ class JobManager(ZenModelRM):
         @param jobid: id of the L{JobStatus}. The "JobStatus_" prefix is not
         necessary.
         @type jobid: str
-        @return: A matching L{JobStatus} object, or None if none is found
+        @return: A matching L{JobStatus} object, or raises a NoSuchJobException if none is found
         @rtype: L{JobStatus}, None
         """
         try:

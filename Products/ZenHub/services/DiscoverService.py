@@ -15,6 +15,7 @@ import math
 import re
 from ipaddr import IPNetwork
 import logging
+
 log = logging.getLogger('zen.DiscoverService')
 
 import Globals
@@ -22,6 +23,7 @@ import transaction
 from twisted.spread import pb
 from ZODB.transact import transact
 
+from Products.Jobber.exceptions import NoSuchJobException
 from Products.ZenUtils.IpUtil import strip, ipwrap, ipunwrap, isip
 from Products.ZenEvents.Event import Event
 from Products.ZenEvents.ZenEventClasses import Status_Ping
@@ -203,9 +205,12 @@ class DiscoverService(ModelerService):
 
     @translateError
     def remote_getJobProperties(self, jobid):
-        jobrecord = self.dmd.JobManager.getJob(jobid)
-        if jobrecord:
-            return JobPropertiesProxy(jobrecord)
+        try:
+            jobrecord = self.dmd.JobManager.getJob(jobid)
+            if jobrecord:
+                return JobPropertiesProxy(jobrecord)
+        except NoSuchJobException:
+            pass
 
     @translateError
     def remote_succeedDiscovery(self, id):
