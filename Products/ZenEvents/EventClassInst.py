@@ -17,6 +17,7 @@ import re
 import sre_constants
 import logging
 import transaction
+import urllib
 from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger("zen.Events")
@@ -413,12 +414,12 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
 
 
     security.declareProtected('Manage DMD', 'manage_resequence')
-    def manage_resequence(self, seqmap, REQUEST=None):
-        """Reorder the sequence of eventClassMappings with the same key.
+    def manage_resequence(self, seqmap, seqid, REQUEST=None):
         """
-        # first pass set new sequence
-        for i, map in enumerate(self.sameKey()):
-            map.sequence = int(seqmap[i])
+        Reorder the sequence of eventClassMappings with the same key.
+        """
+        for num, path in zip(seqmap, seqid):
+            self.unrestrictedTraverse(urllib.unquote(path)).sequence = int(num)
         # second pass take out any holes
         for i, map in enumerate(self.sameKey()):
             map.sequence = i

@@ -1,14 +1,14 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post" tal:attributes="action here/absolute_url_path">
-
-
-        <tal:block tal:define="objects here/sameKey;
+<tal:block tal:define="objects here/sameKey;
         tableName string:eventinstsequence;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                     sortedHeader='sequence'); 
             tabletitle string:Sequence">
+<form method="post" tal:attributes="action here/absolute_url_path">
+
+
         <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <input type="hidden" name="zenScreenName" 
                 tal:attributes="value template/id"/>
@@ -49,6 +49,9 @@
     <tr tal:repeat="evinst batch">
         <td class="tablevalues" width="5%">
             <input tal:condition="here/isManager" 
+                type="hidden" name="seqid:list" size="2"
+                tal:attributes="value evinst/getPrimaryUrlPath"/>
+            <input tal:condition="here/isManager" 
                 type="text" name="seqmap:list" size="2"
                 tal:attributes="value evinst/sequence"/>
             <span tal:condition="not:here/isManager" 
@@ -69,20 +72,29 @@
         <input type="submit" name="manage_resequence:method" value=" Save "/>
         </td>
     </tr>
-    <tr>
-        <td colspan="4" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
-        </td>
-    </tr>
 
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
         </tal:block>
-        </tal:block>
         
 
 </form>
+
+    <table class="zentable">
+    <tr>
+        <td colspan="4" class="tableheader">
+            <form method="post" tal:attributes="action request/URL">
+                <input type='hidden' name='tableName' tal:attributes="value tableName" />
+                <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+                <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+            </form>
+        </td>
+    </tr>
+    </table>
+        
+
+</tal:block>
 
 </tal:block>
 </tal:block>
