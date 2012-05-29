@@ -570,7 +570,10 @@
         constructor:function (config) {
             config = config || {};
             Ext.applyIf(config, {
-                displayFilters:true
+                displayFilters:true,
+                // only make it stateful if we have an id set
+                stateful: Ext.isDefined(config.id),
+                stateId: config.id
             });
 
             this.callParent(arguments);
