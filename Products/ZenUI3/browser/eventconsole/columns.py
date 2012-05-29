@@ -309,6 +309,7 @@ COLUMN_CONFIG = {
 
     'message'   : dict(
         header='Message',
+        renderer='Zenoss.render.eventSummaryRow',
         filter=False),
 
     'Location'  : dict(
