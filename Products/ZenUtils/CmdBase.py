@@ -100,6 +100,9 @@ class CmdBase(object):
         # This explicitly loads all of the products - must happen first!
         from OFS.Application import import_products
         import_products()
+        #make sure we aren't in debug mode
+        import Globals
+        Globals.DevelopmentMode = False
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
         import Products.ZenossStartup
