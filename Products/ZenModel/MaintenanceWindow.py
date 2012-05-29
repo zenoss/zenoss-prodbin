@@ -483,13 +483,15 @@ class MaintenanceWindow(ZenModelRM):
             self._p_changed = 1
             # Changes the current state for a device, but *not*
             # the preMWProductionState
+            oldProductionState = self.dmd.convertProdState(device.productionState)
+            newProductionState = self.dmd.convertProdState(minProdState)
             log.info("MW %s changes %s's production state from %s to %s",
-                     self.displayName(), device.id, device.productionState,
-                     minProdState)
-            audit('System.Device.Edit', device, ending=ending,
+                     self.displayName(), device.id, oldProductionState,
+                     newProductionState)
+            audit('System.Device.Edit', device, starting=str(not ending),
                 maintenanceWindow=self.displayName(), 
-                productionState=str(minProdState),
-                oldData_={'productionState':str(device.productionState)})
+                productionState=newProductionState,
+                oldData_={'productionState':oldProductionState})
             device.setProdState(minProdState, maintWindowChange=True)
 
 
