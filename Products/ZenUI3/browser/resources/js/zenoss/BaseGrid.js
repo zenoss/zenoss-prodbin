@@ -90,41 +90,49 @@
 
             // when column width programmatically changed
             grid.headerCt.on('columnresize', this.resizeFilterField, this);
-
-            grid.headerCt.on('columnmove', this.resetFilterRow, this);
             grid.headerCt.on('columnshow', this.resetFilterRow, this);
             grid.headerCt.on('columnhide', this.resetFilterRow, this);
-            // if (grid.horizontalScroller) {
-            //     grid.horizontalScroller.on('bodyscroll', this.scrollFilterField, this);
-            // }
 
-            // if (grid.verticalScroller) {
-            //     grid.verticalScroller.on('bodyscroll', this.scrollFilterField, this);
-            // }
-
-            grid.on('columnmove', this.onGridColumnMove, this);
+            grid.headerCt.on('columnmove', this.resetFilterRow, this);
+            // need to build a global of the initial locations so we can keep up with the movedFromIndex?
+            // Or can we find the moved from index by looking at the filters by id match?
+            grid.on('columnmove', function(col, moved, movedIndex){
+                this.gridColumnMoveWithFilter(col, moved, movedIndex);
+            }, this);
         },
-        /**
-         * Every time a column is moved on the grid destroy and rebuild the filters
-         **/
-        onGridColumnMove:function () {
+        gridColumnMoveWithFilter: function(column, moved, movedIndex){
             var grid = this.grid;
-            // each column has a reference to its filter remove that first
-            this.eachColumn(function (col) {
-                if (Ext.isDefined(col.filterField)) {
-                    col.filterField.destroy();
-                    delete col.filterField;
-                }
-            });
-            // destroy docked item the filters are rendered to
-            Ext.each(grid.getDockedItems(), function (item) {
-                if (item.id == grid.id + 'docked-filter') {
-                    grid.removeDocked(item, true);
-                }
-            });
+            var me = this;
+            var filterBar = me.dockedFilter;
+            if (filterBar) {
+                me.eachColumn(function (col) {
+                    if (Ext.isDefined(col.filterField)) {
+                        col.filterField.destroy();
+                        delete col.filterField;
+                    }
+                });
 
-            // rebuild the filters
-            this.applyTemplate();
+                // remove all the filters
+                filterBar.removeAll(true);
+
+                Ext.each(grid.getDockedItems(), function (item) {
+                    if (item.id == grid.id + 'docked-filter') {
+                        grid.removeDocked(item, true);
+                    }
+                });
+
+                me.applyTemplate();
+                // force the columns to relayout themselves (work around
+                // a bug in Chrome where this would be a blank row otherwise)
+                me.eachColumn(function(col){
+                    if (col.isVisible() && col.getEl()) {
+                        col.setWidth(col.getWidth() + 1);
+                        col.setWidth(col.getWidth() - 1);
+                        return false;
+                    }
+                });
+            }
+
         },
         applyTemplate:function () {
             var searchItems = [],
@@ -215,6 +223,7 @@
                         type:'hbox'
                     }
                 }));
+
             }
         },
         clearFilters:function () {
@@ -642,6 +651,7 @@
                 this.grid.getStore().on('datachanged', this.onDataChanged, this);
                 this.grid.getView().on('bodyscroll', this.onScroll, this);
             }
+
             this.displayMsg = _t('DISPLAYING {0} - {1} of {2} ROWS');
             this.emptyMsg = _t('NO RESULTS');
             this.callParent(arguments);

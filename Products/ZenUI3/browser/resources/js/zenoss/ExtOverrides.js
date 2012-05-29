@@ -120,6 +120,14 @@
             var me = this;
             me.fireEvent('removed', me, me.ownerCt);
             delete me.ownerCt;
+        },
+        removeCls : function(cls) {
+          try{
+            var me = this,
+            el = me.rendered ? me.el : me.protoEl;
+            el.removeCls.apply(el, arguments);
+            return me;
+            }catch(e){};
         }
     });
 
@@ -363,6 +371,9 @@
             }
         }
     });
+
+
+
 
 
 
