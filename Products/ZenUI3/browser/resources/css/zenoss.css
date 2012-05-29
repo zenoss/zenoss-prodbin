@@ -1549,17 +1549,13 @@ pre {
 .x-ie .white-background-panel .x-window-default-mr, .x-ie .x-window-default-mr{
     padding-left: 0px !important;
 }
-/*
-.x-ie .white-background-panel .x-tab-top{
-    background-color: rgb(150, 150, 150) !important;
-}
-.x-ie .white-background-panel .x-tab-top-active{
-    background-color: rgb(240, 240, 240) !important;
-}
-*/
 .x-ie .white-background-panel .x-fieldset-body, .x-ie .white-background-panel .x-fieldset, legend{
     overflow:visible !important;
 }
 .zenportlet .x-container-default{
     padding: 3px 0 0 5px;
+}
+.x-ie #creds_0-body, .x-ie #manual_creds{
+    /* ie sets the height in quirks too high */
+    height:300px !important;
 }

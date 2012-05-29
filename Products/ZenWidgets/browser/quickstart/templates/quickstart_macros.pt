@@ -78,10 +78,11 @@
 </style>
 <div id="tabcontrol" style="margin-bottom: 1em;">
     <span style="margin-right:2em;">
-    <input type="radio" id="manualradio" checked name="tabselect"/>
+    <input type="radio" id="manualradio" checked name="tabselect" />
     <label for="manualradio"> Manually find devices </label>
     </span>
-    <input type="radio" id="autoradio" name="tabselect"/> <label for="autoradio">Autodiscover devices</label>
+    <input type="radio" id="autoradio" name="tabselect"/> 
+    <label for="autoradio">Autodiscover devices</label>
 </div>
 <hr/>
 <div id="deviceadd_tabs"  class="easyadddevice_shell"></div>
@@ -335,7 +336,7 @@ Ext.onReady(function() {
             reader: {
                 type: 'json',
                 root: 'types'
-            },
+            }
         }
 
 
@@ -391,7 +392,7 @@ Ext.onReady(function() {
                         types = ['ssh', 'snmp', 'win'],
                         container = Ext.getCmp('creds_' + index),
                         selectCard = function() {
-                            var idx = types.indexOf(type);
+                            var idx = Ext.Array.indexOf(types, type);
                             container.layout.setActiveItem(idx);
                         }
                         if (Ext.isString(container.layout)) {
@@ -628,20 +629,21 @@ Ext.onReady(function() {
     var manlradio = Ext.get('manualradio');
     var autoradio = Ext.get('autoradio');
 
-    manlradio.on('change', function() {
+    manlradio.on('click', function() {
         manlradio.dom.checked = true;
-        tabpanel.getLayout().setActiveItem(0)
+        tabpanel.getLayout().setActiveItem(0);
     });
 
-    autoradio.on('change', function() {
+    autoradio.on('click', function() {
         autoradio.dom.checked = true;
-        tabpanel.getLayout().setActiveItem(1)
+        tabpanel.getLayout().setActiveItem(1);
     });
 
     tabpanel.getLayout().setActiveItem(0);
     tabpanel.getLayout().setActiveItem(1);
     tabpanel.getLayout().setActiveItem(0);
     tabpanel.doLayout();
+
 
 });
 
