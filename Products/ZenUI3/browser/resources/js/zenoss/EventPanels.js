@@ -20,8 +20,7 @@
             'unacknowledged':'acknowledged';
         var sev = Zenoss.util.convertSeverity(record.get('severity'));
         var rowcolors = Ext.state.Manager.get('rowcolor') ? 'rowcolor rowcolor-' : '';
-        var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
-        return cls;
+        return rowcolors + sev + '-' + stateclass + ' ' + stateclass;
     };
 
     /*
@@ -228,6 +227,7 @@
             iconCls: 'acknowledge',
             tooltip: _t('Acknowledge events'),
             permission: 'Manage Events',
+            itemId: 'acknowledge',
             handler: function() {
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.acknowledge);
             }
@@ -236,6 +236,7 @@
             iconCls: 'close',
             tooltip: _t('Close events'),
             permission: 'Manage Events',
+            itemId: 'close',
             handler: function() {
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
             }
@@ -244,6 +245,7 @@
             iconCls: 'classify',
             tooltip: _t('Reclassify an event'),
             permission: 'Manage Events',
+            itemId: 'classify',
             handler: function(button) {
                 var gridId = button.ownerCt.ownerCt.id;
                 showClassifyDialog(gridId);
@@ -253,6 +255,7 @@
             iconCls: 'unacknowledge',
             tooltip: _t('Unacknowledge events'),
             permission: 'Manage Events',
+            itemId: 'unacknowledge',
             handler: function() {
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
             }
@@ -261,6 +264,7 @@
             iconCls: 'reopen',
             tooltip: _t('Reopen events'),
             permission: 'Manage Events',
+            itemId: 'reopen',
             handler: function() {
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
             }
@@ -504,10 +508,6 @@
                             }else{
                                 grid.setFilter('lastTime', null);
                             }
-
-
-                            Zenoss.events.EventPanelToolbarActions.acknowledge.setHidden(archive);
-                            Zenoss.events.EventPanelToolbarActions.close.setHidden(archive);
                         }
                     }
                 }));
@@ -715,13 +715,27 @@
                 this.on('deselect', this.handleRowDeSelect, this);
                 this.on('selectionchange', function(selectionmodel) {
                     // Disable buttons if nothing selected (and vice-versa)
-                    var actions = Zenoss.events.EventPanelToolbarActions;
-                    var actionsToChange = [actions.acknowledge, actions.close, actions.unclose,
-                                           actions.reopen, actions.reclassify];
-                    var newDisabledValue = !selectionmodel.hasSelection() || !selectionmodel.selectState === 'All';
-                    Ext.each(actionsToChange, function(actionButton) {
-                        actionButton.setDisabled(newDisabledValue);
-                    });
+                    var actionsToChange = ['acknowledge', 'close', 'reopen',
+                                           'unacknowledge', 'classify'],
+                        newDisabledValue = !selectionmodel.hasSelection() && selectionmodel.selectState !== 'All',
+                        tbar = this.getGrid().tbar,
+                        history_combo = Ext.getCmp('history_combo'),
+                        archive = Ext.isDefined(history_combo) ? history_combo.getValue() === 1 : false;
+                    if (archive) {
+                        // These are always disabled on the archive event console
+                        tbar.getComponent('acknowledge').setDisabled(true);
+                        tbar.getComponent('close').setDisabled(true);
+                        tbar.getComponent('reopen').setDisabled(true);
+                        tbar.getComponent('unacknowledge').setDisabled(true);
+
+                        // This is conditionally enabled/disabled based on selection
+                        tbar.getComponent('classify').setDisabled(newDisabledValue);
+                    }
+                    else {
+                        Ext.each(actionsToChange, function(actionItemId) {
+                            tbar.getComponent(actionItemId).setDisabled(newDisabledValue);
+                        });
+                    }
                 });
 
 
@@ -755,15 +769,12 @@
                 }
             },
             selectEventState: function(state){
-                var record,
-                me = this,
-                grid = this.getGrid(),
-                store = grid.getStore();
+                var me = this,
+                    grid = this.getGrid(),
+                    store = grid.getStore();
                 if (state === 'All') {
-
-                    // surpress events
+                    // suppress events
                     return this.selectAll(true);
-                    this.fireEvent('selectionchange', this);
                 }
                 this.clearSelections(true);
                 // Suspend events to avoid firing the whole chain for every row
@@ -800,31 +811,6 @@
                 // disabledness
                 this.fireEvent('selectionchange', this);
             },
-            selectAck: function(){
-                this.clearSelections();
-                this.selectEventState('Acknowledged');
-            },
-            selectNew: function(){
-                this.clearSelections();
-                this.selectEventState('New');
-            },
-            selectSuppressed: function(){
-                this.clearSelections();
-                this.selectEventState('Suppressed');
-            },
-            selectClosed: function(){
-                this.clearSelections();
-                this.selectEventState('Closed');
-            },
-            selectCleared: function(){
-                this.clearSelections();
-                this.selectEventState('Cleared');
-            },
-            selectAged: function(){
-                this.clearSelections();
-                this.selectEventState('Aged');
-            },
-
             clearSelections: function(fast){
                 if (this.isLocked() || !this.grid) {
                     return;
@@ -926,7 +912,6 @@
         extend: 'Zenoss.FilterGridPanel',
         rowcolors: false,
         constructor: function(config) {
-            var me = this;
             config = config || {};
             config.viewConfig = config.viewConfig || {};
             Ext.applyIf(config.viewConfig, {
@@ -1236,7 +1221,6 @@
         alias: ['widget.EventGridPanel'],
         border:false,
         constructor: function(config) {
-            var evtGrid = this;
             Ext.applyIf(config, {
                 tbar: new Zenoss.EventConsoleTBar({
                     gridId: config.id,

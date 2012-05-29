@@ -16,7 +16,6 @@
 (function(){
 
 var ZC = Ext.ns('Zenoss.component'),
-    ZEvActions = Zenoss.events.EventPanelToolbarActions,
     NM = ZC.nameMap = {};
 
 ZC.registerName = function(meta_type, name, plural) {
