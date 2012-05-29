@@ -318,9 +318,9 @@ class ZepFacade(ZuulFacade):
             'events' : (to_dict(event) for event in content.events),
         }
 
-    def getEventSummariesFromArchive(self, offset, limit=1000, sort=None, filter=None):
+    def getEventSummariesFromArchive(self, offset, limit=1000, sort=None, filter=None, exclusion_filter=None):
         return self.getEventSummaries(offset, limit, sort, filter,
-                                      client_fn=self.client.getEventSummariesFromArchive)
+                                      client_fn=self.client.getEventSummariesFromArchive, exclusion_filter=exclusion_filter)
 
     def getEventSummaries(self, offset, limit=1000, sort=None, filter=None, exclusion_filter=None, client_fn=None):
         if client_fn is None:
