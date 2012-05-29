@@ -47,6 +47,7 @@ Ext.getCmp('center_panel').add({
             autoLoad: true,
             pageSize: 500,
             initialSortColumn: 'scheduled',
+            initialSortDirection: 'DESC',
             totalProperty: 'totalCount',
             model: 'Zenoss.model.Job',
             directFn: REMOTE.getJobs,
