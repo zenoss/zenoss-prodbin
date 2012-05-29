@@ -990,6 +990,14 @@ Dialog.Box.prototype = {
         appear(this.dimbg, {duration:0.1, from:0.0, to:0.7});
         showElement(this.box);
         showElement(this.framework);
+
+        /*
+         * HACK: Fixes ZEN-1883.  Have to stop the JobsRouter while the dialog
+         * box is open to stop jumping between selections.  Issue discovered
+         * only in Chrome for Windows and Ubuntu.
+         */
+        if (jobsWidget = Ext.getCmp('jobswidget'))
+            jobsWidget.pause();
     },
     hide: function() {
         fade(this.dimbg, {duration:0.1});
@@ -1000,6 +1008,13 @@ Dialog.Box.prototype = {
         hideElement(this.framework);
         this.moveBox('back');
         if (this.lock.locked) this.lock.release();
+
+        /*
+         * HACK: Fixes ZEN-1883.  Restarting the JobsRouter as it was
+         * previously halted by the show() method.
+         */
+        if (jobsWidget = Ext.getCmp('jobswidget'))
+            jobsWidget.poll();
     },
     fetch: function(url) {
         var urlsplit = url.split('/');

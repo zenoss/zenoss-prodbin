@@ -255,6 +255,9 @@ Ext.define("Zenoss.JobsWidget", {
         this.update();
         this.pollTask.delay(5000);
     },
+    pause: function() {
+        this.pollTask.cancel();
+    },
     check_for_recently_finished: function(jobs) {
         if (Ext.isDefined(jobs.SUCCESS)) {
             Ext.each(jobs.SUCCESS, function(job) {
