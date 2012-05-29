@@ -50,6 +50,16 @@ shebang
 # already exist (we don't want to clobber people's configs)
 update_conf_files
 
+# if this is an upgrade from 3.X
+if ! grep -q '%import relstorage' $ZENHOME/etc/zope.conf; then
+    # update/migrate zodb
+    create_zodb_db
+
+    # Move from ZODB to MySQL
+    #NOTE: runuser is set in zenoss_startup_config
+    su $RUNUSER -l -c "$ZENHOME/bin/python $ZENHOME/bin/changeObjectStore.py --host \"$ZODB_HOST\" --port \"$ZODB_PORT\" --user \"$ZODB_USER\" --passwd \"$ZODB_PASSWORD\" --db \"$ZODB_DB\" --admin-user \"$ZODB_ADMIN_USER\" --admin-password \"$ZODB_ADMIN_PASSWORD\" --socket \"$ZODB_SOCKET\"  2>&1 | egrep -v \"For help, use ${ZENHOME}/bin/zeoctl -h|Error: no program specified; use -p or -C\""
+fi
+
 # Upgrade < 4.2 config files to 4.2 syntax
 upgrade_conf_options_42
 
@@ -88,17 +98,6 @@ remove_zep_jdbc_config
 
 # create the session database (It is always safe to remove and rebuild the sessions database)
 create_zodb_session_db
-
-
-# if this is an upgrade from 3.X
-if ! grep -q '%import relstorage' $ZENHOME/etc/zope.conf; then
-    # update/migrate zodb
-    create_zodb_db
-
-    # Move from ZODB to MySQL
-    #NOTE: runuser is set in zenoss_startup_config
-    su $RUNUSER -l -c "$ZENHOME/bin/python $ZENHOME/bin/changeObjectStore.py --host \"$ZODB_HOST\" --port \"$ZODB_PORT\" --user \"$ZODB_USER\" --passwd \"$ZODB_PASSWORD\" --db \"$ZODB_DB\" --admin-user \"$ZODB_ADMIN_USER\" --admin-password \"$ZODB_ADMIN_PASSWORD\" --socket \"$ZODB_SOCKET\"  2>&1 | egrep -v \"For help, use ${ZENHOME}/bin/zeoctl -h|Error: no program specified; use -p or -C\""
-fi
 
 # Patch zopectl and runzope to accept config files
 patch_zopectl_and_runzope
