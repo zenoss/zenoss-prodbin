@@ -372,8 +372,33 @@
         }
     });
 
-
-
+    /**
+     *  Fixes a bug in Ext: they forgot to make the flashParams actually work
+     *  Added wmode: 'transparent' here so that IE would allow us to overlay a div
+     **/
+    Ext.override(Ext.flash.Component, {   
+        afterRender: function() {
+            var me = this,
+                flashParams = Ext.apply({wmode: 'transparent'}, me.flashParams), 
+                flashVars = Ext.apply({}, me.flashVars);
+    
+            me.callParent();
+    
+            new swfobject.embedSWF(
+                me.url,
+                me.getSwfId(),
+                me.swfWidth,
+                me.swfHeight,
+                me.flashVersion,
+                me.expressInstall ? me.statics.EXPRESS_INSTALL_URL : undefined,
+                flashVars,
+                flashParams,
+                me.flashAttributes,
+                Ext.bind(me.swfCallback, me)
+            );
+        }
+    
+    });
 
 
 
