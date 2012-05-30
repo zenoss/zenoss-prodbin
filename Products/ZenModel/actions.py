@@ -594,12 +594,15 @@ class SNMPTrapAction(IActionBase):
         """
         log.debug('Processing SNMP Trap action.')
         self.setupAction(notification.dmd)
-
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
-        event = data['eventSummary']
-        actor = event.actor
-        details = event.details
+        self._sendTrap(notification, data, data['eventSummary'])
+        if signal.clear:
+            if 'clearEvt' in data and data['clearEvt'].severity is not None:
+                self._sendTrap(notification, data, data['clearEvt'])
 
+    def _sendTrap(self, notification, data, event):
+        actor = getattr(event, "actor", None)
+        details = event.details
         baseOID = '1.3.6.1.4.1.14296.1.100'
 
         fields = {
@@ -635,9 +638,7 @@ class SNMPTrapAction(IActionBase):
            'event_class_mapping_uuid':      (33, event)
            }
 
-        eventDict = self.creatEventDict(fields, event)
-        if signal.clear:
-            eventDict["severity"] = 0
+        eventDict = self.createEventDict(fields, event)
         self.processEventDict(eventDict, data, notification.dmd)
         varbinds = self.makeVarBinds(baseOID, fields, eventDict)
 
@@ -647,7 +648,7 @@ class SNMPTrapAction(IActionBase):
             log.debug(v)
         session.sendTrap(baseOID + '.0.0.1', varbinds=varbinds)
 
-    def creatEventDict(self, fields, event):
+    def createEventDict(self, fields, event):
         """
         Create an event dictionary suitable for Python evaluation.
         """
