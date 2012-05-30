@@ -732,9 +732,12 @@
                         tbar.getComponent('classify').setDisabled(newDisabledValue);
                     }
                     else {
-                        Ext.each(actionsToChange, function(actionItemId) {
-                            tbar.getComponent(actionItemId).setDisabled(newDisabledValue);
-                        });
+                        // tbar is not present on component event consoles
+                        if (tbar && tbar.getComponent) {
+                            Ext.each(actionsToChange, function(actionItemId) {
+                                tbar.getComponent(actionItemId).setDisabled(newDisabledValue);
+                            });
+                        }
                     }
                 });
 
