@@ -290,6 +290,7 @@ class SubprocessJob(Job):
                     handler.setFormatter(orig)
         if exitcode != 0:
             raise SubprocessJobFailed(exitcode)
+        return exitcode
 
 
 class ShellCommandJob(object):
