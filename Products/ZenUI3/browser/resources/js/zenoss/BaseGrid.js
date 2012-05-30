@@ -99,6 +99,23 @@
             grid.on('columnmove', function(col, moved, movedIndex){
                 this.gridColumnMoveWithFilter(col, moved, movedIndex);
             }, this);
+            this.view = this.grid.getView();
+            this.view.on('bodyscroll', this.onViewScroll, this);
+        },
+        /**
+         * Make sure that when we scroll to the left on the grid that we adjust the
+         * filters to scroll as well.
+         **/
+        onViewScroll: function(e) {
+            if (e) {
+                var viewScrollLeft = this.view.el.dom.scrollLeft,
+                    // need to scroll the inner container for the changes to be noticed
+                    innerEl = this.dockedFilter.el.dom.childNodes[0],
+                    scrollLeft = innerEl.scrollLeft;
+                if (viewScrollLeft != scrollLeft) {
+                    innerEl.scrollLeft = viewScrollLeft;
+                }
+            }
         },
         gridColumnMoveWithFilter: function(column, moved, movedIndex){
             var grid = this.grid;
@@ -665,13 +682,20 @@
                 this.setText(this.emptyMsg);
             }
         },
-        onScroll: function() {
+        onScroll: function(e, t) {
+            // introduce a small delay so that we are
+            // are not constantly updating the text when they are scrolling like crazy
+            if (!this.onScrollTask){
+                this.onScrollTask = new Ext.util.DelayedTask(this._doOnScroll, this);
+            }
+            this.onScrollTask.delay(250);
+        },
+        _doOnScroll: function() {
             var pagingScroller = this.grid.verticalScroller;
-
             if (pagingScroller) {
-                var  start = pagingScroller.getFirstVisibleRowIndex() || 0,
-                     end = pagingScroller.getLastVisibleRowIndex(),
-                     msg;
+                var start = pagingScroller.getFirstVisibleRowIndex() || 0,
+                end = pagingScroller.getLastVisibleRowIndex(),
+                msg;
                 if (end > this.totalCount) {
                     end = this.totalCount;
                 }
