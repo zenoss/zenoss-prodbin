@@ -29,12 +29,11 @@
                  editable: true,
                  forceSelection: true,
                  autoSelect: true,
-                 listConfig:{
-                     resizable: true
-                 },
                  triggerAction: 'all',
-                 defaultListConfig: {
-                    maxWidth:250
+                 listConfig: {
+                     maxWidth:250,
+                     maxHeight: 250,
+                     resizable: true
                  },
                  queryMode: 'local',
                  store: Zenoss.env.EVENT_CLASSES

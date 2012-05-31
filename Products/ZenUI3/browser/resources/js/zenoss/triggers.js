@@ -1626,7 +1626,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
-                        defaultListConfig: {
+                        listConfig: {
                             maxWidth:200
                         },
                         store: new Ext.data.ArrayStore({
@@ -1654,7 +1654,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
-                        defaultListConfig: {
+                        listConfig: {
                             maxWidth:200
                         },
                         store: new Ext.data.ArrayStore({
@@ -1701,7 +1701,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
-                        defaultListConfig: {
+                        listConfig: {
                             maxWidth:200
                         },
                         store: new Ext.data.ArrayStore({
@@ -1752,7 +1752,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
-                        defaultListConfig: {
+                        listConfig: {
                             maxWidth:200
                         },
                         store: new Ext.data.ArrayStore({
@@ -1782,7 +1782,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
-                        defaultListConfig: {
+                        listConfig: {
                             maxWidth:200
                         },
                         store: new Ext.data.ArrayStore({

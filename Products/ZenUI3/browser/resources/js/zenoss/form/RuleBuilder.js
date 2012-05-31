@@ -168,8 +168,10 @@
                     forceSelection: true,
                     triggerAction: 'all',
                     store: [[null,null]],
-                    defaultListConfig: {
-                        maxWidth:200
+                    listConfig: {
+                        resizable: true,
+                        maxWidth:200,
+                        maxHeight: 250
                     },
                     getSubject: Ext.bind(function() {
                         return this.getBuilder().subject_map[this.subject.getValue()];
@@ -217,7 +219,7 @@
                     value: ZF.COMPARISON_STORE[0][0],
                     forceSelection: true,
                     triggerAction: 'all',
-                    defaultListConfig: {
+                    listConfig: {
                         maxWidth:200
                     },
                     listeners: {
@@ -383,7 +385,7 @@
                         forceSelection: true,
                         triggerAction: 'all',
                         value: 'all',
-                        defaultListConfig: {
+                        listConfig: {
                             maxWidth:60
                         },
                         listeners: {
@@ -635,7 +637,7 @@
                 typeAhead: false,
                 forceSelection: true,
                 triggerAction: 'all',
-                defaultListConfig: {
+                listConfig: {
                     maxWidth:200
                 },
                 store: new Ext.data.ArrayStore({
@@ -661,7 +663,7 @@
             value: 'productionState',
             field: {
                 xtype: 'ProductionStateCombo',
-                defaultListConfig: {
+                listConfig: {
                     maxWidth:200
                 }
             },
@@ -672,7 +674,7 @@
             value: 'priority',
             field: {
                 xtype: 'PriorityCombo',
-                defaultListConfig: {
+                listConfig: {
                     maxWidth:200
                 }
             },
@@ -688,7 +690,7 @@
             field: {
                 xtype: 'combo',
                 mode: 'remote',
-                defaultListConfig: {
+                listConfig: {
                     maxWidth:200
                 },
                 store: new Ext.data.DirectStore({
@@ -711,7 +713,7 @@
             field: {
                 xtype: 'combo',
                 mode: 'remote',
-                defaultListConfig: {
+                listConfig: {
                     maxWidth:200
                 },
                 store: new Ext.data.DirectStore({
