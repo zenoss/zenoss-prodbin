@@ -24,6 +24,7 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import binPath
 from Products.ZenWidgets import messaging
 import os
+import tempfile
 
 def manage_addZenPackManager(context, newId='', REQUEST=None):
     """
@@ -222,10 +223,9 @@ class ZenPackManager(ZenModelRM):
         """
         Installs the given zenpack.  Zenpack is a file upload from the browser.
         """
-        import os
         import re
-        from subprocess import Popen, PIPE, STDOUT
         import time
+        from subprocess import Popen, PIPE, STDOUT
 
         from Products.ZenUtils.Utils import get_temp_dir
 
@@ -255,19 +255,28 @@ class ZenPackManager(ZenModelRM):
             tFile = open(os.path.join(tempDir, base_filename), 'wb')
             tFile.write(zenpack.read())
             tFile.close()
-            
+
             p = None # zenpack install process
+            # ZEN-1781: Redirect to a temporary file so the stdout buffer
+            # doesn't fill up and block till you read from it.
+            outFile = None
             try:
+                outFile = tempfile.SpooledTemporaryFile()
                 # Run zenpack install
                 cmd = 'zenpack --install %s' % tFile.name
-                p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
+                p = Popen(cmd, shell=True, stdout=outFile, stderr=STDOUT)
+
                 endWait = time.time() + ZENPACK_INSTALL_TIMEOUT
-                # Wait for install to complete or fail
+                # Wait for install to complete, fail, or time out
                 while p.poll() is None and time.time() < endWait:
                     time.sleep(1)
+
                 if p.poll() is not None:
-                    msg = p.stdout.read()
+                    outFile.seek(0)
+                    msg = outFile.read()
             finally:
+                if outFile:
+                    outFile.close()
                 if p and p.poll() is None:
                     p.kill()
                     msg += 'Zenpack install killed due to timeout'
