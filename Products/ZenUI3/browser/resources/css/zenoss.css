@@ -1559,3 +1559,28 @@ pre {
     /* ie sets the height in quirks too high */
     height:300px !important;
 }
+
+#devdetailbar .x-container, #devdetailbar #detailrainbow, #devdetailbar .x-toolbar-separator, #devdetailbar .devdetailitem{
+    position:relative !important;
+    float:left;
+    top:0 !important;
+    left:auto !important;
+}
+#devdetailbar .x-toolbar-separator{
+    margin:13px !important;
+}
+.x-ie #devdetailbar .devdetail-textitem{
+    height:auto !important;
+    line-height: 34px !important;
+}
+.x-ie #devdetailbar .devdetail-textitem span{
+    display:inline-block;
+    height: 12px !important;
+    line-height: 30px !important; 
+}
+.x-ie span.status-up-large {
+  background-position: right -59px;
+}
+.x-ie span.status-down-large {
+  background-position: right -89px;
+}

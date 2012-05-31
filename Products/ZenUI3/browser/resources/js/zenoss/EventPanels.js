@@ -735,7 +735,9 @@
                         // tbar is not present on component event consoles
                         if (tbar && tbar.getComponent) {
                             Ext.each(actionsToChange, function(actionItemId) {
-                                tbar.getComponent(actionItemId).setDisabled(newDisabledValue);
+                                if(tbar.getComponent(actionItemId)){
+                                    tbar.getComponent(actionItemId).setDisabled(newDisabledValue);
+                                }
                             });
                         }
                     }
