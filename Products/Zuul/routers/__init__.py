@@ -152,11 +152,12 @@ class TreeRouter(DirectRouter):
 
         # load the severities in one request
         childNodes = currentNode.children
-        uuids = [n.uuid for n in childNodes]
+        uuids = [n.uuid for n in childNodes if n.uuid]
         zep = Zuul.getFacade('zep', self.context.dmd)
         severities = zep.getWorstSeverity(uuids)
         for child in childNodes:
-            child.setSeverity(zep.getSeverityName(severities.get(child.uuid, 0)).lower())
+            if child.uuid:
+                child.setSeverity(zep.getSeverityName(severities.get(child.uuid, 0)).lower())
 
         children = []
         # explicitly marshall the children

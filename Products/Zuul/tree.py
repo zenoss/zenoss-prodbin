@@ -47,17 +47,17 @@ class TreeNode(object):
                 raise UncataloguedObjectException(ob)
             # We already have the object - cache it here so _get_object doesn't
             # have to look it up again.
-            self._root._ob_cache[brain.uuid] = ob
+            self._root._ob_cache[brain.getPath()] = ob
             ob = brain
         self._object = ob
         self._parent = parent or None
         self._severity = None
 
     def _get_object(self):
-        obj = self._root._ob_cache.get(self.uuid)
+        obj = self._root._ob_cache.get(self.uid)
         if not obj:
             obj = self._object._unrestrictedGetObject()
-            self._root._ob_cache[self.uuid] = obj
+            self._root._ob_cache[self.uid] = obj
         return obj
 
     def _buildCache(self, orgtype=None, instancetype=None, relname=None,
