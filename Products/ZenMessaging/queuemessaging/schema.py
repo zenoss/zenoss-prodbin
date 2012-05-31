@@ -14,9 +14,12 @@
 import os
 import json
 import logging
-from zope.interface import implements
+from zope.component import getUtility
+from zenoss.protocols.amqp import Publisher as BlockingPublisher
+from zenoss.protocols.queueschema import substitute_replacements, MissingReplacementException
 from zenoss.protocols.queueschema import Schema
 from zenoss.protocols.data.queueschema import SCHEMA
+from zenoss.protocols.interfaces import IQueueSchema, IAMQPConnectionInfo
 
 import Globals
 from Products.ZenUtils.PkgResources import pkg_resources
@@ -62,7 +65,7 @@ def _getZenPackSchemas():
             logging.basicConfig()
             log = logging.getLogger('zen.ZenMessaging')
             log.exception("Error encountered while processing %s", zpkg.module_name)
-    
+
     return schemas
 
 def _loadZenossQueueSchemas():
@@ -81,3 +84,52 @@ def _loadAmqpConnectionInfo():
 
 CONNECTION_INFO = _loadAmqpConnectionInfo()
 
+def removeZenPackQueuesExchanges(path):
+    """
+    Attempts to remove all the queues that the zenpack registered
+
+    @type  Path: string
+    @param Path: Absolute path to the zenpack (from zenpack.path())
+    """
+    schema = _loadQjs(path)
+    if not schema:
+        # no queues to remove
+        return
+
+    connectionInfo = getUtility(IAMQPConnectionInfo)
+    queueSchema = getUtility(IQueueSchema)
+    amqpClient = BlockingPublisher(connectionInfo, queueSchema)
+    channel = amqpClient.getChannel()
+    queues = schema[0].get('queues', [])
+    exchanges = schema[0].get('exchanges', [])
+    log = logging.getLogger('zen.ZenMessaging')
+
+    # queues
+    for identifier, queue  in queues.iteritems():
+        name = queue['name']
+        try:
+            substitute_replacements(name, None)
+        except MissingReplacementException:
+            # Ignore these - they can't be automatically deleted
+            continue
+        try:
+            log.info("Removing queue %s", name)
+            channel.queue_delete(name)
+        except Exception, e:
+            # the queue might already be deleted etc, do not fail if we can't
+            # remove it
+            log.debug(e)
+            log.info("Unable to remove queue %s", name)
+
+    # exchanges
+    for identifier, exchange in exchanges.iteritems():
+        name = exchange['name']
+        try:
+            log.info("Removing exchange %s", name)
+            channel.exchange_delete(name)
+        except Exception, e:
+            # the queue might already be deleted etc, do not fail if we can't
+            # remove it
+            log.debug(e)
+            log.info("Unable to remove exchange %s", name)
+    amqpClient.close()

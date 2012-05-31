@@ -27,6 +27,7 @@ from zenoss.protocols.services import ServiceException
 from ZODB.POSException import ConflictError
 
 from Products.ZenMessaging.audit import audit
+from Products.ZenMessaging.queuemessaging.schema import removeZenPackQueuesExchanges
 from Products.ZenModel.ZenPack import ZenPack, ZenPackException
 from Products.ZenModel.ZenPack import ZenPackNeedMigrateException
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -41,6 +42,7 @@ HIGHER_THAN_CRITICAL = 100
 def RemoveZenPack(dmd, packName, log=None,
                         skipDepsCheck=False, leaveObjects=True,
                         deleteFiles=True):
+
     if log:
         log.debug('Removing Pack "%s"' % packName)
     if not skipDepsCheck:
@@ -185,9 +187,11 @@ class ZenPackCmd(ZenScriptBase):
         elif self.options.removePackName:
             pack = self.dmd.ZenPackManager.packs._getOb(
                                         self.options.removePackName, None)
+
             if not pack:
                 raise ZenPackException('ZenPack %s is not installed.' %
                                         self.options.removePackName)
+            removeZenPackQueuesExchanges(pack.path())
             if pack.isEggPack():
                 return EggPackCmd.RemoveZenPack(self.dmd,
                                                 self.options.removePackName)
