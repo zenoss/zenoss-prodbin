@@ -37,6 +37,7 @@ from twisted.spread import pb, banana
 banana.SIZE_LIMIT = 1024 * 1024 * 10
 
 from twisted.internet import reactor, protocol, defer
+from twisted.python import failure
 from twisted.web import server, xmlrpc
 from twisted.internet.error import ProcessExitedAlready
 from zope.event import notify
@@ -593,7 +594,12 @@ class ZenHub(ZCmdBase):
                     if self.options.logworkerstats:
                         jobDesc = "%s:%s.%s" % (job[2][1], job[2][0], job[2][2])
                         self.workTracker[i] = (jobDesc, time.time())
-                    d2 = worker.callRemote('execute', *job[2])
+                    try:
+                        d2 = worker.callRemote('execute', *job[2])
+                    except Exception:
+                        self.log.exception("Failed to execute job on zenhub worker")
+                        d2 = defer.fail(failure.Failure())
+
                     d2.addBoth(finished, worker, i)
                     d2.chainDeferred(job[0])
                     break
