@@ -396,15 +396,23 @@ class RenderServer(RRDToolItem):
             for path in paths:
                 @rrd_daemon_retry
                 def rrdtool_fn():
-                    values.append(rrdtool.fetch(path, cf, "-r %d" % resolution,
-                        "-s %s" % start,"-e %s" % end, *rrd_daemon_args()))
+                    try:
+                        values.append(rrdtool.fetch(
+                            path, cf, "-r %d" % resolution,
+                            "-s %s" % start, "-e %s" % end,
+                            *rrd_daemon_args()))
+
+                    except rrdtool.error, ex:
+                        if 'No such file or directory' in ex.message:
+                            values.append(None)
+                        else:
+                            raise
+
                 rrdtool_fn()
             return values
         except NameError:
             log.exception("It appears that the rrdtool bindings are not installed properly.")
         except Exception, ex:
-            if ex.args[0].find('No such file or directory') > -1:
-                return None
             log.exception("Failed while generating current values")
             raise
 
