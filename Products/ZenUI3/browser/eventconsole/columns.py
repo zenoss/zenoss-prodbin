@@ -81,8 +81,6 @@ COLUMN_CONFIG = {
         sortable=True,
         ),
 
-
-
     'eventState': dict(
         header='Status',
         width=60,
@@ -218,8 +216,6 @@ COLUMN_CONFIG = {
         field_definition = "{name:'count',type:'int'}"
     ),
 
-
-
     'prodState' : dict(
         header='Production State',
         sortable=True,
@@ -310,13 +306,13 @@ COLUMN_CONFIG = {
     'message'   : dict(
         header='Message',
         renderer='Zenoss.render.eventSummaryRow',
-        filter=False),
+        sortable=False,
+        filter='textfield'),
 
     'Location'  : dict(
         header='Location',
         sortable=True,
         filter='textfield',
-        #filter='locationdropdown',
         renderer='Zenoss.render.LinkFromGridUidGroup'
         ),
 
@@ -324,7 +320,6 @@ COLUMN_CONFIG = {
         header='Groups',
         sortable=False,
         filter='textfield',
-        #filter='groupdropdown',
         renderer='Zenoss.render.LinkFromGridUidGroup'
         ),
 
@@ -332,14 +327,12 @@ COLUMN_CONFIG = {
         header='Systems',
         sortable=False,
         filter='textfield',
-        #filter='systemdropdown',
         renderer='Zenoss.render.LinkFromGridUidGroup'),
 
     'DeviceClass': dict(
         header='Device Class',
         sortable=True,
         filter='textfield',
-        #filter='deviceclassdropdown',
         renderer='Zenoss.render.LinkFromGridUidGroup',
         ),
 }

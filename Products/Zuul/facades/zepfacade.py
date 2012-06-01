@@ -108,6 +108,11 @@ class ZepFacade(ZuulFacade):
             value = (value,)
         return map(lambda s:str(s).strip(), value)
 
+    def _createFullTextSearch(self, parameter):
+        if not hasattr(parameter, '__iter__'):
+            parameter = (parameter,)
+        return map(lambda s:str(s).strip(), parameter)
+
     def createEventFilter(self,
         severity=(),
         status=(),
@@ -133,7 +138,8 @@ class ZepFacade(ZuulFacade):
         operator=None,
         details=None,
         event_class_key=(),
-        event_group=()):
+        event_group=(),
+        message=()):
         """
         Creates a filter based on passed arguments.
         Caller is responsible for handling the include-zero-items case.
@@ -146,9 +152,7 @@ class ZepFacade(ZuulFacade):
             filter['uuid'] = uuid
 
         if event_summary:
-            if not isinstance(event_summary, (tuple, list, set)):
-                event_summary = (event_summary,)
-            filter['event_summary'] = map(lambda s:str(s).strip(), event_summary)
+            filter['event_summary'] = self._createFullTextSearch(event_summary)
 
         if event_class:
             filter['event_class'] = event_class
@@ -231,6 +235,9 @@ class ZepFacade(ZuulFacade):
 
         if event_group:
             filter['event_group'] = event_group
+
+        if message:
+            filter['message'] = self._createFullTextSearch(message)
 
         # Everything's repeated on the protobuf, so listify
         result = dict((k, listify(v)) for k,v in filter.iteritems())
@@ -680,7 +687,8 @@ class ZepFacade(ZuulFacade):
                                                                                        'deviceclass',
                                                                                        'systems',
                                                                                        'location',
-                                                                                       'devicegroups'
+                                                                                       'devicegroups',
+                                                                                       'message'
                                                                                        ))
         if leftovers:
             raise InvalidQueryParameterException("Invalid query parameters specified: %s" % ', '.join(leftovers))
