@@ -92,6 +92,11 @@ class ProcessConfig(CollectorConfigService):
                     log.warn("OS process class %s has an invalid regex (%s): %s",
                              p.getOSProcessClass(), regex, ex)
                     continue
+            else:
+                log.warn("OS process class %s has no defined regex, this process not being monitored",
+                         p.getOSProcessClass())
+                continue
+
             proc = ProcessProxy()
             proc.regex = regex
             proc.name = p.id
