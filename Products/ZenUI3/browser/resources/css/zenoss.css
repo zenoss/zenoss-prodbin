@@ -1584,3 +1584,6 @@ pre {
 .x-ie span.status-down-large {
   background-position: right -89px;
 }
+.x-ie .x-window .x-btn-dialog-dark-small-disabled .x-btn-center{
+    background-image: url() !important;
+}
