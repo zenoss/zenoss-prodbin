@@ -392,11 +392,15 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         now = time.time()
-        self.syncdb()                   # reads the object invalidations
         try:
-            self.doProcessQueue()
+            self.syncdb()                   # reads the object invalidations
         except Exception, ex:
-            self.log.exception(ex)
+            self.log.warn("Unable to poll invalidations, will try again.")
+        else:
+            try:
+                self.doProcessQueue()
+            except Exception, ex:
+                self.log.exception("Unable to poll invalidations.")
         reactor.callLater(1, self.processQueue)
         self.totalEvents += 1
         self.totalTime += time.time() - now

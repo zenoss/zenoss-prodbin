@@ -31,7 +31,8 @@ from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
-
+from MySQLdb import OperationalError
+import time
 import os
 defaultCacheDir = zenPath('var')
 
@@ -106,8 +107,49 @@ class ZCmdBase(ZenDaemon):
 
 
     def syncdb(self):
-        self.connection.sync()
+        MAX_RETRY_TIME_MINUTES = 10
+        MAX_RETRY_DELAY_SECONDS = 30
 
+        retryStartedAt = None
+        def timedOut():
+            if retryStartedAt is None:
+                return False
+            else:
+                return retryStartedAt + MAX_RETRY_TIME_MINUTES * 60 < time.time()
+        
+        retryMultiplier = 1.618
+        retryDelay = 1
+
+        keepTrying = True
+        while keepTrying:
+            try:
+                self.connection.sync()
+
+            except OperationalError, e:
+                if timedOut():
+                    self.log.info("Timed out trying to reconnect to ZODB.")
+                    self.log.exception(e)
+                    keepTrying = False
+                    break
+    
+                if retryDelay * retryMultiplier >= MAX_RETRY_DELAY_SECONDS:
+                    retryDelay = MAX_RETRY_DELAY_SECONDS
+                else:
+                    retryDelay *= retryMultiplier
+
+                self.log.warn("Connection to ZODB interrupted, will try to reconnect again in %d seconds.", retryDelay)
+                
+                if retryStartedAt is None:
+                    retryStartedAt = time.time()
+                
+                try:
+                    time.sleep(retryDelay)
+                except Exception, e:
+                    break
+
+            else:
+                keepTrying = False
+	
 
     def closedb(self):
         self.connection.close()
