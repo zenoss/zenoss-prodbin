@@ -244,6 +244,7 @@
                     type: 'text/javascript',
                     src: fullurl
                 });
+
                 Ext.getDoc().dom.getElementsByTagName('head')[0].appendChild(sc);
             }
 
@@ -506,7 +507,7 @@
             drange = drange || this.drange;
             this.drange = drange;
             Ext.each(this.getGraphs(), function(g) {
-                g.fireEventsToAll("updateimage", {
+                g.fireEvent("updateimage", {
                     drange: drange,
                     start: drange,
                     end: 0
@@ -515,18 +516,14 @@
         },
         resetSwoopies: function() {
             Ext.each(this.getGraphs(), function(g) {
-                g.fireEventsToAll("updateimage", {
+                g.fireEvent("updateimage", {
                 }, this);
             });
         },
         getGraphs: function() {
-            var graphs = [];
-            Ext.each(this.items.items,
-                     function(item){
-                         if (item.graphUrl){
-                             graphs.push(item);
-                         }
-                     });
+            var graphs = Zenoss.util.filter(this.items.items, function(item){
+                return item.graphUrl;
+            });
             return graphs;
         },
         setLinked: function(isLinked) {
