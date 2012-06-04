@@ -15,6 +15,7 @@ import time
 import threading
 import Queue
 import transaction
+import logging
 from zope.component import getUtility
 from datetime import datetime
 from persistent.dict import PersistentDict
@@ -30,7 +31,7 @@ from Products.ZenUtils.celeryintegration import states
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from Products.Jobber.exceptions import NoSuchJobException
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
-
+log = logging.getLogger("zen.celeryintegration")
 
 CONNECTION_ENVIRONMENT = threading.local()
 
@@ -122,21 +123,24 @@ class ZODBBackend(BaseDictBackend):
         Store properties on a JobRecord.
         """
         def _update():
-            @transact
-            def inner():
-                try:
-                    self.jobmgr.update(task_id, **properties)
-                except NoSuchJobException, e:
-                    # Race condition. Wait.
-                    time.sleep(0.25)
-                    # Force a retry
-                    raise ReadConflictError("Retry in @transact")
+            """
+            Give the database time to sync incase a job record update
+            was received before the job was created
+            """
             try:
-                self.dmd._p_jar.sync()
-                inner()
+                for i in range(5):
+                    self.dmd._p_jar.sync()
+                    try:
+                        self.jobmgr.update(task_id, **properties)
+                        return
+                    except NoSuchJobException:
+                        log.debug("Unable to find Job %s, retrying ", task_id)
+                        # Race condition. Wait.
+                        time.sleep(0.25)
+
+                log.warn("Unable to save properties  %s to job %s", properties, task_id)
             finally:
                 self.reset()
-
         t = threading.Thread(target=_update)
         t.start()
         t.join()
@@ -226,5 +230,3 @@ class ZODBBackend(BaseDictBackend):
 
     def process_cleanup(self):
         self.reset()
-
-
