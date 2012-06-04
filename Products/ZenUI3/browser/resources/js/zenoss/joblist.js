@@ -253,11 +253,14 @@ Ext.getCmp('center_panel').add({
                 }
                 if (selected.length > 0) {
                     var index = selected[0].index;
-                    view.focusRow(index);
+                    //view.focusRow(index);
                     // It takes two. I have no idea why nor do I wish to
                     // spend the time to find out. One scrolls the scroller but
                     // does not update the grid. Two makes it all work.
-                    view.focusRow(index);
+                    //view.focusRow(index);
+                    Ext.defer(function(){
+                        view.focusRow(index);
+                    }, 500);                    
                 }
                 panel.poll();
             },
@@ -270,7 +273,11 @@ Ext.getCmp('center_panel').add({
         refresh: function() {
             if (this.job == null) return;
             REMOTE.detail({jobid:this.jobid}, function(r){
+                var msg = _t("[!] Log file too large for job log screen (viewing last 100 lines). To view full log use link above.");
                 var html = "<b>Log file: <a href='joblog?job=" + this.jobid + "'>" + r.logfile + "</a></b><br/><br/>";
+                if(r.maxLimit){
+                    html += "<b style='color:red;padding-bottom:8px;display:block;'>"+msg+"</b>";
+                }
                 for (var i=0; i < r.content.length; i++) {
                     var color = i%2 ? '#b58900' : '#657B83';
                     html += "<pre style='font-family:Monaco,monospaced;font-size:12px;color:" +

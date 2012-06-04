@@ -51,10 +51,12 @@ class JobsFacade(ZuulFacade):
         job = self._dmd.JobManager.getJob(id_)
         try:
             with open(job.logfile, 'r') as f:
-                return job.logfile, f.readlines()[-100:]
+                buffer = f.readlines()
+                return job.logfile, buffer[-100:], len(buffer) > 100
+                
         except (IOError, AttributeError):
             return ("The log file for this job either does not exist or "
-                    "cannot be accessed."), ()
+                    "cannot be accessed."), (), None
 
     @info
     def getUserJobs(self):

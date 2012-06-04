@@ -66,12 +66,12 @@ class JobsRouter(DirectRouter):
 
     def detail(self, jobid):
         try:
-            logfile, content = self.api.getJobDetail(jobid)
+            logfile, content, maxLimit = self.api.getJobDetail(jobid)
         except NoSuchJobException:
             # Probably a detail request overlapped a delete request. Just
             # return None.
-            logfile, content = None, None
-        return {'content': content, 'logfile': logfile}
+            logfile, content, maxLimit = None, None, None
+        return {'content': content, 'logfile': logfile, 'maxLimit' : maxLimit}
 
     def userjobs(self):
         results = defaultdict(list)
