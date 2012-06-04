@@ -984,7 +984,7 @@ class ZenModeler(PBDaemon):
                     reactor.runUntilCurrent()
                     timeout = reactor.timeout()
                     reactor.doIteration(timeout)
-            except:
+            except Exception:
                 if reactor.running:
                     self.log.exception("Unexpected error in main loop.")
 
@@ -1006,10 +1006,18 @@ class ZenModeler(PBDaemon):
             return succeed([self.options.device])
 
         self.log.info("Collecting for path %s", self.options.path)
-        return self.config().callRemote('getDeviceListByOrganizer',
+
+        d = self.config().callRemote('getDeviceListByOrganizer',
                                         self.options.path,
                                         self.options.monitor)
+        def handle(results):
+            self.log.critical("%s is not a valid organizer." % (self.options.path))
+            reactor.running = False
+            sys.exit(1)
 
+
+        d.addErrback(handle)
+        return d
 
     def mainLoop(self, driver):
         """

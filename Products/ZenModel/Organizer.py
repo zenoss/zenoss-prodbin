@@ -360,7 +360,7 @@ class Organizer(ZenModelRM, EventView):
         <EventClass at /zport/dmd/Events/Status/Snmp>
         """
         if path.startswith("/"): path = path[1:]
-        return self.getDmdRoot(self.dmdRootName).getObjByPath(path) 
+        return self.getDmdRoot(self.dmdRootName).unrestrictedTraverse(path)
 
 
     security.declareProtected(ZEN_COMMON, "getOrganizerName")

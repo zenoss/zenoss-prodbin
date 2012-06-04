@@ -104,7 +104,7 @@ class ModelerService(PerformanceConfig):
         if monitor is None:
             monitor = self.instance
         root = self.dmd.Devices.getOrganizer(organizer)
-        return [d.id for d in root.getSubDevicesGen() \
+        return [d.id for d in root.getSubDevicesGen()
             if d.getPerformanceServerName() == monitor]
 
     @translateError
