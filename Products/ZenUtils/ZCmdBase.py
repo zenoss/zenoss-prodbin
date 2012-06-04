@@ -17,6 +17,9 @@ $Id: ZC.py,v 1.9 2004/02/16 17:19:31 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
+import os
+import time
+
 from threading import Lock
 from zope.component import getUtility
 
@@ -31,9 +34,8 @@ from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
-from MySQLdb import OperationalError
-import time
-import os
+from Products.ZenUtils.mysql import MySQLdb
+
 defaultCacheDir = zenPath('var')
 
 class DataRootError(Exception):pass
@@ -125,7 +127,7 @@ class ZCmdBase(ZenDaemon):
             try:
                 self.connection.sync()
 
-            except OperationalError, e:
+            except MySQLdb.OperationalError, e:
                 if timedOut():
                     self.log.info("Timed out trying to reconnect to ZODB.")
                     self.log.exception(e)
