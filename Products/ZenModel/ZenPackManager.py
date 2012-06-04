@@ -18,7 +18,6 @@ ZenPackManager is a Zope Product that helps manage ZenPacks
 from Globals import InitializeClass
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-from Products.ZenMessaging.queuemessaging.schema import removeZenPackQueuesExchanges
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenMessaging.audit import audit
@@ -170,8 +169,10 @@ class ZenPackManager(ZenModelRM):
         Uninstall the given zenpacks.  Uninstall the zenpack egg.  If not in
         development mode then also delete the egg from the filesystem.
         """
-        import Products.ZenUtils.ZenPackCmd as ZenPackCmd 
-
+        import Products.ZenUtils.ZenPackCmd as ZenPackCmd
+        # avoid circular imports 
+        from Products.ZenMessaging.queuemessaging.schema import removeZenPackQueuesExchanges
+        
         if not getattr(self.dmd, 'ZenPackManager'):
             msg = 'Your Zenoss database appears to be out of date. Try ' \
                     'running zenmigrate to update.'
@@ -202,6 +203,7 @@ class ZenPackManager(ZenModelRM):
                     os.system('%s --remove %s' % (
                                             binPath('zenpack'), zpId))
                     self._p_jar.sync()
+                
                 removeZenPackQueuesExchanges(zp.path())
         if REQUEST:
             return self.callZenScreen(REQUEST)
