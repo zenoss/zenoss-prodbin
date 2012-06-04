@@ -43,7 +43,6 @@ var deviceColumns = [
         dataIndex: 'uid',
         header: _t('Device Class'),
         id: 'deviceClass',
-        sortable: false,
         width: 120,
         renderer: Zenoss.render.DeviceClass
     },{
