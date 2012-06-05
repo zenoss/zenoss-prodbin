@@ -252,13 +252,10 @@ class WorkerInterceptor(pb.Referenceable):
         pickledArgs = pickle.dumps( (args, kw) )
         chunkedArgs=[]
         chunkSize = 102400
-        while len(pickledArgs) > chunkSize:
-            x = pickledArgs[:chunkSize]
-            chunkedArgs.append(x)
+        while pickledArgs:
+            chunk = pickledArgs[:chunkSize]
+            chunkedArgs.append(chunk)
             pickledArgs = pickledArgs[chunkSize:]
-        else:
-            #add any leftovers
-            chunkedArgs.append(pickledArgs)
 
         result = self.zenhub.deferToWorker( (svc, instance, message, chunkedArgs) )
         return broker.serialize(result, self.perspective)
