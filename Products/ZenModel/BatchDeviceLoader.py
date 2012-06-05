@@ -162,16 +162,17 @@ windows_device7 cDateTest='2010/02/28'
 
         device_list = []
         for filename in args:
-            try:
-                data = open(filename,'r').readlines()
-            except IOError:
-                msg = "Unable to open the file '%s'" % filename
-                self.reportException(msg)
-                continue
+            if filename.strip() != '':
+                try:
+                    data = open(filename,'r').readlines()
+                except IOError:
+                    msg = "Unable to open the file '%s'" % filename
+                    self.reportException(msg)
+                    continue
 
-            temp_dev_list = self.parseDevices(data)
-            if temp_dev_list:
-                device_list += temp_dev_list
+                temp_dev_list = self.parseDevices(data)
+                if temp_dev_list:
+                    device_list += temp_dev_list
 
         return device_list
 
@@ -667,7 +668,6 @@ windows_device7 cDateTest='2010/02/28'
 
 if __name__=='__main__':
     batchLoader = BatchDeviceLoader()
-
     if batchLoader.options.show_options:
         print "Options = %s" % sorted( batchLoader.loader_args.keys() )
         help(batchLoader.loader)

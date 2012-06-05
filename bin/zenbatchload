@@ -11,4 +11,4 @@
 #############################################################################
 
 . $ZENHOME/bin/zenfunctions
-exec $PYTHON $ZENHOME/Products/ZenModel/BatchDeviceLoader.py "$@" 
+exec $PYTHON $ZENHOME/Products/ZenModel/BatchDeviceLoader.py "$CMD" "$@"
