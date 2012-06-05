@@ -254,9 +254,18 @@
         },
         initEvents: function() {
             this.callParent(arguments);
-
+            this.mon(this.el, 'mouseover', function(){
+                this.sticky();
+            }, this);
+            this.mon(this.el, 'mouseout', function(){
+                Ext.defer(function(){
+                    this.hide();
+                }, 1000, this);             
+            }, this);            
             if ( this.dismissOnClick ) {
-                this.mon(this.el, 'click', function() { this.hide(); }, this);
+                this.mon(this.el, 'click', function() { 
+                    this.hide(); 
+                }, this);
             }
         },
         initComponent: function() {
