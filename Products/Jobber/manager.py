@@ -197,7 +197,7 @@ class JobManager(ZenModelRM):
         if getattr(job, 'logfile', None) is not None:
             try:
                 os.remove(job.logfile)
-            except IOError:
+            except (OSError, IOError):
                 # Did our best!
                 pass
         self.getCatalog().uncatalog_object('/'.join(job.getPhysicalPath()))
