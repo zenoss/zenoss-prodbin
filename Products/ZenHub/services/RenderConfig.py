@@ -54,7 +54,11 @@ class Render(resource.Resource):
         if command in ('favicon.ico',):
             log.debug("Received a bad request: %s", command)
             return ''
-        listener = request.postpath[-2]
+        from Products.ZenHub import ZENHUB_ZENRENDER
+        if len(request.postpath) > 1:
+            listener = request.postpath[-2]
+        else:
+            listener = ZENHUB_ZENRENDER
         args.setdefault('ftype', 'PNG')
         ftype = args['ftype']
         del args['ftype']
@@ -69,7 +73,6 @@ class Render(resource.Resource):
         def error(reason):
             log.error("Unable to fetch graph: %s", reason)
             request.finish()
-        from Products.ZenHub import ZENHUB_ZENRENDER
         renderer = self.renderers.get(listener, False)
         if renderer and listener == ZENHUB_ZENRENDER:
             try:
