@@ -64,20 +64,20 @@ class ZenDocTestRunner(object):
                 return db.config.storage.config.adapter.config
 
     def setUp(self):
-        import Products.ZenossStartup 
-        from Products.Five import zcml 
-        zcml.load_site() 
+        import Products.ZenossStartup
+        from Products.Five import zcml
+        zcml.load_site()
 
         zope.component.provideAdapter(DefaultTraversable, (None,))
         if not self.conn:
             adapter_config = self._find_relstorage_adapter_config()
             if adapter_config:
-                self.conn = ZeoConn(host=adapter_config.host,
-                        port=adapter_config.port,
-                        user=adapter_config.user,
-                        passwd=adapter_config.passwd,
-                        db=adapter_config.db,
-                        unix_socket=adapter_config.unix_socket)
+                self.conn = ZeoConn(zodb_host=adapter_config.host,
+                        zodb_port=adapter_config.port,
+                        zodb_user=adapter_config.user,
+                        zodb_password=adapter_config.passwd,
+                        zodb_db=adapter_config.db,
+                        zodb_socket=adapter_config.unix_socket)
             else:
                 self.conn = ZeoConn()
 
@@ -172,4 +172,3 @@ class ZenDocTestRunner(object):
         runner = unittest.TextTestRunner()
         runner.run(suite)
         self.tearDown()
-

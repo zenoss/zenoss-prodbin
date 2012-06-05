@@ -26,7 +26,7 @@ from zenoss.protocols.services import ServiceResponseError
 from zenoss.protocols.services.zep import ZepConnectionError
 from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
                                                 SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO,
-                                                SEVERITY_DEBUG) 
+                                                SEVERITY_DEBUG)
 
 class IEventView(Interface):
     """
@@ -78,7 +78,7 @@ class EventView(object):
     def getEventSummary(self, severity=1, state=1, prodState=None):
         """Return an event summary list for this managed entity.
         """
-        zep = getFacade('zep')
+        zep = getFacade('zep', self.dmd)
         sevsum = []
         try:
             # Event class rainbows show all events through DEBUG severity
@@ -126,7 +126,7 @@ class EventView(object):
             self._redirectToEventConsole("No events to acknowledge", REQUEST)
             return
 
-        zep = getFacade('zep')
+        zep = getFacade('zep', self.dmd)
         if isinstance(evids, basestring):
             evids = [evids]
 
@@ -146,7 +146,7 @@ class EventView(object):
             self._redirectToEventConsole("No events to close", REQUEST)
             return
 
-        zep = getFacade('zep')
+        zep = getFacade('zep', self.dmd)
         if isinstance(evids, basestring):
             evids = [evids]
         try:
@@ -164,8 +164,8 @@ class EventView(object):
         if not evids:
             self._redirectToEventConsole("No events to reopen", REQUEST)
             return
-        
-        zep = getFacade('zep')
+
+        zep = getFacade('zep', self.dmd)
         if isinstance(evids, basestring):
             evids = [evids]
         try:
@@ -180,7 +180,7 @@ class EventView(object):
         """
         Return the status number for this device of class statClass.
         """
-        zep = getFacade('zep')
+        zep = getFacade('zep', self.dmd)
         try:
             event_filter = zep.createEventFilter(tags=[self.getUUID()],
                                                  severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
@@ -201,7 +201,7 @@ class EventView(object):
         Uses the zep facade to return a list of
         event summaries for this entity
         """
-        zep = getFacade('zep')
+        zep = getFacade('zep', self.dmd)
         try:
             # Event class rainbows show all events through DEBUG severity
             sevs = (SEVERITY_CRITICAL,SEVERITY_ERROR,SEVERITY_WARNING,SEVERITY_INFO,SEVERITY_DEBUG)
@@ -217,7 +217,7 @@ class EventView(object):
         """
         Uses Zep to return the worst severity for this object
         """
-        zep = getFacade('zep')
+        zep = getFacade('zep', self.dmd)
         try:
             result =  zep.getWorstSeverityByUuid(self.getUUID())
         except TypeError, e:
