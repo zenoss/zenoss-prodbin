@@ -10,10 +10,14 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+# Tries to import MySQLdb C library first, then falls back to pymysql
 try:
-    import MySQLdb as MySQLdb
+    import MySQLdb
 except ImportError:
     try:
-        import pymysql as MySQLdb
-    except:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+        import MySQLdb
+    except Exception:
         raise ImportError("No suitable MySQL module found")

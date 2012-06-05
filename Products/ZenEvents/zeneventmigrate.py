@@ -23,14 +23,12 @@ import os
 import sys
 from time import mktime
 from ConfigParser import ConfigParser, NoOptionError
-try:
-    from MySQLdb import connect
-except ImportError:
-    import pymysql
-    pymysql.install_as_MySQLdb()
-    from MySQLdb import connect
+
+from Products.ZenUtils.mysql import MySQLdb
+from MySQLdb import connect
 from MySQLdb.cursors import DictCursor
 from _mysql import escape_string
+
 from copy import deepcopy
 from itertools import imap
 from uuid import uuid4
