@@ -426,7 +426,8 @@
             Ext.applyIf(viewConfig, {
                 autoScroll:false,
                 stripeRows:true,
-                loadMask:true
+                loadMask:true,
+                preserveScrollOnRefresh: true
             });
 
             Ext.applyIf(config, {
@@ -434,11 +435,12 @@
                 viewConfig:viewConfig
             });
             this.callParent([config]);
-            this.getStore().on("load", function (store, records) {
+            this.getStore().on("prefetch", function (store, records) {
                 if (!this._disableSavedSelection) {
                     this.applySavedSelection();
                 }
             }, this);
+
             // once a uid is set always send that uid
             this.getStore().on('beforeprefetch', function (store, operation) {
                 if (!operation) {
@@ -553,26 +555,37 @@
             });
             this.callParent([config]);
         },
+
         refresh:function (callback, scope) {
             // only refresh if a context is set
             if (!this.getContext()) {
                 return;
             }
             this.saveSelection();
-            var store = this.getStore();
-            store.currentPage = 1;
-            store.load({
-                callback:function () {
-                    if (store.getCount()) {
-                        // -1 so we don't prefetch multiple pages, we just need one until the user
-                        // scrolls down a bit more
-                        store.guaranteeRange(0, store.pageSize - 1);
-                    }
-                    // Add a callback if one was passed in to here.
-                    Ext.callback(callback, scope || this);
-                },
-                scope:this
-            });
+            var store = this.getStore(),
+                // load the entire store if we haven't yet, we are not paginated or the entire grid fits in one buffer
+                shouldLoad = !store.hasLoaded || ! store.buffered || store.getCount() == store.getTotalCount();
+
+            if (shouldLoad) {
+                store.load({
+                    callback: callback,
+                    scope: scope || this
+                });
+                store.hasLoaded = true;
+
+            } else {
+                // need to refresh the current rows, without changing the scroll position
+                var start = store.lastRequestStart,
+                    end = Math.min(store.lastRequestStart + store.pageSize - 1, store.totalCount),
+                    page = store.pageMap.getPageFromRecordIndex(end);
+
+                // make sure we do not have the current view records in cache
+                store.pageMap.removeAtKey(page);
+
+                // this will fetch from the server and update the view since we removed it from cache
+                store.guaranteeRange(start, end, callback, scope);
+            }
+
         },
         scrollToTop:function () {
             var scroller = this.down('paginggridscroller');
