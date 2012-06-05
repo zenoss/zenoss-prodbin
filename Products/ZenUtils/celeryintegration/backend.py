@@ -17,13 +17,12 @@ import Queue
 import transaction
 import logging
 from zope.component import getUtility
+from ZODB.POSException import ConflictError
 from datetime import datetime
 from persistent.dict import PersistentDict
 from celery.backends.base import BaseDictBackend
 from celery.exceptions import TimeoutError
 from celery.signals import task_prerun
-from ZODB.transact import transact
-from ZODB.POSException import ReadConflictError
 import AccessControl.User
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
@@ -129,14 +128,15 @@ class ZODBBackend(BaseDictBackend):
             """
             try:
                 for i in range(5):
-                    self.dmd._p_jar.sync()
                     try:
                         self.jobmgr.update(task_id, **properties)
+                        transaction.commit()
                         return
-                    except NoSuchJobException:
+                    except (NoSuchJobException, ConflictError):
                         log.debug("Unable to find Job %s, retrying ", task_id)
                         # Race condition. Wait.
                         time.sleep(0.25)
+                        self.dmd._p_jar.sync()
 
                 log.warn("Unable to save properties  %s to job %s", properties, task_id)
             finally:
