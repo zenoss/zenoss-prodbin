@@ -584,6 +584,11 @@ Ext.define("Zenoss.StatefulRefreshMenu", {
         //old cookie value not being in an array and we can't get the value, so
         //default to 60
         var savedInterval = interval[0] || 60;
+
+        if (Zenoss.settings.manualPageRefresh) {
+            savedInterval = -1;
+        }
+
         // removing one second as an option
         // for performance reasons
         if (savedInterval == 1) {
@@ -593,7 +598,8 @@ Ext.define("Zenoss.StatefulRefreshMenu", {
         var items = this.items.items;
         Ext.each(items, function(item) {
             if (item.value == savedInterval)
-                item.setChecked(true);
+                item.checked = true;
+                return;
         }, this);
         this.trigger.on('afterrender', function() {
             this.trigger.setInterval(savedInterval);
@@ -641,7 +647,6 @@ Ext.define("Zenoss.RefreshMenuButton", {
                 xtype: 'menucheckitem',
                 text: '1 minute',
                 value: 60,
-                checked: true,
                 group: 'refreshgroup'
             },{
                 xtype: 'menucheckitem',
