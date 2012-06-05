@@ -1255,6 +1255,12 @@ class GroupSettings(UserSettings):
 
     security = ClassSecurityInfo()
 
+    def iseditable(self):
+        """Can the current user edit this settings object.
+        """
+        currentUser = getSecurityManager().getUser()
+        return currentUser.has_role("Manager") or currentUser.has_role("ZenManager")
+
     def _getG(self):
         return self.zport.acl_users.groupManager
 
