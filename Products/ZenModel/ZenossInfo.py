@@ -21,6 +21,7 @@ from xml.dom.minidom import parse
 import shutil
 import traceback
 import logging
+import commands
 log = logging.getLogger("zen.ZenossInfo")
 
 from Globals import InitializeClass
@@ -281,6 +282,21 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         from pysamba.version import VERSION
         return Version.parse('Wmi %s ' % VERSION)
 
+    def getRabbitMQVersion(self):
+        from Products.ZenUtils.qverify import ZenAmqp
+        return Version.parse("RabbitMQ %s" % ZenAmqp().getVersion())
+
+    def getErlangVersion(self):
+        retVal, output = commands.getstatusoutput('erl -noshell +V')
+        version = None
+
+        if not retVal:
+            try:
+                version = re.findall(r'version (\S+)', output)[0]
+            except Exception:
+                pass
+
+        return Version.parse("Erlang %s" % version)
 
     def getAllVersions(self):
         """
@@ -302,6 +318,10 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             'href': "http://oss.oetiker.ch/rrdtool" },
         {'header': 'Twisted', 'data': self.getTwistedVersion().full(),
             'href': "http:///twistedmatrix.com/trac" },
+        {'header': 'RabbitMQ', 'data': self.getRabbitMQVersion().full(),
+            'href': 'http://www.rabbitmq.com/'},
+        {'header': 'Erlang', 'data': self.getErlangVersion().full(),
+            'href':'http://www.erlang.org/' },
         )
         try:
             versions += (

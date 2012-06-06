@@ -15,6 +15,7 @@
 import sys
 from optparse import OptionParser
 from amqplib.client_0_8.connection import Connection
+from contextlib import closing
 
 import Globals
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -84,6 +85,10 @@ class ZenAmqp(object):
     def getConnection(self):
         settings = self.getConnectionSettings()
         return Connection(**settings)
+
+    def getVersion(self):
+        with closing(self.getConnection()) as conn:
+             return conn.server_properties.get('version')
 
 class Main(object):
 
