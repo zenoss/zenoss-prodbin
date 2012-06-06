@@ -584,11 +584,6 @@ Ext.define("Zenoss.StatefulRefreshMenu", {
         //old cookie value not being in an array and we can't get the value, so
         //default to 60
         var savedInterval = interval[0] || 60;
-
-        if (Zenoss.settings.manualPageRefresh) {
-            savedInterval = -1;
-        }
-
         // removing one second as an option
         // for performance reasons
         if (savedInterval == 1) {
