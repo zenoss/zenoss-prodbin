@@ -44,11 +44,10 @@
             <td class="tablevalues" >
 
               <tal:block tal:condition="python:optType == 'boolean'" >
-                <input tal:condition="python:curValue == 'True'"
-                    type="checkbox" checked tal:attributes="value optName; name optName" />
-
-                <input tal:condition="python:curValue == 'False'"
-                    type="checkbox" tal:attributes="value optName; name optName" />
+                <select tal:attributes="name optName">
+                    <option value="True" tal:attributes="selected python:curValue=='True'" >True</option>
+                    <option value="False" tal:attributes="selected python:curValue!='True'" >False</option>
+                </select>
               </tal:block>
 
               <tal:block tal:condition="python:optType != 'boolean'" >
@@ -76,13 +75,9 @@
 
 <!--  Default Value -->
               <tal:block tal:condition="python:optType == 'boolean'" >
-            <td class="tablevalues" >
-              <input tal:condition="python:defaultValue == 'True'"
-                  type="checkbox" disabled checked tal:attributes="value optName" />
-
-              <input tal:condition="python:defaultValue == 'False'"
-                  type="checkbox" disabled tal:attributes="value optName" />
-            </td>
+                <td class="tablevalues" >
+                  <span tal:content="defaultValue" />
+                </td>
               </tal:block>
 
               <tal:block tal:condition="python:optType != 'boolean'" >
