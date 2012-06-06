@@ -330,7 +330,7 @@
 
             // only load the store if a context has been applied
             if (Ext.isDefined(this.grid.getContext()) || this.grid.getStore().autoLoad) {
-                this.grid.refresh({
+                this.grid.getStore().load({
                     callback:function () {
                         this.grid.fireEvent('filterschanged', this.grid, values);
                     },
@@ -512,7 +512,7 @@
             this.uid = uid;
             this.setStoreParameter('uid', uid);
             this.fireEvent('contextchange', this, uid);
-            this.refresh();
+            this.getStore().load();
         },
         getContext:function () {
             return this.uid;
@@ -555,7 +555,10 @@
             });
             this.callParent([config]);
         },
-
+        setContext: function(uid) {
+            this.scrollToTop();
+            this.callParent([uid]);
+        },
         refresh:function (callback, scope) {
             // only refresh if a context is set
             if (!this.getContext()) {
@@ -564,7 +567,7 @@
             this.saveSelection();
             var store = this.getStore(),
                 // load the entire store if we haven't yet, we are not paginated or the entire grid fits in one buffer
-                shouldLoad = !store.hasLoaded || ! store.buffered || store.getCount() == store.getTotalCount();
+                shouldLoad = !store.hasLoaded || ! store.buffered || store.getCount() >= store.getTotalCount();
 
             if (shouldLoad) {
                 store.load({
@@ -575,22 +578,26 @@
 
             } else {
                 // need to refresh the current rows, without changing the scroll position
-                var start = store.lastRequestStart,
-                    end = Math.min(store.lastRequestStart + store.pageSize - 1, store.totalCount),
+                var start = Math.max(store.lastRequestStart, 0),
+                    end = Math.min(start + store.pageSize - 1, store.totalCount),
                     page = store.pageMap.getPageFromRecordIndex(end);
 
                 // make sure we do not have the current view records in cache
                 store.pageMap.removeAtKey(page);
 
                 // this will fetch from the server and update the view since we removed it from cache
-                store.guaranteeRange(start, end, callback, scope);
+                if (Ext.isFunction(callback)) {
+                    store.guaranteeRange(start, end, callback, scope);
+                } else {
+                    store.guaranteeRange(start, end);
+                }
             }
 
         },
         scrollToTop:function () {
-            var scroller = this.down('paginggridscroller');
-            if (scroller) {
-                scroller.scrollToTop();
+            var view = this.getView();
+            if (view.getEl().dom) {
+                view.getEl().dom.scrollTop = 0;
             }
         }
 

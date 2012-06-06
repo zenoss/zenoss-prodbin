@@ -9,15 +9,17 @@ Ext.BLANK_IMAGE_URL = '/++resource++zenui/img/s.gif';
  * Enable this setting to log the stack trace of all direct requests to the browser console
  **/
 Zenoss.logDirectRequests = false;
-if (Zenoss.logDirectRequests) {
+
     Ext.apply(Ext.direct.RemotingProvider.prototype, {
         queueTransaction: Ext.Function.createInterceptor(Ext.direct.RemotingProvider.prototype.queueTransaction, function(transaction) {
             // will render a stack trace on firefox
-            console.log(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
-            console.trace(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+            if (Zenoss.logDirectRequests) {
+                console.log(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+                console.trace(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+            }
         })
     });
-}
+
 
 /**
  * Base namespace to contain all Zenoss-specific JavaScript.

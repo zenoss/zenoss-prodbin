@@ -376,14 +376,14 @@
      *  Fixes a bug in Ext: they forgot to make the flashParams actually work
      *  Added wmode: 'transparent' here so that IE would allow us to overlay a div
      **/
-    Ext.override(Ext.flash.Component, {   
+    Ext.override(Ext.flash.Component, {
         afterRender: function() {
             var me = this,
-                flashParams = Ext.apply({wmode: 'transparent'}, me.flashParams), 
+                flashParams = Ext.apply({wmode: 'transparent'}, me.flashParams),
                 flashVars = Ext.apply({}, me.flashVars);
-    
+
             me.callParent();
-    
+
             new swfobject.embedSWF(
                 me.url,
                 me.getSwfId(),
@@ -397,10 +397,37 @@
                 Ext.bind(me.swfCallback, me)
             );
         }
-    
+
     });
 
 
+    /**
+     * We use the guarantee range mechanism to refresh the grid without reloading the store.
+     * This method is overriden so that we can refresh page 0 if necessary. Previously it would send a negative
+     * number as start.
+     * It was using (page - 1 * pageSize)
+     **/
+    Ext.override(Ext.data.Store, {
+        prefetchPage: function(page, options) {
+            var me = this,
+            pageSize = me.pageSize || me.defaultPageSize,
+            // JRH: make sure start is not less than 0 if we are prefetching the first page
+            start = Math.max((page - 1) * me.pageSize, 0),
+            total = me.totalCount;
 
+            // No more data to prefetch.
+            if (total !== undefined && me.getCount() === total) {
+                return;
+            }
+
+            // Copy options into a new object so as not to mutate passed in objects
+            me.prefetch(Ext.apply({
+                page     : page,
+                start    : start,
+                limit    : pageSize
+            }, options));
+        }
+
+    });
 
 }());
