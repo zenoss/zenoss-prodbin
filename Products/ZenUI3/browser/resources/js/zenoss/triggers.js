@@ -487,7 +487,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     defaults: {
                         layout: 'anchor',
                         padding: 10,
-                        height:85,
+                        height:95,
                         columnWidth: 0.49
                     },
                     items: [
