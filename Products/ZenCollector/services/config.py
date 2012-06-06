@@ -30,6 +30,7 @@ from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenModel.ThresholdClass import ThresholdClass
 from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 
 class DeviceProxy(pb.Copyable, pb.RemoteCopy):
@@ -290,7 +291,13 @@ class CollectorConfigService(HubService, ThresholdMixin):
         return filteredDevices
 
     def _perfIdFilter(self, obj):
-        return not hasattr(obj, 'perfserver') or obj.perfServer.getRelatedId() == self.instance
+        """
+        Return True if obj is not a device (has no perfServer attribute)
+        or if the device's associated monitor has a name matching this
+        collector's name.  Otherise, return False.
+        """
+        return (not hasattr(obj, 'perfServer')
+                or obj.perfServer.getRelatedId() == self.instance)
 
     def _notifyAll(self, object):
         """
