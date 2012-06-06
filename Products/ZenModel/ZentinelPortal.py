@@ -172,7 +172,7 @@ class ZentinelPortal ( PortalObjectBase ):
         return self.About.getZenossVersionShort()
 
     def getLoginButton(self):
-        return """<input type="submit" name="submitbutton" 
+        return """<input id="loginButton" type="submit" name="submitbutton" 
                 class="submitbutton" value=""/>"""
 
     def getExtraLoginFormContents(self):

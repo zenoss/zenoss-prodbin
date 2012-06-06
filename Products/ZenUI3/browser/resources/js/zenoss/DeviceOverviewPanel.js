@@ -133,6 +133,7 @@
                 text: _t('Save'),
                 ref: '../savebtn',
                 xtype: 'DialogButton',
+                id: 'win-save-button',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn){
                     var form = btn.refOwner.editForm.getForm(),
@@ -146,6 +147,7 @@
             },{
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
+                id: 'win-cancel-button',
                 handler: function(btn){
                     win.destroy();
                 }
@@ -213,6 +215,7 @@
                 text: _t('Save'),
                 ref: '../savebtn',
                 xtype: 'DialogButton',
+                id: 'editcollector-save-button',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     var vals = btn.refOwner.editForm.getForm().getValues();
@@ -231,6 +234,7 @@
             }, {
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
+                id: 'editcollector-cancel-button', 
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -267,6 +271,7 @@
                     }),
                     valueField: 'name',
                     displayField: 'name',
+                    id: 'editgroups-combo',
                     forceSelection: true,
                     listConfig: {
                         resizable: true, resizeHandles: 'e'
@@ -280,6 +285,7 @@
                     ref: '../../addgroupbutton',
                     ui: 'dialog-dark',
                     text: _t('Add'),
+                    id: 'addgroup-button',
                     handler: function(btn) {
                         var selectedGroup = btn.refOwner.selectgroup.getValue();
                         if (selectedGroup) {
@@ -322,6 +328,7 @@
                             xtype: 'button',
                             ui: 'dialog-dark',
                             text: _t('Remove'),
+                            id: 'editgroups-remove-button',
                             ref: 'delbutton',
                             group: group,
                             handler: function(btn) {
@@ -358,6 +365,7 @@
                 text: _t('Save'),
                 ref: '../savebtn',
                 xtype: 'DialogButton',
+                id: 'editgroups-save-button',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     Ext.iterate(btn.refOwner.grouplist.groups, function(group, op) {
@@ -385,6 +393,7 @@
             }, {
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
+                id: 'editgroups-cancel-button',                
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -412,6 +421,7 @@
                 }),
                 valueField: 'name',
                 displayField: 'name',
+                id: 'editlocation-name-combo',
                 value: values.location ? values.location.uid.slice(20) : '',
                 listConfig: {
                     resizable: true, resizeHandles: 'e'
@@ -423,6 +433,7 @@
                 text: _t('Save'),
                 ref: '../savebtn',
                 xtype: 'DialogButton',
+                id: 'editlocation-save-button',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     var vals = btn.refOwner.editForm.getForm().getValues();
@@ -444,6 +455,7 @@
             }, {
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
+                id: 'editlocation-cancel-button',
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -483,7 +495,7 @@
         },{
             text: _t('Cancel'),
             xtype: 'button',
-            ref: '../cancelbtn',
+            ref: '../cancelbtn',     
             disabled: true,
             hidden: true,
             handler: function() {
@@ -514,7 +526,9 @@
         showButtons: function() {
             if (!this.rendered) {
                 this.on('render', this.showButtons, this);
-            } else {
+            } else {    
+                Ext.getCmp(this.savebtn.id).addCls("savebtn-button"+this.id);
+                Ext.getCmp(this.cancelbtn.id).addCls("cancelbtn-button"+this.id);                           
                 this.savebtn.show();
                 this.cancelbtn.show();
             }
@@ -603,6 +617,7 @@
                     layout: {
                         type: 'hbox'
                     },
+                    id: 'deviceoverviewpanel_main',
                     defaults: {
                         bodyStyle: 'background-color:#fafafa;',
                         minHeight: 350,
@@ -616,21 +631,27 @@
                         frame:false,
                         items: [{
                             fieldLabel: _t('Uptime'),
+                            id: 'uptime-label',
                             name: 'uptime'
                         },{
                             fieldLabel: _t('First Seen'),
+                            id: 'first-seen-label',
                             name: 'firstSeen'
                         },{
                             fieldLabel: _t('Last Change'),
+                            id: 'last-change-label',
                             name: 'lastChanged'
                         },{
                             fieldLabel: _t('Model Time'),
+                            id: 'model-time-label',
                             name: 'lastCollected'
                         },{
                             fieldLabel: _t('Locking'),
+                            id: 'locking-label',
                             name: 'locking'
                         },{
                             xtype: 'displayfield',
+                            id: 'memory-displayfield',
                             name: 'memory',
                             fieldLabel: _t('Memory/Swap')
                         }]
@@ -653,22 +674,27 @@
                             xtype: 'textfield',
                             name: 'name',
                             fieldLabel: _t('Device Name'),
+                            id: 'device-name-textfield',
                             allowBlank: false
                         },{
                             xtype: 'ProductionStateCombo',
                             fieldLabel: _t('Production State'),
+                            id: 'production-state-combo',
                             name: 'productionState'
                         },{
                             xtype: 'PriorityCombo',
                             fieldLabel: _t('Priority'),
+                            id: 'priority-combo',
                             name: 'priority'
                         },{
                             fieldLabel: _t('Tag'),
                             name: 'tagNumber',
+                            id: 'tagnumber-textfield',
                             xtype: 'textfield'
                         },{
                             fieldLabel: _t('Serial Number'),
                             name: 'serialNumber',
+                            id: 'serialnumber-textfield',
                             xtype: 'textfield'
                         }]
                     },{
@@ -679,6 +705,7 @@
                         items: [{
                             fieldLabel: _t('Rack Slot'),
                             name: 'rackSlot',
+                            id: 'rackslot-textfield',
                             xtype: 'textfield'
                         },{
                             xtype: 'clicktoeditnolink',
@@ -689,7 +716,8 @@
                                 scope: this
                             },
                             fieldLabel: _t('Collector'),
-                            name: 'collector'
+                            name: 'collector',
+                            id: 'collector-editnolink'
                         },{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -699,6 +727,7 @@
                                 scope: this
                             },
                             name: 'hwManufacturer',
+                            id: 'hwmanufacturer-editlink',
                             fieldLabel: _t('Hardware Manufacturer')
                         },{
                             xtype: 'clicktoedit',
@@ -709,6 +738,7 @@
                                 scope: this
                             },
                             name: 'hwModel',
+                            id: 'hwmodel-editlink',
                             fieldLabel: _t('Hardware Model')
                         },{
                             xtype: 'clicktoedit',
@@ -719,6 +749,7 @@
                                 scope: this
                             },
                             name: 'osManufacturer',
+                            id: 'osmanufacturer-editlink',
                             fieldLabel: _t('OS Manufacturer')
                         },{
                             xtype: 'clicktoedit',
@@ -729,6 +760,7 @@
                                 scope: this
                             },
                             name: 'osModel',
+                            id: 'osmodel-editlink',
                             fieldLabel: _t('OS Model')
                         }]
                     }]
@@ -751,7 +783,7 @@
                         flex: 2,
                         minHeight: 400,
                         frame:false,
-
+                        id: 'deviceoverviewpanel_systemsummary',
                         items: [{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -767,7 +799,8 @@
                                 scope: this
                             },
                             fieldLabel: _t('Systems'),
-                            name: 'systems'
+                            name: 'systems',
+                            id: 'systems-editlink'
                         },{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -783,7 +816,8 @@
                                 scope: this
                             },
                             fieldLabel: _t('Groups'),
-                            name: 'groups'
+                            name: 'groups',
+                            id: 'groups-editlink'
                         },{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -793,15 +827,18 @@
                                 scope: this
                             },
                             fieldLabel: _t('Location'),
-                            name: 'location'
+                            name: 'location',
+                            id: 'location-editlink'
                         },{
                             fieldLabel: _t('Links'),
-                            name: 'links'
+                            name: 'links',
+                            id: 'links-label'
                         },{
                             xtype: 'textarea',
                             grow: true,
                             fieldLabel: _t('Comments'),
-                            name: 'comments'
+                            name: 'comments',
+                            id: 'comments-textarea'
                         }]
                     },{
                         id:'deviceoverviewpanel_snmpsummary',
@@ -813,24 +850,30 @@
                         minHeight: 400,
                         items: [{
                             fieldLabel: _t('SNMP SysName'),
-                            name: 'snmpSysName'
+                            name: 'snmpSysName',
+                            id: 'snmpsysname-label'
                         },{
                             fieldLabel: _t('SNMP Location'),
-                            name: 'snmpLocation'
+                            name: 'snmpLocation',
+                            id: 'snmplocation-label'
                         },{
                             fieldLabel: _t('SNMP Contact'),
-                            name: 'snmpContact'
+                            name: 'snmpContact',
+                            id: 'snmpcontact-label'
                         },{
                             fieldLabel: _t('SNMP Description'),
                             autoWidth: true,
-                            name: 'snmpDescr'
+                            name: 'snmpDescr',
+                            id: 'snmpdescr-label'
                         },{
                             fieldLabel: _t('SNMP Community'),
                             name: 'snmpCommunity',
+                            id: 'snmpcommunity-label',
                             hidden: Zenoss.Security.doesNotHavePermission('Manage Device')
                         },{
                             fieldLabel: _t('SNMP Version'),
-                            name: 'snmpVersion'
+                            name: 'snmpVersion',
+                            id: 'snmpversion-label'
                         }]
                     }]
                 }]
