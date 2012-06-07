@@ -74,7 +74,6 @@ class EventsExporter(BrowserView):
         writer = writer(response)
 
         wroteHeader = False
-
         for fields, evt in self._query(archive, **params):
             if not wroteHeader:
                 writer.writerow(fields)
@@ -82,7 +81,7 @@ class EventsExporter(BrowserView):
             data = []
             for field in fields:
                 val = evt.get(field, '')
-                data.append(str(val).replace('\n', ' ').strip() if val else '')
+                data.append(str(val).replace('\n',' ').strip() if val or val is 0 else '')
             writer.writerow(data)
 
     def xml(self, response, archive, **params):
