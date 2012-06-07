@@ -1313,11 +1313,18 @@ class GroupSettings(UserSettings):
         """
         Returns a list of UserSetting instances that are members of this group.
         """
+        members = set()
         # We must using reverse mapping of all users to their groups rather
         # than going directly to the group's assigned principals because
         # some group backends don't support listAssignedPrincipals.
-        return [ u for u in self.ZenUsers.getAllUserSettings()
+        [ members.add(u) for u in self.ZenUsers.getAllUserSettings()
             if self.id in u.getUserGroupSettingsNames() ]
+
+        # make sure we get everyone assigned directly to this group (incase they appear in
+        # another acl_users as is the case with admin)
+        [ members.add(self.getUserSettings(u[0]))
+          for u in self._getG().listAssignedPrincipals(self.id) ]
+        return members
 
     def getMemberUserIds(self):
         """
