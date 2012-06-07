@@ -253,7 +253,7 @@ Ext.onReady(function () {
                             // Make sure that we reset the store to be saved search
                             theSearchBox.store = freeSearchDataStore;
                             // and clear out the typed in search box
-                            theSearchBox.clearValue()   ;
+                            theSearchBox.clearValue();
 
                         } else {
                             // otherwise go to the selected search results page
@@ -349,10 +349,6 @@ Ext.onReady(function () {
             reloadGrid:function () {
                 this.savedSearchGrid.getStore().load();
             }
-        });
-
-        freeSearchDataStore.on("load", function () {
-            Zenoss.env.search.select(0);
         });
 
     }

@@ -1587,3 +1587,6 @@ pre {
 .x-ie .x-window .x-btn-dialog-dark-small-disabled .x-btn-center{
     background-image: url() !important;
 }
+#searchbox-container .searchfield-black .x-form-field{
+  color: white !important;
+}
