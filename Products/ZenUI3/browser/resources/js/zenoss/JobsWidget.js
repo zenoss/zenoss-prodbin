@@ -254,7 +254,7 @@ Ext.define("Zenoss.JobsWidget", {
     },
     poll: function() {
         this.update();
-        this.pollTask.delay(5000);
+        this.pollTask.delay(Zenoss.settings.zenjobsRefreshInterval * 1000);
     },
     pause: function() {
         this.pollTask.cancel();
