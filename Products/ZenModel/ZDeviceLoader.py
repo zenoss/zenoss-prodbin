@@ -190,7 +190,7 @@ class DeviceCreationJob(SubprocessJob):
             hwManufacturer="", hwProductName="", osManufacturer="",
             osProductName="", locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost", discoverProto="snmp", priority=3,
-            manageIp="", zProperties=None, title=None, zendiscCmd=[]):
+            manageIp="", zProperties=None, title="", zendiscCmd=[]):
 
         loader = JobDeviceLoader(self.dmd)
 
@@ -296,7 +296,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost",
-            discoverProto="snmp",priority=3,REQUEST=None):
+            discoverProto="snmp",priority=3, title=None, REQUEST=None):
         """
         Load a device into the database connecting its major relations
         and collecting its configuration.
@@ -330,7 +330,8 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                                             locationPath=locationPath,
                                             groupPaths=groupPaths,
                                             systemPaths=systemPaths,
-                                            priority=priority
+                                            priority=priority,
+                                            title=title
                                         ))
         except (SystemExit, KeyboardInterrupt):
             raise

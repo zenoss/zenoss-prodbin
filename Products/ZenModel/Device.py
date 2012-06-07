@@ -228,7 +228,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     default_catalog = "deviceSearch" #device ZCatalog
 
     relationshipManagerPathRestriction = '/Devices'
-
+    title = ""
     manageIp = ""
     productionState = 1000
     preMWProductionState = productionState
@@ -248,6 +248,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     _temp_device = False
 
     _properties = ManagedEntity._properties + (
+        {'id':'title', 'type':'string', 'mode':'w'},
         {'id':'manageIp', 'type':'string', 'mode':'w'},
         {'id':'snmpAgent', 'type':'string', 'mode':'w'},
         {'id':'snmpDescr', 'type':'string', 'mode':''},
