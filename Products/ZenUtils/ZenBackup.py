@@ -202,6 +202,11 @@ class ZenBackup(ZenBackupBase):
                                action='store_true',
                                help='Do not include performance data'
                                     ' in the backup.')
+        self.parser.add_option('--no-zepindexes',
+                               dest='noZepIndexes',
+                               default=False,
+                               action='store_true',
+                               help='Do not include zep indexes in the backup')
         self.parser.add_option('--no-zenpacks',
                                dest="noZenPacks",
                                default=False,
@@ -290,7 +295,9 @@ class ZenBackup(ZenBackupBase):
         self.log.info("Backup of ZEP database completed in %s.", subtotalTime)
 
         zeneventserver_dir = zenPath('var', 'zeneventserver')
-        if self._zepRunning():
+        if self.options.noZepIndexes:
+            self.log.info('Not backing up ZEP indexes.')
+        elif self._zepRunning():
             self.log.info('Not backing up ZEP indexes - it is currently running.')
         elif os.path.isdir(zeneventserver_dir):
             self.log.info('Backing up ZEP indexes.')
