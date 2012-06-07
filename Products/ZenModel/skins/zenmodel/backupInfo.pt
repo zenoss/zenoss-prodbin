@@ -47,7 +47,11 @@ var backupLog = new Zenoss.CommandWindow({
             this.form.timeout.value
         ]
     },
-    closeAction: 'closeAndReload',
+    listeners: {
+        close: function(panel) {
+            window.top.location.reload();
+        }
+    },
     target: '/zport/dmd/run_backup',
     title: _t('zenbackup')
 });

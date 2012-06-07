@@ -141,10 +141,6 @@ Ext.define("Zenoss.CommandWindow", {
             this.task.delay(250);
         }
     },
-    closeAndReload: function() {
-        window.top.location.reload();
-        this.destroy();
-    },
     closeAndRedirect: function() {
         window.top.location = this.redirectTarget;
         this.destroy();
