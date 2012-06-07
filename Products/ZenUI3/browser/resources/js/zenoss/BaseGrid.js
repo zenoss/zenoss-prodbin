@@ -591,12 +591,12 @@
                 } else {
                     store.guaranteeRange(start, end);
                 }
-            }
+            } 
 
         },
         scrollToTop:function () {
             var view = this.getView();
-            if (view.getEl().dom) {
+            if (view.getEl()) {
                 view.getEl().dom.scrollTop = 0;
             }
         }
