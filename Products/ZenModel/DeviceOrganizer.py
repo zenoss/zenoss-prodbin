@@ -19,6 +19,7 @@ Base class for device organizers
 from itertools import ifilter
 from zope.event import notify
 from zope.interface import implements
+from ZODB.transact import transact
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
@@ -38,6 +39,7 @@ from ZenossSecurity import *
 from Products.ZenUtils.Utils import unused, getObjectsFromCatalog
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
+from Products.Jobber.zenmodel import DeviceSetLocalRolesJob
 
 import logging
 LOG = logging.getLogger('ZenModel.DeviceOrganizer')
@@ -404,6 +406,53 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """
         pass
 
+    def _setDeviceLocalRoles(self):
+        def deviceChunk(devices, chunksize=10):
+            i = 0
+            maxi = len(devices)
+            while i < maxi:
+                nexti = i+chunksize
+                yield devices[i:nexti]
+                i = nexti
+
+        @transact
+        def setLocalRoles(devices):
+            for device in devices:
+                device = device.primaryAq()
+                device.setAdminLocalRoles()
+
+        devices = self.getSubDevices()
+        total = len(devices)
+        count = 0
+        for chunk in deviceChunk(devices):
+            count += len(chunk)
+            LOG.info("Setting admin roles on %d of total %d", count, total)
+            setLocalRoles(chunk)
+
+    def _maybeCreateLocalRolesJob(self):
+        """
+        Look at our total number of devices if it is above the threshold
+        then submit a job for updating the admin roles.
+        """
+        path = "/".join(self.getPhysicalPath())
+        threshold = getattr(self.dmd.UserInterfaceSettings, "deviceMoveJobThreshold", 5)
+
+        # find out how many devices we have by just looking at the brains
+        catalog = getToolByName(self.dmd.Devices, self.dmd.Devices.default_catalog)
+        brains = catalog({ 'path' : path})
+
+        if len(brains) > threshold:
+            job = self.dmd.JobManager.addJob(
+                DeviceSetLocalRolesJob, description="Update Local Roles on %s" % path,
+                kwargs=dict(organizerUid=path))
+            href = "/zport/dmd/joblist#jobs:%s" % (job.getId())
+            messaging.IMessageSender(self).sendToBrowser(
+                'Job Added',
+                'Job Added for setting the roles on the organizer %s, view the <a href="%s"> job log</a>' % (path, href)
+            )
+            return job
+        return self._setDeviceLocalRoles()
+
     def manage_addAdministrativeRole(self, newId, REQUEST=None):
         """
         Overrides AdministrativeRoleable.manage_addAdministrativeRole
@@ -414,11 +463,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """
 
         AdministrativeRoleable.manage_addAdministrativeRole(self, newId)
-        for dev in self.getSubDevices():
-            dev = dev.primaryAq()
-            dev.setAdminLocalRoles()
-
         notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
+        self._maybeCreateLocalRolesJob()
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Role Added',
@@ -435,11 +481,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """
         AdministrativeRoleable.manage_editAdministrativeRoles(
                                          self,ids,role,level)
-        for dev in self.getSubDevices():
-            dev = dev.primaryAq()
-            dev.setAdminLocalRoles()
-
         notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
+        self._maybeCreateLocalRolesJob()
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Role Added',
@@ -457,11 +500,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         @type delids: tuple of strings
         """
         AdministrativeRoleable.manage_deleteAdministrativeRole(self, delids)
-        for dev in self.getSubDevices():
-            dev = dev.primaryAq()
-            dev.setAdminLocalRoles()
-
         notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
+        self._maybeCreateLocalRolesJob()
         if REQUEST:
             if delids:
                 messaging.IMessageSender(self).sendToBrowser(
