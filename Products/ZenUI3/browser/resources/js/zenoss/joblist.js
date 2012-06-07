@@ -121,14 +121,14 @@ Ext.getCmp('center_panel').add({
                     var index = store.indexOfId(token),
                         sm = grid.getSelectionModel(),
                         selected = sm.getSelection();
-                    if (Ext.isEmpty(selected) || selected[0].get("uuid") != token) {
-                        // We linked here, so open the detail
+                    // if we have a job token selected always expand the panel
+                    if (index) {
                         Ext.getCmp('job_detail_panel').expand();
+                        grid.getSelectionModel().select(index);
                     }
-                    grid.getSelectionModel().select(index);
                 };
             if (!store.loaded) {
-                store.on('load', selectToken, this, {single:true});
+                store.on('prefetch', selectToken, this, {single:true});
             } else {
                 selectToken();
             }
@@ -260,7 +260,7 @@ Ext.getCmp('center_panel').add({
                     //view.focusRow(index);
                     Ext.defer(function(){
                         view.focusRow(index);
-                    }, 500);                    
+                    }, 500);
                 }
                 panel.poll();
             },
