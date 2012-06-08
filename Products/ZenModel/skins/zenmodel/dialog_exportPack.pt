@@ -2,8 +2,8 @@
 
 <tal:block tal:condition="here/isDevelopment">
 <p>
-<input type="radio" name="download" value="no" checked="1"> Export to $ZENHOME/exports<br />
-<input type="radio" name="download" value="yes"> Export to $ZENHOME/exports and
+<input type="radio" name="download" value="no" checked="1"> Export to $ZENHOME/export<br />
+<input type="radio" name="download" value="yes"> Export to $ZENHOME/export and
     download<br />
 </p>
 </tal:block>
