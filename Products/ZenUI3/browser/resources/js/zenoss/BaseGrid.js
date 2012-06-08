@@ -687,6 +687,7 @@
                 //  2.  The user scrolls.
                 this.grid.getStore().on('datachanged', this.onDataChanged, this);
                 this.grid.getView().on('bodyscroll', this.onScroll, this);
+                this.grid.getView().on('resize', this.onScroll, this);
             }
 
             this.displayMsg = _t('DISPLAYING {0} - {1} of {2} ROWS');
