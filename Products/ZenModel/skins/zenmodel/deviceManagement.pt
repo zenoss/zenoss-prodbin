@@ -58,8 +58,6 @@ Optional titlebar stuff
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'role','Role')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'level','Level')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'email','Email')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'pager','Pager')"/>
@@ -83,11 +81,6 @@ Optional titlebar stuff
             tal:attributes="selected python:mw.role==role"/>
     </select>
     </td>
-    <td class="tablevalues">
-    <input class="tablevalues" type='text' name="level" size="2"
-    onkeypress="return submitViaEnter(event,'manage_editAdministrativeRoles');"
-        tal:attributes="value mw/level">
-    </td>    
     <td class="tablevalues" tal:content="mw/email"/>
     <td class="tablevalues" tal:content="mw/pager"/>
   </tr>

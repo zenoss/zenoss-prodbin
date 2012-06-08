@@ -473,14 +473,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             return self.callZenScreen(REQUEST)
 
 
-    def manage_editAdministrativeRoles(self, ids=(), role=(),
-                                        level=(), REQUEST=None):
+    def manage_editAdministrativeRoles(self, ids=(), role=(), REQUEST=None):
         """
         Overrides AdministrativeRoleable.manage_editAdministrativeRoles
         Edit the administrators to this DeviceOrganizer
         """
         AdministrativeRoleable.manage_editAdministrativeRoles(
-                                         self,ids,role,level)
+                                         self,ids,role)
         notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
         self._maybeCreateLocalRolesJob()
         if REQUEST:

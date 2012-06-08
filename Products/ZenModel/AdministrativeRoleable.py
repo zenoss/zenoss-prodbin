@@ -56,22 +56,20 @@ class AdministrativeRoleable:
 
     security.declareProtected(ZEN_ADMINISTRATORS_EDIT,
         'manage_editAdministrativeRoles')
-    def manage_editAdministrativeRoles(self, ids=(), role=(),
-                                        level=(), REQUEST=None):
+    def manage_editAdministrativeRoles(self, ids=(), role=(), REQUEST=None):
         """
         Edit list of admin roles.
         """
         if isinstance(ids, basestring):
             ids = [ids]
             role = [role]
-            level = [level]
 
         editedRoles = []
         for i, id in enumerate(ids):
-            roleEdit = (id, role[i], level[i])
+            roleEdit = (id, role[i])
             editedRoles.append(roleEdit)
             ar = self.adminRoles._getOb(roleEdit[0])
-            ar.update(roleEdit[1], roleEdit[2])
+            ar.update(roleEdit[1])
 
         self.setAdminLocalRoles()
         self.index_object()
@@ -79,7 +77,7 @@ class AdministrativeRoleable:
         if REQUEST:
             for roleEdit in editedRoles:
                 audit(['UI', getDisplayType(self), 'EditAdministrativeRole'], self,
-                      id=roleEdit[0], role=roleEdit[1], level=roleEdit[2])
+                      id=roleEdit[0], role=roleEdit[1])
             messaging.IMessageSender(self).sendToBrowser(
                 'Admin Roles Updated',
                 ('The following administrative roles have been updated: '

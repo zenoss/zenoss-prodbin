@@ -597,7 +597,6 @@ class UserSettings(ZenModelRM):
     defaultPageSize = 40
     defaultEventPageSize = 30
     defaultAdminRole = "ZenUser"
-    defaultAdminLevel = 1
     oncallStart = 0
     oncallEnd = 0
     escalationMinutes = 0
@@ -613,7 +612,6 @@ class UserSettings(ZenModelRM):
         {'id':'defaultPageSize', 'type':'int', 'mode':'w'},
         {'id':'defaultEventPageSize', 'type':'int', 'mode':'w'},
         {'id':'defaultAdminRole', 'type':'string', 'mode':'w'},
-        {'id':'defaultAdminLevel', 'type':'int', 'mode':'w'},
         {'id':'oncallStart', 'type':'int', 'mode':'w'},
         {'id':'oncallEnd', 'type':'int', 'mode':'w'},
         {'id':'escalationMinutes', 'type':'int', 'mode':'w'},
@@ -1057,13 +1055,11 @@ class UserSettings(ZenModelRM):
 
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
         'manage_editAdministrativeRoles')
-    def manage_editAdministrativeRoles(self, ids=(), role=(),
-                                        level=(), REQUEST=None):
+    def manage_editAdministrativeRoles(self, ids=(), role=(), REQUEST=None):
         """Edit list of admin roles.
         """
         if isinstance(ids, basestring):
             ids = [ids]
-            level = [level]
             role = [role]
         else:
             ids = list(ids)
@@ -1072,11 +1068,11 @@ class UserSettings(ZenModelRM):
             try: i = ids.index(mobj.managedObjectName())
             except ValueError: continue
             mobj = mobj.primaryAq()
-            mobj.manage_editAdministrativeRoles(self.id, role[i], level[i])
+            mobj.manage_editAdministrativeRoles(self.id, role[i])
             if REQUEST:
                 audit('UI.User.EditAdministrativeRole', username=self.id,
                       data_={mobj.meta_type:mobj.getPrimaryId()},
-                      role=role[i], level=level[i])
+                      role=role[i])
         if REQUEST:
             if ids:
                 messaging.IMessageSender(self).sendToBrowser(

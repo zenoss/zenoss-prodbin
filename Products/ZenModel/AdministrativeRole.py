@@ -25,14 +25,12 @@ class AdministrativeRole(ZenModelRM):
         ("managedObject", ToOne(ToManyCont, "Products.ZenModel.AdministrativeRoleable", "adminRoles")),
     )
 
-    level = 1
     role = ZEN_USER_ROLE
 
     def __init__(self, userSettings, managedObject):
         userid = userSettings.getId()
         ZenModelRM.__init__(self, userid)
         self.role = userSettings.defaultAdminRole
-        self.level = userSettings.defaultAdminLevel
         self.id = userid
         managedObject = managedObject.primaryAq()
         managedObject.adminRoles._setObject(userid, self)
@@ -41,9 +39,8 @@ class AdministrativeRole(ZenModelRM):
         managedObject.index_object()
 
 
-    def update(self, role, level):
+    def update(self, role):
         self.role = role
-        self.level = level
         managedObject = self.managedObject().primaryAq()
         managedObject.manage_setLocalRoles(self.getId(), (self.role,))
         managedObject.index_object()
