@@ -71,7 +71,6 @@
             this.callParent(arguments);
         },
         setContext:function (context) {
-
             if (this.proxy.extraParams) {
                 this.proxy.extraParams.uid = context;
             }
@@ -219,7 +218,6 @@
 
                 searchItems.push(col.filterField);
             });
-
             // make sure we send our default filters on the initial load
             if (!Ext.isEmpty(this.defaultFilters)) {
                 if (!this.grid.store.proxy.extraParams) {
@@ -242,6 +240,14 @@
                 }));
 
             }
+            this.grid.on('afterrender', function(){
+               /* using storeSearch here to force the filters to acknowledge the fact that there
+                  may be new filters since the last time the page was visited. This is questionable
+                  and probably should be considered temporary until a better solution to filters
+                  can be found
+               */
+               this.storeSearch();
+            }, this, {single: true});             
         },
         clearFilters:function () {
             this.eachColumn(function (col) {
@@ -523,8 +529,7 @@
                 return;
             }
             this.saveSelection();
-            var store = this.getStore();
-            store.load();
+            this.getStore().load();
         }
     });
 
@@ -632,7 +637,6 @@
              * @param {Object} filters Key/value pair of the new filters.
              */
             this.addEvents('filterschanged');
-
             this.callParent();
             // create the filter row
             var filters = Ext.create('Ext.ux.grid.FilterRow', {
