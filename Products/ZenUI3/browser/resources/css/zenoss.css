@@ -1590,3 +1590,7 @@ pre {
 #searchbox-container .searchfield-black .x-form-field{
   color: white !important;
 }
+/* adding a scrollbar on the components details */
+#component_card #edit_panel-body{
+    overflow:auto;
+}
