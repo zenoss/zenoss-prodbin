@@ -299,6 +299,9 @@ class MaintenanceWindow(ZenModelRM):
         if not self.enabled:
             return None
 
+        if self.skip is None:
+            self.skip = 1
+
         if now is None:
             now = time.time()
 
