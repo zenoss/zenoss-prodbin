@@ -606,6 +606,10 @@ Ext.define("Zenoss.templates.DataSourceStore", {
             nodeParam: 'uid',
             remoteSort: false,
             proxy: {
+                limitParam: undefined,
+                startParam: undefined,
+                pageParam: undefined,
+                sortParam: undefined,
                 type: 'direct',
                 directFn: router.getDataSources,
                 reader: {
