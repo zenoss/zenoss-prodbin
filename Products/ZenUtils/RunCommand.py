@@ -103,23 +103,15 @@ Collector       StdOut/Stderr"""
             except OSError:
                 pass
 
-        if collector.hostname == 'localhost':
-            collectorCommand = self.args
+        if collector.id == 'localhost' or not self.options.useprefix:
+            remote_command = self.args[0]
         else:
-            # Quick check to see if we can SSH to the collector.
-            #p1 = Popen(["echo", "0"], stdout=PIPE)
-            #p2 = Popen(["nc", "-w", "4", collector.hostname, "22"],
-            #    stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+            remote_command = '%s_%s' % (collector.id, self.args[0])
 
-            #if os.waitpid(p2.pid, 0)[1] != 0:
-            #    log.warn("Unable to SSH to collector %s (%s)", 
-            #             collector.id, collector.hostname)
-            #    return
-
-            cmd = self.args[0]
-            if self.options.useprefix:
-                cmd = '%s_%s' % (collector.id, cmd)
-            collectorCommand = ['ssh', collector.hostname, cmd]
+        if collector.hostname == 'localhost':
+            collectorCommand = [remote_command]
+        else:
+            collectorCommand = ['ssh', collector.hostname, remote_command]
 
         collectorCommand = ' '.join(collectorCommand)
         log.debug("Runing command '%s' on collector %s (%s)",
