@@ -233,6 +233,7 @@
                             this.insert(idx, Ext.apply({
                                 ref: 'predicate',
                                 allowBlank: false,
+                                width: 150,
                                 listeners: {
                                     change: function() {
                                         this.getBuilder().fireEvent(
@@ -258,6 +259,7 @@
                 },{
                     ref: 'predicate',
                     xtype: 'textfield',
+                    width: 150,
                     listeners: {
                         change: function() {
                             this.getBuilder().fireEvent(
