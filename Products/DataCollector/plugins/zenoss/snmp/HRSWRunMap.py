@@ -97,7 +97,7 @@ class HRSWRunMap(SnmpPlugin):
                     continue
 
                 om.setOSProcessClass = matcher['getPrimaryDmdId']
-                id = getProcessIdentifier(om.procName, None if matcher['ignoreParameters'] else om.parameters)
+                id = getProcessIdentifier(om.procName, None if matcher['ignoreParametersWhenModeling'] else om.parameters)
                 om.id = self.prepId(id)
 
                 if om.id not in found:
