@@ -13,7 +13,7 @@
 """
 Operations for Reports.
 
-Available at:  /lzport/dmd/report_router
+Available at:  /zport/dmd/report_router
 """
 
 import logging
