@@ -120,7 +120,7 @@ class IInvalidationOid(Interface):
     """
     def tranformOid(self, oid):
         """
-        Given an OID, return the same oid, a different one or None.
+        Given an OID, return the same oid, a different one, a list of other oids or None.
         """
 
 

@@ -436,13 +436,18 @@ class ZenHub(ZCmdBase):
                                 included = (result == FILTER_INCLUDE)
                                 break
                         if included:
-                            oid = self._transformOid(oid, obj)
-                            if oid:
-                                yield oid
+                            oids = self._transformOid(oid, obj)
+                            if oids:
+                                for oid in oids:
+                                    yield oid
 
     def _transformOid(self, oid, obj):
         oidTransform = IInvalidationOid(obj)
-        return oidTransform.transformOid(oid)
+        newOids = oidTransform.transformOid(oid)
+        if isinstance(newOids, str):
+            newOids = [newOids]
+        for newOid in newOids:
+            yield newOid
 
     def doProcessQueue(self):
         """
