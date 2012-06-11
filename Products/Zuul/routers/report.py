@@ -13,7 +13,7 @@
 """
 Operations for Reports.
 
-Available at:  /zport/dmd/report_router
+Available at:  /lzport/dmd/report_router
 """
 
 import logging
@@ -25,6 +25,10 @@ from Products.Zuul.marshalling import Marshaller
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.Zuul.routers import TreeRouter
 from Products import Zuul
+from Products.ZenModel.ReportClass import ReportClass
+from Products.ZenModel.Report import Report
+from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.Zuul.interfaces import ICatalogTool
 
 log = logging.getLogger('zen.ReportRouter')
 
@@ -134,9 +138,24 @@ class ReportRouter(TreeRouter):
         # make sure we are not deleting a required node
         if uid in essentialReportOrganizers:
             raise Exception('You cannot delete this organizer')
+
+        # Getting all of the child nodes for auditing purposes
+        node = self.context.dmd.unrestrictedTraverse(uid)
+        brains = ICatalogTool(node).search((ZenModelRM,))
+        family = []
+        for brain in brains:
+            family.append([brain.getPath(), isinstance(brain.getObject(), ReportClass)])
+
         self._getFacade().deleteNode(uid)
+
+        # Audit messaging
+        for name, isOrganizer in family:
+            if isOrganizer:
+                audit('UI.Organizer.Delete', name)
+            else:
+                audit('UI.Report.Delete', name)
+
         contextUid = '/'.join(uid.split('/')[:-1])
-        audit('UI.Report.Delete', uid)
         return self._getTreeUpdates(contextUid)
 
     def _getTreeUpdates(self, contextUid, newId=None):
