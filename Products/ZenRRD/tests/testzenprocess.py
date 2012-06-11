@@ -792,6 +792,20 @@ class TestZenprocess(BaseTestCase):
         
         self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0))
 
+    def testDoubleSendmail(self):
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'sendmail_', False, 'sendmail: accepting connections')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'sendmail: accepting connections',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'sendmail: accepting connections'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': 'sendmail: accepting connections',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.2': 'sendmail: accepting connections'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': ''}}
+
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=1, MISSING=0, AFTERPIDTOPS=2))
+
     def testRemodelsAndChangeToIgnoreParamsTrue(self):
 
         procDefs = self.getProcDefsFrom("""
