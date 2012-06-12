@@ -201,7 +201,7 @@ class DirectProviderDefinition(object):
     then defines those as actions on the Ext.Direct provider, and creates the
     JS that adds the provider.
 
-    See http://extjs.com/products/extjs/direct.php for a full explanation of
+    See http://www.sencha.com/products/extjs/extdirect for a full explanation of
     protocols and features of Ext.Direct.
     """
     def __init__(self, routercls, url, timeout, ns=None):
