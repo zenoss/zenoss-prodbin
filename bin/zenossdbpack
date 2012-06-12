@@ -8,10 +8,16 @@ import Globals
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
+_global_conf = getGlobalConfiguration()
+zodb_socket = _global_conf.get('zodb-socket')
+if zodb_socket:
+    _global_conf['socket-option'] = 'unix_socket %s' % zodb_socket
+else:
+    _global_conf['socket-option'] = ''
+
 CONFIG = """
 <relstorage>
     pack-gc true
-    pack-duty-cycle 0.9
     keep-history false
     <mysql>
         host %(zodb-host)s
@@ -19,9 +25,10 @@ CONFIG = """
         db %(zodb-db)s
         user %(zodb-user)s
         passwd %(zodb-password)s
+        %(socket-option)s
     </mysql>
 </relstorage>
-""" % getGlobalConfiguration()
+""" % _global_conf
 
 if __name__=="__main__":
     # Get the days option to forward to zodbpack
@@ -36,6 +43,7 @@ if __name__=="__main__":
     # Write the config file and call zodbpack
     with tempfile.NamedTemporaryFile() as configfile:
         configfile.write(CONFIG)
+        configfile.flush()
         cmd = [zenPath('bin', 'zodbpack'), configfile.name, '-d', options.days]
         retcode = subprocess.call(cmd)
 
