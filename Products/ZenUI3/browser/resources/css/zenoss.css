@@ -1594,3 +1594,10 @@ pre {
 #component_card #edit_panel-body{
     overflow:auto;
 }
+/* underlines on ip addresses */
+a.z-entity{
+    text-decoration:underline !important;
+}
+a.z-entity:hover{
+    color:#222255 !important;
+}

@@ -129,7 +129,7 @@
                 // plus a little for the padding
                 this.setWidth(size.width + 10);
                 this.setHeight(size.height + 42); 
-                this.el.setheight(size.height + 42); /* this line is for chrome */
+                this.el.setHeight(size.height + 42); /* this line is for chrome */
                 if (!size.width || !size.height){
                     this.showFailure();
                 } else {
