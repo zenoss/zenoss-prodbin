@@ -70,7 +70,7 @@ Ext.apply(Zenoss.render, {
             if (isNaN(n)) {
                 return speed;
             } else {
-                return n.toFixed(2) + ' GHz'; // XXX I18N unfriendly
+                return convertToUnits(n, 1000, 'Hz', 2)
             }
         } else {
             return speed;
