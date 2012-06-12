@@ -381,11 +381,16 @@ class CatalogTool(object):
         """
         if not infoFilters:
             return list(queryResults)
-        results = []
+
+        #Optimizing!
+        results = { brain: [True, IInfo(brain.getObject())] for brain in queryResults }
         for key, value in infoFilters.iteritems():
             valRe = re.compile(".*" + value + ".*", re.IGNORECASE)
-            for result in queryResults:
-                info = IInfo(result.getObject())
+            for result in results:
+                match, info = results[result]
+                if not match:
+                    continue
+
                 testvalues = getattr(info, key)
                 if not hasattr(testvalues, "__iter__"):
                     testvalues = [testvalues]
@@ -395,18 +400,20 @@ class CatalogTool(object):
                 # name attribute.
                 if isinstance(testvalues, dict):
                     val = testvalues.get(key, testvalues.get('name'))
-                    if val and valRe.match(str(val)):
-                        results.append(result)
+                    if not (val and valRe.match(str(val))):
+                        results[result][0] = False
                 else:
                     # if anyone of these values is satisfied then include the object
+                    isMatch = False
                     for testVal in testvalues:
                         if isinstance(testVal, InfoBase):
                             testVal = testVal.name
                         if valRe.match(str(testVal)):
-                            results.append(result)
-                            # already included this one, continue on to the next result
+                            isMatch = True
                             break
-        return results
+                    if not isMatch:
+                        results[result][0] = False
+        return [key for key,matches in results.iteritems() if matches[0]]
 
     def _sortQueryResults(self, queryResults, orderby, reverse):
 
