@@ -247,7 +247,7 @@
                   can be found
                */
                this.storeSearch();
-            }, this, {single: true});             
+            }, this, {single: true});
         },
         clearFilters:function () {
             this.eachColumn(function (col) {
@@ -445,6 +445,7 @@
                 if (!this._disableSavedSelection) {
                     this.applySavedSelection();
                 }
+                this.setLoading(false);
             }, this);
 
             // once a uid is set always send that uid
@@ -461,7 +462,7 @@
                 if (this.uid) {
                     operation.params.uid = this.uid;
                 }
-
+                this.setLoading(true);
                 this.applyOptions(operation);
                 return true;
 
@@ -596,7 +597,7 @@
                 } else {
                     store.guaranteeRange(start, end);
                 }
-            } 
+            }
 
         },
         scrollToTop:function () {
