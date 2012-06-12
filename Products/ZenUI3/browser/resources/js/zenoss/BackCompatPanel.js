@@ -108,7 +108,7 @@ Ext.define("Zenoss.IFramePanel", {
     setSrc: function(url) {
         this.frameLoaded = false;
         if (url == 'about:blank' || url == '') {
-            this.load(url);
+            this.load('about:blank');
         } else {
             this.load(Ext.urlAppend(url,
                     '_dc=' + new Date().getTime()));
