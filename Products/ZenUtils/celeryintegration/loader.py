@@ -51,7 +51,7 @@ class ZenossLoader(BaseLoader):
             constants.BROKER_PASSWORD: amqpCfg.password,
             constants.BROKER_VHOST: amqpCfg.vhost,
             constants.BROKER_USE_SSL: amqpCfg.usessl,
-
+            constants.ACK_LATE: True,
             ################
             # RESULT STORE #
             ################
@@ -79,6 +79,4 @@ class ZenossLoader(BaseLoader):
             # Level at which stdout should be logged
             constants.STDOUT_LOG_LEVEL: 'INFO'
         }
-
         return config
-

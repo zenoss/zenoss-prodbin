@@ -52,6 +52,7 @@ class Job(Task):
     _result_queue = Queue.Queue()
     _log = None
     _aborted_tasks = set()
+    acks_late = True
 
     @classmethod
     def getJobType(cls):
