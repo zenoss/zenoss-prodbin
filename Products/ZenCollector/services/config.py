@@ -41,6 +41,12 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
 
     @property
     def configId(self):
+        """
+        This is the id used by the framework to keep track of configurations,
+        what to run, delete etc...
+        Use this instead of id since certain daemons can use a
+        configuration id that is different than the underlying device id.
+        """
         retval = getattr(self, "_config_id", None)
         return retval if (retval is not None) else self.id
 

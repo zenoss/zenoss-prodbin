@@ -249,7 +249,7 @@ class ConfigurationLoaderTask(ObservableMixin):
     def _processConfig(self, configs, purgeOmitted=True):
         if self.options.device:
             configs = [cfg for cfg in configs \
-                            if cfg.id == self.options.device]
+                            if self.options.device in (cfg.id, cfg.configId)]
             if not configs:
                 log.error("Configuration for %s unavailable -- " \
                                "is that the correct name?",

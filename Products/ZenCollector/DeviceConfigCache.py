@@ -25,7 +25,7 @@ class DeviceConfigCache(object):
 
     def updateConfigProxy(self, prefs, config):
         cache = self._getFileCache(prefs.options.monitor)
-        key = config.id
+        key = config.configId
         cache[key] = config
 
     def deleteConfigProxy(self, prefs, deviceid):

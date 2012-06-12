@@ -311,8 +311,7 @@ class CollectorDaemon(RRDDaemon):
         Called remotely by ZenHub when asynchronous configuration updates occur.
         """
         self.log.debug("Device %s updated", config.configId)
-
-        if not self.options.device or self.options.device == config.id:
+        if not self.options.device or self.options.device in (config.id, config.configId):
             self._updateConfig(config)
             self._configProxy.updateConfigProxy(self.preferences, config)
             
@@ -404,7 +403,7 @@ class CollectorDaemon(RRDDaemon):
             yield task.deferLater(reactor, 0, lambda: None)
 
         if purgeOmitted:
-            self._purgeOmittedDevices(cfg.id for cfg in updatedConfigs)
+            self._purgeOmittedDevices(cfg.configId for cfg in updatedConfigs)
 
     def _purgeOmittedDevices(self, updatedDevices):
         """
