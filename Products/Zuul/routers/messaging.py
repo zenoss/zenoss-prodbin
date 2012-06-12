@@ -16,6 +16,7 @@ Operations for Messaging.
 Available at:  /zport/dmd/messaging_router
 """
 from Persistence import PersistentMapping
+from ZODB.transact import transact
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenWidgets.interfaces import IUserMessages, IBrowserMessages
@@ -26,7 +27,7 @@ class MessagingRouter(DirectRouter):
     """
     A JSON/ExtDirect interface to operations on messages
     """
-
+    @transact
     def setBrowserState(self, state):
         """
         Save the browser state for the current user.
@@ -84,4 +85,3 @@ class MessagingRouter(DirectRouter):
         return {
             'messages': result
         }
-
