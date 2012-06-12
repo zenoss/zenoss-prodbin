@@ -26,8 +26,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.Zuul.routers import TreeRouter
 from Products import Zuul
 from Products.ZenModel.ReportClass import ReportClass
-from Products.ZenModel.Report import Report
-from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenModel.BaseReport import BaseReport
 from Products.Zuul.interfaces import ICatalogTool
 
 log = logging.getLogger('zen.ReportRouter')
@@ -141,7 +140,7 @@ class ReportRouter(TreeRouter):
 
         # Getting all of the child nodes for auditing purposes
         node = self.context.dmd.unrestrictedTraverse(uid)
-        brains = ICatalogTool(node).search((ZenModelRM,))
+        brains = ICatalogTool(node).search((ReportClass,BaseReport))
         family = []
         for brain in brains:
             family.append([brain.getPath(), isinstance(brain.getObject(), ReportClass)])

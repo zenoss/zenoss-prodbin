@@ -16,7 +16,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
-from ZenModelRM import ZenModelRM
+from Products.ZenModel.BaseReport import BaseReport
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import resequence, getDisplayType
 from ZenossSecurity import ZEN_MANAGE_DMD
@@ -33,14 +33,14 @@ def manage_addMultiGraphReport(context, id, REQUEST = None):
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 
-class MultiGraphReport(ZenModelRM):
+class MultiGraphReport(BaseReport):
 
     meta_type = "MultiGraphReport"
 
     numColumns = 1
     numColumnsOptions = (1, 2, 3)
 
-    _properties = ZenModelRM._properties + (
+    _properties = BaseReport._properties + (
         {'id':'numColumns', 'type':'int', 
             'select_variable' : 'numColumnOptions', 'mode':'w'},
     )

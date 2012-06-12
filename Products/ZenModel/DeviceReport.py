@@ -19,7 +19,7 @@ from Products.ZenUtils.ZenTales import talesEval
 from Products.ZenUtils.Utils import convToUnits, zdecode, getDisplayType
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.deprecated import deprecated
-from ZenModelRM import ZenModelRM
+from Products.ZenModel.BaseReport import BaseReport
 
 @deprecated
 def manage_addDeviceReport(context, id, title = None, REQUEST = None):
@@ -37,7 +37,7 @@ def manage_addDeviceReport(context, id, title = None, REQUEST = None):
 
 
 
-class DeviceReport(ZenModelRM):
+class DeviceReport(BaseReport):
 
     meta_type = "DeviceReport"
 
@@ -49,7 +49,7 @@ class DeviceReport(ZenModelRM):
     columns = []
     colnames = []
 
-    _properties = ZenModelRM._properties + (
+    _properties = BaseReport._properties + (
         {'id':'path', 'type':'string', 'mode':'w'},
         {'id':'deviceQuery', 'type':'string', 'mode':'w'},
         {'id':'sortedHeader', 'type':'string', 'mode':'w'},

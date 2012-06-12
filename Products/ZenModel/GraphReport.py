@@ -15,7 +15,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
-from ZenModelRM import ZenModelRM
+from Products.ZenModel.BaseReport import BaseReport
 from Products.ZenRelations.RelSchema import *
 from GraphReportElement import GraphReportElement
 from Products.ZenUtils.Utils import getObjByPath, getDisplayType
@@ -35,7 +35,7 @@ def manage_addGraphReport(context, id, REQUEST = None):
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 
-class GraphReport(ZenModelRM):
+class GraphReport(BaseReport):
 
     meta_type = "GraphReport"
     
@@ -50,7 +50,7 @@ class GraphReport(ZenModelRM):
         '</div>\n'
         '<div style="clear: both" />')
 
-    _properties = ZenModelRM._properties + (
+    _properties = BaseReport._properties + (
         {'id':'comments', 'type':'text', 'mode':'w'},
         {'id':'numColumns', 'type':'int', 
             'select_variable' : 'numColumnOptions', 'mode':'w'},
