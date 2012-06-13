@@ -11,6 +11,7 @@
 #
 ###########################################################################
 import Globals
+from functools import partial
 from zope.component import getUtility
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.ZenDaemon import ZenDaemon
@@ -21,6 +22,7 @@ from celery import concurrency
 from celery.app.state import current_app
 from datetime import datetime
 from celery.signals import task_prerun
+from celery.apps import worker as workermodule
 try:
     from celery.concurrency.processes.forking import freeze_support
 except ImportError:
@@ -70,12 +72,31 @@ class CeleryZenJobs(ZenDaemon):
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         connectionFactory.buildOptions(self.parser)
 
+# register listeners to immediately kill its jobs when it gets the SIGINT and SIGTERM
+def onSIGINT(worker):
+    workermodule.install_worker_term_hard_handler(worker, sig="SIGINT")
+    print("Killing outstanding jobs immediately")
+    # immediately kill the jobs
+    worker.pool._pool.terminate()
+
+workermodule.install_worker_int_handler = partial(
+    workermodule._shutdown_handler, sig="SIGINT", callback=onSIGINT
+)
+
+# use this callback when running in the background
+def onQuit(worker):
+    print("Killing outstanding jobs immediately")
+    # immediately kill the jobs
+    worker.pool._pool.terminate()
+
+workermodule.install_worker_term_handler = partial(
+    workermodule._shutdown_handler, sig="SIGTERM", how="stop", exc=SystemExit, callback=onQuit
+)
 
 @task_prerun.connect
 def task_prerun_handler(signal=None, sender=None, task_id=None, task=None, args=None,
                         kwargs=None):
     task.app.backend.update(task_id, status=states.STARTED, date_started=datetime.utcnow())
-
 
 if __name__ == "__main__":
     zj = CeleryZenJobs()
@@ -88,4 +109,3 @@ class ZenJobs(object):
     Retained for backwards compatibility. Will be removed in the release after
     4.2.
     """
-
