@@ -34,7 +34,15 @@ from AccessControl import getSecurityManager
 from zenoss.protocols.interfaces import IQueueSchema
 from zenoss.protocols.services.triggers import TriggerServiceClient
 
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import (
+    MANAGER_ROLE, MANAGE_NOTIFICATION_SUBSCRIPTIONS, MANAGE_TRIGGER,
+    NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, NOTIFICATION_UPDATE_ROLE,
+    NOTIFICATION_VIEW_ROLE, OWNER_ROLE, TRIGGER_MANAGER_ROLE,
+    TRIGGER_UPDATE_ROLE, TRIGGER_VIEW_ROLE, UPDATE_NOTIFICATION,
+    UPDATE_TRIGGER, VIEW_NOTIFICATION, VIEW_TRIGGER,
+    ZEN_MANAGER_ROLE,
+)
+
 from Products.ZenModel.UserSettings import GroupSettings
 from Products.ZenModel.interfaces import IAction
 from zope.schema import getFields
