@@ -58,7 +58,10 @@ class EventsExporter(BrowserView):
                 event['DeviceClass'] =  event['DeviceClass']['name']
             if 'device_uuid' in event:
                 del event['device_uuid']
-            event.update(event['details'])
+
+            details = {detail['key']:detail['value'] for detail in event['details'] if detail['key'] not in event}
+            event.update(details)
+
             del event['details']
             del event['log']
             if not field_names:
