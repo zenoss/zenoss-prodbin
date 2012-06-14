@@ -127,6 +127,11 @@ class BrowserMessageBox(MessageBox):
         self.context = context
         self.messagebox = self.context.REQUEST.SESSION.get('messages', [])
 
+    def get_unread(self, min_priority=INFO):
+        msgs = super(BrowserMessageBox, self).get_unread(min_priority=min_priority)
+        # force the session to persist
+        self.context.REQUEST.SESSION._p_changed = True
+        return msgs
 
 class UserMessageBox(MessageBox):
     """
@@ -244,7 +249,3 @@ class ScriptMessageSender(MessageSender):
         pass
     def sendToUser(self, title, body, priority=INFO, image=None, user=None):
         pass
-
-
-
-
