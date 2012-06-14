@@ -1081,20 +1081,19 @@ def binPath(fileName):
     @return: path to file or '' if not found
     @rtype: string
     """
-    # bin and libexec are the usual suspect locations.
-    # ../common/bin and ../common/libexec are additional options for bitrock
+    # bin and libexec are the usual suspect locations
+    paths = [zenPath(d, fileName) for d in ('bin', 'libexec')]
     # $ZOPEHOME/bin is an additional option for appliance
-    for path in (zenPath(d, fileName) for d in [
-                'bin', 'libexec', '../common/bin', '../common/libexec'] + 
-                os.environ.get('PATH','').split(':')
-                 ):
+    paths.append(zopePath('bin', fileName))
+    # also check the standard locations for Nagios plugins (/usr/lib(64)/nagios/plugins)
+    paths.extend(sane_pathjoin(d, fileName) for d in ('/usr/lib/nagios/plugins',
+                                                      '/usr/lib64/nagios/plugins'))
+    # and fallback to checking the PATH
+    paths.extend(sane_pathjoin(d, fileName) for d in os.environ.get('PATH','').split(':'))
+    for path in paths:
         if os.path.isfile(path):
             return path
-    path = zopePath('bin', fileName)
-    if os.path.isfile(path):
-        return path
     return ''
-
 
 def extractPostContent(REQUEST):
     """
