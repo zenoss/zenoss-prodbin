@@ -426,8 +426,34 @@
                 start    : start,
                 limit    : pageSize
             }, options));
+        },
+
+        /**
+         * When prefetching by default only the number of rows that are visible
+         * are loaded into the store's data. This means that selection will only work
+         * on the visible area, not the prefetched page.
+         *
+         * This method changes it to load the entire page into the data instead of the viewSize.
+         *
+         **/
+        loadToPrefetch: function(options) {
+            var me = this,
+            waitForInitialRange = function() {
+                if (me.rangeCached(options.start, options.limit - 1)) {
+                    me.pageMap.un('pageAdded', waitForInitialRange);
+                    // JRH: guaranteeRange of pagesize not viewsize
+                    me.guaranteeRange(options.start, me.pageSize - 1);
+                }
+            };
+
+            // Wait for the requested range to become available in the page map
+            me.pageMap.on('pageAdded', waitForInitialRange);
+            return me.prefetch(options || {});
         }
 
     });
+
+
+
 
 }());
