@@ -117,10 +117,18 @@ YAHOO.namespace('zenoss.geomap');
             }else{
                 geocoder.geocode( { 'address': linkdata[index][0][0]}, function(results, status) {
                     if (status == google.maps.GeocoderStatus.OK) {   
-                        points.push(results[0].geometry.location);
+                        points.push([
+                                    results[0].geometry.location.lat(),
+                                    results[0].geometry.location.lng()
+                                    ]
+                        );
                         geocoder.geocode( { 'address': linkdata[index][0][1]}, function(results, status) {
                             if (status == google.maps.GeocoderStatus.OK) {
-                                points.push(results[0].geometry.location); 
+                                points.push([   
+                                            results[0].geometry.location.lat(),
+                                            results[0].geometry.location.lng()
+                                            ]
+                                ); 
                                 linepoints.push(points);
                                 _overlay.constructLine(color, points, true);
                             }else{
@@ -154,7 +162,10 @@ YAHOO.namespace('zenoss.geomap');
                 // in a comment, and the parser still picks it up and crashes!
                 contentString += '<a target="_top" href="'+clicklink+'">Go to the Infrastructure Location Organizer >';
             var marker = new google.maps.Marker( {
-                position: new google.maps.LatLng(results[0].geometry.location.$a,results[0].geometry.location.ab),
+                position: new google.maps.LatLng(
+                    results[0].geometry.location.lat(),
+                    results[0].geometry.location.lng()
+                ),
                 icon: pinImage,                    
                 map: gmap,
                 title: nodedata[index][0] 
@@ -188,7 +199,10 @@ YAHOO.namespace('zenoss.geomap');
                         
         },
         constructLine: function(color, points, geocoding){
-            points = [new google.maps.LatLng(points[0].$a,points[0].ab),new google.maps.LatLng(points[1].$a,points[1].ab)]; 
+            points = [
+                new google.maps.LatLng(points[0][0],points[0][1]),
+                new google.maps.LatLng(points[1][0],points[1][1])
+            ]; 
             var polyline = new google.maps.Polyline({
               path: points,
               strokeColor: color,
