@@ -24,6 +24,7 @@ from Products.ZenRRD.zenprocess import ZenProcessTask
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenHub.services.ProcessConfig import ProcessProxy
 
+IS_MD5 = re.compile('^[A-Fa-f0-9]{32}$')
 
 class Options(object): pass
 
@@ -213,7 +214,7 @@ class TestZenprocess(BaseTestCase):
 
     def updateProcDefs(self, procDefs, name, ignoreParams, regex):
         procDef = ProcessProxy()
-        procDef.name = name if len(name.split(' ')) > 1 else getProcessIdentifier(name, '')
+        procDef.name = name if IS_MD5.match(name.rsplit(' ',1)[-1]) else getProcessIdentifier(name, '')
         procDef.regex = re.compile(regex)
         procDef.ignoreParameters = ignoreParams
         procDefs[procDef.name] = procDef
@@ -485,6 +486,21 @@ class TestZenprocess(BaseTestCase):
         #TODO: INCORRECT FUNCTIONALITY: Clearly more than two should be missing here. In particular, the process testFourth has
         #      non-matching arguments. The lax matching after a failure is the culprit.
         #self.compareTestData(data, task, self.expected(MISSING=3))
+
+    def testDoubleSendmail(self):
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'sendmail_ accepting connections', False, 'sendmail')
+        self.updateProcDefs(procDefs, 'sendmail_ something else', False, 'sendmail')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'sendmail: accepting connections',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'sendmail: something else'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': 'sendmail: accepting connections',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.2': 'sendmail: something else'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': ''}}
+
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=2, MISSING=0, AFTERPIDTOPS=2))
 
     def testMingetty(self):
         """
