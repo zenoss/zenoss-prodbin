@@ -1530,7 +1530,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         split: 'true',
         width: 275,
         maxWidth: 275,
-        autoScroll: false,
+        autoScroll: false,        
         items: [
             {
                 id: 'trigger-master_panel_navigation',
@@ -1544,6 +1544,11 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 selModel: navSelectionModel,
                 layout: 'fit',
                 bodyStyle: { 'margin-top' : 10 },
+                listeners: {
+                    render: function(f){
+                        f.getView().getSelectionModel().select(0);
+                    }
+                },                
                 store: masterPanelTreeStore
             }
         ]
