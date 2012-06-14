@@ -53,6 +53,9 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
     def __str__(self):
         return self.id
 
+    def __repr__(self):
+        return '%s:%s' % (self.__class__.__name__, self.id)
+
 pb.setUnjellyableForClass(DeviceProxy, DeviceProxy)
 
 

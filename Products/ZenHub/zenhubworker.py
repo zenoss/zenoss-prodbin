@@ -28,7 +28,7 @@ from twisted.internet import reactor
 from ZODB.POSException import ConflictError
 from collections import defaultdict
 
-import pickle
+import cPickle as pickle
 import time
 import signal
 import os
@@ -159,7 +159,13 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         def runOnce():
             self.syncdb()
             res = m(*args, **kw)
-            return res
+            pickled_res = pickle.dumps(res, pickle.HIGHEST_PROTOCOL)
+            chunkedres=[]
+            chunkSize = 102400
+            while pickled_res:
+                chunkedres.append(pickled_res[:chunkSize])
+                pickled_res = pickled_res[chunkSize:]
+            return chunkedres
         try:
             for i in range(4):
                 try:

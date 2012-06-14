@@ -30,7 +30,7 @@ from XmlRpcService import XmlRpcService
 import collections
 import socket
 import time
-import pickle
+import cPickle as pickle
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
@@ -249,7 +249,7 @@ class WorkerInterceptor(pb.Referenceable):
         # PB has a 640k limit, not bytes but len of sequences. When args are
         # pickled the resulting string may be larger than 640k, split into
         # 100k chunks
-        pickledArgs = pickle.dumps( (args, kw) )
+        pickledArgs = pickle.dumps( (args, kw), pickle.HIGHEST_PROTOCOL )
         chunkedArgs=[]
         chunkSize = 102400
         while pickledArgs:
@@ -588,6 +588,7 @@ class ZenHub(ZCmdBase):
                     if job is None: continue
                     worker.busy = True
                     def finished(result, finishedWorker, wId):
+                        result = pickle.loads(''.join(result))
                         stats = self.workTracker.pop(wId,None)
                         if stats:
                             elapsed  = time.time() - stats[1]
