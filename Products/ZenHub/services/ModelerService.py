@@ -19,7 +19,6 @@ from ZODB.transact import transact
 from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
-
 from Products.DataCollector.Plugins import loadPlugins
 
 import logging
@@ -36,7 +35,7 @@ class ModelerService(PerformanceConfig):
             'applyDataMaps': 0.5,
             }
 
-    def createDeviceProxy(self, dev):
+    def createDeviceProxy(self, dev, skipModelMsg=''):
         if self.plugins is None:
             self.plugins = {}
             for loader in loadPlugins(self.dmd):
@@ -49,18 +48,21 @@ class ModelerService(PerformanceConfig):
 
         result = DeviceProxy()
         result.id = dev.getId()
-        if not dev.manageIp:
-            dev.setManageIp()
-        result.manageIp = dev.manageIp
-        result.plugins = []
-        for name in dev.zCollectorPlugins:
-            plugin = self.plugins.get(name, None)
-            log.debug('checking plugin %s for device %s' % (name, dev.getId()))
-            if plugin and plugin.condition(dev, log):
-                log.debug('adding plugin %s for device %s' % (name,dev.getId()))
-                result.plugins.append(plugin.loader)
-                plugin.copyDataToProxy(dev, result)
-        result.temp_device = dev.isTempDevice()
+        result.skipModelMsg = skipModelMsg
+
+        if not skipModelMsg:
+            if not dev.manageIp:
+                dev.setManageIp()
+            result.manageIp = dev.manageIp
+            result.plugins = []
+            for name in dev.zCollectorPlugins:
+                plugin = self.plugins.get(name, None)
+                log.debug('checking plugin %s for device %s' % (name, dev.getId()))
+                if plugin and plugin.condition(dev, log):
+                    log.debug('adding plugin %s for device %s' % (name,dev.getId()))
+                    result.plugins.append(plugin.loader)
+                    plugin.copyDataToProxy(dev, result)
+            result.temp_device = dev.isTempDevice()
         return result
 
     @translateError
@@ -80,16 +82,20 @@ class ModelerService(PerformanceConfig):
             if not device:
                 continue
             device = device.primaryAq()
+            skipModelMsg = ''
+
+            if device.isLockedFromUpdates():
+                skipModelMsg = "device %s is locked, skipping modeling" % device.id
             if checkStatus and (device.getPingStatus() > 0
                                 or device.getSnmpStatus() > 0):
-                log.info("device %s is down skipping modeling", device.id)
-                continue
-
+                skipModelMsg = "device %s is down skipping modeling" % device.id
             if (device.productionState <
                 device.getProperty('zProdStateThreshold', 0)):
-                log.info("device %s is below zProdStateThreshold", device.id)
-                continue
-            result.append(self.createDeviceProxy(device))
+                skipModelMsg = "device %s is below zProdStateThreshold" % device.id
+            if skipModelMsg:
+                log.info(skipModelMsg)
+
+            result.append(self.createDeviceProxy(device, skipModelMsg))
         return result
 
     @translateError

@@ -852,7 +852,11 @@ class ZenModeler(PBDaemon):
                 # just collect one device, and let the timer add more
                 devices = driver.next()
                 if devices:
-                    self.collectDevice(devices[0])
+                    d = devices[0]
+                    if d.skipModelMsg:
+                        self.log.info(d.skipModelMsg)
+                    else:
+                        self.collectDevice(d)
                 else:
                     self.log.info("Device %s not returned is it down?", device)
             except StopIteration:
