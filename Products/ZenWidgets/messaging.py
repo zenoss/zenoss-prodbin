@@ -130,7 +130,8 @@ class BrowserMessageBox(MessageBox):
     def get_unread(self, min_priority=INFO):
         msgs = super(BrowserMessageBox, self).get_unread(min_priority=min_priority)
         # force the session to persist
-        self.context.REQUEST.SESSION._p_changed = True
+        if msgs:
+            self.context.REQUEST.SESSION._p_changed = True
         return msgs
 
 class UserMessageBox(MessageBox):
