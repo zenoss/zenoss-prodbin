@@ -1071,8 +1071,6 @@ def binPath(fileName):
     True
     >>> len(binPath('zeoup.py')) > 0 # This doesn't exist in Zope 2.12
     False
-    >>> len(binPath('check_http')) > 0
-    True
     >>> binPath('Idontexistreally') == ''
     True
 
