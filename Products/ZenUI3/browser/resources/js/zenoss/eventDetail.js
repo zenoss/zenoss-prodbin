@@ -556,7 +556,16 @@ Ext.onReady(function() {
                 cmp.show();
             }
             else {
+                /*
+                 *  ZEN-2267: IE specific hack for event details sections. Event
+                 *  details disappear when hide() is called.
+                 */
+                var innerHTML = cmp.getEl().dom.innerHTML;
                 cmp.hide();
+                //Repopulate this field
+                if (Ext.isIE) {
+                    cmp.getEl().dom.innerHTML = innerHTML;
+                }
             }
         },
 
