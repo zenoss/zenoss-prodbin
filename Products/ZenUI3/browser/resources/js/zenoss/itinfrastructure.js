@@ -387,20 +387,6 @@ Ext.apply(Zenoss.devices, {
                         handler: function(b) {
                             var form = win.childPanel.getForm();
                             var opts = form.getValues();
-                            /* adjust the system paths and grouppaths
-                               What is this strange line with splits and joins you may ask?
-                               opts.* sends multiselect values in a , delimited string that looks like:
-                               /Something,/Somethingelse,/Name contains , here,/Etc
-                               Since we don't want to limit user on , usage in their names - we take the , delimiter and
-                               replace it with something they most certainly will never use; ^ and split on that instead
-                               Ticket #29614 fix.
-                            */
-                            if (opts.systemPaths) {
-                                opts.systemPaths = opts.systemPaths.split(",/").join("^/").split("^");
-                            }
-                            if (opts.groupPaths) {
-                                opts.groupPaths = opts.groupPaths.split(",/").join("^/").split("^");
-                            }
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
                                 if (!response.success) {
                                     Zenoss.message.error(_t('Error adding device job.'));
@@ -409,64 +395,16 @@ Ext.apply(Zenoss.devices, {
                         }
                     }, Zenoss.dialog.CANCEL],
                 title: _t('Add a Single Device'),
-                addOrganizers: function(response){
-                    if (Ext.isDefined(response.systems)) {
-                        this.systems = Ext.pluck(response.systems, 'name');
-                    }
-
-                    if (Ext.isDefined(response.groups)) {
-                        this.groups = Ext.Array.pluck(response.groups, 'name');
-                    }
-
-                    var panel = Ext.getCmp('add-device-organizer-column');
-                    if (Ext.isDefined(this.systems) && Ext.isDefined(this.groups)) {
-
-                        panel.add([{
-                            xtype: 'multiselect',
-                            fieldLabel: _t('Groups'),
-                            name: 'groupPaths',
-                            width: 200,
-                            store: this.groups,
-                            cls: 'multiselect-form-field',
-                            // there is a bug in the multi select libarary to where
-                            // clientvalidation calls getValue before the control is properly setup.
-                            // The control is set up in OnRender which is not called yet because it is hidden
-                            // until the user presses the "more" link"
-                            // We get around that by creating a dummy view on the multi-selects
-                            view: new Ext.ListView({
-                                columns: [{ header: 'Value', width: 1, dataIndex: "test" }]
-                            })
-                        },{
-                            xtype: 'multiselect',
-                            fieldLabel: _t('Systems'),
-                            name: 'systemPaths',
-                            width: 200,
-                            store: this.systems,
-                            cls: 'multiselect-form-field',
-                            view: new Ext.ListView({
-                                columns: [{ header: 'Value', width: 1, dataIndex: "test" }]
-                            })
-                        }]);
-                        panel.doLayout();
-                    }
-
-                },
                 listeners: {
                     show: function(panel) {
-                        if (!Ext.isDefined(this.systems) && !(Ext.isDefined(this.groups))) {
-                            REMOTE.getSystems({}, Ext.bind(panel.addOrganizers, panel));
-                            REMOTE.getGroups({}, Ext.bind(panel.addOrganizers, panel));
-                            // iterate through all the 'inputs' and generate our own IDs for them
-                            if(Zenoss.SELENIUM){
-                                var formArray = panel.childPanel.query('.field');
-                                var i = 0;
-                                for(i = 0; i < formArray.length; i++){
-                                    Ext.getDom(formArray[i].getInputId()).id = "add_device-input-"+i;
-                                }
-                                panel.query('.button')[1].id = "addsingledevice-cancel";
+                        if(Zenoss.SELENIUM){
+                            var formArray = panel.childPanel.query('.field');
+                            var i = 0;
+                            for(i = 0; i < formArray.length; i++){
+                                Ext.getDom(formArray[i].getInputId()).id = "add_device-input-"+i;
                             }
+                            panel.query('.button')[1].id = "addsingledevice-cancel";
                         }
-
                     }
                 },
                 items: [{
@@ -675,6 +613,20 @@ Ext.apply(Zenoss.devices, {
                                 name: 'locationPath',
                                 fieldLabel: _t('Location'),
                                 emptyText: _t('None...'),
+                                width: 200
+                            },{
+                                xtype: 'groupdropdown',
+                                name: 'groupPaths',
+                                fieldLabel: _t('Groups'),
+                                emptyText: _t('None...'),
+                                multiSelect: true,
+                                width: 200
+                            },{
+                                xtype: 'systemdropdown',
+                                name: 'systemPaths',
+                                fieldLabel: _t('Systems'),
+                                emptyText: _t('None...'),
+                                multiSelect: true,
                                 width: 200
                             }]
                         }]
