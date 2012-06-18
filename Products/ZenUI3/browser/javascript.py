@@ -56,23 +56,12 @@ class JavaScriptSrcBundleViewlet(ViewletBase):
         vals = []
         if self.paths:
             for path in self.paths.split():
-                vals.append(SCRIPT_TAG_SRC_TEMPLATE % path)
+                versionedPath = '%s?v=%s' % (path, VERSION)
+                vals.append(SCRIPT_TAG_SRC_TEMPLATE % versionedPath)
         js = ''
         if vals:
             js = "".join(vals)
         return js
-
-
-class ExtBaseJs(JavaScriptSrcViewlet):
-    zope.interface.implements(IJavaScriptSrcViewlet)
-
-    def update(self):
-        pass
-        # if Globals.DevelopmentMode:
-        #     self.path = "/++resource++extjs/adapters/ext/ext.js"
-        # else:
-        #     self.path = "/++resource++extjs/adapters/ext/ext.js"
-
 
 class ZenossAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
