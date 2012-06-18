@@ -25,8 +25,8 @@ zenlog = logging.getLogger("zen.pbclientfactory")
 from twisted.spread import pb
 
 from twisted.spread.pb import PBClientFactory
-from twisted.internet import protocol
-from twisted.python import log
+from twisted.internet import protocol, reactor, defer, task
+from twisted.internet.error import ConnectionClosed
 
 class ReconnectingPBClientFactory(PBClientFactory,
                                   protocol.ReconnectingClientFactory):
@@ -62,14 +62,35 @@ class ReconnectingPBClientFactory(PBClientFactory,
     # reconnect
     maxDelay = 300
 
-    def __init__(self):
+    def __init__(self, connectTimeout=30, pingPerspective=False, pingInterval=30, pingtimeout=120):
         PBClientFactory.__init__(self)
         self._doingLogin = False
         self._doingGetPerspective = False
+        self._scheduledConnectTimeout = None
+        self._connectTimeout = connectTimeout
+        # should the perspective be pinged. Perspective must have a ping method
+        self._shouldPingPerspective = pingPerspective
+        # how often to ping
+        self._pingInterval = pingInterval
+        # how long to wait for a ping before closing connection
+        self._pingTimeoutTime = pingtimeout
+        # ref to the scheduled ping timeout call
+        self._pingTimeout = None
+        # looping call doing the ping
+        self._pingCheck = None
+
+        self._perspective = None
+
+    def connectTCP(self, host, port):
+        factory = self
+        self.connector = reactor.connectTCP(host, port, factory)
+        return self.connector
 
     def clientConnectionFailed(self, connector, reason):
         zenlog.debug("Failed to create connection to %s:%s - %s",
                      connector.host, connector.port, reason)
+        self._perspective = None
+        self._cancelConnectTimeout()
         PBClientFactory.clientConnectionFailed(self, connector, reason)
         # Twisted-1.3 erroneously abandons the connection on non-UserErrors.
         # To avoid this bug, don't upcall, and implement the correct version
@@ -81,6 +102,8 @@ class ReconnectingPBClientFactory(PBClientFactory,
     def clientConnectionLost(self, connector, reason, reconnecting=1):
         zenlog.debug("Lost connection to %s:%s - %s", connector.host,
                      connector.port, reason)
+        self._perspective = None
+        self._cancelConnectTimeout()
         PBClientFactory.clientConnectionLost(self, connector, reason,
                                              reconnecting=reconnecting)
         RCF = protocol.ReconnectingClientFactory
@@ -88,13 +111,20 @@ class ReconnectingPBClientFactory(PBClientFactory,
 
     def clientConnectionMade(self, broker):
         zenlog.debug("Connected")
+        self._cancelConnectTimeout()
         self.resetDelay()
         PBClientFactory.clientConnectionMade(self, broker)
         if self._doingLogin:
+            self._startConnectTimeout("Login")
             self.doLogin(self._root)
         if self._doingGetPerspective:
             self.doGetPerspective(self._root)
         self.gotRootObject(self._root)
+
+    def startedConnecting(self, connector):
+        zenlog.debug("Starting connection...")
+        self._startConnectTimeout("Initial connect")
+        self.connecting()
 
     def __getstate__(self):
         # this should get folded into ReconnectingClientFactory
@@ -123,7 +153,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
         d = self._cbAuthIdentity(root, username, password)
         d.addCallback(self._cbGetPerspective,
                       serviceName, perspectiveName, client)
-        d.addCallbacks(self.gotPerspective, self.failedToGetPerspective)
+        d.addCallbacks(self._gotPerspective, self.failedToGetPerspective)
 
 
     # newcred methods
@@ -140,13 +170,102 @@ class ReconnectingPBClientFactory(PBClientFactory,
 
     def doLogin(self, root):
         # newcred login()
+        zenlog.debug("Sending credentials")
         d = self._cbSendUsername(root, self._credentials.username,
                                  self._credentials.password, self._client)
-        d.addCallbacks(self.gotPerspective, self.failedToGetPerspective)
+        d.addCallbacks(self._gotPerspective, self.failedToGetPerspective)
         return d
 
+    def _gotPerspective(self, perspective):
+        self._cancelConnectTimeout()
+        self._cancelPingTimeout()
+        self._perspective = perspective
+        if self._shouldPingPerspective:
+            reactor.callLater(0, self._startPingCycle)
+        self.gotPerspective(perspective)
+
+
+    def _disconnect(self):
+        if self._broker:
+            self.disconnect()
+        elif self.connector:
+            try:
+                self.connector.disconnect()
+            except Exception:
+                zenlog.exception('Could not disconnect')
+        else:
+            zenlog.debug('No connector or broker to disconnect')
+
+    # methods for connecting and login timeout
+    def _startConnectTimeout(self, msg):
+        self._cancelConnectTimeout()
+        self._scheduledConnectTimeout = reactor.callLater(self._connectTimeout, self._timeoutConnect, msg)
+
+    def _timeoutConnect(self, msg):
+        zenlog.info("%s timed out after %s seconds", msg, self._connectTimeout)
+        self._disconnect()
+
+    def _cancelConnectTimeout(self):
+        self._scheduledConnectTimeout, timeout = None, self._scheduledConnectTimeout
+        if timeout and timeout.active():
+            zenlog.debug("Cancelling connect timeout")
+            timeout.cancel()
+
+    # methods to check connection is active
+    def _startPingTimeout(self):
+        if not self._pingTimeout:
+            self._pingTimeout = reactor.callLater(self._pingTimeoutTime,
+                self._doPingTimeout)
+
+    def _cancelPingTimeout(self):
+        self._pingTimeout, timeout = None, self._pingTimeout
+        if timeout and timeout.active():
+            zenlog.debug("Cancelling ping timeout")
+            timeout.cancel()
+
+    def _doPingTimeout(self):
+        if self._perspective:
+            zenlog.warn("Perspective ping timed out after %s seconds", self._pingTimeoutTime)
+            self._disconnect()
+
+    @defer.inlineCallbacks
+    def _startPingCycle(self):
+        if not self._pingCheck:
+            pingCheck = task.LoopingCall(self._pingPerspective)
+            self._pingCheck = pingCheck
+            try:
+                yield pingCheck.start(self._pingInterval)
+            except Exception:
+                zenlog.exception("perspective ping loop died")
+            finally:
+                # should only happen at shutdown
+                zenlog.info("perspective ping loop ended")
+
+    @defer.inlineCallbacks
+    def _pingPerspective(self):
+        try:
+            if self._perspective:
+                zenlog.debug('pinging perspective')
+                self._startPingTimeout()
+                response = yield self._perspective.callRemote('ping')
+                zenlog.debug("perspective %sed", response)
+            else:
+                zenlog.debug('skipping perspective ping')
+            self._cancelPingTimeout()
+        except ConnectionClosed:
+            zenlog.info("Connection was closed")
+            self._cancelPingTimeout()
+        except Exception:
+            zenlog.exception("ping perspective exception")
 
     # methods to override
+
+    def connecting(self):
+        """
+        Called when a connection is about to be attempted. Can be the initial
+        connect or a retry/reconnect
+        """
+        pass
 
     def gotPerspective(self, perspective):
         """The remote avatar or perspective (obtained each time this factory
@@ -164,17 +283,18 @@ class ReconnectingPBClientFactory(PBClientFactory,
         failure (bad password), but it is also possible that we lost the new
         connection before we managed to send our credentials.
         """
-        log.msg("ReconnectingPBClientFactory.failedToGetPerspective")
+        self._cancelConnectTimeout()
+        zenlog.debug("ReconnectingPBClientFactory.failedToGetPerspective")
         if why.check(pb.PBConnectionLost):
-            log.msg("we lost the brand-new connection")
+            zenlog.debug("we lost the brand-new connection")
             # retrying might help here, let clientConnectionLost decide
             return
 
+        zenlog.warning("Cancelling attempts to connect")
         self.stopTrying() # logging in harder won't help
         if why.type == 'twisted.cred.error.UnauthorizedLogin':
             zenlog.critical("zenhub username/password combination is incorrect!")
             # Don't exit as Enterprise caches info and can survive
         else:
             zenlog.critical("Unknown connection problem to zenhub %s", why.type)
-            log.err(why)
 

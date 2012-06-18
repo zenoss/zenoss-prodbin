@@ -144,6 +144,10 @@ class HubAvitar(pb.Avatar):
     def __init__(self, hub):
         self.hub = hub
 
+
+    def perspective_ping(self):
+        return 'pong'
+
     def perspective_getService(self,
                                serviceName,
                                instance = None,

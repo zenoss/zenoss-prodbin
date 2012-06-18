@@ -156,7 +156,14 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.counters = collections.Counter()
         self.loadCounters()
         self._heartbeatEvent = None
-        self._performanceEventsQueue = None 
+        self._performanceEventsQueue = None
+        self._pingedZenhub = None
+
+    def connecting(self):
+        """
+        Called when about to connect to zenhub
+        """
+        self.log.info("Attempting to connect to zenhub")
 
     def gotPerspective(self, perspective):
         """
@@ -175,15 +182,18 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def connect(self):
-        factory = ReconnectingPBClientFactory()
+        pingInterval = self.options.zhPingInterval
+        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=True,
+            pingInterval=pingInterval, pingtimeout=pingInterval * 5)
         self.log.info("Connecting to %s:%d" % (self.options.hubhost,
             self.options.hubport))
-        reactor.connectTCP(self.options.hubhost, self.options.hubport, factory)
+        factory.connectTCP(self.options.hubhost, self.options.hubport)
         username = self.options.hubusername
         password = self.options.hubpassword
         self.log.debug("Logging in as %s" % username)
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
+        factory.connecting = self.connecting
         factory.startLogin(c)
         def timeout(d):
             if not d.called:
@@ -447,6 +457,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                     performanceEvents.reverse()
                     self._performanceEvents.extend(performanceEvents)
                     break
+                self.log.debug("Events sent")
                 self._heartbeatEvent = None
         except Exception, ex:
             self.log.exception(ex)
@@ -578,6 +589,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                help='Maximum number of events to queue')
 
+        self.parser.add_option('--zenhubpinginterval',
+                               dest='zhPingInterval',
+                               default=30,
+                               type='int',
+                               help='How often to ping zenhub')
 
         ZenDaemon.buildOptions(self)
 
