@@ -196,7 +196,11 @@ def getAcquiredZPropertyInfo(obj, zProp, translate=lambda x: x):
     for ancestor in aq_chain(obj)[1:]:
         if isinstance(ancestor, ZenPropertyManager) and ancestor.hasProperty(zProp):
             info = {'ancestor': ancestor.titleOrId()}
-            ancestorValue = getattr(ancestor, zProp)
+            try:
+                ancestorValue = getattr(ancestor, zProp)
+            except AttributeError:
+                log.error("Unable to acquire value for %s", zProp)
+                continue
             info['acquiredValue'] = _translateZPropertyValue(zProp, translate, ancestorValue)
             break
     else:
