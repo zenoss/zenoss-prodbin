@@ -93,8 +93,6 @@ Ext.define("Zenoss.JobsWidget", {
     extend: "Ext.Button",
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
-            stateful: true,
-            stateEvents: 'update',
             menuAlign: 'br-tr?',
             menu: {
                 layout: 'fit',
@@ -189,14 +187,18 @@ Ext.define("Zenoss.JobsWidget", {
         this.callParent([config]);
         this.on('render', this.on_render, this, {single:true});
         this.on('menushow', function(e){
-            e.menu.hide(); 
+            e.menu.hide();
             /*  forcing a recalc of x y when new items are added */
             new Ext.util.DelayedTask(function(){
-                e.menu.show(); 
-            }).delay(500); 
+                e.menu.show();
+            }).delay(500);
 
         }, this, {single:true});
         this.pollTask = new Ext.util.DelayedTask(this.poll, this);
+    },
+    initComponent: function() {
+        self.lastchecked = Ext.util.Cookies.get('jobswidget_update') || 0;
+        this.callParent(arguments);
     },
     on_render: function() {
         this.menucontainer = this.menu.items.items[0];
@@ -214,12 +216,6 @@ Ext.define("Zenoss.JobsWidget", {
                 }, this);
             }
         }, this);
-    },
-    getState: function() {
-        return {'lastchecked':this.lastchecked};
-    },
-    applyState: function(state) {
-        this.lastchecked = state.lastchecked;
     },
     init_tip: function() {
         var me = this,
@@ -306,7 +302,7 @@ Ext.define("Zenoss.JobsWidget", {
     },
     set_lastchecked: function() {
         this.lastchecked = (new Date().getTime()/1000);
-        this.fireEvent('update', this);
+        Ext.util.Cookies.set('jobswidget_update', this.lastchecked);
     },
     update: function() {
         REMOTE.userjobs({}, function(result){
