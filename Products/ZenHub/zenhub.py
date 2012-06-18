@@ -31,6 +31,7 @@ import collections
 import socket
 import time
 import cPickle as pickle
+import os
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
@@ -362,6 +363,8 @@ class ZenHub(ZCmdBase):
         reactor.callLater(5, self.processQueue)
 
         self.rrdStats = self.getRRDStats()
+        self.workerconfig = zenPath('var', 'zenhub', '%s_worker.conf' % self._getConf().id)
+        self._createWorkerConf()
         for i in range(int(self.options.workers)):
             self.createWorker()
 
@@ -641,6 +644,17 @@ class ZenHub(ZCmdBase):
                 if priority < (workerId+1) / lenWorkers:
                     return self.workList.pop(i)
 
+    def _createWorkerConf(self):
+        workerconfigdir = os.path.dirname(self.workerconfig)
+        if not os.path.exists(workerconfigdir):
+            os.makedirs(workerconfigdir)
+        with open(self.workerconfig,'w') as workerfd:
+            workerfd.write("hubport %s\n" % self.options.pbport)
+            workerfd.write("username %s\n" % self.workerUsername)
+            workerfd.write("password %s\n" % self.workerPassword)
+            workerfd.write("logseverity %s\n" % self.options.logseverity)
+            workerfd.write("zodb-cachesize %s\n" % self.options.zodb_cachesize)
+
     def createWorker(self):
         """Start a worker subprocess
 
@@ -650,18 +664,6 @@ class ZenHub(ZCmdBase):
         if len(self.worker_processes) >= self.options.workers:
             self.log.info("already at maximum number of worker processes, no worker will be created")
             return
-        # create a config file for the slave to pass credentials
-        import os, tempfile
-        fd, tmp = tempfile.mkstemp()
-        try:
-            os.write(fd, "hubport %s\n" % self.options.pbport)
-            os.write(fd, "username %s\n" % self.workerUsername)
-            os.write(fd, "password %s\n" % self.workerPassword)
-            os.write(fd, "logseverity %s\n" % self.options.logseverity)
-            os.write(fd, "zodb-cachesize %s\n" % self.options.zodb_cachesize)
-        finally:
-            os.close(fd)
-        # start the worker
         exe = zenPath('bin', 'zenhubworker')
 
         # watch for output, and generally just take notice
@@ -671,7 +673,6 @@ class ZenHub(ZCmdBase):
                 self._pid = 0
                 self.parent = parent
                 self.log = parent.log
-                self.tmp = tmp
 
             @property
             def pid(self):
@@ -688,7 +689,6 @@ class ZenHub(ZCmdBase):
                 self.log.info("Worker (%d) reports %s" % (self.pid, data.rstrip(),))
 
             def processEnded(self, reason):
-                os.unlink(self.tmp)
                 self.parent.worker_processes.discard(self)
                 self.parent.workerprocessmap.pop(self.pid, None)
                 self.log.warning("Worker (%d) exited with status: %d (%s)",
@@ -700,7 +700,7 @@ class ZenHub(ZCmdBase):
                     self.log.info("Starting new zenhubworker")
                     self.parent.createWorker()
 
-        args = (exe, 'run', '-C', tmp)
+        args = (exe, 'run', '-C', self.workerconfig)
         self.log.debug("Starting %s", ' '.join(args))
         prot = WorkerRunningProtocol(self)
         proc = reactor.spawnProcess(prot, exe, args, os.environ)
@@ -765,6 +765,9 @@ class ZenHub(ZCmdBase):
                 pass
             except Exception:
                 pass
+        workerconfig = getattr(self,'workerconfig', None)
+        if workerconfig and os.path.exists(workerconfig):
+            os.unlink(self.workerconfig)
         getUtility(IEventPublisher).close()
 
     def buildOptions(self):
