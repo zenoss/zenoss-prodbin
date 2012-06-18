@@ -35,6 +35,7 @@ import threading
 import warnings
 import math
 import contextlib
+import string
 from decimal import Decimal
 import asyncore
 import copy
