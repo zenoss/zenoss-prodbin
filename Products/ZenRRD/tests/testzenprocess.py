@@ -250,9 +250,9 @@ class TestZenprocess(BaseTestCase):
         name = base + '/' + procDefFile
         try:
             for line in open(name).readlines():
-                modeler_match, useArgs, regex = line.rsplit(None, 2)
+                procname, md5, useArgs, regex = line.rsplit(None, 3)
                 useArgs = True if useArgs.strip() == 'True' else False
-                self.updateProcDefs(procDefs, modeler_match.strip(), useArgs, regex.strip())
+                self.updateProcDefs(procDefs, ' '.join((procname.strip(), md5.strip())), useArgs, regex.strip())
         except Exception, ex:
             log.warn('Unable to evaluate data file %s because %s',
                      name, str(ex))
@@ -799,7 +799,7 @@ class TestZenprocess(BaseTestCase):
 
     def testSpecialCharacterSuffix(self):
         procDefs = {}
-        self.updateProcDefs(procDefs, 'sendmail_', False, 'sendmail: accepting connections')
+        self.updateProcDefs(procDefs, 'sendmail_ accepting connections', False, 'sendmail')
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'sendmail: accepting connections'},
@@ -807,20 +807,6 @@ class TestZenprocess(BaseTestCase):
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': ''}}
         
         self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0))
-
-    def testDoubleSendmail(self):
-        procDefs = {}
-        self.updateProcDefs(procDefs, 'sendmail_', False, 'sendmail: accepting connections')
-        task = self.makeTask(procDefs)
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'sendmail: accepting connections',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'sendmail: accepting connections'},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': 'sendmail: accepting connections',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.2': 'sendmail: accepting connections'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.2': ''}}
-
-        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=1, MISSING=0, AFTERPIDTOPS=2))
 
     def testRemodelsAndChangeToIgnoreParamsTrue(self):
 
