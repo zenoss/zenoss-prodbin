@@ -688,7 +688,7 @@ def prepId(id, subchar='_'):
         if len(id) > 1: id = id[1:]
         else: id = "-"
     id = _cleanend("",id)
-    id = id.strip()
+    id = id.lstrip(string.whitespace + '_').rstrip()
     return str(id)
 
 
