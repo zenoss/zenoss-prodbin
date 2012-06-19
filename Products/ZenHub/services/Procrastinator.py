@@ -10,8 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
+import logging
 from twisted.internet import reactor, defer
+
+
+log = logging.getLogger('zen.Procrastinator')
+
 
 class Procrastinate(object):
     "A class to delay executing a change to a device"
@@ -33,7 +37,9 @@ class Procrastinate(object):
         self._stopping = True
         if not self.devices:
             return defer.succeed(True)
-        return self._stopping_deferred
+        log.info("Returning stopping deferred")
+        d, self._stopping_deferred = self._stopping_deferred, None
+        return d
 
     def doLater(self, device = None):
         if not self._stopping:
@@ -49,4 +55,5 @@ class Procrastinate(object):
             if self.devices:
                 reactor.callLater(Procrastinate._DO_NOW_DELAY, self._doNow)
             elif self._stopping:
+                log.info("Callback to _stopping_deferred")
                 self._stopping_deferred.callback(None)

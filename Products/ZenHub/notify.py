@@ -157,10 +157,10 @@ class BatchNotifier(object):
             LOG.debug("Notifier is now empty")
         if not self._queue and not self._current_item:
             isEmptyDeferred = defer.Deferred()
-            LOG.debug("Notifier is currently empty")
+            LOG.info("Notifier is currently empty")
             isEmptyDeferred.callback(None)
         elif not self._empty:
-            LOG.debug("Notifier is not currently empty, returning deferred")
+            LOG.info("Notifier is not currently empty, returning deferred")
             isEmptyDeferred = self._empty = defer.Deferred()
             isEmptyDeferred.addCallback(printEmpty)
         return isEmptyDeferred
