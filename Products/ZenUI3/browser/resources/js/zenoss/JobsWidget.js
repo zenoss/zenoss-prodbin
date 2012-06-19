@@ -197,7 +197,7 @@ Ext.define("Zenoss.JobsWidget", {
         this.pollTask = new Ext.util.DelayedTask(this.poll, this);
     },
     initComponent: function() {
-        self.lastchecked = Ext.util.Cookies.get('jobswidget_update') || 0;
+        this.lastchecked = Ext.util.Cookies.get('jobswidget_update') || 0;
         this.callParent(arguments);
     },
     on_render: function() {
