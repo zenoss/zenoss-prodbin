@@ -148,6 +148,18 @@ class DiscoverService(ModelerService):
         @param ip: The manageIp of the device
         @param kw: The args to manage_createDevice.
         """
+        # During discovery, if the device 
+        # shares an id with another device
+        # with a different ip, set the device
+        # title to the supplied id and replace
+        # the id with the ip
+        deviceName = kw['deviceName']
+        if deviceName:
+            device = self.dmd.Devices.findDeviceByIdExact(deviceName)
+            if device and ip != device.manageIp:
+                kw['deviceName'] = ip
+                kw['title'] = deviceName
+
         from Products.ZenModel.Device import getNetworkRoot
         @transact
         def _doDbWork():
