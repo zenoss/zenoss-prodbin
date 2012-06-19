@@ -268,12 +268,16 @@ Ext.define("Zenoss.JobsWidget", {
     update_button: function(totals) {
         var pending = lengthOrZero(totals.PENDING),
             running = lengthOrZero(totals.STARTED),
-            text;
+            text, cl, jobText;
         if (!pending && !running) {
-            text = _t("No background jobs");
+            text = _t("0 Jobs");
+            cl = 'circle_arrows_still';
         } else {
-            text = running + " jobs running (" + pending + " pending)";
+            running > 1 ? jobText = " Jobs" : jobText = " Job";
+            text = running + jobText + " ("+pending+" Pending)";
+            cl = 'circle_arrows_ani';
         }
+        this.setIconCls(cl);
         this.setText(text);
     },
     update_menu: function(jobs) {

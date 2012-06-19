@@ -8048,6 +8048,12 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-btn-default-toolbar-small span.x-btn-icon {
   background: transparent none top center no-repeat;
   background-image: url("/++resource++zenui/img/ext4/icon/icon-sprite.png") ; }
+.x-btn-default-toolbar-small span.x-btn-icon.circle_arrows_still {
+  background: transparent none top center no-repeat;
+  background-image: url("../img/ext4/icon/circle_arrows_still.png"); }
+.x-btn-default-toolbar-small span.x-btn-icon.circle_arrows_ani {
+  background: transparent none top center no-repeat;
+  background-image: url("../img/ext4/icon/circle_arrows_ani.gif"); }
 .x-btn-default-toolbar-small span.x-btn-icon.add {
   background-position: 0 1px; }
 .x-btn-default-toolbar-small span.x-btn-icon.delete {

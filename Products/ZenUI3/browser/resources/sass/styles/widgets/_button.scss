@@ -90,6 +90,17 @@
             background: transparent none top center no-repeat;
             @include zenoss-background-image("icon/icon-sprite.png");
         }
+        
+
+        span.#{$prefix}btn-icon.circle_arrows_still    { 
+            background: transparent none top center no-repeat;
+            background-image: url('../img/ext4/icon/circle_arrows_still.png');        
+        }   
+        
+        span.#{$prefix}btn-icon.circle_arrows_ani    { 
+            background: transparent none top center no-repeat;
+            background-image: url('../img/ext4/icon/circle_arrows_ani.gif');        
+        }           
 
         span.#{$prefix}btn-icon.add          { background-position: 0 $icon_begin; }
         span.#{$prefix}btn-icon.delete       { background-position: 0 $icon_begin - (18px * 1); }
