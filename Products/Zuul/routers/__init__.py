@@ -154,10 +154,11 @@ class TreeRouter(DirectRouter):
         childNodes = currentNode.children
         uuids = [n.uuid for n in childNodes if n.uuid]
         zep = Zuul.getFacade('zep', self.context.dmd)
-        severities = zep.getWorstSeverity(uuids)
-        for child in childNodes:
-            if child.uuid:
-                child.setSeverity(zep.getSeverityName(severities.get(child.uuid, 0)).lower())
+        if uuids:
+            severities = zep.getWorstSeverity(uuids)
+            for child in childNodes:
+                if child.uuid:
+                    child.setSeverity(zep.getSeverityName(severities.get(child.uuid, 0)).lower())
 
         children = []
         # explicitly marshall the children
