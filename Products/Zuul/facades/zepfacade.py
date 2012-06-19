@@ -530,6 +530,8 @@ class ZepFacade(ZuulFacade):
         @rtype: dict
         @return: A dictionary of UUID -> C{EventSeverity}
         """
+        if not tagUuids:
+            return {}
 
         # Prepopulate the list with defaults
         severities = dict.fromkeys(tagUuids, default)
