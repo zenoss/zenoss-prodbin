@@ -212,7 +212,10 @@ class CommandPerformanceConfig(CollectorConfigService):
         )
         if kwargs:
             ev.update(kwargs)
-        self.sendEvent(ev)
+        try:
+            self.sendEvent(ev)
+        except Exception:
+            log.exception('Failed to send event: %r', ev)
 
     def _warnUsernameNotSet(self, device):
         """
