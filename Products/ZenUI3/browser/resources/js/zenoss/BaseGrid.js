@@ -691,6 +691,10 @@
                 //  1.  The data in the data store changes
                 //  2.  The user scrolls.
                 this.grid.getStore().on('datachanged', this.onDataChanged, this);
+                /*  added this guaranteedrange hack to make up for the ext bug where-by 
+                    updating store doesn't fire the datachanged except on load. 
+                */
+                this.grid.getStore().on('guaranteedrange', this.onDataChanged, this);                
                 this.grid.getView().on('bodyscroll', this.onScroll, this);
                 this.grid.getView().on('resize', this.onScroll, this);
             }
