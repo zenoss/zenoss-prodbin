@@ -195,7 +195,7 @@ class BatchDeviceDumper(ZCmdBase):
         if groups:
             result.append("setGroups=" + repr(["/"+"/".join(grp.getPrimaryPath()[4:]) for grp in groups]))
 
-        return (repr(dev.name()),result)
+        return (repr(dev.getId()),result)
 
     def _emitOrg(self, org):
         """
