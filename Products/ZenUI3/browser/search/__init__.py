@@ -19,8 +19,8 @@ class IncludeSearchBox(JavaScriptSrcViewlet):
     Checks for the existence of search providers.  If there are none,
     do not display the query widget.
     """
-    
-    path = "++resource++search/zenoss-search.js"
+
+    path = "/++resource++search/zenoss-search.js"
 
     def render(self):
         if not getFacade('search').noProvidersPresent():
