@@ -23,16 +23,17 @@
         </title>
         <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
-        <!-- link rel="stylesheet" type="text/css"
-            href="/++resource++extjs/resources/css/ext-all.css" / -->
-        <!-- <link rel="stylesheet" type="text/css" -->
-        <!--     href="/++resource++extjs/treegrid/treegrid.css" /> -->
+
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/xtheme-zenoss.css" />
+              tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/xtheme-zenoss.css')"
+            />
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zenoss.css" />
+              tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenoss.css')"
+            />
+
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zenui3.css" />
+              tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenui3.css')"
+            />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
         <script tal:define="container context/getPrimaryParent" tal:content="string:

@@ -19,14 +19,19 @@
 
 <tal:block metal:fill-slot="center_panel_content">
 <!--
-<script type='text/javascript' 
+<script type='text/javascript'
     src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'>
 </script>
 -->
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-<script src="/++resource++zenui/js/zenoss/itinfrastructure.js/"></script>
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/itinfrastructure.js')"
+>
+</script>
+
 <script>
 function changeDetail() {
     var where = window.location.href.split('#')[1],

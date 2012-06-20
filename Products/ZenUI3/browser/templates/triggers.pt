@@ -10,8 +10,13 @@
 <tal:block metal:fill-slot="center_panel_content">
 </tal:block>
 
-<tal:block metal:fill-slot="script_layout">    
-        <script src="/++resource++zenui/js/zenoss/triggers.js"></script>
+<tal:block metal:fill-slot="script_layout">
+
+  <script
+      tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/triggers.js')"
+      >
+  </script>
+
         <script>
         function changeDetail() {
             var where = window.location.href.split('#'),

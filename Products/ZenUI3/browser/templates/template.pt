@@ -21,7 +21,12 @@
 
 
 
-<script src="/++resource++zenui/js/zenoss/template.js"></script>
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/template.js')"
+>
+</script>
+
 
 </tal:block> <!-- metal:fill-slot="script_layout" -->
 

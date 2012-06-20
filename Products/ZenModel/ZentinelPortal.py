@@ -50,7 +50,7 @@ class ZentinelPortal ( PortalObjectBase ):
         )
     title = ''
     description = ''
-    
+
     security = ClassSecurityInfo()
 
     def __init__( self, id, title='' ):
@@ -129,7 +129,7 @@ class ZentinelPortal ( PortalObjectBase ):
 
         def mod_rewrite(matchobj):
             start, path, end = matchobj.groups()
-            if not path.startswith('javascript'): 
+            if not path.startswith('javascript'):
                 path = urlparse.urljoin(url, path)
             return start + path + end
 
@@ -140,7 +140,7 @@ class ZentinelPortal ( PortalObjectBase ):
 
         data = re.sub(allrefs, mod_rewrite, data)
         data = re.sub(proxyrefs, make_proxied, data)
-        for header in headers: 
+        for header in headers:
             REQUEST.RESPONSE.setHeader(header, headers[header])
         return data
 
@@ -149,7 +149,7 @@ class ZentinelPortal ( PortalObjectBase ):
         Return true if user is authenticated and has Manager role.
         """
         user = self.dmd.ZenUsers.getUser()
-        if user: 
+        if user:
             return user.has_role((MANAGER_ROLE, ZEN_MANAGER_ROLE), obj)
 
 
@@ -171,8 +171,12 @@ class ZentinelPortal ( PortalObjectBase ):
     def getZenossVersionShort(self):
         return self.About.getZenossVersionShort()
 
+    def getVersionedResourcePath(self, path):
+        from Products.ZenUI3.browser.javascript import getVersionedPath
+        return getVersionedPath(path)
+
     def getLoginButton(self):
-        return """<input id="loginButton" type="submit" name="submitbutton" 
+        return """<input id="loginButton" type="submit" name="submitbutton"
                 class="submitbutton" value=""/>"""
 
     def getExtraLoginFormContents(self):
@@ -253,7 +257,7 @@ class PortalGenerator:
                         MANAGER_ROLE, OWNER_ROLE])
         mp(ZEN_COMMON, ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
                         MANAGER_ROLE, OWNER_ROLE], 1)
-        
+
         # Events
         mp(ZEN_MANAGE_EVENTMANAGER,
             [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
@@ -261,30 +265,30 @@ class PortalGenerator:
             [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_SEND_EVENTS,
             [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        
-        mp(ZEN_CHANGE_ALERTING_RULES, 
+
+        mp(ZEN_CHANGE_ALERTING_RULES,
             [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
         mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         mp(ZEN_ADMIN_DEVICE, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         mp(ZEN_MANAGE_DEVICE, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         mp(ZEN_ZPROPERTIES_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_ZPROPERTIES_VIEW, 
+        mp(ZEN_ZPROPERTIES_VIEW,
             [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
         mp(ZEN_EDIT_LOCAL_TEMPLATES, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         mp(ZEN_RUN_COMMANDS, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         mp(ZEN_DEFINE_COMMANDS_EDIT, [MANAGER_ROLE], 1)
-        mp(ZEN_DEFINE_COMMANDS_VIEW, 
-            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)  
+        mp(ZEN_DEFINE_COMMANDS_VIEW,
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
         mp(ZEN_MAINTENANCE_WINDOW_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_MAINTENANCE_WINDOW_VIEW, 
+        mp(ZEN_MAINTENANCE_WINDOW_VIEW,
             [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
         mp(ZEN_ADMINISTRATORS_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_ADMINISTRATORS_VIEW, 
+        mp(ZEN_ADMINISTRATORS_VIEW,
             [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
         #mp(ZEN_EDIT_USER, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         #mp(ZEN_EDIT_USERGROUP, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        
+
     def setupDefaultSkins(self, p):
         from Products.CMFCore.DirectoryView import addDirectoryViews
         ps = getToolByName(p, 'portal_skins')

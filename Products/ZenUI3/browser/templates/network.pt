@@ -18,7 +18,13 @@
 <tal:block metal:fill-slot="title">Networks</tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-<script src="/++resource++zenui/js/zenoss/network.js"></script>
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/network.js')"
+>
+</script>
+
+
 </tal:block>
 
 </tal:block>

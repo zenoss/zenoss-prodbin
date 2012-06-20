@@ -17,11 +17,15 @@
         User Interface Configuration
       </tal:block>
       <tal:block metal:fill-slot="body">
-        <script src="/++resource++zenui/js/zenoss/uiconfig.js"></script>
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/uiconfig.js')"
+>
+</script>
+
         <div id="propList"></div>
         <div id="saveButton"></div>
       </tal:block>
     </tal:block>
   </tal:block>
 </tal:block>
-

@@ -10,9 +10,9 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import os
 import Globals
 import zope.interface
-
 from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
@@ -20,10 +20,33 @@ from Products.ZenUI3.browser.interfaces import IJavaScriptSrcViewlet,\
     IJavaScriptBundleViewlet, IJavaScriptSrcManager
 from Products.Five.viewlet.viewlet import ViewletBase
 from Products.ZenUI3.navigation.manager import WeightOrderedViewletManager
+from zope.publisher.browser import TestRequest
+from zope.component import getAdapter
 from Products.ZenModel.ZVersion import VERSION
+from Products.Zuul.decorators import memoize
+
+dummyRequest = TestRequest()
+
+@memoize
+def getPathModifiedTime(path):
+    """
+    This method takes a js request path such as /++resources++zenui/zenoss/file.js and
+    returns the last time the file was modified.
+    """
+    if "++resource++" in path:
+        identifier = path.split('/')[1].replace("++resource++", "")
+        filePath = path.replace("/++resource++" + identifier , "")
+        resource = getAdapter(dummyRequest, name=identifier)
+        fullPath = resource.context.path + filePath
+        if os.path.exists(fullPath):
+            return os.path.getmtime(fullPath)
 
 SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
 
+
+def getVersionedPath(path):
+    token = getPathModifiedTime(path) or VERSION
+    return '%s?v=%s' % (path, token)
 
 class MainSnippetManager(JavaScriptSnippetManager):
     """
@@ -43,7 +66,7 @@ class JavaScriptSrcViewlet(ViewletBase):
     def render(self):
         val = None
         if self.path:
-            val = SCRIPT_TAG_SRC_TEMPLATE % self.path
+            val = SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(self.path)
         return val
 
 
@@ -56,8 +79,7 @@ class JavaScriptSrcBundleViewlet(ViewletBase):
         vals = []
         if self.paths:
             for path in self.paths.split():
-                versionedPath = '%s?v=%s' % (path, VERSION)
-                vals.append(SCRIPT_TAG_SRC_TEMPLATE % versionedPath)
+                vals.append(SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(path))
         js = ''
         if vals:
             js = "".join(vals)
@@ -66,8 +88,10 @@ class JavaScriptSrcBundleViewlet(ViewletBase):
 class ZenossAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
 
-    def update(self):
-        self.path = '%s?v=%s' % ("zenoss-all.js", VERSION)
+    def render(self):
+        token = getPathModifiedTime("/++resource++zenui/js/deploy/zenoss-compiled.js") or VERSION
+        path = "%s?v=%s" %("zenoss-all.js", token)
+        return SCRIPT_TAG_SRC_TEMPLATE % (path)
 
 
 class ExtAllJs(JavaScriptSrcViewlet):

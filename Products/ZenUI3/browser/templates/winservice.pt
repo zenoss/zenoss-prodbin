@@ -18,11 +18,36 @@
 <tal:block metal:fill-slot="title">Windows Services</tal:block>
 
   <tal:block metal:fill-slot="script_layout">
-    <script src="/++resource++zenui/js/zenoss/service/grid.js"></script>
-    <script src="/++resource++zenui/js/zenoss/service/tree.js"></script>
-    <script src="/++resource++zenui/js/zenoss/service/nav.js"></script>
-    <script src="/++resource++zenui/js/zenoss/service/detailform.js"></script>
-    <script src="/++resource++zenui/js/zenoss/service/winservice.js"></script>
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/service/grid.js')"
+>
+</script>
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/service/tree.js')"
+>
+</script>
+
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/service/nav.js')"
+>
+</script>
+
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/service/detailform.js')"
+>
+</script>
+
+
+<script
+    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/service/winservice.js')"
+>
+</script>
+
+
   </tal:block> <!-- metal:fill-slot="script_layout" -->
 
 </tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->
