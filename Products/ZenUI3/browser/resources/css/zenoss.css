@@ -1601,3 +1601,13 @@ a.z-entity{
 a.z-entity:hover{
     color:#222255 !important;
 }
+/* event details */
+#evdetail_log{
+    margin-bottom:10px;
+}
+#evdetail_log-body{
+    height:170px !important;
+}
+#evdetail_services{
+    margin:10px 0 10px 25px;
+}
