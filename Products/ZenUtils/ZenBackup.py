@@ -30,6 +30,7 @@ import tarfile
 import tempfile
 import re
 import gzip
+from itertools import imap
 
 import Globals
 from ZCmdBase import ZCmdBase
@@ -253,19 +254,19 @@ class ZenBackup(ZenBackupBase):
                 self.log.debug(' '.join(command + ['*' * 8] + ['--no-data'] + database))
                 schema = subprocess.Popen(command + credential + ['--no-data'] + database,
                     stdout=subprocess.PIPE)
-                gf.writelines(schema.stdout)
+                gf.writelines(imap(strip_definer, schema.stdout))
                 schema_rc = schema.wait()
 
                 self.log.debug(' '.join(command + ['*' * 8] + ['--no-create-info'] + database + tables))
                 data = subprocess.Popen(command + credential + ['--no-create-info'] + database + tables,
                     stdout=subprocess.PIPE)
-                gf.writelines(data.stdout)
+                gf.writelines(imap(strip_definer, data.stdout))
                 data_rc = data.wait()
             else:
                 self.log.debug(' '.join(command + ['*' * 8] + database))
                 schema = subprocess.Popen(command + credential + database,
                     stdout=subprocess.PIPE)
-                gf.writelines(schema.stdout)
+                gf.writelines(imap(strip_definer, schema.stdout))
                 schema_rc = schema.wait()
 
                 data_rc = 0
