@@ -29,6 +29,7 @@ import subprocess
 import tarfile
 import tempfile
 import re
+import gzip
 
 import Globals
 from ZCmdBase import ZCmdBase
@@ -232,33 +233,44 @@ class ZenBackup(ZenBackupBase):
                         type='int',
                         help='Logging severity threshold')
 
+    def backupMySqlDb(self, host, port, db, user, passwdType, sqlFile, socket=None, tables=None):
+        command = ['mysqldump', '-u%s' %user, '--single-transaction']
+        credential = self.getPassArg(passwdType)
+        database = [db]
 
-    def backupMySqlDb(self, host, port, db, user, passwdType, sqlFile, socket=None):
-        cmd_p1 = ['mysqldump', '-u%s' % user]
-        cmd_p2 = ['--single-transaction', db]
         if host and host != 'localhost':
-            cmd_p2.append('-h%s' % host)
+            command.append('-h%s' % host)
             if self.options.compressTransport:
-                cmd_p2.append('--compress')
-        if port and port != '3306':
-            cmd_p2.append('--port=%s' % port)
+                command.append('--compress')
+        if port and str(port) != '3306':
+            command.append('--port=%s' % port)
         if socket:
-            cmd_p2.append('--socket=%s' % socket)
+            command.append('--socket=%s' % socket)
 
-        cmd = cmd_p1 + self.getPassArg(passwdType) + cmd_p2
-        obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
-        
-        self.log.debug(' '.join(obfuscated_cmd))
-        
-        with open(os.path.join(self.tempDir, sqlFile), 'wb') as zipfile:
-            mysqldump = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            gzip = subprocess.Popen(['gzip', '-c'], stdin=subprocess.PIPE, stdout=zipfile)
-            for mysqldump_line in mysqldump.stdout:
-                gzip.stdin.write(strip_definer(mysqldump_line))
-            gzip.stdin.close()
-            mysqldump.wait()
-            gzip.wait()
-            if gzip.returncode or mysqldump.returncode:
+        with gzip.open(os.path.join(self.tempDir, sqlFile),'wb') as gf:
+            # If tables are specified, backup db schema and data from selected tables.
+            if tables:
+                self.log.debug(' '.join(command + ['*' * 8] + ['--no-data'] + database))
+                schema = subprocess.Popen(command + credential + ['--no-data'] + database,
+                    stdout=subprocess.PIPE)
+                gf.writelines(schema.stdout)
+                schema_rc = schema.wait()
+
+                self.log.debug(' '.join(command + ['*' * 8] + ['--no-create-info'] + database + tables))
+                data = subprocess.Popen(command + credential + ['--no-create-info'] + database + tables,
+                    stdout=subprocess.PIPE)
+                gf.writelines(data.stdout)
+                data_rc = data.wait()
+            else:
+                self.log.debug(' '.join(command + ['*' * 8] + database))
+                schema = subprocess.Popen(command + credential + database,
+                    stdout=subprocess.PIPE)
+                gf.writelines(schema.stdout)
+                schema_rc = schema.wait()
+
+                data_rc = 0
+
+            if schema_rc or data_rc:
                 self.log.critical("Backup of (%s) terminated abnormally." % sqlFile)
                 return -1
 
@@ -278,33 +290,40 @@ class ZenBackup(ZenBackupBase):
         partBeginTime = time.time()
         
         # Setup defaults for db info
-        if self.options.fetchArgs and not self.options.noEventsDb:
+        if self.options.fetchArgs:
             self.log.info('Getting ZEP dbname, user, password, port from configuration files.')
             self.readZEPSettings()
 
-        self.log.info('Backing up the ZEP database.')
         if self.options.saveSettings:
             self.saveSettings()
-        
+
+        if self.options.noEventsDb:
+            self.log.info('Doing a partial backup of the events database.')
+            tables=['config','event_detail_index_config','event_trigger','event_trigger_subscription', 'schema_version']
+        else:
+            self.log.info('Backing up the events database.')
+            tables = None
+
         self.backupMySqlDb(self.options.zepdbhost, self.options.zepdbport,
                            self.options.zepdbname, self.options.zepdbuser,
-                           'zepdbpass', 'zep.sql.gz')
+                           'zepdbpass', 'zep.sql.gz', tables=tables)
 
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)
-        self.log.info("Backup of ZEP database completed in %s.", subtotalTime)
+        self.log.info("Backup of events database completed in %s.", subtotalTime)
 
-        zeneventserver_dir = zenPath('var', 'zeneventserver')
-        if self.options.noZepIndexes:
-            self.log.info('Not backing up ZEP indexes.')
-        elif self._zepRunning():
-            self.log.info('Not backing up ZEP indexes - it is currently running.')
-        elif os.path.isdir(zeneventserver_dir):
-            self.log.info('Backing up ZEP indexes.')
-            zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'), 'w')
-            zepTar.add(zeneventserver_dir, 'zeneventserver')
-            zepTar.close()
-            self.log.info('Backing up ZEP indexes completed.')
+        if not self.options.noEventsDb:
+            zeneventserver_dir = zenPath('var', 'zeneventserver')
+            if self.options.noZepIndexes:
+                self.log.info('Not backing up event indexes.')
+            elif self._zepRunning():
+                self.log.info('Not backing up event indexes - it is currently running.')
+            elif os.path.isdir(zeneventserver_dir):
+                self.log.info('Backing up event indexes.')
+                zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'), 'w')
+                zepTar.add(zeneventserver_dir, 'zeneventserver')
+                zepTar.close()
+                self.log.info('Backing up event indexes completed.')
 
     def backupZenPacks(self):
         """
@@ -352,7 +371,6 @@ class ZenBackup(ZenBackupBase):
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)
         self.log.info("Backup of ZODB database completed in %s.", subtotalTime)
-
 
     def backupPerfData(self):
         """
@@ -427,10 +445,12 @@ class ZenBackup(ZenBackupBase):
         self.log.debug("Use %s as a staging directory for the backup", self.tempDir)
         os.mkdir(self.tempDir, 0750)
 
-        if self.options.noEventsDb:
-            self.log.info('Skipping backup of events database.')
-        else:
+        # Do a full backup of zep if noEventsDb is false, otherwise only back
+        # up a small subset of tables to capture the event triggers.
+        if not self.options.noEventsDb or not self.options.noZopeDb:
             self.backupZEP()
+        else:
+            self.log.info('Skipping backup of the events database.')
 
         if self.options.noZopeDb:
             self.log.info('Skipping backup of ZODB.')
