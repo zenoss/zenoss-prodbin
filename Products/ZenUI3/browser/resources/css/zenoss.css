@@ -1611,3 +1611,6 @@ a.z-entity:hover{
 #evdetail_services{
     margin:10px 0 10px 25px;
 }
+#deviceoverviewpanel_summary-body{
+    overflow:auto !important;
+}
