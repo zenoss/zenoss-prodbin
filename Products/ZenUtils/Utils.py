@@ -39,6 +39,7 @@ import string
 from decimal import Decimal
 import asyncore
 import copy
+from functools import partial
 from decorator import decorator
 from itertools import chain
 import rrdtool
@@ -47,7 +48,7 @@ from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
 
 from popen2 import Popen4
-
+from twisted.internet import task, reactor
 from Acquisition import aq_base, aq_inner, aq_parent
 from zExceptions import NotFound
 from AccessControl import getSecurityManager, Unauthorized
@@ -1931,4 +1932,5 @@ class InterruptableThread(threading.Thread):
     def kill(self):
         self.interrupt(SystemExit)
 
+giveTimeToReactor = partial(task.deferLater, reactor, 0)
 

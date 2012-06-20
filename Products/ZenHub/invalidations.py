@@ -11,18 +11,30 @@
 #
 ###########################################################################
 import logging
-from zope.interface import implements
-from zope.component.event import objectEventNotify
+from zope.interface import implements, providedBy
 from zope.component import adapter, getGlobalSiteManager
-from twisted.internet import defer, reactor
+from twisted.internet import defer, reactor, task
 from BTrees.IIBTree import IITreeSet
 from ZODB.utils import u64
 from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.ZenUtils.Utils import giveTimeToReactor
 from .interfaces import IInvalidationProcessor, IHubCreatedEvent
 from .zodb import UpdateEvent, DeletionEvent
 
 log = logging.getLogger('zen.ZenHub')
+
+@defer.inlineCallbacks
+def betterObjectEventNotify(event):
+    """
+    This method re-implements zope.component.event.objectEventNotify to give
+    more time back to the reactor. It is slightly different, but works exactly
+    the same for our specific use case.
+    """
+    gsm = getGlobalSiteManager()
+    subscriptions = gsm.adapters.subscriptions(map(providedBy, (event.object, event)), None)
+    for subscription in subscriptions:
+        yield giveTimeToReactor(subscription, event.object, event)
 
 def handle_oid(dmd, oid):
     # Go pull the object out of the database
@@ -44,7 +56,8 @@ def handle_oid(dmd, oid):
             log.debug("Notifying services that %r has been updated" % obj)
             event = UpdateEvent(obj, oid)
         # Fire the event for all interested services to pick up
-        objectEventNotify(event)
+        return betterObjectEventNotify(event)
+
 
 
 class InvalidationProcessor(object):
@@ -91,17 +104,8 @@ class InvalidationProcessor(object):
         """
         Send to all the services that care by firing events.
         """
-        d = defer.Deferred()
-        # Closure to use as a callback
-        def inner(_ignored):
-            try:
-                handle_oid(dmd, oid)
-                # Return the oid, although we don't currently use it
-                return oid
-            finally:
-                queue.remove(ioid)
-        d.addCallback(inner)
-        # Call the deferred in the reactor so we give time to other things
-        reactor.callLater(0, d.callback, True)
-        return d
+        try:
+            return handle_oid(dmd, oid)
+        finally:
+            queue.remove(ioid)
 
