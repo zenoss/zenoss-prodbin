@@ -197,13 +197,10 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
                 evtdict['escalation_count'] = count
             return self.processEvent(evtdict)
         else:
-            count = self.getCount(dp)
-            if count is None or count > 0:
-                summary = 'threshold of %s restored: current value %f' % (
-                    self.name(), value)
-                self.resetCount(dp)
-                return self.processClearEvent(self._create_event_dict(value, summary, Event.Clear))
-        return []
+            summary = 'threshold of %s restored: current value %f' % (
+                self.name(), value)
+            self.resetCount(dp)
+            return self.processClearEvent(self._create_event_dict(value, summary, Event.Clear))
 
     def _create_event_dict(self, current, summary, severity, how=None):
         event_dict = dict(device=self.context().deviceName,
