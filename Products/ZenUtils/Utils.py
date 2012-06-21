@@ -1662,16 +1662,35 @@ def getObjectsFromCatalog(catalog, query=None, log=None):
                 log.warn("Stale %s record: %s", catalog.id, brain.getPath())
 
 
+_LOADED_CONFIGS = set()
+
+
+def load_config(file, package=None, execute=True):
+    """
+    Load a ZCML file into the context (and avoids duplicate imports).
+    """
+    global _LOADED_CONFIGS
+    key = (file, package)
+    if not key in _LOADED_CONFIGS:
+        from Zope2.App import zcml
+        zcml.load_config(file, package, execute)
+        _LOADED_CONFIGS.add(key)
+
+
 def load_config_override(file, package=None, execute=True):
     """Load an additional ZCML file into the context, overriding others.
 
     Use with extreme care.
     """
-    from zope.configuration import xmlconfig
-    from Products.Five.zcml import _context
-    xmlconfig.includeOverrides(_context, file, package=package)
-    if execute:
-        _context.execute_actions()
+    global _LOADED_CONFIGS
+    key = (file, package)
+    if not key in _LOADED_CONFIGS:
+        from zope.configuration import xmlconfig
+        from Products.Five.zcml import _context
+        xmlconfig.includeOverrides(_context, file, package=package)
+        if execute:
+            _context.execute_actions()
+        _LOADED_CONFIGS.add(key)
 
 
 CACHE_TIME = 30

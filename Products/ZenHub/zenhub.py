@@ -49,7 +49,7 @@ from ZODB.POSException import POSKeyError
 from Products.DataCollector.Plugins import loadPlugins
 from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config_override, ipv6_available, atomicWrite
+from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config, load_config_override, ipv6_available, atomicWrite
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -331,7 +331,7 @@ class ZenHub(ZCmdBase):
 
         ZCmdBase.__init__(self)
         import Products.ZenHub
-        zcml.load_config("hub.zcml", Products.ZenHub)
+        load_config("hub.zcml", Products.ZenHub)
         notify(HubWillBeCreatedEvent(self))
 
         self.zem = self.dmd.ZenEventManager
