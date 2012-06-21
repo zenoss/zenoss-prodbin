@@ -1614,3 +1614,7 @@ a.z-entity:hover{
 #deviceoverviewpanel_summary-body{
     overflow:auto !important;
 }
+/* fix diff between ie and everything else on jobs button */
+.x-ie #jobswidget-btnWrap .x-btn-inner{
+    padding-right:20px !important;
+}
