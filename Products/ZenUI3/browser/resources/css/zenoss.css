@@ -1609,7 +1609,18 @@ a.z-entity:hover{
     height:170px !important;
 }
 #evdetail_services{
-    margin:10px 0 10px 25px;
+    margin:10px 0 10px 25px !important;
+    height: 25px !important;
+}
+.evdetail_props {
+  float: none !important;
+}
+#deviceoverviewpanel_summary-body{
+    overflow:auto !important;
+}
+/* fix diff between ie and everything else on jobs button */
+.x-ie #jobswidget-btnWrap .x-btn-inner{
+    padding-right:20px !important;
 }
 #deviceoverviewpanel_summary-body{
     overflow:auto !important;
