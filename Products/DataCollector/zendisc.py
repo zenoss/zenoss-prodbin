@@ -48,7 +48,8 @@ from Products.ZenEvents.Event import Info
 from Products.ZenStatus.PingService import PingService
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenHub.services  import DiscoverService, ModelerService
-unused(DiscoverService, ModelerService) # for pb
+from Products.ZenHub.services.DiscoverService import JobPropertiesProxy
+unused(DiscoverService, ModelerService, JobPropertiesProxy) # for pb
 
 
 
@@ -122,7 +123,7 @@ class ZenDisc(ZenModeler):
         @rtype: function
         """
         return self.services.get('DiscoverService', FakeRemote())
-    
+
 
     def discoverIps(self, nets):
         """
@@ -148,7 +149,7 @@ class ZenDisc(ZenModeler):
             for net in nets:
                 if self.options.subnets and len(net.children()) > 0:
                     continue
-                if not getattr(net, "zAutoDiscover", False): 
+                if not getattr(net, "zAutoDiscover", False):
                     self.log.info(
                         "Skipping network %s because zAutoDiscover is False"
                         % net.getNetworkName())
@@ -190,11 +191,11 @@ class ZenDisc(ZenModeler):
         """
         if isinstance(self.options.range, basestring):
             self.options.range = [self.options.range]
-        # in case someone uses 10.0.0.0-5,192.168.0.1-5 instead of 
+        # in case someone uses 10.0.0.0-5,192.168.0.1-5 instead of
         # --range 10.0.0.0-5 --range 192.168.0.1-5
         if (isinstance(self.options.range, list) and
             self.options.range[0].find(",") > -1):
-            self.options.range = [n.strip() for n in 
+            self.options.range = [n.strip() for n in
                                   self.options.range[0].split(',')]
         ips = []
         goodCount = 0
@@ -252,7 +253,7 @@ class ZenDisc(ZenModeler):
                 driver.next()
 
         return drive(inner)
-            
+
 
     def sendDiscoveredEvent(self, ip, dev=None, sev=2):
         """
@@ -266,7 +267,7 @@ class ZenDisc(ZenModeler):
         @type sev: integer
         """
         devname = comp = ip
-        if dev: 
+        if dev:
             devname = dev.id
         msg = "'Discovered device name '%s' for ip '%s'" % (devname, ip)
         evt = dict(device=devname,ipAddress=ip,eventKey=ip,
@@ -274,10 +275,10 @@ class ZenDisc(ZenModeler):
                    summary=msg, severity=sev,
                    agent="Discover")
         self.sendEvent(evt)
-    
-    
+
+
     def discoverDevices(self,
-                        ips, 
+                        ips,
                         devicepath="/Discovered",
                         prodState=1000):
         """
@@ -318,7 +319,7 @@ class ZenDisc(ZenModeler):
         @param deviceSnmpCommunities: Optional list of SNMP community strings
             to try, overriding those set on the device class
         @type deviceSnmpCommunities: list
-        @return: result is None or a tuple containing 
+        @return: result is None or a tuple containing
             (community, port, version, snmp name)
         @rtype: deferred: Twisted deferred
         """
@@ -444,16 +445,16 @@ class ZenDisc(ZenModeler):
                                       'Not creating device for %s.'
                                       % ip )
                         return
-                        
+
                 # RULES FOR DEVICE NAMING:
-                # 1. If zPreferSnmpNaming is true: 
-                #        If snmp name is returned, use snmp name. Otherwise, 
+                # 1. If zPreferSnmpNaming is true:
+                #        If snmp name is returned, use snmp name. Otherwise,
                 #        use the passed device name.  If no device name was passed,
                 #        do a dns lookup on the ip.
-                # 2. If zPreferSnmpNaming is false: 
-                #        If we are discovering a single device and a name is 
+                # 2. If zPreferSnmpNaming is false:
+                #        If we are discovering a single device and a name is
                 #        passed in instead of an IP, use the passed-in name.
-                #        Otherwise, do a dns lookup on the ip. 
+                #        Otherwise, do a dns lookup on the ip.
                 if self.options.zPreferSnmpNaming and \
                    not isip( kw['deviceName'] ):
                     # In this case, we want to keep kw['deviceName'] as-is,
@@ -470,13 +471,13 @@ class ZenDisc(ZenModeler):
                     except Exception, ex:
                         self.log.debug("Failed to lookup %s (%s)" % (ip, ex))
 
-                # If it's discovering a particular device, 
+                # If it's discovering a particular device,
                 # ignore zAutoDiscover limitations
-                forceDiscovery = bool(self.options.device) 
+                forceDiscovery = bool(self.options.device)
 
 
                 # now create the device by calling zenhub
-                yield self.config().callRemote('createDevice', ipunwrap(ip), 
+                yield self.config().callRemote('createDevice', ipunwrap(ip),
                                    force=forceDiscovery, **kw)
 
                 result = driver.next()
@@ -509,7 +510,7 @@ class ZenDisc(ZenModeler):
                             self.log.info("IP '%s' on device '%s' remodel",
                                           ip, dev.id)
                     self.sendDiscoveredEvent(ip, dev)
-                
+
                 # use the auto-allocate flag to change the device class
                 # FIXME - this does not currently work
                 newPath = self.autoAllocate(dev)
@@ -517,7 +518,7 @@ class ZenDisc(ZenModeler):
                     yield self.config().callRemote('moveDevice', dev.id,
                                                    newPath)
                     driver.next()
-                
+
                 # the device that we found/created or that should be remodeled
                 # is added to the list of devices to be modeled later
                 if not self.options.nosnmp:
@@ -565,7 +566,7 @@ class ZenDisc(ZenModeler):
         # net option from the config file is a string
         if isinstance(self.options.net, basestring):
             self.options.net = [self.options.net]
-        # in case someone uses 10.0.0.0,192.168.0.1 instead of 
+        # in case someone uses 10.0.0.0,192.168.0.1 instead of
         # --net 10.0.0.0 --net 192.168.0.1
         if isinstance(self.options.net, (list,tuple)) and ',' in self.options.net[0]:
             self.options.net = [
@@ -580,7 +581,7 @@ class ZenDisc(ZenModeler):
         if not self.options.net:
             self.log.warning("No networks configured")
             return
-        
+
         for net in self.options.net:
             try:
                 yield self.config().callRemote('getNetworks',
@@ -606,7 +607,7 @@ class ZenDisc(ZenModeler):
             @return: Twisted/Zenoss Python iterable
             @rtype: Python iterable
             """
-            return self.discoverDevice(ip, 
+            return self.discoverDevice(ip,
                                        self.options.deviceclass,
                                        self.options.productionState)
         yield NJobs(self.options.parallel, discoverDevice, devices).start()
@@ -648,7 +649,7 @@ class ZenDisc(ZenModeler):
                 # for this, but it hasn't been tested, so it's for another day
                 self.log.debug("getHostByName")
                 ip = getHostByName(deviceName)
-            except socket.error: 
+            except socket.error:
                 ip = ""
         if not ip:
             raise NoIPAddress("No IP found for name %s" % deviceName)
@@ -683,15 +684,15 @@ class ZenDisc(ZenModeler):
         yield self.config().callRemote('getDeviceConfig', [myname])
         me, = driver.next() or [None]
         if not me or self.options.remodel:
-            yield self.discoverDevice(myip, 
-                                      devicepath=self.options.deviceclass, 
+            yield self.discoverDevice(myip,
+                                      devicepath=self.options.deviceclass,
                                       prodState=self.options.productionState)
             me = driver.next()
         if not me:
             raise SystemExit("SNMP discover of self '%s' failed" % myname)
         if not myip:
             myip = me.manageIp
-        if not myip: 
+        if not myip:
             raise SystemExit("Can't find my IP for name %s" % myname)
 
         yield self.discoverRouters(me, [myip])
@@ -703,7 +704,7 @@ class ZenDisc(ZenModeler):
             yield self.config().callRemote('getSubNetworks')
             yield self.discoverIps(driver.next())
             ips = driver.next()
-            if not self.options.nosnmp: 
+            if not self.options.nosnmp:
                 yield self.discoverDevices(ips)
                 driver.next()
 
@@ -721,17 +722,17 @@ class ZenDisc(ZenModeler):
     def connected(self):
         """
         Called by Twisted once a connection has been established.
-        """ 
+        """
         d = self.configure()
         d.addCallback(self.startDiscovery)
         d.addErrback(self.reportError)
-        
+
 
 
     def startDiscovery(self, data):
         if self.options.walk:
             d = drive(self.walkDiscovery)
-        
+
         elif self.options.device:
             d = drive(self.createDevice)
 
@@ -746,7 +747,7 @@ class ZenDisc(ZenModeler):
 
     def autoAllocate(self, device=None):
         """
-        Execute a script that will auto allocate devices into their 
+        Execute a script that will auto allocate devices into their
         Device Classes
 
         @param device: device object
@@ -775,7 +776,7 @@ class ZenDisc(ZenModeler):
                 self.log.error(
                     "error executing zAutoAllocateScript:\n%s" % script)
             return vars.get('devicePath', None)
-        return 
+        return
 
 
     def buildOptions(self):
@@ -783,7 +784,7 @@ class ZenDisc(ZenModeler):
         Command-line option builder for optparse
         """
         ZenModeler.buildOptions(self)
-        self.parser.add_option('--net', dest='net', action="append",  
+        self.parser.add_option('--net', dest='net', action="append",
                     help="Discover all device on this network")
         self.parser.add_option('--range', dest='range', action='append',
                     help="Discover all IPs in this range")
@@ -801,10 +802,10 @@ class ZenDisc(ZenModeler):
                     help="Only discover routers")
         self.parser.add_option('--tries', dest='tries', default=1, type="int",
                     help="How many ping tries")
-        self.parser.add_option('--timeout', dest='timeout', 
+        self.parser.add_option('--timeout', dest='timeout',
                     default=2, type="float",
                     help="ping timeout in seconds")
-        self.parser.add_option('--chunk', dest='chunkSize', 
+        self.parser.add_option('--chunk', dest='chunkSize',
                     default=10, type="int",
                     help="Number of in-flight ping packets")
         self.parser.add_option('--snmp-missing', dest='snmpMissing',
@@ -832,11 +833,11 @@ class ZenDisc(ZenModeler):
                     default=0,
                     type='int',
                     help="Collect a maximum number of devices. Default is no limit.")
-        self.parser.add_option('--snmp-strict-discovery', 
+        self.parser.add_option('--snmp-strict-discovery',
                     dest='zSnmpStrictDiscovery',
                     action="store_true", default=False,
                     help="Only add devices that can be modeled via SNMP." )
-        self.parser.add_option('--prefer-snmp-naming', 
+        self.parser.add_option('--prefer-snmp-naming',
                     dest='zPreferSnmpNaming',
                     action="store_true", default=False,
                     help="Prefer SNMP name to DNS name when modeling via SNMP." )

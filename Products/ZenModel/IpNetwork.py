@@ -675,7 +675,6 @@ class AutoDiscoveryJob(SubprocessJob):
         # Store zProperties on the job
         if zProperties:
             self.setProperties(**zProperties)
-
         # Build the zendisc command
         cmd = [binPath('zendisc')]
         cmd.extend(['run', '--now',

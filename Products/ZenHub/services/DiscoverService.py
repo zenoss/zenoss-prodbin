@@ -38,13 +38,14 @@ from .ModelerService import ModelerService
 DEFAULT_PING_THRESH = 168
 
 
-class JobPropertiesProxy(object):
+class JobPropertiesProxy(pb.Copyable, pb.RemoteCopy):
     def __init__(self, jobrecord):
         self.zProperties = {}
         for prop in jobrecord.__dict__:
             if iszprop(prop):
                 self.zProperties[prop] = getattr(jobrecord, prop)
 
+pb.setUnjellyableForClass(JobPropertiesProxy, JobPropertiesProxy)
 
 class IpNetProxy(pb.Copyable, pb.RemoteCopy):
     "A class that will represent a ZenModel/IpNetwork in zendisc"
@@ -74,7 +75,7 @@ class IpNetProxy(pb.Copyable, pb.RemoteCopy):
         start = int(ipnumb+1)
         end = int(ipnumb+maxip-1)
         return map(strip, range(start,end))
-    
+
     def getNetworkName(self):
         return "%s/%d" % (ipunwrap(self.id), self.netmask)
 
@@ -121,7 +122,7 @@ class DiscoverService(ModelerService):
         transaction.commit()
         return ips
 
-                    
+
     def sendIpStatusEvent(self, ipobj, sev=2):
         """Send an ip down event.  These are used to cleanup unused ips.
         """
@@ -131,10 +132,10 @@ class DiscoverService(ModelerService):
             msg = "ip %s is up" % ip
         else:
             msg = "ip %s is down" % ip
-        if dev: 
+        if dev:
             devname = dev.id
             comp = ipobj.interface().id
-        else: 
+        else:
             devname = comp = ip
         self.sendEvent(dict(device=devname, ipAddress=ip, eventKey=ip,
             component=comp, eventClass=Status_Ping, summary=msg, severity=sev,
@@ -148,7 +149,7 @@ class DiscoverService(ModelerService):
         @param ip: The manageIp of the device
         @param kw: The args to manage_createDevice.
         """
-        # During discovery, if the device 
+        # During discovery, if the device
         # shares an id with another device
         # with a different ip, set the device
         # title to the supplied id and replace
@@ -168,7 +169,7 @@ class DiscoverService(ModelerService):
             whether device was newly created, or just updated
             """
             try:
-                netroot = getNetworkRoot(self.dmd, 
+                netroot = getNetworkRoot(self.dmd,
                     kw.get('performanceMonitor', 'localhost'))
                 netobj = netroot.getNet(ip)
                 netmask = 24
@@ -199,8 +200,8 @@ class DiscoverService(ModelerService):
                 # we need to retry transaction
                 updateAttributes = {}
                 for k,v in kw.items():
-                    if k not in ('manageIp', 'deviceName', 'devicePath', 
-                            'discoverProto'): 
+                    if k not in ('manageIp', 'deviceName', 'devicePath',
+                            'discoverProto'):
                         updateAttributes[k] = v
                 # use updateDevice so we don't clobber existing device properties.
                 e.dev.updateDevice(**updateAttributes)
@@ -227,7 +228,7 @@ class DiscoverService(ModelerService):
     @translateError
     def remote_succeedDiscovery(self, id):
         dev = self.dmd.Devices.findDeviceByIdOrIp(id)
-        if dev: 
+        if dev:
             dev._temp_device = False
         transaction.commit()
         return True
@@ -262,7 +263,7 @@ class DiscoverService(ModelerService):
                 devroot.zSnmpVer,
                 devroot.zSnmpTimeout,
                 devroot.zSnmpTries)
-        
+
 
     @translateError
     def remote_moveDevice(self, dev, path):
