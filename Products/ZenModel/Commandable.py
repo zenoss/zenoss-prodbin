@@ -193,7 +193,14 @@ class Commandable:
     def compile(self, cmd, target):
         ''' Evaluate command as a tales expression
         '''
-        exp = "string:"+ cmd.command
+        command = cmd.command
+        # make sure we are targeting the right collector
+        if not command.startswith("dcsh") and hasattr(target, "getPerformanceServerName"):
+            collector = target.getPerformanceServer()
+            # if there isn't a collector just run it locally
+            if collector and hasattr(collector, 'isLocalHost') and not collector.isLocalHost():
+                command = 'dcsh --collector=${device/getPerformanceServerName} -n "%s"' % (command)
+        exp = "string:"+ command
         compiled = talesCompile(exp)
         environ = target.getUserCommandEnvironment()
         res = compiled(getEngine().getContext(environ))
