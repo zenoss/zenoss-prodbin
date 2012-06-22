@@ -2683,7 +2683,7 @@ EnterpriseOIDs = {
     '.1.3.6.1.4.1.2681': 'Sia Yiu',
     '.1.3.6.1.4.1.2682': 'DPS Inc.',
     '.1.3.6.1.4.1.2683': 'Callisto Software',
-    '.1.3.6.1.4.1.2684': 'ViaVideo Communications, Inc.',
+    '.1.3.6.1.4.1.2684': 'PolyCom, Inc. (formerly ViaVideo Communications, Inc.)',
     '.1.3.6.1.4.1.2685': 'Sequel Technology Corporation',
     '.1.3.6.1.4.1.2686': 'Wi LAN Inc.',
     '.1.3.6.1.4.1.2687': 'Network System Technologies, Inc.',
