@@ -9,13 +9,9 @@
     </tal:block>
     <tal:block metal:fill-slot="content">
         <div class="step-content">
-            <a href="qs-step1">
-            <img id="step-1-img" class="stepbox" src="img/qs_img_1.png"/>
-            </a>
+            <a href="qs-step1"><img id="step-1-img" class="stepbox" src="img/qs_img_1.png"/></a>
             <img id="step-2-img" class="stepbox" src="img/qs_img_2.png"/>
-            <a href="qs-step1">
-            <img id="step-3-img" class="stepbox" src="img/qs_img_3.png"/> 
-            </a>
+            <a href="qs-step1"><img id="step-3-img" class="stepbox" src="img/qs_img_3.png"/></a>
         </div>
     </tal:block>
     <tal:block metal:fill-slot="buttons">
