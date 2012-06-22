@@ -42,7 +42,10 @@
                 forceSelection: false,
                 editable: true,
                 autoSelect: true,
-                triggerAction: 'all'
+                triggerAction: 'all',
+                listConfig: {
+                    resizable: true
+                }
             });
             Zenoss.form.OrganizerDropDown.superclass.constructor.apply(this, arguments);
         }

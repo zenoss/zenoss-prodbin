@@ -234,7 +234,7 @@
             }, {
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
-                id: 'editcollector-cancel-button', 
+                id: 'editcollector-cancel-button',
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -328,7 +328,6 @@
                             xtype: 'button',
                             ui: 'dialog-dark',
                             text: _t('Remove'),
-                            id: 'editgroups-remove-button',
                             ref: 'delbutton',
                             group: group,
                             handler: function(btn) {
@@ -393,7 +392,7 @@
             }, {
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
-                id: 'editgroups-cancel-button',                
+                id: 'editgroups-cancel-button',
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -495,7 +494,7 @@
         },{
             text: _t('Cancel'),
             xtype: 'button',
-            ref: '../cancelbtn',     
+            ref: '../cancelbtn',
             disabled: true,
             hidden: true,
             handler: function() {
@@ -526,9 +525,9 @@
         showButtons: function() {
             if (!this.rendered) {
                 this.on('render', this.showButtons, this);
-            } else {    
+            } else {
                 Ext.getCmp(this.savebtn.id).addCls("savebtn-button"+this.id);
-                Ext.getCmp(this.cancelbtn.id).addCls("cancelbtn-button"+this.id);                           
+                Ext.getCmp(this.cancelbtn.id).addCls("cancelbtn-button"+this.id);
                 this.savebtn.show();
                 this.cancelbtn.show();
             }
