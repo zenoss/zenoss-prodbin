@@ -80,6 +80,7 @@ YAHOO.namespace('zenoss.geomap');
             if(geocodecache && geocodecache.nodes.length > 0){
                 _overlay.constructMarker(geocodecache.nodes[index], false);                
             }else{
+                if(!nodedata[index][0]) return false; // no addresses so nevermind
                 geocoder.geocode( { 'address': nodedata[index][0]}, function(results, status) {
                     if (status == google.maps.GeocoderStatus.OK) {              
                         // got a result, store it for the server cache builder                       
