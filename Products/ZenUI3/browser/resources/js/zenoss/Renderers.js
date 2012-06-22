@@ -309,7 +309,7 @@ Ext.apply(Zenoss.render, {
 
     Device: function(uid, name) {
         // For now, link to the old device page
-        return Zenoss.render.link(null, uid+'/devicedetail', name);
+        return Zenoss.render.link(null, uid+'/devicedetail#deviceDetailNav:device_overview', name);
     },
 
     DeviceClass: function(uid, name) {

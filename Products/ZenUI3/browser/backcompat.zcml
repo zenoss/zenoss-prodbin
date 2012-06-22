@@ -545,6 +545,13 @@
     />
 
 <adapter
+    for="Products.ZenModel.Device.Device"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.Device"
+    />
+
+
+<adapter
     for="Products.ZenModel.Location.Location"
     provides=".interfaces.INewPath"
     factory=".backcompat.Location"
@@ -675,5 +682,6 @@
     provides=".interfaces.INewPath"
     factory=".backcompat.CustomReport"
     />
+
 
 </configure>

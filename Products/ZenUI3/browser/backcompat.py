@@ -24,6 +24,9 @@ def immediate_view(ob):
     path = ob.getPhysicalPath() + (view,)
     return '/'.join(path)
 
+def Device(ob):
+    id = '/'.join(ob.getPhysicalPath())
+    return id + '/devicedetail#deviceDetailNav:device_overview'
 
 def DeviceClass(ob):
     id = '.'.join(ob.getPhysicalPath())
