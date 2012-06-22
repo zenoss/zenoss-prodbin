@@ -116,7 +116,7 @@
         </td>
       </tr><tr>
         <td class="tablevalues" colspan="6">
-          <input class="tablevalues" type="Submit" value="Update"/>
+          <input class="tablevalues" type="Submit" value="Generate"/>
         </td> 
       </tr>
     
