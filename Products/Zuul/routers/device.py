@@ -372,6 +372,20 @@ class DeviceRouter(TreeRouter):
                            'uuid':IGlobalIdentifier(dev._object).getGUID()})
         return DirectResponse.succeed(data=result)
 
+    def getDeviceUids(self, uid):
+        """
+        Return a list of device uids underneath an organizer. This includes
+        all the devices belonging to an child organizers.
+
+        @type  uid: string
+        @param uid: Unique identifier of the organizer to get devices from
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - devices: (list) device uids
+        """
+        facade = self._getFacade()
+        uids = facade.getDeviceUids(uid)
+        return DirectResponse.succeed(devices=uids)
 
     @serviceConnectionError
     def getDevices(self, uid=None, start=0, params=None, limit=50, sort='titleOrId',
@@ -1031,7 +1045,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.succeed('Components deleted.')
         except Exception, e:
             return DirectResponse.exception(e, 'Failed to delete components.')
-    
+
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
                       ranges=(), params=None, sort='name', dir='ASC',
                       deleteEvents=False, deletePerf=False
@@ -1072,12 +1086,12 @@ class DeviceRouter(TreeRouter):
              - grptree: ([dictionary]) Object representing the new group tree
              - systree: ([dictionary]) Object representing the new system tree
              - loctree: ([dictionary]) Object representing the new location tree
-        """        
+        """
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
         removedUids = tuple()
-        uids = filterUidsByPermission(self.context.dmd, ZEN_DELETE_DEVICE, uids)        
+        uids = filterUidsByPermission(self.context.dmd, ZEN_DELETE_DEVICE, uids)
         try:
             if action == "remove":
                 removed = facade.removeDevices(uids, organizer=uid)
@@ -1099,11 +1113,10 @@ class DeviceRouter(TreeRouter):
                     audit('UI.Device.Delete', devuid,
                           deleteEvents=deleteEvents,
                           deletePerf=deletePerf)
-                jobrecord = facade.deleteDevices(uids,
-                                     deleteEvents=deleteEvents,
-                                     deletePerf=deletePerf)                
-                return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord],
-                                                                    keys=('uuid', 'description', 'started')))
+                    facade.deleteDevices(uids,
+                                         deleteEvents=deleteEvents,
+                                         deletePerf=deletePerf)
+                return DirectResponse.succeed()
         except Exception, e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to remove devices.')

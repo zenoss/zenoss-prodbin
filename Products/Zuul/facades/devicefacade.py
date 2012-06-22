@@ -171,6 +171,10 @@ class DeviceFacade(TreeFacade):
 
         return result
 
+    def getDeviceUids(self, uid):
+        cat = ICatalogTool(self._getObject(uid))
+        return [b.getPath() for b in cat.search('Products.ZenModel.Device.Device')]
+
     def deleteComponents(self, uids):
         comps = imap(self._getObject, uids)
         for comp in comps:
@@ -213,19 +217,12 @@ class DeviceFacade(TreeFacade):
                     eventClass='/Change/Remove', #zEventAction=history
                     device=devid))
 
-    @info
     def deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
-        devdesc = ("device %s" % uids[0].split('/')[-1] if len(uids)==1
-                   else "%s devices" % len(uids))
-        return self._dmd.JobManager.addJob(
-            FacadeMethodJob, description="Delete %s" % devdesc,
-            kwargs=dict(
-                facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
-                method="_deleteDevices",
-                uids=uids,
-                deleteEvents=deleteEvents,
-                deletePerf=deletePerf
-            ))
+        """
+        Return a list of device uids underneath an organizer. This includes
+        all the devices belonging to an child organizers.
+        """
+        return self._deleteDevices(uids, deleteEvents, deletePerf)
 
     @info
     def removeDevices(self, uids, organizer):

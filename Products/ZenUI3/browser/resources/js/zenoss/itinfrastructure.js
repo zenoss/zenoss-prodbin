@@ -245,6 +245,94 @@ function disableSendEvent() {
     sendEvent.setDisabled(Ext.isEmpty(cbs));
 }
 
+function deleteDevicesWithProgressBar(grid, uids, opts, callback){
+    grid.setLoading(false);
+    var cancelled = false,
+        remaining = uids.reverse(),
+        win,
+        total = remaining.length;
+
+    function deleteDevice(response) {
+        if (response && response.notRemovedUids) {
+            var notRemovedIds = [];
+            Ext.each(response.notRemovedUids || [], function (uid) {
+                notRemovedIds.push(uid.split('/')[uid.split('/').length - 1]);
+            });
+            // if we weren't able to remove this device ids then warn about it.
+            var errmsg = '',
+            msgTemplate;
+
+            if (notRemovedIds.length > 0) {
+                msgTemplate = new Ext.Template(_t('The following device was not {1}d because it was not in the selected organizer: {2}'));
+                errmsg += msgTemplate.applyTemplate([
+                    opts.action,
+                    notRemovedIds.join(', ')]);
+                Zenoss.message.info(errmsg);
+            }
+        }
+
+        var msg;
+        if (cancelled || remaining.length == 0){
+            grid.getStore().load();
+            win.close();
+            if (callback) {
+                callback();
+            }
+            return;
+        }
+        var uid = remaining.pop();
+        opts.uids = [uid];
+        opts.hashcheck = 1;
+        if (opts.ranges) {
+            delete opts.ranges;
+        }
+        msg = Ext.String.format(_t("Removing device: {0}"), uid);
+        win.progressBar.updateProgress( 1 - (remaining.length / total), msg , true);
+        REMOTE.removeDevices(opts, deleteDevice);
+    }
+
+    win = Ext.create('Zenoss.dialog.BaseWindow', {
+        width: 500,
+        modal: true,
+        title: _t('Removing Devices'),
+        layout: 'form',
+        closable: false,
+        bodyBorder: false,
+        border: false,
+        hideBorders: true,
+        buttonAlign: 'left',
+        items: [{
+            xtype: 'panel',
+            ref: 'panel',
+            layout: 'form',
+            items: [{
+                xtype: 'displayfield',
+                ref: '../status',
+                value: _t('Removing... '),
+                height: 20
+            },{
+                xtype: 'progressbar',
+                width: '100%',
+                unstyled: true,
+                ref: '../progressBar'
+            }]
+        }],
+        buttons: [{
+            xtype: 'button',
+            ui: 'dialog-dark',
+            text: _t('Cancel'),
+            ref: '../cancelButton',
+            handler: function(btn, evt) {
+                cancelled = true;
+                win.setTitle(_t('Cancelling...'));
+            }
+        }]
+    });
+    win.show();
+
+    deleteDevice();
+}
+
 Ext.apply(Zenoss.devices, {
     deleteDevices: new Zenoss.ActionButton({
         //text: _t('Delete Devices'),
@@ -314,51 +402,28 @@ Ext.apply(Zenoss.devices, {
                             action: Ext.getCmp('removetype').getValue().removetype,
                             deleteEvents: Ext.getCmp('delete-device-events').getValue(),
                             deletePerf: Ext.getCmp('delete-device-perf-data').getValue()
-                        });
+                        }),
+                        grid = Ext.getCmp('device_grid');
+                        grid.setLoading(true);
                         if (opts.uids.length > 0) {
-                            Zenoss.remote.DeviceRouter.removeDevices(opts,
-                                    function (response) {
-                                        var removedIds = [],
-                                            notRemovedIds = [];
-
-                                        if (!Ext.isDefined(response.success) || response.success) {
-
-                                            Ext.each(response.removedUids || [], function (uid) {
-                                                removedIds.push(uid.split('/')[uid.split('/').length - 1]);
-                                            });
-                                            Ext.each(response.notRemovedUids || [], function (uid) {
-                                                notRemovedIds.push(uid.split('/')[uid.split('/').length - 1]);
-                                            });
-                                            // if we weren't able to schedule all the device ids then warn about it.
-                                            // the job notification will take care of letting them know if the device was deleted
-                                            var msg = '',
-                                                msgTemplate;
-
-                                            if (notRemovedIds.length > 0 || removedIds.length > 0) {
-
-                                                if (removedIds.length > 0) {
-                                                    // only refresh if there were items removed
-                                                    Ext.getCmp(getSelectionModel().tree).refresh();
-                                                    resetGrid();
-                                                    msgTemplate = new Ext.Template('Successfully {0}d device{1}: {2}');
-                                                    msg += msgTemplate.applyTemplate([opts.action,
-                                                                                      opts.uids.length > 1 ? 's' : '',
-                                                                                      removedIds.join(', ')]);
-                                                } else {
-                                                    msgTemplate = new Ext.Template(_t('The following {0} not {1}d because they were not in the selected organizer: {2}'));
-                                                    msg += msgTemplate.applyTemplate([
-                                                        opts.uids.length > 1 ? _t('devices were') : _t('device was'),
-                                                        opts.action,
-                                                        notRemovedIds.join(', ')]);
-                                                }
-
-                                                Zenoss.message.info(msg);
-                                            }
-
-
-                                        }
+                            var uids = opts.uids;
+                            if (opts.ranges && opts.ranges.length) {
+                                Zenoss.remote.DeviceRouter.loadRanges({
+                                    ranges: opts.ranges,
+                                    uid: opts.uid,
+                                    hashcheck: opts.hashcheck,
+                                    params: opts.params,
+                                    sort: opts.sort,
+                                    dir: opts.dir
+                                }, function(response) {
+                                    for (var i = 0; i < response.length; i ++) {
+                                        uids.push(response[i]);
                                     }
-                            );
+                                    deleteDevicesWithProgressBar(grid, uids, opts);
+                                });
+                            } else {
+                                deleteDevicesWithProgressBar(grid, uids, opts);
+                            }
                         }
                     }
                 },
@@ -870,6 +935,14 @@ var devtree = {
     }),
     router: REMOTE,
     nodeName: 'Device',
+    deleteNodeFn: function(args, callback) {
+        REMOTE.getDeviceUids(args, function(response) {
+                deleteDevicesWithProgressBar(Ext.getCmp('device_grid'),
+                    response.devices, {uid:args.uid, action: 'delete'}, function() {
+                        REMOTE.deleteNode({uid:args.uid}, callback);
+                    });
+                });
+    },
     listeners: {
         render: initializeTreeDrop,
         viewready: function(t){
