@@ -131,7 +131,7 @@ class RRDDaemon(PBDaemon):
         self.parser.add_option('-d', '--device',
                                dest='device',
                                default='',
-                               help="Specify a specific device to monitor")
+                               help="Specify a device ID to monitor")
 
 
     def logError(self, msg, error):
