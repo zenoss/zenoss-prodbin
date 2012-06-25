@@ -59,7 +59,10 @@ class IpInterfaceInfo(ComponentInfo):
     macaddress = ProxyProperty('macaddress')
     type = ProxyProperty('type')
     mtu = ProxyProperty('mtu')
-    speed = ProxyProperty('speed')
+
+    @property
+    def speed(self):
+        return self._object.niceSpeed()
 
     @property
     def adminStatus(self):

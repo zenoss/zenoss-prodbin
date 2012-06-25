@@ -564,7 +564,8 @@ class IpInterface(OSComponent, Layer2Linkable):
         for unit in ('bps', 'Kbps', 'Mbps', 'Gbps'):
             if speed < 1000: break
             speed /= 1000.0
-        return "%.3f%s" % (speed, unit)
+        speedStr = ("%.3f" % speed).rstrip('.0')
+        return "%s %s" % (speedStr, unit)
 
     def deviceId(self):
         """
