@@ -32,7 +32,7 @@ from zope.container.contained import ObjectMovedEvent
 
 from Products.ZenRelations.RelSchema import *
 
-from Products.ZenUtils.Utils import localIpCheck, localInterfaceCheck
+from Products.ZenUtils.Utils import localIpCheck, localInterfaceCheck, convToUnits
 from Products.ZenUtils.IpUtil import *
 
 from ConfmonPropManager import ConfmonPropManager
@@ -560,12 +560,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         if not self.speed:
             return 'Unknown'
-        speed = self.speed
-        for unit in ('bps', 'Kbps', 'Mbps', 'Gbps'):
-            if speed < 1000: break
-            speed /= 1000.0
-        speedStr = ("%.3f" % speed).rstrip('.0')
-        return "%s %s" % (speedStr, unit)
+        return convToUnits(self.speed, divby=1000, unitstr='bps')
 
     def deviceId(self):
         """
