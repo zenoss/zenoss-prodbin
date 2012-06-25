@@ -266,7 +266,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     #
     ##########################################################################
 
-    def exportXml(self, ofile, ignorerels=[], root=False):
+    def exportXml(self, ofile, ignorerels=[], root=False, exportPasswords=False):
         """Return an xml based representation of a RelationshipManager
         <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
             module='Products.Confmon.IpInterface' class='IpInterface'>
@@ -285,7 +285,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         zendocAdapter = zope.component.queryAdapter( self, IZenDocProvider )
         if zendocAdapter is not None:
             zendocAdapter.exportZendoc( ofile )
-        self.exportXmlProperties(ofile)
+        self.exportXmlProperties(ofile, exportPasswords)
         self.exportXmlRelationships(ofile, ignorerels)
         exportHook = getattr(aq_base(self), 'exportXmlHook', None)
         if exportHook and callable(exportHook): 
@@ -293,7 +293,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         ofile.write("</object>\n")
 
 
-    def exportXmlProperties(self,ofile):
+    def exportXmlProperties(self,ofile, exportPasswords=False):
         """Return an xml representation of a RelationshipManagers properties
         <property id='name' type='type' mode='w' select_variable='selectvar'>
             value 
@@ -314,7 +314,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                         continue
                 elif ptype not in ("int","float","boolean","long"):
                     continue
-            if ptype == "password":
+            if ptype == "password" and not exportPasswords:
                 value = ''
             stag = []
             stag.append('<property')

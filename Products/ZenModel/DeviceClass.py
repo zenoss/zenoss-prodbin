@@ -276,7 +276,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 @rtype: string
                 """
                 o = StringIO()
-                d.exportXml(o)
+                d.exportXml(o, exportPasswords=True)
                 return switchClass(o, module, klass)
 
             def devImport(xmlfile):
