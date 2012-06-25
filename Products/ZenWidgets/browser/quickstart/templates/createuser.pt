@@ -58,11 +58,17 @@ user creation from the server.                                  -->
                 type: 'hbox',
                 align: 'stretchmax'
             },
-            keys: [{
-                key: Ext.EventObject.ENTER,
-                fn: doSubmit,
-                scope: this
-            }],
+            listeners: {
+                afterRender: function(form, options) {
+                    var nav = new Ext.util.KeyNav({
+                        target: form.getEl(),
+                        enter: function(e) {
+                            doSubmit();
+                        },
+                        scope: this
+                    });
+                }
+            },
             defaults: {
                 layout: 'anchor',
                 frame: false,
