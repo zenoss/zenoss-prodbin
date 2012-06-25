@@ -1454,7 +1454,7 @@ class DeviceRouter(TreeRouter):
                   locationPath="", systemPaths=[], groupPaths=[],
                   productionState=1000, comments="", hwManufacturer="",
                   hwProductName="", osManufacturer="", osProductName="",
-                  priority=3, tag="", serialNumber=""):
+                  priority=3, tag="", serialNumber="", zProperties={}):
         """
         Add a device.
 
@@ -1551,7 +1551,8 @@ class DeviceRouter(TreeRouter):
                                                serialNumber,
                                                 locationPath,
                                                 systemPaths,
-                                                groupPaths
+                                                groupPaths,
+                                                zProperties
                                                 )
 
         deviceUid = '/'.join([organizerUid, 'devices', deviceName])

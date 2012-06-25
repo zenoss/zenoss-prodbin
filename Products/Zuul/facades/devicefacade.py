@@ -413,10 +413,11 @@ class DeviceFacade(TreeFacade):
                   rackSlot=0, productionState=1000, comments="",
                   hwManufacturer="", hwProductName="", osManufacturer="",
                   osProductName="", priority = 3, tag="", serialNumber="",
-                  locationPath="", systemPaths=[], groupPaths=[]
+                  locationPath="", systemPaths=[], groupPaths=[], zProperties={}
                   ):
         zProps = dict(zSnmpCommunity=snmpCommunity,
                            zSnmpPort=snmpPort)
+        zProps.update(zProperties)
         model = model and "Auto" or "none"
         perfConf = self._dmd.Monitors.getPerformanceMonitor(collector)
         jobStatus = perfConf.addDeviceCreationJob(deviceName=deviceName,
