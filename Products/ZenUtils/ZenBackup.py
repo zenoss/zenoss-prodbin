@@ -27,7 +27,6 @@ import logging
 import ConfigParser
 import subprocess
 import tarfile
-import tempfile
 import re
 import gzip
 from itertools import imap
@@ -35,7 +34,6 @@ from itertools import imap
 import Globals
 from ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath, readable_time, unused
-from Products.ZenUtils.GlobalConfig import globalConfToDict
 from ZenBackupBase import *
 
 unused(Globals)
@@ -82,25 +80,6 @@ class ZenBackup(ZenBackupBase):
         if returncode:
             return False
         return output.startswith('Elapsed time:')
-
-    def readZEPSettings(self):
-        '''
-        Read in and store the ZEP DB configuration options
-        to the 'options' object.
-        '''
-        globalSettings = globalConfToDict()
-        zepsettings = {
-            'zep-user': 'zepdbuser',
-            'zep-host': 'zepdbhost',
-            'zep-db': 'zepdbname',
-            'zep-password': 'zepdbpass',
-            'zep-port': 'zepdbport'
-        }
-
-        for key in zepsettings:
-            if key in globalSettings:
-                value = str(globalSettings[key])
-                setattr(self.options, zepsettings[key], value)
 
     def saveSettings(self):
         '''
@@ -171,15 +150,6 @@ class ZenBackup(ZenBackupBase):
         # pychecker can't handle strings made of multiple tokens
         __pychecker__ = 'no-noeffect no-constCond'
         ZenBackupBase.buildOptions(self)
-        self.parser.add_option('--dont-fetch-args',
-                                dest='fetchArgs',
-                                default=True,
-                                action='store_false',
-                                help='By default MySQL connection information'
-                                    ' is retrieved from Zenoss if not'
-                                    ' specified and if Zenoss is available.'
-                                    ' This disables fetching of these values'
-                                    ' from Zenoss.')
         self.parser.add_option('--file',
                                dest="file",
                                default=None,

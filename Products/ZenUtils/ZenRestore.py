@@ -161,7 +161,12 @@ class ZenRestore(ZenBackupBase):
         if not zepSql:
             self.msg('This backup does not contain a ZEP database backup.')
             return
-        
+
+        # Setup defaults for db info
+        if self.options.fetchArgs:
+            self.log.info('Getting ZEP dbname, user, password, port from configuration files.')
+            self.readZEPSettings()
+
         self.msg('Restoring ZEP database.')
         self.restoreMySqlDb(self.options.zepdbhost, self.options.zepdbport,
                             self.options.zepdbname, self.options.zepdbuser,

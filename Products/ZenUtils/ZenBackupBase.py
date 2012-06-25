@@ -22,6 +22,7 @@ from subprocess import Popen, PIPE
 
 from zope.component import getUtility
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 from CmdBase import CmdBase
 
 
@@ -60,6 +61,15 @@ class ZenBackupBase(CmdBase):
                                dest="tempDir",
                                default=None,
                                help='Directory to use for temporary storage.')
+        self.parser.add_option('--dont-fetch-args',
+                                dest='fetchArgs',
+                                default=True,
+                                action='store_false',
+                                help='By default MySQL connection information'
+                                    ' is retrieved from Zenoss if not'
+                                    ' specified and if Zenoss is available.'
+                                    ' This disables fetching of these values'
+                                    ' from Zenoss.')
         self.parser.add_option('--zepdbname',
                                dest='zepdbname',
                                default='zenoss_zep',
@@ -125,6 +135,26 @@ class ZenBackupBase(CmdBase):
         else:
             dir = tempfile.mkdtemp()
         return dir
+
+
+    def readZEPSettings(self):
+        '''
+        Read in and store the ZEP DB configuration options
+        to the 'options' object.
+        '''
+        globalSettings = globalConfToDict()
+        zepsettings = {
+            'zep-user': 'zepdbuser',
+            'zep-host': 'zepdbhost',
+            'zep-db': 'zepdbname',
+            'zep-password': 'zepdbpass',
+            'zep-port': 'zepdbport'
+        }
+
+        for key in zepsettings:
+            if key in globalSettings:
+                value = str(globalSettings[key])
+                setattr(self.options, zepsettings[key], value)
 
 
     def runCommand(self, cmd=[], obfuscated_cmd=None):
