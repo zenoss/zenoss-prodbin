@@ -672,7 +672,7 @@
                         items: [{
                             xtype: 'textfield',
                             name: 'name',
-                            fieldLabel: _t('Device Name'),
+                            fieldLabel: _t('Device Title'),
                             id: 'device-name-textfield',
                             allowBlank: false
                         },{
