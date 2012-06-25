@@ -629,6 +629,10 @@
                         defaultType: 'displayfield',
                         frame:false,
                         items: [{
+                            fieldLabel: _t('Device ID'),
+                            id: 'device-id-label',
+                            name: 'device'
+                        },{
                             fieldLabel: _t('Uptime'),
                             id: 'uptime-label',
                             name: 'uptime'
