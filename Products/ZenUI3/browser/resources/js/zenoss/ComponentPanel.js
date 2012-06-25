@@ -355,7 +355,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                     height: 32,
                     items: [{
                         xtype: 'tbtext',
-                        html: _t("Display: ")
+                        text: _t("Display: ")
                     },{
                         xtype: 'detailnavcombo',
                         menuIds: [],
