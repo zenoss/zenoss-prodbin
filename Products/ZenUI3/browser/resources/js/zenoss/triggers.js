@@ -1918,7 +1918,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         // This makes sure the DOM elements for the clauses are destroyed to prevent
                         // confusion when the window is reopened (because this is a closeAction:'hide'
                         // instead of 'destroy'
-                        this.tab_content.rule.destroy();
+                        this.removeAll();
                     },
                     scope: this
                 },

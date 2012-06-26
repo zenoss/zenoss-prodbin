@@ -244,7 +244,7 @@
                                     scope: this
                                 }
                             }, field));
-                            if (oldvalue && this.predicate.xtype == oldxtype) {
+                            if (typeof oldvalue != 'undefined' && this.predicate.xtype == oldxtype) {
                                 this.predicate.setValue(oldvalue);
                             }
                             this.doComponentLayout();
@@ -304,20 +304,9 @@
                             cleansub = subject.replace(
                                 new RegExp("^"+this.getBuilder().prefix), '');
 
-                        this.subject.on('change', function(){
-                            this.comparison.setValue(cmp);
-                        }, this, {single:true});
-                        this.comparison.on('change', function(){
-                            this.predicate.setValue(Ext.decode(value));
-                        }, this, {single:true});
-                        var oldval = this.subject.getValue();
                         this.subject.setValue(cleansub);
-                        // the predicate depends on a chain of change events
-                        // being fired so manually fire it even if the value didn't
-                        // change
-                        if (cleansub == oldval) {
-                            this.subject.fireEvent('change', this.subject, [cleansub]);
-                        }
+                        this.comparison.setValue(cmp);
+                        this.predicate.setValue(Ext.decode(value));
                         break;
                     }
                 }
