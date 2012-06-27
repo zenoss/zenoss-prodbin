@@ -509,6 +509,8 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("Performing periodic maintenance")
         def _processDeviceIssues(result):
             self.log.debug("deviceIssues=%r", result)
+            if result is None:
+                return result  # exception or some other problem
 
             # Device ping issues returns as a tuple of (deviceId, count, total)
             # and we just want the device id

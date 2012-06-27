@@ -23,6 +23,9 @@ from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 from Products.ZenHub.PBDaemon import translateError
 from Products.Zuul import getFacade
 
+import logging
+log = logging.getLogger('zen.EventService')
+
 class EventService(HubService, ThresholdMixin):
 
 
@@ -39,8 +42,6 @@ class EventService(HubService, ThresholdMixin):
         try:
             return self.zem.sendEvent(evt)
         except Exception, ex:
-            import logging
-            log = logging.getLogger('log')
             log.exception(ex)
 
     @translateError
@@ -53,12 +54,19 @@ class EventService(HubService, ThresholdMixin):
         try:
             return zep.getDevicePingIssues()
         except ServiceConnectionError, e:
-            raise pb.Error("Unable to contact ZEP.")
+            # ZEN-503: Don't print a traceback in this case
+            log.warn("Unable to contact ZEP.")
+            return None
 
     @translateError
     def remote_getDeviceIssues(self, *args, **kwargs):
         zep = getFacade('zep')
-        return zep.getDeviceIssues()
+        try:
+            return zep.getDeviceIssues()
+        except ServiceConnectionError, e:
+            # ZEN-503: Don't print a traceback in this case
+            log.warn("Unable to contact ZEP.")
+            return None
 
     @translateError
     def remote_getDefaultRRDCreateCommand(self):
