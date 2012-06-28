@@ -75,7 +75,7 @@ from zExceptions import BadRequest
 CHUNK_SIZE = 50
 
 
-class MibFile:
+class MibFile(object):
     """
     A MIB file has the meta-data for a MIB inside of it.
     """
@@ -104,153 +104,97 @@ class MibFile:
         @return: text without any comments
         @rtype: string
         """
-        def findSingleLineCommentEndPos(startPos):
-            """
-            Beginning at startPos + 2, searches fileContents for the end of
-            a single line comment. If comment ends with a newline
-            character, the newline is not included in the comment.
-
-            MIB single line comment rules:
-            1. Begins with '--'
-            2. Ends with '--' or newline
-            3. Any characters between the beginning and end of the comment
-                are ignored as part of the comment, including quotes and
-                start/end delimiters for block comments ( '/*' and '*/')
-
-            @param startPos: character position of the beginning of the single
-                    line comment within fileContents
-            @type fileContents: string
-            @return: startPos, endPos (character position of the last character
-                    in the comment + 1)
-            @rtype: tuple (integer, integer)
-            """
-            commentEndPosDash = fileContents.find('--', startPos + 2)
-            commentEndPosNewline = fileContents.find('\n', startPos + 2)
-            if commentEndPosDash != -1:
-                if commentEndPosNewline != -1:
-                    if commentEndPosDash < commentEndPosNewline:
-                        endPos = commentEndPosDash + 2
-                    else:
-                        endPos = commentEndPosNewline
-                else:
-                    endPos = commentEndPosDash + 2
-            else:
-                if commentEndPosNewline != -1:
-                    endPos = commentEndPosNewline
-                else:
-                    endPos = len(fileContents)
-
-            return startPos, endPos
-
-        def findBlockCommentEndPos(searchStartPos):
-            """
-            Beginning at startPos + 2, searches fileContents for the end of
-            a block comment. If block comments are nested, the
-            function interates into each block comment by calling itself.
-
-            MIB block comment rules:
-            1. Begins with '/*'
-            2. Ends with '*/'
-            3. Block comments can be nested
-            3. Any characters between the beginning and end of the comment
-                are ignored as part of the comment, including quotes and
-                start/end delimiters for single line comments ('--'). Newlines
-                are included as part of the block comment.
-
-            @param startPos: character position of the beginning of the block
-                    comment within fileContents
-            @type fileContents: string
-            @return: startPos, endPos (character position of the last character
-                    in the comment + 1)
-            @rtype: tuple (integer, integer)
-            """
-            # Locate the next start and end markers
-            nextBlockStartPos = fileContents.find('/*', searchStartPos + 2)
-            nextBlockEndPos = fileContents.find('*/', searchStartPos + 2)
-
-            # If a nested comment exists, find the end
-            if nextBlockStartPos != -1 and \
-                    nextBlockStartPos < nextBlockEndPos:
-                nestedComment = findBlockCommentEndPos(nextBlockStartPos)
-                nextBlockEndPos = fileContents.find('*/', nestedComment[1])
-
-            return searchStartPos, nextBlockEndPos + 2
-
-        # START removeMibComments
         if not fileContents:
             return fileContents
 
-        # Get rid of any lines that are completely made up of hyphens
-        fileContents = re.sub(r'[ \t]*-{2}[ \t]*$', '', fileContents)
-
-        # commentRanges holds a list of tuples in the form (startPos, endPos)
-        # that define the beginning and end of comments within fileContents
-        commentRanges = []
-        searchStartPos = 0   # character position within fileContents
-        functions = {'SINGLE': findSingleLineCommentEndPos,
-                          'BLOCK': findBlockCommentEndPos}
-
-        # Parse fileContents, looking for single line comments, block comments
-        # and string literals
-        while searchStartPos < len(fileContents):
-            # Find the beginning of the next occurrance of each item
-            singleLineStartPos = fileContents.find('--', searchStartPos)
-            blockStartPos = fileContents.find('/*', searchStartPos)
-            stringStartPos = fileContents.find('\"', searchStartPos)
-
-            nextItemPos = sys.maxint
-            nextItemType = ''
-
-            # Compare the next starting point for each item type.
-            if singleLineStartPos != -1 and \
-                    singleLineStartPos < nextItemPos:
-                nextItemPos = singleLineStartPos
-                nextItemType = 'SINGLE'
-
-            if blockStartPos != -1 and \
-                    blockStartPos < nextItemPos:
-                nextItemPos = blockStartPos
-                nextItemType = 'BLOCK'
-
-            # If the next item type is a string literal, just search for the
-            # next double quote and continue from there. This works because
-            # all double quotes (that are not part of a comment) appear in
-            # pairs. Even double-double quotes (escaped quotes) will work
-            # with this method since the first double quote will look like a
-            # string literal close quote and the second double quote will look
-            # like the beginning of a string literal.
-            if stringStartPos != -1 and \
-                    stringStartPos < nextItemPos:
-                newSearchStartPos = \
-                    fileContents.find('\"', stringStartPos + 1) + 1
-                if newSearchStartPos > searchStartPos:
-                    searchStartPos = newSearchStartPos
-                else: # Weird error case
-                    break
-
-            # If the next item is a comment, use the functions dictionary
-            # to call the appropriate function
-            elif nextItemPos != sys.maxint:
-                commentRange = functions[nextItemType](nextItemPos)
-                commentRanges.append(commentRange)
-                #searchStartPos = commentRange[1]
-                if commentRange[1] > 0:
-                    searchStartPos = commentRange[1]
-
-            else: # No other items are found!
+        cursor = 0
+        fc = []
+        while cursor < len(fileContents):
+            searchParty = [ fileContents.find('"',cursor), fileContents.find('/*',cursor), fileContents.find('--',cursor) ]
+            try:
+                cursor = min( x for x in searchParty if x >= 0 )
+            except ValueError:
                 break
 
-        startPos = 0
-        mibParts = []
+            if searchParty[0] == cursor:
+                '''
+                MIB block quote rules
+                1.  Begins with '"'
+                2.  Ends with '"'
+                3.  Quotes can be nested with '""'
+                4.  Any characters between the beginning and the end of the string
+                    are considered part of the string.  All comment characters like
+                    ('--') and ('/*...*/') are not ignored.  Newlines are included
+                    in the blockquote
+                '''
+                cursor = fileContents.find('"',cursor+1) + 1
+                while 0 < cursor < len(fileContents) and fileContents[cursor] == '"':
+                    cursor = fileContents.find('"', cursor + 1) + 1
 
-        # Iterate through each comment, adding the non-comment parts
-        # to mibParts. Finally, return the text without comments.
-        for commentRange in commentRanges:
-            mibParts.append(fileContents[startPos:(commentRange[0])])
-            startPos = commentRange[1]
-        if startPos != len(fileContents):
-            mibParts.append(fileContents[startPos:(len(fileContents))])
-        return ''.join(mibParts)
+                # Syntax error if no close quote found
+                if not cursor:
+                    raise ValueError("Syntax Error: missing close (\")")
+
+                continue
+            elif searchParty[1] == cursor:
+                '''
+                MIB block comment rules:
+                1.  Begins with '/*'
+                2.  Ends with '*/'
+                3.  Block comments can be nested
+                4.  Any characters between the beginning and end of the comment
+                    are ignored as part of the comment, including quotes and
+                    start/end delimiters for single line comments ('--'). Newlines
+                    are included as part of the block comment.
+                '''
+                endComment = fileContents.find("*/",cursor+2)
+                if endComment < 0:
+                    raise ValueError("Syntax Error: missing close (*/)")
+
+                nestCount = 1
+                # Check for a nested block
+                while nestCount != fileContents.count("/*", cursor, endComment):
+
+                    # Corner case for /*/
+                    if fileContents[endComment-1] == '/':
+                        fc_list = list(fileContents)
+                        fc_list[endComment-1] = ' '
+                        fileContents = ''.join(fc_list)
+                    endComment = fileContents.find("*/", endComment+2)
+                    if endComment < 0:
+                        raise ValueError("Syntax Error: missing close (*/)")
+
+                    nestCount += 1
+
+                endComment += 2
+            elif searchParty[2] == cursor:
+                '''
+                MIB single line comment rules:
+                1.  Begins with '--'
+                2.  Ends with '--' or newline
+                3.  Any characters between the beginning and end of the comment
+                    are ignored as part of the comment, including quotes and
+                    start/end delimiters for block comments ( '/*' and '*/')
+                '''
+                endComment = fileContents.find('\n',cursor+2)
+
+                #EOF reached
+                if endComment < 0:
+                    endComment = len(fileContents)
+
+                # Ignore dash lines
+                dashline = fileContents[cursor:endComment].strip()
+                if dashline != '-' * len(dashline):
+                    ec = fileContents.find('--', cursor+2, endComment)
+                    if ec > -1:
+                        endComment = ec+2
+
+            fc.append(fileContents[:cursor])
+            fileContents = fileContents[endComment:]
+            cursor = 0
+
+        fc.append(fileContents)
+        return ''.join(fc)
 
     def splitFileToMIBs(self, fileContents):
         """

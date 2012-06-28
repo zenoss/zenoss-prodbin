@@ -94,7 +94,7 @@ END
         Ignore comments
         """
         mib = """
-RFC1213-MIB DEFINITIONS ::= BEGIN 
+RFC1213-MIB DEFINITIONS ::= BEGIN
 aaa
 --sss--
 bbb --ttt
@@ -130,10 +130,16 @@ a */ string"
 */
 Just some more text here.
 
+/* Weird Comment Corner Case /*/ This is valid
+
+/* Embedded /* nesting of comments */ so that /* we
+are sure that this is working the way that it should */
+*/
+
 END
 """
         noComments = """
-RFC1213-MIB DEFINITIONS ::= BEGIN 
+RFC1213-MIB DEFINITIONS ::= BEGIN
 aaa
 
 bbb 
@@ -161,6 +167,10 @@ a */ string"
 
 
 Just some more text here.
+
+ This is valid
+
+
 
 END
 """
