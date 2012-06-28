@@ -11,11 +11,14 @@
 #
 ###########################################################################
 
+import logging
+log = logging.getLogger('zen.Portlet')
+
 from string import Template
 
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import ZEN_COMMON
 from os.path import basename, exists
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Globals import InitializeClass
 from Products.ZenUtils.Utils import zenPath
@@ -75,8 +78,10 @@ class Portlet(ZenModelRM):
 
     def _read_source(self):
         try:
-            f = file(self._getSourcePath())
-        except IOError, e:
+            path = self.sourcepath if exists(self.sourcepath) else self._getSourcePath()
+            f = file(path)
+        except IOError as ex:
+            log.error("Unable to load portlet from '%s': %s", path, ex)
             return
         else:
             tvars = {'portletId': self.id,
