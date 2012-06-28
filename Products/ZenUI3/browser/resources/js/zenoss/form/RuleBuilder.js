@@ -622,7 +622,7 @@
             comparisons: ZF.NUMBERCOMPARISONS,
             field: {
                 xtype: 'combo',
-                mode: 'local',
+                queryMode: 'local',
                 valueField: 'value',
                 displayField: 'name',
                 typeAhead: false,

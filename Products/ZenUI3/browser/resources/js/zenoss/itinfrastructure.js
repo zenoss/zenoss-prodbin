@@ -507,7 +507,7 @@ Ext.apply(Zenoss.devices, {
                                 name: 'collector',
                                 fieldLabel: _t('Collector'),
                                 id: 'add-device-collector',
-                                mode: 'local',
+                                queryMode: 'local',
                                 store: new Ext.data.ArrayStore({
                                     data: Zenoss.env.COLLECTORS,
                                     fields: ['name']

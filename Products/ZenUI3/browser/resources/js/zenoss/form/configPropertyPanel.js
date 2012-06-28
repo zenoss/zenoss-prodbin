@@ -48,7 +48,7 @@
             forceSelection: true,
             autoSelect: true,
             triggerAction: 'all',
-            mode: 'local'
+            queryMode: 'local'
         },
         'zSnmpCommunity': {
             xtype: Zenoss.Security.doesNotHavePermission('zProperties Edit') ? 'password' : 'textfield'

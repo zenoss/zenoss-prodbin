@@ -93,7 +93,7 @@
                     forceSelection: true,
                     autoSelect: true,
                     triggerAction: 'all',
-                    mode: 'local',
+                    queryMode: 'local',
                     store: ['other', 'invalid', 'direct', 'indirect']
                 },{
                     xtype: 'combo',
@@ -103,7 +103,7 @@
                     forceSelection: true,
                     autoSelect: true,
                     triggerAction: 'all',
-                    mode: 'local',
+                    queryMode: 'local',
                     store: ['other', 'local', 'netmgmt', 'icmp',
                             'egp', 'ggp', 'hello', 'rip', 'is-is', 'es-is',
                             'ciscoIgrp', 'bbnSpfIgrp', 'ospf', 'bgp']
@@ -294,7 +294,7 @@
                     forceSelection: true,
                     autoSelect: true,
                     triggerAction: 'all',
-                    mode: 'local',
+                    queryMode: 'local',
                     store: ['tcp', 'udp']
                 }]
             });

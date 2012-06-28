@@ -657,7 +657,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                         xtype: 'combo',
                                         fieldLabel: _t('Select a collector'),
                                         id: 'collector',
-                                        mode: 'local',
+                                        queryMode: 'local',
                                         store: new Ext.data.ArrayStore({
                                             data: Zenoss.env.COLLECTORS,
                                             fields: ['name']

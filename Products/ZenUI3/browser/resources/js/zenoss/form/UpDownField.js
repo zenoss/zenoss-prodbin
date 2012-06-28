@@ -27,7 +27,7 @@ Ext.define("Zenoss.form.UpDownField", {
              forceSelection: true,
              autoSelect: true,
              triggerAction: 'all',
-             mode: 'local',
+             queryMode: 'local',
              store: [
                  [1, 'Up'],
                  [0, 'Down']
