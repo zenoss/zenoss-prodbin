@@ -246,3 +246,4 @@ import jobmanager_jobs_delete_4_0
 import fileSystemIndexName
 import removedcshFromCommands
 import removeClearHeartbeatsMenuItem
+import zRemoveAutoAllocate

@@ -511,14 +511,6 @@ class ZenDisc(ZenModeler):
                                           ip, dev.id)
                     self.sendDiscoveredEvent(ip, dev)
 
-                # use the auto-allocate flag to change the device class
-                # FIXME - this does not currently work
-                newPath = self.autoAllocate(dev)
-                if newPath:
-                    yield self.config().callRemote('moveDevice', dev.id,
-                                                   newPath)
-                    driver.next()
-
                 # the device that we found/created or that should be remodeled
                 # is added to the list of devices to be modeled later
                 if not self.options.nosnmp:
@@ -744,41 +736,6 @@ class ZenDisc(ZenModeler):
 
         d.addBoth(self.printResults)
 
-
-    def autoAllocate(self, device=None):
-        """
-        Execute a script that will auto allocate devices into their
-        Device Classes
-
-        @param device: device object
-        @type device: device object
-        @return: Device class path to put the new device
-        @rtype: string
-        @todo: make it actually work
-        """
-        self.log.debug("trying to auto-allocate device %s" % device.id )
-        if not device:
-            return
-        script = getattr(device, "zAutoAllocateScript", None)
-        self.log.debug("no auto-allocation script found")
-        if script:
-            script = '\n'.join(script)
-            self.log.debug("using script\n%s" % script)
-            try:
-                compile(script, "zAutoAllocateScript", "exec")
-            except:
-                self.log.error("zAutoAllocateScript contains error")
-                return
-            vars = {'dev': device, 'log': self.log}
-            try:
-                exec(script, vars)
-            except:
-                self.log.error(
-                    "error executing zAutoAllocateScript:\n%s" % script)
-            return vars.get('devicePath', None)
-        return
-
-
     def buildOptions(self):
         """
         Command-line option builder for optparse
@@ -823,9 +780,6 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--subnets', dest='subnets',
                     action="store_true", default=False,
                     help="Recurse into subnets for discovery")
-        self.parser.add_option('--assign-devclass-script', dest='autoAllocate',
-                    action="store_true", default=False,
-                    help="have zendisc auto allocate devices after discovery")
         self.parser.add_option('--walk', dest='walk', action='store_true',
                     default=False,
                     help="Walk the route tree, performing discovery on all networks")
