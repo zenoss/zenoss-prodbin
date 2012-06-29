@@ -1,4 +1,4 @@
-#! /usr/bin/env python 
+#! /usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -57,7 +57,7 @@ class RenderServer(OrigRenderServer):
 
 class ZenRenderPreferences(object):
     zope.interface.implements(ICollectorPreferences)
-   
+
     def __init__(self):
         """
         Constructs a new preferences instance and
@@ -67,14 +67,14 @@ class ZenRenderPreferences(object):
         self.configCycleInterval = 20 # minutes
         self.cycleInterval = 5 * 60 # seconds
         self.configurationService = 'Products.ZenHub.services.RenderConfig'
-        
+
         # Will be filled in based on buildOptions
         self.options = None
 
     def buildOptions(self, parser):
         # Remove device option
         parser.remove_option('--device')
-        
+
         # Add options
         parser.add_option('--http-port', type='int',
                           dest='httpport',
@@ -83,11 +83,11 @@ class ZenRenderPreferences(object):
                           'render requests. Default is %default.')
 
     def postStartup(self):
-        """ 
+        """
         Listen for HTTP requests for RRD data or graphs.
         """
         self._daemon = zope.component.getUtility(ICollector)
-       
+
         # Start listening for HTTP requests
         httpPort = self. _daemon.options.httpport
         collector = self._daemon.options.monitor
@@ -130,6 +130,9 @@ class HttpRender(resource.Resource):
 
     def remote_moveRRDFiles(self, *args, **kw):
         return self.rs.moveRRDFiles(*args, **kw)
+
+    def remote_deleteRRDFiles(self, *args, **kw):
+        return self.rs.deleteRRDFiles(*args, **kw)
 
     def remote_plugin(self, *args, **kw):
         return self.rs.plugin(*args, **kw)

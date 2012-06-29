@@ -60,7 +60,7 @@ def manage_addRenderServer(context, id, REQUEST = None):
     context._setObject(id, rs)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
+
 
 addRenderServer = DTMLFile('dtml/addRenderServer',globals())
 
@@ -74,7 +74,7 @@ class RenderServer(RRDToolItem):
     meta_type = "RenderServer"
 
     cacheName = 'RRDRenderCache'
-    
+
     security = ClassSecurityInfo()
 
     def __init__(self, id, tmpdir = '/tmp/renderserver', cachetimeout=300):
@@ -84,8 +84,8 @@ class RenderServer(RRDToolItem):
 
 
     security.declareProtected('View', 'render')
-    def render(self, gopts=None, start=None, end=None, drange=None, 
-               remoteUrl=None, width=None, ftype='PNG', getImage=True, 
+    def render(self, gopts=None, start=None, end=None, drange=None,
+               remoteUrl=None, width=None, ftype='PNG', getImage=True,
                graphid='', comment=None, ms=None, remoteHost=None, REQUEST=None, zenrenderRequest=None):
         """
         Render a graph and return it
@@ -131,7 +131,7 @@ class RenderServer(RRDToolItem):
         if not graph:
             if not os.path.exists(self.tmpdir):
                 os.makedirs(self.tmpdir, 0750)
-            fd, filename = tempfile.mkstemp(dir=self.tmpdir, suffix=id) 
+            fd, filename = tempfile.mkstemp(dir=self.tmpdir, suffix=id)
             if remoteHost or remoteUrl:
                 if remoteHost:
                     encodedOpts = urlsafe_b64encode(
@@ -168,7 +168,7 @@ class RenderServer(RRDToolItem):
                     def rrdtool_fn():
                         rrdtool.graph(*(gopts + list(rrd_daemon_args())))
                     rrdtool_fn()
-                    
+
                 except Exception, ex:
                     if ex.args[0].find('No such file or directory') > -1:
                         return None
@@ -193,8 +193,8 @@ class RenderServer(RRDToolItem):
             return """Zenoss.SWOOP_CALLBACKS["%s"]('%s')""" % (graphid, json.dumps(ret))
 
 
-    def deleteRRDFiles(self, device, 
-                        datasource=None, datapoint=None, 
+    def deleteRRDFiles(self, device,
+                        datasource=None, datapoint=None,
                         remoteUrl=None, REQUEST=None):
         """
         Delete RRD files associated with the given device id.
@@ -209,6 +209,13 @@ class RenderServer(RRDToolItem):
         @param remoteUrl: if the RRD is not here, where it lives
         @param REQUEST: URL-marshalled object containg URL options
         """
+        # If remoteUrl is specified, open/invoke that first because we
+        # probably want to delete RRD files on some other machine.
+        if remoteUrl:
+            urllib.urlopen(remoteUrl)
+        # Carry on with deleting local RRD files; however, if remoteUrl was
+        # specified, then the devDir path (probably) doesn't exist on this
+        # machine.
         devDir = performancePath('/Devices/%s' % device)
         if not os.path.isdir(devDir):
             return
@@ -235,8 +242,6 @@ class RenderServer(RRDToolItem):
                 os.rmdir(dirName)
             except OSError:
                 log.warn('Directory %s could not be removed' % dirName)
-        if remoteUrl:
-            urllib.urlopen(remoteUrl)
 
 
     def packageRRDFiles(self, device, REQUEST=None):
@@ -283,7 +288,7 @@ class RenderServer(RRDToolItem):
         f=open('%s/%s' % (self.tmpdir, tarfilename), 'wb')
         f.write(urllib.unquote(tarfile))
         f.close()
-                
+
     def sendRRDFiles(self, device, server, REQUEST=None):
         """
         Move a package of RRDFiles
@@ -306,8 +311,8 @@ class RenderServer(RRDToolItem):
             remoteUrl = '%s/receiveRRDFiles' % (perfMon.getRemoteRenderUrl())
             log.debug( "Sending %s to %s ..." % ( tarfilename, remoteUrl ))
             urllib.urlopen(remoteUrl, params)
-            
-    
+
+
     def moveRRDFiles(self, device, destServer, srcServer=None, REQUEST=None):
         """
         Send a device's RRD files to another server
@@ -332,7 +337,7 @@ class RenderServer(RRDToolItem):
                 urllib.urlopen(remoteUrl)
             else:
                 self.unpackageRRDFiles(device, REQUEST)
-            
+
     security.declareProtected('View', 'plugin')
     def plugin(self, name, REQUEST=None):
         """
@@ -463,7 +468,7 @@ class RenderServer(RRDToolItem):
                 return None
             log.exception("Failed while generating current values")
             raise
-        
+
     def rrdcmd(self, gopts, ftype='PNG'):
         """
         Generate the RRD command using the graphing options specified.
@@ -487,10 +492,10 @@ class RenderServer(RRDToolItem):
         @return: An id for this graph usable in URLs
         @rtype: string
         """
-        id = md5.new(''.join(gopts)).hexdigest() 
+        id = md5.new(''.join(gopts)).hexdigest()
         id += str(drange) + '.' + ftype.lower()
         return id
-    
+
     def _loadfile(self, filename):
         try:
             f = open(filename)
@@ -524,16 +529,16 @@ class RenderServer(RRDToolItem):
         """
         cache = self.setupCache()
         graph = self._loadfile(filename)
-        if graph: 
+        if graph:
             cache.addToCache(id, graph)
             try:
                 os.close(fd)
                 os.remove(filename)
             except OSError, e:
-                if e.errno == 2: 
+                if e.errno == 2:
                     log.debug("Unable to remove cached graph %s: %s" \
                         % (e.strerror, e.filename))
-                else: 
+                else:
                     raise e
         cache.cleanCache()
 
