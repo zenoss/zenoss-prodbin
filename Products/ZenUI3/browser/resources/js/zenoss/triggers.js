@@ -365,14 +365,15 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             this.callParent(arguments);
         },
         addValueFromCombo: function() {
-            var toolbar = this.getDockedItems('toolbar')[0];
-            var val = toolbar.usersCombo.getValue(),
-                idx = toolbar.usersCombo.store.find('value', val),
+            var cb = Ext.getCmp('usersCombo');
+
+            var val = cb.getValue(),
+                idx = cb.store.find('value', val),
                 row,
                 type = 'manual',
                 label;
             if (idx != -1) {
-                row = toolbar.usersCombo.store.getAt(idx);
+                row = cb.store.getAt(idx);
             }
 
             if (row) {
@@ -380,7 +381,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 label = row.data.label;
             }
             else {
-                val = toolbar.usersCombo.getRawValue();
+                val = cb.getRawValue();
                 label = val;
             }
 
@@ -399,13 +400,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         write:false,
                         manage: false
                     });
-                    this.getStore().add(record);
-                    this.getView().refresh();
-                    this.getDockedItems('toolbar')[0].usersCombo.clearValue();
+                    this.getStore().add(record); 
+                    cb.clearValue();
                 }
                 else if (existingIndex != -1) {
                     Zenoss.message.error(_t('Duplicate items not permitted.'));
                 }
+                           
             }
 
         },
@@ -1860,7 +1861,6 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             {
                 xtype: 'panel',
                 title: _t('Local Trigger Permissions'),
-                //padding: 10,
                 items: [
                     {
                         xtype:'checkbox',
