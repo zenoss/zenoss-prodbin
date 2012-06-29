@@ -40,6 +40,37 @@ var defaultDateFormat = "mdy"    // valid values are "mdy", "dmy", and "ymd"
 var dateSeparator = defaultDateSeparator;
 var dateFormat = defaultDateFormat;
 
+var dateRangesList = new Array();
+
+function addDateRange(startDateFieldName, endDateFieldName, startDateField, endDateField) {
+    var range = {
+        'startDate': {
+            'name': startDateFieldName,
+            'obj': startDateField?startDateField:document.getElementsByName(startDateFieldName).item(0)
+        },
+        'endDate': {
+            'name': endDateFieldName,
+            'obj': endDateField?endDateField:document.getElementsByName(endDateFieldName).item(0)
+        }
+    }
+    dateRangesList.push(range);
+}
+
+function isValidDate(dateFieldName, dateString) {
+    var dateObj = getFieldDate(dateString);
+
+    for (var i in dateRangesList ) {
+        var dateRange = dateRangesList[i];
+
+        if (dateFieldName == dateRange['startDate']['name']) {
+            return dateObj <= getFieldDate(dateRange['endDate']['obj'].value);
+        }else if (dateFieldName == dateRange['endDate']['name']) {
+            return dateObj >= getFieldDate(dateRange['startDate']['obj'].value);
+        }
+    }
+
+    return true;
+}
 function displayDatePicker(dateFieldName, displayBelowThisObject, dtFormat, dtSep)
 {
   var targetDateField = document.getElementsByName (dateFieldName).item(0);
@@ -304,8 +335,11 @@ function splitDateString(dateString)
 function updateDateField(dateFieldName, dateString)
 {
   var targetDateField = document.getElementsByName (dateFieldName).item(0);
-  if (dateString)
-	targetDateField.value = dateString;
+  if (dateString && isValidDate(dateFieldName, dateString)) {
+      targetDateField.value = dateString;
+  } else if (dateString) {
+    return;
+  }
 
   var pickerDiv = document.getElementById(datePickerDivID);
   pickerDiv.style.visibility = "hidden";

@@ -125,7 +125,9 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
-
     </form>
+
+    <script type="text/javascript">
+        addDateRange('startDate', 'endDate');
+    </script>
 </tal:block>

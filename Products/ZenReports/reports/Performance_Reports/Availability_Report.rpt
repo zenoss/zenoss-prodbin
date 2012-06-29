@@ -141,11 +141,15 @@
        </td>
     </tr><tr>
        <td class="tablevalues" colspan="4">
-         <input class="tablevalues" type="Submit" value="Update"/>
+         <input class="tablevalues" type="Submit" value="Generate"/>
        </td> 
     </tr>
 </table>
 </form>
+
+<script type="text/javascript">
+    addDateRange('startDate', 'endDate');
+</script>
 
 <form method="POST" tal:attributes="action request/URL;"
 			tal:define="tabletitle string:Device Availability;
