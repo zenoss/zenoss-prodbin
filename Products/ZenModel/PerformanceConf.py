@@ -679,8 +679,7 @@ class PerformanceConf(Monitor, StatusColor):
         @type generateEvents: string
         """
         xmlrpc = isXmlRpc(REQUEST)
-        zenmodelerOpts = ['run', '--now', '--monitor', self.id,
-                            '-F', '-d', device.id]
+        zenmodelerOpts = ['run', '--now', '--monitor', self.id, '-d', device.id]
         result = self._executeZenModelerCommand(zenmodelerOpts, background,
                                                 REQUEST, write)
         if result and xmlrpc:
