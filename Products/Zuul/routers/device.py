@@ -1449,7 +1449,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(productNames=result, totalCount=len(result))
 
     def addDevice(self, deviceName, deviceClass, title=None,
-                  snmpCommunity="", snmpPort=161,
+                  snmpCommunity="", snmpPort=161, manageIp="",
                   model=False, collector='localhost',  rackSlot=0,
                   locationPath="", systemPaths=[], groupPaths=[],
                   productionState=1000, comments="", hwManufacturer="",
@@ -1469,6 +1469,9 @@ class DeviceRouter(TreeRouter):
                               this device. (default: '')
         @type  snmpPort: integer
         @param snmpPort: (optional) SNMP port on new device (default: 161)
+        @type  manageIp: string
+        @param manageIp: (optional) Management IP address on new device (default:
+                         empty/derive from DNS)
         @type  locationPath: string
         @param locationPath: (optional) Organizer path of the location for this device
         @type  systemPaths: List (strings)
@@ -1522,7 +1525,7 @@ class DeviceRouter(TreeRouter):
         # safe prior to the uniqueness check.
         safeDeviceName = organizer.prepId(deviceName)
 
-        device = facade.getDeviceByIpAddress(safeDeviceName, collector)
+        device = facade.getDeviceByIpAddress(safeDeviceName, collector, manageIp)
         if device:
             return DirectResponse.fail(deviceUid=device.getPrimaryId(),
                                        msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, device.getPrimaryId()))
@@ -1537,6 +1540,7 @@ class DeviceRouter(TreeRouter):
                                                title,
                                                snmpCommunity,
                                                snmpPort,
+                                               manageIp,
                                                model,
                                                collector,
                                                rackSlot,

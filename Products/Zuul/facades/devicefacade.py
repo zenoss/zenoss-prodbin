@@ -370,17 +370,17 @@ class DeviceFacade(TreeFacade):
         else:
             return self._moveDevices(uids, target)
 
-    def getDeviceByIpAddress(self, deviceName, collector="localhost"):
+    def getDeviceByIpAddress(self, deviceName, collector="localhost", ipAddress=""):
         # convert device name to an ip address
-        ipAddress = None
-        if isip(deviceName):
-            ipAddress = deviceName
-        else:
-            try:
-                ipAddress = getHostByName(deviceName)
-            except socket.error:
-                # look for duplicate name
-                return self.context.Devices.findDeviceByIdExact(deviceName)
+        if not ipAddress:
+            if isip(deviceName):
+                ipAddress = deviceName
+            else:
+                try:
+                    ipAddress = getHostByName(deviceName)
+                except socket.error:
+                    # look for duplicate name
+                    return self.context.Devices.findDeviceByIdExact(deviceName)
 
         # find a device with the same ip on the same collector
         query = Eq('getDeviceIp', ipAddress)
@@ -409,7 +409,7 @@ class DeviceFacade(TreeFacade):
 
     @info
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
-                  snmpPort=161, model=False, collector='localhost',
+                  snmpPort=161, manageIp="", model=False, collector='localhost',
                   rackSlot=0, productionState=1000, comments="",
                   hwManufacturer="", hwProductName="", osManufacturer="",
                   osProductName="", priority = 3, tag="", serialNumber="",
@@ -424,6 +424,7 @@ class DeviceFacade(TreeFacade):
                                                devicePath=deviceClass,
                                                performanceMonitor=collector,
                                                discoverProto=model,
+                                               manageIp=manageIp,
                                                zProperties=zProps,
                                                rackSlot=rackSlot,
                                                productionState=productionState,

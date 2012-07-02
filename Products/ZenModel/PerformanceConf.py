@@ -549,7 +549,7 @@ class PerformanceConf(Monitor, StatusColor):
         return devices
 
     def addDeviceCreationJob(self, deviceName, devicePath, title=None,
-                             discoverProto="none",
+                             discoverProto="none", manageIp="",
                              performanceMonitor='localhost',
                              rackSlot=0, productionState=1000, comments="",
                              hwManufacturer="", hwProductName="",
@@ -576,6 +576,7 @@ class PerformanceConf(Monitor, StatusColor):
                     devicePath=devicePath,
                     title=title,
                     discoverProto=discoverProto,
+                    manageIp=manageIp,
                     performanceMonitor=performanceMonitor,
                     rackSlot=rackSlot,
                     productionState=productionState,
