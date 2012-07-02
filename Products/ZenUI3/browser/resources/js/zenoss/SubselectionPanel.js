@@ -697,6 +697,7 @@
             if (!Ext.isEmpty(this.menuIds)) {
                 args.menuIds = this.menuIds;
             }
+
             Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, function (r) {
                 var detailConfigs = r.detailConfigs,
                     items = [],
@@ -733,8 +734,9 @@
                 this.valueField = 'value';
                 this.displayField = 'text';
                 this.list = null;
+                this.bindStore(this.store);
                 this.doComponentLayout();
-                // "sticky" menu selection, show same item as was shown for last context                
+                // "sticky" menu selection, show same item as was shown for last context
                 this.selectByItem(this.lastSelItem);
             }, this);
         }
