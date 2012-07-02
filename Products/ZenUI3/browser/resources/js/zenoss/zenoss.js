@@ -503,6 +503,9 @@ Ext.define("Zenoss.MultiselectMenu", {
     constructor: function(config) {
         config.menu = config.menu || [];
         Zenoss.MultiselectMenu.superclass.constructor.apply(this, arguments);
+        this.initialSetValue(config);
+    },
+    initialSetValue: function(config) {
         if (Ext.isDefined(config.store)) {
             this.hasLoaded = false;
             config.store.on('load', function(s, rows) {
@@ -541,7 +544,7 @@ Ext.define("Zenoss.MultiselectMenu", {
     },
     setValue: function(val) {
         if (!val) {
-            this.constructor(this.initialConfig);
+            this.initialSetValue(this.initialConfig);
         } else {
             function check(item) {
                 var shouldCheck = false;

@@ -1082,26 +1082,10 @@
                     results[results.length] = Ext.decode(r);
                 });
                 var columns = results;
-                    this.reconfigure(null, columns);
-                this.filterRow.onGridColumnMove();
-
-                // need to resize the filters to be the same size as the column
-                // it is still off a little bit but much better than not doing this
-                this.filterRow.eachFilterColumn(function(col) {
-                    var width = col.getWidth();
-                    if (width) {
-                        col.filterField.setWidth(width - 2);
-                    }
-
-                    // reapply the default filters
-                    if (Ext.isDefined(filters[col.id])) {
-                        col.filterField.setValue(filters[col.id]);
-                        // let the filters know we changed
-                        grid.filterRow.onChange();
-                    }
-                });
+                this.reconfigure(null, columns);
+                grid.filterRow.gridColumnMoveWithFilter();
                 // resort by default sorter
-                    store.sort(store.sorters.get(0));
+                store.sort(store.sorters.get(0));
             }, this);
         },
         updateRows: function(){

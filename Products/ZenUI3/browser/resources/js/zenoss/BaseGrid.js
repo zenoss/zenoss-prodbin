@@ -93,8 +93,6 @@
             grid.headerCt.on('columnhide', this.resetFilterRow, this);
 
             grid.headerCt.on('columnmove', this.resetFilterRow, this);
-            // need to build a global of the initial locations so we can keep up with the movedFromIndex?
-            // Or can we find the moved from index by looking at the filters by id match?
             grid.on('columnmove', function(col, moved, movedIndex){
                 this.gridColumnMoveWithFilter(col, moved, movedIndex);
             }, this);
@@ -691,10 +689,10 @@
                 //  1.  The data in the data store changes
                 //  2.  The user scrolls.
                 this.grid.getStore().on('datachanged', this.onDataChanged, this);
-                /*  added this guaranteedrange hack to make up for the ext bug where-by 
-                    updating store doesn't fire the datachanged except on load. 
+                /*  added this guaranteedrange hack to make up for the ext bug where-by
+                    updating store doesn't fire the datachanged except on load.
                 */
-                this.grid.getStore().on('guaranteedrange', this.onDataChanged, this);                
+                this.grid.getStore().on('guaranteedrange', this.onDataChanged, this);
                 this.grid.getView().on('bodyscroll', this.onScroll, this);
                 this.grid.getView().on('resize', this.onScroll, this);
             }
