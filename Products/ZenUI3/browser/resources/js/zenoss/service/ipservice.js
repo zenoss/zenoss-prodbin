@@ -54,7 +54,8 @@ Ext.onReady( function() {
             dataIndex: 'name',
             header: _t('Name'),
             id: 'name',
-            menuDisabled: true
+            menuDisabled: true,
+            flex: 1
         },
         {
             dataIndex: 'port',

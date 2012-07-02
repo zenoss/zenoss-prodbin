@@ -34,7 +34,7 @@
             id: newId,
             posQuery: grid.getFilters()
         };
-        var callback = function(p, response) { 	 
+        var callback = function(p, response) {
             grid.setFilter('name', newId);
             store.on('load', function() {
                 store.each(function(record){
@@ -42,7 +42,7 @@
                         grid.getSelectionModel().select(record);
                     }
                 }, this);
-            }, this, {single: true});	 	 
+            }, this, {single: true});
         };
         Zenoss.remote.ServiceRouter.addClass(params, callback);
     };
@@ -71,10 +71,10 @@
                         if(!selected.index) return false;
                            try{
                                 grid.getSelectionModel().select(selected.index);
-                           }catch(e){ 
+                           }catch(e){
                                 /* sometimes, there is an index, but it's still out of range */
                                 grid.getSelectionModel().select(0);
-                           }        
+                           }
                         },
                         store, { single: true });
                     grid.refresh();
@@ -142,12 +142,13 @@
     */
 
     zs.initNav = function(initialContext) {
-        var store, gridConfig, fb, navTree, navGrid, p;
+        var store, gridConfig, fb, navTree, navGrid, p, stateId;
 
         store = Ext.create('Zenoss.Service.Nav.Store',{});
-
+        stateId = initialContext.split("/").reverse()[0];
         navGrid = Ext.create('Zenoss.Service.Nav.GridPanel', {
             store: store,
+            stateId: stateId,
             selModel: new Zenoss.ExtraHooksSelectionModel({
                 singleSelect: true,
                 listeners: {
