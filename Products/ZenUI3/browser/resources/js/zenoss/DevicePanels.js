@@ -29,6 +29,7 @@ var deviceColumns = [
         header: _t('Device'),
         id: 'name',
         flex: 1,
+        hideable: false,
         renderer: function(name, row, record) {
             return Zenoss.render.Device(record.data.uid, name);
         }
