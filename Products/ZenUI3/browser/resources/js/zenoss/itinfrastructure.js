@@ -254,27 +254,24 @@ function deleteDevicesWithProgressBar(grid, uids, opts, callback){
 
     function deleteDevice(response) {
         if (response && response.notRemovedUids) {
-            var notRemovedIds = [];
-            Ext.each(response.notRemovedUids || [], function (uid) {
-                notRemovedIds.push(uid.split('/')[uid.split('/').length - 1]);
-            });
-            // if we weren't able to remove this device ids then warn about it.
-            var errmsg = '',
-            msgTemplate;
+            var notRemovedId = response.notRemovedUids[0].replace("/zport/dmd/", "/");
 
-            if (notRemovedIds.length > 0) {
-                msgTemplate = new Ext.Template(_t('The following device was not {1}d because it was not in the selected organizer: {2}'));
-                errmsg += msgTemplate.applyTemplate([
-                    opts.action,
-                    notRemovedIds.join(', ')]);
-                Zenoss.message.info(errmsg);
-            }
+            // if we weren't able to remove this device id then warn about it. This can happen
+            // if we try to remove a device from a group it doesn't belong to.
+            var errmsg = Ext.String.format(_t('The following device was not {0}d because it was not in the selected organizer: {1}'),
+                                           opts.action,
+                                           notRemovedId);
+            Zenoss.message.info(errmsg);
         }
 
         var msg;
         if (cancelled || remaining.length == 0){
-            grid.getStore().load();
-            win.close();
+            grid.getSelectionModel().selectNone();
+            grid.getStore().load({
+                callback: win.close,
+                scope: win
+            });
+
             if (callback) {
                 callback();
             }
@@ -286,7 +283,8 @@ function deleteDevicesWithProgressBar(grid, uids, opts, callback){
         if (opts.ranges) {
             delete opts.ranges;
         }
-        msg = Ext.String.format(_t("Removing device: {0}"), uid);
+
+        msg = Ext.String.format(_t("Removing device: {0}"), uid.replace("/zport/dmd/", "/"));
         win.progressBar.updateProgress( 1 - (remaining.length / total), msg , true);
         REMOTE.removeDevices(opts, deleteDevice);
     }
