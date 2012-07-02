@@ -595,13 +595,17 @@ class ZenHub(ZCmdBase):
                     if job is None: continue
                     worker.busy = True
                     def finished(result, finishedWorker, wId):
-                        result = pickle.loads(''.join(result))
                         stats = self.workTracker.pop(wId,None)
                         if stats:
                             elapsed  = time.time() - stats[1]
                             self.log.debug("worker %s, work %s finished in %s" % (wId,stats[0], elapsed))
                         finishedWorker.busy = False
-                        self.giveWorkToWorkers()
+                        if not isinstance(result, failure.Failure):
+                            try:
+                                result = pickle.loads(''.join(result))
+                            except Exception:
+                                self.log.exception("Error un-pickling result from worker")
+                        reactor.callLater(0,self.giveWorkToWorkers)
                         return result
                     self.log.debug("Giving %s to worker %d", job[2][2], i)
                     self.counters['workerItems'] += 1
