@@ -686,10 +686,7 @@
             var lastItem = this.lastSelItem;
             this.lastSelItem = item || this.store.getAt(0);
             this.select(this.lastSelItem);
-            if (this.lastSelItem == lastItem || (!lastItem)) {
-                // Ext doesn't fire if the items are the same, but we want it to
-                this.fireEvent('select', this, [this.lastSelItem]);
-            }
+            this.fireEvent('select', this, [this.lastSelItem]);
         },
         setContext:function (uid) {
             this.contextUid = uid;
@@ -702,6 +699,8 @@
                 var detailConfigs = r.detailConfigs,
                     items = [],
                     nodes = [],
+                    lastSelItem = this.lastSelItem,
+                    hasItem = false,
                     panelMap = {};
                 var filterFn = function (val) {
                     var show = true;
@@ -722,6 +721,11 @@
                 Ext.each(nodes, function (cfg) {
                     items.push([cfg.id, cfg.text]);
                     panelMap[cfg.id] = cfg;
+                    // when switching component types we need to make sure
+                    // that they share a common menu item
+                    if (lastSelItem && cfg.id == lastSelItem.getId()) {
+                        hasItem = true;
+                    }
                 });
 
                 this.panelConfigMap = panelMap;
@@ -737,7 +741,11 @@
                 this.bindStore(this.store);
                 this.doComponentLayout();
                 // "sticky" menu selection, show same item as was shown for last context
-                this.selectByItem(this.lastSelItem);
+                if (hasItem) {
+                    this.selectByItem(this.lastSelItem);
+                } else {
+                    this.selectAt(0);
+                }
             }, this);
         }
     });
