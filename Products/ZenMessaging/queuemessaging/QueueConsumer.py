@@ -91,14 +91,14 @@ class QueueConsumer(object):
         Called from a task when it is done successfully processing
         the message
         """
-        self.consumer.acknowledge(message)
+        return self.consumer.acknowledge(message)
 
     def reject(self, message, requeue=False):
         """
         Called from a task when it wants to reject and optionally requeue
         a message.
         """
-        self.consumer.reject(message, requeue)
+        return self.consumer.reject(message, requeue)
 
     def publishMessage(self, exchange, routing_key, message, mandatory=False, immediate=False, headers=None,
                        declareExchange=True):
