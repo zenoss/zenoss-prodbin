@@ -109,21 +109,14 @@ Ext.onReady(function() {
                 xtype: 'FlexButton',
                 text: _t('Clear'),
                 handler: function() {
-                    var confirmDialog = new Zenoss.MessageDialog({
-                        title: _t('Clear Heartbeats'),
-                        message: _t('Clear all heartbeat events? This cannot be undone.'),
-                        okHandler: function() {
-                            router.clear_heartbeats({}, function(response) {
-                                if (response.success) {
-                                    Zenoss.message.success(_t('Heartbeat events succesfully deleted.'));
-                                }
-                                else {
-                                    Zenoss.message.error(_t('Error deleting heartbeat events.'));
-                                }
-                            });
+                    router.clear_heartbeats({}, function(response) {
+                        if (response.success) {
+                            Zenoss.message.success(_t('Heartbeat events succesfully deleted.'));
+                        }
+                        else {
+                            Zenoss.message.error(_t('Error deleting heartbeat events.'));
                         }
                     });
-                    confirmDialog.show();
                 }
             }
         ]
