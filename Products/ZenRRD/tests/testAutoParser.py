@@ -25,6 +25,7 @@ class TestAutoParser(TestNagiosParser, TestCacti):
         deviceConfig.device = 'localhost'
         self.cmd.deviceConfig = deviceConfig
 
+        self.cmd.name = "testDataSource"
         self.cmd.parser = "Auto"
         self.cmd.result = Object()
         self.cmd.result.exitCode = 2
