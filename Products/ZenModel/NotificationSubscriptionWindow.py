@@ -23,15 +23,17 @@ class NotificationSubscriptionWindow(MaintenanceWindow):
 
     notificationSubscription = None
 
+    backCrumb = "triggers"
+
     _relations = MaintenanceWindow._relations + (
-        ("notificationSubscription", 
+        ("notificationSubscription",
         ToOne(
             ToManyCont,
             "Products.ZenModel.NotificationSubscription",
             "windows"
         )),
     )
-    
+
     _properties = tuple(list(MaintenanceWindow._properties) + [
         {'id':'enabled', 'type':'boolean', 'mode':'w'}
     ])
@@ -43,7 +45,7 @@ class NotificationSubscriptionWindow(MaintenanceWindow):
         if self.started is not None:
             log.debug('Notification Subscription Window is trying to begin after'
                 ' it is already started: Start: %s, Duration: %s' % (self.started, self.duration))
-        
+
         self.target().enabled = True
         if not now:
             now = time.time()
