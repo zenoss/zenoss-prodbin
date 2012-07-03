@@ -685,6 +685,7 @@
                 if (!Ext.isObject(this.grid)) {
                     this.grid = Ext.getCmp(this.grid);
                 }
+                this.view = this.grid.getView();
                 // We need to refresh this when one of two events happen:
                 //  1.  The data in the data store changes
                 //  2.  The user scrolls.
@@ -693,13 +694,63 @@
                     updating store doesn't fire the datachanged except on load.
                 */
                 this.grid.getStore().on('guaranteedrange', this.onDataChanged, this);
-                this.grid.getView().on('bodyscroll', this.onScroll, this);
-                this.grid.getView().on('resize', this.onScroll, this);
+                this.view.on('bodyscroll', this.onScroll, this);
+                this.view.on('resize', this.onResize, this);
             }
-
+            this.rowHeight = null;
+            this.visibleRows = null;
             this.displayMsg = _t('DISPLAYING {0} - {1} of {2} ROWS');
             this.emptyMsg = _t('NO RESULTS');
             this.callParent(arguments);
+        },
+        onResize: function() {
+            this.visibleRows = null;
+            this.onScroll();
+        },
+        getNumberOfVisibleRows: function() {
+            if (this.visibleRows) {
+                return this.visibleRows;
+            }
+
+            var gridHeight, rowHeight;
+
+            gridHeight = this.view.el.getHeight();
+
+            // this assumes that all rows are uniform height
+            // and can not change
+            var node = this.view.getNode(0),
+                el = Ext.fly(node);
+            // make sure the first row is rendered
+            if (el) {
+                this.rowHeight = el.getHeight();
+            }
+
+            if (this.rowHeight && gridHeight) {
+                this.visibleRows = Math.floor(gridHeight / this.rowHeight);
+                return this.visibleRows;
+            }
+            return 0;
+        },
+        getEndCount: function(start) {
+            var numrows = this.getNumberOfVisibleRows();
+            if (numrows){
+                return start + numrows + 1;
+            }
+            // we either aren't fully rendered yet or
+            // there aren't any rows
+            return 0;
+        },
+        getStartCount: function() {
+            var scrollTop = this.view.el.dom.scrollTop;
+            if (this.rowHeight && scrollTop) {
+                return Math.ceil(scrollTop / this.rowHeight);
+            }
+
+            // ask the scroller
+            if (this.grid.verticalScroller){
+                return this.grid.verticalScroller.getFirstVisibleRowIndex();
+            }
+            return 0;
         },
         onDataChanged:function () {
             var totalCount = this.grid.getStore().getTotalCount();
@@ -720,13 +771,15 @@
         },
         _doOnScroll: function() {
             var pagingScroller = this.grid.verticalScroller;
+            // ext will fire the scroll event sometimes before the data is even set
+            if (!this.totalCount) {
+                return this.setText(this.emptyMsg);
+            }
             if (pagingScroller) {
-                var start = pagingScroller.getFirstVisibleRowIndex() || 0,
-                end = pagingScroller.getLastVisibleRowIndex(),
-                msg;
-                if (end > this.totalCount) {
-                    end = this.totalCount;
-                }
+                var start = Math.max(this.getStartCount(), 0),
+                    end = Math.min(this.getEndCount(start), this.totalCount),
+                    msg;
+
                 msg = Ext.String.format(this.displayMsg, start + 1, end, this.totalCount);
                 this.setText(msg);
             } else {
