@@ -205,7 +205,7 @@ class SyslogProcessor(object):
 
 
     timeParse = \
-        re.compile("^(\S{3} [\d ]{2} [\d ]{2}:[\d ]{2}:[\d ]{2}) (.*)").search
+        re.compile("^(\S{3} [\d ]{2} [\d ]{2}:[\d ]{2}:[\d ]{2}(?:\.\d{1,3})?) (.*)").search
     notHostSearch = re.compile("[\[:]").search
     def parseHEADER(self, evt, msg):
         """
