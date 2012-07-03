@@ -542,7 +542,9 @@
             //Direct call to get nav configs from server
             var me = this;
             var myCallback = function (provider, response) {
+
                 var detailConfigs = response.result.detailConfigs;
+
                 var filterFn = function (val) {
                     var show = true;
                     if (Ext.isFunction(val.filterNav)) {
@@ -613,11 +615,19 @@
                 Zenoss.util.each(nodes, function (navConfig) {
                     this.fireEvent('nodeloaded', this, navConfig);
                 }, this);
+
             }
             this.loaded = true;
             this.fireEvent('navloaded', this, root);
-            root.expand();
+            root.expand(false, function(){
+                //HACK: cheat to make sure that all nodes are visible
+                var view = this.treepanel.getView();
+                var height = Ext.fly(view.getNode(0)).getHeight();
+                this.setHeight((height * nodes.length) + 35);
+            }, this);
             this.doLayout();
+
+
         }
     });
 
