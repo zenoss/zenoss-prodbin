@@ -558,12 +558,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """Checks a valid id
         """
         if len(id) > 128:
-            return 'ZenPack names can not be longer than 128 characters.'
+            return 'Command definition names can not be longer than 128 characters.'
         allowed = set(string.ascii_letters + string.digits + '_')
         attempted = set(id)
         if not attempted.issubset(allowed):
             return 'Only letters, digits and underscores are allowed' + \
-                    ' in ZenPack names.'
+                    ' in command definition names.'
         return ZenModelRM.checkValidId(self, id, prep_id)
 
 
