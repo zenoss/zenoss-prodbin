@@ -374,7 +374,7 @@ class NmapPingTask(BaseTask):
             # determine if traceroute needs to run
             doTraceroute = False
             if tracerouteInterval > 0:
-                if self._pings == 0 or (tracerouteInterval % self._pings) == 0:
+                if self._pings == 0 or (self._pings % tracerouteInterval) == 0:
                     doTraceroute = True # try to traceroute on next ping
 
             import time
