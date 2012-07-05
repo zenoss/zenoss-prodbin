@@ -237,7 +237,7 @@ function createAction(typeName, text) {
             var addDialog = new Zenoss.FormDialog({
                 title: _t('Create ') + text,
                 modal: true,
-                width: 310,
+                width: 350,
                 formId: 'addForm',
                 items: [{
                     xtype: 'textfield',
