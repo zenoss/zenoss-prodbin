@@ -26,8 +26,6 @@ from Products.ZenUtils.Utils import getObjByPath, zenPath, set_context
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 
-from Products.Five import zcml
-
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenUtils.Exceptions import ZentinelException
 
@@ -54,7 +52,7 @@ class ZenScriptBase(CmdBase):
         if getattr(self.dmd, 'propertyTransformers', None) is None:
             self.dmd.propertyTransformers = {}
             commit()
-        setDescriptors(self.dmd.propertyTransformers)
+        setDescriptors(self.dmd)
 
 
     def login(self, name='admin', userfolder=None):

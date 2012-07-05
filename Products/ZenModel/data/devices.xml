@@ -99,9 +99,6 @@ False
 <property visible="True" type="boolean" id="zPingMonitorIgnore" >
 False
 </property>
-<property visible="True" type="boolean" id="zWmiMonitorIgnore" >
-True
-</property>
 <property visible="True" type="float" id="zStatusConnectTimeout" >
 15.0
 </property>
@@ -171,29 +168,11 @@ True
 </property>
 <property visible="True" type="string" id="zLinks" >
 </property>
-<property visible="True" type="string" id="zWinUser" >
-</property>
-<property visible="True" type="password" id="zWinPassword" >
-</property>
-<property visible="True" type="int" id="zWinEventlogMinSeverity" >
-2
-</property>
-<property visible="True" type="boolean" id="zWinEventlog" >
-False
-</property>
 <property visible="True" type="string" id="zIcon" >
 /zport/dmd/img/icons/noicon.png
 </property>
-<property visible="True" type="string" id="zWinEventlogClause" >
-</property>
-<property visible="True" type="boolean" id="zXmlRpcMonitorIgnore" >
-True
-</property>
 <property visible="True" type="date" id="cDateTest" >
 1900/01/01 00:00:00 US/Central
-</property>
-<property visible="True" type="int" id="zCommandCycleTime" >
-60
 </property>
 <property visible="True" type="boolean" id="zCollectorLogChanges" >
 False
@@ -2377,9 +2356,6 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
 <property visible="True" type="string" id="zLinks" >
 http://www.zenoss.com
-</property>
-<property visible="True" type="boolean" id="zWmiMonitorIgnore" >
-False
 </property>
 <property visible="True" type="lines" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.wmi.WinServiceMap', 'zenoss.cmd.lin ux.ifconfig', 'zenoss.cmd.linux.netstat_rn', 'zenoss.cmd.df', 'zenoss.cmd.uname', 'zenoss.cmd.uname_a')
@@ -5760,12 +5736,6 @@ AVERAGE
 <object id='Windows' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 [('Windows Server', 'SNMP')]
-</property>
-<property visible="True" type="boolean" id="zWinEventlog" >
-True
-</property>
-<property visible="True" type="boolean" id="zWmiMonitorIgnore" >
-False
 </property>
 <property visible="True" type="lines" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.InformantHardDiskMap', 'zenoss.wmi.WinServiceMap')

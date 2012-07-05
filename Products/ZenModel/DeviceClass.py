@@ -396,7 +396,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             lastPoll = DateTime.DateTime(lastPoll)
             ffunc = lambda x: x.getSnmpLastCollection() > lastPoll
         if eventlog:
-            ffunc = lambda x: x.zWinEventlog
+            ffunc = lambda x: x.getProperty('zWinEventlog', False)
         devinfo = []
         for dev in self.getSubDevices(devfilter=ffunc):
             if not dev.monitorDevice(): continue
@@ -424,7 +424,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             if not dev.monitorDevice(): continue
             if dev.getProperty( 'zWmiMonitorIgnore', False): continue
             svcs = allsvcs.get(dev.getId(), {})
-            if not svcs and not dev.zWinEventlog: continue
+            if not svcs and not dev.getProperty('zWinEventlog', False): continue
             user = dev.getProperty('zWinUser','')
             passwd = dev.getProperty( 'zWinPassword', '')
             svcinfo.append((dev.id, str(user), str(passwd), svcs))

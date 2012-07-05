@@ -19,10 +19,8 @@ import logging
 from zope.component import getUtility
 from ZODB.POSException import ConflictError
 from datetime import datetime
-from persistent.dict import PersistentDict
 from celery.backends.base import BaseDictBackend
 from celery.exceptions import TimeoutError
-from celery.signals import task_prerun
 import AccessControl.User
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
@@ -107,7 +105,7 @@ class ZODBBackend(BaseDictBackend):
             newSecurityManager(None, AccessControl.User.system)
             app = conn.root()['Application']
             # Configure zProperty descriptors
-            setDescriptors(app.zport.dmd.propertyTransformers)
+            setDescriptors(app.zport.dmd)
         else:
             app = closer.connection.root()['Application']
 

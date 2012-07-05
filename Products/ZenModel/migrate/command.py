@@ -12,7 +12,7 @@
 ###########################################################################
 __doc__='''
 
-Add zCommandPath and zCommandCycleTime to DeviceClass.
+Add zCommandPath to DeviceClass.
 
 '''
 import Migrate

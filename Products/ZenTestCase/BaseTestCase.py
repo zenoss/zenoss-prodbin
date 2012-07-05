@@ -151,7 +151,7 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         self._transaction_commit = Transaction.commit
         Transaction.commit=lambda *x: None
 
-        setDescriptors(self.dmd.propertyTransformers)
+        setDescriptors(self.dmd)
 
 
     def beforeTearDown(self):

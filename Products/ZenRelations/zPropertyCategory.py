@@ -32,7 +32,6 @@ MAPPINGS = {
 # zencommand
 # ----------
 'zCommandCommandTimeout': 'zencommand',
-'zCommandCycleTime': 'zencommand',
 'zCommandExistanceTest': 'zencommand',
 'zCommandLoginTimeout': 'zencommand',
 'zCommandLoginTries': 'zencommand',
@@ -147,17 +146,6 @@ MAPPINGS = {
 'zWebsphereServer': 'WebSphere',
 'zWebsphereURLPath': 'WebSphere',
 'zWebsphereUser': 'WebSphere',
-
-# Windows
-# ----------
-'zWinEventlog': 'Windows',
-'zWinEventlogMinSeverity': 'Windows',
-'zWinPassword': 'Windows',
-'zWinPerfCycleSeconds': 'Windows',
-'zWinPerfCyclesPerConnection': 'Windows',
-'zWinPerfTimeoutSeconds': 'Windows',
-'zWinUser': 'Windows',
-'zWmiMonitorIgnore': 'Windows',
 }
 
 def setzPropertyCategory(prop, category):

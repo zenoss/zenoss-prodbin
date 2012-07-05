@@ -28,7 +28,7 @@ from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenRelations.zPropertyCategory import getzPropertyCategory
 from Products.ZenUtils.Utils import unused, getDisplayType
 
-iszprop = re.compile("^z[A-Z]").search
+iszprop = re.compile("z[A-Z]").match
 
 log = logging.getLogger('zen.PropertyManager')
 
@@ -82,7 +82,6 @@ Z_PROPERTIES = [
     # Status monitor properties
     ('zSnmpMonitorIgnore', False, 'boolean'),
     ('zPingMonitorIgnore', False, 'boolean'),
-    ('zWmiMonitorIgnore', True, 'boolean'),
     ('zStatusConnectTimeout', 15.0, 'float'),
 
     # DataCollector properties
@@ -112,14 +111,21 @@ Z_PROPERTIES = [
     # Extra stuff for users
     ('zLinks', '', 'string'),
 
-    # Windows WMI collector properties
-    ('zWinUser', '', 'string'),
-    ('zWinPassword', '', 'password'),
-    ('zWinEventlogMinSeverity', 2, 'int'),
-    ('zWinEventlog', False, 'boolean'),
-
     # zIcon is the icon path
     ('zIcon', '/zport/dmd/img/icons/noicon.png', 'string'),
+
+    # used in ApplyDataMap
+    ('zCollectorLogChanges', True, 'boolean'),
+
+    # enable password for Cisco routers
+    ('zEnablePassword', '', 'password'),
+
+    # used in zenoss.nmap.IpServiceMap
+    ('zNmapPortscanOptions', '-p 1-1024 -sT -oG -', 'string'),
+
+    # how many SSH sessions to open up to one device (some SSH servers have a limit)
+    ('zSshConcurrentSessions', 10, 'int'),
+
     ]
 
 class PropertyDescriptor(object):
@@ -573,7 +579,7 @@ class ZenPropertyManager(object, PropertyManager):
 
         >>> dmd.Devices.getZ('zSnmpPort')
         161
-        >>> dmd.Devices.getZ('zWinPassword')
+        >>> dmd.Devices.getZ('zSnmpAuthPassword')
         >>>
         """
         if self.hasProperty(id, useAcquisition=True) \
@@ -634,20 +640,23 @@ def monkeypatchDescriptors(zprops, transformerFactories):
     monkeypatch ZenPropertyManager adding an instance of the descriptor class
     for each of the zProperties
     """
-    for id, value, type in zprops:
+    for id, type in zprops:
         factory = transformerFactories.get(type, IdentityTransformer)
         descriptor = PropertyDescriptor(id, type, factory())
         setattr(ZenPropertyManager, id, descriptor)
 
-def setDescriptors(transformerFactories):
+def setDescriptors(dmd):
     """
     Set the property descriptors on the ZenPropertyManager class.  The
     transformerFactories parameter is a dictionary that maps a property type
     to a callable factory that produces instances with transformForGet and
     transformForSet methods.
     """
+    zprops = set()
+    
     # copy the core zProps
-    zprops = Z_PROPERTIES[:]
+    for prop_id, propt_default_value, prop_type in Z_PROPERTIES:
+        zprops.add((prop_id, prop_type))
 
     # add zProps from zenpacks
     from Products.ZenUtils.PkgResources import pkg_resources
@@ -656,9 +665,17 @@ def setDescriptors(transformerFactories):
         fromlist = zpkg.module_name.split('.')[:-1]
         module = __import__(zpkg.module_name, globals(), locals(), fromlist)
         if hasattr(module, 'ZenPack'):
-            zprops.extend(module.ZenPack.packZProperties)
+            for prop_id, propt_default_value, prop_type in module.ZenPack.packZProperties:
+                zprops.add((prop_id, prop_type))
 
-    monkeypatchDescriptors(zprops, transformerFactories)
+    # add zProps from dmd.Devices to catch any that are undefined elsewhere
+    for prop_id in dmd.Devices.zenPropertyIds():
+        prop_type = dmd.Devices.getPropertyType(prop_id)
+        if (prop_id, prop_type) not in zprops:
+            log.warn('Property {prop_id} is deprecated. It should be removed from the system.'.format(prop_id=prop_id))
+            zprops.add((prop_id, prop_type))
+
+    monkeypatchDescriptors(zprops, dmd.propertyTransformers)
 
 def updateDescriptors(type, transformer):
     """

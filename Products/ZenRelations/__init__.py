@@ -62,7 +62,7 @@ def registerDescriptors(event):
     # zport may not exist if we are using zenbuild to initialize the database
     if zport:
         try:
-            setDescriptors(zport.dmd.propertyTransformers)
+            setDescriptors(zport.dmd)
         except Exception, e:
             args = (e.__class__.__name__, e)
             log.info("Unable to set property descriptors: %s: %s", *args)
