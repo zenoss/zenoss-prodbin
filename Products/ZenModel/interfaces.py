@@ -151,3 +151,14 @@ class INotificationContextProvider(Interface):
         @type context: dict
         """
 
+class IExpandedLinkProvider(Interface):
+    """
+    Subscriber interface that gives a hook for adding
+    context-specific html links (for example, the
+    device links on the DeviceDetails page).
+    """
+    def getExpandedLinks(self):
+        """
+        @rtype list of html elements with links
+        """
+

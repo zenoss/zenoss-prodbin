@@ -72,6 +72,7 @@ from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils import NetworkTree
 
 from zope.interface import implements
+from zope.component import subscribers
 from EventView import IEventView
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenWidgets import messaging
@@ -80,7 +81,7 @@ from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
-
+from Products.ZenModel.interfaces import IExpandedLinkProvider
 
 def getNetworkRoot(context, performanceMonitor):
     """
@@ -1616,6 +1617,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             self.removeRelation(relName, obj)
         self.setAdminLocalRoles()
 
+    def _getOtherExpandedLinks(self):
+        """
+        @rtype list
+        @return a list of the html links supplied by implementers
+                of the IExpandedLinkProvider subscriber interface
+        """
+        providers = subscribers( [self], IExpandedLinkProvider )
+        expandedLinkList = []
+        for provider in providers:
+            expandedLinkList.extend( provider.getExpandedLinks() )
+        return expandedLinkList
 
     def getExpandedLinks(self):
         """
@@ -1625,7 +1637,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         from Products.ZenUtils.ZenTales import talesEval
         try:
-            return talesEval('string:' + self.zLinks, self)
+            linksHtml = talesEval('string:' + self.zLinks, self)
+            otherLinks = self._getOtherExpandedLinks()
+            if otherLinks:
+                for link in otherLinks:
+                    linksHtml += link
+            return linksHtml
         except Exception, ex:
             import cgi
             return "<i class='errortitle'>%s</i>" % cgi.escape(str(ex))
