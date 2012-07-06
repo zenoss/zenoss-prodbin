@@ -257,7 +257,7 @@ class CollectorDaemon(RRDDaemon):
                                  FakeRemote())
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-                 min='U', max='U', threshEventData=None, timestamp='N'):
+                 min='U', max='U', threshEventData=None, timestamp='N', allowStaleDatapoint=True):
         now = time.time()
 
         hasThresholds = bool(self._thresholds.byFilename.get(path))
@@ -276,6 +276,7 @@ class CollectorDaemon(RRDDaemon):
             min,
             max,
             timestamp=timestamp,
+            allowStaleDatapoint=allowStaleDatapoint,
         )
 
         # check for threshold breaches and send events when needed

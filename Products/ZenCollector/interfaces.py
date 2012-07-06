@@ -397,7 +397,7 @@ class IDataService(zope.interface.Interface):
     """
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-                 min='U', max='U', threshEventData=None, timestamp='N'):
+                 min='U', max='U', threshEventData=None, timestamp='N', allowStaleDatapoint=True):
         """
         Save the value provided in the command to the RRD file specified in path.
 
@@ -420,6 +420,8 @@ class IDataService(zope.interface.Interface):
         @type max: number
         @param threshEventData: on threshold violation, update the event with this data
         @type threshEventData: dictionary
+        @param allowStaleDatapoint: attempt to write datapoint even if a newer datapoint has already been written
+        @type allowStaleDatapoint: boolean
         @return: the parameter value converted to a number
         @rtype: number or None
         """

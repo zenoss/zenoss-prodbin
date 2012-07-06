@@ -28,6 +28,8 @@ from Products.ZenUtils.Utils import zenPath, rrd_daemon_args, rrd_daemon_retry
 
 EMPTY_RRD = zenPath('perf', 'empty.rrd')
 
+_LAST_RRDFILE_WRITE = {}
+
 
 def _checkUndefined(x):
     """
@@ -184,7 +186,8 @@ class RRDUtil(object):
 
 
     def put(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-             min='U', max='U', useRRDDaemon=True, timestamp='N', start=None):
+             min='U', max='U', useRRDDaemon=True, timestamp='N', start=None,
+             allowStaleDatapoint=True):
         """
         Save the value provided in the command to the RRD file specified in path.
 
@@ -205,6 +208,8 @@ class RRDUtil(object):
         @type min: number
         @param max: maximum value acceptable for this metric
         @type max: number
+        @param allowStaleDatapoint: attempt to write datapoint even if a newer datapoint has already been written
+        @type allowStaleDatapoint: boolean
         @return: the parameter value converted to a number
         @rtype: number or None
         """
@@ -232,10 +237,12 @@ class RRDUtil(object):
                 str(self.getStep(cycleTime)),]
             if start is not None:
                 args.extend(["--start", "%d" % start])
+            elif timestamp != 'N':
+                args.extend(["--start", "%d" % int(timestamp) - 10])
+
             args.append(str(dataSource))
             args.extend(rrdCommand.split())
             rrdtool.create(*args),
-      
 
         if rrdType in ('COUNTER', 'DERIVE'):
             try:
@@ -250,11 +257,31 @@ class RRDUtil(object):
         try:
             @rrd_daemon_retry
             def rrdtool_fn():
-                daemon_args = rrd_daemon_args() if useRRDDaemon else tuple()
-                return rrdtool.update(str(filename), *(daemon_args + ('%s:%s' % (timestamp, value),)))
-            rrdtool_fn()
-            
-            log.debug('%s: %r', str(filename), value)
+                return rrdtool.update(str(filename), *(rrd_daemon_args() + ('%s:%s' % (timestamp, value),)))
+            if timestamp == 'N' or allowStaleDatapoint:
+                rrdtool_fn()
+            else:
+                # try to detect when the last datasample was collected
+                lastTs = _LAST_RRDFILE_WRITE.get(filename, None)
+                if lastTs is None:
+                    try:
+                        lastTs = _LAST_RRDFILE_WRITE[filename] = rrdtool.last(
+                            *(rrd_daemon_args() + (str(filename),)))
+                    except Exception as ex:
+                         lastTs = 0
+                         log.exception("Could not determine last update to %r", filename)
+                # if the current datapoint is newer than the last datapoint, then write
+                if lastTs < timestamp:
+                    _LAST_RRDFILE_WRITE[filename] = timestamp
+                    if log.getEffectiveLevel() < logging.DEBUG:
+                        log.debug('%s: %r, currentTs = %s, lastTs = %s', filename, value, timestamp, lastTs)
+                    rrdtool_fn()
+                else:
+                    if log.getEffectiveLevel() < logging.DEBUG:
+                        log.debug("ignoring write %s:%s", filename, timestamp)
+                    return None
+
+            log.debug('%s: %r, @ %s', str(filename), value, timestamp)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
             log.error('rrdtool reported error %s %s', err, path)
@@ -263,7 +290,8 @@ class RRDUtil(object):
 
             
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-             min='U', max='U', useRRDDaemon=True, timestamp='N', start=None):
+             min='U', max='U', useRRDDaemon=True, timestamp='N', start=None,
+             allowStaleDatapoint=True):
         """
         Save the value provided in the command to the RRD file specified in path.
         Afterward, fetch the latest value for this point and return it.
@@ -285,10 +313,12 @@ class RRDUtil(object):
         @type min: number
         @param max: maximum value acceptable for this metric
         @type max: number
+        @param allowStaleDatapoint: attempt to write datapoint even if a newer datapoint has already been written
+        @type allowStaleDatapoint: boolean
         @return: the parameter value converted to a number
         @rtype: number or None
         """
-        value = self.put(path, value, rrdType, rrdCommand, cycleTime, min, max, useRRDDaemon, timestamp, start)
+        value = self.put(path, value, rrdType, rrdCommand, cycleTime, min, max, useRRDDaemon, timestamp, start, allowStaleDatapoint)
         
         if value is None:
             return None
