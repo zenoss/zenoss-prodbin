@@ -208,6 +208,20 @@ class EventProtobufIntMapper(EventProtobufMapper):
         except ValueError:
             pass
 
+class EventProtobufBoolMapper(EventProtobufMapper):
+    """
+    Maps an event to an integer value in the protobuf.
+    """
+
+    def __init__(self, fieldName):
+        self._fieldName = fieldName
+
+    def mapEvent(self, proto, value):
+        try:
+            setattr(proto, self._fieldName, bool(value))
+        except ValueError:
+            pass
+
 class EventProtobufSyslogPriorityMapper(EventProtobufMapper):
     """
     Maps a syslog priority value to the corresponding SyslogPriority.*.
@@ -295,6 +309,7 @@ class EventProtobuf(ObjectProtobuf):
         # DevicePriority -> Added by zeneventd
         # eventClassMapping -> Added by zeneventd
         'monitor': EventProtobufStringMapper('monitor'),
+        'applyTransforms': EventProtobufBoolMapper('apply_transforms'),
     }
 
     # If these attributes are found on the Event they are not mapped and are not

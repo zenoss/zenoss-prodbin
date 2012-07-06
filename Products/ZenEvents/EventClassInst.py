@@ -150,6 +150,9 @@ Transform:
             message = "Problem with line %s: %s" % (badLineNo, badLineText),
             transform=transformFormatted,
             exception=exceptionText,
+            # Set False if the root ('/') transform failed; avoids looping
+            # infinitely on creating transform event failures.
+            applyTransforms=False if (transformName == '/') else True,
         )
         zem.sendEvent(badEvt)
 
@@ -350,7 +353,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         """Return the rule if it exists else return the regex.
         limit limits the number of characters returned.
         """
-        value = self.rule and self.rule or self.regex
+        value = self.rule if self.rule else self.regex
         if not value and self.example:
             value = self.example
         if limit: value = value[:limit]
