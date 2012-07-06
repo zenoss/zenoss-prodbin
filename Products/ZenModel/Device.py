@@ -1640,8 +1640,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             linksHtml = talesEval('string:' + self.zLinks, self)
             otherLinks = self._getOtherExpandedLinks()
             if otherLinks:
-                for link in otherLinks:
-                    linksHtml += link
+                linksHtml += '<br/>'.join(otherLinks)
             return linksHtml
         except Exception, ex:
             import cgi
