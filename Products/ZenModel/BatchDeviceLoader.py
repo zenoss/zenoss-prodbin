@@ -67,6 +67,14 @@ class BatchDeviceLoader(ZCmdBase):
 #
 
 
+# Setting locations
+/Locations/Canada address="Canada"
+
+/Locations/Canada/Alberta address="Alberta, Canada"
+
+/Locations/Canada/Alberta/Calgary address="Calgary, Alberta, Canada"
+
+
 # If no organizer is specified at the beginning of the file,
 # defaults to the /Devices/Discovered device class.
 device0 comments="A simple device"
@@ -314,8 +322,8 @@ windows_device7 cDateTest='2010/02/28'
            'deviceName', 'devicePath', 'comments', 'loader', 'loader_arg_keys',
         ]
         @transact
-        def setDescription(org, description):
-            setattr(org, 'description', description)
+        def setNamedProp(org, name, description):
+            setattr(org, name, description)
 
         for functor, value in device_specs.items():
             if iszprop(functor) or iscustprop(functor) or functor in internalVars:
@@ -324,7 +332,12 @@ windows_device7 cDateTest='2010/02/28'
             # Special case for organizers which can take a description
             if functor == 'description':
                 if hasattr(device, functor):
-                    setDescription(device, value)
+                    setNamedProp(device, functor, value)
+                continue
+
+            if functor == 'address':
+                if hasattr(device, functor):
+                    setNamedProp(device, functor, value)
                 continue
 
             try:
