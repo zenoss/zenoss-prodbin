@@ -619,11 +619,14 @@
             }
             this.loaded = true;
             this.fireEvent('navloaded', this, root);
+
             root.expand(false, function(){
-                //HACK: cheat to make sure that all nodes are visible
-                var view = this.treepanel.getView();
-                var height = Ext.fly(view.getNode(0)).getHeight();
-                this.setHeight((height * nodes.length) + 35);
+                if (this.manualAdjustHeight) {
+                    //HACK: cheat to make sure that all nodes are visible
+                    var view = this.treepanel.getView();
+                    var height = Ext.fly(view.getNode(0)).getHeight();
+                    this.setHeight((height * nodes.length) + 35);
+                }
             }, this);
             this.doLayout();
 

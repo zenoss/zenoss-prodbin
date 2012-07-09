@@ -1076,6 +1076,7 @@ Ext.define("Zenoss.InfraDetailNav", {
         Ext.applyIf(config, {
             text: _t('Details'),
             target: 'detail_panel',
+            manualAdjustHeight: true,
             menuIds: ['More','Add','TopLevel','Manage'],
             listeners:{
                 nodeloaded: function( detailNavPanel, navConfig){
