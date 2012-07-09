@@ -22,12 +22,16 @@ log = logging.getLogger("zen.RRDUtil")
 import os
 import re
 import rrdtool
+import string
 
 from Products.ZenUtils.Utils import zenPath, rrd_daemon_args, rrd_daemon_retry
 
 
 EMPTY_RRD = zenPath('perf', 'empty.rrd')
 
+_UNWANTED_CHARS = ''.join(
+        set(string.punctuation + string.ascii_letters) - set(['.', '-', '+'])
+    )
 _LAST_RRDFILE_WRITE = {}
 
 
@@ -243,6 +247,9 @@ class RRDUtil(object):
             args.append(str(dataSource))
             args.extend(rrdCommand.split())
             rrdtool.create(*args),
+
+        # remove unwanted chars (this is actually pretty quick)
+        value = str(value).translate(None, _UNWANTED_CHARS)
 
         if rrdType in ('COUNTER', 'DERIVE'):
             try:
