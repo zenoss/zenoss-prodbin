@@ -330,12 +330,7 @@ windows_device7 cDateTest='2010/02/28'
                continue
 
             # Special case for organizers which can take a description
-            if functor == 'description':
-                if hasattr(device, functor):
-                    setNamedProp(device, functor, value)
-                continue
-
-            if functor == 'address':
+            if functor in ('description', 'address'):
                 if hasattr(device, functor):
                     setNamedProp(device, functor, value)
                 continue
@@ -344,7 +339,7 @@ windows_device7 cDateTest='2010/02/28'
                 self.log.debug("For %s, calling device.%s(%s)",
                               device.id, functor, value)
                 func = getattr(device, functor, None)
-                if func is None:
+                if func is None or not callable(func):
                     self.log.warn("The function '%s' for device %s is not found.",
                                   functor, device.id)
                 elif isinstance(value, (list, tuple)):
