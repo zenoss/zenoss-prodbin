@@ -118,7 +118,7 @@ class IInvalidationOid(Interface):
     """
     Allows an invalidation OID to be changed to a different OID or dropped
     """
-    def tranformOid(self, oid):
+    def tranformOid(oid):
         """
         Given an OID, return the same oid, a different one, a list of other oids or None.
         """
@@ -138,4 +138,19 @@ class IHubHeartBeatCheck(Interface):
 
     def check():
         """
+        """
+
+class IWorkerSelectionAlgorithm(Interface):
+    """
+    Strategy class for selecting eligible zenhub workers for a given function. A default
+    strategy will be created with simple selection algorithm, additional named strategies
+    (named by zenhub service method) can be defined using more elaborate algorithms.
+    """
+    def getCandidateWorkerIds(workerlist, options):
+        """
+        For a given list of workers/worker state and configured options, return a 
+        generator of valid worker id's. This will factor in concepts of priority and 
+        allocation, to accommodate methods that are short duration and high-frequency, 
+        and those of long duration and low-frequency (but may also potentially come in 
+        bursts).
         """

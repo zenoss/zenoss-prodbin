@@ -17,7 +17,6 @@
 Provide remote, authenticated, and possibly encrypted two-way
 communications with the Model and Event databases.
 """
-
 import Globals
 
 if __name__ == "__main__":
@@ -30,8 +29,10 @@ from XmlRpcService import XmlRpcService
 import collections
 import socket
 import time
+import signal
 import cPickle as pickle
 import os
+from random import choice
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
@@ -60,6 +61,7 @@ from Products.ZenHub.services.RenderConfig import RenderConfig
 from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid, IHubConfProvider, IHubHeartBeatCheck
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
+from Products.ZenHub.WorkerSelection import WorkerSelector
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
@@ -82,6 +84,8 @@ unused(DataMaps, ObjectMap)
 from Products.ZenHub import XML_RPC_PORT
 from Products.ZenHub import PB_PORT
 from Products.ZenHub import ZENHUB_ZENRENDER
+
+HubWorklistItem = collections.namedtuple('HubWorklistItem', 'deferred priority servicename instance method args')
 
 class AuthXmlRpcService(XmlRpcService):
     """Provide some level of authentication for XML/RPC calls"""
@@ -270,6 +274,52 @@ class WorkerInterceptor(pb.Referenceable):
         return getattr(self.service, attr)
 
 
+class _ZenHubWorklist(object):
+
+    def __init__(self):
+        self.eventworklist = []
+        self.otherworklist = []
+        self.applyworklist = []
+
+        #priority lists for eventual task selection. All queues are appended in case
+        #any of them are empty.
+        self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
+        self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
+        self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
+        self.dispatch = {
+            'sendEvents': self.eventworklist,
+            'applyDataMaps': self.applyworklist
+        }
+
+    def __getitem__(self, item):
+        return self.dispatch.get(item, self.otherworklist)
+
+    def __len__(self):
+        return len(self.eventworklist) + len(self.otherworklist) + len(self.applyworklist)
+
+    def pop(self):
+        """
+        Select a single task to be distributed to a worker. We prioritize tasks as follows:
+            sendEvents > configuration service calls > applyDataMaps
+        To prevent starving any queue in an event storm, we randomize the task selection,
+        preferring tasks according to the above priority.
+        """
+        eventchain = filter(None, self.eventPriorityList)
+        otherchain = filter(None, self.otherPriorityList)
+        applychain = filter(None, self.applyPriorityList)
+        seq = choice([eventchain]*4 +
+                      [otherchain]*2 +
+                      [applychain]
+                                 )
+        ret = seq[0].pop(0)
+        return ret
+
+    def push(self, job):
+        self[job.method].insert(0, job)
+
+    def append(self, job):
+        self[job.method].append(job)
+
 class ZenHub(ZCmdBase):
     """
     Listen for changes to objects in the Zeo database and update the
@@ -321,8 +371,8 @@ class ZenHub(ZCmdBase):
         # list of remote worker references
         self.workers = []
         self.workTracker = {}
-        self.workList = []
-        # set of worker protocols
+        self.workList = _ZenHubWorklist()
+        # set of worker processes
         self.worker_processes=set()
         # map of worker pids -> worker processes
         self.workerprocessmap = {}
@@ -333,6 +383,19 @@ class ZenHub(ZCmdBase):
         import Products.ZenHub
         load_config("hub.zcml", Products.ZenHub)
         notify(HubWillBeCreatedEvent(self))
+
+        #Worker selection handler
+        self.workerselector = WorkerSelector(self.options)
+        self.workList.log = self.log
+
+        # make sure we don't reserve more than n-1 workers for events
+        maxReservedEventsWorkers = 0
+        if self.options.workers:
+            maxReservedEventsWorkers = self.options.workers-1
+        if self.options.workersReservedForEvents > maxReservedEventsWorkers:
+            self.options.workersReservedForEvents = maxReservedEventsWorkers
+            self.log.info("reduced number of workers reserved for sending events to %d",
+                            self.options.workersReservedForEvents)
 
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
@@ -367,6 +430,27 @@ class ZenHub(ZCmdBase):
         self._createWorkerConf()
         for i in range(int(self.options.workers)):
             self.createWorker()
+
+        # set up SIGUSR2 handling
+        try:
+            signal.signal(signal.SIGUSR2, self.sighandler_USR2)
+        except ValueError:
+            # If we get called multiple times, this will generate an exception:
+            # ValueError: signal only works in main thread
+            # Ignore it as we've already set up the signal handler.
+            pass
+
+    def sighandler_USR2(self, signum, frame):
+        #log zenhub's worker stats
+        self._workerStats()
+
+        # send SIGUSR2 signal to all workers
+        for worker in self.workerprocessmap.values():
+            try:
+                worker.signalProcess(signal.SIGUSR2)
+                time.sleep(0.5)
+            except Exception:
+                pass
 
     def stop(self):
         self.shutdown = True
@@ -565,17 +649,7 @@ class ZenHub(ZCmdBase):
         service = self.getService(svcName, instance).service
         priority = service.getMethodPriority(method)
 
-        if self.options.prioritize:
-            # Insert job into workList so that it stays sorted by priority.
-            for i, job in enumerate(self.workList):
-                if priority < job[1]:
-                    self.workList.insert(i, (d, priority, args) )
-                    break
-            else:
-                self.workList.append( (d, priority, args) )
-        else:
-            # Run jobs on a first come, first serve basis.
-            self.workList.append( (d, priority, args) )
+        self.workList.append(HubWorklistItem(d, priority, svcName, instance, method, args))
 
         self.giveWorkToWorkers()
         return d
@@ -585,68 +659,70 @@ class ZenHub(ZCmdBase):
         """Parcel out a method invocation to an available worker process
         """
         self.log.debug("worklist has %d items", len(self.workList))
-        if self.options.logworkerstats:
-            self._workerStats()
+        incompleteJobs = []
         while self.workList:
-            for i, worker in enumerate(self.workers):
-                # linear search is not ideal, but simple enough
-                if not worker.busy:
-                    job = self.getJobForWorker(i)
-                    if job is None: continue
-                    worker.busy = True
-                    def finished(result, finishedWorker, wId):
-                        stats = self.workTracker.pop(wId,None)
-                        if stats:
-                            elapsed  = time.time() - stats[1]
-                            self.log.debug("worker %s, work %s finished in %s" % (wId,stats[0], elapsed))
-                        finishedWorker.busy = False
-                        if not isinstance(result, failure.Failure):
-                            try:
-                                result = pickle.loads(''.join(result))
-                            except Exception:
-                                self.log.exception("Error un-pickling result from worker")
-                        reactor.callLater(0,self.giveWorkToWorkers)
-                        return result
-                    self.log.debug("Giving %s to worker %d", job[2][2], i)
-                    self.counters['workerItems'] += 1
-                    if self.options.logworkerstats:
-                        jobDesc = "%s:%s.%s" % (job[2][1], job[2][0], job[2][2])
-                        self.workTracker[i] = (jobDesc, time.time())
-                    try:
-                        d2 = worker.callRemote('execute', *job[2])
-                    except Exception:
-                        self.log.exception("Failed to execute job on zenhub worker")
-                        d2 = defer.fail(failure.Failure())
-
-                    d2.addBoth(finished, worker, i)
-                    d2.chainDeferred(job[0])
-                    break
-            else:
+            if all(w.busy for w in self.workers):
                 self.log.debug("all workers are busy")
                 break
 
-    def _workerStats(self):
-        with open(zenPath('log', '%s_workerstats' % self.options.monitor), 'w') as f:
-            now = time.time()
-            for wId in range(len(self.workers)):
-                stat = self.workTracker.get(wId, None)
-                if stat is None:
-                    text = "%s\t[Idle]" % wId
-                else:
-                    elapsed = now - stat[1]
-                    text = "\t".join(map(str,[wId, stat[0], '\t', elapsed]))
-                f.write(text + '\n')
+            job = self.workList.pop()
+            self.log.debug("get candidate workers...")
+            candidateWorkers = list(self.workerselector.getCandidateWorkerIds(job.method, self.workers))
+            self.log.debug("candidate workers are %r", candidateWorkers)
+            for i in candidateWorkers:
+                worker = self.workers[i]
+                worker.busy = True
+                def finished(result, finishedWorker, wId):
+                    finishedWorker.busy = False
+                    stats = self.workTracker.pop(wId,None)
+                    if stats:
+                        elapsed  = time.time() - stats[1]
+                        self.log.debug("worker %s, work %s finished in %s" % (wId,stats[0], elapsed))
+                    if not isinstance(result, failure.Failure):
+                        try:
+                            result = pickle.loads(''.join(result))
+                        except Exception:
+                            self.log.exception("Error un-pickling result from worker")
+                    reactor.callLater(0,self.giveWorkToWorkers)
+                    return result
+                self.counters['workerItems'] += 1
+                jobDesc = "%s:%s.%s" % (job.instance, job.servicename, job.method)
+                self.log.debug("Giving %s to worker %d, (%s)", job.method, i, jobDesc)
+                self.workTracker[i] = (jobDesc, time.time())
+                try:
+                    d2 = worker.callRemote('execute', *job.args)
+                except Exception:
+                    self.log.warning("Failed to execute job on zenhub worker")
+                    d2 = defer.fail(failure.Failure())
 
-    def getJobForWorker(self, workerId):
-        if self.options.anyworker:
-            return self.workList.pop(0)
-        else:
-            # Restrict lower priority jobs to a subset of the workers.
-            lenWorkers = float(len(self.workers))
-            for i in range(len(self.workList)):
-                priority = self.workList[i][1]
-                if priority < (workerId+1) / lenWorkers:
-                    return self.workList.pop(i)
+                d2.addBoth(finished, worker, i)
+                d2.chainDeferred(job.deferred)
+                break
+            else:
+                self.log.debug("no worker available for %s" % job.method)
+                #could not complete this job, put it back in the queue once
+                #we're finished saturating the workers
+                incompleteJobs.append(job)
+
+        for job in reversed(incompleteJobs):
+            #could not complete this job, put it back in the queue
+            self.workList.push(job)
+
+        if incompleteJobs:
+            reactor.callLater(0,self.giveWorkToWorkers)
+
+    def _workerStats(self):
+        now = time.time()
+        lines = []
+        for wId in range(len(self.workers)):
+            stat = self.workTracker.get(wId, None)
+            if stat is None:
+                lines.append("%s\t[Idle]" % wId)
+            else:
+                elapsed = now - stat[1]
+                lines.append("\t".join(map(str,[wId, stat[0], '\t', elapsed])))
+        if lines:
+            self.log.info('\n'.join(lines))
 
     def _createWorkerConf(self):
         workerconfigdir = os.path.dirname(self.workerconfig)
@@ -762,6 +838,7 @@ class ZenHub(ZCmdBase):
         if self.options.cycle:
             self.heartbeat()
         reactor.run()
+        self.shutdown = True
         for proc in self.workerprocessmap.itervalues():
             try:
                 proc.signalProcess('KILL')
@@ -806,6 +883,9 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--no-graph-proxy', dest='graph_proxy',
             action='store_false', default=True,
             help="Don't listen to proxy graph requests to zenrender")
+        self.parser.add_option('--workers-reserved-for-events', dest='workersReservedForEvents',
+            type='int', default=1,
+            help="Number of worker instances to reserve for handling events")
         notify(ParserReadyForOptionsEvent(self.parser))
 
 class DefaultConfProvider(object):

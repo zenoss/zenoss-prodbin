@@ -15,8 +15,9 @@ import Globals
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
+from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 # required to allow modeling with zenhubworker
 from Products.DataCollector.plugins import DataMaps
@@ -34,6 +35,23 @@ import signal
 import os
 
 IDLE = "None/None"
+class _CumulativeWorkerStats(object):
+    """
+    Internal class for maintaining cumulative stats on frequency and runtime
+    for individual methods by service
+    """
+    def __init__(self):
+        self.numoccurrences = 0
+        self.totaltime = 0.0
+        self.lasttime = 0
+
+    def addOccurrence(self, elapsed, now=None):
+        if now is None:
+            now = time.time()
+        self.numoccurrences += 1
+        self.totaltime += elapsed
+        self.lasttime = now
+
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
 
@@ -70,19 +88,23 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         factory.startLogin(c)
 
     def sighandler_USR2(self, *args):
+        now = time.time()
         if self.current != IDLE:
-            now = time.time()
-            self.log.info("(%d) Currently performing %s, elapsed %.2f s", 
+            self.log.info("(%d) Currently performing %s, elapsed %.2f s",
                             self.pid, self.current, now-self.currentStart)
         else:
             self.log.info("(%d) Currently IDLE", self.pid)
         if self.services:
             loglines = ["(%d) Running statistics:" % self.pid]
-            for svc,svcob in sorted(self.services.iteritems()):
+            for svc,svcob in sorted(self.services.iteritems(), key=lambda kvp:(kvp[0][1], kvp[0][0].rpartition('.')[-1])):
                 svc = "%s/%s" % (svc[1], svc[0].rpartition('.')[-1])
                 for method,stats in sorted(svcob.callStats.items()):
-                    loglines.append(" - %-48s %-32s %8d %12.2f %8.2f" % 
-                                    (svc, method, stats[0], stats[1], stats[1]/stats[0]))
+                    loglines.append(" - %-48s %-32s %8d %12.2f %8.2f %s" %
+                                    (svc, method, 
+                                     stats.numoccurrences, 
+                                     stats.totaltime, 
+                                     stats.totaltime/stats.numoccurrences if stats.numoccurrences else 0.0,
+                                     isoDateTime(stats.lasttime)))
             self.log.info('\n'.join(loglines))
         else:
             self.log.info("no service activity statistics")
@@ -120,7 +142,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             # dict for tracking statistics on method calls invoked on this service,
             # including number of times called and total elapsed time, keyed
             # by method name
-            svc.callStats = defaultdict(lambda : [0, 0.0])
+            svc.callStats = defaultdict(_CumulativeWorkerStats)
 
             return svc
 
@@ -175,11 +197,11 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             # one last try, but don't hide the exception
             return runOnce()
         finally:
-            secs = time.time() - now
+            finishTime = time.time()
+            secs = finishTime - now
             self.log.debug("Time in %s: %.2f", method, secs)
             # update call stats for this method on this service
-            service.callStats[method][0] += 1
-            service.callStats[method][1] += secs
+            service.callStats[method].addOccurrence(secs, finishTime)
             service.callTime += secs
             self.current = IDLE
 
