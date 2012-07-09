@@ -33,7 +33,7 @@ def setupNRandomWorkers(n):
 class TestWorkers(BaseTestCase):
     def assertValidSelection(self, workers, selection, options):
         for i in selection:
-            self.assertTrue(i >= 0 and i < len(workers))
+            self.assertTrue(0 <= i < len(workers))
             if options:
                 self.assertTrue(i>=options.workersReservedForEvents)
             self.assertFalse(workers[i].busy)
@@ -79,8 +79,5 @@ class TestWorkers(BaseTestCase):
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-
-    # Add your BaseTestCase subclasses here to have them executed.
     suite.addTest(makeSuite(TestWorkers))
-
     return suite
