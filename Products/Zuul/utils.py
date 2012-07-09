@@ -123,7 +123,8 @@ def get_dmd():
     connections.reverse()
     # Make sure we don't get the temporary connection
     for cxn in connections:
-        if cxn._db.database_name != 'temporary':
+        db = getattr(cxn, '_db', None)
+        if db and db.database_name != 'temporary':
             app = cxn.root()['Application']
             return app.zport.dmd
 
