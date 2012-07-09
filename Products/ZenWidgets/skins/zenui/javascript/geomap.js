@@ -195,7 +195,9 @@ YAHOO.namespace('zenoss.geomap');
                 return;
             }else{
                 // done with that marker, but wait, there's more...
-                _overlay.addMarkers(); 
+                // need a delay here to keep google from saying: OVER_QUERY_LIMIT
+                // due to having too many queries per second
+                setTimeout(function(){_overlay.addMarkers()}, 200);
             }
                         
         },
@@ -225,7 +227,7 @@ YAHOO.namespace('zenoss.geomap');
                 return;
             }else{
                 // done with that line, but wait, there's more...
-                _overlay.addPolyline();           
+                setTimeout(function(){_overlay.addPolyline()}, 200);                           
             }
         },
         doDraw: function(results) {      
