@@ -2,7 +2,7 @@
 from Products.ZenReports.Utils import Record
 
 
-# The class name must patch the filename.
+# The class name must match the filename.
 class example_plugin(object):
 
     # The run method will be executed when your report calls the plugin.
