@@ -872,7 +872,7 @@
             config = config || {};
             Ext.applyIf(config, {
                 model: 'Zenoss.events.Model',
-                initialSortColumn: "firstTime",
+                initialSortColumn: 'severity',
                 initialSortDirection: 'DESC',
                 pageSize: Zenoss.settings.eventConsoleBufferSize,
                 proxy: {
