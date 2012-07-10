@@ -557,10 +557,11 @@
             this.add(field);
         },
         addFieldAfter: function(field, afterFieldName) {
-            this.getItems().splice(this._indexOfFieldName(afterFieldName)+1, 0, field);
+            var position = this._indexOfFieldName(afterFieldName) +1;
+            this.insert(position, field);
         },
         _indexOfFieldName: function(name) {
-            var idx = -1, items = this.getItems();
+            var idx = -1, items = this.getItems(), i;
             for ( i = 0; i < items.length; i++ ){
                 if (items[i].name == name){
                     idx = i;
