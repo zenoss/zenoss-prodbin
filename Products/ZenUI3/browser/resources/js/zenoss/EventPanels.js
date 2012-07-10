@@ -1179,7 +1179,7 @@
         id: 'select-button',
         listeners: {
             afterrender: function(e){
-                e.menu.items.items[0].setText(Ext.String.format(_t("{0} at a time"),  e.up().ownerCt.getStore().pageSize) );
+                e.menu.items.items[0].setText(_t("Select All") );
             }
         },
         menu:{
