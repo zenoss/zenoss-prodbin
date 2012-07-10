@@ -1,6 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<tal:block tal:content="structure python:here.auditRunReport()"/>
 <tal:block tal:replace="structure string:<script language=&quot;javascript&quot; type=&quot;text/javascript&quot;>
 var absoluteUrlPath = &quot;${here/absolute_url_path}&quot;;
 var reportId = &quot;${here/getPrimaryId}&quot;;

@@ -24,6 +24,7 @@ body {
 
 <tal:block metal:fill-slot="contentPane">
 
+<tal:block tal:content="structure python:here.auditRunReport()"/>
 <div style="float: right;"><img src="img/onwhitelogo.png"></div>
 <div style="font-size: 16pt;"
     tal:content="here/id">

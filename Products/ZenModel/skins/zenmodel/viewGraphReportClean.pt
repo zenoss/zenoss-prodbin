@@ -22,6 +22,7 @@ body {
 
 
 <tal:block metal:fill-slot="contentPane">
+<tal:block tal:content="structure python:here.auditRunReport()"/>
 <table border="0">
     <tr>
         <td colspan="2">

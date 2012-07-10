@@ -13,7 +13,7 @@
 
 __doc__="""Report
 
-Report represents a group of devices
+Report represents a report definition loaded from an .rpt file
 
 $Id: Report.py,v 1.3 2004/04/06 02:19:04 edahl Exp $"""
 
@@ -29,6 +29,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
+from Products.ZenModel.BaseReport import BaseReport
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType
 from Products.ZenUtils.deprecated import deprecated
@@ -71,7 +72,7 @@ addReport = PageTemplateFile('www/reportAdd', globals(),
                             __name__='addReport')
 
 
-class Report(ZenModelRM, ZenPackable):
+class Report(BaseReport, ZenPackable):
     """Report object"""
 
     __pychecker__ = 'no-override'
@@ -103,6 +104,7 @@ class Report(ZenModelRM, ZenPackable):
             url = '/zport/dmd/reports#reporttree:'
             url += path_info.replace('/', '.')
             template.REQUEST['RESPONSE'].redirect(url)
+        self.auditRunReport()
         return template.pt_render(extra_context={'options': kwargs})
 
 
