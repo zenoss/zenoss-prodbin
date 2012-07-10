@@ -151,7 +151,7 @@ class TreeRouter(DirectRouter):
         keys = ('id', 'path', 'uid', 'iconCls', 'text', 'hidden', 'leaf') + additionalKeys
 
         # load the severities in one request
-        childNodes = currentNode.children
+        childNodes = list(currentNode.children)
         uuids = [n.uuid for n in childNodes if n.uuid]
         zep = Zuul.getFacade('zep', self.context.dmd)
         if uuids:
