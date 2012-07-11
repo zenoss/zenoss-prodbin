@@ -674,15 +674,17 @@ class ZenHub(ZCmdBase):
                 worker.busy = True
                 def finished(result, finishedWorker, wId):
                     finishedWorker.busy = False
-                    stats = self.workTracker.pop(wId,None)
+                    now = time.time()
+                    stats = self.workTracker.pop(wId, None)
                     if stats:
-                        elapsed  = time.time() - stats[1]
+                        elapsed  = now - stats[1]
                         self.log.debug("worker %s, work %s finished in %s" % (wId,stats[0], elapsed))
                     if not isinstance(result, failure.Failure):
                         try:
                             result = pickle.loads(''.join(result))
                         except Exception:
                             self.log.exception("Error un-pickling result from worker")
+                    self.workTracker[wId] = ('Idle (last method: %s)' % stats[0], now)
                     reactor.callLater(0,self.giveWorkToWorkers)
                     return result
                 self.counters['workerItems'] += 1
@@ -713,16 +715,22 @@ class ZenHub(ZCmdBase):
 
     def _workerStats(self):
         now = time.time()
-        lines = []
-        for wId in range(len(self.workers)):
-            stat = self.workTracker.get(wId, None)
-            if stat is None:
-                lines.append("%s\t[Idle]" % wId)
-            else:
-                elapsed = now - stat[1]
-                lines.append("\t".join(map(str,[wId, stat[0], '\t', elapsed])))
-        if lines:
-            self.log.info('\n'.join(lines))
+        lines = ['Worklist Stats:',
+                 '\tEvents:\t%s' % len(self.workList.eventworklist),
+                 '\tOther:\t%s' % len(self.workList.otherworklist),
+                 '\tApplyDataMaps:\t%s' % len(self.workList.applyworklist),
+                 '\tTotal:\t%s' % len(self.workList),
+                 'Worker Stats:']
+        for wId, worker in enumerate(self.workers):
+            stat = self.workTracker.get(wId, ['Idle', now])
+            linePattern = '\t%d:%s\t[%s]\t%f.3'
+            lines.append(linePattern % (
+                wId,
+                'Flagged Busy' if worker.busy else 'Idle',
+                stat[0],
+                now - stat[1]
+            ))
+        self.log.info('\n'.join(lines))
 
     def _createWorkerConf(self):
         workerconfigdir = os.path.dirname(self.workerconfig)
