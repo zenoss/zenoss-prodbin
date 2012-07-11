@@ -88,7 +88,7 @@ class IIpInterfaceInfo(IComponentInfo):
         order=9)
 
     speed = schema.TextLine(
-        title=u"Speed", group="Details",
+        title=u"Speed", group="Details", readonly=True,
         order=10)
 
     duplex = schema.TextLine(
@@ -128,7 +128,7 @@ class IOSProcessInfo(IComponentInfo):
     """
     Info adapter for OSProcess components.
     """
-    processClass = schema.Entity(title=u"Process Class", group="Overview", 
+    processClass = schema.Entity(title=u"Process Class", group="Overview",
                                  order=1)
     processName = schema.TextLine(title=u"Process Name", group="Overview",
                                   readonly=True, order=-1)

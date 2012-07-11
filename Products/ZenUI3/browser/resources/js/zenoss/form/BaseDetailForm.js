@@ -63,6 +63,7 @@ ZF.createDirectSubmitFunction = function(router) {
             form.setValues(dirtyFieldValues); // isDirty() will return false now
             form.afterAction(directSubmitAction, true);
             form.reset();
+            Zenoss.message.info(_t("Details updated successfully"));
         };
 
         // the remote call
