@@ -1,6 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="head-local">
-<link rel="stylesheet" type="text/css" href="++resource++extjs/resources/css/ext-all.css"/>
+
 <link rel="stylesheet" type="text/css" href="/zport/quickstart.css"/>
 <style>
     #settings ul { margin: 1em; margin-left: 2em; }

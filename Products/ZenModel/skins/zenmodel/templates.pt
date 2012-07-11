@@ -39,7 +39,7 @@
             }
         })();
         </script>
-        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all-dev.js"></script>
+        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
 
         <script>
         // Fix an IE bug
