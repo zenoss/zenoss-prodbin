@@ -135,7 +135,7 @@ class RRDUtil(object):
         The RRD creation command is only used if the RRD file doesn't
         exist and no rrdCommand was specified with the save() method.
 
-	@param defaultRrdCreateCommand: RRD creation command
+        @param defaultRrdCreateCommand: RRD creation command
         @type defaultRrdCreateCommand: string
         @param defaultCycleTime: expected time to periodically collect data
         @type defaultCycleTime: integer
@@ -253,7 +253,9 @@ class RRDUtil(object):
 
         if rrdType in ('COUNTER', 'DERIVE'):
             try:
-                value = long(value)
+                # cast to float first because long('100.0') will fail with a
+                # ValueError
+                value = long(float(value))
             except (TypeError, ValueError):
                 return None
         else:
@@ -292,10 +294,10 @@ class RRDUtil(object):
         except rrdtool.error, err:
             # may get update errors when updating too quickly
             log.error('rrdtool reported error %s %s', err, path)
-        
+
         return value
 
-            
+
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
              min='U', max='U', useRRDDaemon=True, timestamp='N', start=None,
              allowStaleDatapoint=True):
@@ -326,11 +328,11 @@ class RRDUtil(object):
         @rtype: number or None
         """
         value = self.put(path, value, rrdType, rrdCommand, cycleTime, min, max, useRRDDaemon, timestamp, start, allowStaleDatapoint)
-        
+
         if value is None:
             return None
-            
-        if rrdType in ('COUNTER', 'DERIVE'):            
+
+        if rrdType in ('COUNTER', 'DERIVE'):
             filename = self.performancePath(path) + '.rrd'
             if cycleTime is None:
                 cycleTime = self.defaultCycleTime
@@ -342,7 +344,7 @@ class RRDUtil(object):
                                     '-s', 'now-%d' % (cycleTime*2),
                                     '-e', 'now', *daemon_args)
             startStop, names, values = rrdtool_fn()
-                
+
             values = [ v[0] for v in values if v[0] is not None ]
             if values: value = values[-1]
             else: value = None

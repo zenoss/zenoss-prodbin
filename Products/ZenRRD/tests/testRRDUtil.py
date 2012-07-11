@@ -32,7 +32,7 @@ class TestRRDUtil(BaseTestCase):
         self.name = testdev
 
         # name, path, dataStorageType, rrdCreateCommand, minmax
-        self.path= os.path.join( "tests", testdev )  
+        self.path= os.path.join( "tests", testdev )
 
         self.dev = self.dmd.Devices.createInstance(testdev)
 
@@ -146,20 +146,19 @@ class TestRRDUtil(BaseTestCase):
         """
         Verify info function succeeds.
         """
-
         rrd= RRDUtil( self.createcmd, 60 )
         path= os.path.join( self.path, "%f" % random() )
 
         # setup RRD file, add values to it
         startTime = time.time() - 10 * 60
         for i in range (0, 10):
-            rrd.save( path, i * 100.0, 'COUNTER', useRRDDaemon=False, timestamp=int(startTime+i*60), start=startTime)
+            rrd.save( path, i * 100, 'COUNTER', useRRDDaemon=False, timestamp=int(startTime+i*60), start=startTime)
 
         # check info function
         import rrdtool
         filename = rrd.performancePath(path) + '.rrd'
         info = rrdtool.info(filename)
-        
+
         self.assertEquals(info['ds[ds0].index'], 0L)
         # self.assertEquals(info['ds[ds0].last_ds'], '90.0')
         self.assertEquals(info['ds[ds0].max'], None)
@@ -180,20 +179,20 @@ class TestRRDUtil(BaseTestCase):
 
         # test fetch, with daemon pointing to bad socket file
         self.assertRaises(rrdtool.error, rrdtool.fetch, filename, 'AVERAGE', '--start', "%d" % startTime, '--daemon' '/tmp/blah')
-        
+
         # test graph
         imFile = rrd.performancePath(path) + ".png"
-        rrdtool.graph(imFile, 
+        rrdtool.graph(imFile,
             "-w", "400",
             "-h", "100",
             "--full-size-mode",
-            "DEF:ds0a=%s:ds0:AVERAGE" % filename, 
+            "DEF:ds0a=%s:ds0:AVERAGE" % filename,
             "LINE1:ds0a#0000FF:'default'",
         )
-        
+
         def readPNGsize(fname):
             """
-            PNG spec defines 16-byte header, followed by width and height as 
+            PNG spec defines 16-byte header, followed by width and height as
             unsigned 4-byte integers.
             """
             import struct
@@ -202,9 +201,9 @@ class TestRRDUtil(BaseTestCase):
                 sizebytes = first24[-8:]
                 width,height = struct.unpack_from(">II",sizebytes)
                 return width,height
-        
+
         self.assertEquals(readPNGsize(imFile), (400, 100))
-        
+
     def beforeTearDown(self):
         """
         Clean up after our tests
@@ -224,4 +223,3 @@ def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(TestRRDUtil))
     return suite
-
