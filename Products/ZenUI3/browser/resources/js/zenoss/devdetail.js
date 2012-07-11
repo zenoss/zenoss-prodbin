@@ -154,19 +154,28 @@ function showMonitoringDialog() {
         bodyStyle: 'padding:8px;padding-top:2px',
         buttonAlign: 'left',
         plain: true,
+        submitMon: function(v){
+            var opts = {
+                    monitor: v
+                };
+            Ext.apply(opts, componentGridOptions());
+            REMOTE.setComponentsMonitored(opts, function(r){
+                refreshComponentTreeAndGrid();
+            });        
+        },
         buttons: [{
             xtype:'DialogButton',
-            text: _t('Submit'),
+            text: _t('Yes'),
             handler: function(btn) {
-                var mon = Ext.getCmp('monitoring-checkbox'),
-                    opts = {
-                        monitor: mon.getValue()
-                    };
-                Ext.apply(opts, componentGridOptions());
+                win.submitMon(true);
                 btn.ownerCt.ownerCt.destroy();
-                REMOTE.setComponentsMonitored(opts, function(r){
-                    refreshComponentTreeAndGrid();
-                });
+            }
+        },{
+            xtype:'DialogButton',
+            text: _t('No'),
+            handler: function(btn) {
+                win.submitMon(false);
+                btn.ownerCt.ownerCt.destroy();
             }
         },{
             xtype:'DialogButton',
@@ -176,16 +185,16 @@ function showMonitoringDialog() {
             }
         }],
         items: [{
-            xtype: 'checkbox',
+            xtype: 'label',
             name: 'monitor',
-            submitValue: false,
             id: 'monitoring-checkbox',
-            boxLabel: _t('Monitor these components'),
+            text: _t('Monitor these components?'),
             checked: true
         }]
     });
     win.show();
     win.doLayout();
+
 }
 
 function componentGridOptions() {
