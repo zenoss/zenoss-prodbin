@@ -223,7 +223,8 @@ class NonCriticalInstallError(Exception):
 
 def InstallEggAndZenPack(dmd, eggPath, link=False, 
                             filesOnly=False, sendEvent=True, 
-                            previousVersion=None, forceRunExternal=False):
+                            previousVersion=None, forceRunExternal=False,
+                            fromUI=False):
     """
     Installs the given egg, instantiates the ZenPack, installs in
     dmd.ZenPackManager.packs, and runs the zenpacks's install method.
@@ -241,7 +242,8 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                                           link, 
                                           filesOnly=filesOnly,
                                           previousVersion=previousVersion,
-                                          forceRunExternal=forceRunExternal)
+                                          forceRunExternal=forceRunExternal,
+                                          fromUI=fromUI)
                 zenPacks.append(zp)
             except NonCriticalInstallError, ex:
                 nonCriticalErrorEncountered = True
@@ -330,7 +332,8 @@ def InstallEgg(dmd, eggPath, link=False):
 
 
 def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
-                         previousVersion=None, forceRunExternal=False):
+                         previousVersion=None, forceRunExternal=False,
+                         fromUI=False):
     """
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
@@ -364,6 +367,8 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             if filesOnly:
                 for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
                     loader.load(zenPack, None)
+            if fromUI and not zenPack.installableFromUI:
+                raise ZenPackException("This ZenPack cannot be installed through the UI.")
 
 
         if not filesOnly:
@@ -405,6 +410,8 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                 cmd += ["--install", eggPath]
                 if upgradingFrom:
                     cmd += ['--previousversion', upgradingFrom]
+                if fromUI:
+                    cmd += ["--fromui"]
 
                 cmdStr = " ".join(cmd)
                 log.debug("launching sub process command: %s" % cmdStr)

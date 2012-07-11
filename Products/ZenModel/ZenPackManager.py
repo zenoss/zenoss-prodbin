@@ -267,7 +267,7 @@ class ZenPackManager(ZenModelRM):
             try:
                 outFile = tempfile.SpooledTemporaryFile()
                 # Run zenpack install
-                cmd = 'zenpack --install %s' % tFile.name
+                cmd = 'zenpack --install %s --fromui' % tFile.name
                 p = Popen(cmd, shell=True, stdout=outFile, stderr=STDOUT)
 
                 endWait = time.time() + ZENPACK_INSTALL_TIMEOUT

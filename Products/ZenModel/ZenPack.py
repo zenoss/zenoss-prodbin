@@ -176,6 +176,8 @@ class ZenPack(ZenModelRM):
     # first installed
     eggPack = False
 
+    installableFromUI = True
+
     requires = () # deprecated
 
     loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLBin(), ZPLLibExec(),

@@ -16,6 +16,7 @@ import os, sys
 import contextlib
 import logging
 import ConfigParser
+import optparse
 import subprocess
 from zipfile import ZipFile
 from StringIO import StringIO
@@ -160,7 +161,8 @@ class ZenPackCmd(ZenScriptBase):
                     self.options.installPackName,
                     link=self.options.link,
                     filesOnly=False,
-                    previousVersion= self.options.previousVersion)
+                    previousVersion= self.options.previousVersion,
+                    fromUI=self.options.fromui)
             if os.path.isfile(self.options.installPackName):
                 packName = self.extract(self.options.installPackName)
             elif os.path.isdir(self.options.installPackName):
@@ -457,6 +459,11 @@ class ZenPackCmd(ZenScriptBase):
                                help='Install the ZenPack files onto the '
                                         'filesystem, but do not install the '
                                         'ZenPack into Zenoss.')
+        self.parser.add_option('--fromui',
+                               dest='fromui',
+                               action="store_true",
+                               default=False,
+                               help=optparse.SUPPRESS_HELP)
         self.parser.add_option('--previousversion',
                                dest='previousVersion',
                                default=None,
