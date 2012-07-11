@@ -76,7 +76,7 @@ YAHOO.namespace('zenoss.geomap');
    /* DRAWING OVERLAY AND MARKERS */ 
     var _overlay = {
         addMarkers: function() {
-            // check server cache to see if we need to geocode or not
+            // check server cache to see if we need to geocode or not            
             if(geocodecache && geocodecache.nodes.length > 0){
                 _overlay.constructMarker(geocodecache.nodes[index], false);                
             }else{
@@ -153,19 +153,21 @@ YAHOO.namespace('zenoss.geomap');
                 new google.maps.Size(newsize, newsize)// scale                    
             );
             var clicklink = nodedata[index][2];
-            if (IS_MAP_PORTLET) {
-                clicklink = clicklink.replace('locationGeoMap', 
-                        'simpleLocationGeoMap');
-            }             
-            var contentString = _utils.hrefize(nodedata[index][3]);
+            clicklink = clicklink.replace('locationGeoMap', '');             
+            var contentString = _utils.hrefize(nodedata[index][3]), lat, lng;
                 // for some reason, the template language parser chokes when I close the anchor /a
                 // it works like this so leaving it for now (even stranger is that you can have /a
                 // in a comment, and the parser still picks it up and crashes!
                 contentString += '<a target="_top" href="'+clicklink+'">Go to the Infrastructure Location Organizer >';
+            if(geocoding){
+                results[0].geometry.location.lat = results[0].geometry.location.lat();
+                results[0].geometry.location.lng = results[0].geometry.location.lng();
+                // create a new entry on the results object for cache storage                
+            }
             var marker = new google.maps.Marker( {
                 position: new google.maps.LatLng(
-                    results[0].geometry.location.lat(),
-                    results[0].geometry.location.lng()
+                    results[0].geometry.location.lat,
+                    results[0].geometry.location.lng
                 ),
                 icon: pinImage,                    
                 map: gmap,
