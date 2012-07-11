@@ -507,14 +507,20 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
             actor.element_identifier = element.id
             elementTitle = element.titleOrId()
             if elementTitle != actor.element_identifier:
-                actor.element_title = elementTitle
+                try:
+                    actor.element_title = elementTitle
+                except ValueError:
+                    actor.element_title = elementTitle.decode('utf8')
 
         sub_element_type_id, sub_element = self._findTypeIdAndElement(eventContext, True)
         if sub_element:
             actor.element_sub_identifier = sub_element.id
             subElementTitle = sub_element.titleOrId()
             if subElementTitle != actor.element_sub_identifier:
-                actor.element_sub_title = subElementTitle
+                try:
+                    actor.element_sub_title = subElementTitle
+                except ValueError:
+                    actor.element_sub_title = subElementTitle.decode('utf8')
 
         device = eventContext.deviceObject
         if device is None:
