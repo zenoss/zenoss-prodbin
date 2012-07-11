@@ -28,6 +28,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 # Blank line regular expression
 _newlines = re.compile('\n[\t \r]*\n', re.M)
 
+#TODO: ZEN-2505 May want to remove this class
 class ExportDevices(ZCmdBase):
     """
     Wrapper class around exportXml() to create XML exports of devices.

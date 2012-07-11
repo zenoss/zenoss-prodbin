@@ -28,7 +28,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 from Products.ZenRelations.Exceptions import *
 
-
+#TODO: ZEN-1855 May want to remove this class
 class ImportDevices(ZCmdBase):
 
     def getDevicePath(self, device):
