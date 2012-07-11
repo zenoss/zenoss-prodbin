@@ -305,8 +305,10 @@ Ext.define("Zenoss.JobsWidget", {
         }
     },
     set_lastchecked: function() {
+        // expires two weeks from now
+        var cookieExpires = Ext.Date.add(new Date(), Ext.Date.DAY, 14);
         this.lastchecked = (new Date().getTime()/1000);
-        Ext.util.Cookies.set('jobswidget_update', this.lastchecked);
+        Ext.util.Cookies.set('jobswidget_update', this.lastchecked, cookieExpires);
     },
     update: function() {
         REMOTE.userjobs({}, function(result){
