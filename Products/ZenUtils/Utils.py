@@ -32,6 +32,7 @@ import re
 import socket
 import inspect
 import threading
+import Queue
 import warnings
 import math
 import contextlib
@@ -1950,6 +1951,35 @@ class InterruptableThread(threading.Thread):
 
     def kill(self):
         self.interrupt(SystemExit)
+
+
+class StreamReader(threading.Thread):
+    """
+    Simulate non-blocking readline() behavior.
+    """
+
+    daemon = True
+
+    def __init__(self, stream):
+        """
+        @param stream {File-like object} input data stream
+        """
+        super(StreamReader, self).__init__()
+        self._stream = stream
+        self._queue = Queue.Queue()
+
+    def run(self):
+        for line in iter(self._stream.readline, b''):
+            self._queue.put(line)
+        self._stream.close()
+        self._stream = None
+
+    def readline(self, timeout=0):
+        try:
+            return self._queue.get(timeout=timeout)
+        except Queue.Empty:
+            return ''
+
 
 giveTimeToReactor = partial(task.deferLater, reactor, 0)
 

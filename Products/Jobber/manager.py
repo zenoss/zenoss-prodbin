@@ -184,6 +184,8 @@ class JobManager(ZenModelRM):
         @return: A matching L{JobStatus} object, or raises a NoSuchJobException if none is found
         @rtype: L{JobStatus}, None
         """
+        if not jobid:
+            raise NoSuchJobException(jobid)
         try:
             return self._getOb(jobid)
         except AttributeError:

@@ -10,13 +10,16 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
 import sys
 import os
 import time
 import logging
 import Queue
 import errno
+import signal
 import subprocess
+
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from Products.CMFCore.utils import getToolByName
@@ -24,7 +27,9 @@ from ZODB.transact import transact
 
 from celery.utils import fun_takes_kwargs
 
-from Products.ZenUtils.Utils import InterruptableThread, ThreadInterrupt
+from Products.ZenUtils.Utils import (
+        InterruptableThread, ThreadInterrupt, StreamReader
+    )
 from Products.ZenUtils.celeryintegration import Task, states
 
 states.ABORTED = "ABORTED"
@@ -53,6 +58,7 @@ class Job(Task):
     _log = None
     _aborted_tasks = set()
     acks_late = True
+    _origsigtermhandler = None
 
     @classmethod
     def getJobType(cls):
@@ -131,9 +137,9 @@ class Job(Task):
                 status = states.ABORTED
             if (status == states.ABORTED and self._runner_thread is not None):
                 self.log.info("Job %s is aborted", task_id)
-                # sometimes the thread is about to commit before it can get interrupted
-                # self._aborted_tasks is an in memory shared set so the other thread
-                # can check on it before it commits
+                # Sometimes the thread is about to commit before it can get interrupted.
+                # self._aborted_tasks is an in-memory shared set so other thread
+                # can check on it before it commits.
                 self._aborted_tasks.add(task_id)
                 self._runner_thread.interrupt(JobAborted)
                 break
@@ -165,7 +171,7 @@ class Job(Task):
         try:
             try:
                 result = self._run(*args, **kwargs)
-                self.log.info("Job %s Finished with result %s" , job_record.id, result)
+                self.log.info("Job %s Finished with result %s", job_record.id, result)
                 if job_id in self._aborted_tasks:
                     self.log.info("Job %s aborted rolling back thread local transaction", job_record.id)
                     import transaction
@@ -174,9 +180,11 @@ class Job(Task):
                 self._result_queue.put(result)
             except JobAborted:
                 self.log.warning("Job aborted.")
-                raise
+                # No need to raise JobAborted any further; pushing
+                # JobAborted into celery results in an exception written to
+                # the log for aborted jobs.
+                #raise
         except Exception, e:
-            # TODO: possibly swallow JobAborted here; not sure what's best yet
             e.exc_info = sys.exc_info()
             self._result_queue.put(e)
         finally:
@@ -213,8 +221,20 @@ class Job(Task):
                                                   args=args, kwargs=d)
         self._runner_thread.start()
         self._aborter_thread.start()
+
+        # Install a SIGTERM handler so that the 'runner_thread' can be
+        # interrupted/aborted when the TERM signal is received.
+        self._origsigtermhandler = signal.signal(
+                signal.SIGTERM, self._sigtermhandler
+            )
+
         try:
-            self._runner_thread.join()
+            # A blocking join() call also blocks the thread from calling
+            # signal handlers, so use a timeout join and loop until the
+            # thread exits to allow the thread an opportunity to call
+            # signal handlers.
+            while self._runner_thread.is_alive():
+                self._runner_thread.join(0.01)
             result = self._result_queue.get_nowait()
             if isinstance(result, Exception):
                 if not isinstance(result, JobAborted):
@@ -225,6 +245,9 @@ class Job(Task):
         except Queue.Empty:
             return None
         finally:
+            # Remove our signal handler and re-install the original handler
+            if signal.getsignal(signal.SIGTERM) == self._sigtermhandler:
+                signal.signal(signal.SIGTERM, self._origsigtermhandler)
             # Kill the aborter
             try:
                 self._aborter_thread.kill()
@@ -247,6 +270,18 @@ class Job(Task):
     def _run(self, *args, **kwargs):
         raise NotImplementedError("_run must be implemented")
 
+    def _sigtermhandler(self, signum, frame):
+        self.log.debug("%s received signal %s", self, signum)
+        # Interrupt the runner_thread.
+        self._runner_thread.interrupt(JobAborted)
+        # Wait for the runner_thread to exit.
+        while self._runner_thread.is_alive():
+            time.sleep(0.01)
+        # Install the original SIGTERM handler
+        signal.signal(signal.SIGTERM, self._origsigtermhandler)
+        # Send this process a SIGTERM signal
+        os.kill(os.getpid(), signal.SIGTERM)
+
 
 class SubprocessJob(Job):
 
@@ -263,16 +298,22 @@ class SubprocessJob(Job):
             newenviron = os.environ.copy()
             newenviron.update(environ)
             environ = newenviron
-        self.log.info("Spawning subprocess: %s" % SubprocessJob.getJobDescription(cmd))
+        self.log.info("Spawning subprocess: %s", SubprocessJob.getJobDescription(cmd))
         process = subprocess.Popen(cmd, bufsize=1, env=environ,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
 
+        # Since process.stdout.readline() is a blocking call, it stops
+        # the injected exception from being raised until it unblocks.
+        # The StreamReader object allows non-blocking readline() behavior
+        # to avoid delaying the injected exception.
+        reader = StreamReader(process.stdout)
+        reader.start()
         exitcode = None
         while exitcode is None:
             orig = None
             try:
-                line = process.stdout.readline()
+                line = reader.readline()
                 if line:
                     handler = self.log.handlers[0]
                     orig = handler.formatter
