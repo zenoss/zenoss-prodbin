@@ -14,7 +14,8 @@
 from contextlib import contextmanager
 from functools import wraps, partial
 
-import transaction
+import logging
+log = logging.getLogger("zenUtils.AutoGCObjectReader")
 from ZODB.serialize import ObjectReader
 
 __all__ = ["gc_cache_every", "gc_cache_every_decorator"]
@@ -51,9 +52,12 @@ class AutoGCObjectReader(ObjectReader):
         self._cache = orig_reader._cache
         self._factory = orig_reader._factory
         self._chunk_size = chunk_size
+        self._orig_cache_size = self._cache.cache_size
+        self._cache.cache_size = chunk_size
 
     def garbage_collect_cache(self):
-        self._conn.sync()
+        self._cache.incrgc()
+        log.info("GC: reduced cache to %d/%d (total/active) objects", len(self._cache), self._cache.ringlen())
         self._counter = 0
 
     def load_persistent(self, oid, klass):
@@ -64,6 +68,7 @@ class AutoGCObjectReader(ObjectReader):
         return ob
 
     def get_original(self):
+        self._cache.cache_size = self._orig_cache_size
         return self._orig_reader
 
 
