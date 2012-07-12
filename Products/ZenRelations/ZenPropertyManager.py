@@ -672,7 +672,7 @@ def setDescriptors(dmd):
     for prop_id in dmd.Devices.zenPropertyIds():
         prop_type = dmd.Devices.getPropertyType(prop_id)
         if (prop_id, prop_type) not in zprops:
-            log.warn('Property {prop_id} is deprecated. It should be removed from the system.'.format(prop_id=prop_id))
+            log.debug('Property {prop_id} is deprecated. It should be removed from the system.'.format(prop_id=prop_id))
             zprops.add((prop_id, prop_type))
 
     monkeypatchDescriptors(zprops, dmd.propertyTransformers)
