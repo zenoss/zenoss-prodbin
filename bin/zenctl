@@ -155,17 +155,6 @@ fresh_install_pre() {
     # location of where we copy configuration items to
     ZEN_ETC=${ZENHOME}/etc
 
-    # update the snmpd.conf file
-    SNMPD_CONF_DIR=`dirname ${SNMPD_CONF}`
-    BACKUP=${SNMPD_CONF_DIR}/`basename ${SNMPD_CONF}`.orig
-    if [ -f ${SNMPD_CONF} ]; then
-        cp ${SNMPD_CONF} ${BACKUP}
-    fi
-    if [ ! -d ${SNMPD_CONF_DIR} ]; then
-        mkdir -p ${SNMPD_CONF_DIR}
-    fi
-    cp ${ZEN_ETC}/snmpd.conf ${SNMPD_CONF}
-    
     init_install_log "Fresh install pre steps"
  
     # run the first time initialization pre-run script

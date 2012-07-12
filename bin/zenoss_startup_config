@@ -37,7 +37,6 @@ export PYTHON="**PYTHON**"
 export ZOPE_LISTEN_PORT="**ZOPE_LISTEN_PORT**"
 export ZOPE_USERNAME="**ZOPE_USERNAME**"
 export PYTHONPATH="**PYTHONPATH**"
-export SNMPD_CONF="**SNMPD_CONF**"
 
 if [ ! -d "$ZENHOME" ]; then
     echo "ZENHOME is not set properly: $ZENHOME"

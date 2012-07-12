@@ -39,9 +39,6 @@ shebang
 # create the log directory
 mkdir -p ${ZENHOME}/log
 
-# restart external server daemons
-restart_snmpd
-
 # start rabbit
 start_rabbitmq
 

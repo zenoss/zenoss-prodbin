@@ -75,7 +75,6 @@ upgrade_conf_options_42
 sed -i -e 's/[ \t]*configpath .*//' $ZENHOME/etc/zenstatus.conf
 
 # restart external server daemons
-restart_snmpd
 if [ "${ZODB_HOST}" = "localhost" ];then
     check_mysql
 fi
