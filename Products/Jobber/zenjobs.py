@@ -27,10 +27,13 @@ try:
 except ImportError:
     freeze_support = lambda *_: None
 
+from Products.Jobber.exceptions import NoSuchJobException
+from Products.Jobber.jobs import JobAborted
+
 
 class CeleryZenJobs(ZenDaemon):
 
-    mname = 'zenjobs' # For logging
+    mname = 'zenjobs'  # For logging
 
     def __init__(self, *args, **kwargs):
         ZenDaemon.__init__(self, *args, **kwargs)
@@ -83,10 +86,26 @@ def _shutdown(self, warm=True):
     return original(self, warm=False)
 
 
+# Replace the _log_error implementation to ignore JobAborted exceptions.
+# This avoids writing exception tracebacks into the log for aborted jobs.
+@monkeypatch("celery.worker.job.Request")
+def _log_error(self, exc_info):
+    if not isinstance(exc_info.exception, JobAborted):
+        original(self, exc_info)
+
+
 @task_prerun.connect
-def task_prerun_handler(signal=None, sender=None, task_id=None, task=None, args=None,
-                        kwargs=None):
-    task.app.backend.update(task_id, status=states.STARTED, date_started=datetime.utcnow())
+def task_prerun_handler(signal=None, sender=None,
+        task_id=None, task=None, args=None, kwargs=None):
+    try:
+        status = task.app.backend.get_status(task_id)
+    except NoSuchJobException:
+        # Job hasn't been created yet
+        status = None
+    if status != states.ABORTED:
+        task.app.backend.update(
+            task_id, status=states.STARTED, date_started=datetime.utcnow()
+        )
 
 
 if __name__ == "__main__":

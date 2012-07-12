@@ -1953,7 +1953,7 @@ class InterruptableThread(threading.Thread):
         self.interrupt(SystemExit)
 
 
-class StreamReader(threading.Thread):
+class LineReader(threading.Thread):
     """
     Simulate non-blocking readline() behavior.
     """
@@ -1964,7 +1964,7 @@ class StreamReader(threading.Thread):
         """
         @param stream {File-like object} input data stream
         """
-        super(StreamReader, self).__init__()
+        super(LineReader, self).__init__()
         self._stream = stream
         self._queue = Queue.Queue()
 

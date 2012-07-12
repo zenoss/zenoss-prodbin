@@ -28,7 +28,7 @@ from ZODB.transact import transact
 from celery.utils import fun_takes_kwargs
 
 from Products.ZenUtils.Utils import (
-        InterruptableThread, ThreadInterrupt, StreamReader
+        InterruptableThread, ThreadInterrupt, LineReader
     )
 from Products.ZenUtils.celeryintegration import Task, states
 
@@ -180,10 +180,11 @@ class Job(Task):
                 self._result_queue.put(result)
             except JobAborted:
                 self.log.warning("Job aborted.")
-                # No need to raise JobAborted any further; pushing
-                # JobAborted into celery results in an exception written to
-                # the log for aborted jobs.
-                #raise
+                # re-raise JobAborted to allow celery to perform job
+                # failure and clean-up work.  A monkeypatch has been
+                # installed to prevent this exception from being written to
+                # the log.
+                raise
         except Exception, e:
             e.exc_info = sys.exc_info()
             self._result_queue.put(e)
@@ -298,38 +299,42 @@ class SubprocessJob(Job):
             newenviron = os.environ.copy()
             newenviron.update(environ)
             environ = newenviron
-        self.log.info("Spawning subprocess: %s", SubprocessJob.getJobDescription(cmd))
-        process = subprocess.Popen(cmd, bufsize=1, env=environ,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
-
-        # Since process.stdout.readline() is a blocking call, it stops
-        # the injected exception from being raised until it unblocks.
-        # The StreamReader object allows non-blocking readline() behavior
-        # to avoid delaying the injected exception.
-        reader = StreamReader(process.stdout)
-        reader.start()
+        process = None
         exitcode = None
-        while exitcode is None:
-            orig = None
-            try:
+        handler = self.log.handlers[0]
+        originalFormatter = handler.formatter
+        lineFormatter = logging.Formatter('%(message)s')
+        try:
+            self.log.info("Spawning subprocess: %s", SubprocessJob.getJobDescription(cmd))
+            process = subprocess.Popen(cmd, bufsize=1, env=environ,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT)
+
+            # Since process.stdout.readline() is a blocking call, it stops
+            # the injected exception from being raised until it unblocks.
+            # The LineReader object allows non-blocking readline()
+            # behavior to avoid delaying the injected exception.
+            reader = LineReader(process.stdout)
+            reader.start()
+            # Reset the log message formatter (restored later)
+            while exitcode is None:
                 line = reader.readline()
                 if line:
-                    handler = self.log.handlers[0]
-                    orig = handler.formatter
-                    handler.setFormatter(logging.Formatter('%(message)s'))
-                    self.log.info(line.strip())
+                    try:
+                        handler.setFormatter(lineFormatter)
+                        self.log.info(line.strip())
+                    finally:
+                        handler.setFormatter(originalFormatter)
                 else:
                     exitcode = process.poll()
                     time.sleep(0.1)
-            except JobAborted:
+        except JobAborted:
+            if process:
                 self.log.error("Job aborted. Killing subprocess...")
                 process.kill()
+                process.wait()  # clean up the <defunct> process
                 self.log.info("Subprocess killed.")
-                raise
-            finally:
-                if orig is not None:
-                    handler.setFormatter(orig)
+            raise
         if exitcode != 0:
             raise SubprocessJobFailed(exitcode)
         return exitcode
