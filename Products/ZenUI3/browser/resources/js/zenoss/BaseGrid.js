@@ -742,13 +742,17 @@
         },
         getStartCount: function() {
             var scrollTop = this.view.el.dom.scrollTop;
+
             if (this.rowHeight && scrollTop) {
                 return Math.ceil(scrollTop / this.rowHeight);
             }
 
             // ask the scroller
             if (this.grid.verticalScroller){
-                return this.grid.verticalScroller.getFirstVisibleRowIndex();
+                var start = this.grid.verticalScroller.getFirstVisibleRowIndex();
+                if (start) {
+                    return start;
+                }
             }
             return 0;
         },

@@ -407,7 +407,7 @@ MibBrowser = Ext.extend(Ext.Container, {
                     id: 'gridCardPanel',
                     split: true,
                     width: 600,
-                    items: [oid_grid, trap_grid]
+                    items: [oid_grid, trap_grid ]
                 } , node_details]
             }]
         });
@@ -428,7 +428,7 @@ MibBrowser = Ext.extend(Ext.Container, {
         mib_form_left.contact.setValue(response.data.contact);
         mib_form_right.language.setValue(response.data.language);
         mib_form_right.description.setValue(response.data.description);
-        Ext.getCmp('oid_grid').setContext(Zenoss.env.currentUid);
+        Ext.getCmp('gridCardPanel').layout.activeItem.setContext(Zenoss.env.PARENT_CONTEXT);
     }
 });
 
