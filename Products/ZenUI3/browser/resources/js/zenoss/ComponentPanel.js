@@ -189,7 +189,7 @@ Zenoss.nav.register({
                         if(grid.getComponent("event_panel")) grid = grid.getComponent("event_panel");
                         grid.refresh();
                     }
-                }),            
+                }),
                 '-',
                 new Zenoss.ActionButton({
                     iconCls: 'newwindow',
@@ -427,11 +427,11 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         this.componentnavcombo.reset();
                     },
                     selectionchange: function(sm, selected) {
-                        // top grid selection change         
+                        // top grid selection change
                         var row = selected[0];
                         if (row) {
                             Zenoss.env.compUUID = row.data.uuid;
-                            this.componentnavcombo.setContext(row.data.uid); 
+                            this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
                                 token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
                             Ext.History.add(token + delimiter + row.data.uid);
@@ -576,30 +576,41 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             view = this.getView(),
             me = this,
             selectToken = function() {
-                var found = false, i=0;
-                store.each(function(r){
-                    if (r.get("uid") == uid) {
-                        selectionModel.select(r);
-                        view.focusRow(r.index);
-                        found = true;
-                        return false;
-                    }
-                    i++;
-                    return true;
-                });
+                function gridSelect() {
+                    var found = false, i=0;
+                    store.each(function(r){
+                        if (r.get('uid') == uid) {
+                            selectionModel.select(r);
+                            view.focusRow(r.index);
+                            found = true;
+                            store.un('guaranteedrange', gridSelect, me);
+                            return false;
+                        }
+                        i++;
+                        return true;
+                    });
+                    return found;
+                }
+
+                // see if it is in the current buffer
+                var found = gridSelect();
                 if (!found) {
+
+                    // find the index, scroll to that position
+                    // and then select the component
                     var o = {componentUid:uid};
                     Ext.apply(o, store.getProxy().extraParams);
                     Zenoss.remote.DeviceRouter.findComponentIndex(o, function(r){
+
                         // will return a null if not found
                         if (Ext.isNumeric(r.index)) {
-                            // scroll to the correct location which will fire the guaranteedrange event
-                            // and select the correct r in the above code
-                            store.on('guaranteedrange', selectToken, this, {single: true});
-                            var scroller = me.down('paginggridscroller');
-                            if (scroller) {
-                                scroller.scrollByDeltaY(scroller.rowHeight * r.index);
-                            }
+                            store.on('guaranteedrange', gridSelect, me);
+                            var scroller = me.verticalScroller;
+                            me.getView().scrollBy({ x: 0, y: scroller.rowHeight * r.index }, true);
+                        } else {
+                            // We can't find the index, it might be an invalid UID so
+                            // select the first item so the details section isn't blank.
+                            selectionModel.select(0);
                         }
                     });
                 }
