@@ -248,6 +248,8 @@ class RRDUtil(object):
             args.extend(rrdCommand.split())
             rrdtool.create(*args),
 
+        daemon_args = rrd_daemon_args() if useRRDDaemon else tuple()
+
         # remove unwanted chars (this is actually pretty quick)
         value = str(value).translate(None, _UNWANTED_CHARS)
 
@@ -266,7 +268,7 @@ class RRDUtil(object):
         try:
             @rrd_daemon_retry
             def rrdtool_fn():
-                return rrdtool.update(str(filename), *(rrd_daemon_args() + ('%s:%s' % (timestamp, value),)))
+                return rrdtool.update(str(filename), *(daemon_args + ('%s:%s' % (timestamp, value),)))
             if timestamp == 'N' or allowStaleDatapoint:
                 rrdtool_fn()
             else:
@@ -275,7 +277,7 @@ class RRDUtil(object):
                 if lastTs is None:
                     try:
                         lastTs = _LAST_RRDFILE_WRITE[filename] = rrdtool.last(
-                            *(rrd_daemon_args() + (str(filename),)))
+                            *(daemon_args + (str(filename),)))
                     except Exception as ex:
                          lastTs = 0
                          log.exception("Could not determine last update to %r", filename)
