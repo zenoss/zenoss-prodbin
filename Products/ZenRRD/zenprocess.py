@@ -730,7 +730,7 @@ class ZenProcessTask(ObservableMixin):
                         result = yield self._get(oidChunk)
                         results.update(result)
                     except (error.TimeoutError, Snmpv3Error) as e:
-                        log.debug("error reading oid(s) %s - $s " % (oidChunk, e))
+                        log.debug("error reading oid(s) %s - %s", oidChunk, e)
                         singleOids.update(oidChunk)
                 oidsToTest = []
                 if singleOids and chunkSize > 1:
