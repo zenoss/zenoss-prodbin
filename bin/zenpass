@@ -19,5 +19,9 @@ echo
 stty echo
 
 $ZENHOME/bin/zpasswd.py -u admin -p $ZOPEPASSWORD inituser
-zopectl stop
-zopectl start
+WEBSERVERCTL=$(${ZENHOME}/bin/zenglobalconf -p webserverctl)
+if [ -z "${WEBSERVERCTL}" ]; then
+    WEBSERVERCTL=zopectl
+fi
+$WEBSERVERCTL stop
+$WEBSERVERCTL start
