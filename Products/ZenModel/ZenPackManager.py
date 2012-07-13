@@ -25,6 +25,9 @@ from Products.ZenUtils.Utils import binPath
 from Products.ZenWidgets import messaging
 import os
 import tempfile
+import logging
+
+log = logging.getLogger('zen.ZenPackManager')
 
 def manage_addZenPackManager(context, newId='', REQUEST=None):
     """
@@ -286,11 +289,16 @@ class ZenPackManager(ZenModelRM):
                     msg += 'Zenpack install killed due to timeout'
 
         if REQUEST:
+            # TODO: show the output in a scrollable window.
             # format command result for HTML
-            msg = '<br>'.join(line.strip() for line in msg.split('\n') if line.strip())
+            #msg = '<br>'.join(line.strip() for line in msg.split('\n') if line.strip())
+            log.info("Output from installing ZenPack %s:\n%s" % (zenpack.filename, msg))
+            success = 'ERROR' not in msg
+            msg = "Successfully installed ZenPack %s" % zenpack.filename if success \
+                    else "Failed to install ZenPack %s. " \
+                         "See event.log for details." % zenpack.filename
             messaging.IMessageSender(self).sendToBrowser('Zenpack', msg,
-                priority = messaging.CRITICAL if 'ERROR' in msg
-                                              else messaging.INFO)
+                priority = messaging.INFO if success else messaging.CRITICAL)
             return self.callZenScreen(REQUEST)
         
 
