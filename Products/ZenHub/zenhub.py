@@ -742,6 +742,7 @@ class ZenHub(ZCmdBase):
             workerfd.write("password %s\n" % self.workerPassword)
             workerfd.write("logseverity %s\n" % self.options.logseverity)
             workerfd.write("zodb-cachesize %s\n" % self.options.zodb_cachesize)
+            workerfd.write("calllimit %s\n" % self.options.worker_call_limit)
 
     def createWorker(self):
         """Start a worker subprocess
@@ -894,6 +895,10 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--workers-reserved-for-events', dest='workersReservedForEvents',
             type='int', default=1,
             help="Number of worker instances to reserve for handling events")
+        self.parser.add_option('--worker-call-limit', dest='worker_call_limit',
+            type='int', default=200,
+            help="Maximum number of remote calls a worker can run before restarting")
+            
         notify(ParserReadyForOptionsEvent(self.parser))
 
 class DefaultConfProvider(object):

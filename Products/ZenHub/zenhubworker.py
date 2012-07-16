@@ -25,7 +25,7 @@ unused(DataMaps)
 
 from twisted.cred import credentials
 from twisted.spread import pb
-from twisted.internet import reactor
+from twisted.internet import reactor, error
 from ZODB.POSException import ConflictError
 from collections import defaultdict
 
@@ -60,6 +60,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
 
         self.current = IDLE
         self.currentStart = 0
+        self.numCalls = 0
         try:
             self.log.debug("establishing SIGUSR2 signal handler")
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
@@ -88,12 +89,15 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         factory.startLogin(c)
 
     def sighandler_USR2(self, *args):
+        self.reportStats()
+
+    def reportStats(self):
         now = time.time()
         if self.current != IDLE:
-            self.log.info("(%d) Currently performing %s, elapsed %.2f s",
+            self.log.debug("(%d) Currently performing %s, elapsed %.2f s",
                             self.pid, self.current, now-self.currentStart)
         else:
-            self.log.info("(%d) Currently IDLE", self.pid)
+            self.log.debug("(%d) Currently IDLE", self.pid)
         if self.services:
             loglines = ["(%d) Running statistics:" % self.pid]
             for svc,svcob in sorted(self.services.iteritems(), key=lambda kvp:(kvp[0][1], kvp[0][0].rpartition('.')[-1])):
@@ -105,9 +109,9 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                                      stats.totaltime, 
                                      stats.totaltime/stats.numoccurrences if stats.numoccurrences else 0.0,
                                      isoDateTime(stats.lasttime)))
-            self.log.info('\n'.join(loglines))
+            self.log.debug('\n'.join(loglines))
         else:
-            self.log.info("no service activity statistics")
+            self.log.debug("no service activity statistics")
 
     def gotPerspective(self, perspective):
         "Once we are connected to zenhub, register ourselves"
@@ -204,6 +208,18 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             service.callStats[method].addOccurrence(secs, finishTime)
             service.callTime += secs
             self.current = IDLE
+            self.numCalls += 1
+            if self.numCalls > self.options.calllimit:
+                self._shutdown()
+
+    def _shutdown(self):
+        self.log.info("Shutting down")
+        self.reportStats()
+        self.log.info("Stopping reactor")
+        try:
+            reactor.stop()
+        except error.ReactorNotRunning:
+            pass
 
     def buildOptions(self):
         """Options, mostly to find where zenhub lives
@@ -227,6 +243,11 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                                dest='password',
                                help="password to use when connecting to ZenHub",
                                default='zenoss')
+        self.parser.add_option('--calllimit',
+                               dest='calllimit',
+                               type='int',
+                               help="Maximum number of remote calls before restarting worker",
+                               default=200)
 
 if __name__ == '__main__':
     zhw = zenhubworker()
