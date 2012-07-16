@@ -676,7 +676,7 @@ class ZenModeler(PBDaemon):
                                                 self.classCollectorPlugins)
                     yield self.config().callRemote(
                                                 'applyDataMaps', device.id,
-                                                maps, deviceClass)
+                                                maps, deviceClass, True)
 
                     if driver.next():
                         devchanged = True
@@ -684,11 +684,6 @@ class ZenModeler(PBDaemon):
                     self.log.info("Changes in configuration applied")
                 else:
                     self.log.info("No change in configuration detected")
-
-                if maps:
-                    yield self.config().callRemote('setSnmpLastCollection',
-                                                   device.id)
-                    driver.next()
 
             except Exception, ex:
                 self.log.exception(ex)

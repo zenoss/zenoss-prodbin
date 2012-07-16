@@ -114,7 +114,7 @@ class ModelerService(PerformanceConfig):
             if d.getPerformanceServerName() == monitor]
 
     @translateError
-    def remote_applyDataMaps(self, device, maps, devclass=None):
+    def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
         device = self.getPerformanceMonitor().findDevice(device)
         adm = ApplyDataMap(self)
@@ -128,15 +128,20 @@ class ModelerService(PerformanceConfig):
         for map in maps:
             result = inner(map)
             changed = changed or result
+
+        if setLastCollection:
+            self._setSnmpLastCollection(device)
+
         return changed
+
+    def _setSnmpLastCollection(self, device):
+        transactional = transact(device.setSnmpLastCollection)
+        return self._do_with_retries(transactional)
 
     @translateError
     def remote_setSnmpLastCollection(self, device):
         device = self.getPerformanceMonitor().findDevice(device)
-        device.setSnmpLastCollection()
-        from transaction import commit
-        self._do_with_retries(commit)
-
+        self._setSnmpLastCollection(device)
 
     def _do_with_retries(self, action):
         from ZODB.POSException import StorageError
