@@ -20,7 +20,7 @@ IPv6 listeners or if a device has no SNMP support.
 """
 
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import binPath
 from twisted.internet.utils import getProcessOutput
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 import re
@@ -50,8 +50,8 @@ class IpServiceMap(PythonPlugin):
             readyopts = NMAPDEFAULTS + " " + device.manageIp
         nmapoptions = readyopts.split(" ") 
         log.info("running the following nmap command: %s %s" % \
-                  (zenPath('libexec', 'nmap'), " ".join(nmapoptions)))
-        return getProcessOutput(zenPath('libexec', 'nmap'), nmapoptions)
+                  (binPath('nmap'), " ".join(nmapoptions)))
+        return getProcessOutput(binPath('nmap'), nmapoptions)
 
 
     def process(self, device, results, log):
