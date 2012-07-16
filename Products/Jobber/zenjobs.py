@@ -45,6 +45,14 @@ class CeleryZenJobs(ZenDaemon):
         reconfigure_celery({
             constants.NUM_WORKERS: self.options.num_workers,
             constants.MAX_TASKS_PER_PROCESS: self.options.max_jobs_per_worker,
+
+            # Configure the value of the 'CELERYD_POOL_PUTLOCKS'.  When
+            # True, it causes a temporary deadlock to occur during shutdown
+            # when all workers are busy and there exists at least one
+            # pending job. The deadlock is broken when a worker completes
+            # its job. Setting 'CELERYD_POOL_PUTLOCKS' to False allows
+            # shutdown to occur without waiting.
+            "CELERYD_POOL_PUTLOCKS": False,
         })
 
     def run(self):

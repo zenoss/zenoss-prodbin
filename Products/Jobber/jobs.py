@@ -220,16 +220,17 @@ class Job(Task):
             d['task_id'] = self.request.id
         self._runner_thread = InterruptableThread(target=self._do_run,
                                                   args=args, kwargs=d)
-        self._runner_thread.start()
-        self._aborter_thread.start()
-
-        # Install a SIGTERM handler so that the 'runner_thread' can be
-        # interrupted/aborted when the TERM signal is received.
-        self._origsigtermhandler = signal.signal(
-                signal.SIGTERM, self._sigtermhandler
-            )
 
         try:
+            # Install a SIGTERM handler so that the 'runner_thread' can be
+            # interrupted/aborted when the TERM signal is received.
+            self._origsigtermhandler = signal.signal(
+                    signal.SIGTERM, self._sigtermhandler
+                )
+
+            self._runner_thread.start()
+            self._aborter_thread.start()
+
             # A blocking join() call also blocks the thread from calling
             # signal handlers, so use a timeout join and loop until the
             # thread exits to allow the thread an opportunity to call
