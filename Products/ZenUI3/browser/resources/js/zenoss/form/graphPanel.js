@@ -128,7 +128,7 @@
                 // set out panel to be the size of the graph
                 // plus a little for the padding
                 this.setWidth(size.width + 10);
-                this.setHeight(size.height + 42); 
+                this.setHeight(size.height + 42);
                 this.el.setHeight(size.height + 42); /* this line is for chrome */
                 if (!size.width || !size.height){
                     this.showFailure();
@@ -422,7 +422,7 @@
                     ref: '../linkGraphs',
                     checked: true,
                     listeners: {
-                        check: function(chkBx, checked) {
+                        change: function(chkBx, checked) {
                             var panel = chkBx.refOwner;
                             panel.setLinked(checked);
                         }

@@ -112,7 +112,7 @@ Zenoss.nav.register({
                     ref: '../linkGraphs',
                     checked: true,
                     listeners: {
-                        check: function(chkBx, checked) {
+                        change: function(chkBx, checked) {
                             var panel = Ext.getCmp(cardid);
                             panel.setLinked(checked);
                         }

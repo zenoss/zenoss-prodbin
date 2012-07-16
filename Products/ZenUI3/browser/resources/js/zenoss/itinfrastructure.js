@@ -371,7 +371,7 @@ Ext.apply(Zenoss.devices, {
                         boxLabel: _t('Delete completely'),
                         checked: isclass,
                         listeners: {
-                            check: function(chbox, isChecked) {
+                            change: function(chbox, isChecked) {
                                 Ext.getCmp('delete-device-events').setDisabled(!isChecked);
                                 Ext.getCmp('delete-device-perf-data').setDisabled(!isChecked);
                             }
