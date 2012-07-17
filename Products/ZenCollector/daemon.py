@@ -320,14 +320,20 @@ class CollectorDaemon(RRDDaemon):
         """
         Called from zenhub to notify that the entire config should be updated  
         """
-        if self.reconfigureTimeout and not self.reconfigureTimeout.called:
-            self.reconfigureTimeout.cancel()
+        if self.reconfigureTimeout and self.reconfigureTimeout.active():
+            # We will run along with the already scheduled task
+            self.log.debug("notifyConfigChanged - using existing call")
+            return
+
+        self.log.debug("notifyConfigChanged - scheduling call in 30 seconds")
         self.reconfigureTimeout = reactor.callLater(30, self._rebuildConfig)
 
     def _rebuildConfig(self):
         """
         Delete and re-add the configuration tasks to completely re-build the configuration.
         """
+        if self.reconfigureTimeout and not self.reconfigureTimeout.active():
+            self.reconfigureTimeout = None
         self._scheduler.removeTasksForConfig(CONFIG_LOADER_NAME)
         self._startConfigCycle()
 

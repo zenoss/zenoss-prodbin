@@ -18,11 +18,14 @@ from zope.interface import implements
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.IpNetwork import IpNetwork
+from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
+from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.Zuul.interfaces import ICatalogTool
 
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 
 log = logging.getLogger('zen.InvalidationFilter')
+
 
 class IpInvalidationFilter(object):
     implements(IInvalidationFilter)
@@ -31,69 +34,134 @@ class IpInvalidationFilter(object):
         pass
 
     def include(self, obj):
-        if isinstance(obj, IpAddress) or isinstance(obj, IpNetwork):
+        if isinstance(obj, (IpAddress, IpNetwork)):
             return FILTER_EXCLUDE
         return FILTER_CONTINUE
 
-class DeviceClassInvalidationFilter(object):
+
+class BaseOrganizerFilter(object):
+    """
+    Base invalidation filter for organizers. Calculates a checksum for
+    the organizer based on its sorted z/c properties.
+    """
     implements(IInvalidationFilter)
 
-    iszorcustprop = re.compile("^[zc][A-Z]").search
     weight = 10
+    iszorcustprop = re.compile("^[zc][A-Z]").search
 
-    def _updateDeviceClassChecksumMap(self, context):
-        """
-        Iterate over all device classes and generate a checksum.
-        """
-        root = context.dmd.Devices.primaryAq()
-        brains = ICatalogTool(root).search(DeviceClass)
+    def __init__(self, types):
+        self._types = types
+
+    def getRoot(self, context):
+        return context.dmd.primaryAq()
+
+    def initialize(self, context):
+        root = self.getRoot(context)
+        brains = ICatalogTool(root).search(self._types)
         results = {}
         for brain in brains:
-            results[brain.getPath()] = self._deviceClassChecksum(brain.getObject())
+            obj = brain.getObject()
+            results[brain.getPath()] = self.organizerChecksum(obj)
         self.checksum_map = results
 
-    def _deviceClassChecksum(self, devclass):
+    def getZorCProperties(self, organizer):
+        for zId in sorted(organizer.zenPropertyIds(pfilt=self.iszorcustprop)):
+            if organizer.zenPropIsPassword(zId):
+                propertyString = organizer.getProperty(zId, '')
+            else:
+                propertyString = organizer.zenPropertyString(zId)
+            yield zId, propertyString
+
+    def generateChecksum(self, organizer, md5_checksum):
+        # Checksum all zProperties and custom properties
+        for zId, propertyString in self.getZorCProperties(organizer):
+            md5_checksum.update('%s|%s' % (zId, propertyString))
+
+    def organizerChecksum(self, organizer):
+        m = md5()
+        self.generateChecksum(organizer, m)
+        return m.hexdigest()
+
+    def include(self, obj):
+        # Move on if it's not one of our types
+        if not isinstance(obj, self._types):
+            return FILTER_CONTINUE
+
+        # Checksum the device class
+        current_checksum = self.organizerChecksum(obj)
+        organizer_path = '/'.join(obj.getPrimaryPath())
+
+        # Get what we have right now and compare
+        existing_checksum = self.checksum_map.get(organizer_path)
+        if current_checksum != existing_checksum:
+            log.debug('%r has a new checksum! Including.', obj)
+            self.checksum_map[organizer_path] = current_checksum
+            return FILTER_CONTINUE
+        log.debug('%r checksum unchanged. Skipping.', obj)
+        return FILTER_EXCLUDE
+
+
+class DeviceClassInvalidationFilter(BaseOrganizerFilter):
+    """
+    Subclass of BaseOrganizerFilter with specific logic for
+    Device classes. Uses both z/c properties as well as locally
+    bound RRD templates to create the checksum.
+    """
+
+    def __init__(self):
+        super(DeviceClassInvalidationFilter, self).__init__((DeviceClass,))
+
+    def getRoot(self, context):
+        return context.dmd.Devices.primaryAq()
+
+    def generateChecksum(self, organizer, md5_checksum):
         """
         Generate a checksum representing the state of the device class as it
         pertains to configuration. This takes into account templates and
         zProperties, nothing more.
         """
-        m = md5()
         s = StringIO()
         # Checksum includes all bound templates
-        for tpl in devclass.rrdTemplates():
+        for tpl in organizer.rrdTemplates():
             s.seek(0)
             s.truncate()
             # TODO: exportXml is a bit of a hack. Sorted, etc. would be better.
             tpl.exportXml(s)
-            m.update(s.getvalue())
-        # Checksum all zProperties and custom properties
-        for zId in sorted(devclass.zenPropertyIds(pfilt=self.iszorcustprop)):
-            if devclass.zenPropIsPassword(zId):
-                propertyString = devclass.getProperty(zId, '')
-            else:
-                propertyString = devclass.zenPropertyString(zId)
-            m.update('%s|%s' % (zId, propertyString))
-        # Return the final checksum
-        return m.hexdigest()
+            md5_checksum.update(s.getvalue())
+        # Include z/c properties from base class
+        super(DeviceClassInvalidationFilter, self).generateChecksum(organizer, md5_checksum)
 
-    def initialize(self, context):
-        self._updateDeviceClassChecksumMap(context)
 
-    def include(self, obj):
-        # Move on if it's not a device class
-        if not isinstance(obj, DeviceClass):
-            return FILTER_CONTINUE
+class OSProcessOrganizerFilter(BaseOrganizerFilter):
+    """
+    Invalidation filter for OSProcessOrganizer objects. This filter only
+    looks at z/c properties defined on the organizer.
+    """
 
-        # Checksum the device class
-        current_checksum = self._deviceClassChecksum(obj)
-        devclass_path = '/'.join(obj.getPrimaryPath())
+    def __init__(self):
+        super(OSProcessOrganizerFilter, self).__init__((OSProcessOrganizer,))
 
-        # Get what we have right now and compare
-        existing_checksum = self.checksum_map.get(devclass_path, None)
-        if current_checksum != existing_checksum:
-            log.debug('%r has a new checksum! Including.' % obj)
-            self.checksum_map[devclass_path] = current_checksum
-            return FILTER_CONTINUE
-        log.debug('%r checksum unchanged. Skipping.' % obj)
-        return FILTER_EXCLUDE
+    def getRoot(self, context):
+        return context.dmd.Processes.primaryAq()
+
+
+class OSProcessClassFilter(BaseOrganizerFilter):
+    """
+    Invalidation filter for OSProcessClass objects. This filter uses
+    z/c properties as well as local _properties defined on the organizer
+    to create a checksum.
+    """
+
+    def __init__(self):
+        super(OSProcessClassFilter, self).__init__((OSProcessClass,))
+
+    def getRoot(self, context):
+        return context.dmd.Processes.primaryAq()
+
+    def generateChecksum(self, organizer, md5_checksum):
+        # Include properties of OSProcessClass
+        for prop in organizer._properties:
+            prop_id = prop['id']
+            md5_checksum.update("%s|%s" % (prop_id, getattr(organizer, prop_id, '')))
+        # Include z/c properties from base class
+        super(OSProcessClassFilter, self).generateChecksum(organizer, md5_checksum)

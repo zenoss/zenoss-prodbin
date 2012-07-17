@@ -29,6 +29,18 @@
     />
 
   <utility
+    factory=".invalidationfilter.OSProcessOrganizerFilter"
+    provides=".interfaces.IInvalidationFilter"
+    name="OSProcessOrganizer"
+    />
+
+  <utility
+    factory=".invalidationfilter.OSProcessClassFilter"
+    provides=".interfaces.IInvalidationFilter"
+    name="OSProcessClass"
+    />
+
+  <utility
     factory=".invalidationfilter.IpInvalidationFilter"
     provides=".interfaces.IInvalidationFilter"
     name="IpAddress"

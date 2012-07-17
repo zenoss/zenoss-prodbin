@@ -25,6 +25,7 @@ from Products.ZenEvents import Event
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenHub.zodb import onUpdate
+from Products.Zuul.interfaces import ICatalogTool
 unused(DeviceProxy)
 
 from twisted.spread import pb
@@ -84,6 +85,10 @@ class ProcessConfig(CollectorConfigService):
         proxy.processes = {}
         proxy.snmpConnInfo = device.getSnmpConnInfo()
         for p in procs:
+            # In case the catalog is out of sync above
+            if not p.monitored():
+                log.debug("Skipping process %r - zMonitor disabled", p)
+                continue
             regex = getattr(p.osProcessClass(), 'regex', False)
             if regex:
                 try:
@@ -112,9 +117,38 @@ class ProcessConfig(CollectorConfigService):
         if proxy.processes:
             return proxy
 
-    @onUpdate(OSProcessClass, OSProcessOrganizer)
-    def processTreeUpdated(self, object, event):
-        self._reconfigureIfNotify(object)
+    @onUpdate(OSProcessClass)
+    def processClassUpdated(self, object, event):
+        devices = set()
+        for process in object.instances():
+            device = process.device()
+            if not device:
+                continue
+            device = device.primaryAq()
+            device_path = device.getPrimaryUrlPath()
+            if not device_path in devices:
+                self._notifyAll(device)
+                devices.add(device_path)
+
+    @onUpdate(OSProcessOrganizer)
+    def processOrganizerUpdated(self, object, event):
+        catalog = ICatalogTool(object.primaryAq())
+        results = catalog.search(OSProcessClass)
+        if not results.total:
+            return
+        devices = set()
+        for organizer in results:
+            if results.areBrains:
+                organizer = organizer.getObject()
+            for process in organizer.instances():
+                device = process.device()
+                if not device:
+                    continue
+                device = device.primaryAq()
+                device_path = device.getPrimaryUrlPath()
+                if not device_path in devices:
+                    self._notifyAll(device)
+                    devices.add(device_path)
 
 
 if __name__ == '__main__':
