@@ -63,6 +63,7 @@ import urllib
 import tarfile
 import zipfile
 from urlparse import urlsplit
+from collections import OrderedDict
 
 import Globals
 import transaction
@@ -527,7 +528,7 @@ class ZenMib(ZCmdBase):
         @rtype: list of strings
         """
         dependencies = []
-        dependencyFileNames = set()
+        dependencyFileNames = OrderedDict()
 
         def dependencySearch(mibName):
             """
@@ -542,7 +543,7 @@ class ZenMib(ZCmdBase):
                 self.log.warn("Unable to find a file that defines %s", mibName)
                 return
 
-            dependencyFileNames.add(mibFileObj.fileName)
+            dependencyFileNames[mibFileObj.fileName] = None
             for dependency in mibFileObj.mibToDeps[mibName]:
                 if dependency not in dependencies:
                     dependencySearch(dependency)
@@ -550,8 +551,11 @@ class ZenMib(ZCmdBase):
         for mibName in mibFileObj.mibs:
             dependencySearch(mibName)
 
-        dependencyFileNames.discard(mibFileObj.fileName)
-        return dependencyFileNames
+        if mibFileObj.fileName in dependencyFileNames:
+            del dependencyFileNames[mibFileObj.fileName]
+        names = dependencyFileNames.keys()
+        names.reverse()
+        return names
 
     def savePythonCode(self, pythonCode, fileName):
         """
