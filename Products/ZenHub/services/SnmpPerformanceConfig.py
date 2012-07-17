@@ -16,6 +16,7 @@ __doc__ = '''SnmpPerformanceConfig
 Provides configuration to zenperfsnmp clients.
 '''
 
+import re
 from pprint import pformat
 import logging
 log = logging.getLogger('zen.HubService.SnmpPerformanceConfig')
@@ -101,6 +102,7 @@ class SnmpPerformanceConfig(CollectorConfigService):
         if comp.snmpIgnore():
             return None
 
+        validOID = re.compile(r'(?:\.?\d+)+$')
         basepath = comp.rrdPath()
         for templ in comp.getRRDTemplates():
             for ds in templ.getRRDDataSources("SNMP"):
@@ -111,6 +113,12 @@ class SnmpPerformanceConfig(CollectorConfigService):
                 if not oid:
                     log.warn("The data source %s OID is blank -- ignoring", ds.id)
                     continue
+                elif not validOID.match(oid):
+                    msg =  "The OID %s is invalid -- ignoring" % oid
+                    self.sendEvent(dict(
+                        device=comp.device().id, component=ds.getPrimaryUrlPath(),
+                        eventClass='/Status/Snmp', severity=Warning, summary=msg,
+                    ))
 
                 for dp in ds.getRRDDataPoints():
                     # Everything under ZenModel *should* use titleOrId but it doesn't
