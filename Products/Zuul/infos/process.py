@@ -73,6 +73,22 @@ class ProcessInfo(InfoBase):
 
     def setZMonitor(self, data):
         setZPropertyInfo(self._object, 'zMonitor', **data)
+        process_classes = []
+        if isinstance(self._object, OSProcessOrganizer):
+            process_classes = self._object.getSubOSProcessClassesGen()
+        elif isinstance(self._object, OSProcessClass):
+            process_classes.append(self._object)
+
+        def reindex_class(process_class):
+            """
+            Re-indexes a process class and its associated instances.
+            """
+            process_class.index_object()
+            for proc in process_class.instances():
+                proc.primaryAq().index_object()
+
+        for process_class in process_classes:
+            reindex_class(process_class)
 
     zMonitor = property(getZMonitor, setZMonitor)
 
