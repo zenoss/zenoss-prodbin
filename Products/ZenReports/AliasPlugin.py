@@ -19,10 +19,12 @@ meant to be run from an rpt file.
 """
 
 import Globals
-
+import logging
 from Products.ZenModel.RRDDataPoint import getDataPointsByAliases
 from Products.ZenReports import Utils, Utilization
-from Products.ZenUtils.ZenTales import talesEval
+from Products.ZenUtils.ZenTales import talesEval, InvalidTalesException
+from Products.ZenWidgets import messaging
+log = logging.getLogger("zen.reports")
 
 
 class Column(object):
@@ -151,7 +153,17 @@ class PythonColumnHandler(object):
         kw.update(self._extraContext)
         if extra is not None:
             kw.update(extra)
-        return talesEval(self._talesExpression, device, kw)
+        value = None
+        try:
+            value = talesEval(self._talesExpression, device, kw)
+        except InvalidTalesException, e:
+            messaging.IMessageSender(device).sendToBrowser(
+                'Invalid TALES Expression',
+                str(e.message),
+                priority=messaging.CRITICAL
+                )
+            log.warn(e)
+        return value
 
 
 class AliasPlugin(object):
