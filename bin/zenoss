@@ -52,7 +52,7 @@ fi
 DAEMON_FILTER="*"
 ONLY_RUNNING=0
 while getopts "f:r" opt; do
-    case $opt in 
+    case $opt in
         f)
             # apply action to daemons matched by filter
             DAEMON_FILTER="$OPTARG"
@@ -106,7 +106,7 @@ if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
 fi
 if [ -f "$ZENHOME/etc/daemons.txt" ]
 then
-    D=`cat $ZENHOME/etc/daemons.txt`
+    D=`grep -v "^#" $ZENHOME/etc/daemons.txt`
     # add to daemon list without new lines
     for DD in $D
     do
@@ -135,7 +135,7 @@ for DAEMON in ${C}
 do
     if echo $DAEMON | grep -E "$DAEMON_FILTER" 1>/dev/null; then
         DLIST="$DLIST $DAEMON"
-    fi 
+    fi
 done
 
 
