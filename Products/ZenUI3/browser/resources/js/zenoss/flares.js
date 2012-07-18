@@ -363,10 +363,10 @@
             this.fireEvent('message', this, message);
 
             var flare;
-            if ( message.priority  === Zenoss.messaging.Message.WARNING ) {
+            if ( message.priority  === message.WARNING ) {
                 flare = Zenoss.flares.Manager.warning(message.body);
             }
-            else if ( message.priority  === Zenoss.messaging.Message.CRITICAL ) {
+            else if ( message.priority  === message.CRITICAL ) {
                 flare = Zenoss.flares.Manager.critical(message.body);
             }
             else {
