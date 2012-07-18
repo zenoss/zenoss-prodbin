@@ -194,6 +194,7 @@ class MessageSender(object):
         m = BrowserMessage(title, body, priority, image, sticky)
         m.__parent__ = context
         context.append(m)
+        self.context.REQUEST.SESSION._p_changed = True
 
     def sendToUser(self, title, body, priority=INFO, image=None, user=None):
         """
