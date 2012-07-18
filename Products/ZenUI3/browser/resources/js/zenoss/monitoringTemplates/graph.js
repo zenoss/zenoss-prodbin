@@ -469,9 +469,8 @@ Ext.define("Zenoss.GraphPointGrid", {
     extend:"Zenoss.ContextGridPanel",
     constructor: function(config){
         Ext.applyIf(config, {
-            layout: 'fit',
+            height: 215,
             viewConfig: {
-                forcefit: true,
                 plugins: {
                     ptype: 'gridviewdragdrop'
                 }
