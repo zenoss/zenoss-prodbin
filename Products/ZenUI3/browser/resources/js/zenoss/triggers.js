@@ -1185,6 +1185,15 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     }
                 }),
                 listeners: {
+                    afterrender: function(t){
+                        if(Zenoss.SELENIUM){ 
+                            Ext.defer(function(){
+                               var table = Ext.get(t.getView().el.id).query('table');
+                               table[0].id = "trigger_grid_table";
+                            }, 1000);    
+                         }                          
+                        
+                    },
                     itemdblclick: function(grid, rowIndex, event) {
                         var rows = grid.getSelectionModel().getSelection();
                         if (rows.length) {
@@ -1196,6 +1205,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     {
                         xtype: 'button',
                         iconCls: 'add',
+                        id: 'add__new_trigger_button',
                         ref: '../addButton',
                         handler: function(button) {
                             addTriggerDialogue.show();
@@ -1203,6 +1213,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     },{
                         xtype: 'button',
                         iconCls: 'delete',
+                        id: 'delete_old_trigger_button',
                         ref: '../deleteButton',
                         handler: function(button) {
                             var rows = me.getSelectionModel().getSelection(),
@@ -1218,6 +1229,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                         buttons: [{
                                             xtype: 'DialogButton',
                                             text: _t('OK'),
+                                            id: 'delete_trigger_button',
                                             handler: function() {
                                                 params= {
                                                     uuid:uuid
@@ -1233,6 +1245,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                             }
                                         }, {
                                             xtype: 'DialogButton',
+                                            id: 'cancel_delete_trigger_button',
                                             text: _t('Cancel')
                                         }]
                                     }).show();
@@ -1241,6 +1254,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     },{
                         xtype: 'button',
                         iconCls: 'customize',
+                        id: 'trigger_gear_btn',
                         disabled:true,
                         ref: '../customizeButton',
                         handler: function(button){
@@ -1548,6 +1562,16 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 listeners: {
                     render: function(f){
                         f.getView().getSelectionModel().select(0);
+                        if(Zenoss.SELENIUM){ 
+                            Ext.defer(function(){
+                                var nodes = f.getView().getNodes(); 
+                                Ext.each(nodes, function(item, index, allNodes) { 
+                                    item.id = "trigger_tree_tr_"+index; 
+                                    Ext.get(item.id).query('div')[0].id = 'trigger_tree_tr_div_'+index;
+                                });
+                            }, 1000);    
+                         }                   
+                        
                     }
                 },                
                 store: masterPanelTreeStore
@@ -1581,6 +1605,14 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         boxMinWidth: bigWindowWidth+225,
         layout: 'anchor',
         title: _t('Trigger'),
+        listeners: {
+            render: function(){
+                if(Zenoss.SELENIUM){            
+                    Ext.getDom(this.tab.btnEl.id).id = "trigger_tab_button";
+                    Ext.getDom(this.tab.tabBar.items.items[1].btnEl.id).id = "users_tab_button";
+                }    
+            }
+        },
         padding: 10,
         fieldDefaults: {
             labelWidth: 75
@@ -1594,12 +1626,14 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 xtype: 'textfield',
                 name: 'name',
                 ref: 'name',
+                id: 'trigger_tab_content_name_textfield',
                 allowBlank: false,
                 fieldLabel: _t('Name')
             },{
                 xtype: 'checkbox',
                 name: 'enabled',
                 ref: 'enabled',
+                id: 'trigger_tab_content_enabled_checkbox',
                 fieldLabel: _t('Enabled')
             },{
                 xtype: 'rulebuilder',
@@ -1856,7 +1890,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         id: 'users_rule',
         title: _t('Users'),
         autoScroll: true,
-        height: bigWindowHeight-110,
+        height: bigWindowHeight-110,       
         items: [
             {
                 xtype: 'panel',
@@ -1956,6 +1990,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                 xtype: 'DialogButton',
                                 text: _t('Submit'),
                                 ref: '../../submitButton',
+                                id: 'edit_trigger_submit_button',
                                 handler: function(button) {
                                     var tab_content = button.refOwner.tab_content,
                                         tab_users = button.refOwner.tab_users;
@@ -1991,6 +2026,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                 xtype: 'DialogButton',
                                 ref: '../../cancelButton',
                                 text: _t('Cancel'),
+                                id: 'edit_trigger_cancel_button',
                                 handler: function(button) {
                                     button.refOwner.hide();
                                 }
