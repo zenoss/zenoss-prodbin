@@ -35,6 +35,7 @@ from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
+from twisted.python.failure import Failure
 
 from PythonClient   import PythonClient
 from SshClient      import SshClient
@@ -697,11 +698,13 @@ class ZenModeler(PBDaemon):
             @type result: object
             """
             self.counters['modeledDevicesCount'] += 1
-            if not result:
-                self.log.debug("Client %s finished" % device.id)
-            else:
+            # result is now the result of remote_applyDataMaps (from processClient)
+            if result and isinstance(result, (basestring, Failure)):
                 self.log.error("Client %s finished with message: %s" %
                                (device.id, result))
+            else:
+                self.log.debug("Client %s finished" % device.id)
+
             try:
                 self.clients.remove(collectorClient)
                 self.finished.append(collectorClient)
@@ -1083,4 +1086,3 @@ if __name__ == '__main__':
         dc.run()
     finally:
         dc.saveCounters()
-
