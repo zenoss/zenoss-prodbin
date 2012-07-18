@@ -37,7 +37,7 @@ class Procrastinate(object):
         self._stopping = True
         if not self.devices:
             return defer.succeed(True)
-        log.info("Returning stopping deferred")
+        log.debug("Returning stopping deferred")
         d, self._stopping_deferred = self._stopping_deferred, None
         return d
 
@@ -55,5 +55,5 @@ class Procrastinate(object):
             if self.devices:
                 reactor.callLater(Procrastinate._DO_NOW_DELAY, self._doNow)
             elif self._stopping:
-                log.info("Callback to _stopping_deferred")
+                log.debug("Callback to _stopping_deferred")
                 self._stopping_deferred.callback(None)

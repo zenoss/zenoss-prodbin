@@ -14,16 +14,11 @@
 __doc__ = """Provides a batch notifier to break up the expensive, blocking IO
 involved with calls to DeviceOrganizer.getSubDevices which can call getObject
 on the brains of every device in the system. Processes batches of 10 devices
-giving way to the event loop between each batch. See ticket #26626. zenhub
-calls update_all_services as the entry point into this module, everything else
-in this module is private."""
+giving way to the event loop between each batch. See ticket #26626."""
 
 import logging
 import collections
 from twisted.internet import reactor, defer
-from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.Device import Device
-from Products.ZenModel.DataRoot import DataRoot
 
 LOG = logging.getLogger("zen.hub.notify")
 
@@ -93,7 +88,7 @@ class BatchNotifier(object):
             subdevices = device_class.getSubDevicesGen()
             retval = NotifyItem(device_class_uid, subdevices)
             retval.d = self._create_deferred()
-            if not self._queue:
+            if not self._queue and self._current_item is None:
                 self._call_later(retval.d)
             self._queue.appendleft(retval)
         return retval
@@ -157,10 +152,10 @@ class BatchNotifier(object):
             LOG.debug("Notifier is now empty")
         if not self._queue and not self._current_item:
             isEmptyDeferred = defer.Deferred()
-            LOG.info("Notifier is currently empty")
+            LOG.debug("Notifier is currently empty")
             isEmptyDeferred.callback(None)
         elif not self._empty:
-            LOG.info("Notifier is not currently empty, returning deferred")
+            LOG.debug("Notifier is not currently empty, returning deferred")
             isEmptyDeferred = self._empty = defer.Deferred()
             isEmptyDeferred.addCallback(printEmpty)
         return isEmptyDeferred
