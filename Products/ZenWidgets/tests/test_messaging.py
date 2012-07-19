@@ -16,11 +16,15 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenWidgets.messaging import MessageSender
 from Products.ZenWidgets.messaging import BrowserMessageBox, UserMessageBox
 
+class DummySession(dict):
+    _p_changed = False
+
+
 class TestMessaging(BaseTestCase):
 
     def afterSetUp(self):
         super(TestMessaging, self).afterSetUp()
-        self.dmd.REQUEST.SESSION = {}
+        self.dmd.REQUEST.SESSION = DummySession()
 
     def _login(self, name):
         """
