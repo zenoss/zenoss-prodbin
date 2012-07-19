@@ -529,8 +529,15 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 renderer: Zenoss.render.pingStatus,
                 width: 60
             }],
-            selModel: new Zenoss.ExtraHooksSelectionModel({
-                suppressDeselectOnSelect: true
+            selModel: new Ext.selection.RowModel({
+                mode: 'MULTI',
+                getSelected: function() {
+                    var rows = this.getSelection();
+                    if (!rows.length) {
+                        return null;
+                    }
+                    return rows[0];
+                }
             })
         });
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
