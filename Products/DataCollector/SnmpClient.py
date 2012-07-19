@@ -152,21 +152,20 @@ class SnmpClient(BaseClient):
 
             configs = []
             weight = 0
+            port = int(self.device.zSnmpPort)
             for community in communities:
-                for port in self.device.zSnmpPorts:
-                    weight+=1
-                    port = int(port)
-                    configs.append(SnmpV1Config(
-                        self.device.manageIp, weight=weight,
-                        port=port,
-                        timeout=self.connInfo.zSnmpTimeout,
-                        retries=self.connInfo.zSnmpTries,
-                        community=community))
-                    configs.append(SnmpV2cConfig(
-                        self.device.manageIp, weight=weight+1000, port=port,
-                        timeout=self.connInfo.zSnmpTimeout,
-                        retries=self.connInfo.zSnmpTries,
-                        community=community))
+                weight+=1
+                configs.append(SnmpV1Config(
+                    self.device.manageIp, weight=weight,
+                    port=port,
+                    timeout=self.connInfo.zSnmpTimeout,
+                    retries=self.connInfo.zSnmpTries,
+                    community=community))
+                configs.append(SnmpV2cConfig(
+                    self.device.manageIp, weight=weight+1000, port=port,
+                    timeout=self.connInfo.zSnmpTimeout,
+                    retries=self.connInfo.zSnmpTries,
+                    community=community))
 
             yield SnmpAgentDiscoverer().findBestConfig(configs)
             driver.next()
