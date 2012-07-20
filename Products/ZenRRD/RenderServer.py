@@ -28,7 +28,7 @@ import glob
 import tarfile
 import md5
 import tempfile
-
+from Products.ZenUtils import Map
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from Globals import DTMLFile
@@ -42,7 +42,6 @@ from base64 import b64encode, urlsafe_b64decode, urlsafe_b64encode
 from urllib import urlencode
 
 from Products.ZenRRD.RRDUtil import fixMissingRRDs
-from Products.ZenUtils.PObjectCache import PObjectCache
 from Products.ZenUtils.Utils import zenPath, rrd_daemon_args, rrd_daemon_retry
 
 from RRDToolItem import RRDToolItem
@@ -64,6 +63,9 @@ def manage_addRenderServer(context, id, REQUEST = None):
 
 addRenderServer = DTMLFile('dtml/addRenderServer',globals())
 
+DEFAULT_TIMEOUT=300
+_cache = Map.Locked(Map.Timed({}, DEFAULT_TIMEOUT))
+
 
 class RenderServer(RRDToolItem):
     """
@@ -77,7 +79,7 @@ class RenderServer(RRDToolItem):
 
     security = ClassSecurityInfo()
 
-    def __init__(self, id, tmpdir = '/tmp/renderserver', cachetimeout=300):
+    def __init__(self, id, tmpdir = '/tmp/renderserver', cachetimeout=DEFAULT_TIMEOUT):
         self.id = id
         self.tmpdir = tmpdir
         self.cachetimeout = cachetimeout
@@ -512,11 +514,8 @@ class RenderServer(RRDToolItem):
         Make a new cache if we need one
         """
         if not hasattr(self, '_v_cache') or not self._v_cache:
-            tmpfolder = self.getPhysicalRoot().temp_folder
-            if not hasattr(tmpfolder, self.cacheName):
-                cache = PObjectCache(self.cacheName, self.cachetimeout)
-                tmpfolder._setObject(self.cacheName, cache)
-            self._v_cache = tmpfolder._getOb(self.cacheName)
+            self._v_cache = _cache
+            self._v_cache.map.timeout = self.cachetimeout
         return self._v_cache
 
 
@@ -530,7 +529,7 @@ class RenderServer(RRDToolItem):
         cache = self.setupCache()
         graph = self._loadfile(filename)
         if graph:
-            cache.addToCache(id, graph)
+            cache[id] = graph
             try:
                 os.close(fd)
                 os.remove(filename)
@@ -540,8 +539,6 @@ class RenderServer(RRDToolItem):
                         % (e.strerror, e.filename))
                 else:
                     raise e
-        cache.cleanCache()
-
 
     def getGraph(self, id, ftype, REQUEST):
         """
@@ -561,7 +558,6 @@ class RenderServer(RRDToolItem):
             response = REQUEST.RESPONSE
             response.setHeader('Content-Type', mimetype)
 
-        return cache.checkCache(id)
-
+        return cache.get(id, None)
 
 InitializeClass(RenderServer)
