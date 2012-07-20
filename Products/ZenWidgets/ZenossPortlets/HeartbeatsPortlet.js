@@ -9,7 +9,7 @@ HeartbeatsPortlet.prototype = {
             {'url':'/zport/dmd/ZenEventManager/getHeartbeatIssuesJSON'});
         bodyHeight = 'bodyHeight' in args? args.bodyHeight :
             200;
-        title = 'title' in args? args.title:"Resource Manager Issues";
+        title = 'title' in args? args.title:"Daemon Processes down";
         refreshTime = 'refreshTime' in args? args.refreshTime : 60;
         this.superclass.__init__(
             {id:id,

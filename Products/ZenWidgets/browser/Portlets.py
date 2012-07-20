@@ -211,7 +211,7 @@ class DeviceIssuesPortletView(BrowserView):
         return [x[0] for x in devdata[:100]]
 
 
-heartbeat_columns = ['Device', 'Daemon', 'Seconds']
+heartbeat_columns = ['Host', 'Daemon Process', 'Seconds Down']
 
 class HeartbeatPortletView(BrowserView):
     """
@@ -229,7 +229,7 @@ class HeartbeatPortletView(BrowserView):
 
         @return: A JSON representation of a dictionary describing heartbeats
         @rtype: "{
-            'columns':['Device', 'Daemon', 'Seconds'],
+            'columns':['Host', 'Daemon Process', 'Seconds Down'],
             'data':[
                 {'Device':'<a href=/>', 'Daemon':'zenhub', 'Seconds':10}
             ]}"
@@ -251,7 +251,7 @@ class UserMessagesPortletView(BrowserView):
 
         @return: A JSON representation of a dictionary describing heartbeats
         @rtype: "{
-            'columns':['Device', 'Daemon', 'Seconds'],
+            'columns':['Host', 'Daemon Process', 'Seconds Down'],
             'data':[
                 {'Device':'<a href=/>', 'Daemon':'zenhub', 'Seconds':10}
             ]}"
