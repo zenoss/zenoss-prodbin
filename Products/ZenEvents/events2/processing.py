@@ -108,6 +108,15 @@ class Manager(object):
         if uuid:
             return self._guidManager.getObject(uuid)
 
+    def uuidFromBrain(self, brain):
+        """
+        Helper method to deal with catalog brains which are out of date. If
+        the uuid is not set on the brain, we attempt to load it from the
+        object.
+        """
+        uuid = brain.uuid
+        return uuid if uuid else IGlobalIdentifier(brain.getObject()).getGUID()
+
     def getElementUuidById(self, catalog, element_type_id, id):
         """
         Find element by ID but only cache UUID. This forces us to lookup elements
@@ -125,7 +134,7 @@ class Manager(object):
                                                        limit=1)
 
                 if results.total:
-                    return results.results.next().uuid
+                    return self.uuidFromBrain(results.results.next())
 
     def getElementById(self, catalog, element_type_id, id):
         """
@@ -192,7 +201,7 @@ class Manager(object):
         """
         device_brains, devices = self._findDevices(identifier, ipAddress, limit=1)
         if device_brains:
-            return device_brains[0].uuid
+            return self.uuidFromBrain(device_brains[0])
         if devices:
             return self.getElementUuid(devices[0])
         return None
