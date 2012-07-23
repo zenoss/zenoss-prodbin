@@ -427,13 +427,15 @@ class ZenHub(ZCmdBase):
         reactor.callLater(5, self.processQueue)
 
         self.rrdStats = self.getRRDStats()
-        self.workerconfig = zenPath('var', 'zenhub', '%s_worker.conf' % self._getConf().id)
-        self._createWorkerConf()
-        for i in range(int(self.options.workers)):
-            self.createWorker()
 
-        # start cyclic call to giveWorkToWorkers
-        reactor.callLater(2, self.giveWorkToWorkers, True)
+        if self.options.workers:
+            self.workerconfig = zenPath('var', 'zenhub', '%s_worker.conf' % self._getConf().id)
+            self._createWorkerConf()
+            for i in range(self.options.workers):
+                self.createWorker()
+
+            # start cyclic call to giveWorkToWorkers
+            reactor.callLater(2, self.giveWorkToWorkers, True)
 
         # set up SIGUSR2 handling
         try:
