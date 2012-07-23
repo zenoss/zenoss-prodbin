@@ -86,6 +86,7 @@ from Products.ZenHub import PB_PORT
 from Products.ZenHub import ZENHUB_ZENRENDER
 
 HubWorklistItem = collections.namedtuple('HubWorklistItem', 'deferred priority servicename instance method args')
+LastCallReturnValue = collections.namedtuple('LastCallReturnValue', 'returnvalue')
 
 class AuthXmlRpcService(XmlRpcService):
     """Provide some level of authentication for XML/RPC calls"""
@@ -431,6 +432,9 @@ class ZenHub(ZCmdBase):
         for i in range(int(self.options.workers)):
             self.createWorker()
 
+        # start cyclic call to giveWorkToWorkers
+        reactor.callLater(2, self.giveWorkToWorkers, True)
+
         # set up SIGUSR2 handling
         try:
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
@@ -655,10 +659,11 @@ class ZenHub(ZCmdBase):
         return d
 
 
-    def giveWorkToWorkers(self):
+    def giveWorkToWorkers(self, requeue=False):
         """Parcel out a method invocation to an available worker process
         """
-        self.log.debug("worklist has %d items", len(self.workList))
+        if self.workList:
+            self.log.debug("worklist has %d items", len(self.workList))
         incompleteJobs = []
         while self.workList:
             if all(w.busy for w in self.workers):
@@ -684,6 +689,16 @@ class ZenHub(ZCmdBase):
                             result = pickle.loads(''.join(result))
                         except Exception:
                             self.log.exception("Error un-pickling result from worker")
+
+                        # if zenhubworker is about to shutdown, it will wrap the actual result
+                        # in a LastCallReturnValue tuple - remove worker from worker list to 
+                        # keep from accidentally sending it any more work while it shuts down
+                        if isinstance(result, LastCallReturnValue):
+                            self.log.debug("worker %s is shutting down" % wId)
+                            result = result.returnvalue
+                            if finishedWorker in self.workers:
+                                self.workers.remove(finishedWorker)
+
                     self.workTracker[wId] = ('Idle (last method: %s)' % stats[0], now)
                     reactor.callLater(0,self.giveWorkToWorkers)
                     return result
@@ -712,6 +727,9 @@ class ZenHub(ZCmdBase):
 
         if incompleteJobs:
             reactor.callLater(0,self.giveWorkToWorkers)
+
+        if requeue and not self.shutdown:
+            reactor.callLater(5,self.giveWorkToWorkers, True)
 
     def _workerStats(self):
         now = time.time()

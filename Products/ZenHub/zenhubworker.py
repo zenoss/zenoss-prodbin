@@ -14,6 +14,7 @@
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
+from Products.ZenHub.zenhub import LastCallReturnValue
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -182,9 +183,16 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         # now that the service is loaded, we can unpack the arguments
         joinedArgs = "".join(args)
         args, kw = pickle.loads(joinedArgs)
+        
+        # see if this is our last call
+        self.numCalls += 1
+        lastCall = self.numCalls >= self.options.calllimit
+        
         def runOnce():
             self.syncdb()
             res = m(*args, **kw)
+            if lastCall:
+                res = LastCallReturnValue(res)
             pickled_res = pickle.dumps(res, pickle.HIGHEST_PROTOCOL)
             chunkedres=[]
             chunkSize = 102400
@@ -208,9 +216,9 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             service.callStats[method].addOccurrence(secs, finishTime)
             service.callTime += secs
             self.current = IDLE
-            self.numCalls += 1
-            if self.numCalls > self.options.calllimit:
-                self._shutdown()
+            
+            if lastCall:
+                reactor.callLater(1, self._shutdown)
 
     def _shutdown(self):
         self.log.info("Shutting down")
