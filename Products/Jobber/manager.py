@@ -28,6 +28,8 @@ from Products.ZenUtils.celeryintegration import Task
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from .exceptions import NoSuchJobException
 
+from logging import getLogger
+log = getLogger("zen.JobManager")
 
 CATALOG_NAME = "job_catalog"
 
@@ -136,6 +138,7 @@ class JobManager(ZenModelRM):
         results or abort the job
         @rtype: L{JobRecord}
         """
+        log.debug("Adding job %s", klass)
         args = args or ()
         kwargs = kwargs or {}
 
@@ -164,12 +167,14 @@ class JobManager(ZenModelRM):
         self._setOb(async_result.task_id, meta)
         job = self._getOb(async_result.task_id)
         self.getCatalog().catalog_object(job)
+        log.debug("Created job %s: %s", klass, async_result.task_id)
         return job
 
     def wait(self, job_id):
         return self.getJob(job_id).wait()
 
     def update(self, job_id, **kwargs):
+        log.debug("Updating job %s", job_id)
         job = self.getJob(job_id)
         job.update(kwargs)
         self.getCatalog().catalog_object(job)

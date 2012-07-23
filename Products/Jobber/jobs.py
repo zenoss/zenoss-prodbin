@@ -167,7 +167,7 @@ class Job(Task):
         newSecurityManager(None, user)
 
         # Run it!
-        self.log.info("Beginning job")
+        self.log.info("Beginning job %s %s", self.getJobType(), self.name)
         try:
             try:
                 result = self._run(*args, **kwargs)
@@ -194,7 +194,8 @@ class Job(Task):
             self._aborted_tasks.discard(job_id)
 
     def run(self, *args, **kwargs):
-        self.log.info("Job received, waiting for other side to commit")
+        self.log.info("Job %s %s received, waiting for other side to commit",
+            self.getJobType(), self.name)
         try:
             # Wait for the job creator (i.e. the 1%) to complete the
             # transaction, pushing a pending job into the database
@@ -296,6 +297,7 @@ class SubprocessJob(Job):
         return cmd if isinstance(cmd, basestring) else ' '.join(cmd)
 
     def _run(self, cmd, environ=None):
+        self.log.info("Running Job %s %s", self.getJobType(), self.name)
         if environ is not None:
             newenviron = os.environ.copy()
             newenviron.update(environ)

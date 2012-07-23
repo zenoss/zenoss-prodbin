@@ -16,6 +16,7 @@ import threading
 import Queue
 import transaction
 import logging
+import traceback
 from zope.component import getUtility
 from ZODB.POSException import ConflictError
 from datetime import datetime
@@ -127,11 +128,13 @@ class ZODBBackend(BaseDictBackend):
             try:
                 for i in range(5):
                     try:
+                        log.debug("Updating job %s - Pass %d", task_id, i+1)
                         self.jobmgr.update(task_id, **properties)
                         transaction.commit()
                         return
                     except (NoSuchJobException, ConflictError):
-                        log.debug("Unable to find Job %s, retrying ", task_id)
+                        log.debug("Unable to find Job %s, retrying", task_id)
+                        log.trace("%s", traceback.format_exc())
                         # Race condition. Wait.
                         time.sleep(0.25)
                         self.dmd._p_jar.sync()
@@ -139,6 +142,8 @@ class ZODBBackend(BaseDictBackend):
                 log.warn("Unable to save properties  %s to job %s", properties, task_id)
             finally:
                 self.reset()
+
+        log.debug("Updating job %s", task_id)
         t = threading.Thread(target=_update)
         t.start()
         t.join()
