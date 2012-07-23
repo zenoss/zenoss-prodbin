@@ -32,7 +32,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from ZODB.transact import transact
 
-from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max
+from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max, And
 from Products.CMFCore.utils import getToolByName
 from Products.ZenMessaging.ChangeEvents.events import DeviceClassMovedEvent
 from Products.ZenModel.ZenossSecurity import *
@@ -46,6 +46,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.Zuul.interfaces import ICatalogTool
 
 import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
@@ -531,19 +532,23 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         Return generator of components, by meta_type if specified
         """
-        zcat = self.componentSearch
-        query = {'monitored': monitored}
+        catalog = ICatalogTool(self)
+        COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
+        monitorq, typeq = None, None
+        if monitored:
+            monitorq = Eq('monitored', True)
         if meta_type:
-            query['meta_type'] = meta_type
-        res = zcat(query)
-        for b in res:
+            typeq = Eq('meta_type', meta_type)
+        queries = filter(None, (monitorq, typeq))
+        if queries:
+            query = And(*queries) if len(queries) > 1 else queries[0]
+        else:
+            query = None
+        for brain in catalog.search(COMPONENT, query=query):
             try:
-                c = self.getObjByPath(b.getPrimaryId)
-                if self.checkRemotePerm("View", c):
-                    yield c
+                yield brain.getObject()
             except KeyError:
-                log.warn("bad path '%s' in index 'componentSearch'",
-                            b.getPrimaryId)
+                log.warn("bad path '%s' in global catalog", brain.getPath())
 
 
     security.declareProtected("ZenCommon", "getMonitoredComponents")
@@ -793,34 +798,19 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat.addColumn('id')
         zcat.addColumn('path')
 
-        # make catalog for device components
-        manage_addZCatalog(self, "componentSearch", "componentSearch")
-        zcat = self._getOb("componentSearch")
-        cat = zcat._catalog
-        cat.addIndex('meta_type', makeCaseInsensitiveFieldIndex('meta_type'))
-        cat.addIndex('getParentDeviceName',
-            makeCaseInsensitiveFieldIndex('getParentDeviceName'))
-        cat.addIndex('getCollectors',
-            makeCaseInsensitiveKeywordIndex('getCollectors'))
-        # XXX still using regular FieldIndex here for now, since this contains
-        # binary information
-        zcat.addIndex('monitored', 'FieldIndex')
-        zcat.addColumn('getPrimaryId')
-        zcat.addColumn('meta_type')
-
-
     def reIndex(self):
         """
         Go through all devices in this tree and reindex them.
         """
         zcat = getToolByName(self, self.default_catalog)
         zcat.manage_catalogClear()
-        self.componentSearch.manage_catalogClear()
         for dev in self.getSubDevicesGen_recursive():
+            if dev.hasObject('componentSearch'):
+                dev._delObject('componentSearch')
+            dev._create_componentSearch()
             dev.index_object()
             notify(IndexingEvent(dev))
             for comp in dev.getDeviceComponentsNoIndexGen():
-                comp.index_object()
                 notify(IndexingEvent(comp))
 
 

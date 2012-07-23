@@ -140,15 +140,14 @@ class DeviceFacade(TreeFacade):
         wrapped = imap(IInfo, imap(unbrain, brains))
         return SearchResults(wrapped, brains.total, brains.hash_)
 
-    def getComponentTree(self, uid=None, types=(), meta_type=()):
+    def getComponentTree(self, uid):
         from Products.ZenEvents.EventManagerBase import EventManagerBase
         componentTypes = {}
         uuidMap = {}
 
-        # Build a dictionary with device/component
-        for brain in self._componentSearch(uid, types, meta_type):
-            uuidMap[brain.uuid] = brain.meta_type
-
+        dev = self._getObject(uid)
+        for brain in dev.componentSearch():
+            uuidMap[brain.getUUID] = brain.meta_type
             compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
             compType['count'] += 1
 

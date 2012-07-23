@@ -29,8 +29,10 @@ from Products.Sessions.SessionDataManager import constructSessionDataManager
 from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore.utils import getToolByName
 
+from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils import Security, Time
 from Products.ZenUtils.Utils import prepId
+from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUI3.browser.interfaces import IErrorMessage
 
 from ZenossSecurity import *
@@ -63,10 +65,12 @@ class ZentinelPortal ( PortalObjectBase ):
         return None
 
     security.declareProtected(ZEN_COMMON, 'searchDevices')
+    @deprecated
     def searchDevices(self, queryString='', REQUEST=None):
         """Returns the concatenation of a device name, ip and mac
         search on the list of devices.
         """
+        # TODO: Remove. Not used anymore in Zenoss code --Ian
         zcatalog = self.dmd.Devices.deviceSearch
         glob = queryString.rstrip('*') + '*'
         idGlob = MatchGlob('id', glob)
@@ -85,10 +89,12 @@ class ZentinelPortal ( PortalObjectBase ):
         return [ b.getObject() for b in brains ]
 
     security.declareProtected(ZEN_COMMON, 'searchComponents')
+    @deprecated
     def searchComponents(self, device='', component='', REQUEST=None):
         """
         Redirect to the component of a device. Hopefully.
         """
+        # TODO: Remove. Not used anymore in Zenoss code --Ian
         catalog = self.dmd.Devices.componentSearch
         brains = []
         if device and component:

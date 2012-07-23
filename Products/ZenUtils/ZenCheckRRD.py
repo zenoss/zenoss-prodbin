@@ -23,6 +23,7 @@ import transaction
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
+
 CACHE_FILE = zenPath('var', 'zencheckrrd.cache')
 rrdMatch = re.compile('DEF:[^=]+=([^:]+)').match
 
@@ -223,8 +224,7 @@ Collector                        RRDs     RRDs      RRDs     RRDs"""
 
 
     def _getAllMonitoredComponents(self):
-        brains = self.dmd.Devices.componentSearch({'monitored': True})
-        for component in ( b.getObject() for b in brains ):
+        for component in self.dmd.Devices.getMonitoredComponents():
             if not component.snmpIgnore():
                 yield component
 

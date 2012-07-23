@@ -247,3 +247,4 @@ import fileSystemIndexName
 import removedcshFromCommands
 import removeClearHeartbeatsMenuItem
 import zRemoveAutoAllocate
+import perDeviceCompCatalog

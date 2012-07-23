@@ -75,12 +75,12 @@ class Service(OSComponent, Commandable, ZenPackable):
         the service class.
         """
         try:
-            index_dict = self.dmd.Devices.componentSearch.getIndexDataForUID(
+            index_dict = self.primaryAq().componentSearch.getIndexDataForUID(
                 self.getPrimaryId())
         except KeyError:
             return self.monitored()
 
-        return index_dict.get('monitored', self.monitored())
+        return bool(index_dict.get('monitored', self.monitored()))
 
 
     def getStatus(self, statClass=None):

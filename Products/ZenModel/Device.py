@@ -51,6 +51,7 @@ from Globals import InitializeClass
 from DateTime import DateTime
 from zExceptions import NotFound
 from ZODB.POSException import POSError
+from ZODB.transact import transact
 
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
@@ -82,6 +83,9 @@ from Products.Zuul import getFacade
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.interfaces import IExpandedLinkProvider
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makeCaseInsensitiveFieldIndex, FieldIndex
+from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
+from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
 
 def getNetworkRoot(context, performanceMonitor):
     """
@@ -332,6 +336,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self._lastPollSnmpUpTime = ZenStatus(0)
         self._snmpLastCollection = 0
         self._lastChange = 0
+        self._create_componentSearch()
 
     def isTempDevice(self):
         flag = getattr(self, '_temp_device', None)
@@ -542,6 +547,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         return self.getMonitoredComponents(collector=collector, type=type);
 
+    def _create_componentSearch(self):
+        from Products.ZCatalog.ZCatalog import manage_addZCatalog
+        manage_addZCatalog(self, "componentSearch", "componentSearch")
+        zcat = self._getOb("componentSearch")
+        cat = zcat._catalog
+        cat.addIndex('meta_type', makeCaseInsensitiveFieldIndex('meta_type'))
+        cat.addIndex('getCollectors',
+            makeCaseInsensitiveKeywordIndex('getCollectors'))
+        zcat.addIndex('monitored', FieldIndex('monitored'))
+        zcat.addColumn('meta_type')
+        zcat.addColumn('getUUID')
+        for c in self.getDeviceComponentsNoIndexGen():
+            c.index_object()
 
     security.declareProtected(ZEN_VIEW, 'getDeviceComponents')
     def getDeviceComponents(self, monitored=None, collector=None, type=None):
@@ -554,16 +572,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_VIEW
         @rtype: list
         """
-        # The getParentDeviceName index was added in 2.2.  During migrates
-        # this code could execute before the 2.2 migrate steps are run, so we
-        # need to properly cope with this case.
-        # See ticket #2787
-        if not self.componentSearch._catalog.indexes.has_key('getParentDeviceName'):
-            return self.getDeviceComponentsNoIndexGen()
+        # Auto-migrate component catalog for this device
+        # See ZEN-2537 for reason for this change
+        if getattr(aq_base(self), 'componentSearch', None) is None:
+            self._create_componentSearch()
 
-        query = {
-            'getParentDeviceName':self.id,
-            }
+        query = {}
         if collector is not None:
             query['getCollectors'] = collector
         if monitored is not None:
