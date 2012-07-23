@@ -26,6 +26,26 @@ __version__ = "$Revision$"[11:-2]
 from twisted.internet import defer, reactor
 from twisted.python import failure
 
+
+def exceptionEvaluator(error):
+    """
+    This method is needed to do post-marshalling processing of exceptions that might be
+    raised during a remote call.
+    """
+    # convert type string to exception class by importing module
+    exctype = Exception
+    if isinstance(error.type, basestring):
+        if '.' in error.type:
+            excmodule, exctype = error.type.rsplit('.',1)
+            m = __import__(excmodule)
+            for submodule in error.type.split('.')[1:-1]:
+                m = getattr(m, submodule)
+        else:
+            m = __import__('__builtin__')
+        exctype = getattr(m, exctype)
+    return exctype(error.value, error.tb)
+
+
 class ShortCircuit:
     def __init__(self, value):
         self.value = value
@@ -59,7 +79,7 @@ class Driver:
         "Provide the result of the iterable as a value or exception"
         ex = self.result
         if isinstance(self.result, failure.Failure):
-            ex = self.result.value
+            ex = exceptionEvaluator(self.result)
         if isinstance(ex, Exception):
             raise ex
         return self.result
