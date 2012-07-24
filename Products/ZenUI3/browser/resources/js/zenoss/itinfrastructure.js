@@ -1234,9 +1234,11 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 listeners: {
                     'render': function(me) {
                         me.getEl().on('click', function() {
-                            Ext.getCmp("master_panel").layout.setActiveItem(1);
-                            var detailnav = Ext.getCmp('detail_nav');
-                            detailnav.selectByToken('events_grid');
+                            if (Zenoss.Security.hasPermission('View')) {
+                                Ext.getCmp("master_panel").layout.setActiveItem(1);
+                                var detailnav = Ext.getCmp('detail_nav');
+                                detailnav.selectByToken('events_grid');
+                            }
                         });
                     }
                 }
@@ -1341,6 +1343,8 @@ Zenoss.Security.onPermissionsChange(function(){
     Ext.getCmp('commands-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands'));
     Ext.getCmp('addsingledevice-item').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
     Ext.getCmp('actions-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Change Device'));
+    Ext.getCmp('master_panel').details.setDisabled(Zenoss.Security.doesNotHavePermission('View'));
+    //Ext.getCmp('organizer_events').setVisible();
 });
 
 
