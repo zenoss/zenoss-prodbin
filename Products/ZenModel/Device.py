@@ -38,7 +38,7 @@ from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
                                      ipunwrap, getHostByName
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
-
+from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 # base classes for device
 from ManagedEntity import ManagedEntity
 
@@ -80,7 +80,7 @@ from Products.Zuul import getFacade
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.interfaces import IExpandedLinkProvider
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makeCaseInsensitiveFieldIndex, FieldIndex
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
 
@@ -552,7 +552,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         cat.addIndex('meta_type', makeCaseInsensitiveFieldIndex('meta_type'))
         cat.addIndex('getCollectors',
             makeCaseInsensitiveKeywordIndex('getCollectors'))
-        zcat.addIndex('monitored', 'FieldIndex')
+
+        zcat.addIndex('monitored', FieldIndex('monitored'))
         zcat.addColumn('meta_type')
         zcat.addColumn('getUUID')
         for c in self.getDeviceComponentsNoIndexGen():
