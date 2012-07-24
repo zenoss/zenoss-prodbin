@@ -1,17 +1,13 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
-# ##########################################################################
-#
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2006-2009 Zenoss Inc.
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 or (at your
-# option) any later version as published by the Free Software Foundation.
-#
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-# ##########################################################################
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2006-2009, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+
 
 __doc__ = """PerformanceConf
 The configuration object for Performance servers

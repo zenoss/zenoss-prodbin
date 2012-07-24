@@ -1,15 +1,13 @@
-###########################################################################
-#
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2012, Zenoss Inc.
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 or (at your
-# option) any later version as published by the Free Software Foundation.
-#
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-###########################################################################
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2012, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+
+
 from zope.dottedname.resolve import resolve
 from celery.utils import fun_takes_kwargs
 from .jobs import Job
@@ -38,4 +36,3 @@ class FacadeMethodJob(Job):
         accepted = fun_takes_kwargs(bound_method, kwargs)
         kwargs = dict((k, v) for k, v in kwargs.iteritems() if k in accepted)
         result = bound_method(*args, **kwargs)
-
