@@ -25,8 +25,10 @@ def resolveException(failure):
     Resolves a twisted.python.failure into the remote exception type that was
     initially raised.
     """
-    try:
-        exctype = resolve(failure.type)
-    except ImportError:
-        exctype = Exception
+    exctype = failure.type
+    if isinstance(exctype, basestring):
+        try:
+            exctype = resolve(failure.type)
+        except ImportError:
+            exctype = Exception
     return exctype(failure.value, failure.tb)
