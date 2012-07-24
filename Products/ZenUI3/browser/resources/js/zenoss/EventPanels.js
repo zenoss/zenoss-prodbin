@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -925,24 +925,6 @@
         initComponent: function() {
             this.getSelectionModel().grid = this;
             this.callParent(arguments);
-
-            this.headerCt.on('columnhide', this.onColumnChange, this);
-            this.headerCt.on('columnshow', this.onColumnChange, this);
-        },
-        /**
-         * Listeners for when you hide/show a column, the data isn't fetched yet so
-         * we need to refresh the grid to get it. Otherwise there will be a blank column
-         * until the page is manually refreshed.
-         **/
-        onColumnChange:function () {
-            if (!this.onColumnChangeTask) {
-                this.onColumnChangeTask = new Ext.util.DelayedTask(function () {
-                    this.refresh();
-                }, this);
-            }
-
-            // give them one second to hide/show other columns
-            this.onColumnChangeTask.delay(1000);
         },
         onItemClick: function(){
             this.getSelectionModel().clearSelectState();
