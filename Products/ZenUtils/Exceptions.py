@@ -6,6 +6,8 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 # 
 ##############################################################################
+from exceptions import ImportError, Exception
+from zope.dottedname.resolve import resolve
 
 
 class ZentinelException(Exception): 
@@ -16,3 +18,15 @@ class ZentinelException(Exception):
 class ZenPathError(ZentinelException): 
     """When walking a path something along the way wasn't found."""
     pass
+
+
+def resolveException(failure):
+    """
+    Resolves a twisted.python.failure into the remote exception type that was
+    initially raised.
+    """
+    try:
+        exctype = resolve(failure.type)
+    except ImportError:
+        exctype = Exception
+    return exctype(failure.value, failure.tb)
