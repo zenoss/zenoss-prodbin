@@ -131,8 +131,8 @@ class ZODBBackend(BaseDictBackend):
                         transaction.commit()
                         return
                     except (NoSuchJobException, ConflictError):
-                        log.debug("Unable to find Job %s, retrying", task_id)
-                        log.trace("%s", traceback.format_exc())
+                        log.debug("Unable to find Job %s, retrying \n%s", task_id,
+                            traceback.format_exc())
                         # Race condition. Wait.
                         time.sleep(0.25)
                         self.dmd._p_jar.sync()
