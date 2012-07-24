@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -36,20 +36,8 @@ from Products.ZenCollector.tasks import NullTaskSplitter
 # Invalidation issues arise if we don't import
 from Products.ZenCollector.services.config import DeviceProxy
 
-from Products.ZenRRD.RenderServer import RenderServer as OrigRenderServer
-from Products.ZenUtils.ObjectCache import ObjectCache
+from Products.ZenRRD.RenderServer import RenderServer
 from Products.ZenUtils.Utils import ipv6_available
-
-
-class RenderServer(OrigRenderServer):
-    cache = None
-
-    def setupCache(self):
-        """make new cache if we need one"""
-        if self.cache is None:
-            self.cache = ObjectCache()
-            self.cache.initCache()
-        return self.cache
 
 
 class ZenRenderPreferences(object):
