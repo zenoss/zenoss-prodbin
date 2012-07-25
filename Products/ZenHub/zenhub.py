@@ -24,6 +24,7 @@ if __name__ == "__main__":
 from XmlRpcService import XmlRpcService
 
 import collections
+import heapq
 import socket
 import time
 import signal
@@ -36,9 +37,9 @@ from twisted.spread import pb, banana
 banana.SIZE_LIMIT = 1024 * 1024 * 10
 
 from twisted.internet import reactor, protocol, defer
-from twisted.python import failure
 from twisted.web import server, xmlrpc
 from twisted.internet.error import ProcessExitedAlready
+from twisted.internet.defer import inlineCallbacks, returnValue
 from zope.event import notify
 from zope.interface import implements
 from zope.component import getUtility, getUtilitiesFor, adapts
@@ -82,7 +83,7 @@ from Products.ZenHub import XML_RPC_PORT
 from Products.ZenHub import PB_PORT
 from Products.ZenHub import ZENHUB_ZENRENDER
 
-HubWorklistItem = collections.namedtuple('HubWorklistItem', 'recvtime deferred priority servicename instance method args')
+HubWorklistItem = collections.namedtuple('HubWorklistItem', 'priority recvtime deferred servicename instance method args')
 WorkerStats = collections.namedtuple('WorkerStats', 'status description lastupdate previdle')
 LastCallReturnValue = collections.namedtuple('LastCallReturnValue', 'returnvalue')
 
@@ -265,8 +266,8 @@ class WorkerInterceptor(pb.Referenceable):
             chunkedArgs.append(chunk)
             pickledArgs = pickledArgs[chunkSize:]
 
-        result = self.zenhub.deferToWorker( (svc, instance, message, chunkedArgs) )
-        return broker.serialize(result, self.perspective)
+        deferred = self.zenhub.deferToWorker(svc, instance, message, chunkedArgs)
+        return broker.serialize(deferred, self.perspective)
 
     def __getattr__(self, attr):
         "Implement the HubService interface by forwarding to the local service"
@@ -287,6 +288,7 @@ class _ZenHubWorklist(object):
         self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
         self.dispatch = {
             'sendEvents': self.eventworklist,
+            'sendEvent': self.eventworklist,
             'applyDataMaps': self.applyworklist
         }
 
@@ -310,14 +312,11 @@ class _ZenHubWorklist(object):
                       [otherchain]*2 +
                       [applychain]
                                  )
-        ret = seq[0].pop(0)
-        return ret
+        return heapq.heappop(seq[0])
 
     def push(self, job):
-        self[job.method].insert(0, job)
-
-    def append(self, job):
-        self[job.method].append(job)
+        heapq.heappush(self[job.method], job)
+    append = push
 
 class ZenHub(ZCmdBase):
     """
@@ -370,6 +369,8 @@ class ZenHub(ZCmdBase):
         # list of remote worker references
         self.workers = []
         self.workTracker = {}
+        # zenhub execution stats: [count, idle_total, running_total, last_called_time]
+        self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
         self.workList = _ZenHubWorklist()
         # set of worker processes
         self.worker_processes=set()
@@ -640,44 +641,82 @@ class ZenHub(ZCmdBase):
                 notify(ServiceAddedEvent(name, instance))
                 return svc
 
-    def deferToWorker(self, args):
+    def deferToWorker(self, svcName, instance, method, args):
         """Take a remote request and queue it for worker processes.
 
+        @type svcName: string
+        @param svcName: the name of the hub service to call
+        @type instance: string
+        @param instance: the name of the hub service instance to call
+        @type method: string
+        @param method: the name of the method on the hub service to call
         @type args: tuple
-        @param args: the arguments to the remote_execute() method in the worker
+        @param args: the remaining arguments to the remote_execute() method in the worker
         @return: a Deferred for the eventual results of the method call
-
         """
         d = defer.Deferred()
-        svcName, instance, method = args[:3]
         service = self.getService(svcName, instance).service
         priority = service.getMethodPriority(method)
 
-        self.workList.append(HubWorklistItem(time.time(), d, priority, svcName, instance, method, args))
+        self.workList.append(
+            HubWorklistItem(priority, time.time(), d, svcName, instance, method,
+                            (svcName, instance, method, args)))
 
-        self.giveWorkToWorkers()
+        reactor.callLater(0, self.giveWorkToWorkers)
         return d
 
     def updateStatusAtStart(self, wId, job):
         now = time.time()
         jobDesc = "%s:%s.%s" % (job.instance, job.servicename, job.method)
         stats = self.workTracker.pop(wId, None)
-        idletime = 0
-        if stats:
-            idletime = now - stats.lastupdate
+        idletime = now - stats.lastupdate if stats else 0
+        self.executionTimer[job.method][0] += 1
+        self.executionTimer[job.method][1] += idletime
+        self.executionTimer[job.method][3] = now
         self.log.debug("Giving %s to worker %d, (%s)", job.method, wId, jobDesc)
         self.workTracker[wId] = WorkerStats('Busy', jobDesc, now, idletime)
 
-    def updateStatusAtFinish(self, wId, error=None):
+    def updateStatusAtFinish(self, wId, job, error=None):
         now = time.time()
+        self.executionTimer[job.method][3] = now
         stats = self.workTracker.pop(wId, None)
         if stats:
             elapsed  = now - stats.lastupdate
+            self.executionTimer[job.method][2] += elapsed
             self.log.debug("worker %s, work %s finished in %s" % (wId, stats.description, elapsed))
         self.workTracker[wId] = WorkerStats('Error: %s' % error if error else 'Idle',
                                             stats.description, now, 0)
 
+    @inlineCallbacks
+    def finished(self, job, result, finishedWorker, wId):
+        finishedWorker.busy = False
+        error = None
+        if isinstance(result, Exception):
+            job.deferred.errback(result)
+        else:
+            try:
+                result = pickle.loads(''.join(result))
+            except Exception as e:
+                error = e
+                self.log.exception("Error un-pickling result from worker")
 
+            # if zenhubworker is about to shutdown, it will wrap the actual result
+            # in a LastCallReturnValue tuple - remove worker from worker list to
+            # keep from accidentally sending it any more work while it shuts down
+            if isinstance(result, LastCallReturnValue):
+                self.log.debug("worker %s is shutting down" % wId)
+                result = result.returnvalue
+                if finishedWorker in self.workers:
+                    self.workers.remove(finishedWorker)
+
+            #the job contains a deferred to be used to return the actual value
+            job.deferred.callback(result)
+
+        self.updateStatusAtFinish(wId, job, error)
+        reactor.callLater(0,self.giveWorkToWorkers)
+        returnValue(result)
+
+    @inlineCallbacks
     def giveWorkToWorkers(self, requeue=False):
         """Parcel out a method invocation to an available worker process
         """
@@ -696,41 +735,15 @@ class ZenHub(ZCmdBase):
             for i in candidateWorkers:
                 worker = self.workers[i]
                 worker.busy = True
-                def finished(result, finishedWorker, wId):
-                    finishedWorker.busy = False
-                    error = None
-                    if not isinstance(result, failure.Failure):
-                        try:
-                            result = pickle.loads(''.join(result))
-                        except Exception as e:
-                            error = e
-                            self.log.exception("Error un-pickling result from worker")
-
-                        # if zenhubworker is about to shutdown, it will wrap the actual result
-                        # in a LastCallReturnValue tuple - remove worker from worker list to 
-                        # keep from accidentally sending it any more work while it shuts down
-                        if isinstance(result, LastCallReturnValue):
-                            self.log.debug("worker %s is shutting down" % wId)
-                            result = result.returnvalue
-                            if finishedWorker in self.workers:
-                                self.workers.remove(finishedWorker)
-
-                    else:
-                        error = result.getErrorMessage()
-                    self.updateStatusAtFinish(wId, error)
-                    reactor.callLater(0,self.giveWorkToWorkers)
-                    return result
-
                 self.counters['workerItems'] += 1
                 self.updateStatusAtStart(i, job)
                 try:
-                    d2 = worker.callRemote('execute', *job.args)
-                    d2.addBoth(finished, worker, i)
-                except Exception:
+                    result = yield worker.callRemote('execute', *job.args)
+                except Exception as ex:
                     self.log.warning("Failed to execute job on zenhub worker")
-                    d2 = defer.maybeDeferred(finished, failure.Failure(), worker, i)
+                    result = ex
                 finally:
-                    d2.chainDeferred(job.deferred)
+                    yield self.finished(job, result, worker, i)
                 break
             else:
                 self.log.debug("no worker available for %s" % job.method)
@@ -755,7 +768,16 @@ class ZenHub(ZCmdBase):
                  '\tOther:\t%s' % len(self.workList.otherworklist),
                  '\tApplyDataMaps:\t%s' % len(self.workList.applyworklist),
                  '\tTotal:\t%s' % len(self.workList),
-                 'Worker Stats:']
+                 '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
+                 ]
+
+        statline = " - %-32s %8d %12.2f %8.2f  %s"
+        for method, stats in sorted(self.executionTimer.iteritems(), key=lambda v: -v[1][2]):
+            lines.append(statline %
+                         (method, stats[0], stats[1], stats[2],
+                          time.strftime("%Y-%d-%m %H:%M:%S", time.localtime(stats[3]))))
+
+        lines.append('\nWorker Stats:')
         for wId, worker in enumerate(self.workers):
             stat = self.workTracker.get(wId, None)
             linePattern = '\t%d:%s\t[%s%s]\t%.3fs'
@@ -818,7 +840,7 @@ class ZenHub(ZCmdBase):
                 self.parent.workerprocessmap.pop(self.pid, None)
                 self.log.warning("Worker (%d) exited with status: %d (%s)",
                                  self.pid,
-                                  reason.value.exitCode,
+                                  reason.value.exitCode or -1,
                                   getExitMessage(reason.value.exitCode))
                 # if not shutting down, restart a new worker
                 if not self.parent.shutdown:

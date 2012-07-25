@@ -13,6 +13,7 @@ from twisted.spread import pb
 import logging
 import time
 import socket
+from Products.ZenUtils.deprecated import deprecated
 
 class HubService(pb.Referenceable):
 
@@ -23,7 +24,7 @@ class HubService(pb.Referenceable):
         self.zem = dmd.ZenEventManager
         self.instance = instance
         self.listeners = []
-        self.callTime = 0.
+        self.callTime = 0
         self.methodPriorityMap = {}
 
     def getPerformanceMonitor(self):
@@ -39,10 +40,12 @@ class HubService(pb.Referenceable):
             self.log.debug("Time in %s: %.2f", message, secs)
             self.callTime += secs
 
+    @deprecated
     def update(self, object):
         # FIXME: No longer called
         pass
 
+    @deprecated
     def deleted(self, object):
         # FIXME: No longer called
         pass
@@ -63,9 +66,17 @@ class HubService(pb.Referenceable):
             self.warning("Unable to remove listener... ignoring")
 
     def getMethodPriority(self, methodName):
+        """
+        Return a numeric priority in the range [0, 1] representing the importance
+        of this call. A method with a lower number will be prioritized above other
+        method calls, even if they occur out-of-sequence.
+
+        Note: sendEvents and applyDataMaps are prioritized separately from all
+        others.
+        """
         if methodName in self.methodPriorityMap:
             return self.methodPriorityMap[methodName]
-        return 0.2
+        return 1
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
