@@ -604,7 +604,7 @@ class EventsRouter(DirectRouter):
         @type  summary: string
         @param summary: New event's summary
         @type  device: string
-        @param device: Device uid to use for new event
+        @param device: Device id to use for new event
         @type  component: string
         @param component: Component uid to use for new event
         @type  severity: string
@@ -616,6 +616,7 @@ class EventsRouter(DirectRouter):
         @param evclass: Event class for the new event
         @rtype:   DirectResponse
         """
+        device = device.strip()  # ZEN-2479: support entries like "localhost "
         try:
             self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
                             eventClass=evclass, immediate=True)

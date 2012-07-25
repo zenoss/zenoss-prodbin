@@ -135,7 +135,13 @@ def _getBaseDeviceUrl(zopeurl, device_class, device_name):
     Builds the URL for a device.
     Example: "http://.../Devices/Server/Linux/devices/localhost/devicedetail"
     """
-    return '%s/Devices%s/devices/%s/devicedetail' % (_getBaseUrl(zopeurl), device_class, device_name)
+    if device_class and device_name:
+        # the device
+        return '%s/Devices%s/devices/%s/devicedetail' % \
+               (_getBaseUrl(zopeurl), device_class, device_name)
+    else:
+        # unknown device, just link to infrastructure page
+        return "%s/itinfrastructure" % _getBaseUrl(zopeurl)
 
 
 def getEventUrl(zopeurl, evid):
@@ -148,7 +154,7 @@ def getEventsUrl(zopeurl, device_class=None, device_name=None):
         return "%s#deviceDetailNav:device_events" % _getBaseDeviceUrl(zopeurl, device_class, device_name)
     else:
         #events on all devices
-        return "%s/viewEvents" % _getBaseUrl(zopeurl)
+        return "%s/Events/evconsole" % _getBaseUrl(zopeurl)
 
 
 def getAckUrl(zopeurl, evid):
