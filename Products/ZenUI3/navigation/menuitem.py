@@ -34,7 +34,7 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
         
     @property
     def elementid(self):
-        return self.__name__ + "-nav-button"    
+        return "{0}-nav-button".format(self.__name__).replace(' ', '-')   
 
     def update(self):
         super(PrimaryNavigationMenuItem, self).update()

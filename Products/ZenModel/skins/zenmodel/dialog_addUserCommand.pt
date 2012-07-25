@@ -1,4 +1,4 @@
-<h2>Add User Command</h2>
+<h2 id="add_user_command_header">Add User Command</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">

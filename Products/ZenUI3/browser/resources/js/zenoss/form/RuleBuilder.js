@@ -528,7 +528,7 @@
 
 
 
-    Ext.define("Zenoss.form.rule.RuleBuilder", {
+    Ext.define("Zenoss.form.rule.RuleBuilder", { 
         alias:['widget.rulebuilder'],
         extend:"Ext.form.FieldContainer",
         constructor: function(config) {

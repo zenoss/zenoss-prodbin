@@ -1,10 +1,10 @@
-<h2>Add Users To Group</h2>
+<h2 id="add_users_to_group_header">Add Users To Group</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p>
 Users
 <br>
-<select class="tableheader" name="userids" multiple
+<select id="add_users_to_group_combo2" class="tableheader" name="userids" multiple
     tal:define="users here/getAllUserSettings">
     <option tal:repeat="user users"
         tal:content="user/id">user</option>

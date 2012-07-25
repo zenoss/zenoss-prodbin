@@ -1,13 +1,12 @@
 /*****************************************************************************
- *
+ * 
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- *
+ * 
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- *
+ * 
  ****************************************************************************/
-
-
+ 
 (function(){
     Ext.ns('Zenoss.events');
 
@@ -57,37 +56,46 @@
                 items: [{
                     xtype: 'textarea',
                     name: 'summary',
+                    id: 'add_event_summary_textarea',
                     fieldLabel: _t('Summary'),
                     allowBlank: false
                 },{
                     xtype: 'textfield',
                     fieldLabel: _t('Device'),
+                    id: 'add_event_device_textfield',
                     name: 'device',
                     allowBlank: false,
                     value: device
                 },{
                     xtype: 'textfield',
                     fieldLabel: _t('Component'),
+                    id: 'add_event_component_textfield',
                     name: 'component'
                 },{
                     fieldLabel: _t('Severity'),
                     name: 'severity',
                     xtype: 'combo',
+                    id: 'add_event_severity_combo',
                     store: Zenoss.env.SEVERITIES,
                     typeAhead: true,
                     allowBlank: false,
                     forceSelection: true,
                     triggerAction: 'all',
                     value: 5,
-                    selectOnFocus: true
+                    selectOnFocus: true,
+                    listConfig: {
+                        id: 'add_event_severity_combo_list'
+                    }                    
                 },{
                     xtype: 'textfield',
                     fieldLabel: _t('Event Class Key'),
+                    id: 'add_event_key_textfield',
                     name: 'evclasskey'
                 },{
                     fieldLabel: _t('Event Class'),
                     name: 'evclass',
                     xtype: 'combo',
+                    id: 'add_event_evclass_combo',
                     allowBlank: true,
                     store: Zenoss.env.EVENT_CLASSES,
                     typeAhead: true,
@@ -95,12 +103,14 @@
                     triggerAction: 'all',
                     selectOnFocus: true,
                     listConfig: {
-                        resizable: true
+                        resizable: true,
+                        id: 'add_event_evclass_combo_list'
                     }
                 }],
                 buttons: [{
                     text: _t('Submit'),
                     xtype: 'DialogButton',
+                    id: 'add_event_submit_button',
                     formBind: true,
                     handler: function(){
                         var form = Ext.getCmp('addeventform');
@@ -116,6 +126,7 @@
                 },{
                     text: _t('Cancel'),
                     xtype: 'DialogButton',
+                    id: 'add_event_cancel_button',
                     handler: function(){
                         addevent.hide();
                     }
@@ -133,6 +144,7 @@
 
         var win = new Zenoss.dialog.BaseWindow({
             title: _t('Classify Events'),
+            id: 'reclassify_events_window',
             width: 300,
             autoHeight: true,
             modal: true,
@@ -158,7 +170,8 @@
                     width: 180,
                     style: {'margin-left':'100px'},
                     listConfig: {
-                        resizable: true
+                        resizable: true,
+                        id: 'classify_event_combo_list'
                     },
                     emptyText: _t('Select an event class'),
                     selectOnFocus: true,
@@ -568,17 +581,63 @@
                 },
                 items: Ext.Array.union([
                     // create new instances of the action otherwise Ext won't render them (probably a bug in 4.1)
-                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.acknowledge.initialConfig),
-                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.close.initialConfig),
-                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.reclassify.initialConfig),
-                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.reopen.initialConfig),
-                    new Zenoss.ActionButton(Zenoss.events.EventPanelToolbarActions.unclose.initialConfig),
+                    new Zenoss.ActionButton({
+                        iconCls: 'acknowledge',
+                        tooltip: _t('Acknowledge events'),
+                        permission: 'Manage Events',
+                        id: 'events_toolbar_ack',
+                        itemId: 'acknowledge',
+                        handler: function() {
+                            Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.acknowledge);
+                        }                    
+                    }),
+                    new Zenoss.ActionButton({
+                        iconCls: 'close',
+                        tooltip: _t('Close events'),
+                        permission: 'Manage Events',
+                        itemId: 'close',
+                        id: 'events_toolbar_close_events',
+                        handler: function() {
+                            Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
+                        }
+                    }),
+                    new Zenoss.ActionButton({
+                        iconCls: 'classify',
+                        tooltip: _t('Reclassify an event'),
+                        permission: 'Manage Events',
+                        itemId: 'classify',
+                        id: 'events_toolbar_reclassify_event',
+                        handler: function(button) {
+                            var gridId = button.ownerCt.ownerCt.id;
+                            showClassifyDialog(gridId);
+                        }
+                    }),
+                    new Zenoss.ActionButton({
+                        iconCls: 'unacknowledge', 
+                        tooltip: _t('Unacknowledge events'),
+                        permission: 'Manage Events',
+                        itemId: 'unacknowledge',
+                        id: 'events_toolbar_unack',
+                        handler: function() {
+                            Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
+                        }
+                    }),
+                    new Zenoss.ActionButton({
+                        iconCls: 'reopen',
+                        tooltip: _t('Reopen events'),
+                        permission: 'Manage Events',
+                        itemId: 'reopen',
+                        id: 'events_toolbar_reopen',
+                        handler: function() {
+                            Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
+                        }
+                    }),
                     new Zenoss.ActionButton({
                         iconCls: 'add',
                         tooltip: _t('Add an event'),
                         permission: 'Manage Events',
+                        id: 'add_event_main_button',
                         handler: function(button) {
-
                             showAddEventDialog(gridId);
                         }
                     }),
@@ -1155,11 +1214,6 @@
     Zenoss.events.EventPanelToolbarSelectMenu = {
         text: _t('Select'),
         id: 'select-button',
-        listeners: {
-            afterrender: function(e){
-                e.menu.items.items[0].setText(_t("Select All") );
-            }
-        },
         menu:{
             xtype: 'menu',
             items: [{

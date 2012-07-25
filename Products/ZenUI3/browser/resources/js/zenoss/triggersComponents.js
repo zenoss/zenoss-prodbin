@@ -87,7 +87,7 @@ Ext.define("Zenoss.trigger.TriggerSubscriptions", {
                         }
                     },{
                         xtype: 'button',
-                        ref: 'delete_button',
+                        ref: 'delete_button', 
                         iconCls: 'delete',
                         handler: function(btn, event) {
                             var row = me.getSelectionModel().getSelected();

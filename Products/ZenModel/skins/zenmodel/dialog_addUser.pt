@@ -1,4 +1,4 @@
-<h2>Add User</h2>
+<h2 id="add_user_header">Add User</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
@@ -7,7 +7,7 @@
 <input type="hidden" id="checkValidIdPath" 
         tal:attributes="value here/absolute_url">
 <br/><br/>
-Email:&nbsp;<input name="email">
+Email:&nbsp;<input id="add_user_email" name="email">
 <br/><br/>
 </p>
 <div id="dialog_buttons">

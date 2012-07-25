@@ -92,7 +92,7 @@ function clearBrowserState(event){
                 Reset all preferences such as grid columns and filters to their default values.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
-            <button style="height:30px;width:132px;text-align:center;"
+            <button id="user_settings_reset_prefs_submit" style="height:30px;width:132px;text-align:center;"
                    onclick="clearBrowserState(event)"
                    class="tableheader">
                Reset Preferences
@@ -115,7 +115,7 @@ function clearBrowserState(event){
     <tr tal:condition="here/isManager">
       <td class="tableheader" align="left">Roles</td>
       <td class="tablevalues">
-        <select class="tablevalues" name="roles:list" multiple
+        <select id="user_roles_combo" class="tablevalues" name="roles:list" multiple
             tal:define="allroles here/getAllRoles;curroles here/getUserRolesNoCache">
             <option tal:repeat="r allroles" tal:content="r"
                     tal:attributes="value r; selected python:r in curroles"/>
@@ -125,7 +125,7 @@ function clearBrowserState(event){
     <tr tal:condition="here/isManager">
       <td class="tableheader" align="left">Groups</td>
       <td class="tablevalues">
-        <select class="tablevalues" name="groups:list" multiple
+        <select id="user_groups_combo" class="tablevalues" name="groups:list" multiple
             tal:define="allgroups here/getAllGroupSettingsNames;
                 currgroups here/getUserGroupSettingsNames">
             <option tal:repeat="r allgroups" tal:content="r"
@@ -136,7 +136,7 @@ function clearBrowserState(event){
     <tr>
       <td class="tableheader" align="left">Email</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="email" size="40"
+        <input id="user_settings_email_input" class="tablevalues" type="text" name="email" size="40"
             tal:attributes="value here/email" />
         <tal:block tal:condition="here/email">
         &nbsp;&nbsp;
@@ -148,7 +148,7 @@ function clearBrowserState(event){
     <tr>
       <td class="tableheader" align="left">Pager</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="pager" size="40"
+        <input id="user_settings_pager_input" class="tablevalues" type="text" name="pager" size="40"
             tal:attributes="value here/pager" />
         <tal:block tal:condition="here/pager">
         &nbsp;&nbsp;
@@ -160,14 +160,14 @@ function clearBrowserState(event){
     <tr>
       <td class="tableheader" align="left">Default Page Size</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="defaultPageSize"
+        <input id="user_settings_pagesize_input" class="tablevalues" type="text" name="defaultPageSize"
             tal:attributes="value here/defaultPageSize" />
       </td>
     </tr>
     <tr tal:condition="here/isManager">
       <td class="tableheader" align="left">Default Admin Role</td>
       <td class="tablevalues">
-        <select class="tablevalues" name="defaultAdminRole"
+        <select id="user_settings_admin_role_combo" class="tablevalues" name="defaultAdminRole"
             tal:define="roles here/getAllRoles">
             <option tal:repeat="role roles" tal:content="role"
                 tal:attributes="selected python:here.defaultAdminRole==role"/>
@@ -177,7 +177,7 @@ function clearBrowserState(event){
     <tr>
       <td class="tableheader" align="left">Network Map Start Object</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="netMapStartObject"
+        <input id="user_settings_networkmap_input" class="tablevalues" type="text" name="netMapStartObject"
             tal:attributes="value here/netMapStartObject" />
       </td>
     </tr>
@@ -192,14 +192,14 @@ function clearBrowserState(event){
     <tr>
       <td class="tableheader" align="left">Set New Password</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="password" name="password"
+        <input id="user_settings_new_password_input" class="tablevalues" type="password" name="password"
             autocomplete="off"/>
        </td>
     </tr>
     <tr>
       <td class="tableheader" align="left">Confirm New Password</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="password" name="sndpassword"
+        <input id="user_settings_confirmpassword_input" class="tablevalues" type="password" name="sndpassword"
             autocomplete="off"/>
        </td>
     </tr>
