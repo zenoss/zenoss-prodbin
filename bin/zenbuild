@@ -8,13 +8,38 @@
 # 
 ##############################################################################
 
+default_zendshome=/opt/zends
+default_port=13306
+default_cnf=${default_zendshome}/etc/zends.cnf
 
 . $ZENHOME/bin/zenfunctions
 
-if [ "${USE_ZENDS}" = "1" ];then
-    $ZENHOME/bin/zenglobalconf -u zodb-socket=$ZENDSHOME/data/zends.sock
-    $ZENHOME/bin/zenglobalconf -u zep-port=13306
-    $ZENHOME/bin/zenglobalconf -u zodb-port=13306
+if [ "${USE_ZENDS}" = "1" ] ; then
+    local zendscfgfile=
+    if [ -z "${ZENDSHOME}" -o ! -d "${ZENDSHOME}" ] ; then
+        if [ -f "${default_cnf}" ] ; then
+            ZENDSHOME=${default_zendshome}
+            zendscfgfile=${default_cnf}
+        fi
+    else
+        zendscfgfile=${ZENDSHOME}/etc/zends.cnf
+    fi
+    if [ ! -f "${zendscfgfile}" ] ; then
+        echo "ZenDS configuration file not found: "${zendscfgfile}
+        exit 1
+    fi
+    # retrieve the socket config
+    local socket=`my_print_defaults --defaults-file=${zendscfgfile} mysql client | grep "\-\-socket=" | head -1 | cut -f2 -d'='`
+    # if socket config exists, add/update to global.conf
+    if [ ! -z "${socket}" ] ; then
+        $ZENHOME/bin/zenglobalconf -u zodb-socket=${socket}
+    fi
+    # retrieve the port config
+    port=`my_print_defaults --defaults-file=${zendscfgfile} mysqld server | grep "\-\-port=" | head -1 | cut -f2 -d'='`
+    if [ -z "${port}" ] ; then
+        port=${default_port}
+    fi
+    $ZENHOME/bin/zenglobalconf -u zep-port=${port} zodb-port=${port}
 fi
 
 # sync global.conf params to zope's db config
