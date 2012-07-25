@@ -7,8 +7,7 @@
 # 
 ##############################################################################
 
-
-__doc__="""MySqlZodbConnection
+"""MySqlZodbConnection
 """
 
 import logging
@@ -16,15 +15,51 @@ log = logging.getLogger("zen.MySqlZodbFactory")
 
 import optparse
 import os
+import subprocess
 from zope.interface import implements
 import ZODB
-import relstorage.storage 
+import relstorage.storage
 import relstorage.adapters.mysql
 import relstorage.options
 import _mysql_exceptions as db_exceptions
 
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.ZodbFactory import IZodbFactory
+
+_DEFAULT_MYSQLPORT = 3306
+
+
+def _getZendsConfig():
+    # Check whether the ZenDS configuration should be used.
+    useZends = os.environ.get("USE_ZENDS")
+    if useZends != "1":
+        return {}
+    # Locate the ZenDS configuration file and make sure it exists.
+    base = os.environ.get("ZENDSHOME", "/opt/zends")
+    if not os.path.isdir(base):
+        return {}
+    configfile = os.path.join(base, "etc", "zends.cnf")
+    if not os.path.exists(configfile):
+        return {}
+    # Read the client config sections of the configuration file.
+    output = subprocess.check_output([
+            # The command
+            os.path.join(base, "bin", "my_print_defaults"),
+            # Specify the config file to read from
+            "--defaults-file=%s" % configfile,
+            # Specify the relevant config groups
+            "mysql", "client"
+        ])
+    # 'output' is a string of lines having the following pattern:
+    #     --<name>=<value>
+    # so a dict where <name> maps to <value> is created and returned.
+    config = {}
+    lines = output.split('\n')
+    for opt in (line.split('=') for line in lines):
+        config[opt[0][2:]] = opt[1] if len(opt) == 2 else True
+    return config
+_ZENDS_CONFIG = _getZendsConfig()
+
 
 def _getDefaults(options=None):
     if options is None:
@@ -33,7 +68,9 @@ def _getDefaults(options=None):
        o = options
     settings = {
         'host': o.get('zodb-host', "localhost"),
-        'port': o.get('zodb-port', 3306),
+        'port': o.get(
+            'zodb-port', _ZENDS_CONFIG.get("port", _DEFAULT_MYSQLPORT)
+        ),
         'user': o.get('zodb-user', 'zenoss'),
         'passwd': o.get('zodb-password', 'zenoss'),
         'db': o.get('zodb-db', 'zodb'),
@@ -43,13 +80,12 @@ def _getDefaults(options=None):
     return settings
 
 
-
 class MySqlZodbFactory(object):
     implements(IZodbFactory)
 
     # set db specific here to allow more flexible imports
     exceptions = db_exceptions
- 
+
     def _getConf(self, settings):
         config = []
         keys = ['host', 'port', 'unix_socket', 'user', 'passwd', 'db']
@@ -79,20 +115,16 @@ class MySqlZodbFactory(object):
         """Return a ZODB connection."""
         connectionParams = {
             'host': kwargs.get('zodb_host', "localhost"),
-            'port': kwargs.get('zodb_port', 3306),
+            'port': kwargs.get(
+                'zodb_port', _ZENDS_CONFIG.get("port", _DEFAULT_MYSQLPORT)
+            ),
             'user': kwargs.get('zodb_user', 'zenoss'),
             'passwd': kwargs.get('zodb_password', 'zenoss'),
             'db': kwargs.get('zodb_db',  'zodb'),
         }
         socket = kwargs.get('zodb_socket')
         if not socket:
-            # try to auto set ZENDS socket
-            use_zends = os.environ.get("USE_ZENDS", False)
-            if use_zends and use_zends == "1":
-                zends_home = os.environ.get("ZENDSHOME", "")
-                zends_socket = os.path.join(zends_home, "data", "zends.sock")
-                if zends_home and os.path.exists(zends_socket):
-                    socket = zends_socket
+            socket = _ZENDS_CONFIG.get("socket")
         if socket:
             connectionParams['unix_socket'] = socket
         kwargs = {
@@ -100,11 +132,11 @@ class MySqlZodbFactory(object):
             'keep_history': kwargs.get('zodb_keep_history', False)
         }
         adapter = relstorage.adapters.mysql.MySQLAdapter(
-             options=relstorage.options.Options(**kwargs), 
+             options=relstorage.options.Options(**kwargs),
              **connectionParams)
 
         # rename the poll_interval and cache_servers options to not
-        # have the zodb prefix. 
+        # have the zodb prefix.
         if 'zodb_poll_interval' in kwargs:
             kwargs['poll_interval'] = kwargs['zodb_poll_interval']
         if 'zodb_cacheservers' in kwargs:
@@ -160,3 +192,5 @@ class MySqlZodbFactory(object):
                     help='Defer polling the database for the specified maximum time interval, in seconds.'
                     ' This will default to 60 only if --zodb-cacheservers is set.')
         parser.add_option_group(group)
+
+
