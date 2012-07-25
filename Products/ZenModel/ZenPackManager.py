@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -36,7 +36,7 @@ def manage_addZenPackManager(context, newId='', REQUEST=None):
     context._setObject(newId, zpm)
     zpm = context._getOb(newId)
     if REQUEST is not None:
-        REQUEST.RESPONSE.redirect(context.absolute_url() + '/manage_main') 
+        REQUEST.RESPONSE.redirect(context.absolute_url() + '/manage_main')
 
 
 class ZenPackManager(ZenModelRM):
@@ -121,8 +121,8 @@ class ZenPackManager(ZenModelRM):
         Install the pack.  If REQUEST then render the REQUEST otherwise
         return the new zenpack.
         """
-        import Products.ZenUtils.ZenPackCmd as ZenPackCmd 
-        
+        import Products.ZenUtils.ZenPackCmd as ZenPackCmd
+
         if not getattr(self.dmd, 'ZenPackManager'):
             msg = 'Your Zenoss database appears to be out of date. Try ' \
                     'running zenmigrate to update.'
@@ -170,9 +170,20 @@ class ZenPackManager(ZenModelRM):
         development mode then also delete the egg from the filesystem.
         """
         import Products.ZenUtils.ZenPackCmd as ZenPackCmd
-        # avoid circular imports 
+        # avoid circular imports
         from Products.ZenMessaging.queuemessaging.schema import removeZenPackQueuesExchanges
-        
+
+        # see ZEN-2682 only allow one zenpack to be removed at a time. This is because you
+        # can select a zenpack and its dependent. If the dependent is removed first
+        # you will get an error removing the zenpack
+        if len(ids) > 1:
+            msg = 'You can only remove one zenpack at a time.'
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', msg, priority=messaging.WARNING)
+                return self.callZenScreen(REQUEST)
+            raise ZenPackDependentsException(msg)
+
         if not getattr(self.dmd, 'ZenPackManager'):
             msg = 'Your Zenoss database appears to be out of date. Try ' \
                     'running zenmigrate to update.'
@@ -182,7 +193,7 @@ class ZenPackManager(ZenModelRM):
                 return self.callZenScreen(REQUEST)
             from ZenPack import ZenPackNeedMigrateException
             raise ZenPackNeedMigrateException(msg)
-        
+
         canRemove, dependents = ZenPackCmd.CanRemoveZenPacks(self.dmd, ids)
         if not canRemove:
             msg = 'The following ZenPacks depend on one or more of the ' + \
@@ -203,7 +214,7 @@ class ZenPackManager(ZenModelRM):
                     os.system('%s --remove %s' % (
                                             binPath('zenpack'), zpId))
                     self._p_jar.sync()
-                
+
                 removeZenPackQueuesExchanges(zp.path())
         if REQUEST:
             return self.callZenScreen(REQUEST)
@@ -297,7 +308,7 @@ class ZenPackManager(ZenModelRM):
             messaging.IMessageSender(self).sendToBrowser('Zenpack', msg,
                 priority = messaging.INFO if success else messaging.CRITICAL)
             return self.callZenScreen(REQUEST)
-        
+
 
     def getZnetProjectOptions(self):
         """

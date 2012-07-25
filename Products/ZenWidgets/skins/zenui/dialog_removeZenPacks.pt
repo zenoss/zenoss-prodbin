@@ -1,9 +1,9 @@
-<h2>Delete ZenPacks</h2>
+<h2>Delete ZenPack</h2>
 <br/>
 
 <div style="text-align:left;">
 <p>
-Deleting these ZenPacks will delete all objects provided<br />
+Deleting this ZenPack will delete all objects provided<br />
 by the ZenPack as well as all objects that depend on code<br />
 provided by the ZenPack.  Please click on the link for each<br />
 ZenPack to view a list of all such objects.  See the Admin<br />
@@ -16,7 +16,7 @@ contained Device Classes and Devices will also be deleted.
 </div>
 
 <div id="dialog_buttons">
-<input id="dialog_cancel" type="button" value="Cancel" 
+<input id="dialog_cancel" type="button" value="Cancel"
     onclick="$('dialog').hide()"/>
 <input type="submit" name="manage_removeZenPacks:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
