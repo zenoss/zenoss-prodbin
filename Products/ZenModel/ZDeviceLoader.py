@@ -292,7 +292,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
-            performanceMonitor="localhost",
+            performanceMonitor="localhost", manageIp="",
             discoverProto="snmp",priority=3, title=None, REQUEST=None):
         """
         Load a device into the database connecting its major relations
@@ -309,6 +309,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         try:
             device = loader.load_device(deviceName, devicePath, discoverProto,
                                         performanceMonitor,
+                                        manageIp,
                                         zProperties=dict(
                                             zSnmpCommunity=zSnmpCommunity,
                                             zSnmpPort=zSnmpPort,

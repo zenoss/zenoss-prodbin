@@ -36,6 +36,21 @@ from Products.ZenEvents.ZenEventClasses import Change_Add
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
+METHODS_TO_SETTINGS = {
+    'setManageIp': 'manageIp',
+    'setPerformanceMonitor': 'performanceMonitor',
+    'setTitle': 'title',
+    'setHWTag': 'tag',
+    'setHWSerialNumber': 'serialNumber',
+    'setProdState': 'productionState',
+    'setPriority': 'priority',
+    'setGroups': 'groupPaths',
+    'setSystems': 'systemPaths',
+    # these don't have methods but were added for completeness
+    'setRackSlot': 'rackSlot',
+    'setComments': 'comments',
+    # TODO: setHWProduct and setOSProduct (they take multiple parameters)
+}
 
 class BatchDeviceLoader(ZCmdBase):
     """
@@ -319,6 +334,7 @@ windows_device7 cDateTest='2010/02/28'
         internalVars = [
            'deviceName', 'devicePath', 'comments', 'loader', 'loader_arg_keys',
         ]
+        internalVars.extend(METHODS_TO_SETTINGS.itervalues())
         @transact
         def setNamedProp(org, name, description):
             setattr(org, name, description)
@@ -663,8 +679,13 @@ windows_device7 cDateTest='2010/02/28'
             try:
                 # Add a newline to allow for trailing comments
                 evalString = 'dict(' + options + '\n)'
-                configs.update(eval(evalString))
-            except:
+                optionsDict = eval(evalString)
+                # ZEN-202: Set values directly rather than calling methods afterwards.
+                for method,setting in METHODS_TO_SETTINGS.iteritems():
+                    if method in optionsDict:
+                        optionsDict[setting] = optionsDict.pop(method)
+                configs.update(optionsDict)
+            except Exception:
                 self.log.error( "Unable to parse the entry for %s -- skipping" % name )
                 self.log.error( "Raw string: %s" % options )
                 return None
