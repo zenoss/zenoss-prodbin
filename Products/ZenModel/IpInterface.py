@@ -290,6 +290,8 @@ class IpInterface(OSComponent, Layer2Linkable):
         ipids = self.ipaddresses.objectIdsAll()
         localips = copy.copy(self._ipAddresses)
         for ip in ips:
+            if not ip:
+                continue
             if localIpCheck(self, ip) or localInterfaceCheck(self, self.id):
                 if not ip in localips:
                     self.addLocalIpAddress(ip)
@@ -297,13 +299,16 @@ class IpInterface(OSComponent, Layer2Linkable):
                     localips.remove(ip)
             else:
                 # do this funky filtering because the id we have
-                # is a primary id /zport/dmd/Newtowrks... etc
+                # is a primary id /zport/dmd/Networks... etc
                 # and we are looking for just the IP part
                 # we used the full id later when deleting the IPs
                 rawip = ipFromIpMask(ip)
                 ipmatch = filter(lambda x: x.find(rawip) > -1, ipids)
                 if not ipmatch:
-                    self.addIpAddress(ip)
+                    try:
+                        self.addIpAddress(ip)
+                    except IpAddressError:
+                        log.info("Ignoring invalid IP address {rawip}".format(rawip=rawip))
                 elif len(ipmatch) == 1:
                     ipids.remove(ipmatch[0])
 
