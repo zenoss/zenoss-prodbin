@@ -850,15 +850,15 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
                     notif_uses_system_props = True
                     for prop, content_key in email_props.iteritems():
+
+                        value = self.getProperty(prop)
+                        notif_value = notif.content[content_key]
                         if prop == "emailFrom":
-                            if notif.content[content_key] != self.getEmailFrom():
-                                notif_uses_system_props = False
-                                break
-                        if prop == "smtpPort":
-                            if int(notif.content[content_key]) != self.getProperty(prop):
-                                notif_uses_system_props = False
-                                break
-                        elif notif.content[content_key] != self.getProperty(prop):
+                            value = self.getEmailFrom()
+                        elif prop == "smtpPort":
+                            notif_value = int(notif_value)
+
+                        if notif_value != value:
                             notif_uses_system_props = False
                             break
 
