@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -533,7 +533,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
         monitorq, typeq = None, None
         if monitored:
-            monitorq = Eq('monitored', True)
+            monitorq = Eq('monitored', '1')
         if meta_type:
             typeq = Eq('meta_type', meta_type)
         queries = filter(None, (monitorq, typeq))
