@@ -354,13 +354,16 @@ Ext.onReady(function(){
     // Detail pane should pop open when double-click on event
     grid.on("itemdblclick", toggleEventDetailContent);
     console_selection_model.on("select", function(){
-        if(detail_panel.isVisible()){
+        if(detail_panel.collapsed == false){
             toggleEventDetailContent();
-        }
-        });
-
+        }     
+        // if more than one is selected using the ctrl key, collapse the details:
+        if(this.getCount() > 1) detail_panel.collapse();
+    });
     // When multiple events are selected, detail pane should blank
-    console_selection_model.on('rangeselect', wipeEventDetail);
+    console_selection_model.on('rangeselect', function(){
+        detail_panel.collapse();
+    });
 
     // Key mapping for ESC to close detail pane
     var esckeymap = new Ext.KeyMap(document, {
