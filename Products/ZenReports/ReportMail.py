@@ -10,6 +10,7 @@
 
 import sys
 import base64
+import urllib
 import urllib2
 from HTMLParser import HTMLParser
 from urlparse import urlparse, urlunparse
@@ -119,21 +120,36 @@ class Page(HTMLParser):
     def handleCSV(self, data):
         self.csv = data
 
-    def slurp(self, url):
-        req = urllib2.Request(url)
+    def slurp(self, url, dataMap=None, errorHTML=''):
+        """
+        Fetches a URL and returns the contents.
+
+        @param url: The URL to access
+        @type  url: string
+        @param dataMap: POST parameters to the URL
+        @type  dataMap: dict
+        @param errorHTML: Output if there was an error retrieving the page
+        @type  errorHTML: string
+        """
+        if dataMap:
+            dataMap = urllib.urlencode(dataMap)
+        req = urllib2.Request(url, dataMap)
         encoded = base64.encodestring('%s:%s' % (self.user, self.passwd))[:-1]
         req.add_header("Authorization", "Basic %s" % encoded)
         try:
             result = urllib2.urlopen(req)
         except urllib2.HTTPError:
             import StringIO
-            result = StringIO.StringIO('')
+            if errorHTML:
+                # Put it in the contentPane so we'll extract it.
+                errorHTML = '<div id="%s">%s</div>' % (self.div, errorHTML)
+            result = StringIO.StringIO(errorHTML)
         return result
 
-    def fetch(self, url):
+    def fetch(self, url, dataMap=None, errorHTML=''):
         url = url.replace(' ', '%20')
         self.base = url.strip()
-        response = self.slurp(url)
+        response = self.slurp(url, dataMap, errorHTML)
 
         # Handle CSV.
         if hasattr(response, 'headers') and \
@@ -160,7 +176,7 @@ class Page(HTMLParser):
             msg.attach(txt)
         for url, (name, img) in self.images.items():
             ctype, encoding = mimetypes.guess_type(url)
-            if ctype == None:
+            if ctype is None:
                 ctype = 'image/png'
             maintype, subtype = ctype.split('/', 1)
             img = MIMEImage(img, subtype)
@@ -193,7 +209,10 @@ class ReportMail(ZenScriptBase):
             sys.exit(1)
         page = Page(o.user, o.passwd, o.div, o.comment)
         url = self.mangleUrl(o.url)
-        page.fetch(url)
+        # ZEN-2414: POST "doReport" so it will export as CSV rather than HTML.
+        page.fetch(url,
+                   dataMap={'doExport':''},
+                   errorHTML='Could not retrieve the report.')
         msg = page.mail()
         if o.subject:
             msg['Subject'] = o.subject
