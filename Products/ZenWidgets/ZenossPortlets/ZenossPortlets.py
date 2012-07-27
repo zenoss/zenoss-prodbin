@@ -22,7 +22,7 @@ portlets = [
     {
      'sourcepath':  _portletpath('HeartbeatsPortlet.js'),
      'id':          'HeartbeatsPortlet',
-     'title': 'Daemon Processes down',
+     'title': 'Daemon Processes Down',
      'permission':  ZEN_MANAGE_DMD
     },
     {
