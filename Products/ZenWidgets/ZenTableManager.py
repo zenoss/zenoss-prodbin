@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -14,7 +14,7 @@ ZenTableManager is a Zope Product that helps manage and display
 large sets of tabular data.  It allows for column sorting,
 break down of the set into pages, and filtering of elements
 in the table.  It also allows users to store their own default
-page size (but publishes a hook to get this values from 
+page size (but publishes a hook to get this values from
 a different location).
 
 
@@ -43,23 +43,23 @@ def manage_addZenTableManager(context, id="", REQUEST = None):
     context._setObject(id, ztm)
     ztm = context._getOb(id)
     ztm.initTableManagerSkins()
-    
+
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(context.absolute_url()
-                                     +'/manage_main') 
+                                     +'/manage_main')
 
 class ZenTableManager(SimpleItem, PropertyManager):
     """ZenTableManager manages display of tabular data"""
-    
+
     portal_type = meta_type = 'ZenTableManager'
 
     _properties = (
-        {'id':'defaultBatchSize', 'type':'int','mode':'w'}, 
-        {'id':'abbrStartLabel', 'type':'int','mode':'w'}, 
-        {'id':'abbrEndLabel', 'type':'int','mode':'w'}, 
-        {'id':'abbrPadding', 'type':'int','mode':'w'}, 
-        {'id':'abbrSeparator', 'type':'string','mode':'w'}, 
-    ) 
+        {'id':'defaultBatchSize', 'type':'int','mode':'w'},
+        {'id':'abbrStartLabel', 'type':'int','mode':'w'},
+        {'id':'abbrEndLabel', 'type':'int','mode':'w'},
+        {'id':'abbrPadding', 'type':'int','mode':'w'},
+        {'id':'abbrSeparator', 'type':'string','mode':'w'},
+    )
 
     manage_options = (
                         PropertyManager.manage_options +
@@ -144,7 +144,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         if tableState.onlyMonitored and objects:
             objects = [o for o in objects if getattr(o, 'isMonitored', o.monitored)()]
         if tableState.filter and objects:
-            objects = self.filterObjects(objects, tableState.filter, 
+            objects = self.filterObjects(objects, tableState.filter,
                                         tableState.filterFields)
         # objects is frequently a generator.  Need a list in order to sort
         if not isinstance(objects, list):
@@ -154,12 +154,12 @@ class ZenTableManager(SimpleItem, PropertyManager):
         tableState.totalobjs = len(objects)
         tableState.buildPageNavigation(objects)
         if not hasattr(self.REQUEST, 'doExport'):
-            objects = ZTUtils.Batch(objects, 
+            objects = ZTUtils.Batch(objects,
                         tableState.batchSize or len(objects),
                         start=tableState.start, orphan=0)
         return objects
-            
-   
+
+
     def getBatchForm(self, objects, request):
         """Create batch based on objects no sorting for filter applied.
         """
@@ -188,18 +188,18 @@ class ZenTableManager(SimpleItem, PropertyManager):
         objects = ZTUtils.Batch(objects, batchSize or len(objects),
                     start=request.start, orphan=0)
         return objects
-       
+
 
     def filterObjects(self, objects, regex, filterFields):
         """filter objects base on a regex in regex and list of fields
         in filterFields."""
-        if self.REQUEST.SESSION.has_key('message'): 
+        if self.REQUEST.SESSION.has_key('message'):
             self.REQUEST.SESSION.delete('message')
-        if not regex: 
+        if not regex:
             return objects
         try: search = re.compile(regex,re.I).search
         except re.error:
-            self.REQUEST.SESSION['message'] = "Invalid regular expression." 
+            self.REQUEST.SESSION['message'] = "Invalid regular expression."
             return objects
         filteredObjects = []
         for obj in objects:
@@ -236,15 +236,15 @@ class ZenTableManager(SimpleItem, PropertyManager):
                 objects = [Wrapper(getattr(o, field, ''), o) for o in objects]
             objects = sort(objects, (('field', rule, sence),))
             return [w.cargo for w in objects]
-        
-        if (getattr(aq_base(request), 'sortedHeader', False) 
+
+        if (getattr(aq_base(request), 'sortedHeader', False)
             and getattr(aq_base(request),"sortedSence", False)):
             sortedHeader = request.sortedHeader
             sortedSence = request.sortedSence
             sortRule = getattr(aq_base(request), "sortRule", "cmp")
             objects = dictAwareSort(objects, sortedHeader, sortRule, sortedSence)
         return objects
-  
+
 
     def getTableHeader(self, tableName, fieldName, fieldTitle,
                 sortRule='cmp', style='tableheader',attributes=""):
@@ -256,7 +256,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         tag += fieldTitle + "</a></th>\n"
         return tag
 
-    
+
     def getTableHeaderHref(self, tableName, fieldName,
                             sortRule='cmp',params=""):
         """build the href attribute for the table table headers"""
@@ -278,7 +278,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
                 sortedSence, sortRule, params)
         tableState.addFilterField(fieldName)
         return href
- 
+
 
     def getTableHeaderStyle(self, tableName, fieldName, style):
         """apends "selected" onto the CSS style if this field is selected"""
@@ -336,10 +336,10 @@ class ZenTableManager(SimpleItem, PropertyManager):
         """setup the skins that come with ZenTableManager"""
         layers = ('zentablemanager','zenui')
         try:
-            import string 
+            import string
             from Products.CMFCore.utils import getToolByName
             from Products.CMFCore.DirectoryView import addDirectoryViews
-            skinstool = getToolByName(self, 'portal_skins') 
+            skinstool = getToolByName(self, 'portal_skins')
             for layer in layers:
                 if layer not in skinstool.objectIds():
                     addDirectoryViews(skinstool, 'skins', globals())
@@ -362,5 +362,5 @@ class ZenTableManager(SimpleItem, PropertyManager):
             if "portal_skin" in e.args: pass
             else: raise
 
-    
+
 InitializeClass(ZenTableManager)

@@ -1,25 +1,25 @@
 <tal:block tal:define="
-	objects python:list(here.getDmdRoot('Devices').getMonitoredComponents());
-	tableName string: allmonitoredcomps;
-	batch python:here.ZenTableManager.getBatch(tableName,objects);
-	exportFields python:[('getParentDeviceTitle','Device'),
-						 ('name','Component'), 
-						 ('meta_type', 'Type'),
-						 ('getInstDescription','Description'), 
-						 ('getStatusString','Status')];">
+    objects python:list(here.dmd.ReportServer.plugin('monitoredcomponents', here.REQUEST));
+    tableName string: allmonitoredcomps;
+    batch python:here.ZenTableManager.getBatch(tableName,objects, sortedHeader='hostname');
+    exportFields python:[('getParentDeviceTitle','Device'),
+                         ('name','Component'),
+                         ('meta_type', 'Type'),
+                         ('getInstDescription','Description'),
+                         ('getStatusString','Status')];">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
 
 <tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="breadCrumbPane">
-    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
-	
+
 <form method="POST" tal:attributes="action request/URL;"
-			tal:define="tabletitle string:All Monitored Components;
+            tal:define="tabletitle string:All Monitored Components;
                         showfilterbox python:True;
-						tblcolspan string:5">
+                        tblcolspan string:5">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -36,7 +36,7 @@
                             tableName,'getStatus','Status')"/>
     </tr>
     <tr tal:repeat="comp batch">
-        <td class="tablevalues" 
+        <td class="tablevalues"
           tal:content="structure comp/getDeviceLink"/>
         <td class="tablevalues">
             <a class="tablevalues" tal:attributes="href comp/getPrimaryUrlPath"
@@ -44,9 +44,9 @@
         </td>
         <td class="tablevalues" tal:content="comp/meta_type"/>
         <td class="tablevalues" tal:content="comp/getInstDescription"/>
-        <td tal:define="status comp/getStatus"
-            tal:attributes="class python:comp.getStatusCssClass(status)"
-            tal:content="python:comp.convertStatus(status)"/>
+        <td tal:define="status comp/status"
+            tal:attributes="class comp/cssclass"
+            tal:content="comp/getStatusString"/>
     </tr>
     <tr>
         <td colspan="5" class="tableheader" align='center'>
