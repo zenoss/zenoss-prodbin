@@ -22,7 +22,7 @@ class interface(AliasPlugin):
         return 'os/interfaces'
 
     def _getComponents(self, device, componentPath):
-        components = []
+        components = []        
         isLocal = re.compile(device.zLocalInterfaceNames)
         for i in device.os.interfaces():
             if isLocal.match(i.name()): continue
@@ -45,17 +45,17 @@ class interface(AliasPlugin):
 
     def getCompositeColumns(self):
         return [
-                Column('inputBits', PythonColumnHandler('input * 8')),
-                Column('outputBits', PythonColumnHandler('output * 8')),
-                Column('total', PythonColumnHandler('input + output')),
+                Column('inputBits', PythonColumnHandler('input * 8 if input is not None else "N/A"')),
+                Column('outputBits', PythonColumnHandler('output * 8 if output is not None else "N/A"')),
+                Column('total', PythonColumnHandler('input + output if input is not None and output is not None else 0')),
                 Column(
-                    'totalBits', PythonColumnHandler('(input + output) * 8')
+                    'totalBits', PythonColumnHandler('(input + output) * 8 if input is not None and output is not None else "N/A"')
                 ),
                 Column(
                     'percentUsed',
                     PythonColumnHandler(
                         # total == total is False if total is NaN
-                        '((long(total) if total == total else total) * 8) '
+                        '((long(total) if total == total else total) * 8)'
                         '* 100.0 / speed'
                    )
                )
