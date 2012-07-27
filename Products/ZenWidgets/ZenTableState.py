@@ -70,6 +70,9 @@ class ZenTableState:
         self.showAll = False
         self.setTableStateFromKeys(keys)
 
+    def items(self):
+        return self.__dict__.items()
+
     def keys(self):
         """
         Behave like a REQUEST, for report plugins that use REQUEST to pull

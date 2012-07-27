@@ -8,9 +8,9 @@
     sts python:tm.setReqTableState;
     device python:sts(tableName, 'device', '');
     DeviceClass python:sts(tableName, 'DeviceClass', '');
-    Systems python:sts(tableName, 'Systems', '');
-    DeviceGroups python:sts(tableName, 'DeviceGroups', '');
-    Locations python:sts(tableName, 'Locations', '');
+    System python:sts(tableName, 'System', '');
+    DeviceGroup python:sts(tableName, 'DeviceGroup', '');
+    Location python:sts(tableName, 'Location', '');
 
     component python:sts(tableName, 'component', '');
     severity python:sts(tableName, 'severity', '4');
@@ -56,13 +56,13 @@
         </td>
         <td class="tableheader">Systems:</td>
         <td class="tablevalues">
-            <select class="tablevalues" name="Systems"
+            <select class="tablevalues" name="System"
                 tal:define="
                 orgs python:here.getDmdRoot('Systems').getOrganizerNames();
                 systemOrgs python:orgs;
                 ">
              <option tal:repeat="org systemOrgs"
-                     tal:attributes="value org; selected python:org==Systems"
+                     tal:attributes="value org; selected python:org==System"
                      tal:content="org"/>
           </select>
         </td>
@@ -70,26 +70,26 @@
     </tr><tr>
         <td class="tableheader">Groups:</td>
         <td class="tablevalues">
-            <select class="tablevalues" name="DeviceGroups"
+            <select class="tablevalues" name="DeviceGroup"
                 tal:define="
                 orgs python:here.getDmdRoot('Groups').getOrganizerNames();
                 groupOrgs python:orgs;
                 ">
              <option tal:repeat="org groupOrgs"
-                     tal:attributes="value org; selected python:org==DeviceGroups"
+                     tal:attributes="value org; selected python:org==DeviceGroup"
                      tal:content="org"/>
           </select>
 
         </td>
         <td class="tableheader">Locations:</td>
         <td class="tablevalues">
-            <select class="tablevalues" name="Locations"
+            <select class="tablevalues" name="Location"
                 tal:define="
                 orgs python:here.getDmdRoot('Locations').getOrganizerNames();
                 locationOrgs python:orgs;
                 ">
              <option tal:repeat="org locationOrgs"
-                     tal:attributes="value org; selected python:org==Locations"
+                     tal:attributes="value org; selected python:org==Location"
                      tal:content="org"/>
           </select>
         </td>

@@ -18,10 +18,10 @@ from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.Location import Location
 from Products.ZenModel.System import System
 from Products.ZenUtils import Map
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
 from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 from Products.Zuul import getFacade
-from Products.Zuul.interfaces import ICatalogTool
 from Products.AdvancedQuery import Eq, Or, Not
 from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
                                                 SEVERITY_WARNING, SEVERITY_INFO,
@@ -53,12 +53,8 @@ def _severityGreaterThanOrEqual(sev):
 
 def _lookupUuid(catalog, cls, identifier):
     """function to retrieve uuid given an object's catalog, type, and identifier"""
-    results = ICatalogTool(catalog).search(cls,
-                                           query=Or(Eq('id', identifier),
-                                                    Eq('name', identifier)),
-                                           limit=1)
-    if results.total:
-        return results.results.next().uuid
+    result = catalog.getOrganizer(identifier)
+    return IGlobalIdentifier(result).getGUID()
 
 from AccessControl import ClassSecurityInfo
 
@@ -166,9 +162,9 @@ class Report(object):
         self.manager = manager
         self.agent = agent
         self.DeviceClass = DeviceClass
-        self.Location = Location
-        self.System = System
-        self.DeviceGroup = DeviceGroup
+        self.Location = Location if Location != '/' else None
+        self.System = System if System != '/' else None
+        self.DeviceGroup = DeviceGroup if DeviceGroup != '/' else None
         self.DevicePriority = int(DevicePriority) if DevicePriority is not None else None
         self.monitor = monitor
 
@@ -203,7 +199,6 @@ class Report(object):
         startDate = int(startDate*1000)
         endDate = int(endDate*1000)
         total_report_window = endDate - startDate
-        now_ms = int(now * 1000)
 
         create_filter_args = {
             'operator' : zep.AND,
@@ -268,8 +263,35 @@ class Report(object):
 
         # walk events, tallying up downtime
         accumulator = defaultdict(int)
-        for evtsumm in chain(open_events, closed_events, closed_events_from_archive):
 
+        # get applicable devices
+        deviceList = set()
+        if self.device:
+            device = dmd.Devices.findDevice(self.device)
+            if device:
+                deviceList = set(device)
+        else:
+            deviceList = set(dmd.Devices.getSubDevices())
+            if self.DeviceClass or self.Location or self.System or self.DeviceGroup:
+                def getOrgSubDevices(cat,orgId):
+                    try:
+                        org = cat.getOrganizer(orgId)
+                        return set(org.getSubDevices())
+                    except AttributeError:
+                        return deviceList
+                deviceClassDevices = getOrgSubDevices(dmd.Devices, self.DeviceClass)
+                locationDevices = getOrgSubDevices(dmd.Locations, self.Location)
+                systemDevices = getOrgSubDevices(dmd.Systems, self.System)
+                deviceGroupDevices = getOrgSubDevices(dmd.Groups, self.DeviceGroup)
+                deviceList = deviceClassDevices & locationDevices & systemDevices & deviceGroupDevices
+
+        if not deviceList:
+            return []
+
+        for d in deviceList:
+            accumulator[d.id,self.component or ''] += 0
+
+        for evtsumm in chain(open_events, closed_events, closed_events_from_archive):
             first = evtsumm['first_seen_time']
             # if event is still open, downtime persists til end of report window
             if evtsumm['status'] not in CLOSED_EVENT_STATUSES:
@@ -288,59 +310,16 @@ class Report(object):
             evt = evtsumm['occurrence'][0]
             evt_actor = evt['actor']
             device = evt_actor.get('element_identifier')
-            component = evt_actor.get('element_sub_identifier')
+            #component = evt_actor.get('element_sub_identifier')
 
-            # Only treat component specially if a component filter was specified.
-            if self.component:
-                accumKey = (device, component)
-            else:
-                accumKey = (device, '')
-
-            accumulator[accumKey] += (last-first)
-
-        if self.device:
-            deviceList = []
-            device = dmd.Devices.findDevice(self.device)
-            if device:
-                deviceList = [device]
-                accumulator[(self.device, self.component)] += 0
-        else:
-            deviceList = []
-            if (not self.DeviceClass and not self.Location and
-                not self.System and not self.DeviceGroup):
-                deviceList = dmd.Devices.getSubDevices()
-            else:
-                allDevices = dict((dev.id,dev) for dev in dmd.Devices.getSubDevices())
-                allDeviceIds = set(allDevices.keys())
-
-                def getOrgSubDevices(cat, orgId, allIds=allDeviceIds):
-                    if orgId:
-                        try:
-                            org = cat.getOrganizer(orgId)
-                        except KeyError:
-                            pass
-                        else:
-                            return set(d.id for d in org.getSubDevices())
-                    return allIds
-                deviceClassDevices = getOrgSubDevices(dmd.Devices, self.DeviceClass)
-                locationDevices    = getOrgSubDevices(dmd.Locations, self.Location)
-                systemDevices      = getOrgSubDevices(dmd.Systems, self.System)
-                deviceGroupDevices = getOrgSubDevices(dmd.Groups, self.DeviceGroup)
-
-                # Intersect all of the organizers.
-                deviceList.extend(allDevices[deviceId]
-                                 for deviceId in (deviceClassDevices & locationDevices &
-                                                       systemDevices & deviceGroupDevices))
-
-            if not self.component:
-                for dev in dmd.Devices.getSubDevices():
-                    accumulator[(dev.id, '')] += 0
+            accumKey = device, self.component or ''
+            if accumKey in accumulator:
+                accumulator[accumKey] += (last-first)
 
         # walk accumulator, generate report results
         deviceLookup = dict((dev.id, dev) for dev in deviceList)
         result = []
         lastdevid = None
-        sysname = ''
         for (devid, compid), downtime in sorted(accumulator.items()):
             if devid != lastdevid:
                 dev = deviceLookup.get(devid, None)
@@ -351,14 +330,6 @@ class Report(object):
                 lastdevid = devid
             result.append(Availability(devid, compid, downtime, total_report_window, sysname))
 
-        # add in the devices that have the component, but no events - assume this means no downtime
-        if self.component:
-            downtime = 0
-            for dev in deviceList:
-                sysname = dev.getSystemNamesString()
-                for comp in dev.getMonitoredComponents():
-                    if self.component in comp.name():
-                        result.append(Availability(dev.id, comp.name(), downtime, total_report_window, sysname))
         return result
 
 
