@@ -7,5 +7,5 @@
 # 
 ##############################################################################
 
-# If you change this, also change inst/Zenoss/setup.py
+# If you change this, also change inst/zenoss-version/setup.py
 VERSION="4.2.70"
