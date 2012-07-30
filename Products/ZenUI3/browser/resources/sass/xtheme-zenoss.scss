@@ -139,6 +139,10 @@ $include-missing-images: true;
         }
     }
 }
+#evdetail_props .event_message, .proptable_value div{
+    width:300px;
+    word-wrap: break-word;
+}
 
 /* ========================== */
 

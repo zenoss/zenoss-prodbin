@@ -56,7 +56,7 @@ Ext.onReady(function() {
             '</td>',
         '</tr>',
         '<tr><td class="dt">',_t('Status:'),'</td> <td>{eventState}</td></tr>',
-        '<tr><td class="dt">',_t('Message:'),'</td> <td >{message}</td></tr>',
+        '<tr><td class="dt" valign="top">',_t('Message:'),'</td> <td id="event_details_event_message"><div class="event_message">{message}</div></td></tr>',
     '</table><div style="clear:both;"></div>'];
 
     /**
@@ -67,7 +67,7 @@ Ext.onReady(function() {
         '<tpl for="properties">',
         '<tr class=\'{[xindex % 2 === 0 ? "even" : "odd"]}\'>',
         '<td class="proptable_key">{key}</td>',
-        '<td class="proptable_value">{value}</td></tr>',
+        '<td class="proptable_value"><div>{value}</div></td></tr>',
         '</tpl>',
         '</table>'];
 
@@ -270,7 +270,7 @@ Ext.onReady(function() {
                         frame: false,
                         defaults: {
                             frame: false
-                        },
+                        },                       
                         layout: {
                             type: 'table',
                             columns: 1,
@@ -355,7 +355,6 @@ Ext.onReady(function() {
             this.callParent([config]);
             this.init();
         },
-
         init: function() {
             var default_renderers = {
                 device: function(value, sourceData) {

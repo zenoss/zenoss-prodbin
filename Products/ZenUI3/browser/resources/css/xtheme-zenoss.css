@@ -10442,6 +10442,10 @@ CORE TRIGGER PAGE STUFF
   font-size: 13px;
   text-decoration: none; }
 
+#evdetail_props .event_message, .proptable_value div {
+  width: 300px;
+  word-wrap: break-word; }
+
 /* ========================== */
 .tabletitlecontainer {
   border: 0 none !important; }
