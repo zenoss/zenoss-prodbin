@@ -27,11 +27,12 @@ try:
 except ImportError:
     USE_WMI = False
 
-from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon, HubDown
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
+from Products.Zuul.utils import safe_hasattr as hasattr
 from twisted.python.failure import Failure
 
 from PythonClient   import PythonClient
@@ -1010,7 +1011,14 @@ class ZenModeler(PBDaemon):
                                         self.options.path,
                                         self.options.monitor)
         def handle(results):
-            self.log.critical("%s is not a valid organizer." % (self.options.path))
+            if hasattr(results, "type") and results.type is HubDown:
+                self.log.warning(
+                    "Collection aborted: %s", results.getErrorMessage()
+                )
+                return
+            self.log.critical(
+                "%s is not a valid organizer.", self.options.path
+            )
             reactor.running = False
             sys.exit(1)
 
