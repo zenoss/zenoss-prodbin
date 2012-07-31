@@ -18,7 +18,7 @@ and store process performance in RRD files.
 import logging
 import sys
 import re
-from md5 import md5
+from hashlib import md5
 from pprint import pformat
 import os.path
 
@@ -72,6 +72,7 @@ WRAP = 0xffffffffL
 
 # Regex to see if a string is all hex digits
 IS_MD5 = re.compile('^[a-f0-9]{32}$')
+EMPTY_MD5_DIGEST = md5('').hexdigest()
 
 PROC_SCAN_ERROR = 'Unable to read processes on device %s'
 
@@ -141,14 +142,14 @@ class DeviceStats:
         self._pidToProcess = {}
         # map ProcessProxy id to ProcessStats object
         self._processes = {}
-        for id, process in deviceProxy.processes.items():
+        for id, process in deviceProxy.processes.iteritems():
             self._processes[id] = ProcessStats(process)
 
     def update(self, deviceProxy):
-        unused = set(self._processes.keys())
-        for id, process in deviceProxy.processes.items():
+        unused = set(self._processes)
+        for id, process in deviceProxy.processes.iteritems():
             unused.discard(id)
-            if self._processes.get(id):
+            if id in self._processes:
                 self._processes[id].update(process)
             else:
                 self._processes[id] = ProcessStats(process)
@@ -163,40 +164,45 @@ class DeviceStats:
     @property
     def processStats(self):
         """
-        The ProcessStats: processes configured to be monitored
+        returns an iterator of the processes configured to be monitored
         """
-        return self._processes.values()
+        return self._processes.itervalues()
 
     @property
     def pids(self):
         """
-        returns the pids from being tracked
+        returns an iterator of the pids being tracked
         """
-        return self._pidToProcess.keys()
+        return self._pidToProcess.iterkeys()
 
     @property
     def monitoredProcs(self):
         """
-        returns ProcessStats for which we have a pid
+        returns an iterator of ProcessStats for which we have a pid
         """
-        return self._pidToProcess.values()
+        return self._pidToProcess.itervalues()
 
 
 class ProcessStats:
     def __init__(self, processProxy):
         self._pids = {}
-        self._config = processProxy
         self.cpu = 0
-        self.digest = md5('').hexdigest()
-        if not self._config.ignoreParameters:
-            # The modeler plugin computes the MD5 hash of the args,
-            # and then tosses that into the name of the process
-            result = self._config.name.rsplit(' ', 1)
-            if len(result) == 2 and result[1] != '':
-                self.digest = result[1]
+        self.update(processProxy)
 
     def update(self, processProxy):
         self._config = processProxy
+        self._compiled_regex = re.compile(self._config.regex)
+
+        result = self._config.name.rsplit(' ', 1)
+        self._name_only = result[0]
+        self._compiled_name_regex = re.compile('(.?)' + re.escape(self._name_only) + '$')
+
+        self.digest = EMPTY_MD5_DIGEST
+        if not self._config.ignoreParameters:
+            # The modeler plugin computes the MD5 hash of the args,
+            # and then tosses that into the name of the process
+            if len(result) == 2 and result[1] != '':
+                self.digest = result[1]
 
     def __str__(self):
         """
@@ -227,7 +233,7 @@ class ProcessStats:
         processName = ('%s %s' % (name, args or '')).strip()
 
         # Make the comparison
-        result = re.search(self._config.regex, processName) is not None
+        result = self._compiled_regex.search(processName) is not None
 
         # We can a match, but it might not be for us
         if result and useMd5Digest:
@@ -237,12 +243,10 @@ class ProcessStats:
                 result = False
 
         if result and useName:
-            nameOnly = self._config.name.rsplit(' ', 1)[0]
             cleanNameOnly = globalPrepId(name)
-            nameRe = '(.?)' + re.escape(nameOnly) + '$'
-            nameMatch = re.search(nameRe, cleanNameOnly)
+            nameMatch = self._compiled_name_regex.search(cleanNameOnly)
             if not nameMatch or nameMatch.group(1) not in ('', '_'):
-                log.debug("Discarding match based on name mismatch: %s %s" % (cleanNameOnly, nameOnly))
+                log.debug("Discarding match based on name mismatch: %s %s", cleanNameOnly, self._name_only)
                 result = False
 
         return result
@@ -269,7 +273,7 @@ class ProcessStats:
     def getMemory(self):
         """
         """
-        return sum(x.memory for x in self._pids.values() if x.memory is not None)
+        return sum(x.memory for x in self._pids.itervalues() if x.memory is not None)
 
     def discardPid(self, pid):
         """
@@ -498,9 +502,8 @@ class ZenProcessTask(ObservableMixin):
                              hostname, self.captureSerialNum)
 
         try:
-            capFile = open(name, "w")
-            capFile.write(pformat(data))
-            capFile.close()
+            with open(name, "w") as capFile:
+                capFile.write(pformat(data))
             self.captureSerialNum += 1
         except Exception, ex:
             log.warn("Couldn't write capture data to '%s' because %s",
@@ -526,11 +529,11 @@ class ZenProcessTask(ObservableMixin):
 
     def sendFoundProcsEvents(self, afterByConfig, restarted):
         # report alive processes
-        for processStat in afterByConfig.keys():
+        for processStat, pids in afterByConfig.iteritems():
             if processStat in restarted: continue
             summary = "Process up: %s" % processStat._config.originalName
             message = '%s\n Using regex \'%s\' with pid\'s %s '\
-            % (summary, processStat._config.regex, afterByConfig[processStat])
+            % (summary, processStat._config.regex, pids)
             self._eventService.sendEvent(self.statusEvent,
                                          device=self._devId,
                                          summary=summary,
@@ -603,7 +606,7 @@ class ZenProcessTask(ObservableMixin):
                 log.warn('%s monitored proc %s %s not in process stats', self._devId, procStat._config.name,
                          procStat._config.originalName)
                 log.debug("%s pidcounts is %s", self._devId, pidCounts)
-        for procName, count in pidCounts.items():
+        for procName, count in pidCounts.iteritems():
             self._save(procName, 'count_count', count, 'GAUGE')
         return "Sent events"
 
@@ -659,7 +662,7 @@ class ZenProcessTask(ObservableMixin):
                         afterPidToProcessStats[pid] = pStats
                         break
 
-        afterPids = set(afterPidToProcessStats.keys())
+        afterPids = set(afterPidToProcessStats)
         afterByConfig = reverseDict(afterPidToProcessStats)
         newPids = afterPids - beforePids
         deadPids = beforePids - afterPids
@@ -696,7 +699,7 @@ class ZenProcessTask(ObservableMixin):
             else:
                 nameList = pStat._config.name.rsplit(' ', 1)
                 if len(nameList) < 2: # (name, md5sum)
-                    nameList = (nameList[0], md5('').hexdigest())
+                    nameList = (nameList[0], EMPTY_MD5_DIGEST)
 
                 possibleMd5Sum = nameList[-1].lower()
                 if IS_MD5.match(possibleMd5Sum):
@@ -707,9 +710,6 @@ class ZenProcessTask(ObservableMixin):
     def _fetchPerf(self):
         """
         Get performance data for all the monitored processes on a device
-
-        @parameter results: results of SNMP table gets
-        @type results: list of (success, result) tuples
         """
         self.state = ZenProcessTask.STATE_FETCH_PERF
 
@@ -722,7 +722,7 @@ class ZenProcessTask(ObservableMixin):
             oidsToTest = oids
             chunkSize = self._maxOidsPerRequest
             while oidsToTest:
-                for oidChunk in chunk(oids, chunkSize):
+                for oidChunk in chunk(oidsToTest, chunkSize):
                     try:
                         log.debug("%s fetching oid(s) %s" % (self._devId, oidChunk))
                         result = yield self._get(oidChunk)
@@ -742,13 +742,11 @@ class ZenProcessTask(ObservableMixin):
         Save the process performance data in RRD files
 
         @parameter results: results of SNMP table gets
-        @type results: list of {oid:value} dictionaries
-        @parameter device: proxy object to the remote computer
-        @type device: Device object
+        @type results: dict of {oid:value} dictionaries
         """
         self.state = ZenProcessTask.STATE_STORE_PERF
         byConf = reverseDict(self._deviceStats._pidToProcess)
-        for procStat, pids in byConf.items():
+        for procStat, pids in byConf.iteritems():
             if len(pids) != 1:
                 log.debug("There are %d pids by the name %s - %s",
                           len(pids), procStat._config.name, procStat._config.originalName)
@@ -914,27 +912,27 @@ def mapResultsToDicts(showrawtables, results):
         """
         Helper function to extract SNMP table data.
         """
-        pid = int(oid.split('.')[-1])
+        pid = int(oid.rsplit('.', 1)[-1])
         dictionary[pid] = value.strip()
 
     names, paths, args = {}, {}, {}
     if showrawtables:
         log.info("NAMETABLE = %r", results[NAMETABLE])
-    for row in results[NAMETABLE].items():
+    for row in results[NAMETABLE].iteritems():
         extract(names, *row)
 
     if showrawtables:
         log.info("PATHTABLE = %r", results[PATHTABLE])
-    for row in results[PATHTABLE].items():
+    for row in results[PATHTABLE].iteritems():
         extract(paths, *row)
 
     if showrawtables:
         log.info("ARGSTABLE = %r", results[ARGSTABLE])
-    for row in results[ARGSTABLE].items():
+    for row in results[ARGSTABLE].iteritems():
         extract(args, *row)
 
     procs = []
-    for pid, name in names.items():
+    for pid, name in names.iteritems():
         path = paths.get(pid, '')
         if path and path.find('\\') == -1:
             name = path
@@ -950,7 +948,7 @@ def reverseDict(d):
     all values are lists to handle the different keys mapping to the same value
     """
     result = {}
-    for a, v in d.items():
+    for a, v in d.iteritems():
         result.setdefault(v, []).append(a)
     return result
 
