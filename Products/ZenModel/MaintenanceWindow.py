@@ -154,7 +154,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStartProductionState(self):
         "Return a string version of the startProductionState"
-        return self.convertProdState(self.startProductionState)
+        return self.dmd.convertProdState(self.startProductionState)
 
     def niceStopProductionState(self):
         "Return a string version of the stopProductionState"
@@ -207,6 +207,7 @@ class MaintenanceWindow(ZenModelRM):
                 v = None
             return v
 
+        oldAuditData = self.getAuditData()
         msgs = []
         # startHours, startMinutes come from menus.  No need to catch
         # ValueError on the int conversion.
@@ -260,7 +261,9 @@ class MaintenanceWindow(ZenModelRM):
                     'Window Updated',
                     'Maintenance window changes were saved.'
                 )
-                audit('UI.MaintenanceWindow.Edit', self)
+                audit('UI.MaintenanceWindow.Edit', self,
+                      data_=self.getAuditData(),
+                      oldData_=oldAuditData)
         if REQUEST:
             return REQUEST.RESPONSE.redirect(self.getUrlForUserCommands())
 
@@ -556,6 +559,16 @@ class MaintenanceWindow(ZenModelRM):
             return now - 60 * 60
         else:
             return now + 60 * 60
+
+    def getAuditData(self):
+        return {
+            'enabled': str(self.enabled),
+            'startDate': self.niceStartDate(),
+            'startTime': '%02d:%02d' % (self.niceStartHour(), self.niceStartMinute()),
+            'duration': self.niceDuration(),
+            'repeat': self.repeat,
+            'productionState': self.niceStartProductionState(),
+        }
 
 
 DeviceMaintenanceWindow = MaintenanceWindow
