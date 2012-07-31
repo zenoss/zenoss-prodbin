@@ -38,7 +38,7 @@ from twisted.internet import defer
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
                                              IEventService, \
-                                             IScheduledTask
+                                             IScheduledTask, IStatisticsService
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
                                         BaseTask, TaskStates
@@ -150,6 +150,9 @@ class SnmpTrapPreferences(CaptureReplay):
         # Ensure that we always have an oidMap
         daemon = zope.component.getUtility(ICollector)
         daemon.oidMap = {}
+        # add our collector's custom statistics
+        statService = zope.component.queryUtility(IStatisticsService)
+        statService.addStatistic("events", "COUNTER")
 
 def ipv6_is_enabled():
     "test if ipv6 is enabled"
@@ -182,7 +185,7 @@ class TrapTask(BaseTask, CaptureReplay):
         self._daemon = zope.component.getUtility(ICollector)
         self._eventService = zope.component.queryUtility(IEventService)
         self._preferences = self._daemon
-
+        self._statService = zope.component.queryUtility(IStatisticsService)
         # For compatibility with captureReplay
         self.options = self._daemon.options
 
@@ -416,6 +419,10 @@ class TrapTask(BaseTask, CaptureReplay):
         port = socket.ntohs(ipv6_socket_address.port)
         self.log.debug( "Received packet from %s at port %s" % (ip_address, port) )
         self.processPacket(ip_address, port, pdu, time.time())
+        # update our total events stats 
+        totalTime, totalEvents, maxTime = self.stats.report()
+        stat = self._statService.getStatistic("events")
+        stat.value = totalEvents
 
     def getPacketIp(self, addr):
         """

@@ -32,7 +32,7 @@ import zope.component
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
                                              IEventService, \
-                                             IScheduledTask
+                                             IScheduledTask, IStatisticsService
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
                                         BaseTask, TaskStates
@@ -126,6 +126,10 @@ class SyslogPreferences(object):
     def postStartup(self):
         daemon = zope.component.getUtility(ICollector)
         daemon.defaultPriority = 1
+        
+        # add our collector's custom statistics
+        statService = zope.component.queryUtility(IStatisticsService)
+        statService.addStatistic("events", "COUNTER")
 
 
 class SyslogTask(BaseTask, DatagramProtocol):
@@ -152,6 +156,7 @@ class SyslogTask(BaseTask, DatagramProtocol):
         self._preferences = taskConfig
         self._daemon = zope.component.getUtility(ICollector)
         self._eventService = zope.component.queryUtility(IEventService)
+        self._statService = zope.component.queryUtility(IStatisticsService)
         self._preferences = self._daemon
 
         self.options = self._daemon.options
@@ -296,6 +301,9 @@ class SyslogTask(BaseTask, DatagramProtocol):
             host = response
         if self.processor:
             self.processor.process(msg, ipaddr, host, rtime)
+            totalTime, totalEvents, maxTime = self.stats.report()
+            stat = self._statService.getStatistic("events")
+            stat.value = totalEvents
 
     def displayStatistics(self):
         totalTime, totalEvents, maxTime = self.stats.report()
