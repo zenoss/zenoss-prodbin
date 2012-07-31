@@ -1714,7 +1714,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         forceSelection: true,
                         triggerAction: 'all',
                         listConfig: {
-                            maxWidth:200
+                            maxWidth:200,
+                            maxHeight:240
                         },
                         store: new Ext.data.ArrayStore({
                             model: 'Zenoss.model.Name',
@@ -1742,7 +1743,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         forceSelection: true,
                         triggerAction: 'all',
                         listConfig: {
-                            maxWidth:200
+                            maxWidth:200,
+                            maxHeight:240
                         },
                         store: new Ext.data.ArrayStore({
                             model: 'Zenoss.model.Name',
@@ -1789,7 +1791,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         forceSelection: true,
                         triggerAction: 'all',
                         listConfig: {
-                            maxWidth:200
+                            maxWidth:200,
+                            maxHeight:240
                         },
                         store: new Ext.data.ArrayStore({
                             model: 'Zenoss.model.NameValue',
@@ -1840,8 +1843,9 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         forceSelection: true,
                         triggerAction: 'all',
                         listConfig: {
-                            maxWidth:200
-                        },
+                            maxWidth:200,
+                            maxHeight:240
+                        },                       
                         store: new Ext.data.ArrayStore({
                             model: 'Zenoss.model.NameValue',
                             data: [[
@@ -1870,7 +1874,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         forceSelection: true,
                         triggerAction: 'all',
                         listConfig: {
-                            maxWidth:200
+                            maxWidth:200,
+                            maxHeight:240
                         },
                         store: new Ext.data.ArrayStore({
                             model: 'Zenoss.model.NameValue',
