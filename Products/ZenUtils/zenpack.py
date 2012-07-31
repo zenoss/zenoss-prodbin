@@ -249,6 +249,8 @@ class ZenPackCmd(ZenScriptBase):
 
             prereqsMet = True
             for req in reqZenpacks:
+                if req.startswith('Zenoss'):
+                    continue
                 for parsed_req in parse_requirements([req]):
                     installed_version = installedPacks.get(parsed_req.project_name, None)
                     if installed_version is None:
