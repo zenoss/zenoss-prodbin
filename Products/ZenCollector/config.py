@@ -196,7 +196,6 @@ class ConfigurationLoaderTask(ObservableMixin):
         """
         d.addCallback(self._fetchConfig, devices)
         d.addCallback(self._processConfig)
-        d.addCallback(self._reportStatistics)
 
     def _notifyConfigLoaded(self, result):
         self._daemon.runPostConfigTasks()
@@ -262,16 +261,6 @@ class ConfigurationLoaderTask(ObservableMixin):
         self.state = self.STATE_PROCESS_DEVICE_CONFIG
         yield self._daemon._updateDeviceConfigs(configs, purgeOmitted)
         defer.returnValue(configs)
-
-    def _reportStatistics(self, result):
-        """
-        Report the duration of the configuration cycle to our RRD file.
-        """
-        if self._daemon._isRRDConfigured():
-            self._daemon.sendEvents(self._daemon.rrdStats.gauge("configTime",
-                                    self.interval,
-                                    time.time() - self.startTime))
-        return map(str, result)
 
     def cleanup(self):
         pass # Required by interface

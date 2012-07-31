@@ -245,3 +245,4 @@ import removedcshFromCommands
 import removeClearHeartbeatsMenuItem
 import zRemoveAutoAllocate
 import perDeviceCompCatalog
+import removeConfigTimesGraph
