@@ -239,7 +239,7 @@ class RRDUtil(object):
             if start is not None:
                 args.extend(["--start", "%d" % start])
             elif timestamp != 'N':
-                args.extend(["--start", "%d" % int(timestamp) - 10])
+                args.extend(["--start", str(int(timestamp) - 10)])
 
             args.append(str(dataSource))
             args.extend(rrdCommand.split())
