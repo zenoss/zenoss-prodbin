@@ -903,7 +903,7 @@ class ZenHub(ZCmdBase):
         Start the main event loop.
         """
         if self.options.cycle:
-            self.heartbeat()
+            reactor.callLater(0, self.heartbeat)
         reactor.run()
         self.shutdown = True
         for proc in self.workerprocessmap.itervalues():

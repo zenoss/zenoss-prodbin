@@ -41,8 +41,8 @@ class MySqlSendEventMixin:
                 try:
                     self._publishEvent(event, publisher)
                     count += 1
-                except Exception, ex:
-                    log.exception(ex)
+                except Exception:
+                    log.exception("Unable to publish event to %s", publisher)
             return count
         finally:
             if publisher:
@@ -57,8 +57,11 @@ class MySqlSendEventMixin:
         @return: event id or None
         @rtype: string
         """
-        event = self._publishEvent(event)
-        return event.evid if event else None
+        try:
+            event = self._publishEvent(event)
+            return event.evid if event else None
+        except Exception:
+            log.exception("Unable to publish event")
 
     def _publishEvent(self, event, publisher=None):
         """
