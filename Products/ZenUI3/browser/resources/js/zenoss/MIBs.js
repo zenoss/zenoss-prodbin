@@ -448,34 +448,6 @@ function reloadTree(selectedUid) {
     });
 }
 
-function initializeTreeDrop(g) {
-    return;
-    var dz = new Ext.tree.TreeDropZone(g, {
-        ddGroup: 'mibtreedd',
-        appendOnly: true,
-        onNodeDrop: function (target, dd, e, data) {
-            if ((target.node.data.leaf) ||
-                    (target.node == data.node.parentNode)) {
-                try {
-                    this.tree.selModel.suspendEvents(true);
-                    data.node.unselect();
-                    return false;
-                } finally {
-                    this.tree.selModel.resumeEvents();
-                }
-            }
-            var tree = this.tree;
-            router.moveNode({
-                uids: [data.node.data.uid],
-                target: target.node.data.uid
-            }, function (response) {
-                reloadTree(response.data.uid);
-            });
-            return true;
-        }
-    });
-}
-
 /*
  * TODO: determine if selecting a new folder with no items in it
  *       should leave a blank panel or not
@@ -497,33 +469,26 @@ Ext.define("Zenoss.MibTreePanel", {
                 ddAppendOnly: true,
                 listeners: {
                     scope: this,
-                    beforenodedrop: this.onBeforeNodeDrop,
                     expandnode: this.onExpandnode
+                },
+                viewConfig: {
+                    listeners: {
+                        drop: this.onNodeDrop,
+                        scope:this
+                    }
+                
                 }
             });
             this.callParent(arguments);
         },
-        onBeforeNodeDrop: function(dropEvent) {
-            var sourceUids, targetUid, data, targetId;
-            if (dropEvent.dropNode) {
-                // moving a MibOrganizer into another MibOrganizer
-                sourceUids = [dropEvent.dropNode.data.uid];
-            } else {
-                // moving a MIB from grid into a MibOrganizer
-                data = Ext.Array.pluck(dropEvent.data.selections, 'data');
-                sourceUids = Ext.Array.pluck(data, 'uid');
-            }
-            dropEvent.target.expand();
-            targetUid = dropEvent.target.data.uid;
-            targetId = dropEvent.target.data.id;
-            router.MibRouter.moveMibs(
-                {
-                    sourceUids: sourceUids,
-                    targetUid: targetUid
-                }, function () {
-                    this.moveMibsCallback(targetId);
-                },
-                this);
+        onNodeDrop: function(n, nodedata, model, drop, func, opt) {
+            router.moveNode({
+                    uids: [nodedata.records[0].data.uid],
+                    target: nodedata.records[0].parentNode.data.uid
+                }, 
+                function () {
+                    this.moveMibsCallback(nodedata.records[0].parentNode.data.uid);
+                }, this);
         },
         moveMibsCallback: function(targetId) {
             Ext.History.add('navTree' + Ext.History.DELIMITER + targetId);
@@ -611,14 +576,13 @@ mib_tree = new Zenoss.MibTreePanel({
         allowDrop: false
     },
     listeners: {
-        render: initializeTreeDrop,
         click: function (node, e) {
             if (node.data.leaf) {
                 mib_browser.setContext(node);
             }
         }
     },
-    dropConfig: { appendOnly: true }
+    dropConfig: { appendOnly: true }    
 });
 
 
