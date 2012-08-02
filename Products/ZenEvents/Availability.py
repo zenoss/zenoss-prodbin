@@ -9,20 +9,17 @@
 
 
 import time
-from collections import defaultdict
+import logging
 from itertools import takewhile, chain
 
 from Globals import InitializeClass
-from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.DeviceGroup import DeviceGroup
-from Products.ZenModel.Location import Location
-from Products.ZenModel.System import System
 from Products.ZenUtils import Map
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
 from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 from Products.Zuul import getFacade
-from Products.AdvancedQuery import Eq, Or, Not
+from Products.AdvancedQuery import And, Eq, Generic, Or
+from Products.Zuul.interfaces.tree import ICatalogTool
 from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
                                                 SEVERITY_WARNING, SEVERITY_INFO,
                                                 SEVERITY_DEBUG, SEVERITY_CLEAR)
@@ -30,6 +27,8 @@ from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED,
                                                 STATUS_SUPPRESSED, STATUS_CLOSED,
                                                 STATUS_CLEARED, STATUS_DROPPED,
                                                 STATUS_AGED)
+
+log = logging.getLogger("zen.Availability")
 
 ALL_EVENT_STATUSES = set([STATUS_NEW, STATUS_ACKNOWLEDGED,
                         STATUS_SUPPRESSED, STATUS_CLOSED,
@@ -85,10 +84,11 @@ class Availability(object):
         return time.time()
 
     # Simple record for holding availability information
-    def __init__(self, device, component, downtime, total, systems=''):
+    def __init__(self, device, component, downtime, total, systems='', link=''):
         self.device = device
         self.systems = systems
         self.component = component
+        self.link = link
 
         # Guard against endDate being equal to or less than startDate.
         if total <= 0:
@@ -125,8 +125,11 @@ class Availability(object):
                 return _findComponent(device, self.component)
         return None
 
-    def getDeviceLink(self, dmd):
-        device = self.getDevice(dmd)
+    def getDeviceLink(self, dmd=None):
+        if self.link:
+            return self.link
+        if dmd:
+            device = self.getDevice(dmd)
         if device:
             return device.getDeviceLink()
         return None
@@ -189,6 +192,37 @@ class Report(object):
         __pychecker__='no-local'
         now = time.time()
         zep = getFacade("zep", dmd)
+
+        path = '/zport/dmd/'
+        pathFilterList = [Generic('path',{'query':''.join([path,'Devices',self.DeviceClass])})]
+
+        if self.Location:
+            pathFilterList.append(Generic('path',{'query': ''.join([path,'Locations',self.Location])}))
+        if self.System:
+            pathFilterList.append(Generic('path',{'query':''.join([path,'Systems',self.System])}))
+        if self.DeviceGroup:
+            pathFilterList.append(Generic('path',{'query':''.join([path,'Groups',self.DeviceGroup])}))
+        if self.device:
+            pathFilterList.append(Or(Eq('name', self.device), Eq('id', self.device)))
+
+        results = ICatalogTool(dmd.Devices).search(types='Products.ZenModel.Device.Device',
+                query=And(*pathFilterList))
+
+        if not results.total:
+            return []
+
+        deviceList = {}
+        tag_uuids = []
+        accumulator = {}
+        for brain in results:
+            try:
+                obj = brain.getObject()
+                deviceList[obj.id] = obj
+                tag_uuids.append(brain.uuid)
+                accumulator[obj.id] = 0
+            except Exception:
+                log.warn("Unable to unbrain at path %s", brain.getPath())
+
         endDate = self.endDate or Availability.getDefaultAvailabilityEnd()
         endDate = min(endDate, now)
         startDate = self.startDate
@@ -205,11 +239,8 @@ class Report(object):
             'severity' : _severityGreaterThanOrEqual(self.severity),
             'event_class' : self.eventClass +
                             ('/' if not self.eventClass.endswith('/') else '')
-            }
-        if self.device:
-            create_filter_args['element_identifier'] = '"%s"' % self.device
-        if self.component:
-            create_filter_args['element_sub_identifier'] = '"%s"' % self.component
+        }
+
         if self.agent:
             create_filter_args['agent'] = self.agent
         if self.monitor is not None:
@@ -224,19 +255,7 @@ class Report(object):
         if filter_details:
             create_filter_args['details'] = filter_details
 
-        # add filters on tagged values
-        tag_uuids = []
-        if self.DeviceClass:
-            tag_uuids.append(_lookupUuid(dmd.Devices, DeviceClass, self.DeviceClass))
-        if self.Location:
-            tag_uuids.append(_lookupUuid(dmd.Locations, Location, self.Location))
-        if self.System is not None:
-            tag_uuids.append(_lookupUuid(dmd.Systems, System, self.System))
-        if self.DeviceGroup is not None:
-            tag_uuids.append(_lookupUuid(dmd.Groups, DeviceGroup, self.DeviceGroup))
-        tag_uuids = filter(None, tag_uuids)
-        if tag_uuids:
-            create_filter_args['tags'] = tag_uuids
+        create_filter_args['tags'] = tag_uuids
 
         # query zep for matching event summaries
         # 1. get all open events that:
@@ -261,36 +280,6 @@ class Report(object):
         # must also get events from archive
         closed_events_from_archive = zep.getEventSummariesGenerator(event_filter, archive=True)
 
-        # walk events, tallying up downtime
-        accumulator = defaultdict(int)
-
-        # get applicable devices
-        deviceList = set()
-        if self.device:
-            device = dmd.Devices.findDevice(self.device)
-            if device:
-                deviceList = set(device)
-        else:
-            deviceList = set(dmd.Devices.getSubDevices())
-            if self.DeviceClass or self.Location or self.System or self.DeviceGroup:
-                def getOrgSubDevices(cat,orgId):
-                    try:
-                        org = cat.getOrganizer(orgId)
-                        return set(org.getSubDevices())
-                    except AttributeError:
-                        return deviceList
-                deviceClassDevices = getOrgSubDevices(dmd.Devices, self.DeviceClass)
-                locationDevices = getOrgSubDevices(dmd.Locations, self.Location)
-                systemDevices = getOrgSubDevices(dmd.Systems, self.System)
-                deviceGroupDevices = getOrgSubDevices(dmd.Groups, self.DeviceGroup)
-                deviceList = deviceClassDevices & locationDevices & systemDevices & deviceGroupDevices
-
-        if not deviceList:
-            return []
-
-        for d in deviceList:
-            accumulator[d.id,self.component or ''] += 0
-
         for evtsumm in chain(open_events, closed_events, closed_events_from_archive):
             first = evtsumm['first_seen_time']
             # if event is still open, downtime persists til end of report window
@@ -310,28 +299,17 @@ class Report(object):
             evt = evtsumm['occurrence'][0]
             evt_actor = evt['actor']
             device = evt_actor.get('element_identifier')
-            #component = evt_actor.get('element_sub_identifier')
+            accumulator[device] += (last - first)
 
-            accumKey = device, self.component or ''
-            if accumKey in accumulator:
-                accumulator[accumKey] += (last-first)
-
-        # walk accumulator, generate report results
-        deviceLookup = dict((dev.id, dev) for dev in deviceList)
-        result = []
-        lastdevid = None
-        for (devid, compid), downtime in sorted(accumulator.items()):
-            if devid != lastdevid:
-                dev = deviceLookup.get(devid, None)
-                if dev:
-                    sysname = dev.getSystemNamesString()
-                else:
-                    sysname = ''
-                lastdevid = devid
-            result.append(Availability(devid, compid, downtime, total_report_window, sysname))
-
-        return result
-
+        availabilityReport = []
+        for deviceId, downtime in sorted(accumulator.items()):
+            device = deviceList.get(deviceId, None)
+            if device:
+                sysname = device.getSystemNamesString()
+                link = device.getDeviceLink()
+                availabilityReport.append(Availability(deviceId, '', downtime, total_report_window, sysname, link))
+                device._p_invalidate()
+        return availabilityReport
 
 def query(dmd, *args, **kwargs):
     r = Report(*args, **kwargs)
