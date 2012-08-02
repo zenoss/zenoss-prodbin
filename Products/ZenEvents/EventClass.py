@@ -72,8 +72,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
 
     _properties = Organizer._properties + \
-                  EventClassPropertyMixin._properties + \
-                  ({'id':'transform', 'type':'text', 'mode':'w'},)
+                  EventClassPropertyMixin._properties
 
 
     # Screen action bindings (and tab definitions)
