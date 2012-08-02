@@ -565,9 +565,6 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             var token = Ext.History.getToken();
             if (token.split(Ext.History.DELIMITER).length!=3) {
                 this.getSelectionModel().selectRange(0, 0);
-                // Ext, for some reason, doesn't fire selectionchange at this
-                // point, so we'll do it ourselves.
-               this.fireEvent('selectionchange', this, this.getSelectionModel().getSelection());
             }
         }, this, {single:true});
         this.callParent(arguments);
