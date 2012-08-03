@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -20,7 +20,6 @@ import logging
 from Products.ZenModel.RRDDataPoint import getDataPointsByAliases
 from Products.ZenReports import Utils, Utilization
 from Products.ZenUtils.ZenTales import talesEval, InvalidTalesException
-from Products.ZenWidgets import messaging
 log = logging.getLogger("zen.reports")
 
 
@@ -154,12 +153,7 @@ class PythonColumnHandler(object):
         try:
             value = talesEval(self._talesExpression, device, kw)
         except InvalidTalesException, e:
-            messaging.IMessageSender(device).sendToBrowser(
-                'Invalid TALES Expression',
-                str(e.message),
-                priority=messaging.CRITICAL
-                )
-            log.warn(e)
+            log.info(e)
         return value
 
 
