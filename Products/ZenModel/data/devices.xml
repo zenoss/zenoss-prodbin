@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-05-01 13:57:11.812600
+    Zenoss RelationshipManager export completed on 2012-08-03 09:31:25.321017
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-05-01 13:57:11.812600" zenoss_server="unknownf81edfda3713" >
+<objects version="[Zenoss, version 4.2.70]" export_date="2012-08-03 09:31:25.321017" zenoss_server="tweek-zenoss-trunk" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -171,11 +171,10 @@ True
 <property visible="True" type="string" id="zIcon" >
 /zport/dmd/img/icons/noicon.png
 </property>
-<property visible="True" type="date" id="cDateTest" >
-1900/01/01 00:00:00 US/Central
-</property>
 <property visible="True" type="boolean" id="zCollectorLogChanges" >
 False
+</property>
+<property visible="True" type="password" id="zEnablePassword" >
 </property>
 <property visible="True" type="string" id="zNmapPortscanOptions" >
 -p 1-1024;-sT;--open;-oG -
@@ -183,7 +182,8 @@ False
 <property visible="True" type="int" id="zSshConcurrentSessions" >
 10
 </property>
-<property visible="True" type="password" id="zEnablePassword" >
+<property visible="True" type="date" id="cDateTest" >
+1900/01/01 00:00:00 US/Central
 </property>
 <tomanycont id='zenMenus'>
 <object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>

@@ -12,6 +12,11 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from copy import deepcopy
 
+def manage_addUserInterfaceSettings(context, id="UserInterfaceSettings"):
+    settings = UserInterfaceSettings(id)
+    context._setObject(id, settings)
+    return getattr(context, id)
+
 class UserInterfaceSettings(ZenModelRM):
     """
     Container for various settings on the User Interface. This is

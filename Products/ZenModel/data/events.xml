@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-05-01 13:57:33.971196
+    Zenoss RelationshipManager export completed on 2012-08-03 09:31:35.478538
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2012-05-01 13:57:33.971196" zenoss_server="unknownf81edfda3713" >
+<objects version="[Zenoss, version 4.2.70]" export_date="2012-08-03 09:31:35.478538" zenoss_server="tweek-zenoss-trunk" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -89,17 +89,6 @@ Check the Username and Password on the specified service to make sure it is corr
 <object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Perf' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type="text" id="transform" mode="w" >
-# SET OPERSTATUS ON IPINTERFACE COMPONENT
-if component is not None and evt.eventKey == 'ifOperStatus_ifOperStatus|ifOperStatusChange':
-    evt._action='drop'
-    operStatus = int(float(getattr(evt,'current', '0')))
-    if component.operStatus != operStatus:
-        @transact
-        def updateDb():
-            component.operStatus=operStatus
-        updateDb()
-</property>
 <property type="text" id="transform" mode="w" >
 # SET OPERSTATUS ON IPINTERFACE COMPONENT
 if component is not None and evt.eventKey == 'ifOperStatus_ifOperStatus|ifOperStatusChange':
@@ -5206,44 +5195,6 @@ By Default map all FileMaker events to Archive and set severity = 2
 <object id='Memory' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Filesystem' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type="text" id="transform" mode="w" >
-if device and evt.eventKey:
-    for f in device.os.filesystems():
-        if f.name() != evt.component and f.id != evt.component: continue
-
-        # Extract the used blocks from the event's message
-        import re
-        m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
-        if not m: continue
-
-        # Get the total blocks from the model. Adjust by specified offset.
-        totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
-        totalBytes = totalBlocks * f.blockSize
-        usedBytes = None
-
-        currentValue = float(m.groups()[0])
-        if 'usedBlocks' in evt.eventKey:
-            usedBytes = currentValue * f.blockSize
-        elif 'FreeMegabytes' in evt.eventKey:
-            usedBytes = totalBytes - (currentValue * 1048576)
-        else:
-            continue
-
-        try:
-            # Calculate the used percent and amount free.
-            usedBlocks = float(m.groups()[0])
-            p = (usedBytes / totalBytes) * 100
-            from Products.ZenUtils.Utils import convToUnits
-            free = convToUnits(totalBytes - usedBytes)
-            # Make a nicer summary
-            evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
-            evt.message = evt.summary
-        except ZeroDivisionError, e:
-            # Total size hasn't been calculated
-            pass
-
-        break
-</property>
 <property type="text" id="transform" mode="w" >
 if device and evt.eventKey:
     for f in device.os.filesystems():

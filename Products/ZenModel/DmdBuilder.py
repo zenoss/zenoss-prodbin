@@ -60,6 +60,7 @@ from Products.ZenModel.ZenossSecurity import \
      MANAGER_ROLE, ZEN_MANAGER_ROLE, ZEN_USER_ROLE, OWNER_ROLE
 from Products.ZenModel.NotificationSubscription import manage_addNotificationSubscriptionManager
 from Products.ZenModel.Trigger import manage_addTriggerManager
+from Products.ZenModel.UserInterfaceSettings import manage_addUserInterfaceSettings
 
 
 class DmdBuilder(object):
@@ -182,6 +183,7 @@ class DmdBuilder(object):
         manage_addUserSettingsManager(self.dmd)
         manage_addNotificationSubscriptionManager(self.dmd)
         manage_addTriggerManager(self.dmd)
+        manage_addUserInterfaceSettings(self.dmd)
         manage_addLinkManager(self.dmd)
         manage_addJobManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
