@@ -8,29 +8,34 @@
 ##############################################################################
 
 
-import os
-import hotshot
-import hotshot.stats
+import cProfile
+import pstats
 import tempfile
 
 class Profiler(object):
 
     def __init__(self):
-        self.fname = tempfile.mktemp()
-        self.profiler = hotshot.Profile(self.fname, True)
+        self._stats = None
+
+    @property
+    def stats(self):
+        return self._stats
 
     def print_stats(self, limit=20):
-        stats = hotshot.stats.load(self.fname)
-        stats.sort_stats('time', 'calls')
-        stats.print_stats(limit)
+        if self_stats:
+            self._stats.sort_stats('time', 'calls')
+            self._stats.print_stats(limit)
 
-    def runcall(self, *args, **kwargs):
-        result = self.profiler.runcall(*args, **kwargs)
-        self.profiler.close()
+    def runcall(self, func, *args, **kwargs):
+        profile = cProfile.Profile()
+        result = profile.runcall(func, *args, **kwargs)
+        statsfile = tempfile.NamedTemporaryFile()
+        try:
+            profile.dump_stats(statsfile.name)
+            self._stats = pstats.Stats(statsfile.name)
+        finally:
+            statsfile.close()
         return result
-
-    def __del__(self):
-        os.remove(self.fname)
 
 
 def profile(f):
