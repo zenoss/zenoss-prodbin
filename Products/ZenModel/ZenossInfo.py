@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -513,7 +513,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 priority=messaging.WARNING
             )
             return ' '
-            
+
         maxBytes = 1024 * int(kb)
         if daemon in ('zopectl', 'zenwebserver'):
             daemon = 'event'
@@ -523,6 +523,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             daemon = 'event'
         elif daemon == 'zeoctl':
             daemon = 'zeo'
+        if daemon not in self._getDaemonList():
+            return ''
         filename = self._getLogPath(daemon)
         # if there is no data read, we don't want to return something that can
         # be interptreted as "None", so we make the default a single white
@@ -554,9 +556,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         Return the contents of the daemon's config file.
         """
-        if not isZenBinFile(daemon):
+        if daemon not in self._getDaemonList():
             return 'The daemon name is invalid.'
-        
+
         filename = self._getConfigFilename(daemon)
         # if there is no data read, we don't want to return something that can
         # be interptreted as "None", so we make the default a single white
@@ -632,7 +634,10 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
         if daemon in [ 'zeoctl', 'zopectl' ]:
             return []
-            
+
+        # sanitize the input
+        if daemon not in self._getDaemonList():
+            return []
         if not isZenBinFile(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error',
@@ -760,7 +765,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 priority=messaging.CRITICAL
             )
             return
-            
+
         if not formdata: # If empty, don't overwrite -- assume an error
             msg = "Received empty form data for %s config -- ignoring" % (
                       daemon)
@@ -890,5 +895,5 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if Version.parse('Zenoss ' + self.dmd.availableVersion) > self.getZenossVersion():
             return True
         return False
-    
+
 InitializeClass(ZenossInfo)
