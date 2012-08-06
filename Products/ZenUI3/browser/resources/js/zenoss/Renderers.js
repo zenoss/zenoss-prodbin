@@ -1,3 +1,13 @@
+/*****************************************************************************
+ *
+ * Copyright (C) Zenoss, Inc. 2010, 2012, all rights reserved.
+ *
+ * This content is made available according to terms specified in
+ * License.zenoss under the directory where your Zenoss product is installed.
+ *
+ ****************************************************************************/
+
+
 (function(){
 
 Ext.ns('Zenoss.render');
@@ -305,6 +315,22 @@ Ext.apply(Zenoss.render, {
         });
 
         return results.join(" | ");
+    },
+
+    componentLinkFromGrid: function(obj, col, record) {
+        if (!obj)
+            return;
+
+        if (typeof(obj) == 'string')
+            obj = record.data;
+
+        if (!obj.title && obj.name)
+            obj.title = obj.name;
+
+        if (this.subComponentGridPanel || this.componentType != obj.meta_type)
+            return '<a href="javascript:Ext.getCmp(\'component_card\').componentgrid.jumpToEntity(\''+obj.uid+'\', \''+obj.meta_type+'\');">'+obj.title+'</a>';
+
+        return obj.title;
     },
 
     Device: function(uid, name) {

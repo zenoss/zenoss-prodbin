@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
- * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
+ * Copyright (C) Zenoss, Inc. 2010, 2012, all rights reserved.
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -457,6 +457,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
     alias:['widget.ComponentGridPanel'],
     extend:"Zenoss.BaseGridPanel",
     lastHash: null,
+    subComponentGridPanel: false,
     constructor: function(config) {
         config = config || {};
         config.fields = config.fields || [{
@@ -621,6 +622,29 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             selectToken();
         }
 
+    },
+    jumpToComponent: function(uid, meta_type) {
+        var tree = Ext.getCmp('deviceDetailNav').treepanel;
+        var tree_selection_model = tree.getSelectionModel();
+        var components_node = tree.getRootNode().findChildBy(
+            function(n) {
+                return n.data.text == 'Components';
+            });
+
+        // Reset context of component card.
+        var component_card = Ext.getCmp('component_card');
+        component_card.setContext(components_node.data.id, meta_type);
+
+        // Select chosen row in component grid.
+        component_card.selectByToken(uid);
+
+        // Select chosen component type from tree.
+        var component_type_node = components_node.findChildBy(
+            function(n) {
+                return n.data.id == meta_type;
+            });
+
+        tree_selection_model.select([component_type_node], false, true);
     }
 });
 
