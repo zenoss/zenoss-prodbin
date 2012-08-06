@@ -26,6 +26,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MA
     ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_ZPROPERTIES_EDIT, ZEN_DELETE_DEVICE
 from Products.Zuul import filterUidsByPermission
 from Products.Zuul.routers import TreeRouter
+from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
@@ -1707,7 +1708,11 @@ class DeviceRouter(TreeRouter):
         @return:  Success message
         """
         facade = self._getFacade()
-        facade.setBoundTemplates(uid, templateIds)
+        try:
+            facade.setBoundTemplates(uid, templateIds)
+        except DatapointNameConfict, e:
+            log.info("Failed to bind templates for {}: {}".format(uid, e))
+            return DirectResponse.exception(e, 'Failed to bind templates.')
         audit('UI.Device.BindTemplates', uid, templates=templateIds)
         return DirectResponse.succeed()
 

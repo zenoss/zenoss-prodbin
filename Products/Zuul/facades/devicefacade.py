@@ -12,14 +12,12 @@ import socket
 from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
-from Acquisition import aq_base
 from zope.event import notify
-from ZODB.POSException import POSKeyError
-from Products.AdvancedQuery import Eq, Or, And, MatchRegexp, Between
+from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, ILocationOrganizerInfo
+from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode
 from Products.Jobber.facade import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
@@ -32,15 +30,12 @@ from Products.ZenModel.Device import Device
 from Products.ZenMessaging.ChangeEvents.events import ObjectAddedToOrganizerEvent, \
     ObjectRemovedFromOrganizerEvent
 from Products.Zuul import getFacade
-from Products.Zuul.tree import PermissionedCatalogTool
+from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp, isip, getHostByName
-from Products.ZenUtils.IpUtil import getSubnetBounds
+from Products.ZenUtils.IpUtil import isip, getHostByName
 from Products.ZenEvents.Event import Event
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from Products.ZenUtils.jsonutils import unjson
 
 
 class DeviceCollectorChangeEvent(object):
@@ -506,10 +501,25 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         for template in obj.getAvailableTemplates():
             if (template.id in obj.zDeviceTemplates) == isBound:
-                yield  template
+                yield template
 
     def setBoundTemplates(self, uid, templateIds):
         obj = self._getObject(uid)
+
+        # check for datapoint name conflicts
+        bound_dp_names = {}
+        for template in obj.getAvailableTemplates():
+            if template.id in templateIds:
+                dp_names = set(template.getRRDDataPointNames())
+                intersection = dp_names.intersection(bound_dp_names)
+                if intersection:
+                    dp_name = intersection.pop()
+                    other_id = bound_dp_names[dp_name]
+                    fmt = "both {template.id} and {other_id} have a datapoint named {dp_name}"
+                    raise DatapointNameConfict(fmt.format(template=template, other_id=other_id, dp_name=dp_name))
+                for dp_name in dp_names:
+                    bound_dp_names[dp_name] = template.id
+
         obj.bindTemplates(templateIds)
 
     def resetBoundTemplates(self, uid):
@@ -532,7 +542,7 @@ class DeviceFacade(TreeFacade):
             if not obj.id in template.getPhysicalPath():
                 try:
                     yield ITemplateNode(template)
-                except UncataloguedObjectException, e:
+                except UncataloguedObjectException:
                     pass
 
     def addLocationOrganizer(self, contextUid, id, description = '', address=''):
