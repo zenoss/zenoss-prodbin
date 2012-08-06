@@ -16,6 +16,8 @@ YAHOO.namespace('zenoss.geomap');
         var markers = [];
         var polylineregistry = [];
         var dialog = null;
+        var nodedata = null;
+        var linkdata = null;
     
     /* PUBLICIZE */
     ZenGeoMapPortlet.prototype = {
@@ -55,9 +57,15 @@ YAHOO.namespace('zenoss.geomap');
                 'linkdata':[]
             };           
             var myd = loadJSONDoc('getChildGeomapData');
-            myd.addCallback(function(x){results['nodedata']=x});
+            myd.addCallback(function(x){
+                results['nodedata']=x; 
+                nodedata = results.nodedata;
+            });
             var myd2 = loadJSONDoc('getChildLinks');
-            myd2.addCallback(function(x){results['linkdata']=x;});
+            myd2.addCallback(function(x){
+                results['linkdata']=x;
+                linkdata = results.linkdata;                
+            });
             var bigd = new DeferredList([myd, myd2], false, false, true);
             bigd.addCallback(method(this, function(){
                 if(!_utils.checkMemCache()){// this is only used for refresh checking
@@ -77,7 +85,7 @@ YAHOO.namespace('zenoss.geomap');
     var _overlay = {
         addMarkers: function() {
             // check server cache to see if we need to geocode or not            
-            if(geocodecache && geocodecache.nodes.length > 0){
+            if(geocodecache && geocodecache.nodes.length > 0){            
                 _overlay.constructMarker(geocodecache.nodes[index], false);                
             }else{
                 if(!nodedata[index][0]) return false; // no addresses so nevermind
@@ -96,7 +104,7 @@ YAHOO.namespace('zenoss.geomap');
                         dialog.innerHTML = "";                     
                     }
                 });  
-            }
+           }
            
         }, 
         addPolyline: function() {
@@ -233,11 +241,8 @@ YAHOO.namespace('zenoss.geomap');
             }
         },
         doDraw: function(results) {      
-            nodedata = results.nodedata;
-            linkdata = results.linkdata;
             // set cache for refresh
             gcache = nodedata;
-            
             if(geocodecache){
                try{
                     geocodecache = YAHOO.lang.JSON.parse(geocodecache);
@@ -245,13 +250,10 @@ YAHOO.namespace('zenoss.geomap');
                     geocodecache = null;
                };
             }
-            // remove lines:
-            forEach(polylineregistry, function(o){
-                gmap.remove_overlay(o);
-            });            
             _overlay.addMarkers();
         }
     }
+        
     /* UTILS AND HELPERS */
     var _utils = {  
         saveCache: function() {
@@ -271,31 +273,43 @@ YAHOO.namespace('zenoss.geomap');
             // check if there is a cache, return false if not = newmap
             // if there IS a cache then this is a refresh, check diff
             if(gcache.length > 0){ // have cache
-                // make sure there's no new nodes or color changes              
+                // make sure there's no new/deleted nodes or color changes              
                 var nodeMap = {};
                 var i = null;
                 for (i = 0; i < gcache.length; i++) {
                     nodeMap[gcache[i][2]] = gcache[i]; // UID based keymap
                 }    
-
-                for (i = 0;i < nodedata.length; i++){
+                for (i = 0;nodedata.length > i; i++){
                     if(nodeMap[nodedata[i][2]]){
-                        //check colors on the existing nodes for changes
-                       if(nodeMap[nodedata[i][2]][1] != nodedata[i][1]){
+                        //check colors on the existing nodes for changes, or added/removed nodes
+                       if(nodeMap[nodedata[i][2]][1] != nodedata[i][1] || gcache.length != nodedata.length){
                             geocodecache = null;
-                            return false;// status (color) changed, refresh                        
+                            gcache = [];
+                            _utils.wipeMarkers();
+                            return false;                       
                         }
-                    }else{
-                        // this is a new node
-                        geocodecache = null;
-                        return false;                    
                     }
-                }
+                }               
                 return true;
             }else{
+                // this is a first time load since there's no gcache, so need to 
+                // always geocode since the geocodecache can change between loads
+                // without any way for this session to be aware of this change.
+                geocodecache = null;
                 return false; // new map
             }
        
+        },
+        wipeMarkers: function(){
+            var i;
+            for(i = 0; i < markers.length; i++){
+                markers[i].setMap(null);
+            }    
+            for(i = 0; i < polylineregistry.length; i++){
+                polylineregistry[i].setMap(null);
+            }
+            polylineregistry = [];            
+            markers = [];
         },
         hrefize: function(h){
             return h.replace(/location.href/g, 'self.parent.location.href');
