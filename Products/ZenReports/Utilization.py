@@ -1,14 +1,19 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+import logging
 
 from Products.ZenUtils import Time
+from Products.Zuul.interfaces.tree import  ICatalogTool
+from Products.AdvancedQuery import MatchGlob, And
+
+log = logging.getLogger("zen.Utilization")
 
 def getSummaryArgs(dmd, args):
     zem = dmd.ZenEventManager
@@ -28,28 +33,33 @@ def reversedSummary(summary):
     return summary
 
 
-def filteredDevices(dmd, args):
-    import re
+def filteredDevices(context, args, *types):
+    path = '/zport/dmd'
 
     deviceFilter = args.get('deviceFilter', '') or ''
-    deviceMatch = re.compile('.*%s.*' % deviceFilter)
+    deviceClass = args.get('deviceClass', '') or ''
+    extraquery = args.get('extraquery', '')
+    filter = []
+    if deviceFilter:
+        filter.append(MatchGlob('name','*%s*' % deviceFilter) | MatchGlob('id','*%s*' % deviceFilter))
+    if deviceClass:
+        organizer = (''.join([path,'/Devices',deviceClass]),)
+    else:
+        organizer = (''.join([path, args.get('organizer', '/Devices') or '/Devices']),)
 
-    # Fall back for backwards compatibility
-    if 'deviceClass' in args:
-        # deviceClass should always start with a '/'
-        args['organizer'] = '/Devices' + args['deviceClass']
+    if not types:
+        types = 'Products.ZenModel.Device.Device'
 
-    # Get organizer
-    organizer = args.get('organizer', '/Devices') or '/Devices'
+    if extraquery:
+        filter.extend(extraquery)
 
-    # Determine the root organizer
-    try:
-        root = dmd.getObjByPath(organizer.lstrip('/'))
-    except KeyError:
-        root = dmd.Devices # Show all if org not found
+    query = And(*filter) if filter else None
 
-    # Iterate all sub-organizers and devices
-    for d in root.getSubDevices():
-        if not d.monitorDevice(): continue
-        if not deviceMatch.match(d.id): continue
-        yield d
+    results = ICatalogTool(context).search(types, paths=organizer,
+        query=query)
+
+    for brain in results:
+        try:
+            yield brain.getObject()
+        except Exception:
+            log.warn("Unable to unbrain at path %s", brain.getPath())

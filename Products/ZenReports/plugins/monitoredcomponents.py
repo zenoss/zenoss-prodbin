@@ -11,6 +11,7 @@ import transaction
 from Products.AdvancedQuery import Eq
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenReports.AliasPlugin import AliasPlugin
+from Products.ZenReports import Utils
 
 class monitoredcomponents(AliasPlugin):
     """
@@ -50,7 +51,7 @@ class monitoredcomponents(AliasPlugin):
             dev._p_invalidate()
             if i % 100 == 0:
                 transaction.abort()
-            yield row
+            yield Utils.Record(**row)
 
     def run(self, dmd, args):
         return self.getSubComponents(dmd)

@@ -1,5 +1,5 @@
 <tal:block tal:define="
-	objects python:here.ReportServer.plugin('swinventory', here.REQUEST);
+    objects python:here.ReportServer.plugin('swinventory', here.REQUEST);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
     tableName string: softwarereport;
     batch python:here.ZenTableManager.getBatch(tableName,objects, 
@@ -16,9 +16,9 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="POST" tal:attributes="action request/URL; name string:swlist"
-			tal:define="tabletitle string:Software Inventory;
+            tal:define="tabletitle string:Software Inventory;
                         showfilterbox python:True;
-						tblcolspan string:3">
+                        tblcolspan string:3">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 <tr>
@@ -33,9 +33,9 @@
         <tr tal:define="odd repeat/r/odd"
             tal:attributes="class python:test(odd,'odd','even')">
            <td class="tablevalues"
-               tal:content="structure r/manuf/getIdLink"/>
+               tal:content="structure r/manufLink"/>
            <td class="tablevalues"
-               tal:content="structure r/soft/getIdLink"/>
+               tal:content="structure r/softLink"/>
            <td tal:content="r/count"/>
         </tr>
     </tal:block>

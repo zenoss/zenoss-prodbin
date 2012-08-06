@@ -1,10 +1,10 @@
 <tal:block tal:define="
-	objects  python:here.getDmdRoot('Devices').getSubDevices(
-                                lambda x: x.getSnmpStatus()!=0);
+    objects  python:here.dmd.ReportServer.plugin('statuses', dict(eventclass='/Status/Snmp'));
+    
     tableName string: snmpstatusreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                     sortedHeader='getSnmpStatusHeader', sortedSence='desc');
-	">
+    ">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
 
@@ -15,9 +15,9 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="POST" tal:attributes="action request/URL;"
-			tal:define="tabletitle string:SNMP Status Issues;
+            tal:define="tabletitle string:SNMP Status Issues;
                         showfilterbox python:True;
-						tblcolspan string:6">
+                        tblcolspan string:6">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 

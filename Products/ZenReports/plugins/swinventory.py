@@ -7,12 +7,13 @@
 # 
 ##############################################################################
 
-
+import transaction
 from Products.ZenReports import Utils
 
 class swinventory:
     def run(self, dmd, args):
         report = []
+        recordCount = 0
         for m in dmd.Manufacturers.objectValues():
             if m.id == 'Unknown' or m.meta_type != 'Manufacturer': continue
             for p in m.products.objectValues():
@@ -24,15 +25,20 @@ class swinventory:
                                 c += 1
                         except:
                             continue
-                    if c == 0: continue 
-                    print m.id, p.id, c
+                        i._p_invalidate()
+                    if c == 0: continue                     
                     report.append(
                         Utils.Record(
-                            manuf = m,
-                            manufId = m.id,
-                            soft = p,
+                            manufLink = m.getIdLink(),                            
+                            manufId = m.id,                            
+                            softLink = p.getIdLink(),
                             softId = p.id,
                             count = c
                         )
                     )
+                p._p_invalidate()
+            m._p_invalidate()
+            recordCount+=1
+            if recordCount % 100 == 0:
+                transaction.abort()
         return report

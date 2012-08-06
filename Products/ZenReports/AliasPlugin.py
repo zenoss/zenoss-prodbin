@@ -17,6 +17,7 @@ meant to be run from an rpt file.
 
 import Globals
 import logging
+import transaction
 from Products.ZenModel.RRDDataPoint import getDataPointsByAliases
 from Products.ZenReports import Utils, Utilization
 from Products.ZenUtils.ZenTales import talesEval, InvalidTalesException
@@ -303,6 +304,7 @@ class AliasPlugin(object):
 
         @rtype a list of L{Utils.Record}s
         """
+        i=0
         # Get the summary arguments from the request args
         summary = Utilization.getSummaryArgs(dmd, args)
 
@@ -319,6 +321,8 @@ class AliasPlugin(object):
         componentPath = self.getComponentPath()
         report = []
         for device in Utilization.filteredDevices(dmd, args):
+            i += 1
+            if i % 100 == 0: transaction.abort()
             if componentPath is None:
                 record = self._createRecord(
                         device, None, columnDatapointsMap, summary)
@@ -326,6 +330,8 @@ class AliasPlugin(object):
             else:
                 components = self._getComponents(device, componentPath)
                 for component in components:
+                    i+=1
+                    if i % 100 == 0: transaction.abort()
                     record = self._createRecord(
                             device, component, columnDatapointsMap, summary)
                     report.append(record)
