@@ -1327,7 +1327,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.priority = int(priority)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
-                'Priority Udpdated',
+                'Priority Updated',
                 "Device priority has been set to %s." % (
                     self.getPriorityString())
             )

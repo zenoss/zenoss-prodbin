@@ -316,13 +316,24 @@ class DeviceRouter(TreeRouter):
         if hasattr(process._object, 'index_object'):
             process._object.index_object()
 
-        # Ex: ('UI.Device.Edit', uid, data_={'ProductionState': 'High'})
+        # Ex: ('UI.Device.Edit', uid, data_={'productionState': 'High'})
         # Ex: ('UI.Location.Edit', uid, description='Blah', old_description='Foo')
         if 'name' in oldData:
             oldData['device_name'] = oldData['name']  # we call it this now
             del oldData['name']
         if 'name' in newData:
             del newData['name']  # it gets printed automatically
+        if isinstance(process._object, Device):
+            # ZEN-2837, ZEN-247: Audit names instead of numbers
+            dmd = self.context
+            if 'productionState' in oldData:
+                oldData['productionState'] = dmd.convertProdState(oldData['productionState'])
+            if 'productionState' in newData:
+                newData['productionState'] = dmd.convertProdState(newData['productionState'])
+            if 'priority' in oldData:
+                oldData['priority'] = dmd.convertPriority(oldData['priority'])
+            if 'priority' in newData:
+                newData['priority'] = dmd.convertPriority(newData['priority'])
         audit(['UI', getDisplayType(process._object), 'Edit'], the_uid,
               data_=newData, oldData_=oldData, skipFields_='uid')
         return DirectResponse.succeed()
@@ -1569,7 +1580,9 @@ class DeviceRouter(TreeRouter):
             'systems': ['/Systems' + x for x in systemPaths] if hasSystems else None,
             'device_name': title if title else deviceName, # see Trac #30109
             'collector': collector,
-            'model': str(model)  # show value even if False
+            'model': str(model),  # show value even if False
+            'productionState': self.context.convertProdState(productionState),
+            'priority': self.context.convertPriority(priority),
         }
         audit('UI.Device.Add', deviceUid, data_=auditData)
         return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], keys=('uuid', 'description')))
