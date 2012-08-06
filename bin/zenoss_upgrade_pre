@@ -20,7 +20,7 @@
 # Defaults
 
 default_zendshome=/opt/zends
-default_port=13306
+default_zendsport=13306
 
 # environment variables
 # when we are upgrading and have zends installed
@@ -37,13 +37,13 @@ if [ -f /etc/profile.d/zends_env.sh ]; then
             fi
         fi
         if [ -f "$ZENDSHOME/etc/zends.cnf" ] ; then
-            local socket=`$ZENDSHOME/bin/my_print_defaults --defaults-file=$ZENDSHOME/etc/zends.cnf mysql client | grep "\-\-socket=" | head -1 | cut -f2 -d'='`
+            socket=`$ZENDSHOME/bin/my_print_defaults --defaults-file=$ZENDSHOME/etc/zends.cnf mysql client | grep "\-\-socket=" | head -1 | cut -f2 -d'='`
             if [ ! -z "${socket}" ] ; then
                 $ZENHOME/bin/python $ZENHOME/bin/zenglobalconf -u zodb-socket=${socket}
             fi
-            local port=`$ZENDSHOME/bin/my_print_defaults --defaults-file=$ZENDSHOME/etc/zends.cnf mysql client | grep "\-\-port=" | cut -f2 -d'='`
+            port=`$ZENDSHOME/bin/my_print_defaults --defaults-file=$ZENDSHOME/etc/zends.cnf mysql client | grep "\-\-port=" | cut -f2 -d'='`
             if [ -z "${port}" ] ; then
-                port=${default_port}
+                port=${default_zendsport}
             fi
             $ZENHOME/bin/python $ZENHOME/bin/zenglobalconf -u zep-port=${port} zodb-port=${port}
         fi
