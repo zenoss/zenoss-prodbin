@@ -43,7 +43,7 @@ def filteredDevices(context, args, *types):
     if deviceFilter:
         filter.append(MatchGlob('name','*%s*' % deviceFilter) | MatchGlob('id','*%s*' % deviceFilter))
     if deviceClass:
-        organizer = (''.join([path,'/Devices',deviceClass]),)
+        organizer = (''.join([path,deviceClass]),)
     else:
         organizer = (''.join([path, args.get('organizer', '/Devices') or '/Devices']),)
 
