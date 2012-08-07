@@ -173,7 +173,7 @@ a:link, a:visited {
   display: block;
 }
 
-.inspector .inspector-body .inspector-property .inspector-property-value {
+.inspector .inspector-body .inspector-property .inspector-property-value div{
   color: #999999;
   display: block;
   margin-left: 10px;
@@ -1505,20 +1505,20 @@ table {
     color:black;
 }
 
- 
-.x-ie .white-background-panel .x-tab-default-mc, 
-.x-ie .white-background-panel .x-tab-default-ml, 
+
+.x-ie .white-background-panel .x-tab-default-mc,
+.x-ie .white-background-panel .x-tab-default-ml,
 .x-ie .white-background-panel .x-tab-default-mr,
-.x-ie .white-background-panel .x-tab-default-tr, 
-.x-ie .white-background-panel .x-tab-default-tl, 
+.x-ie .white-background-panel .x-tab-default-tr,
+.x-ie .white-background-panel .x-tab-default-tl,
 .x-ie .white-background-panel .x-tab-default-tc{
     background-color: #d3e0f2 !important;
 }
-.x-ie .white-background-panel .x-tab-top-active .x-frame-mc, 
-.x-ie .white-background-panel .x-tab-top-active .x-frame-ml, 
+.x-ie .white-background-panel .x-tab-top-active .x-frame-mc,
+.x-ie .white-background-panel .x-tab-top-active .x-frame-ml,
 .x-ie .white-background-panel .x-tab-top-active .x-frame-mr,
-.x-ie .white-background-panel .x-tab-top-active .x-frame-tr, 
-.x-ie .white-background-panel .x-tab-top-active .x-frame-tl, 
+.x-ie .white-background-panel .x-tab-top-active .x-frame-tr,
+.x-ie .white-background-panel .x-tab-top-active .x-frame-tl,
 .x-ie .white-background-panel .x-tab-top-active .x-frame-tc{
     background-repeat: repeat-x;
     background-color: rgb(222, 236, 253) !important;
@@ -1576,7 +1576,7 @@ pre {
 .x-ie #devdetailbar .devdetail-textitem span{
     display:inline-block;
     height: 12px !important;
-    line-height: 30px !important; 
+    line-height: 30px !important;
 }
 .x-ie span.status-up-large {
   background-position: right -59px;

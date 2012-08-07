@@ -70,7 +70,6 @@ Ext.define('Zenoss.inspector.InspectorProperty', {
 
 Ext.define('Zenoss.inspector.BaseInspector', {
     extend: 'Ext.Panel',
-    _data: null,
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             defaultType: 'devdetailitem',
@@ -118,16 +117,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
                 'background-image', 'url(' + url + ')'
             );
         } else {
-            this.headerItem.iconItem.update(Ext.String.format('<img src="{0}" />', url));
-        }
-    },
-    onRender: function(ct, position) {
-        this.callParent(arguments);
-        if (this._data) {
-            // Load any pending data
-            var data = this._data;
-            delete this._data;
-            this.update(data);
+            this.headerItem.iconItem.update(Ext.String.format('<img height="43px" src="{0}" />', url));
         }
     },
     /**
@@ -138,39 +128,32 @@ Ext.define('Zenoss.inspector.BaseInspector', {
         return false;
     },
     update: function(data) {
-        if (this.rendered) {
-            if (this.addNewDataItems(data)) {
-                this.doLayout();
+
+        if (this.addNewDataItems(data)) {
+            this.doLayout();
+        }
+
+        // update all the children that have templates
+        var self = this;
+        this.cascade(function(item) {
+            if (item != self && item.tpl) {
+                item.data = data;
+                item.update(data);
             }
 
-            // update all the children that have templates
-            var self = this;
-            this.cascade(function(item) {
-                if (item != self && item.tpl) {
-                    item.data = data;
-                    item.update(data);
-                }
+            return true;
+        });
+        if (data.icon) {
+            this.setIcon(data.icon);
+        }
 
-                return true;
-            });
-            if (data.icon) {
-                this.setIcon(data.icon);
-            }
-
-            if (this.ownerCt) {
-                this.ownerCt.doLayout();
-            }
-            else {
-                this.doLayout();
-            }
-
+        if (this.ownerCt) {
+            this.ownerCt.doLayout();
         }
         else {
-            // Can't load the data yet, the components aren't ready
-            // Set this up so we can set the data after layout
-            this._data = data;
-
+            this.doLayout();
         }
+
     },
     /**
      * Add a property to the inspector panel for display.
