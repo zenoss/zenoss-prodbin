@@ -337,7 +337,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.counters['eventCount'] += 1 
             self.log.debug("Queued event (total of %d) %r",
                        len(self.eventQueue),
-                       event)
+                       generatedEvent)
 
             # keep the queue in check, but don't trim it all the time
             self._trimEventQueue(maxOver=self.options.eventflushchunksize)
