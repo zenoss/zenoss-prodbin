@@ -460,17 +460,16 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
     subComponentGridPanel: false,
     constructor: function(config) {
         config = config || {};
-        config.fields = config.fields || [{
-                                            name: 'name'
-                                        }, {
-                                            name: 'monitored'
-                                        }, {
-                                            name: 'status'
-                                        }, {
-                                            name: 'severity'
-                                        }];
+        config.fields = config.fields || [
+            {name: 'severity'},
+            {name: 'name'},
+            {name: 'monitored'},
+            {name: 'locking'}
+        ];
         config.fields.push({name: 'uuid'});
         config.fields.push({name: 'uid'});
+        config.fields.push({name: 'meta_type'});
+        config.fields.push({name: 'monitor'});
 
         // compat for autoExpandColumn
         var expandColumn = config.autoExpandColumn;
@@ -501,11 +500,11 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
             }),
             columns: [{
-                id: 'severity',
+                id: 'component_severity',
                 dataIndex: 'severity',
                 header: _t('Events'),
                 renderer: Zenoss.render.severity,
-                width: 60
+                width: 50
             },{
                 id: 'name',
                 dataIndex: 'name',
@@ -516,14 +515,14 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 dataIndex: 'monitored',
                 header: _t('Monitored'),
                 renderer: Zenoss.render.checkbox,
-                width: 70,
+                width: 65,
                 sortable: true
             }, {
-                id: 'status',
-                dataIndex: 'status',
-                header: _t('Status'),
-                renderer: Zenoss.render.pingStatus,
-                width: 60
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
             }],
             selModel: new Ext.selection.RowModel({
                 mode: 'MULTI',
