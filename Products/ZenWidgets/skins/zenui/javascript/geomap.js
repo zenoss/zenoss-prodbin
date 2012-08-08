@@ -18,6 +18,7 @@ YAHOO.namespace('zenoss.geomap');
         var dialog = null;
         var nodedata = null;
         var linkdata = null;
+        var errorCount = 0;
     
     /* PUBLICIZE */
     ZenGeoMapPortlet.prototype = {
@@ -98,6 +99,17 @@ YAHOO.namespace('zenoss.geomap');
                         content += '<img src="http://us.i1.yimg.com/us.yimg.com/i/us/per/gr/gp/rel_interstitial_loading.gif" />';
                         dialog.innerHTML = content;                 
                         _overlay.constructMarker(results, true);
+                    }else if(status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) { 
+                        /*  try the address a few times after some delay to make sure it really is a query limit
+                            problem and not just erroring becuase we hit it too many times a second. We can get
+                            this error when the user has reached their daily limit for their IP as well.
+                        */
+                        errorCount++;
+                        if(errorCount >= 5){
+                            _utils.statusDialog("QUERY_LIMIT error. If this is a free account, you may have reached your daily limit. Please try again later.");
+                            return false;
+                        }
+                        setTimeout(function(){_overlay.addMarkers()}, 2000);
                     }else{
                         _utils.statusDialog(status);
                         dialog.style.display = 'block';
@@ -144,6 +156,17 @@ YAHOO.namespace('zenoss.geomap');
                                 _utils.statusDialog(status);
                             }
                         });                 
+                    }else if(status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {    
+                        /*  try the address a few times after some delay to make sure it really is a query limit
+                            problem and not just erroring becuase we hit it too many times a second. We can get
+                            this error when the user has reached their daily limit for their IP as well.
+                        */                    
+                        errorCount++;
+                        if(errorCount >= 5){
+                            _utils.statusDialog("QUERY_LIMIT error. If this is a free account, you may have reached your daily limit. Please try again later."); 
+                            return false;
+                        }                    
+                        setTimeout(function(){_overlay.addPolyline()}, 2000);
                     }else{
                         _utils.statusDialog(status);
                     }
@@ -207,7 +230,7 @@ YAHOO.namespace('zenoss.geomap');
                 // done with that marker, but wait, there's more...
                 // need a delay here to keep google from saying: OVER_QUERY_LIMIT
                 // due to having too many queries per second
-                setTimeout(function(){_overlay.addMarkers()}, 200);
+                setTimeout(function(){_overlay.addMarkers()}, 400);
             }
                         
         },
@@ -237,7 +260,7 @@ YAHOO.namespace('zenoss.geomap');
                 return;
             }else{
                 // done with that line, but wait, there's more...
-                setTimeout(function(){_overlay.addPolyline()}, 200);                           
+                setTimeout(function(){_overlay.addPolyline()}, 400);                           
             }
         },
         doDraw: function(results) {      
