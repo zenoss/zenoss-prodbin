@@ -7,8 +7,7 @@
 # 
 ##############################################################################
 
-
-__doc__ = """MySqlSendEvent
+"""MySqlSendEvent
 Populate the events database with incoming events
 """
 
@@ -23,11 +22,13 @@ from ZenEventClasses import Heartbeat, Unknown
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher, IQueuePublisher
 from zenoss.protocols.protobufs.zep_pb2 import DaemonHeartbeat
 
+
 class MySqlSendEventMixin:
     """
     Mix-in class that takes a MySQL db connection and builds inserts that
     sends the event to the backend.
     """
+
     def sendEvents(self, events):
         """
         Sends multiple events using a single publisher. This prevents
@@ -41,6 +42,10 @@ class MySqlSendEventMixin:
                 try:
                     self._publishEvent(event, publisher)
                     count += 1
+                except IOError as e:
+                    log.critical(
+                        "Unable to publish event to %s: %s", publisher, e
+                    )
                 except Exception:
                     log.exception("Unable to publish event to %s", publisher)
             return count
@@ -60,6 +65,8 @@ class MySqlSendEventMixin:
         try:
             event = self._publishEvent(event)
             return event.evid if event else None
+        except IOError as e:
+            log.critical("Unable to publish event: %s", e)
         except Exception:
             log.exception("Unable to publish event")
 
