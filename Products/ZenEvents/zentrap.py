@@ -20,6 +20,7 @@ import socket
 import errno
 import base64
 import logging
+from collections import defaultdict
 from struct import unpack
 from ipaddr import IPAddress
 
@@ -610,24 +611,28 @@ class TrapTask(BaseTask, CaptureReplay):
 
         # Decode all variable bindings. Allow partial matches and strip
         # off any index values.
+        vb_result = defaultdict(list)
         for vb_oid, vb_value in variables:
             vb_value = self._convert_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
 
             # Add a detail for the variable binding.
             r = self.oid2name(vb_oid, exactMatch=False, strip=False)
-            result[r] = vb_value
+            vb_result[r].append(str(vb_value))
 
             # Add a detail for the index-stripped variable binding.
             r = self.oid2name(vb_oid, exactMatch=False, strip=True)
-            result[r] = vb_value
+            vb_result[r].append(str(vb_value))
+
+        result.update({name:','.join(vals) for name, vals in vb_result.iteritems()})
         return eventType, result
 
     def decodeSnmpv2(self, addr, pdu):
         eventType = 'unknown'
         result = {"oid": "", "device": addr[0]}
-
         variables = self.getResult(pdu)
+
+        vb_result = defaultdict(list)
         for vb_oid, vb_value in variables:
             vb_value = self._convert_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
@@ -639,10 +644,12 @@ class TrapTask(BaseTask, CaptureReplay):
             else:
                 # Add a detail for the variable binding.
                 r = self.oid2name(vb_oid, exactMatch=False, strip=False)
-                result[r] = vb_value
+                vb_result[r].append(str(vb_value))
                 # Add a detail for the index-stripped variable binding.
                 r = self.oid2name(vb_oid, exactMatch=False, strip=True)
-                result[r] = vb_value
+                vb_result[r].append(str(vb_value))
+        result.update({name:','.join(vals) for name, vals in vb_result.iteritems()})
+
         if eventType in ["linkUp", "linkDown"]:
             eventType = "snmp_" + eventType
         return eventType, result
