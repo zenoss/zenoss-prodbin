@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -295,7 +295,11 @@ class DeviceFacade(TreeFacade):
         comps = imap(self._getObject, uids)
         for comp in comps:
             IInfo(comp).monitor = monitor
-            self._root.componentSearch.catalog_object(comp, idxs=('monitored',))
+            # update the componentSearch catalog
+            comp.index_object(idxs=('monitored',))
+
+            # update the global catalog as well
+            notify(IndexingEvent(comp, idxs=('monitored',)))
 
     def pushChanges(self, uids):
         devs = imap(self._getObject, uids)
