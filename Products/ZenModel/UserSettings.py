@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -420,6 +420,14 @@ class UserSettingsManager(ZenModelRM):
         getPlugins = self.acl_users.plugins.listPlugins
         plugins = [ getPlugins(x)[0][1] for x in ifaces ]
         for userid in userids:
+            # must remove the users from the group
+            # before removing them from the plugins otherwise
+            # their relationship will persist as a broken user
+            if getattr(aq_base(self), userid, False):
+                ufolder = self.getUserSettings(userid)
+                for groupId in ufolder.getUserGroupSettingsNames():
+                    group = self.getGroupSettings(groupId)
+                    group.manage_deleteUserFromGroup(userid)
             try:
                 for plugin in plugins:
                     plugin.removeUser(userid)
@@ -1316,7 +1324,7 @@ class GroupSettings(UserSettings):
         # make sure we get everyone assigned directly to this group (incase they appear in
         # another acl_users as is the case with admin)
         [ members.add(self.getUserSettings(u[0]))
-          for u in self._getG().listAssignedPrincipals(self.id) ]
+          for u in self._getG().listAssignedPrincipals(self.id) if self.ZenUsers.getUser(u[0]) ]
         return members
 
     def getMemberUserIds(self):
