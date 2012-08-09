@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -50,7 +50,16 @@ _originalResetCredentials = pas.resetCredentials
 def _resetCredentials(self, request, response=None):
     audit("UI.Authentication.Logout")
     notify(UserLoggedOutEvent(self.zport.dmd.ZenUsers.getUserSettings()))
-    _originalResetCredentials(self, request, response)
+    try:
+        _originalResetCredentials(self, request, response)
+    except KeyError:
+        # see defect ZEN-2942 If the time changes while the server is running
+        # set the session database to a sane state.
+        ts = self.unrestrictedTraverse('/temp_folder/session_data')
+        ts._reset()
+        _originalResetCredentials(self, request, response)
+
+
 pas.resetCredentials = _resetCredentials
 
 # Monkey patch PAS to audit log successful and failed login attempts
@@ -58,7 +67,7 @@ def validate(self, request, auth='', roles=_noroles):
     """
     Here is a run down of how this method is called and where it ends up returning
     in various login situations.
-    
+
     Failure (admin, local, LDAP, and Active Directory)
        is_top=0, user_ids=[], name=login, if not is_top: return None (outside loop)
        is_top=1, user_ids=[], name=login, return anonymous
