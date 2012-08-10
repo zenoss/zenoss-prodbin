@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -84,6 +84,14 @@ class EventClassPropertyMixin(object):
         """
         return '\n'.join("%3s %s" % enumText
                          for enumText in enumerate(transformLines))
+
+    def formatTransformForUI(self):
+        """
+        For the status page so the user can easily read the transform
+        without clicking edit.
+        """
+        lines = self.transform.splitlines()
+        return self.formatTransform(lines).replace(" ", "&nbsp;").replace("\n", "<br />").replace("\t", "&nbsp;" * 8)
 
     def sendTransformException(self, eventclass, evt):
         """
@@ -449,7 +457,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
             'explanation':self.explanation,
             'resolution':self.resolution,
         }
-        
+
         redirect = self.rename(name)
         if eventClassKey and self.eventClassKey != eventClassKey:
             self.unindex_object()

@@ -3,7 +3,7 @@
 
 
 
-        <tal:block tal:define=" 
+        <tal:block tal:define="
             tabletitle string:Status">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -19,8 +19,8 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
-    
+
+
     <tr>
       <td class="tableheader">Events</td>
       <td class="tablevalues">
@@ -36,14 +36,14 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 
 
-        <tal:block tal:define=" 
+        <tal:block tal:define="
             tabletitle string:EventClassInst">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -59,8 +59,8 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
-    
+
+
     <tr>
       <td class="tableheader" width="15%">Event Class Key</td>
       <td class="tablevalues" tal:content="here/eventClassKey">name</td>
@@ -96,7 +96,10 @@
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" >
-        <pre tal:content="here/transform">code</pre>
+        <pre tal:content="structure here/formatTransformForUI" >
+          code
+        </pre>
+
       </td>
     </tr>
     <tr>
@@ -125,7 +128,7 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
 
 </tal:block>
