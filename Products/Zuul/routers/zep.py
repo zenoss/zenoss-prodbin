@@ -115,7 +115,7 @@ class EventsRouter(DirectRouter):
         evdata = self._filterInvalidUuids(events['events'])
         eventObs = [eventFormat(dmd, e) for e in evdata]
         return DirectResponse.succeed(
-            events = Zuul.marshal(eventObs, keys)
+            events = Zuul.marshal(eventObs, keys),
             totalCount = events['total'],
             asof = time.time()
         )
@@ -178,7 +178,7 @@ class EventsRouter(DirectRouter):
         eventObs = [eventFormat(dmd, e) for e in events['events']]
 
         return DirectResponse.succeed(
-            events = Zuul.marshal(eventObs, keys)
+            events = Zuul.marshal(eventObs, keys),
             totalCount = events['total'],
             asof = time.time()
         )
