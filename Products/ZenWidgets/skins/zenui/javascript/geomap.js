@@ -104,12 +104,37 @@ YAHOO.namespace('zenoss.geomap');
                             problem and not just erroring becuase we hit it too many times a second. We can get
                             this error when the user has reached their daily limit for their IP as well.
                         */
-                        errorCount++;
+                        errorCount++; 
                         if(errorCount >= 5){
                             _utils.statusDialog("QUERY_LIMIT error. If this is a free account, you may have reached your daily limit. Please try again later.");
                             return false;
                         }
                         setTimeout(function(){_overlay.addMarkers()}, 2000);
+                    }else if(status === google.maps.GeocoderStatus.ZERO_RESULTS){
+                        try{var latlngStr = nodedata[index][0].split(",",2);}catch(e){
+                            _utils.statusDialog("There was a problem with the address entered. Please check it and try again");
+                            dialog.style.display = 'block';
+                            dialog.innerHTML = "";                            
+                        }
+                        var lat = parseFloat(latlngStr[0]);
+                        var lng = parseFloat(latlngStr[1]);
+                        var latlng = new google.maps.LatLng(lat, lng); 
+                        geocoder.geocode({'latLng': latlng}, function(results, status) {
+                          if (status == google.maps.GeocoderStatus.OK) {
+                            if(results[1]){
+                                nodes.push(results[1]);
+                                dialog.style.display = 'block';
+                                var content = "Geocoding " + (index+1) + " of " + nodedata.length + " addresses, please wait...<br><br>";
+                                content += '<img src="http://us.i1.yimg.com/us.yimg.com/i/us/per/gr/gp/rel_interstitial_loading.gif" />';
+                                dialog.innerHTML = content;                 
+                                _overlay.constructMarker(results[1], true);                          
+                            }
+                          }else{
+                            _utils.statusDialog("We tried the address but couldn't find anything. Maybe try a different address?");
+                            dialog.style.display = 'block';
+                            dialog.innerHTML = "";
+                          }
+                        });                       
                     }else{
                         _utils.statusDialog(status);
                         dialog.style.display = 'block';
@@ -156,6 +181,8 @@ YAHOO.namespace('zenoss.geomap');
                                 _utils.statusDialog(status);
                             }
                         });                 
+                    }else if(status === google.maps.GeocoderStatus.ZERO_RESULTS){
+                            _utils.statusDialog("There was a problem with one of the connecting addresses, moving on...");                         
                     }else if(status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {    
                         /*  try the address a few times after some delay to make sure it really is a query limit
                             problem and not just erroring becuase we hit it too many times a second. We can get
