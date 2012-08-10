@@ -60,10 +60,14 @@ from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Utils import isXmlRpc
 from Products.ZenUtils.Utils import executeCommand
+from Products.ZenUtils.Utils import addXmlServerTimeout
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
 from StatusColor import StatusColor
+
+SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float( getGlobalConfiguration().get('collectorRequestTimeout', 5) )
 
 PERF_ROOT = None
 
@@ -336,7 +340,8 @@ class PerformanceConf(Monitor, StatusColor):
         """
         return RenderURLUtil(self.renderurl).getRemoteRenderUrl()
 
-    def _get_render_server(self, allow_none=False):
+    def _get_render_server(self, allow_none=False,
+                           timeout=None):
         if self.getRemoteRenderUrl():
             renderurl = self.getRemoteRenderUrl()
             # Going through the hub or directly to zenrender
@@ -344,28 +349,46 @@ class PerformanceConf(Monitor, StatusColor):
             url = basicAuthUrl(str(self.renderuser),
                                str(self.renderpass), renderurl)
             server = xmlrpclib.Server(url, allow_none=allow_none)
+            if timeout is not None:
+                addXmlServerTimeout( server, timeout )
         else:
             if not self.renderurl:
                 raise KeyError("No render URL is defined")
             server = self.getObjByPath(self.renderurl)
         return server
 
-    def performanceCustomSummary(self, gopts):
+    def performanceCustomSummary(self, gopts,
+                                 timeout=SUMMARY_COLLECTOR_REQUEST_TIMEOUT ):
         """
         Fill out full path for custom gopts and call to server
 
         @param gopts: graph options
         @type gopts: string
+        @param timeout: the connection timeout in seconds. By default the value
+                       is 5s or the value for the global property 'collectorRequestTimeout'
+                       None translates to the global default
+                       socket timeout. 0 would translate to 'never timeout'.
+        @type timeout: float
         @return: URL
         @rtype: string
         """
         gopts = self._fullPerformancePath(gopts)
-        server = self._get_render_server()
-        return server.summary(gopts)
+        server = self._get_render_server(timeout=timeout)
+        try:
+            value = server.summary(gopts)
+            return value
+        except IOError, e:
+            log.error( "Error collecting performance summary from collector %s: %s",
+                       self.id, e ) 
+            log.debug( "Error collecting with params %s", gopts )
 
-    def fetchValues(self, paths, cf, resolution, start, end=""):
+    def fetchValues(self, paths, cf, resolution, start, end="",
+                    timeout=None):
         """
         Return values
+
+        NOTE: This is called for bulk metric fetch which
+              needs a more lenient timeout than performanceCustomSummary.
 
         @param paths: paths to performance metrics
         @type paths: list
@@ -377,24 +400,36 @@ class PerformanceConf(Monitor, StatusColor):
         @type start: string
         @param end: end time
         @type end: string
+        @param timeout: the connection timeout in seconds. By default the value
+                       is None which translates to the global default
+                       socket timeout. 0 would translate to 'never timeout'.
+        @type timeout: float
         @return: values
         @rtype: list
         """
-        server = self._get_render_server(allow_none=True)
+        server = self._get_render_server(allow_none=True, timeout=timeout)
         return server.fetchValues(map(performancePath, paths), cf,
                                   resolution, start, end)
 
 
-    def currentValues(self, paths):
+    def currentValues(self, paths, timeout=SUMMARY_COLLECTOR_REQUEST_TIMEOUT):
         """
         Fill out full path and call to server
 
+        NOTE: This call should be deprecated. The only internal clients
+              are now defunct.
+
         @param paths: paths to performance metrics
         @type paths: list
+        @param timeout: the connection timeout in seconds. By default the value
+                       is 5s or the value for the global property 'collectorRequestTimeout'
+                       None translates to the global default
+                       socket timeout. 0 would translate to 'never timeout'.
+        @type timeout: float
         @return: values
         @rtype: list
         """
-        server = self._get_render_server()
+        server = self._get_render_server(timeout=timeout)
         return server.currentValues(map(performancePath, paths))
 
 

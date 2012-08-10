@@ -35,6 +35,8 @@ import warnings
 import math
 import contextlib
 import string
+import xmlrpclib
+import httplib
 from decimal import Decimal
 import asyncore
 import copy
@@ -1980,3 +1982,64 @@ class LineReader(threading.Thread):
 
 
 giveTimeToReactor = partial(task.deferLater, reactor, 0)
+
+
+def addXmlServerTimeout(server,timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+    """
+    Given an instance of xmlrpclib.ServerProxy (same as xmlrpclib.Server),
+    attach a timeout for the underlying http/socket connection.
+
+    Example use:
+        server = xmlrpclib.ServerProxy((host,port))
+        addXmlServerTimeout( server, 5 )
+        server.myCall(param1)
+
+    @param server: the xmlrpc server proxy
+    @type server: xmlrpclib.ServerProxy
+    @param timeout: timeout in seconds
+    @type timeout: float
+
+    """
+
+    """
+    This method contains code copied from xmlrpclib.py from the standard
+    Python 2.7 distribution. Please see that file for usage permissions
+    and disclaimers.
+
+    # Copyright (c) 1999-2002 by Secret Labs AB
+    # Copyright (c) 1999-2002 by Fredrik Lundh
+    """
+
+    def _timeout_make_connection(self, host):
+        if self._connection and host == self._connection[0]:
+            return self._connection[1]
+
+        chost, self._extra_headers, x509 = self.get_host_info(host)
+        self._connection = host, httplib.HTTPConnection(chost,timeout=timeout)
+        return self._connection[1]
+
+    def _timeout_make_safe_connection(self,host):
+        if self._connection and host == self._connection[0]:
+            return self._connection[1]
+        try:
+            HTTPS = httplib.HTTPSConnection
+        except AttributeError:
+            raise NotImplementedError(
+                "your version of httplib doesn't support HTTPS"
+                )
+        else:
+            chost, self._extra_headers, x509 = self.get_host_info(host)
+            kwargs = dict(timeout=timeout)
+            if x509:
+                kwargs.update(x509)
+            self._connection = host, HTTPS(chost, None, **kwargs)
+            return self._connection[1]
+
+    transport = server._ServerProxy__transport
+    if isinstance( transport, xmlrpclib.SafeTransport ):
+        transport.make_connection = types.MethodType( _timeout_make_safe_connection, transport )
+    else:
+        transport.make_connection = types.MethodType( _timeout_make_connection, transport )
+
+    return server
+
