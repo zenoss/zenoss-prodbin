@@ -70,10 +70,16 @@ class BatchDeviceLoader(ZCmdBase):
 # after the organizer. The defaults that can be specified are:
 #
 #   * loader arguments (use the --show_options flag to show these)
-#   * zPropertie (from a device, use the More -> zProperties
-#      menu option to see the available ones.)
+#
+#   * zProperties (from a device, use the 'Configuration Properties'
+#      menu item to see the available ones.)
 #
 #      NOTE: new zProperties *cannot* be created through this file
+#
+#   * cProperties (from a device, use the 'Custom Properties'
+#      menu item to see the available ones.)
+#
+#      NOTE: new cProperties *cannot* be created through this file
 #
 #  The Python-expression is used to create a dictionary of settings.
 #  device_settings = eval( 'dict(' + python-expression + ')' )
@@ -319,6 +325,7 @@ windows_device7 cDateTest='2010/02/28'
                 self.log.error("Unable to create organizer! Is Rabbit up and configured correctly?")
                 sys.exit(1)
         self.applyZProps(org, device_specs)
+        self.applyCustProps(org, device_specs)
         self.applyOtherProps(org, device_specs)
 
     def applyOtherProps(self, device, device_specs):
