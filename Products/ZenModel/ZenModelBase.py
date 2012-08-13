@@ -44,7 +44,7 @@ from ZenossSecurity import *
 _MARKER = object()
 
 # Custom device properties start with c
-iscustprop = re.compile("^c[A-Z]").search
+iscustprop = re.compile("c[A-Z]").match
 
 class ZenModelBase(object):
     """

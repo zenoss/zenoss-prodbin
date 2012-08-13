@@ -45,7 +45,7 @@ class BaseOrganizerFilter(object):
     implements(IInvalidationFilter)
 
     weight = 10
-    iszorcustprop = re.compile("^[zc][A-Z]").search
+    iszorcustprop = re.compile("[zc][A-Z]").match
 
     def __init__(self, types):
         self._types = types
