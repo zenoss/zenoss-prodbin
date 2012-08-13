@@ -118,9 +118,11 @@ class EventClassPropertyMixin(object):
         try:
             # if tb has only 1 entry, then the transform didn't compile/run at all
             if len(tb) > 1:
-                # runtime error, get line number from last entry in traceback
-                # (subtract 1, since traceback numbering is 1-based)
-                badLineNo = tb[-1][1] - 1
+                # Runtime error; the transform code is in the second
+                # position of the traceback list (the exec statement is
+                # first).  Subtract 1 from the line number since transforms
+                # are shown with zero-based line numbering.
+                badLineNo = tb[1][1] - 1
                 badLineText = transformLines[badLineNo]
             else:
                 # assume compile error, with exceptionText in the form:
