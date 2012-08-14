@@ -10,6 +10,7 @@
 
 import time
 
+from xmlrpclib import ProtocolError
 import logging
 log = logging.getLogger("zen.RRDView")
 
@@ -167,6 +168,9 @@ class RRDView(object):
                     return None
                 return float(val)
             return dict(zip(names, map(cvt, vals)))
+        except ProtocolError as e:
+            log.warn("Unable to get RRD values for %s: %s for URL %s" % (
+                self.getPrimaryId(), e.errmsg, e.url))
         except Exception, ex:
             log.exception("Unable to collect RRD Values for %s" % self.getPrimaryId())
 
