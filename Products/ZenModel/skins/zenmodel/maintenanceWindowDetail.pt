@@ -1,11 +1,9 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
-</script>
 
-<form method=post 
+<form method=post
     tal:attributes="action string:${here/absolute_url_path}">
-    <input type="hidden" name="zenScreenName" 
+    <input type="hidden" name="zenScreenName"
         tal:attributes="value here/id" />
 
 
@@ -27,7 +25,7 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
+
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:content="here/displayName"/>
@@ -40,84 +38,98 @@
                     tal:attributes="value e; selected python:e==here.enabled"/>
         </select>
         </td>
-        <td class="tablevalues" tal:condition="not:editable" 
+        <td class="tablevalues" tal:condition="not:editable"
             tal:content="here/enabled"/>
     </tr>
     <tr>
         <td class="tableheader">Start</td>
-        <td class="tablevalues" tal:condition="not:editable" 
+        <td class="tablevalues" tal:condition="not:editable"
             tal:content="here/niceStartDateTime"/>
         <td class="tablevalues" tal:condition="editable">
-	    <input type="text" name="startDate" 
-		   readonly="true"
-		   tal:attributes="
+          <div id="datepicker">
+          </div>
+          <script tal:content="string:
+                               Ext.create('Ext.form.field.Date', {
+                               name: 'start_date',
+                               renderTo: 'datepicker',
+                               format: 'm/d/Y',
+                               value: '${here/niceStartDate}',
+                               listeners: {
+                                  change: function(field, newValue){
+                                     document.getElementById('startDate').value = field.getRawValue();
+                                  }
+                               }
+                               });
+            "></script>
+        <input type="hidden" name="startDate" id="startDate"
+           readonly="true"
+           tal:attributes="
                        value python:here.niceStartDate()"/>
-	    <input type="button" value="select" 
-		   onclick="displayDatePicker('startDate');"/>
+
             <select name="startHours">
                 <option tal:repeat="e python:range(24)"
                         tal:content="python:'%02d'%e"
-			tal:attributes="value e; 
+            tal:attributes="value e;
                                         selected python:e==here.niceStartHour()"/>
-	    </select>
+        </select>
             <select name="startMinutes">
                 <option tal:repeat="e python:range(0, 60, 5)"
-	                tal:content="python:'%02d'%e"
+                    tal:content="python:'%02d'%e"
                         tal:attributes="
-			    value e; 
-			    selected python:abs(e-here.niceStartMinute())<5"/>
-	    </select>
+                value e;
+                selected python:abs(e-here.niceStartMinute())<5"/>
+        </select>
         </td>
     </tr>
     <tr>
         <td class="tableheader">Duration</td>
-        <td class="tablevalues" 
-	    tal:condition="not:editable"
-	    tal:content="here/niceDuration"/>
+        <td class="tablevalues"
+        tal:condition="not:editable"
+        tal:content="here/niceDuration"/>
         <td class="tablevalues" tal:condition="editable"
-	    tal:define="days python:here.duration//(24*60);
+        tal:define="days python:here.duration//(24*60);
                         hours python:'%02d' % (here.duration//60%24);
                         mins  python:'%02d' % (here.duration%60)">
-            <input name='durationDays'   
-		   tal:attributes="value days" size=4/> 
-	    Days
-            <input name='durationHours' 
-		   tal:attributes="value hours" size=2/> 
+            <input name='durationDays'
+           tal:attributes="value days" size=4/>
+        Days
+            <input name='durationHours'
+           tal:attributes="value hours" size=2/>
             Hours
-            <input name='durationMinutes' 
-		   tal:attributes="value mins" size=2/> 
-	    Minutes
-	</td>
+            <input name='durationMinutes'
+           tal:attributes="value mins" size=2/>
+        Minutes
+    </td>
     </tr>
     <tr>
         <td class="tableheader">Repeat</td>
         <td class="tablevalues" tal:condition="not:editable"
-				tal:content="here/repeat"/>
+                tal:content="here/repeat"/>
         <td tal:condition="editable" class="tablevalues">
-	  <select class="tablevalues" name="repeat">
-	    <option class="tablevalues" 
-		    tal:repeat="e here/repeatOptions" 
-		    tal:content="e"
-		    tal:attributes="value e; selected python:e==here.repeat"/>
-	  </select>
+      <select class="tablevalues" name="repeat">
+        <option class="tablevalues"
+            tal:repeat="e here/repeatOptions"
+            tal:content="e"
+            tal:attributes="value e; selected python:e==here.repeat"/>
+      </select>
         </td>
     </tr>
     <tr>
-	<td class="tableheader" align="left">Start Production State</td>
-	<td class="tablevalues" align="left">
-	    <select class="tablevalues" name="startProductionState:int"
-		    tal:define="
-		    pstates here/getProdStateConversions;
-		    curstate here/startProductionState | python:1000">
-		<option tal:repeat="pstate pstates" 
-		    tal:attributes="value python:pstate[1]; 
-			selected python:curstate == pstate[1]"
-		    tal:content="python:pstate[0]">Production</option>
-	    </select>
-	</td>
+    <td class="tableheader" align="left">Start Production State</td>
+    <td class="tablevalues" align="left">
+        <select class="tablevalues" name="startProductionState:int"
+            tal:define="
+            pstates here/getProdStateConversions;
+            curstate here/startProductionState | python:1000">
+        <option tal:repeat="pstate pstates"
+            tal:attributes="value python:pstate[1];
+            selected python:curstate == pstate[1]"
+            tal:content="python:pstate[0]">Production</option>
+        </select>
+    </td>
     </tr>
     <tr>
-	<td class="tableheader" align="left">Stop Production State</td>
+    <td class="tableheader" align="left">Stop Production State</td>
         <td class="tablevalues" align="left">Original</td>
     </tr>
     <tr>
@@ -132,11 +144,8 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
 </form>
-<script type="text/javascript">
-    addDateRange('startDate', 'endDate');
-</script>
 </tal:block>
 </tal:block>
