@@ -270,7 +270,7 @@ Ext.onReady(function() {
                         frame: false,
                         defaults: {
                             frame: false
-                        },                       
+                        },
                         layout: {
                             type: 'table',
                             columns: 1,
@@ -703,15 +703,18 @@ Ext.onReady(function() {
             reopenButton.disable();
 
             // enable based on state (i.e. Which state can I go to from my current?)
-            if (state == "new") {
-                ackButton.enable();
-                closeButton.enable();
-            } else if (state == "acknowledged") {
-                unAckButton.enable();
-                closeButton.enable();
-            } else if ((state == "closed") || (state == "cleared"))  {
-                reopenButton.enable();
+            if (Zenoss.Security.hasPermission('Manage Events')) {
+                if (state == "new") {
+                    ackButton.enable();
+                    closeButton.enable();
+                } else if (state == "acknowledged") {
+                    unAckButton.enable();
+                    closeButton.enable();
+                } else if ((state == "closed") || (state == "cleared"))  {
+                    reopenButton.enable();
+                }
             }
+
         },
         bind: function() {
             var close_btn = Ext.getCmp('evdetail_tool_close').getEl(),
