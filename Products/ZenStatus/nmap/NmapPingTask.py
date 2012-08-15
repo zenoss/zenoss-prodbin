@@ -72,6 +72,14 @@ class NmapPingCollectionPreferences(PingCollectionPreferences):
         )
         daemon._scheduler.addTask(task, now=True)
 
+    def buildOptions(self, parser):
+        super(NmapPingCollectionPreferences, self).buildOptions(parser)
+        parser.add_option('--connected-ip-suppress',
+            dest='connectedIps',
+            default=False,
+            action="store_true",
+            help="Suppress ping downs using interfaces on a device whose IPs may not be monitored")
+
 class NPingTaskFactory(object):
     """
     A Factory to create PingTasks that do not run. This allows NmapPingTask
@@ -270,6 +278,7 @@ class NmapPingTask(BaseTask):
         args.extend(["--min-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
         args.extend(["--max-retries", "0"])
         
+
         if traceroute:
             args.append("--traceroute")
         
@@ -322,8 +331,7 @@ class NmapPingTask(BaseTask):
             self._detectNmap()        # will clear nmap_missing
             self._detectNmapIsSuid()  # will clear nmap_suid
             yield self._batchPing()   # will clear nmap_execution
-            self._pings += 1
-            
+
         except nmap.NmapNotFound:
             self._sendNmapMissing()
         except nmap.NmapNotSuid:
@@ -355,6 +363,8 @@ class NmapPingTask(BaseTask):
             log.debug("No ips to ping!")
             raise StopIteration() # exit this generator
 
+        #only increment if we have tasks to ping
+        self._pings += 1
         with tempfile.NamedTemporaryFile(prefix='zenping_nmap_') as tfile:
             ips = []
             for taskName, ipTask in ipTasks.iteritems():
@@ -431,6 +441,15 @@ class NmapPingTask(BaseTask):
         question. It uses only the last known traceroute as given by nmap which
         will not have routing loops and hosts that block icmp.
         """
+
+        # find connectedIps of down tasks, and create a lookup
+        downConnectedIps = {}
+        if self._daemon.options.connectedIps:
+            log.debug("Gathering connected IPs")
+            for ip, ipTask in downTasks.iteritems():
+                for connectedIp, componentId in ipTask._device.connectedIps:
+                    if connectedIp != ip and connectedIp not in downTasks:
+                        downConnectedIps[connectedIp] = ipTask, componentId
         
         # for every down ipTask
         i = 0
@@ -440,11 +459,38 @@ class NmapPingTask(BaseTask):
             for hop in ipTask.trace:
                 # if a hop.ip alog the traceroute is in our list of down ips
                 # and that hop.ip is not the currentIp then
-                if hop.ip in downTasks and hop.ip != currentIp:
-                    # we found our root cause!
-                    rootCause = downTasks[hop.ip]
-                    ipTask.sendPingDown(rootCause=rootCause)
-                    break
+                if hop.ip != currentIp:
+                    if hop.ip in downTasks:
+                        # we found our root cause!
+                        rootCause = downTasks[hop.ip]
+                        rootCauseMessage = "IP %r on interface %r is connected "\
+                            "to device %r and is also in the traceroute "\
+                             "for monitored ip %r on device %r" % (
+                            hop.ip, rootCause.config.iface, rootCause.configId, currentIp, ipTask.configId,
+                        )
+                        cause = {
+                            'rootcause.deviceId': rootCause.configId,
+                            'rootcause.componentId': rootCause.config.iface or None,
+                            'rootcause.componentIP': hop.ip,
+                            'rootcause.message': rootCauseMessage,
+                            }
+                        ipTask.sendPingDown(suppressed=True, **cause)
+                        break
+                    if hop.ip in downConnectedIps:
+                        rootCause, componentId = downConnectedIps[hop.ip]
+                        rootCauseMessage = "IP %r on interface %r is connected "\
+                            "to device %r and is also in the traceroute "\
+                             "for monitored ip %r on device %r" % (
+                            hop.ip, componentId, rootCause.configId, currentIp, ipTask.configId,
+                        )
+                        cause={
+                            'rootcause.deviceId': rootCause.configId,
+                            'rootcause.componentId': componentId,
+                            'rootcause.componentIP': hop.ip,
+                            'rootcause.message': rootCauseMessage,
+                        }
+                        ipTask.sendPingDown( suppressed=True, suppressedWithconnectedIp='True', **cause)
+                        break
             else:
                 # no root cause found
                 ipTask.sendPingDown()

@@ -180,7 +180,7 @@ class PingTask(BaseTask):
         if pingResult.trace:
             self._trace = pingResult.trace
 
-    def sendPingEvent(self, msgTpl, severity, rootCause=None):
+    def sendPingEvent(self, msgTpl, severity, suppressed=False,  **kwargs):
         """
         Send an event based on a ping job to the event backend.
         """
@@ -203,14 +203,17 @@ class PingTask(BaseTask):
             if severity and self._pingResult.trace:
                 evt['lastTraceroute'] = str(self._pingResult.trace)
 
-        if rootCause:
-            evt['rootCause'] = rootCause
+        if suppressed:
             evt['eventState'] = SUPPRESSED
 
         # mark this event with a flag if it applies to the managedIp component
         if self.config.ip == self._manageIp:
             evt['isManageIp'] = True
 
+        # add extra details
+        evt.update(kwargs)
+
+        # send the event to the service
         self._eventService.sendEvent(evt)
 
         # ZEN-1584: if this proxy is for a component
@@ -226,11 +229,11 @@ class PingTask(BaseTask):
         """
         return self.sendPingEvent(msgTpl, events.SEVERITY_CLEAR)
 
-    def sendPingDown(self, msgTpl='%s is DOWN!', rootCause=None):
+    def sendPingDown(self, msgTpl='%s is DOWN!', **kwargs):
         """
         Send an ping down event to the event backend.
         """
-        return self.sendPingEvent(msgTpl, events.SEVERITY_CRITICAL, rootCause)
+        return self.sendPingEvent(msgTpl, events.SEVERITY_CRITICAL, **kwargs)
 
     def storeResults(self):
         """

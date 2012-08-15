@@ -42,6 +42,7 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
         self.tries =      getattr(ds, 'attempts', 2)
         self.sampleSize = getattr(ds, 'sampleSize', 1)
         self.points = []
+        self.connectedIps = []
 
         if not ds:
             # Don't need the datapoints to get the IP monitored
@@ -159,11 +160,19 @@ class PingPerformanceConfig(CollectorConfigService):
         perfServer = device.getPerformanceServer()
         proxy.thresholds = []
         proxy.monitoredIps = []
+        connectedIps = []
         for iface in device.os.interfaces():
             self._getComponentConfig(iface, perfServer, proxy.monitoredIps)
             threshs = iface.getThresholdInstances('PING')
             if threshs:
                 proxy.thresholds.extend(threshs)
+
+            for ipAddress in iface.ipaddresses():
+                ip = ipAddress.id
+                if ip and ip not in ('127.0.0.1', '0.0.0.0', '::', '::1') and ip != device.manageIp:
+                    # tuple of ip, interface id
+                    connectedIps.append((ip, iface.id,))
+        proxy.connectedIps = connectedIps
 
         if not proxy.monitoredIps:
             log.debug("%s has no interface templates -- just using management IP %s",
