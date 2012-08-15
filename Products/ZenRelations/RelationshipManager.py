@@ -139,7 +139,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         if object.meta_type in RELMETATYPES:
             schema = self.lookupSchema(id)
             if not schema.checkType(object):
-                raise ZenSchemaError("Relaitonship %s type %s != %s" %
+                raise ZenSchemaError("Relationship %s type %s != %s" %
                             (id, object.meta_type, schema.__class__.__name__))
         return PrimaryPathObjectManager._setObject(self, id, object, roles,
                                             user, set_owner)
