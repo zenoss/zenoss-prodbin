@@ -246,3 +246,5 @@ import removeClearHeartbeatsMenuItem
 import zRemoveAutoAllocate
 import perDeviceCompCatalog
 import removeConfigTimesGraph
+import AddZHardDiskMapMatchProperty
+
