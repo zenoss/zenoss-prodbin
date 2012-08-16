@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -45,7 +45,7 @@ Ext.define("Zenoss.InstanceStore", {
         Ext.applyIf(config, {
             model: 'Zenoss.InstanceModel',
             root: 'data',
-            initialSortColumn: 'device'
+            initialSortColumn: 'name'
         });
         this.callParent(arguments);
     }
@@ -59,33 +59,35 @@ Ext.define("Zenoss.SimpleInstanceGridPanel", {
 
     constructor: function(config) {
         var instanceColumns = [{
-            id: 'device',
-            dataIndex: 'device',
-            flex: .75,
-            header: _t('Device'),
-            width: 200,
-            renderer: function(device, row, record){
-                return Zenoss.render.link(device.uid, undefined,
-                                          device.name);
-            }
-        }, {
             id: 'instanceName',
             dataIndex: config.nameDataIndex || 'name',
             header: _t('Name'),
             flex: .25,
             width: 400
+        },{
+            id: 'device',
+            dataIndex: 'device',
+            flex: .75,
+            header: _t('Device'),
+            width: 200,
+            sortable: false,
+            renderer: function(device, row, record){
+                return Zenoss.render.link(device.uid, undefined,
+                                          device.name);
+            }
         }, {
             id: 'monitored',
             dataIndex: 'monitored',
             header: _t('Monitored'),
             width: 70,
-            sortable: true
+            sortable: false
         }, {
             id: 'status',
             dataIndex: 'pingStatus',
             header: _t('Status'),
             renderer: Zenoss.render.pingStatus,
-            width: 60
+            width: 60,
+            sortable: false
         }];
 
         Ext.applyIf(config, {
