@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -39,6 +39,9 @@ class EventsExporter(BrowserView):
         del state['params']['params']
         params.update(filter_params)
         getattr(self, type)(self.request.response, archive, **params)
+        # aborting the long running export transaction so it is not retried
+        import transaction
+        transaction.abort()
 
     def _query(self, archive, uid=None, fields=None, sort=None, dir=None, evids=None, excludeIds=None, params=None):
         jsonParams = params
@@ -69,7 +72,6 @@ class EventsExporter(BrowserView):
     def csv(self, response, archive, **params):
         response.setHeader('Content-Type', 'application/vns.ms-excel')
         response.setHeader('Content-Disposition', 'attachment; filename=events.csv')
-
         from csv import writer
         writer = writer(response)
 

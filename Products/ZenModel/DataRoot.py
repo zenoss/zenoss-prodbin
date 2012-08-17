@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -527,6 +527,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             result = None
         else:
             result = buffer.getvalue()
+        # aborting the long running export transaction so it is not retried
+        import transaction
+        transaction.abort()
         return result
 
 
@@ -834,14 +837,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                            smtpPass="password",
                            smtpUseTLS="useTls",
                            emailFrom="email_from")
-        
+
         # did the system-wide email properties change?
         email_props_changed = False
         for prop in email_props:
             if self.getProperty(prop) != REQUEST.get(prop):
                 email_props_changed = True
                 break
-        
+
         # if so, find all email notifications that use the system-wide
         # settings and update them
         if email_props_changed:
