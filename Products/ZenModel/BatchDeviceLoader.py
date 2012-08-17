@@ -119,7 +119,7 @@ zTelnetPromptTimeout=15.3
 # Bind templates
 windows_device1 zDeviceTemplates=[ 'Device', 'myTemplate' ]
 # Override the default from the organizer setting.
-windows_device2 zWinUser="administrator", zWinPassword='thomas'
+windows_device2 zWinUser="administrator", zWinPassword='thomas', setProdState=500
 
 # Apply other settings to the device
 settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
@@ -159,9 +159,7 @@ windows_device7 cDateTest='2010/02/28'
             monitor='localhost',
             manager=self.fqdn,
             severity=SEVERITY_ERROR,
-            # Note: Change_Add is probably a better event class, but these
-            #       events get sent to history by the default Zen property stuff
-            #       on the event class. zendisc uses Status_Snmp, so so will we.
+            # Note: Change_Add events get sent to history by the event class' Zen property
             eventClass=Change_Add,
         )
 
