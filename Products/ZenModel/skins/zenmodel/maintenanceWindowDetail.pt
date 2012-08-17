@@ -54,6 +54,7 @@
                                renderTo: 'datepicker',
                                format: 'm/d/Y',
                                value: '${here/niceStartDate}',
+                               minValue: new Date(),
                                listeners: {
                                   change: function(field, newValue){
                                      document.getElementById('startDate').value = field.getRawValue();
