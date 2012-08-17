@@ -766,7 +766,6 @@ registerDirectory("skins", globals())
         Stop all the daemons provided by this pack.
         Called before an upgrade or a removal of the pack.
         """
-        return
         for d in self.getDaemonNames():
             self.About.doDaemonAction(d, 'stop')
 
@@ -776,7 +775,6 @@ registerDirectory("skins", globals())
         Start all the daemons provided by this pack.
         Called after an upgrade or an install of the pack.
         """
-        return
         for d in self.getDaemonNames():
             self.About.doDaemonAction(d, 'start')
 
