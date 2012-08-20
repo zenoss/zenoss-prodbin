@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -156,7 +156,7 @@ function showMonitoringDialog() {
             Ext.apply(opts, componentGridOptions());
             REMOTE.setComponentsMonitored(opts, function(r){
                 refreshComponentTreeAndGrid();
-            });        
+            });
         },
         buttons: [{
             xtype:'DialogButton',
@@ -1107,5 +1107,10 @@ Ext.getCmp('footer_bar').add([{
     menu: {}
 }]);
 
+    if (Ext.isIE) {
+        // work around a rendering bug in ExtJs see ticket ZEN-3054
+        var viewport = Ext.getCmp('viewport');
+        viewport.setHeight(viewport.getHeight() +1 );
+    }
 
 });
