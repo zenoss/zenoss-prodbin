@@ -134,6 +134,8 @@ case "${ACTION}" in
     ;;
   help)
     ;;
+  stats)
+    ;;
   *)
     if [ -e $ZENHOME/bin/zensendaudit ] ; then
       zensendaudit kind=Daemon action=$ACTION daemon=zenrrdcached > /dev/null 2>&1
