@@ -19,10 +19,10 @@ from traceback import format_exc
 import socket
 
 import Globals
-from DateTime import DateTime
 from ZODB.POSException import ConflictError
 from ZODB.transact import transact
 from zope.component import getUtility
+from zope.event import notify
 
 from zExceptions import BadRequest
 
@@ -33,6 +33,7 @@ from Products.ZenModel.Device import Device
 from Products.ZenRelations.ZenPropertyManager import iszprop
 from Products.ZenModel.ZenModelBase import iscustprop
 from Products.ZenEvents.ZenEventClasses import Change_Add
+from Products.Zuul.catalog.events import IndexingEvent
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
@@ -319,7 +320,7 @@ windows_device7 cDateTest='2010/02/28'
                     base.manage_addOrganizer(path)
                 inner()
                 org = base.getDmdObj(path)
-            except IOError, ex:
+            except IOError:
                 self.log.error("Unable to create organizer! Is Rabbit up and configured correctly?")
                 sys.exit(1)
         self.applyZProps(org, device_specs)
@@ -447,6 +448,9 @@ windows_device7 cDateTest='2010/02/28'
                 self.applyZProps(devobj, device_specs)
                 self.applyCustProps(devobj, device_specs)
                 self.applyOtherProps(devobj, device_specs)
+
+                if not self.options.nocommit and isinstance(devobj, Device):
+                    notify(IndexingEvent(devobj))
 
             return devobj
 
