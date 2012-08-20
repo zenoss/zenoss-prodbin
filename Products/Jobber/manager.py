@@ -126,7 +126,7 @@ class JobManager(ZenModelRM):
                 cat.addIndex(idxname, DateIndex(idxname))
             return zcat
 
-    def addJob(self, klass, description=None, args=None, kwargs=None):
+    def addJob(self, klass, description=None, args=None, kwargs=None, properties=None):
         """
         Schedule a new L{Job} from the class specified.
 
@@ -139,6 +139,7 @@ class JobManager(ZenModelRM):
         log.debug("Adding job %s", klass)
         args = args or ()
         kwargs = kwargs or {}
+        properties = properties or {}
 
         # Push the task out to AMQP
         async_result = klass().delay(*args, **kwargs)
@@ -148,7 +149,7 @@ class JobManager(ZenModelRM):
         try:
             description = description or klass.getJobDescription(*args, **kwargs)
         except Exception:
-            description = "%s %s" % (args, kwargs)
+            description = "%s %r properties=%r" % (args, kwargs, properties)
 
         user = getSecurityManager().getUser()
         if not isinstance(user, basestring):
@@ -162,6 +163,9 @@ class JobManager(ZenModelRM):
                          date_started=None,
                          date_done=None,
                          result=None)
+        for prop,propval in properties.iteritems():
+            setattr(meta, prop, propval)
+
         self._setOb(async_result.task_id, meta)
         job = self._getOb(async_result.task_id)
         self.getCatalog().catalog_object(job)

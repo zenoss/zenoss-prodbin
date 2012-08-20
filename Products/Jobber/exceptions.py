@@ -13,6 +13,11 @@ class NoSuchJobException(Exception):
     No such job exists.
     """
 
+class JobAlreadyExistsException(Exception):
+    """
+    A matching job has already been submitted, and is not yet finished.
+    """
+
 class SubprocessJobFailed(Exception):
     """
     A subprocess job exited with a non-zero return code.
