@@ -104,8 +104,14 @@ class ModelerService(PerformanceConfig):
         if monitor is None:
             monitor = self.instance
         root = self.dmd.Devices.getOrganizer(organizer)
-        return [d.id for d in root.getSubDevicesGen()
-            if d.getPerformanceServerName() == monitor]
+        #If getting all devices for a monitor, get them from the monitor
+        if root.getPrimaryId() == '/zport/dmd/Devices':
+            monitor = self.dmd.Monitors.Performance._getOb(monitor)
+            devices = ((d.id, d.snmpLastCollection) for d in monitor.devices.objectValuesGen())
+        else:
+            devices= ((d.id, d.snmpLastCollection) for d in root.getSubDevicesGen()
+                if d.getPerformanceServerName() == monitor)
+        return [d[0] for d in sorted(devices, key=lambda x:x[1])]
 
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
