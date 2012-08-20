@@ -24,6 +24,7 @@ from Products.Five.browser import BrowserView
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.celeryintegration import Task
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
+from .jobs import Job
 from .exceptions import NoSuchJobException
 
 from logging import getLogger
@@ -212,46 +213,59 @@ class JobManager(ZenModelRM):
         self.getCatalog().uncatalog_object('/'.join(job.getPhysicalPath()))
         return self._delObject(jobid)
 
-    def _getByStatus(self, *status):
-        for b in self.getCatalog()(status=status):
+    def _getByStatus(self, statuses, jobtype=None):
+        def _normalizeJobType(typ):
+            if typ is not None and isinstance(typ, type):
+                if hasattr(typ, 'getJobType'):
+                    return typefilter.getJobType()
+                else:
+                    return typefilter.__name__
+            return typ
+
+        # build additional query qualifiers based on named args
+        query = {}
+        if jobtype is not None:
+            query['type'] = _normalizeJobType(jobtype)
+
+        for b in self.getCatalog()(status=statuses, **query):
             yield b.getObject()
 
-    def getUnfinishedJobs(self):
+    def getUnfinishedJobs(self, type_=None):
         """
         Return JobRecord objects that have not yet completed, including those
         that have not yet started.
 
-        @return: A list of jobs.
-        @rtype: list
+        @return: All jobs in the requested state.
+        @rtype: generator
         """
-        return self._getByStatus(*states.UNREADY_STATES)
+        return self._getByStatus(states.UNREADY_STATES, type_)
 
-    def getRunningJobs(self):
+    def getRunningJobs(self, type_=None):
         """
-        Return JobStatus objects that have started but not finished.
+        Return JobRecord objects that have started but not finished.
 
-        @return: A list of jobs.
-        @rtype: list
+        @return: All jobs in the requested state.
+        @rtype: generator
         """
-        return self._getByStatus(states.STARTED, states.RETRY)
+        return self._getByStatus((states.STARTED, states.RETRY), type_)
 
-    def getPendingJobs(self):
+    def getPendingJobs(self, type_=None):
         """
-        Return JobStatus objects that have not yet started.
+        Return JobRecord objects that have not yet started.
 
-        @return: A list of jobs.
-        @rtype: list
+        @return: All jobs in the requested state.
+        @rtype: generator
         """
-        return self._getByStatus(states.RECEIVED, states.PENDING)
+        return self._getByStatus((states.RECEIVED, states.PENDING), type_)
 
-    def getFinishedJobs(self):
+    def getFinishedJobs(self, type_=None):
         """
-        Return JobStatus objects that have finished.
+        Return JobRecord objects that have finished.
 
-        @return: A list of jobs.
-        @rtype: list
+        @return: All jobs in the requested state.
+        @rtype: generator
         """
-        return self._getByStatus(*states.READY_STATES)
+        return self._getByStatus(states.READY_STATES, type_)
 
     def deleteUntil(self, untiltime):
         """
