@@ -1826,9 +1826,9 @@ def atomicWrite(filename, data, raiseException=True, createDir=False):
     @param data Data to write to destination file.
     @type data writeable object (eg, string)
     @param raiseException Raise errors that occur during atomicWrite
-    @type raiseException Exception
+    @type raiseException bool
     @param createDir Create the destination directory if it does not exists.
-    @type createDir Bool
+    @type createDir bool
     @rtype a suppressed exception, if any
     """
     dirName = os.path.dirname(filename)

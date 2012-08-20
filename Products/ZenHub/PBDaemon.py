@@ -19,6 +19,8 @@ import collections
 import sys
 import time
 import traceback
+from itertools import chain
+from functools import partial
 
 import Globals
 
@@ -27,9 +29,11 @@ from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Utils import zenPath, atomicWrite
-from Products.ZenUtils.Driver import drive
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
                                                 Clear, Warning
+from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
+                                        ICollectorEventTransformer,
+                                        TRANSFORM_DROP, TRANSFORM_STOP)
 
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
@@ -37,6 +41,9 @@ from twisted.internet.error import ConnectionLost, ReactorNotRunning
 from twisted.spread import pb
 from twisted.python.failure import Failure
 import twisted.python.log
+
+from zope.interface import implements
+from zope.component import getUtilitiesFor
 
 from ZODB.POSException import ConflictError
 
@@ -112,6 +119,402 @@ class FakeRemote:
         ex = HubDown("ZenHub is down")
         return defer.fail(ex)
 
+
+class DefaultFingerprintGenerator(object):
+    """
+    Generates a fingerprint using the same algorithm used by zeneventd.
+    """
+    implements(ICollectorEventFingerprintGenerator)
+
+    weight = 100
+
+    EVENT_KEY_FIELDS = ('device', 'component', 'eventClass', 'eventKey',
+                        'severity')
+    NO_EVENT_KEY_FIELDS = ('device', 'component', 'eventClass', 'severity',
+                           'summary')
+
+    def generate(self, event):
+        fields = self.EVENT_KEY_FIELDS if 'eventKey' in event \
+            else self.NO_EVENT_KEY_FIELDS
+        return '|'.join(str(event.get(field, '')) for field in fields)
+
+
+def _load_utilities(utility_class):
+    """
+    Loads ZCA utilities of the specified class.
+
+    @param utility_class: The type of utility to load.
+    @return: A list of utilities, sorted by their 'weight' attribute.
+    """
+    utilities = (f for n, f in getUtilitiesFor(utility_class))
+    return sorted(utilities, key=lambda f:getattr(f, 'weight', 100))
+
+
+class BaseEventQueue(object):
+
+    def __init__(self, maxlen):
+        self.maxlen = maxlen
+
+    def append(self, event):
+        """
+        Appends the event to the queue.
+
+        @param event: The event.
+        @return: If the queue is full, this will return the oldest event
+                 which was discarded when this event was added.
+        """
+        raise NotImplementedError()
+
+    def popleft(self):
+        """
+        Removes and returns the oldest event from the queue. If the queue
+        is empty, raises IndexError.
+
+        @return: The oldest event from the queue.
+        @raise IndexError: If the queue is empty.
+        """
+        raise NotImplementedError()
+
+    def extendleft(self, events):
+        """
+        Appends the events to the beginning of the queue (they will be the
+        first ones removed with calls to popleft). The list of events are
+        expected to be in order, with the earliest queued events listed
+        first.
+
+        @param events: The events to add to the beginning of the queue.
+        @type events: list
+        @return A list of discarded events that didn't fit on the queue.
+        @rtype list
+        """
+        raise NotImplementedError()
+
+    def __len__(self):
+        """
+        Returns the length of the queue.
+
+        @return: The length of the queue.
+        """
+        raise NotImplementedError()
+
+    def __iter__(self):
+        """
+        Returns an iterator over the elements in the queue (oldest events
+        are returned first).
+        """
+        raise NotImplementedError()
+
+
+class DequeEventQueue(BaseEventQueue):
+    """
+    Event queue implementation backed by a deque. This queue does not
+    perform de-duplication of events.
+    """
+
+    def __init__(self, maxlen):
+        super(DequeEventQueue, self).__init__(maxlen)
+        self.queue = collections.deque()
+
+    def append(self, event):
+        # Make sure every processed event specifies the time it was queued.
+        if not 'rcvtime' in event:
+            event['rcvtime'] = time.time()
+
+        discarded = None
+        if len(self.queue) == self.maxlen:
+            discarded = self.popleft()
+        self.queue.append(event)
+        return discarded
+
+    def popleft(self):
+        return self.queue.popleft()
+
+    def extendleft(self, events):
+        if not events:
+            return events
+        available = self.maxlen - len(self.queue)
+        if not available:
+            return events
+        to_discard = 0
+        if available < len(events):
+            to_discard = len(events) - available
+        self.queue.extendleft(reversed(events[to_discard:]))
+        return events[:to_discard]
+
+    def __len__(self):
+        return len(self.queue)
+
+    def __iter__(self):
+        return iter(self.queue)
+
+
+class DeDupingEventQueue(BaseEventQueue):
+    """
+    Event queue implementation backed by a OrderedDict. This queue performs
+    de-duplication of events (when an event with the same fingerprint is
+    seen, the 'count' field of the event is incremented by one instead of
+    sending an additional event).
+    """
+
+    def __init__(self, maxlen):
+        super(DeDupingEventQueue, self).__init__(maxlen)
+        self.default_fingerprinter = DefaultFingerprintGenerator()
+        self.fingerprinters = \
+            _load_utilities(ICollectorEventFingerprintGenerator)
+        self.queue = collections.OrderedDict()
+
+    def _event_fingerprint(self, event):
+        for fingerprinter in self.fingerprinters:
+            event_fingerprint = fingerprinter.generate(event)
+            if event_fingerprint is not None:
+                break
+        else:
+            event_fingerprint = self.default_fingerprinter.generate(event)
+
+        return event_fingerprint
+
+    def _first_time(self, event1, event2):
+        first = lambda evt: evt.get('firstTime', evt['rcvtime'])
+        return min(first(event1), first(event2))
+
+    def append(self, event):
+        # Make sure every processed event specifies the time it was queued.
+        if not 'rcvtime' in event:
+            event['rcvtime'] = time.time()
+
+        fingerprint = self._event_fingerprint(event)
+        if fingerprint in self.queue:
+            # Remove the currently queued item - we will insert again which
+            # will move to the end.
+            current_event = self.queue.pop(fingerprint)
+            event['count'] = current_event.get('count', 1) + 1
+            event['firstTime'] = self._first_time(current_event, event)
+            self.queue[fingerprint] = event
+            return
+
+        discarded = None
+        if len(self.queue) == self.maxlen:
+            discarded = self.popleft()
+
+        self.queue[fingerprint] = event
+        return discarded
+
+    def popleft(self):
+        try:
+            return self.queue.popitem(last=False)[1]
+        except KeyError:
+            # Re-raise KeyError as IndexError for common interface across
+            # queues.
+            raise IndexError()
+
+    def extendleft(self, events):
+        # Attempt to de-duplicate with events currently in queue
+        events_to_add = []
+        for event in events:
+            fingerprint = self._event_fingerprint(event)
+            if fingerprint in self.queue:
+                current_event = self.queue[fingerprint]
+                current_event['count'] = current_event.get('count', 1) + 1
+                current_event['firstTime'] = self._first_time(current_event, event)
+            else:
+                events_to_add.append(event)
+
+        if not events_to_add:
+            return events_to_add
+        available = self.maxlen - len(self.queue)
+        if not available:
+            return events_to_add
+        to_discard = 0
+        if available < len(events_to_add):
+            to_discard = len(events_to_add) - available
+        old_queue, self.queue = self.queue, collections.OrderedDict()
+        for event in events_to_add[to_discard:]:
+            self.queue[self._event_fingerprint(event)] = event
+        for fingerprint, event in old_queue.iteritems():
+            self.queue[fingerprint] = event
+        return events_to_add[:to_discard]
+
+    def __len__(self):
+        return len(self.queue)
+
+    def __iter__(self):
+        return self.queue.itervalues()
+
+
+
+class EventQueueManager(object):
+
+    CLEAR_FINGERPRINT_FIELDS = ('device','component','eventKey','eventClass')
+
+    def __init__(self, options, log):
+        self.options = options
+        self.transformers = _load_utilities(ICollectorEventTransformer)
+        self.log = log
+        self.discarded_events = 0
+        # TODO: Do we want to limit the size of the clear event dictionary?
+        self.clear_events_count = {}
+        self._initQueues()
+
+    def _initQueues(self):
+        maxlen = self.options.maxqueuelen
+        queue_type = DeDupingEventQueue if self.options.deduplicate_events \
+            else DequeEventQueue
+        self.event_queue = queue_type(maxlen)
+        self.perf_event_queue = queue_type(maxlen)
+        self.heartbeat_event_queue = collections.deque(maxlen=1)
+
+    def _transformEvent(self, event):
+        for transformer in self.transformers:
+            result = transformer.transform(event)
+            if result == TRANSFORM_DROP:
+                self.log.debug("Event dropped by transform %s: %s",
+                               transformer, event)
+                return None
+            if result == TRANSFORM_STOP:
+                break
+        return event
+
+    def _clearFingerprint(self, event):
+        return tuple(event.get(field, '')
+                     for field in self.CLEAR_FINGERPRINT_FIELDS)
+
+    def _removeDiscardedEventFromClearState(self, discarded):
+        #
+        # There is a particular condition that could cause clear events to never
+        # be sent until a collector restart. Consider the following sequence:
+        #
+        #   1) Clear event added to queue. This is the first clear event of
+        #      this type and so it is added to the clear_events_count
+        #      dictionary with a count of 1.
+        #   2) A large number of additional events are queued until maxqueuelen
+        #      is reached, and so the queue starts to discard events including
+        #      the clear event from #1.
+        #   3) The same clear event in #1 is sent again, however this time it
+        #      is dropped because allowduplicateclears is False and the event
+        #      has a > 0 count.
+        #
+        # To resolve this, we are careful to track all discarded events, and
+        # remove their state from the clear_events_count dictionary.
+        #
+        opts = self.options
+        if not opts.allowduplicateclears and opts.duplicateclearinterval == 0:
+            severity = discarded.get('severity', -1)
+            if severity == Clear:
+                clear_fingerprint = self._clearFingerprint(discarded)
+                if clear_fingerprint in self.clear_events_count:
+                    self.clear_events_count[clear_fingerprint] -= 1
+
+    def _addEvent(self, queue, event):
+        if self._transformEvent(event) is None:
+            return
+
+        allowduplicateclears = self.options.allowduplicateclears
+        duplicateclearinterval = self.options.duplicateclearinterval
+        if not allowduplicateclears or duplicateclearinterval > 0:
+            clear_fingerprint = self._clearFingerprint(event)
+            severity = event.get('severity', -1)
+            if severity != Clear:
+                # A non-clear event - clear out count if it exists
+                self.clear_events_count.pop(clear_fingerprint, None)
+            else:
+                current_count = self.clear_events_count.get(clear_fingerprint, 0)
+                self.clear_events_count[clear_fingerprint] = current_count + 1
+                if not allowduplicateclears and current_count != 0:
+                    self.log.debug(
+                        "allowduplicateclears dropping clear event %r",
+                        event)
+                    return
+                if duplicateclearinterval > 0 and current_count % duplicateclearinterval != 0:
+                    self.log.debug(
+                        "duplicateclearinterval dropping clear event %r",
+                        event)
+                    return
+
+        discarded = queue.append(event)
+        self.log.debug("Queued event (total of %d) %r", len(self.event_queue),
+            event)
+        if discarded:
+            self.log.debug("Discarded event - queue overflow: %r", discarded)
+            self._removeDiscardedEventFromClearState(discarded)
+            self.discarded_events += 1
+
+    def addEvent(self, event):
+        self._addEvent(self.event_queue, event)
+
+    def addPerformanceEvent(self, event):
+        self._addEvent(self.perf_event_queue, event)
+
+    def addHeartbeatEvent(self, heartbeat_event):
+        self.heartbeat_event_queue.append(heartbeat_event)
+
+    @defer.inlineCallbacks
+    def sendEvents(self, event_sender_fn):
+        # Create new queues - we will flush the current queues and don't want to
+        # get in a loop sending events that are queued while we send this batch
+        # (the event sending is asynchronous).
+        prev_heartbeat_event_queue = self.heartbeat_event_queue
+        prev_perf_event_queue = self.perf_event_queue
+        prev_event_queue = self.event_queue
+        self._initQueues()
+
+        perf_events = []
+        events = []
+        try:
+            def chunk_events():
+                chunk_remaining = self.options.eventflushchunksize
+                heartbeat_events = []
+                num_heartbeat_events = min(chunk_remaining,
+                    len(prev_heartbeat_event_queue))
+                for i in xrange(num_heartbeat_events):
+                    heartbeat_events.append(prev_heartbeat_event_queue.popleft())
+                chunk_remaining -= num_heartbeat_events
+
+                perf_events = []
+                num_perf_events = min(chunk_remaining,
+                    len(prev_perf_event_queue))
+                for i in xrange(num_perf_events):
+                    perf_events.append(prev_perf_event_queue.popleft())
+                chunk_remaining -= num_perf_events
+
+                events = []
+                num_events = min(chunk_remaining, len(prev_event_queue))
+                for i in xrange(num_events):
+                    events.append(prev_event_queue.popleft())
+                return heartbeat_events, perf_events, events
+
+            heartbeat_events, perf_events, events = chunk_events()
+            while heartbeat_events or perf_events or events:
+                self.log.debug(
+                    "Sending %d events, %d perf events, %d heartbeats",
+                    len(events), len(perf_events), len(heartbeat_events))
+                yield event_sender_fn(heartbeat_events + perf_events + events)
+                heartbeat_events, perf_events, events = chunk_events()
+
+        except Exception:
+            # Restore performance events that failed to send
+            perf_events.extend(prev_perf_event_queue)
+            discarded_perf_events = self.perf_event_queue.extendleft(perf_events)
+            self.discarded_events += len(discarded_perf_events)
+
+            # Restore events that failed to send
+            events.extend(prev_event_queue)
+            discarded_events = self.event_queue.extendleft(events)
+            self.discarded_events += len(discarded_events)
+
+            # Remove any clear state for events that were discarded
+            for discarded in chain(discarded_perf_events, discarded_events):
+                self.log.debug("Discarded event - queue overflow: %r",
+                    discarded)
+                self._removeDiscardedEventFromClearState(discarded)
+            raise
+
+    @property
+    def event_queue_length(self):
+        return len(self.event_queue) + len(self.perf_event_queue) + \
+               len(self.heartbeat_event_queue)
+
+
+
 class PBDaemon(ZenDaemon, pb.Referenceable):
     
     name = 'pbdaemon'
@@ -140,7 +543,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.lastStats = 0
         self.perspective = None
         self.services = {}
-        self.eventQueue = []
+        self.eventQueueManager = EventQueueManager(self.options, self.log)
         self.startEvent = startEvent.copy()
         self.stopEvent = stopEvent.copy()
         details = dict(component=self.name, device=self.options.monitor)
@@ -148,12 +551,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             evt.update(details)
         self.initialConnect = defer.Deferred()
         self.stopped = False
-        self._eventStatus = {}
-        self._eventStatusCount = collections.defaultdict(int)
         self.counters = collections.Counter()
         self.loadCounters()
-        self._heartbeatEvent = None
-        self._performanceEventsQueue = None
         self._pingedZenhub = None
 
     def connecting(self):
@@ -298,8 +697,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def setExitCode(self, exitcode):
         self._customexitcode = exitcode
 
+    @defer.inlineCallbacks
     def stop(self, ignored=''):
-        def stopNow(ignored):
+        def stopNow():
             if reactor.running:
                 try:
                     self.saveCounters()
@@ -315,7 +715,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                    getattr(self.options, 'cycle', True):
                     self.sendEvent(self.stopEvent)
                 # give the reactor some time to send the shutdown event
-                drive(self.pushEvents).addBoth(stopNow)
+                try:
+                    yield self.pushEvents()
+                finally:
+                    stopNow()
                 self.log.debug( "Sent a 'stop' event" )
             else:
                 self.log.debug( "No event sent as no EventService available." )
@@ -332,15 +735,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         service then process the queue.
         '''
         generatedEvent = self.generateEvent(event, **kw)
-        if generatedEvent:
-            self.eventQueue.append(generatedEvent)
-            self.counters['eventCount'] += 1 
-            self.log.debug("Queued event (total of %d) %r",
-                       len(self.eventQueue),
-                       generatedEvent)
-
-            # keep the queue in check, but don't trim it all the time
-            self._trimEventQueue(maxOver=self.options.eventflushchunksize)
+        self.eventQueueManager.addEvent(generatedEvent)
+        self.counters['eventCount'] += 1
 
     def generateEvent(self, event, **kw):
         ''' Add event to queue of events to be sent.  If we have an event
@@ -352,68 +748,25 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         event['monitor'] = self.options.monitor
         event['manager'] = self.fqdn
         event.update(kw)
-        if not self.options.allowduplicateclears or self.options.duplicateclearinterval > 0:
-            statusKey = ( event['device'],
-                          event.get('component', ''),
-                          event.get('eventKey', ''),
-                          event.get('eventClass', '') )
-            severity = event.get('severity', -1)
-            status = self._eventStatus.get(statusKey, -1)
-            if severity != -1:
-               if severity != status:
-                   self._eventStatusCount[statusKey] = 0
-               else:
-                   self._eventStatusCount[statusKey] += 1
-            self._eventStatus[statusKey] = severity
-            if severity == Clear and status == Clear:
-                if not self.options.allowduplicateclears:
-                    self.log.debug("allowduplicateclears dropping useless clear event %r", event)
-                    return
-                if self.options.duplicateclearinterval > 0 \
-                    and self._eventStatusCount[statusKey] % self.options.duplicateclearinterval != 0:
-                    self.log.debug("duplicateclearinterval dropping useless clear event %r", event)
-                    return
-        return event 
+        return event
 
-    def _trimEventQueue(self, maxOver=0):
-        queueLen = len(self.eventQueue)
-        if queueLen > (self.options.maxqueuelen + maxOver):
-            diff = queueLen - self.options.maxqueuelen
-            self.log.error(
-                'Discarding oldest %d events because maxqueuelen was '
-                'exceeded: %d/%d',
-                queueLen - self.options.maxqueuelen,
-                queueLen, self.options.maxqueuelen)
-            self.counters['discardedEvents'] += diff
-            self.eventQueue = self.eventQueue[diff:]
-
-    @property
-    def _performanceEvents(self):
-        if self._performanceEventsQueue is None:
-            self._performanceEventsQueue = collections.deque(maxlen=self.options.maxqueuelen)
-        return self._performanceEventsQueue
-      
-    def _getPerformanceEventsChunk(self):
-        events = []
-        for i in xrange(0, min(len(self._performanceEvents), self.options.eventflushchunksize)):
-            events.append(self._performanceEvents.pop())
-        return events
-
+    @defer.inlineCallbacks
     def pushEventsLoop(self):
         """Periodially, wake up and flush events to ZenHub.
         """
         reactor.callLater(self.options.eventflushseconds, self.pushEventsLoop)
-        drive(self.pushEvents)
+        yield self.pushEvents()
    
         # Record the number of events in the queue every 5 minutes.
         now = time.time()
         if self.rrdStats.name and now >= (self.lastStats + 300):
             self.lastStats = now
             events = self.rrdStats.gauge('eventQueueLength',
-                300, len(self.eventQueue))
-            self._performanceEvents.extendleft(events)
+                300, self.eventQueueManager.event_queue_length)
+            for event in events:
+                self.eventQueueManager.addPerformanceEvent(event)
 
-    def pushEvents(self, driver):
+    def pushEvents(self):
         """Flush events to ZenHub.
         """
         # are we already shutting down?
@@ -424,39 +777,30 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         try:
             # try to send everything we have, serially
             self._sendingEvents = True
-            while len(self.eventQueue) or self._heartbeatEvent or len(self._performanceEvents):
 
-                # are still connected to ZenHub?
-                evtSvc = self.services.get('EventService', None)
-                if not evtSvc: 
-                    self.log.error("No event service: %r", evtSvc)
-                    break
-                # send the events in large bundles, carefully reducing
-                # the eventQueue in case we get in here more than once
-                chunkSize = self.options.eventflushchunksize
-                events = self.eventQueue[:chunkSize]
-                self.eventQueue = self.eventQueue[chunkSize:]
+            # are still connected to ZenHub?
+            evtSvc = self.services.get('EventService', None)
+            if not evtSvc:
+                self.log.error("No event service: %r", evtSvc)
+                return
 
-                performanceEvents = self._getPerformanceEventsChunk()
+            discarded_events = self.eventQueueManager.discarded_events
+            if discarded_events:
+                self.log.error(
+                    'Discarded oldest %d events because maxqueuelen was '
+                    'exceeded: %d/%d',
+                    discarded_events,
+                    discarded_events + self.options.maxqueuelen,
+                    self.options.maxqueuelen)
+                self.counters['discardedEvents'] += discarded_events
+                self.eventQueueManager.discarded_events = 0
 
-                # send the events and wait for the response
-                heartBeat = [self._heartbeatEvent] if self._heartbeatEvent else []
-
-                self.log.debug("Sending %d events, %d perfevents, %d heartbeats.", len(events), len(performanceEvents), len(heartBeat))
-                yield evtSvc.callRemote('sendEvents', events + heartBeat + performanceEvents)
-                try:
-                    driver.next()
-                    performanceEvents = []
-                    events = []
-                except ConnectionLost, ex:
-                    self.log.error('Error sending event: %s' % ex)
-                    self.eventQueue = events + self.eventQueue
-                    performanceEvents.reverse()
-                    self._performanceEvents.extend(performanceEvents)
-                    break
-                self.log.debug("Events sent")
-                self._heartbeatEvent = None
-        except Exception, ex:
+            send_events_fn = partial(evtSvc.callRemote, 'sendEvents')
+            try:
+                self.eventQueueManager.sendEvents(send_events_fn)
+            except ConnectionLost as ex:
+                self.log.error('Error sending event: %s', ex)
+        except Exception as ex:
             self.log.exception(ex)
         finally:
             self._sendingEvents = False
@@ -466,7 +810,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         if not self.options.cycle:
             self.stop()
             return
-        self._heartbeatEvent = self.generateEvent(self.heartbeatEvent, timeout=self.heartbeatTimeout)
+        heartbeatEvent = self.generateEvent(self.heartbeatEvent, timeout=self.heartbeatTimeout)
+        self.eventQueueManager.addHeartbeatEvent(heartbeatEvent)
         # heartbeat is normally 3x cycle time
         self.niceDoggie(self.heartbeatTimeout / 3)
 
@@ -591,5 +936,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                default=30,
                                type='int',
                                help='How often to ping zenhub')
+
+        self.parser.add_option('--disable-event-deduplication',
+                               dest='deduplicate_events',
+                               default=True,
+                               action='store_false',
+                               help='Disable event de-duplication')
 
         ZenDaemon.buildOptions(self)

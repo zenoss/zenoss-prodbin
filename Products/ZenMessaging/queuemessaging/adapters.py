@@ -286,9 +286,9 @@ class EventProtobuf(ObjectProtobuf):
         'eventClassKey': EventProtobufStringMapper('event_class_key'),
         'eventGroup': EventProtobufStringMapper('event_group'),
         # stateChange -> Managed by ZEP
-        # firstTime -> Managed by ZEP
+        'firstTime': EventProtobufDateMapper('first_seen_time'),
         'lastTime': EventProtobufDateMapper('created_time'),
-        # count -> Managed by ZEP
+        'count': EventProtobufIntMapper('count'),
         # prodState -> Added by zeneventd
         # suppid -> Added as a detail (deprecated)
         # manager -> Added as a detail (deprecated)
@@ -311,9 +311,11 @@ class EventProtobuf(ObjectProtobuf):
 
     # If these attributes are found on the Event they are not mapped and are not
     # placed into event details.
-    _IGNORED_ATTRS = set(['_action','_clearClasses','_fields','stateChange','firstTime',
-                          'count','prodState','DeviceClass','Location','Systems',
-                          'DeviceGroups','ownerid','clearid','DevicePriority','eventClassMapping'])
+    _IGNORED_ATTRS = {
+        '_action', '_clearClasses', '_fields', 'stateChange', 'prodState',
+        'DeviceClass', 'Location', 'Systems', 'DeviceGroups', 'ownerid',
+        'clearid', 'DevicePriority', 'eventClassMapping'
+    }
 
     def __init__(self, obj):
         ObjectProtobuf.__init__(self, obj)
