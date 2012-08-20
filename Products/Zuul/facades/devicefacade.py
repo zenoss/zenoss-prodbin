@@ -97,6 +97,7 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         if isinstance(obj, Device):
             obj.index_object()
+        notify(IndexingEvent(obj))
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):

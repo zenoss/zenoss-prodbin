@@ -335,8 +335,7 @@ class DeviceRouter(TreeRouter):
             if 'priority' in newData:
                 newData['priority'] = dmd.convertPriority(newData['priority'])
         audit(['UI', getDisplayType(process._object), 'Edit'], the_uid,
-              data_=newData, oldData_=oldData, skipFields_='uid')
-        notify(IndexingEvent(process._object))
+              data_=newData, oldData_=oldData, skipFields_='uid')        
         return DirectResponse.succeed()
 
     def _getInfoData(self, info, keys):
