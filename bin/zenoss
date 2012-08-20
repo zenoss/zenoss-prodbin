@@ -86,6 +86,7 @@ if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
     C="$C zenhub"
     C="$C zenjobs"
     C="$C zeneventd"
+    C="$C zenrrdcached"
     C="$C zenping"
     C="$C zensyslog"
     C="$C zenstatus"
@@ -96,7 +97,6 @@ if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
     C="$C zenperfsnmp"
     C="$C zencommand"
     C="$C zenprocess"
-    C="$C zenrrdcached"
     #C="$C zenmail"
 
     ZPD=`$ZENHOME/bin/zenpackdaemons --list`
