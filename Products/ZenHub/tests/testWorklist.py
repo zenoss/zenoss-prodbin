@@ -9,10 +9,11 @@
 
 
 import collections
+import heapq
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenHub.zenhub import _ZenHubWorklist
 
-MockHubWorklistItem = collections.namedtuple('MockHubWorklistItem', 'method value')
+MockHubWorklistItem = collections.namedtuple('MockHubWorklistItem', 'value method')
 
 class TestWorklist(BaseTestCase):
 
@@ -21,15 +22,15 @@ class TestWorklist(BaseTestCase):
         self.assertEqual(len(worklist), 0)
 
         for i in range(10):
-            worklist.append(MockHubWorklistItem('test', i))
+            worklist.append(MockHubWorklistItem(method='test', value=i))
         self.assertEqual(len(worklist), 10)
 
         for i in range(10,20):
-            worklist.append(MockHubWorklistItem('sendEvents', i))
+            worklist.append(MockHubWorklistItem(method='sendEvents', value=i))
         self.assertEqual(len(worklist), 20)
 
         for i in range(20,30):
-            worklist.append(MockHubWorklistItem('applyDataMaps', i))
+            worklist.append(MockHubWorklistItem(method='applyDataMaps', value=i))
         self.assertEqual(len(worklist), 30)
 
     def testDispatch(self):
@@ -39,19 +40,19 @@ class TestWorklist(BaseTestCase):
         self.assertEqual(len(worklist.applyworklist), 0)
 
         for i in range(10):
-            worklist.append(MockHubWorklistItem('test', i))
+            worklist.append(MockHubWorklistItem(method='test', value=i))
         self.assertEqual(len(worklist.otherworklist), 10)
         self.assertEqual(len(worklist.eventworklist), 0)
         self.assertEqual(len(worklist.applyworklist), 0)
 
         for i in range(10,20):
-            worklist.append(MockHubWorklistItem('sendEvents', i))
+            worklist.append(MockHubWorklistItem(method='sendEvents', value=i))
         self.assertEqual(len(worklist.otherworklist), 10)
         self.assertEqual(len(worklist.eventworklist), 10)
         self.assertEqual(len(worklist.applyworklist), 0)
 
         for i in range(20,30):
-            worklist.append(MockHubWorklistItem('applyDataMaps', i))
+            worklist.append(MockHubWorklistItem(method='applyDataMaps', value=i))
         self.assertEqual(len(worklist.otherworklist), 10)
         self.assertEqual(len(worklist.eventworklist), 10)
         self.assertEqual(len(worklist.applyworklist), 10)
@@ -68,38 +69,58 @@ class TestWorklist(BaseTestCase):
 
         self.assertEqual(worklist.applyworklist, worklist['applyDataMaps'])
 
+    def _popSorted(self, heap):
+        return (heapq.heappop(heap) for i in range(len(heap)))
+
     def testAppend(self):
         worklist = _ZenHubWorklist()
         for i in range(10):
-            worklist.append(MockHubWorklistItem('test', i))
+            worklist.append(MockHubWorklistItem(method='test', value=i))
         for i in range(10,20):
-            worklist.append(MockHubWorklistItem('sendEvents', i))
+            worklist.append(MockHubWorklistItem(method='sendEvents', value=i))
         for i in range(20,30):
-            worklist.append(MockHubWorklistItem('applyDataMaps', i))
-        self.assertEqual([i.value for i in worklist.otherworklist], range(10))
-        self.assertEqual([i.value for i in worklist.eventworklist], range(10, 20))
-        self.assertEqual([i.value for i in worklist.applyworklist], range(20, 30))
+            worklist.append(MockHubWorklistItem(method='applyDataMaps', value=i))
+        self.assertEqual([i.value for i in self._popSorted(worklist.otherworklist)], range(10))
+        self.assertEqual([i.value for i in self._popSorted(worklist.eventworklist)], range(10, 20))
+        self.assertEqual([i.value for i in self._popSorted(worklist.applyworklist)], range(20, 30))
 
-    def testPush(self):
+    def testReAppend(self):
         worklist = _ZenHubWorklist()
         for i in range(10):
-            worklist.push(MockHubWorklistItem('test', i))
-        for i in range(10,20):
-            worklist.push(MockHubWorklistItem('sendEvents', i))
-        for i in range(20,30):
-            worklist.push(MockHubWorklistItem('applyDataMaps', i))
-        self.assertEqual([i.value for i in worklist.otherworklist], range(9,  -1, -1))
-        self.assertEqual([i.value for i in worklist.eventworklist], range(19,  9, -1))
-        self.assertEqual([i.value for i in worklist.applyworklist], range(29, 19, -1))
+            worklist.push(MockHubWorklistItem(method='test', value=i))
+        popped = []
+        for i in range(5):
+            popped.append(worklist.pop())
+        for item in popped:
+            worklist.push(item)
+        self.assertEqual([i.value for i in self._popSorted(worklist.otherworklist)], range(10))
+
+        worklist = _ZenHubWorklist()
+        for i in range(10):
+            worklist.push(MockHubWorklistItem(method='sendEvents', value=i))
+        for i in range(5):
+            popped.append(worklist.pop())
+        for item in popped:
+            worklist.push(item)
+        self.assertEqual([i.value for i in self._popSorted(worklist.eventworklist)], range(10))
+
+        worklist = _ZenHubWorklist()
+        for i in range(10):
+            worklist.push(MockHubWorklistItem(method='applyDataMaps', value=i))
+        for i in range(5):
+            popped.append(worklist.pop())
+        for item in popped:
+            worklist.push(item)
+        self.assertEqual([i.value for i in self._popSorted(worklist.applyworklist)], range(10))
 
     def testPopAll(self):
         worklist = _ZenHubWorklist()
         for i in range(10):
-            worklist.push(MockHubWorklistItem('test', i))
+            worklist.push(MockHubWorklistItem(method='test', value=i))
         for i in range(10,20):
-            worklist.push(MockHubWorklistItem('sendEvents', i))
+            worklist.push(MockHubWorklistItem(method='sendEvents', value=i))
         for i in range(20,30):
-            worklist.push(MockHubWorklistItem('applyDataMaps', i))
+            worklist.push(MockHubWorklistItem(method='applyDataMaps', value=i))
         while worklist:
             job = worklist.pop()
             self.assertIsInstance(job, MockHubWorklistItem)
@@ -113,7 +134,7 @@ class TestWorklist(BaseTestCase):
     def testPopEventsOnly(self):
         worklist = _ZenHubWorklist()
         for i in range(10,20):
-            worklist.push(MockHubWorklistItem('sendEvents', i))
+            worklist.push(MockHubWorklistItem(method='sendEvents', value=i))
         while worklist:
             job = worklist.pop()
             self.assertIsNotNone(job)
@@ -125,7 +146,7 @@ class TestWorklist(BaseTestCase):
     def testPopApplyOnly(self):
         worklist = _ZenHubWorklist()
         for i in range(20,30):
-            worklist.push(MockHubWorklistItem('applyDataMaps', i))
+            worklist.push(MockHubWorklistItem(method='applyDataMaps', value=i))
         while worklist:
             job = worklist.pop()
             self.assertIsNotNone(job)
@@ -137,7 +158,7 @@ class TestWorklist(BaseTestCase):
     def testPopOtherOnly(self):
         worklist = _ZenHubWorklist()
         for i in range(10):
-            worklist.push(MockHubWorklistItem('test', i))
+            worklist.push(MockHubWorklistItem(method='test', value=i))
         while worklist:
             job = worklist.pop()
             self.assertIsNotNone(job)
