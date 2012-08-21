@@ -217,9 +217,9 @@ class JobManager(ZenModelRM):
         def _normalizeJobType(typ):
             if typ is not None and isinstance(typ, type):
                 if hasattr(typ, 'getJobType'):
-                    return typefilter.getJobType()
+                    return typ.getJobType()
                 else:
-                    return typefilter.__name__
+                    return typ.__name__
             return typ
 
         # build additional query qualifiers based on named args
@@ -227,7 +227,7 @@ class JobManager(ZenModelRM):
         if jobtype is not None:
             query['type'] = _normalizeJobType(jobtype)
 
-        for b in self.getCatalog()(status=statuses, **query):
+        for b in self.getCatalog()(status=list(statuses), **query):
             yield b.getObject()
 
     def getUnfinishedJobs(self, type_=None):
@@ -267,6 +267,15 @@ class JobManager(ZenModelRM):
         """
         return self._getByStatus(states.READY_STATES, type_)
 
+    def getAllJobs(self, type_=None):
+        """
+        Return all .
+
+        @return: All jobs in the requested state.
+        @rtype: generator
+        """
+        return self._getByStatus(states.ALL_STATES, type_)
+        
     def deleteUntil(self, untiltime):
         """
         Delete all jobs older than untiltime.
