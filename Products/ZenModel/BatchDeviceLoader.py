@@ -144,6 +144,21 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
 # Apply custom schema properties (c-properties) to a device
 windows_device7 cDateTest='2010/02/28'
 
+#
+# The following are wrapper methods that spcifically set values on a device:
+#
+#   setManageIp
+#   setPerformanceMonitor
+#   setTitle
+#   setHWTag
+#   setHWSerialNumber
+#   setProdState
+#   setPriority
+#   setGroups
+#   setSystems
+#   setRackSlot
+#   setComments
+#
 """
 
     def __init__(self, *args, **kwargs):
