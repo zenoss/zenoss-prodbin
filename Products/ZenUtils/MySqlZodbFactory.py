@@ -137,23 +137,23 @@ class MySqlZodbFactory(object):
 
         # rename the poll_interval and cache_servers options to not
         # have the zodb prefix.
-        if 'zodb_poll_interval' in kwargs:
-            relstoreParams['poll_interval'] = kwargs['zodb_poll_interval']
-        if 'zodb_cacheservers' in kwargs:
-            relstoreParams['cache_servers'] = kwargs['zodb_cacheservers']
+        cache_servers = kwargs.get('zodb_cacheservers')
+        poll_interval = kwargs.get('zodb_poll_interval')
+        if cache_servers:
+            relstoreParams['cache_servers'] = cache_servers
+            if poll_interval is None:
+                log.info(
+                    "cache-servers is set and poll-interval is "
+                    "not specified so poll-interval is set to 60 seconds."
+                )
+                poll_interval = 60
+            relstoreParams['poll_interval'] = poll_interval
+        elif poll_interval is not None:
+            log.warn(
+                "poll-interval of %s is ignored because cache-servers "
+                "is not set.", poll_interval
+            )
 
-        if 'poll_interval' in kwargs:
-            poll_interval = kwargs['poll_interval']
-            if 'cache_servers' in kwargs:
-                if poll_interval is None:
-                    log.info("Using default poll-interval of 60 seconds because "
-                             "cache-servers was set.")
-                    relstoreParams['poll_interval'] = 60
-                else:
-                    relstoreParams['poll_interval'] = poll_interval
-            else:
-                log.warn("poll-interval of %r is being ignored because "
-                         "cache-servers was not set." % poll_interval)
         storage = relstorage.storage.RelStorage(adapter, **relstoreParams)
         cache_size = kwargs.get('zodb_cachesize', 1000)
         db = ZODB.DB(storage, cache_size=cache_size)
