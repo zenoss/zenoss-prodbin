@@ -766,6 +766,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             for event in events:
                 self.eventQueueManager.addPerformanceEvent(event)
 
+    @defer.inlineCallbacks
     def pushEvents(self):
         """Flush events to ZenHub.
         """
@@ -797,7 +798,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
             send_events_fn = partial(evtSvc.callRemote, 'sendEvents')
             try:
-                self.eventQueueManager.sendEvents(send_events_fn)
+                yield self.eventQueueManager.sendEvents(send_events_fn)
             except ConnectionLost as ex:
                 self.log.error('Error sending event: %s', ex)
         except Exception as ex:
