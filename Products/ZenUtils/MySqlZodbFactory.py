@@ -142,14 +142,14 @@ class MySqlZodbFactory(object):
         if cache_servers:
             relstoreParams['cache_servers'] = cache_servers
             if poll_interval is None:
-                log.info(
+                log.debug(
                     "cache-servers is set and poll-interval is "
                     "not specified so poll-interval is set to 60 seconds."
                 )
                 poll_interval = 60
             relstoreParams['poll_interval'] = poll_interval
         elif poll_interval is not None:
-            log.warn(
+            log.debug(
                 "poll-interval of %s is ignored because cache-servers "
                 "is not set.", poll_interval
             )
