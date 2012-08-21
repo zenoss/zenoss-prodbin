@@ -64,6 +64,8 @@ defaultParallel = 1
 defaultProtocol = "ssh"
 defaultPort = 22
 
+_DEFAULT_CYCLE_INTERVAL = 720
+
 # needed for Twisted's PB (Perspective Broker) to work
 from Products.DataCollector import DeviceProxy
 from Products.DataCollector import Plugins
@@ -157,9 +159,11 @@ class ZenModeler(PBDaemon):
             self.log.debug('fetching monitor properties')
             yield self.config().callRemote('propertyItems')
             items = dict(driver.next())
-            if self.options.cycletime == 0:
+            # If the cycletime option is not specified or zero, then use the
+            # modelerCycleInterval value in the database.
+            if not self.options.cycletime:
                 self.modelerCycleInterval = items.get('modelerCycleInterval',
-                                                      self.modelerCycleInterval)
+                                                      _DEFAULT_CYCLE_INTERVAL)
             self.configCycleInterval = items.get('configCycleInterval',
                                                  self.configCycleInterval)
             reactor.callLater(self.configCycleInterval * 60, self.configure)
@@ -882,7 +886,7 @@ class ZenModeler(PBDaemon):
                 type='int', default=defaultParallel,
                 help="Number of devices to collect from in parallel")
         self.parser.add_option('--cycletime',
-                dest='cycletime',default=720,type='int',
+                dest='cycletime', type='int',
                 help="Run collection every x minutes")
         self.parser.add_option('--ignore',
                 dest='ignorePlugins',default="",
