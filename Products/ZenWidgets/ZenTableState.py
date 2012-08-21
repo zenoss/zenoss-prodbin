@@ -18,15 +18,18 @@ __revision__ = "$Revision: 1.3 $"[11:-2]
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from DateTime.DateTime import DateTime
 
 class ZenTableState:
+    defaultValue = "" # So that we don't have to clear the session
 
     changesThatResetStart = [
         "batchSize",
         "filter",
         "sortedHeader",
         "sortedSence",
-        "onlyMonitored"
+        "onlyMonitored",
+        "defaultValue"
         ]
 
     requestAtts = [
@@ -38,7 +41,8 @@ class ZenTableState:
         "sortRule",
         "start",
         "URL",
-        "onlyMonitored"
+        "onlyMonitored",
+        "defaultValue"
         ]
 
     security = ClassSecurityInfo()
@@ -52,6 +56,7 @@ class ZenTableState:
         self.sortedSence="asc"
         self.sortRule = "cmp"
         self.onlyMonitored = 0
+        self.defaultValue = ""
         self.defaultBatchSize = defaultBatchSize
         self.batchSize = defaultBatchSize
         self.start = 0
@@ -168,11 +173,12 @@ class ZenTableState:
 
 
     def _buildTextLabel(self, item):
-        startAbbr = ""
         endAbbr = ""
-        attr = getattr(item, self.sortedHeader, "")
+        attr = getattr(item, self.sortedHeader, self.defaultValue)
         if callable(attr): attr = attr()
-        if isinstance(attr, basestring):
+        if isinstance(attr, DateTime) and not attr.millis():
+            label = self.defaultValue
+        elif isinstance(attr, basestring):
             label = attr
         else:
             label = str(attr)

@@ -319,7 +319,6 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
 
     def _buildTextLabel(self, item, sortedHeader):
-        startAbbr = ""
         endAbbr = ""
         attr = getattr(item, sortedHeader, "")
         if callable(attr): attr = attr()

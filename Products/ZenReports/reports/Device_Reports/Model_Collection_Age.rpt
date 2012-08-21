@@ -3,7 +3,7 @@
            lambda x: x.snmpAgeCheck(48) and x.productionState > x.getZ('zProdStateThreshold') and not x.getZ('zSnmpMonitorIgnore'));
 	tableName string: modelcollreport;
 	batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                   sortedHeader='getSnmpLastCollection');
+                                   sortedHeader='getSnmpLastCollection', defaultValue='Not Modeled');
 	exportFields python:['titleOrId', 'getDeviceClassPath', 'getCreatedTimeString',
 						'getSnmpLastCollectionString', 'getLastChangeString']
 	">
