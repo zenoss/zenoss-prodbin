@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2012, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+
+
+. $ZENHOME/bin/zenfunctions 
+$PYTHON -c "import sys; import Globals; from Products.ZenUtils.Utils import binPath; sys.exit(0 if binPath(\"$CMD\") else 1)"
