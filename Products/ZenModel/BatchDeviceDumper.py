@@ -359,7 +359,7 @@ class BatchDeviceDumper(ZCmdBase):
              dest = "root", default = "",
              help = "Set the root Device Path to dump (eg: /Devices/Servers or /Devices/Network/Cisco/Nexus; default: /Devices)")
 
-        self.parser.add_option('--outFile',
+        self.parser.add_option('-o', '--outFile',
              dest = 'outFile', default = sys.__stdout__,
              help = "Specify file to which zenbatchdump will write output")
 
