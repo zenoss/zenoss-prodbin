@@ -145,7 +145,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
 windows_device7 cDateTest='2010/02/28'
 
 #
-# The following are wrapper methods that spcifically set values on a device:
+# The following are wrapper methods that specifically set values on a device:
 #
 #   setManageIp
 #   setPerformanceMonitor
