@@ -263,7 +263,7 @@ class NmapPingTask(BaseTask):
     @defer.inlineCallbacks
     def _executeNmapCmd(self, inputFileFilename, traceroute=False, outputType='xml'):
         """
-        Execute nmap and return it's output.
+        Execute nmap and return its output.
         """
         args = []
         args.extend(["-iL", inputFileFilename])  # input file
