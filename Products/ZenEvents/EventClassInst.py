@@ -6,7 +6,8 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
+from contextlib import contextmanager
+from functools import partial
 
 from ZODB.transact import transact
 
@@ -47,6 +48,30 @@ def manage_addEventClassInst(context, id, REQUEST = None):
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
+@contextmanager
+def transformsavepoint(errorCallback=lambda :None):
+    sp = None
+    hadError = False
+    try:
+        txn = transaction.get()
+        sp = txn.savepoint()
+        yield
+    except (Exception, SystemExit) as e:
+        sp = None
+        hadError = True
+        log.info("Transform error %s; aborting transaction", e) 
+        transaction.abort()
+        errorCallback()
+    finally:
+        try:
+            if sp and sp.valid:
+                log.debug("Reverting to savepoint after transform") 
+                sp.rollback()
+            elif not hadError:
+                log.debug("Aborting transaction after transform") 
+                transaction.abort()
+        except Exception:
+            log.exception("Error rolling back transaction after transform")
 
 class EventClassPropertyMixin(object):
 
@@ -164,6 +189,8 @@ Transform:
         )
         zem.sendEvent(badEvt)
 
+
+
     def applyTransform(self, evt, device, component=None):
         """
         Apply transforms on an event from the top level of the Event Class Tree
@@ -180,15 +207,9 @@ Transform:
         }
         for eventclass in transpath:
             if not eventclass.transform: continue
-            try:
-                log.debug('Applying transform/mapping at Event Class %s',
-                    eventclass.getPrimaryDmdId())
+            errorCallback = partial(self.sendTransformException, eventclass, evt)
+            with transformsavepoint(errorCallback):
                 exec(eventclass.transform, variables_and_funcs)
-                log.debug('Results after transform: %s',
-                          variables_and_funcs['evt'])
-            except (Exception, SystemExit):
-                self.sendTransformException(eventclass, evt)
-
         return variables_and_funcs['evt']
 
 
@@ -459,7 +480,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
             'explanation':self.explanation,
             'resolution':self.resolution,
         }
-
+        
         redirect = self.rename(name)
         if eventClassKey and self.eventClassKey != eventClassKey:
             self.unindex_object()
