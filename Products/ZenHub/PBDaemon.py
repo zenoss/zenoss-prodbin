@@ -555,6 +555,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.loadCounters()
         self._pingedZenhub = None
 
+        # Add a shutdown trigger to send a stop event and flush the event queue
+        reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
+
     def connecting(self):
         """
         Called when about to connect to zenhub
@@ -697,35 +700,32 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def setExitCode(self, exitcode):
         self._customexitcode = exitcode
 
-    @defer.inlineCallbacks
     def stop(self, ignored=''):
-        def stopNow():
-            if reactor.running:
-                try:
-                    self.saveCounters()
-                    reactor.stop()
-                except ReactorNotRunning:
-                    self.log.debug("Tried to stop reactor that was stopped")
-        if reactor.running and not self.stopped:
-            self.stopped = True
-            if 'EventService' in self.services:
-                # send stop event if we don't have an implied --cycle,
-                # or if --cycle has been specified
-                if not hasattr(self.options, 'cycle') or \
-                   getattr(self.options, 'cycle', True):
-                    self.sendEvent(self.stopEvent)
-                # give the reactor some time to send the shutdown event
-                try:
-                    yield self.pushEvents()
-                finally:
-                    stopNow()
-                self.log.debug( "Sent a 'stop' event" )
-            else:
-                self.log.debug( "No event sent as no EventService available." )
-                # but not too much time
-                reactor.callLater(1, stopNow, True) # requires bogus arg
+        if reactor.running:
+            try:
+                reactor.stop()
+            except ReactorNotRunning:
+                self.log.debug("Tried to stop reactor that was stopped")
         else:
-            self.log.debug( "stop() called when not running" )
+            self.log.debug("stop() called when not running")
+
+    def _stopPbDaemon(self):
+        if self.stopped:
+            return
+        self.stopped = True
+        if 'EventService' in self.services:
+            # send stop event if we don't have an implied --cycle,
+            # or if --cycle has been specified
+            if not hasattr(self.options, 'cycle') or\
+               getattr(self.options, 'cycle', True):
+                self.sendEvent(self.stopEvent)
+                self.log.debug("Sent a 'stop' event")
+            d = self.pushEvents()
+            d.addBoth(lambda unused: self.saveCounters())
+            return d
+
+        self.log.debug("No event sent as no EventService available.")
+        self.saveCounters()
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
