@@ -6,8 +6,7 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 # 
 ##############################################################################
-
-
+import cgi
 import time
 
 from zope.interface import implements
@@ -49,8 +48,8 @@ class BrowserMessage(object):
         @param image: Optional URL of an image to be displayed in the message
         @type image: str
         """
-        self.title = title
-        self.body = body
+        self.title = cgi.escape(title)
+        self.body = cgi.escape(body)
         self.priority = priority
         self.image = image
         self.timestamp = time.time()

@@ -6,8 +6,7 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 # 
 ##############################################################################
-
-
+import cgi
 import inspect
 import logging
 from Products.ZenUtils.jsonutils import json, unjson
@@ -32,7 +31,7 @@ class DirectResponse(object):
         self._data.update(kwargs)
         self._data['success'] = success
         if msg:
-            self._data['msg'] = msg
+            self._data['msg'] = cgi.escape(msg)
 
     @property
     def type(self):

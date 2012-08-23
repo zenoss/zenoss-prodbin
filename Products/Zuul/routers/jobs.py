@@ -13,7 +13,7 @@ Operations for jobs.
 
 Available at: /zport/dmd/jobs_router
 """
-
+import cgi
 import logging
 from time import mktime
 from datetime import datetime
@@ -45,8 +45,12 @@ class JobsRouter(DirectRouter):
         user = self.context.dmd.ZenUsers.getUserSettings()
         createdBy = user.id if user.hasNoGlobalRoles() else None
 
-        jobs, total = self.api.getJobs(start=start, limit=limit, sort=sort, dir=dir, createdBy=createdBy)
-        return DirectResponse(jobs=Zuul.marshal(jobs, keys=JOBKEYS), totalCount=total)
+        results, total = self.api.getJobs(start=start, limit=limit, sort=sort,
+                                          dir=dir, createdBy=createdBy)
+        jobs = Zuul.marshal(results, keys=JOBKEYS)
+        for job in jobs:
+            job['description'] = cgi.escape(job['description'])
+        return DirectResponse(jobs=jobs, totalCount=total)
 
     def abort(self, jobids):
         for id_ in jobids:
@@ -85,5 +89,9 @@ class JobsRouter(DirectRouter):
                       reverse=True)
             totals[status] = len(jobs)
             results[status] = jobs[:10]
-        return DirectResponse(jobs=Zuul.marshal(results, keys=JOBKEYS),
-                              totals=totals)
+        jobs = Zuul.marshal(results, keys=JOBKEYS)
+        for joblist in jobs.itervalues():
+            for job in joblist:
+                job['description'] = cgi.escape(job['description'])
+        return DirectResponse(jobs=jobs, totals=totals)
+

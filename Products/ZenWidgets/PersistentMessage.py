@@ -11,7 +11,7 @@
 __doc__ = """
 This is in a separate module to prevent recursive import.
 """
-
+import cgi
 import time
 from zope.interface import implements
 
@@ -51,8 +51,8 @@ class PersistentMessage(ZenModelRM):
         @type image: str
         """
         super(PersistentMessage, self).__init__(id)
-        self.title = title
-        self.body = body
+        self.title = cgi.escape(title)
+        self.body = cgi.escape(body)
         self.priority = priority
         self.image = image
         self.timestamp = time.time()
