@@ -13,6 +13,7 @@ Operations for Events.
 
 Available at:  /zport/dmd/evconsole_router
 """
+from itertools import ifilter
 
 import time
 import logging
@@ -101,9 +102,9 @@ class EventsRouter(DirectRouter):
                 asof = time.time()
                 )
 
-        filter = self._buildFilter(uid, params)
+        filter = self._buildFilter([uid], params)
         if exclusion_filter is not None:
-            exclusion_filter = self._buildFilter(uid, exclusion_filter)
+            exclusion_filter = self._buildFilter([uid], exclusion_filter)
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
                                                        filter=filter, exclusion_filter=exclusion_filter)
         eventFormat = EventCompatInfo
@@ -165,10 +166,12 @@ class EventsRouter(DirectRouter):
         # special case for dmd/Devices in which case we want to show all events
         # by default events are not tagged with the root device classes because it would be on all events
         if uid == "/zport/dmd/Devices":
-            uid = "/zport/dmd"
-        filter = self._buildFilter(uid, params)
+            uids = [x.getPrimaryId() for x in self.context.dmd.Devices.children()]
+        else:
+            uids = [uid]
+        filter = self._buildFilter(uids, params)
         if exclusion_filter is not None:
-            exclusion_filter = self._buildFilter(uid, exclusion_filter)
+            exclusion_filter = self._buildFilter(uids, exclusion_filter)
         events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter, exclusion_filter=exclusion_filter)
         eventFormat = EventCompatInfo
         if detailFormat:
@@ -228,7 +231,7 @@ class EventsRouter(DirectRouter):
         return sort_list
 
 
-    def _buildFilter(self, uid, params, specificEventUuids=None):
+    def _buildFilter(self, uids, params, specificEventUuids=None):
         """
         Construct a dictionary that can be converted into an EventFilter protobuf.
 
@@ -312,26 +315,31 @@ class EventsRouter(DirectRouter):
             log.debug('Did not get parameters, using empty filter.')
             event_filter = {}
 
-        if uid is None and isinstance(self.context, EventClass):
-            uid = self.context
+        if not uids and isinstance(self.context, EventClass):
+            uids = [self.context]
 
-        context = resolve_context(uid)
+        contexts = (resolve_context(uid) for uid in uids)
+        
+        context_uuids = []
+        for context in contexts:
+            if context and context.id not in ('Events', 'dmd'):
+                try:
+                    # make a specific instance of tag_filter just for the context tag.
+                    if not context_uuids:
+                        context_tag_filter = {
+                            'tag_uuids': context_uuids
+                            }
+                        # if it exists, filter['tag_filter'] will be a list. just append the special
+                        # context tag filter to whatever that list is.
+                        tag_filter = event_filter.setdefault('tag_filter', [])
+                        tag_filter.append(context_tag_filter)
+                    context_uuids.append(IGlobalIdentifier(context).getGUID())
 
-        if context and context.id not in ('Events', 'dmd'):
-            try:
-                # make a specific instance of tag_filter just for the context tag.
-                context_tag_filter = {
-                    'tag_uuids': [IGlobalIdentifier(context).getGUID()]
-                }
-                # if it exists, filter['tag_filter'] will be a list. just append the special
-                # context tag filter to whatever that list is.
-                tag_filter = event_filter.setdefault('tag_filter', [])
-                tag_filter.append(context_tag_filter)
-            except TypeError:
-                if isinstance(context, EventClass):
-                    event_filter['event_class'] = [context.getDmdKey()]
-                else:
-                    raise Exception('Unknown context %s' % context)
+                except TypeError:
+                    if isinstance(context, EventClass):
+                        event_filter['event_class'] = [context.getDmdKey()]
+                    else:
+                        raise Exception('Unknown context %s' % context)
 
         log.debug('Final filter will be:')
         log.debug(event_filter)
@@ -402,13 +410,13 @@ class EventsRouter(DirectRouter):
             log.debug('Found specific event ids, adding to params.')
             includeUuids = evids
 
-        includeFilter = self._buildFilter(uid, params, specificEventUuids=includeUuids)
+        includeFilter = self._buildFilter([uid], params, specificEventUuids=includeUuids)
 
         # the only thing excluded in an event filter is a list of event uuids
         # which are passed as EventTagFilter using the OR operator.
         excludeFilter = None
         if excludeIds:
-            excludeFilter = self._buildFilter(uid, params, specificEventUuids=excludeIds.keys())
+            excludeFilter = self._buildFilter([uid], params, specificEventUuids=excludeIds.keys())
 
         log.debug('The exclude filter:' + str(excludeFilter))
         log.debug('Finished building request filters.')
