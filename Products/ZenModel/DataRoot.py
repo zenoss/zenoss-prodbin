@@ -39,6 +39,7 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.Utils import extractPostContent
 from Products.ZenUtils.jsonutils import json
+from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
 from Products.ZenEvents.Exceptions import *
 
@@ -500,12 +501,15 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         writer = csv.writer(buffer)
         writer.writerow(labels)
         def getDataField(thing, field):
-            if isinstance(thing, dict):
-                value = thing.get(field, '')
-            elif isinstance(thing, list) or isinstance(thing, tuple):
-                value = thing[int(field)]
+            if not isinstance(field, basestring):
+                value = field(getEngine().getContext({'here':thing, 'device':thing})  )
             else:
-                value = getattr(thing, field, '')
+                if isinstance(thing, dict):
+                    value = thing.get(field, '')
+                elif isinstance(thing, list) or isinstance(thing, tuple):
+                    value = thing[int(field)]
+                else:
+                    value = getattr(thing, field, '')
             if isinstance(value, ZenModelBase):
                 value = value.id
             elif callable(value):
@@ -513,6 +517,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             if value == None:
                 value = ''
             return str(value)
+        for i, field in enumerate(fields):
+            testTales = field.split(':',1)[0].strip().lower()
+            if testTales=='python':
+                fields[i] = talesCompile(field)
         for o in objects:
             writer.writerow([getDataField(o,f) for f in fields])
         if out:
@@ -621,7 +629,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         if not obj:
             return '<graph><Start name="%s"/></graph>' % objid
         return obj.getXMLEdges(int(depth), filter,
-                               start=(obj.id,obj.getPrimaryUrlPath()))
+            start=(obj.id,obj.getPrimaryUrlPath()))
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
@@ -666,7 +674,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_createBackup')
     def manage_createBackup(self, includeEvents=None, includeMysqlLogin=None,
-            timeout=120, REQUEST=None, writeMethod=None):
+                            timeout=120, REQUEST=None, writeMethod=None):
         """
         Create a new backup file using zenbackup and the options specified
         in the request.
