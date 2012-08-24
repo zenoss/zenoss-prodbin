@@ -157,15 +157,7 @@ loader.insert();
             tal:content="python: '\n'.join(here.interfaceStateConversions)"></textarea>
       </td>
     </tr>
-    -->
-    <tr class="even">
-      <td class="noselect tableheader" title="Site-specific groups and categories of users" align="left">Administrative Roles</td>
-      <td class="tablevalues">
-        <textarea class="tablevalues" title="Site-specific groups and categories of users" name="administrativeRoles:lines"
-            rows="6" cols="35"
-            tal:content="python: '\n'.join(here.administrativeRoles)"></textarea>
-      </td>
-    </tr>
+    -->    
     <tr class="odd">
      <td class="tableheader" align="left">Google Maps API Key
          <a href="javascript:popupMapHelp()" style="font-size:80%">Help</a>

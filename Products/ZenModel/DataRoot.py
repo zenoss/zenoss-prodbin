@@ -103,8 +103,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'priorityConversions','type':'lines','mode':'w'},
         {'id':'priorityDashboardThresh','type':'int','mode':'w'},
         {'id':'statusConversions','type':'lines','mode':'w'},
-        {'id':'interfaceStateConversions','type':'lines','mode':'w'},
-        {'id':'administrativeRoles','type':'lines','mode':'w'},
+        {'id':'interfaceStateConversions','type':'lines','mode':'w'},        
         {'id':'uuid', 'type': 'string', 'mode':'w'},
         {'id':'availableVersion', 'type': 'string', 'mode':'w'},
         {'id':'lastVersionCheck', 'type': 'long', 'mode':'w'},
@@ -241,13 +240,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 'notPresent:6',
                 'lowerLayerDown:7',
                 ]
-
-    administrativeRoles = (
-        "Administrator",
-        "Analyst",
-        "Engineer",
-        "Tester",
-    )
 
     defaultDateRange = 129600
     performanceDateRanges = [
