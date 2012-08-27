@@ -284,8 +284,7 @@ class UserSettingsManager(ZenModelRM):
         if password is None:
             password = self.generatePassword()
 
-        self.acl_users._doAddUser(userid,password,roles,"")
-        self.acl_users.ZCacheable_invalidate()
+        self.acl_users._doAddUser(userid,password,roles,"")        
         user = self.acl_users.getUser(userid)
         ufolder = self.getUserSettings(userid)
         if REQUEST: kw = REQUEST.form
@@ -384,8 +383,7 @@ class UserSettingsManager(ZenModelRM):
         if password is None: password = user._getPassword()
         if roles is None: roles = user.roles
         if domains is None: domains = user.domains
-        self.acl_users._doChangeUser(userid,password,roles,domains)
-        self.acl_users.ZCacheable_invalidate()
+        self.acl_users._doChangeUser(userid,password,roles,domains)        
         ufolder = self.getUserSettings(userid)
         ufolder.updatePropsFromDict(kw)
         if REQUEST:
@@ -427,11 +425,14 @@ class UserSettingsManager(ZenModelRM):
                 ufolder = self.getUserSettings(userid)
                 for groupId in ufolder.getUserGroupSettingsNames():
                     group = self.getGroupSettings(groupId)
-                    group.manage_deleteUserFromGroup(userid)
+                    try:
+                        group.manage_deleteUserFromGroup(userid)
+                    except KeyError:
+                        # they have an ldap mapping and we can't remove them from the group
+                        pass
             try:
                 for plugin in plugins:
-                    plugin.removeUser(userid)
-                self.acl_users.ZCacheable_invalidate()
+                    plugin.removeUser(userid)                
             except KeyError:
                 # this means that there's no user in the acl_users, but that
                 # Zenoss still sees the user; we want to pass on this exception
@@ -463,8 +464,7 @@ class UserSettingsManager(ZenModelRM):
         if not groupid: return
         groupid = prepId(groupid)
         try:
-            self.acl_users.groupManager.addGroup(groupid)
-            self.acl_users.ZCacheable_invalidate()
+            self.acl_users.groupManager.addGroup(groupid)            
         except KeyError: pass
         self.getGroupSettings(groupid)
         if REQUEST:
@@ -490,7 +490,6 @@ class UserSettingsManager(ZenModelRM):
                 self._delObject(groupid)
             try:
                 gm.removeGroup(groupid)
-                self.acl_users.ZCacheable_invalidate()
             except KeyError: pass
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -563,8 +562,6 @@ class UserSettingsManager(ZenModelRM):
         for fid in userfolders.objectIds():
             if fid not in userids:
                 userfolders._delObject(fid)
-        self.acl_users.ZCacheable_invalidate()
-
 
     def getAllRoles(self):
         """Get list of all roles without Anonymous and Authenticated.
@@ -671,16 +668,6 @@ class UserSettings(ZenModelRM):
             self.getAllAdminRoles()
             return filter(rolefilter, user.getRoles())
         return []
-
-    def getUserRolesNoCache(self):
-        """
-        This is used by the UI to make sure that we are always looking at the
-        latest version of the roles for this user.
-        """
-        # make sure we are always getting the most up-to-date roles
-        self.acl_users.ZCacheable_invalidate()
-
-        return self.getUserRoles()
 
     def getUserGroupSettingsNames(self):
         """Return group settings objects for user
@@ -941,8 +928,6 @@ class UserSettings(ZenModelRM):
                     # changing another user's password
                     if loggedInUser.getUserName() == self.id:
                         self.acl_users.logout(REQUEST)
-
-        self.acl_users.ZCacheable_invalidate()
 
         # finish up
         if REQUEST:
