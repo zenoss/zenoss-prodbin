@@ -498,14 +498,14 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         in the distributed collector zenpack to support the localhost
         subdirectory.
         """
-        if not isZenBinFile(daemon):
+        if daemon != 'event' and not isZenBinFile(daemon):
             raise ValueError("%r is not a valid daemon name" % daemon)
         return zenPath('log', "%s.log" % daemon)
 
     def getLogData(self, daemon, kb=500):
         """
         Get the last kb kilobytes of a daemon's log file contents.
-        """
+        """        
         if not isZenBinFile(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error',
@@ -523,7 +523,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             daemon = 'event'
         elif daemon == 'zeoctl':
             daemon = 'zeo'
-        if daemon not in self._getDaemonList():
+        if daemon != 'event' and daemon not in self._getDaemonList():
             return ''
         filename = self._getLogPath(daemon)
         # if there is no data read, we don't want to return something that can
