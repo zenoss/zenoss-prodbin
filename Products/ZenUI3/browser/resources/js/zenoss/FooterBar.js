@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -87,13 +87,10 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             items: options.onGetAddDialogItems(),
             title: Ext.String.format(template, options.onGetItemName())
         });
-         // we have some screens with a higher zindex then they should, so for these popups, seed the zindex to be higher
-        var oldSeed = Ext.WindowManager.zseed;
-         Ext.WindowManager.zseed = 20000;
+
         dialog = new Zenoss.SmartFormDialog(addDialogConfig);
         dialog.show();
-        // now set the seed down again so I don't mess up any others
-        Ext.WindowManager.zseed = oldSeed;
+
     }
 
     items = [
@@ -128,9 +125,9 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     listeners: {
                         click: function() {
                             var itemName = options.onGetItemName();
-
                             new Zenoss.dialog.SimpleMessageDialog({
                                 message: options.onGetDeleteMessage(itemName),
+                                buttonAlign: 'center',
                                 title: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
                                 buttons: [{
                                     xtype: 'DialogButton',
@@ -143,7 +140,6 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                                     text: _t('Cancel')
                                 }]
                             }).show();
-
                         }
                     }
                 }]

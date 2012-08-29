@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -81,7 +81,17 @@ Ext.define("Zenoss.dialog.BaseWindow", {
             }
         }, this);
 
+    },
+    /**
+     * Make sure any dialog appears above loadmasks.
+     **/
+    show: function() {
+        var oldSeed = Ext.WindowManager.zseed;
+        Ext.WindowManager.zseed = 20000;
+        this.callParent(arguments);
+        Ext.WindowManager.zseec = oldSeed;
     }
+
 });
 
 
@@ -230,10 +240,13 @@ Ext.define("Zenoss.dialog.SimpleMessageDialog", {
     message: null,
     constructor: function(config) {
         Ext.applyIf(config, {
-            layout: 'fit',
-            items: {
+            layout: 'anchor',
+            items: [{
                 html: config.message
-            },
+            },{
+                // add a spacer between the text and the buttons so it is not squished together
+                height: 10
+            }],
             closeAction: 'destroy'
         });
         Zenoss.MessageDialog.superclass.constructor.call(this, config);
