@@ -213,6 +213,7 @@
                     col.filterField.on('change', this.onChange, this);
                 }
                 col.filterField.on('keydown', this.onKeyDown, this);
+                col.filterField.on('validitychange', this.onInvalidFilter, this);
 
                 searchItems.push(col.filterField);
             });
@@ -299,7 +300,31 @@
                 this.onChange();
             }
         },
+        /**
+         * Determines if the current set of filters are all valid.
+         * If any one filter is invalid the set of filters is invalid
+         **/
+        isValid: function() {
+            var isValid = true;
+            this.eachColumn(function(col){
+                if (col.filterField.isValid) {
+                    isValid = isValid && col.filterField.isValid();
+                }
+            }, this);
 
+            return isValid;
+        },
+        /**
+         * Flare the user when we have an invalid filter.
+         **/
+        onInvalidFilter: function(field, isValid) {
+            if (!isValid) {
+                var error = field.activeError;
+                if ( error ) {
+                    Zenoss.message.error(error);
+                }
+            }
+        },
         getSearchValues:function () {
             var values = {},
                 globbing = (this.appendGlob && (Ext.isDefined(globbing) ? globbing : true));
@@ -322,6 +347,10 @@
         },
 
         storeSearch:function () {
+            // do not store the filters if they are not valid
+            if (!this.isValid()) {
+                return;
+            }
             var values = this.getSearchValues();
             if (!this.grid.store.proxy.extraParams) {
                 this.grid.store.proxy.extraParams = {};
