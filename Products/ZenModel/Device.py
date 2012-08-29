@@ -1281,7 +1281,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         result = self.getPingStatus()
         if result <= 0:
-            return str(self.convertStatus(self.getPingStatus()))
+            return str(self.convertStatus(result))
         return "Down"
 
     def getSnmpStatusString(self):
@@ -1292,7 +1292,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         result = self.getSnmpStatus()
         if result <= 0:
-            return str(self.convertStatus(self.getSnmpStatus()))
+            return str(self.convertStatus(result))
         return "Down"
 
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
