@@ -1188,9 +1188,8 @@ class DeviceRouter(TreeRouter):
             else:
                 filters = params
             def hasFilter(row, key, value):
-                if row.get(key):
-                    return value.lower() in str(row.get(key)).lower()
-
+                return row.get(key) is not None and (value.lower() in str(row.get(key)).lower())
+                                                     
             for key, value in filters.iteritems():
                 # assume AND for sorting
                 data = [row for row in data if hasFilter(row, key, value)]
