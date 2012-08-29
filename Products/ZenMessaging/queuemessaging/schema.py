@@ -11,6 +11,8 @@
 import os
 import json
 import logging
+from cStringIO import StringIO
+from ConfigParser import ConfigParser
 from zope.component import getUtility
 from zenoss.protocols.amqp import Publisher as BlockingPublisher
 from zenoss.protocols.queueschema import substitute_replacements, MissingReplacementException
@@ -20,6 +22,8 @@ from zenoss.protocols.interfaces import IQueueSchema, IAMQPConnectionInfo
 
 import Globals
 from Products.ZenUtils.PkgResources import pkg_resources
+from Products.ZenUtils.Utils import zenPath
+
 
 def _loadQjs(pack_path):
     """
@@ -65,10 +69,32 @@ def _getZenPackSchemas():
 
     return schemas
 
+
+def _parseMessagingConf(path=zenPath("etc", "messaging.conf")):
+    s = StringIO()
+    try:
+        # Need a fake section to parse with ConfigParser
+        with open(path) as f:
+            s.write("[fakesection]\n")
+            s.write(f.read())
+            s.seek(0)
+    except IOError:
+        log = logging.getLogger('zen.ZenMessaging')
+        log.info("No user configuration of queues at {path}".format(path=path))
+        return {}
+    parser = ConfigParser()
+    # Prevent lowercasing of option names
+    parser.optionxform = str
+    parser.readfp(s)
+    return dict(parser.items('fakesection'))
+
+
 def _loadZenossQueueSchemas():
     schemas = [SCHEMA] # Load the compiled schema
     schemas.extend(_getZenPackSchemas())
-    return Schema(*schemas)
+    schema = Schema(*schemas)
+    schema.loadProperties(_parseMessagingConf())
+    return schema
 
 ZENOSS_QUEUE_SCHEMA = _loadZenossQueueSchemas()
 
