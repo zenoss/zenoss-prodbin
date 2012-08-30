@@ -10,12 +10,12 @@ Go here to:
 <ul>
   <li>Sign out of the system.</li>
   <li>Access product documentation, FAQs, and HowTos.</li>
-  <li>Edit user settings, by clicking the displayed login ID.</li>
+  <li>Edit user preferences and settings, by clicking the displayed login ID.</li>
 </ul>
 </p>
 
 <p><strong>Portlets</strong><br />
-The main content of the Dashboard comprises portlets, which provide information about the system and your infrastructure.</p>
+The main content of the Dashboard comprises <em>portlets</em>, which provide information about the system and your infrastructure.</p>
 
 <p>To add a portlet to the Dashboard, select <strong>Add portlet</strong>. Click <img src="/++resource++pagehelp/portlet_action.png"/>, which appears at the top right corner of each portlet, to edit its settings or remove the portlet.</p>
 
@@ -23,8 +23,6 @@ The main content of the Dashboard comprises portlets, which provide information 
 
 <p>You also can change the Dashboard column layout to one, two, or three-column displays. For two-column display, you can additionally choose a layout that offers columns of equal or varying widths. Select <strong>Configure Layout</strong> to change the layout.</p>
 
-<p><strong>More Information</strong><br />
-"Using Resource Manager" in <em>Resource Manager Administration</em></p>
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Events" title="Events">
@@ -48,7 +46,7 @@ After making an event selection, you can:
 <ul>
  <li>Acknowledge the event</li>
  <li>Close the event</li>
- <li>Map the event to associate it with a specific event class</li>
+ <li>Reclassify an event (to associate it with a specific event class)</li>
  <li>Return the event to New status (revoke its Acknowledged status)</li>
  <li>Reopen the event</li>
 </ul>
@@ -61,8 +59,6 @@ After making an event selection, you can:
 <p><strong>Exporting Event Data</strong><br />
 You can export data from the event console to a comma-separated <tt>(.csv)</tt> or XML file. To do this, select <strong>Export > CSV</strong> or <strong>Export > XML</strong> By default, the exported file is named <tt>events.</tt><em>Extension</em>.</p>
 
-<p><strong>More Information</strong><br />
-"Event Management" in <em>Resource Manager Administration</em></p> 
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Infrastructure" title="Infrastructure">
@@ -81,7 +77,7 @@ You can export data from the event console to a comma-separated <tt>(.csv)</tt> 
 </p>
 
 <p><strong>Devices</strong><br />
-The Devices page is divided into two main areas. The <em>device list</em> shows individual devices and their status. The <em>tree view</em> (or left panel) lets you access devices by organizer (class, group, system, or location).</p>
+The Devices page is divided into two main areas. The <em>device list</em> shows individual devices and their status. The <em>tree view</em> (in the left panel) lets you access devices by organizer (class, group, system, or location).</p>
 
 <p>Add devices from <img src="/++resource++pagehelp/Add_Device_Button.png"/> (Add Devices). From here, you can:
 
@@ -91,6 +87,7 @@ The Devices page is divided into two main areas. The <em>device list</em> shows 
  <li>Add Cisco UCS</li>
  <li>Add vCloud Cell</li>
  <li>Add VMware infrastructure</li>
+ <li>Add Cisco Nexus</li>
 </ul>
 </p>
 
@@ -104,23 +101,17 @@ The Devices page is divided into two main areas. The <em>device list</em> shows 
 
 <ul>
  <li>Bind templates</li>
- <li>Work with local templates</li>
- <li>Reset IP addresses</li>
+ <li>Reset bindings</li>
+ <li>Clear geocode cache</li>
  <li>Model, rename, and delete devices</li>
- <li>Clear heartbeats</li>
+ <li>Add to ZenPack</li>
 </ul>
 </p>
 
-<p><strong>More Information</strong>
-<ul>
- <li>"Using Resource Manager" in <em>Resource Manager Administration</em></li>
- <li>"Adding, Discovering, and Modeling Devices" in <em>Resource Manager Administration</em></li>
-</ul>
-</p>
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Reports" title="Reports">
-<p>Resource Manager aggregates and reports, over time, on the data you set it up to monitor. The system provides a range of defined and custom report options.</p>
+<p>The system aggregates and reports, over time, on the data you set it up to monitor. The system provides a range of defined and custom report options.</p>
 
 <p>The Reports list appears in the tree view. Expand a list item to see available reports in that category.</p>
 
@@ -130,8 +121,6 @@ You can organize reports and report organizers by dragging and dropping them in 
 <p><strong>Exporting Reports</strong><br />
 You can export data from any report as a comma-separated value <tt>(.csv)</tt> file. Click <strong>Export All</strong> (located at the bottom of a report).</p>
 
-<p><strong>More Information</strong><br />
-"Reports" in <em>Resource Manager Administration</em></p>
 
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
@@ -140,7 +129,7 @@ You can export data from any report as a comma-separated value <tt>(.csv)</tt> f
 <p>Advanced selections let you manage a range of system settings and objects, including:
 
 <ul>
- <li><strong>Settings</strong> - Use this area to edit system settings, and to:</li>
+ <li><strong>Settings</strong> - From this area, you may be able to:</li>
    <ul>
      <li>Define commands</li>
      <li>Manage users</li>
@@ -149,23 +138,19 @@ You can export data from any report as a comma-separated value <tt>(.csv)</tt> f
      <li>Determine access to portlets</li>
      <li>Stop and start system daemons</li>
      <li>Check for updates and view software component versions</li>
-     <li>Back up your Resource Manager instance</li>
+     <li>Back up your system instance</li>
      <li>Configure events settings</li>
+     <li>Set user interface preferences</li>
+     <li>Configure LDAP</li>
    </ul>
 
- <li><strong>Collectors</strong> - Add and delete Resource Manager collectors.</li>
+ <li><strong>Collectors</strong> - Add and delete collectors.</li>
 
  <li><strong>Monitoring Templates</strong> - Define monitoring templates and their components (data sources, thresholds, and graphs).</li>
 
  <li><strong>MIBs</strong> - Load and manage MIBs.</li>
-</ul>
-</p>
 
-<p><strong>More Information</strong>
-<ul>
-  <li>"User Commands" in <em>Resource Manager Administration</em></li>
-  <li>"Managing Users" in <em>Resource Manager Administration</em></li>
-  <li>"ZenPacks" in <em>Resource Manager Administration</em></li>
+ <li><strong>Tuning</strong> - Tune system performance.</li>
 </ul>
 </p>
 
