@@ -64,8 +64,10 @@ class CommandView(StreamingView):
                     raise
                 retcode = p.poll()
                 if retcode is not None:
-                    # we are done
-                    return
+                    # get anything else that is left
+                    for line in p.stdout:
+                        self.write(line)
+                    break
             else:
                 p.kill()
                 self.write('Command timed out for %s (timeout is %s seconds)'%(
