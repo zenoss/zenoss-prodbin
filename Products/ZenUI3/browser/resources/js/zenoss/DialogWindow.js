@@ -371,13 +371,19 @@ Ext.define("Zenoss.SmartFormDialog", {
     message: '',
     submitHandler: null,
     constructor: function(config) {
-
+        var me = this;
         this.listeners = config.listeners;
-
+        Ext.applyIf(this.listeners, {
+            validitychange: function(form, isValid) {
+                var btn = me.query("button[ref='buttonSubmit']")[0];
+                btn.setDisabled(!isValid);
+            }
+        });
         Ext.applyIf(config, {
             buttons: [{
                 xtype: 'DialogButton',
                 text: _t('Submit'),
+                disabled: true,
                 type: 'submit',
                 ref: 'buttonSubmit'
              }, {
