@@ -135,6 +135,10 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         text: _t('Modeler Plugins')
     },{
+        id: 'softwares',
+        nodeType: 'subselect',
+        text: _t('Software')    
+    },{
         id: 'device_config_properties',
         nodeType: 'subselect',
         text: _t('Configuration Properties')
@@ -488,6 +492,10 @@ var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
     id: 'device_graphs'
 });
 
+var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
+    id: 'softwares'
+});
+
 Ext.define('Zenoss.DeviceDetailNav', {
     extend: 'Zenoss.DetailNavPanel',
     alias: ['widget.devicedetailnav'],
@@ -731,7 +739,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [overview, event_console, modeler_plugins, configuration_properties, device_graphs, componentCard]
+        items: [overview, event_console, modeler_plugins, configuration_properties, device_graphs, softwares, componentCard]
     }]
 });
 Ext.getCmp('templateTree').setContext(UID);

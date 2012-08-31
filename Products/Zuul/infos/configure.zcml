@@ -227,6 +227,10 @@
              for="Products.Jobber.manager.JobRecord"
              factory="Products.Zuul.infos.jobs.JobInfo"
              />
+             
+    <adapter factory=".software.SoftwareInfo"
+             for="Products.ZenModel.Software.Software"
+             provides="..interfaces.ISoftwareInfo"/>               
 
     <include package=".component"/>
     <include file="graphpoint.zcml"/>

@@ -685,3 +685,9 @@ class DeviceFacade(TreeFacade):
     def addWinService(self, uid, newClassName, userCreated):
         device = self._getObject(uid)
         device.os.addWinService(newClassName, userCreated)
+        
+    def getSoftware(self, uid):
+        obj = self._getObject(uid)
+        #softwares = [IInfo(s) for s in obj.os.software()]
+        softwares = (IInfo(s) for s in obj.os.software.objectValuesGen())        
+        return softwares          

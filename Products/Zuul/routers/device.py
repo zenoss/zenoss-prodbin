@@ -1878,3 +1878,10 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.addWinService(uid, newClassName, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getSoftware(self, uid, keys=None):
+
+        facade = self._getFacade()
+        software = facade.getSoftware(uid)
+        
+        return DirectResponse(data=Zuul.marshal(software, keys))

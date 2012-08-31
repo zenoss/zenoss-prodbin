@@ -79,3 +79,4 @@ from reportable import *
 from report import *
 from stats import *
 from jobs import *
+from software import *
