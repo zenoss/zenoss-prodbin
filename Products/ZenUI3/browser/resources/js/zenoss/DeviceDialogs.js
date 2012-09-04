@@ -100,6 +100,11 @@
                     window.location = deviceClass;
                 }
             });
+        },
+        initComponent: function() {
+            this.callParent(arguments);
+            var btn = this.query("button[ref='buttonSubmit']")[0];
+            btn.setDisabled(false);
         }
     });
 
