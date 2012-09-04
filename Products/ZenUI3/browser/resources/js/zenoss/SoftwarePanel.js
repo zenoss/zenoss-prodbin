@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2012, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -78,5 +78,3 @@ Ext.define("Zenoss.software.SoftwareStore", {
 
 
 })();
-
-//http://localhost:8080/zport/dmd/Manufacturers/Unknown/products/Microsoft%20.NET%20Framework%204%20Client%20Profile
