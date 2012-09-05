@@ -12,14 +12,14 @@ import logging
 from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
-from Products.AdvancedQuery import Eq, MatchRegexp
+from Products.AdvancedQuery import Eq
 from Products.ZenUtils.Utils import prepId
 from Products import Zuul
 from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNode, IRRDDataSourceInfo, \
     IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf, IGraphPointInfo
 from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo, DeviceClassTemplateNode
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr, UncataloguedObjectException
-from Products.Zuul.utils import UncataloguedObjectException, ZuulMessageFactory as _t
+from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource
@@ -28,7 +28,6 @@ from Products.ZenModel.RRDDataPoint import RRDDataPoint
 from Products.ZenModel.ThresholdClass import ThresholdClass
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.GraphPoint import GraphPoint
-from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 
 
@@ -341,6 +340,7 @@ class TemplateFacade(ZuulFacade):
         threshold = getattr(thresholds, thresholdId)
         dsnames = self._translateDataPoints(dataPoints)
         threshold._updateProperty('dsnames', dsnames)
+        return threshold
 
     def _translateDataPoints(self, dataPoints):
         """ Takes the list of datapoints from te server
@@ -371,7 +371,7 @@ class TemplateFacade(ZuulFacade):
     def addDataPointToGraph(self, dataPointUid, graphUid, includeThresholds=False):
         dataPoint = self._getObject(dataPointUid)
         graph = self._getObject(graphUid)
-        graph.manage_addDataPointGraphPoints([dataPoint.name()], includeThresholds)
+        return graph.manage_addDataPointGraphPoints([dataPoint.name()], includeThresholds)
 
     def getCopyTargets(self, uid, query=''):
         catalog = ICatalogTool(self._dmd)
@@ -418,7 +418,7 @@ class TemplateFacade(ZuulFacade):
 
     def addGraphDefinition(self, templateUid, graphDefinitionId):
         template = self._getTemplate(templateUid)
-        template.manage_addGraphDefinition(graphDefinitionId)
+        return template.manage_addGraphDefinition(graphDefinitionId)
 
     def deleteGraphDefinition(self, uid):
         graphDefinition = self._getObject(uid)
@@ -450,11 +450,11 @@ class TemplateFacade(ZuulFacade):
     def addThresholdToGraph(self, graphUid, thresholdUid):
         graphDefinition = self._getObject(graphUid)
         thresholdClass = self._getThresholdClass(thresholdUid)
-        graphDefinition.manage_addThresholdGraphPoints((thresholdClass.id,))
+        return graphDefinition.manage_addThresholdGraphPoints((thresholdClass.id,))
 
     def addCustomToGraph(self, graphUid, customId, customType):
         graphDefinition = self._getObject(graphUid)
-        graphDefinition.manage_addCustomGraphPoint(customId, customType)
+        return graphDefinition.manage_addCustomGraphPoint(customId, customType)
 
     _graphInstructionTypes = (('DefGraphPoint', 'DEF'),
                               ('VdefGraphPoint', 'VDEF'),
