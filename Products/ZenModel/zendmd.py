@@ -441,7 +441,10 @@ if __name__=="__main__":
         if not os.path.exists(opts.script):
             print "Unable to open script file '%s' -- exiting" % opts.script
             sys.exit(1)
-        execfile(opts.script, globals(), vars)
+        # copy globals() to temporary dict
+        allVars = dict(globals().iteritems())
+        allVars.update(vars)
+        execfile(opts.script, allVars)
         if opts.commit:
             from transaction import commit
             commit()
