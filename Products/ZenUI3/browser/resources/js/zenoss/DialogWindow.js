@@ -425,6 +425,9 @@ Ext.define("Zenoss.SmartFormDialog", {
             this.setSubmitHandler(this.submitHandler);
             delete this.submitHandler;
         }
+        this.on('show', function() {
+            this.getForm().getForm().checkValidity();
+        }, this);
     }
 });
 
