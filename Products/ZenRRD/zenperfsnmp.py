@@ -27,6 +27,7 @@ import zope.interface
 from twisted.internet import defer, error
 from twisted.python.failure import Failure
 from pynetsnmp.twistedsnmp import AgentProxy, snmpprotocol, Snmpv3Error
+from pynetsnmp.netsnmp import SnmpTimeoutError, SnmpError
 
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollectorPreferences,\
@@ -269,6 +270,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
                         log.debug("%s consecutive timeouts, abandoning run for %s [%s]", consecutiveTimeouts,
                                   self._devId, self._manageIp)
                         raise
+                except SnmpTimeoutError as e:
+                    # only seem to get these for V3 and subsequent calls throw credential exceptions, so just bail here
+                    log.debug("SnmpTimeoutError for %s [%s] oids - %s", self._devId, self._manageIp, oid_chunk)
+                    raise
             # can still have untested oids from a chunk that failed to return data, one or more of those may be bad.
             # run with a smaller chunk size to identify bad oid. Can also have uncollected good oids because of timeouts
             oids_to_test = list(self._uncollectedOids())
@@ -282,10 +287,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
         update_x = {}
         try:
             update_x = yield self._snmpProxy.get(oid_chunk, self._snmpConnInfo.zSnmpTimeout, self._snmpConnInfo.zSnmpTries)
-        except error.TimeoutError, e:
+        except (error.TimeoutError, SnmpTimeoutError), e:
             raise
         except Exception, e:
-            log.warning('Failed to collect on {0} ({1.__class__.__name__}: {1})'.format(self.configId, e))
+            log.exception('Failed to collect on {0} ({1.__class__.__name__}: {1})'.format(self.configId, e))
             #something happened, not sure what.
             raise
         finally:
@@ -366,7 +371,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     num_checked += 1
                     try:
                         yield self._fetchPerfChunk([oid])
-                    except error.TimeoutError, e:
+                    except (error.TimeoutError, SnmpTimeoutError), e:
                         log.debug('%s timed out re-checking bad oid %s', self.name, oid)
 
     def _sendStatusEvent(self, summary, eventKey=None, severity=Event.Error, details=None):
@@ -396,12 +401,15 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 log.warn("Device %s [%s] Task stopped collecting to avoid exceeding cycle interval - %s",
                           self._devId, self._manageIp, str(e))
                 self._logOidsNotCollected("task was stopped so as not exceed cycle interval")
-            except error.TimeoutError as e:
+            except (error.TimeoutError, SnmpTimeoutError) as e:
                 log.debug("Device %s [%s] snmp timed out ", self._devId, self._manageIp)
 
             if self._snmpConnInfo.zSnmpVer == 'v3':
                 self._sendStatusEvent('SNMP v3 error cleared', eventKey='snmp_v3_error', severity=Event.Clear)
 
+            # send snmp error clear
+            self._sendStatusEvent('SNMP error cleared', eventKey='snmp_error', severity=Event.Clear)                
+            
             # clear cycle exceeded event
             self._sendStatusEvent('Collection run time restored below interval', eventKey='interval_exceeded',
                                   severity=Event.Clear)
@@ -452,6 +460,11 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
             log.error("{0} on {1}".format(summary, self.configId))
             self._sendStatusEvent(summary, eventKey='snmp_v3_error')
+        except SnmpError as e:            
+            self._logOidsNotCollected('of %s' % str(e))
+            summary = "Cannot connect to SNMP agent on {0._devId}: {1}".format(self, str(e))
+            log.error("{0} on {1}".format(summary, self.configId))
+            self._sendStatusEvent(summary, eventKey='snmp_error')
         finally:
             self._logTaskOidInfo(previous_bad_oids)
 
