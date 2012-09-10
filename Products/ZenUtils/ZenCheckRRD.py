@@ -1,17 +1,23 @@
 #!/usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+__doc__ = """
+This command checks the RRD files on local and remote collectors to determine
+the overall status of the data collection.  One status line per collector
+is generated.
+
+This command requires a file argument and can also send an event.
+"""
 
 import os
 import re
-import sys
 from pickle import dump, load
 from subprocess import Popen, PIPE
 import logging
@@ -21,10 +27,13 @@ import Globals
 import transaction
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenEvents.ZenEventClasses import Status_Perf
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_ERROR
 
 
 CACHE_FILE = zenPath('var', 'zencheckrrd.cache')
 rrdMatch = re.compile('DEF:[^=]+=([^:]+)').match
+
 
 class collectorStats:
     def __init__(self, id, hostname):
@@ -38,10 +47,10 @@ class collectorStats:
         self.staleFiles = set()
         self.allFiles = set()
 
+
 class ZenCheckRRD(ZenScriptBase):
     def __init__(self):
         ZenScriptBase.__init__(self, connect=True)
-
 
     def buildOptions(self):
         ZenScriptBase.buildOptions(self)
@@ -59,9 +68,11 @@ class ZenCheckRRD(ZenScriptBase):
             help="Only check for device files. Not components")
         self.parser.add_option('--collector', dest='collector',
             help="Name of specific collector to check (optional)")
-        self.parser.add_option('--file', dest='file',
+        self.parser.add_option('-o', '--file', dest='file',
             help="Output filename")
-
+        self.parser.add_option('--sendevent', dest='sendevent',
+            action="store_true", default=False,
+            help="Send an event with statistics per collector")
 
     def run(self):
         if not self.options.file:
@@ -122,7 +133,6 @@ class ZenCheckRRD(ZenScriptBase):
         outfile.close()
         self.report(collectors)
 
-
     def report(self, collectors):
         totalExpectedRRDs = sum(len(x.expectedFiles) for x in collectors)
         totalAllRRDs = sum(len(x.allFiles) for x in collectors)
@@ -150,6 +160,8 @@ Collector                        RRDs     RRDs      RRDs     RRDs"""
             if self.options.all:
                 line += " %6s" % collector.orphan
             print line
+            if self.options.sendevent:
+                self._sendCollectorRrdStatsEvent(collector, all, expected, line)
 
         print '-' * delimLen
         trailer = "%-30s %6s   %6s    %6s   %6s" % (
@@ -159,6 +171,16 @@ Collector                        RRDs     RRDs      RRDs     RRDs"""
             trailer += " %6s" % sum(x.orphan for x in collectors)
         print trailer
 
+    def _sendCollectorRrdStatsEvent(self, collector, all, expected, stats):
+        severity = SEVERITY_ERROR if (collector.missing + collector.stale) > 0 else SEVERITY_CLEAR
+        msg = 'Collector RRD statistics: missing=%s stale=%s' (collector.missing, collector.stale)
+        ev = dict(device=collector.hostname, component=collector.id,
+                  severity=severity, eventClass=Status_Perf,
+                  summary=msg, rrdsOnDisk=all, rrdsExpected=expected,
+                  rrdsMissing=collector.missing, rrdsStale=collector.stale,
+                  rrdsOrphaned=collector.orphan,
+        )
+        self.dmd.ZenEventManager.sendEvent(ev)
 
     def _getExpectedFiles(self, collectors):
         rrdFiles = set()
@@ -199,7 +221,6 @@ Collector                        RRDs     RRDs      RRDs     RRDs"""
                 collector.expectedComponents += 1
                 collector.expectedFiles.add(path)
 
-
     def _getRRDPaths(self, ob):
         ob_rrds = set()
         path = ob.fullRRDPath()
@@ -221,12 +242,10 @@ Collector                        RRDs     RRDs      RRDs     RRDs"""
         transaction.abort()
         return ob_rrds
 
-
     def _getAllMonitoredComponents(self):
         for component in self.dmd.Devices.getMonitoredComponents():
             if not component.snmpIgnore():
                 yield component
-
 
     def _getCollectorFiles(self, collector):
         def parseOutput(output):
@@ -269,3 +288,4 @@ Collector                        RRDs     RRDs      RRDs     RRDs"""
 if __name__ == '__main__':
     zrc = ZenCheckRRD()
     zrc.run()
+
