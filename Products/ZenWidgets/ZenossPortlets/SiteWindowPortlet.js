@@ -62,9 +62,12 @@ SiteWindowPortlet.prototype = {
     },
     submitSettings: function(e, settings) {
         baseLoc = this.locsearch.value;
-        if (baseLoc.length<1) baseLoc = this.datasource.baseLoc;
-        //this.locsearch.value = '';
-        this.superclass.submitSettings(e, {'baseLoc':baseLoc});
+        if (/^https?\:\/\//.test(baseLoc)) {
+            if (baseLoc.length<1) baseLoc = this.datasource.baseLoc;
+            this.superclass.submitSettings(e, {'baseLoc':baseLoc});
+        } else {
+            alert('malformed url, please specify a protocol');
+        }
     },
     startRefresh: function(firsttime) {
         if (!firsttime) this.datasource.get(this.fill);
