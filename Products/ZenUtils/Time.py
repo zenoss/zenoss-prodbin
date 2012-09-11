@@ -19,6 +19,7 @@ $Id:$"""
 __version__ = "$$"[11:-2]
 
 import time
+from math import isnan
 
 def _maybenow(gmtSecondsSince1970):
     if gmtSecondsSince1970 is None:
@@ -70,6 +71,10 @@ def SaveMessage():
     return "Saved at time: " + HHMMSS()
 
 def Duration(seconds):
+    if isnan(seconds):
+        return "nan"
+
+    seconds = int(seconds)
     result = ':%02d' % (seconds % 60)
     seconds /= 60
     if seconds:
