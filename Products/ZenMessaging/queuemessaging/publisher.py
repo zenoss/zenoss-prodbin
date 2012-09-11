@@ -11,6 +11,7 @@
 from twisted.internet import defer
 from zope.interface import implements
 from zenoss.protocols.twisted.amqp import AMQPFactory
+from zenoss.protocols.exceptions import NoRouteException
 from zenoss.protocols.amqp import Publisher as BlockingPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
@@ -257,7 +258,8 @@ class PublishSynchronizer(object):
 class EventPublisherBase(object):
     implements(IEventPublisher)
 
-    def _publish(self, exchange, routing_key, proto, mandatory=False, immediate=False):
+    def _publish(self, exchange, routing_key, proto, mandatory=False,
+                 immediate=False, createQueues=None):
         raise NotImplementedError
 
     def publish(self, event, mandatory=False, immediate=False):
@@ -279,32 +281,46 @@ class EventPublisherBase(object):
         if event.event_class:
             eventClass = event.event_class
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
-        log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (event, routing_key))
-        self._publish("$RawZenEvents", routing_key, event, mandatory=mandatory, immediate=immediate)
+        log.debug("About to publish this event to the raw event "
+                  "queue:%s, with this routing key: %s" % (event, routing_key))
+        try:
+            self._publish("$RawZenEvents", routing_key, event,
+                          mandatory=mandatory, immediate=immediate)
+        except NoRouteException as e:
+            # Queue hasn't been created yet. For this particular case, we don't
+            # want to lose events by setting mandatory=False, so we'll create
+            # the queue explicitly (but we don't want to pass it every time
+            # because it could get expensive). See ZEN-3361.
+            self._publish("$RawZenEvents", routing_key, event,
+                          mandatory=mandatory, immediate=immediate,
+                          createQueues=('$RawZenEvents',))
 
     def close(self):
         pass
 
 
 class ClosingEventPublisher(EventPublisherBase):
-    def _publish(self, exchange, routing_key, proto, mandatory=False, immediate=False):
+    def _publish(self, exchange, routing_key, proto, mandatory=False,
+                 immediate=False, createQueues=None):
         with closing(BlockingQueuePublisher()) as publisher:
-            publisher.publish(exchange, routing_key, proto, mandatory=mandatory, immediate=immediate)
+            publisher.publish(exchange, routing_key, proto,
+                              mandatory=mandatory, immediate=immediate,
+                              createQueues=createQueues)
 
 
 class EventPublisher(EventPublisherBase):
     _publisher = None
 
-    def _publish(self, exchange, routing_key, proto, mandatory=False, immediate=False):
+    def _publish(self, exchange, routing_key, proto, mandatory=False,
+                 immediate=False, createQueues=None):
         if EventPublisher._publisher is None:
             EventPublisher._publisher = BlockingQueuePublisher()
         EventPublisher._publisher.publish(exchange, routing_key, proto,
-                                          mandatory, immediate)
+                                          mandatory, immediate, createQueues=createQueues)
 
     def close(self):
         if EventPublisher._publisher:
             EventPublisher._publisher.close()
-            EventPublisher
 
 
 class AsyncEventPublisher(EventPublisher):
