@@ -100,12 +100,7 @@ class UserSettingsManager(ZenModelRM):
                 , 'name'          : 'ZenPacks'
                 , 'action'        : '../ZenPackManager/viewZenPacks'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
-                },
-                { 'id'            : 'jobs'
-                , 'name'          : 'Jobs'
-                , 'action'        : '../joblist'
-                , 'permissions'   : ( "Manage DMD", )
-                },
+                },                
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
