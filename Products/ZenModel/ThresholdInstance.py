@@ -35,7 +35,7 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
             self.componentName = ''
             self.deviceUrl = 'zport/dmd/Monitors/Hub/{context.id}/viewHubPerformance'.format(context=context)
             self.devicePath = 'Monitors/Hub/{context.id}'.format(context=context)
-        if isinstance(context, PerformanceConf):
+        elif isinstance(context, PerformanceConf):
             self.deviceName = "{context.id} collector".format(context=context)
             self.componentName = ''
             self.deviceUrl = 'zport/dmd/Monitors/Performance/{context.id}/viewDaemonPerformance'.format(context=context)
