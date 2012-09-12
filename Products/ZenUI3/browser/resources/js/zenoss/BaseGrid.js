@@ -249,11 +249,30 @@
             }, this, {single: true});
         },
         clearFilters:function () {
-            this.eachColumn(function (col) {
-                if (Ext.isDefined(col.filterField)) {
-                    col.filterField.reset();
+          var me = this;
+          /* when using .reset(), it applies setValue(), which in turn applies the 
+            previous value. In the case of multiselect, it adds duplicates to the list instead of resetting it.
+            Hardwiring a reset for each of the changed multiselections here to disallow dupes and firing the onChange manually.
+            This only fires if any of the multiselects have been changed, otherwise it only resets the text fields.
+          */
+          this.eachColumn(function (col) {
+                if (Ext.isDefined(col.filterField)) {               
+                    if(col.filterField.isXType("multiselectmenu") ){
+                        var dirty = false;
+                        col.filterField.menu.items.each(function(f){
+                            if(f.checked != f.initialConfig.checked){
+                                f.setChecked(f.initialConfig.checked);
+                                dirty = true;
+                            }
+                        });
+                        if (dirty == true){
+                            this.onChange();
+                        }                       
+                    }else{
+                        col.filterField.reset();
+                    }
                 }
-            });
+            });            
         },
         getState:function () {
             return this.getSearchValues();

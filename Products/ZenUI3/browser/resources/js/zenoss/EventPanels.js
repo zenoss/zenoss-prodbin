@@ -1048,7 +1048,7 @@
             return params;
         },
         clearFilters: function(){
-            this.filterRow.clearFilters();
+            this.filterRow.clearFilters();        
         },
         /*
          * Create parameters used for exporting events. This differs from
