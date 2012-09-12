@@ -194,7 +194,7 @@ class Report(object):
         zep = getFacade("zep", dmd)
 
         path = '/zport/dmd/'
-        pathFilterList = [Generic('path',{'query':''.join([path,'Devices',self.DeviceClass])})]
+        pathFilterList = [Generic('path',{'query':''.join([path,'Devices',self.DeviceClass or ''])})]
 
         if self.Location:
             pathFilterList.append(Generic('path',{'query': ''.join([path,'Locations',self.Location])}))
