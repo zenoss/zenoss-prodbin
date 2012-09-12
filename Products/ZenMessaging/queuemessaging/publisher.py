@@ -316,7 +316,7 @@ class EventPublisher(EventPublisherBase):
         if EventPublisher._publisher is None:
             EventPublisher._publisher = BlockingQueuePublisher()
         EventPublisher._publisher.publish(exchange, routing_key, proto,
-                                          mandatory, immediate, createQueues=createQueues)
+                                          mandatory=mandatory, immediate=immediate, createQueues=createQueues)
 
     def close(self):
         if EventPublisher._publisher:
