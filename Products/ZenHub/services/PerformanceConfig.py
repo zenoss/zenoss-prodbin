@@ -43,6 +43,7 @@ ATTRIBUTES = (
     'zSnmpTimeout',
     'zSnmpTries',
     'zSnmpVer',
+    'zSnmpEngineId',
     )
 
 from twisted.spread import pb
@@ -94,6 +95,8 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
             if self.zSnmpAuthType:
                 cmdLineArgs += ['-a', self.zSnmpAuthType]
                 cmdLineArgs += ['-A', self.zSnmpAuthPassword]
+            if self.zSnmpEngineId:
+                cmdLineArgs += ['-e', self.zSnmpEngineId]
             cmdLineArgs += ['-u', self.zSnmpSecurityName]
         #the parameter tries seems to really be retries so take one off
         retries = max(self.zSnmpTries - 1, 0)
