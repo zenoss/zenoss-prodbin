@@ -601,7 +601,6 @@ class SshPerformanceCollectionTask(BaseTask):
                 if self._getPoolKey() in self.pool:
                     client = self.pool[self._getPoolKey()]
                     client.clientFinished()
-                    client.channelClosed()
             self._connection = None
 
     def connectionFailed(self, msg):
