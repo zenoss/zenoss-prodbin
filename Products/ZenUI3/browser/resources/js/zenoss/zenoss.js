@@ -237,7 +237,6 @@ Ext.EventManager.on(window, 'beforeunload', function() {
 });
 
 
-var serverExceptionDialog = null;
 Ext.Direct.on('exception', function(e) {
     if (Zenoss.env.unloading === true){
         return;
@@ -248,10 +247,14 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
+    var dialogId = "serverExceptionDialog", cmp;
+    cmp = Ext.getCmp(dialogId);
+    if(cmp) {
+        cmp.destroy();
+    }
 
-    if(serverExceptionDialog) serverExceptionDialog.destroy();
-
-    serverExceptionDialog = new Zenoss.dialog.SimpleMessageDialog({
+    Ext.create('Zenoss.dialog.SimpleMessageDialog', {
+        id: dialogId,
         title: _t('Server Exception'),
         message: '<p>' + _t('The server reported the following error:') + '</p>' +
             '<p class="exception-message">' + e.message + '</p>' +
@@ -276,6 +279,7 @@ Ext.Direct.on('exception', function(e) {
  * inability to reach the server.
  */
 Ext.Direct.on('event', function(e){
+    var serverExceptionDialog = Ext.getCmp("serverExceptionDialog");
     if (serverExceptionDialog && Ext.isDefined(e.result)){
         serverExceptionDialog.hide();
         serverExceptionDialog.destroy();
