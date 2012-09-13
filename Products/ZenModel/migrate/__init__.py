@@ -248,3 +248,4 @@ import perDeviceCompCatalog
 import removeConfigTimesGraph
 import AddZHardDiskMapMatchProperty
 import ZenossProcessClasszFailSeverity
+import AddNameToJobRecords

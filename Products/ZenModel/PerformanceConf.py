@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 ##############################################################################
 # 
 # Copyright (C) Zenoss, Inc. 2006-2009, all rights reserved.
@@ -9,43 +8,20 @@
 ##############################################################################
 
 
-__doc__ = """PerformanceConf
+"""PerformanceConf
 The configuration object for Performance servers
 """
 
 import os
 import zlib
 import socket
+from base64 import urlsafe_b64encode
 from urllib import urlencode
 from ipaddr import IPAddress
 import logging
 log = logging.getLogger('zen.PerformanceConf')
 
 from Products.ZenUtils.IpUtil import ipwrap
-
-try:
-    from base64 import urlsafe_b64encode
-    raise ImportError
-except ImportError:
-
-
-    def urlsafe_b64encode(s):
-        """
-        Encode a string so that it's okay to be used in an URL
-
-        @param s: possibly unsafe string passed in by the user
-        @type s: string
-        @return: sanitized, url-safe version of the string
-        @rtype: string
-        """
-
-        import base64
-        s = base64.encodestring(s)
-        s = s.replace('+', '-')
-        s = s.replace('/', '_')
-        s = s.replace('\n', '')
-        return s
-
 
 import xmlrpclib
 
@@ -62,10 +38,11 @@ from Products.ZenUtils.Utils import isXmlRpc
 from Products.ZenUtils.Utils import executeCommand
 from Products.ZenUtils.Utils import addXmlServerTimeout
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
+from Products.ZenModel.ZDeviceLoader import CreateDeviceJob
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
 from StatusColor import StatusColor
+
 
 SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float( getGlobalConfiguration().get('collectorRequestTimeout', 5) )
 
@@ -77,6 +54,7 @@ requests for data will be made to the proxy server when appropriate.  Render url
 "rev_proxy:/mypath" where /mypath should be proxied to an appropriate zenrender/renderserver by the installed proxy server
 """
 REVERSE_PROXY = "rev_proxy:"
+
 
 def performancePath(target):
     """
@@ -581,12 +559,14 @@ class PerformanceConf(Monitor, StatusColor):
 
     def addDeviceCreationJob(self, deviceName, devicePath, title=None,
                              discoverProto="none", manageIp="",
-                             performanceMonitor='localhost',
+                             performanceMonitor=None,
                              rackSlot=0, productionState=1000, comments="",
                              hwManufacturer="", hwProductName="",
                              osManufacturer="", osProductName="", priority = 3,
                              locationPath="", systemPaths=[], groupPaths=[],
                              tag="", serialNumber="", zProperties={}):
+        # Determine the name of the monitor to use.
+        monitor = performanceMonitor or self.id
 
         # Check to see if we got passed in an IPv6 address
         try:
@@ -597,34 +577,54 @@ class PerformanceConf(Monitor, StatusColor):
         except ValueError:
             pass
 
-        zendiscCmd = self._getZenDiscCommand(deviceName, devicePath,
-                                             performanceMonitor, productionState)
+        # Creating a device is, at most, a two-step process.  First a
+        # device 'stub' is created in the database then, if the
+        # discoverProto argument is not 'none', then zendisc is run to
+        # discover and model the device.  The process is implemented using
+        # two jobs.
 
-        jobStatus = self.dmd.JobManager.addJob(DeviceCreationJob,
-                description="Add device %s" % deviceName,
-                kwargs=dict(
-                    deviceName=deviceName,
-                    devicePath=devicePath,
-                    title=title,
-                    discoverProto=discoverProto,
-                    manageIp=manageIp,
-                    performanceMonitor=performanceMonitor,
-                    rackSlot=rackSlot,
-                    productionState=productionState,
-                    comments=comments,
-                    hwManufacturer=hwManufacturer,
-                    hwProductName=hwProductName,
-                    osManufacturer=osManufacturer,
-                    osProductName=osProductName,
-                    priority=priority,
-                    tag=tag,
-                    serialNumber=serialNumber,
-                    locationPath=locationPath,
-                    systemPaths=systemPaths,
-                    groupPaths=groupPaths,
-                    zProperties=zProperties,
-                    zendiscCmd=zendiscCmd))
-        return jobStatus
+        subjobs = [
+                CreateDeviceJob.makeSubJob(
+                    args=(deviceName,),
+                    kwargs=dict(
+                        devicePath=devicePath,
+                        title=title,
+                        discoverProto=discoverProto,
+                        manageIp=manageIp,
+                        performanceMonitor=monitor,
+                        rackSlot=rackSlot,
+                        productionState=productionState,
+                        comments=comments,
+                        hwManufacturer=hwManufacturer,
+                        hwProductName=hwProductName,
+                        osManufacturer=osManufacturer,
+                        osProductName=osProductName,
+                        priority=priority,
+                        tag=tag,
+                        serialNumber=serialNumber,
+                        locationPath=locationPath,
+                        systemPaths=systemPaths,
+                        groupPaths=groupPaths,
+                        zProperties=zProperties,
+                    )
+                )
+            ]
+        if discoverProto != 'none':
+            zendiscCmd = self._getZenDiscCommand(
+                    deviceName, devicePath, monitor, productionState
+                )
+            subjobs.append(
+                SubprocessJob.makeSubJob(
+                    args=(zendiscCmd,),
+                    description="Discover and model device %s as %s" % (
+                        deviceName, devicePath
+                    )
+                )
+            )
+        # Set the 'immutable' flag to indicate that the result of the prior
+        # job is not passed as arguments into the next job (basically, args
+        # to the jobs are immutable).
+        return self.dmd.JobManager.addJobChain(*subjobs, immutable=True)
 
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered",
                                performanceMonitor="localhost", productionState=1000,
@@ -645,15 +645,18 @@ class PerformanceConf(Monitor, StatusColor):
         @return:
         @rtype:
         """
-        zendiscCmd = self._getZenDiscCommand(deviceName, devicePath,
-                                             performanceMonitor,
-                                             productionState, REQUEST)
+        args = [deviceName, devicePath, performanceMonitor, productionState]
         if background:
-            log.info('queued job: %s', " ".join(zendiscCmd))
-            result = self.dmd.JobManager.addJob(SubprocessJob,
-                description="Discover and model device %s" % deviceName,
-                args=(zendiscCmd,))
+            zendiscCmd = self._getZenDiscCommand(*args)
+            result = self.dmd.JobManager.addJob(
+                    SubprocessJob, args=(zendiscCmd,),
+                    description="Discover and model device %s as %s" % (
+                        args[0], args[1]
+                    )
+                )
         else:
+            args.append(REQUEST)
+            zendiscCmd = self._getZenDiscCommand(*args)
             result = executeCommand(zendiscCmd, REQUEST)
         return result
 
@@ -721,9 +724,8 @@ class PerformanceConf(Monitor, StatusColor):
         if xmlrpc:
             return 0
 
-
     def _executeZenModelerCommand(self, zenmodelerOpts, background=False,
-                                  REQUEST=None, write=None):
+                               REQUEST=None, write=None):
         """
         Execute zenmodeler and return result
 
@@ -740,11 +742,12 @@ class PerformanceConf(Monitor, StatusColor):
         if background:
             log.info('queued job: %s', " ".join(zenmodelerCmd))
             result = self.dmd.JobManager.addJob(SubprocessJob,
-                description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
-                args=(zenmodelerCmd,))
+                    description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
+                    args=(zenmodelerCmd,))
         else:
             result = executeCommand(zenmodelerCmd, REQUEST, write)
         return result
+
 
 class RenderURLUtil(object):
 

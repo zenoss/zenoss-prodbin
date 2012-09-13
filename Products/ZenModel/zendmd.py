@@ -19,14 +19,9 @@ import transaction
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 
-def setup_loader():
-    os.environ.setdefault("CELERY_LOADER", "Products.ZenUtils.celeryintegration.ZenossLoader")
-
-setup_loader()
 
 # Parse the command line for host and port; have to do it before Zope
 # configuration, because it hijacks option parsing.
-
 
 parser = OptionParser(usage='usage: %prog [options] -- [ipthon_options] [ipython_args]')
 parser.add_option('--host',

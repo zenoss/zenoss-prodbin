@@ -417,7 +417,7 @@ class DeviceFacade(TreeFacade):
         zProps.update(zProperties)
         model = model and "Auto" or "none"
         perfConf = self._dmd.Monitors.getPerformanceMonitor(collector)
-        jobStatus = perfConf.addDeviceCreationJob(deviceName=deviceName,
+        jobrecords = perfConf.addDeviceCreationJob(deviceName=deviceName,
                                                devicePath=deviceClass,
                                                performanceMonitor=collector,
                                                discoverProto=model,
@@ -437,7 +437,7 @@ class DeviceFacade(TreeFacade):
                                                systemPaths=systemPaths,
                                                groupPaths=groupPaths,
                                                title=title)
-        return jobStatus
+        return jobrecords
 
     def remodel(self, deviceUid):
         fake_request = {'CONTENT_TYPE': 'xml'}

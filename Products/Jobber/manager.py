@@ -1,31 +1,29 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import os
-import time
-from copy import copy
-from datetime import datetime
 
-import transaction
+from datetime import datetime
+from uuid import uuid4
+
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
-from celery import states
 from OFS.ObjectManager import ObjectManager
-from persistent.dict import PersistentDict
 from Products.PluginIndexes.DateIndex.DateIndex import DateIndex
 from Products.Five.browser import BrowserView
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenUtils.celeryintegration import Task
+from Products.ZenUtils.celeryintegration import current_app, states, chain
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
-from .jobs import Job
+
 from .exceptions import NoSuchJobException
+from .jobs import Job
 
 from logging import getLogger
 log = getLogger("zen.JobManager")
@@ -43,8 +41,8 @@ class JobRecord(ObjectManager):
 
     def __init__(self, *args, **kwargs):
         ObjectManager.__init__(self, *args)
-        self.job_description = None
         self.user = None
+        self.job_name = None
         self.job_type = None
         self.job_description = None
         self.status = states.PENDING
@@ -62,7 +60,17 @@ class JobRecord(ObjectManager):
 
     @property
     def _async_result(self):
-        return Task.AsyncResult(self.getId())
+        if not self.job_name:
+            tasks = current_app.tasks.values()
+            for task in (t for t in tasks if isinstance(t, Job)):
+                if task.getJobType() == self.job_type:
+                    self.job_name = task.name
+                    break
+            else:
+                raise AttributeError(
+                        "No job class associated with job %s" % self.id
+                    )
+        return current_app.tasks[self.job_name].AsyncResult(self.getId())
 
     def abort(self):
         # This will occur immediately.
@@ -106,7 +114,6 @@ class JobRecord(ObjectManager):
         return self.date_done
 
 
-
 class JobManager(ZenModelRM):
 
     meta_type = portal_type = 'JobManager'
@@ -127,7 +134,43 @@ class JobManager(ZenModelRM):
                 cat.addIndex(idxname, DateIndex(idxname))
             return zcat
 
-    def addJob(self, klass, description=None, args=None, kwargs=None, properties=None):
+    def addJobChain(self, *joblist, **options):
+        """
+        Submit a list of SubJob objects that will execute in list order.
+        If options are specified, they are applied to each subjob; options
+        that were specified directly on the subjob are not overridden.
+
+        Supported options include:
+            immutable {bool} Set True to 'freeze' the job arguments.
+            ignoreresult {bool} Set True to drop the result of the jobs.
+
+        If both options are not set, they default to False, which means the
+        result of the prior job is passed to the next job as argument(s).
+
+        NOTE: The jobs will not start until you commit the transaction.
+
+        @returns A list of JobRecord objects.
+        """
+        subtasks = []
+        records = []
+        for subjob in joblist:
+            task_id = str(uuid4())
+            opts = dict(task_id=task_id, **options)
+            opts.update(subjob.options)
+            subtask = subjob.job.subtask(
+                    args=subjob.args, kwargs=subjob.kwargs, **opts
+                )
+            records.append(self._savejobrecord(
+                task_id, subjob.job, subjob.description,
+                subjob.args, subjob.kwargs
+            ))
+            subtasks.append(subtask)
+        task = chain(*subtasks)
+        task.apply_async()
+        return records
+
+    def addJob(self, jobclass,
+            description=None, args=None, kwargs=None, properties=None):
         """
         Schedule a new L{Job} from the class specified.
 
@@ -137,60 +180,74 @@ class JobManager(ZenModelRM):
         results or abort the job
         @rtype: L{JobRecord}
         """
-        log.debug("Adding job %s", klass)
         args = args or ()
         kwargs = kwargs or {}
         properties = properties or {}
 
-        # Push the task out to AMQP
-        async_result = klass().delay(*args, **kwargs)
+        # Create the task ID here (tell Celery to use this ID)
+        job_id = str(uuid4())
 
-        # Put a pending job in the database. zenjobs will wait to run this job
-        # until it exists.
+        # Retrieve the job instance
+        job = current_app.tasks[jobclass.name]
+
+        # Create a job record
+        jobrecord = self._savejobrecord(
+                job_id, job, description, args, kwargs, **properties
+            )
+
+        # Push the task out to AMQP (ignore returned object) telling Celery
+        # to use the task ID created earlier.
+        job.apply_async(args=args, kwargs=kwargs, task_id=job_id)
+
+        return jobrecord
+
+    def _savejobrecord(self, job_id, job, desc, args, kwargs, **properties):
+        # Put a pending job in the database. zenjobs will wait to run this
+        # job until it exists.
         try:
-            description = description or klass.getJobDescription(*args, **kwargs)
+            desc = desc if desc else job.getJobDescription(*args, **kwargs)
         except Exception:
-            description = "%s %r properties=%r" % (args, kwargs, properties)
+            desc = "%s(%s, %s)" % (job.name, args, kwargs)
 
         user = getSecurityManager().getUser()
         if not isinstance(user, basestring):
             user = user.getId()
-        meta = JobRecord(id=async_result.task_id,
-                         user=user,
-                         job_type=klass.getJobType(),
-                         job_description=description,
-                         status=states.PENDING,
-                         date_scheduled=datetime.utcnow(),
-                         date_started=None,
-                         date_done=None,
-                         result=None)
-        for prop,propval in properties.iteritems():
-            setattr(meta, prop, propval)
 
-        self._setOb(async_result.task_id, meta)
-        job = self._getOb(async_result.task_id)
-        self.getCatalog().catalog_object(job)
-        log.debug("Created job %s: %s", klass, async_result.task_id)
-        return job
+        # Add job metadata to the database
+        meta = JobRecord(
+                id=job_id,
+                user=user,
+                job_name=job.name,
+                job_type=job.getJobType(),
+                job_description=desc,
+                date_scheduled=datetime.utcnow(),
+            )
+        for prop, propval in properties.iteritems():
+            setattr(meta, prop, propval)
+        self._setOb(job_id, meta)
+        jobrecord = self._getOb(job_id)
+        self.getCatalog().catalog_object(jobrecord)
+        log.info("Created job %s: %s", job, jobrecord.id)
+        return jobrecord
 
     def wait(self, job_id):
         return self.getJob(job_id).wait()
 
     def update(self, job_id, **kwargs):
-        log.debug("Updating job %s", job_id)
-        job = self.getJob(job_id)
-        job.update(kwargs)
-        self.getCatalog().catalog_object(job)
+        log.debug("Updating job %s with %s", job_id, kwargs)
+        jobrecord = self.getJob(job_id)
+        jobrecord.update(kwargs)
+        self.getCatalog().catalog_object(jobrecord)
 
     def getJob(self, jobid):
         """
-        Return a L{JobStatus} object that matches the id specified.
+        Return a L{JobRecord} object that matches the id specified.
 
-        @param jobid: id of the L{JobStatus}. The "JobStatus_" prefix is not
-        necessary.
+        @param jobid: id of the L{JobRecord}.
         @type jobid: str
-        @return: A matching L{JobStatus} object, or raises a NoSuchJobException if none is found
-        @rtype: L{JobStatus}, None
+        @return: A matching L{JobRecord} object,
+            or raises a NoSuchJobException if none is found
+        @rtype: L{JobRecord}, None
         """
         if not jobid:
             raise NoSuchJobException(jobid)
@@ -275,7 +332,7 @@ class JobManager(ZenModelRM):
         @rtype: generator
         """
         return self._getByStatus(states.ALL_STATES, type_)
-        
+
     def deleteUntil(self, untiltime):
         """
         Delete all jobs older than untiltime.

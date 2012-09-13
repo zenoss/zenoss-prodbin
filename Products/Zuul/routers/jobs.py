@@ -49,7 +49,7 @@ class JobsRouter(DirectRouter):
                                           dir=dir, createdBy=createdBy)
         jobs = Zuul.marshal(results, keys=JOBKEYS)
         for job in jobs:
-            job['description'] = cgi.escape(job['description'])
+            job['description'] = cgi.escape(job.get('description') or '')
         return DirectResponse(jobs=jobs, totalCount=total)
 
     def abort(self, jobids):

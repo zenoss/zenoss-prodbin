@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -17,22 +17,20 @@ import errno
 import signal
 import subprocess
 
-from AccessControl.SecurityManagement import newSecurityManager
-from AccessControl.SecurityManagement import noSecurityManager
+from AccessControl.SecurityManagement import (
+        newSecurityManager, noSecurityManager
+    )
 from Products.CMFCore.utils import getToolByName
 from ZODB.transact import transact
-
-from celery.utils import fun_takes_kwargs
 
 from Products.ZenUtils.Utils import (
         InterruptableThread, ThreadInterrupt, LineReader
     )
-from Products.ZenUtils.celeryintegration import Task, states
-
-states.ABORTED = "ABORTED"
+from Products.ZenUtils.celeryintegration import (
+        current_app, Task, states, get_task_logger
+    )
 
 from .exceptions import NoSuchJobException, SubprocessJobFailed
-
 
 _MARKER = object()
 
@@ -43,12 +41,40 @@ class JobAborted(ThreadInterrupt):
     """
 
 
+class SubJob(object):
+    """
+    Container for a job invocation.  Use the Job.makeSubJob method to create
+    instances of this class.
+    """
+
+    def __init__(self, job,
+            args=None, kwargs=None, description=None, options={}):
+        """
+        Initialize an instance of SubJob.
+
+        The supported options are:
+            immutable - {bool} Set True to 'freeze' the job's arguments.
+            ignoreresult - {bool} Set True to drop the result of the job.
+
+        @param job {Job} The job instance to execute.
+        @param args {sequence} Arguments to pass to the job.
+        @param kwargs {dict} Keyword/value arguments to pass to the job.
+        @param description {str} Description of job (for JobRecord)
+        @options {dict} Options to control the job.
+        """
+        self.job = job
+        self.args = args or ()
+        self.kwargs = kwargs or {}
+        self.description = description
+        self.options = options.copy()
+
+
 class Job(Task):
     """
     Base class for jobs.
     """
-    abstract = True
-    initialize_timeout = 30 # seconds
+    abstract = True  # Job class itself is not registered.
+    initialize_timeout = 30  # seconds
     _runner_thread = None
     _aborter_thread = None
     _result_queue = Queue.Queue()
@@ -60,9 +86,8 @@ class Job(Task):
     @classmethod
     def getJobType(cls):
         """
-        This is expected to be overridden in subclasses for pretty names.
         """
-        return cls.__name__
+        return cls.name
 
     @classmethod
     def getJobDescription(cls, *args, **kwargs):
@@ -70,6 +95,16 @@ class Job(Task):
         This is expected to be overridden in subclasses for nice descriptions.
         """
         raise NotImplementedError
+
+    @classmethod
+    def makeSubJob(cls, args=None, kwargs=None, description=None, **options):
+        """
+        Return a SubJob instance that wraps the given job and its arguments
+        and options.
+        """
+        job = current_app.tasks[cls.name]
+        return SubJob(job, args=args, kwargs=kwargs,
+                description=description, options=options)
 
     def setProperties(self, **properties):
         self.app.backend.update(self.request.id, **properties)
@@ -96,7 +131,7 @@ class Job(Task):
             # retrieval
             logfile = os.path.join(logdir, '%s.log' % self.request.id)
             self.setProperties(logfile=logfile)
-            self._log = self.get_logger(logger_name=self.request.id)
+            self._log = get_task_logger(self.request.id)
             self._log.setLevel(self._get_config('logseverity'))
             handler = logging.FileHandler(logfile)
             handler.setFormatter(logging.Formatter(
@@ -111,51 +146,45 @@ class Job(Task):
         """
         return self.app.backend.dmd
 
-    def _wait_for_pending_job(self):
+    def _wait_for_pending_job(self, job_id):
         i = 0
-        # Exactly one job executes at a time, so it's fine to block waiting for
-        # the database to get the pending job
+        # Exactly one job executes at a time, so it's fine to block waiting
+        # for the database to get the pending job.
         jmgr = self.dmd.JobManager
         while i < self.initialize_timeout:
             try:
                 jmgr._p_jar.sync()
-                return jmgr.getJob(self.request.id)
+                return jmgr.getJob(job_id)
             except NoSuchJobException:
                 i += 1
                 time.sleep(1)
-        raise
+        raise NoSuchJobException(job_id)
 
-    def _check_aborted(self, task_id):
+    def _check_aborted(self, job_id):
         while True:
             self.dmd._p_jar.sync()
             try:
-                status = self.backend.get_status(task_id)
+                status = self.app.backend.get_status(job_id)
             except NoSuchJobException:
                 status = states.ABORTED
             if (status == states.ABORTED and self._runner_thread is not None):
-                self.log.info("Job %s is aborted", task_id)
-                # Sometimes the thread is about to commit before it can get interrupted.
-                # self._aborted_tasks is an in-memory shared set so other thread
-                # can check on it before it commits.
-                self._aborted_tasks.add(task_id)
+                self.log.info("Job %s is aborted", job_id)
+                # Sometimes the thread is about to commit before it can get
+                # interrupted.  self._aborted_tasks is an in-memory shared
+                # set so other thread can check on it before it commits.
+                self._aborted_tasks.add(job_id)
                 self._runner_thread.interrupt(JobAborted)
                 break
-            time.sleep(0.5)
+            time.sleep(0.25)
 
-    @transact
-    def _do_run(self, *args, **kwargs):
-        # self.request.id is thread-local, so store this from parent
-        if self.request.id is None:
-            self.request.id = kwargs.get('task_id')
-        try:
-            del kwargs['task_id']
-        except KeyError:
-            pass
-
-        job_record = self.dmd.JobManager.getJob(self.request.id)
-        job_id = job_record.id
+    def _do_run(self, request, args=None, kwargs=None):
+        # This method runs a separate thread.
+        args = args or ()
+        kwargs = kwargs or {}
+        job_id = request.id
+        job_record = self.dmd.JobManager.getJob(job_id)
         # Log in as the job's user
-        self.log.debug("Logging in as %s" % job_record.user)
+        self.log.debug("Logging in as %s", job_record.user)
         utool = getToolByName(self.dmd.getPhysicalRoot(), 'acl_users')
         user = utool.getUserById(job_record.user)
         if user is None:
@@ -163,61 +192,71 @@ class Job(Task):
         user = user.__of__(utool)
         newSecurityManager(None, user)
 
+        @transact
+        def _runjob():
+            result = self._run(*args, **kwargs)
+            if job_id in self._aborted_tasks:
+                raise JobAborted("Job %s aborted" % job_id)
+            return result
+
         # Run it!
-        self.log.info("Beginning job %s %s", self.getJobType(), self.name)
+        self.log.info("Starting job %s (%s)", job_id, self.name)
         try:
+            # Make request available to self.request property
+            # (because self.request is thread local)
+            self.request_stack.push(request)
             try:
-                result = self._run(*args, **kwargs)
-                self.log.info("Job %s Finished with result %s", job_record.id, result)
-                if job_id in self._aborted_tasks:
-                    self.log.info("Job %s aborted rolling back thread local transaction", job_record.id)
-                    import transaction
-                    transaction.abort()
-                    return
+                result = _runjob()
+                self.log.info(
+                    "Job %s finished with result %s", job_id, result
+                )
                 self._result_queue.put(result)
             except JobAborted:
-                self.log.warning("Job aborted.")
+                self.log.warning("Job %s aborted.", job_id)
+                import transaction
+                transaction.abort()
                 # re-raise JobAborted to allow celery to perform job
                 # failure and clean-up work.  A monkeypatch has been
                 # installed to prevent this exception from being written to
                 # the log.
                 raise
-        except Exception, e:
+        except Exception as e:
             e.exc_info = sys.exc_info()
             self._result_queue.put(e)
         finally:
+            # Remove the request
+            self.request_stack.pop()
             # Log out; probably unnecessary but can't hurt
             noSecurityManager()
             self._aborted_tasks.discard(job_id)
 
     def run(self, *args, **kwargs):
-        self.log.info("Job %s %s received, waiting for other side to commit",
-            self.getJobType(), self.name)
+        job_id = self.request.id
+        self.log.info("Job %s (%s) received", job_id, self.name)
+        self.log.debug("Waiting for job %s to appear in database", job_id)
         try:
-            # Wait for the job creator (i.e. the 1%) to complete the
-            # transaction, pushing a pending job into the database
-            self._wait_for_pending_job()
+            # Wait for the job to appear in the database.
+            self._wait_for_pending_job(job_id)
         except NoSuchJobException:
-            # Timed out waiting for the other side to commit, so let's cancel
-            # this guy and move on
-            self.update_state(state=states.ABORTED)
+            # Timed out waiting for job.
+            try:
+                # This may also fail because the job was deleted before
+                # being read from the queue.
+                self.update_state(state=states.ABORTED)
+            except Exception:
+                self.log.debug("No such job %s found in database", job_id)
             return
+        self.log.debug("Job %s found in database", job_id)
 
-        # Have to find appropriate kwargs ourselves, because celery accepts
-        # everything but only passes into run() what is defined. Since we're
-        # inserting a layer we have to do the same.  All of args will be
-        # destined for _run(), but we need to filter out things from kwargs
-        # that aren't (task_id, task_name, delivery_info, etc.) Luckily celery
-        # provides fun_takes_kwargs which figures it out.
-        accepted = fun_takes_kwargs(self._run, kwargs)
-        d = dict((k, v) for k, v in kwargs.iteritems() if k in accepted)
-
-        self._aborter_thread = InterruptableThread(target=self._check_aborted,
-                                                   args=(self.request.id,))
-        if not d.get('task_id'):
-            d['task_id'] = self.request.id
-        self._runner_thread = InterruptableThread(target=self._do_run,
-                                                  args=args, kwargs=d)
+        self._aborter_thread = InterruptableThread(
+                target=self._check_aborted, args=(job_id,)
+            )
+        # Forward the request to the thread because the self.request
+        # property is a thread-local value.
+        self._runner_thread = InterruptableThread(
+                target=self._do_run, args=(self.request,),
+                kwargs={'args': args, 'kwargs': kwargs}
+            )
 
         try:
             # Install a SIGTERM handler so that the 'runner_thread' can be
@@ -233,13 +272,30 @@ class Job(Task):
             # signal handlers, so use a timeout join and loop until the
             # thread exits to allow the thread an opportunity to call
             # signal handlers.
+            self.log.debug("Monitoring _runner_thread existence")
             while self._runner_thread.is_alive():
                 self._runner_thread.join(0.01)
+            self.log.debug("_runner_thread has exited")
+
             result = self._result_queue.get_nowait()
             if isinstance(result, Exception):
+                cls, instance, tb = result.exc_info[0:3]
                 if not isinstance(result, JobAborted):
-                    self.log.error("Job raised exception %s", result.exc_info[2])
-                raise result.exc_info[0], result.exc_info[1], result.exc_info[2]
+                    self.log.error("Job raised exception %s", tb)
+                links = []
+                for callback in self.request.callbacks:
+                    links.extend(callback.flatten_links())
+                for link in links:
+                    link.type.update_state(
+                        task_id=link.options['task_id'],
+                        state=states.ABORTED
+                    )
+                if links:
+                    self.log.info(
+                        "Dependent job(s) %s aborted",
+                        ', '.join(link.options['task_id'] for link in links)
+                    )
+                raise cls, instance, tb
 
             return result
         except Queue.Empty:
@@ -251,6 +307,7 @@ class Job(Task):
             # Kill the aborter
             try:
                 self._aborter_thread.kill()
+                self._aborter_thread.join(0.5)
             except ValueError:
                 pass
             # Clean up the logger
@@ -294,7 +351,7 @@ class SubprocessJob(Job):
         return cmd if isinstance(cmd, basestring) else ' '.join(cmd)
 
     def _run(self, cmd, environ=None):
-        self.log.info("Running Job %s %s", self.getJobType(), self.name)
+        self.log.debug("Running Job %s %s", self.getJobType(), self.name)
         if environ is not None:
             newenviron = os.environ.copy()
             newenviron.update(environ)
@@ -330,7 +387,7 @@ class SubprocessJob(Job):
                     time.sleep(0.1)
         except JobAborted:
             if process:
-                self.log.error("Job aborted. Killing subprocess...")
+                self.log.warn("Job aborted. Killing subprocess...")
                 process.kill()
                 process.wait()  # clean up the <defunct> process
                 self.log.info("Subprocess killed.")
@@ -338,9 +395,3 @@ class SubprocessJob(Job):
         if exitcode != 0:
             raise SubprocessJobFailed(exitcode)
         return exitcode
-
-
-class ShellCommandJob(object):
-    """
-    Backwards compatibility. Will be removed in the release after 4.2.
-    """

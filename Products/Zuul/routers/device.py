@@ -1544,7 +1544,7 @@ class DeviceRouter(TreeRouter):
         if isinstance(groupPaths, basestring):
             groupPaths = [groupPaths]
 
-        jobrecord = self._getFacade().addDevice(deviceName,
+        jobrecords = self._getFacade().addDevice(deviceName,
                                                deviceClass,
                                                title,
                                                snmpCommunity,
@@ -1584,7 +1584,7 @@ class DeviceRouter(TreeRouter):
             'priority': self.context.convertPriority(priority),
         }
         audit('UI.Device.Add', deviceUid, data_=auditData)
-        return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], keys=('uuid', 'description')))
+        return DirectResponse.succeed(new_jobs=Zuul.marshal(jobrecords, keys=('uuid', 'description')))
 
     @require('Manage Device')
     def remodel(self, deviceUid):

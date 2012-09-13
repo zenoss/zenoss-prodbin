@@ -13,11 +13,9 @@ from datetime import datetime
 from zope.component import getUtility
 from Products.ZenUtils.Utils import zenPath, monkeypatch
 from Products.ZenUtils.ZenDaemon import ZenDaemon
-from Products.ZenUtils.celeryintegration import reconfigure_celery
-from Products.ZenUtils.celeryintegration import constants, states
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+from Products.ZenUtils.celeryintegration import constants, states, current_app
 from celery import concurrency
-from celery.app.state import current_app
 from celery.signals import task_prerun
 try:
     from celery.concurrency.processes.forking import freeze_support
@@ -37,19 +35,11 @@ class CeleryZenJobs(ZenDaemon):
         self.setup_celery()
 
     def setup_celery(self):
-        self.celery = current_app
-        self.celery.db_options = self.options
-        reconfigure_celery({
+        current_app.main = self.mname
+        current_app.db_options = self.options
+        current_app.add_defaults({
             constants.NUM_WORKERS: self.options.num_workers,
             constants.MAX_TASKS_PER_PROCESS: self.options.max_jobs_per_worker,
-
-            # Configure the value of the 'CELERYD_POOL_PUTLOCKS'.  When
-            # True, it causes a temporary deadlock to occur during shutdown
-            # when all workers are busy and there exists at least one
-            # pending job. The deadlock is broken when a worker completes
-            # its job. Setting 'CELERYD_POOL_PUTLOCKS' to False allows
-            # shutdown to occur without waiting.
-            "CELERYD_POOL_PUTLOCKS": False,
         })
 
     def run(self):
@@ -59,8 +49,8 @@ class CeleryZenJobs(ZenDaemon):
             kwargs['logfile'] = zenPath('log', 'zenjobs.log')
         kwargs['loglevel'] = self.options.logseverity
         kwargs["pool_cls"] = concurrency.get_implementation(
-                    kwargs.get("pool_cls") or self.celery.conf.CELERYD_POOL)
-        return self.celery.Worker(**kwargs).run()
+                    kwargs.get("pool_cls") or current_app.conf.CELERYD_POOL)
+        return current_app.Worker(**kwargs).run()
 
     def buildOptions(self):
         """
@@ -116,10 +106,3 @@ def task_prerun_handler(signal=None, sender=None,
 if __name__ == "__main__":
     zj = CeleryZenJobs()
     zj.run()
-
-
-class ZenJobs(object):
-    """
-    Retained for backwards compatibility. Will be removed in the release after
-    4.2.
-    """

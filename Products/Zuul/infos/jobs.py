@@ -27,15 +27,18 @@ class JobInfo(InfoBase):
 
     @property
     def scheduled(self):
-        return timegm(self._object.scheduled.timetuple())
+        if self._object.scheduled:
+            return timegm(self._object.scheduled.timetuple())
 
     @property
     def started(self):
-        return timegm(self._object.started.timetuple())
+        if self._object.started:
+            return timegm(self._object.started.timetuple())
 
     @property
     def finished(self):
-        return timegm(self._object.finished.timetuple())
+        if self._object.finished:
+            return timegm(self._object.finished.timetuple())
 
     @property
     def status(self):

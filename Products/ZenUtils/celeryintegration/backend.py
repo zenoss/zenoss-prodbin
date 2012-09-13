@@ -7,7 +7,6 @@
 # 
 ##############################################################################
 
-
 import Globals
 import time
 import threading
@@ -15,18 +14,24 @@ import Queue
 import transaction
 import logging
 import traceback
+
 from zope.component import getUtility
 from ZODB.POSException import ConflictError
+from ZODB.transact import transact
 from datetime import datetime
+
 from celery.backends.base import BaseDictBackend
 from celery.exceptions import TimeoutError
+
 import AccessControl.User
-from AccessControl.SecurityManagement import newSecurityManager
-from AccessControl.SecurityManagement import noSecurityManager
-from Products.ZenUtils.celeryintegration import states
-from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+
 from Products.Jobber.exceptions import NoSuchJobException
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
+from Products.ZenUtils.celeryintegration import states
+from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+from AccessControl.SecurityManagement import newSecurityManager
+from AccessControl.SecurityManagement import noSecurityManager
+
 log = logging.getLogger("zen.celeryintegration")
 
 CONNECTION_ENVIRONMENT = threading.local()
@@ -56,21 +61,20 @@ class ZODBBackend(BaseDictBackend):
     _db = None
 
     def __init__(self, *args, **kwargs):
-        BaseDictBackend.__init__(self, *args, **kwargs)
+        super(ZODBBackend, self).__init__(*args, **kwargs)
         self._db_lock = threading.Lock()
 
     def get_db_options(self):
         options = getattr(self.app, 'db_options', None)
         if options is not None:
             return options.__dict__
-        else:
-            # This path should never be hit except in testing, because
-            # Globals.DB will have been set before this method is even called.
-            # Having this lets us have zendmd open a new db so we can test in
-            # process, if we comment out getting the database from Globals in
-            # db() below.
-            from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-            return getGlobalConfiguration()
+        # This path should never be hit except in testing, because
+        # Globals.DB will have been set before this method is even called.
+        # Having this lets us have zendmd open a new db so we can test in
+        # process, if we comment out getting the database from Globals in
+        # db() below.
+        from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+        return getGlobalConfiguration()
 
     @property
     def db(self):
@@ -123,28 +127,41 @@ class ZODBBackend(BaseDictBackend):
             Give the database time to sync incase a job record update
             was received before the job was created
             """
+
+            @transact
+            def _doupdate():
+                self.jobmgr.update(task_id, **properties)
+
             try:
                 for i in range(5):
                     try:
                         log.debug("Updating job %s - Pass %d", task_id, i+1)
-                        self.jobmgr.update(task_id, **properties)
-                        transaction.commit()
-                        return
-                    except (NoSuchJobException, ConflictError):
-                        log.debug("Unable to find Job %s, retrying \n%s", task_id,
-                            traceback.format_exc())
+                        _doupdate()
+                        break
+                    except NoSuchJobException:
+                        log.debug(
+                            "Unable to find Job %s, retrying \n%s",
+                            task_id, traceback.format_exc()
+                        )
                         # Race condition. Wait.
                         time.sleep(0.25)
-                        self.dmd._p_jar.sync()
-
-                log.warn("Unable to save properties  %s to job %s", properties, task_id)
+                        self.jobmgr._p_jar.sync()
+                else:
+                    # only if for loop completes without breaking
+                    log.warn(
+                        "Unable to save properties %s to job %s",
+                        properties, task_id
+                    )
             finally:
                 self.reset()
 
-        log.debug("Updating job %s", task_id)
+        log.debug("Updating job %s with %s", task_id, properties)
         t = threading.Thread(target=_update)
         t.start()
         t.join()
+        log.debug("Job %s updated", task_id)
+
+# ----- BaseDictBackend Overrides -----------------------------------------
 
     def _store_result(self, task_id, result, status, traceback=None):
         """
@@ -153,6 +170,7 @@ class ZODBBackend(BaseDictBackend):
         This runs in a separate thread with a short-lived connection, thereby
         guaranteeing isolation from the current transaction.
         """
+        log.debug("[_store_result] %s %s %s", task_id, result, status)
         self.update(task_id, result=result, status=status,
                     date_done=datetime.utcnow(), traceback=traceback)
         return result
@@ -172,11 +190,10 @@ class ZODBBackend(BaseDictBackend):
         """
         status = self.get_status(task_id)
         if status in states.READY_STATES:
-            # Already done, no need to spin up a thread to poll
+            # Job's already done, no need to spin up thread.
             result = self.get_result(task_id)
         else:
             result_queue = Queue.Queue()
-
             def do_wait():
                 try:
                     time_elapsed = 0.0
@@ -184,7 +201,8 @@ class ZODBBackend(BaseDictBackend):
                         self.jobmgr._p_jar.sync()
                         status = self.get_status(task_id)
                         if status in states.READY_STATES:
-                            result_queue.put((status, self.get_result(task_id)))
+                            result = self.get_result(task_id)
+                            result_queue.put((status, result))
                             return
                         # avoid hammering the CPU checking status.
                         time.sleep(interval)
@@ -193,11 +211,9 @@ class ZODBBackend(BaseDictBackend):
                             raise TimeoutError("The operation timed out.")
                 finally:
                     self.reset()
-
             t = threading.Thread(target=do_wait)
             t.start()
             t.join()
-
             try:
                 status, result = result_queue.get_nowait()
             except Queue.Empty:
@@ -223,11 +239,11 @@ class ZODBBackend(BaseDictBackend):
         raise NotImplementedError("ZODBBackend does not support cleanup")
 
     def reset(self):
-        self._db = None
         try:
             delattr(CONNECTION_ENVIRONMENT, self.CONN_MARKER)
         except AttributeError:
             pass
 
     def process_cleanup(self):
+        self._db = None
         self.reset()

@@ -28,6 +28,7 @@ from AccessControl import Permissions as permissions
 
 from OFS.SimpleItem import SimpleItem
 
+from Products.ZenUtils.celeryintegration import current_app
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils.IpUtil import getHostByName, ipwrap
@@ -36,7 +37,7 @@ from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenWidgets import messaging
-from Products.Jobber.jobs import SubprocessJob
+from Products.Jobber.jobs import Job
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
 from Products.ZenModel.interfaces import IDeviceLoader
@@ -172,15 +173,20 @@ class JobDeviceLoader(BaseDeviceLoader):
         pass
 
 
-class DeviceCreationJob(SubprocessJob):
+class CreateDeviceJob(Job):
+    """
+    Create a new device object.
+    """
 
     @classmethod
     def getJobType(cls):
-        return "Add Device"
+        return "Create Device"
 
     @classmethod
     def getJobDescription(cls, *args, **kwargs):
-        return "Add %(deviceName)s under %(devicePath)s" % kwargs
+        return "Create %(name)s under %(path)s" % {
+                'name': args[0], 'path': kwargs.get('devicePath')
+            }
 
     def _run(self, deviceName, devicePath="/Discovered", tag="",
             serialNumber="", rackSlot=0, productionState=1000, comments="",
@@ -188,17 +194,10 @@ class DeviceCreationJob(SubprocessJob):
             osProductName="", locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost", discoverProto="snmp", priority=3,
             manageIp="", zProperties=None, title="", zendiscCmd=[]):
-
+        """
+        Returns the 'physical' path of the device.
+        """
         loader = JobDeviceLoader(self.dmd)
-
-        # Store device name for later finding
-        self.deviceName = deviceName
-        self.devicePath = devicePath
-        self.performanceMonitor = performanceMonitor
-        self.discoverProto = discoverProto
-        self.manageIp = manageIp.replace(' ', '')
-
-        # Save the device stuff to set after adding
         deviceProps = dict(tag=tag,
                           serialNumber=serialNumber,
                           rackSlot=rackSlot,
@@ -213,31 +212,32 @@ class DeviceCreationJob(SubprocessJob):
                           systemPaths = systemPaths,
                           priority = priority,
                           title= title)
-        zendiscCmd.extend(['--job', self.request.id])
 
-        @transact
         def createDevice():
             # set the status properties that were modified up until this
             # point in case of a Conflict Error
             self.setProperties(**zProperties)
             self.setProperties(**deviceProps)
             # create the device
-            loader.load_device(deviceName, devicePath, discoverProto,
-                               performanceMonitor, manageIp, zProperties,
-                               deviceProps)
+            return loader.load_device(
+                    deviceName, devicePath, discoverProto,
+                    performanceMonitor, manageIp, zProperties, deviceProps
+                )
 
-        # Create the device object and generate the zendisc command
         try:
-            createDevice()
-        except Exception, e:
+            device = createDevice()
+            return '/'.join(device.getPhysicalPath())
+        except DeviceExistsError as e:
             transaction.abort()
-            self.log.exception("Encountered error. Rolling back initial device add.")
+            # If the device already exists, log it and move on.
+            self.log.debug(
+                "Device already exists (job was likely interrupted "
+                "and restarted): %s", e
+            )
+        except Exception:
+            transaction.abort()
+            self.log.exception("Failed to create device.")
             raise
-        else:
-            if self.discoverProto != 'none':
-                return SubprocessJob._run(self, zendiscCmd)
-            else:
-                self.log.info("Device added without modeling")
 
 
 class WeblogDeviceLoader(BaseDeviceLoader):
