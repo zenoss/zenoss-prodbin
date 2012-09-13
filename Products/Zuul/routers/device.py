@@ -375,7 +375,7 @@ class DeviceRouter(TreeRouter):
         Retrieves a list of device uuids. For use in combos.
         """
         facade = self._getFacade()
-        devices = facade.getDevices(params={'name':query})
+        devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
         result = []
         for dev in devices:
             result.append({'name':dev.name,

@@ -5,6 +5,10 @@
             // This is to work around a bug in Sencha 4.x:
             // http://www.sencha.com/forum/archive/index.php/t-136583.html?s=0737c51cf4da51fa8cb875c351c5b2b4
             this.bindStore(null);
+        },
+        afterrender: function(comp, eOpts) {
+            // TODO: why does this get called twice?
+            this.getStore().load();
         }
     };
 
@@ -671,47 +675,23 @@
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
-        // TODO: Fix DEVICE and COMPONENT (see ZEN-294).
-        //       When you hit cancel twice quickly the device field can become blank.
-        //       Also, sometimes it shows the GUID instead of the device name.
         DEVICE: {
             text: _t('Device'),
             value: 'device_uuid',
             comparisons: ZF.IDENTITYCOMPARISONS,
             field: {
                 xtype: 'combo',
-                mode: 'remote',
+                queryMode: 'remote',
                 listConfig: {
                     maxWidth:200
                 },
                 store: new Ext.data.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
                     root: 'data',
-                    model: 'Zenoss.model.BasicUUID'
+                    model: 'Zenoss.model.BasicUUID',
+                    remoteFilter: true
                 }),
-                listeners: directStoreWorkaroundListeners,
-                typeAhead: true,
-                valueField: 'uuid',
-                displayField: 'name',
-                forceSelection: true,
-                triggerAction: 'all'
-            }
-        },
-        COMPONENT: {
-            text: _t('Component'),
-            value: 'component_uuid',
-            comparisons: ZF.IDENTITYCOMPARISONS,
-            field: {
-                xtype: 'combo',
-                mode: 'remote',
-                listConfig: {
-                    maxWidth:200
-                },
-                store: new Ext.data.DirectStore({
-                    directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
-                    root: 'data',
-                    model: 'Zenoss.model.BasicUUID'
-                }),
+                minChars: 3,
                 listeners: directStoreWorkaroundListeners,
                 typeAhead: true,
                 valueField: 'uuid',
