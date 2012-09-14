@@ -2,6 +2,13 @@
 
 . $ZENHOME/bin/zenfunctions
 
+echo 'Loading reports...'
+reportloader -f
+if [ $? -ne 0 ]; then
+    echo "An error running reportloader."
+    exit 1
+fi
+
 echo 'Running migrate...'
 zenmigrate
 if [ $? -ne 0 ]; then
