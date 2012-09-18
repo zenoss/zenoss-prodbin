@@ -497,7 +497,9 @@ class TrapTask(BaseTask, CaptureReplay):
         9       10     hours from UTC*           0..13
         10      11     minutes from UTC          0..59
         """
-        strval = None
+        # Some traps send invalid UTC times (direction/hours/minutes all zeros)
+        if value[8:] == '\x00\x00\x00':
+            value = value[:8]
         vallen = len(value)
         if vallen == 8 or (vallen == 11 and value[8] in ('+','-')):
             (year, mon, day, hour, mins, secs, dsecs) = unpack(">HBBBBBB", value[:8])
@@ -526,10 +528,8 @@ class TrapTask(BaseTask, CaptureReplay):
                     utc_dir = '+'
                 utc_hours = tz_mins / 60
                 utc_mins = tz_mins % 60
-            strval = "%04d-%02d-%02dT%02d:%02d:%02d.%d00%s%02d:%02d" % (year,
+            return "%04d-%02d-%02dT%02d:%02d:%02d.%d00%s%02d:%02d" % (year,
                 mon, day, hour, mins, secs, dsecs, utc_dir, utc_hours, utc_mins)
-
-        return strval
 
     def _convert_value(self, value):
         if not isinstance(value, basestring):
