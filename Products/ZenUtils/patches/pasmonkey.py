@@ -62,6 +62,22 @@ def _resetCredentials(self, request, response=None):
 
 pas.resetCredentials = _resetCredentials
 
+
+def get_ip(request):
+    if "HTTP_X_FORWARDED_FOR" in request.environ:
+        # Virtual host
+        # This can be a comma-delimited list of IPs but we are fine with
+        # logging multiple IPs for auditing at this time.
+        ip = request.environ["HTTP_X_FORWARDED_FOR"]
+    elif "HTTP_HOST" in request.environ:
+        # Non-virtualhost
+        ip = request.environ["REMOTE_ADDR"]
+    else:
+        ip = getattr(request, '_client_addr', 'Unknown')
+
+    return ip
+
+
 # Monkey patch PAS to audit log successful and failed login attempts
 def validate(self, request, auth='', roles=_noroles):
     """
@@ -83,7 +99,7 @@ def validate(self, request, auth='', roles=_noroles):
     is_top = self._isTop()
     user_ids = self._extractUserIds(request, plugins)
     accessed, container, name, value = self._getObjectContext(request['PUBLISHED'], request)
-    ipaddress = getattr(request, '_client_addr', 'Unknown')
+    ipaddress = get_ip(request)
     for user_id, login in user_ids:
         user = self._findUser(plugins, user_id, login, request=request)
         if aq_base(user) is emergency_user:
