@@ -27,6 +27,8 @@ try:
 except ImportError:
     USE_WMI = False
 
+import zope.component
+
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon, HubDown
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
@@ -42,6 +44,7 @@ from SnmpClient     import SnmpClient
 from PortscanClient import PortscanClient
 
 from Products.DataCollector import Classifier
+from Products.ZenCollector.interfaces import IEventService
 
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
@@ -107,6 +110,9 @@ class ZenModeler(PBDaemon):
         self.finished = []
         self.devicegen = None
         self.counters = collections.Counter()
+
+        # Make sendEvent() available to plugins
+        zope.component.provideUtility(self, IEventService)
 
         # Delay start for between 10 and 60 minutes when run as a daemon.
         self.started = False
