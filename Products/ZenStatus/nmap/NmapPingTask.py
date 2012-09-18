@@ -272,6 +272,8 @@ class NmapPingTask(BaseTask):
         args.append("-n")                # don't resolve hosts internally
         args.append("--privileged")      # assume we can open raw socket
         args.append("--send-ip")         # don't allow ARP responses
+	if self._daemon.options.dataLength > 0:
+	    args.extend(["--data-length", str(self._daemon.options.dataLength)])
         
         # give up on a host after spending too much time on it
         args.extend(["--initial-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])

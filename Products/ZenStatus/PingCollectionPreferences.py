@@ -74,6 +74,11 @@ class PingCollectionPreferences(object):
             type='int',
             help="Traceroute every N ping intervals; default is 5, traceroute every time" \
                 " a ping is performed.")
+        parser.add_option('--data-length', 
+            dest='dataLength', 
+            default=0, 
+            type="int", 
+            help="Length of datapacket for zenping to use (default: %default)") 
 
         # look up possible ping backends
         pingBackends = []

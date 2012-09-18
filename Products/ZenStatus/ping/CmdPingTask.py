@@ -58,12 +58,12 @@ def _detectPing():
     except subprocess.CalledProcessError:
        log.info('ping6 not found in path')
 
-    _PING_ARG_TEMPLATE = '%(ping)s -n -c 1 -t %(ttl)d -w %(timeout)f %(ip)s'
+    _PING_ARG_TEMPLATE = '%(ping)s -n -s %(datalength)d -c 1 -t %(ttl)d -w %(timeout)f %(ip)s'
     import platform
     system = platform.system() 
     if system in ('Mac OS X', 'Darwin'):
        log.info('Mac OS X detected; adjusting ping args.')
-       _PING_ARG_TEMPLATE = '%(ping)s -n -c 1 -m %(ttl)d -t %(timeout)f %(ip)s'
+       _PING_ARG_TEMPLATE = '%(ping)s -n -s %(datalength)d -c 1 -m %(ttl)d -t %(timeout)f %(ip)s'
     elif system != 'Linux':
        log.info('CmdPing has not been tested on %r; assuming that Linux ping args work.')
 
@@ -134,7 +134,9 @@ class CmdPingTask(ZenStatus.PingTask):
         timestamp = None
         while attempts < maxTries:
             attempts += 1
-            cmd, args = _getPingCmd(ip=self.config.ip, version=self.config.ipVersion, ttl=64, timeout=1.5)
+            cmd, args = _getPingCmd(ip=self.config.ip, version=self.config.ipVersion, 
+                ttl=64, timeout=float(self._preferences.pingTimeOut), 
+		datalength=self._daemon.options.dataLength)
             log.debug("%s %s", cmd, " ".join(args))
             timestamp = time.time()
             out, err, exitCode = yield utils.getProcessOutputAndValue(cmd, args)
