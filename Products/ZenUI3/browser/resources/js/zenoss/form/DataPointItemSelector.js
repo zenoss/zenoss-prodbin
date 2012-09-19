@@ -30,6 +30,16 @@ Ext.define("Zenoss.form.DataPointItemSelector", {
             store: record.allDataPoints
         });
         this.callParent(arguments);
+    },
+    /**
+     * In ExtJs 4.1 The ItemsSelect getValue doesn't work at all.
+     *
+     * To work around this we can just grab everything in the toField store.
+     *
+     */
+    getValue: function(){
+        var store = this.toField.getStore();
+        return Ext.pluck(Ext.pluck(store.data.items, 'data'), 'field1');
     }
 });
 
