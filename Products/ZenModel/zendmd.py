@@ -51,7 +51,7 @@ if opts.use_ipython:
         import readline
 
         try:
-            from IPython.Shell import IPShellEmbed
+            from IPython import embed as IPShellEmbed
         except ImportError:
             IPShellEmbed = None
         except AttributeError:
@@ -457,8 +457,7 @@ if __name__=="__main__":
     try:
         if IPShellEmbed:
             sys.argv[1:] = args
-            ipshell = IPShellEmbed(banner=_banner)
-            ipshell(local_ns=vars)
+            IPShellEmbed(banner1=_banner, user_ns=vars)
         else:
             if readline is not None:
                 _banner = '\n'.join([_banner,
