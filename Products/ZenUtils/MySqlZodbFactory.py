@@ -122,6 +122,11 @@ class MySqlZodbFactory(object):
             'passwd': kwargs.get('zodb_password', 'zenoss'),
             'db': kwargs.get('zodb_db',  'zodb'),
         }
+        # Make sure 'port' is an integer
+        try:
+            connectionParams['port'] = int(connectionParams['port'])
+        except (ValueError, TypeError) as e:
+            raise ValueError("Invalid 'port' value: %s; %s" % (connectionParams['port'], e))
         socket = kwargs.get('zodb_socket')
         if not socket:
             socket = _ZENDS_CONFIG.get("socket")

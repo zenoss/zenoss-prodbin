@@ -29,7 +29,10 @@
             <td class="tableheader" title="Project homepage" >
                <a tal:attributes="href version/href" target="_blank" tal:content="version/header" > project name </a>
             </td>
-            <td class="tablevalues" tal:content="version/data"/>
+            <td tal:condition="python: version['data'] is None"
+                class="tablevalues" style="font-style: italic;">Unavailable</td>
+            <td tal:condition="version/data | nothing"
+                tal:content="version/data" class="tablevalues"/>
         </tr>
     </tal:block>
     </tbody>

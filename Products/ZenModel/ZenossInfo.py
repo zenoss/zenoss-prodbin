@@ -12,8 +12,9 @@ import os
 import os.path
 import sys
 import re
+from functools import wraps
 from urllib import unquote
-from subprocess import Popen, PIPE, call
+from subprocess import Popen, PIPE
 from xml.dom.minidom import parse
 import shutil
 import traceback
@@ -29,10 +30,36 @@ from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenCallHome.transport.methods.versioncheck import version_check
 from Products.ZenUtils import Time
+from Products.ZenUtils.mysql import MySQLdb
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.Version import *
 from Products.ZenUtils.Utils import zenPath, binPath, isZenBinFile
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
+
+
+def versionmeta(name, href, optional=False):
+    """
+    Used as a decorator, this function attaches attributes 'name' and
+    'href' to the methods providing Version objects.  If optional is True,
+    return None rather than raising an exception if version data cannot be
+    retrieved.
+    """
+    def _versionmeta(f):
+        f.name = name
+        f.href = href
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except Exception:
+                if optional:
+                    return None
+                else:
+                    raise
+        return wrapper
+    return _versionmeta
+
 
 def manage_addZenossInfo(context, id='About', REQUEST=None):
     """
@@ -41,7 +68,8 @@ def manage_addZenossInfo(context, id='About', REQUEST=None):
     about = ZenossInfo(id)
     context._setObject(id, about)
     if REQUEST is not None:
-        REQUEST.RESPONSE.redirect(context.absolute_url() +'/manage_main')
+        REQUEST.RESPONSE.redirect(context.absolute_url() + '/manage_main')
+
 
 class ZenossInfo(ZenModelItem, SimpleItem):
 
@@ -50,8 +78,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     security = ClassSecurityInfo()
 
     _properties = (
-        {'id':'id', 'type':'string'},
-        {'id':'title', 'type':'string'},
+        {'id': 'id', 'type': 'string'},
+        {'id': 'title', 'type': 'string'},
     )
 
     factory_type_information = (
@@ -120,18 +148,18 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def breadCrumbs(self, target='dmd'):
         return []
 
-    security.declarePublic('getZenossVersion')
+    @versionmeta("Zenoss", "http://www.zenoss.com")
     def getZenossVersion(self):
         from Products.ZenModel.ZVersion import VERSION
         return Version.parse("Zenoss %s %s" %
                     (VERSION, self.getZenossRevision()))
+    security.declarePublic('getZenossVersion')
 
-
-    security.declarePublic('getZenossVersionShort')
     def getZenossVersionShort(self):
         return self.getZenossVersion().short()
+    security.declarePublic('getZenossVersionShort')
 
-
+    @versionmeta("OS", "http://www.tldp.org")
     def getOSVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -154,7 +182,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             raise VersionNotSupported
         return Version(name, major, minor, micro, 0, comment)
 
-
+    @versionmeta("Python", "http://www.python.org")
     def getPythonVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -167,6 +195,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro, releaselevel, serial = sys.version_info
         return Version(name, major, minor, micro)
 
+    @versionmeta("Database", "http://www.mysql.com")
     def getMySQLVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -174,34 +203,38 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
             v = Version(*getMySQLVersion())
             v.full()
-
-        The regex was tested against the following output strings:
-            mysql  Ver 14.12 Distrib 5.0.24, for apple-darwin8.5.1 (i686) using readline 5.0
-            mysql  Ver 12.22 Distrib 4.0.24, for pc-linux-gnu (i486)
-            mysql  Ver 14.12 Distrib 5.0.24a, for Win32 (ia32)
-            /usr/local/zenoss/mysql/bin/mysql.bin  Ver 14.12 Distrib 5.0.45, for unknown-linux-gnu (x86_64) using readline 5.0
         """
-        cmd = 'mysql --version'
-        fd = os.popen(cmd)
-        output = fd.readlines()
-        version = "0"
-        if fd.close() is None and len(output) > 0:
-            output = output[0].strip()
-            regexString = '.*(mysql).*Ver [0-9]{2}\.[0-9]{2} '
-            regexString += 'Distrib ([0-9]+.[0-9]+.[0-9]+)(.*), for (.*\(.*\))'
-            regex = re.match(regexString, output)
-            if regex:
-                name, version, release, info = regex.groups()
-        comment = 'Ver %s' % version
-        # the name returned in the output is all lower case, so we'll make our own
-        if os.environ.get("USE_ZENDS", None):
-           name = 'ZenDS'
-        else:
-           name = 'MySQL'
-        major, minor, micro = getVersionTupleFromString(version)
-        return Version(name, major, minor, micro, 0, comment)
+        cfg = getGlobalConfiguration()
+        params = {
+                'host': cfg.get("zodb-host", "localhost"),
+                'port': int(cfg.get("zodb-port", 3306)),
+                'user': cfg.get("zodb-user", "zenoss"),
+                'passwd': cfg.get("zodb-password", "zenoss"),
+            }
+        db = None
+        useZenDS = os.environ.get("USE_ZENDS", False)
+        name = "ZenDS" if useZenDS else "MySQL"
+        try:
+            db = MySQLdb.connect(**params)
+            db.query("select version()")
+            data = db.use_result().fetch_row()
+            if data:
+                regex = re.compile("([0-9]+)\.([0-9]+)\.([0-9]+)(.*)")
+                versionstr = data[0][0]
+                match = regex.match(versionstr)
+                if match:
+                    major, minor, micro, info = match.groups()
+                    return Version(
+                            name,
+                            int(major), int(minor), int(micro), 0,
+                            versionstr
+                        )
+            raise RuntimeError("Unable to determine %s version" % (name,))
+        finally:
+            if db:
+                db.close()
 
-
+    @versionmeta("RRD", "http://oss.oetiker.ch/rrdtool")
     def getRRDToolVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -220,7 +253,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro = getVersionTupleFromString(version)
         return Version(name, major, minor, micro)
 
-
+    @versionmeta("Twisted", "http:///twistedmatrix.com/trac")
     def getTwistedVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -233,7 +266,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
         return Version('Twisted', v.major, v.minor, v.micro)
 
-
+    @versionmeta("Zope", "http://www.zope.org")
     def getZopeVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -247,7 +280,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         name = 'Zope'
         major, minor, micro, status, release = version.getZopeVersion()
         return Version(name, major, minor, micro)
-
 
     def getZenossRevision(self):
         """
@@ -264,25 +296,27 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         except:
             return ''
 
-
+    @versionmeta("NetSnmp", "http://net-snmp.sourceforge.net", optional=True)
     def getNetSnmpVersion(self):
         from pynetsnmp.netsnmp import lib
         return Version.parse('NetSnmp %s ' % lib.netsnmp_get_version())
 
-
+    @versionmeta("PyNetSnmp", "http://www.zenoss.com", optional=True)
     def getPyNetSnmpVersion(self):
         from pynetsnmp.version import VERSION
         return Version.parse('PyNetSnmp %s ' % VERSION)
 
-
+    @versionmeta("WMI", "http://www.zenoss.com", optional=True)
     def getWmiVersion(self):
         from pysamba.version import VERSION
         return Version.parse('Wmi %s ' % VERSION)
 
+    @versionmeta("RabbitMQ", "http://www.rabbitmq.com/")
     def getRabbitMQVersion(self):
         from Products.ZenUtils.qverify import ZenAmqp
         return Version.parse("RabbitMQ %s" % ZenAmqp().getVersion())
 
+    @versionmeta("Erlang", "http://www.erlang.org/")
     def getErlangVersion(self):
         retVal, output = commands.getstatusoutput('erl -noshell +V')
         version = None
@@ -300,51 +334,38 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         Return a list of version numbers for currently tracked component
         software.
         """
-        versions = (
-        {'header': 'Zenoss', 'data': self.getZenossVersion().full(),
-            'href': "http://www.zenoss.com" },
-        {'header': 'OS', 'data': self.getOSVersion().full(),
-            'href': "http://www.tldp.org" },
-        {'header': 'Zope', 'data': self.getZopeVersion().full(),
-            'href': "http://www.zope.org" },
-        {'header': 'Python', 'data': self.getPythonVersion().full(),
-            'href': "http://www.python.org" },
-        {'header': 'Database', 'data': self.getMySQLVersion().full(),
-            'href': "http://www.mysql.com" },
-        {'header': 'RRD', 'data': self.getRRDToolVersion().full(),
-            'href': "http://oss.oetiker.ch/rrdtool" },
-        {'header': 'Twisted', 'data': self.getTwistedVersion().full(),
-            'href': "http:///twistedmatrix.com/trac" },
-        {'header': 'RabbitMQ', 'data': self.getRabbitMQVersion().full(),
-            'href': 'http://www.rabbitmq.com/'},
-        {'header': 'Erlang', 'data': self.getErlangVersion().full(),
-            'href':'http://www.erlang.org/' },
-        )
-        try:
-            versions += (
-                {'header': 'NetSnmp', 'data': self.getNetSnmpVersion().full(),
-                 'href': "http://net-snmp.sourceforge.net"  },
+        versionfuncs = [
+                self.getZenossVersion,
+                self.getOSVersion,
+                self.getZopeVersion,
+                self.getPythonVersion,
+                self.getMySQLVersion,
+                self.getRRDToolVersion,
+                self.getTwistedVersion,
+                self.getRabbitMQVersion,
+                self.getErlangVersion,
+                self.getNetSnmpVersion,
+                self.getPyNetSnmpVersion,
+                self.getWmiVersion,
+            ]
+        versions = []
+        for func in versionfuncs:
+            try:
+                version = func()
+                # Skip this component if the return value is None
+                if version is None:
+                    continue
+                data = version.full()
+            except Exception:
+                log.exception(
+                    "Failed to retrieve '%s' version data", func.name
                 )
-        except:
-            pass
-        try:
-            versions += (
-                {'header': 'PyNetSnmp', 'data': self.getPyNetSnmpVersion().full(),
-                 'href': "http://www.zenoss.com"  },
-                )
-        except:
-            pass
-        try:
-            versions += (
-                {'header': 'WMI', 'data': self.getWmiVersion().full(),
-                 'href': "http://www.zenoss.com"  },
-                )
-        except:
-            pass
+                data = None
+            versions.append({
+                'header': func.name, 'data': data, 'href': func.href
+            })
         return versions
-
-    security.declareProtected('View','getAllVersions')
-
+    security.declareProtected('View', 'getAllVersions')
 
     def getAllUptimes(self):
         """
@@ -358,11 +379,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         }
         uptimes.append(zope)
         return uptimes
-    security.declareProtected('View','getAllUptimes')
+    security.declareProtected('View', 'getAllUptimes')
 
-
-
-    daemon_tooltips= {
+    daemon_tooltips = {
       "zeoctl": "Zope Enterprise Objects server (shares database between Zope instances)",
       "zopectl": "The Zope open source web application server",
       "zenhub": "Broker between the data layer and the collection daemons",
@@ -380,7 +399,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
       "zenmail": "Listen for e-mail and convert messages to Zenoss events",
       "zenpop3": "Connect via pop3 to an e-mail server and convert messages to Zenoss events",
     }
-
 
     def getZenossDaemonStates(self):
         """
@@ -407,9 +425,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 color = '#F00'
 
             if daemon in self.daemon_tooltips:
-               tooltip= self.daemon_tooltips[ daemon ]
+                tooltip = self.daemon_tooltips[daemon]
             else:
-               tooltip= ''
+                tooltip = ''
 
             states.append({
                 'name': daemon,
@@ -421,7 +439,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
         return states
 
-
     def _pidRunning(self, pid):
         try:
             os.kill(pid, 0)
@@ -431,7 +448,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             errnum, msg = ex.args
             if errnum == errno.EPERM:
                 return pid
-
 
     def _getDaemonPID(self, name):
         """
@@ -460,7 +476,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             pid = None
         return pid
 
-
     def _getDaemonList(self):
         """
         Get the list of supported Zenoss daemons.
@@ -471,7 +486,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             if 'zenrrdcache' not in line:
                 daemons.append(line.strip())
         return daemons
-
 
     def getZenossDaemonConfigs(self):
         """
@@ -490,7 +504,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 fh.readline()
             return fh.read()
         finally:
-           fh.close()
+            fh.close()
 
     def _getLogPath(self, daemon):
         """
@@ -505,7 +519,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getLogData(self, daemon, kb=500):
         """
         Get the last kb kilobytes of a daemon's log file contents.
-        """        
+        """
         if not isZenBinFile(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error',
@@ -537,7 +551,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                     daemon, filename, str(ex))
         return data
 
-
     def _getConfigFilename(self, daemon):
         if daemon in ('zopectl', 'zenwebserver'):
             daemon = 'zope'
@@ -546,11 +559,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return zenPath('etc', "%s.conf" % daemon)
 
     def _readConfigFile(self, filename):
-       fh = open(filename)
-       try:
-           return fh.read()
-       finally:
-           fh.close()
+        fh = open(filename)
+        try:
+            return fh.read()
+        finally:
+            fh.close()
 
     def getConfigData(self, daemon):
         """
@@ -569,7 +582,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         except IOError:
             data = 'Unable to read config file'
         return data
-
 
     def manage_saveConfigData(self, REQUEST):
         """
@@ -725,7 +737,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                     help,
                     option.attributes['type'].nodeValue,
                 ]
-
         except:
             info = traceback.format_exc()
             msg = "Unable to merge XML defaults with config file" \
@@ -738,7 +749,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             return [["XML file issue", daemon, xml_default_name, info, "string"]]
 
         return [all_options[name] for name in sorted(all_options.keys())]
-
 
     def save_daemon_configs( self, REQUEST=None, **kwargs ):
         """
@@ -819,8 +829,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 priority=messaging.CRITICAL
             )
 
-
-    security.declareProtected(ZEN_MANAGE_DMD, 'manage_daemonAction')
     def manage_daemonAction(self, REQUEST):
         """
         Start, stop, or restart Zenoss daemons from a web interface.
@@ -839,10 +847,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if self.doDaemonAction(daemonName, action):
             audit(['UI.Daemon', action], daemonName)
         return self.callZenScreen(REQUEST)
-    security.declareProtected('Manage DMD','manage_daemonAction')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_daemonAction')
 
-
-    security.declareProtected(ZEN_MANAGE_DMD, 'doDaemonAction')
     def doDaemonAction(self, daemonName, action):
         """
         Do the given action (start, stop, restart) or the given daemon.
@@ -864,7 +870,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if action in ('stop', 'restart'):
             time.sleep(2)
         return False if code else action
-
+    security.declareProtected(ZEN_MANAGE_DMD, 'doDaemonAction')
 
     def manage_checkVersion(self, optInOut=False, optInOutMetrics=False, REQUEST=None):
         "Check for Zenoss updates on the Zenoss website"
@@ -880,14 +886,12 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if REQUEST and isinstance(REQUEST.form['manage_checkVersion'], list):
             version_check(self.dmd)
         return self.callZenScreen(REQUEST)
-    security.declareProtected('Manage DMD','manage_checkVersion')
-
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_checkVersion')
 
     def lastVersionCheckedString(self):
         if not self.dmd.lastVersionCheck:
             return "Never"
         return Time.LocalDateTime(self.dmd.lastVersionCheck)
-
 
     def versionBehind(self):
         if not self.dmd.availableVersion:

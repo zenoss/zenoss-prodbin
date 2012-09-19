@@ -58,6 +58,9 @@ def getVersionTupleFromString(versionString):
     >>> version = ''
     >>> getVersionTupleFromString(version)
     (0, 0, 0)
+    >>> version = '5.2.25a'
+    >>> getVersionTupleFromString(version)
+    (5, 2, 25)
     """
     versionString = str(versionString)
     versions = re.split('[^0-9]+', versionString.strip())[:3]
