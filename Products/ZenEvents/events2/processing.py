@@ -179,6 +179,14 @@ class Manager(object):
 
         device_brains = list(cat.search(types=Device, query=querySet, limit=limit, filterPermissions=False))
 
+        if ipAddress is not None:
+            # don't search interfaces for 127.x.x.x IPv4 addresses
+            if ipToDecimal('126.255.255.255') < long(ipAddress) < ipToDecimal('128.0.0.0'):
+                ipAddress = None
+            # don't search interfaces for the ::1 IPv6 address
+            elif ipToDecimal('::1') == long(ipAddress):
+                ipAddress = None
+
         if not ipAddress or (limit is not None and len(device_brains) >= limit):
             return device_brains, []
 
