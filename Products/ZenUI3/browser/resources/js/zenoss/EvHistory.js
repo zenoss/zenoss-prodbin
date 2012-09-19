@@ -75,15 +75,17 @@ Ext.onReady(function(){
                         text: 'All',
                         handler: function(){
                             var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectAll();
+                            sm = grid.getSelectionModel();
+                            sm.selectEventState('All');
+                            sm.setSelectState("All");                            
                         }
                     },{
                         text: 'None',
                         handler: function(){
                             var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectNone();
+                            sm = grid.getSelectionModel();
+                            sm.clearSelections();
+                            sm.clearSelectState(); 
                         }
                     }
                     ]
