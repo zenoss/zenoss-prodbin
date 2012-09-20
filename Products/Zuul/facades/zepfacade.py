@@ -742,6 +742,55 @@ class ZepFacade(ZuulFacade):
 
     def create(self, summary, severity, device, component=None, mandatory=True, immediate=False,
                **kwargs):
+        """
+        Create an event.
+
+        @param summary: Summary message of the event. This variable gets mapped to an
+            C{Event} protobuf field of the same name.
+        @type summary: string
+
+        @param severity: Severity name of the event. This variable gets mapped to the
+            C{Event} protobuf using an C{EventProtobufSeverityMapper}
+            (C{Products.ZenMessaging.queuemessaging.adapters.EventProtobufSeverityMapper}).
+            This value can be an integer-like string value 0-5 or the string of the
+            severity (clear, debug, info, warning, error, critical). The casing of the
+            string does not matter. An empty severity value will be mapped to CLEAR.
+        @type severity: string
+
+        @param device: Device string. This variable gets set as the element on the
+            C{Event} protobuf using an C{EventProtobufDeviceMapper}
+            (C{Products.ZenMessaging.queuemessaging.adapters.EventProtobufDeviceMapper}).
+            The value for this variable will always be set as a DEVICE element type.
+            This value is later interpreted by zeneventd during the C{IdentifierPipe}
+            (C{Products.ZenEvents.events2.processing.IdentifierPipe}) segment of the
+            event processing pipeline. If an ipAddress is also provided in kwargs,
+            the ipAddress is also used to help identify the device. If the ipAddress
+            is provided, it is used first. If the ipAddress is not provided, the IP
+            for a device is attempted to be discerned from the value of this variable.
+            If the IP cannot be inferred, identification falls back to the value of
+            this variable as either the ID of the device, or the title of the device
+            as stored in the device catalog (as the NAME field).
+        @type device: string
+
+        @param component: ID of the component. This variable is used to lookup components
+            by their ID or the title of the component (also stored as the NAME field in
+            the catalog). See more info on how these objects are cataloged here:
+            C{Products.Zuul.catalog.global_catalog.IndexableWrapper}.
+        @type component: string
+
+        @param mandatory:  If True, message will be returned unless it can be routed to
+            a queue.
+        @type mandatory: boolean
+
+        @param immediate: If True, message will be returned unless it can be consumed
+            immediately.
+        @type immediate: boolean
+
+        @param eventClass: Name of the event class to fall under.
+        @type eventClass: string
+
+        For other parameters see class Event.
+        """
         occurrence_uuid = str(uuid4())
         rcvtime = time()
         args = dict(evid=occurrence_uuid, summary=summary, severity=severity, device=device)
