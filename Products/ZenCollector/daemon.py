@@ -278,13 +278,24 @@ class CollectorDaemon(RRDDaemon):
 
         # check for threshold breaches and send events when needed
         if hasThresholds:
+            if 'eventKey' in threshEventData:
+                eventKeyPrefix = [threshEventData['eventKey']]
+            else:
+                eventKeyPrefix = [path.rsplit('/')[-1]]
+
             for ev in self._thresholds.check(path, now, value):
-                parts = [path.rsplit('/')[-1]]
+                parts = eventKeyPrefix[:]
                 if 'eventKey' in ev:
                     parts.append(ev['eventKey'])
                 ev['eventKey'] = '|'.join(parts)
-                if threshEventData:
-                    ev.update(threshEventData)
+
+                # add any additional values for this threshold
+                # (only update if key is not in event, or if
+                # the event's value is blank or None)
+                for key,value in threshEventData.items():
+                    if ev.get(key, None) in ('',None):
+                        ev[key] = value
+
                 self.sendEvent(ev)
 
     def readRRD(self, path, consolidationFunction, start, end):
