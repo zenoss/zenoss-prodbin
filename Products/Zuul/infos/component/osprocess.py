@@ -12,6 +12,11 @@ from zope.interface import implements
 from Products.Zuul.decorators import info
 from Products.Zuul.interfaces import IOSProcessInfo
 from Products.Zuul.infos.component import ComponentInfo, ServiceMonitor
+from Products.Zuul.facades import getFacade
+from zenoss.protocols.services.zep import ZepConnectionError
+
+import logging
+log = logging.getLogger('zen.osprocess')
 
 class OSProcessInfo(ComponentInfo):
     implements(IOSProcessInfo)
@@ -19,7 +24,18 @@ class OSProcessInfo(ComponentInfo):
     @property
     @info
     def processClass(self):
-        return self._object.osProcessClass()
+        # ZEN-3016: Get the primary acquisition. Processes should always have a class.
+        klass = self._object.osProcessClass()
+        if not klass:
+            msg = 'Internal Error: OSProcess does not have an OSProcessClass: %s' % self.uid
+            try:
+                zep = getFacade('zep')
+                device = self._object.device()
+                zep.create(msg, 'Error', device.id, component=self.id, eventClass='/App')
+            except ZepConnectionError:
+                log.error(msg)
+            return None
+        return klass.primaryAq()
 
     @property
     def processName(self):
