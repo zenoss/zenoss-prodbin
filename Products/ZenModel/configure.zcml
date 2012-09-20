@@ -43,4 +43,8 @@
         />
      
     <meta:provides feature="zenoss:IExpandedLinkProvider" />
+    <!-- Make sure that whenever process or services classes are removed their
+         instances are as well -->
+    <subscriber handler=".OSProcessClass.onProcessClassRemoved"/>
+    <subscriber handler=".ServiceClass.onServiceClassRemoved"/>
 </configure>

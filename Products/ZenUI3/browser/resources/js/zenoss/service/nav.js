@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -218,13 +218,7 @@
         fb.on('buttonClick', zs.dispatcher);
         var footerHelperOptions = {
             contextGetter: new ContextGetter(),
-            customAddDialog: {
-                formListeners: {
-                    clientvalidation: function(form, valid) {
-                        form.refOwner.buttonSubmit.setDisabled(!valid);
-                    }
-                }
-            },
+			
             onGetAddDialogItems: function () {
                 return [{
                     xtype: 'idfield',

@@ -30,6 +30,8 @@ from ZenPackable import ZenPackable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenRelations.ZenPropertyManager import iszprop
 from Products.ZenWidgets import messaging
+from zope.component import adapter
+from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 
 from ZenModelRM import ZenModelRM
 
@@ -217,3 +219,9 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
 
 
 InitializeClass(ServiceClass)
+
+@adapter(ServiceClass, IObjectWillBeMovedEvent)
+def onServiceClassRemoved(ob, event):
+    if not IObjectWillBeAddedEvent.providedBy(event):
+        for i in ob.instances():
+            i.manage_deleteComponent()

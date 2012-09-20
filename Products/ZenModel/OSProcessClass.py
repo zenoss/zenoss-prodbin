@@ -19,7 +19,8 @@ from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
 from ZenPackable import ZenPackable
-
+from zope.component import adapter
+from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from ZenModelRM import ZenModelRM
 
 
@@ -173,3 +174,10 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
 
 
 InitializeClass(OSProcessClass)
+
+@adapter(OSProcessClass, IObjectWillBeMovedEvent)
+def onProcessClassRemoved(ob, event):
+    if not IObjectWillBeAddedEvent.providedBy(event):
+        for i in ob.instances():
+            i.manage_deleteComponent()
+        

@@ -147,11 +147,4 @@ class ServiceFacade(TreeFacade):
         if safe_hasattr(ob, 'monitoredStartModes'):
             for startMode in ob.monitoredStartModes:
                 yield [startMode]
-
-    def deleteNode(self, uid):
-        obj = self._getObject(uid)
-        if hasattr(obj, 'instances'):
-            for i in obj.instances():
-                i.manage_deleteComponent()
-        context = aq_parent(obj)
-        context._delObject(obj.id)
+    
