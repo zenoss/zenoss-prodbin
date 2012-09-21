@@ -138,22 +138,15 @@ stop() {
 restart() {
     PIDFILE=`pidFile $CFGFILE`
     PID=`cat $PIDFILE 2>/dev/null`
-    SUCCEEDED=
     stop
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
     do
        sleep 0.75 2>/dev/null || sleep 1
-       if [ ! -f $PIDFILE ]; then
-           SUCCEEDED=1
-           break
-       fi
+       running || break
     done
-    # Double-check ps output in case the pid file is stale
-    if [ -z "$SUCCEEDED" ]; then
-        ps -p $PID >/dev/null 2>&1 || SUCCEEDED=1
-    fi
+
     # If we still haven't stopped, warn and fail, otherwise start
-    if [ -z "$SUCCEEDED" ]; then
+    if running; then
         echo "Unable to shut down process $PID. You might need to kill it manually."
         exit 1
     else
