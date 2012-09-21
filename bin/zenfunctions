@@ -101,7 +101,7 @@ run() {
     pyexec "$@"
 }
 
-stop() {
+stopbase() {
     PIDFILE=`pidFile $CFGFILE`
     WATCHDOGPID=`dirname $PIDFILE`/watchdog-`basename $PIDFILE`
     KILLED=1
@@ -128,6 +128,11 @@ stop() {
 	   echo already stopped
         fi
     fi
+}
+
+stop() {
+    # This is a placeholder for more complex shutdowns.
+    stopbase
 }
 
 restart() {
