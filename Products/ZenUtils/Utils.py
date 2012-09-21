@@ -1089,8 +1089,7 @@ def binPath(fileName):
     # also check the standard locations for Nagios plugins (/usr/lib(64)/nagios/plugins)
     paths.extend(sane_pathjoin(d, fileName) for d in ('/usr/lib/nagios/plugins',
                                                       '/usr/lib64/nagios/plugins'))
-    # and fallback to checking the PATH
-    paths.extend(sane_pathjoin(d, fileName) for d in os.environ.get('PATH','').split(':'))
+
     for path in paths:
         if os.path.isfile(path):
             return path
