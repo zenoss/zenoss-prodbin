@@ -43,7 +43,7 @@ class OSProcessInfo(ComponentInfo):
 
     @property
     def description(self):
-        return getattr(self._object.osProcessClass(), 'description', '')
+        return getattr(self.processClass, 'description', '')
 
     def getAlertOnRestart(self):
         return self._object.alertOnRestart()
