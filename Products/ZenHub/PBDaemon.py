@@ -691,12 +691,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         if self._customexitcode:
             sys.exit(self._customexitcode)
 
-    def sigTerm(self, signum=None, frame=None):
-        try:
-            ZenDaemon.sigTerm(self, signum, frame)
-        except SystemExit:
-            pass
-
     def setExitCode(self, exitcode):
         self._customexitcode = exitcode
 
