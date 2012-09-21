@@ -190,7 +190,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
             rec = self.osProcessClasses._getOb(id)
             rec._operation = 1 # moving object state
             self.osProcessClasses._delObject(id)
-            target.osProcessClasses._setObject(id, rec)
+            target.osProcessClasses._setObject(id, rec)            
         if REQUEST:
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
