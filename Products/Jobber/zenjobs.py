@@ -8,15 +8,21 @@
 ##############################################################################
 
 
-import Globals
+import signal
 from datetime import datetime
+
 from zope.component import getUtility
+
+import Globals
 from Products.ZenUtils.Utils import zenPath, monkeypatch
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from Products.ZenUtils.celeryintegration import constants, states, current_app
+from Products.ZenUtils.celeryintegration.worker import CeleryZenWorker
+
 from celery import concurrency
 from celery.signals import task_prerun
+from celery.exceptions import SystemTerminate
 try:
     from celery.concurrency.processes.forking import freeze_support
 except ImportError:
@@ -33,6 +39,8 @@ class CeleryZenJobs(ZenDaemon):
     def __init__(self, *args, **kwargs):
         ZenDaemon.__init__(self, *args, **kwargs)
         self.setup_celery()
+        signal.signal(signal.SIGTERM, self.sigTerm)
+        signal.signal(signal.SIGINT, self.sigTerm)
 
     def setup_celery(self):
         current_app.main = self.mname
@@ -43,6 +51,7 @@ class CeleryZenJobs(ZenDaemon):
         })
 
     def run(self):
+        self.log.info('Daemon %s starting up', type(self).__name__)
         freeze_support()
         kwargs = {}
         if self.options.daemon:
@@ -50,7 +59,16 @@ class CeleryZenJobs(ZenDaemon):
         kwargs['loglevel'] = self.options.logseverity
         kwargs["pool_cls"] = concurrency.get_implementation(
                     kwargs.get("pool_cls") or current_app.conf.CELERYD_POOL)
-        return current_app.Worker(**kwargs).run()
+        self.worker = CeleryZenWorker(**kwargs)
+        self.worker.run()  # blocking call
+        self.log.info('Daemon %s has shut down', type(self).__name__)
+
+    def sigTerm(self, *args, **kwargs):
+        from celery.worker import state
+        setattr(state, 'should_terminate', True)
+        super(CeleryZenJobs, self).sigTerm(*args, **kwargs)
+        # Raise SystemTerminate to shutdown without waiting...
+        raise SystemTerminate()
 
     def buildOptions(self):
         """
@@ -68,17 +86,6 @@ class CeleryZenJobs(ZenDaemon):
             help='Number of jobs to process concurrently')
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         connectionFactory.buildOptions(self.parser)
-
-
-# Wrap the WorkController._shutdown() method to set the 'warm' parameter
-# to False.  The 'warm' parameter controls whether workers wait for their
-# tasks to complete before exiting (warm=True) or exit without waiting for
-# the tasks to complete (warm=False).
-@monkeypatch("celery.worker.WorkController")
-def _shutdown(self, warm=True):
-    # 'original' is a reference to the original _shutdown method.
-    # (injected by monkeypatch decorator)
-    return original(self, warm=False)
 
 
 # Replace the _log_error implementation to ignore JobAborted exceptions.

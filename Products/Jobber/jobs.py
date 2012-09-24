@@ -283,8 +283,9 @@ class Job(Task):
                 if not isinstance(result, JobAborted):
                     self.log.error("Job raised exception %s", tb)
                 links = []
-                for callback in self.request.callbacks:
-                    links.extend(callback.flatten_links())
+                if self.request.callbacks:
+                    for callback in self.request.callbacks:
+                        links.extend(callback.flatten_links())
                 for link in links:
                     link.type.update_state(
                         task_id=link.options['task_id'],
