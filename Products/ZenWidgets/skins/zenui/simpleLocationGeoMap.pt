@@ -23,8 +23,6 @@ v\:* {
             src string:http://maps.googleapis.com/maps/api/js?key=${apikey}&sensor=false"></script>                       
     <script tal:content="string:
         var eventsdb=true,
-            nodedata = ${here/getChildGeomapData},
-            linkdata = ${here/getChildLinks},
             geocodecache = ${here/dmd/getGeoCache};
     " tal:on-error="string:var eventsdb=false;"></script>                        
    
@@ -41,13 +39,13 @@ var IS_MAP_PORTLET = true;
     google.maps.event.addDomListener(window, 'load', function(){
          if(typeof geocodecache == 'undefined') geocodecache = null;      
          if (eventsdb) { 
-            loader = YAHOO.zenoss.getLoader(); 	                
-            loader.require(['geomap']); 	
+            loader = YAHOO.zenoss.getLoader();                  
+            loader.require(['geomap']);     
             loader.insert(
-            {onSuccess:function(){ 	
+            {onSuccess:function(){  
                     YAHOO.zenoss.geomap.initialize('geomapcontainer'); 
                 }
-            }); 	
+            });     
         }         
     });    
 })(); // End private namespace
@@ -55,7 +53,7 @@ var IS_MAP_PORTLET = true;
 </tal:block>
 
 
-<div id="geomapcontainer" tal:define="dummy here/getChildGeomapData"
+<div id="geomapcontainer" 
     tal:on-error="structure python:here.dmd.error_handler(error)"
     tal:attributes="class python:test(here.dmd.geomapapikey, '', 'noapikey')">
     

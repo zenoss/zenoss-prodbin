@@ -16,7 +16,7 @@ __version__ = "$Revision: 1.12 $"[11:-2]
 
 from Globals import InitializeClass
 from Globals import DTMLFile
-
+import transaction
 from AccessControl import ClassSecurityInfo
 
 from AccessControl import Permissions as permissions
@@ -111,7 +111,10 @@ class Location(DeviceOrganizer, ZenPackable):
 
     def getChildLinks(self):
         """ Returns child link data ready for GMaps """
-        return self.dmd.ZenLinkManager.getChildLinks(self)
+        results = self.dmd.ZenLinkManager.getChildLinks(self)
+        # make sure we don't get any conflict errors (this is a read only call)
+        transaction.abort()
+        return results
 
     def numMappableChildren(self):
         children = self.children()

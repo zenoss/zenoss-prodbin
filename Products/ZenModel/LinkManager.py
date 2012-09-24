@@ -9,7 +9,6 @@
 
 
 from itertools import groupby
-
 from Acquisition import aq_base
 
 from Globals import InitializeClass
@@ -173,7 +172,7 @@ class LinkManager(Folder):
             gen1ids = gen1ids - visited # Don't go places we've been!
         gen2 = cat(**{nextcol:list(gen1ids)})
         return gen2, gen1ids
-
+    
     def getChildLinks(self, organizer):
         catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
         result = {}
@@ -245,7 +244,7 @@ class LinkManager(Folder):
                 second = final[loc2]
                 if haslink(first, second):
                     link = Layer3Link(self.dmd, {loc:first, loc2:second})
-                    linkobs.append(link)
+                    linkobs.append(link)        
         return dumps([(x.getAddresses(), x.getStatus()) for x in linkobs])
 
     def getChildLinks_recursive(self, context):
