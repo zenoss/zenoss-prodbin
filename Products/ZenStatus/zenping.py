@@ -33,7 +33,7 @@ from Products.ZenCollector import tasks
 from Products.ZenUtils import IpUtil
 
 # perform some imports to allow twisted's PB to serialize these objects
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.PingPerformanceConfig import PingPerformanceConfig
 unused(DeviceProxy)
@@ -49,21 +49,58 @@ class PerIpAddressTaskSplitter(tasks.SubConfigurationTaskSplitter):
     def makeConfigKey(self, config, subconfig):
         return (config.id, subconfig.cycleTime, IpUtil.ipunwrap(subconfig.ip))
 
+def getConfigOption(filename, option, default):
+    """
+    Look for config option in file.
+    """
+    if not os.path.exists(filename):
+        return default
+    with open(filename, 'r') as f:
+	lines = [ line.strip() for line in f.readlines() if not line.startswith('#') and line ]
+	for line in reversed(lines):
+	    parts = line.split()
+	    if len(parts): 
+                if parts[0] == option:
+                    if len(parts) < 2:
+                        return True
+                    return parts[1]
+    return default
+
+def getCmdOption(option, default):
+    """
+    Introspect the command line args to find --option because
+    buildOptions doesn't get called until later.
+    """
+    try:
+	optionStr = "--%s" % option
+	optionStrEq = "--%s=" % option
+        for i, arg in enumerate(sys.argv):
+            if arg == optionStr:
+                return sys.argv[i+1]
+            elif arg.startswith(optionStrEq):
+                return arg.split('=', 1)[1]
+    except IndexError:
+        pass
+    return default
+
 def getPingBackend():
     """
     Introspect the command line args to find --ping-backend because
     buildOptions doesn't get called until later.
     """
     import sys
+
+    monitor = getCmdOption('monitor', 'localhost')
+
+    configFiles = ['global.conf']
+    if monitor == 'localhost':
+	configFiles.append("zenping.conf")
+    else:
+	configFiles.append("%s_zenping.conf" % monitor)
+
     backend = 'nmap'
-    try:
-        for i, arg in enumerate(sys.argv):
-            if arg == '--ping-backend':
-                return sys.argv[i+1]
-            elif arg.startswith('--ping-backend='):
-                return arg.split('=', 1)[1]
-    except IndexError:
-        pass
+    for configFile in configFiles:
+	backend = getConfigOption(zenPath('etc', configFile), 'ping-backend', backend)
     return backend
 
 
