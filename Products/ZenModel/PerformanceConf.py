@@ -32,6 +32,7 @@ from Globals import InitializeClass
 from Monitor import Monitor
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenRelations.RelSchema import ToMany, ToOne
+from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Utils import isXmlRpc
@@ -557,14 +558,20 @@ class PerformanceConf(Monitor, StatusColor):
                 devices.append(dev)
         return devices
 
-    def addDeviceCreationJob(self, deviceName, devicePath, title=None,
-                             discoverProto="none", manageIp="",
-                             performanceMonitor=None,
-                             rackSlot=0, productionState=1000, comments="",
-                             hwManufacturer="", hwProductName="",
-                             osManufacturer="", osProductName="", priority = 3,
-                             locationPath="", systemPaths=[], groupPaths=[],
-                             tag="", serialNumber="", zProperties={}):
+    def addCreateDeviceJob(self, deviceName, devicePath, title=None,
+            discoverProto="none", manageIp="", performanceMonitor=None,
+            rackSlot=0, productionState=1000, comments="",
+            hwManufacturer="", hwProductName="", osManufacturer="",
+            osProductName="", priority=3, locationPath="", systemPaths=[],
+            groupPaths=[], tag="", serialNumber="", zProperties={}):
+        """
+        Creating a device has two steps: creating a 'stub' device in the
+        database, then (if requested) running zendisc to model the device.
+        The modeling step can be skipped if the discoverProto argument
+        is set to the string "none".
+
+        @returns A list of JobRecord objects.
+        """
         # Determine the name of the monitor to use.
         monitor = performanceMonitor or self.id
 
@@ -625,6 +632,32 @@ class PerformanceConf(Monitor, StatusColor):
         # job is not passed as arguments into the next job (basically, args
         # to the jobs are immutable).
         return self.dmd.JobManager.addJobChain(*subjobs, immutable=True)
+
+    @deprecated
+    def addDeviceCreationJob(self, deviceName, devicePath, title=None,
+                             discoverProto="none", manageIp="",
+                             performanceMonitor=None,
+                             rackSlot=0, productionState=1000, comments="",
+                             hwManufacturer="", hwProductName="",
+                             osManufacturer="", osProductName="", priority=3,
+                             locationPath="", systemPaths=[], groupPaths=[],
+                             tag="", serialNumber="", zProperties={}):
+        """
+        For backward compatibility.  Please use the addCreateDeviceJob
+        method instead of the addDeviceCreationJob method.
+        """
+        result = self.addCreateDeviceJob(
+                deviceName, devicePath, title=title,
+                discoverProto=discoverProto, manageIp=manageIp,
+                performanceMonitor=performanceMonitor, rackSlot=rackSlot,
+                productionState=productionState, comments=comments,
+                hwManufacturer=hwManufacturer, hwProductName=hwProductName,
+                osManufacturer=osManufacturer, osProductName=osProductName,
+                priority=priority, locationPath=locationPath,
+                systemPaths=systemPaths, groupPaths=groupPaths, tag=tag,
+                serialNumber=serialNumber, zProperties=zProperties
+            )
+        return result[-1]
 
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered",
                                performanceMonitor="localhost", productionState=1000,

@@ -272,7 +272,7 @@ class DeviceAddView(BrowserView):
                 }
             deviceName = self.request.form.get(k)
             perfConf = self.context.Monitors.getPerformanceMonitor('localhost')
-            perfConf.addDeviceCreationJob(deviceName=deviceName,
+            perfConf.addCreateDeviceJob(deviceName=deviceName,
                 devicePath=devclass, zProperties=zProps, discoverProto='auto')
             deviceClassUid = '/Devices' + devclass
             deviceUid = '/'.join([deviceClassUid, 'devices', deviceName])
