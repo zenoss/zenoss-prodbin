@@ -15,6 +15,7 @@ __doc__ = """zenping
 Determines the availability of a IP addresses using ping (ICMP).
 
 """
+import sys
 import os.path
 import re
 import socket
@@ -88,7 +89,6 @@ def getPingBackend():
     Introspect the command line args to find --ping-backend because
     buildOptions doesn't get called until later.
     """
-    import sys
 
     monitor = getCmdOption('monitor', 'localhost')
 
