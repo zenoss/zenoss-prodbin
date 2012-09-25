@@ -612,7 +612,10 @@ class ZenDisc(ZenModeler):
         @type results: string
         """
         if isinstance(results, Failure):
-            self.log.error("Error: %s", results)
+            if results.type is NoIPAddress:
+                self.log.error("Error: %s", results.value)
+            else:
+                self.log.error("Error: %s", results)
         else:
             self.log.info("Result: %s", results)
         self.main()
