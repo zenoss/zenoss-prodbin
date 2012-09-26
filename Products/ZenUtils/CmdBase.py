@@ -391,7 +391,8 @@ class CmdBase(object):
             logfile = os.path.join(logdir, mname.lower()+".log")
             maxBytes = self.options.maxLogKiloBytes * 1024
             backupCount = self.options.maxBackupLogs
-            h = logging.handlers.RotatingFileHandler(logfile, maxBytes, backupCount)
+            h = logging.handlers.RotatingFileHandler(logfile, maxBytes=maxBytes,
+                                                     backupCount=backupCount)
             h.setFormatter(logging.Formatter(
                 "%(asctime)s %(levelname)s %(name)s: %(message)s",
                 "%Y-%m-%d %H:%M:%S"))
