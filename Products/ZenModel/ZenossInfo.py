@@ -211,6 +211,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 'user': cfg.get("zodb-user", "zenoss"),
                 'passwd': cfg.get("zodb-password", "zenoss"),
             }
+        if "zodb-socket" in cfg:
+            params["unix_socket"] = cfg["zodb-socket"]
         db = None
         useZenDS = os.environ.get("USE_ZENDS", False)
         name = "ZenDS" if useZenDS else "MySQL"
