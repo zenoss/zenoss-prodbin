@@ -230,8 +230,19 @@ class MySshClient(SshClient):
     """
     def __init__(self, *args, **kw):
         SshClient.__init__(self, *args, **kw)
+        self.connect_defer = None
         self.defers = {}
         self._taskList = set()
+        self.connection_description = '%s:*****@%s:%s' % (self.username, self.ip, self.port)
+
+    def run(self):
+        d = self.connect_defer = defer.Deferred()
+        super(MySshClient, self).run()
+        return d
+
+    def serviceStarted(self, sshconn):
+        super(MySshClient, self).serviceStarted(sshconn)
+        self.connect_defer.callback(self)
 
     def addCommand(self, command):
         """
@@ -257,15 +268,9 @@ class MySshClient(SshClient):
             d.callback((data, code))
 
     def clientConnectionLost(self, connector, reason):
-        connection_description = '%s:*****@%s:%s' % (self.username, self.ip, self.port)
         # Connection was lost, but could be because we just closed it. Not necessarily cause for concern.
-        log.debug("Connection %s lost." % connection_description)
-        pool = getPool('SSH Connections')
-        poolkey = hash((self.username, self.password, self.ip, self.port))
-        if poolkey in pool:
-            # Clean it up so the next time around the task will get a new connection
-            log.debug("Deleting connection %s from pool." % connection_description)
-            del pool[poolkey]
+        log.debug("Connection %s lost." % self.connection_description)
+        self.cleanUpPool()
 
     def check(self, ip, timeout=2):
         """
@@ -295,6 +300,15 @@ class MySshClient(SshClient):
         message= reason.getErrorMessage()
         for task in list(self._taskList):
             task.connectionFailed(message)
+        self.cleanUpPool()
+
+    def cleanUpPool(self):
+        pool = getPool('SSH Connections')
+        poolkey = hash((self.username, self.password, self.ip, self.port))
+        if poolkey in pool:
+            # Clean it up so the next time around the task will get a new connection
+            log.debug("Deleting connection %s from pool." % self.connection_description)
+            del pool[poolkey]
 
 
 class SshOptions:
@@ -583,10 +597,9 @@ class SshPerformanceCollectionTask(BaseTask):
             self.pool[self._getPoolKey()] = connection
 
             # Opens SSH connection to device
-            connection.run()
+            d = connection.run()
+            return d
 
-        self._connection = connection
-        self._connection._taskList.add(self)
         return connection
 
     def _close(self):
@@ -670,15 +683,21 @@ class SshPerformanceCollectionTask(BaseTask):
 
         return reason
 
-    def _connectCallback(self, result):
+    def _connectCallback(self, connection):
         """
         Callback called after a successful connect to the remote device.
         """
         if self._useSsh:
-            log.debug("Connected to %s [%s]", self._devId, self._manageIp)
+            self._connection = connection
+            self._connection._taskList.add(self)
+
+            msg = "Connected to %s [%s]" % (self._devId, self._manageIp)
+            self._connection.sendEvent(STATUS_EVENT, device=self._devId, summary=msg, component=COLLECTOR_NAME, severity=Clear)
         else:
-            log.debug("Running command(s) locally")
-        return result
+            msg = "Running command(s) locally"
+
+        log.debug(msg)
+        return
 
     def _addDatasource(self, datasource):
         """
