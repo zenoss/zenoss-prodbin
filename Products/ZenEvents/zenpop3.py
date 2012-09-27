@@ -49,17 +49,11 @@ class MailPreferences(object):
     zope.interface.implements(ICollectorPreferences)
 
     def __init__(self):
-        """
-        Constructs a new PingCollectionPreferences instance and
-        provides default values for needed attributes.
-        """
         self.collectorName = COLLECTOR_NAME
         self.defaultRRDCreateCommand = None
         self.configCycleInterval = 20 # minutes
         self.cycleInterval = 5 * 60 # seconds
 
-        # The configurationService attribute is the fully qualified class-name
-        # of our configuration service that runs within ZenHub
         self.configurationService = 'Products.ZenHub.services.NullConfig'
 
         # Will be filled in based on buildOptions
