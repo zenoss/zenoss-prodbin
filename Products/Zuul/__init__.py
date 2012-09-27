@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -38,6 +38,7 @@ import AccessControl
 from OFS.ObjectManager import ObjectManager
 from zope import component
 from zope.interface import verify
+from zope.event import notify
 from interfaces import IFacade, IInfo
 from interfaces import IMarshallable
 from interfaces import IMarshaller
@@ -45,7 +46,7 @@ from interfaces import IUnmarshaller
 from utils import safe_hasattr as hasattr, get_dmd
 from BTrees.OOBTree import OOSet
 from Products.ZenWidgets import messaging
-
+from Products.Zuul.catalog.events import IndexingEvent
 
 def getFacade(name, context=None):
     """
@@ -144,7 +145,10 @@ def unmarshal(data, obj, unmarshallerName=''):
     # Get rid of immutable uid attribute
     if 'uid' in data:
         del data['uid']
-    return unmarshaller.unmarshal(data)
+    result = unmarshaller.unmarshal(data)
+    notify(IndexingEvent(obj._object))
+    return result
+
 
 
 def info(obj, adapterName=''):
