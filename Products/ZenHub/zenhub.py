@@ -423,7 +423,7 @@ class ZenHub(ZCmdBase):
                        severity=0)
 
         self._initialize_invalidation_filters()
-        reactor.callLater(5, self.processQueue)
+        reactor.callLater(self.options.invalidation_poll_interval, self.processQueue)
 
         self.rrdStats = self.getRRDStats()
 
@@ -480,7 +480,7 @@ class ZenHub(ZCmdBase):
 
     def processQueue(self):
         """
-        Periodically (once a second) process database changes
+        Periodically process database changes
 
         @return: None
         """
@@ -494,7 +494,7 @@ class ZenHub(ZCmdBase):
                 self.doProcessQueue()
             except Exception, ex:
                 self.log.exception("Unable to poll invalidations.")
-        reactor.callLater(1, self.processQueue)
+        reactor.callLater(self.options.invalidation_poll_interval, self.processQueue)
         self.totalEvents += 1
         self.totalTime += time.time() - now
 
@@ -956,6 +956,9 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--worker-call-limit', dest='worker_call_limit',
             type='int', default=200,
             help="Maximum number of remote calls a worker can run before restarting")
+        self.parser.add_option('--invalidation-poll-interval', 
+            type='int', default=30,
+            help="Interval at which to poll invalidations (default: %default)")
             
         notify(ParserReadyForOptionsEvent(self.parser))
 
