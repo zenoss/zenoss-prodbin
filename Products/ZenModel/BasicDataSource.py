@@ -162,21 +162,22 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         # Get the command to run
         command = None
         if self.sourcetype=='COMMAND':
-            command = self.getCommand(device, REQUEST.get('commandTemplate'))
+            # to prevent command injection, get these from self rather than the browser REQUEST
+            command = self.getCommand(device, self.get('commandTemplate'))           
             displayCommand = command
             if displayCommand and len(displayCommand.split()) > 1:
                 displayCommand = "%s [args omitted]" % displayCommand.split()[0]
         elif self.sourcetype=='SNMP':
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
             # use the oid from the request or our existing one
-            snmpinfo['oid'] = REQUEST.get('oid', self.getDescription())
+            snmpinfo['oid'] = self.get('oid', self.getDescription())
             command = snmptemplate % snmpinfo
             displayCommand = command
         else:
             errorLog(
                 'Test Failed',
                 'Unable to test %s datasources' % self.sourcetype,
-                priority=messaging.WARNING
+                priority=messaging.WARNING  
             )
             return self.callZenScreen(REQUEST)
         if not command:

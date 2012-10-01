@@ -14,6 +14,7 @@ from Products.ZenUtils.Utils import is_browser_connection_open
 import logging
 log = logging.getLogger("zen.streaming")
 import traceback
+import cgi
 
 LINE = """
 <div class="streaming-line %(lineclass)s">
@@ -39,7 +40,7 @@ class StreamingView(BrowserView):
     def __call__(self):
         # tells nginx that we want to stream this text
         self._stream.setHeader('X-Accel-Buffering', 'no')
-        header, footer = str(self.tpl()).split('*****CONTENT_TOKEN*****')
+        header, footer = str(self.tpl()).split('*****CONTENT_TOKEN*****')  
         self._stream.write(header)
         try:
             try:
@@ -55,6 +56,7 @@ class StreamingView(BrowserView):
             self.request.close()
 
     def write(self, data=''):
+        data = cgi.escape(data)
         log.info("streaming data " + data)
         if not is_browser_connection_open(self.request):
             raise StreamClosed('The browser has closed the connection.')
