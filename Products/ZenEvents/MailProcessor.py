@@ -1,35 +1,39 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 __doc__ = """MailProcessor
 Base class module that other servers will subclass.
 """
 
-import email, socket, rfc822, types
+import logging
+log = logging.getLogger("zen.mail")
+
+import email
+import time
+import socket
+import rfc822
 import calendar
 from datetime import tzinfo, timedelta, datetime
 
-from Event import Event
+import Globals
 
+from Products.ZenEvents.Event import Event
 from Products.ZenUtils.Utils import unused
-
-import logging
-log = logging.getLogger("zen.mail")
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
 
 class MailEvent(Event):
     """
     Defaults for events created by the processor
     """
-    agent="zenmail"
-    eventGroup="mail" 
+    agent = "zenmail"
+    eventGroup = "mail" 
 
 
 # The following is copied from the Python standard library
@@ -39,6 +43,7 @@ ZERO = timedelta(0)
 # A class building tzinfo objects for fixed-offset time zones.
 # Note that FixedOffset(0, "UTC") is a different way to build a
 # UTC tzinfo object.
+# FIXME: Python docs suggest using IANA timezone database via pytz class
 class FixedOffset(tzinfo):
     """Fixed offset in minutes east from UTC."""
 
@@ -54,7 +59,6 @@ class FixedOffset(tzinfo):
 
     def dst(self, dt):
         return ZERO
-
 
 
 class MessageProcessor(object):
@@ -74,7 +78,6 @@ class MessageProcessor(object):
         """
         self.zem = zem
         self.eventSeverity = defaultSeverity
-
 
     def process(self, messageStr):
         """
@@ -105,25 +108,7 @@ class MessageProcessor(object):
 
         subject = message.get('Subject').replace("\r","").replace("\n", "")
 
-        # This is tricky...  date comes in with an offset value that
-        # represents the number of seconds of difference between the
-        # parsed timezone and UTC.  The events database wants all time
-        # as seconds since the epoch and treats it as UTC.  As a
-        # result we have to use the datetime class to do the
-        # conversion because the functions in the time module do all
-        # kinds of covnersions "to be helpful"
-        t = rfc822.parsedate_tz(message.get('Date'))
-
-        offset_secs = t[-1]
-
-        # Convert the offset in seconds to minutes.  calendar wants minutes
-        offset_mins = offset_secs / 60
-        tz = FixedOffset(offset_mins, "Unknown")
-
-        # Construct dt using the date and time as well as the timezone 
-        dt = datetime(t[0], t[1], t[2], t[3], t[4], t[5], 0, tz)
-        secs = calendar.timegm(dt.utctimetuple())
-        log.debug('Timestamp of the event (should be in UTC): %f' % secs)
+        secs = self.getReceiveTime(message)
 
         event = MailEvent(device=fromAddr, rcvtime=secs,
                           fromEmailAddress=origFromAddr)
@@ -157,7 +142,6 @@ class MessageProcessor(object):
         unused(subject)
         event.facility = "unknown"
         event.severity = self.eventSeverity
-        
 
     def buildEventClassKey(self, evt):
         """
@@ -183,6 +167,37 @@ class MessageProcessor(object):
             log.debug("No eventClassKey assigned")
         return evt
 
+    def getReceiveTime(self, message):
+        # This is tricky...  date comes in with an offset value that
+        # represents the number of seconds of difference between the
+        # parsed timezone and UTC.  The events database wants all time
+        # as seconds since the epoch and treats it as UTC.  As a
+        # result we have to use the datetime class to do the
+        # conversion because the functions in the time module do all
+        # kinds of covnersions "to be helpful"
+        timestamp = message.get('Date', message.get('Sent'))
+        t = rfc822.parsedate_tz(timestamp)
+        if t is None:
+            log.warn("Unable to process timestamp '%s' -- defaulting to now",
+                     timestamp)
+            return time.time()
+
+        offset_secs = t[-1]
+        if offset_secs is not None:
+            # Convert the offset in seconds to minutes.  calendar wants minutes
+            offset_mins = offset_secs / 60
+            tz = FixedOffset(offset_mins, "Unknown")
+        else:
+            log.warn("Timezone not specified in '%s' -- defaulting to local timezone",
+                     timestamp)
+            tz = None
+
+        # Construct dt using the date and time as well as the timezone 
+        dt = datetime(t[0], t[1], t[2], t[3], t[4], t[5], 0, tz)
+        secs = calendar.timegm(dt.utctimetuple())
+        log.debug('Timestamp of the event (should be in UTC): %s -> %f',
+                  timestamp, secs)
+        return secs
 
 
 class POPProcessor(MessageProcessor):
@@ -203,7 +218,6 @@ class POPProcessor(MessageProcessor):
         MessageProcessor.__init__(self, zem, defaultSeverity)
 
 
-
 class MailProcessor(MessageProcessor):
     """
     Extension point for messages received via SMTP.  If you need to
@@ -220,3 +234,38 @@ class MailProcessor(MessageProcessor):
         @param defaultSeverity: severity level to use if we can't figure one out
         """
         MessageProcessor.__init__(self, zem, defaultSeverity)
+
+
+class ZenMailTest(ZenScriptBase):
+    """
+    Usage:  
+            
+    python MailProcessor.py file1 [...]
+
+    Read text files that are saved emails and send events into Zenoss
+    """
+    def __init__(self):
+        ZenScriptBase.__init__(self, connect=True)
+    
+    def run(self):
+        if len(self.args) == 0:
+            log.critical("Need at least one input filename!")
+            sys.exit(1)
+
+        mp = MessageProcessor(self.dmd.ZenEventManager)
+
+        for emailFile in self.args:
+            try:
+                email = open(emailFile).read()
+            except Exception as ex:
+                log.error("Unable to open %s: %s", emailFile, ex)
+                continue
+            mp.process(email)
+
+
+if __name__ == '__main__':
+    import sys
+
+    zmt = ZenMailTest()
+    zmt.run()
+
