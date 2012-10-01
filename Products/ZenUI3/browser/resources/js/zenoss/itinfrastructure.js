@@ -340,8 +340,8 @@ Ext.apply(Zenoss.devices, {
             var win = new Zenoss.FormDialog({
                 title: _t('Remove Devices'),
                 modal: true,
-                width: 300,
-                height: 320,
+                width: 322,
+                height: isclass ? 170 : 210,
                 items: [{
                     xtype: 'panel',
                     bodyStyle: 'font-weight: bold; text-align:center',
@@ -351,6 +351,7 @@ Ext.apply(Zenoss.devices, {
                     xtype: 'radiogroup',
                     id: 'removetype',
                     style: 'margin: 0 auto',
+                    hidden: isclass,
                     columns: 1,
                     items: [{
                         inputValue: 'remove',
@@ -374,13 +375,15 @@ Ext.apply(Zenoss.devices, {
                     }]
                 },{
                     id: 'delete-device-events',
-                    fieldLabel: _t('Delete Events?'),
+                    boxLabel: _t('Delete Events?'),
+                    style: 'margin-left: 4px;',
                     xtype: 'checkbox',
                     checked: true,
                     disabled: !isclass
                 },{
                     id: 'delete-device-perf-data',
-                    fieldLabel: _t('Delete performance data?'),
+                    boxLabel: _t('Delete performance data?'),
+                    style: 'margin-left: 4px;',
                     xtype: 'checkbox',
                     checked: true,
                     disabled: !isclass
