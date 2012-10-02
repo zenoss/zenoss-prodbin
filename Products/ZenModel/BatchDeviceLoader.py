@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -34,7 +34,10 @@ from Products.ZenRelations.ZenPropertyManager import iszprop
 from Products.ZenModel.ZenModelBase import iscustprop
 from Products.ZenEvents.ZenEventClasses import Change_Add
 from Products.Zuul.catalog.events import IndexingEvent
-
+from Products.ZenUtils.Utils import unused
+# We import DateTime so that we can set properties of type DateTime in the batchload
+from DateTime import DateTime
+unused(DateTime)
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
 METHODS_TO_SETTINGS = {
