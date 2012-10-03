@@ -37,6 +37,8 @@ def JavaScriptSourceViewlet(source):
     return klass
 
 
+allDirectRouters = {}
+
 def directRouter(_context, name, class_, namespace=None, for_=Interface,
                  layer=IDefaultBrowserLayer, timeout="180000", 
                  permission='zenoss.Common'):
@@ -54,3 +56,7 @@ def directRouter(_context, name, class_, namespace=None, for_=Interface,
     jsonapi_source = definition.render_jsonapi()
     jsonapi_viewletclass = JavaScriptSourceViewlet(jsonapi_source)
     viewletDirective(_context, name, 'zope2.Public', for_, layer, manager=IJsonApiJavaScriptManager, class_=jsonapi_viewletclass)
+
+    # Create a mapping of all of the Zope routers for introspection
+    allDirectRouters[class_] = dict(name=name, namespace=namespace, permission=permission)
+
