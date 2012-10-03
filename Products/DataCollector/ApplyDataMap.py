@@ -178,6 +178,22 @@ class ApplyDataMap(object):
         if not hasattr(device.dmd, 'zport'):
             transaction.abort()
 
+        # There's the potential for a device to change device class during
+        # modeling. Due to this method being run within a retrying @transact,
+        # this will result in device losing its deviceClass relationship.
+        if not device.deviceClass():
+            new_device = device.dmd.Devices.findDeviceByIdExact(device.id)
+            if new_device:
+                log.debug("%s changed device class to %s during modeling",
+                    new_device.titleOrId(), new_device.getDeviceClassName())
+
+                device = new_device
+            else:
+                log.error("%s lost its device class during modeling",
+                    device.titleOrId())
+
+                return False
+
         if hasattr(datamap, "compname"):
             if datamap.compname:
                 try:
