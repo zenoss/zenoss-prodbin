@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -60,23 +60,28 @@ class ApplyDataMapTest(BaseTestCase):
             self.adm._updateObject(obj, objmap)
             for key in objmap:
                 self.assertEqual(getattr(obj, key), objmap[key].decode(enc))
-                
+
     def test_applyDataMap_relmap(self):
+        dmd = self.dmd
         class datamap(list):
             compname = "a/b"
             relname  = "c"
-            
+
         class Device(object):
+
+            def deviceClass(self):
+                return dmd.Devices
+
             class dmd:
                 "Used for faking sync()"
                 class _p_jar:
                     @staticmethod
                     def sync():
                         pass
-                    
+
             def getObjByPath(self, path):
                 return reduce(getattr, path.split("/"), self)
-            
+
             class a:
                 class b:
                     class c:
