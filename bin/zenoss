@@ -6,14 +6,213 @@
 # description: Zenoss is a monitoring program written by Zenoss, Inc.
 #
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+set_deamon_list() {
+    WEBSERVERCTL=$(${ZENHOME}/bin/zenglobalconf -p webserverctl)
+    if [ -z "${WEBSERVERCTL}" ]; then
+        WEBSERVERCTL=zopectl
+    fi
+    CATSERVICE=${ZENHOME}/bin/zencatalogservice
+    # reset the list
+    C=
+    if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
+        if [ -f $CATSERVICE ] ; then
+            C="$C zencatalogservice"
+        fi
+        C="$C zeneventserver"
+        C="$C ${WEBSERVERCTL}"
+        C="$C zenhub"
+        C="$C zenjobs"
+        C="$C zeneventd"
+        C="$C zenping"
+        C="$C zensyslog"
+        C="$C zenstatus"
+        C="$C zenactiond"
+        C="$C zentrap"
+        C="$C zenmodeler"
+    #C="$C zenrender"
+        C="$C zenperfsnmp"
+        C="$C zencommand"
+        C="$C zenprocess"
+        C="$C zenrrdcached"
+    #C="$C zenmail"
+
+        ZPD=`$ZENHOME/bin/zenpackdaemons --list`
+        C="$C $ZPD"
+    fi
+    if [ -f "$ZENHOME/etc/daemons.txt" ]
+    then
+        D=`grep -v "^#" $ZENHOME/etc/daemons.txt`
+    # add to daemon list without new lines
+        for DD in $D
+        do
+            C="$C $DD"
+        done
+    fi
+
+    # are we interested in only running daemons?
+    if [ $ONLY_RUNNING = "1" ]; then
+        C=`zenoss status | grep "pid=" | awk '{ print $2 }'`
+    fi
+
+    #filter the daemons
+    DLIST=""
+    for DAEMON in ${C}
+    do
+        if echo $DAEMON | grep -E "$DAEMON_FILTER" 1>/dev/null; then
+            DLIST="$DLIST $DAEMON"
+        fi
+    done
+
+    # ZENDAEMONS is what is used when issueing the start/stop
+    C="$DLIST"
+    echo $C
+}
+
+
+issue() {
+    # To properly conform to LSB standards and be used under Linux-HA or RHCS
+    # we need to exit with a proper non-zero code when there is a problem with
+    # the service. We'll take the naive approach of responding with the highest
+    # and most likely worse condition of any of the configured daemons.
+    HIGHESTCODE=0
+    for cmd in $ZENDAEMONS
+    do
+        echo -n "Daemon: $cmd "
+
+        # Special status handling for zeoctl and zopectl because the stock
+        # scripts exit with a code of 0 no matter what state they're in.
+        if [ $FUNC == "status" -a \( $cmd == "zeoctl" -o $cmd == "zopectl" \) ]
+        then
+            PIDFILE="${ZENHOME}/var/Z2.pid"
+            [ $cmd == 'zeoctl' ] && PIDFILE="${ZENHOME}/var/ZEO.pid"
+
+            if running; then
+                echo program running\; pid=$PID
+                CODE=0
+            else
+                echo not running
+                if [ -f $PIDFILE ]; then
+                    rm -f $PIDFILE
+                    CODE=1
+                else
+                    CODE=3
+                fi
+            fi
+        else
+            $ZENHOME/bin/$cmd "$FUNC"
+            CODE=$?
+        fi
+        if [ $CODE -gt $HIGHESTCODE ]; then
+            HIGHESTCODE=$CODE
+        fi
+
+        # during 'zenoss start' if $ZENHOME/packs/.zenpacks_to_install exists
+        # install the listed zenpacks after zeneventserver is started.
+        # after these zenpacks are installed a zenoss restart is performed.
+        if [ $FUNC == "start" -a $cmd == "zeneventserver" ]
+        then
+            PACKNAMES=""
+            install_zenpacks
+            returncode=$?
+
+            if [ ${returncode} -ne 0 ]
+            then
+                echo "Error: A zenpack failed to install. Fix the zenpack or delete it from $ZENHOME/packs/.zenpacks_to_install, then restart zenoss." >&2
+                exit ${returncode}
+            fi
+
+            # using global variable PACKNAMES set within install_zenpacks
+            if [ -n "${PACKNAMES}" ]
+            then
+                # installing zenpacks changes the list of daemons we need to load,
+                # reset that list.
+                echo "Zenpacks were installed. Restarting zenoss." >&2
+                ZENDAEMONS=`reverse $ZENDAEMONS`
+                FUNC=stop
+                issue
+                ZENDAEMONS=`set_deamon_list`
+                FUNC=start
+                issue
+                return $?
+            fi
+
+        fi
+
+    done
+    return $HIGHESTCODE
+}
+
+xissue() {
+    # To properly conform to LSB standards and be used under Linux-HA or RHCS
+    # we need to exit with a proper non-zero code when there is a problem with
+    # the service. We'll take the naive approach of responding with the highest
+    # and most likely worse condition of any of the configured daemons.
+    HIGHESTCODE=0
+
+    XFUNC=$FUNC
+    if [ $FUNC == "xstatus" ]; then
+        XFUNC="status"
+    fi
+    echo "Status        | PID     | Daemon "
+    echo "-------------------------------------------------------------------"
+    for cmd in $ZENDAEMONS
+    do
+        # Special status handling for zeoctl and zopectl because the stock
+        # scripts exit with a code of 0 no matter what state they're in.
+        if [ $XFUNC == "xstatus" -a \( $cmd == "zeoctl" -o $cmd == "zopectl" \) ]
+        then
+            PIDFILE="${ZENHOME}/var/Z2.pid"
+            [ $cmd == 'zeoctl' ] && PIDFILE="${ZENHOME}/var/ZEO.pid"
+
+            if running; then
+                printf "Running     %8d    $cmd\n"  $PID
+                CODE=0
+            else
+                echo "Stopped             $cmd"
+                if [ -f $PIDFILE ]; then
+                    rm -f $PIDFILE
+                    CODE=1
+                else
+                    CODE=3
+                fi
+            fi
+        else
+            CMD_OUTPUT=`$ZENHOME/bin/$cmd $XFUNC`
+            CODE=$?
+            CMD_PID=`echo "${CMD_OUTPUT}" | grep pid | awk -F\= '{ print $2 }'`
+            if [ $CMD_PID ]
+            then
+                printf "Running     %8d      $cmd\n"  $CMD_PID
+            else
+                echo "Stopped                   $cmd"
+            fi
+        fi
+        if [ $CODE -gt $HIGHESTCODE ]; then
+            HIGHESTCODE=$CODE
+        fi
+    done
+    return $HIGHESTCODE
+}
+
+reverse() {
+    args=
+    for i
+    do
+       args="$i $args"
+       shift
+    done
+    echo $args
+}
+
+# Main()
 
 # Attempt to set ZENHOME if it is not already set, or bogus
 # by calculating it relative to the executing command
@@ -69,172 +268,10 @@ done
 
 . $ZENHOME/bin/zenfunctions
 
-WEBSERVERCTL=$(${ZENHOME}/bin/zenglobalconf -p webserverctl)
-if [ -z "${WEBSERVERCTL}" ]; then
-    WEBSERVERCTL=zopectl
-fi
-CATSERVICE=${ZENHOME}/bin/zencatalogservice
 
-
-C=
-if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
-    if [ -f $CATSERVICE ] ; then
-        C="$C zencatalogservice"
-    fi
-    C="$C zeneventserver"
-    C="$C ${WEBSERVERCTL}"
-    C="$C zenrrdcached"
-    C="$C zenhub"
-    C="$C zenjobs"
-    C="$C zeneventd"
-    C="$C zenping"
-    C="$C zensyslog"
-    C="$C zenstatus"
-    C="$C zenactiond"
-    C="$C zentrap"
-    C="$C zenmodeler"
-    #C="$C zenrender"
-    C="$C zenperfsnmp"
-    C="$C zencommand"
-    C="$C zenprocess"
-    #C="$C zenmail"
-
-    ZPD=`$ZENHOME/bin/zenpackdaemons --list`
-    C="$C $ZPD"
-fi
-if [ -f "$ZENHOME/etc/daemons.txt" ]
-then
-    D=`grep -v "^#" $ZENHOME/etc/daemons.txt`
-    # add to daemon list without new lines
-    for DD in $D
-    do
-        C="$C $DD"
-    done
-fi
-
-reverse() {
-    args=
-    for i
-    do
-       args="$i $args"
-       shift
-    done
-    echo $args
-}
-
-# are we interested in only running daemons?
-if [ $ONLY_RUNNING = "1" ]; then
-    C=`zenoss status | grep "pid=" | awk '{ print $2 }'`
-fi
-
-#filter the daemons
-DLIST=""
-for DAEMON in ${C}
-do
-    if echo $DAEMON | grep -E "$DAEMON_FILTER" 1>/dev/null; then
-        DLIST="$DLIST $DAEMON"
-    fi
-done
-
-
-
-C="$DLIST"
-CMDS=$C
-
+ZENDAEMONS=`set_deamon_list`
+# $CMD is defined in zenfunctions, start stop etc
 FUNC=$CMD
-
-issue() {
-    # To properly conform to LSB standards and be used under Linux-HA or RHCS
-    # we need to exit with a proper non-zero code when there is a problem with
-    # the service. We'll take the naive approach of responding with the highest
-    # and most likely worse condition of any of the configured daemons.
-    HIGHESTCODE=0
-    for cmd in $CMDS
-    do
-        echo -n "Daemon: $cmd "
-
-        # Special status handling for zeoctl and zopectl because the stock
-        # scripts exit with a code of 0 no matter what state they're in.
-        if [ $FUNC == "status" -a \( $cmd == "zeoctl" -o $cmd == "zopectl" \) ]
-        then
-            PIDFILE="${ZENHOME}/var/Z2.pid"
-            [ $cmd == 'zeoctl' ] && PIDFILE="${ZENHOME}/var/ZEO.pid"
-
-            if running; then
-                echo program running\; pid=$PID
-                CODE=0
-            else
-                echo not running
-                if [ -f $PIDFILE ]; then
-                    rm -f $PIDFILE
-                    CODE=1
-                else
-                    CODE=3
-                fi
-            fi
-        else
-            $ZENHOME/bin/$cmd "$FUNC"
-            CODE=$?
-        fi
-        if [ $CODE -gt $HIGHESTCODE ]; then
-            HIGHESTCODE=$CODE
-        fi
-    done
-    return $HIGHESTCODE
-}
-
-xissue() {
-    # To properly conform to LSB standards and be used under Linux-HA or RHCS
-    # we need to exit with a proper non-zero code when there is a problem with
-    # the service. We'll take the naive approach of responding with the highest
-    # and most likely worse condition of any of the configured daemons.
-    HIGHESTCODE=0
-
-    XFUNC=$FUNC
-    if [ $FUNC == "xstatus" ]; then
-        XFUNC="status"
-    fi
-    echo "Status        | PID     | Daemon "
-    echo "-------------------------------------------------------------------"
-    for cmd in $CMDS
-    do
-        # Special status handling for zeoctl and zopectl because the stock
-        # scripts exit with a code of 0 no matter what state they're in.
-        if [ $XFUNC == "xstatus" -a \( $cmd == "zeoctl" -o $cmd == "zopectl" \) ]
-        then
-            PIDFILE="${ZENHOME}/var/Z2.pid"
-            [ $cmd == 'zeoctl' ] && PIDFILE="${ZENHOME}/var/ZEO.pid"
-
-            if running; then
-                printf "Running     %8d    $cmd\n"  $PID
-                CODE=0
-            else
-                echo "Stopped             $cmd"
-                if [ -f $PIDFILE ]; then
-                    rm -f $PIDFILE
-                    CODE=1
-                else
-                    CODE=3
-                fi
-            fi
-        else
-            CMD_OUTPUT=`$ZENHOME/bin/$cmd $XFUNC`
-            CODE=$?
-            CMD_PID=`echo "${CMD_OUTPUT}" | grep pid | awk -F\= '{ print $2 }'`
-            if [ $CMD_PID ]
-            then
-                printf "Running     %8d      $cmd\n"  $CMD_PID
-            else
-                echo "Stopped                   $cmd"
-            fi
-        fi
-        if [ $CODE -gt $HIGHESTCODE ]; then
-            HIGHESTCODE=$CODE
-        fi
-    done
-    return $HIGHESTCODE
-}
-
 
 EXITCODE=4
 
@@ -244,16 +281,16 @@ case "$FUNC" in
         EXITCODE=$?
         ;;
   stop)
-        CMDS=`reverse $CMDS`
+        ZENDAEMONS=`reverse $ZENDAEMONS`
         issue
         EXITCODE=$?
     rm -f $ZENHOME/var/.*watchdog-*
         ;;
   restart)
-        CMDS=`reverse $CMDS`
+        ZENDAEMONS=`reverse $ZENDAEMONS`
     FUNC=stop
     issue
-        CMDS=`reverse $CMDS`
+        ZENDAEMONS=`reverse $ZENDAEMONS`
     FUNC=start
         issue
         EXITCODE=$?
@@ -267,7 +304,7 @@ case "$FUNC" in
     EXITCODE=$?
     ;;
   list)
-    for i in $CMDS
+    for i in $ZENDAEMONS
     do
         echo $i
         EXITCODE=0

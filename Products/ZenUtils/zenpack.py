@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -37,6 +37,7 @@ import ZenPackCmd as EggPackCmd
 from Products.Zuul import getFacade
 
 HIGHER_THAN_CRITICAL = 100
+LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING = 3
 
 def RemoveZenPack(dmd, packName, log=None,
                         skipDepsCheck=False, leaveObjects=True,
@@ -479,10 +480,10 @@ if __name__ == '__main__':
         zp = ZenPackCmd()
         zp.run()
     except ConflictError:
-        raise
+        sys.exit(LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING)
     except SystemExit as e:
         if e.code:
-            sys.exit(e.code)
+            sys.exit(LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING)
     except:
         log.exception('zenpack command failed')
-        sys.exit(-1)
+        sys.exit(LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING)

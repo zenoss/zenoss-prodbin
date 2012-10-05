@@ -97,6 +97,71 @@ start() {
     fi
 }
 
+install_zenpacks()
+{
+    # install zenpacks listed in ${ZENHOME}/packs/.zenpacks_to_install
+    if [ -z "${ZENPACK_CMD}" ]
+    then
+        ZENPACK_CMD="${ZENHOME}/bin/zenpack"
+    fi
+    PACKS_DIR="${ZENHOME}/packs"
+    TO_INSTALL_FILE="${PACKS_DIR}/.zenpacks_to_install"
+    AN_INSTALL_FAILED=0
+    if [ -f ${TO_INSTALL_FILE} ]
+    then
+
+        # gather the pack names from the zenpacks-to-install file
+        PACKNAMES=""
+        while read PACKNAME
+        do
+            PACKNAMES="${PACKNAMES} ${PACKNAME}"
+        done <${TO_INSTALL_FILE}
+
+        # remove the zenpacks-to-install file
+        rm ${TO_INSTALL_FILE}
+
+        if [ -n "${PACKNAMES}" ]
+        then
+            echo "Installing the zenpacks listed in $ZENHOME/packs/.zenpacks_to_install." >&2
+        fi
+
+        # install all the zenpacks
+        for PACKNAME in ${PACKNAMES}
+        do
+            if [ ${AN_INSTALL_FAILED} -eq 0 ]
+            then
+                # are there any eggs that match
+                PACKGLOB="${PACKNAME}-*.egg"
+                if [ -n "`find ${PACKS_DIR} -maxdepth 1 -name ${PACKGLOB}`" ]
+                then
+                    # use the latest version if more than one egg exists
+                    PACK="`ls -1r ${PACKS_DIR}/${PACKGLOB} | head -n1`"
+                    echo "Installing ${PACK}..."
+                    ${ZENPACK_CMD} --install ${PACK}
+                    AN_INSTALL_FAILED=$?
+                    if [ ${AN_INSTALL_FAILED} -ne 0 ]
+                    then
+                        echo "Error: ${PACKNAME} failed to install" >&2
+                    fi
+                else
+                    echo "Error: ${PACKNAME} not found in ${PACKS_DIR}" >&2
+                    # 3 is LSB exit code meaning program is not running
+                    AN_INSTALL_FAILED=3
+                fi
+            fi
+
+            # the intention is to include the name of the failed pack in the 
+            # zenpacks-to-install file, so this is not an elif
+            if [ ${AN_INSTALL_FAILED} -ne 0 ]
+            then
+                echo ${PACKNAME} >>${TO_INSTALL_FILE}
+            fi
+
+        done # iterating over the pack names
+    fi
+    return ${AN_INSTALL_FAILED}
+}
+
 run() {
     pyexec "$@"
 }
