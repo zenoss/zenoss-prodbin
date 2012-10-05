@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2011-2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -64,8 +64,8 @@ if sys.platform == 'darwin':
     family = [('len', c.c_ubyte), ('family', c.c_ubyte)]
 
 class sockaddr_in(c.Structure):
-    _fields_ = family + [ 
-        ('port', c.c_ubyte * 2),     # need to decode from net-byte-order 
+    _fields_ = family + [
+        ('port', c.c_ubyte * 2),     # need to decode from net-byte-order
         ('addr', c.c_ubyte * 4),
         ]
 
@@ -400,7 +400,7 @@ class TrapTask(BaseTask, CaptureReplay):
         if pdu.transport_data is None:
             self.log.error("PDU does not contain transport data")
             return
-        
+
         ipv6_socket_address = c.cast(pdu.transport_data, c.POINTER(sockaddr_in6)).contents
         if ipv6_socket_address.family == socket.AF_INET6:
             if pdu.transport_data_length < c.sizeof(sockaddr_in6):
@@ -420,7 +420,7 @@ class TrapTask(BaseTask, CaptureReplay):
         port = socket.ntohs(ipv6_socket_address.port)
         self.log.debug( "Received packet from %s at port %s" % (ip_address, port) )
         self.processPacket(ip_address, port, pdu, time.time())
-        # update our total events stats 
+        # update our total events stats
         totalTime, totalEvents, maxTime = self.stats.report()
         stat = self._statService.getStatistic("events")
         stat.value = totalEvents
@@ -430,11 +430,11 @@ class TrapTask(BaseTask, CaptureReplay):
         For IPv4, convert a pointer to 4 bytes to a dotted-ip-address
         For IPv6, convert a pointer to 16 bytes to a canonical IPv6 address.
         """
-        
+
         def _gen_byte_pairs():
             for left, right in zip(addr[::2], addr[1::2]):
                 yield "%.2x%.2x" % (left, right)
-        
+
         v4_mapped_prefix = [0x00] * 10 + [0xff] * 2
         if addr[:len(v4_mapped_prefix)] == v4_mapped_prefix:
             ip_address = '.'.join(str(i) for i in addr[-4:])
@@ -577,7 +577,7 @@ class TrapTask(BaseTask, CaptureReplay):
         # Use addr[0] unchanged in this case.
         # Note that SNMPv1 packets *cannot* come in via IPv6
         new_addr = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
-        result["device"] = addr[0] if new_addr == "0.0.0.0" else new_addr
+        result["device"] = addr[0] if new_addr == "0.0.0.0" or new_addr.startwith('127') else new_addr
 
         enterprise = self.getEnterpriseString(pdu)
         eventType = self.oid2name(
@@ -675,8 +675,10 @@ class TrapTask(BaseTask, CaptureReplay):
         # PDU contains an SNMPv1 trap if the enterprise_length is greater
         # than zero in addition to the PDU version being 0.
         if pdu.version == SNMPv1 or pdu.enterprise_length > 0:
+            self.log.debug("SNMPv1 trap, Addr: %s PDU Agent Addr: %s", str(addr), str(pdu.agent_addr))
             eventType, result = self.decodeSnmpv1(addr, pdu)
         elif pdu.version in (SNMPv2, SNMPv3):
+            self.log.debug("SNMPv2 or v3 trap, Addr: %s", str(addr))
             eventType, result = self.decodeSnmpv2(addr, pdu)
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
