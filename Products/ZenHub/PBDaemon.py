@@ -53,7 +53,8 @@ class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
         Exception.__init__(self, msg)
         self.traceback = tb
     def __str__(self):
-        return Exception.__str__(self) + self.traceback
+        return "%s: %s" % (
+            Exception.__str__(self), self.traceback or '<no traceback>')
 
 pb.setUnjellyableForClass(RemoteException, RemoteException)
 
