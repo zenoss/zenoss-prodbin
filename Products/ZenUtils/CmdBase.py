@@ -15,6 +15,7 @@ to command-line programs
 """
 
 import os
+import os.path
 import sys
 import datetime
 import logging
@@ -25,7 +26,7 @@ from zope.traversing.adapters import DefaultTraversable
 from Products.Five import zcml
 
 from optparse import (
-        OptionParser, OptionGroup, Values, Option,
+        OptionParser, OptionGroup, Option,
         SUPPRESS_HELP, NO_DEFAULT, OptionValueError, BadOptionError,
     )
 from urllib import quote
@@ -265,7 +266,7 @@ class CmdBase(object):
 
             try:
                 self.parser._process_args([], args, options)
-            except (BadOptionError, OptionValueError) as err:
+            except (BadOptionError, OptionValueError):
                 # Ignore it, we only care about our own options as defined in the parser
                 pass
 
@@ -281,6 +282,8 @@ class CmdBase(object):
         @type filename: string
         """
         lines = []
+        if not os.path.exists(filename):
+            return lines
         try:
             with open(filename) as file:
                 for line in file:
@@ -297,8 +300,8 @@ class CmdBase(object):
                             option = self.parser.get_option('--%s' % key)
                             lines.append(dict(type='option', line=line, key=key, value=value, option=option))
         except IOError as e:
-            errorMessage = 'WARN: unable to read config file {filename} \
-                -- skipping. ({exceptionName}: {exception})'.format(
+            errorMessage = ('WARN: unable to read config file {filename} '
+                '-- skipping. ({exceptionName}: {exception})').format(
                 filename=filename,
                 exceptionName=e.__class__.__name__,
                 exception=e
@@ -413,7 +416,7 @@ class CmdBase(object):
                 # try creating the directory hierarchy if it doesn't exist...
                 try:
                     os.makedirs(logdir)
-                except OSError, ex:
+                except OSError:
                     raise SystemExit("logpath:%s doesn't exist and cannot be created" % logdir)
             elif not os.path.isdir(logdir):
                 raise SystemExit("logpath:%s exists but is not a directory" % logdir)
