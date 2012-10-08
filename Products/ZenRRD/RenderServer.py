@@ -557,7 +557,7 @@ class RenderServer(RRDToolItem):
             response.setHeader('Content-Type', mimetype)
             response.setHeader('Pragma', 'no-cache')
             # IE specific cache headers
-            response.setHeader('CacheControl', 'no-cache')
+            response.setHeader('CacheControl', 'no-cache, no-store')
             response.setHeader('Expires', '-1')
         return cache.get(id, None)
 
