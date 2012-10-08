@@ -194,6 +194,10 @@ zenrender daemon is registered with the '%s' collector.</p>
         if mimetype is None:
             mimetype = 'image/%s' % ftype.lower()
         request.setHeader('Content-type', mimetype)
+        request.setHeader('Pragma', 'no-cache')
+        # IE specific cache headers see http://support.microsoft.com/kb/234067/EN-US
+        request.setHeader('CacheControl', 'no-cache')
+        request.setHeader('Expires', '-1')
         functor = getattr(self._daemon, 'remote_' + command, None)
         if functor:
             return functor(**args)

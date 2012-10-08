@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -185,6 +185,7 @@ class RenderServer(RRDToolItem):
             ret = {'success':success}
             if success:
                 ret['data'] = b64encode(graph)
+
             if REQUEST:
                 REQUEST.RESPONSE.setHeader('Content-Type', 'text/javascript')
             elif zenrenderRequest:
@@ -554,7 +555,10 @@ class RenderServer(RRDToolItem):
                 mimetype = 'image/%s' % ftype
             response = REQUEST.RESPONSE
             response.setHeader('Content-Type', mimetype)
-
+            response.setHeader('Pragma', 'no-cache')
+            # IE specific cache headers
+            response.setHeader('CacheControl', 'no-cache')
+            response.setHeader('Expires', '-1')
         return cache.get(id, None)
 
 InitializeClass(RenderServer)
