@@ -64,11 +64,16 @@ class BaseOrganizerFilter(object):
 
     def getZorCProperties(self, organizer):
         for zId in sorted(organizer.zenPropertyIds(pfilt=self.iszorcustprop)):
-            if organizer.zenPropIsPassword(zId):
-                propertyString = organizer.getProperty(zId, '')
-            else:
-                propertyString = organizer.zenPropertyString(zId)
-            yield zId, propertyString
+            try:
+                if organizer.zenPropIsPassword(zId):
+                    propertyString = organizer.getProperty(zId, '')
+                else:
+                    propertyString = organizer.zenPropertyString(zId)
+                yield zId, propertyString
+            except AttributeError:
+                # ZEN-3666: If an attribute error is raised on a zProperty assume it was produced by a zenpack
+                # install whose daemons haven't been restarted and continue excluding the offending property.
+                log.debug("Excluding '%s' property", zId)
 
     def generateChecksum(self, organizer, md5_checksum):
         # Checksum all zProperties and custom properties
