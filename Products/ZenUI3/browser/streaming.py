@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -17,9 +17,7 @@ import traceback
 import cgi
 
 LINE = """
-<div class="streaming-line %(lineclass)s">
-%(data)s
-</div>
+<div class="streaming-line %(lineclass)s">%(data)s</div>
 """
 
 class StreamClosed(Exception):
@@ -40,7 +38,7 @@ class StreamingView(BrowserView):
     def __call__(self):
         # tells nginx that we want to stream this text
         self._stream.setHeader('X-Accel-Buffering', 'no')
-        header, footer = str(self.tpl()).split('*****CONTENT_TOKEN*****')  
+        header, footer = str(self.tpl()).split('*****CONTENT_TOKEN*****')
         self._stream.write(header)
         try:
             try:
