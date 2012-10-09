@@ -9,7 +9,7 @@
 
 
 import socket
-from itertools import imap
+from itertools import imap  
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
@@ -36,7 +36,6 @@ from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
 from Products.ZenEvents.Event import Event
-
 
 class DeviceCollectorChangeEvent(object):
     implements(IDeviceCollectorChangeEvent)
@@ -555,33 +554,6 @@ class DeviceFacade(TreeFacade):
         org.address = address
         return org
 
-
-    def setZenProperty(self, uid, zProperty, value):
-        """
-        Sets the value of the zProperty for this user.
-        The value will be forced into the type, throwing
-        an exception if it fails
-        @type  uid: String
-        @param uid: unique identifier of an object
-        @type  zProperty: String
-        @param zProperty: identifier of the property
-        @type  value: Anything
-        @param value: What you want the new value of the property to be
-        """
-        obj = self._getObject(uid)
-        # make sure it is the correct type
-        ztype = obj.getPropertyType(zProperty)
-        if ztype == 'int':
-            value = int(value)
-        if ztype == 'float':
-            value = float(value)
-        if ztype == 'string':
-            value = str(value)
-        # do not save * as passwords
-        if obj.zenPropIsPassword(zProperty) and value == obj.zenPropertyString(zProperty):
-            return
-        return obj.setZenProperty(zProperty, value)
-
     def getModelerPluginDocStrings(self, uid):
         """
         Returns a dictionary of documentation for modeler plugins, indexed
@@ -604,58 +576,6 @@ class DeviceFacade(TreeFacade):
             docs[plugin.pluginName] = module.__doc__
         return docs
 
-    def getZenProperties(self, uid, exclusionList=()):
-        """
-        Returns information about and the value of every zen property.
-
-        @type  uid: string
-        @param uid: unique identifier of an object
-        @type  exclusionList: Collection
-        @param exclusionList: List of zproperty ids that we do not wish to retrieve
-        """
-        obj = self._getObject(uid)
-        return obj.exportZProperties(exclusionList)
-
-    def deleteZenProperty(self, uid, zProperty):
-        """
-        Removes the local instance of the each property in properties. Note
-        that the property will only be deleted if a hasProperty is true
-        @type  uid: String
-        @param uid: unique identifier of an object
-        @type  properties: Array
-        @param properties: list of zenproperty identifiers that we wish to delete
-        """
-        obj = self._getObject(uid)
-        if obj.hasProperty(zProperty):
-            prop = self.getZenProperty(uid, zProperty)
-            if prop['path'] == '/':
-                raise Exception('Unable to delete root definition of a zProperty')
-            obj.deleteZenProperty(zProperty)
-
-    def getZenProperty(self, uid, zProperty):
-        """
-        Returns information about a zproperty for a
-        given context, including its value
-        @rtype:   Dictionary
-        @return:  B{Properties}:
-             - path: (string) where the property is defined
-             - type: (string) type of zproperty it is
-             - options: (Array) available options for the zproperty
-             - value (Array) value of the zproperty
-             - valueAsString (string)
-        """
-        obj = self._getObject(uid)
-        prop = dict(
-            path = obj.zenPropertyPath(zProperty),
-            options = obj.zenPropertyOptions(zProperty),
-            type=obj.getPropertyType(zProperty),
-            )
-
-        if not obj.zenPropIsPassword(zProperty):
-            prop['value'] = obj.getZ(zProperty)
-            prop['valueAsString'] = obj.zenPropertyString(zProperty)
-        return prop
-
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         return obj.getDefaultGraphDefs(drange)
@@ -670,7 +590,7 @@ class DeviceFacade(TreeFacade):
         device = self._getObject(uid)
         device.os.addIpInterface(newId, userCreated)
 
-    def addOSProcess(self, uid, newClassName, userCreated):
+    def addOSProcess(self, uid, newClassName, userCreated):  
         device = self._getObject(uid)
         device.os.addOSProcess(newClassName, userCreated)
 
@@ -688,6 +608,5 @@ class DeviceFacade(TreeFacade):
         
     def getSoftware(self, uid):
         obj = self._getObject(uid)
-        #softwares = [IInfo(s) for s in obj.os.software()]
         softwares = (IInfo(s) for s in obj.os.software.objectValuesGen())        
         return softwares          

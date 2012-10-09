@@ -369,7 +369,7 @@ Ext.apply(Zenoss.devices, {
                         listeners: {
                             change: function(chbox, isChecked) {
                                 Ext.getCmp('delete-device-events').setDisabled(!isChecked);
-                                Ext.getCmp('delete-device-perf-data').setDisabled(!isChecked);
+                                Ext.getCmp('delete-device-perf-data').setDisabled(!isChecked); 
                             }
                         }
                     }]
@@ -1063,6 +1063,10 @@ Zenoss.nav.register({
             id: 'configuration_properties',
             text: _t('Configuration Properties'),
             contextRegex: '^/zport/dmd/Devices'
+        },{
+            id: 'custom_properties',
+            text: _t('Custom Properties'),
+            contextRegex: '^/zport/dmd/Devices'
         }
     ]
 });
@@ -1129,7 +1133,8 @@ Ext.define("Zenoss.InfraDetailNav", {
             'performancetemplates': true,
             'historyevents':true,
             'collectorplugins': true,
-            'configuration properties': true
+            'configuration properties': true,
+            'editcustschema': true
         };
         var uid = Zenoss.env.PARENT_CONTEXT;
         if (config.contextRegex) {
@@ -1246,9 +1251,9 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     }
                 }
             },
-            '-',
+            '-', 
             {
-                id: 'adddevice-button',
+                id: 'adddevice-button', 
                 iconCls: 'adddevice',
                 menu:{
                     items: [
@@ -1277,7 +1282,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         text: _t('None'),
                         handler: function() {
                             var grid = Ext.getCmp('device_grid');
-                            grid.getSelectionModel().selectNone();
+                            grid.getSelectionModel().selectNone();  
                         }
                     }
                 ]
@@ -1445,6 +1450,9 @@ Ext.getCmp('center_panel').add({
             },{
                 id: 'configuration_properties',
                 xtype: 'configpropertypanel'
+            },{
+                id: 'custom_properties',
+                xtype: 'custompropertypanel'
             }
         ]
     }]

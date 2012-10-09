@@ -52,15 +52,15 @@
         interface=".interfaces.IMibEntity"
         class="Products.ZenModel.MibModule.MibModule"
         />
-
+ 
     <five:implements
         interface=".interfaces.IDevice"
         class="Products.ZenModel.Device.Device"
-        />
-
+        /> 
+        
     <five:implements
         interface=".interfaces.IMarshallable"
-        class="Products.ZenModel.GraphDefinition.GraphDefinition"
+        class="Products.ZenModel.GraphDefinition.GraphDefinition"  
         />
 
     <adapter factory=".facades.DeviceFacade"
@@ -68,6 +68,12 @@
              name="device"
              for="*"
              />
+
+    <adapter factory=".facades.PropertiesFacade"
+             provides=".interfaces.IPropertiesFacade"
+             name="properties"
+             for="*"
+             />             
 
     <adapter factory=".facades.ZepFacade"
              provides=".interfaces.IZepFacade"

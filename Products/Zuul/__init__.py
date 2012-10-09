@@ -1,10 +1,10 @@
 ##############################################################################
-#
+# 
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-#
-# This content is made available according to terms specified in
+# 
+# This content is made available according to terms specified in 
 # License.zenoss under the directory where your Zenoss product is installed.
-#
+# 
 ##############################################################################
 
 
@@ -27,18 +27,18 @@ could be easily consumed within other javascript frameworks or clients written
 in any language that has a JSON library.  The JSON API is implented by
 multiple routers, which for the most part, map one-to-one with the Python API
 facades.  The routers use the marshalling module included in Zuul to transform
-the info objects returned by the facade into a Python data structure can be
+the info objects returned by the facade into a Python data structure can be 
 dumped to a JSON formatted string by the Python json module. The marshalling
 module also provides the capability of binding the values in a Python data
 structure loaded by the Python json module to the properties of a Zuul info
-object.
+object.  
 """
 
 import AccessControl
 from OFS.ObjectManager import ObjectManager
 from zope import component
 from zope.interface import verify
-from zope.event import notify
+from zope.event import notify 
 from interfaces import IFacade, IInfo
 from interfaces import IMarshallable
 from interfaces import IMarshaller
@@ -47,6 +47,8 @@ from utils import safe_hasattr as hasattr, get_dmd
 from BTrees.OOBTree import OOSet
 from Products.ZenWidgets import messaging
 from Products.Zuul.catalog.events import IndexingEvent
+from DateTime import DateTime
+
 
 def getFacade(name, context=None):
     """
@@ -129,7 +131,8 @@ def marshal(obj, keys=None, marshallerName='', objs=None):
             except AlreadySeenException:
                 pass
         return marshalled_list
-
+    elif isinstance(obj, DateTime ):
+        return str(obj)
     # Nothing matched, so it's a string or number or other unmarshallable.
     else:
         return obj
@@ -146,9 +149,8 @@ def unmarshal(data, obj, unmarshallerName=''):
     if 'uid' in data:
         del data['uid']
     result = unmarshaller.unmarshal(data)
-    notify(IndexingEvent(obj._object))
+    notify(IndexingEvent(obj._object))    
     return result
-
 
 
 def info(obj, adapterName=''):

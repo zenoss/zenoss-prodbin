@@ -2,7 +2,7 @@
 # 
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
 # 
-# This content is made available according to terms specified in
+# This content is made available according to terms specified in 
 # License.zenoss under the directory where your Zenoss product is installed.
 # 
 ##############################################################################
@@ -17,7 +17,7 @@ definition that determines the concrete implementation returned by such a
 statement is in Zuul/configure.zcml.
 """
 
-from zope.interface import Interface, Attribute
+from zope.interface import Interface, Attribute   
 
 
 class IFacade(Interface):
@@ -64,6 +64,7 @@ class IDataRootFactory(Interface):
 from process import *
 from service import *
 from device import *
+from properties import *
 from component import *
 from info import *
 from tree import *

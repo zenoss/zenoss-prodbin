@@ -9,7 +9,7 @@
 
 
 (function(){
-    var router = Zenoss.remote.DeviceRouter,
+    var router = Zenoss.remote.PropertiesRouter,
         ConfigPropertyPanel,
         zpropertyConfigs = {};
 
@@ -113,7 +113,7 @@
                 zProperty: data.id,
                 value: value
             };
-            Zenoss.remote.DeviceRouter.setZenProperty(params, function(response){
+            Zenoss.remote.PropertiesRouter.setZenProperty(params, function(response){  
                 if (response.success) {
                     grid.refresh();
                 }
@@ -188,7 +188,7 @@
      * @class Zenoss.ConfigProperty.Store
      * @extends Zenoss.DirectStore
      * Store for our configuration properties grid
-     **/
+     **/ 
     Ext.define("Zenoss.ConfigProperty.Store", {
         extend: "Zenoss.DirectStore",
         constructor: function(config) {
@@ -197,7 +197,7 @@
                 model: 'Zenoss.ConfigProperty.Model',
                 initialSortColumn: 'id',
                 pageSize: 300,
-                directFn: Zenoss.remote.DeviceRouter.getZenProperties
+                directFn: Zenoss.remote.PropertiesRouter.getZenProperties
             });
             this.callParent(arguments);
         }

@@ -375,7 +375,7 @@ class DeviceRouter(TreeRouter):
         Retrieves a list of device uuids. For use in combos.
         """
         facade = self._getFacade()
-        devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
+        devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit 
         result = []
         for dev in devices:
             result.append({'name':dev.name,
@@ -1144,82 +1144,6 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(data=Zuul.marshal(data))
 
     @serviceConnectionError
-    @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid')
-    def setZenProperty(self, uid, zProperty, value):
-        """
-        Sets the zProperty value
-        """
-        facade = self._getFacade()
-
-        # get old value for auditing
-        oldProperty = facade.getZenProperty(uid, zProperty)
-        oldValue = oldProperty['value'] if 'value' in oldProperty else ''
-
-        # change it
-        facade.setZenProperty(uid, zProperty, value)
-        data = facade.getZenProperty(uid, zProperty)
-
-        # audit example: ('UI.zProperty.Edit, 'zPassword', maskFields_='value',
-        #     data_={'Device': '/zport/...'}, value='abracadabra') #gets masked
-        value = str(value) if not value else value  # show 'False', '0', etc.
-        oldValue = str(oldValue) if not oldValue else oldValue  # must match
-        obj = facade._getObject(uid)
-        maskFields = 'value' if obj.zenPropIsPassword(zProperty) else None
-        audit('UI.zProperty.Edit', zProperty, maskFields_=maskFields,
-              data_={obj.meta_type: uid, 'value': value},
-              oldData_={'value': oldValue})
-        return DirectResponse(data=Zuul.marshal(data))
-
-    @serviceConnectionError
-    def getZenProperties(self, uid, start=0, params="{}", limit=None, sort=None,
-                         page=None, dir='ASC'):
-        """
-        Returns the definition and values of all
-        the zen properties for this context
-        @type  uid: string
-        @param uid: unique identifier of an object
-        """
-        facade = self._getFacade()
-        data = facade.getZenProperties(uid, exclusionList=('zCollectorPlugins',))
-        # filter
-        if params:
-            if isinstance(params, basestring):
-                filters = unjson(params)
-            else:
-                filters = params
-            def hasFilter(row, key, value):
-                return row.get(key) is not None and (value.lower() in str(row.get(key)).lower())
-                                                     
-            for key, value in filters.iteritems():
-                # assume AND for sorting
-                data = [row for row in data if hasFilter(row, key, value)]
-        # sort
-        if sort:
-            reverse = False
-            if dir != 'ASC':
-                reverse = True
-            data = sorted(data,  key=lambda row: row[sort], reverse=reverse)
-
-        return DirectResponse(data=Zuul.marshal(data), totalCount=len(data))
-
-    @serviceConnectionError
-    @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid')
-    def deleteZenProperty(self, uid, zProperty):
-        """
-        Removes the local instance of the each property in properties. Note
-        that the property will only be deleted if a hasProperty is true
-        @type  uid: String
-        @param uid: unique identifier of an object
-        @type  properties: String
-        @param properties: zenproperty identifier
-        """
-        facade = self._getFacade()
-        data = facade.deleteZenProperty(uid, zProperty)
-        obj = facade._getObject(uid)
-        audit('UI.zProperty.Delete', zProperty, data_={obj.meta_type:uid})
-        return DirectResponse(data=Zuul.marshal(data))
-
-    @serviceConnectionError
     def getEvents(self, uid):
         """
         Get events for a device.
@@ -1787,7 +1711,7 @@ class DeviceRouter(TreeRouter):
         data = []
         for template in templates:
             label = '%s (%s)' % (template.text, template.getUIPath())
-            data.append(dict(label=label, uid=template.uid))
+            data.append(dict(label=label, uid=template.uid))  
         return DirectResponse.succeed(data=data)
 
     @require('Manage DMD')
@@ -1801,23 +1725,6 @@ class DeviceRouter(TreeRouter):
         self.context.clearGeocodeCache()
         audit('UI.GeocodeCache.Clear')
         return DirectResponse.succeed()
-
-    @serviceConnectionError
-    def getZenProperty(self, uid, zProperty):
-        """
-        Returns information about a zproperty for a
-        given context, including its value
-        @rtype:   Dictionary
-        @return:  B{Properties}:
-             - path: (string) where the property is defined
-             - type: (string) type of zproperty it is
-             - options: (Array) available options for the zproperty
-             - value (Array) value of the zproperty
-             - valueAsString (string)
-        """
-        facade = self._getFacade()
-        data = facade.getZenProperty(uid, zProperty)
-        return DirectResponse.succeed(data=Zuul.marshal(data))
 
     @serviceConnectionError
     def getModelerPluginDocStrings(self, uid):
@@ -1839,15 +1746,15 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def addIpInterface(self, uid, newId, userCreated=True):
-        """
-        Adds an Ip Interface
+        """ 
+        Adds an Ip Interface 
         """
         facade = self._getFacade()
         data = facade.addIpInterface(uid, newId, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def addOSProcess(self, uid, newClassName, userCreated=True):
-        """
+        """ 
         Adds an os processes
         """
         facade = self._getFacade()
@@ -1885,3 +1792,4 @@ class DeviceRouter(TreeRouter):
         software = facade.getSoftware(uid)
         
         return DirectResponse(data=Zuul.marshal(software, keys))
+    

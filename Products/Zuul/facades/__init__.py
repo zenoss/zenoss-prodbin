@@ -182,11 +182,11 @@ class TreeFacade(ZuulFacade):
         brains = cat.search(self._instanceClass, start=start, limit=limit,
                             orderby=sort, reverse=reverse)
         objs = imap(unbrain, brains)
-
+ 
         # convert to info objects
         return SearchResults(imap(IInfo, objs), brains.total, brains.hash_)
 
-    def addOrganizer(self, contextUid, id, description = ''):
+    def addOrganizer(self, contextUid, id, description = ''):  
         context = self._getObject(contextUid)
         context.manage_addOrganizer(id)
         if id.startswith("/"):
@@ -203,7 +203,7 @@ class TreeFacade(ZuulFacade):
         checkValidId(relationship, id)
         relationship._setObject(id, _class)
         return '%s/%s/%s' % (contextUid, self._classRelationship, id)
-
+ 
     def deleteNode(self, uid):
         self.deleteObject(uid)
 
@@ -231,6 +231,7 @@ from networkfacade import NetworkFacade, Network6Facade
 from processfacade import ProcessFacade
 from servicefacade import ServiceFacade
 from devicefacade import DeviceFacade
+from propertiesfacade import PropertiesFacade
 from templatefacade import TemplateFacade
 from zenpackfacade import ZenPackFacade
 from mibfacade import MibFacade
