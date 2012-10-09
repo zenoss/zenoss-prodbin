@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -18,6 +18,9 @@ from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenModel.OSProcessClass import OSProcessClass
+from Products.ZenModel.GraphDefinition import GraphDefinition
+from Products.ZenModel.GraphPoint import GraphPoint
+
 from Products.Zuul.interfaces import ICatalogTool
 
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
@@ -25,14 +28,20 @@ from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 log = logging.getLogger('zen.InvalidationFilter')
 
 
-class IpInvalidationFilter(object):
+class IgnorableClassesFilter(object):
+    """
+    This filter specifies which classes we want to ignore the
+    invalidations on.
+    """
     implements(IInvalidationFilter)
 
+    CLASSES_TO_IGNORE = (IpAddress, IpNetwork, GraphDefinition, GraphPoint)
     def initialize(self, context):
         pass
 
     def include(self, obj):
-        if isinstance(obj, (IpAddress, IpNetwork)):
+        if isinstance(obj, self.CLASSES_TO_IGNORE ):
+            log.debug("IgnorableClassesFilter is ignoring %s ", obj)
             return FILTER_EXCLUDE
         return FILTER_CONTINUE
 
