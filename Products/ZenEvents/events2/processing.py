@@ -179,7 +179,7 @@ class Manager(object):
 
         device_brains = list(cat.search(types=Device, query=querySet, limit=limit, filterPermissions=False))
 
-        if ipAddress is not None:
+        if ipAddress:
             # don't search interfaces for 127.x.x.x IPv4 addresses
             if ipToDecimal('126.255.255.255') < long(ipAddress) < ipToDecimal('128.0.0.0'):
                 ipAddress = None
