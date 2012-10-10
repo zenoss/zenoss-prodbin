@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -425,8 +425,8 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         // top grid selection change
                         var row = selected[0];
                         if (row) {
-                            this.detailcontainer.removeAll();  
-                            this.componentnavcombo.reset();                            
+                            this.detailcontainer.removeAll();
+                            this.componentnavcombo.reset();
                             Zenoss.env.compUUID = row.data.uuid;
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
@@ -491,13 +491,14 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 idProperty: 'uuid',
                 fields: config.fields
             });
-        config = Ext.applyIf(config||{}, {
+        config.sortInfo = config.sortInfo || {};
+        config = Ext.applyIf(config, {
             autoExpandColumn: 'name',
             bbar: {},
             store: new ZC.BaseComponentStore({
-                sortInfo: config.sortInfo,
                 model: modelId,
-                initialSortColumn: config.initialSortColumn || 'name',
+                initialSortColumn: config.sortInfo.field || 'name',
+                initialSortDirection: config.sortInfo.direction || 'ASC',
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
             }),
             columns: [{
@@ -731,6 +732,7 @@ Ext.define("Zenoss.component.IpInterfacePanel", {
                 width: 72,
                 renderer: Zenoss.render.locking_icons
             }]
+
         });
         ZC.IpInterfacePanel.superclass.constructor.call(this, config);
     }
