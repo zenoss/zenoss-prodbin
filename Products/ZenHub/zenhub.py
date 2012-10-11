@@ -478,6 +478,7 @@ class ZenHub(ZCmdBase):
 
         return rrdStats
 
+    @defer.inlineCallbacks
     def processQueue(self):
         """
         Periodically process database changes
@@ -486,8 +487,10 @@ class ZenHub(ZCmdBase):
         """
         now = time.time()
         try:
-            self.syncdb()                   # reads the object invalidations
-        except Exception, ex:
+            self.log.debug("[processQueue] syncing....")
+            yield self.async_syncdb()  # reads the object invalidations
+            self.log.debug("[processQueue] synced")
+        except Exception:
             self.log.warn("Unable to poll invalidations, will try again.")
         else:
             try:
@@ -695,6 +698,7 @@ class ZenHub(ZCmdBase):
             job.deferred.errback(result)
         else:
             try:
+                self.log.debug("worker %s result -> %s", wId, result)
                 result = pickle.loads(''.join(result))
             except Exception as e:
                 error = e
@@ -729,7 +733,7 @@ class ZenHub(ZCmdBase):
                 break
 
             job = self.workList.pop()
-            self.log.debug("get candidate workers for %s..." % job.method)
+            self.log.debug("get candidate workers for %s...", job.method)
             candidateWorkers = list(self.workerselector.getCandidateWorkerIds(job.method, self.workers))
             self.log.debug("candidate workers are %r", candidateWorkers)
             for i in candidateWorkers:
@@ -906,9 +910,11 @@ class ZenHub(ZCmdBase):
             reactor.callLater(0, self.heartbeat)
         reactor.run()
         self.shutdown = True
+        self.log.debug("Killing workers")
         for proc in self.workerprocessmap.itervalues():
             try:
                 proc.signalProcess('KILL')
+                self.log.debug("Killed worker %s", proc)
             except ProcessExitedAlready:
                 pass
             except Exception:

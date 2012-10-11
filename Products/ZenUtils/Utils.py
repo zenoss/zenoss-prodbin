@@ -49,7 +49,7 @@ from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
 
 from popen2 import Popen4
-from twisted.internet import task, reactor
+from twisted.internet import task, reactor, defer
 from Acquisition import aq_base, aq_inner, aq_parent
 from zExceptions import NotFound
 from AccessControl import getSecurityManager, Unauthorized
@@ -1978,6 +1978,30 @@ class LineReader(threading.Thread):
             return self._queue.get(timeout=timeout)
         except Queue.Empty:
             return ''
+
+
+def wait(seconds):
+    """
+    Delays execution of subsequent code.  Example:
+
+        @defer.inlineCallbacks
+        def incrOne(a):
+            b = a + 1
+            yield wait(5)
+            defer.returnValue(a)
+
+    In function incrOne, the 'yield wait(5)' introduces a five second
+    pause between 'b = a + 1' and 'defer.returnValue(a)'.
+
+    This function should be used a replacement for time.sleep() in
+    (twisted) asynchronous code.
+
+    @param seconds {float,int,long} Number of seconds to pause before
+        allowing execution to continue.
+    """
+    d = defer.Deferred()
+    reactor.callLater(seconds, d.callback, seconds)
+    return d
 
 
 giveTimeToReactor = partial(task.deferLater, reactor, 0)

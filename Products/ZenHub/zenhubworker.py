@@ -23,7 +23,7 @@ unused(DataMaps)
 
 from twisted.cred import credentials
 from twisted.spread import pb
-from twisted.internet import reactor, error
+from twisted.internet import defer, reactor, error
 from ZODB.POSException import ConflictError
 from collections import defaultdict
 
@@ -149,6 +149,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             return svc
 
     @translateError
+    @defer.inlineCallbacks
     def remote_execute(self, service, instance, method, args):
         """Execute requests on behalf of zenhub
         @type service: string
@@ -172,7 +173,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         now = time.time()
         self.currentStart = now
         try:
-            self.syncdb()
+            yield self.async_syncdb()
         except RemoteConflictError, ex:
             pass
         service = self._getService(service, instance)
@@ -180,13 +181,12 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         # now that the service is loaded, we can unpack the arguments
         joinedArgs = "".join(args)
         args, kw = pickle.loads(joinedArgs)
-        
+
         # see if this is our last call
         self.numCalls += 1
         lastCall = self.numCalls >= self.options.calllimit
-        
+
         def runOnce():
-            self.syncdb()
             res = m(*args, **kw)
             if lastCall:
                 res = LastCallReturnValue(res)
@@ -200,11 +200,15 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         try:
             for i in range(4):
                 try:
-                    return runOnce()
+                    yield self.async_syncdb()
+                    result = runOnce()
+                    defer.returnValue(result)
                 except RemoteConflictError, ex:
                     pass
             # one last try, but don't hide the exception
-            return runOnce()
+            yield self.async_syncdb()
+            result = runOnce()
+            defer.returnValue(result)
         finally:
             finishTime = time.time()
             secs = finishTime - now
@@ -213,7 +217,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             service.callStats[method].addOccurrence(secs, finishTime)
             service.callTime += secs
             self.current = IDLE
-            
+
             if lastCall:
                 reactor.callLater(1, self._shutdown)
 

@@ -15,8 +15,10 @@ $Id: ZC.py,v 1.9 2004/02/16 17:19:31 edahl Exp $"""
 __version__ = "$Revision: 1.9 $"[11:-2]
 
 import time
+from collections import Iterator
 
 from threading import Lock
+from twisted.internet import defer
 from zope.component import getUtility
 
 from AccessControl.SecurityManagement import newSecurityManager
@@ -30,6 +32,7 @@ from ZenDaemon import ZenDaemon
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenUtils.mysql import MySQLdb
+from Products.ZenUtils.Utils import wait
 
 defaultCacheDir = zenPath('var')
 
@@ -45,6 +48,42 @@ def login(context, name='admin', userfolder=None):
         user = user.__of__(userfolder)
     newSecurityManager(None, user)
     return user
+
+
+class _RetryIterator(Iterator):
+    """
+    Provides an interator that returns a delay interval (seconds) in
+    sucession until a predetermined amount of time has passed.  Each
+    returned delay value is larger than the prior value but will not
+    exceed the MAX_DELAY_SECONDS value.
+    """
+
+    TIMEOUT_SECONDS = 10 * 60
+    MAX_DELAY_SECONDS = 30
+    DELAY_MULTIPLIER = 1.618
+
+    def __init__(self, maxdelay=MAX_DELAY_SECONDS, timeout=TIMEOUT_SECONDS):
+        """
+        Initialize an instance of _RetryIterator.
+
+        @param maxdelay {float} Maximum delay interval (seconds).
+        @param timeout {float} Timeout duration (seconds).
+        """
+        self.started = time.time()
+        self.maxdelay = maxdelay
+        self.until = self.started + timeout
+        self.delay = 1.0 / self.DELAY_MULTIPLIER
+
+    def next(self):
+        """
+        Returns the next delay iterval or raises StopIteration when
+        the timeout duration has been exceeded,
+        """
+        if self.until < time.time():
+            raise StopIteration()
+        self.delay = min(self.delay * self.DELAY_MULTIPLIER, self.maxdelay)
+        return self.delay
+
 
 class ZCmdBase(ZenDaemon):
 
@@ -101,6 +140,34 @@ class ZCmdBase(ZenDaemon):
         root=self.connection.root()
         app=root['Application']
         self.app = self.getContext(app)
+
+
+    @defer.inlineCallbacks
+    def async_syncdb(self):
+        """
+        Asynchronous version of the syncdb method.
+        """
+        last_exc = None
+        for delay in _RetryIterator():
+            try:
+                self.connection.sync()
+            except MySQLdb.OperationalError as exc:
+                last_exc = str(exc)
+                self.log.warn(
+                    "Connection to ZODB interrupted, will try "
+                    "to reconnect again in %.3f seconds.", delay
+                )
+                # yield back to reactor for 'delay' seconds
+                yield wait(delay)
+            else:
+                self.log.debug("Synchronized with database")
+                break
+        else:
+            # This code only executed if the RetryIterator 'runs out'
+            # of retry attempts.
+            self.log.warn(
+                "Timed out trying to reconnect to ZODB: %s", last_exc
+            )
 
 
     def syncdb(self):
