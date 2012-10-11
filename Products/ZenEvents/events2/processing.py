@@ -16,6 +16,7 @@ from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenEvents.events2.proxy import ZepRawEventProxy, EventProxy
 from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
 from Products.ZenUtils.IpUtil import ipToDecimal, IpAddressError
+from Products.ZenUtils.FunctionCache import FunctionCache
 from Products.Zuul.interfaces import ICatalogTool
 from Products.AdvancedQuery import Eq, Or
 from zope.component import getUtilitiesFor
@@ -114,6 +115,7 @@ class Manager(object):
         uuid = brain.uuid
         return uuid if uuid else IGlobalIdentifier(brain.getObject()).getGUID()
 
+    @FunctionCache("getElementUuidById", cache_miss_marker=-1, default_timeout=300)
     def getElementUuidById(self, catalog, element_type_id, id):
         """
         Find element by ID but only cache UUID. This forces us to lookup elements
@@ -196,6 +198,7 @@ class Manager(object):
         devices = [component_brain.getObject().device() for component_brain in component_results]
         return device_brains, devices
 
+    @FunctionCache("findDeviceUuid", cache_miss_marker=-1, default_timeout=300)
     def findDeviceUuid(self, identifier, ipAddress):
         """
         This will return the device's
