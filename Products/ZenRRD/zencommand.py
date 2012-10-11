@@ -234,6 +234,8 @@ class MySshClient(SshClient):
         self.defers = {}
         self._taskList = set()
         self.connection_description = '%s:*****@%s:%s' % (self.username, self.ip, self.port)
+        self.pool = getPool('SSH Connections')
+        self.poolkey = hash((self.username, self.password, self.ip, self.port))
 
     def run(self):
         d = self.connect_defer = defer.Deferred()
@@ -242,6 +244,7 @@ class MySshClient(SshClient):
 
     def serviceStarted(self, sshconn):
         super(MySshClient, self).serviceStarted(sshconn)
+        self.pool[self.poolkey] = self
         self.connect_defer.callback(self)
 
     def addCommand(self, command):
@@ -298,17 +301,14 @@ class MySshClient(SshClient):
         """
         self.clientFinished()
         message= reason.getErrorMessage()
-        for task in list(self._taskList):
-            task.connectionFailed(message)
         self.cleanUpPool()
+        self.connect_defer.errback(message)
 
     def cleanUpPool(self):
-        pool = getPool('SSH Connections')
-        poolkey = hash((self.username, self.password, self.ip, self.port))
-        if poolkey in pool:
+        if self.poolkey in self.pool:
             # Clean it up so the next time around the task will get a new connection
             log.debug("Deleting connection %s from pool." % self.connection_description)
-            del pool[poolkey]
+            del self.pool[self.poolkey]
 
 
 class SshOptions:
@@ -513,6 +513,7 @@ class SshPerformanceCollectionTask(BaseTask):
         self._datasources = taskConfig.datasources
         self.pool = getPool('SSH Connections')
         self.executed = 0
+        self._task_defer = None
 
     def __str__(self):
         return "COMMAND schedule Name: %s configId: %s Datasources: %d" % (
@@ -539,10 +540,9 @@ class SshPerformanceCollectionTask(BaseTask):
         poolkey = self._getPoolKey()
         if poolkey in self.pool:
             client = self.pool[poolkey]
-            tasklist = client._taskList
-            if not tasklist:
+            if not client._taskList:
                 # No other tasks, so safe to clean up
-                transport = client.transport
+                transport = client.transport 
                 if transport:
                     transport.loseConnection()
                 del self.pool[poolkey]
@@ -555,16 +555,24 @@ class SshPerformanceCollectionTask(BaseTask):
         @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
-        # See if we need to connect first before doing any collection
-        d = defer.maybeDeferred(self._connect)
-        d.addCallbacks(self._connectCallback, self._failure)
+
+        # Create a deferred wrapper for the scheduler since the connection
+        # deferred is shared among many tasks.  We have to initialize this
+        # first to satisfy race condition with _connectCallback
+        d = self._task_defer = defer.Deferred()
         d.addCallback(self._fetchPerf)
 
         # Call _finished for both success and error scenarios
         d.addBoth(self._finished)
 
+        #----------------------------------------------------------------------
+
+        # See if we need to connect first before doing any collection
+        d = defer.maybeDeferred(self._connect)
+        d.addCallbacks(self._connectCallback, self.connectionFailed)
+
         # Wait until the Deferred actually completes
-        return d
+        return self._task_defer
 
     def _connect(self):
         """
@@ -594,10 +602,9 @@ class SshPerformanceCollectionTask(BaseTask):
                                  self._device.zCommandPort, options=options)
             connection.sendEvent = self._eventService.sendEvent
 
-            self.pool[self._getPoolKey()] = connection
-
             # Opens SSH connection to device
             d = connection.run()
+            self.pool[self._getPoolKey()] = d
             return d
 
         return connection
@@ -627,61 +634,14 @@ class SshPerformanceCollectionTask(BaseTask):
         #       as it appears that the exception is discarded in PBDaemon.py
         self.state = TaskStates.STATE_PAUSED
         log.error("Pausing task %s as %s [%s] connection failure: %s",
-                  self.name, self._devId, self._manageIp, msg)
+                  self.name, self._devId, self._manageIp, msg.getErrorMessage())
         self._eventService.sendEvent(STATUS_EVENT,
                                      device=self._devId,
-                                     summary=msg,
+                                     summary=msg.getErrorMessage(),
                                      component=COLLECTOR_NAME,
                                      severity=Event.Error)
-        self._commandsToExecute.cancel()
-
-    def _failure(self, reason):
-        """
-        Twisted errBack to log the exception for a single device.
-
-        @parameter reason: explanation of the failure
-        @type reason: Twisted error instance
-        """
-        # Decode the exception
-        if isinstance(reason.value, TimeoutError):
-            cmd, = reason.value.args
-            msg = "Command timed out on device %s: %r" % (
-                    self._devId, cmd.command.split()[0])
-            log.warning(msg)
-            ev = self._makeCmdEvent(cmd, cmd.severity, msg)
-            self._eventService.sendEvent(ev)
-
-            # Don't log a traceback by not returning a result
-            reason = None
-
-        elif isinstance(reason.value, defer.CancelledError):
-            # The actual issue is logged by connectionFailed
-            # Don't log a traceback by not returning a result
-            msg = "Task %s paused due to connection error" % self.name
-            reason = None
-
-        else:
-            msg = reason.getErrorMessage()
-            if not msg: # Sometimes we get blank error messages
-                msg = reason.__class__
-            msg = '%s %s' % (self._devId, msg)
-            # Leave 'reason' alone to generate a traceback
-
-        if self._lastErrorMsg != msg:
-            self._lastErrorMsg = msg
-            if msg:
-                log.error(msg)
-
-        if reason:
-            self._eventService.sendEvent(STATUS_EVENT,
-                                     device=self._devId,
-                                     summary=msg,
-                                     severity=Event.Error)
-
-        if self._useSsh:
-            self._delayNextCheck()
-
-        return reason
+        self._task_defer.errback(msg)
+        return msg
 
     def _connectCallback(self, connection):
         """
@@ -697,7 +657,8 @@ class SshPerformanceCollectionTask(BaseTask):
             msg = "Running command(s) locally"
 
         log.debug(msg)
-        return
+        self._task_defer.callback(connection)
+        return connection
 
     def _addDatasource(self, datasource):
         """
