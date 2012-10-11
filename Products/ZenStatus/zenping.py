@@ -32,6 +32,7 @@ from Products.ZenCollector import daemon
 from Products.ZenCollector import interfaces 
 from Products.ZenCollector import tasks 
 from Products.ZenUtils import IpUtil
+from Products.ZenUtils.FileCache import FileCache
 
 # perform some imports to allow twisted's PB to serialize these objects
 from Products.ZenUtils.Utils import unused, zenPath
@@ -120,4 +121,9 @@ if __name__ == '__main__':
         myTaskSplitter,
         stoppingCallback=myPreferences.preShutdown,
     )
+
+    # add trace cache to preferences, so tasks can find it
+    traceCachePath = zenPath('var', 'zenping', myDaemon.options.monitor)
+    myPreferences.options.traceCache = FileCache(traceCachePath)
+
     myDaemon.run()

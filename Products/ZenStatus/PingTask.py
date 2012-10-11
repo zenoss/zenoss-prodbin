@@ -90,13 +90,16 @@ class PingTask(BaseTask):
         self.interval = scheduleIntervalSeconds
         self._pingResult = None
 
-        self._trace = tuple()
         self._isUp = None
         self._daemon = component.queryUtility(interfaces.ICollector)
         self._dataService = component.queryUtility(interfaces.IDataService)
         self._eventService = component.queryUtility(interfaces.IEventService)
         self._preferences = component.queryUtility(interfaces.ICollectorPreferences,
                                                         COLLECTOR_NAME)
+        self._traceCache = self._preferences.options.traceCache
+        if self._traceCache.get(self._devId, None) is None:
+            self._traceCache[self._devId] = tuple()
+
         # Split up so that every interface's IP gets its own ping job
         self.config = self._device.monitoredIps[0]
         self._iface = self.config.iface
@@ -136,9 +139,11 @@ class PingTask(BaseTask):
         if self.pauseOnScheduled:
             scheduler.pauseTasksForConfig(self.configId)
 
-    @property
-    def trace(self):
-        return self._trace
+    def _trace_get(self):
+        return self._traceCache[self._devId]
+    def _trace_set(self, value):
+        self._traceCache[self._devId] = value
+    trace = property(fget=_trace_get, fset=_trace_set)
 
     @property
     def isUp(self):
@@ -178,7 +183,7 @@ class PingTask(BaseTask):
             raise ValueError("pingResult can not be None")
         self._rtt.append(pingResult.rtt)
         if pingResult.trace:
-            self._trace = pingResult.trace
+            self.trace = tuple(pingResult.trace)
 
     def sendPingEvent(self, msgTpl, severity, suppressed=False,  **kwargs):
         """
