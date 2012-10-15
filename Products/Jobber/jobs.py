@@ -161,21 +161,28 @@ class Job(Task):
         raise NoSuchJobException(job_id)
 
     def _check_aborted(self, job_id):
-        while True:
-            self.dmd._p_jar.sync()
-            try:
-                status = self.app.backend.get_status(job_id)
-            except NoSuchJobException:
-                status = states.ABORTED
-            if (status == states.ABORTED and self._runner_thread is not None):
-                self.log.info("Job %s is aborted", job_id)
-                # Sometimes the thread is about to commit before it can get
-                # interrupted.  self._aborted_tasks is an in-memory shared
-                # set so other thread can check on it before it commits.
-                self._aborted_tasks.add(job_id)
-                self._runner_thread.interrupt(JobAborted)
-                break
-            time.sleep(0.25)
+        try:
+            while True:
+                self.dmd._p_jar.sync()
+                try:
+                    status = self.app.backend.get_status(job_id)
+                except NoSuchJobException:
+                    status = states.ABORTED
+                if status == states.ABORTED and \
+                        self._runner_thread is not None:
+                    self.log.info("Job %s is aborted", job_id)
+                    # Sometimes the thread is about to commit before it
+                    # can get interrupted.  self._aborted_tasks is an
+                    # in-memory shared set so other thread can check on
+                    # it before it commits.
+                    self._aborted_tasks.add(job_id)
+                    self._runner_thread.interrupt(JobAborted)
+                    break
+                time.sleep(0.25)
+        finally:
+            # release database connection acquired by the self.dmd
+            # reference ealier in this method.
+            self.backend.reset()
 
     def _do_run(self, request, args=None, kwargs=None):
         # This method runs a separate thread.
@@ -229,6 +236,9 @@ class Job(Task):
             # Log out; probably unnecessary but can't hurt
             noSecurityManager()
             self._aborted_tasks.discard(job_id)
+            # release database connection acquired by the self.dmd
+            # reference ealier in this method.
+            self.backend.reset()
 
     def run(self, *args, **kwargs):
         job_id = self.request.id
