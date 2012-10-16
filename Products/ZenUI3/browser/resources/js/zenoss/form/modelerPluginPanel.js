@@ -1,15 +1,15 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
 (function(){
-    var router = Zenoss.remote.DeviceRouter,
+    var router = Zenoss.remote.PropertiesRouter,
         ModelerPluginForm,
         ZPROP_NAME = 'zCollectorPlugins',
         ModelerPluginPanel;
@@ -128,7 +128,7 @@
                 zProperty: ZPROP_NAME
             }, Ext.bind(this.loadData, this));
 
-            router.getModelerPluginDocStrings({
+            Zenoss.remote.DeviceRouter.getModelerPluginDocStrings({
                 uid: uid
             }, Ext.bind(this.loadDocs, this));
 
