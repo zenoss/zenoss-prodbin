@@ -70,24 +70,22 @@ class HtmlFormatter(logging.Formatter):
 
     def __init__(self):
         logging.Formatter.__init__(self,
-        """<tr class="loggingRow">
-        <td>%(asctime)s</td> <td>%(levelname)s</td>
-        <td>%(name)s</td> <td>%(message)s</td>
-        </tr>
+        """
+        %(asctime)s %(levelname)s %(name)s %(message)s 
         """,
-        "%Y-%m-%d %H:%M:%S")
+        "%Y-%m-%d %H:%M:%S") 
 
     def formatException(self, exc_info):
         """
         Format a Python exception
 
         @param exc_info: Python exception containing a description of what went wrong
-        @type exc_info: Python exception class
+        @type exc_info: Python exception class 
         @return: formatted exception
         @rtype: string
         """
         exc = logging.Formatter.formatException(self,exc_info)
-        return """<tr class="tablevalues"><td colspan="4">%s</td></tr>""" % exc
+        return """%s""" % exc
 
 
 def setWebLoggingStream(stream):
