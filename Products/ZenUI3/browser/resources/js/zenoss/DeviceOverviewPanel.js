@@ -13,14 +13,22 @@
             constructor: function(config) {
                 var title = _t('Click to edit this field');
                 var editLink = '<a href="javascript:" title="' + title  + '" class="manu-edit-link">'+
-                                _t('Edit') + '</a>';
+                                _t('Edit') + '</a>',
+                    hasPermission = true;
+                // do not render the edit link if we don't have permission
+                if (config.permission && !Zenoss.Security.hasPermission(config.permission)) {
+                    hasPermission = false;
+                    editLink = '';
+                }
                 config.fieldLabel += editLink;
                 config.listeners = Ext.apply(config.listeners||{}, {
                     render: function(p) {
-                        p.editlink = p.labelEl.select('a.manu-edit-link');
-                        p.editlink.on('click', function(){
-                            p.fireEvent('labelclick', p);
-                        }, p);
+                        if (hasPermission) {
+                            p.editlink = p.labelEl.select('a.manu-edit-link');
+                            p.editlink.on('click', function(){
+                                p.fireEvent('labelclick', p);
+                            }, p);
+                        }
                     }
                 });
                 obj.superclass.constructor.call(this, config);
@@ -505,14 +513,13 @@
         bodyCls: 'device-overview-form',
         style:{'background-color':'#fafafa'},
         listeners: {
-            'add': function(me, field, index){
+            add: function(me, field, index){
                 if (isField(field)) {
                     this.onFieldAdd.call(this, field);
                 }
             },
-            'validitychange': function(me, isValid, eOpts) {
-                // disable the save button if the form isn't valid
-                this.savebtn.setDisabled(!isValid);
+            validitychange: function(me, isValid, eOpts) {
+                this.setButtonsDisabled(!isValid);
             }
         },
         constructor: function(config) {
@@ -713,6 +720,7 @@
                             xtype: 'textfield'
                         },{
                             xtype: 'clicktoeditnolink',
+                            permission: 'Manage Device',
                             listeners: {
                                 labelclick: function(p){
                                     editCollector(this.getValues(), this.contextUid);
@@ -724,6 +732,7 @@
                             id: 'collector-editnolink'
                         },{
                             xtype: 'clicktoedit',
+                            permission: 'Manage Device',
                             listeners: {
                                 labelclick: function(p){
                                     editManuInfo(this.getValues(), this.contextUid);
@@ -735,6 +744,7 @@
                             fieldLabel: _t('Hardware Manufacturer')
                         },{
                             xtype: 'clicktoedit',
+                            permission: 'Manage Device',
                             listeners: {
                                 labelclick: function(p){
                                     editManuInfo(this.getValues(), this.contextUid);
@@ -746,6 +756,7 @@
                             fieldLabel: _t('Hardware Model')
                         },{
                             xtype: 'clicktoedit',
+                            permission: 'Manage Device',
                             listeners: {
                                 labelclick: function(p){
                                     editManuInfo(this.getValues(), this.contextUid);
@@ -757,6 +768,7 @@
                             fieldLabel: _t('OS Manufacturer')
                         },{
                             xtype: 'clicktoedit',
+                            permission: 'Manage Device',
                             listeners: {
                                 labelclick: function(p){
                                     editManuInfo(this.getValues(), this.contextUid);
@@ -790,6 +802,7 @@
                         id: 'deviceoverviewpanel_systemsummary',
                         items: [{
                             xtype: 'clicktoedit',
+                            permission: 'Manage Device',
                             listeners: {
                                 labelclick: function(p){
                                     editGroups(this.getValues().systems, this.contextUid, {
@@ -807,6 +820,7 @@
                             id: 'systems-editlink'
                         },{
                             xtype: 'clicktoedit',
+                            permission: 'Manage Device',
                             listeners: {
                                 labelclick: function(p){
                                     editGroups(this.getValues().groups, this.contextUid, {
@@ -824,6 +838,7 @@
                             id: 'groups-editlink'
                         },{
                             xtype: 'clicktoedit',
+                            permission: 'Manage Device',
                             listeners: {
                                 labelclick: function(p){
                                     editLocation(this.getValues(), this.contextUid);

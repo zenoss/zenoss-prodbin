@@ -500,7 +500,7 @@ class DeviceRouter(TreeRouter):
         """
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
-
+        uids = filterUidsByPermission(self.context.dmd, ZEN_MANAGE_DEVICE, uids)
         facade = self._getFacade()
 
         # In order to display the device name and old location/device class,

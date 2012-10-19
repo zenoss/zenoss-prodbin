@@ -137,7 +137,7 @@ Zenoss.nav.register({
     },{
         id: 'softwares',
         nodeType: 'subselect',
-        text: _t('Software')    
+        text: _t('Software')
     },{
         id: 'device_custom_properties',
         nodeType: 'subselect',
@@ -878,6 +878,7 @@ function addComponentHandler(item) {
 Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
     id: 'component-add-menu',
+    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
     iconCls: 'add',
     menuIds: [],
     listeners: {
