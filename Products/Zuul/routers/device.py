@@ -100,41 +100,6 @@ class DeviceRouter(TreeRouter):
         data = Zuul.marshal(tree)
         return [data]
 
-    def _filterComponents(self, comps, keys, query):
-        """
-        Returns a list of components where one of the attributes in keys contains
-        the query (case-insensitive).
-
-        @type  comps: SearchResults
-        @param comps: All the Components for this query
-        @type  keys: List
-        @param keys: List of strings of fields that we are filtering on
-        @type  query: String
-        @param query: Search Term
-        @rtype:   List
-        @return:  List of Component Info objects that match the query
-        """
-        results = []
-        for comp in comps:
-            keep = False
-            for key in keys:
-                # non searchable fields
-                if key in ('uid', 'uuid', 'events', 'status', 'severity'):
-                    continue
-                val = getattr(comp, key, None)
-                if not val:
-                    continue
-                if callable(val):
-                    val = val()
-                if IInfo.providedBy(val):
-                    val = val.name
-                if query.lower() in str(val).lower():
-                    keep = True
-                    break
-            if keep:
-                results.append(comp)
-        return results
-
     @serviceConnectionError
     def getComponents(self, uid=None, meta_type=None, keys=None, start=0,
                       limit=50, page=0, sort='name', dir='ASC', name=None):
@@ -178,13 +143,10 @@ class DeviceRouter(TreeRouter):
             # Load every component if we have a filter
             limit = None
         comps = facade.getComponents(uid, meta_type=meta_type, start=start,
-                                     limit=limit, sort=sort, dir=dir)
+                                     limit=limit, sort=sort, dir=dir, name=name, keys=keys)
         total = comps.total
         hash = comps.hash_
-        if name:
-            comps = self._filterComponents(comps, keys, name)
-            total = len(comps)
-
+        
         data = Zuul.marshal(comps, keys=keys)
         return DirectResponse(data=data, totalCount=total,
                               hash=hash)

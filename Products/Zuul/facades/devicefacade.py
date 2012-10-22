@@ -100,38 +100,91 @@ class DeviceFacade(TreeFacade):
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):
-        brains = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
+        comps = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
                                        dir=dir, name=name)
-        for i, b in enumerate(brains):
-            if b.getPath()==componentUid:
+        for i, b in enumerate(comps):
+            if '/'.join(b._object.getPrimaryPath())==componentUid:
                 return i
 
+    def _filterComponents(self, comps, keys, query):
+        """
+        Returns a list of components where one of the attributes in keys contains
+        the query (case-insensitive).
+
+        @type  comps: SearchResults
+        @param comps: All the Components for this query
+        @type  keys: List
+        @param keys: List of strings of fields that we are filtering on
+        @type  query: String
+        @param query: Search Term
+        @rtype:   List
+        @return:  List of Component Info objects that match the query
+        """
+        results = []
+        query = query.lower()
+        for comp in comps:
+            keep = False
+            for key in keys:
+                # non searchable fields
+                if key in ('uid', 'uuid', 'events', 'status', 'severity'):
+                    continue
+                val = getattr(comp, key, None)
+                if not val:
+                    continue
+                if callable(val):
+                    val = val()
+                if IInfo.providedBy(val):
+                    val = val.name
+                if query in str(val).lower():
+                    keep = True
+                    break
+            if keep:
+                results.append(comp)
+        return results
+
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
-                         limit=None, sort='name', dir='ASC', name=None):
+                         limit=None, sort='name', dir='ASC', name=None, keys=()):
         reverse = dir=='DESC'
         if isinstance(types, basestring):
             types = (types,)
-        defaults =['Products.ZenModel.DeviceComponent.DeviceComponent']
-        defaults.extend(types)
         if isinstance(meta_type, basestring):
             meta_type = (meta_type,)
         query = None
         if meta_type:
             query = Or(*(Eq('meta_type', t) for t in meta_type))
-        if name:
-            namequery = MatchRegexp('name', '(?i).*%s.*' % name)
-            query = namequery if query is None else And(query, namequery)
-        cat = ICatalogTool(self._getObject(uid))
-        brains = cat.search(defaults, query=query, start=start, limit=limit,
-                            orderby=sort, reverse=reverse)
-        return brains
+        obj = self._getObject(uid)
+        
+        cat = obj.componentSearch
+        brains = cat.evalAdvancedQuery(query)
+
+        # unbrain the results
+        comps=map(IInfo, map(unbrain, brains))
+        total = len(comps)
+        hash_ = str(total)
+        
+        
+        # filter the components
+        if name is not None:
+            wrapped = map(IInfo, map(unbrain, brains))
+            comps = self._filterComponents(wrapped, keys, name)
+            total = len(comps)
+            hash_ = str(total)
+
+        # sort the components
+        sortedResults = list(sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse))
+        
+        # limit the search results to the specified range
+        if limit is None:
+            pagedResult = sortedResults[start:]
+        else:
+            pagedResult = sortedResults[start:start + limit]
+            
+        return SearchResults(iter(pagedResult), total, hash_, False)
 
     def getComponents(self, uid=None, types=(), meta_type=(), start=0,
-                      limit=None, sort='name', dir='ASC', name=None):
-        brains = self._componentSearch(uid, types, meta_type, start, limit,
-                                       sort, dir, name)
-        wrapped = imap(IInfo, imap(unbrain, brains))
-        return SearchResults(wrapped, brains.total, brains.hash_)
+                      limit=None, sort='name', dir='ASC', name=None, keys=()):
+        return self._componentSearch(uid, types, meta_type, start, limit,
+                                       sort, dir, name=name, keys=keys)
 
     def getComponentTree(self, uid):
         from Products.ZenEvents.EventManagerBase import EventManagerBase
