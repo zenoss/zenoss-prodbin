@@ -511,8 +511,8 @@ function editDataSourceOrPoint() {
             config.title = _t('Edit Data Point');
             config.directFn = submitDataPointForm;
             config.singleColumn = true;
-        }else if (config.record.testable &&
-                  Zenoss.Security.hasPermission('Change Device')){
+        } else if (config.record.testable &&
+                   Zenoss.Security.hasPermission('Change Device')){
             // add the test against device panel
             config.items.items.push({
                 xtype:'panel',
@@ -524,6 +524,7 @@ function editDataSourceOrPoint() {
                     xtype: 'textfield',
                     fieldLabel: _t('Device Name'),
                     id: 'testDevice',
+                    width: 300,
                     name: 'testDevice'
                 },{
                     xtype: 'hidden',
@@ -532,6 +533,7 @@ function editDataSourceOrPoint() {
                 },{
                     xtype: 'button',
                     text: _t('Test'),
+                    id: 'testDeviceButton',
                     handler: testDataSource
                 }]});
 
@@ -539,6 +541,15 @@ function editDataSourceOrPoint() {
 
         config.saveHandler = closeEditDialog;
         win = new Zenoss.form.DataSourceEditDialog(config);
+        var cmdField = win.editForm.form.findField('commandTemplate');
+        if (cmdField != null) {
+            cmdField.addListener('dirtychange', function(form, isValid) {
+                Ext.getCmp('testDeviceButton').disable();
+                var devField = Ext.getCmp('testDevice');
+                devField.setValue(_t("Save and reopen this dialog to test."));
+                devField.disable();
+            });
+        }
         win.show();
     }
     // get the details
