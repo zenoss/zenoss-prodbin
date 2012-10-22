@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -30,9 +30,9 @@ def manage_addGraphReportElement(context, id, REQUEST = None):
 
 
 class GraphReportElement(ZenModelRM):
-    
+
     meta_type = 'GraphReportElement'
-    
+
     deviceId = ''
     componentPath = ''
     graphId = ''
@@ -45,7 +45,7 @@ class GraphReportElement(ZenModelRM):
     comments = ('Device: ${dev/titleOrId}<br />\n'
                 'Component: ${comp/name}<br />\n'
                 '${graph/id}')
-        
+
     _properties = ZenModelRM._properties + (
         {'id':'deviceId', 'type':'string', 'mode':'w'},
         {'id':'componentPath', 'type':'string', 'mode':'w'},
@@ -56,15 +56,15 @@ class GraphReportElement(ZenModelRM):
     )
 
     _relations =  ZenModelRM._relations + (
-        ("report", 
+        ("report",
             ToOne(ToManyCont,"Products.ZenModel.GraphReport", "elements")),
         )
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'editGraphReportElement',
             'actions'        :
-            ( 
+            (
                 {'name'          : 'Edit',
                 'action'        : 'editGraphReportElement',
                 'permissions'   : ("Manage DMD",),
@@ -73,8 +73,8 @@ class GraphReportElement(ZenModelRM):
          },
         )
 
-    security = ClassSecurityInfo()        
-        
+    security = ClassSecurityInfo()
+
     def talesEval(self, text):
         dev = self.getDevice()
         if not dev:
@@ -88,7 +88,7 @@ class GraphReportElement(ZenModelRM):
             return 'Graph %s could not be found for %s' % (
                         self.graphId, self.deviceId)
         compiled = talesCompile('string:' + text)
-        e = {'dev':dev, 'device': dev, 
+        e = {'dev':dev, 'device': dev,
                 'comp': comp, 'component':comp,
                 'graph': graph}
         try:
@@ -98,8 +98,8 @@ class GraphReportElement(ZenModelRM):
         except Exception, e:
             result = 'Error: %s' %  str(e)
         return result
-        
-    
+
+
     def getSummary(self):
         ''' Returns tales-evaluated summary
         '''
@@ -110,7 +110,7 @@ class GraphReportElement(ZenModelRM):
         '''
         return self.talesEval(self.comments)
 
-        
+
     def getDevice(self):
         return self.dmd.Devices.findDevice(self.deviceId)
 
@@ -128,13 +128,13 @@ class GraphReportElement(ZenModelRM):
     def getComponentName(self):
         if self.componentPath:
             try:
-                dev = self.getDevice()
-                if not dev:
-                    return 'Not Found'
-                name = getObjByPath(dev, self.componentPath).name
-                return callable(name) and name() or name
+                comp = self.getComponent()
+                if comp:
+                    name = comp.name
+                    return name() if callable(name) else name
             except KeyError:
-                return 'Not Found'
+                pass
+            return 'Not Found'
         else:
             return ''
 
