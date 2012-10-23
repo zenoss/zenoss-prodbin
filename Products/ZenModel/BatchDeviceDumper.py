@@ -87,6 +87,11 @@ class BatchDeviceDumper(ZCmdBase):
 #        DeviceClasses: 5
 #              Devices: 4
 """
+    # Export out the following setter method data
+    ignoreSetters = (
+        'setLastPollSnmpUpTime', 'setSnmpLastCollection',
+        'setSiteManager', 'setLocation', 'setGroups', 'setSystems',
+    )
 
     def __init__(self, *args, **kwargs):
         ZCmdBase.__init__(self, *args, **kwargs)
@@ -108,7 +113,8 @@ class BatchDeviceDumper(ZCmdBase):
             try:
                 self.root = self.dmd.unrestrictedTraverse(self.options.root)
             except KeyError:
-                self.log.error("%s is not a valid DeviceOrganizer path under %s\n" % (self.options.root, self.dmd.getPrimaryUrlPath()))
+                self.log.error("%s is not a valid DeviceOrganizer path under %s\n",
+                               self.options.root, self.dmd.getPrimaryUrlPath())
                 return False
 
         self.rootPath = self.root.getPrimaryUrlPath()
@@ -116,7 +122,8 @@ class BatchDeviceDumper(ZCmdBase):
 
     def _emitProps(self, obj):
         """
-        Returns string of object local zProperties, cProperties and "setter" properties suitable for ZenBatchLoader
+        Returns string of object local zProperties, cProperties and "setter"
+        properties suitable for ZenBatchLoader
 
         @parameter obj: a Device or DeviceClass (or perhaps Location later)
         @type obj: ZenModelRM
@@ -124,32 +131,35 @@ class BatchDeviceDumper(ZCmdBase):
         @rtype str
         """
         props = []
+
         # description has neither setter nor getter so we special-case it here
-        desc = getattr(obj,"description","")
+        desc = getattr(obj, "description", "")
         if desc:
-            props.append("%s=%s" % ('description',repr(desc)))
-        for prop in ((x['id'], repr(x['value'])) for x in obj.exportZProperties() if x['islocal']):
+            props.append("%s=%s" % ('description', repr(desc)))
+
+        # Z-properties
+        for prop in ((x['id'], repr(x['value'])) for x in obj.exportZProperties() \
+                           if self.isPropExportable(x)):
             key = prop[0]
             if obj.zenPropIsPassword(key):
                 val = repr(getattr(obj, key, ''))
                 prop = (key, val)
             props.append("%s=%s" % prop)
 
+        # C-properties
         for cProp in obj.custPropertyMap():
             if cProp['id'] == 'cDateTest': continue
             value = getattr(obj,cProp['id'],'')
             if value and value != '':
                 props.append("%s=%s" % (cProp['id'], repr(value)))
 
-        # Export out setter method data
-        ignoreSetters = ('setLastPollSnmpUpTime', 'setSnmpLastCollection', 'setSiteManager', 'setLocation', 'setGroups', 'setSystems')
         for setMethod in [setter for setter in dir(obj) if setter.startswith('set')]:
-            if setMethod in ignoreSetters:
+            if setMethod in self.ignoreSetters:
                 continue
             getMethod = setMethod.replace('set', 'get', 1)
             getter = getattr(obj, getMethod, None)
             if getter and callable(getter):
-                # deal with braindamaged get/setProdState
+                # Deal with brain damaged get/setProdState
                 if setMethod == 'setProdState':
                     states = obj.getProdStateConversions()
                     for state in states:
@@ -168,7 +178,23 @@ class BatchDeviceDumper(ZCmdBase):
         # There's always got to be a weirdie....
         if ('getPerformanceServerName' in dir(obj)):
             props.append("setPerformanceMonitor=" + repr(obj.getPerformanceServerName()))
-        return props
+        return sorted(props)
+
+    def isPropExportable(self, propdict):
+        """
+        Dump the specified property to the output file?
+        propdict contents:
+             id - name of the zprop
+             category - as displayed in the 'Configuration Property' area
+             islocal - overridden here?
+             value - raw value
+             options - complete list of items that can be chosen
+             valueAsString - value in string format
+             path - path of where the zprop was defined
+             type - 'password', 'string', 'int', 'float', 'date', 'lines'
+
+        """
+        return propdict['islocal']
 
     def _emitDev(self, dev):
         """
@@ -176,24 +202,37 @@ class BatchDeviceDumper(ZCmdBase):
        
         @parameter dev: Device object to emit
         @type dev: Device
-        @return: strings containing device name and list of Device-local zProperties and cProperties
+        @return: device name and list of Device-local zProperties and cProperties
         @rtype: tuple of strings
         """
 
         result = self._emitProps(dev)
+
         location = dev.location()
         if location:
             result.append("setLocation=" + repr("/".join(location.getPrimaryPath()[4:])))
 
-        systems = dev.systems()
+        systems = self._normalizePaths(dev.systems())
         if systems:
-            result.append("setSystems=" + repr(["/"+"/".join(system.getPrimaryPath()[4:]) for system in systems]))
+            result.append("setSystems=" + repr(systems))
 
-        groups = dev.groups()
+        groups = self._normalizePaths(dev.groups())
         if groups:
-            result.append("setGroups=" + repr(["/"+"/".join(grp.getPrimaryPath()[4:]) for grp in groups]))
+            result.append("setGroups=" + repr(groups))
 
-        return (repr(dev.getId()),result)
+        if self.options.noorganizers:
+            # Need to be able to tell which device class we came from
+            result.append("moveDevices=('%s', '%s')" % (
+                          '/'.join(dev.getPrimaryPath()[:-2]), dev.id))
+
+        return (repr(dev.getId()), sorted(result))
+
+    def _normalizePaths(self, objList):
+        """
+        Given a list of objects, make their URL path representation
+        look closer to what is seen in 'Infrastructure' view.
+        """
+        return sorted('/' + '/'.join(obj.getPrimaryPath()[4:]) for obj in objList)
 
     def _emitOrg(self, org):
         """
@@ -201,14 +240,16 @@ class BatchDeviceDumper(ZCmdBase):
 
         @parameter org: DeviceOrganizer to emit
         @type org: DeviceOrganizer
-        @return: strings containing the device organizer name, type and properties
+        @return: device organizer name, type and properties
         @rtype: tuple of strings
         """
 
         path = org.getPrimaryPath()
         name = "'/%s' " % "/".join(path[3:])
         # Avoid things that override base classes for the moment (eg uses zPythonClass)
-        props = [] if isinstance(org, DeviceClass) and 'ZenPacks' in org.zPythonClass else self._emitProps(org)
+        props = []
+        if not (isinstance(org, DeviceClass) and 'ZenPacks' in org.zPythonClass):
+            props = self._emitProps(org)
 
         if '/Locations/' in path:
             props.append('setAddress="%s"' % org.address)
@@ -231,6 +272,7 @@ class BatchDeviceDumper(ZCmdBase):
         if isinstance(obj, Device):
             # back out to first containing DeviceOrganizer
             obj = obj.getPrimaryParent().getPrimaryParent()
+
         if not obj in self.emittedDeviceClasses:
             parent = obj.getPrimaryParent()
             # don't recurse to dmd
@@ -244,18 +286,19 @@ class BatchDeviceDumper(ZCmdBase):
  
     def listLSGOTree(self, outFile, branch):
         """
-        Recurse through the Locations, Systems and Groups trees printing out Organizers with properties
-        return number of Devices emitted
+        Recurse through the Locations, Systems and Groups trees
+        printing out Organizers with properties
 
         @parameter outFile: output object to which we write output
         @type outFile: file or other object with .write() method that is simillar
-        @parameter branch: object reference to current tree branch (only used for recursion, should be called with None)
+        @parameter branch: object reference to current tree branch
         @type branch: DeviceOrganizer
         @return: number of Locations, Systems or Groups dumped
         @rtype: int
         """
-        if getattr(self.options,'rootPath',None) is None:
-            # BatchDeviceDumper.run() already calls ._prepRoot() before we get here, but leaving this in
+        if getattr(self.options, 'rootPath', None) is None:
+            # BatchDeviceDumper.run() already calls ._prepRoot() before
+            # we get here, but leaving this in
             # for unit tests and unexpected uses
             if not self._prepRoot():
                 return -1;
@@ -263,13 +306,15 @@ class BatchDeviceDumper(ZCmdBase):
         result = 0
 
         if not isinstance(branch, DeviceOrganizer):
-            raise TypeError("listLSGOTree must start in a DeviceOrganizer not (%s)") % branch
+            raise TypeError("listLSGOTree must start in a DeviceOrganizer not (%s)" % branch)
 
-        # Hidden option for pruning LSG Organizers as pruned ones may get referenced by unpruned devices
+        # Hidden option for pruning LSG Organizers as pruned 
+        # ones may get referenced by unpruned devices
         # This is to be used by unit tests to simplify output
-        if getattr(self.options, 'pruneLSGO', None) and not isinstance(self.root, DeviceClass) and \
-                not (branch.getPrimaryUrlPath().startswith(self.rootPath) or \
-                     self.root.getPrimaryUrlPath().startswith(branch.getPrimaryUrlPath())):
+        if getattr(self.options, 'pruneLSGO', None) and \
+           not isinstance(self.root, DeviceClass) and \
+           not (branch.getPrimaryUrlPath().startswith(self.rootPath) or \
+                self.root.getPrimaryUrlPath().startswith(branch.getPrimaryUrlPath())):
             return result
 
         outFile.write("\n")
@@ -302,18 +347,20 @@ class BatchDeviceDumper(ZCmdBase):
 
     def listDeviceTree(self, outFile, branch=None):
         """
-        Recurse through the Devices tree printing out Organizers and Devices with properties
+        Recurse through the Devices tree printing out Organizers and
+        Devices with properties
         return number of Devices emitted
 
         @parameter outFile: output object to which we write output
         @type outFile: file or other object with .write() method that is simillar
-        @parameter branch: object reference to current tree branch (only used for recursion, should be called with None)
+        @parameter branch: object reference to current tree branch
         @type branch: DeviceClass (or perhaps DeviceOrganizer at worst)
         @return: number of leaf Devices and DeviceClasses dumped
         @rtype: dict
         """
-        if getattr(self.options,'rootPath',None) is None:
-            # BatchDeviceDumper.run() already calls ._prepRoot() before we get here, but leaving this in
+        if getattr(self.options, 'rootPath', None) is None:
+            # BatchDeviceDumper.run() already calls ._prepRoot()
+            # before we get here, but leaving this in
             # for unit tests and unexpected uses
             if not self._prepRoot():
                 return { 'fail' : True }
@@ -328,17 +375,20 @@ class BatchDeviceDumper(ZCmdBase):
 
         # Dump DeviceClass if not pruned
         if not self.options.prune or branch.getPrimaryUrlPath() in self.rootPath:
-            outFile.write("\n")
-            (name, props) = self._emitOrg(branch)
-            result['DeviceClasses'] += 1
-            outFile.write("\n%s %s\n" % (name, ", ".join(props)))
-            self.emittedDeviceClasses.add(branch)
+            if not self.options.noorganizers:
+                outFile.write("\n")
+                (name, props) = self._emitOrg(branch)
+                result['DeviceClasses'] += 1
+                outFile.write("\n%s %s\n" % (name, ", ".join(props)))
+                self.emittedDeviceClasses.add(branch)
 
-        # Dump all elligible Devices in this DeviceClass (pruning occurs in .chooseDevice())
+        # Dump all eligible Devices in this DeviceClass (pruning occurs in .chooseDevice())
         for dev in self.chooseDevice(branch,self.makeRegexMatcher()):
-            (name,props) = self._emitDev(dev)
-            # enusre that if we've pruned Organizers above this Device that we emit them first
-            result['DeviceClasses'] += self._backtraceOrg(outFile, dev)
+            (name, props) = self._emitDev(dev)
+            if not self.options.noorganizers:
+                # ensure that if we've pruned Organizers above this
+                # Device that we emit them first
+                result['DeviceClasses'] += self._backtraceOrg(outFile, dev)
             outFile.write("\n%s %s\n" % (name, ", ".join(props)))
             result['Devices'] += 1
         
@@ -357,7 +407,8 @@ class BatchDeviceDumper(ZCmdBase):
 
         self.parser.add_option('--root',
              dest = "root", default = "",
-             help = "Set the root Device Path to dump (eg: /Devices/Servers or /Devices/Network/Cisco/Nexus; default: /Devices)")
+             help = "Set the root Device Path to dump (eg: /Devices/Servers "
+                    "or /Devices/Network/Cisco/Nexus; default: /Devices)")
 
         self.parser.add_option('-o', '--outFile',
              dest = 'outFile', default = sys.__stdout__,
@@ -372,6 +423,16 @@ class BatchDeviceDumper(ZCmdBase):
              action = 'store_true',
              help = "Should DeviceClasses only be dumped if part of root path")
 
+        self.parser.add_option('--allzprops',
+             dest = 'allzprops', default = False,
+             action = 'store_true',
+             help = "Should z properties (including acquired values) be dumped?")
+
+        self.parser.add_option('--noorganizers',
+             dest = 'noorganizers', default = False,
+             action = 'store_true',
+             help = "Should organizers (device classes, groups, etc) be dumped?")
+
     def run(self):
         """
         Run the batch device dump
@@ -381,7 +442,8 @@ class BatchDeviceDumper(ZCmdBase):
             try:
                 outFile = open(self.options.outFile, "w")
             except IOError as e:
-                self.log.error("Cannot open file %s for writing: %s" % (self.options.outFile,e))
+                self.log.error("Cannot open file %s for writing: %s",
+                               self.options.outFile, e)
                 sys.exit(1)
         else:
             outFile = self.options.outFile

@@ -38,6 +38,7 @@ from Products.ZenUtils.Utils import unused
 # We import DateTime so that we can set properties of type DateTime in the batchload
 from DateTime import DateTime
 unused(DateTime)
+
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
 METHODS_TO_SETTINGS = {
@@ -427,12 +428,14 @@ windows_device7 cDateTest='2010/02/28'
 
         @parameter device_list: list of device entries
         @type device_list: list of dictionaries
+        @return: status of device loading
+        @rtype: dictionary
         """
 
         def transactional(f):
             return f if self.options.nocommit else transact(f)
 
-        processed = {'total':0, 'errors':0}
+        processed = {'processed':0, 'errors':0}
 
         @transactional
         def _process(device_specs):
@@ -460,7 +463,7 @@ windows_device7 cDateTest='2010/02/28'
 
             if devobj is None:
                 if deviceLoader is not None:
-                    processed['total'] += 1
+                    processed['processed'] += 1
             else:
                 self.addAllLGSOrganizers(device_specs)
                 self.applyZProps(devobj, device_specs)
@@ -489,7 +492,7 @@ windows_device7 cDateTest='2010/02/28'
                 msg = "Modeling error for %s" % devobj.id
                 self.reportException(msg, devobj.id, exception=str(ex))
                 processed['errors'] += 1
-            processed['total'] += 1
+            processed['processed'] += 1
 
         for device_specs in device_list:
             devobj = _process(device_specs)
@@ -500,7 +503,9 @@ windows_device7 cDateTest='2010/02/28'
                 _snmp_community(device_specs, devobj)
                 _model(devobj)
 
-        self.reportResults(processed, len(device_list))
+        processed['total'] = len(device_list)
+        self.reportResults(processed)
+        return processed
 
     def reportException(self, msg, devName='', **kwargs):
         """
@@ -518,12 +523,12 @@ windows_device7 cDateTest='2010/02/28'
                 evt['device'] = devName
             self.dmd.ZenEventManager.sendEvent(evt)
 
-    def reportResults(self, processed, totalDevices):
+    def reportResults(self, processed):
         """
         Report the success + total counts from loading devices.
         """
         msg = "Modeled %d of %d devices, with %d errors" % (
-                  processed['total'], totalDevices, processed['errors'] )
+                  processed['processed'], processed['total'], processed['errors'] )
         self.log.info(msg)
 
         if not self.options.nocommit:
@@ -531,9 +536,9 @@ windows_device7 cDateTest='2010/02/28'
             evt.update(dict(
                 severity=SEVERITY_INFO,
                 summary=msg,
-                modeled=processed['total'],
+                modeled=processed['processed'],
                 errors=processed['errors'],
-                total=totalDevices,
+                total=processed['total'],
             ))
             self.dmd.ZenEventManager.sendEvent(evt)
 

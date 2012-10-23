@@ -23,6 +23,7 @@ class FakeConfigs: pass
 class FakeOptions:
     def __init__(self):
         self.nocommit = True
+        self.noorganizers = False
 
 class Testzenbatchdumper(BaseTestCase):
 
