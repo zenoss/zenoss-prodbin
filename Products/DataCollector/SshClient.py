@@ -566,8 +566,13 @@ class CommandChannel(channel.SSHChannel):
     """
     name = 'session'
     conn = None
+    # Set default environment variables to not be locale-specific
+    DEFAULT_ENV = {
+        'LC_ALL': 'C',
+        'LANG': 'C',
+    }
 
-    def __init__(self, command, conn=None):
+    def __init__(self, command, conn=None, env=None):
         """
         Initializer
 
@@ -575,10 +580,13 @@ class CommandChannel(channel.SSHChannel):
         @type command: string
         @param conn: connection to create the channel on
         @type conn: Twisted connection object
+        @param env: Environment variables to set before executing command.
+        @type env: dict
         """
         channel.SSHChannel.__init__(self, conn=conn)
         self.command = command
         self.exitCode = None
+        self.env = env if env is not None else CommandChannel.DEFAULT_ENV
 
     @property
     def targetIp(self):
@@ -617,6 +625,7 @@ class CommandChannel(channel.SSHChannel):
         sendEvent(self, message=message)
 
 
+    @defer.inlineCallbacks
     def channelOpen(self, unused):
         """
         Initialize the channel and send our command to the device.
@@ -631,13 +640,23 @@ class CommandChannel(channel.SSHChannel):
                   self.targetIp, self.conn.localChannelID, self.command)
         self.data = ''
 
+        # Send environment variables
+        for name, value in self.env.iteritems():
+            log.debug("Setting environment variable: %s=%s", name, value)
+            try:
+                data = common.NS(name) + common.NS(value)
+                yield self.conn.sendRequest(self, 'env', data, wantReply=1)
+            except Exception as e:
+                log.warn("Failed to set %s environment variable: %s", name, e)
+
+
         #  Notes for sendRequest:
         # 'exec'      - execute the following command and exit
         # common.NS() - encodes the command as a length-prefixed string
         # wantReply   - reply to let us know the process has been started
-        d = self.conn.sendRequest(self, 'exec', common.NS(self.command),
-                                  wantReply=1)
-        return d
+        result = yield self.conn.sendRequest(self, 'exec', common.NS(self.command),
+                                             wantReply=1)
+        defer.returnValue(result)
 
 
     def request_exit_status(self, data):
