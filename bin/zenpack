@@ -15,6 +15,20 @@ if [ -z "$ZENHOME" ] ; then
 as the zenoss user.  Either define '$ZENHOME' or run this command as a \
 different user.
 else
-    . $ZENHOME/bin/zenfunctions
-    $PYTHON $ZENHOME/Products/ZenUtils/zenpack.py "$CMD" $*
+    if [ -f "$ZENHOME/.upgrading" ];then
+
+        # This bypass gives us latitude to create an all-in-one RPM that 
+        # includes the core engine along with zenpacks.  Otherwise we hit a 
+        # known upgrade-time limitation when obsoleting a package name:
+        #
+        # http://www.rpm.org/ticket/16
+        #
+        # with the unwanted side-effect that RPM attempts to remove product
+        # instead of allowing normal upgrade flows to proceed.
+
+        echo "INFO: Bypassing normal processing while in upgrade mode." 1>&2
+    else
+        . $ZENHOME/bin/zenfunctions
+        $PYTHON $ZENHOME/Products/ZenUtils/zenpack.py "$CMD" $*
+    fi
 fi

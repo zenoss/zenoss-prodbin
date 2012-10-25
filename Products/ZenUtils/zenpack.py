@@ -192,11 +192,17 @@ class ZenPackCmd(ZenScriptBase):
             if not pack:
                 raise ZenPackException('ZenPack %s is not installed.' %
                                         self.options.removePackName)
-            removeZenPackQueuesExchanges(pack.path())
-            if pack.isEggPack():
-                return EggPackCmd.RemoveZenPack(self.dmd,
-                                                self.options.removePackName)
-            RemoveZenPack(self.dmd, self.options.removePackName, self.log)
+            if os.path.exists(zenPath(".upgrading")):
+                print(
+                    "Upgrade in progress; "
+                    "cannot remove ZenPack %s at this time."
+                ) % self.options.removePackName
+            else:
+                removeZenPackQueuesExchanges(pack.path())
+                if pack.isEggPack():
+                    return EggPackCmd.RemoveZenPack(
+                            self.dmd, self.options.removePackName)
+                RemoveZenPack(self.dmd, self.options.removePackName, self.log)
 
         elif self.options.list:
             for zpId in self.dmd.ZenPackManager.packs.objectIds():
