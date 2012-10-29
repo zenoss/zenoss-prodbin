@@ -900,7 +900,7 @@
             Zenoss.DeviceOverviewPanel.superclass.constructor.call(this, config);
         },
         api: {
-            load: REMOTE.getInfo,
+            load: Zenoss.util.isolatedRequest(REMOTE.getInfo),
             submit: function(form, success, scope) {
                 var o = {},
                 vals = scope.form.getValues(false, true);
@@ -924,7 +924,7 @@
             Ext.each(this.forms, function(f){
                 Ext.each(f.getForm().getFields().items, function(field) {
                     key = field.name;
-                    if (Ext.Array.indexOf(keys, key)==-1) {
+                    if (Ext.Array.indexOf(keys, key)==-1 && (key != 'links') && (key != 'uptime')) {
                         keys.push(key);
                     }
                 });
@@ -945,6 +945,14 @@
                 }
                 this.setValues(D);
                 this.doLayout();
+
+                // load zLinks and uptime in a separate request since they
+                // can be very expensive
+                var opts = Ext.apply({keys:['links', 'uptime']}, this.baseParams);
+                this.api.load(opts, function(results){
+                    this.setValues(results.data);
+                    this.doLayout();
+                }, this);
             }, this);
         },
         getValues: function() {
