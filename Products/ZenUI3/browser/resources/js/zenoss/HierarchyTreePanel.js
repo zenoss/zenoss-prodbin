@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -31,6 +31,46 @@
      * @constructor
      */
 
+    /**
+     * The default sort for hierarchical tree panels.
+     * Show anything with a folder icon first and then sort Alpha.
+     * by the "text" property.
+     * To override this pass a custom sort function in the Tree Panel's
+     * config.sortFn property.
+     **/
+    function sortTreeNodes(o1, o2) {
+        function getText(object) {
+            // text is sometimes an object and sometimes a string
+            if (Ext.isObject(object.get('text'))) {
+                return object.get('text').text.toLowerCase();
+            }
+            return object.get('text').toLowerCase();
+        }
+
+        function alphcmp(obj1, obj2) {
+            var text1 = getText(obj1),
+            text2 = getText(obj2);
+
+            // sort by text
+            if (text1 == text2) {
+                return 0;
+            }
+            return text1 < text2 ? -1 : 1;
+        }
+
+
+        // always show folders first
+        if (o1.get('iconCls') == 'folder' &&  o2.get('iconCls') != 'folder'){
+            return -1;
+        }
+        if (o2.get('iconCls') == 'folder' && o1.get('iconCls') != 'folder') {
+            return 1;
+        }
+
+        // otherwise sort by text
+        return alphcmp(o1, o2);
+    }
+	
     /**
      * Base Tree Selection model for zenoss. Defines
      * the getSelectedNode method that existed in 3.X trees.
@@ -84,7 +124,7 @@
                 listeners: {
                     afterrender: function(t){
                         // fixes 20000px width bug on the targetEl div bug in Ext
-                        t.searchfield.container.setWidth(t.ownerCt.getWidth());                        
+                        t.searchfield.container.setWidth(t.ownerCt.getWidth());
                     }
                 }
             };
@@ -297,6 +337,11 @@
                     model:modelId,
                     nodeParam:'uid',
                     defaultRootId:root.uid,
+                    remoteSort: false,
+                    sorters: {
+                        sorterFn: config.sortFn || sortTreeNodes,
+                        direction: 'asc'
+                    },
                     uiProviders:{
                         // 'hierarchy': Zenoss.HierarchyTreeNodeUI
                     }
