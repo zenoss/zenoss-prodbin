@@ -114,18 +114,18 @@ issue() {
             HIGHESTCODE=$CODE
         fi
 
-        # during 'zenoss start' if $ZENHOME/packs/.zenpacks_to_install exists
-        # install the listed zenpacks after zeneventserver is started.
-        # after these zenpacks are installed a zenoss restart is performed.
+        # During 'zenoss start' if $ZENHOME/var/zenpack_actions.txt exists,
+        # execute the actions in the file after zeneventserver has started.
+        # After the actions are complete, a zenoss restart is performed.
         if [ $FUNC == "start" -a $cmd == "zeneventserver" ]
         then
             PACKNAMES=""
-            install_zenpacks
+            $ZENHOME/bin/zenpack_batch
             returncode=$?
 
             if [ ${returncode} -ne 0 ]
             then
-                echo "Error: A zenpack failed to install. Fix the zenpack or delete it from $ZENHOME/packs/.zenpacks_to_install, then restart zenoss." >&2
+                echo "Error: A zenpack failed to install. Fix the zenpack or delete it from $ZENHOME/var/zenpack_actions.txt, then restart zenoss." >&2
                 exit ${returncode}
             fi
 

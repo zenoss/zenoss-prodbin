@@ -190,13 +190,9 @@ class ZenPackCmd(ZenScriptBase):
                                         self.options.removePackName, None)
 
             if not pack:
-                raise ZenPackException('ZenPack %s is not installed.' %
-                                        self.options.removePackName)
-            if os.path.exists(zenPath(".upgrading")):
-                print(
-                    "Upgrade in progress; "
-                    "cannot remove ZenPack %s at this time."
-                ) % self.options.removePackName
+                if not self.options.ifinstalled:
+                    raise ZenPackException('ZenPack %s is not installed.' %
+                                            self.options.removePackName)
             else:
                 removeZenPackQueuesExchanges(pack.path())
                 if pack.isEggPack():
@@ -476,6 +472,11 @@ class ZenPackCmd(ZenScriptBase):
                                default=None,
                                help="Previous version of the zenpack;"
                                     ' used during upgrades')
+        self.parser.add_option('--if-installed',
+                               action="store_true",
+                               dest='ifinstalled',
+                               default=False,
+                               help="Delete ZenPack only if installed")
         self.parser.prog = "zenpack"
         ZenScriptBase.buildOptions(self)
 

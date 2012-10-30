@@ -1,0 +1,130 @@
+#!/usr/bin/env python
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2012, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+
+import argparse
+import os
+import sys
+import tempfile
+import subprocess
+
+ZENHOME = os.environ.get("ZENHOME", None)
+
+
+def atomicWrite(filename, data):
+    dirName = os.path.dirname(filename)
+    tfile = None
+    ex = None
+    try:
+        # create a file in the same directory as the destination file
+        with tempfile.NamedTemporaryFile(dir=dirName, delete=False) as tfile:
+            tfile.write(data)
+        os.rename(tfile.name, filename)  # atomic operation on POSIX systems
+    except Exception as ex:
+        if tfile is not None and os.path.exists(tfile.name):
+            try:
+                os.remove(tfile.name)
+            except Exception:
+                pass
+        raise ex
+
+
+class ZenPackBatchManager(object):
+
+    _actions = {
+            "+": ("", "--install"),
+            "*": ("--link", "--install"),
+            "-": ("--if-installed", "--remove"),
+        }
+
+    def __init__(self, inputFile=None):
+        self._inputFile = inputFile
+
+    def _getAction(self):
+        lines = open(self._inputFile, 'r').readlines()
+        while lines:
+            line = lines.pop(0).strip()
+            if not line or line[0] == "#":
+                zenpack = None
+            elif line[0] in self._actions.keys():
+                zenpack = line[1:].strip()
+                option, action = self._actions[line[0]]
+            else:
+                zenpack = line.strip()
+                option, action = self._actions['+']
+            # If a zenpack action was found, yield it to the caller.
+            if zenpack:
+                if not os.path.exists(zenpack):
+                    raise IOError("Path not found: '%s'" % zenpack)
+                if option == "--link" and not os.path.isdir(zenpack):
+                    raise RuntimeError(
+                            "The '--link' option may only be used to "
+                            "install a ZenPack directory."
+                        )
+                yield {
+                        'zenpack': zenpack,
+                        'action': action,
+                        'option': option
+                    }
+            # Save the remaining actions before continuing
+            self._savelines(lines)
+
+    def _savelines(self, lines):
+        atomicWrite(self._inputFile, "".join(lines))
+
+    def process(self):
+        cmdtemplate = "zenpack %(option)s %(action)s %(zenpack)s"
+        for action in self._getAction():
+            cmd = cmdtemplate % action
+            subprocess.check_call(cmd, shell=True)
+
+
+if __name__ == "__main__":
+    if ZENHOME is None:
+        print >> sys.stderr, "ZENHOME is not set"
+        sys.exit(1)
+    if not os.path.exists(ZENHOME):
+        print >> sys.stderr, "ZENHOME does not exist: %r" % ZENHOME
+        sys.exit(1)
+
+    arg_parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawTextHelpFormatter,
+            description="Automate batch operations on ZenPacks",
+        )
+    arg_parser.add_argument(
+            "actionsfile", nargs='?', type=str,
+            default="/".join([ZENHOME, "var", "zenpack_actions.txt"]),
+            metavar="ACTIONS-FILE",
+            help=(
+                "Path to file containing the ZenPack operations.\n"
+                "(default: %(default)s)\n"
+                "There is one ZenPack operation per line.  For\n"
+                "installs, the full path to the ZenPack directory\n"
+                "or egg must be given.  For removals, only the\n"
+                "name of the ZenPack is necessary.  The format of\n"
+                "each line is:\n"
+                "   <action><zenpack>\n"
+                "where <action> is:\n"
+                "   '+' to install a ZenPack\n"
+                "   '*' to install and link a ZenPack\n"
+                "   '-' to remove a ZenPack\n"
+                "and <zenpack> is the name or path of the ZenPack."
+            )
+        )
+    args = arg_parser.parse_args()
+    zpbm = ZenPackBatchManager(args.actionsfile)
+    try:
+        zpbm.process()
+    except subprocess.CalledProcessError as ex:
+        print >> sys.stderr, \
+                "There was an error during the ZenPack operation: %s" % ex
+        sys.exit(1)
+    except Exception as ex:
+        print >> sys.stderr, \
+                "There is a problem in %s: %s" % (args.actionsfile, ex)
