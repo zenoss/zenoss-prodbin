@@ -119,9 +119,10 @@ issue() {
         # After the actions are complete, a zenoss restart is performed.
         if [ $FUNC == "start" -a $cmd == "zeneventserver" ]
         then
-            PACKNAMES=""
+            local PACKCOUNTBEFORE=$(wc -l $ZENHOME/var/zenpack_actions.txt | awk '{print $1}')
             $ZENHOME/bin/zenpack_batch
             returncode=$?
+            local PACKCOUNTAFTER=$(wc -l $ZENHOME/var/zenpack_actions.txt | awk '{print $1}')
 
             if [ ${returncode} -ne 0 ]
             then
@@ -129,8 +130,8 @@ issue() {
                 exit ${returncode}
             fi
 
-            # using global variable PACKNAMES set within install_zenpacks
-            if [ -n "${PACKNAMES}" ]
+            # if the 'zenpacks to install' list has decreased in size, restart daemons
+            if [ $PACKCOUNTBEFORE -gt $PACKCOUNTAFTER ]
             then
                 # installing zenpacks changes the list of daemons we need to load,
                 # reset that list.
