@@ -117,12 +117,13 @@ issue() {
         # During 'zenoss start' if $ZENHOME/var/zenpack_actions.txt exists,
         # execute the actions in the file after zeneventserver has started.
         # After the actions are complete, a zenoss restart is performed.
-        if [ $FUNC == "start" -a $cmd == "zeneventserver" ]
+        PACKFILE="$ZENHOME/var/zenpack_actions.txt"
+        if [ $FUNC == "start" -a $cmd == "zeneventserver" -a -f "${PACKFILE}" ]
         then
-            local PACKCOUNTBEFORE=$(wc -l $ZENHOME/var/zenpack_actions.txt | awk '{print $1}')
+            local PACKCTBEFORE=$(wc -l $PACKFILE | awk '{print $1}')
             $ZENHOME/bin/zenpack_batch
             returncode=$?
-            local PACKCOUNTAFTER=$(wc -l $ZENHOME/var/zenpack_actions.txt | awk '{print $1}')
+            local PACKCTAFTER=$(wc -l $PACKFILE | awk '{print $1}')
 
             if [ ${returncode} -ne 0 ]
             then
