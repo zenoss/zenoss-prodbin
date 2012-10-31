@@ -60,7 +60,7 @@ class ZenPackBatchManager(object):
                 option, action = self._actions['+']
             # If a zenpack action was found, yield it to the caller.
             if zenpack:
-                if not os.path.exists(zenpack):
+                if action == "--install" and not os.path.exists(zenpack):
                     raise IOError("Path not found: '%s'" % zenpack)
                 if option == "--link" and not os.path.isdir(zenpack):
                     raise RuntimeError(
