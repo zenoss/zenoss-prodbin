@@ -608,10 +608,17 @@ class SNMPTrapAction(IActionBase):
         log.debug('Processing SNMP Trap action.')
         self.setupAction(notification.dmd)
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+
+        # For clear signals we need to send the "clear" event first so the
+        # receiver will be able to correlate the later "cleared" event's
+        # evtClearId value.
+
+        # Only send the "clear" event if it has a uuid. A clear signal will be
+        # sent if a user closing an event, or if it's automatically aged.
+        if signal.clear and data['clearEventSummary'].uuid:
+            self._sendTrap(notification, data, data['clearEventSummary'])
+
         self._sendTrap(notification, data, data['eventSummary'])
-        if signal.clear:
-            if 'clearEvt' in data and data['clearEvt'].severity is not None:
-                self._sendTrap(notification, data, data['clearEvt'])
 
     def _sendTrap(self, notification, data, event):
         actor = getattr(event, "actor", None)
@@ -685,7 +692,7 @@ class SNMPTrapAction(IActionBase):
         """
         Make the SNMP variable bindings in numeric order.
         """
-        intValues = (9, 10, 26, 27)
+        uintValues = (9, 10, 26, 27)
         varbinds = []
         for field, oidspec in sorted(fields.items(), key=lambda x: x[1][0]):
             i, source = oidspec
@@ -695,7 +702,7 @@ class SNMPTrapAction(IActionBase):
 
             # Create the binding
             oid = "%s.%d" % (baseOID, i)
-            oidType = 's' if i not in intValues else 'i'
+            oidType = 's' if i not in uintValues else 'u'
             # No matter what the OID data type, send in strings as that's what is expected
             val = str(val)
 
