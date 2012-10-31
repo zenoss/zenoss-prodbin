@@ -24,6 +24,8 @@ from twisted.internet import reactor
 import os.path
 from cStringIO import StringIO
 import stat
+from collections import defaultdict
+from datetime import datetime, timedelta
 
 import Globals
 from zope import interface
@@ -53,6 +55,9 @@ _WARNING = 3
 
 # amount of IPs/events to process before giving time to the reactor
 _SENDEVENT_YIELD_INTERVAL = 100  # should always be >= 1
+
+# amount of time since last ping down before count is removed from dictionary
+DOWN_COUNT_TIMEOUT_MINUTES = 15
 
 # twisted.callLater has trouble with sys.maxint as call interval, 
 # just use a big interval, 100 years
@@ -163,8 +168,11 @@ class NmapPingTask(BaseTask):
         self._nmapPresent = False    # assume nmap is not present at startup
         self._nmapIsSuid = False     # assume nmap is not SUID at startup
         self.collectorName = self._daemon._prefs.collectorName
-        
-        
+
+        # maps task name to ping down count and time of last ping down
+        self._down_counts = defaultdict(lambda: (0, None))
+
+
     def _detectNmap(self):
         """
         Detect that nmap is present.
@@ -407,18 +415,32 @@ class NmapPingTask(BaseTask):
                         # received no result, log as down
                         ipTask.logPingResult(PingResult(ip, isUp=False))
 
+            self._cleanupDownCounts()
+            dcs = self._down_counts
+            delayCount = self._daemon.options.delayCount
             downTasks = {}
             i = 0
             for taskName, ipTask in ipTasks.iteritems():
                 i += 1
                 if ipTask.isUp:
+                    if taskName in dcs:
+                        del dcs[taskName]
                     log.debug("%s is up!", ipTask.config.ip)
                     ipTask.sendPingUp()
                     ipTask.storeResults()
                 else:
-                    log.debug("%s is down", ipTask.config.ip)
-                    downTasks[ipTask.config.ip] = ipTask
-                    ipTask.storeResults()
+                    dcs[taskName] = (dcs[taskName][0] + 1, datetime.now())
+                    if dcs[taskName][0] > delayCount:
+                        log.debug("%s is down", ipTask.config.ip)
+                        downTasks[ipTask.config.ip] = ipTask
+                        ipTask.storeResults()
+                    else:
+                        fmt = '{0} is down. {1} ping downs received. ' \
+                              'Delaying events until more than {2} ping ' \
+                              'downs are received.'
+                        args = (ipTask.config.ip, dcs[taskName][0],
+                                delayCount)
+                        log.debug(fmt.format(*args))
 
                 # give time to reactor to send events if necessary
                 if i % _SENDEVENT_YIELD_INTERVAL:
@@ -426,6 +448,15 @@ class NmapPingTask(BaseTask):
             
             yield self._correlate(downTasks)
             self._nmapExecution()
+
+    def _cleanupDownCounts(self):
+        """Clear out old down counts so process memory utilization doesn't
+        grow."""
+        now = datetime.now()
+        timeout = timedelta(minutes=DOWN_COUNT_TIMEOUT_MINUTES)
+        for taskName, (down_count, last_time) in self._down_counts.iteritems():
+            if now - last_time > timeout:
+                del self._down_counts[taskName]
 
     @defer.inlineCallbacks
     def _correlate(self, downTasks):

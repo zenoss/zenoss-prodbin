@@ -80,6 +80,13 @@ class PingCollectionPreferences(object):
             type="int", 
             help="Length of datapacket for zenping to use (default: %default)") 
 
+        parser.add_option('--delay-count',
+            dest='delayCount',
+            default=0,
+            type="int",
+            help="Delay down events until more than this many ping downs "
+                 "are collected in a row. Default is 0 (no delay).")
+
         # look up possible ping backends
         pingBackends = []
         for pingBackend, _ in zope.component.getUtilitiesFor(
