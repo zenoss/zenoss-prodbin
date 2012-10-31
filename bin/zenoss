@@ -132,7 +132,7 @@ issue() {
             fi
 
             # if the 'zenpacks to install' list has decreased in size, restart daemons
-            if [ $PACKCOUNTBEFORE -gt $PACKCOUNTAFTER ]
+            if [ $PACKCTBEFORE -gt $PACKCTAFTER ]
             then
                 # installing zenpacks changes the list of daemons we need to load,
                 # reset that list.
