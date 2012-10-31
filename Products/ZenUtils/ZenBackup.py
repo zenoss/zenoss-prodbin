@@ -201,7 +201,7 @@ class ZenBackup(ZenBackupBase):
                         help='Logging severity threshold')
 
     def backupMySqlDb(self, host, port, db, user, passwdType, sqlFile, socket=None, tables=None):
-        command = ['mysqldump', '-u%s' %user, '--single-transaction']
+        command = ['mysqldump', '-u%s' %user, '--single-transaction', '--routines']
         credential = self.getPassArg(passwdType)
         database = [db]
 
@@ -334,6 +334,11 @@ class ZenBackup(ZenBackupBase):
                            self.options.zodb_db, self.options.zodb_user,
                            'zodb_password', 'zodb.sql.gz',
                            socket=self.options.zodb_socket)
+        # Back up the zodb_session database schema and schema_version table
+        self.backupMySqlDb(self.options.zodb_host, self.options.zodb_port,
+                           self.options.zodb_db + '_session', self.options.zodb_user,
+                           'zodb_password', 'zodb_session.sql.gz',
+                           socket=self.options.zodb_socket, tables=['schema_version'])
 
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)

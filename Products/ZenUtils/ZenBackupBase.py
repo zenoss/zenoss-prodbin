@@ -110,7 +110,7 @@ class ZenBackupBase(CmdBase):
         to MySQL commands.
 
         @return: password and flag
-        @rtype: string
+        @rtype: list
         """
         password = getattr(self.options, optname, None)
         if not password:

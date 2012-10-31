@@ -207,6 +207,7 @@ class ZenRestore(ZenBackupBase):
             self.flush_memcached(self.options.zodb_cacheservers.split())
         if self.hasSqlBackup():
             self.restoreZODBSQL()
+            self.restoreZODBSessionSQL()
         elif self.hasZeoBackup():
             self.restoreZODBZEO()
 
@@ -221,6 +222,19 @@ class ZenRestore(ZenBackupBase):
                             self.getPassArg('zodb_password'), zodbSql,
                             socket=self.options.zodb_socket)
         self.msg('Done Restoring ZODB database.')
+
+    def restoreZODBSessionSQL(self):
+        zodbSessionSql = self.getSqlFile('zodb_session.sql')
+        if not zodbSessionSql:
+            self.msg('This archive does not contain a ZODB session backup.')
+            return
+        self.msg('Restoring ZODB session database.')
+        self.restoreMySqlDb(self.options.zodb_host, self.options.zodb_port,
+                            self.options.zodb_db + "_session",
+                            self.options.zodb_user,
+                            self.getPassArg('zodb_password'), zodbSessionSql,
+                            socket=self.options.zodb_socket)
+        self.msg('Done Restoring ZODB session database.')
 
     def restoreZODBZEO(self):
         repozoDir = os.path.join(self.tempDir, 'repozo')
