@@ -62,6 +62,9 @@ from Products.ZenUtils.jsonutils import unjson
 
 DEFAULT_SOCKET_TIMEOUT = 30
 
+class DictAsObj(object):
+    def __init__(self, **kwargs):
+        for k,v in kwargs.iteritems(): setattr(self, k, v)
 
 class HtmlFormatter(logging.Formatter):
     """

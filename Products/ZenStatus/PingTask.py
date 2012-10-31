@@ -29,7 +29,6 @@ from zope import component
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR
 
-from Products.ZenRRD.zencommand import Cmd, ProcessRunner, TimeoutError
 from Products.ZenCollector import interfaces 
 from Products.ZenCollector.tasks import TaskStates, BaseTask
 
@@ -38,7 +37,6 @@ from Products.ZenCollector.services.config import DeviceProxy
 unused(DeviceProxy)
 
 from Products.ZenEvents.ZenEventClasses import Status_Ping
-from Products.ZenEvents import Event
 from Products.ZenEvents import ZenEventClasses 
 from zenoss.protocols.protobufs import zep_pb2 as events
 
