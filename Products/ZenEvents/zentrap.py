@@ -761,18 +761,21 @@ class TrapDaemon(CollectorDaemon):
     def runPostConfigTasks(self, result=None):
         # 1) super sets self._prefs.task with the call to postStartupTasks
         # 2) call remote createAllUsers
-        # 3) service in turn walks DeviceClass tree and calls remote_createUser
-        #      which needs self._prefs.task to be set
+        # 3) service in turn walks DeviceClass tree and returns users
         CollectorDaemon.runPostConfigTasks(self, result)
-        if not isinstance(result, Failure):
+        if not isinstance(result, Failure) and self._prefs.task is not None:
             service = self.getRemoteConfigServiceProxy()
-            service.callRemote("createAllUsers")
+            log.debug('TrapDaemon.runPostConfigTasks callRemote createAllUsers')
+            d = service.callRemote("createAllUsers")
+            d.addCallback(self._createUsers)
 
     def remote_createUser(self, user):
-        log.debug("TrapDaemon.remote_createUser {0}".format(user))
-        task = self.preferences.task
-        if task is not None:
-            task.session.create_users([user])
+        self._createUsers([user])
+
+    def _createUsers(self, users):
+        fmt = 'TrapDaemon._createUsers {0} users'
+        log.debug(fmt.format(len(users)))
+        self._prefs.task.session.create_users(users)
 
 if __name__=='__main__':
     myPreferences = SnmpTrapPreferences()

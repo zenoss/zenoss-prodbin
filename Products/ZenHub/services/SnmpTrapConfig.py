@@ -19,7 +19,7 @@ log = logging.getLogger('zen.HubService.SnmpTrapConfig')
 import Globals
 
 from twisted.spread import pb
-from twisted.internet import reactor, defer
+from twisted.internet import defer
 
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenHub.zodb import onUpdate, onDelete
@@ -54,7 +54,21 @@ class User(pb.Copyable, pb.RemoteCopy):
 pb.setUnjellyableForClass(User, User)
 
 class SnmpTrapConfig(CollectorConfigService):
-    
+
+    # Override _notifyAll, notifyAffectedDevices, _filterDevice and 
+    # _filterDevicesOnly to guarantee that only one MibConfigTask is ever 
+    # sent down to zentrap.
+
+    def _notifyAll(self, object):
+        pass
+
+    @onUpdate(None) # Matches all
+    def notifyAffectedDevices(self, object, event):
+        pass
+
+    def _filterDevice(self, device):
+        return device.id == FakeDevice.id
+
     def _filterDevices(self, deviceList):
         return [ FakeDevice() ]
 
@@ -71,47 +85,47 @@ class SnmpTrapConfig(CollectorConfigService):
 
         return proxy
 
-    @defer.inlineCallbacks
     def _create_user(self, obj):
-        
-        # if v3 and has at least one v3 user property, then we want to create a user
-        if obj.getProperty("zSnmpVer", None) == "v3":
-            has_user = any(obj.hasProperty(zprop) for zprop in SNMPV3_USER_ZPROPS)
-        else:
-            has_user = False
-
-        if has_user:
-            # only send v3 users that have at least one local zProp defined
-            user = User()
-            user.version = int(obj.zSnmpVer[1])
-            user.engine_id = obj.zSnmpEngineId
-            user.username = obj.zSnmpSecurityName
-            user.authentication_type = obj.zSnmpAuthType
-            user.authentication_passphrase = obj.zSnmpAuthPassword
-            user.privacy_protocol = obj.zSnmpPrivType
-            user.privacy_passphrase = obj.zSnmpPrivPassword
-            for listener in self.listeners:
-                yield listener.callRemote('createUser', user)
-        else:
-            # give way in the reactor loop while walking all users
-            d = defer.Deferred()
-            reactor.callLater(0, d.callback, None)
-            yield d
+        # if v3 and has at least one v3 user property, then we want to
+        # create a user
+        if obj.getProperty("zSnmpVer", None) != "v3" or not any(
+                            obj.hasProperty(p) for p in SNMPV3_USER_ZPROPS):
+            return
+        user = User()
+        user.version = int(obj.zSnmpVer[1])
+        user.engine_id = obj.zSnmpEngineId
+        user.username = obj.zSnmpSecurityName
+        user.authentication_type = obj.zSnmpAuthType
+        user.authentication_passphrase = obj.zSnmpAuthPassword
+        user.privacy_protocol = obj.zSnmpPrivType
+        user.privacy_passphrase = obj.zSnmpPrivPassword
+        return user
 
     def remote_createAllUsers(self):
         cat = ICatalogTool(self.dmd)
         brains = cat.search(("Products.ZenModel.Device.Device", "Products.ZenModel.DeviceClass.DeviceClass"))
+        users = []
         for brain in brains:
             device = brain.getObject()
-            self._create_user(device)
+            user = self._create_user(device)
+            if user is not None:
+                users.append(user)
+        fmt = 'SnmpTrapConfig.remote_createAllUsers {0} users'
+        log.debug(fmt.format(len(users)))
+        return users
+
+    def _objectUpdated(self, object):
+        user = self._create_user(object)
+        for listener in self.listeners: 
+            listener.callRemote('createUser', user)
 
     @onUpdate(DeviceClass)
-    def deviceClassChanged(self, device, event):
-        self._create_user(device)
+    def deviceClassUpdated(self, object, event):
+        self._objectUpdated(object)
 
     @onUpdate(Device)
-    def deviceChanged(self, device, event):
-        self._create_user(device)
+    def deviceUpdated(self, object, event):
+        self._objectUpdated(object)
 
     @onUpdate(MibBase)
     def mibsChanged(self, device, event):
