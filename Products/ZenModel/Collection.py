@@ -152,8 +152,11 @@ class Collection(ZenModelRM):
             deletedItem = self.collection_items._getOb(id)
             self.collection_items._delObject(id)
             if REQUEST:
+                contents = None
+                if deletedItem.getRepresentedItem():
+                    contents = deleteitem.getRepresentedItem().id
                 audit('UI.Collection.DeleteItem', self.id, item=deletedItem.id,
-                      contents=deletedItem.getRepresentedItem().id)
+                      contents=contents)
 
         self.manage_resequenceCollectionItems()
         if REQUEST:
