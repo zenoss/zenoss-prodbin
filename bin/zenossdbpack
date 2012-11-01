@@ -69,15 +69,26 @@ if __name__ == "__main__":
         usage="%prog [options]")
     parser.add_option("-d", "--days", dest="days", default="0",
                       help="Days of history to keep (default 0)")
+    parser.add_option("-e", "--exclude-db", dest="excludeDB", type="choice",
+                      choices=['session', 'zodb'],
+                      help="Specify which database to exclude")
+
     options, args = parser.parse_args(sys.argv[1:])
 
     retcode = 1
-    # pack the main database
-    retcode = pack_database(get_config())
 
-    # pack the session database
-    sessiondb = get_session_database()
-    if sessiondb:
-        retcode = max(retcode, pack_database(get_config(sessiondb)))
+    if options.excludeDB != 'zodb':
+        # pack the main database
+        retcode = pack_database(get_config())
+    else:
+        print "Skipping zodb"
+
+    if options.excludeDB != 'session':
+        # pack the session database
+        sessiondb = get_session_database()
+        if sessiondb:
+            retcode = max(retcode, pack_database(get_config(sessiondb)))
+    else:
+        print "Skipping zodb session"
 
     sys.exit(retcode)
