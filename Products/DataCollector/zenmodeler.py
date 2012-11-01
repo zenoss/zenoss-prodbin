@@ -99,6 +99,7 @@ class ZenModeler(PBDaemon):
         # FIXME: cleanup --force option #2660
         self.options.force = True
         self.start = None
+        self.startat = None
         self.rrdStats = DaemonStats()
         self.single = single
         if self.options.device:
@@ -117,12 +118,14 @@ class ZenModeler(PBDaemon):
         # Delay start for between 10 and 60 minutes when run as a daemon.
         self.started = False
         self.startDelay = 0
+        self.immediate = 1
         if self.options.daemon:
             if self.options.now:
                 self.log.debug("Run as a daemon, starting immediately.")
             else:
                 # self.startDelay = randint(10, 60) * 60
                 self.startDelay = randint(10, 60) * 1
+                self.immediate = 0
                 self.log.info("Run as a daemon, waiting %s seconds to start." %
                               self.startDelay)
         else:
@@ -769,8 +772,14 @@ class ZenModeler(PBDaemon):
 
         # We start modeling from here to accomodate the startup delay.
         if not self.started:
-            self.started = True
-            reactor.callLater(self.startDelay, self.main)
+            if self.immediate == 0 and self.startat:
+                # This stuff relies on ARBITRARY_BEAT being < 60s
+                if self.timeMatches():
+                    self.started = True
+                    reactor.callLater(1, self.main)
+            else:
+                self.started = True
+                reactor.callLater(self.startDelay, self.main)
 
         # save modeled device rate
         self.rrdStats.derive('modeledDevices', ARBITRARY_BEAT, self.counters['modeledDevicesCount'])
@@ -877,6 +886,47 @@ class ZenModeler(PBDaemon):
             self.log.debug('Running %d clients', update)
         self.checkStop()
 
+    def timeMatches(self):
+        """
+        Check whether the current time matches a cron-like
+        specification, return a straight true or false
+        """
+        if self.startat is None:
+            return True
+
+        def match_entity(entity, value):
+            if entity == '*':
+                return True
+            if len(entity) > 0 and entity.isdigit():
+                if int(value) == int(entity):
+                    return True
+            if entity.startswith('*/') and entity[2:].isdigit():
+                if int(value) % int(entity[2:]) == 0:
+                   return True
+            if entity.find(',') >= 0:
+                for segment in entity.split(','):
+                    if len(segment) > 0 and segment.isdigit():
+                       if int(value) == int(segment):
+                          return True
+            return False
+
+        curtime = time.localtime()
+        # minutes
+        if match_entity(self.startat[0], curtime[4]):     
+            # hours
+            if match_entity(self.startat[1], curtime[3]):
+                # day of month
+                if match_entity(self.startat[2], curtime[2]):
+                    # month
+                    if match_entity(self.startat[3], curtime[1]):
+                        # day of week
+                        dow = curtime[6] + 1
+                        if match_entity(self.startat[4], dow):
+                            return True
+                        if dow == 7 and match_entity(self.startat[4], 0):
+                            return True
+        return False
+
     def buildOptions(self):
         """
         Build our list of command-line options
@@ -904,6 +954,8 @@ class ZenModeler(PBDaemon):
                 help="Start class path for collection ie /NetworkDevices")
         self.parser.add_option('-d', '--device', dest='device',
                 help="Fully qualified device name ie www.confmon.com")
+        self.parser.add_option('--startat', dest='startat',
+                help="Start string in cron(8) format")
         self.parser.add_option('-a', '--collage',
                 dest='collage', default=0, type='float',
                 help="Do not collect from devices whose collect date " +
@@ -942,6 +994,14 @@ class ZenModeler(PBDaemon):
         if self.options.ignorePlugins and self.options.collectPlugins:
             raise SystemExit( "Only one of --ignore or --collect"
                              " can be used at a time")
+        if self.options.startat:
+            cronmatch = re.match('^\s*([\*/,\d]+)\s+([\*/,\d]+)\s+([\*/,\d]+)\s+([\*/,\d]+)\s+([\*/,\d]+)\s*$',
+                                 self.options.startat)
+            if cronmatch:
+                self.startat = cronmatch.groups()
+            else:
+                self.log.error('startat option "%s" was invalid, carrying on anyway', self.options.startat)
+
         if USE_WMI:
             setNTLMv2Auth(self.options)
 
