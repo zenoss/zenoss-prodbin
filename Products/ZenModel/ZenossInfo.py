@@ -736,7 +736,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                     id,
                     current_configs.get(id, default),
                     default,
-                    help,
+                    help.replace("%default", default),
                     option.attributes['type'].nodeValue,
                 ]
         except:
