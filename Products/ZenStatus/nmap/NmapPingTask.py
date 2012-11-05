@@ -427,13 +427,11 @@ class NmapPingTask(BaseTask):
                         del dcs[taskName]
                     log.debug("%s is up!", ipTask.config.ip)
                     ipTask.sendPingUp()
-                    ipTask.storeResults()
                 else:
                     dcs[taskName] = (dcs[taskName][0] + 1, datetime.now())
                     if dcs[taskName][0] > delayCount:
                         log.debug("%s is down", ipTask.config.ip)
                         downTasks[ipTask.config.ip] = ipTask
-                        ipTask.storeResults()
                     else:
                         fmt = '{0} is down. {1} ping downs received. ' \
                               'Delaying events until more than {2} ping ' \
@@ -442,6 +440,7 @@ class NmapPingTask(BaseTask):
                                 delayCount)
                         log.debug(fmt.format(*args))
 
+                ipTask.storeResults()
                 # give time to reactor to send events if necessary
                 if i % _SENDEVENT_YIELD_INTERVAL:
                     yield twistedTask.deferLater(reactor, 0, lambda: None)
