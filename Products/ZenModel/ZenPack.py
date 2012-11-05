@@ -236,7 +236,6 @@ class ZenPack(ZenModelRM):
         @param app: ZenPack
         @type app: ZenPack object
         """
-        self.stopDaemons()
         for loader in self.loaders:
             loader.load(self, app)
         self.createZProperties(app)
@@ -254,13 +253,10 @@ class ZenPack(ZenModelRM):
         @param app: ZenPack
         @type app: ZenPack object
         """
-        self.stopDaemons()
         for loader in self.loaders:
             loader.upgrade(self, app)
         self.createZProperties(app)
         self.migrate()
-        self.startDaemons()
-
 
     def remove(self, app, leaveObjects=False):
         """
@@ -274,7 +270,8 @@ class ZenPack(ZenModelRM):
         @param leaveObjects: remove zProperties and things?
         @type leaveObjects: boolean
         """
-        self.stopDaemons()
+        if not leaveObjects:
+            self.stopDaemons()
         for loader in self.loaders:
             loader.unload(self, app, leaveObjects)
         if not leaveObjects:
