@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007,2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -87,7 +87,7 @@ class ZenPackMigration:
     Base class for defining migration methods
     """
     version = Version(0, 0, 0)
-    
+
     def migrate(self, pack):
         """
         ZenPack-specific migrate() method to be overridden
@@ -96,7 +96,7 @@ class ZenPackMigration:
         @type pack: ZenPack object
         """
         pass
-     
+
     def recover(self, pack):
         """
         ZenPack-specific recover() method to be overridden
@@ -105,8 +105,8 @@ class ZenPackMigration:
         @type pack: ZenPack object
         """
         pass
-    
-    
+
+
 
 
 class ZenPackDataSourceMigrateBase(ZenPackMigration):
@@ -124,7 +124,7 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
     oldDsClassName = ''
     # If reIndex is True then any instances of dsClass are reindexed.
     reIndex = False
-    
+
     def migrate(self, pack):
         """
         Attempt to import oidDsModuleName and then any templates
@@ -135,7 +135,7 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
         if self.oldDsModuleName and self.oldDsClassName and self.dsClass:
             try:
                 exec('import %s' % self.oldDsModuleName)
-                oldClass = eval('%s.%s' % (self.oldDsModuleName, 
+                oldClass = eval('%s.%s' % (self.oldDsModuleName,
                                             self.oldDsClassName))
             except ImportError:
                 # The old-style code no longer exists in Products,
@@ -149,7 +149,7 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
                     ds.__class__ = self.dsClass
                 if self.reIndex and isinstance(ds, self.dsClass):
                     ds.index_object()
-                    
+
 
 class ZenPack(ZenModelRM):
     """
@@ -158,7 +158,7 @@ class ZenPack(ZenModelRM):
     """
 
     objectPaths = None
-    
+
     # Metadata
     version = '0.1'
     author = ''
@@ -180,7 +180,7 @@ class ZenPack(ZenModelRM):
     loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLBin(), ZPLLibExec(),
                 ZPLSkins(), ZPLDataSources(), ZPLLibraries(), ZPLAbout(),
                 ZPTriggerAction(), ZPZep())
-                
+
     _properties = ZenModelRM._properties + (
         {'id':'objectPaths','type':'lines','mode':'w'},
         {'id':'version', 'type':'string', 'mode':'w', 'description':'ZenPack version'},
@@ -198,7 +198,7 @@ class ZenPack(ZenModelRM):
         # root is deprecated, use manager now instead
         # root should be removed post zenoss 2.2
         ('root', ToOne(ToManyCont, 'Products.ZenModel.DataRoot', 'packs')),
-        ('manager', 
+        ('manager',
             ToOne(ToManyCont, 'Products.ZenModel.ZenPackManager', 'packs')),
         ("packables", ToMany(ToOne, "Products.ZenModel.ZenPackable", "pack")),
         )
@@ -242,8 +242,6 @@ class ZenPack(ZenModelRM):
         self.createZProperties(app)
         previousVersion = self.prevZenPackVersion
         self.migrate(previousVersion)
-        self.startDaemons()
-
 
     def upgrade(self, app):
         """
@@ -267,7 +265,7 @@ class ZenPack(ZenModelRM):
     def remove(self, app, leaveObjects=False):
         """
         This prepares the ZenPack for removal but does not actually remove
-        the instance from ZenPackManager.packs  This is sometimes called during 
+        the instance from ZenPackManager.packs  This is sometimes called during
         the course of an upgrade where the loaders' unload methods need to
         be run.
 
@@ -282,24 +280,24 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
-    
+
     def backup(self, backupDir, logger):
         """
         Method called when zenbackup is run. Override in ZenPack to add any
         ZenPack-specific backup operations.
-        
+
         @param backupDir: Temporary directory that gets zipped to form backup
         @type backupDir: string
         @param logger: Backup log handler
         @type logger: Log object
         """
         pass
-    
+
     def restore(self, backupDir, logger):
         """
         Method called when zenrestore is run. Override in ZenPack to add any
         ZenPack-specific restore operations.
-        
+
         @param backupDir: Temporary directory that contains the unzipped backup
         @type backupDir: string
         @param logger: Restore log handler
@@ -339,7 +337,7 @@ class ZenPack(ZenModelRM):
         if previousVersion:
             migrateCutoff = getVersionTupleFromString(previousVersion)
         recover = []
-        
+
         try:
             for instance in instances:
                 if instance.version >= migrateCutoff:
@@ -367,18 +365,18 @@ class ZenPack(ZenModelRM):
             result.append((loader.name,
                            [item for item in loader.list(self, app)]))
         return result
-    
+
     def register_portlets(self):
         """
         Registers ExtJS portlets from a ZenPack. Override in ZenPack. ID and
         title are required, height and permissions are optional. See
         ZenWidgets.PortletManager.register_extjsPortlet.
-        
+
         @return: List of dictionary objects describing a portlet
         @rtype: List of dicts
         """
         return []
-        
+
     def createZProperties(self, app):
         """
         Create zProperties in the ZenPack's self.packZProperties
@@ -391,8 +389,8 @@ class ZenPack(ZenModelRM):
         for name, value, pType in self.packZProperties:
             if not app.zport.dmd.Devices.hasProperty(name):
                 app.zport.dmd.Devices._setProperty(name, value, pType)
-                
-                
+
+
     def removeZProperties(self, app):
         """
         Remove any zProperties defined in the ZenPack
@@ -432,7 +430,7 @@ class ZenPack(ZenModelRM):
         """
         Edit a ZenPack object
         """
-        
+
         if self.isEggPack():
             # Handle the dependencies fields and recreate self.dependencies
             newDeps = {}
@@ -572,7 +570,7 @@ class ZenPack(ZenModelRM):
 
         from StringIO import StringIO
         xml = StringIO()
-        
+
         # Write out packable objects
         # TODO: When the DTD gets created, add the reference here
         xml.write("""<?xml version="1.0"?>\n""")
@@ -590,12 +588,12 @@ class ZenPack(ZenModelRM):
         objects = file(os.path.join(path, 'objects.xml'), 'w')
         objects.write(xml.getvalue())
         objects.close()
-        
+
         # Create skins dir if not there
         path = self.path('skins')
         if not os.path.isdir(path):
             os.makedirs(path, 0750)
-            
+
         # Create __init__.py
         init = self.path('__init__.py')
         if not os.path.isfile(init):
@@ -607,7 +605,7 @@ from Products.CMFCore.DirectoryView import registerDirectory
 registerDirectory("skins", globals())
 ''')
             fp.close()
-        
+
         if self.isEggPack():
             # Create the egg
             exportDir = zenPath('export')
@@ -735,7 +733,7 @@ registerDirectory("skins", globals())
 
     def getFilenames(self):
         """
-        Get the filenames of a ZenPack exclude .svn, .pyc and .xml files 
+        Get the filenames of a ZenPack exclude .svn, .pyc and .xml files
         """
         filenames = []
         for root, dirs, files in os.walk(self.path()):
@@ -754,7 +752,7 @@ registerDirectory("skins", globals())
         """
         daemonsDir = os.path.join(self.path(), 'daemons')
         if os.path.isdir(daemonsDir):
-            daemons = [f for f in os.listdir(daemonsDir) 
+            daemons = [f for f in os.listdir(daemonsDir)
                         if os.path.isfile(os.path.join(daemonsDir,f))]
         else:
             daemons = []
@@ -981,8 +979,8 @@ registerDirectory("skins", globals())
         dist = self.getDistribution()
         entryMap = pkg_resources.get_entry_map(dist, 'zenoss.zenpacks')
         if not entryMap or len(entryMap) > 1:
-            raise ZenPackException('A ZenPack egg must contain exactly one' 
-                    ' zenoss.zenpacks entry point.  This egg appears to contain' 
+            raise ZenPackException('A ZenPack egg must contain exactly one'
+                    ' zenoss.zenpacks entry point.  This egg appears to contain'
                     ' %s such entry points.' % len(entryMap))
         packName, packEntry = entryMap.items()[0]
         return (packName, packEntry)
@@ -994,7 +992,7 @@ registerDirectory("skins", globals())
         then retrieve it.
         """
         if not self.isEggPack():
-            raise ZenPackException('Calling getModule on non-egg zenpack.')        
+            raise ZenPackException('Calling getModule on non-egg zenpack.')
         _, packEntry = self.getEntryPoint()
         return packEntry.load()
 
@@ -1052,11 +1050,11 @@ registerDirectory("skins", globals())
         for zp in self.dmd.ZenPackManager.packs():
             try:
                 if zp.id != self.id and zp.isEggPack():
-                    result.append(zp)                    
+                    result.append(zp)
             except AttributeError:
-               pass 
+               pass
         return result
-    
+
 
     def isInZenPacksDir(self):
         """
