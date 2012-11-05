@@ -84,7 +84,7 @@ class ZenPackManager(ZenModelRM):
                 },
                 { 'id'            : 'daemons'
                 , 'name'          : 'Daemons'
-                , 'action'        : '../About/zenossInfo'
+                , 'action'        : '../../About/zenossInfo'
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'versions'
