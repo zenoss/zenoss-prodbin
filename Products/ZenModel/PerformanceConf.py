@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2006-2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -15,6 +15,7 @@ The configuration object for Performance servers
 import os
 import zlib
 import socket
+from collections import namedtuple
 from base64 import urlsafe_b64encode
 from urllib import urlencode
 from ipaddr import IPAddress
@@ -24,7 +25,6 @@ log = logging.getLogger('zen.PerformanceConf')
 from Products.ZenUtils.IpUtil import ipwrap
 
 import xmlrpclib
-
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Globals import DTMLFile
@@ -56,6 +56,7 @@ requests for data will be made to the proxy server when appropriate.  Render url
 """
 REVERSE_PROXY = "rev_proxy:"
 
+ProxyConfig = namedtuple('ProxyConfig', ['useSSL', 'port'])
 
 def performancePath(target):
     """
@@ -358,7 +359,7 @@ class PerformanceConf(Monitor, StatusColor):
             return value
         except IOError, e:
             log.error( "Error collecting performance summary from collector %s: %s",
-                       self.id, e ) 
+                       self.id, e )
             log.debug( "Error collecting with params %s", gopts )
 
     def fetchValues(self, paths, cf, resolution, start, end="",
@@ -814,7 +815,7 @@ class RenderURLUtil(object):
                 if renderurl.startswith('/remote-collector/'):
                     renderurl =  self._get_reverseproxy_renderurl(force=True)
 
-            if renderurl.lower().startswith('http://'):
+            if renderurl.lower().startswith('http'):
                 return renderurl
             return ''
 
@@ -829,12 +830,15 @@ class RenderURLUtil(object):
         renderurl = self._renderurl
         if not force and not renderurl.startswith(REVERSE_PROXY):
             raise Exception("Renderurl, %s, should start with %s to be proxied", renderurl, REVERSE_PROXY)
+        config = self._get_reverseproxy_config()
         kwargs = dict(fqdn=socket.getfqdn(),
-                      port=self._get_reverseproxy_port(),
+                      port=config.port,
+                      protocol= 'https' if config.useSSL else 'http',
                       path=str(self.getSanitizedRenderURL()).strip("/") + "/")
-        return 'http://{fqdn}:{port}/{path}'.format(**kwargs)
+        # take into account https
+        return '{protocol}://{fqdn}:{port}/{path}'.format(**kwargs)
 
-    def _get_reverseproxy_port(self):
+    def _get_reverseproxy_config(self):
         use_ssl = False
         http_port = 8080
         ssl_port = 443
@@ -851,8 +855,8 @@ class RenderURLUtil(object):
                         http_port = int(val.strip())
                     elif key == "sslPort":
                         ssl_port = int(val.strip())
-        if use_ssl:
-            return ssl_port
-        return http_port
+        return ProxyConfig(useSSL=use_ssl,
+                           port= ssl_port if use_ssl else http_port)
+
 
 InitializeClass(PerformanceConf)
