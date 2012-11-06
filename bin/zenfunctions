@@ -64,10 +64,12 @@ running() {
 
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE 2>/dev/null`
-        # check the /proc directory first
-        if [ -d "/proc/$PID" ]; then
-            kill -0 $PID 2>/dev/null
-            return $?
+        if [ -d "/proc" ]; then
+            # check the /proc directory first
+            if [ -d "/proc/$PID" ]; then
+                kill -0 $PID 2>/dev/null
+                return $?
+            fi
         else
             kill -0 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
             return $?
