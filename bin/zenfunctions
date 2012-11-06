@@ -61,10 +61,17 @@ pidFile() {
 
 running() {
     PIDFILE=`pidFile $CFGFILE`
+
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE 2>/dev/null`
-	kill -0 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
-	return $?
+        # check the /proc directory first
+        if [ -d "/proc/$PID" ]; then
+            kill -0 $PID 2>/dev/null
+            return $?
+        else
+            kill -0 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
+            return $?
+        fi
     fi
     return 1
 }
