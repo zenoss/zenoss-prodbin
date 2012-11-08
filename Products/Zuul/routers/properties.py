@@ -43,7 +43,7 @@ class PropertiesRouter(DirectRouter):
                
         return data   
            
-    def _sortData(self, sort, data):
+    def _sortData(self, sort, data, dir): 
         """
         @param data: data to be sorted and returned
         """
@@ -66,7 +66,7 @@ class PropertiesRouter(DirectRouter):
         
         data = self._filterData(params, data)
         if sort:
-            data = self._sortData(sort, data)
+            data = self._sortData(sort, data, dir)
 
         return DirectResponse(data=Zuul.marshal(data), totalCount=len(data))
             
