@@ -54,6 +54,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
 
     def testMaintenanceWindows(self):
         m = MaintenanceWindow('tester')
+        m.dmd = self.dmd
         t = mktime( (2006, 1, 29, 10, 45, 12, 6, 29, 0) )
         P = 60*60*2
         # set(start, duration, repeat, enabled=True)
