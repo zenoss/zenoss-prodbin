@@ -88,13 +88,18 @@ var osProduct = {
 var deviceClassCombo = {
     xtype: 'combo',
     minListWidth: 250,
-    listConfig: {
-        resizable: true
-    },
     width: 300,
     name: 'deviceClass',
     fieldLabel: _t('Device Class'),
     id: 'add-device_class',
+    typeAhead: true,
+    forceSelection: true,   
+    valueField: 'name',
+    displayField: 'name',
+    allowBlank: false,    
+    listConfig: { 
+        resizable: true
+    },    
     store: new Ext.data.DirectStore({
         id: 'deviceClassStore',
         root: 'deviceClasses',
@@ -102,11 +107,6 @@ var deviceClassCombo = {
         model: 'Zenoss.model.Name',
         directFn: REMOTE.getDeviceClasses
     }),
-    triggerAction: 'all',
-    valueField: 'name',
-    displayField: 'name',
-    editable: false,
-    allowBlank: false,
     listeners: {
         'afterrender': function(component) {
             var selnode = getSelectionModel().getSelectedNode();
