@@ -375,7 +375,7 @@ Ext.apply(Zenoss.devices, {
                     }]
                 },{
                     id: 'delete-device-events',
-                    boxLabel: _t('Delete Events?'),
+                    boxLabel: _t('Close Events?'),
                     style: 'margin-left: 4px;',
                     xtype: 'checkbox',
                     checked: true,

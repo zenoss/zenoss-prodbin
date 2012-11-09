@@ -74,7 +74,7 @@
                              'There is no undo.')
                 },{
                     name: "deleteEvents",
-                    fieldLabel: _t('Delete Events?'),
+                    fieldLabel: _t('Close Events?'),
                     xtype: 'checkbox',
                     checked: true
                 },{
