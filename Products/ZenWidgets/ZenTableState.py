@@ -21,6 +21,7 @@ from AccessControl import ClassSecurityInfo
 from DateTime.DateTime import DateTime
 
 class ZenTableState:
+from persistent.dict import PersistentDict
     defaultValue = "" # So that we don't have to clear the session
 
     changesThatResetStart = [
@@ -101,6 +102,10 @@ class ZenTableState:
 
     def updateFromRequest(self, request):
         """update table state based on request"""
+        states = request.SESSION['zentablestates']
+        if not isinstance(states, PersistentDict):
+            request.SESSION['zentablestates'] = PersistentDict(states)
+        request.SESSION['zentablestates']._p_changed = True
         if self.URL != request.URL:
             self.batchSize = self.defaultBatchSize
             self.start=0

@@ -22,6 +22,7 @@ $Id: ZenTableManager.py,v 1.4 2004/04/03 04:18:22 edahl Exp $"""
 
 __revision__ = "$Revision: 1.4 $"[11:-2]
 
+import logging
 import re
 import ZTUtils
 from Globals import InitializeClass
@@ -29,9 +30,11 @@ from Acquisition import aq_base
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
 from DocumentTemplate.sequence.SortEx import sort
+from persistent.dict import PersistentDict
 
 from ZenTableState import ZenTableState
 
+log = logging.getLogger('zen.ZenTableManager')
 
 class TableStateNotFound(Exception): pass
 
@@ -138,6 +141,11 @@ class ZenTableManager(SimpleItem, PropertyManager):
     def getBatch(self, tableName, objects, **keys):
         """Filter, sort and batch objects and pass return set.
         """
+        if log.isEnabledFor(logging.DEBUG):
+            import os
+            fmt = 'getBatch pid={0}, tableName={1}, {2} objects'
+            pid = os.getpid()
+            log.debug(fmt.format(pid, tableName, len(objects)))
         if not objects:
             objects = []
         tableState = self.setupTableState(tableName, **keys)
@@ -292,7 +300,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         try:
             return session['zentablestates']
         except KeyError:
-            init = {}
+            init = PersistentDict()
             session['zentablestates'] = init
             return init
 
