@@ -19,9 +19,10 @@ __revision__ = "$Revision: 1.3 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from DateTime.DateTime import DateTime
+from persistent.dict import PersistentDict
 
 class ZenTableState:
-from persistent.dict import PersistentDict
+
     defaultValue = "" # So that we don't have to clear the session
 
     changesThatResetStart = [
