@@ -1,11 +1,11 @@
 <!--
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 -->
 
@@ -17,7 +17,7 @@
 
 <tal:block metal:fill-slot="script_layout">
 <script tal:content='string:
-    Zenoss.env.device_uid = decodeURI("${context/absolute_url_path}");
+    Zenoss.env.device_uid = decodeURIComponent("${context/absolute_url_path}");
 '></script>
 
 
