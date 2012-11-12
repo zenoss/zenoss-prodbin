@@ -576,9 +576,9 @@ class SshPerformanceCollectionTask(BaseTask):
                     event = self._makeCmdEvent(datasource, msg, severity=Clear)
                     eventList.append(event)
 
-                # Send accumulated events
-                for event in eventList:
-                    self._eventService.sendEvent(event, device=self._devId)
+            # Send accumulated events
+            for event in eventList:
+                self._eventService.sendEvent(event, device=self._devId)
 
     def _makeCmdEvent(self, datasource, msg, severity=None):
         """
