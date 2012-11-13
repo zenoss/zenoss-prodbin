@@ -30,7 +30,10 @@ YAHOO.namespace('zenoss.geomap');
         }
     }
         
-    /* BASE ENGINE */
+    /*  BASE ENGINE 
+        TODO: Create some memory between refreshes so that it doesn't zoom
+        all the way out each time
+    */
     var _engine = {   
         initMap: function(container) { 
             _engine.maximizeMapHeight();
@@ -203,13 +206,15 @@ YAHOO.namespace('zenoss.geomap');
         constructMarker: function(results, geocoding){
             var colors = ['green', 'grey', 'blue', 'yellow', 'orange', 'red'];
             var severity = findValue(colors, nodedata[index][1]);
-            var newsize = 16 + severity;                
-            var pinImage = new google.maps.MarkerImage("img/"+nodedata[index][1]+"_dot.png",
-                new google.maps.Size(newsize, newsize),// size
+            var iconsize = 30; // 30 is the required starting size per google API. FF will throw a bug without the correct initial size.
+            var newsize = 11 + severity;                
+            var pinImage = new google.maps.MarkerImage(
+                "img/"+nodedata[index][1]+"_dot.png",
+                new google.maps.Size(iconsize, iconsize),// size
                 null, //origin null so google will handle it on the fly
-                new google.maps.Point((newsize/2),(newsize/2)), // anchor offset so dot is RIGHT on top of location
+                new google.maps.Point((iconsize/2),(iconsize/2)), // anchor offset so dot is RIGHT on top of location
                 new google.maps.Size(newsize, newsize)// scale                    
-            );
+            ); 
             var clicklink = nodedata[index][2];
             clicklink = clicklink.replace('locationGeoMap', '');             
             var contentString = _utils.hrefize(nodedata[index][3]), lat, lng;
@@ -235,8 +240,7 @@ YAHOO.namespace('zenoss.geomap');
                 // if it's bad, make sure it's visible and not covered up by other markers:
                 marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);                
             }             
-
-            markers.push(marker);
+            markers.push(marker); 
             google.maps.event.addListener(marker, 'click', (function(marker, index) { 
                 return function(){  
                     infowindow.setContent(contentString); 
