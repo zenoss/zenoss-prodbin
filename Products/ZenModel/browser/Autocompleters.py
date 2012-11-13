@@ -75,7 +75,8 @@ class ComponentPaths(BrowserView):
                     if callable(name):
                         name = name()
                     paths.add((comp.getPrimaryId(), name))
-        return sorted(paths, key=lambda x: x[1])
+        
+        return sorted(paths, key=lambda x: x[1].lower())
 
 
 class GraphIds(BrowserView):
