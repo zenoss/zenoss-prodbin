@@ -455,5 +455,31 @@
 
 
 
+    /**
+     * This fixes the Smooth Scrolling issue in Firefox 13 and above.
+     *
+     **/
+    Ext.define('Ext.overrides.panel.Table', {
+        override: 'Ext.panel.Table',
+
+        syncHorizontalScroll: function(left, setBody) {
+            var me = this,
+            scrollTarget;
+
+            setBody = setBody === true;
+            // Only set the horizontal scroll if we've changed position,
+            // so that we don't set this on vertical scrolls
+            if (me.rendered && (setBody || left !== me.scrollLeftPos)) {
+                // Only set the body position if we're reacting to a refresh, otherwise
+                // we just need to set the header.
+                if (setBody) {
+                    scrollTarget = me.getScrollTarget();
+                    scrollTarget.el.dom.scrollLeft = left;
+                }
+                me.headerCt.el.dom.scrollLeft = left;
+                me.scrollLeftPos = left;
+            }
+        }
+    });
 
 }());
