@@ -158,7 +158,7 @@ loader.insert();
       </td>
     </tr>
     -->    
-    <tr class="odd">
+    <tr tal:condition="python:here.dmd.getProductName()=='core'" class="odd">
      <td class="tableheader" align="left">Google Maps API Key
          <a href="javascript:popupMapHelp()" style="font-size:80%">Help</a>
      </td>
