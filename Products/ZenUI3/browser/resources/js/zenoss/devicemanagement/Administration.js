@@ -1246,9 +1246,9 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         filter: false,                        
                         sortable: true,
                         renderer: function(e){
-                            var goto = window.location.protocol + '//' + window.location.host;
-                            goto += '/zport/dmd/ZenUsers/' + e;
-                            return '<a href="'+goto+'" title="Edit the user '+e+' on the user accounts page">'+e+'</a>';
+                            var gotoWin = window.location.protocol + '//' + window.location.host;
+                            gotoWin += '/zport/dmd/ZenUsers/' + e;
+                            return '<a href="'+gotoWin+'" title="Edit the user '+e+' on the user accounts page">'+e+'</a>';
                         }
                     },{
                         id: 'admin_role',
