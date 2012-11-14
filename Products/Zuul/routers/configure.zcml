@@ -24,7 +24,7 @@
 <browser:directRouter
     name="evconsole_router"
     for="*"
-    class=".zep.EventsRouter"
+    class=".zep.EventsRouter" 
     namespace="Zenoss.remote"
 
     />
@@ -58,6 +58,13 @@
     class=".properties.PropertiesRouter"
     namespace="Zenoss.remote"
     />    
+    
+<browser:directRouter
+    name="devicemanagement_router"
+    for="*"
+    class=".devicemanagement.DeviceManagementRouter"
+    namespace="Zenoss.remote"
+    />       
 
 <browser:directRouter
     name="network_router"

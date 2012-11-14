@@ -285,8 +285,12 @@
         if(Ext.isIE){
             var parent, child = Ext.DomQuery.selectNode('#'+picker.id+' .list-ct');
             Ext.defer(function(){ // defer a bit so the grandpaw will have a height
-                    var grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
-                    child.style.cssText = 'width:'+me.width+'px; height:'+grandpaw.style.height+';overflow:auto;';
+                    try{
+                        var grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
+                        child.style.cssText = 'width:'+me.width+'px; height:'+grandpaw.style.height+';overflow:auto;';
+                    }catch(e){
+                        // couldn't traverse, so just swallow it.
+                    }
                 }, 100, me);
         }
 
@@ -452,6 +456,20 @@
         }
 
     });
+    
+    /*
+        Fixes a known issue in Ext where sometimes the target is null and so getTarget cannot connect the
+        event to the target at that moment. One suggestion on the forums is to update ExtJs. We're not 
+        going to do that yet, so here's a work-around. Not going to bother with browser sniffing since this 
+         == null should only happen happen in IE anyway.
+    */
+    Ext.EventObjectImpl.prototype.getTarget = function (selector, maxDepth, returnEl) {
+        if (this.target == null) return null;
+        if (selector) {
+            return Ext.fly(this.target).findParent(selector, maxDepth, returnEl);
+        }
+        return returnEl ? Ext.get(this.target) : this.target;
+    };    
 
 
 

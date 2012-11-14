@@ -146,6 +146,10 @@ Zenoss.nav.register({
         id: 'device_config_properties',
         nodeType: 'subselect',
         text: _t('Configuration Properties')
+    },{
+        id: 'device_administration',
+        nodeType: 'subselect',
+        text: _t('Device Administration')
     }]
 });
 
@@ -496,6 +500,10 @@ var custom_properties = Ext.create('Zenoss.form.CustomPropertyPanel', {
     id: 'device_custom_properties'
 });
 
+var custom_properties = Ext.create('Zenoss.devicemanagement.Administration', {
+    id: 'device_administration'
+});
+
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
     id: 'device_graphs'
 });
@@ -623,7 +631,8 @@ Ext.define('Zenoss.DeviceDetailNav', {
             'modeldevice',
             'historyevents',
             'objtemplates',
-            'devicecustomedit'
+            'devicecustomedit',
+            'devicemanagement'
         ];
         return (Ext.Array.indexOf(excluded, config.id)==-1);
     },

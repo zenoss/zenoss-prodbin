@@ -73,7 +73,13 @@
              provides=".interfaces.IPropertiesFacade"
              name="properties"
              for="*"
-             />             
+             />    
+             
+    <adapter factory=".facades.DeviceManagementFacade"
+             provides=".interfaces.IDeviceManagementFacade" 
+             name="devicemanagement"
+             for="*"
+             />              
 
     <adapter factory=".facades.ZepFacade"
              provides=".interfaces.IZepFacade"

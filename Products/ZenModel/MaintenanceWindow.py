@@ -165,7 +165,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStartMinute(self):
         return time.localtime(self.start)[4]
-
+        
     security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,

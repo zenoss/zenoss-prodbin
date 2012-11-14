@@ -230,7 +230,19 @@
              
     <adapter factory=".software.SoftwareInfo"
              for="Products.ZenModel.Software.Software"
-             provides="..interfaces.ISoftwareInfo"/>               
+             provides="..interfaces.ISoftwareInfo"/>         
+             
+    <adapter factory=".devicemanagement.MaintenanceWindowInfo"
+             for="Products.ZenModel.MaintenanceWindow.MaintenanceWindow"
+             provides="..interfaces.IMaintenanceWindowInfo"/>     
+             
+    <adapter factory=".devicemanagement.UserCommandManagementInfo"
+             for="Products.ZenModel.UserCommand.UserCommand"
+             provides="..interfaces.IUserCommandManagementInfo"/>   
+             
+    <adapter factory=".devicemanagement.AdminRoleManagementInfo"
+             for="Products.ZenModel.AdministrativeRole.AdministrativeRole"
+             provides="..interfaces.IAdminRoleManagementInfo"/>              
 
     <include package=".component"/>
     <include file="graphpoint.zcml"/>

@@ -272,7 +272,7 @@ function deleteDevicesWithProgressBar(grid, uids, opts, callback){
             }
             return;
         }
-        var uid = remaining.pop();
+        var uid = remaining.pop(); 
         opts.uids = [uid];
         opts.hashcheck = 1;
         if (opts.ranges) {
@@ -1067,6 +1067,10 @@ Zenoss.nav.register({
             id: 'custom_properties',
             text: _t('Custom Properties'),
             contextRegex: '^/zport/dmd/Devices'
+        },{
+            id: 'device_admin',
+            text: _t('Device Administration'),
+            contextRegex: '^/zport/dmd/Devices'
         }
     ]
 });
@@ -1134,7 +1138,8 @@ Ext.define("Zenoss.InfraDetailNav", {
             'historyevents':true,
             'collectorplugins': true,
             'configuration properties': true,
-            'editcustschema': true
+            'editcustschema': true,
+            'devicemanagement': true
         };
         var uid = Zenoss.env.PARENT_CONTEXT;
         if (config.contextRegex) {
@@ -1453,6 +1458,9 @@ Ext.getCmp('center_panel').add({
             },{
                 id: 'custom_properties',
                 xtype: 'custompropertypanel'
+            },{
+                id: 'device_admin',
+                xtype: 'devadmincontainer'
             }
         ]
     }]

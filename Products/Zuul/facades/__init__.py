@@ -232,6 +232,7 @@ from processfacade import ProcessFacade
 from servicefacade import ServiceFacade
 from devicefacade import DeviceFacade
 from propertiesfacade import PropertiesFacade
+from devicemanagementfacade import DeviceManagementFacade
 from templatefacade import TemplateFacade
 from zenpackfacade import ZenPackFacade
 from mibfacade import MibFacade

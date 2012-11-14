@@ -43,7 +43,7 @@ class IUnmarshaller(Interface):
     An adapter that converts a dictionary to an object.
     """
 
-    def unmarshal(data):
+    def unmarshal(data): 
         """
         Convert a dictionary to an object.
         """
@@ -65,6 +65,7 @@ from process import *
 from service import *
 from device import *
 from properties import *
+from devicemanagement import *
 from component import *
 from info import *
 from tree import *

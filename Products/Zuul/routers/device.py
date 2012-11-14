@@ -12,8 +12,7 @@
 Operations for Device Organizers and Devices.
 
 Available at:  /zport/dmd/device_router
-"""
-
+"""             
 import logging
 from itertools import islice
 from AccessControl import Unauthorized
@@ -1751,7 +1750,9 @@ class DeviceRouter(TreeRouter):
     def getSoftware(self, uid, keys=None):
 
         facade = self._getFacade()
-        software = facade.getSoftware(uid)
-        
+        software = facade.getSoftware(uid)    
         return DirectResponse(data=Zuul.marshal(software, keys))
+
+        
+        
     

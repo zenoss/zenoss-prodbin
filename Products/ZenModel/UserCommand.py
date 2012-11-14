@@ -12,7 +12,6 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import *
-
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from ZenPackable import ZenPackable
@@ -67,6 +66,15 @@ class UserCommand(ZenModelRM, ZenPackable):
             aqParent = aqParent.getPrimaryParent()
         url = aqParent.absolute_url_path() + '/dataRootManage'
         return [(url, 'Commands')]
+        
+    def updateUserCommand(self, params):
+        """
+        params
+        self.description
+        self.command
+        """
+        self.command = params['command']
+        self.description = params['description']
         
 
 InitializeClass(UserCommand)

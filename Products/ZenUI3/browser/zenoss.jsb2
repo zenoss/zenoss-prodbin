@@ -231,6 +231,9 @@
         },{        
             "text": "JobsWidget.js",
             "path": "resources/js/zenoss/" 
+        },{        
+            "text": "Administration.js",
+            "path": "resources/js/zenoss/devicemanagement/"  
         }]
     }],
     "resources": []

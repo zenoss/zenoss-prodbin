@@ -662,4 +662,6 @@ class DeviceFacade(TreeFacade):
     def getSoftware(self, uid):
         obj = self._getObject(uid)
         softwares = (IInfo(s) for s in obj.os.software.objectValuesGen())        
-        return softwares          
+        return softwares  
+        
+       

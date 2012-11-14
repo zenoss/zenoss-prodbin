@@ -1559,7 +1559,9 @@ pre {
     /* ie sets the height in quirks too high */
     height:300px !important;
 }
-
+.x-window-header-body{
+    height:21px !important;
+}
 #devdetailbar .x-container, #devdetailbar #detailrainbow, #devdetailbar .x-toolbar-separator, #devdetailbar .devdetailitem{
     position:relative !important;
     float:left;
