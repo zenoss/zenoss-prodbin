@@ -250,13 +250,13 @@
         },
         clearFilters:function () {
           var me = this;
-          /* when using .reset(), it applies setValue(), which in turn applies the 
+          /* when using .reset(), it applies setValue(), which in turn applies the
             previous value. In the case of multiselect, it adds duplicates to the list instead of resetting it.
             Hardwiring a reset for each of the changed multiselections here to disallow dupes and firing the onChange manually.
             This only fires if any of the multiselects have been changed, otherwise it only resets the text fields.
           */
           this.eachColumn(function (col) {
-                if (Ext.isDefined(col.filterField)) {               
+                if (Ext.isDefined(col.filterField)) {
                     if(col.filterField.isXType("multiselectmenu") ){
                         var dirty = false;
                         col.filterField.menu.items.each(function(f){
@@ -267,12 +267,12 @@
                         });
                         if (dirty == true){
                             this.onChange();
-                        }                       
+                        }
                     }else{
                         col.filterField.reset();
                     }
                 }
-            });            
+            });
         },
         getState:function () {
             return this.getSearchValues();
@@ -307,13 +307,6 @@
 
         },
         onKeyDown:function (field, e) {
-            // if live search is enabled fire the change delay
-            // if live search is disabled then they have to explictly
-            // hit enter to search
-            if (Zenoss.settings.enableLiveSearch) {
-                this.onChange();
-            }
-
             // if they explicitly pressed enter then search now
             if (e.getKey() == e.ENTER) {
                 this.onChange();
