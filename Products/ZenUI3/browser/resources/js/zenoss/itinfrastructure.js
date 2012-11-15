@@ -93,13 +93,13 @@ var deviceClassCombo = {
     fieldLabel: _t('Device Class'),
     id: 'add-device_class',
     typeAhead: true,
-    forceSelection: true,   
+    forceSelection: true,
     valueField: 'name',
     displayField: 'name',
-    allowBlank: false,    
-    listConfig: { 
+    allowBlank: false,
+    listConfig: {
         resizable: true
-    },    
+    },
     store: new Ext.data.DirectStore({
         id: 'deviceClassStore',
         root: 'deviceClasses',
@@ -272,7 +272,7 @@ function deleteDevicesWithProgressBar(grid, uids, opts, callback){
             }
             return;
         }
-        var uid = remaining.pop(); 
+        var uid = remaining.pop();
         opts.uids = [uid];
         opts.hashcheck = 1;
         if (opts.ranges) {
@@ -369,7 +369,7 @@ Ext.apply(Zenoss.devices, {
                         listeners: {
                             change: function(chbox, isChecked) {
                                 Ext.getCmp('delete-device-events').setDisabled(!isChecked);
-                                Ext.getCmp('delete-device-perf-data').setDisabled(!isChecked); 
+                                Ext.getCmp('delete-device-perf-data').setDisabled(!isChecked);
                             }
                         }
                     }]
@@ -777,40 +777,37 @@ function initializeTreeDrop(tree) {
             // move devices to the target node
             devids = Ext.Array.pluck(Ext.pluck(e.records, 'data'), 'uid');
             // show the confirmation about devices
-             new Zenoss.dialog.SimpleMessageDialog({
-                    message: Ext.String.format(_t("Are you sure you want to move these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),devids.length, targetnode.data.text.text),
-                    title: _t('Move Devices'),
-                    buttons: [{
-                        xtype: 'DialogButton',
-                        text: _t('OK'),
-                        handler: function() {
-                            // move the devices
-                            var opts = {
-                                uids: devids,
-                                ranges: [],
-                                target: targetuid,
-                                asynchronous: Zenoss.settings.deviceMoveIsAsync(devids)
-                            };
-                            REMOTE.moveDevices(opts, function(data){
-                                if(data.success) {
-                                    resetGrid();
-                                    Ext.History.add(me.id + Ext.History.DELIMITER + targetnode.data.uid.replace(/\//g, '.'));
-                                    me.refresh();
-                                    if(data.exports) {
-                                        new Zenoss.dialog.ErrorDialog({
-                                            title: _t('Remodel Required'),
-                                            message: Ext.String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s)" +
-                                            "is required. Performance templates have been reset to the defaults for the device class."))
-                                        });
-                                    }
+            new Zenoss.dialog.SimpleMessageDialog({
+                message: Ext.String.format(_t("Are you sure you want to move these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),devids.length, targetnode.data.text.text),
+                title: _t('Move Devices'),
+                buttons: [{
+                    xtype: 'DialogButton',
+                    text: _t('OK'),
+                    handler: function() {
+                        // move the devices
+                        var opts = {
+                            uids: devids,
+                            ranges: [],
+                            target: targetuid,
+                            asynchronous: Zenoss.settings.deviceMoveIsAsync(devids)
+                        };
+                        REMOTE.moveDevices(opts, function(data){
+                            if(data.success) {
+                                if(data.exports) {
+                                    new Zenoss.dialog.ErrorDialog({
+                                        title: _t('Remodel Required'),
+                                        message: Ext.String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s)" +
+                                                                      "is required. Performance templates have been reset to the defaults for the device class."))
+                                    });
                                 }
-                            }, me);
-                        }
-                    }, {
-                        xtype: 'DialogButton',
-                        text: _t('Cancel')
-                    }]
-                }).show();
+                            }
+                        }, me);
+                    }
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            }).show();
             // if we return true a dummy node will be appended to the tree
             return false;
         }else {
@@ -1256,9 +1253,9 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     }
                 }
             },
-            '-', 
+            '-',
             {
-                id: 'adddevice-button', 
+                id: 'adddevice-button',
                 iconCls: 'adddevice',
                 menu:{
                     items: [
@@ -1287,7 +1284,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         text: _t('None'),
                         handler: function() {
                             var grid = Ext.getCmp('device_grid');
-                            grid.getSelectionModel().selectNone();  
+                            grid.getSelectionModel().selectNone();
                         }
                     }
                 ]
