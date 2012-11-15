@@ -4,42 +4,6 @@
      * and convenience methods on the main Ext classes.
      **/
 
-
-
-
-    /**
-     * This ovverides the defeault field template for hidden fields.
-     * This change is removing the maxLength property because if you do not you end up with
-     * this error all over the place:
-     *     XTemplate Error: maxLength is not defined
-     *
-     * http://www.sencha.com/forum/showthread.php?199148-4.1.0-The-field-of-the-type-hiddenfield-occupies-the-visile-place-in-the-form&p=795553
-     **/
-    Ext.override(Ext.form.field.Hidden, {
-        fieldSubTpl: [ // note: {id} here is really {inputId}, but {cmpId} is available
-            '<input id="{id}" type="{type}" {inputAttrTpl}',
-            ' size="1"', // allows inputs to fully respect CSS widths across all browsers
-            '<tpl if="name"> name="{name}"</tpl>',
-            '<tpl if="value"> value="{[Ext.util.Format.htmlEncode(values.value)]}"</tpl>',
-            '<tpl if="placeholder"> placeholder="{placeholder}"</tpl>',
-            '<tpl if="readOnly"> readonly="readonly"</tpl>',
-            '<tpl if="disabled"> disabled="disabled"</tpl>',
-            '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
-            '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
-            ' class="{fieldCls} {typeCls} {editableCls}" autocomplete="off"/>',
-            {
-                disableFormats: true
-            }
-        ]
-    });
-    /**
-      * Auto Types do not have a conversion
-      * http://www.sencha.com/forum/showthread.php?198250-4.1-Ext.data.Model-regression
-      * This breaks model fields that either do not have a type specified or are explicitly set
-      * to auto. This is supposed to be fixed in 4.1.1
-      **/
-    Ext.data.Types.AUTO.convert = function (v) { return v; };
-
     /**
      * This makes the default value for checkboxes getSubmitValue (called by getFieldValues on the form)
      * return true/false if it is checked or unchecked. The normal default is "on" or nothing which means the
@@ -352,7 +316,7 @@
      *  requests and there are not any outstanding requests.
      **/
     Ext.override(Ext.data.Store, {
-        cancelAllPrefetches: function() {
+        onPageMapClear: function() {
             var me = this,
             reqs = me.pageRequests,
             req,
@@ -362,6 +326,9 @@
             if (me.pageMap.events.pageadded) {
                 me.pageMap.events.pageadded.clearListeners();
             }
+
+            // If the page cache gets cleared it's because a full reload is in porogress
+            this.totalCount = 0;
 
             // Cancel all outstanding requests
             for (page in reqs) {
@@ -430,37 +397,14 @@
                 start    : start,
                 limit    : pageSize
             }, options));
-        },
-
-        /**
-         * When prefetching by default only the number of rows that are visible
-         * are loaded into the store's data. This means that selection will only work
-         * on the visible area, not the prefetched page.
-         *
-         * This method changes it to load the entire page into the data instead of the viewSize.
-         *
-         **/
-        loadToPrefetch: function(options) {
-            var me = this,
-            waitForInitialRange = function() {
-                if (me.rangeCached(options.start, options.limit - 1)) {
-                    me.pageMap.un('pageAdded', waitForInitialRange);
-                    // JRH: guaranteeRange of pagesize not viewsize
-                    me.guaranteeRange(options.start, me.pageSize - 1);
-                }
-            };
-
-            // Wait for the requested range to become available in the page map
-            me.pageMap.on('pageAdded', waitForInitialRange);
-            return me.prefetch(options || {});
         }
 
     });
-    
+
     /*
         Fixes a known issue in Ext where sometimes the target is null and so getTarget cannot connect the
-        event to the target at that moment. One suggestion on the forums is to update ExtJs. We're not 
-        going to do that yet, so here's a work-around. Not going to bother with browser sniffing since this 
+        event to the target at that moment. One suggestion on the forums is to update ExtJs. We're not
+        going to do that yet, so here's a work-around. Not going to bother with browser sniffing since this
          == null should only happen happen in IE anyway.
     */
     Ext.EventObjectImpl.prototype.getTarget = function (selector, maxDepth, returnEl) {
@@ -469,35 +413,8 @@
             return Ext.fly(this.target).findParent(selector, maxDepth, returnEl);
         }
         return returnEl ? Ext.get(this.target) : this.target;
-    };    
+    };
 
 
-
-    /**
-     * This fixes the Smooth Scrolling issue in Firefox 13 and above.
-     *
-     **/
-    Ext.define('Ext.overrides.panel.Table', {
-        override: 'Ext.panel.Table',
-
-        syncHorizontalScroll: function(left, setBody) {
-            var me = this,
-            scrollTarget;
-
-            setBody = setBody === true;
-            // Only set the horizontal scroll if we've changed position,
-            // so that we don't set this on vertical scrolls
-            if (me.rendered && (setBody || left !== me.scrollLeftPos)) {
-                // Only set the body position if we're reacting to a refresh, otherwise
-                // we just need to set the header.
-                if (setBody) {
-                    scrollTarget = me.getScrollTarget();
-                    scrollTarget.el.dom.scrollLeft = left;
-                }
-                me.headerCt.el.dom.scrollLeft = left;
-                me.scrollLeftPos = left;
-            }
-        }
-    });
 
 }());

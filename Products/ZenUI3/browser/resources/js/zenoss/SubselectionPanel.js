@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -312,6 +312,8 @@
                     {
                         xtype:'treepanel',
                         ref:'treepanel',
+                        hideHeaders: true,
+                        header: false,
                         selModel:new Zenoss.TreeSelectionModel({
                             listeners:{
                                 selectionchange:function (sm, node) {
@@ -414,6 +416,8 @@
                 ref:'subselecttreepanel',
                 rootVisible:false,
                 iconCls:'x-tree-noicon',
+                header: false,
+                hideHeaders: true,
                 root:{nodeType:'node'}
             });
             this.callParent([config]);
