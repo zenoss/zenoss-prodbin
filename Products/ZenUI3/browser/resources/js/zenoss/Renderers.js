@@ -53,13 +53,12 @@ function convertToUnits(num, divby, unitstr, places){
 }
 
 function pingStatusBase(bool) {
-    if (Ext.isString(bool)) {
-        bool = bool.toLowerCase();
-        if (bool=='none') {
-            return 'Unknown';
-        }
-        bool = bool=='up';
+    if (!Ext.isDefined(bool) || bool.toLowerCase() == "none") {
+        return 'Unknown';
+    }else if(Ext.isString(bool)){
+        bool = bool.toLowerCase() == 'up';
     }
+    
     var str = bool ? 'Up' : 'Down';
     return str;
 }

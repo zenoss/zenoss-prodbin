@@ -2228,6 +2228,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Return the status number for this device of class statClass.
         """
+        
+        # If this device is not monitored, we do not report on its status
+        if not self.monitorDevice():
+            return None
+        
         from Products.ZenEvents.ZenEventClasses import Status_Ping
         if statusclass == Status_Ping:
             from Products.Zuul import getFacade
