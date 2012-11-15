@@ -95,8 +95,8 @@ set_perms() {
             continue
         fi
 
-        chown -R ${RUNUSER}:${RUNUSER} ${dir}
-        chmod -R 775 ${dir}
+        chown -R ${RUNUSER}:${RUNUSER} ${dir} 2>/dev/null
+        chmod -R 775 ${dir} 2>/dev/null
     done
 }
 
