@@ -502,7 +502,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         writer.writerow(labels)
         def getDataField(thing, field):
             if not isinstance(field, basestring):
-                value = field(getEngine().getContext({'here':thing, 'device':thing})  )
+                value = field(getEngine().getContext({'here':thing, 'device':thing, 'dev':thing})  )
             else:
                 if isinstance(thing, dict):
                     value = thing.get(field, '')
