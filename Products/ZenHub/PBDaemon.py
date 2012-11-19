@@ -523,7 +523,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     heartbeatEvent = {'eventClass':Heartbeat}
     heartbeatTimeout = 60*3
     _customexitcode = 0
-    _sendingEvents = False
+    _pushEventsDeferred = None
     
     def __init__(self, noopts=0, keeproot=False, name=None):
         # if we were provided our collector name via the constructor instead of
@@ -715,7 +715,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                getattr(self.options, 'cycle', True):
                 self.sendEvent(self.stopEvent)
                 self.log.debug("Sent a 'stop' event")
-            d = self.pushEvents()
+            if self._pushEventsDeferred:
+                self.log.debug("Currently sending events. Queueing next call")
+                d = self._pushEventsDeferred
+                # Schedule another call to flush any additional queued events
+                d.addBoth(lambda unused: self.pushEvents())
+            else:
+                d = self.pushEvents()
             d.addBoth(lambda unused: self.saveCounters())
             return d
 
@@ -767,12 +773,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         # are we already shutting down?
         if not reactor.running:
+            self.log.debug("Skipping event sending - reactor not running.")
             return
-        if self._sendingEvents:
+        if self._pushEventsDeferred:
+            self.log.debug("Skipping event sending - previous call active.")
             return
         try:
-            # try to send everything we have, serially
-            self._sendingEvents = True
+            self._pushEventsDeferred = defer.Deferred()
 
             # are still connected to ZenHub?
             evtSvc = self.services.get('EventService', None)
@@ -799,7 +806,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         except Exception as ex:
             self.log.exception(ex)
         finally:
-            self._sendingEvents = False
+            d, self._pushEventsDeferred = self._pushEventsDeferred, None
+            d.callback('sent')
 
     def heartbeat(self):
         'if cycling, send a heartbeat, else, shutdown'
