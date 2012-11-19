@@ -129,7 +129,6 @@ class MySshClient(SshClient):
 
         self.connect_defer = None
         self.close_defer = None
-        self.expire_defer = None    # TODO: placeholder; not implemented yet
         self.command_defers = {}
 
         self.description = '%s:*****@%s:%s' % (self.username,
@@ -141,7 +140,6 @@ class MySshClient(SshClient):
     def run(self):
         d = self.connect_defer = defer.Deferred()
         self.close_defer = defer.Deferred()
-        self.expire_defer = defer.Deferred()
         super(MySshClient, self).run()
         return d
 
@@ -157,7 +155,7 @@ class MySshClient(SshClient):
         super(MySshClient, self).addCommand(command)
         return d
 
-    def addResult(self, command, data, code):
+    def addResult(self, command, data, code, stderr):
         """
         Forward the results of the command execution to the starter
         """
@@ -166,10 +164,10 @@ class MySshClient(SshClient):
         d = self.command_defers.pop(command, None)
         if d is None:
             log.error("Internal error where deferred object not in dictionary." \
-                      " Command = '%s' Data = '%s' Code = '%s'",
-                      command.split()[0], data, code)
+                      " Command = '%s' Data = '%s' Code = '%s' Stderr = '%s'",
+                      command.split()[0], data, code, stderr)
         elif not d.called:
-            d.callback((data, code))
+            d.callback((data, code, stderr))
 
     def clientConnectionLost(self, connector, reason):
         # Connection was lost, but could be because we just closed it. Not

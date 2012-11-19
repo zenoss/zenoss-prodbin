@@ -623,6 +623,7 @@ class CommandChannel(channel.SSHChannel):
         log.warn("%s channel %s %s", self.targetIp, self.conn.localChannelID,
                  message)
         sendEvent(self, message=message)
+        self.stderr += data
 
 
     @defer.inlineCallbacks
@@ -639,6 +640,7 @@ class CommandChannel(channel.SSHChannel):
         log.debug('%s channel %s Opening command channel for %s',
                   self.targetIp, self.conn.localChannelID, self.command)
         self.data = ''
+        self.stderr = ''
 
         # Send environment variables
         for name, value in self.env.iteritems():
@@ -690,7 +692,7 @@ class CommandChannel(channel.SSHChannel):
         log.debug('%s channel %s CommandChannel closing command channel for command %s with data: %s',
                   self.targetIp, getattr(self.conn, 'localChannelID', None),
                   self.command, repr(self.data))
-        self.conn.factory.addResult(self.command, self.data, self.exitCode)
+        self.conn.factory.addResult(self.command, self.data, self.exitCode, self.stderr)
         self.loseConnection()
 
         self.conn.factory.channelClosed()

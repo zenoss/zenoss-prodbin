@@ -130,7 +130,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
             self._commands.extend(command)
 
 
-    def addResult(self, command, data, exitCode):
+    def addResult(self, command, data, exitCode, stderr=None):
         """
         Add a result pair to the results store
 

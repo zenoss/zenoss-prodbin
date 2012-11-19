@@ -70,7 +70,6 @@ class IClient(Interface):
     connect_defer = Attribute("Deferred for establishing a connection")
     command_defers = Attribute("Deferreds for submitting commands")
     close_defer = Attribute("Deferred for a closed connection")
-    expire_defer = Attribute("Deferred for an expired connection")
     description = Attribute("String describing connection information")
     tasks = Attribute("Set of tasks associated with a connection")
     is_expired = Attribute("Boolean to mark an expired connection")
@@ -174,6 +173,8 @@ class SshRunner(object):
     implements(IRunner)
 
     POOLNAME = "SSH Connections"
+    EXPIRED_MESSAGES = ("WARNING: Your password has expired.\nPassword" \
+        " change required but no TTY available.\n",)
 
     connection = None
     client = SshClient
@@ -223,7 +224,6 @@ class SshRunner(object):
         log.debug("Connected to %s [%s]", self.deviceId, self.manageIp)
         self.connection.tasks.add(self.task)
         self.connection.close_defer.addCallback(self.cleanUpPool)
-        self.connection.expire_defer.addCallback(self.expire)
 
     @defer.inlineCallbacks
     def _setupConnector(self):
@@ -283,8 +283,7 @@ class SshRunner(object):
         if self.connection:
             self.connection.tasks.discard(self.task)
             if not self.connection.tasks:
-                if self._poolkey in self._pool:
-                    self.connection.clientFinished()
+                self.connection.clientFinished()
                 if not self.connection.is_expired:
                     self.cleanUpPool()
             self.connection = None
@@ -297,13 +296,6 @@ class SshRunner(object):
         """
         if not self.command_defer.called:
             self.command_defer.errback(TimeoutError(self.command))
-
-    def expire(self, ignore=None):
-        """
-        Remove a connection from the pool if it has expired
-        """
-        if getattr(self._pool.get(self._poolkey), 'is_expired', False):
-            self.cleanUpPool()
 
     def cleanUpPool(self, connection=None):
         """
@@ -324,6 +316,14 @@ class SshRunner(object):
             return result
 
         self._timer.cancel()
-        output, self.exitCode = result
-        self.output = output
+        self.output, self.exitCode, self.stderr = result
+
+        if not self.connection.is_expired \
+                and self.stderr in SshRunner.EXPIRED_MESSAGES:
+
+            log.debug('Connection %s expired, cleaning up pool', 
+                self.connection.description)
+            self.connection.is_expired = True
+            self.cleanUpPool()
+
         return self
