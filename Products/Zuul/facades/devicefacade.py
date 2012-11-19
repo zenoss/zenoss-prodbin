@@ -462,10 +462,17 @@ class DeviceFacade(TreeFacade):
                   rackSlot=0, productionState=1000, comments="",
                   hwManufacturer="", hwProductName="", osManufacturer="",
                   osProductName="", priority = 3, tag="", serialNumber="",
-                  locationPath="", systemPaths=[], groupPaths=[], zProperties={}
+                  locationPath="", zCommandUsername="", zCommandPassword="",
+                  zWinUser="", zWinPassword="", systemPaths=[], groupPaths=[], 
+                  zProperties={}
                   ):
-        zProps = dict(zSnmpCommunity=snmpCommunity,
-                           zSnmpPort=snmpPort)
+        zProps = dict(zSnmpCommunity=snmpCommunity, 
+                      zSnmpPort=snmpPort,
+                      zCommandUsername=zCommandUsername,
+                      zCommandPassword=zCommandPassword,
+                      zWinUser=zWinUser,
+                      zWinPassword=zWinPassword
+                 )
         zProps.update(zProperties)
         model = model and "Auto" or "none"
         perfConf = self._dmd.Monitors.getPerformanceMonitor(collector)

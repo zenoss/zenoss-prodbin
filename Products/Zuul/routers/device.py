@@ -1348,7 +1348,9 @@ class DeviceRouter(TreeRouter):
                   locationPath="", systemPaths=[], groupPaths=[],
                   productionState=1000, comments="", hwManufacturer="",
                   hwProductName="", osManufacturer="", osProductName="",
-                  priority=3, tag="", serialNumber="", zProperties={}):
+                  priority=3, tag="", serialNumber="", zCommandUsername="",
+                  zCommandPassword="", zWinUser="", zWinPassword="", zProperties={}):
+        
         """
         Add a device.
 
@@ -1398,6 +1400,10 @@ class DeviceRouter(TreeRouter):
         @param tag: (optional) Tag number of this device (default: '')
         @type  serialNumber: string
         @param serialNumber: (optional) Serial number of this device (default: '')
+        @type  zCommandUsername: string
+        @param zWinUser: (optional) Username for WMI (default: '')
+        @type  zCommandPassword: string
+        @param zWinPassword: (optional) Password for WMI (default: '')
         @rtype:   DirectResponse
         @return:  B{Properties}:
              - jobId: (string) ID of the add device job
@@ -1447,11 +1453,15 @@ class DeviceRouter(TreeRouter):
                                                priority,
                                                tag,
                                                serialNumber,
-                                                locationPath,
-                                                systemPaths,
-                                                groupPaths,
-                                                zProperties
-                                                )
+                                               locationPath,
+                                               zCommandUsername,
+                                               zCommandPassword,
+                                               zWinUser,
+                                               zWinPassword,
+                                               systemPaths,
+                                               groupPaths,
+                                               zProperties
+                                               )
 
         deviceUid = '/'.join([organizerUid, 'devices', deviceName])
         # Zero groups or systems sends as [''] so exclude that case.

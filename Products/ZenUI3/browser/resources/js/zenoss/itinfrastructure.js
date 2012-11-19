@@ -121,7 +121,28 @@ var deviceClassCombo = {
                 path = path.replace(/^Devices/,'');
                 component.setRawValue(path);
             }
-
+            
+            this.toggleAdditionalFields();
+        },
+        'change': function(){
+            this.toggleAdditionalFields();
+        }
+    },
+    toggleAdditionalFields: function(){ 
+        if(this.getValue() != null && this.getValue().toLowerCase().indexOf("ssh") >= 0){
+            Ext.getCmp('zCommandUsername').show();
+            Ext.getCmp('zCommandPassword').show();
+        }else{
+            Ext.getCmp('zCommandUsername').hide();
+            Ext.getCmp('zCommandPassword').hide();
+        }
+            
+        if(this.getValue() != null && this.getValue().toLowerCase().toLowerCase().indexOf("wmi") >= 0){
+            Ext.getCmp('zWinUser').show();
+            Ext.getCmp('zWinPassword').show();
+        }else{
+            Ext.getCmp('zWinUser').hide();
+            Ext.getCmp('zWinPassword').hide();
         }
     }
 };
@@ -657,7 +678,23 @@ Ext.apply(Zenoss.devices, {
                         }, {
                             columnWidth: 0.33,
                             layout: 'anchor',
-                            items: [hwManufacturers, hwProduct, osManufacturers, osProduct]
+                            items: [hwManufacturers, hwProduct, osManufacturers, osProduct, 
+                            {
+                                xtype: 'textfield',
+                                id: 'zCommandUsername',
+                                name: 'zCommandUsername',
+                                fieldLabel: _t('SSH Username'),
+                                hidden: true,
+                                width: 160
+                            },
+                            {
+                                xtype: 'textfield',
+                                id: 'zWinUser',
+                                name: 'zWinUser',
+                                fieldLabel: _t('Windows User'),
+                                hidden: true,
+                                width: 160
+                            }]
                         }, {
                             columnWidth: 0.34,
                             layout: 'anchor',
@@ -688,6 +725,23 @@ Ext.apply(Zenoss.devices, {
                                 fieldLabel: _t('Systems'),
                                 emptyText: _t('None...'),
                                 multiSelect: true,
+                                width: 200
+                            },{
+                                xtype: 'textfield',
+                                inputType: 'password',
+                                id: 'zCommandPassword',
+                                name: 'zCommandPassword',
+                                fieldLabel: _t('SSH Password'),
+                                hidden: true,
+                                width: 200
+                            },
+                            {
+                                xtype: 'textfield',
+                                inputType: 'password',
+                                id: 'zWinPassword',
+                                name: 'zWinPassword',
+                                fieldLabel: _t('Windows Password'),
+                                hidden: true,
                                 width: 200
                             }]
                         }]
