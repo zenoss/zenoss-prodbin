@@ -334,8 +334,6 @@ class SnmpPerformanceCollectionTask(BaseTask):
                         if oid not in self._bad_oids:                 
                             log.error("SNMP get returned empty value: {0} {1}".format(self.configId, oid))
                             self._addBadOids([oid])
-                        if oid in self._good_oids:
-                            self.remove_from_good_oids([oid])
                         continue
 
                     self._good_oids.add(oid)
