@@ -109,13 +109,16 @@ class MibFile(object):
         cursor = 0
         fc = []
         while cursor < len(fileContents):
-            searchParty = [ fileContents.find('"',cursor), fileContents.find('/*',cursor), fileContents.find('--',cursor) ]
+            searchParty = BLOCK_QUOTE, BLOCK_COMMENT, LINE_COMMENT = \
+                (fileContents.find('"',cursor), 
+                 fileContents.find('/*',cursor), 
+                 fileContents.find('--',cursor))
             try:
                 cursor = min( x for x in searchParty if x >= 0 )
             except ValueError:
                 break
 
-            if searchParty[0] == cursor:
+            if BLOCK_QUOTE == cursor:
                 '''
                 MIB block quote rules
                 1.  Begins with '"'
@@ -135,7 +138,7 @@ class MibFile(object):
                     raise ValueError("Syntax Error: missing close (\")")
 
                 continue
-            elif searchParty[1] == cursor:
+            elif BLOCK_COMMENT == cursor:
                 '''
                 MIB block comment rules:
                 1.  Begins with '/*'
@@ -166,7 +169,7 @@ class MibFile(object):
                     nestCount += 1
 
                 endComment += 2
-            elif searchParty[2] == cursor:
+            elif LINE_COMMENT == cursor:
                 '''
                 MIB single line comment rules:
                 1.  Begins with '--'
