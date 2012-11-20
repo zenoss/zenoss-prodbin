@@ -21,7 +21,7 @@
                          zem.defaultAvailabilityEnd());
     objects python:zem.getAvailability(tableState);
     batch python:tm.getBatch(tableName,objects);
-	exportFields python:['device', 'component', 'availability'];
+	exportFields python:['device', 'systems', 'availability'];
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
