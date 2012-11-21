@@ -373,8 +373,8 @@ function showDeleteDataSourceDialog() {
 
         // show the dialog
         dialog = Ext.getCmp('deleteDataSourceDialog');
+        dialog.setText(html);
         dialog.show();
-        dialog.getComponent('message').update(html);
     }else{
         new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Source or Data Point.')});
     }

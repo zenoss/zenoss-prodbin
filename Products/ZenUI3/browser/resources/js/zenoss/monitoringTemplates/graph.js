@@ -521,14 +521,13 @@ Ext.define("Zenoss.GraphPointGrid", {
                 handler: function() {
                     var html, dialog;
                     // format the confimation message
-                    html = _t("Are you sure you want to remove the graph point, {0}?") + "<br />" +
-                        _t("There is no undo.");
+                    html = _t("Are you sure you want to remove the graph point, {0}? There is no undo.");
                     html = Ext.String.format(html, getSelectedGraphPoint().data.name);
 
                     // show the dialog
                     dialog = Ext.getCmp('deleteGraphPointDialog');
+                    dialog.setText(html);
                     dialog.show();
-                    dialog.getComponent('message').update(html);
                 }
             }, {
                 xtype: 'button',
@@ -903,8 +902,8 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     name = getSelectedGraphDefinition().data.name;
                     html = Ext.String.format(msg, name);
                     dialog = Ext.getCmp('deleteGraphDefinitionDialog');
+                    dialog.setText(html);
                     dialog.show();
-                    dialog.getComponent('message').update(html);
                 }
             }, {
                 id: 'graphDefinitionMenuButton',
