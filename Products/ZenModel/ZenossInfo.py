@@ -508,13 +508,17 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         finally:
             fh.close()
 
+    def isValidDaemon(self, daemon):
+        # overriden by distributed collector -- see DistributedServer.py
+        return isZenBinFile(daemon)
+
     def _getLogPath(self, daemon):
         """
         Returns the path the log file for the daemon this is monkey-patched
         in the distributed collector zenpack to support the localhost
         subdirectory.
         """
-        if daemon != 'event' and not isZenBinFile(daemon):
+        if daemon != 'event' and not self.isValidDaemon(daemon):
             raise ValueError("%r is not a valid daemon name" % daemon)
         return zenPath('log', "%s.log" % daemon)
 
@@ -522,7 +526,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         Get the last kb kilobytes of a daemon's log file contents.
         """
-        if not isZenBinFile(daemon):
+        if not self.isValidDaemon(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error',
                 '%s is not a valid daemon name' % daemon,
@@ -590,7 +594,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         Save config data from REQUEST to the daemon's config file.
         """
         daemon = REQUEST.form.get('daemon')
-        if not isZenBinFile(daemon):
+        if not self.isValidDaemon(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error',
                 'The daemon name %r is invalid' % daemon,
@@ -652,7 +656,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         # sanitize the input
         if daemon not in self._getDaemonList():
             return []
-        if not isZenBinFile(daemon):
+        if not self.isValidDaemon(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error',
                 '%s is not a valid daemon name' % daemon,
@@ -771,7 +775,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         for item in ignore_names:
             del formdata[item]
 
-        if not isZenBinFile(daemon):
+        if not self.isValidDaemon(daemon):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error', "%r is not a valid daemon name" % daemon,
                 priority=messaging.CRITICAL
@@ -840,7 +844,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if action not in legalValues:
             return self.callZenScreen(REQUEST)
         daemonName = REQUEST.form.get('daemon')
-        if not isZenBinFile(daemonName):
+        if not self.isValidDaemon(daemonName):
             messaging.IMessageSender(self).sendToBrowser(
                 'Internal Error', "%r is not a valid daemon name" % daemonName,
                 priority=messaging.CRITICAL
@@ -860,7 +864,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         import time
         import subprocess
         daemonPath = binPath(daemonName)
-        if not isZenBinFile(daemonName):
+        if not self.isValidDaemon(daemonName):
             return
         log.info('Telling %s to %s' % (daemonName, action))
         proc = subprocess.Popen([daemonPath, action], stdout=subprocess.PIPE,
