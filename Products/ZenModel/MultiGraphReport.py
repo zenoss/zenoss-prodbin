@@ -287,7 +287,7 @@ class MultiGraphReport(BaseReport):
                     cmds = graphDef.getGraphCmds(
                                     thing.primaryAq(),
                                     thing.fullRRDPath())
-                    AppendToGraphs(thing, cmds, GetThingTitle(thing))
+                    AppendToGraphs(thing, cmds, GetThingTitle(thing, gg.id))
         return graphs
 
 

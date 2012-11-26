@@ -38,18 +38,17 @@ body {
         <table>
 
         <tr>
-        <td valign="top" align="left">
-            <tal:dummy tal:replace="structure element/getComments" />
-        </td>
-        <td tal:define="i repeat/element/index;
-                key python: 'graph_%s' % i;
-                graphSrc python:request.get(key, element.getGraphUrl(request.get('drange')))"
-            align="right">
-            <img src="_" 
-                tal:attributes="src graphSrc" />
-        </td>
+            <td class="tableheader" tal:content="python:request['title_0']">
+            </td> 
+        </tr> 
+        <tr> 
+            <td tal:define="i repeat/element/index; key python: 'graph_%s' % i; 
+                graphSrc python:request.get(key, 
+                element.getGraphUrl(request.get('drange')))" 
+                align="right"> 
+                <img src="_" tal:attributes="src graphSrc" /> 
+            </td> 
         </tr>
-    
         </table>
         </td>
         <tal:block tal:condition="python:(path('repeat/element/index')+1) % here.numColumns == 0 or path('repeat/element/end')"

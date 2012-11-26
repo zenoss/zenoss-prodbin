@@ -63,13 +63,13 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
                     text: 'Zoom In',
                     enableToggle: true,
                     pressed: true,
-                    ref: '../zoomin',
+                    itemId: 'zoomin',
                     handler: Ext.bind(function(btn, e) {
                         this.fireEventsToAll("zoommodechange", this, !btn.pressed);
                     }, this)
                 },{
                     text: 'Zoom Out',
-                    ref: '../zoomout',
+                    itemId: 'zoomout',
                     enableToggle: true,
                     handler: Ext.bind(function(btn, e) {
                         this.fireEventsToAll("zoommodechange", this, btn.pressed);
@@ -86,6 +86,12 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
         Zenoss.SwoopyGraph.superclass.constructor.call(this, config);
         this.linkcheck = Ext.get('linkcheck');
         this.mustUseImageUri = Ext.isIE;
+        
+        //as of extJS 4 the ref property was removed, so we need this to handle 
+        //zoom in and zoom out buttons 
+        this.zoomin = this.down("[itemId='zoomin']"); 
+        this.zoomout = this.down("[itemId='zoomout']");
+     	
         Zenoss.SWOOPIES.push(this);
     },
     initEvents: function() {
@@ -97,6 +103,7 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
         this.graphEl.on('click', this.onGraphClick, this);
         this.graphEl.on('load', function(){
             var size = this.graphEl.getSize();
+            this.setWidth(size.width);
             if (!size.width || !size.height){
                 this.showFailure();
             } else {
@@ -290,21 +297,17 @@ Ext.onReady(function(){
         resetButton.on('click', function(){resetSwoopies();});
     }
     for (graphid in ZenGraphs) {
-        if (true) {
-            var id = Ext.id();
-            var graphinfo = ZenGraphs[graphid];
-            var x = new Zenoss.SwoopyGraph({
-                graphUrl: graphinfo[0],
-                graphTitle: graphinfo[1],
-                id: id,
-                width: 600,
-                height: 275,
-                graphId: graphid
-            }).render(Ext.get('td_'+graphid));
-            var el = Ext.getCmp(id).el;
-            // cheating to remove the spacing of the image div
-            el.dom.childNodes[1].style.top = 0;
-        }
+        var id = Ext.id();
+        var graphinfo = ZenGraphs[graphid];
+        var x = new Zenoss.SwoopyGraph({
+            graphUrl: graphinfo[0],
+            graphTitle: graphinfo[1],
+            id: id,
+            width: 600,
+            height: 275,
+            graphId: graphid
+        }).render(Ext.get('td_'+graphid));
+        var el = Ext.getCmp(id).el;
     }
 
     // Old code I don't want to rewrite right now
