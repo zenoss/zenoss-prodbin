@@ -1036,6 +1036,7 @@ Ext.define("Zenoss.component.FileSystemPanel", {
                 {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'mount'},
+                {name: 'storageDevice'},
                 {name: 'totalBytes'},
                 {name: 'availableBytes'},
                 {name: 'usedBytes'},
@@ -1051,6 +1052,10 @@ Ext.define("Zenoss.component.FileSystemPanel", {
                 id: 'mount',
                 dataIndex: 'mount',
                 header: _t('Mount Point')
+            },{
+                id: 'storageDevice',
+                dataIndex: 'storageDevice',
+                header: _t('Storage Device')
             },{
                 id: 'totalBytes',
                 dataIndex: 'totalBytes',
