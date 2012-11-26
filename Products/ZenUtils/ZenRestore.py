@@ -148,7 +148,6 @@ class ZenRestore(ZenBackupBase):
         cmd = cmd_fmt.format(**locals())
         os.system(cmd)
 
-
     @requiresDaemonShutdown('zeneventserver')
     def restoreZEP(self):
         '''
@@ -185,8 +184,6 @@ class ZenRestore(ZenBackupBase):
             self.msg('ZEP indexes restored.')
         else:
             self.msg('ZEP indexes not found in backup file - will be recreated from database.')
-
-        
 
     def hasZeoBackup(self):
         repozoDir = os.path.join(self.tempDir, 'repozo')
@@ -280,7 +277,6 @@ class ZenRestore(ZenBackupBase):
         if rc:
             return -1
 
-
     def restoreEtcFiles(self):
         self.msg('Restoring config files.')
         cmd = 'cp -p %s %s' % (os.path.join(zenPath('etc'), 'global.conf'), self.tempDir)
@@ -335,15 +331,15 @@ class ZenRestore(ZenBackupBase):
         """
         Restore from a previous backup
         """
+            
         if self.options.file and self.options.dir:
             sys.stderr.write('You cannot specify both --file and --dir.\n')
             sys.exit(-1)
         elif not self.options.file and not self.options.dir:
             sys.stderr.write('You must specify either --file or --dir.\n')
             sys.exit(-1)
-
+        
         # Maybe check to see if zeo is up and tell user to quit zenoss first
-
         rootTempDir = ''
         if self.options.file:
             if not os.path.isfile(self.options.file):
@@ -372,6 +368,16 @@ class ZenRestore(ZenBackupBase):
                              'restore ZenPacks')
             sys.exit(-1)
 
+        #Check to make sure that zenoss has been stopped
+        output = subprocess.Popen(["zenoss", "status"], 
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE
+                                  )
+        if "pid=" in output.communicate()[0]:
+            sys.stderr.write("Please stop all Zenoss daemons and run"
+                            "zenrestore again\n")
+            sys.exit(-1)
+            
         # ZODB
         if self.hasZODBBackup():
             self.restoreZODB()
