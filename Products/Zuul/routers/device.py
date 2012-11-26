@@ -359,7 +359,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(devices=uids)
 
     @serviceConnectionError
-    def getDevices(self, uid=None, start=0, params=None, limit=50, sort='titleOrId',
+    def getDevices(self, uid=None, start=0, params=None, limit=50, sort='name',
                    page=None,
                    dir='ASC', keys=None):
         """
