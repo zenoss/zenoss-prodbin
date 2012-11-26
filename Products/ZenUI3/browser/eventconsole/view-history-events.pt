@@ -31,15 +31,16 @@
 </script>
 <script>
 Ext.onReady(function(){
-    var toolbar_items = [
-        new Ext.Toolbar.TextItem({
+    var toolbar_items = [{
+            xtype: 'tbtext',
             text: '<a href="viewEvents'+location.search+'">Event Console...<'+'/a'+'>',
             style: {
                 marginTop: '4px'
             }
-        }),
-        new Ext.Toolbar.Fill({}),
-        new Zenoss.LiveGridInfoPanel({
+        }, {
+            xtype: 'tbfill'
+        },
+        Ext.create('Zenoss.LiveGridInfoPanel', {
             grid: 'events_grid'
         })
     ];
