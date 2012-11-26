@@ -277,7 +277,7 @@ class MultiGraphReport(BaseReport):
                                     includeSetup = not cmds,
                                     includeThresholds = not cmds,
                                     cmds = cmds,
-                                    prefix = GetThingTitle(thing),
+                                    prefix = GetThingTitle(thing, gg.id),
                                     idxOffset=idxOffset)
                     idxOffset += len(graphDef.graphPoints())
                 AppendToGraphs(things[0], cmds, gg.id)
