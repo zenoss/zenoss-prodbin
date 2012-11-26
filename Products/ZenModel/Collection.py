@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -31,7 +31,7 @@ def manage_addCollection(context, id, REQUEST = None):
     c = Collection(id)
     context._setObject(id, c)
     if REQUEST is not None:
-        return REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main') 
+        return REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main')
 
 addCollection = DTMLFile('dtml/addCollection',globals())
 
@@ -40,9 +40,9 @@ class Collection(ZenModelRM):
     """
     Holds an assortment of devices and/or components on a multi-style report.
     """
-    
+
     meta_type = 'Collection'
-   
+
     _properties = (
         )
 
@@ -53,11 +53,11 @@ class Collection(ZenModelRM):
             ToManyCont(ToOne, 'Products.ZenModel.CollectionItem', 'collection')),
         )
 
-    factory_type_information = ( 
-    { 
+    factory_type_information = (
+    {
         'immediate_view' : 'editCollection',
         'actions'        :
-        ( 
+        (
             { 'id'            : 'edit'
             , 'name'          : 'Collection'
             , 'action'        : 'editCollection'
@@ -66,10 +66,10 @@ class Collection(ZenModelRM):
         )
     },
     )
-    
+
     security = ClassSecurityInfo()
 
-    
+
     def createCollectionItem(self, orgPath='', devId='', compPath='',
                             recurse=False, checkExists=False):
         ''' Create and insert a new CollectionItem based either on the
@@ -86,7 +86,7 @@ class Collection(ZenModelRM):
         ci.sequence = len(self.collection_items())
         self.collection_items._setObject(ci.id, ci)
         ci = self.collection_items._getOb(ci.id)
-        # This check happens after the _setObject so that ci has full 
+        # This check happens after the _setObject so that ci has full
         # aq wrapper in case it needs it.
         if checkExists and not ci.getRepresentedItem():
             self.collection_items._delObject(ci.id)
@@ -154,7 +154,7 @@ class Collection(ZenModelRM):
             if REQUEST:
                 contents = None
                 if deletedItem.getRepresentedItem():
-                    contents = deleteitem.getRepresentedItem().id
+                    contents = deleteItem.getRepresentedItem().id
                 audit('UI.Collection.DeleteItem', self.id, item=deletedItem.id,
                       contents=contents)
 
@@ -169,7 +169,7 @@ class Collection(ZenModelRM):
 
 
     security.declareProtected('Manage DMD', 'manage_resequenceCollectionItems')
-    def manage_resequenceCollectionItems(self, seqmap=(), origseq=(), 
+    def manage_resequenceCollectionItems(self, seqmap=(), origseq=(),
                                                                 REQUEST=None):
         """Reorder the sequence of the items.
         """
@@ -190,7 +190,7 @@ class Collection(ZenModelRM):
             except ValueError:
                 return sys.maxint
         return sorted(self.collection_items(), key=itemKey)
-        
+
 
     def getNumItems(self):
         ''' Return the number of collection items
@@ -212,5 +212,5 @@ class Collection(ZenModelRM):
                     tset.add(tid)
                     things.append(devOrComp)
         return things
-        
+
 InitializeClass(Collection)
