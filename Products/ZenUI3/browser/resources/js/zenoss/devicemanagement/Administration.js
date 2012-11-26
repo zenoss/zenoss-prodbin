@@ -53,6 +53,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
         },
         setRolesCombo: function(grid, combo, index){
             if(typeof(index) == "undefined")index = -1;
+            if(!grid.uid) return; 
             Zenoss.remote.DeviceManagementRouter.getRolesList({uid:grid.uid}, function(response){
                 if (response.success) {
                     Zenoss.devicemanagement.setComboFromData(response, combo, grid, 'role', index);
@@ -64,7 +65,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             
             for(var i=0;i < response.data.length; i++){
                 if(type == "user"){
-                    if( !this.alreadyInCombo(response.data[i], gdata, type)  ){
+                    if( !this.alreadyInCombo(response.data[i], gdata, type)  ){ 
                         data.push([response.data[i]]);             
                     }
                 }else{

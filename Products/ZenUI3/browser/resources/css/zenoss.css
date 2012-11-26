@@ -1631,3 +1631,35 @@ a.z-entity:hover{
 .x-ie #jobswidget-btnWrap .x-btn-inner{
     padding-right:20px !important;
 }
+
+/* some tabs style integration update on triggers  */ 
+.white-background-panel .x-tab-top-active{
+    background-image:none !important;
+    background-color: #ffffff !important;
+    top: 1px !important;
+    border-bottom-color: #ffffff;
+}
+.white-background-panel .x-tab-bar{
+    background-color: #ffffff ;
+    background-image: none ;
+}
+.white-background-panel .x-tab-bar-top .x-tab-bar-strip{
+    border-width: 0 ;
+}
+.white-background-panel .x-tab-bar-strip-default, .x-tab-bar-strip-default-plain{ 
+    background-color: #ffffff ;   
+}
+.white-background-panel .x-tab-bar-body .x-box-inner{
+    overflow: visible;
+    border-bottom: 1px solid #99BCE8;
+}
+.white-background-panel .x-tab-bar-top .x-tab-bar-body {
+    border-width: 0 ;
+}
+.white-background-panel .x-tab-default-top{
+    height: 22px !important;
+    border-bottom: none !important;
+    background-color: #ddd;
+    background-image: none; 
+    box-shadow: none;
+}
