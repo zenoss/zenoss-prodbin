@@ -1625,11 +1625,15 @@ a.z-entity:hover{
     padding-right:20px !important;
 }
 #deviceoverviewpanel_summary-body{
-    overflow:auto !important;
+    overflow:auto !important; 
 }
 /* fix diff between ie and everything else on jobs button */
 .x-ie #jobswidget-btnWrap .x-btn-inner{
     padding-right:20px !important;
+}
+/* fix for config step 2 color issues on textboxes */
+#manualdiscoverform .selected_row{
+    background: url() #fff;  
 }
 
 /* some tabs style integration update on triggers  */ 

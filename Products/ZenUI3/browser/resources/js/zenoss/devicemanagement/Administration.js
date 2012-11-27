@@ -51,10 +51,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                 }
             });             
         },
-        setRolesCombo: function(grid, combo, index){
+        setRolesCombo: function(grid, uid, combo, index){
             if(typeof(index) == "undefined")index = -1;
-            if(!grid.uid) return; 
-            Zenoss.remote.DeviceManagementRouter.getRolesList({uid:grid.uid}, function(response){
+            Zenoss.remote.DeviceManagementRouter.getRolesList({uid:uid}, function(response){
                 if (response.success) {
                     Zenoss.devicemanagement.setComboFromData(response, combo, grid, 'role', index);
                 }
@@ -62,7 +61,6 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
         },
         setComboFromData: function(response, combo, grid, type, index){
             var data = [], gdata = grid.getView().getStore().data;
-            
             for(var i=0;i < response.data.length; i++){
                 if(type == "user"){
                     if( !this.alreadyInCombo(response.data[i], gdata, type)  ){ 
@@ -606,7 +604,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                     },
                     listeners: {
                         afterrender: function(combo){             
-                            Zenoss.devicemanagement.setRolesCombo(grid, combo, 0);
+                            Zenoss.devicemanagement.setRolesCombo(grid, grid.uid, combo, 0);
                         }
                     },
                     store: ['none']                  
@@ -1208,17 +1206,14 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                             xtype: 'combo',                            
                             disabled: true,
                             id: 'changeroleCombo',
-                            editable: false,                    
+                            editable: false,                     
                             queryMode:'local',
                             listConfig: {
                                 maxWidth:155
                             },
                             listeners: {
-                                afterrender: function(combo){             
-                                    Zenoss.devicemanagement.setRolesCombo(Ext.getCmp("adminsGrid"), combo);
-                                },
                                 select: function(combo){
-                                    var grid = Ext.getCmp("adminsGrid"),
+                                    var grid = Ext.getCmp("adminsGrid"), 
                                         gridrow = grid.getSelectionModel().getSelection(),
                                         griddata = gridrow[0].data,
                                         params = {
@@ -1255,7 +1250,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         id: 'admin_role',
                         dataIndex: 'role',
                         header: _t('Role'),
-                        width: 90,
+                        width: 90, 
                         filter: false,                        
                         sortable: true
                     },{
@@ -1281,6 +1276,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
         setContext: function(uid) {
             this.uid = uid;
             this.callParent(arguments);
+            Zenoss.devicemanagement.setRolesCombo(this, uid, Ext.getCmp('changeroleCombo'));             
         },
         onRowSelect: function(model, selectedRow, rowIndex){
             if (Zenoss.Security.hasPermission('Manage Device')) {
