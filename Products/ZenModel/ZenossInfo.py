@@ -650,7 +650,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             )
             return []
 
-        if daemon in [ 'zeoctl', 'zopectl' ]:
+        if daemon in [ 'zeoctl', 'zopectl', 'zeneventserver' ]:
             return []
 
         # sanitize the input
