@@ -19,6 +19,7 @@ import collections
 import sys
 import time
 import traceback
+from hashlib import sha1
 from itertools import chain
 from functools import partial
 
@@ -123,21 +124,24 @@ class FakeRemote:
 
 class DefaultFingerprintGenerator(object):
     """
-    Generates a fingerprint using the same algorithm used by zeneventd.
+    Generates a fingerprint using a checksum of properties of the event.
     """
     implements(ICollectorEventFingerprintGenerator)
 
     weight = 100
 
-    EVENT_KEY_FIELDS = ('device', 'component', 'eventClass', 'eventKey',
-                        'severity')
-    NO_EVENT_KEY_FIELDS = ('device', 'component', 'eventClass', 'severity',
-                           'summary')
+    _IGNORE_FIELDS = ('rcvtime','firstTime','lastTime')
 
     def generate(self, event):
-        fields = self.EVENT_KEY_FIELDS if 'eventKey' in event \
-            else self.NO_EVENT_KEY_FIELDS
-        return '|'.join(str(event.get(field, '')) for field in fields)
+        fields = []
+        for k, v in sorted(event.iteritems()):
+            if k not in DefaultFingerprintGenerator._IGNORE_FIELDS:
+                if isinstance(v, unicode):
+                    v = v.encode('utf-8')
+                else:
+                    v = str(v)
+                fields.extend((k,v))
+        return sha1('|'.join(fields)).hexdigest()
 
 
 def _load_utilities(utility_class):
