@@ -53,10 +53,21 @@ function convertToUnits(num, divby, unitstr, places){
 }
 
 function pingStatusBase(bool) {
-    if (!Ext.isDefined(bool) || bool.toLowerCase() == "none") {
+	/*
+	 * The "bool" variable can be null, undefined, a string, or a boolean.
+	 * We need to handle all cases and also make sure they are
+	 * handled in proper order.
+	 */
+	if (bool == null || !Ext.isDefined(bool)) {
         return 'Unknown';
-    }else if(Ext.isString(bool)){
-        bool = bool.toLowerCase() == 'up';
+    }
+    
+    if(Ext.isString(bool)){
+    	if(bool.toLowerCase() == "none"){
+    		return 'Unknown';
+    	}else{
+    		bool = bool.toLowerCase() == 'up';
+    	}
     }
     
     var str = bool ? 'Up' : 'Down';
