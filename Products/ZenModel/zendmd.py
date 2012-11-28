@@ -18,6 +18,12 @@ import logging
 import transaction
 from subprocess import Popen, PIPE
 from optparse import OptionParser
+import inspect
+import re
+from collections import defaultdict
+from itertools import izip
+from pprint import pformat
+from Acquisition import aq_chain, aq_base
 
 
 # Parse the command line for host and port; have to do it before Zope
@@ -78,6 +84,7 @@ from AccessControl.SecurityManagement import noSecurityManager
 from Products.ZenUtils.Utils import zenPath, set_context
 from Products.ZenModel.IpNetwork import IpNetworkPrinterFactory
 from Products.ZenMessaging import audit
+from Products.Zuul.utils import safe_hasattr
 
 _CUSTOMSTUFF = []
 
@@ -90,6 +97,71 @@ def set_db_config(host=None, port=None):
     if host: xhost = host
     if port: xport = port
     serverconfig.server[0].address = (xhost, xport)
+
+
+def _search_super(obj, pattern, s, seen):
+    vars_ = vars(obj)
+    mro = tuple(reversed(obj.__class__.mro()))
+
+    def search_mro(dct, attr_name, attr=None):
+        for cls in mro:
+            if safe_hasattr(cls, attr_name):
+                dct[cls].append((attr_name, attr))
+                break
+
+    attrs = defaultdict(lambda: [])
+    methods = defaultdict(lambda: [])
+    for attr_name in dir(obj):
+        if '__' in attr_name:
+            continue
+        if attr_name in seen:
+            continue
+        if not safe_hasattr(obj, attr_name):
+            continue
+        if pattern is not None and not pattern.search(attr_name):
+            continue
+        attr = vars_[attr_name] if attr_name in vars_ \
+                                            else getattr(obj, attr_name)
+        if not inspect.ismethod(attr):
+            search_mro(attrs, attr_name, attr)
+            continue
+        search_mro(methods, attr_name, attr)
+    mro_slice = mro if s is None else mro[-s - 1:]
+    new_seen = set([])
+    for key, attr_infos in attrs.items() + methods.items():
+        for attr_name, attr in attr_infos:
+            new_seen.add(attr_name)
+    return new_seen, (mro_slice, attrs, methods)
+
+
+def _search_print(mro_slice, attrs, methods):
+    for cls in mro_slice:
+        if not attrs[cls] and not methods[cls]:
+            continue
+        print '\n', '-' * 79, '\n', cls.__module__, cls.__name__
+        first = True
+        for attr_name, attr in attrs[cls]:
+            if first:
+                print
+                first = False
+            if '\n' not in pformat(attr):
+                print ' ', attr_name, '=', pformat(attr)
+        for attr_name, attr in attrs[cls]:
+            if '\n' in pformat(attr):
+                print '\n ', attr_name, '=\n', pformat(attr, 4)
+        for attr_name, attr in methods[cls]:
+            defaults = () if attr.func_defaults is None \
+                                            else attr.func_defaults
+            co = attr.func_code
+            varnames = co.co_varnames[1:]
+            kwargs = dict((v, '{0}={1}'.format(v, d)) for v, d \
+                    in izip(reversed(varnames), reversed(defaults)))
+            args = [kwargs.get(v, v) for v in varnames]
+            sigargs = (attr_name, ', '.join(args))
+            signature = '{0}({1})'.format(*sigargs)
+            fifmt = '{co.co_filename}:{co.co_firstlineno}'
+            fileinfo = fifmt.format(co=co)
+            print '\n ', signature, '\n ', fileinfo
 
 
 def _customStuff():
@@ -186,6 +258,43 @@ def _customStuff():
         appdir = set(dir(app))
         result = sorted(objdir - portaldir - appdir)
         pprint(result)
+
+    def search(obj, p=None, s=None, a=None):
+        """Search obj for matching attribute and method names.
+           p: pattern to match
+           s: super depth (how many inheritance levels to search)
+           a: acquisition depth
+        (ignores any attribute with '__' in its name)
+        """
+        pattern = None if p is None else re.compile(p, re.IGNORECASE)
+        aq_end = None if a is None else a + 1
+        seen = set([])
+        all_print_args = {}
+        chain = [x for x in aq_chain(obj)[:aq_end] if safe_hasattr(x, 'id') \
+                                            and not inspect.ismethod(x.id)]
+        for obj_ in chain:
+            new_seen, print_args = _search_super(aq_base(obj_), pattern, s, seen)
+            seen |= new_seen
+            all_print_args[obj_.id] = print_args
+        for obj_ in reversed(chain):
+            mro_slice, attrs, methods = all_print_args[obj_.id]
+            for cls in mro_slice:
+                if attrs[cls] or methods[cls]:
+                    print '\n', '=' * 79, '\n', path(obj_)
+                    _search_print(mro_slice, attrs, methods)
+                    break
+
+    def path(obj):
+        path_ = '/'.join(x.id for x in reversed(aq_chain(obj)) \
+                                            if safe_hasattr(x, 'id') \
+                                            and not inspect.ismethod(x.id))
+        if path_ == '':
+            return obj
+        if path_ == 'zport':
+            return path_
+        if path_ == 'zport/dmd':
+            return 'dmd'
+        return path_[len('zport/dmd/'):]
 
     def history(start=None, end=None, lines=30,
                    number=False):
@@ -426,7 +535,7 @@ if __name__=="__main__":
     if opts.host or opts.port:
         set_db_config(opts.host, opts.port)
 
-    vars = _customStuff()
+    vars_ = _customStuff()
     # set the first positional argument as the --script arg
     for arg in sys.argv[1:]:
         if not arg.startswith("-") and os.path.exists(arg):
@@ -438,7 +547,7 @@ if __name__=="__main__":
             sys.exit(1)
         # copy globals() to temporary dict
         allVars = dict(globals().iteritems())
-        allVars.update(vars)
+        allVars.update(vars_)
         execfile(opts.script, allVars)
         if opts.commit:
             from transaction import commit
@@ -457,7 +566,7 @@ if __name__=="__main__":
     try:
         if IPShellEmbed:
             sys.argv[1:] = args
-            IPShellEmbed(banner1=_banner, user_ns=vars)
+            IPShellEmbed(banner1=_banner, user_ns=vars_)
         else:
             if readline is not None:
                 _banner = '\n'.join([_banner,
@@ -467,7 +576,7 @@ if __name__=="__main__":
 
 
             # Start up the console
-            myconsole = HistoryConsole(locals=vars)
+            myconsole = HistoryConsole(locals=vars_)
             myconsole.interact(_banner)
     finally:
         # try to abort any open transactions for our two phase commit listeners
