@@ -292,7 +292,8 @@ class Job(Task):
             if isinstance(result, Exception):
                 cls, instance, tb = result.exc_info[0:3]
                 if not isinstance(result, JobAborted):
-                    self.log.error("Job raised exception %s", tb)
+                    self.log.error("Job %s failed with an exception" % job_id)
+                    self.log.exception(tb)
                 links = []
                 if self.request.callbacks:
                     for callback in self.request.callbacks:
