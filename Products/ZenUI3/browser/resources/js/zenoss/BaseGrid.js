@@ -2,11 +2,39 @@
 
 
     /**
+     * Base class for non paginated and paginated stores.
+     * @class Zenoss.Store
+     */
+    Ext.define('Zenoss.Store', {
+        extend:'Ext.data.Store',
+        constructor:function (config) {
+            this.callParent([config]);
+            this.addEvents(
+                /**
+                 * @event afterguaranteedrange
+                 * This fires after the callback from the guaranteerange method.
+                 * @param {Zenoss.Store} this
+                 */
+                'afterguaranteedrange'
+            );
+        },
+        setBaseParam:function (key, value) {
+            this.proxy.extraParams[key] = value;
+        },
+        onGuaranteedRange: function(range, start, end, options) {
+            this.callParent(arguments);
+            this.fireEvent('afterguaranteedrange', this);
+        }
+    });
+
+
+
+    /**
      * Base Configuration for direct stores
      * @class Zenoss.DirectStore
      */
     Ext.define('Zenoss.DirectStore', {
-        extend:'Ext.data.Store',
+        extend:'Zenoss.Store',
         alias:'store.zendirectstore',
         constructor:function (config) {
             config = config || {};
@@ -32,9 +60,6 @@
                 }
             });
             this.callParent(arguments);
-        },
-        setBaseParam:function (key, value) {
-            this.proxy.extraParams[key] = value;
         }
     });
 
@@ -47,7 +72,7 @@
      * a hundred or so since every request will load the entire grid without pagination.
      **/
     Ext.define('Zenoss.NonPaginatedStore', {
-        extend:'Ext.data.Store',
+        extend:'Zenoss.Store',
         alias:['store.directcombo'],
         constructor:function (config) {
             config = config || {};
@@ -75,9 +100,6 @@
                 this.proxy.extraParams.uid = context;
             }
             this.load();
-        },
-        setBaseParam:function (key, value) {
-            this.proxy.extraParams[key] = value;
         }
     });
 
@@ -222,7 +244,7 @@
                 if (!this.grid.store.proxy.extraParams) {
                     this.grid.store.proxy.extraParams = {};
                 }
-                this.grid.store.proxy.extraParams.params = this.getSearchValues();
+                Ext.applyIf(this.grid.store.proxy.extraParams.params, this.getSearchValues());
             }
 
             if (searchItems.length > 0) {
@@ -480,11 +502,10 @@
                 viewConfig:viewConfig
             });
             this.callParent([config]);
-            this.getStore().on("prefetch", function (store, records) {
+            this.getStore().on("afterguaranteedrange", function () {
                 if (!this._disableSavedSelection) {
                     this.applySavedSelection();
                 }
-                this.setLoading(false);
             }, this);
 
             // once a uid is set always send that uid
@@ -501,7 +522,6 @@
                 if (this.uid) {
                     operation.params.uid = this.uid;
                 }
-                this.setLoading(true);
                 this.applyOptions(operation);
                 return true;
 
@@ -525,13 +545,17 @@
         applySavedSelection:function () {
             var curStore = this.getStore(),
                 selModel = this.getSelectionModel(),
+                i, node, rec,
                 items = [];
-            Ext.each(this.selectedNodes, function(node) {
-                var rec = curStore.getAt(node.index);
-                if (rec && rec.getId() == node.getId()) {
+            for (i = 0; i < this.selectedNodes.length; i ++) {
+                node = this.selectedNodes[i];
+                // idProperty is usually UID or EVID in the case of events, but it has to uniquely identify the record
+                rec = curStore.findRecord(node.idProperty, node.get(node.idProperty));
+                if (rec) {
                     items.push(rec);
                 }
-            });
+            }
+
             if (items.length > 0) {
                 this.suspendEvents();
                 this.getSelectionModel().select(items, false, true);
@@ -631,25 +655,21 @@
             }
             this.saveSelection();
             var store = this.getStore(),
-                // load the entire store if we haven't yet, we are not paginated or the entire grid fits in one buffer
-                shouldLoad = !store.hasLoaded || ! store.buffered || store.getCount() >= store.getTotalCount();
+                // load the entire store if we are not paginated or the entire grid fits in one buffer
+                shouldLoad =  ! store.buffered || store.getCount() >= store.getTotalCount();
 
             if (shouldLoad) {
                 store.load({
                     callback: callback,
                     scope: scope || this
                 });
-                store.hasLoaded = true;
-
             } else {
                 // need to refresh the current rows, without changing the scroll position
                 var start = Math.max(store.lastRequestStart, 0),
                     end = Math.min(start + store.pageSize - 1, store.totalCount),
                     page = store.pageMap.getPageFromRecordIndex(end);
-
                 // make sure we do not have the current view records in cache
                 store.pageMap.removeAtKey(page);
-
                 // this will fetch from the server and update the view since we removed it from cache
                 if (Ext.isFunction(callback)) {
                     store.guaranteeRange(start, end, callback, scope);

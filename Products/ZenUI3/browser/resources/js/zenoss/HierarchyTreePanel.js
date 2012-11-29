@@ -70,7 +70,7 @@
         // otherwise sort by text
         return alphcmp(o1, o2);
     }
-	
+
     /**
      * Base Tree Selection model for zenoss. Defines
      * the getSelectedNode method that existed in 3.X trees.
@@ -229,7 +229,8 @@
         alias:['widget.HierarchyTreePanel'],
         constructor:function (config) {
             Ext.applyIf(config, {
-                enableDragDrop:true
+                enableDragDrop:true,
+                loadMask: true
             });
             config.listeners = config.listeners || {};
             Ext.applyIf(config.listeners, {
@@ -240,7 +241,7 @@
             config.viewConfig = config.viewConfig || {};
             if (config.enableDragDrop) {
                 Ext.applyIf(config.viewConfig, {
-                    loadMask:true,
+                    loadMask:config.loadMask,
                     plugins:{
                         ptype:'treeviewdragdrop',
                         enableDrag:Zenoss.Security.hasPermission('Change Device'),
@@ -250,7 +251,7 @@
                 });
             } else {
                 Ext.applyIf(config.viewConfig, {
-                    loadMask:true
+                    loadMask:config.loadMask
                 });
             }
             Ext.applyIf(config, {

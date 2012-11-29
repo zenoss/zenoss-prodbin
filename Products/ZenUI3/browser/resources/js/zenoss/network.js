@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -43,6 +43,7 @@ treeConfigs.addAll([{
     selectRootOnLoad: false,
     directFn: Zenoss.remote.Network6Router.getTree,
     searchField: true,
+    loadMask: false,
     router: Zenoss.remote.Network6Router
 }]);
 

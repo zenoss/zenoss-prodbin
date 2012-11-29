@@ -121,14 +121,14 @@ var deviceClassCombo = {
                 path = path.replace(/^Devices/,'');
                 component.setRawValue(path);
             }
-            
+
             this.toggleAdditionalFields();
         },
         'change': function(){
             this.toggleAdditionalFields();
         }
     },
-    toggleAdditionalFields: function(){ 
+    toggleAdditionalFields: function(){
         if(this.getValue() != null && this.getValue().toLowerCase().indexOf("ssh") >= 0){
             Ext.getCmp('zCommandUsername').show();
             Ext.getCmp('zCommandPassword').show();
@@ -136,7 +136,7 @@ var deviceClassCombo = {
             Ext.getCmp('zCommandUsername').hide();
             Ext.getCmp('zCommandPassword').hide();
         }
-            
+
         if(this.getValue() != null && this.getValue().toLowerCase().toLowerCase().indexOf("wmi") >= 0){
             Ext.getCmp('zWinUser').show();
             Ext.getCmp('zWinPassword').show();
@@ -678,7 +678,7 @@ Ext.apply(Zenoss.devices, {
                         }, {
                             columnWidth: 0.33,
                             layout: 'anchor',
-                            items: [hwManufacturers, hwProduct, osManufacturers, osProduct, 
+                            items: [hwManufacturers, hwProduct, osManufacturers, osProduct,
                             {
                                 xtype: 'textfield',
                                 id: 'zCommandUsername',
@@ -958,7 +958,7 @@ if (Zenoss.settings.incrementalTreeLoad) {
 
 var devtree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: false,
+    loadMask: true,
     id: 'devices',
     searchField: true,
     directFn: Zenoss.util.isolatedRequest(treeLoaderFn),
