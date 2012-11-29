@@ -75,7 +75,7 @@ class JSON(CommandParser):
             result.events.append({
                 'severity': cmd.severity,
                 'summary': 'error parsing command output',
-                'eventKey': cmd.command,
+                'eventKey': cmd.eventKey,
                 'eventClass': cmd.eventClass,
                 'command_output': cmd.result.output,
                 'exception': str(ex),

@@ -29,6 +29,7 @@ class TestJSONParser(BaseTestCase):
         self.cmd.result = Object()
         self.cmd.result.exitCode = 0
         self.cmd.severity = 2
+        self.cmd.eventKey = 'testEventKey'
         self.cmd.eventClass = '/Cmd'
         self.cmd.command = "testJSONCommand"
         self.cmd.points = []
@@ -49,7 +50,7 @@ class TestJSONParser(BaseTestCase):
 
         self.assertEquals(event['severity'], self.cmd.severity)
         self.assertEquals(event['summary'], 'error parsing command output')
-        self.assertEquals(event['eventKey'], self.cmd.command)
+        self.assertEquals(event['eventKey'], self.cmd.eventKey)
         self.assertEquals(event['eventClass'], self.cmd.eventClass)
         self.assertEquals(event['command_output'], self.cmd.result.output)
         self.assertTrue('exception' in event)
