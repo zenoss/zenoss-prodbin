@@ -224,8 +224,8 @@
                 tbarItems = config.tbarItems || [];
 
             listeners = Ext.apply(listeners, {
-                itemdblclick: function(grid) {
-                    thresholdEdit(grid);
+                itemdblclick: function(gridview) { 
+                    thresholdEdit(gridview.ownerCt);
                 }
             });
 
