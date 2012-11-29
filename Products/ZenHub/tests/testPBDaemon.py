@@ -92,12 +92,12 @@ class TestDeDupingEventQueue(BaseEventQueueTest):
 
     def testDeDuping(self):
         for i in range(100):
-            self.queue.append(createTestEvent(mydetail='detail%d' % i))
+            self.queue.append(createTestEvent(mydetail='detailvalue'))
         self.assertEquals(1, len(self.queue))
         queued = list(self.queue)
         self.assertEquals(100, queued[0]['count'])
         # Ensure that the most recent event is on the queue
-        self.assertEquals('detail99', queued[0]['mydetail'])
+        self.assertEquals('detailvalue', queued[0]['mydetail'])
 
         evt_unique = createTestEvent(component='component2')
         self.queue.append(evt_unique.copy())
@@ -359,12 +359,33 @@ class TestDefaultFingerprintGenerator(BaseTestCase):
         self.generator = DefaultFingerprintGenerator()
 
     def testGenerate(self):
-        fmt_eventkey = "{device}|{component}|{eventClass}|{eventKey}|{severity}"
-        fmt_noeventkey = "{device}|{component}|{eventClass}|{severity}|{summary}"
         evt = createTestEvent()
-        self.assertEquals(fmt_eventkey.format(**evt), self.generator.generate(evt))
+        self.assertEquals('65e9075c8b854688217c45471bb837ede3157d53', self.generator.generate(evt))
         del evt['eventKey']
-        self.assertEquals(fmt_noeventkey.format(**evt), self.generator.generate(evt))
+        self.assertEquals('4f39c417bdee2731336bf6a9f22c89fbe4d987b0', self.generator.generate(evt))
+
+    def testDeDupingSensitivity(self):
+        evt = createTestEvent(device='dev1')
+        # changing an attribute should change fingerprint
+        for attr in "device component eventKey summary eventClass".split():
+            fp1 = self.generator.generate(evt)
+            evt[attr] += '***'
+            fp2 = self.generator.generate(evt)
+            self.assertNotEquals(fp1, fp2, "changing %s not detected in fingerprint" % attr)
+
+        # adding a new attribute should change fingerprint
+        fp1 = self.generator.generate(evt)
+        evt['new_attribute'] = 'zillion'
+        fp2 = self.generator.generate(evt)
+        self.assertNotEquals(fp1, fp2, "adding new key not detected in fingerprint")
+
+        # changing these attributes should NOT change fingerprint
+        for attr in 'rcvtime firstTime lastTime'.split():
+            evt[attr] = 'qwertyuiop'
+            fp1 = self.generator.generate(evt)
+            evt[attr] += '***'
+            fp2 = self.generator.generate(evt)
+            self.assertEquals(fp1, fp2, "changing %s not ignored in fingerprint" % attr)
 
 
 def test_suite():
