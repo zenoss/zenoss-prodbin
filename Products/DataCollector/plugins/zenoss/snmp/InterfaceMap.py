@@ -19,7 +19,7 @@ import re
 
 from Products.ZenUtils.Utils import cleanstring, unsigned
 from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
-from Products.ZenUtils.IpUtil import bytesToCanonIpv6
+from Products.ZenUtils import IpUtil
 
 class InterfaceMap(SnmpPlugin):
     """
@@ -136,26 +136,32 @@ class InterfaceMap(SnmpPlugin):
             # the first 4 octets will be the ipAddress we care about.
             # Regardless, we will be using the ip address in the row
             # later anyway.
-            if len(ip_parts) == 5 and sourceTable == 'ipAddrTable':
-                ip = '.'.join(ip_parts[:-1])
 
-            # If we are using the ipNetToMediaTable, we use the
-            # last 4 octets.
-            elif len(ip_parts) == 5 and sourceTable == 'ipNetToMediaTable':
-                if row['iptype'] != 1:
-                    log.debug("iptype (%s) is not 1 -- skipping" % (
-                             row['iptype'] ))
-                    continue
-                ip = '.'.join(ip_parts[1:])
-                log.warn("Can't find netmask -- using /24")
-                row['netmask'] = '255.255.255.0'
+            try:
+                if len(ip_parts) == 5 and sourceTable == 'ipAddrTable':
+                    addr_type = IpUtil.IPV4_ADDR_TYPE
+                    ip = IpUtil.bytesToCanonIp(ip_parts[:-1])
 
-            elif len(ip_parts) == 16:
-                ip = bytesToCanonIpv6(ip_parts)
-                if not ip:
-                    log.warn("The IPv6 address for ifindex %s is incorrect: %s",
-                             row['ifindex'], ip)
-                    continue
+                # If we are using the ipNetToMediaTable, we use the
+                # last 4 octets.
+                elif len(ip_parts) == 5 and sourceTable == 'ipNetToMediaTable':
+                    addr_type = IpUtil.IPV4_ADDR_TYPE
+                    if row['iptype'] != 1:
+                        log.debug("iptype (%s) is not 1 -- skipping" % (
+                                 row['iptype'] ))
+                        continue
+                    ip = IpUtil.bytesToCanonIp(ip_parts[1:])
+                    log.warn("Can't find netmask -- using /24")
+                    row['netmask'] = '255.255.255.0'
+
+                elif len(ip_parts) == 16:
+                    addr_type = IpUtil.IPV6_ADDR_TYPE
+                    ip = IpUtil.bytesToCanonIp(ip_parts)
+
+            except Exception:
+                log.warn("The %s address for ifindex %s is incorrect: %s",
+                         addr_type, row['ifindex'], ip)
+                continue
 
             strindex = str(row['ifindex'])
             if strindex not in omtable and strindex not in iftable:

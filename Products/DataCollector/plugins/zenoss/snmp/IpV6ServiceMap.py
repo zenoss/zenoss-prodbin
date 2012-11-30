@@ -16,11 +16,15 @@ all incoming requests (address ::).
 """
 
 from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
+from Products.ZenUtils import IpUtil
 
 import logging
 log = logging.getLogger('zen.IpV6ServiceMap')
 
 class IpV6ServiceMap(SnmpPlugin):
+
+    PORT_MIN = 0x1
+    PORT_MAX = 0xFFFF
 
     maptype = "IpServiceMap"
     compname = "os"
@@ -36,67 +40,65 @@ class IpV6ServiceMap(SnmpPlugin):
                     {'.1':'v4', '.2':'v6'}),
     )
 
-    def _extractAddressAndPort(self, oid, invalue):
-        print "running _extractAddressAndPort"
-        nullReturnValue = ('',0)
-        addr, port = nullReturnValue
+    def _extractAddressAndPort(self, oid):
         try:
-            oidparts = oid.split('.')
+            oid_parts = oid.split('.')
+            addr_type = int(oid_parts[0])
+            port = int(oid_parts[-1])
+            addr_parts = oid_parts[1:-1]
+            result = []
 
-            if 'v4' in invalue: #ipv4 binding
-                port = int(oidparts.pop())
-                addr = '.'.join(oidparts[-4:])
-            elif 'v6' in invalue: #ipv6 binding
-                port = int(oidparts.pop())
-                addr = '.'.join(oidparts[-16:])
-                if addr == '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0':
-                    addr = '0.0.0.0'
-                else:
-                    # can't handle v6 properly yet
-                    return nullReturnValue
-            else:
-                 # wha?
-                return nullReturnValue
+            if len(addr_parts) != addr_type:
+                log.debug("Invalid oid %s", oid) 
+                return []
+            if not self.PORT_MIN <= port <= self.PORT_MAX:
+                log.debug("Port value exceeds range for oid %s", oid)
+                return []
 
-        except Exception:
-            addr,port = nullReturnValue
+            addr = IpUtil.bytesToCanonIp(addr_parts)
+            result.append((addr, port))
 
-        return addr, port
+            # Any IPv6 address is inclusive of any IPv4 addresses as well
+            if addr == IpUtil.IPV6_ANY_ADDRESS:
+                result.append((IpUtil.IPV4_ANY_ADDRESS, port))
+        except Exception, e:
+            log.debug("Unable to process oid %s: %s", oid, e)
+            return []
+
+        return result
+
+    def _getProtocolObjectMap(self, protocol, addr, port):
+        om = self.objectMap()
+        om.id = "%s_%05d" % (protocol, port)
+        om.ipaddresses = [addr,]
+        om.protocol = protocol
+        om.port = port
+        om.setServiceClass = {'protocol': protocol, 'port': port}
+        om.discoveryAgent = self.name()
+        return om
 
     def _processTcp(self, tcplisten):
         result = []
-        for oid, value in tcplisten.items():
-            log.debug("tcp new %s %s" % (oid,value))
-            addr, port = self._extractAddressAndPort(oid, value)
-            if not addr:
-                continue
-
-            om = self.objectMap()
-            om.id = 'tcp_%05d' % port
-            om.ipaddresses = [addr,]
-            om.protocol = 'tcp'
-            om.port = port
-            om.setServiceClass = {'protocol': 'tcp', 'port':port}
-            om.discoveryAgent = self.name()
-            result.append(om)
+        for oid in tcplisten:
+            for addr, port in self._extractAddressAndPort(oid):
+                om = self._getProtocolObjectMap("tcp", addr, port)
+                result.append(om)
         return result
 
     def _processUdp(self, udpendpoint):
         result = []
-        for oid, value in udpendpoint.items():
-            addr, port = self._extractAddressAndPort(oid, value)
-            if not addr:
-                continue
-
-            om = self.objectMap()
-            om.id = 'udp_%05d' % port
-            om.ipaddresses = [addr,]
-            om.protocol = 'udp'
-            om.port = port
-            om.monitor = False
-            om.setServiceClass = {'protocol': 'udp', 'port':port}
-            om.discoveryAgent = self.name()
-            result.append(om)
+        for oid in udpendpoint:
+            # UDP returns local + remote information, but we only need local
+            # Format: local_addr_type.{ip address}.port.remote_addr_type.{ip address}.port
+            # Eg. 4.100.210.23.45.8080.4.235.45.56.4.2709
+            oid_parts = oid.split('.')
+            local_addr_type = int(oid_parts[0])
+            local_oid_parts = oid_parts[:local_addr_type + 2]
+            local_oid = '.'.join(local_oid_parts)
+            for addr, port in self._extractAddressAndPort(local_oid):
+                om = self._getProtocolObjectMap("udp", addr, port)
+                om.monitor = False
+                result.append(om)
         return result
 
     def _reduceByPort(self, maxport, rm, maps):

@@ -29,6 +29,14 @@ from twisted.internet import threads
 IP_DELIM = '..'
 INTERFACE_DELIM = '...'
 
+IPV4_ADDR_TYPE = "IPv4"
+IPV4_ADDR_LEN = 4
+IPV4_ANY_ADDRESS = "0.0.0.0"
+
+IPV6_ADDR_TYPE = "IPv6"
+IPV6_ADDR_LEN = 16
+IPV6_ANY_ADDRESS = "::"
+
 def _getPreferedIpVersion():
     """
     Determine the preferred ip version for DNS resolution.
@@ -38,9 +46,9 @@ def _getPreferedIpVersion():
     globalConf = GlobalConfig.getGlobalConfiguration()
     if PREFERRED_IP_KEY in globalConf:
         version = globalConf[PREFERRED_IP_KEY]
-        if version == 'ipv4':
+        if version.lower() == IPV4_ADDR_TYPE.lower():
             return socket.AF_INET
-        elif version == 'ipv6':
+        elif version.lower() == IPV6_ADDR_TYPE.lower():
             return socket.AF_INET6
         else:
             import sys
@@ -83,37 +91,42 @@ def ipunwrap_strip(ip):
     unwrapped = ipunwrap(ip)
     return ipstrip(unwrapped)
 
-def bytesToCanonIpv6(byteString):
+def _bytesToCanonIpv6(byteString):
     """
     SNMP provides a 16-byte index to table items, where the index
     represents the IPv6 address.
-    Return an empty string or the canonicalized IPv6 address.
-
-    >>> bytesToCanonIpv6( ['254','128','0','0','0','0','0','0','2','80','86','255','254','138','46','210'])
-    'fe80::250:56ff:fe8a:2ed2'
-    >>> bytesToCanonIpv6( ['253','0','0','0','0','0','0','0','0','0','0','0','10','175','210','5'])
-    'fd00::aaf:d205'
-    >>> bytesToCanonIpv6( ['hello','world'])
-    ''
-    >>> bytesToCanonIpv6( ['253','0','0','0','0','0','0','0','0','0','0','0','10','175','210','5'])
-    'fd00::aaf:d205'
     """
     # To form an IPv6 address, need to combine pairs of octets (in hex)
     # and join them with a colon
-    try:
-        left =  map(int, byteString[::2])
-        right = map(int, byteString[1::2])
-    except ValueError:
-        return ''
-    ipv6 = ':'.join("%x%02x" % tuple(x) for x in zip(left, right))
+    left =  map(int, byteString[::2])
+    right = map(int, byteString[1::2])
+    return ':'.join("%x%02x" % tuple(x) for x in zip(left, right))
 
-    # Now canonicalize the IP
-    ip = ''
-    try:
-        ip = str(IPAddress(ipv6))
-    except ValueError:
-        pass
-    return ip
+def bytesToCanonIp(byteString):
+    """
+    SNMP provides either a 4-byte or 16-byte index to table items, where the 
+    index represents an IPV4 or IPV6 address, respectively. Raises a ValueError
+    for incompatible types.    
+
+    >>> bytesToCanonIp( ['254','128','0','0','0','0','0','0','2','80','86','255','254','138','46','210'])
+    'fe80::250:56ff:fe8a:2ed2'
+    >>> bytesToCanonIp( ['253','0','0','0','0','0','0','0','0','0','0','0','10','175','210','5'])
+    'fd00::aaf:d205'
+    >>> bytesToCanonIp( ['hello','world'])
+    ''
+    >>> bytesToCanonIp( ['253','0','0','0','0','0','0','0','0','0','0','0','10','175','210','5'])
+    'fd00::aaf:d205'
+    """
+
+    byteStringLen =  len(byteString)
+    if byteStringLen == IPV4_ADDR_LEN:
+       rawIpStr = '.'.join(byteString)
+    elif byteStringLen == IPV6_ADDR_LEN:
+       rawIpStr = _bytesToCanonIpv6(byteString)
+    else:
+       raise ValueError("Unsupported IP Address: %s" % '.'.join(byteString))
+
+    return str(IPAddress(rawIpStr))
 
 
 class IpAddressError(ZentinelException): pass
