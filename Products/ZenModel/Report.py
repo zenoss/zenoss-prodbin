@@ -52,7 +52,8 @@ def manage_addReport(context, id, title = None, text=None,
 
         context._setObject(id, zpt)
 
-        audit('UI.Report.Add', zpt.id, title=title, text=text, reportType=getDisplayType(zpt), organizer=context)
+        audit('UI.Report.Add', zpt.id, title=title, text=text, 
+              reportType=getDisplayType(zpt), organizer=context)
 
         try:
             u = context.DestinationURL()

@@ -2277,5 +2277,5 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 if intf.macaddress:
                     macs.append(intf.macaddress)
         return macs
-
+    
 InitializeClass(Device)

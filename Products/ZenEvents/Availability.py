@@ -85,11 +85,12 @@ class Availability(object):
         return time.time()
 
     # Simple record for holding availability information
-    def __init__(self, device, component, downtime, total, systems='', link=''):
+    def __init__(self, device, component, downtime, total, systems='', link='', title=''):
         self.device = device
         self.systems = systems
         self.component = component
         self.link = link
+        self.title = title
 
         # Guard against endDate being equal to or less than startDate.
         if total <= 0:
@@ -308,7 +309,8 @@ class Report(object):
             if device:
                 sysname = device.getSystemNamesString()
                 link = device.getDeviceLink()
-                availabilityReport.append(Availability(deviceId, '', downtime, total_report_window, sysname, link))
+                title = device.titleOrId()
+                availabilityReport.append(Availability(deviceId, '', downtime, total_report_window, sysname, link, title))
                 device._p_invalidate()
         return availabilityReport
 

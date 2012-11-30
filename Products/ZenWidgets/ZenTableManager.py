@@ -236,6 +236,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
             class Wrapper:
                 def __init__(self, field, cargo):
                     if callable(field): field = field()
+                    #make sorting case-insensitive
+                    if isinstance(field, basestring): field = field.lower()
                     self.field = field
                     self.cargo = cargo
             if isinstance(objects[0], dict):
@@ -251,6 +253,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             sortedSence = request.sortedSence
             sortRule = getattr(aq_base(request), "sortRule", "cmp")
             objects = dictAwareSort(objects, sortedHeader, sortRule, sortedSence)
+
         return objects
 
 

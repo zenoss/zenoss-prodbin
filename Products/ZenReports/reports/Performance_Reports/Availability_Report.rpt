@@ -155,23 +155,18 @@
 
   <tr>
     <th tal:replace="structure python:tm.getTableHeader(
-                          tableName,'device','Device')"/>
+                          tableName,'title','Device')"/>
     <th tal:replace="structure python:tm.getTableHeader(
                           tableName,'systems','Systems')"/>
     <th tal:replace="structure python:tm.getTableHeader(
                           tableName,'availability','Availability')"/>
   </tr>
   <tal:block tal:repeat="avail batch">
-    <tr tal:define="dev python:avail.getDeviceLink();"
-    >
-      <td class="tablevalues"
-          tal:condition="dev"
-          tal:content="structure dev"/>
-      <td class="tablevalues"
-          tal:condition="not:dev"
-          tal:content="avail/device"/>
-      <td class="tablevalues" 
-		  tal:content="avail/systems" />
+    <tr tal:define="dev python:avail.getDeviceLink();">
+      <td class="tablevalues" tal:condition="dev" tal:content="structure dev"/>
+      <td class="tablevalues" tal:condition="not:dev" 
+                              tal:content="avail/device"/>
+      <td class="tablevalues" tal:content="avail/systems" />
       <td class="tablevalues" tal:content="avail/floatStr"/>
    </tr>
   </tal:block>

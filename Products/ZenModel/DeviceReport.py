@@ -120,6 +120,7 @@ class DeviceReport(BaseReport):
         for i, field in enumerate(self.columns):
             try:name = self.colnames[i]
             except IndexError: name = field
+            
             h.append(self.ZenTableManager.getTableHeader(tname , field, name))
         return "\n".join(h)
 
@@ -129,6 +130,9 @@ class DeviceReport(BaseReport):
         for i, field in enumerate(self.columns):
             try:name = self.colnames[i]
             except IndexError: name = field
+            
+            if field == 'getId': field = 'titleOrId'
+            elif field == 'getManageIp': field = 'ipAddressAsInt'
             h.append((field, name))
         return h
 
