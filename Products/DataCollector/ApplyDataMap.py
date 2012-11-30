@@ -79,7 +79,7 @@ class ApplyDataMap(object):
             compname = getattr(component, 'id', component)
             if device.id == compname:
                 compname = ""
-        except: pass
+        except Exception: pass
         log.debug(msg)
         devname = device.device().id
         if (self.datacollector
@@ -142,12 +142,9 @@ class ApplyDataMap(object):
             trans.setUser("datacoll")
             trans.note("data applied from automated collection")
             trans.commit()
-        except (SystemExit, KeyboardInterrupt):
-            raise
-        except:
+        except Exception:
             transaction.abort()
             log.exception("Plugin %s device %s", pname, device.getId())
-
 
     def applyDataMap(self, device, datamap, relname="", compname="", modname=""):
         """Apply a datamap passed as a list of dicts through XML-RPC.
@@ -252,7 +249,7 @@ class ApplyDataMap(object):
                         import inspect
                         existing_modname = inspect.getmodule(obj).__name__
                         existing_classname = obj.__class__.__name__
-                    except:
+                    except Exception:
                         pass
 
                     if objmap.modname == existing_modname and \
@@ -286,7 +283,7 @@ class ApplyDataMap(object):
             if isinstance(obj, Lockable) and obj.isLockedFromDeletion():
                 objname = obj.id
                 try: objname = obj.name()
-                except: pass
+                except Exception: pass
                 msg = "Deletion Blocked: %s '%s' on %s" % (
                         obj.meta_type, objname,obj.device().id)
                 log.warn(msg)
@@ -314,7 +311,7 @@ class ApplyDataMap(object):
             else:
                 objname = obj.id
                 try: objname = obj.name()
-                except: pass
+                except Exception: pass
                 msg = "Update Blocked: %s '%s' on %s" % (
                         obj.meta_type, objname ,device.id)
             log.warn(msg)
@@ -396,7 +393,7 @@ class ApplyDataMap(object):
                     changed = True
         if not changed:
             try: changed = obj._p_changed
-            except: pass
+            except Exception: pass
         if changed:
             if getattr(aq_base(obj), "index_object", False):
                 log.debug("indexing object %s", obj.id)
@@ -427,7 +424,7 @@ class ApplyDataMap(object):
         if realdevice.isLockedFromUpdates():
             objtype = ""
             try: objtype = objmap.modname.split(".")[-1]
-            except: pass
+            except Exception: pass
             msg = "Add Blocked: %s '%s' on %s" % (
                     objtype, id, realdevice.id)
             log.warn(msg)

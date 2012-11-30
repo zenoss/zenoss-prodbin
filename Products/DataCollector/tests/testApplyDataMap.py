@@ -92,6 +92,45 @@ class ApplyDataMapTest(BaseTestCase):
                             return []
         self.adm.applyDataMap(Device(), datamap(), datamap.relname, datamap.compname)
 
+    def test_applyDataMap_relmapException(self):
+    	'''test_applyDataMap_exception is mostly the same as test_applyDataMap_relmap
+    	     - difference #1: compname is commented out
+	     - difference #2: with self.assertRaises(AttributeError) is added
+    	'''
+        dmd = self.dmd
+        class datamap(list):
+            #compname = "a/b"
+            relname  = "c"
+
+        class Device(object):
+
+            def deviceClass(self):
+                return dmd.Devices
+
+            class dmd:
+                "Used for faking sync()"
+                class _p_jar:
+                    @staticmethod
+                    def sync():
+                        pass
+
+            def getObjByPath(self, path):
+                return reduce(getattr, path.split("/"), self)
+
+            class a:
+                class b:
+                    class c:
+                        "The relationship to populate"
+                        @staticmethod
+                        def objectIdsAll():
+                            "returns the list of object ids in this relationship"
+                            return []
+ 
+        with self.assertRaises(AttributeError) as theException:
+            self.adm.applyDataMap(Device(), datamap(), datamap.relname, datamap.compname)
+
+        self.assertEqual(theException.exception.message, "type object 'datamap' has no attribute 'compname'")
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
