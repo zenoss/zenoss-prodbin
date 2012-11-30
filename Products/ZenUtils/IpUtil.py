@@ -558,3 +558,12 @@ def ensureIp(ip):
             octets[idx] = '0'
             
     return '.'.join(octets)
+
+def isRemotelyReachable(ip):
+    """
+    Given an IP Address string, returns a boolean if the given ip can be 
+    reached remotely.
+    """
+
+    ip_address = IPAddress(ip)
+    return not ip_address.is_link_local and not ip_address.is_loopback

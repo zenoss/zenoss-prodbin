@@ -13,6 +13,7 @@ Collect running IP services using netstat -a
 """
 
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
+from Products.ZenUtils import IpUtil
 
 class netstat_an(LinuxCommandPlugin):
     maptype = "IpServiceMap" 
@@ -39,30 +40,22 @@ class netstat_an(LinuxCommandPlugin):
 
         rm = self.relMap()
         ports = {}
-        for line in results.split("\n"):
+        for line in results.splitlines():
             aline = line.split()
             if len(aline) < 5: continue
             try:
-                proto = aline[0]
+                proto, local = aline[0], aline[3]
                 if proto == "raw":
                     continue
-                listar = aline[3].split(":")
-                addr = port = ""
-                if len(listar) == 2:
-                    addr, port = listar
-                elif len(listar) == 4:
-                    addr = "0.0.0.0"
-                    port = listar[-1]
-                else:
-                    continue
-
+                addr, port = local.rsplit(":", 1) 
                 log.debug("Got %s %s port %s", addr, proto, port)
-                if addr == "127.0.0.1" or not port: # Can't monitor things we can't reach
+                if not IpUtil.isRemotelyReachable(addr) or not port:
+                    # Can't monitor things we can't reach
                     continue
-
                 port = int(port)
                 if port > maxport:
-                    log.debug("Ignoring entry greater than zIpServiceMapMaxPort (%s): %s %s %s",
+                    log.debug("Ignoring entry greater than " \
+                              "zIpServiceMapMaxPort (%s): %s %s %s",
                               maxport, addr, proto, port)
                     continue
             except ValueError:
@@ -91,4 +84,5 @@ class netstat_an(LinuxCommandPlugin):
                 rm.append(om)
 
         log.debug("Found %d IPServices", len(ports.keys()))
+
         return rm
