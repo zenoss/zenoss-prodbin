@@ -47,13 +47,13 @@ class Nagios(CommandParser):
         """
         Convert the plugin output into component parts:
              summary, performance_data
-        Empty output or no performance data raises a _BadData exception.
         """
         output = output.strip()
+        text, perf = [], []
         if not output:
-            raise _BadData("No output from plugin")
+            return text, perf
 
-        # Expected format is:
+        # Expected format is (assuming performance data):
         #
         #    <text>|<perf data>
         #    <extra text>
@@ -87,10 +87,6 @@ class Nagios(CommandParser):
             # Extract perf data (if any)
             if segments:
                 perf.extend(segments.pop(0).splitlines())
-
-        # No perf data is an error
-        if not perf:
-            raise _BadData("No performance data from plugin")
 
         return text, perf
 
@@ -137,7 +133,7 @@ class Nagios(CommandParser):
             }
         try:
             summary, rawPerfData = self.splitMultiLine(output)
-        except _BadData as ex:
+        except Exception as ex:
             evt.update({
                 "error_codes": "Datasource: %s - Code: %s - Msg: %s" % (
                    cmd.name, exitCode, getExitMessage(exitCode)
@@ -148,10 +144,12 @@ class Nagios(CommandParser):
         else:
             evt.update({
                 "performanceData": rawPerfData,
-                "summary": summary,
+                "summary": summary[0],
+                "message": '\n'.join(summary),
             })
             perfData = self.processPerfData(rawPerfData)
             for dp in cmd.points:
                 if dp.id in perfData:
                     result.values.append((dp, perfData[dp.id]))
         result.events.append(evt)
+
