@@ -113,7 +113,9 @@ def bytesToCanonIp(byteString):
     >>> bytesToCanonIp( ['253','0','0','0','0','0','0','0','0','0','0','0','10','175','210','5'])
     'fd00::aaf:d205'
     >>> bytesToCanonIp( ['hello','world'])
-    ''
+    Traceback (most recent call last):
+        ...
+    ValueError: Unsupported IP Address: hello.world
     >>> bytesToCanonIp( ['253','0','0','0','0','0','0','0','0','0','0','0','10','175','210','5'])
     'fd00::aaf:d205'
     """

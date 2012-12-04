@@ -151,7 +151,7 @@ class SettingLine(ConfigLine):
     """
     Represents a config line with a `key = value` pair.
     """
-    _regexp = re.compile(r'^(?P<key>[a-z][a-z\d_-]*)\s*(?P<delim>(=|:|\s)*)\s*(?P<value>.*)$', re.I)
+    _regexp = re.compile(r'^(?P<key>[a-z]+([a-z\d_]|-[a-z\d_])*)\s*(?P<delim>(=|:|\s)*)\s*(?P<value>.*)$', re.I) 
 
     def __init__(self, key, value=None, delim='='):
         self.key = key
@@ -352,7 +352,9 @@ class ConfigLoader(object):
             else:
                 options = self.parser(file)
 
-            self._config.update(options)
+            for key, value in options: 
+  	  	self._config[key.replace('-','_')] = value 
+
 
     def __call__(self):
         """
