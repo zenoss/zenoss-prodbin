@@ -184,7 +184,7 @@ def findCommunity(context, ip, devicePath,
                 goodversion = version
                 break
             except (SystemExit, KeyboardInterrupt, POSError): raise
-            except: pass #keep trying until we run out
+            except Exception: pass #keep trying until we run out
         if goodcommunity:
                 break
     else:
@@ -1111,13 +1111,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
           performanceMonitor -- collector name [string]
 
         """
-        if 'title' in kwargs and kwargs['title'] is not None and str(kwargs['title']).strip():
-            log.info("setting title to %r" % kwargs['title'])
-            self.title = kwargs['title']
-        if 'tag' in kwargs and kwargs['tag'] is not None:
+        if 'title' in kwargs and kwargs['title'] is not None:
+            newTitle = str(kwargs['title']).strip()
+            if newTitle and newTitle != self.title:
+                log.info("setting title to %r" % newTitle)
+                self.title = newTitle
+        if 'tag' in kwargs and kwargs['tag'] is not None and kwargs['tag'] != self.hw.tag:
             log.info("setting tag to %r" % kwargs['tag'])
             self.hw.tag = kwargs['tag']
-        if 'serialNumber' in kwargs and kwargs['serialNumber'] is not None:
+        if 'serialNumber' in kwargs and kwargs['serialNumber'] is not None and \
+                kwargs['serialNumber'] != self.hw.serialNumber:
             log.info("setting serialNumber to %r" % kwargs['serialNumber'])
             self.hw.serialNumber = kwargs['serialNumber']
 
@@ -1139,19 +1142,24 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 # need to check here
                 self.setZenProperty(prop, value)
 
-        if 'rackSlot' in kwargs:
+        if 'rackSlot' in kwargs and kwargs['rackSlot'] != self.rackSlot:
+            # rackSlot may be a string or integer
             log.info("setting rackSlot to %r" % kwargs["rackSlot"])
             self.rackSlot = kwargs["rackSlot"]
 
         if 'productionState' in kwargs:
-            log.info("setting productionState to %r" % kwargs["productionState"])
+            # Always set production state, but don't log it if it didn't change.
+            if kwargs['productionState'] != self.productionState:
+                prodStateName = self.dmd.convertProdState(int(kwargs['productionState']))
+                log.info("setting productionState to %s" % prodStateName)
             self.setProdState(kwargs["productionState"])
 
-        if 'priority' in kwargs:
-            log.info("setting priority to %r" % kwargs["priority"])
+        if 'priority' in kwargs and int(kwargs['priority']) != self.priority:
+            priorityName = self.dmd.convertPriority(kwargs['priority'])
+            log.info("setting priority to %s" % priorityName)
             self.setPriority(kwargs["priority"])
 
-        if 'comments' in kwargs:
+        if 'comments' in kwargs and kwargs['comments'] != self.comments:
             log.info("setting comments to %r" % kwargs["comments"])
             self.comments = kwargs["comments"]
 
@@ -1944,7 +1952,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 if result:
                     RRDView.updateCache(zip(paths, result))
             except Exception:
-                log.exception("Unable to cache values for %s", self.id);
+                log.exception("Unable to cache values for %s", self.id)
 
 
     def getUserCommandTargets(self):

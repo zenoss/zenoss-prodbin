@@ -115,7 +115,7 @@ class ZenModeler(PBDaemon):
         # Make sendEvent() available to plugins
         zope.component.provideUtility(self, IEventService)
 
-        # Delay start for between 10 and 60 minutes when run as a daemon.
+        # Delay start for between 10 and 60 seconds when run as a daemon.
         self.started = False
         self.startDelay = 0
         self.immediate = 1
