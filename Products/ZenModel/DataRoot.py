@@ -336,6 +336,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         '''convert a numeric production state to a
         textual representation using the prodStateConversions
         map'''
+        if numbValue is None:
+            return 'Unknown'
+        
         numbValue = int(numbValue)
         for line in conversions:
             line = line.rstrip()
