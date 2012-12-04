@@ -17,9 +17,6 @@ Determines the availability of a IP addresses using ping (ICMP).
 """
 import sys
 import os.path
-import re
-import socket
-import time
 import logging
 log = logging.getLogger("zen.zenping")
 
@@ -29,8 +26,7 @@ import zope.component
 
 from Products import ZenStatus
 from Products.ZenCollector import daemon 
-from Products.ZenCollector import interfaces 
-from Products.ZenCollector import tasks 
+from Products.ZenCollector import tasks
 from Products.ZenUtils import IpUtil
 from Products.ZenUtils.FileCache import FileCache
 
@@ -40,6 +36,7 @@ from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.PingPerformanceConfig import PingPerformanceConfig
 unused(DeviceProxy)
 unused(PingPerformanceConfig)
+unused(Globals)
 
 # define some constants strings
 COLLECTOR_NAME = "zenping"
@@ -49,7 +46,7 @@ class PerIpAddressTaskSplitter(tasks.SubConfigurationTaskSplitter):
     subconfigName = 'monitoredIps'
 
     def makeConfigKey(self, config, subconfig):
-        return (config.id, subconfig.cycleTime, IpUtil.ipunwrap(subconfig.ip))
+        return config.id, subconfig.cycleTime, IpUtil.ipunwrap(subconfig.ip)
 
 def getConfigOption(filename, option, default):
     """
@@ -58,10 +55,10 @@ def getConfigOption(filename, option, default):
     if not os.path.exists(filename):
         return default
     with open(filename, 'r') as f:
-	lines = [ line.strip() for line in f.readlines() if not line.startswith('#') and line ]
-	for line in reversed(lines):
-	    parts = line.split()
-	    if len(parts): 
+        lines = [ line.strip() for line in f.readlines() if not line.startswith('#') and line ]
+        for line in reversed(lines):
+            parts = line.split()
+            if len(parts):
                 if parts[0] == option:
                     if len(parts) < 2:
                         return True
@@ -74,8 +71,8 @@ def getCmdOption(option, default):
     buildOptions doesn't get called until later.
     """
     try:
-	optionStr = "--%s" % option
-	optionStrEq = "--%s=" % option
+        optionStr = "--%s" % option
+        optionStrEq = "--%s=" % option
         for i, arg in enumerate(sys.argv):
             if arg == optionStr:
                 return sys.argv[i+1]
@@ -95,13 +92,13 @@ def getPingBackend():
 
     configFiles = ['global.conf']
     if monitor == 'localhost':
-	configFiles.append("zenping.conf")
+        configFiles.append("zenping.conf")
     else:
-	configFiles.append("%s_zenping.conf" % monitor)
+        configFiles.append("%s_zenping.conf" % monitor)
 
     backend = 'nmap'
     for configFile in configFiles:
-	backend = getConfigOption(zenPath('etc', configFile), 'ping-backend', backend)
+        backend = getConfigOption(zenPath('etc', configFile), 'ping-backend', backend)
     return backend
 
 
@@ -112,7 +109,7 @@ if __name__ == '__main__':
     from Products.Five import zcml
     zcml.load_site()
     pingBackend = getPingBackend()
-    
+
     myPreferences = zope.component.getUtility(ZenStatus.interfaces.IPingCollectionPreferences, pingBackend)
     myTaskFactory = zope.component.getUtility(ZenStatus.interfaces.IPingTaskFactory, pingBackend)
     myTaskSplitter = PerIpAddressTaskSplitter(myTaskFactory)
