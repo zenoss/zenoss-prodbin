@@ -139,8 +139,7 @@ class CommandPerformanceConfig(CollectorConfigService):
 
                 try:
                     cmd.command = ds.getCommand(comp)
-                except ConflictError: raise
-                except Exception: # TALES error
+                except Exception as ex: # TALES error
                     msg = "TALES error for device %s datasource %s" % (
                                device.id, ds.id)
                     details = dict(
@@ -148,6 +147,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                            datasource=ds.id,
                            affected_device=device.id,
                            affected_component=comp.id,
+                           tb_exception=str(ex),
                            resolution='Could not create a command to send to zencommand' \
                                       ' because TALES evaluation failed.  The most likely' \
                                       ' cause is unescaped special characters in the command.' \
