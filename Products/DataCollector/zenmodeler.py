@@ -1152,6 +1152,17 @@ class ZenModeler(PBDaemon):
         # we fetch the device list before every scan
         self.log.debug("Asynch deleteDevice %s" % device)
 
+    def remote_deleteDevices(self, devices):
+        """
+        Stub function
+
+        @param devices: device ids (unused)
+        @type device: set
+        @todo: implement
+        """
+        # we fetch the device list before every scan
+        self.log.debug("Asynch deleteDevices {0}".format(len(devices)))
+
 
 if __name__ == '__main__':
     dc = ZenModeler()

@@ -315,6 +315,13 @@ class CollectorDaemon(RRDDaemon):
         """
         self._deleteDevice(devId)
 
+    def remote_deleteDevices(self, deviceIds):
+        """
+        Called remotely by ZenHub when devices we're monitoring are deleted.
+        """
+        for devId in deviceIds:
+            self._deleteDevice(devId)
+
     def remote_updateDeviceConfig(self, config):
         """
         Called remotely by ZenHub when asynchronous configuration updates occur.
