@@ -1667,3 +1667,7 @@ a.z-entity:hover{
     background-image: none; 
     box-shadow: none;
 }
+/* jobs FF bug fix. Forces FF to re-render the item resulting in correct placement */
+#jobs .commonlivegridinfopanel{
+    top: 0px;
+}
