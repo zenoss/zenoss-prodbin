@@ -1323,9 +1323,20 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 text: _t('Select'),
                 listeners: {
                     afterrender: function(e){
-                        e.menu.items.items[0].setText(Ext.String.format(_t("{0} at a time"),  e.up().ownerCt.getStore().pageSize) );
+                        var textItem = e.menu.items.items[0];
+                        var store = Ext.getCmp('device_grid').getStore();                        
+                        store.on('load', function(){ 
+                            /*
+                                added the guaranteeRange so that when the user is selecting the expected pagesize in select(all/none),
+                                they'll actually get the advertised range. Otherwise, it only loads some unexpected amount over the view
+                                which can be different depending on how tall the viewable grid is (and is NOT the pageSize, nor does it 
+                                take the pageSize into account). This forces consistency. 
+                            */
+                            store.guaranteeRange(0, store.pageSize-1);
+                            textItem.setText(Ext.String.format(_t("{0} at a time"),  store.data.items.length) );                       
+                        }, this); 
                     }
-                },
+                },  
                 menu:[
                     {
                         text: _t("All"),
