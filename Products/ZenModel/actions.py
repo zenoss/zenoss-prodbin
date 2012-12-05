@@ -655,7 +655,9 @@ class SNMPTrapAction(IActionBase):
            'current_user_name' :            (29, event),
            'cleared_by_event_uuid' :        (31, event),
            'zenoss.device.priority' :       (32, details),
-           'event_class_mapping_uuid':      (33, event)
+           'event_class_mapping_uuid':      (33, event),
+           'element_title':                 (34, actor),
+           'element_sub_title':             (35, actor)
            }
 
         eventDict = self.createEventDict(fields, event)
