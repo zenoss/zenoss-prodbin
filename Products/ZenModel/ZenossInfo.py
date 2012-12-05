@@ -512,6 +512,10 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         # overriden by distributed collector -- see DistributedServer.py
         return isZenBinFile(daemon)
 
+    def getDaemonName(self, daemon):
+        # overridden by distributed collector -- see DistributedServer.py
+        return daemon
+
     def _getLogPath(self, daemon):
         """
         Returns the path the log file for the daemon this is monkey-patched
@@ -543,7 +547,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             daemon = 'event'
         elif daemon == 'zeoctl':
             daemon = 'zeo'
-        if daemon != 'event' and daemon not in self._getDaemonList():
+        if daemon != 'event' and self.getDaemonName(daemon) not in self._getDaemonList():
             return ''
         filename = self._getLogPath(daemon)
         # if there is no data read, we don't want to return something that can
