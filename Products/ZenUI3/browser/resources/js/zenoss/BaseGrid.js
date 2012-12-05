@@ -564,6 +564,9 @@
                 this.selectedNodes = [];
             }
         },
+        clearSavedSelections: function() {
+            this.selectedNodes = [];
+        },
         applyOptions:function (options) {
             // Do nothing in the base implementation
         },

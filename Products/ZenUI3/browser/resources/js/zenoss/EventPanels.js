@@ -1,12 +1,12 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
- 
+
 (function(){
     Ext.ns('Zenoss.events');
 
@@ -85,7 +85,7 @@
                     selectOnFocus: true,
                     listConfig: {
                         id: 'add_event_severity_combo_list'
-                    }                    
+                    }
                 },{
                     xtype: 'textfield',
                     fieldLabel: _t('Event Class Key'),
@@ -534,8 +534,13 @@
                         grid = Ext.getCmp('event_panel');
                     }
                     if (grid) {
-                        grid.updateRows();
-                        grid.getSelectionModel().clearSelections();
+                        // make sure nothing is selected, and we have nothing saved
+                        grid.getSelectionModel().selectNone();
+                        grid.clearSavedSelections();
+
+                        // completely reload the store so the user does not
+                        // have the chance to see cached events if they scroll
+                        grid.getStore().load();
                     }
                 },
                 findParams: function() {
@@ -589,7 +594,7 @@
                         itemId: 'acknowledge',
                         handler: function() {
                             Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.acknowledge);
-                        }                    
+                        }
                     }),
                     new Zenoss.ActionButton({
                         iconCls: 'close',
@@ -613,7 +618,7 @@
                         }
                     }),
                     new Zenoss.ActionButton({
-                        iconCls: 'unacknowledge', 
+                        iconCls: 'unacknowledge',
                         tooltip: _t('Unacknowledge events'),
                         permission: 'Manage Events',
                         itemId: 'unacknowledge',
@@ -867,6 +872,7 @@
             },
             selectNone: function(){
                 this.clearSelections(true);
+                this.clearSelectState();
                 // Fire one selectionchange to make buttons figure out their
                 // disabledness
                 this.fireEvent('selectionchange', this);
@@ -1048,7 +1054,7 @@
             return params;
         },
         clearFilters: function(){
-            this.filterRow.clearFilters();        
+            this.filterRow.clearFilters();
         },
         /*
          * Create parameters used for exporting events. This differs from
