@@ -986,6 +986,7 @@
             });
             this.callParent(arguments);
             this.on('itemclick', this.onItemClick, this );
+            this.on('filterschanged', this.onFiltersChanged, this);
         },
         initComponent: function() {
             this.getSelectionModel().grid = this;
@@ -1055,6 +1056,12 @@
         },
         clearFilters: function(){
             this.filterRow.clearFilters();
+        },
+        onFiltersChanged: function(grid, values) {
+            // ZEN-4441: Clear selections whenever the filter changes.
+            var sm = grid.getSelectionModel();
+            sm.clearSelections();
+            sm.clearSelectState();
         },
         /*
          * Create parameters used for exporting events. This differs from
