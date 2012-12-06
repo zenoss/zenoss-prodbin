@@ -51,7 +51,7 @@ class Nagios(CommandParser):
         output = output.strip()
         text, perf = [], []
         if not output:
-            return text, perf
+            raise Exception("No output from COMMAND plugin")
 
         # Expected format is (assuming performance data):
         #
