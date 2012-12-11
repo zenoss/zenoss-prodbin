@@ -1671,3 +1671,14 @@ a.z-entity:hover{
 #jobs .commonlivegridinfopanel{
     top: 0px;
 }
+
+/* some overrides for the backcompat graphs under reports */
+#graph_report_form .zentable .x-toolbar-text{
+    width:295px;
+    overlfow:hidden;
+}
+#graph_report_form .zentable .innerzentable .x-panel-body,
+#graph_report_form .zentable .innerzentable .x-panel-default{
+    height:auto !important;
+    padding-bottom:20px;
+}

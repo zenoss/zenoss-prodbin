@@ -20,7 +20,7 @@ var reportId = &quot;${here/getPrimaryId}&quot;;
         action python:here.absolute_url_path() + '/viewGraphReportClean';">
 </form>
 
-<form method="post"
+<form method="post" id="graph_report_form"
     tal:attributes="action string:${here/absolute_url_path}/${template/id}">
 
 <script language="javascript" type="text/javascript">
