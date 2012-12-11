@@ -30,6 +30,7 @@ import time
 import signal
 import cPickle as pickle
 import os
+import subprocess
 from random import choice
 
 from twisted.cred import portal, checkers, credentials
@@ -86,6 +87,11 @@ from Products.ZenHub import ZENHUB_ZENRENDER
 HubWorklistItem = collections.namedtuple('HubWorklistItem', 'priority recvtime deferred servicename instance method args')
 WorkerStats = collections.namedtuple('WorkerStats', 'status description lastupdate previdle')
 LastCallReturnValue = collections.namedtuple('LastCallReturnValue', 'returnvalue')
+
+try:
+    NICE_PATH = subprocess.check_output('which nice', shell=True).strip()
+except Exception:
+    NICE_PATH = None
 
 class AuthXmlRpcService(XmlRpcService):
     """Provide some level of authentication for XML/RPC calls"""
@@ -815,7 +821,6 @@ class ZenHub(ZCmdBase):
         if len(self.worker_processes) >= self.options.workers:
             self.log.info("already at maximum number of worker processes, no worker will be created")
             return
-        exe = zenPath('bin', 'zenhubworker')
 
         # watch for output, and generally just take notice
         class WorkerRunningProtocol(protocol.ProcessProtocol):
@@ -851,7 +856,13 @@ class ZenHub(ZCmdBase):
                     self.log.info("Starting new zenhubworker")
                     self.parent.createWorker()
 
-        args = (exe, 'run', '-C', self.workerconfig)
+        if NICE_PATH:
+            exe = NICE_PATH
+            args = (NICE_PATH, "-n", "%+d" % self.options.hubworker_priority,
+                zenPath('bin', 'zenhubworker'), 'run', '-C', self.workerconfig)
+        else:
+            exe = zenPath('bin', 'zenhubworker')
+            args = (exe, 'run', '-C', self.workerconfig)
         self.log.debug("Starting %s", ' '.join(args))
         prot = WorkerRunningProtocol(self)
         proc = reactor.spawnProcess(prot, exe, args, os.environ)
@@ -944,6 +955,8 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--workers', dest='workers',
             type='int', default=2,
             help="Number of worker instances to handle requests")
+        self.parser.add_option('--hubworker-priority', type='int', default=5,
+            help="Relative process priority for hub workers (%default)")
         self.parser.add_option('--prioritize', dest='prioritize',
             action='store_true', default=False,
             help="Run higher priority jobs before lower priority ones")
