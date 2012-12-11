@@ -1682,3 +1682,10 @@ a.z-entity:hover{
     height:auto !important;
     padding-bottom:20px;
 }
+#add_graph_point{
+    position:relative;
+}
+#add_graph_point #dialog_buttons{
+    position:absolute;
+    top:40px;
+}
