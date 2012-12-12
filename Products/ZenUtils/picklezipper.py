@@ -23,7 +23,7 @@ class _PickleZipper(object):
 
     def dump(self, obj):
         l = []
-        compressed = zlib.compress(cPickle.dumps(obj))
+        compressed = zlib.compress(cPickle.dumps(obj, protocol=cPickle.HIGHEST_PROTOCOL))
         with closing(StringIO(compressed)) as buffer:
             s = buffer.read(self.chunk_size)
             while s:
