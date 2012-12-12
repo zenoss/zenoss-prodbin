@@ -98,7 +98,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
 
     def clientConnectionLost(self, connector, reason, reconnecting=1):
         zenlog.debug("Lost connection to %s:%s - %s", connector.host,
-                     connector.port, reason)
+                     connector.port, reason.getErrorMessage())
         self._perspective = None
         self._cancelConnectTimeout()
         PBClientFactory.clientConnectionLost(self, connector, reason,
