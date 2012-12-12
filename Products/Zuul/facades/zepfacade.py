@@ -344,28 +344,25 @@ class ZepFacade(ZuulFacade):
                                        offset=offset, limit=limit
                                        )
 
-    def getEventSummariesGenerator(self, filter=None, exclude=None, sort=None, archive=False):
-        if exclude is not None and isinstance(exclude,dict):
+    def getEventSummariesGenerator(self, filter=None, exclude=None, sort=None, archive=False, timeout=None):
+        if isinstance(exclude, dict):
             exclude = from_dict(EventFilter, exclude)
-        if filter is not None and isinstance(filter,dict):
+        if isinstance(filter, dict):
             filter = from_dict(EventFilter, filter)
         if sort is not None:
             sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
-        searchid = self.client.createSavedSearch(event_filter=filter, exclusion_filter=exclude, sort=sort, archive=archive)
+        searchid = self.client.createSavedSearch(event_filter=filter, exclusion_filter=exclude, sort=sort,
+                                                 archive=archive, timeout=timeout)
         log.debug("created saved search %s", searchid)
         eventSearchFn = partial(self.client.savedSearch, searchid, archive=archive)
         offset = 0
         limit = 1000
         try:
-            while True:
+            while offset is not None:
                 result = self._getEventSummaries(eventSearchFn, offset, limit)
                 for evt in result['events']:
                     yield evt
-                if result['next_offset'] is not None:
-                    offset = result['next_offset']
-                else:
-                    break
-
+                offset = result['next_offset']
         finally:
             try:
                 log.debug("closing saved search %s", searchid)
@@ -381,7 +378,7 @@ class ZepFacade(ZuulFacade):
         status, response = self.client.nextEventSummaryUpdate(from_dict(EventSummaryUpdateRequest, next_request))
         return status, to_dict(response)
 
-    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None):
+    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
         if eventFilter:
             eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
@@ -392,10 +389,11 @@ class ZepFacade(ZuulFacade):
         else:
             userUuid = self._getUserUuid(userName)
         status, response = self.client.closeEventSummaries(
-            userUuid, userName, eventFilter, exclusionFilter, limit)
+            userUuid, userName, eventFilter, exclusionFilter, limit, timeout=timeout)
         return status, to_dict(response)
 
-    def acknowledgeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None):
+    def acknowledgeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None,
+                                  timeout=None):
         if eventFilter:
             eventFilter = from_dict(EventFilter, eventFilter)
 
@@ -407,10 +405,10 @@ class ZepFacade(ZuulFacade):
         else:
             userUuid = self._getUserUuid(userName)
         status, response = self.client.acknowledgeEventSummaries(userUuid, userName, eventFilter, exclusionFilter,
-                                                                 limit)
+                                                                 limit, timeout=timeout)
         return status, to_dict(response)
 
-    def reopenEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None):
+    def reopenEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
         if eventFilter:
             eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
@@ -421,14 +419,15 @@ class ZepFacade(ZuulFacade):
         else:
             userUuid = self._getUserUuid(userName)
         status, response = self.client.reopenEventSummaries(
-            userUuid, userName, eventFilter, exclusionFilter, limit)
+            userUuid, userName, eventFilter, exclusionFilter, limit, timeout=timeout)
         return status, to_dict(response)
 
-    def updateEventSummaries(self, update, eventFilter=None, exclusionFilter=None, limit=None):
+    def updateEventSummaries(self, update, eventFilter=None, exclusionFilter=None, limit=None, timeout=None):
         update_pb = from_dict(EventSummaryUpdate, update)
         event_filter_pb = None if (eventFilter is None) else from_dict(EventFilter, eventFilter)
         exclusion_filter_pb = None if (exclusionFilter is None) else from_dict(EventFilter, exclusionFilter)
-        status, response = self.client.updateEventSummaries(update_pb, event_filter_pb, exclusion_filter_pb, limit)
+        status, response = self.client.updateEventSummaries(update_pb, event_filter_pb, exclusion_filter_pb,
+                                                            limit=limit, timeout=timeout)
         return status, to_dict(response)
 
     def getConfig(self):

@@ -474,7 +474,7 @@ class EventsRouter(DirectRouter):
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
     @require('Manage Events')
-    def close(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None):
+    def close(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Close event(s).
 
@@ -493,6 +493,8 @@ class EventsRouter(DirectRouter):
                      change since this time (default: None)
         @type  limit: The maximum number of events to update in this batch.
         @param limit: (optional) Maximum number of events to update (default: None).
+        @type  timeout: int
+        @param timeout: The time (in seconds) before the underlying saved search times out.
         @rtype:   DirectResponse
         @return:  Success message
         """
@@ -505,6 +507,7 @@ class EventsRouter(DirectRouter):
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
             limit=limit,
+            timeout=timeout,
         )
 
         log.debug('Done issuing close request.')
@@ -513,7 +516,7 @@ class EventsRouter(DirectRouter):
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
     @require('Manage Events')
-    def acknowledge(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None):
+    def acknowledge(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Acknowledge event(s).
 
@@ -532,6 +535,8 @@ class EventsRouter(DirectRouter):
                      change since this time (default: None)
         @type  limit: The maximum number of events to update in this batch.
         @param limit: (optional) Maximum number of events to update (default: None).
+        @type  timeout: int
+        @param timeout: The time (in seconds) before the underlying saved search times out.
         @rtype:   DirectResponse
         @return:  Success message
         """
@@ -543,6 +548,7 @@ class EventsRouter(DirectRouter):
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
             limit=limit,
+            timeout=timeout,
         )
 
         log.debug('Done issuing acknowledge request.')
@@ -559,7 +565,7 @@ class EventsRouter(DirectRouter):
         return self.reopen(*args, **kwargs)
 
     @require('Manage Events')
-    def reopen(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None):
+    def reopen(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Reopen event(s).
 
@@ -578,6 +584,8 @@ class EventsRouter(DirectRouter):
                      change since this time (default: None)
         @type  limit: The maximum number of events to update in this batch.
         @param limit: (optional) Maximum number of events to update (Default: None).
+        @type  timeout: int
+        @param timeout: The time (in seconds) before the underlying saved search times out.
         @rtype:   DirectResponse
         @return:  Success message
         """
@@ -590,6 +598,7 @@ class EventsRouter(DirectRouter):
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
             limit=limit,
+            timeout=timeout,
         )
 
         log.debug('Done issuing reopen request.')
@@ -599,8 +608,8 @@ class EventsRouter(DirectRouter):
 
 
     @require("Manage Events")
-    def updateEventSummaries(self, update, event_filter=None, exclusion_filter=None, limit=None):
-        status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit)
+    def updateEventSummaries(self, update, event_filter=None, exclusion_filter=None, limit=None, timeout=None):
+        status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
         return DirectResponse.succeed(data=response)
 
 
