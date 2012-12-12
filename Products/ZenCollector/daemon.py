@@ -32,6 +32,7 @@ from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, unused
+from Products.ZenUtils.picklezipper import Zipper
 from Products.ZenUtils.observable import ObservableProxy
 
 log = logging.getLogger("zen.daemon")
@@ -319,7 +320,7 @@ class CollectorDaemon(RRDDaemon):
         """
         Called remotely by ZenHub when devices we're monitoring are deleted.
         """
-        for devId in deviceIds:
+        for devId in Zipper.load(deviceIds):
             self._deleteDevice(devId)
 
     def remote_updateDeviceConfig(self, config):
@@ -330,6 +331,13 @@ class CollectorDaemon(RRDDaemon):
         if not self.options.device or self.options.device in (config.id, config.configId):
             self._updateConfig(config)
             self._configProxy.updateConfigProxy(self.preferences, config)
+
+    def remote_updateDeviceConfigs(self, configs):
+        """
+        Called remotely by ZenHub when asynchronous configuration updates occur.
+        """
+        for config in Zipper.load(configs):
+            self.remote_updateDeviceConfig(config)
             
     def remote_notifyConfigChanged(self):
         """
