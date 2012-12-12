@@ -14,12 +14,15 @@ Use __init__.py to get all the upgrade modules imported.
 
 '''
 
-
 # by virtue of being a migration script, we often import deprecated modules
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
+
 import os
-import glob
-__all__ = [ os.path.basename(f)[:-3] for f in glob.glob(os.path.dirname(__file__)+"/*.py")]
+for module in os.listdir(os.path.dirname(__file__)):
+    if module == '__init__.py' or module[-3:] != '.py':
+        continue
+    __import__(module[:-3], locals(), globals())
+del module
 
