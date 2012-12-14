@@ -304,7 +304,6 @@ Ext.onReady(function(){
             graphTitle: graphinfo[1],
             id: id,
             width: 600,
-            height: 275,
             graphId: graphid
         }).render(Ext.get('td_'+graphid));
         var el = Ext.getCmp(id).el;
