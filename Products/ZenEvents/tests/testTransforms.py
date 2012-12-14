@@ -64,7 +64,8 @@ class testTransforms(BaseTestCase):
         self.processor = EventPipelineProcessor(self.dmd)
 
     def _processEvent(self, event):
-        return self.processor.processMessage(event).event
+        # Don't return a sub-message from a C++ protobuf class - can crash as the parent is GC'd
+        return self.processor.processMessage(event)
     
     def testPerfFileSystemTransform(self):
         """
@@ -93,7 +94,7 @@ class testTransforms(BaseTestCase):
         event.summary = 'threshold of high disk usage exceeded: current value 23476882.00'
 
         processed = self._processEvent(event)
-        self.assertEquals(processed.summary, 'disk space threshold: 80.3% used (21.9GB free)')
+        self.assertEquals(processed.event.summary, 'disk space threshold: 80.3% used (21.9GB free)')
         
         # Test an example event from a standard Perfmon device.
         device = self.dmd.Devices.createInstance('perfmondevice')
@@ -114,7 +115,7 @@ class testTransforms(BaseTestCase):
         event.summary = 'threshold of low disk space not met: current value 4156.00'
         
         processed = self._processEvent(event)
-        self.assertEquals(processed.summary, 'disk space threshold: 49.2% used (4.1GB free)')
+        self.assertEquals(processed.event.summary, 'disk space threshold: 49.2% used (4.1GB free)')
     
         # Test an example event from a standard SSH device.
         device = self.dmd.Devices.createInstance('sshdevice')
@@ -135,7 +136,7 @@ class testTransforms(BaseTestCase):
         event.summary = 'threshold of Free Space 90 Percent exceeded: current value 73400348.00'
 
         processed = self._processEvent(event)
-        self.assertEquals(processed.summary, 'disk space threshold: 49.1% used (72.6GB free)')
+        self.assertEquals(processed.event.summary, 'disk space threshold: 49.1% used (72.6GB free)')
     
     def testActorReidentificationFromEventClassKeyTransform(self):
         """
@@ -188,7 +189,7 @@ evt.device = '%s'
         
         processed = self._processEvent(event)
 
-        self.assertEquals(device_b.id, processed.actor.element_identifier)
+        self.assertEquals(device_b.id, processed.event.actor.element_identifier)
 
         
     def testIntSeverityTransform(self):
@@ -207,9 +208,9 @@ evt.device = '%s'
         event.summary = 'bad thingy'
 
         processed = self._processEvent(event)
-        self.assertEqual(SEVERITY_CLEAR, processed.severity)
-        self.assertEqual('transformed', processed.summary)
-        self.assert_(isinstance(processed.severity, int))
+        self.assertEqual(SEVERITY_CLEAR, processed.event.severity)
+        self.assertEqual('transformed', processed.event.summary)
+        self.assert_(isinstance(processed.event.severity, int))
 
     def testActionDropped(self):
         transform = 'evt._action="drop"'
@@ -238,7 +239,7 @@ evt.device = '%s'
         event.summary = 'should be closed'
 
         processed = self._processEvent(event)
-        self.assertEqual(STATUS_CLOSED, processed.status)
+        self.assertEqual(STATUS_CLOSED, processed.event.status)
 
     def testActionStatusDoesntChangeSuppressed(self):
         """
@@ -258,7 +259,7 @@ evt.device = '%s'
         event.summary = 'should be suppressed'
 
         processed = self._processEvent(event)
-        self.assertEqual(STATUS_SUPPRESSED, processed.status)
+        self.assertEqual(STATUS_SUPPRESSED, processed.event.status)
 
 
 def test_suite():
