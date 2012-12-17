@@ -29,6 +29,7 @@ WatchListPortlet.prototype = {
         this.locsearch = new YAHOO.zenoss.zenautocomplete.DevAndEventObjectSearch(
             'Zenoss Objects', s);
         addElementClass(this.locsearch.container, 'portlet-settings-control');
+        addElementClass(this.locsearch.container, 'watch-list-objects');         
     },
     submitSettings: function(e, settings) {
         var postContent = settings?settings.postContent:

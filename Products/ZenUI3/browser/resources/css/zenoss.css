@@ -1696,3 +1696,7 @@ a.z-entity:hover{
 .toleft.x-btn-arrowslide-toolbar-small .x-btn-icon{
     background-position: 0 -29px;
 }
+.watch-list-objects .yui-ac-content{
+    height: 150px;
+    overflow-y: auto !important; 
+}
