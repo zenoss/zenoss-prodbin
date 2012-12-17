@@ -139,7 +139,7 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         text: _t('Software')
     },{
-        id: 'device_custom_properties',
+        id: 'custom_device_properties',
         nodeType: 'subselect',
         text: _t('Custom Properties')
     },{
@@ -497,10 +497,10 @@ var configuration_properties = Ext.create('Zenoss.form.ConfigPropertyPanel', {
 });
 
 var custom_properties = Ext.create('Zenoss.form.CustomPropertyPanel', {
-    id: 'device_custom_properties'
+    id: 'custom_device_properties'
 });
 
-var custom_properties = Ext.create('Zenoss.devicemanagement.Administration', {
+var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
     id: 'device_administration'
 });
 
@@ -757,7 +757,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [overview, event_console, modeler_plugins, configuration_properties, custom_properties, device_graphs, softwares, componentCard]
+        items: [overview, event_console, modeler_plugins, configuration_properties, custom_properties, dev_admin, device_graphs, softwares, componentCard]
     }]
 });
 Ext.getCmp('templateTree').setContext(UID);
