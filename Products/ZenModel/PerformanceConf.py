@@ -22,6 +22,8 @@ from ipaddr import IPAddress
 import logging
 log = logging.getLogger('zen.PerformanceConf')
 
+from zope import component
+
 from Products.ZenUtils.IpUtil import ipwrap
 
 import xmlrpclib
@@ -206,6 +208,9 @@ class PerformanceConf(Monitor, StatusColor):
           },
         )
 
+    def _getRenderURLUtil(self):
+        context = RenderURLUtilContext(self.renderurl)
+        return component.getAdapter(context)
 
     security.declareProtected('View', 'getDefaultRRDCreateCommand')
     def getDefaultRRDCreateCommand(self):
@@ -276,7 +281,7 @@ class PerformanceConf(Monitor, StatusColor):
             }
 
         url = self._getSanitizedRenderURL()
-        if RenderURLUtil(self.renderurl).proxiedByZenoss():
+        if self._getRenderURLUtil().proxiedByZenoss():
             params['remoteHost'] = self.getRemoteRenderUrl()
             url = '/zport/RenderServer'
 
@@ -288,7 +293,7 @@ class PerformanceConf(Monitor, StatusColor):
         remove any keywords/directives from renderurl.
         example is "proxy://host:8091" is changed to "http://host:8091"
         """
-        return RenderURLUtil(self.renderurl).getSanitizedRenderURL()
+        return self._getRenderURLUtil().getSanitizedRenderURL()
 
     def performanceGraphUrl(self, context, targetpath, targettype, view, drange):
         """
@@ -318,7 +323,7 @@ class PerformanceConf(Monitor, StatusColor):
         return the full render url with http protocol prepended if the renderserver is remote.
         Return empty string otherwise
         """
-        return RenderURLUtil(self.renderurl).getRemoteRenderUrl()
+        return self._getRenderURLUtil().getRemoteRenderUrl()
 
     def _get_render_server(self, allow_none=False,
                            timeout=None):
@@ -783,10 +788,14 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
 
+class RenderURLUtilContext(object):
+    def __init__(self, renderurl):
+        self.renderurl = renderurl
+    
 class RenderURLUtil(object):
 
-    def __init__(self, renderurl):
-        self._renderurl = renderurl
+    def __init__(self, context):
+        self._renderurl = context.renderurl
 
     def getSanitizedRenderURL(self):
         """
@@ -839,24 +848,9 @@ class RenderURLUtil(object):
         return '{protocol}://{fqdn}:{port}/{path}'.format(**kwargs)
 
     def _get_reverseproxy_config(self):
-        use_ssl = False
+        # overridden by webscale -- see renderurlutil.py
         http_port = 8080
-        ssl_port = 443
-        conf_path = zenPath("etc", "zenwebserver.conf")
-        if not os.path.exists(conf_path):
-            return http_port
-        with open(conf_path) as file_:
-            for line in (l.strip() for l in file_):
-                if line and not line.startswith('#'):
-                    key, val = line.split(' ', 1)
-                    if key == "useSSL":
-                        use_ssl = val.lower() == 'true'
-                    elif key == "httpPort":
-                        http_port = int(val.strip())
-                    elif key == "sslPort":
-                        ssl_port = int(val.strip())
-        return ProxyConfig(useSSL=use_ssl,
-                           port= ssl_port if use_ssl else http_port)
+        return http_port
 
 
 InitializeClass(PerformanceConf)

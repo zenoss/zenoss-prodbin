@@ -154,7 +154,27 @@ class IExpandedLinkProvider(Interface):
     context-specific html links (for example, the
     device links on the DeviceDetails page).
     """
-    def getExpandedLinks(self):
+    def getExpandedLinks():
         """
         @rtype list of html elements with links
         """
+
+class IRenderURLUtil(Interface):
+
+    def getSanitizedRenderURL():
+        """
+        remove any keywords/directives from renderurl.
+        example is "proxy://host:8091" is changed to "http://host:8091"
+        """
+
+    def getRemoteRenderUrl():
+        """
+        return the full render url with http protocol prepended if the renderserver is remote.
+        Return empty string otherwise
+        """
+
+    def proxiedByZenoss():
+        """
+        Should the render request be proxied by zenoss/zope
+        """
+
