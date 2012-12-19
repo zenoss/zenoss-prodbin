@@ -116,8 +116,9 @@ class SnmpTrapConfig(CollectorConfigService):
 
     def _objectUpdated(self, object):
         user = self._create_user(object)
-        for listener in self.listeners: 
-            listener.callRemote('createUser', user)
+        if user:
+            for listener in self.listeners: 
+                listener.callRemote('createUser', user)
 
     @onUpdate(DeviceClass)
     def deviceClassUpdated(self, object, event):
