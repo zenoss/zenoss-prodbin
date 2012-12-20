@@ -1690,10 +1690,10 @@ a.z-entity:hover{
     top:40px;
 }
 /* with 17+ version of FF, button breaks. This fixes it */
-.toright.x-btn-arrowslide-toolbar-small .x-btn-icon{
+.toright .x-btn-icon{
     background-position: 0 -56px;
 }
-.toleft.x-btn-arrowslide-toolbar-small .x-btn-icon{
+.toleft .x-btn-icon{
     background-position: 0 -29px;
 }
 .watch-list-objects .yui-ac-content{
