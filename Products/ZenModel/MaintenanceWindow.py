@@ -502,7 +502,7 @@ class MaintenanceWindow(ZenModelRM):
         """
         Hook for entering the Maintenance Window: call if you override
         """
-        log.info("Mainenance window %s starting" % self.displayName())
+        log.info("Maintenance window %s starting" % self.displayName())
         if not now:
             now = time.time()
 
@@ -517,7 +517,7 @@ class MaintenanceWindow(ZenModelRM):
         """
         Hook for leaving the Maintenance Window: call if you override
         """
-        log.info("Mainenance window %s ending" % self.displayName())
+        log.info("Maintenance window %s ending" % self.displayName())
         # Make sure that the window has ended before the calculation of
         # the production state occurs.
         self.started = None
