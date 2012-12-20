@@ -10,6 +10,19 @@
 
 from Products.ZenModel.Link import ILink
 
+
+# Validation for Device subtypes and IpNetwork subtypes.  Cannot import these 
+# class types directly, because this module is inherited by those classes
+# (Fixes for ZEN-4657)
+
+def isDeviceInstance(ob):
+    from Products.ZenModel.Device import Device
+    return isinstance(ob, Device)
+
+def isIpNetworkInstance(ob):
+    from Products.ZenModel.IpNetwork import IpNetwork
+    return isinstance(ob, IpNetwork)
+
 def _fromDeviceToNetworks(dev):
     for iface in dev.os.interfaces():
         for ip in iface.ipaddresses():
@@ -32,9 +45,9 @@ def _fromNetworkToDevices(net, organizer):
                 break
 
 def _get_related(node, filter='/'):
-    if node.meta_type=='IpNetwork':
+    if isIpNetworkInstance(node):
         children = _fromNetworkToDevices(node, filter)
-    elif node.meta_type=='Device':
+    elif isDeviceInstance(node):
         children = _fromDeviceToNetworks(node)
     else:
         raise NotImplementedError
@@ -42,7 +55,7 @@ def _get_related(node, filter='/'):
 
 def _sortedpair(x,y):
     l = [x,y]
-    cmpf = lambda x,y:int(x.meta_type=='Device')-int(y.meta_type=='Device')
+    cmpf = lambda x,y:int(isDeviceInstance(x))-int(isDeviceInstance(y))
     l.sort(cmpf)
     return tuple(l)
 
@@ -69,7 +82,7 @@ def get_edges(rootnode, depth=1, withIcons=False, filter='/'):
     depth = int(depth)
     g = _get_connections(rootnode, depth, [], filter)
     def getColor(node):
-        if node.meta_type=='IpNetwork':
+        if isIpNetworkInstance(node):
             return '0xffffff'
         summary = node.getEventSummary()
         colors = '0xff0000 0xff8c00 0xffd700 0x00ff00 0x00ff00'.split()
