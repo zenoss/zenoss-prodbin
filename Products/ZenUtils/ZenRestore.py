@@ -281,8 +281,7 @@ class ZenRestore(ZenBackupBase):
         self.msg('Restoring config files.')
         cmd = 'cp -p %s %s' % (os.path.join(zenPath('etc'), 'global.conf'), self.tempDir)
         if os.system(cmd): return -1
-        cmd = 'rm -rf %s' % zenPath('etc')
-        if os.system(cmd): return -1
+
         cmd = 'tar Cxf %s %s' % (
             zenPath(),
             os.path.join(self.tempDir, 'etc.tar')
