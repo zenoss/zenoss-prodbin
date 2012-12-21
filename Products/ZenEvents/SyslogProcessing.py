@@ -89,7 +89,7 @@ for regex in parsers:
     if isinstance(regex, tuple):
         regex, keepEntry = regex
     try:
-        compiled = re.compile(regex)
+        compiled = re.compile(regex, re.DOTALL)
         compiledParsers.append((compiled, keepEntry)) 
     except:
         pass
@@ -202,7 +202,7 @@ class SyslogProcessor(object):
 
 
     timeParse = \
-        re.compile("^(\S{3} [\d ]{2} [\d ]{2}:[\d ]{2}:[\d ]{2}(?:\.\d{1,3})?) (.*)").search
+        re.compile("^(\S{3} [\d ]{2} [\d ]{2}:[\d ]{2}:[\d ]{2}(?:\.\d{1,3})?) (.*)", re.DOTALL).search
     notHostSearch = re.compile("[\[:]").search
     def parseHEADER(self, evt, msg):
         """
