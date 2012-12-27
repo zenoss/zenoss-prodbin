@@ -31,7 +31,6 @@ import socket
 import inspect
 import threading
 import Queue
-import warnings
 import math
 import contextlib
 import string
@@ -44,7 +43,7 @@ from functools import partial
 from decorator import decorator
 from itertools import chain
 import rrdtool
-from subprocess import check_call, call, PIPE, STDOUT, CalledProcessError
+from subprocess import check_call, call, PIPE, STDOUT, Popen
 from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
 
@@ -784,7 +783,7 @@ def sendPage(recipient, msg, pageCommand, deferred=False):
     if deferred:
         from twisted.internet import reactor
         protocol = SendPageProtocol(msg)
-        d = reactor.spawnProcess(
+        reactor.spawnProcess(
             protocol, '/bin/sh', ('/bin/sh', '-c', pageCommand), env)
 
         # Bad practice to block on a deferred. This is done because our call
@@ -1267,7 +1266,6 @@ def unsigned(v):
     """
     v = long(v)
     if v < 0:
-        import ctypes
         return int(ctypes.c_uint32(v).value)
     return v
 
@@ -1748,7 +1746,6 @@ def rrd_daemon_retry(fn):
 
 @contextlib.contextmanager
 def get_temp_dir():
-    import tempfile
     import shutil
     
     dirname = tempfile.mkdtemp()
@@ -2066,4 +2063,15 @@ def addXmlServerTimeout(server,timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         transport.make_connection = types.MethodType( _timeout_make_connection, transport )
 
     return server
+
+def snmptranslate(*args):
+    command = ' '.join(['snmptranslate', '-Ln'] + list(args))
+    proc = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
+    output, errors = proc.communicate()
+    proc.wait()
+    if proc.returncode != 0:
+        log.error("snmptranslate returned errors for %s: %s", list(args), errors)
+        return 'Error translating: %s' % list(args)
+
+    return output.strip()
 

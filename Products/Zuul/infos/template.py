@@ -14,6 +14,7 @@ from Products.Zuul.utils import severityId
 from Products.Zuul.interfaces import template as templateInterfaces
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.ZenUtils.Utils import snmptranslate
 
 
 class TemplateInfo(InfoBase):
@@ -346,12 +347,36 @@ class BasicDataSourceInfo(InfoBase):
     eventClass = ProxyProperty('eventClass')
 
 
+def OidProperty(propertyName='oid'):
+    """
+    Ensure that a numeric OID is set
+    """
+    def setter(self, value):
+        value = value.strip()
+        # Trailing period is bad, leading period is okay
+        if value and value[-1] == '.':
+            value = value[:-1]
+        # Test to make sure it's all numbers and doesn't
+        # need translation
+        if not value.replace('.', '').isdigit():
+            # Total junk becomes a blank
+            oid = self._object.getDmdRoot('Mibs').name2oid(value)
+            if not oid:
+                value = snmptranslate('-On', value)
+            else:
+                value = oid
+        return setattr(self._object, propertyName, value)
+    def getter(self):
+        return getattr(self._object, propertyName)
+    return property(getter, setter)
+
+
 class SNMPDataSourceInfo(BasicDataSourceInfo):
     implements(templateInterfaces.ISNMPDataSourceInfo)
     """
     DataSource for SNMP (Basic DataSource with a type of 'SNMP')
     """
-    oid = ProxyProperty('oid')
+    oid = OidProperty('oid')
 
 
 class CommandDataSourceInfo(BasicDataSourceInfo):
