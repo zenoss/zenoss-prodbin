@@ -247,11 +247,11 @@
             picker = this.getPicker();
 
         if(Ext.isIE){
-            var parent, child = Ext.DomQuery.selectNode('#'+picker.id+' .list-ct');
+        	var child = Ext.DomQuery.selectNode('#'+picker.id+' .x-boundlist-list-ct');
             Ext.defer(function(){ // defer a bit so the grandpaw will have a height
                     try{
                         var grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
-                        child.style.cssText = 'width:'+me.width+'px; height:'+grandpaw.style.height+';overflow:auto;';
+                        child.style.cssText = 'width: 100%; height: 100%; overflow: auto;';
                     }catch(e){
                         // couldn't traverse, so just swallow it.
                     }
