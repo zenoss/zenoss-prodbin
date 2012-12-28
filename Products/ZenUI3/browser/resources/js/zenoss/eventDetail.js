@@ -459,7 +459,7 @@ Ext.onReady(function() {
                 template: Zenoss.eventdetail.detail_data_template,
                 keys: [
                     'clearid', 'count', 'firstTime', 'lastTime',
-                    'owner', 'stateChange'
+                    'ownerid', 'stateChange'
                 ]
             });
             this.addSection(eventMetaSection);
