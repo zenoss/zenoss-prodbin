@@ -287,10 +287,20 @@ class EmailAction(IActionBase, TargetableAction):
         self.guidManager = GUIDManager(dmd)
 
     def executeBatch(self, notification, signal, targets):
-        log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
 
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+
+        # Check for email recipients in the event
+        details = data['evt'].details
+        mail_targets = details.get('recipients', '')
+        mail_targets = [x.strip() for x in mail_targets.split(',') if x.strip()]
+        if len(mail_targets) > 0:
+            log.debug("Adding recipients defined in the event %s", mail_targets)
+            targets |= set(mail_targets)
+
+        log.debug("Executing %s action for targets: %s", self.name, targets)
+
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = processTalSource(notification.content['clear_subject_format'], **data)
