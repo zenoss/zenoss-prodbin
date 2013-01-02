@@ -11,7 +11,7 @@
 
 
 <html metal:define-macro="base-new">
-    <head>
+    <head>        
         <title>
             <tal:block tal:content="here/dmd/instanceIdentifier"/>:
             <tal:block metal:define-slot="title">
@@ -39,9 +39,7 @@
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
         <tal:block tal:content="structure provider:jssnippets"/>
-        <script>
-            //Ext.defer(function(){window.location.reload()}, 10000);
-        </script>
+        
     </head>
 
     <body>
@@ -101,7 +99,8 @@
 </form>
 <script type="text/javascript">
 Ext.onReady(function(){
-
+// record when we first started rendering things on the client
+Zenoss._pageStartTime = new Date().getTime() / 1000.00;
 
 var viewport = new Ext.Viewport({
     id: 'viewport',

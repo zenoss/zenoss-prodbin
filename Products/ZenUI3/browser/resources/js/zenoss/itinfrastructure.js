@@ -1324,19 +1324,19 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 listeners: {
                     afterrender: function(e){
                         var textItem = e.menu.items.items[0];
-                        var store = Ext.getCmp('device_grid').getStore();                        
-                        store.on('load', function(){ 
+                        var store = Ext.getCmp('device_grid').getStore();
+                        store.on('load', function(){
                             /*
                                 added the guaranteeRange so that when the user is selecting the expected pagesize in select(all/none),
                                 they'll actually get the advertised range. Otherwise, it only loads some unexpected amount over the view
-                                which can be different depending on how tall the viewable grid is (and is NOT the pageSize, nor does it 
-                                take the pageSize into account). This forces consistency. 
+                                which can be different depending on how tall the viewable grid is (and is NOT the pageSize, nor does it
+                                take the pageSize into account). This forces consistency.
                             */
                             store.guaranteeRange(0, store.pageSize-1);
-                            textItem.setText(Ext.String.format(_t("{0} at a time"),  store.data.items.length) );                       
-                        }, this); 
+                            textItem.setText(Ext.String.format(_t("{0} at a time"),  store.data.items.length) );
+                        }, this);
                     }
-                },  
+                },
                 menu:[
                     {
                         text: _t("All"),
@@ -1715,5 +1715,9 @@ footerBar.on('buttonClick', function(actionName, id, values) {
         default: break;
     }
 });
+    if (Zenoss.settings.showPageStatistics){
+        var stats = Ext.create('Zenoss.stats.Infrastructure');
+    }
+
 
 }); // Ext. OnReady

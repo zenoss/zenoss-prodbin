@@ -9,7 +9,6 @@
 
 
 Ext.onReady(function(){
-
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
 
@@ -1138,6 +1137,9 @@ Ext.getCmp('footer_bar').add([{
         // work around a rendering bug in ExtJs see ticket ZEN-3054
         var viewport = Ext.getCmp('viewport');
         viewport.setHeight(viewport.getHeight() +1 );
+    }
+    if (Zenoss.settings.showPageStatistics){
+        var stats = Ext.create('Zenoss.stats.DeviceDetail');
     }
 
 });

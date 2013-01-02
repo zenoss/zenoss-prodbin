@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -172,5 +172,9 @@ Ext.onReady(function(){
     // if there is a state apply it now
     if (window.location.search) {
         grid.restoreURLState();
+    }
+
+    if (Zenoss.settings.showPageStatistics){
+        var stats = Ext.create('Zenoss.stats.Events');
     }
 });

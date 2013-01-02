@@ -234,6 +234,9 @@
         },{        
             "text": "Administration.js",
             "path": "resources/js/zenoss/devicemanagement/"  
+        }, {
+            "text": "PageStatistics.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []
