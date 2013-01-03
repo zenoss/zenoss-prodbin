@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 
 import Globals
 from zope.component import getUtility, adapter
+
 from zope.interface import implements
 from zope.component.event import objectEventNotify
 
@@ -264,12 +265,6 @@ class ZenEventD(ZCmdBase):
         objectEventNotify(BuildOptionsEvent(self))
 
 
-@adapter(ZenEventD, DaemonStartRunEvent)
-def onDaemonStartRun(daemon, event):
-    """
-    Start up an EventDWorker.
-    """
-    EventDTwistedWorker(daemon.dmd).run()
 
 if __name__ == '__main__':
     # explicit import of ZenEventD to activate enterprise extensions

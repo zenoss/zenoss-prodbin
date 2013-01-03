@@ -8,6 +8,10 @@
 
     <include package=".browser"/>
 
-    <subscriber handler=".zeneventd.onDaemonStartRun"/>
+    <subscriber handler=".zeneventdEvents.onSigTerm"/>
+    <subscriber handler=".zeneventdEvents.onSigUsr1"/>
+    <subscriber handler=".zeneventdEvents.onBuildOptions"/>
+    <subscriber handler=".zeneventdEvents.onDaemonCreated"/>
+    <subscriber handler=".zeneventdEvents.onDaemonStartRun"/>
 
 </configure>
