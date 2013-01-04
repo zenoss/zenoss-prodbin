@@ -59,6 +59,65 @@ class DummyListener(object):
         """
         log.debug('DummyListener: configuration %s updated' % newConfiguration)
 
+class ConfigListenerNotifier(object):
+    zope.interface.implements(IConfigurationListener)
+
+    _listeners = []
+
+    def addListener(self, listener):
+        self._listeners.append(listener)
+
+    def deleted(self, configurationId):
+        """
+        Called when a configuration is deleted from the collector
+        """
+        for listener in self._listeners:
+            listener.deleted(configurationId)
+
+    def added(self, configuration):
+        """
+        Called when a configuration is added to the collector
+        """
+        for listener in self._listeners:
+            listener.added(configuration)
+
+
+    def updated(self, newConfiguration):
+        """
+        Called when a configuration is updated in collector
+        """
+        for listener in self._listeners:
+            listener.updated(newConfiguration)
+
+class DeviceGuidListener(object):
+    zope.interface.implements(IConfigurationListener)
+
+    def __init__(self, daemon):
+        self._daemon = daemon
+
+    def deleted(self, configurationId):
+        """
+        Called when a configuration is deleted from the collector
+        """
+        self._daemon._deviceGuids.pop(configurationId, None)
+
+    def added(self, configuration):
+        """
+        Called when a configuration is added to the collector
+        """
+        deviceGuid = getattr(configuration, 'deviceGuid', None)
+        if deviceGuid:
+            self._daemon._deviceGuids[configuration.id] = deviceGuid
+
+
+    def updated(self, newConfiguration):
+        """
+        Called when a configuration is updated in collector
+        """
+        deviceGuid = getattr(newConfiguration, 'deviceGuid', None)
+        if deviceGuid:
+            self._daemon._deviceGuids[newConfiguration.id] = deviceGuid
+
 DUMMY_LISTENER = DummyListener()
 CONFIG_LOADER_NAME = 'configLoader'
 
@@ -119,7 +178,9 @@ class CollectorDaemon(RRDDaemon):
         if not IConfigurationListener.providedBy(configurationListener):
             raise TypeError(
                     "configurationListener must provide IConfigurationListener")
-        self._configListener = configurationListener
+        self._configListener = ConfigListenerNotifier()
+        self._configListener.addListener(configurationListener)
+        self._configListener.addListener(DeviceGuidListener(self))
         self._initializationCallback = initializationCallback
         self._stoppingCallback = stoppingCallback
 
@@ -147,6 +208,7 @@ class CollectorDaemon(RRDDaemon):
 
         super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
 
+        self._deviceGuids = {}
         self._devices = set()
         self._thresholds = Thresholds()
         self._unresponsiveDevices = set()
@@ -253,6 +315,15 @@ class CollectorDaemon(RRDDaemon):
         """
         return self.services.get(self.preferences.configurationService,
                                  FakeRemote())
+
+    def generateEvent(self, event, **kw):
+        eventCopy = super(CollectorDaemon, self).generateEvent(event, **kw)
+        if eventCopy.get("device"):
+            device_id = eventCopy.get("device")
+            guid = self._deviceGuids.get(device_id)
+            if guid:
+                eventCopy['device_guid'] = guid
+        return eventCopy
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):

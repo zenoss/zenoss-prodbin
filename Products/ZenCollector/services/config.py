@@ -47,6 +47,13 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
         retval = getattr(self, "_config_id", None)
         return retval if (retval is not None) else self.id
 
+    @property
+    def deviceGuid(self):
+        """
+        """
+        return getattr(self, "_device_guid", None)
+
+
     def __str__(self):
         return self.id
 
@@ -245,6 +252,11 @@ class CollectorConfigService(HubService, ThresholdMixin):
         for attrName in self._deviceProxyAttributes:
             setattr(proxy, attrName, getattr(device, attrName, None))
 
+        if isinstance(device, Device):
+            from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+            guid = IGlobalIdentifier(device).getGUID()
+            if guid:
+                setattr(proxy,'_device_guid', guid)
         return proxy
 
     def _filterDevice(self, device):

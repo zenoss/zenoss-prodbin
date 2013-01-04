@@ -155,6 +155,15 @@ class EventProtobufDeviceMapper(EventProtobufMapper):
         proto.actor.element_type_id = modelConstants.DEVICE
         proto.actor.element_identifier = _safestr(value)
 
+class EventProtobufDeviceGuidMapper(EventProtobufMapper):
+    """
+    Maps a 'device' to the corresponding location in the Event.EventActor.
+    """
+
+    def mapEvent(self, proto, value):
+        proto.actor.element_type_id = modelConstants.DEVICE
+        proto.actor.element_uuid = _safestr(value)
+
 class EventProtobufComponentMapper(EventProtobufMapper):
     """
     Maps a 'component' to the corresponding location in the Event.EventActor.
@@ -276,6 +285,7 @@ class EventProtobuf(ObjectProtobuf):
         'dedupid': EventProtobufStringMapper('fingerprint'),
         'evid' : EventProtobufStringMapper('uuid'),
         'device': EventProtobufDeviceMapper(),
+        'device_guid': EventProtobufDeviceGuidMapper(),
         'component': EventProtobufComponentMapper(),
         'eventClass': EventProtobufStringMapper('event_class'),
         'eventKey': EventProtobufStringMapper('event_key'),
