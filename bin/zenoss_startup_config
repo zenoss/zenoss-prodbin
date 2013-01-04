@@ -44,7 +44,8 @@ fi
 
 # global conf must be set before we continue
 if [ ! -f $ZENHOME/etc/global.conf ]; then
-    su $RUNUSER -l -c "cp $ZENHOME/etc/global.conf.example $ZENHOME/etc/global.conf"
+    su $RUNUSER -l -c "cp -p $ZENHOME/etc/global.conf.example $ZENHOME/etc/global.conf"
+    chmod 0600 $ZENHOME/etc/global.conf
 fi
 
 # to change the following startup parameters

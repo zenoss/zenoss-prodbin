@@ -153,27 +153,24 @@ def main():
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         zodbConf = connectionFactory.getZopeZodbConf()
         zodbSessionConf = connectionFactory.getZopeZodbSessionConf()
-        tconfname = None
-        try:
-            confname = 'zodb_db_main.conf'
+
+        def write_zodb_conf(confname, contents):
             dirname = zenPath('etc')
-            tconfname = tempfile.NamedTemporaryFile(prefix=confname, dir=dirname, delete=False)
-            tconfname.write(zodbConf)
-            tconfname.close()
-            os.rename(tconfname.name, zenPath('etc', confname))
-        finally:
-            if tconfname is not None and os.path.exists(tconfname.name):
-                os.unlink(tconfname.name)
-        try:
-            confname = 'zodb_db_session.conf'
-            dirname = zenPath('etc')
-            tconfname = tempfile.NamedTemporaryFile(prefix=confname, dir=dirname, delete=False)
-            tconfname.write(zodbSessionConf)
-            tconfname.close()
-            os.rename(tconfname.name, zenPath('etc', confname))
-        finally:
-            if tconfname is not None and os.path.exists(tconfname.name):
-                os.unlink(tconfname.name)
+            tconf = None
+            try:
+                tconf = tempfile.NamedTemporaryFile(prefix=confname,
+                                                    dir=dirname,
+                                                    delete=False)
+                os.chmod(tconf.name, 0600)
+                tconf.write(contents)
+                tconf.close()
+                os.rename(tconf.name, zenPath('etc', confname))
+            finally:
+                if tconf is not None and os.path.exists(tconf.name):
+                    os.unlink(tconf.name)
+        
+        write_zodb_conf('zodb_db_main.conf', zodbConf)
+        write_zodb_conf('zodb_db_session.conf', zodbSessionConf)
         sys.exit(0)
     elif options.get:
         if len(args) > 1:
