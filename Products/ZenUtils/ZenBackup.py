@@ -47,6 +47,15 @@ def strip_definer(mysqldump_line):
         return mysqldump_line
     return DEFINER_PATTERN.sub('', mysqldump_line)
 
+class ZenBackupException(Exception):
+    def __init__(self, value="", critical=False):
+        self.value = value
+        self.critical = critical
+    def __str__(self):
+        return repr(self.value)
+    def isCritical(self):
+        return self.critical
+
 class ZenBackup(ZenBackupBase):
 
     def __init__(self, argv):
@@ -106,7 +115,6 @@ class ZenBackup(ZenBackupBase):
         finally:
             f.close()
 
-
     def getDefaultBackupFile(self):
         """
         Return a name for the backup file or die trying.
@@ -137,7 +145,6 @@ class ZenBackup(ZenBackupBase):
                     ' file.\n')
             sys.exit(-1)
         return name
-
 
     def buildOptions(self):
         """
@@ -238,8 +245,7 @@ class ZenBackup(ZenBackupBase):
                 data_rc = 0
 
             if schema_rc or data_rc:
-                self.log.critical("Backup of (%s) terminated abnormally." % sqlFile)
-                return -1
+                raise ZenBackupException("Backup of (%s) terminated failed." % sqlFile, True)
 
     def _zepRunning(self):
         """
@@ -361,8 +367,7 @@ class ZenBackup(ZenBackupBase):
         cmd = ['tar', 'chfC', tarFile, zenPath(), 'perf']
         (output, warnings, returncode) = self.runCommand(cmd)
         if returncode:
-            self.log.critical("Backup terminated abnormally.")
-            return -1
+            raise ZenBackupException("Performance Data backup failed.", True)
 
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)
@@ -387,8 +392,7 @@ class ZenBackup(ZenBackupBase):
         cmd = ['tar', 'czfC', tarFile, tempHead, tempTail]
         (output, warnings, returncode) = self.runCommand(cmd)
         if returncode:
-            self.log.critical("Backup terminated abnormally.")
-            return None
+            raise ZenBackupException("Backup packaging failed.", True)
         self.log.info('Backup written to %s' % outfile)
         return outfile
 
@@ -401,14 +405,15 @@ class ZenBackup(ZenBackupBase):
         cmd = ['rm', '-r', self.rootTempDir]
         (output, warnings, returncode) = self.runCommand(cmd)
         if returncode:
-            self.log.critical("Backup terminated abnormally.")
-            return -1
+            raise ZenBackupException("Cleanup failed.")
 
 
     def makeBackup(self):
         '''
         Create a backup of the data and configuration for a Zenoss install.
         '''
+        hasCriticalErrors = False
+        messages = []
         backupBeginTime = time.time()
 
         # Create temp backup dir
@@ -420,7 +425,11 @@ class ZenBackup(ZenBackupBase):
         # Do a full backup of zep if noEventsDb is false, otherwise only back
         # up a small subset of tables to capture the event triggers.
         if not self.options.noEventsDb or not self.options.noZopeDb:
-            self.backupZEP()
+            try:
+                self.backupZEP()
+            except ZenBackupException as e:
+                hasCriticalErrors = hasCriticalErrors or e.isCritical()
+                messages.append(str(e))
         else:
             self.log.info('Skipping backup of the events database.')
 
@@ -447,20 +456,42 @@ class ZenBackup(ZenBackupBase):
         if self.options.noPerfData:
             self.log.info('Skipping backup of performance data.')
         else:
-            self.backupPerfData()
+            try:
+                self.backupPerfData()
+            except ZenBackupException as e:
+                hasCriticalErrors = hasCriticalErrors or e.isCritical()
+                messages.append(str(e))
 
         # tar, gzip and send to outfile
-        outfile = self.packageStagingBackups()
+        try:
+            outfile = self.packageStagingBackups()
+        except ZenBackupException as e:
+                hasCriticalErrors = hasCriticalErrors or e.isCritical()
+                messages.append(str(e))
 
-        self.cleanupTempDir()
-
-        backupEndTime = time.time()
-        totalBackupTime = readable_time(backupEndTime - backupBeginTime)
-        self.log.info('Backup completed successfully in %s.', totalBackupTime)
+        try:
+            self.cleanupTempDir()
+        except ZenBackupException as e:
+                hasCriticalErrors = hasCriticalErrors or e.isCritical()
+                messages.append(str(e))
+        
+        if not hasCriticalErrors:
+            backupEndTime = time.time()
+            totalBackupTime = readable_time(backupEndTime - backupBeginTime)
+            if len(messages) == 0:
+                self.log.info('Backup completed successfully in %s.', totalBackupTime)
+            else:
+                self.log.info('Backup completed successfully in %s, but the following errors occurred:', totalBackupTime)
+                for msg in messages:
+                    self.log.error(msg)
+            return 0
+        else:
+            for msg in messages:
+                self.log.critical(msg)
+            return -1
+        
         # TODO: There's no way to tell if this initiated through the UI.
         # audit('Shell.Backup.Create', file=outfile)
-        return 0
-
 
 if __name__ == '__main__':
     zb = ZenBackup(sys.argv)
