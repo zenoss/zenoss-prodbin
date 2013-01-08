@@ -739,6 +739,17 @@ class ZepFacade(ZuulFacade):
     def deleteHeartbeats(self, monitor=None):
         self.heartbeatClient.deleteHeartbeats(monitor=monitor)
 
+    def deleteHeartbeat(self, monitor, daemon):
+        """
+        Removes the heartbeat record for the specified monitor and daemon.
+
+        @param monitor: The heartbeat monitor (i.e. 'localhost').
+        @type monitor: basestring
+        @param daemon: The heartbeat daemon (i.e. 'zenhub').
+        @type daemon: basestring
+        """
+        self.heartbeatClient.deleteHeartbeat(monitor, daemon)
+
     def create(self, summary, severity, device, component=None, mandatory=True, immediate=False,
                **kwargs):
         """

@@ -835,3 +835,20 @@ class EventsRouter(DirectRouter):
         self.zep.deleteHeartbeats()
         audit('UI.Event.ClearHeartbeats', self.context)
         return DirectResponse.succeed()
+
+    @require('Manage Events')
+    def clear_heartbeat(self, monitor, daemon):
+        """
+        Clears a specific heartbeat event.
+
+        @type monitor: basestring
+        @param monitor: The heartbeat monitor (i.e. 'localhost').
+        @type daemon: basestring
+        @param daemon: The heartbeat daemon (i.e. 'zenhub').
+        @rtype: DirectResponse
+        @return: A DirectResponse indicating success or failure.
+        """
+        self.zep.deleteHeartbeat(monitor, daemon)
+        audit('UI.Event.ClearHeartbeat', self.context, monitor=monitor,
+              daemon=daemon)
+        return DirectResponse.succeed()
