@@ -15,6 +15,7 @@ from Products.ZenEvents.events2.proxy import EventProxy
 from zenoss.protocols.protobufs.zep_pb2 import Event, STATUS_CLOSED, STATUS_SUPPRESSED, SEVERITY_ERROR,\
     SEVERITY_WARNING, SEVERITY_CLEAR
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 perfFilesystemTransform = """
 if device and evt.eventKey:
@@ -186,11 +187,49 @@ evt.device = '%s'
 
         # Match the transform by event_class_key
         event.event_class_key = _transform_key
-        
         processed = self._processEvent(event)
 
         self.assertEquals(device_b.id, processed.event.actor.element_identifier)
+        self.assertEquals(IGlobalIdentifier(device_b).getGUID(), 
+                          processed.actor.element_uuid)
+        
+    def testActorReidentificationFromEventClassKeyTransformWithComponent(self):
+        """
+        Verify that changing the device in a transform properly reidentifies
+        the device when matching an event by eventClassKey.
+        """
 
+        devA = self.dmd.Devices.createInstance("transform_device_a")
+        devA.os.addFileSystem("component", False)
+        devA.setManageIp("192.168.100.100")
+
+        devB = self.dmd.Devices.createInstance("transform_device_b")
+        devB.os.addFileSystem("component", False)
+        devB.setManageIp("192.168.100.101")
+
+        _transform_key = 'transform_test_key'
+        self.dmd.Events.createOrganizer('/transform_test')
+        self.dmd.Events.transform_test.transform = "evt.device = '%s'" % devB.id
+        self.dmd.Events.transform_test.createInstance(_transform_key)
+
+        event = Event()
+        event.actor.element_identifier = devA.id
+        event.actor.element_type_id = DEVICE
+        event.severity = SEVERITY_WARNING
+        event.summary = 'Testing transforms on component.'
+        event.actor.element_sub_type_id = COMPONENT
+        event.actor.element_sub_identifier = devA.getDeviceComponents()[0].id
+
+        detail = event.details.add()
+        detail.name = EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY
+        detail.value.append(devA.getManageIp())
+
+        # Match the transform by event_class_key
+        event.event_class_key = _transform_key
+        processed = self._processEvent(event)
+
+        self.assertEquals(IGlobalIdentifier(devB.getDeviceComponents()[0]).getGUID(),
+                          processed.actor.element_sub_uuid)
         
     def testIntSeverityTransform(self):
         """

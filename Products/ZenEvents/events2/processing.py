@@ -614,10 +614,7 @@ class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
             evtproxy.tags.clearType(self.DEVICE_TAGGERS.keys())
             eventContext.log.debug("reset device values in event before reidentifying: %s" % to_dict(eventContext._zepRawEvent))
 
-            return super(UpdateDeviceContextAndTagsPipe, self).__call__(eventContext)
-
-        else:
-            return eventContext
+        return eventContext
 
 class SerializeContextPipe(EventProcessorPipe):
     """
