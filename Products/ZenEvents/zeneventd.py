@@ -58,8 +58,9 @@ class EventPipelineProcessor(object):
             TransformAndReidentPipe(self._manager,
                 TransformPipe(self._manager),
                 [
-                IdentifierPipe(self._manager),
                 UpdateDeviceContextAndTagsPipe(self._manager),
+                IdentifierPipe(self._manager),
+                AddDeviceContextAndTagsPipe(self._manager),
                 ]),
             AssignDefaultEventClassAndTagPipe(self._manager),
             FingerprintPipe(self._manager),
