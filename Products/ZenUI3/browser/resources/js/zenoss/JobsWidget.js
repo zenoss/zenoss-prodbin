@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2012, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -181,7 +181,7 @@ Ext.define("Zenoss.JobsWidget", {
         });
         this.lastchecked = 0;
         this.callParent([config]);
-        this.on('render', this.on_render, this, {single:true});
+        this.on('beforerender', this.on_render, this, {single:true});
         this.on('menushow', function(e){
             e.menu.hide();
             /*  forcing a recalc of x y when new items are added */
@@ -199,7 +199,9 @@ Ext.define("Zenoss.JobsWidget", {
     on_render: function() {
         this.menucontainer = this.menu.items.items[0];
         this.init_tip();
-        this.poll();
+        // initially delay before rending the jobs widget so that
+        // other, more important, router requests have time to complete.
+        this.pollTask.delay(2000);
     },
     initEvents: function() {
         this.callParent(arguments);

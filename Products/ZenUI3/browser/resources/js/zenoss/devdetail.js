@@ -11,71 +11,10 @@
 Ext.onReady(function(){
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
-
-Zenoss.env.initProductionStates();
-Zenoss.env.initPriorities();
-
-function selectOnRender(n, sm) {
-    sm.select(n);
-}
-
-function refreshComponentTreeAndGrid(compType) {
-    var tree = Ext.getCmp('deviceDetailNav').treepanel,
-        sm = tree.getSelectionModel(),
-        detailnav = Ext.getCmp('deviceDetailNav'),
-        sel = sm.getSelectedNode(),
-        compsNode = tree.getRootNode().findChildBy(function(n){
-            return n.get("text")=='Components';
-        }),
-        gridpanel = Ext.getCmp('component_card').componentgrid;
-    compType = compType || sel.data.id;
-    sm.suspendEvents();
-    compsNode.removeAll();
-    detailnav.loadComponents();
-    detailnav.on('componenttreeloaded', function(){
-        var node = compsNode.findChildBy(function(n){
-            return n.get("id") == compType;
-        });
-        if (node) {
-            sm.select(node);
-        }else if (compsNode.firstChild) {
-            sm.select(compsNode.firstChild);
-        }
-    }, detailnav, {single: true});
-    sm.resumeEvents();
-    if (gridpanel){
-        // check if we're on the right grid, if so, refresh, if not, switch
-        if(gridpanel.id.split('-')[0].toLowerCase().indexOf(compType.toLowerCase()) > -1){
-            gridpanel.refresh();
-        }else{
-            Ext.getCmp('component_card').setContext(UID, compType);
-        }
-    }
-}
-
-Zenoss.env.componentrefresh = refreshComponentTreeAndGrid;
-Zenoss.env.componentReloader = function(compType) {
-    return function(form, action) {
-        refreshComponentTreeAndGrid(compType);
-    };
-};
-
-
-Zenoss.nav.register({
-    Device: [{
-        id: 'device_overview',
-        nodeType: 'subselect',
-        text: _t('Overview')
-    },{
-        id: 'device_events',
-        nodeType: 'subselect',
-        text: _t('Events')
-    },{
+    Zenoss.device.componentNode = {
         id: UID,
         nodeType: 'async',
         text: _t('Components'),
-        // hide the node; show it only when it's determined we have components
-        hidden: true,
         expanded: true,
         leaf: false,
         listeners: {
@@ -125,7 +64,71 @@ Zenoss.nav.register({
                 }
             }
         }
+    };
+
+Zenoss.env.initProductionStates();
+Zenoss.env.initPriorities();
+
+function selectOnRender(n, sm) {
+    sm.select(n);
+}
+
+function refreshComponentTreeAndGrid(compType) {
+    var tree = Ext.getCmp('deviceDetailNav').treepanel,
+        sm = tree.getSelectionModel(),
+        detailnav = Ext.getCmp('deviceDetailNav'),
+        sel = sm.getSelectedNode(),
+        compsNode = tree.getRootNode().findChildBy(function(n){
+            return n.get("text")=='Components';
+        }),
+        gridpanel = Ext.getCmp('component_card').componentgrid;
+    compType = compType || sel.data.id;
+    sm.suspendEvents();
+    if (compsNode) {
+        compsNode.removeAll();
+    } else {
+        compsNode = tree.getRootNode().insertChild(2, Zenoss.device.componentNode);
+    }
+    detailnav.loadComponents();
+    detailnav.on('componenttreeloaded', function(){
+        var node = compsNode.findChildBy(function(n){
+            return n.get("id") == compType;
+        });
+        if (node) {
+            sm.select(node);
+        }else if (compsNode.firstChild) {
+            sm.select(compsNode.firstChild);
+        }
+    }, detailnav, {single: true});
+    sm.resumeEvents();
+    if (gridpanel){
+        // check if we're on the right grid, if so, refresh, if not, switch
+        if(gridpanel.id.split('-')[0].toLowerCase().indexOf(compType.toLowerCase()) > -1){
+            gridpanel.refresh();
+        }else{
+            Ext.getCmp('component_card').setContext(UID, compType);
+        }
+    }
+}
+
+Zenoss.env.componentrefresh = refreshComponentTreeAndGrid;
+Zenoss.env.componentReloader = function(compType) {
+    return function(form, action) {
+        refreshComponentTreeAndGrid(compType);
+    };
+};
+
+
+Zenoss.nav.register({
+    Device: [{
+        id: 'device_overview',
+        nodeType: 'subselect',
+        text: _t('Overview')
     },{
+        id: 'device_events',
+        nodeType: 'subselect',
+        text: _t('Events')
+    }, Zenoss.device.componentNode,{
         id: 'device_graphs',
         nodeType: 'subselect',
         text: _t('Graphs')
@@ -347,7 +350,7 @@ var componentCard = {
             Ext.getCmp('component_type_label').setText(Zenoss.component.displayName(type)[1]);
             var sf = Ext.getCmp('component_searchfield');
             sf.setRawValue(sf.emptyText);
-            sf.el.addCls(sf.emptyClass);
+            sf.addCls(sf.emptyClass);
         }
     }
 };
@@ -515,6 +518,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
     extend: 'Zenoss.DetailNavPanel',
     alias: ['widget.devicedetailnav'],
     constructor: function(config) {
+
         Ext.applyIf(config, {
             target: 'detail_card_panel',
             menuIds: ['More','Add','TopLevel','Manage'],
@@ -539,81 +543,92 @@ Ext.define('Zenoss.DeviceDetailNav', {
             }
         });
         this.addEvents('componenttreeloaded');
-        this.callParent(arguments);
+        this.callParent([config]);
+        if (Zenoss.settings.showPageStatistics){
+            var stats = Ext.create('Zenoss.stats.DeviceDetail');
+        }
+    },
+    doLoadComponentTree: function(data) {
+        var rootNode = this.treepanel.getStore().getNodeById(UID);
+        if (data.length) {
+            rootNode.appendChild(Ext.Array.map(data, function(d) {
+                d.text = Ext.String.format("{0} <span title='{1}'>({2})</span>",
+                                           Zenoss.component.displayName(d.text.text)[1],
+                                           d.text.description, d.text.count);
+                d.action = function(node, target) {
+                    target.layout.setActiveItem('component_card');
+                    target.layout.activeItem.setContext(UID, node.get('id'));
+                };
+                return d;
+            }));
+        }
+        var card = Ext.getCmp('component_card'),
+            tbar = card.getGridToolbar();
+        if (rootNode.hasChildNodes()) {
+            if (tbar) {
+                tbar.show();
+            }
+        } else {
+            // destroy the node, we will add it back when refreshing
+            rootNode.parentNode.removeChild(rootNode);
+            if (tbar){
+                tbar.hide();
+            }
+            card.detailcontainer.removeAll();
+            try {
+                // This can fail if the device has no components at
+                // all, but it fails deep in Ext. Also it's irrelevant
+                // in that case, so just fail quietly.
+                card.componentnav.reset();
+            } catch(e) {}
+        }
+        var tree = this.treepanel,
+        sm = tree.getSelectionModel(),
+        sel = sm.getSelectedNode(),
+        token = Ext.History.getToken(),
+        panelid = tree.ownerCt.id;
+        if (!sel && token && token.slice(0,panelid.length)==panelid) {
+            var parts = token.split(Ext.History.DELIMITER),
+            type = parts[1],
+            rest = parts.slice(2).join(Ext.History.DELIMITER);
+            if (type) {
+                var tosel = rootNode.findChild('id', type);
+                if (tosel) {
+                    tree.on('afterrender', function() {
+                        selectOnRender(tosel, sm);
+                    }, this, {single:true});
+                }
+                var card = Ext.getCmp('component_card');
+                if (rest) {
+                    card.selectByToken(unescape(rest));
+                }
+            }
+        }
+        tree.on('afteritemcollapse', function(t){
+            Ext.defer(function(){
+                Ext.getCmp('master_panel').doLayout();
+            }, 300);
+        });
+        tree.on('afteritemexpand', function(t){
+            Ext.defer(function(){
+                Ext.getCmp('master_panel').doLayout();
+            }, 300);
+        });
+        tree.on('afterrender', function(t){
+            Ext.defer(function(){
+                Ext.getCmp('master_panel').doLayout();
+            }, 300);
+        });
+        this.fireEvent('componenttreeloaded');
     },
     loadComponents: function() {
-        var rootNode = this.treepanel.getStore().getNodeById(UID);
-        Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, function(data){
-            if (data.length) {
-                rootNode.appendChild(Ext.Array.map(data, function(d) {
-                    d.text = Ext.String.format("{0} <span title='{1}'>({2})</span>",
-                                               Zenoss.component.displayName(d.text.text)[1],
-                                               d.text.description, d.text.count);
-                    d.action = function(node, target) {
-                        target.layout.setActiveItem('component_card');
-                        target.layout.activeItem.setContext(UID, node.get('id'));
-                    };
-                    return d;
-                }));
-            }
-            var card = Ext.getCmp('component_card'),
-                tbar = card.getGridToolbar();
-            if (rootNode.hasChildNodes()) {
-                this.treepanel.setNodeVisible(rootNode, true);
-                if (tbar) {
-                    tbar.show();
-                }
-            } else {
-                this.treepanel.setNodeVisible(rootNode, false);
-                if (tbar){
-                    tbar.hide();
-                }
-                card.detailcontainer.removeAll();
-                try {
-                    // This can fail if the device has no components at
-                    // all, but it fails deep in Ext. Also it's irrelevant
-                    // in that case, so just fail quietly.
-                    card.componentnav.reset();
-                } catch(e) {}
-            }
-            var tree = this.treepanel,
-                sm = tree.getSelectionModel(),
-                sel = sm.getSelectedNode(),
-                token = Ext.History.getToken(),
-                panelid = tree.ownerCt.id;
-            if (!sel && token && token.slice(0,panelid.length)==panelid) {
-                var parts = token.split(Ext.History.DELIMITER),
-                    type = parts[1],
-                    rest = parts.slice(2).join(Ext.History.DELIMITER);
-                if (type) {
-                    var tosel = rootNode.findChild('id', type);
-                    if (tosel) {
-                        selectOnRender(tosel, sm);
-                    }
-                    var card = Ext.getCmp('component_card');
-                    if (rest) {
-                        card.selectByToken(unescape(rest));
-                    }
-                }
-            }
-            tree.on('afteritemcollapse', function(t){
-                Ext.defer(function(){
-                    Ext.getCmp('master_panel').doLayout();
-                }, 300);
-            });
-            tree.on('afteritemexpand', function(t){
-                Ext.defer(function(){
-                    Ext.getCmp('master_panel').doLayout();
-                }, 300);
-            });
-            tree.on('afterrender', function(t){
-                Ext.defer(function(){
-                    Ext.getCmp('master_panel').doLayout();
-                }, 300);
-            });
-            this.fireEvent('componenttreeloaded');
-
-        }, this);
+        // see if we already have the tree on the initial page load
+        if (Zenoss.env.componentTree) {
+            this.doLoadComponentTree(Zenoss.env.componentTree);
+            delete Zenoss.env.componentTree;
+        } else {
+            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, this.doLoadComponentTree, this);
+        }
     },
     filterNav: function(navpanel, config){
         //nav items to be excluded
@@ -759,6 +774,7 @@ Ext.getCmp('center_panel').add({
         items: [overview, event_console, modeler_plugins, configuration_properties, custom_properties, dev_admin, device_graphs, softwares, componentCard]
     }]
 });
+
 Ext.getCmp('templateTree').setContext(UID);
 Ext.create('Zenoss.BindTemplatesDialog', {
     id: 'bindTemplatesDialog',
@@ -1138,8 +1154,6 @@ Ext.getCmp('footer_bar').add([{
         var viewport = Ext.getCmp('viewport');
         viewport.setHeight(viewport.getHeight() +1 );
     }
-    if (Zenoss.settings.showPageStatistics){
-        var stats = Ext.create('Zenoss.stats.DeviceDetail');
-    }
+
 
 });

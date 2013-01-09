@@ -21,6 +21,9 @@
 '></script>
 
 
+<script tal:content="view/getComponentTree"></script>
+<script tal:content="view/fetchLeftHandMenu"></script>
+<script tal:content="view/getInfoObject"></script>
 
 <script
     tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/DeviceDialogs.js')"

@@ -28,7 +28,9 @@
     tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/itinfrastructure.js')"
 >
 </script>
+<script tal:content="view/getTrees">
 
+</script>
 <script>
 function changeDetail() {
     var where = window.location.href.split('#')[1],

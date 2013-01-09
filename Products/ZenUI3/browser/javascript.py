@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -132,6 +132,31 @@ class ZenossSettings(JavaScriptSnippet):
             js.append("Zenoss.settings.%s = %s;" % (name, str(value).lower()))
         return "\n".join(js)
 
+class ZenossData(JavaScriptSnippet):
+    """
+    This preloads some data for the UI so that every page doesn't have to send
+    a separate router request to fetch it.
+    """
+    def snippet(self):
+        # collectors
+        collectors = [[s] for s in self.context.dmd.Monitors.getPerformanceMonitorNames()]
+
+        # priorities
+        priorities = [dict(name=s[0],
+                           value=int(s[1])) for s in
+                      self.context.dmd.getPriorityConversions()]
+
+        # production states
+        productionStates = [dict(name=s[0],
+                                 value=int(s[1])) for s in
+                            self.context.dmd.getProdStateConversions()]
+
+        snippet = """
+            Zenoss.env.collectors = %r;
+            Zenoss.env.priorities = %r;
+            Zenoss.env.productionStates = %r;
+        """ % ( collectors, priorities, productionStates )
+        return snippet
 
 class BrowserState(JavaScriptSnippet):
     """

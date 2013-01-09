@@ -26,12 +26,6 @@ var REMOTE = Zenoss.remote.DeviceRouter,
 Zenoss.env.initProductionStates();
 Zenoss.env.initPriorities();
 
-REMOTE.getCollectors({}, function(d){
-    var collectors = [];
-    Ext.each(d, function(r){collectors.push([r]);});
-    Zenoss.env.COLLECTORS = collectors;
-});
-
 var resetCombo = function(combo, manufacturer) {
     combo.clearValue();
     combo.getStore().setBaseParam('manufacturer', manufacturer);
@@ -526,7 +520,7 @@ Ext.apply(Zenoss.devices, {
                                 id: 'add-device-collector',
                                 queryMode: 'local',
                                 store: new Ext.data.ArrayStore({
-                                    data: Zenoss.env.COLLECTORS,
+                                    data: Zenoss.env.collectors,
                                     fields: ['name']
                                 }),
                                 valueField: 'name',
@@ -955,6 +949,11 @@ if (Zenoss.settings.incrementalTreeLoad) {
     treeLoaderFn = REMOTE.asyncGetTree;
     treeStateful = false;
 }
+// make sure the first visible root is expanded
+Zenoss.env.device_tree_data[0].expanded = true;
+Zenoss.env.system_tree_data[0].expanded = true;
+Zenoss.env.group_tree_data[0].expanded = true;
+Zenoss.env.location_tree_data[0].expanded = true;
 
 var devtree = {
     xtype: 'HierarchyTreePanel',
@@ -970,7 +969,8 @@ var devtree = {
     root: {
         id: 'Devices',
         uid: '/zport/dmd/Devices',
-        text: 'Device Classes'
+        text: 'Device Classes',
+        children: Zenoss.env.device_tree_data
     },
     ddGroup: 'devicegriddd',
     selectByToken: detailSelectByToken,
@@ -1016,7 +1016,8 @@ var grouptree = {
     selectByToken: detailSelectByToken,
     root: {
         id: 'Groups',
-        uid: '/zport/dmd/Groups'
+        uid: '/zport/dmd/Groups',
+        children: Zenoss.env.group_tree_data
     },
     ddGroup: 'devicegriddd',
     nodeName: 'Group',
@@ -1043,7 +1044,8 @@ var systree = {
     selectByToken: detailSelectByToken,
     root: {
         id: 'Systems',
-        uid: '/zport/dmd/Systems'
+        uid: '/zport/dmd/Systems',
+        children: Zenoss.env.system_tree_data
     },
     ddGroup: 'devicegriddd',
     nodeName: 'System',
@@ -1072,7 +1074,8 @@ var loctree = {
     selectByToken: detailSelectByToken,
     root: {
         id: 'Locations',
-        uid: '/zport/dmd/Locations'
+        uid: '/zport/dmd/Locations',
+        children: Zenoss.env.location_tree_data
     },
     ddGroup: 'devicegriddd',
     nodeName: 'Location',
@@ -1219,6 +1222,7 @@ Ext.define("Zenoss.InfraDetailNav", {
         }
     }
 });
+
 
 var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
     ddGroup: 'devicegriddd',
@@ -1719,5 +1723,10 @@ footerBar.on('buttonClick', function(actionName, id, values) {
         var stats = Ext.create('Zenoss.stats.Infrastructure');
     }
 
+    // if there is no history, select the top node
+    if (!Ext.History.getToken()) {
+        var node = Ext.getCmp('devices').getRootNode();
+        node.fireEvent('expand', node);
+    }
 
 }); // Ext. OnReady

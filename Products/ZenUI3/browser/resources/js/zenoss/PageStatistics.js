@@ -46,10 +46,9 @@
         getTiming: function() {
             var perf = window.performance || {};
             var fn = perf.now || perf.mozNow || perf.webkitNow || perf.msNow || perf.oNow;
-            return fn ? fn.bind(perf) : null;
+            return fn ? fn.bind(perf) : Ext.emptyFn;
         },
         checkReady: function() {
-
             // convert from milliseconds to seconds
             var finalTime = new Date().getTime() / 1000.0,
                 loadingTime = this.getTiming()();

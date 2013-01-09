@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -94,13 +94,7 @@
             config = Ext.apply(config || {}, {
                 text:'...',
                 cls: 'x-btn x-btn-default-toolbar-small',
-                store: new Zenoss.NonPaginatedStore({
-                    directFn: Zenoss.remote.DeviceRouter.getPriorities,
-                    root: 'data',
-                    autoLoad: false,
-                    initialSortColumn: 'name',
-                    model: 'Zenoss.model.NameValue'
-                }),
+                source: Zenoss.env.priorities,
                 defaultValues: []
             });
             ZD.DevicePriorityMultiselectMenu.superclass.constructor.call(this, config);
@@ -133,13 +127,7 @@
             config = Ext.apply(config || {}, {
                 text:'...',
                 cls: 'x-btn x-btn-default-toolbar-small',
-                store: new Zenoss.NonPaginatedStore({
-                    directFn: Zenoss.remote.DeviceRouter.getProductionStates,
-                    root: 'data',
-                    initialSortColumn: 'name',
-                    autoLoad: false,
-                    model: 'Zenoss.model.ValueIntModel'
-                }),
+                source: Zenoss.env.productionStates,
                 defaultValues: defaults
             });
             this.callParent([config]);

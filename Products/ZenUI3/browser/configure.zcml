@@ -1,11 +1,11 @@
 <!--
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 -->
 
@@ -117,14 +117,14 @@
     />
 
 <browser:page
-    template="templates/itinfrastructure.pt"
+    class=".pages.ITInfrastructure"
     name="itinfrastructure"
     for="*"
     permission="zenoss.Common"
     />
 
 <browser:page
-    template="templates/devdetail.pt"
+    class=".pages.DeviceDetails"
     name="devicedetail"
     for="Products.ZenModel.Device.Device"
     permission="zenoss.View"
@@ -268,6 +268,13 @@
     name="zenoss_settings"
     manager=".interfaces.IMainSnippetManager"
     class=".javascript.ZenossSettings"
+    permission="zope2.Public"
+    />
+
+<browser:viewlet
+    name="zenoss_data"
+    manager=".interfaces.IMainSnippetManager"
+    class=".javascript.ZenossData"
     permission="zope2.Public"
     />
 

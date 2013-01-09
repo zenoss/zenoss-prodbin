@@ -76,37 +76,28 @@ Zenoss.env.getColumnDefinitions = function(except) {
 };
 
 Zenoss.env.initProductionStates= function(){
-    var REMOTE = Zenoss.remote.DeviceRouter;
-    REMOTE.getProductionStates({}, function(d){
-        if (!Zenoss.env.PRODUCTION_STATES ) {
-            Zenoss.env.PRODUCTION_STATES = [];
-            Zenoss.env.PRODUCTION_STATES_MAP = {};
-            if (d.success) {
-                Ext.each(d.data, function(item) {
-                            Zenoss.env.PRODUCTION_STATES.push(item);
-                            Zenoss.env.PRODUCTION_STATES_MAP[item.value] = item.name;
-                        }
-                );
-            }
-        }
-    });
+    var d = Zenoss.env.productionStates;
+    if (!Zenoss.env.PRODUCTION_STATES ) {
+        Zenoss.env.PRODUCTION_STATES = [];
+        Zenoss.env.PRODUCTION_STATES_MAP = {};
+        Ext.each(d, function(item) {
+            Zenoss.env.PRODUCTION_STATES.push(item);
+            Zenoss.env.PRODUCTION_STATES_MAP[item.value] = item.name;
+        });
+    }
 };
 
 Zenoss.env.initPriorities = function(){
-    var REMOTE = Zenoss.remote.DeviceRouter;
-    REMOTE.getPriorities({}, function(d) {
-        if (!Zenoss.env.PRIORITIES) {
-            Zenoss.env.PRIORITIES = [];
-            Zenoss.env.PRIORITIES_MAP = {};
-            if (d.success) {
-                Ext.each(d.data, function(item) {
-                            Zenoss.env.PRIORITIES.push(item);
-                            Zenoss.env.PRIORITIES_MAP[item.value] = item.name;
-                        }
-                );
-            }
-        }
-    });
+    var d = Zenoss.env.priorities;
+
+    if (!Zenoss.env.PRIORITIES) {
+        Zenoss.env.PRIORITIES = [];
+        Zenoss.env.PRIORITIES_MAP = {};
+        Ext.each(d, function(item) {
+            Zenoss.env.PRIORITIES.push(item);
+            Zenoss.env.PRIORITIES_MAP[item.value] = item.name;
+        });
+    }
 };
 
 Ext.define('Zenoss.state.PersistentProvider', {
@@ -510,13 +501,14 @@ Ext.define("Zenoss.MultiselectMenu", {
         this.initialSetValue(config);
     },
     initialSetValue: function(config) {
+        var defaultValues = this.defaultValues || [];
         if (Ext.isDefined(config.store)) {
             this.hasLoaded = false;
             config.store.on('load', function(s, rows) {
                 this.menu.removeAll();
                 Ext.each(rows, function(row){
                     var cfg = this.makeItemConfig(row.data.name, row.data.value);
-                    cfg.checked = (Ext.Array.indexOf(this.defaultValues, row.data.value)>-1);
+                    cfg.checked = (Ext.Array.indexOf(defaultValues, row.data.value)>-1);
                     this.menu.add(cfg);
                 }, this);
                 this.hasLoaded = true;
@@ -526,7 +518,7 @@ Ext.define("Zenoss.MultiselectMenu", {
             this.hasLoaded = true;
             Ext.each(config.source, function(o){
                 var cfg = this.makeItemConfig(o.name, o.value);
-                cfg.checked = !Ext.isDefined(o.checked);
+                cfg.checked = (Ext.Array.indexOf(defaultValues, o.value)>-1);
                 this.menu.add(cfg);
             }, this);
         }

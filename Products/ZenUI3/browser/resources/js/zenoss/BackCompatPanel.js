@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -158,7 +158,12 @@ Ext.define("Zenoss.BackCompatPanel", {
         if (Ext.isDefined(this.viewName) && this.viewName !== null) {
             url = uid + '/' + this.viewName;
         }
-        this.setSrc(url);
+        // make sure we are rendered before we set our source
+        if (this.rendered) {
+            this.setSrc(url);
+        } else {
+            this.on('afterrender', function() { this.setSrc(url);}, this, {single:true});
+        }
     }
 });
 

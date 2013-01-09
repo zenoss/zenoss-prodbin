@@ -8,8 +8,6 @@
 ##############################################################################
 
 
-from zope.component import queryUtility
-
 import zope.i18n
 from zope.i18nmessageid import MessageFactory
 _ = MessageFactory('zenoss')
@@ -183,3 +181,4 @@ class GridColumnDefinitions(JavaScriptSnippet):
 """)
         result.append('});')
         return '\n'.join(result)
+

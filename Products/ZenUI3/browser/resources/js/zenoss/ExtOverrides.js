@@ -247,7 +247,7 @@
             picker = this.getPicker();
 
         if(Ext.isIE){
-        	var child = Ext.DomQuery.selectNode('#'+picker.id+' .x-boundlist-list-ct');
+            var child = Ext.DomQuery.selectNode('#'+picker.id+' .x-boundlist-list-ct');
             Ext.defer(function(){ // defer a bit so the grandpaw will have a height
                     try{
                         var grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
@@ -341,6 +341,7 @@
                 }
             }
         }
+
     });
 
     /**
@@ -414,6 +415,9 @@
         }
         return returnEl ? Ext.get(this.target) : this.target;
     };
+
+
+
 
 
 

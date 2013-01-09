@@ -36,7 +36,7 @@
             return this.body;
         },
         onShow: function() {
-            this.el.show();          
+            this.el.show();
             Zenoss.flares.Container.superclass.onShow.apply(this, arguments);
         },
         onRemove: function() {
@@ -95,7 +95,7 @@
             // previous flares
             if (otherFlare) {
                 flare.on('afterrender', function(fl){
-                    fl.alignTo(otherFlare.getEl(), 'bl-bl', [0, 32]); 
+                    fl.alignTo(otherFlare.getEl(), 'bl-bl', [0, 32]);
                 });
             }else {
                 flare.on('afterrender', function(fl){
@@ -260,11 +260,11 @@
             this.mon(this.el, 'mouseout', function(){
                 Ext.defer(function(){
                     this.hide();
-                }, 1000, this);             
-            }, this);            
+                }, 1000, this);
+            }, this);
             if ( this.dismissOnClick ) {
-                this.mon(this.el, 'click', function() { 
-                    this.hide(); 
+                this.mon(this.el, 'click', function() {
+                    this.hide();
                 }, this);
             }
         },
@@ -349,7 +349,6 @@
                 this.checkMessages();
             }, this);
             this._task.delay(this.interval);
-            this.checkMessages();
         },
         checkMessages: function() {
             Zenoss.remote.MessagingRouter.getUserMessages({}, function(results) {

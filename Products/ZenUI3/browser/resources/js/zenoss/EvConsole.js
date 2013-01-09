@@ -11,6 +11,7 @@
 Ext.ns('Zenoss.ui.EvConsole');
 
 Ext.onReady(function(){
+
     // Global dialogs, will be reused after first load
     var win,
         addevent,
@@ -20,7 +21,7 @@ Ext.onReady(function(){
     // Get references to the panels
         detail_panel = Ext.getCmp('detail_panel'),
         master_panel = Ext.getCmp('master_panel');
-
+    detail_panel.collapse();
     master_panel.layout = 'border';
 
     // Make this instance of the detail panel use a unique state ID so
@@ -33,7 +34,9 @@ Ext.onReady(function(){
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3');});
 
-    var console_store = Ext.create('Zenoss.events.Store', { });
+    var console_store = Ext.create('Zenoss.events.Store', {
+    });
+
 
     // Selection model
     var console_selection_model = Ext.create('Zenoss.EventPanelSelectionModel', {
@@ -74,16 +77,24 @@ Ext.onReady(function(){
             key: Ext.EventObject.ENTER,
             fn: toggleEventDetailContent
         }],
-        selModel: console_selection_model // defined above
+        selModel: console_selection_model, // defined above
+        viewConfig: {
+            loadMask: false
+        }
     });
     console_selection_model.grid = grid;
     // Add it to the layout
-    master_panel.add(grid);
 
+    master_panel.add(grid);
+	
+    if (Zenoss.settings.showPageStatistics){
+        var stats = Ext.create('Zenoss.stats.Events');
+    }
 
     Zenoss.util.callWhenReady('events_grid', function(){
         Ext.getCmp('events_grid').setContext(Zenoss.env.PARENT_CONTEXT);
     });
+
     var pageParameters = Ext.urlDecode(window.location.search.substring(1));
     if (pageParameters.filter === "default") {
         // reset eventconsole filters to the default
@@ -125,6 +136,7 @@ Ext.onReady(function(){
         detail_panel.collapse();
         detail_panel.hide();
     }
+
     function eventDetailCollapsed(){
         wipeEventDetail();
         grid.on('itemdblclick', toggleEventDetailContent);
@@ -141,8 +153,7 @@ Ext.onReady(function(){
     detail_panel.animCollapse = false;
 
     // render so that the detail panel has html elements
-    detail_panel.show();
-    detail_panel.collapse();
+
 
     detail_panel.on('collapse', function(ob, state) {
         eventDetailCollapsed();
@@ -174,7 +185,5 @@ Ext.onReady(function(){
         grid.restoreURLState();
     }
 
-    if (Zenoss.settings.showPageStatistics){
-        var stats = Ext.create('Zenoss.stats.Events');
-    }
+
 });

@@ -333,6 +333,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
         config = Ext.applyIf(config||{}, {
             tbarid: tbarid,
             layout: 'border',
+            token: null,
             items: [{
                 region: 'north',
                 height: 250,
@@ -397,8 +398,12 @@ Ext.define("Zenoss.component.ComponentPanel", {
     },
     selectByToken: function(token) {
         if (token) {
-            var grid = this.componentgrid;
-            grid.selectByToken(token);
+            if (this.componentgrid) {
+                var grid = this.componentgrid;
+                grid.selectByToken(token);
+            } else {
+                this.token = token;
+            }
         }
     },
     setContext: function(uid, type) {
@@ -442,10 +447,14 @@ Ext.define("Zenoss.component.ComponentPanel", {
                 }
             });
             this.gridcontainer.doLayout();
+            if (this.token) {
+                this.componentgrid.selectByToken(this.token);
+            }
         } else {
             this.componentgrid.setContext(uid);
         }
         this.fireEvent('contextchange', this, uid, type);
+
     }
 });
 

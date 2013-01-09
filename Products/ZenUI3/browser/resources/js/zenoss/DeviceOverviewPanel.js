@@ -182,13 +182,6 @@
     }
 
 
-
-    Zenoss.remote.DeviceRouter.getCollectors({}, function(d){
-        var collectors = [];
-        Ext.each(d, function(r){collectors.push([r]);});
-        Zenoss.env.COLLECTORS = collectors;
-    });
-
     var editCollector = function(values, uid) {
         var win = new Zenoss.FormDialog({
             autoHeight: true,
@@ -204,7 +197,7 @@
                 fieldLabel: _t('Select a collector'),
                 queryMode: 'local',
                 store: new Ext.data.ArrayStore({
-                    data: Zenoss.env.COLLECTORS,
+                    data: Zenoss.env.collectors,
                     fields: ['name']
                 }),
                 valueField: 'name',
@@ -917,7 +910,13 @@
         setContext: function(uid) {
             this.contextUid = uid;
             this.baseParams.uid = uid;
-            this.load();
+            // if we havne't rendered yet wait until we have rendered
+            if (!this.getEl()) {
+                this.on('afterrender', this.load, this, {single: true});
+            } else {
+                this.load();
+            }
+
         },
         getFieldNames: function() {
             var keys = [], key;
@@ -932,8 +931,8 @@
             return keys;
         },
         load: function() {
-            var o = Ext.apply({keys:this.getFieldNames()}, this.baseParams);
-            this.api.load(o, function(result) {
+            var o = Ext.apply({keys:this.getFieldNames()}, this.baseParams), me = this;
+            var callback = function(result) {
                 var D = result.data;
                 if (D.locking) {
                     D.locking = Zenoss.render.locking(D.locking);
@@ -953,7 +952,15 @@
                     this.setValues(results.data);
                     this.doLayout();
                 }, this);
-            }, this);
+            };
+
+
+            if (Zenoss.env.infoObject) {
+                Ext.bind(callback, this, [Zenoss.env.infoObject])();
+                delete Zenoss.env.infoObject;
+            } else {
+                this.api.load(o, callback, this);
+            }
         },
         getValues: function() {
             var o = {};

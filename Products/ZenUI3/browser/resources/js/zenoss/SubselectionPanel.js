@@ -428,8 +428,10 @@
             }
             var view = this.getView(),
                 el = Ext.fly(view.getNodeByRecord(node));
-            el.setVisibilityMode(Ext.Element.DISPLAY);
-            el.setVisible(visible);
+            if (el) {
+                el.setVisibilityMode(Ext.Element.DISPLAY);
+                el.setVisible(visible);
+            }
         }
     });
 
@@ -541,7 +543,6 @@
             //Direct call to get nav configs from server
             var me = this;
             var myCallback = function (provider, response) {
-
                 var detailConfigs = response.result.detailConfigs;
 
                 var filterFn = function (val) {
@@ -578,7 +579,15 @@
             if (this.menuIds !== null && this.menuIds.length >= 1) {
                 args['menuIds'] = this.menuIds;
             }
-            Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, myCallback, this);
+            if (Zenoss.env.lefthandnav) {
+                myCallback(null, {
+                    result:Zenoss.env.lefthandnav
+                });
+                delete Zenoss.env.lefthandnav;
+            } else {
+                Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, myCallback, this);
+            }
+
         },
         reset:function () {
             return this.treepanel.setRootNode({});
