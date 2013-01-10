@@ -20,8 +20,9 @@ class ITInfrastructure(BrowserView):
 
     def getTrees(self):        
         router = DeviceRouter(self.context.dmd, {});
-        method = router.getTree
-        if self.context.dmd.UserInterfaceSettings.incrementalTreeLoad:
+        method = router.getTree        
+        settings = self.context.dmd.UserInterfaceSettings.getInterfaceSettings()
+        if settings['incrementalTreeLoad']:
             method = router.asyncGetTree
         deviceTree = method('/zport/dmd/Devices')
         # system
