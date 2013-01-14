@@ -191,10 +191,10 @@
         }
         cpropertyConfigs.state.context = "add";
         msg = '<span style="color:#aaa;">';
-        msg += _t('Names must start with lower case c')+' <br>';
+        msg += _t('Names must start with a lower case c')+' <br>';
         msg += _t('Example: ');
         msg += '<span style="color:yellow;">';
-        msg += _t('cProperyName');
+        msg += _t('cPropertyName');
         msg += '</span></span>';
 
         addhandler = function() {
