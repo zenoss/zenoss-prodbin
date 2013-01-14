@@ -507,10 +507,7 @@ class CommandAction(IActionBase, TargetableAction):
 
     def executeOnTarget(self, notification, signal, target):
         log.debug('Executing command action: %s on %s', self.name, target)
-        user_env_format = notification.content.get('user_env_format', '')
         environ ={}
-        env = dict( envvar.split('=') for envvar in user_env_format.split(';') if '=' in envvar)
-        environ['env'] = env
         environ['user'] = getattr(self.dmd.ZenUsers, target, None)
         self._execute(notification, signal, environ)
 
@@ -524,7 +521,7 @@ class CommandAction(IActionBase, TargetableAction):
             command = notification.content['body_format']
 
         log.debug('Executing this command: %s', command)
-
+        
         actor = signal.event.occurrence[0].actor
         device = None
         if actor.element_uuid:
@@ -534,16 +531,16 @@ class CommandAction(IActionBase, TargetableAction):
         if actor.element_sub_uuid:
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
-        environ = {'dev': device, 'component': component, 'dmd': notification.dmd, 'env':None}
+        user_env_format = notification.content.get('user_env_format', '')
+        env = dict( envvar.split('=') for envvar in user_env_format.split(';') if '=' in envvar)
+        environ = {'dev': device, 'component': component, 'dmd': notification.dmd, 'env': env}
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         environ.update(data)
 
         if environ.get('evt', None):
             environ['evt'] = self._escapeEvent(environ['evt'])
-
         if environ.get('clearEvt', None):
             environ['clearEvt'] = self._escapeEvent(environ['clearEvt'])
-
         environ.update(extra_env)
         try:
             command = processTalSource(command, **environ)
