@@ -11,6 +11,7 @@
             var finalTime = config.finalTime,
                 loadingTime = config.loadingTime;
 
+
             Ext.applyIf(config, {
                 title: _t('Page Load Time'),
                 defaults: {
@@ -22,6 +23,8 @@
                     value: Ext.String.format(_t("{0} seconds in layout and rendering on the client."), (finalTime - Zenoss._pageStartTime).toFixed(2))
                 }, {
                     value: Ext.String.format(_t("{0} seconds since ExtJs start time."), (finalTime - (Ext._startTime/1000)).toFixed(2))
+                },{
+                    value: Ext.String.format(_t("{0} seconds spent in Ajax requests."), (config.ajaxTime).toFixed(2))
                 }]
 
             });
@@ -51,18 +54,28 @@
         checkReady: function() {
             // convert from milliseconds to seconds
             var finalTime = new Date().getTime() / 1000.0,
-                loadingTime = this.getTiming()();
+                loadingTime = this.getTiming()(),
+                ajaxTime = Ext.Array.sum(Ext.pluck(completedRequests, 'time'));
             // perf data is unavailable, display nothing
             if (!loadingTime) {
                 return;
             }
 
             loadingTime = (loadingTime / 1000.00).toFixed(2);
+
+            // do not listen to ajax requests anymore
+            Ext.Ajax.un('beforerequest', beforeAjaxRequest);
+            Ext.Ajax.un('requestcomplete', afterAjaxRequest);
+
             Ext.getCmp('footer_bar').add(['-', {
                 xtype: 'button',
                 text: Ext.String.format(_t("{0} seconds"), loadingTime),
                 handler: function(){
-                    Ext.create('Zenoss.stats.ResultsWindow', {finalTime: finalTime, loadingTime: loadingTime}).show();
+                    Ext.create('Zenoss.stats.ResultsWindow', {
+                        finalTime: finalTime,
+                        loadingTime: loadingTime,
+                        ajaxTime: ajaxTime
+                    }).show();
                 }
             }]);
         }
@@ -87,4 +100,49 @@
 
     });
 
+    var openRequests = {}, completedRequests=[];
+
+    /**
+     * Uniquely identify each ajax request so that
+     * we can match it up when the results come back from the server.
+     **/
+    function getTransactionId(transaction) {
+        if (Ext.isArray(transaction)) {
+            var ids = Ext.pluck(transaction, "id");
+            return ids.join(" ");
+        }
+        return transaction.id;
+    }
+
+    /**
+     * Log the start time and Url of each ajax request
+     **/
+    function beforeAjaxRequest(conn, options) {
+        var url = options.url, transactionId = getTransactionId(options.transaction);
+        openRequests[transactionId] = {
+            url: url,
+            starttime: new Date().getTime()
+        };
+    }
+
+    /**
+     * Log the end time so we can get the total time spent in ajax requests.
+     **/
+    function afterAjaxRequest(conn, response, options) {
+        var url = options.url, endtime = new Date().getTime(), transactionId = getTransactionId(options.transaction);
+        if (openRequests[transactionId]) {
+            completedRequests.push({
+                url: url,
+                time: (endtime - openRequests[transactionId].starttime) / 1000.00
+            });
+            delete openRequests[transactionId];
+        }
+    }
+
+    Ext.onReady(function() {
+        if (Zenoss.settings.showPageStatistics) {
+            Ext.Ajax.on('beforerequest', beforeAjaxRequest);
+            Ext.Ajax.on('requestcomplete', afterAjaxRequest);
+        }
+    });
 }());
