@@ -1,0 +1,55 @@
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+
+#
+# To use this bash-specific command-line completion commands, use the 
+# following command:
+#
+#  . $ZENHOME/bin/bash_completers
+#
+
+
+##############################################################################
+#
+#  Name: zpcd  - ZenPack 'cd' command
+#  Summary: Choose the ZenPack to enter, and then cd into the base directory
+#           level (eg ZenPacks.Foo.Bar/ZenPacks/Foo/Bar/ )
+##############################################################################
+
+# Create a bash function that we will use to 'cd' into the most useful dir.
+# Also handles ZenPacks installed using the '--link' option.
+zpcd() {
+  zp=$1
+  ZPDIR=$ZENHOME/ZenPacks/$zp
+  if [ -f $ZENHOME/ZenPacks/$zp.egg-link ] ; then
+      ZPDIR=`head -1 $ZENHOME/ZenPacks/$zp.egg-link`
+  fi
+
+  if [ -d $ZPDIR ] ; then
+      pushd $ZPDIR/`echo $zp | sed -e 's#\.#/#g' -e 's/-.*//'`
+  fi
+}
+
+# This command-line completer provides a list of choices for the user to select,
+# and then passes the result back (via COMPREPLY variable) for use with a command.
+_zpcd() {
+ local cur
+ COMPREPLY=()
+ cur="${COMP_WORDS[COMP_CWORD]}"
+
+ local zenpacks=$(ls -1 $ZENHOME/ZenPacks | grep ZenPack | sed -e 's/.egg-link//' |sort -u )
+ COMPREPLY=( $(compgen -W "${zenpacks}" -- ${cur}) )
+ return 0
+}
+
+# Associate the completer ('_zpcd') with the function that does the work ('zpcd').
+# Completers can be used with commands on the filesystem as well.
+complete -F _zpcd zpcd
+
+###  End of file  ############################################################
