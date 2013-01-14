@@ -94,15 +94,19 @@ class ComponentCommandParser(CommandParser):
             if not points:
                 continue
 
-            # Use the scanners to search for datapoints
-            for search in self.scanners:
-                match = re.search(search, part)
-                if match:
-                    for name, value in match.groupdict().items():
-                        dp = points.get(name, None)
-                        if dp is not None:
-                            if value in ('-', ''): value = 0
-                            result.values.append( (dp, float(value) ) )
-                            
+            self.getMetrics(result, points, part)
+
         log.debug(pformat(result))
         return result
+
+    def getMetrics(self, result, points, part):
+        # Use the scanners to search for datapoints
+        for search in self.scanners:
+            match = re.search(search, part)
+            if match:
+                for name, value in match.groupdict().items():
+                    dp = points.get(name, None)
+                    if dp is not None:
+                        if value in ('-', ''): value = 0
+                        result.values.append( (dp, float(value) ) )
+
