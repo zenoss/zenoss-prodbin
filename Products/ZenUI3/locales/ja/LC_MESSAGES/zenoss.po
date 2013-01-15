@@ -1,0 +1,54 @@
+# This file contains no message ids because Zenoss's default
+# language is English
+msgid ""
+msgstr ""
+"Project-Id-Version: zenoss\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Dashboard"
+msgstr "ダシュボード"
+
+msgid "Events"
+msgstr "イベント"
+
+msgid "IT Infrastructure"
+msgstr "インフォストラクチャ"
+
+msgid "Reports"
+msgstr "レポート"
+
+msgid "Advanced"
+msgstr "アドバンスード"
+
+msgid "Select"
+msgstr "選んでいます"
+
+msgid "Export"
+msgstr "エクスポート"
+
+msgid "Networks"
+msgstr "ネトワクス"
+
+msgid "Event Console"
+msgstr "エヴェント　画面"
+
+msgid "History"
+msgstr "過去"
+
+msgid "Processes"
+msgstr "プロシェス"
+
+msgid "Refresh"
+msgstr "レフレシュ"
+
+msgid "Device"
+msgstr "デバイス"
+
+msgid "Devices"
+msgstr "デバイス"
+
+msgid "Software"
+msgstr "ソフト"
+
