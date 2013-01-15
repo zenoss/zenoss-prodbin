@@ -11,7 +11,7 @@ Create the locale Domain
 This example will use the Japanese locale (`ja`)
 
 #. Determine the locale name (eg `en`, `fr`, `ja`).  The list of locale names can
-   be determeined from here xxx
+   be determeined from here http://www.iana.org/assignments/language-subtag-registry
 #. Create the directory structure for the new locale domain
 ::
 
