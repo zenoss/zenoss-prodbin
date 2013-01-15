@@ -209,7 +209,10 @@ class ProtobufWrapper(object):
             return default
 
     def set(self, key, value):
-        setattr(self.__dict__['_pb'], key, value)
+        if isinstance(value, str):
+            setattr(self.__dict__['_pb'], key, unicode(value))
+        else:
+            setattr(self.__dict__['_pb'], key, value)
 
     def __getattr__(self, name):
         return getattr(self._pb, name)
