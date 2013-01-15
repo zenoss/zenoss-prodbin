@@ -76,7 +76,7 @@ EMPTY_MD5_DIGEST = md5('').hexdigest()
 
 PROC_SCAN_ERROR = 'Unable to read processes on device %s'
 
-class HostResourceMIBExecption(Exception):
+class HostResourceMIBException(Exception):
     pass
 
 # Create an implementation of the ICollectorPreferences interface so that the
@@ -448,7 +448,7 @@ class ZenProcessTask(ObservableMixin):
             yield self._fetchPerf()
             log.debug("Device %s [%s] scanned successfully",
                       self._devId, self._manageIp)
-        except HostResourceMIBExecption as e:
+        except HostResourceMIBException as e:
             summary = 'Device %s does not publish HOST-RESOURCES-MIB' %\
                       self._devId
             resolution = "Verify with snmpwalk %s %s" %\
@@ -553,7 +553,7 @@ class ZenProcessTask(ObservableMixin):
         """
         self.state = ZenProcessTask.STATE_PARSING_TABLE_DATA
         if not results or not results[NAMETABLE]:
-            raise HostResourceMIBExecption()
+            raise HostResourceMIBException()
 
         if self._preferences.options.captureFilePrefix:
             self.capturePacket(self._devId, results)
