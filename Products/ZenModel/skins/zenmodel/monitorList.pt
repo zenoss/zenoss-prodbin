@@ -52,8 +52,11 @@
     <tr tal:define="odd repeat/mon/odd"
         tal:attributes="class python:odd and 'odd' or 'even'">
       <td class="tablevalues" colspan="1" bgcolor="#ffffff">
-        <input tal:condition="here/isManager"
-               type="checkbox" name="ids:list" 
+        <input tal:condition="python: here.isManager() and mon.id != 'localhost'"
+               type="checkbox" name="ids:list"
+               tal:attributes="value mon/id"/>
+        <input tal:condition="python: here.isManager() and mon.id == 'localhost'"
+               type="checkbox" disabled name="ids:list"
                tal:attributes="value mon/id"/>
         <a tal:attributes="href mon/getPrimaryUrlPath" 
            tal:content="mon/id"/>
