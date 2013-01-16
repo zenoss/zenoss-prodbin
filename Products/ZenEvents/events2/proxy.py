@@ -210,7 +210,7 @@ class ProtobufWrapper(object):
 
     def set(self, key, value):
         if isinstance(value, str):
-            setattr(self.__dict__['_pb'], key, unicode(value))
+            setattr(self.__dict__['_pb'], key, unicode(value, encoding='utf-8'))
         else:
             setattr(self.__dict__['_pb'], key, value)
 
