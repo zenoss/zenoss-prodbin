@@ -64,10 +64,6 @@ def _oid2name(mibSearch, oid, exactMatch=True, strip=False):
 
 
 class MibOrganizer(Organizer, ZenPackable):
-    """
-    DeviceOrganizer is the base class for device organizers.
-    It has lots of methods for rolling up device statistics and information.
-    """
     meta_type = "MibOrganizer"
     dmdRootName = "Mibs"
     default_catalog = 'mibSearch'
@@ -112,19 +108,20 @@ class MibOrganizer(Organizer, ZenPackable):
         return count
 
     def oid2name(self, oid, exactMatch=True, strip=False):
-        """Return a name for an oid.
+        """
+        Return a name for an oid.
         """
         return _oid2name(self.getDmdRoot("Mibs").mibSearch, oid,
             exactMatch, strip)
 
-
     def name2oid(self, name):
-        """Return an oid based on a name in the form MIB::name.
+        """
+        Return an oid based on a name in the form MIB::name.
         """
         brains = self.getDmdRoot("Mibs").mibSearch({'id': name})
-        if len(brains) > 0: return brains[0].oid
-        return ""
-
+        if len(brains) > 0:
+            return brains[0].oid
+        return ''
 
     def countClasses(self):
         """Count all mibs with in a MibOrganizer.
