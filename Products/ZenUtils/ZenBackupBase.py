@@ -141,11 +141,9 @@ class ZenBackupBase(CmdBase):
         globalSettings = globalConfToDict()
         zepsettings = {
             'zep-user': 'zepdbuser',
-            'zep-password': 'zepdbpass',
-            'zep-admin-user': 'zepdb_adminuser',
-            'zep-admin-password': 'zepdb_adminpass',
             'zep-host': 'zepdbhost',
             'zep-db': 'zepdbname',
+            'zep-password': 'zepdbpass',
             'zep-port': 'zepdbport'
         }
 

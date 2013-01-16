@@ -278,8 +278,8 @@ class ZenBackup(ZenBackupBase):
             tables = None
 
         self.backupMySqlDb(self.options.zepdbhost, self.options.zepdbport,
-                           self.options.zepdbname, self.options.zepdb_adminuser,
-                           'zepdb_adminpass', 'zep.sql.gz', tables=tables)
+                           self.options.zepdbname, self.options.zepdbuser,
+                           'zepdbpass', 'zep.sql.gz', tables=tables)
 
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)
