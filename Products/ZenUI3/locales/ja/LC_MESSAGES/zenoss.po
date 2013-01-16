@@ -13,7 +13,7 @@ msgstr "ダシュボード"
 msgid "Events"
 msgstr "イベント"
 
-msgid "IT Infrastructure"
+msgid "Infrastructure"
 msgstr "インフォストラクチャ"
 
 msgid "Reports"
@@ -51,4 +51,25 @@ msgstr "デバイス"
 
 msgid "Software"
 msgstr "ソフト"
+
+msgid "Thresholds"
+msgstr "閾値"
+
+msgid "IP Services"
+msgstr "IP サブス"
+
+msgid "Windows Services"
+msgstr "Windows サブス"
+
+msgid "Network Map"
+msgstr "ネトワク　地図"
+
+msgid "Manufacturers"
+msgstr "製造者"
+
+msgid "Welcome"
+msgstr "ようこそ!"
+
+msgid "Event Archive"
+msgstr "イベント　過去"
 
