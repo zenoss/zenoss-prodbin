@@ -21,7 +21,7 @@ from Products.Zuul.interfaces import ITreeFacade, IMibFacade, IInfo
 from Products.Zuul.infos.mib import MibOrganizerNode, MibNode, FakeTopLevelNodeInfo
 
 from Products.Jobber.jobs import SubprocessJob
-from Products.ZenUtils.Utils import binPath
+from Products.ZenUtils.Utils import binPath, snmptranslate
 
 from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.MibModule import MibModule
@@ -180,3 +180,16 @@ class MibFacade(TreeFacade):
                 args = (sourceUid, sourceObj.__class__.__name__)
                 raise Exception('Cannot move MIB %s of type %s' % args)
         return self._getObject(targetUid)
+
+    def oid2name(self, oid='', exactMatch=True, strip=False):
+        name = self._root.oid2name(oid, exactMatch=exactMatch, strip=strip)
+        if not name:
+            name = snmptranslate(oid)
+        return name
+
+    def name2oid(self, name=''):
+        oid = self._root.name2oid(name)
+        if not oid:
+            oid = snmptranslate('-On', name)
+        return oid
+
