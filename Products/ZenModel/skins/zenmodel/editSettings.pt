@@ -27,7 +27,9 @@ loader.require(['container']);
 loader.insert();
 </script>
 
-<form method=post tal:attributes="action string:${here/absolute_url_path}">
+<form method=post tal:attributes="action string:${here/absolute_url_path}"
+      i18n:domain="zenoss" >
+
 <input type="hidden" name="zenScreenName" tal:attributes="value string:editSettings" />
 <input type="hidden" name="redirect" value="true"/>
 
@@ -51,49 +53,49 @@ loader.insert();
         <!-- BEGIN TABLE CONTENTS -->
 
     <tr class="even">
-        <td class="noselect tableheader" align="left">Instance Identifier</td>
+        <td class="noselect tableheader" i18n:translate='' align="left">Instance Identifier</td>
         <td class="tablevalues">
             <input class="tablevalues" type="text" name="instanceIdentifier"
                 tal:attributes="value here/instanceIdentifier" />
         </td>
     </tr>
     <tr class="odd">
-      <td class="tableheader noselect" title="Simple Mail Transport Protocol (aka E-mail server)" align="left">SMTP Host</td>
+      <td class="tableheader noselect" i18n:attributes="title" title="Simple Mail Transport Protocol (aka E-mail server)"  i18n:translate='' align="left">SMTP Host</td>
       <td class="tablevalues">
-        <input class="tablevalues" title="Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpHost"
+        <input class="tablevalues" i18n:attributes="title" title="Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpHost"
             tal:attributes="value here/smtpHost" />
       </td>
     </tr>
     <tr class="even">
-      <td class="noselect tableheader" title="TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server)" align="left">SMTP Port (usually 25)</td>
+      <td class="noselect tableheader" i18n:attributes="title" title="TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server)"  i18n:translate='' align="left">SMTP Port (usually 25)</td>
       <td class="tablevalues">
-        <input class="tablevalues" title="TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpPort"
+        <input class="tablevalues" i18n:attributes="title" title="TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpPort"
             tal:attributes="value here/smtpPort" />
       </td>
     </tr>
     <tr class="odd">
-      <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Username (blank for none)</td>
+      <td class="noselect tableheader" i18n:attributes="title" title="Use this only if authentication is required" i18n:translate='' align="left">SMTP Username (blank for none)</td>
       <td class="tablevalues">
-        <input class="tablevalues" autocomplete="off" title="Use this only if authentication is required" type="text" name="smtpUser"
+        <input class="tablevalues" autocomplete="off" i18n:attributes="title" title="Use this only if authentication is required" type="text" name="smtpUser"
             tal:attributes="value here/smtpUser|string:" />
       </td>
     </tr>
     <tr class="even">
-      <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Password (blank for none)</td>
+      <td class="noselect tableheader" i18n:attributes="title" title="Use this only if authentication is required" i18n:translate='' align="left">SMTP Password (blank for none)</td>
       <td class="tablevalues">
-        <input class="tablevalues" autocomplete="off" title="Use this only if authentication is required" type="password" name="smtpPass"
+        <input class="tablevalues" autocomplete="off" i18n:attributes="title" title="Use this only if authentication is required" type="password" name="smtpPass"
             tal:attributes="value here/smtpPass|string:" />
       </td>
     </tr>
     <tr class="odd">
-      <td class="noselect tableheader" title="Defaults to 'root@localhost.localdomain'" align="left">From Address for Emails</td>
+      <td class="noselect tableheader" i18n:attributes="title" title="Defaults to 'root@localhost.localdomain'" i18n:translate='' align="left">From Address for Emails</td>
       <td class="tablevalues">
-        <input class="tablevalues" title="Defaults to 'root@localhost.localdomain'" type="text" name="emailFrom"
+        <input class="tablevalues" i18n:attributes="title" title="Defaults to 'root@localhost.localdomain'" type="text" name="emailFrom"
             tal:attributes="value here/emailFrom|string:" />
       </td>
     </tr>
     <tr class="even">
-        <td class="noselect tableheader" title="Use Transport Layer Security for E-mail?" align="left">Use TLS?</td>
+        <td class="noselect tableheader" i18n:attributes="title" title="Use Transport Layer Security for E-mail?" i18n:translate='' align="left">Use TLS?</td>
         <td class="tablevalues">
         <input type="hidden" name="smtpUseTLS:int:default" value="0">
         <input type="checkbox" value="1" name="smtpUseTLS:int"
@@ -101,15 +103,15 @@ loader.insert();
         </td>
     </tr>
     <tr class="odd">
-      <td class="noselect tableheader" title="Command to execute to send a page" align="left">Page Command</td>
+      <td class="noselect tableheader" i18n:attributes="title" title="Command to execute to send a page" i18n:translate='' align="left">Page Command</td>
       <td class="tablevalues">
-        <input class="tablevalues" title="Defaults to '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT" type="text" name="pageCommand"
+        <input class="tablevalues" i18n:attributes="title" title="Defaults to '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT" type="text" name="pageCommand"
             tal:attributes="value here/pageCommand|string:" />
       </td>
     </tr>
 
     <tr class="even">
-      <td class="noselect tableheader" title="" nowrap="nowrap" align="left">Dashboard Production State Threshold</td>
+      <td class="noselect tableheader" title="" nowrap="nowrap" i18n:translate='' align="left">Dashboard Production State Threshold</td>
       <td class="tablevalues">
         <input class="tablevalues" title="" type="text" name="prodStateDashboardThresh"
             tal:attributes="value here/prodStateDashboardThresh" />
@@ -117,7 +119,7 @@ loader.insert();
     </tr>
 
     <tr class="odd">
-      <td class="noselect tableheader" title="" align="left">Dashboard Priority Threshold</td>
+      <td class="noselect tableheader" title="" i18n:translate='' align="left">Dashboard Priority Threshold</td>
       <td class="tablevalues">
         <input class="tablevalues" title="" type="text" name="priorityDashboardThresh"
             tal:attributes="value here/priorityDashboardThresh" />
@@ -125,7 +127,7 @@ loader.insert();
     </tr>
 
     <tr class="even">
-      <td class="noselect tableheader" title="" align="left">State Conversions</td>
+      <td class="noselect tableheader" title="" i18n:translate='' align="left">State Conversions</td>
       <td class="tablevalues">
         <textarea class="tablevalues" title="" name="prodStateConversions:lines"
             rows="6" cols="35"
@@ -133,7 +135,7 @@ loader.insert();
       </td>
      </tr>
      <tr class="odd">
-      <td class="noselect tableheader" title="" align="left">Priority Conversions</td>
+      <td class="noselect tableheader" title="" i18n:translate='' align="left">Priority Conversions</td>
       <td class="tablevalues">
         <textarea class="tablevalues" title="" name="priorityConversions:lines"
             rows="6" cols="35"
@@ -159,7 +161,7 @@ loader.insert();
     </tr>
     -->    
     <tr tal:condition="python:here.dmd.getProductName()=='core'" class="odd">
-     <td class="tableheader" align="left">Google Maps API Key
+     <td class="tableheader" i18n:translate="Google Maps API Key" align="left">Google Maps API Key
          <a href="javascript:popupMapHelp()" style="font-size:80%">Help</a>
      </td>
      <td class="tablevalues">
@@ -168,7 +170,7 @@ loader.insert();
      </td>
    </tr>
    <tr class="even">
-        <td class="tableheader">Authentication <br /> <i style="clear:both;display:block;">You will have to log off for this setting to take effect.</i></td>
+        <td class="tableheader" i18n:translate='' >Authentication <br /> <i style="clear:both;display:block;" i18n:translate='' >You will have to log off for this setting to take effect.</i></td>
         <td class="tablevalues" align="left">
             <input class="tablevalues"
                    name="userAuthType"
@@ -179,7 +181,7 @@ loader.insert();
                    tal:attributes="checked python:here.userAuthType == here.AUTH_TYPE_COOKIE;
                                    value here/AUTH_TYPE_COOKIE"
                    />
-            <label for="cookieAuthentication">
+            <label for="cookieAuthentication" i18n:translate=''>
               Cookie-based Authentication
             </label>
             <br />
@@ -190,7 +192,7 @@ loader.insert();
                    tal:attributes="checked python:here.userAuthType == here.AUTH_TYPE_SESSION;
                                    value here/AUTH_TYPE_SESSION"
                    type="radio" />
-            <label for="sessionAuthentication">
+            <label for="sessionAuthentication" i18n:translate=''>
               Session-based Authentication (More Secure)
             </label>
         </td>
@@ -199,7 +201,7 @@ loader.insert();
     <tr class="odd">
         <td class="tableheader"></td>
         <td class="tableheader" align="left">
-            <input class="tableheader" type="submit" value=" Save "
+            <input class="tableheader" type="submit" i18n:translate="Save" value=" Save "
                 name="zmanage_editProperties:method" />
         </td>
     </tr>
