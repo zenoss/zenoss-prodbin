@@ -79,7 +79,7 @@ class RRDView(object):
             try:
                 # Grab rrdcached value locally or from network
                 value = self.getRRDValue(dsname)
-            except Exception, ex:
+            except Exception as ex:
                 # Generally a remote collector issue
                 # We'll cache this for a minute and then try again
                 value = None
@@ -88,10 +88,10 @@ class RRDView(object):
         
         return value if value is not None else default
 
-
     def getRRDValue(self, dsname, start=None, end=None, function="LAST",
                     format="%.2lf", extraRpn="", cf="AVERAGE"):
-        """Return a single rrd value from its file using function.
+        """
+        Return a single rrd value from its file using function.
         """
         dsnames = (dsname,)
         results = self.getRRDValues(
@@ -116,13 +116,11 @@ class RRDView(object):
         return self.device().getPerformanceServer().fetchValues(paths,
             cf, resolution, start, end)
 
-
     def fetchRRDValue(self, dpname, cf, resolution, start, end=""):
         r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end)
         if r:
             return r[0]
         return None
-
 
     def getRRDValues(self, dsnames, start=None, end=None, function="LAST",
                      format="%.2lf", extraRpn="", cf="AVERAGE"):
@@ -171,13 +169,11 @@ class RRDView(object):
         except ProtocolError as e:
             log.warn("Unable to get RRD values for %s: %s for URL %s" % (
                 self.getPrimaryId(), e.errmsg, e.url))
-        except Exception, ex:
-            log.exception("Unable to collect RRD Values for %s" % self.getPrimaryId())
-
-
+        except Exception:
+            log.exception("Unable to collect RRD Values for %s", self.getPrimaryId())
 
     def getRRDSum(self, points, start=None, end=None, function="LAST"):
-        "Return a some of listed datapoints."
+        "Return a sum of listed datapoints."
 
         try:
             if not start:
@@ -212,7 +208,6 @@ class RRDView(object):
         except Exception, ex:
             log.exception(ex)
 
-
     def getDefaultGraphDefs(self, drange=None):
         """get the default graph list for this object"""
         graphs = []
@@ -226,7 +221,6 @@ class RRDView(object):
                 except ConfigurationError:
                     pass
         return graphs
-
 
     def getGraphDef(self, graphId):
         ''' Fetch a graph by id.  if not found return None
@@ -242,13 +236,11 @@ class RRDView(object):
         """
         return self.meta_type
 
-
     def getRRDFileName(self, dsname):
         """Look up an rrd file based on its data point name"""
         nm = next((p.name() for p in self._getRRDDataPointsGen() 
                             if p.name().endswith(dsname)), dsname)
         return '%s/%s.rrd' % (self.rrdPath(), nm)
-
 
     def getRRDNames(self):
         return []
@@ -286,7 +278,6 @@ class RRDView(object):
                 pass
         return None
 
-
     def getThresholds(self, templ):
         """Return a dictionary where keys are dsnames and values are thresholds.
         """
@@ -300,7 +291,6 @@ class RRDView(object):
 
     def rrdPath(self):
         return GetRRDPath(self)
-
 
     def fullRRDPath(self):
         from PerformanceConf import performancePath
@@ -342,9 +332,9 @@ class RRDView(object):
                         break
         return result
 
-
     def makeLocalRRDTemplate(self, templateName=None, REQUEST=None):
-        """Make a local copy of our RRDTemplate if one doesn't exist.
+        """
+        Make a local copy of our RRDTemplate if one doesn't exist.
         """
         if templateName is None: templateName = self.getRRDTemplateName()
         if not self.isLocalName(templateName):
@@ -358,9 +348,9 @@ class RRDView(object):
             )
             return self.callZenScreen(REQUEST)
 
-
     def removeLocalRRDTemplate(self, templateName=None, REQUEST=None):
-        """Make a local delete of our RRDTemplate if one doesn't exist.
+        """
+        Delete our local RRDTemplate if it exists.
         """
         if templateName is None: templateName = self.getRRDTemplateName()
         if self.isLocalName(templateName):
