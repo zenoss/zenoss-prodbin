@@ -170,7 +170,7 @@ loader.insert();
      </td>
    </tr>
    <tr class="even">
-        <td class="tableheader" i18n:translate='' >Authentication <br /> <i style="clear:both;display:block;" i18n:translate='' >You will have to log off for this setting to take effect.</i></td>
+        <td class="tableheader" i18n:translate='' >Authentication <br /> <i style="clear:both;display:block;">You will have to log off for this setting to take effect.</i></td>
         <td class="tablevalues" align="left">
             <input class="tablevalues"
                    name="userAuthType"
