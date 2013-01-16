@@ -201,7 +201,7 @@ loader.insert();
     <tr class="odd">
         <td class="tableheader"></td>
         <td class="tableheader" align="left">
-            <input class="tableheader" type="submit" i18n:translate="Save" value=" Save "
+            <input class="tableheader" type="submit" i18n:attributes="value" value=" Save "
                 name="zmanage_editProperties:method" />
         </td>
     </tr>
