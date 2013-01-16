@@ -91,28 +91,6 @@ def getNetworkRoot(context, performanceMonitor):
     return context.getDmdRoot('Networks')
 
 
-def checkDeviceExists(context, deviceName, ip, performanceMonitor):
-    mon = context.Monitors.getPerformanceMonitor(performanceMonitor)
-    netroot = mon.getNetworkRoot()
-    if ip:
-        ipobj = netroot.findIp(ip)
-        if ipobj:
-            dev = ipobj.device()
-            if dev:
-                raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
-
-    if deviceName:
-        dev = context.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
-        if dev:
-            raise DeviceExistsError("Device %s already exists" %
-                                    deviceName, dev)
-    if ip:
-        dev = mon.findDevice(ip)
-        if dev:
-            raise DeviceExistsError("Manage IP %s already exists" % ip, dev)
-    return deviceName, ip
-
-
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
@@ -132,11 +110,10 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     @rtype: Device
     """
     manageIp = manageIp.replace(' ', '')
-    checkDeviceExists(context, deviceName, manageIp, performanceMonitor)
     deviceName = context.prepId(deviceName)
     log.info("device name '%s' for ip '%s'", deviceName, manageIp)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
-    device = deviceClass.createInstance(deviceName)
+    device = deviceClass.createInstance(deviceName, performanceMonitor, manageIp)
     device.setManageIp(manageIp)
     device.manage_editDevice(
                 tag, serialNumber,

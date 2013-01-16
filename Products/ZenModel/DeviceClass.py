@@ -6,8 +6,6 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
-
 __doc__="""DeviceClass
 The primary organizer of device objects, managing zProperties and
 their acquisition.
@@ -44,6 +42,7 @@ from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.interfaces import ICatalogTool
+from Products.ZenModel.Exceptions import DeviceExistsError
 
 import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
@@ -150,22 +149,50 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     childMoveTargets = getPeerDeviceClassNames
 
 
-    def createInstance(self, id):
+    def createInstance(self, devId, performanceMonitor="localhost", manageIp=""):
         """
         Create an instance based on its location in the device tree
         walk up the primary aq path looking for a python instance class that
         matches the name of the closest node in the device tree.
 
-        @param id: id in DMD path
-        @type id: string
+        @param devId: id in DMD path
+        @type devId: string
         @return: new device object
         @rtype: device object
         """
+        devId = self.prepId(devId)
+        self._checkDeviceExists(devId, performanceMonitor, manageIp)
         pyClass = self.getPythonDeviceClass()
-        dev = pyClass(id)
-        self.devices._setObject(id, dev)
-        return self.devices._getOb(id)
+        dev = pyClass(devId)
+        self.devices._setObject(devId, dev)
+        return self.devices._getOb(devId)
 
+    def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
+        
+        if ip:
+            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
+            netroot = mon.getNetworkRoot()
+            ipobj = netroot.findIp(ip)
+            if ipobj:
+                dev = ipobj.device()
+                if dev:
+                    raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
+    
+        if deviceName:
+            try:
+                dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
+            except Exception as ex:
+                pass
+            else: 
+                if dev:
+                    raise DeviceExistsError("Device %s already exists" %
+                                            deviceName, dev)
+                
+        if ip:
+            dev = mon.findDevice(ip)
+            if dev:
+                raise DeviceExistsError("Manage IP %s already exists" % ip, dev)
+        return deviceName, ip
 
     def getPythonDeviceClass(self):
         """
