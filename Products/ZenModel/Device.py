@@ -24,16 +24,12 @@ from urllib import quote as urlquote
 from ipaddr import IPAddress
 from Acquisition import aq_base
 from zope.event import notify
-from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
 from Products.ZenUtils.deprecated import deprecated
 
 import RRDView
-from Products import Zuul
-from Products.Zuul.interfaces import IInfo
-from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
                                      ipunwrap, getHostByName
 from Products.ZenModel.interfaces import IIndexed
@@ -46,14 +42,11 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
-from zExceptions import NotFound
 from ZODB.POSException import POSError
-from ZODB.transact import transact
-
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToManyCont, ToMany, ToOne
 from Commandable import Commandable
 from Lockable import Lockable
 from MaintenanceWindowable import MaintenanceWindowable
@@ -64,8 +57,13 @@ from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
 
 from ZenStatus import ZenStatus
-from Products.ZenModel.Exceptions import *
-from ZenossSecurity import *
+from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
+from ZenossSecurity import (
+  ZEN_CHANGE_DEVICE, ZEN_VIEW,
+  ZEN_MANAGE_DEVICE_STATUS, ZEN_MANAGE_DEVICE,
+  ZEN_DELETE_DEVICE, ZEN_ADMIN_DEVICE, ZEN_MANAGE_DMD,
+  ZEN_EDIT_LOCAL_TEMPLATES, ZEN_CHANGE_DEVICE_PRODSTATE,
+)
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils import NetworkTree
 
@@ -80,9 +78,11 @@ from Products.Zuul import getFacade
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.interfaces import IExpandedLinkProvider
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makeCaseInsensitiveFieldIndex
-from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
-from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
+from Products.ZenUtils.Search import (
+    makeCaseInsensitiveFieldIndex,
+    makeCaseInsensitiveKeywordIndex
+)
+
 
 def getNetworkRoot(context, performanceMonitor):
     """
@@ -320,8 +320,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def __init__(self, id, buildRelations=True):
         ManagedEntity.__init__(self, id, buildRelations=buildRelations)
-        os = OperatingSystem()
-        self._setObject(os.id, os)
+        osObj = OperatingSystem()
+        self._setObject(osObj.id, osObj)
         hw = DeviceHW()
         self._setObject(hw.id, hw)
         #self.commandStatus = "Not Tested"
@@ -898,7 +898,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 ip = str(IPAddress(ipunwrap(ip.split('/')[0])))
                 if netmask:
                     ip = '/'.join([ip, netmask])
-        except (IpAddressError, ValueError, NoNetMask), ex:
+        except (IpAddressError, ValueError, NoNetMask):
             log.warn("%s is an invalid IP address", ip)
             ip = ''
         return ip
@@ -1879,7 +1879,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             self.setLastChange()
             return self.absolute_url_path()
 
-        except CopyError, e:
+        except CopyError:
             raise Exception("Device rename failed.")
 
     def renameDeviceInPerformance(self, old, new):
