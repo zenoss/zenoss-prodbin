@@ -8,14 +8,17 @@
 ##############################################################################
 
 
-import os, md5
+import os
+import md5
+
 from Globals import InitializeClass, DevelopmentMode
 from AccessControl import getSecurityManager
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenMessaging.audit import audit
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import ZEN_COMMON
 from Products.ZenWidgets import messaging
+from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from Portlet import Portlet
 
@@ -32,6 +35,7 @@ def manage_addPortletManager(context, id="", REQUEST=None):
     context._setObject(id, zpm)
     zpm = context._getOb(id)
     zpm.buildRelations()
+
 
 class PortletManager(ZenModelRM):
     """
@@ -51,7 +55,7 @@ class PortletManager(ZenModelRM):
         Registers an ExtJS portlet
         """
         ppath = os.path.join('Products','ZenWidgets','ZenossPortlets','ExtPortlet.js')
-        self.register_portlet(ppath, id=id, title=title, height=height,
+        self.register_portlet(ppath, id=id, title=_t(title), height=height,
                               permission=permission)
 
     def register_portlet(self, sourcepath, id='', title='', description='', 
@@ -63,12 +67,12 @@ class PortletManager(ZenModelRM):
         p = self.find(id, sourcepath)
         if p:
             old_values = (p.sourcepath, p.id, p.title, p.description, p.preview, p.height, p.permission)
-            new_values = (sourcepath, id, title, description, preview, height, permission)
+            new_values = (sourcepath, id, _t(title), description, preview, height, permission)
             if old_values == new_values:
                 # Portlet unchanged - don't re-register
                 return
             self.unregister_portlet(p.id)
-        p = Portlet(sourcepath, id, title, description, preview, height, permission)
+        p = Portlet(sourcepath, id, _t(title), description, preview, height, permission)
         self.portlets._setObject(id, p)
 
     def unregister_portlet(self, id):
@@ -113,7 +117,7 @@ class PortletManager(ZenModelRM):
 
     def edit_portlet_perms(self, REQUEST=None):
         """
-        blargh
+        Update the portlet permissions
         """
         for portlet in REQUEST.form:
             if not portlet.endswith('_permission'): continue
