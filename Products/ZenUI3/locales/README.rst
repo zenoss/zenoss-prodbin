@@ -65,3 +65,26 @@ Firefox
 #. Close the Preferences dialog.
 #. Navigate to the desired page.
 
+Chrome
+--------
+#. Go to 'Chrome' -> 'Preferences'
+#. On the new page, click on the 'Show advanced settings...' link at the bottom of the page.
+#. Under the 'Languages' area, click on the 'Language settings...' button.
+#. Add a language, or move the desired language up to the top.
+#. Click the 'OK' button
+#. Close the Preferences page.
+#. Navigate to the desired page.
+
+
+
+To Add a Device with a Non-ASCII Name
+==============================================
+Current Zenoss only supports adding devices with all ASCII names.
+To add a device with a non-ASCII name, use the following procedure:
+
+#. Go to Infrastructure page.
+#. Click on the 'Add Device' button and select 'Add Single Device' to bring up a dialog.
+#. In the 'Name of IP' field, use an ASCII name.
+#. In the 'Title' field, use any Unicode name that is appropriate.
+#. Add in any other information and then click on the 'Add' button.
+
