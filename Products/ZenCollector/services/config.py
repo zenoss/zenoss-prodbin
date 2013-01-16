@@ -155,11 +155,6 @@ class CollectorConfigService(HubService, ThresholdMixin):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
             self._notifyAll(object)
 
-    @onUpdate(ThresholdClass)
-    def onUpdateOfThresholdInstance(self, obj, event):
-        with gc_cache_every(1000, db=self.dmd._p_jar._db):
-            self._reconfigureIfNotify(obj)
-
     @onUpdate(None) # Matches all
     def notifyAffectedDevices(self, object, event):
         # FIXME: This is horrible
