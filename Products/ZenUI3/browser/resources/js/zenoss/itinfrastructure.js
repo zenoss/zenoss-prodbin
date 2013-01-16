@@ -26,8 +26,6 @@ var REMOTE = Zenoss.remote.DeviceRouter,
 Zenoss.env.initProductionStates();
 Zenoss.env.initPriorities();
 
-// Backwards compatibility for zenpacks using this variable
-Zenoss.env.COLLECTORS=Zenoss.env.collectors;
 
 var resetCombo = function(combo, manufacturer) {
     combo.clearValue();
@@ -523,7 +521,7 @@ Ext.apply(Zenoss.devices, {
                                 id: 'add-device-collector',
                                 queryMode: 'local',
                                 store: new Ext.data.ArrayStore({
-                                    data: Zenoss.env.collectors,
+                                    data: Zenoss.env.COLLECTORS,
                                     fields: ['name']
                                 }),
                                 valueField: 'name',

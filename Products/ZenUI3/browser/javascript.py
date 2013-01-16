@@ -152,7 +152,7 @@ class ZenossData(JavaScriptSnippet):
                             self.context.dmd.getProdStateConversions()]
 
         snippet = """
-            Zenoss.env.collectors = %r;
+            Zenoss.env.COLLECTORS = %r;
             Zenoss.env.priorities = %r;
             Zenoss.env.productionStates = %r;
         """ % ( collectors, priorities, productionStates )

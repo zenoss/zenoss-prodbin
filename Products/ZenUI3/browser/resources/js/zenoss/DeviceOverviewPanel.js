@@ -197,7 +197,7 @@
                 fieldLabel: _t('Select a collector'),
                 queryMode: 'local',
                 store: new Ext.data.ArrayStore({
-                    data: Zenoss.env.collectors,
+                    data: Zenoss.env.COLLECTORS,
                     fields: ['name']
                 }),
                 valueField: 'name',
