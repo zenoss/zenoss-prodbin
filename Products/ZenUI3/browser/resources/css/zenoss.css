@@ -1561,7 +1561,7 @@ pre {
 }
 .x-window-header-body{
     height:21px !important;
-}
+} 
 #devdetailbar .x-container, #devdetailbar #detailrainbow, #devdetailbar .x-toolbar-separator, #devdetailbar .devdetailitem{
     position:relative !important;
     float:left;
@@ -1616,9 +1616,6 @@ a.z-entity:hover{
 }
 .evdetail_props {
   float: none !important;
-}
-#deviceoverviewpanel_summary-body{
-    overflow:auto !important;
 }
 /* fix diff between ie and everything else on jobs button */
 .x-ie #jobswidget-btnWrap .x-btn-inner{
