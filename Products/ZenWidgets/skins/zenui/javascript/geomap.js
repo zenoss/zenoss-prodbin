@@ -146,6 +146,9 @@ YAHOO.namespace('zenoss.geomap');
                     content += '<img src="http://us.i1.yimg.com/us.yimg.com/i/us/per/gr/gp/rel_interstitial_loading.gif" />';
                     dialog.innerHTML = content;                 
                     _overlay.constructMarker(results, true);
+                }else if(status === google.maps.GeocoderStatus.ZERO_RESULTS){
+                        _utils.statusDialog("Stopping! There was a problem with the location address: "+nodedata[index][0]);   
+                        return true;                        
                 }else if(status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) { 
                     /*  try the address a few times after some delay to make sure it really is a query limit
                         problem and not just erroring becuase we hit it too many times a second. We can get
@@ -154,11 +157,12 @@ YAHOO.namespace('zenoss.geomap');
                     errorCount++;  
                     if(errorCount >= 5){
                         _utils.statusDialog("QUERY_LIMIT error. If this is a free account, you may have reached your daily limit. Please try again later.");
+                        errorCount = 0;
                         return false;
                     }
-                    setTimeout(function(){_overlay.addMarkers()}, 2000);
+                    setTimeout(function(){_overlay.addMarkers()}, 1200);
                 }else{
-                    _utils.statusDialog(status);
+                    _utils.statusDialog(status+" in geocoding node location addresses");
                     dialog.style.display = 'block';
                     dialog.innerHTML = "";                     
                 }
@@ -236,12 +240,16 @@ YAHOO.namespace('zenoss.geomap');
                             var severity = linkdata[index][1];
                             linepoints.push([points, severity]);
                             _overlay.constructLine([points, severity], true);
+                        }else if(status === google.maps.GeocoderStatus.ZERO_RESULTS){
+                                _utils.statusDialog("Stopping! There was a problem with connecting address for line: "+linkdata[index][0][1]);   
+                                return true;                            
                         }else{
-                            _utils.statusDialog(status);
+                            _utils.statusDialog(status+" in geocoding connection lines");
                         }
                     });                 
                 }else if(status === google.maps.GeocoderStatus.ZERO_RESULTS){
-                        _utils.statusDialog("There was a problem with one of the connecting addresses, moving on...");                         
+                        _utils.statusDialog("Stopping! There was a problem with connecting address for line: "+linkdata[index][0][0]);   
+                        return true;                        
                 }else if(status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {    
                     /*  try the address a few times after some delay to make sure it really is a query limit
                         problem and not just erroring becuase we hit it too many times a second. We can get
@@ -249,19 +257,20 @@ YAHOO.namespace('zenoss.geomap');
                     */                    
                     errorCount++;
                     if(errorCount >= 5){
-                        _utils.statusDialog("QUERY_LIMIT error. If this is a free account, you may have reached your daily limit. Please try again later."); 
+                        _utils.statusDialog("QUERY_LIMIT error. If this is a free account, you may have reached your daily limit. Please try again later.");
+                        errorCount = 0;
                         return false;
                     }                    
-                    setTimeout(function(){_overlay.addPolyline(geocoding)}, 2000);
+                    setTimeout(function(){_overlay.addPolyline(geocoding)}, 1200);
                 }else{
-                    _utils.statusDialog(status);
+                    _utils.statusDialog(status+" in geocoding connection lines");
                 }
             });
         },     
         constructMarker: function(results, geocoding){
             var pinImage = _utils.generateMarkerIcon(index); 
             if(geocoding){
-                results[0].geometry.location.lat = results[0].geometry.location.lat();
+                results[0].geometry.location.lat = results[0].geometry.location.lat(); 
                 results[0].geometry.location.lng = results[0].geometry.location.lng();
                 // create a new entry on the results object for cache storage                
             }
