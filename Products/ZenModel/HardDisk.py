@@ -9,22 +9,17 @@
 
 
 __doc__="""HardDisk
+Hard Disk is the physical spindles that can be aggregated into
+storage pools etc.
+"""
 
-HardDisk is a collection of devices and subsystems that make
-up a business function
-
-$Id: HardDisk.py,v 1.7 2004/04/06 22:33:24 edahl Exp $"""
-
-__version__ = "$Revision: 1.7 $"[11:-2]
 
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 
 from HWComponent import HWComponent
-
-from Products.ZenModel.ZenossSecurity import *
 
 def manage_addHardDisk(context, id, title = None, REQUEST = None):
     """make a filesystem"""
@@ -63,18 +58,13 @@ class HardDisk(HWComponent):
         { 
             'id'             : 'HardDisk',
             'meta_type'      : 'HardDisk',
-            'description'    : """Arbitrary device grouping class""",
+            'description'    : """Hard Diskclass""",
             'icon'           : 'HardDisk_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addHardDisk',
             'immediate_view' : 'viewHardDisk',
             'actions'        :
             ( 
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : 'viewHardDisk'
-                , 'permissions'   : ('View',)
-                },
                 { 'id'            : 'perfConf'
                 , 'name'          : 'Template'
                 , 'action'        : 'objTemplates'
@@ -84,7 +74,10 @@ class HardDisk(HWComponent):
           },
         )
 
-    def viewName(self): return self.description
+    def viewName(self):
+        return self.description
+
+    name = primarySortKey = viewName
 
 
 InitializeClass(HardDisk)
