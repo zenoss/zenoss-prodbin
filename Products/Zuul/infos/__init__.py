@@ -92,7 +92,7 @@ class InfoBase(object):
         """
         try:
             self._object.rename(newId)
-        except CopyError, e:
+        except CopyError:
             raise Exception("Name '%s' is invalid or already in use." % newId)
 
     def __repr__(self):

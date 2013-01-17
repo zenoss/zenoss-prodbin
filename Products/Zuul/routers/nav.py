@@ -16,7 +16,6 @@ Available at:  /zport/dmd/detailnav_router
 
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
-from Products.Zuul.decorators import require
 from Products.ZenUI3.security.security import permissionsForContext
 
 

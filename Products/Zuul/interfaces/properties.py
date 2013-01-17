@@ -8,8 +8,8 @@
 ##############################################################################
 
 
-from zope.interface import Interface, Attribute
-from Products.Zuul.interfaces import IInfo, IFacade
+from zope.interface import Interface
+from Products.Zuul.interfaces import IFacade
 
 class IProperties(Interface):
     """

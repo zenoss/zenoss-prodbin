@@ -8,21 +8,18 @@
 ##############################################################################
 
 
-from itertools import chain
 from zope.component import adapts
 from zope.interface import implements
-from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
-from Products.Zuul import getFacade
 from Products.Zuul.interfaces import IProcessNode
 from Products.Zuul.interfaces import IProcessEntity
-from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.interfaces import IProcessInfo
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 from Products.Zuul.utils import catalogAwareImap
+
 
 class ProcessNode(TreeNode):
     implements(IProcessNode)

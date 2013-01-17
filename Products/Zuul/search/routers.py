@@ -19,7 +19,7 @@ from Products.Zuul.search import DefaultSearchResultSorter
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from zope.component import getAllUtilitiesRegisteredFor
 from Products.Zuul.search.interfaces import IQuickResultSnippetFactory
-import itertools
+
 
 class DefaultQuickSearchResultSnippet(object):
     """

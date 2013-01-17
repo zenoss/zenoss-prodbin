@@ -8,18 +8,16 @@
 ##############################################################################
 
 
-import time
 from itertools import ifilterfalse, chain
 
 import zExceptions
 from collections import defaultdict
-from zope.component import getUtility
-from zope.interface import providedBy, ro, implements
+from zope.interface import ro, implements
 from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 from decorator import decorator
 from contextlib import contextmanager
 from zope.component import adapts
-from Acquisition import aq_base, aq_parent
+from Acquisition import aq_base
 from AccessControl import getSecurityManager
 from ZODB.POSException import ConflictError
 from Products.ZCatalog.ZCatalog import ZCatalog

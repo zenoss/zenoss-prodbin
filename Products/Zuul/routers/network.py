@@ -24,7 +24,6 @@ from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
 from Products.Zuul.decorators import serviceConnectionError
 from Products.Zuul.routers import TreeRouter
-from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger('zen.NetworkRouter')

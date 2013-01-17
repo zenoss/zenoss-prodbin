@@ -16,12 +16,11 @@ from time import time
 from zope.component.interfaces import ComponentLookupError
 from zope.interface import implements
 from zope.component import getUtility
-from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
-from Products.ZenModel.NotificationSubscription import NotificationSubscription
 from Products.ZenModel.interfaces import IAction
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul import getFacade
 from Products.Zuul.interfaces import INotificationWindowInfo, INotificationSubscriptionInfo
+
 
 def generateMissingJavascript():
     return {
@@ -31,6 +30,7 @@ def generateMissingJavascript():
                     'or migrate this notification to another type.'
         }]
     }
+
 
 class NotificationSubscriptionInfo(InfoBase):
     implements(INotificationSubscriptionInfo)
@@ -50,7 +50,7 @@ class NotificationSubscriptionInfo(InfoBase):
         try:
             if getUtility(IAction, self._object.action):
                 return self._object.action
-        except ComponentLookupError, e:
+        except ComponentLookupError:
             # Zenpack may have been removed
             return '%s (MISSING)' % self._object.action
 
@@ -73,7 +73,7 @@ class NotificationSubscriptionInfo(InfoBase):
         try:
             util = getUtility(IAction, self._object.action)
             return util.generateJavascriptContent(self._object)
-        except ComponentLookupError, e:
+        except ComponentLookupError:
             # Zenpack may have been removed, best I can do is default to email.
             return generateMissingJavascript()
 

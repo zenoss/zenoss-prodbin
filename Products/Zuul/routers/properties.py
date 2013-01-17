@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import logging
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
 from Products.ZenModel.ZenossSecurity import ZEN_ZPROPERTIES_EDIT

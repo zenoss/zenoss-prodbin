@@ -15,12 +15,9 @@ Available at: /zport/dmd/jobs_router
 """
 import cgi
 import logging
-from time import mktime
-from datetime import datetime
 from collections import defaultdict
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
-from Products.ZenMessaging.audit import audit
 from Products.Jobber.exceptions import NoSuchJobException
 
 log = logging.getLogger('zen.JobsRouter')

@@ -13,7 +13,7 @@ from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
-from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
+from Products.AdvancedQuery import Eq, Or
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade

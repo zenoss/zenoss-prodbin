@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from zope.interface import Interface, Attribute
+from zope.interface import Interface
 from Products.Zuul.interfaces import IInfo, IFacade 
 
 class IDeviceManagement(Interface):

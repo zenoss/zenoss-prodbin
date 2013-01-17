@@ -8,8 +8,6 @@
 ##############################################################################
 
 
-from itertools import imap, chain
-
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode

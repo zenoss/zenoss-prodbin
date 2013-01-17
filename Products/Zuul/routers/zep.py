@@ -13,7 +13,6 @@ Operations for Events.
 
 Available at:  /zport/dmd/evconsole_router
 """
-from itertools import ifilter
 
 import time
 import logging

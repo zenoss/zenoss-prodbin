@@ -14,9 +14,7 @@ log = logging.getLogger('zen.ReportFacade')
 from zope.interface import implements
 
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.utils import UncataloguedObjectException
 from Products.Zuul.interfaces import ITreeFacade, IReportFacade
-from Products.Zuul.infos.report import ReportClassNode
 from Products.Zuul.routers.report import reportTypes, essentialReportOrganizers
 
 _createMethods = [

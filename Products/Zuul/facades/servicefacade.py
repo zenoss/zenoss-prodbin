@@ -58,7 +58,7 @@ class ServiceFacade(TreeFacade):
         obj = self._getObject(id)
         try:
             return ServiceOrganizerNode(obj)
-        except UncataloguedObjectException, e:
+        except UncataloguedObjectException:
             pass
 
     def getParentInfo(self, uid=None):

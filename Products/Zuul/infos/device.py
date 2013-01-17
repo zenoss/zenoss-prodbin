@@ -19,7 +19,6 @@ from Products.Zuul.interfaces import IDeviceInfo, IDevice, IInfo
 from Products.Zuul.infos import InfoBase, HasEventsInfoMixin, ProxyProperty, LockableMixin
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_DEBUG
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 

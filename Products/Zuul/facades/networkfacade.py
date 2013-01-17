@@ -20,13 +20,11 @@ from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.tree import SearchResults
-from Products.Zuul.tree import PermissionedCatalogTool
-from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
-                                                SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO,
-                                                SEVERITY_DEBUG)
+from zenoss.protocols.protobufs.zep_pb2 import (
+  SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING,
+)
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
-from Products.ZenUtils.jsonutils import unjson
 
 log = logging.getLogger('zen.NetworkFacade')
 

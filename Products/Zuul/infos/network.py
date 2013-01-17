@@ -14,7 +14,6 @@ from zope.interface import implements
 from zope.component import adapts
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.IpAddress import IpAddress
-from Products.Zuul import getFacade
 from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo, IIpNetworkNode
 from Products.Zuul.infos import InfoBase, BulkLoadMixin
 from Products.Zuul.decorators import info

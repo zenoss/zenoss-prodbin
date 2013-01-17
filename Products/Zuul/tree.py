@@ -22,7 +22,6 @@ from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
 from Products.Zuul.utils import UncataloguedObjectException, PathIndexCache
 from AccessControl import getSecurityManager
 from Products.Zuul.infos import InfoBase
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import memoize
 import logging

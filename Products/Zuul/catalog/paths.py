@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-from itertools import chain
 from zope.interface import implements
 from zope.component import adapts
 from Products.ZenRelations.ToOneRelationship import ToOneRelationship

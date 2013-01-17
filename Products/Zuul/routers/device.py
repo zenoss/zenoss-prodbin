@@ -22,14 +22,13 @@ from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MANAGE_DMD, \
-    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_ZPROPERTIES_EDIT, ZEN_DELETE_DEVICE
+    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_DELETE_DEVICE
 from Products.Zuul import filterUidsByPermission
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.exceptions import DatapointNameConfict
-from Products.Zuul.interfaces import IInfo
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
-from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
+from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenMessaging.audit import audit
 from zope.event import notify

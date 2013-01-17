@@ -17,7 +17,6 @@ from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
 from paths import devicePathsFromComponent
 
-from Products.ZenRelations.RelationshipBase import RelationshipBase
 
 class IndexingEvent(object):
     implements(IIndexingEvent)
@@ -39,7 +38,7 @@ def onIndexingEvent(ob, event):
         idxs = [idxs]
     try:
         evob = ob.primaryAq()
-    except (AttributeError, KeyError), e:
+    except (AttributeError, KeyError):
         evob = ob
     path = evob.getPrimaryPath()
     # Ignore things dmd or above

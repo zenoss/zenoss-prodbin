@@ -113,8 +113,8 @@ def contextRequire(permission, contextKeywordArgument):
 def serviceConnectionError(func, *args, **kwargs):
     try:
         return func(*args, **kwargs)
-    except ZepConnectionError, e:
+    except ZepConnectionError:
         msg = 'Connection refused. Check zeneventserver status on <a href="/zport/About/zenossInfo">Daemons</a>'
-    except ServiceConnectionError, e:
+    except ServiceConnectionError:
         msg = 'Connection refused to a required daemon. Check status on <a href="/zport/About/zenossInfo">Daemons</a>'
     return DirectResponse.fail(msg, sticky=True)

@@ -11,8 +11,6 @@
 import transaction
 from copy import deepcopy
 from types import ClassType
-from operator import attrgetter
-from itertools import islice
 from Acquisition import aq_base, aq_chain
 from zope.interface import Interface
 from BTrees.OOBTree import OOBTree
@@ -263,7 +261,7 @@ def catalogAwareImap(f, iterable):
     for ob in iterable:
         try:
             yield f(ob)
-        except UncataloguedObjectException, e:
+        except UncataloguedObjectException:
             pass
 
 
@@ -348,3 +346,4 @@ class PathIndexCache(object):
         results = ICatalogTool(dmd.Devices).search('Products.ZenModel.DeviceOrganizer.DeviceOrganizer')
         instances = ICatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
         tree = PathIndexCache(results, instances, 'devices')
+        print tree

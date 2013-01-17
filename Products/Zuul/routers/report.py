@@ -202,7 +202,7 @@ class ReportRouter(TreeRouter):
         tree = [newBranch[0]]
         if oldBranch[0]['id'] != newBranch[0]['id']:
             tree.append(oldBranch[0])
-        newNode = newBranch[-1]
+        #newNode = newBranch[-1]
         return DirectResponse.succeed()
 
     def _marshalPath(self, contextUid, newId=None, localKeys=None):

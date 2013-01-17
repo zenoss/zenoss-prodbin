@@ -10,19 +10,17 @@
 
 from zope.component import adapts
 from zope.interface import implements
-from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces import IServiceInfo, IIpServiceClassInfo
 from Products.Zuul.interfaces import IServiceOrganizerNode, IWinServiceClassInfo
 from Products.Zuul.interfaces import IServiceOrganizerInfo
-from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.IpServiceClass import IpServiceClass
 from Products.ZenModel.WinServiceClass import WinServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
-from Products.ZenModel.Service import Service
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 from Products.Zuul.utils import catalogAwareImap
+
 
 class ServiceOrganizerNode(TreeNode):
     implements(IServiceOrganizerNode)
