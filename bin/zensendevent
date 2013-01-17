@@ -1,30 +1,94 @@
 #!/usr/bin/env python
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2012, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
 
-__doc__ = """zensendevent
-
-  Send events on a command line via XML-RPC or from a XML file.
+'''
+Send events on a command line via XML-RPC or from a XML file.
 This command can be put on any machine with Python installed, and
 does not need Zope or Zenoss.
+'''
 
-"""
-      
-
+import os
 import socket
+
 from xmlrpclib import ServerProxy
-from optparse import OptionParser 
-from xml.sax import make_parser, saxutils
+from optparse import OptionParser
+from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
-XML_RPC_PORT = 8081
 
+# Map of human severity strings to Zenoss severity values.
 sevconvert = {
-    "critical" : 5,
-    "error" : 4,
-    "warn" : 3,
-    "info" : 2,
-    "debug" : 1,
-    "clear" : 0
+    'crit': 5,
+    'critical': 5,
+    'err': 4,
+    'error': 4,
+    'warn': 3,
+    'warning': 3,
+    'info': 2,
+    'debug': 1,
+    'clear': 0
 }
+
+
+# Default configuration options. May be overridden by environment variable,
+# command line option, or configuration file.
+DEFAULT_SERVER = 'localhost'
+XML_RPC_PORT = 8081
+DEFAULT_AUTH = 'admin:zenoss'
+
+# Default ZENHOME in case we're on a Zenoss server, but no the zenoss user.
+ZENHOME = os.environ.get('ZENHOME', '/opt/zenoss')
+
+
+def first_of(*choices):
+    '''
+    Return the first choice that isn't None.
+    '''
+    for x in choices:
+        if x is not None:
+            return x
+
+
+def value_from_conf(conf, name):
+    '''
+    Return value of named property from given standard configuration.
+    '''
+    conf_filename = os.path.join(ZENHOME, 'etc', '%s.conf' % conf)
+    try:
+        conf_file = open(conf_filename, 'r')
+        for line in conf_file:
+            line = line.strip()
+            if line.startswith(name):
+                return line.split()[1]
+
+        conf_file.close()
+
+    except Exception:
+        pass
+
+
+def auth_from_conf():
+    '''
+    Return zenhub credentials from configuration file.
+    '''
+    conf_filename = os.path.join(ZENHOME, 'etc', 'hubpasswd')
+    try:
+        conf_file = open(conf_filename)
+        auth = conf_file.read().strip()
+        conf_file.close()
+
+        if auth:
+            return auth
+
+    except Exception:
+        pass
 
 
 class ImportEventXML(ContentHandler):
@@ -87,6 +151,7 @@ class ImportEventXML(ContentHandler):
         elif value:
             self.evt[name] = value
 
+
 def sendXMLEvents(serv, xmlfile):
     infile = open(xmlfile)
     parser = make_parser()
@@ -100,7 +165,8 @@ def sendXMLEvents(serv, xmlfile):
 
 
 device = socket.getfqdn()
-if device.endswith('.'): device = device[:-1]
+if device.endswith('.'):
+    device = device[:-1]
 
 parser = OptionParser(usage="usage: %prog [options] summary")
 parser.add_option("-d", "--device", dest="device", default=device,
@@ -119,12 +185,12 @@ parser.add_option("-c", "--eventclass", dest="eventClass", default=None,
     help="event class for this event, default: ''")
 parser.add_option("--monitor", dest="monitor", default="localhost",
     help="monitor from which this event came")
-parser.add_option("--port", dest="port", default=XML_RPC_PORT,
-    help="xmlrpc server port, default: %default")
-parser.add_option("--server", dest="server", default="localhost",
-    help="xmlrpc server, default: %default")
-parser.add_option("--auth", dest="auth", default="admin:zenoss",
-    help="xmlrpc server auth, default: %default")
+parser.add_option("--port", dest="port", default=None,
+    help="xmlrpc server port, default: %s" % XML_RPC_PORT)
+parser.add_option("--server", dest="server", default=None,
+    help="xmlrpc server, default: %s" % DEFAULT_SERVER)
+parser.add_option("--auth", dest="auth", default=None,
+    help="xmlrpc server auth, default: %s" % DEFAULT_AUTH)
 parser.add_option("-o", "--other", dest="other", default=[],
     action='append',
     help="Specify other event_field=value arguments. Can be specified"
@@ -137,6 +203,24 @@ parser.add_option('-v', dest="show_event", default=False,
 
 
 opts, args = parser.parse_args()
+
+opts.server = first_of(
+    opts.server,
+    os.environ.get('ZENOSS_HUB_SERVER', None),
+    value_from_conf('global', 'hubhost'),
+    DEFAULT_SERVER)
+
+opts.port = first_of(
+    opts.port,
+    os.environ.get('ZENOSS_HUB_XMLRPC_PORT', None),
+    value_from_conf('zenhub', 'xmlrpcport'),
+    XML_RPC_PORT)
+
+opts.auth = first_of(
+    opts.auth,
+    os.environ.get('ZENOSS_HUB_AUTH', None),
+    auth_from_conf(),
+    DEFAULT_AUTH)
 
 url = "http://%s@%s:%s" % (opts.auth, opts.server, opts.port)
 serv = ServerProxy(url)
@@ -153,7 +237,7 @@ else:
     parser.error('Unknown severity')
 evt['summary'] = " ".join(args)
 if not evt['summary']:
-    parser.error('no summary supplied') 
+    parser.error('no summary supplied')
 evt['device'] = opts.device
 evt['component'] = opts.component
 evt['ipAddress'] = opts.ipAddress
@@ -163,11 +247,11 @@ if opts.eventClassKey:
     evt['eventClassKey'] = opts.eventClassKey
 if opts.eventClass:
     evt['eventClass'] = opts.eventClass
-evt['monitor'] = opts.monitor    
+evt['monitor'] = opts.monitor
 
 for line in opts.other:
     try:
-        field, value = line.split('=',1)
+        field, value = line.split('=', 1)
         evt[field] = value
     except:
         pass
