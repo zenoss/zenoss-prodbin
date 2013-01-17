@@ -73,6 +73,10 @@ from zExceptions import BadRequest
 
 CHUNK_SIZE = 50
 
+# Used to convert dictionary values in smidump output to raw strings
+# "key": "value" becomes "key": r"value"
+# This helps exec handle backslashes.
+_DICT_STRING_VALUE_PATTERN = re.compile(r'(:\s*)"')
 
 class MibFile(object):
     """
@@ -632,7 +636,9 @@ class ZenMib(ZCmdBase):
         warnings = ''
         while proc.poll() is None:
             output, err = proc.communicate()
-            pythonCode += output
+            # convert dictionary values to raw strings
+            # "key": "value" becomes "key": r"value"
+            pythonCode += _DICT_STRING_VALUE_PATTERN.sub('\g<1>r"', output)
             warnings += err
 
         if proc.poll() != 0 or proc.returncode:
