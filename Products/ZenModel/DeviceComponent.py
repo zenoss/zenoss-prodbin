@@ -22,10 +22,10 @@ import zope.interface
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
-from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Lockable import Lockable
 from EventView import EventView
 from Products.ZenUtils.Utils import getAllConfmonObjects
+
 
 class DeviceComponent(Lockable):
     """
@@ -216,5 +216,17 @@ class DeviceComponent(Lockable):
         for obj in subObjects:
             if isinstance(obj, DeviceComponent):
                 yield obj
+
+    def manage_deleteComponent(self, REQUEST=None):
+        """
+        Delete Component
+        """
+        url = None
+        if REQUEST is not None:
+            url = self.device().absolute_url()
+        self.getPrimaryParent()._delObject(self.id)
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(url)
+
 
 InitializeClass(DeviceComponent)
