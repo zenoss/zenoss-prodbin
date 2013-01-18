@@ -231,6 +231,7 @@ from networkfacade import NetworkFacade, Network6Facade
 from processfacade import ProcessFacade
 from servicefacade import ServiceFacade
 from devicefacade import DeviceFacade
+from devicedumpload import DeviceDumpLoadFacade
 from propertiesfacade import PropertiesFacade
 from devicemanagementfacade import DeviceManagementFacade
 from templatefacade import TemplateFacade

@@ -8,8 +8,6 @@
 ##############################################################################
 
 
-import os
-import os.path
 import logging
 
 from DateTime import DateTime
@@ -21,6 +19,7 @@ class FakeConfigs: pass
 class FakeOptions:
     def __init__(self):
         self.nocommit = True
+        self.must_be_resolvable = False
 
 
 class Testzenbatchloader(BaseTestCase):
@@ -41,7 +40,7 @@ class Testzenbatchloader(BaseTestCase):
         Is the internal sample config still working?
         """
         configs = self.zloader.sample_configs.split('\n')
-        device_list = self.zloader.parseDevices(configs)
+        device_list, unparseable = self.zloader.parseDevices(configs)
         self.zloader.processDevices(device_list)
 
     def testCProps(self):
@@ -50,7 +49,7 @@ class Testzenbatchloader(BaseTestCase):
         """
         olympics = DateTime("2010/02/28")
         configs = ["device1 cDateTest=%s" % repr(olympics)]
-        device_list = self.zloader.parseDevices(configs)
+        device_list, unparseable = self.zloader.parseDevices(configs)
         self.zloader.processDevices(device_list)
 
         dev = self.zloader.dmd.Devices.findDevice('device1')

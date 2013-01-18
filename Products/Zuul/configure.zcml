@@ -135,6 +135,12 @@
              for="*"
              />
 
+    <adapter factory=".facades.DeviceDumpLoadFacade"
+             provides=".interfaces.IDeviceDumpLoadFacade"
+             name="devicedumpload"
+             for="*"
+             />
+
     <utility component=".utils.get_dmd"
              provides=".interfaces.IDataRootFactory"
              />

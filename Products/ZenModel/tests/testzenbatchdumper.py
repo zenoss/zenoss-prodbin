@@ -7,9 +7,6 @@
 # 
 ##############################################################################
 
-
-import os
-import os.path
 import logging
 
 from DateTime import DateTime
@@ -24,6 +21,8 @@ class FakeOptions:
     def __init__(self):
         self.nocommit = True
         self.noorganizers = False
+        self.must_be_resolvable = False
+
 
 class Testzenbatchdumper(BaseTestCase):
 
@@ -41,7 +40,7 @@ class Testzenbatchdumper(BaseTestCase):
         self.zloader.options.nomodel = True
         self.zloader.options.nocommit = False
 
-        # WARNING: burtal nasty hack to get around wierdness in TestSuite
+        # WARNING: brutal nasty hack to get around weirdness in TestSuite
         # otherwise only last instantiated object gets a real database connection
         self.zdumper.dmd = self.zloader.dmd
 
@@ -53,7 +52,7 @@ class Testzenbatchdumper(BaseTestCase):
         self.zdumper.options.root = 'Devices'
         olympics = DateTime("2010/02/28")
         configs = ["device1 cDateTest=%s" % repr(olympics)]
-        device_list = self.zloader.parseDevices(configs)
+        device_list, unparseable = self.zloader.parseDevices(configs)
         self.zloader.processDevices(device_list)
         self.log.debug(self.zloader.dmd.Devices.getSubDevices())
         self.log.debug(self.zdumper.dmd.Devices.getSubDevices())
@@ -63,20 +62,22 @@ class Testzenbatchdumper(BaseTestCase):
         numSys = self.zdumper.listLSGOTree(outFile, self.zdumper.dmd.Systems)
         numGrp = self.zdumper.listLSGOTree(outFile, self.zdumper.dmd.Groups)
         numDevs = self.zdumper.listDeviceTree(outFile)
-        self.log.info("dumped %d of %d devices" % (numDevs['Devices'], len([d for d in self.zdumper.root.getSubDevices() if not 'ZenPack' in d.zPythonClass])))
-        self.assert_(numDevs['Devices'] == len([d for d in self.zdumper.root.getSubDevices() if not 'ZenPack' in d.zPythonClass]))
+
+        total = len([d for d in self.zdumper.root.getSubDevices() \
+                     if not 'ZenPack' in d.zPythonClass])
+        self.log.info("dumped %d of %d devices", numDevs['Devices'], total)
+        self.assert_(numDevs['Devices'] == total)
         self.log.info(numLoc, numSys, numGrp, numDevs)
         outText = outFile.getvalue()
         outFile.close()
         self.log.info(outText)
         outConfigs = outText.split('\n')
-        out_device_list = self.zloader.parseDevices(outConfigs)
+        out_device_list, unparseable = self.zloader.parseDevices(outConfigs)
         self.log.info(out_device_list)
         self.assert_(numDevs['Devices'] == len(out_device_list))
         dev = self.zloader.dmd.Devices.findDevice('device1')
         self.assert_(dev.cDateTest == olympics)
 
-        
 
 def test_suite():
     from unittest import TestSuite, makeSuite

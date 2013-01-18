@@ -39,6 +39,8 @@ from Products.ZenUtils.Utils import unused
 from DateTime import DateTime
 unused(DateTime)
 
+from Products.ZenUtils.IpUtil import isip
+
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
 METHODS_TO_SETTINGS = {
@@ -206,6 +208,7 @@ windows_device7 cDateTest='2010/02/28'
             args = self.args
 
         device_list = []
+        unparseable = []
         for filename in args:
             if filename.strip() != '':
                 try:
@@ -215,11 +218,13 @@ windows_device7 cDateTest='2010/02/28'
                     self.reportException(msg)
                     continue
 
-                temp_dev_list = self.parseDevices(data)
+                temp_dev_list, temp_unparseable = self.parseDevices(data)
                 if temp_dev_list:
                     device_list += temp_dev_list
+                if temp_unparseable:
+                    unparseable += temp_unparseable
 
-        return device_list
+        return device_list, unparseable
 
     def applyZProps(self, device, device_specs):
         """
@@ -435,7 +440,7 @@ windows_device7 cDateTest='2010/02/28'
         def transactional(f):
             return f if self.options.nocommit else transact(f)
 
-        processed = {'processed':0, 'errors':0}
+        processed = {'processed':0, 'errors':0, 'no_IP':0}
 
         @transactional
         def _process(device_specs):
@@ -458,8 +463,10 @@ windows_device7 cDateTest='2010/02/28'
                     processed['errors'] += 1
                     return
             else:
-                devobj = self.getDevice(device_specs)
                 deviceLoader = None
+                devobj = None
+                if self.validDeviceSpec(processed, device_specs):
+                    devobj = self.getDevice(device_specs)
 
             if devobj is None:
                 if deviceLoader is not None:
@@ -504,8 +511,22 @@ windows_device7 cDateTest='2010/02/28'
                 _model(devobj)
 
         processed['total'] = len(device_list)
-        self.reportResults(processed)
         return processed
+
+    def validDeviceSpec(self, processed, device_specs):
+        if 'deviceName' not in device_specs:
+            return False
+
+        if self.options.must_be_resolvable and \
+           'setManageIp' not in device_specs and \
+           not isip(device_specs['deviceName']):
+            try:
+                socket.gethostbyname(device_specs['deviceName'])
+            except socket.error:
+                processed['no_IP'] += 1
+                return False
+
+        return True
 
     def reportException(self, msg, devName='', **kwargs):
         """
@@ -530,6 +551,7 @@ windows_device7 cDateTest='2010/02/28'
         msg = "Modeled %d of %d devices, with %d errors" % (
                   processed['processed'], processed['total'], processed['errors'] )
         self.log.info(msg)
+        self.log.info("Unable to process %d entries", processed['unparseable'])
 
         if not self.options.nocommit:
             evt = self.baseEvent.copy()
@@ -539,6 +561,7 @@ windows_device7 cDateTest='2010/02/28'
                 modeled=processed['processed'],
                 errors=processed['errors'],
                 total=processed['total'],
+                unparseable=processed['unparseable'],
             ))
             self.dmd.ZenEventManager.sendEvent(evt)
 
@@ -566,7 +589,7 @@ windows_device7 cDateTest='2010/02/28'
         if 'deviceName' not in device_specs:
             return None
         name = device_specs['deviceName']
-        devobj  = self.dmd.Devices.findDevice(name)
+        devobj = self.dmd.Devices.findDevice(name)
         if devobj is not None:
             self.log.info("Found existing device %s" % name)
             return devobj
@@ -627,6 +650,14 @@ windows_device7 cDateTest='2010/02/28'
             action="store_true",
             help="Don't model the remote devices. Must be able to commit changes.")
 
+        self.parser.add_option('--reject_file', dest="reject_file",
+            help="If specified, use as the name of a file to store unparseable lines")
+
+        self.parser.add_option('--must_be_resolvable',
+            dest="must_be_resolvable", default=False,
+            action="store_true",
+            help="Do device entries require an IP address or be DNS resolvable?")
+
     def parseDevices(self, data):
         """
         From the list of strings in rawDevices, construct a list
@@ -644,6 +675,7 @@ windows_device7 cDateTest='2010/02/28'
 
         defaults = {'devicePath':"/Discovered" }
         finalList = []
+        unparseable = []
         i = 0
         while i < len(data):
             line = data[i]
@@ -671,9 +703,11 @@ windows_device7 cDateTest='2010/02/28'
                 configs = self.parseDeviceEntry(line, defaults)
                 if configs:
                     finalList.append(configs)
+                else:
+                    unparseable.append(line)
             i += 1
 
-        return finalList
+        return finalList, unparseable
 
     def parseDeviceEntry(self, line, defaults):
         """
@@ -718,11 +752,24 @@ windows_device7 cDateTest='2010/02/28'
                         optionsDict[setting] = optionsDict.pop(method)
                 configs.update(optionsDict)
             except Exception:
-                self.log.error( "Unable to parse the entry for %s -- skipping" % name )
-                self.log.error( "Raw string: %s" % options )
+                self.log.error("Unable to parse the entry for %s -- skipping", name)
+                self.log.error("Raw string: %s", options)
                 return None
 
         return configs
+
+    def writeRejectFile(self, name, rejects):
+        """
+        Attempt to write out any unparseable or rejected devices to file
+        """
+        try:
+            fd = open(name, 'w')
+            for line in rejects:
+                fd.write('%s\n' % line)
+            fd.close()
+        except IOError as ex:
+            self.log.debug("Unable to write rejects to '%' because: %s",
+                           name, ex)
 
 
 if __name__=='__main__':
@@ -736,10 +783,18 @@ if __name__=='__main__':
         print batchLoader.sample_configs
         sys.exit(0)
 
-    device_list = batchLoader.loadDeviceList()
+    device_list, unparseable = batchLoader.loadDeviceList()
+    if unparseable and batchLoader.options.reject_file is not None:
+        batchLoader.writeRejectFile(batchLoader.options.reject_file, unparseable)
+
     if not device_list:
-        batchLoader.log.warn("No device entries found to load.")
+        msg = "No device entries found to load"
+        if unparseable:
+            msg += " and %d unparseable lines" % len(unparseable)
+        batchLoader.log.warn(msg)
         sys.exit(1)
 
-    batchLoader.processDevices(device_list)
+    results = batchLoader.processDevices(device_list)
+    results['unparseable'] = len(unparseable)
+    batchLoader.reportResults(results)
     sys.exit(0)
