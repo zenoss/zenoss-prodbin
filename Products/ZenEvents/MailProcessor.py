@@ -174,7 +174,7 @@ class MessageProcessor(object):
         # as seconds since the epoch and treats it as UTC.  As a
         # result we have to use the datetime class to do the
         # conversion because the functions in the time module do all
-        # kinds of covnersions "to be helpful"
+        # kinds of conversions "to be helpful"
         timestamp = message.get('Date', message.get('Sent'))
         t = rfc822.parsedate_tz(timestamp)
         if t is None:
