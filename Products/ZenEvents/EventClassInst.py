@@ -103,12 +103,21 @@ class EventClassPropertyMixin(object):
         evt.updateFromDict(updates)
         return evt
 
-    def formatTransform(self, transformLines):
+    def formatTransform(self, transformLines, badLineNo=None):
         """
         Convenience function to number the transform info
         """
-        return '\n'.join("%3s %s" % enumText
-                         for enumText in enumerate(transformLines))
+        if badLineNo is not None:
+            transformed_lines = []
+            for line_index, line in enumerate(transformLines, start=1):
+                if line_index == badLineNo:
+                    transformed_lines.append(" * %3s %s" % (line_index, line))
+                else:
+                    transformed_lines.append("   %3s %s" % (line_index, line))
+            return '\n'.join(transformed_lines)
+        else:
+            return '\n'.join("%3s %s" % enumText
+                             for enumText in enumerate(transformLines, start=1))
 
     def formatTransformForUI(self):
         """
@@ -131,9 +140,7 @@ class EventClassPropertyMixin(object):
         from traceback import format_exc, extract_tb
         tb = extract_tb(sys.exc_info()[2])
         exceptionText = format_exc(0).splitlines()[1]
-
         transformLines = eventclass.transform.splitlines()
-        transformFormatted = self.formatTransform(transformLines)
 
         # try to extract line number and code from traceback, but set up
         # default values in case this fails - don't want to throw a traceback
@@ -141,23 +148,23 @@ class EventClassPropertyMixin(object):
         badLineNo = None
         badLineText = ''
         try:
-            # if tb has only 1 entry, then the transform didn't compile/run at all
-            if len(tb) > 1:
-                # Runtime error; the transform code is in the second
-                # position of the traceback list (the exec statement is
-                # first).  Subtract 1 from the line number since transforms
-                # are shown with zero-based line numbering.
-                badLineNo = tb[1][1] - 1
-                badLineText = transformLines[badLineNo]
-            else:
-                # assume compile error, with exceptionText in the form:
+            if len(tb) == 2:
+                # Compiletime error: with exceptionText in the form:
                 # '  File "<string>", line 4'
-                badLineText = "<transform failed to compile>>"
-                badLineNo = int(exceptionText.rsplit(None,1)[1]) - 1
-                badLineText = transformLines[badLineNo]
+                # We must extract the line number from the exceptionText
+                badLineNo = int(exceptionText.rsplit(None,1)[1])
                 exceptionText = "compile error on line %d" % badLineNo
+            else:
+                # Runtime error: the transform code is in the third tuple
+                #1 (element 0) transformsavepoint yield
+                #2 (element 1) applyTransform exec
+                #3 (element 2) transform code
+                badLineNo = tb[2][1]
         except Exception:
             pass
+        
+        badLineText = transformLines[badLineNo-1]
+        transformFormatted = self.formatTransform(transformLines, badLineNo)
 
         message = """%s
 Problem on line %s: %s
