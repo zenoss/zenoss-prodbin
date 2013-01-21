@@ -98,7 +98,7 @@ class ProcessRunner(ProcessProtocol):
         """
         log.debug("Running %s", command.command.split()[0])
         shell = "/bin/sh"
-        cmdline = (shell, '-c', 'exec', command.command)
+        cmdline = (shell, '-c', 'exec %s' % command.command)
 
         self.command = command
         self.stdin = ' '.join(cmdline)

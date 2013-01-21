@@ -60,6 +60,17 @@ MAX_BACK_OFF_MINUTES = 20
 from Products.ZenCollector.services.config import DeviceProxy
 unused(DeviceProxy)
 
+
+# The following classes were refactored into the runner module after the
+# 4.2 release. ZenPacks were importing those classes from here, so they
+# must be exported for backwards compatibility.
+ProcessRunner = runner.ProcessRunner
+ProcessRunner.start = ProcessRunner.send
+SshRunner = runner.SshRunner
+SshRunner.start = SshRunner.send
+TimeoutError = runner.TimeoutError
+
+
 COLLECTOR_NAME = "zencommand"
 
 
