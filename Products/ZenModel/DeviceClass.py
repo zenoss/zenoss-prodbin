@@ -13,13 +13,11 @@ their acquisition.
 
 import time
 from cStringIO import StringIO
-import transaction
 import logging
 log = logging.getLogger('zen.DeviceClass')
 
 import DateTime
 from zope.event import notify
-from zope.container.contained import ObjectMovedEvent
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
@@ -30,13 +28,14 @@ from ZODB.transact import transact
 from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max, And
 from Products.CMFCore.utils import getToolByName
 from Products.ZenMessaging.ChangeEvents.events import DeviceClassMovedEvent
-from Products.ZenModel.ZenossSecurity import *
-from Products.ZenRelations.RelSchema import *
+from Products.ZenModel.ZenossSecurity import ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenRelations.ZenPropertyManager import Z_PROPERTIES
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makeCaseInsensitiveFieldIndex, makeCaseSensitiveKeywordIndex
-from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
-from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
-from Products.ZenUtils.Utils import importClass, zenPath
+from Products.ZenUtils.Search import (
+   makeCaseInsensitiveFieldIndex,
+   makePathIndex, makeMultiPathIndex
+)
+from Products.ZenUtils.Utils import importClass
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
@@ -181,7 +180,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if deviceName:
             try:
                 dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
-            except Exception as ex:
+            except Exception:
                 pass
             else: 
                 if dev:
@@ -224,7 +223,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         notify(DeviceClassMovedEvent(dev, dev.deviceClass().primaryAq(), target))
 
         exported = False
-        oldPath = source.absolute_url_path() + '/'
         if dev.__class__ != targetClass:
             from Products.ZenRelations.ImportRM import NoLoginImportRM
 

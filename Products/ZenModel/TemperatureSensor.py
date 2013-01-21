@@ -12,17 +12,15 @@ __doc__="""TemperatureSensor
 
 TemperatureSensor is an abstraction of a temperature sensor or probe.
 
-$Id: TemperatureSensor.py,v 1.7 2004/04/06 22:33:24 edahl Exp $"""
-
-__version__ = "$Revision: 1.7 $"[11:-2]
+"""
 
 from Globals import InitializeClass
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 
 from HWComponent import HWComponent
 
-from Products.ZenModel.ZenossSecurity import *
+
 
 class TemperatureSensor(HWComponent):
     """TemperatureSensor object"""
