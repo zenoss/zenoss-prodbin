@@ -121,6 +121,7 @@ def column_config(request=None, archive=False):
             col['header'] = zope.i18n.translate(msg, context=request)
         col['id'] = field.replace('.', '_')
         col['dataIndex'] = field
+        col['filterKey'] = field
         if isinstance(col['filter'], basestring):
             col['filter'] = {'xtype':col['filter']}
         col['sortable'] = col.get('sortable', False)
