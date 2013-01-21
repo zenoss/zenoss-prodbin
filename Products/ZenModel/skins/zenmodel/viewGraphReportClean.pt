@@ -34,22 +34,22 @@ body {
         
         <tal:block tal:condition="python:path('repeat/element/index') % here.numColumns == 0"
             tal:replace="structure string:<tr>"/>
-        <td valign="top" align="right">
+        <td valign="top">
         <table>
 
         <tr>
-            <td class="tableheader" tal:content="python:request['title_0']">
-            </td> 
+            <th class="tabletitle" tal:content="string:${element/getSummary}" style="width: 600px; line-height: 15px;">
+            </th>
         </tr> 
         <tr> 
             <td tal:define="i repeat/element/index; key python: 'graph_%s' % i; 
                 graphSrc python:request.get(key, 
-                element.getGraphUrl(request.get('drange')))" 
-                align="right"> 
+                element.getGraphUrl(request.get('drange')))"> 
                 <img src="_" tal:attributes="src graphSrc" /> 
             </td> 
         </tr>
         </table>
+        <br />
         </td>
         <tal:block tal:condition="python:(path('repeat/element/index')+1) % here.numColumns == 0 or path('repeat/element/end')"
             tal:replace="structure string:</tr>"/>

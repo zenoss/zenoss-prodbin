@@ -37,8 +37,9 @@ class GraphReportElement(ZenModelRM):
     componentPath = ''
     graphId = ''
     sequence = 0
-    summary = ('Device: ${dev/titleOrId} Component: ${comp/name} '
-                'Graph: ${graph/id}')
+    summary = ('Device: ${dev/titleOrId}\n'
+               'Component: ${comp/name}\n'
+               'Graph: ${graph/id}')
     comments = ('Device: ${dev/titleOrId}<br />\n'
                 'Component: ${comp/name}<br />\n'
                 '${graph/id}')

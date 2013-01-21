@@ -100,12 +100,15 @@ function ShowPrintable() {
             tal:replace="structure string:<tr>"/>
         <td valign="top">
         <table>
-
+        <tr>
+            <th class="tabletitle" tal:content="string:${element/getSummary}">
+            </th>
+        </tr>
         <tr>
             <td class="tablevalues" tal:attributes="id string:td_${graphid}">
                 <script language="javascript" type="text/javascript"
                     tal:content="string:ZenGraphs['${graphid}']=['${graphUrl}',
-                                                  '${element/getSummary}'];">
+                                                  ''];">
                 </script>
             </td>
         </tr>
