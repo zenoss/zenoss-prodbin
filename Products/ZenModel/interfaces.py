@@ -178,3 +178,10 @@ class IRenderURLUtil(Interface):
         Should the render request be proxied by zenoss/zope
         """
 
+
+class IZenDMDStartedEvent(Interface):
+    """
+    Event that fires whenever the zendmd is started. Extensions
+    may listen to this event to do any custom modifications to the environment
+    when zendmd is running.
+    """

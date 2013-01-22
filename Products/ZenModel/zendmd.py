@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -24,6 +24,8 @@ from collections import defaultdict
 from itertools import izip
 from pprint import pformat
 from Acquisition import aq_chain, aq_base
+from zope.interface import implements
+from zope.event import notify
 
 
 # Parse the command line for host and port; have to do it before Zope
@@ -85,6 +87,9 @@ from Products.ZenUtils.Utils import zenPath, set_context
 from Products.ZenModel.IpNetwork import IpNetworkPrinterFactory
 from Products.ZenMessaging import audit
 from Products.Zuul.utils import safe_hasattr
+from Products.ZenModel.interfaces import IZenDMDStartedEvent
+
+
 
 _CUSTOMSTUFF = []
 
@@ -486,7 +491,13 @@ class ZenCompleter(Completer):
         #return filter(lambda x: not x.endswith("__roles__"),
                       #Completer.attr_matches(self, text))
 
-
+class ZenDMDStartedEvent(object):
+    """
+    Event that is emitted when zendmd starts.
+    """
+    implements(IZenDMDStartedEvent)
+    def __init__(self):
+        pass
 
 class HistoryConsole(code.InteractiveConsole):
     """
@@ -541,6 +552,7 @@ if __name__=="__main__":
         if not arg.startswith("-") and os.path.exists(arg):
            opts.script = arg
            break
+    notify(ZenDMDStartedEvent())
     if opts.script:
         if not os.path.exists(opts.script):
             print "Unable to open script file '%s' -- exiting" % opts.script
