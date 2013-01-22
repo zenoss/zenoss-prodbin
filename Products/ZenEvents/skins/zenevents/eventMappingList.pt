@@ -1,6 +1,7 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
-<form method="post" tal:attributes="action request/URL">
+<form method="post" tal:attributes="action request/URL"
+   i18n:domain="zenoss" >
 
 <tal:block tal:define="
     objects here/getInstances;

@@ -21,12 +21,12 @@
         <!-- BEGIN TABLE CONTENTS -->
 
 
-    <tr>
-      <td class="tableheader">Events</td>
+    <tr i18n:domain="zenoss">
+      <td class="tableheader" i18n:translate='' >Events</td>
       <td class="tablevalues">
         <table metal:use-macro="here/rainbows/macros/horizontal"></table>
       </td>
-      <th class="tableheader" align="left">Total Event Count</th>
+      <th class="tableheader" align="left" i18n:translate='' >Total Event Count</th>
       <td class="tablevalues" align="center" tal:content="here/getStatus">
         100</td>
     </tr>
@@ -61,16 +61,16 @@
         <!-- BEGIN TABLE CONTENTS -->
 
 
-    <tr>
-      <td class="tableheader" width="15%">Event Class Key</td>
+    <tr i18n:domain="zenoss">
+      <td class="tableheader" width="15%" i18n:translate='' >Event Class Key</td>
       <td class="tablevalues" tal:content="here/eventClassKey">name</td>
     </tr>
     <tr>
-      <td class="tableheader">Sequence</td>
+      <td class="tableheader" i18n:translate='' >Sequence</td>
       <td class="tablevalues" tal:content="here/sequence">0</td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="2">Rule</td>
+      <td class="tableheader" colspan="2" i18n:translate='' >Rule</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" tal:content="here/rule"
@@ -78,7 +78,7 @@
       regex</td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="6">Regex</td>
+      <td class="tableheader" colspan="6" i18n:translate='' >Regex</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" tal:content="here/regex"
@@ -86,13 +86,13 @@
       regex</td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="6">Example</td>
+      <td class="tableheader" colspan="6" i18n:translate='' >Example</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" tal:content="here/example">examp</td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="6">Transform</td>
+      <td class="tableheader" colspan="6" i18n:translate='' >Transform</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" >
@@ -103,14 +103,14 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="6">Explanation</td>
+      <td class="tableheader" colspan="6" i18n:translate='' >Explanation</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" tal:content="here/explanation">
         text</td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="6">Resolution</td>
+      <td class="tableheader" colspan="6" i18n:translate='' >Resolution</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" tal:content="here/resolution">

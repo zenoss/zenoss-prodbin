@@ -4,6 +4,7 @@
 <script>addLoadEvent(connectTextareas)</script>
 
 <form method=post 
+    i18n:domain="zenoss"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" value="eventClassInstEdit"/>
     <input type="hidden" name="redirect" value="true"/>
@@ -27,26 +28,26 @@
         <!-- BEGIN TABLE CONTENTS -->
             
     <tr>
-      <td class="tableheader">Name</td>
+      <td class="tableheader" i18n:translate='' >Name</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="name:string"
              size="40" tal:attributes="value here/getId" />
       </td>
     </tr>
     <tr>
-      <td class="tableheader">Event Class Key</td>
+      <td class="tableheader" i18n:translate='' >Event Class Key</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="eventClassKey:string"
              size="40" tal:attributes="value here/eventClassKey" />
       </td>
     </tr>
     <tr>
-      <td class="tableheader">Sequence</td>
+      <td class="tableheader" i18n:translate='' >Sequence</td>
       <td class="tablevalues" tal:content="here/sequence">
       </td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="2">Rule</td>
+      <td class="tableheader" colspan="2" i18n:translate='' >Rule</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="2">
@@ -57,7 +58,7 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="2">Regex</td>
+      <td class="tableheader" colspan="2" i18n:translate='' >Regex</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="2">
@@ -68,7 +69,7 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="2">Example</td>
+      <td class="tableheader" colspan="2" i18n:translate='' >Example</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="2">
@@ -78,7 +79,7 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="2">Transform</td>
+      <td class="tableheader" colspan="2" i18n:translate=''>Transform</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="2">
@@ -89,7 +90,7 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="2">Explanation</td>
+      <td class="tableheader" colspan="2" i18n:translate='' >Explanation</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="2">
@@ -99,7 +100,7 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader" colspan="2">Resolution</td>
+      <td class="tableheader" colspan="2" i18n:translate=''>Resolution</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="2">
@@ -110,7 +111,7 @@
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan="2">
-            <input class="tableheader" type="submit" value=" Save "
+            <input class="tableheader" type="submit" i18n:attributes="value" value=" Save "
                 name="manage_editEventClassInst:method" />
         </td>
     </tr>

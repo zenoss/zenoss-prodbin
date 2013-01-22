@@ -1,7 +1,8 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
   <tal:block metal:fill-slot="contentPane">
 
-    <form method=post tal:attributes="action string:${here/absolute_url_path}">
+    <form method=post tal:attributes="action string:${here/absolute_url_path}" 
+      i18n:domain="zenoss" >
       <input type="hidden" name="zenScreenName"
          value="editEventClassTransform" />
       <input type="hidden" name="redirect" value="true" />
@@ -22,14 +23,14 @@
           tal:define="itrans here/inheritedTransforms">
         <!-- BEGIN TABLE CONTENTS -->
         <tr>
-          <td class="tableheader" colspan="2" tal:condition="itrans">
+          <td class="tableheader" colspan="2" i18n:translate='' tal:condition="itrans">
               Inherited transforms</td>
         </tr>
         <tr>
           <td class="tablevalues" colspan="2" tal:content="structure itrans"/>
         </tr>
         <tr>
-          <td class="tableheader" colspan="2">Transform</td>
+          <td class="tableheader" i18n:translate='' colspan="2">Transform</td>
         </tr>
         <tr>
           <td class="tablevalues" colspan="2">
@@ -42,7 +43,7 @@
         </tr>
         <tr>
         <td align="left"  class="tableheader" colspan="2">
-            <input class="tableheader" type="submit" value=" Save "
+            <input class="tableheader" type="submit" i18n:attributes="value" value=" Save "
             name="manage_editEventClassTransform:method" />
         </td>
         </tr>
