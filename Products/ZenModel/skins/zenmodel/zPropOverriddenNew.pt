@@ -7,8 +7,8 @@
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="filterslot">
-    <form method="post">
-    zProperty
+    <form method="post" i18n:domain="zenoss" >
+    <span i18n:translate=''>zProperty</span>
     <select class="tablevalues" 
             name="prop" 
             onchange="form.submit()">
@@ -17,7 +17,7 @@
                     tal:content="p"
                     tal:attributes="selected python:p==prop"/>
     </select>
-    Show Devices
+    <span i18n:translate=''>Show Devices</span>
     <input class="navcontrol" type="checkbox"
             name="showDevices"
             onchange="this.form.submit()"
@@ -30,8 +30,8 @@
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
-      <th class="tableheader" align="center">Object</th>
-      <th class="tableheader" align="center">Value</th>
+      <th class="tableheader" align="center" i18n:translate='' >Object</th>
+      <th class="tableheader" align="center" i18n:translate='' >Value</th>
     </tr>
     <tr>
       <td class="tablevalues"
@@ -57,12 +57,12 @@
           tal:content="python:here.zenPropertyString(prop)"/>
     </tr>
     <tr>
-      <th class="tableheader" align="center">Overriding Object</th>
-      <th class="tableheader" align="center">Overriding Value</th>
+      <th class="tableheader" align="center" i18n:translate='' >Overriding Object</th>
+      <th class="tableheader" align="center" i18n:translate='' >Overriding Value</th>
     </tr>
     <tal:block tal:condition="not:orObjects">
             <tr>
-            <td class="tablevalues" colspan="3">No Overriding Objects</td>
+            <td class="tablevalues" colspan="3" i18n:translate='' >No Overriding Objects</td>
             </tr>
     </tal:block>
     <tal:block tal:condition="orObjects" tal:repeat="orObject orObjects"> 
