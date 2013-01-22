@@ -897,34 +897,31 @@ class ZenModeler(PBDaemon):
         def match_entity(entity, value):
             if entity == '*':
                 return True
-            if len(entity) > 0 and entity.isdigit():
-                if int(value) == int(entity):
-                    return True
+
+            value = int(value)
+
+            if entity.isdigit() and int(entity) == value:
+                return True
+
             if entity.startswith('*/') and entity[2:].isdigit():
-                if int(value) % int(entity[2:]) == 0:
+                if value % int(entity[2:]) == 0:
                    return True
-            if entity.find(',') >= 0:
-                for segment in entity.split(','):
-                    if len(segment) > 0 and segment.isdigit():
-                       if int(value) == int(segment):
-                          return True
+
+            if ',' in entity and any(segment.isdigit() and int(segment)==value
+                                         for segment in entity.split(',')):
+                return True
+
             return False
 
         curtime = time.localtime()
-        # minutes
-        if match_entity(self.startat[0], curtime[4]):     
-            # hours
-            if match_entity(self.startat[1], curtime[3]):
-                # day of month
-                if match_entity(self.startat[2], curtime[2]):
-                    # month
-                    if match_entity(self.startat[3], curtime[1]):
-                        # day of week
-                        dow = curtime[6] + 1
-                        if match_entity(self.startat[4], dow):
-                            return True
-                        if dow == 7 and match_entity(self.startat[4], 0):
-                            return True
+        # match minutes, hours, date, and month fields
+        if all(match_entity(self.startat[a],curtime[b]) 
+                   for a,b in ((0,4),(1,3),(2,2),(3,1))):
+            dayofweek = curtime[6]+1
+            if (match_entity(self.startat[4], dayofweek) or
+                dayofweek==7 and match_entity(self.startat[4],0)):
+                return True
+
         return False
 
     def buildOptions(self):
