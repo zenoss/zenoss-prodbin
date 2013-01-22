@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -64,6 +64,7 @@
         if (!grid.getTemplateUid()) {
             return;
         }
+        var context = Zenoss.env.PARENT_CONTEXT + '/thresholds';
         var addThresholdDialog = Ext.create('Zenoss.dialog.BaseWindow', {
             id: 'addThresholdDialog',
             title: _t('Add Threshold'),
@@ -110,7 +111,8 @@
                     name: 'thresholdIdField',
                     xtype: 'idfield',
                     fieldLabel: _t('Name'),
-                     allowBlank: false
+                    allowBlank: false,
+                    context: context
                 },{
                     name: 'thresholdTypeField',
                     xtype: 'combo',
@@ -224,7 +226,7 @@
                 tbarItems = config.tbarItems || [];
 
             listeners = Ext.apply(listeners, {
-                itemdblclick: function(gridview) { 
+                itemdblclick: function(gridview) {
                     thresholdEdit(gridview.ownerCt);
                 }
             });

@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -835,7 +835,8 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     }
                 },
                 handler: function() {
-                    var dialog = Ext.create('Zenoss.dialog.BaseWindow', {
+                    var context =  Zenoss.env.PARENT_CONTEXT + '/graphDefs',
+                    dialog = Ext.create('Zenoss.dialog.BaseWindow', {
                         title: _t('Add Graph Definition'),
                         buttonAlign: 'left',
                         autoScroll: true,
@@ -855,6 +856,7 @@ Ext.define("Zenoss.templates.GraphGrid", {
                                 {
                                     xtype: 'idfield',
                                     id: 'graphDefinitionIdTextfield',
+                                    context: context,
                                     fieldLabel: _t('Name'),
                                     allowBlank: false
                                 }

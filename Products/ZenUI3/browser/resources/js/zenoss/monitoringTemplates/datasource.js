@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -286,7 +286,8 @@ Ext.define('Zenoss.templates.DataSourceTypeModel',  {
  **/
 function showAddDataSourceDialog() {
     var cmp = Ext.getCmp(treeId),
-        selectedNode = cmp.getSelectionModel().getSelectedNode();
+        selectedNode = cmp.getSelectionModel().getSelectedNode(),
+        context = Zenoss.env.PARENT_CONTEXT + '/datasources';
 
     // make sure they selected a node
     if (!selectedNode) {
@@ -321,6 +322,7 @@ function showAddDataSourceDialog() {
                 },
                 items:[{
                     xtype: 'idfield',
+                    context: context,
                     id: 'dataSourceName',
                     fieldLabel: _t('Name'),
                     allowBlank: false,

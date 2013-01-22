@@ -25,6 +25,7 @@ Ext.define("Zenoss.form.IDField", {
     * Limit characters to those accepted by ObjectManager
     */
     maskRe: /[a-zA-Z0-9-_~,.$\(\)# @]/,
+    _serverIsValid: false,
     /*
     * Validator function that makes a request to the parent context and calls
     * the checkValidId method.
@@ -37,43 +38,51 @@ Ext.define("Zenoss.form.IDField", {
             return true;
         }
         // if the value has not changed do not send an ajax request
-        if(typeof _previousVar != 'undefined'){
-            if (value == _previousValue) {
-                return this.reportResponse(_previousResponseText);
+        if(typeof this._previousValue != 'undefined'){
+            if (value == this._previousValue) {
+                return this.reportResponse(this._previousResponseText);
             }
         }
-        _previousValue = value;
+        this._previousValue = value;
 
         if (this.vtransaction) {
             Ext.Ajax.abort(this.vtransaction);
         }
+        function callback(response) {
+            this._previousResponseText = response.responseText;
+            return this.reportResponse(response.responseText);
+        }
         this.vtransaction = Ext.Ajax.request({
             url: context + '/checkValidId?id='+value,
             method: 'GET',
-            success: function(response) {
-                this._previousResponseText = response.responseText;
-                return this.reportResponse(response.responseText);
-            },
-            failure: function(response) {
-                this.markInvalid(
-                    _t('That name is invalid or is already in use.')
-                );
-            },
+            success: callback,
+            failure: callback,
             scope: this
         });
         return true;
+    },
+    validate: function() {
+        var result = this.callParent(arguments);
+        return result && this._serverIsValid;
     },
     /**
     * Interprets a response from the server to determine if this field is valid.
     **/
     reportResponse: function(responseText) {
         if (responseText === "True") {
+            this.fireEvent('validitychange', this, true);
+            this._serverIsValid = true;
             return true;
         }
         // the server responds with a string of why it is invalid
+        this._serverIsValid = false;
         this.markInvalid(
             _t('That name is invalid: ') + ' ' + responseText
         );
+
+        // let any event listeners know that we are invalid
+        this.fireEvent('validitychange', this, false);
+
         return false;
     }
 });
