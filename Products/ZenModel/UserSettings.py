@@ -27,7 +27,7 @@ from zExceptions import Unauthorized
 
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne, ToMany
 from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import unused, prepId
 from Products.ZenUtils.guid.interfaces import IGUIDManager
@@ -38,7 +38,10 @@ from Products.ZenModel.interfaces import IProvidesEmailAddresses, IProvidesPager
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 
-from ZenossSecurity import *
+from ZenossSecurity import (
+   ZEN_MANAGE_DMD, ZEN_CHANGE_SETTINGS, ZEN_CHANGE_ADMIN_OBJECTS,
+   ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS,
+)
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils import Utils
 from zope.interface import implements
@@ -1324,7 +1327,7 @@ class GroupSettings(UserSettings):
     def getEmailAddresses(self):
         try:
             userIds = self.getMemberUserIds()
-        except LocalAndLDAPUserEntries, ex:
+        except LocalAndLDAPUserEntries:
             return []
 
         result = []
@@ -1335,7 +1338,7 @@ class GroupSettings(UserSettings):
     def getPagerAddresses(self):
         try:
             userIds = self.getMemberUserIds()
-        except LocalAndLDAPUserEntries, ex:
+        except LocalAndLDAPUserEntries:
             return []
 
         result = []
