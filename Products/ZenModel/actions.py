@@ -286,6 +286,21 @@ class EmailAction(IActionBase, TargetableAction):
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
 
+    def _encodeBody(self, body):
+        """
+        Try to encode the text in the following character sets, if we can't decode it
+        then strip out anything we can't encode in ascii.
+        """        
+        for body_charset in 'US-ASCII', 'ISO-8859-1', 'UTF-8':
+            try:
+                plain_body = MIMEText(body.encode(body_charset), 'plain', body_charset)
+                break
+            except UnicodeError:
+                pass                
+        else:            
+            plain_body = MIMEText(body.decode('ascii', 'ignore'))
+        return plain_body
+    
     def executeBatch(self, notification, signal, targets):
         self.setupAction(notification.dmd)
 
@@ -311,8 +326,9 @@ class EmailAction(IActionBase, TargetableAction):
 
         log.debug('Sending this subject: %s' % subject)
         log.debug('Sending this body: %s' % body)
-
-        plain_body = MIMEText(self._stripTags(body))
+        body = self._stripTags(body)
+        plain_body = self._encodeBody(body)
+            
         email_message = plain_body
 
         if notification.content['body_content_type'] == 'html':
@@ -320,7 +336,7 @@ class EmailAction(IActionBase, TargetableAction):
             email_message_alternative = MIMEMultipart('alternative')
             email_message_alternative.attach(plain_body)
 
-            html_body = MIMEText(body.replace('\n', '<br />\n'))
+            html_body = self._encodeBody(body.replace('\n', '<br />\n'))
             html_body.set_type('text/html')
             email_message_alternative.attach(html_body)
 
