@@ -3,16 +3,41 @@ var IS_MAP_PORTLET = IS_MAP_PORTLET || false;
 YAHOO.namespace('zenoss.geomap');
 
 (function() { 
-        //console.log(YAHOO.geoportlet);
+
+    var Geocoder = function(geo) {
+        this.geocoder = geo;
+        this.cache = {};
+        this.cached = false;
+    };  
+    Geocoder.prototype.geocode = function(address, callback) {
+        this.cached = true;
+        if(address.match(latlngpat) ){
+            this.cache[address] = [parseFloat(address.split(',')[0]),parseFloat(address.split(',')[1])];         
+            callback(this.cache[address], "OK", "RENDERING");
+            return false;
+        };
+        if(!isCacheDirty){
+            // we have cache from server, inject it and go until else end
+            this.cache = geocodecache;
+            callback(geocodecache[address], "OK", "RENDERING");
+            return false;
+        }
+        if (!this.cache[address]) {
+            var me = this;
+            this.geocoder.geocode( {'address': address}, function(results, status) { 
+                me.cache[address] = [results[0].geometry.location.lat(),results[0].geometry.location.lng()];
+                callback(me.cache[address], status.toString(), "GEOCODING");
+            });
+        } else {
+            // we have a clean result already in the Geocoder.cache, just return it.          
+            callback(this.cache[address], "OK", "RENDERING");
+        }
+    };
+    
      /* PRIVATE GLOBALS */     
         var ZenGeoMapPortlet = YAHOO.zenoss.Class.create(); // The main class        
         var gmap = null;// global "map"
-        var geocoder = new google.maps.Geocoder();
-        var gcache = null;
-        var lcache = null;
-        var scache = {};
-        var nodes = [];
-        var linepoints = [];
+        var Geocoder = new Geocoder(new google.maps.Geocoder());
         var index = 0;
         var infowindow = null;    
         var markers = [];
@@ -28,6 +53,7 @@ YAHOO.namespace('zenoss.geomap');
         var nodeMap = {};
         var lineMap = {};
         var polling = 400;
+        var refreshing = false;
     
     /* PUBLICIZE */
     ZenGeoMapPortlet.prototype = {
@@ -89,71 +115,31 @@ YAHOO.namespace('zenoss.geomap');
             setElementDimensions(mapdiv, newdims);        
         }        
     }
+    
    /* DRAWING OVERLAY AND MARKERS */ 
     var _overlay = {
         addMarkers: function() {
-            if(!nodedata[index][0]) return false; // no addresses so nevermind              
+            if(!nodedata[index][0]) return false; // no addresses so nevermind 
             
-            // do we have a cache that we think has the same nodes as the last time we looked?
-            if(!_utils.isMemCacheDirty()){               
-                // is this the first time through? If not, make sure we only redraw on a node color change:
-                if(scache.hasOwnProperty("nodes")){ 
-                    // run through and see if color has change. This method will update the map with a new
-                    // icon if it has and move on to the next one.
-                    _utils.checkNodeStatusColor();
-                    index++;    
-                    if(index >= nodedata.length){
-                        index = 0;
-                        _overlay.addPolyline(false);
-                        return true;
+            if(refreshing && !_utils.isMemCacheDirty()){
+                _utils.checkStatusColors();
+                return true;
+            }
+            
+            Geocoder.geocode(nodedata[index][0], function(address, status, msg){
+                if (status == "OK") {
+                    if(!refreshing){
+                        _utils.overlayDialog(msg);
+                    }else{
+                        if(msg == "GEOCODING") {
+                            _utils.overlayDialog(msg);
+                        }
                     }
-                    _overlay.addMarkers(); 
-                    return true;
-                }  
-                // draw the initial map with the server cache. 
-                    dialog.style.display = 'block';
-                    var content = "Loading locations, please wait...<br><br>";
-                    content += '<img src="http://us.i1.yimg.com/us.yimg.com/i/us/per/gr/gp/rel_interstitial_loading.gif" />';
-                    dialog.innerHTML = content;                
-                _overlay.constructMarker(geocodecache.nodes[index], false);
-                return true;
-            }            
-            
-            
-            if(nodedata[index][0].match(latlngpat) ){ // item is latlong entry only
-                //Create custom object that can be digested by constructMarker:
-                lonlatObject = {};                    
-                lonlatObject.address_components = [{"LUID":nodedata[index][2], "color":nodedata[index][1]}];
-                lonlatObject.geometry = {};
-                lonlatObject.geometry.location = {};
-                lonlatObject.geometry.location.lat = nodedata[index][0].split(",")[0];
-                lonlatObject.geometry.location.lng = nodedata[index][0].split(",")[1];                    
-                var lonlatResults = [lonlatObject];               
-                nodes.push(lonlatResults);                      
-                _overlay.constructMarker(lonlatResults, false);
-                return true;
-            }            
-
-            // this entry has no cache, and is in address form = geocode it
-            geocoder.geocode( { 'address': nodedata[index][0]}, function(results, status) {
-                if (status == google.maps.GeocoderStatus.OK) {
-                    // got a result, store it for the server cache builder under nodes                     
-                    // add an identifier for each entry so we can test it later when reloading for changes
-                    results[0].address_components.push({"LUID":nodedata[index][2], "color":nodedata[index][1]}); 
-                    nodes.push(results);
-                    dialog.style.display = 'block';
-                    var content = "Geocoding " + (index+1) + " of " + nodedata.length + " addresses, please wait...<br><br>";
-                    content += '<img src="http://us.i1.yimg.com/us.yimg.com/i/us/per/gr/gp/rel_interstitial_loading.gif" />';
-                    dialog.innerHTML = content;                 
-                    _overlay.constructMarker(results, true);
-                }else if(status === google.maps.GeocoderStatus.ZERO_RESULTS){
+                    _overlay.constructMarker(address);
+                }else if(status == "ZERO_RESULTS"){
                         _utils.statusDialog("Stopping! There was a problem with the location address: "+nodedata[index][0]);   
                         return true;                        
-                }else if(status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) { 
-                    /*  try the address a few times after some delay to make sure it really is a query limit
-                        problem and not just erroring becuase we hit it too many times a second. We can get
-                        this error when the user has reached their daily limit for their IP as well.
-                    */
+                }else if(status == "OVER_QUERY_LIMIT") { 
                     errorCount++;  
                     if(errorCount >= 5){
                         _utils.statusDialog("QUERY_LIMIT error. If this is a free account, you may have reached your daily limit. Please try again later.");
@@ -164,120 +150,37 @@ YAHOO.namespace('zenoss.geomap');
                 }else{
                     _utils.statusDialog(status+" in geocoding node location addresses");
                     dialog.style.display = 'block';
-                    dialog.innerHTML = "";                     
-                }
-            });  
-           
+                    dialog.innerHTML = "";                    
+                }           
+            } );
         }, 
-        addPolyline: function(geocoding) {
+        addPolyline: function() {
             if(linkdata.length == 0){
                 // there's no linkdata, just save cache and move on
-                if(isCacheDirty){
-                    scache.lines = [];
-                    _utils.saveCache();
-                }
+                _utils.saveCache();
                 dialog.style.display = 'none';
                 return;
             }
-            
-            
-            if(!_utils.isMemCacheDirty()){  
-                // is this the first time through? If not, make sure we only redraw on a line color change:
-                if(scache.hasOwnProperty("lines")){                     
-                    // run through and see if color has change. This method will update the map with a new
-                    // linecolor if it has and move on to the next one.
-                    _utils.checkLineStatusColor();
-                    index++;   
-                    if(index >= linkdata.length){
-                        dialog.style.display = 'none';
-                        return true;
-                    }
-                    _overlay.addPolyline(false); 
-                    return true;
-                }                  
-                _overlay.constructLine(geocodecache.lines[index], false);                
-                return true
-            }      
-            
-           
- 
-            if(linkdata[index][0][0].match(latlngpat) && linkdata[index][0][1].match(latlngpat)){            
-                // we're loaded down with latlon, don't geocode
-                //Create custom object that can be digested by constructLine:
-                var points = [];
-                points.push([
-                            linkdata[index][0][0][0],
-                            linkdata[index][0][0][1]
-                            ]
-                );
-
-                points.push([   
-                            linkdata[index][0][1][0],
-                            linkdata[index][0][1][1]
-                            ]
-                ); 
-                var severity = linkdata[index][1];
-                linepoints.push([points, severity]);
-                _overlay.constructLine([points, severity], false);
-                return true;                
-            }      
-            
-            var points = [];            
-            geocoder.geocode( { 'address': linkdata[index][0][0]}, function(results, status) { 
-                if (status == google.maps.GeocoderStatus.OK) {   
-                    points.push([
-                                results[0].geometry.location.lat(),
-                                results[0].geometry.location.lng()
-                                ]
-                    );
-                    geocoder.geocode( { 'address': linkdata[index][0][1]}, function(results, status) {
-                        if (status == google.maps.GeocoderStatus.OK) {
-                            points.push([   
-                                        results[0].geometry.location.lat(),
-                                        results[0].geometry.location.lng()
-                                        ]
-                            ); 
-                            var severity = linkdata[index][1];
-                            linepoints.push([points, severity]);
-                            _overlay.constructLine([points, severity], true);
-                        }else if(status === google.maps.GeocoderStatus.ZERO_RESULTS){
-                                _utils.statusDialog("Stopping! There was a problem with connecting address for line: "+linkdata[index][0][1]);   
-                                return true;                            
-                        }else{
-                            _utils.statusDialog(status+" in geocoding connection lines");
-                        }
-                    });                 
-                }else if(status === google.maps.GeocoderStatus.ZERO_RESULTS){
-                        _utils.statusDialog("Stopping! There was a problem with connecting address for line: "+linkdata[index][0][0]);   
-                        return true;                        
-                }else if(status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {    
-                    /*  try the address a few times after some delay to make sure it really is a query limit
-                        problem and not just erroring becuase we hit it too many times a second. We can get
-                        this error when the user has reached their daily limit for their IP as well.
-                    */                    
-                    errorCount++;
-                    if(errorCount >= 5){
-                        _utils.statusDialog("QUERY_LIMIT error. If this is a free account, you may have reached your daily limit. Please try again later.");
-                        errorCount = 0;
-                        return false;
-                    }                    
-                    setTimeout(function(){_overlay.addPolyline(geocoding)}, 1200);
-                }else{
-                    _utils.statusDialog(status+" in geocoding connection lines");
-                }
-            });
-        },     
-        constructMarker: function(results, geocoding){
-            var pinImage = _utils.generateMarkerIcon(index); 
-            if(geocoding){
-                results[0].geometry.location.lat = results[0].geometry.location.lat(); 
-                results[0].geometry.location.lng = results[0].geometry.location.lng();
-                // create a new entry on the results object for cache storage                
+            var points  = [];              
+            var start   = Geocoder.cache[linkdata[index][0][0]];
+            var end     = Geocoder.cache[linkdata[index][0][1]];
+            if(start && end){ 
+                points.push([start[0],start[1]]);
+                points.push([end[0],end[1]]);                
+            }else{
+                // abandon this line since something is wrong with the addresses
+                index++;
+                setTimeout(function(){_overlay.addPolyLine()}, polling);                
+                return false;
             }
+            _overlay.constructLine(points);
+        },     
+        constructMarker: function(address){
+            var pinImage = _utils.generateMarkerIcon(index); 
             var marker = new google.maps.Marker( {
                 position: new google.maps.LatLng(
-                    results[0].geometry.location.lat,
-                    results[0].geometry.location.lng
+                    address[0],
+                    address[1]
                 ),
                 icon: pinImage,                    
                 map: gmap,
@@ -297,17 +200,10 @@ YAHOO.namespace('zenoss.geomap');
             })(marker, index)); 
             index++;     
             if(index >= nodedata.length){
-                scache.nodes = [];            
-                if(isCacheDirty){ 
-                    scache.nodes = nodes;
-                }else{
-                    scache.nodes = geocodecache.nodes;
-                }
-                // done with markers, let's get outta here.
-                // center and add polyLines now
                 _utils.autoCenter(markers);
-                index = 0;
-                _overlay.addPolyline(geocoding);
+                index = 0;             
+                refreshing = true;                
+                _overlay.addPolyline();
                 return;
             }else{
                 // done with that marker, but wait, there's more...
@@ -315,17 +211,15 @@ YAHOO.namespace('zenoss.geomap');
                 // due to having too many queries per second
                 setTimeout(function(){_overlay.addMarkers()}, polling);
             }
-                        
         },
-        constructLine: function(points, geocoding){
-            var severity = points[1];
+        constructLine: function(points){
             points = [
-                new google.maps.LatLng(points[0][0][0],points[0][0][1]),
-                new google.maps.LatLng(points[0][1][0],points[0][1][1])                
+                new google.maps.LatLng(points[0][0],points[0][1]),
+                new google.maps.LatLng(points[1][0],points[1][1])                
             ]
             var polyline = new google.maps.Polyline({
               path: points,
-              strokeColor: linecolors[severity],
+              strokeColor: linecolors[linkdata[index][1]],
               strokeOpacity: 1.0,
               strokeWeight: 2
             }); 
@@ -334,15 +228,9 @@ YAHOO.namespace('zenoss.geomap');
             index++;
             if(index >= linkdata.length){
                 // done with lines, and done with map drawing completely - let's get outta here.
-                scache.lines = [];
-                if(isCacheDirty){                
-                    scache.lines = linepoints;          
-                }else{
-                    scache.lines = geocodecache.lines;
-                }
                 _utils.saveCache();
                 dialog.style.display = 'none';
-                index = 0;
+                index = 0;                
                 return;
             }else{
                 // done with that line, but wait, there's more...
@@ -351,23 +239,17 @@ YAHOO.namespace('zenoss.geomap');
         },
         doDraw: function(results) {      
             // set cache for refresh
-            if(gcache == null){
+            if(!Geocoder.cached){
                 // there's no gcache = first time loading
                 _utils.createMaps();
                 // since this is the first time loading, we need to check the geocodecache
                 if(geocodecache){ 
-                   try{
-                        geocodecache = YAHOO.lang.JSON.parse(geocodecache);
-                   }catch(e){
-                        // there is a bug in the yahoo parser on a refresh
-                        // catch it here
-                   };
-                   if(_utils.isGeocacheDirty()){
+                    geocodecache = YAHOO.lang.JSON.parse(geocodecache);
+                    if(_utils.isGeocacheDirty()){
                         // dirty, so reset
-                        geocodecache = {};
-                        geocodecache.nodes = {};  
+                        geocodecache = {}; 
                         isCacheDirty = true;
-                   }
+                    }
                 }else{
                     isCacheDirty = true; // there was no geocodecache from server, so generate the caches 
                                          // when drawing the map for the first time
@@ -381,7 +263,7 @@ YAHOO.namespace('zenoss.geomap');
     /* UTILS AND HELPERS */
     var _utils = {  
         saveCache: function() {
-            var cachestr = YAHOO.lang.JSON.stringify(scache);
+            var cachestr = YAHOO.lang.JSON.stringify(Geocoder.cache);
             var savereq = doXHR( 
                 '/zport/dmd/setGeocodeCache', 
                 {'sendContent':cachestr,
@@ -391,36 +273,33 @@ YAHOO.namespace('zenoss.geomap');
             );
             _utils.createMaps();
             isCacheDirty = false;            
-            nodes = [];
-            linepoints = [];
         },    
         isGeocacheDirty: function(){
-            var dirty = true; 
-            if(!geocodecache) return dirty; // there's no cache, so nevermind all the checking, just geocode
-
-            if(geocodecache.nodes.length > 0){
-                dirty = false;
+            if(!geocodecache) return true; // there's no cache, so nevermind all the checking, just geocode
+            var geocount = this.objLength(geocodecache);
+            if(geocount > 0){
+                // check nodedata[i][0] is in geocodecache[here]. If not, then cache is dirty
                 // are nodedata and geocodecache the same length? if not, then there was a change
-                if(geocodecache.nodes.length != nodedata.length) return true;           
+                if(geocount != nodedata.length) return true;           
+                return false;
             }else{
                 return true;
             }
-            if(geocodecache.lines && geocodecache.lines.length > 0){
-                dirty = false;
-                if(geocodecache.lines.length != linkdata.length) return true;             
-            }
-            return dirty;
+            return true;
         },
         isMemCacheDirty: function(){
             if(isCacheDirty == true) return true;
-            if(gcache.length > 0){ // have cache
+            
+            var nodeMapLen = _utils.objLength(nodeMap);
+            var linkMapLen = _utils.objLength(lineMap);
+            
+            if(nodeMapLen > 0){ // have cache
                 // make sure there's no new/deleted nodes                  
-                if(gcache.length != nodedata.length){//  something was added or removed
+                if(nodeMapLen != nodedata.length){//  something was added or removed
                     geocodecache = {};
-                    geocodecache.nodes = {};
                     isCacheDirty = true;
-                    gcache = nodedata;
-                    _utils.wipeMarkers();                    
+                    _utils.wipeMarkers(); 
+                    refreshing = false;
                     return true;
                 }       
                 return false;
@@ -429,13 +308,12 @@ YAHOO.namespace('zenoss.geomap');
                 _utils.createMaps();
                 return true;
             }
-            if(lcache.length > 0){ // have cache
+            if(linkMapLen > 0){ // have cache
                 // make sure there's no new/deleted nodes                  
-                if(lcache.length != linkdata.length){//  something was added or removed
+                if(linkMapLen != linkdata.length){//  something was added or removed
                     geocodecache = {};
-                    geocodecache.lines = {};
                     isCacheDirty = true;
-                    lcache = linkdata;
+                    refreshing = false; 
                     _utils.wipeMarkers();                    
                     return true;
                 }       
@@ -447,42 +325,33 @@ YAHOO.namespace('zenoss.geomap');
             }
         },
         createMaps: function(){
-            gcache = nodedata;
-            lcache = linkdata;
-            nodeMap = {};
-            lineMap = {};
+            nodeMap = {};   
+            lineMap = {};            
             var i = null;
-            for (i = 0; i < gcache.length; i++) {           
-                nodeMap[gcache[i][2]] = gcache[i]; // UID based keymap
-            }         
-            for (i = 0; i < lcache.length; i++) {  
-                lineMap[lcache[i][0].toString()] = lcache[i];
+            for (i = 0; i < nodedata.length; i++) {           
+                nodeMap[nodedata[i][2]] = nodedata[i]; // UID based keymap
+            }
+                
+            for (i = 0; i < linkdata.length; i++) {  
+                lineMap[linkdata[i][0].toString()] = linkdata[i];
             }             
         },
-        checkNodeStatusColor: function(){                   
-            if(nodeMap[nodedata[index][2]]){
-                //check colors on the existing nodes for changes
-               if(nodeMap[nodedata[index][2]][1] != nodedata[index][1]){
-                    // COLOR CHANGED ON NODE!
-                    // set the entry in the cache for proper saving
-                    scache.nodes[index][0].address_components[scache.nodes[index][0].address_components.length-1].color = nodedata[index][1];                    
-                    _utils.replaceMarker(index);                      
-                }
-                if((index+1) >= nodedata.length) _utils.saveCache();                
+        checkStatusColors: function(){          
+            // run through the whole thing:
+            var i = null;
+            for (i = 0; i < nodedata.length; i++) {
+               if(nodeMap[nodedata[i][2]][1] != nodedata[i][1]){
+                    _utils.replaceMarker(i); 
+               }
             }
-        },
-        checkLineStatusColor: function(){    
-            if(lineMap[lcache[index][0].toString()]){
-                //check colors on the existing nodes for changes;
-               if(lineMap[lcache[index][0].toString()][1] != linkdata[index][1]){
-                    // COLOR CHANGED FOR LINE!
-                    // set the entry in the cache for proper saving
-                    scache.lines[index][1] = linkdata[index][1];                    
-                    _utils.changeLineColor(index);                      
+            for (i = 0; i < linkdata.length; i++) {
+               if(lineMap[linkdata[i][0].toString()][1] != linkdata[i][1]){
+                    // COLOR CHANGED FOR LINE!                   
+                    _utils.changeLineColor(i);                      
                 }
-                if((index+1) >= linkdata.length) _utils.saveCache();                
-            }
-        },        
+            }            
+            _utils.createMaps();              
+        },      
         wipeMarkers: function(){
             var i;
             for(i = 0; i < markers.length; i++){
@@ -538,14 +407,27 @@ YAHOO.namespace('zenoss.geomap');
         },
         statusDialog: function(status){
             alert("Google could not process addresses. Reason: " + status);
-        }
+        },
+        overlayDialog: function(msg){
+            dialog.style.display = 'block';
+            var content = msg+" "+ (index+1) + " of " + nodedata.length + " addresses, please wait...<br><br>";
+            content += '<img src="http://us.i1.yimg.com/us.yimg.com/i/us/per/gr/gp/rel_interstitial_loading.gif" />';
+            dialog.innerHTML = content;        
+        },
+        objLength: function(obj){
+            var count = 0;
+            for (var key in obj){
+                count++
+            }
+            return count;
+        }        
     }
     /* SET UP AND RUN THE MAP */
     YAHOO.zenoss.geomap.initialize = function (container) {
         addElementClass($('geomapcontainer'), "yui-skin-sam");
         dialog = document.getElementById('geocodingdialog'); 
         _engine.initMap(container);        
-        var pollrate = document.location.search.split('=')[1]?document.location.search.split('=')[1]:polling;
+        var pollrate = document.location.search.split('=')[1]?document.location.search.split('=')[1]:polling; 
         polling = pollrate;
         connect(currentWindow(), 'onresize', _engine.maximizeMapHeight);        
         if (IS_MAP_PORTLET) {
