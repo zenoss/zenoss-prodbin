@@ -90,7 +90,9 @@ Ext.onReady(function () {
                     },
                     items:[{
                         xtype: 'textfield',
+                        xtype: 'idfield',
                         name: 'newId',
+                        context: '/zport/dmd/Triggers',
                         ref: 'newId',
                         allowBlank: false,
                         vtype: 'alphanum',

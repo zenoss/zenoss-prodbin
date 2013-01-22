@@ -17,6 +17,7 @@ from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.Zuul.decorators import serviceConnectionError
 from zenoss.protocols.protobufs.zep_pb2 import RULE_TYPE_JYTHON
 from Products.ZenMessaging.audit import audit
+from Products.ZenModel.Trigger import DuplicateTriggerName
 
 import logging
 
@@ -40,9 +41,14 @@ class TriggersRouter(DirectRouter):
 
     @serviceConnectionError
     def addTrigger(self, newId):
-        data = self._getFacade().addTrigger(newId)
-        audit('UI.Trigger.Add', newId)
-        return DirectResponse.succeed(data=data)
+        try:
+            data = self._getFacade().addTrigger(newId)
+        except DuplicateTriggerName, tnc:
+            log.debug("Exception DuplicateTriggerName: %s" % tnc)
+            return DirectResponse.fail(str(tnc))
+        else:
+            audit('UI.Trigger.Add', newId)
+            return DirectResponse.succeed(data=data)
 
     @serviceConnectionError
     def removeTrigger(self, uuid):

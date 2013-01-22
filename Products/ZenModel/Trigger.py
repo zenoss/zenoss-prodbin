@@ -24,6 +24,7 @@ from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 
 class InvalidTriggerActionType(Exception): pass
 
+class DuplicateTriggerName(Exception): pass
 
 def manage_addTriggerManager(context, REQUEST=None):
     """Create the trigger manager."""

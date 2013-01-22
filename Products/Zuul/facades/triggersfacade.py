@@ -21,7 +21,7 @@ from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
 from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscriptionWindow
-from Products.ZenModel.Trigger import Trigger, InvalidTriggerActionType
+from Products.ZenModel.Trigger import Trigger, InvalidTriggerActionType, DuplicateTriggerName
 import zenoss.protocols.protobufs.zep_pb2 as zep
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -220,6 +220,12 @@ class TriggersFacade(ZuulFacade):
 
     def createTrigger(self, name, uuid=None, rule=None):
         name = str(name)
+
+        zodb_triggers = self._getTriggerManager().objectValues()
+        zodb_trigger_names = set(t.id for t in zodb_triggers)
+        if name in zodb_trigger_names:
+            raise DuplicateTriggerName, ('The id "%s" is invalid - it is already in use.' % name)
+
         triggerObject = Trigger(name)
         self._getTriggerManager()._setObject(name, triggerObject)
         acquired_trigger = self._getTriggerManager().findChild(name)
