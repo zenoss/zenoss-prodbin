@@ -291,7 +291,7 @@ class EmailAction(IActionBase, TargetableAction):
         Try to encode the text in the following character sets, if we can't decode it
         then strip out anything we can't encode in ascii.
         """        
-        for body_charset in 'US-ASCII', 'ISO-8859-1', 'UTF-8':
+        for body_charset in 'US-ASCII', 'UTF-8':
             try:
                 plain_body = MIMEText(body.encode(body_charset), 'plain', body_charset)
                 break
