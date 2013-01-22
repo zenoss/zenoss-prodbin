@@ -515,7 +515,8 @@ class ZenProcessTask(ObservableMixin):
             for pid in beforeByConfig[procStats]:
                 if pid not in afterByConfig[procStats]:
                     droppedPids.append(pid)
-            summary = 'Process restarted: %s' % pConfig.originalName
+            procClassName = pConfig.processClass.rsplit('/', 1)[-1]
+            summary = 'Process restarted: %s' % procClassName
             message = '%s\n Using regex \'%s\' Discarded dead pid(s) %s Using new pid(s) %s'\
             % (summary, pConfig.regex, droppedPids, afterByConfig[procStats])
             self._eventService.sendEvent(self.statusEvent,
@@ -531,7 +532,8 @@ class ZenProcessTask(ObservableMixin):
         # report alive processes
         for processStat, pids in afterByConfig.iteritems():
             if processStat in restarted: continue
-            summary = "Process up: %s" % processStat._config.originalName
+            procClassName = processStat._config.processClass.rsplit('/', 1)[-1]
+            summary = "Process up: %s" % procClassName
             message = '%s\n Using regex \'%s\' with pid\'s %s '\
             % (summary, processStat._config.regex, pids)
             self._eventService.sendEvent(self.statusEvent,
@@ -568,7 +570,8 @@ class ZenProcessTask(ObservableMixin):
         # Look for missing processes
         for procConfig in missing:
             ZenProcessTask.MISSING += 1
-            summary = 'Process not running: %s' % procConfig.originalName
+            procClassName = procConfig.processClass.rsplit('/', 1)[-1]
+            summary = 'Process not running: %s' % procClassName
             message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
                         % (summary,procConfig.regex,self._device.lastmodeltime)
             self._eventService.sendEvent(self.statusEvent,
