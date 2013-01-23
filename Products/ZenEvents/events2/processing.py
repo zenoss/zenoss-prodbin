@@ -592,7 +592,7 @@ class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
             actor.ClearField(EventField.Actor.ELEMENT_TITLE)
             actor.ClearField(EventField.Actor.ELEMENT_UUID)
             actor.ClearField(EventField.Actor.ELEMENT_SUB_TITLE)
-
+            actor.ClearField(EventField.Actor.ELEMENT_SUB_UUID)
             eventContext.log.debug("device was cleared, must purge references in current event: %s" % to_dict(eventContext._zepRawEvent))
             # clear out device-specific tags and details
             deviceOrganizerTypeNames = list(type for function,type in self.DEVICE_TAGGERS.values())

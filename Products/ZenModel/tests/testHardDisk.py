@@ -25,7 +25,7 @@ class TestHardDisk(ZenModelBaseTest):
         tmpo = HardDisk('hdd')
         self.dev.hw.harddisks._setObject('hdd',tmpo)
         self.hdd = self.dev.hw.harddisks()[0]
-
+        self.hdd.description = 'hdd'
 
     def testSetManageIp(self):
         self.hdd.setManageIp('1.2.3.4/24')

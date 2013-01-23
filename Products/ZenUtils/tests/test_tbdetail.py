@@ -21,7 +21,11 @@ class TestTbdetail(TestCase):
     def test_log_tb(self):
         """call log_tb twice to make sure it handles the case where
         $ZENHOME/log/traceback directory is already created"""
-        rmtree(_LOG_DIR)
+        try:
+            rmtree(_LOG_DIR)
+        except OSError:
+            # directory doesn't exist do not try to remove it
+            pass
         for i in range(2):
             try:
                 self._raise()

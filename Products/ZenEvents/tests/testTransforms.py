@@ -191,7 +191,7 @@ evt.device = '%s'
 
         self.assertEquals(device_b.id, processed.event.actor.element_identifier)
         self.assertEquals(IGlobalIdentifier(device_b).getGUID(), 
-                          processed.actor.element_uuid)
+                          processed.event.actor.element_uuid)
         
     def testActorReidentificationFromEventClassKeyTransformWithComponent(self):
         """
@@ -227,9 +227,8 @@ evt.device = '%s'
         # Match the transform by event_class_key
         event.event_class_key = _transform_key
         processed = self._processEvent(event)
-
         self.assertEquals(IGlobalIdentifier(devB.getDeviceComponents()[0]).getGUID(),
-                          processed.actor.element_sub_uuid)
+                          processed.event.actor.element_sub_uuid)
         
     def testIntSeverityTransform(self):
         """
