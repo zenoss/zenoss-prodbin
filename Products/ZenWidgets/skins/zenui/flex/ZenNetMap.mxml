@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:local="*" xmlns:fc="http://www.adobe.com/2006/fc"
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+				xmlns:local="*" 
+				xmlns:fc="com.adobe.flex.extras.controls.springgraph.*"
                 layout="absolute"
                 creationComplete="setup()">
-
+	
     <fc:Roamer id="roamer" bottom="0"
                itemRenderer="XMLItemView"
                repulsionFactor="{repulsion.value}"
@@ -43,7 +45,7 @@
                 <mx:ComboBox dataProvider="{getOrganizerTypes()}" fontSize="9" height="20"
                              id="filterBy"
                              width="170" enter="refreshData();"
-                             change="updateFilterTargets()"/>
+                             change="updateFilterTargets()"/>			
             </mx:HBox>
             <mx:HBox horizontalAlign="left"
                      paddingBottom="3" paddingRight="10">
@@ -105,10 +107,12 @@
 
     <mx:Script>
 		<![CDATA[
-        import mx.binding.utils.BindingUtils;
-        import mx.controls.Alert;
-        import mx.core.FlexGlobals;
-        import mx.rpc.events.ResultEvent;
+		import com.adobe.flex.extras.controls.springgraph.*;
+		
+		import mx.binding.utils.BindingUtils;
+		import mx.controls.Alert;
+		import mx.core.FlexGlobals;
+		import mx.rpc.events.ResultEvent;
 
         [Bindable]
         private var _nextItemName:String;
@@ -207,7 +211,7 @@
             handleQueryParams();
             initialData.send();
             roamer.motionThreshold = 0.1;
-            roamer.showHistory = true;
+            roamer.showHistory = true;		
         }
 
         private function gotData(xmlNames:Array, event:ResultEvent):void {
