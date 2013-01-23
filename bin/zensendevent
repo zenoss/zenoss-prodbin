@@ -80,15 +80,12 @@ def auth_from_conf():
     '''
     conf_filename = os.path.join(ZENHOME, 'etc', 'hubpasswd')
     try:
-        conf_file = open(conf_filename)
-        auth = conf_file.read().strip()
-        conf_file.close()
-
-        if auth:
-            return auth
-
+        lines = open(conf_filename).read()
     except Exception:
-        pass
+        return
+    entries = [ x.strip() for x in lines.splitlines() if x.strip() ]
+    if entries:
+        return entries[0]
 
 
 class ImportEventXML(ContentHandler):
