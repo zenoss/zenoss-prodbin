@@ -70,15 +70,8 @@ class ConfigTest(BaseTestCase):
         loader = ConfigLoader(config_file)
         options = loader()
         assert hasattr(options, 'key1_value')
-        assert options.key1_value == '';
-
-        # it should handle settings with dashes
-        config_file = StringIO('event-flow-check 10\n')
-        loader = ConfigLoader(config_file)
-        options = loader()
-        assert hasattr(options, 'event_flow_check')
-        assert options.event_flow_check == '10';
-
+        assert options.key1_value == '';        
+        
          #the regular expression that parses the key / value pair
         #  will pull off the 'key' from below as key
         #  and the rest of the junk will be the value.
