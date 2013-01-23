@@ -1,8 +1,20 @@
 #!/usr/bin/env python
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2011, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+"""Zenoss ZODB storage packing utility.
+"""
+
 import sys
 from os import path
 import tempfile
-import optparse
+import argparse
 import subprocess
 
 import Globals
@@ -13,29 +25,31 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 def get_config(database=None):
     _global_conf = getGlobalConfiguration()
     if database:
-        _global_conf['zodb-db'] = database
-    zodb_socket = _global_conf.get('zodb-socket')
+        _global_conf['zodb_db'] = database
+    zodb_socket = _global_conf.get('zodb_socket')
     if zodb_socket:
-        _global_conf['socket-option'] = 'unix_socket %s' % zodb_socket
+        _global_conf['socket'] = 'unix_socket %s' % zodb_socket
     else:
-        _global_conf['socket-option'] = ''
+        _global_conf['socket'] = ''
 
     config = """
 <relstorage>
     pack-gc true
     keep-history false
     <mysql>
-        host %(zodb-host)s
-        port %(zodb-port)s
-        db %(zodb-db)s
-        user %(zodb-user)s
-        passwd %(zodb-password)s
-        %(socket-option)s
+        host %(zodb_host)s
+        port %(zodb_port)s
+        db %(zodb_db)s
+        user %(zodb_user)s
+        passwd %(zodb_password)s
+        %(socket)s
     </mysql>
 </relstorage>
 """ % _global_conf
     return config
 
+
+_zodbpack = zenPath('bin', 'zodbpack')
 
 def pack_database(config):
     """
@@ -44,7 +58,7 @@ def pack_database(config):
     with tempfile.NamedTemporaryFile() as configfile:
         configfile.write(config)
         configfile.flush()
-        cmd = [zenPath('bin', 'zodbpack'), configfile.name, '-d', options.days]
+        cmd = [_zodbpack, configfile.name, '-d', str(options.days)]
         return subprocess.call(cmd)
 
 
@@ -65,15 +79,16 @@ def get_session_database():
 
 if __name__ == "__main__":
     # Get the days option to forward to zodbpack
-    parser = optparse.OptionParser(description=__doc__,
-        usage="%prog [options]")
-    parser.add_option("-d", "--days", dest="days", default="0",
-                      help="Days of history to keep (default 0)")
-    parser.add_option("-e", "--exclude-db", dest="excludeDB", type="choice",
-                      choices=['session', 'zodb'],
-                      help="Specify which database to exclude")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "-d", "--days", dest="days", type=int, default=0,
+        help="Days of history to keep (default: %(default)s)")
+    parser.add_argument(
+        "-e", "--exclude-db", dest="excludeDB",
+        choices=['session', 'zodb'],
+        help="Specify which database to exclude")
 
-    options, args = parser.parse_args(sys.argv[1:])
+    options = parser.parse_args()
 
     retcode = 1
 
