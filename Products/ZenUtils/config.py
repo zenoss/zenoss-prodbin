@@ -352,8 +352,7 @@ class ConfigLoader(object):
             else:
                 options = self.parser(file)
 
-            for key, value in options: 
-  	  	self._config[key.replace('-','_')] = value 
+            self._config.update(options) 
 
 
     def __call__(self):
