@@ -10,8 +10,6 @@
 
 import sys
 from collections import defaultdict
-import threading
-import Queue
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
 
@@ -19,13 +17,12 @@ import transaction
 
 from ZODB.transact import transact
 from zope.event import notify
-from zope.container.contained import ObjectRemovedEvent, ObjectMovedEvent
-from zope.container.contained import ObjectAddedEvent
+from zope.container.contained import ObjectMovedEvent
 from Acquisition import aq_base
 
-from Products.ZenUtils.Utils import importClass, getObjByPath
+from Products.ZenUtils.Utils import importClass
 from Products.Zuul.catalog.events import IndexingEvent
-from Exceptions import ObjectCreationError
+from Products.DataCollector.Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 from Products.ZenEvents import Event
@@ -45,11 +42,9 @@ def isSameData(x, y):
     dictionaries.
     """
     if isinstance(x, (tuple, list)) and isinstance(y, (tuple, list)):
-        if len(x) > 0 and len(y) > 0 \
-            and isinstance(x[0], dict) and isinstance(y[0], dict):
-
-            x = set( tuple(sorted(d.items())) for d in x )
-            y = set( tuple(sorted(d.items())) for d in y )
+        if x and y and isinstance(x[0], dict) and isinstance(y[0], dict):
+            x = set(tuple(sorted(d.items())) for d in x)
+            y = set(tuple(sorted(d.items())) for d in y)
         else:
             return sorted(x) == sorted(y)
 
@@ -60,6 +55,9 @@ class ApplyDataMap(object):
 
     def __init__(self, datacollector=None):
         self.datacollector = datacollector
+        self._dmd = None
+        if datacollector:
+            self._dmd = getattr(datacollector, 'dmd', None)
 
 
     def logChange(self, device, compname, eventClass, msg):
@@ -73,83 +71,29 @@ class ApplyDataMap(object):
         ''' Used to report a change to a device model.  Logs the given msg
         to log.info and creates an event.
         '''
-        device = device.device()
-        compname = ""
-        try:
+        log.debug(msg)
+        if self._dmd:
+            device = device.device()
+            # Support string and ZenModelRM component arguments
             compname = getattr(component, 'id', component)
             if device.id == compname:
                 compname = ""
-        except Exception: pass
-        log.debug(msg)
-        devname = device.device().id
-        if (self.datacollector
-            # why is this line here?  Blocks evnets from model in zope
-            #and getattr(self.datacollector, 'generateEvents', False)
-            and getattr(self.datacollector, 'dmd', None)):
             eventDict = {
                 'eventClass': eventClass,
-                'device': devname,
+                'device': device.id,
                 'component': compname,
                 'summary': msg,
                 'severity': severity,
                 'agent': 'ApplyDataMap',
                 'explanation': "Event sent as zCollectorLogChanges is True",
-                }
-            self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+            }
+            self._dmd.ZenEventManager.sendEvent(eventDict)
 
-
-    def processClient(self, device, collectorClient):
-        """
-        A modeler plugin specifies the protocol (eg SNMP, WMI) and
-        the specific data to retrieve from the device (eg an OID).
-        This data is then processed by the modeler plugin and then
-        passed to this method to apply the results to the ZODB.
-
-        @parameter device: DMD device object
-        @type device: DMD device object
-        @parameter collectorClient: results of modeling
-        @type collectorClient: DMD object
-        """
-        log.debug("Processing data for device %s", device.id)
-        devchanged = False
-        try:
-            for pname, results in collectorClient.getResults():
-                log.debug("Processing plugin %s on device %s", pname, device.id)
-                if not results:
-                    log.warn("Plugin %s did not return any results", pname)
-                    continue
-                plugin = self.datacollector.collectorPlugins.get(pname, None)
-                if not plugin:
-                    log.warn("Unable to get plugin %s from %s", pname,
-                             self.datacollector.collectorPlugins)
-                    continue
-
-                results = plugin.preprocess(results, log)
-                datamaps = plugin.process(device, results, log)
-                #allow multiple maps to be returned from one plugin
-                if not isinstance(datamaps, (list, tuple, set)):
-                    datamaps = [datamaps,]
-                for datamap in datamaps:
-                    changed = self._applyDataMap(device, datamap)
-                    if changed: devchanged=True
-            if devchanged:
-                device.setLastChange()
-                log.info("Changes applied")
-            else:
-                log.info("No change detected")
-            device.setSnmpLastCollection()
-            trans = transaction.get()
-            trans.setUser("datacoll")
-            trans.note("data applied from automated collection")
-            trans.commit()
-        except Exception:
-            transaction.abort()
-            log.exception("Plugin %s device %s", pname, device.getId())
 
     def applyDataMap(self, device, datamap, relname="", compname="", modname=""):
         """Apply a datamap passed as a list of dicts through XML-RPC.
         """
-        from plugins.DataMaps import RelationshipMap, ObjectMap
+        from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
         if relname:
             datamap = RelationshipMap(relname=relname, compname=compname,
                                 modname=modname, objmaps=datamap)
@@ -191,12 +135,13 @@ class ApplyDataMap(object):
 
                 return False
 
+        changed = False
         if hasattr(datamap, "compname"):
             if datamap.compname:
                 try:
                     tobj = device.getObjByPath(datamap.compname)
                 except NotFound:
-                    log.warn("Unable to find compname '%s'" % datamap.compname)
+                    log.warn("Unable to find compname '%s'", datamap.compname)
                     return False
             else:
                 tobj = device
@@ -205,10 +150,7 @@ class ApplyDataMap(object):
             elif hasattr(datamap, 'modname'):
                 changed = self._updateObject(tobj, datamap)
             else:
-                changed = False
                 log.warn("plugin returned unknown map skipping")
-        else:
-            changed = False
         if not changed:
             transaction.abort()
         else:
@@ -229,7 +171,7 @@ class ApplyDataMap(object):
             log.warn("no relationship:%s found on:%s (%s %s)",
                           relmap.relname, device.id, device.__class__, device.zPythonClass)
             return changed
-        relids = rel.objectIdsAll()
+        relids = set(rel.objectIdsAll())
         seenids = defaultdict(int)
         for objmap in relmap:
             from Products.ZenModel.ZenModelRM import ZenModelRM
@@ -255,18 +197,20 @@ class ApplyDataMap(object):
                     if objmap.modname == existing_modname and \
                         objmap.classname in ('', existing_classname):
 
-                        objchange = self._updateObject(obj, objmap)
-                        if not changed: changed = objchange
+                        changed |= self._updateObject(obj, objmap)
                     else:
                         rel._delObject(objmap_id)
                         objchange, obj = self._createRelObject(device, objmap, rname)
-                        if not changed: changed = objchange
+                        if obj:
+                            relids.discard(obj.id)
+                        changed |= objchange
 
-                    if objmap_id in relids: relids.remove(objmap_id)
+                    relids.discard(objmap_id)
                 else:
                     objchange, obj = self._createRelObject(device, objmap, rname)
-                    if objchange: changed = True
-                    if obj and obj.id in relids: relids.remove(obj.id)
+                    changed |= objchange
+                    if obj:
+                        relids.discard(obj.id)
             elif isinstance(objmap, ZenModelRM):
                 self.logChange(device, objmap.id, Change_Add,
                             "linking object %s to device %s relation %s" % (
@@ -275,8 +219,9 @@ class ApplyDataMap(object):
                 changed = True
             else:
                 objchange, obj = self._createRelObject(device, objmap, rname)
-                if objchange: changed = True
-                if obj and obj.id in relids: relids.remove(obj.id)
+                changed |= objchange
+                if obj:
+                    relids.discard(obj.id)
 
         for id in relids:
             obj = rel._getOb(id)
@@ -295,7 +240,8 @@ class ApplyDataMap(object):
                     "removing object %s from rel %s on device %s" % (
                     id, rname, device.id))
             rel._delObject(id)
-        if relids: changed=True
+            changed = True
+        
         return changed
 
 
@@ -342,43 +288,34 @@ class ApplyDataMap(object):
                     # value
                     continue
             att = getattr(aq_base(obj), attname, zenmarker)
-            if att == zenmarker:
+            if att is zenmarker:
                 log.warn('The attribute %s was not found on object %s from device %s',
                               attname, obj.id, device.id)
                 continue
             if callable(att):
-                setter = getattr(obj, attname)
-                gettername = attname.replace("set","get")
-                getter = getattr(obj, gettername, None)
-
-                if not getter:
-
-                    log.warn("getter '%s' not found on obj '%s', "
-                                  "skipping", gettername, obj.id)
-
+                getter = None
+                if attname.startswith("set"):
+                    getter = getattr(obj, "get" + attname[3:], None)
+                if not getter or not callable(getter):
+                    log.warn("getter for '%s' not found on obj '%s', skipping",
+                             attname, obj.id)
+                    continue
+                from Products.DataCollector.plugins.DataMaps import MultiArgs
+                if isinstance(value, MultiArgs):
+                    args = value.args
                 else:
-
-                    from plugins.DataMaps import MultiArgs
-                    if isinstance(value, MultiArgs):
-
-                        args = value.args
-                        change = not isSameData(value.args, getter())
-
-                    else:
-
-                        args = (value,)
-                        try:
-                            change = not isSameData(value, getter())
-                        except UnicodeDecodeError:
-                            change = True
-
-                    if change:
-                        setter(*args)
-                        self.logChange(device, obj, Change_Set,
-                                    "calling function '%s' with '%s' on "
-                                    "object %s" % (attname, value, obj.id))
-                        changed = True
-
+                    args = (value,)
+                try:
+                    change = not isSameData(value, getter())
+                except UnicodeDecodeError:
+                    change = True
+                if change:
+                    setter = getattr(obj, attname)
+                    setter(*args)
+                    self.logChange(device, obj, Change_Set,
+                                "calling function '%s' with '%s' on "
+                                "object %s" % (attname, value, obj.id))
+                    changed = True
             else:
                 try:
                     change = not isSameData(att, value)
@@ -392,8 +329,7 @@ class ApplyDataMap(object):
                                    (attname, value, obj.id))
                     changed = True
         if not changed:
-            try: changed = obj._p_changed
-            except Exception: pass
+            changed = getattr(obj, '_p_changed', False)
         if changed:
             if getattr(aq_base(obj), "index_object", False):
                 log.debug("indexing object %s", obj.id)
@@ -451,55 +387,6 @@ class ApplyDataMap(object):
         return self._updateObject(remoteObj, objmap) or changed, remoteObj
 
 
-    def stop(self): pass
-
-
-class ApplyDataMapThread(threading.Thread, ApplyDataMap):
-    """
-    Thread that applies datamaps to a device.  It reads from a queue that
-    should have tuples of (devid, datamaps) where devid is the primaryId to
-    the device and datamps is a list of datamaps to apply.  Cache is synced at
-    the start of each transaction and there is one transaction per device.
-    """
-
-    def __init__(self, datacollector, app):
-        threading.Thread.__init__(self)
-        ApplyDataMap.__init__(self, datacollector)
-        self.setName("ApplyDataMapThread")
-        self.setDaemon(1)
-        self.app = app
-        log.debug("Thread conn:%s", self.app._p_jar)
-        self.inputqueue = Queue.Queue()
-        self.done = False
-
-
-    def processClient(self, device, collectorClient):
-        """Apply datamps to device.
-        """
-        devpath = device.getPrimaryPath()
-        self.inputqueue.put((devpath, collectorClient))
-
-
-    def run(self):
-        """Process collectorClients as they are passed in from a data collector.
-        """
-        log.info("starting applyDataMap thread")
-        while not self.done or not self.inputqueue.empty():
-            devpath = ()
-            try:
-                devpath, collectorClient = self.inputqueue.get(True,1)
-                self.app._p_jar.sync()
-                device = getObjByPath(self.app, devpath)
-                ApplyDataMap.processClient(self, device, collectorClient)
-            except Queue.Empty: pass
-            except Exception:
-                transaction.abort()
-                log.exception("processing device %s", "/".join(devpath))
-        log.info("stopping applyDataMap thread")
-
-
     def stop(self):
-        """Stop the thread once all devices are processed.
-        """
-        self.done = True
-        self.join()
+        pass
+

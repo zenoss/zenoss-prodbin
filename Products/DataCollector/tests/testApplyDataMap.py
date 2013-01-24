@@ -12,6 +12,7 @@
 import Globals
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
+from Products.DataCollector.plugins.DataMaps import RelationshipMap
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class _dev(object):
@@ -130,6 +131,19 @@ class ApplyDataMapTest(BaseTestCase):
             self.adm.applyDataMap(Device(), datamap(), datamap.relname, datamap.compname)
 
         self.assertEqual(theException.exception.message, "type object 'datamap' has no attribute 'compname'")
+
+    def testNoChangeAllComponentsLocked(self):
+        device = self.dmd.Devices.createInstance('testDevice')
+        # Create an IP interface
+        device.os.addIpInterface('eth0', False)
+        iface = device.os.interfaces._getOb('eth0')
+        iface.lockFromDeletion()
+
+        # Apply a RelMap with no interfaces
+        relmap = RelationshipMap("interfaces", "os", "Products.ZenModel.IpInterface")
+        self.assertFalse(self.adm._applyDataMap(device, relmap))
+
+        self.assertEquals(1, len(device.os.interfaces))
 
 def test_suite():
     from unittest import TestSuite, makeSuite
