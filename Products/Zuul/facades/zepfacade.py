@@ -327,7 +327,8 @@ class ZepFacade(ZuulFacade):
         return self.getEventSummaries(offset, limit, sort, filter,
                                       client_fn=self.client.getEventSummariesFromArchive, exclusion_filter=exclusion_filter)
 
-    def getEventSummaries(self, offset, limit=1000, sort=None, filter=None, exclusion_filter=None, client_fn=None):
+    def getEventSummaries(self, offset, limit=1000, sort=None, filter=None, exclusion_filter=None, client_fn=None,
+                          use_permissions=False):
         if client_fn is None:
             client_fn = self.client.getEventSummaries
         if filter is not None and isinstance(filter,dict):
@@ -336,13 +337,39 @@ class ZepFacade(ZuulFacade):
             exclusion_filter = from_dict(EventFilter, exclusion_filter)
         if sort is not None:
             sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
-        return self._getEventSummaries(source=partial(client_fn,
-                                               filter=filter,
-                                               exclusion_filter=exclusion_filter,
-                                               sort=sort
-                                               ),
-                                       offset=offset, limit=limit
-                                       )
+
+        result = None
+
+        if use_permissions:
+            user = getSecurityManager().getUser()
+            userSettings = self._dmd.ZenUsers._getOb(user.getId())
+            hasGlobalRoles = not userSettings.hasNoGlobalRoles()
+            if not hasGlobalRoles:
+                adminRoles = userSettings.getAllAdminRoles()
+                if adminRoles:
+                    # get ids for the objects they have permission to access
+                    # and add to filter
+                    ids = [IGlobalIdentifier(x.managedObject()).getGUID() for x in adminRoles]
+                    if filter is None:
+                        filter = EventFilter()
+                    tf = filter.tag_filter.add()
+                    tf.tag_uuids.extend(ids)
+                else:
+                    # no permission to see events, return 0
+                    result =  {
+                        'total' : 0,
+                        'events' : [],
+                    }
+
+        if not result:
+            result = self._getEventSummaries(source=partial(client_fn,
+                                                   filter=filter,
+                                                   exclusion_filter=exclusion_filter,
+                                                   sort=sort
+                                                   ),
+                                           offset=offset, limit=limit
+                                           )
+        return result
 
     def getEventSummariesGenerator(self, filter=None, exclude=None, sort=None, archive=False, timeout=None):
         if isinstance(exclude, dict):
