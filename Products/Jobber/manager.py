@@ -13,6 +13,8 @@ import os
 from datetime import datetime
 from uuid import uuid4
 
+import transaction
+
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
 from OFS.ObjectManager import ObjectManager
@@ -29,6 +31,22 @@ from logging import getLogger
 log = getLogger("zen.JobManager")
 
 CATALOG_NAME = "job_catalog"
+
+
+def _dispatchTask(task, **kwargs):
+    """
+    Delay the actual scheduling of the job until the transaction manages
+    to get itself committed. This prevents Celery from getting a new task
+    for every retry in the event of ConflictErrors. See ZEN-2704.
+    """
+    opts = dict(kwargs)
+    # Have to use a closure because of Celery's funky signature inspection
+    # and because of the status argument transaction passes
+    def hook(ignored):
+        log.info("Dispatching %s job to zenjobs: %s", type(task), task)
+        # Push the task out to AMQP (ignore returned object).
+        task.apply_async(**opts)
+    transaction.get().addAfterCommitHook(hook)
 
 
 def manage_addJobManager(context, id="JobManager"):
@@ -166,7 +184,10 @@ class JobManager(ZenModelRM):
             ))
             subtasks.append(subtask)
         task = chain(*subtasks)
-        task.apply_async()
+
+        # Dispatch job to zenjobs queue
+        _dispatchTask(task)
+
         return records
 
     def addJob(self, jobclass,
@@ -195,9 +216,8 @@ class JobManager(ZenModelRM):
                 job_id, job, description, args, kwargs, **properties
             )
 
-        # Push the task out to AMQP (ignore returned object) telling Celery
-        # to use the task ID created earlier.
-        job.apply_async(args=args, kwargs=kwargs, task_id=job_id)
+        # Dispatch job to zenjobs queue
+        _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
 
         return jobrecord
 

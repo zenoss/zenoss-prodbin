@@ -221,7 +221,6 @@ class Job(Task):
                 self._result_queue.put(result)
             except JobAborted:
                 self.log.warning("Job %s aborted.", job_id)
-                import transaction
                 transaction.abort()
                 # re-raise JobAborted to allow celery to perform job
                 # failure and clean-up work.  A monkeypatch has been
@@ -329,23 +328,6 @@ class Job(Task):
             except (AttributeError, KeyError):
                 pass
             self._log = None
-
-    def apply_async(self, *args, **kwargs):
-        """
-        Delay the actual scheduling of the job until the transaction manages to
-        get itself committed. This prevents Celery from getting a new task for
-        every retry in the event of ConflictErrors. See ZEN-2704.
-        """
-        # Have to use a closure because of Celery's funky signature inspection
-        # and because of the status argument transaction passes
-        def hook(_ignored):
-            super(Job, self).apply_async(*args, **kwargs)
-
-        transaction.get().addAfterCommitHook(hook)
-        # Return value change! Normally apply_async returns the AsyncResult
-        # object. Since we throw that away in JobManager.addJob, and addJob
-        # is the only valid way to create jobs, we can safely avoid caring.
-        return None # Redundant but explicit!
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         # Because JobAborted is an exception, celery will change the state to
