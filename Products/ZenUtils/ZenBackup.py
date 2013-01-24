@@ -223,18 +223,19 @@ class ZenBackup(ZenBackupBase):
 
         with gzip.open(os.path.join(self.tempDir, sqlFile),'wb') as gf:
             # If tables are specified, backup db schema and data from selected tables.
-            if tables:
+            if tables is not None:
                 self.log.debug(' '.join(command + ['*' * 8] + ['--no-data'] + database))
                 schema = subprocess.Popen(command + credential + ['--no-data'] + database,
                     stdout=subprocess.PIPE)
                 gf.writelines(imap(strip_definer, schema.stdout))
                 schema_rc = schema.wait()
-
-                self.log.debug(' '.join(command + ['*' * 8] + ['--no-create-info'] + database + tables))
-                data = subprocess.Popen(command + credential + ['--no-create-info'] + database + tables,
-                    stdout=subprocess.PIPE)
-                gf.writelines(imap(strip_definer, data.stdout))
-                data_rc = data.wait()
+                data_rc = 0
+                if tables:
+                    self.log.debug(' '.join(command + ['*' * 8] + ['--no-create-info'] + database + tables))
+                    data = subprocess.Popen(command + credential + ['--no-create-info'] + database + tables,
+                      stdout=subprocess.PIPE)
+                    gf.writelines(imap(strip_definer, data.stdout))
+                    data_rc = data.wait()
             else:
                 self.log.debug(' '.join(command + ['*' * 8] + database))
                 schema = subprocess.Popen(command + credential + database,
@@ -340,22 +341,12 @@ class ZenBackup(ZenBackupBase):
                            self.options.zodb_db, self.options.zodb_user,
                            'zodb_password', 'zodb.sql.gz',
                            socket=self.options.zodb_socket)
-        # Back up the zodb_session database schema and schema_version table
+        # Back up the zodb_session database schema
        
-        def backup_session_db(include_tables):
-            self.backupMySqlDb(
-                self.options.zodb_host, self.options.zodb_port,
-                self.options.zodb_db + '_session', self.options.zodb_user,
-                'zodb_password', 'zodb_session.sql.gz',
-                socket=self.options.zodb_socket, 
-                tables=['schema_version'] if include_tables else [])
- 
-        try:
-            backup_session_db(True)
-        except ZenBackupException:
-            self.log.warning(
-                'Failed to backup session db, trying without schema_version table...')
-            backup_session_db(False)
+        self.backupMySqlDb(self.options.zodb_host, self.options.zodb_port,
+                           self.options.zodb_db + '_session', self.options.zodb_user,
+                           'zodb_password', 'zodb_session.sql.gz',
+                           socket=self.options.zodb_socket, tables=[])
 
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)

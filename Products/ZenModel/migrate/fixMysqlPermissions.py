@@ -16,7 +16,7 @@ from Products.ZenUtils import GlobalConfig, ZenDB
 class FixMysqlPermissions(Migrate.Step):
     " Fix mysql permissions so zep db backup won't die. "
 
-    version = Migrate.Version(4, 2, 4)
+    version = Migrate.Version(4, 2, 70)
     
     def cutover(self, dmd):
         db = ZenDB.ZenDB('zep', useAdmin=True)
