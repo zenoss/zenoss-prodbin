@@ -25,10 +25,6 @@
       <td class="tablevalues" tal:content="here/eventlogCycleInterval" />
     </tr>
     <tr>
-      <td class="tableheader">SNMP Performance Cycle Interval (secs)</td>
-      <td class="tablevalues" tal:content="here/perfsnmpCycleInterval" />
-    </tr>
-    <tr>
       <td class="tableheader">Process Cycle Interval (secs)</td>
       <td class="tablevalues" tal:content="here/processCycleInterval" />
     </tr>

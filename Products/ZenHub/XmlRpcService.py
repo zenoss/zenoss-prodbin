@@ -136,8 +136,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
         result = {}
         fields = ['configCycleInterval', 'statusCycleInterval', 
-                  'processCycleInterval', 'perfsnmpCycleInterval', 
-                  'eventlogCycleInterval', 'renderurl', 'renderpass', 
+                  'eventlogCycleInterval', 'renderurl', 'renderpass',
                   'renderuser', 'winCycleInterval']
 
         # get the performance conf (if it exists)

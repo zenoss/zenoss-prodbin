@@ -170,7 +170,9 @@ class CommandPerformanceConfig(CollectorConfigService):
     def _createDeviceProxy(self, device):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
 
-        proxy.configCycleInterval = self._prefs.perfsnmpCycleInterval
+        # Framework expects a default value but zencommand uses cycles per datasource instead
+        proxy.configCycleInterval = 0
+
         proxy.name = device.id
         proxy.device = device.id
         proxy.lastmodeltime = device.getLastChangeString()

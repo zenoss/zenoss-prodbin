@@ -154,8 +154,11 @@ class SnmpPerformanceConfig(CollectorConfigService):
         if manage_ip is not None and manage_ip != device.manageIp:
             proxy._config_id = device.id + "_" + manage_ip
             proxy.snmpConnInfo.manageIp = manage_ip
-        proxy.configCycleInterval = self._prefs.perfsnmpCycleInterval
-        proxy.cycleInterval = getattr(device, 'zSnmpCollectionInterval', 300)
+        # framework expects a value for this attr but snmp task uses cycleInterval defined below
+        proxy.configCycleInterval = getattr(device, 'zSnmpCollectionInterval', 300)
+        # this is the attr zenperfsnmp actually uses
+        proxy.cycleInterval = proxy.configCycleInterval
+
         proxy.name = device.id
         proxy.device = device.id
         proxy.lastmodeltime = device.getLastChangeString()

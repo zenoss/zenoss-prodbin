@@ -31,13 +31,6 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader">SNMP Performance Cycle Interval (secs)</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="perfsnmpCycleInterval" 
-            size="10" tal:attributes="value here/perfsnmpCycleInterval"/>
-      </td>
-    </tr>
-    <tr>
       <td class="tableheader">Process Cycle Interval (secs)</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="processCycleInterval" 

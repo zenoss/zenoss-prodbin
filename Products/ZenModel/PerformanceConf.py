@@ -154,7 +154,6 @@ class PerformanceConf(Monitor, StatusColor):
 
     _properties = (
         {'id': 'eventlogCycleInterval', 'type': 'int', 'mode': 'w'},
-        {'id': 'perfsnmpCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'processCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'statusCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'winCycleInterval', 'type': 'int', 'mode': 'w'},
