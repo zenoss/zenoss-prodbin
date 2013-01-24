@@ -58,30 +58,33 @@ def runZopeTests(options):
 
     defaults = '--tests-pattern ^tests$ -v'.split()
     defaults += ['--config-file', CONFIG]
-    defaults += ['-m',
-                 '!^('
-                 'ZConfig'
-                 '|'
-                 'BTrees'
-                 '|'
-                 'persistent'
-                 '|'
-                 'ThreadedAsync'
-                 '|'
-                 'transaction'
-                 '|'
-                 'ZEO'
-                 '|'
-                 'ZODB'
-                 '|'
-                 'ZopeUndo'
-                 '|'
-                 'zdaemon'
-                 '|'
-                 'zope[.]testing'
-                 '|'
-                 'zope[.]app'
-                 ')[.]']
+
+    if '-m' not in options:
+        defaults += ['-m',
+                     '!^('
+                     'ZConfig'
+                     '|'
+                     'BTrees'
+                     '|'
+                     'persistent'
+                     '|'
+                     'ThreadedAsync'
+                     '|'
+                     'transaction'
+                     '|'
+                     'ZEO'
+                     '|'
+                     'ZODB'
+                     '|'
+                     'ZopeUndo'
+                     '|'
+                     'zdaemon'
+                     '|'
+                     'zope[.]testing'
+                     '|'
+                     'zope[.]app'
+                     ')[.]']
+
     defaults += ['--path', SOFTWARE_HOME]
     defaults += ['--package-path', PRODUCTS, 'Products']
     sys.exit(testrunner.run(defaults, options))
@@ -106,7 +109,7 @@ def overrideCoreTests(results):
     return results
 
 
-def findSeleniumTests(packages=[], regex=None):
+def findSeleniumTests(packages=None, regex=None):
     """
     Find Selenium tests
 
@@ -117,6 +120,8 @@ def findSeleniumTests(packages=[], regex=None):
     @return: directories containing Selenium tests
     @rtype: list of strings
     """
+    if packages is None:
+        packages = []
     prods = findSeleniumTestableProducts(packages, regex,
                                  testdir='tests/selenium')
     results = []
@@ -246,7 +251,7 @@ def findZenossProducts(include_zenpacks):
     return validProds + zenpacks
 
 
-def findSeleniumTestableProducts(packages=[], regex=None, testdir='tests'):
+def findSeleniumTestableProducts(packages=None, regex=None, testdir='tests'):
     """
     Get the list of Zope Products with tests
 
@@ -259,6 +264,8 @@ def findSeleniumTestableProducts(packages=[], regex=None, testdir='tests'):
     @return: list of Zope Product directories
     @rtype: list of strings
     """
+    if packages is None:
+        packages = []
     results = []
     for target in findZenPackDirectories() + [zenhome('Products')]:
         for root, dirs, files in os.walk(target):
@@ -301,7 +308,7 @@ def findSeleniumTestableProducts(packages=[], regex=None, testdir='tests'):
 
 
 def runSeleniumTests(
-    packages=[],
+    packages=None,
     regex=None,
     zenoss_server=None,
     selenium_server=None,
@@ -318,6 +325,8 @@ def runSeleniumTests(
     @param selenium_server: Selenium server name
     @type selenium_server: string
     """
+    if packages is None:
+        packages = []
     tests = findSeleniumTests(packages, regex)
     for testscript in tests:
         command = ['python', testscript]
@@ -328,7 +337,7 @@ def runSeleniumTests(
         exitcodes.append(rc)
 
 
-def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0, include_zenpacks=True):
+def runUnitTests(packages=None, modules=None, names=None, coverage="", count=0, include_zenpacks=True):
     """
     Run unit tests for any packages that match the regular expression.
 
@@ -342,11 +351,13 @@ def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0, includ
     @type show_tests: boolean
     """
     valid_packages = findZenossProducts(include_zenpacks)
-    invalid_packages = []
-    if not modules:
-        modules = []
-    if not packages:
+    if packages is None:
         packages = valid_packages
+    if modules is None:
+        modules = []
+    if names is None:
+        names = []
+    invalid_packages = []
     for pkg in packages:
         if pkg not in valid_packages:
             packages.remove(pkg)
@@ -407,7 +418,7 @@ Valid test types are:
 
 Individual test modules may also be specified. For example, to run only
 the Device tests, use:
-    runtests --type unit --name testDevice ZenModel
+    runtests --type unit --name testDevice Products.ZenModel
 """
 
 
