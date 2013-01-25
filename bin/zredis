@@ -1,0 +1,116 @@
+#! /usr/bin/env bash
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+# zredis is a wrapper around redis-server.
+
+# zredis will only run one instance of redis at a time. For example, when
+# when collectors A, B and C are deployed on host1 there will be 3 daemon
+# entries created: A_zredis, B_zredis, and C_zredis. Starting A_zredis
+# will start 1 redis-server. B_zredis and C_zredis will silently succeed
+# and report thier status as running.
+
+echoerr() { echo "$@" 1>&2; }
+
+if [ -z "$ZENHOME" ] ; then
+    echoerr "ERROR: '$ZENHOME' is not set."
+    echoerr "This is usually caused by executing this command as root rather than \
+as the zenoss user.  Either define '$ZENHOME' or run this command as a \
+different user."
+    exit 1
+fi
+
+PIDFILE=$ZENHOME/var/zredis.pid
+CONF_FILE=$ZENHOME/var/redis.conf
+REDIS_SERVER=`which redis-server`
+if [ -z "REDIS_SERVER" ];then
+    echoerr "redis-server not in path."
+    exit 1
+fi
+REDIS_DAEMONIZE=yes
+
+genconf() {
+    echo "# Do NOT use this file"
+    echo "# Edit $ZENHOME/etc/zredis.conf."
+}
+
+running() {
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE 2>/dev/null`
+        if [ -n "$PID" ]; then
+            if [ -d /proc ]; then
+                # we are on linux
+                if [ -d "/proc/$PID" ]; then
+                    return 0
+                else
+                    # get rid of PID file, process is not running
+                    rm -f $PIDFILE 2>/dev/null 
+                    return 1
+                fi
+            fi
+            # we are not on linux
+            kill -0 $PID 2>/dev/null || $PS | grep -w $PID
+            return $?
+        fi
+    fi
+    return 1
+}
+
+start() {
+    if running; then
+        echo is already running
+    else
+        echo starting...
+        echo "pidfile $PIDFILE" > $CONF_FILE
+        echo "daemonize $REDIS_DAEMONIZE" >> $CONF_FILE
+        echo "dbfilename zredis.rdb" >> $CONF_FILE
+        echo "dir $ZENHOME/var/" >> $CONF_FILE
+        if [ -f "$ZENHOME/etc/zredis.conf" ]; then
+            echo "include $ZENHOME/etc/zredis.conf" >> $CONF_FILE
+        fi
+        $REDIS_SERVER $CONF_FILE
+    fi
+}
+
+run() {
+    export REDIS_DAEMONIZE="no"
+    start
+}
+
+stop() {
+    echo "stopping..."
+    if running; then
+        kill `cat $PIDFILE`
+    else
+        echo "already stopped"
+    fi
+}
+
+restart() {
+    stop
+    start
+}
+
+status() {
+    if running; then
+        echo "program running; pid=`cat $PIDFILE`"
+    else
+        echo "not running"
+    fi
+}
+
+usage() {
+    echo "Usage: zredis[run|start|restart|stop|status|genconf] [options]"
+}
+
+
+ACTION=$1
+shift
+$ACTION || usage
+
