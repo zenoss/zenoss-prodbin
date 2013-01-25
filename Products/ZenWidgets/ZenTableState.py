@@ -44,7 +44,8 @@ class ZenTableState:
         "start",
         "URL",
         "onlyMonitored",
-        "defaultValue"
+        "defaultValue",
+        "generate"
         ]
 
     security = ClassSecurityInfo()
@@ -76,6 +77,7 @@ class ZenTableState:
         self.resetStart = False
         self.showAll = False
         self.setTableStateFromKeys(keys)
+        self.generate = False
 
     def items(self):
         return self.__dict__.items()

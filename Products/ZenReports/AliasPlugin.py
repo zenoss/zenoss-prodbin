@@ -313,7 +313,7 @@ class AliasPlugin(object):
         columnDatapointsMap = self._mapColumnsToDatapoints(dmd)
 
         # Don't run against all devices, which kills large systems
-        if args.get('deviceClass', '/') == '/':
+        if not args.get('generate') or args.get('deviceClass', '/') == '/':
             return []
 
         # Filter the device list down according to the

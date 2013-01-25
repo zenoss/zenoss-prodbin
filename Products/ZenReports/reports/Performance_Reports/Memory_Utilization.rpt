@@ -14,6 +14,9 @@
     summaryOptions python:('AVERAGE', 'MAXIMUM', 'MINIMUM', 'LAST');
     deviceClass python:sts(tableName, 'deviceClass', '/');
     deviceFilter python:sts(tableName, 'deviceFilter', '');
+    generate python:tm.setTableState(tableName, 'generate', 
+        (tm.getReqTableState(tableName, 'generate') and 
+        not tm.getReqTableState(tableName, 'adapt')));
     
 	objects python:here.ReportServer.plugin('memory', tableState);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
