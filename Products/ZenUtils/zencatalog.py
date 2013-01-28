@@ -191,14 +191,30 @@ class ZenCatalog(ZCmdBase):
                     # Bottom up, for multiple-path efficiency
                     for ob in obj.objectValues():
                         for kid in recurse(ob):
-                            yield kid
+                            if kid is not None:
+                                yield kid
+                            else:
+                                try:
+                                    description = ob.getPrimaryPath()
+                                except Exception:
+                                    description = repr(ob)
+                                log.error("Object %s has a None child!",
+                                          description)
                     if isinstance(obj, ZenModelRM):
                         for rel in obj.getRelationships():
                             if not isinstance(rel, ToManyContRelationship):
                                 continue
                             for kid in rel.objectValuesGen():
                                 for gkid in recurse(kid):
-                                    yield gkid
+                                    if gkid is not None:
+                                        yield gkid
+                                    else:
+                                        try:
+                                            description = kid.getPrimaryPath()
+                                        except Exception:
+                                            description = repr(kid)
+                                        log.error("Object %s has a None child!",
+                                                  description)
                         yield obj
             except (AttributeError, ClientDisconnected, DisconnectedError):
                 # Yield the special exception C{chunk} is watching for, so
@@ -235,7 +251,10 @@ class ZenCatalog(ZCmdBase):
             self.syncdb()
             try:
                 for ob in filter(None, c):
-                    catalog_object(ob)
+                    try:
+                        catalog_object(ob)
+                    except Exception:
+                        log.info("Error indexing object %r. Skipping." % ob)
                 transaction.commit()
             except ConflictError, e:
                 log.info('Conflict error during commit. Retrying...')
