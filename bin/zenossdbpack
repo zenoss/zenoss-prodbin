@@ -10,7 +10,6 @@
 
 """Zenoss ZODB storage packing utility.
 """
-
 import sys
 from os import path
 import tempfile
@@ -78,6 +77,11 @@ def get_session_database():
 
 
 if __name__ == "__main__":
+    for fname in ('.remote_hub', '.remote_collector'):
+        if path.isfile(zenPath('var', fname)):
+            print "zenossdbpack should not run on a remote system"
+            sys.exit(1)
+
     # Get the days option to forward to zodbpack
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
