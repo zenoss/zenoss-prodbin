@@ -81,8 +81,10 @@ if __name__ == "__main__":
     # Get the days option to forward to zodbpack
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "-d", "--days", dest="days", type=int, default=0,
-        help="Days of history to keep (default: %(default)s)")
+        "-d", "--days", dest="days", type=float, default=0.2, # About 5 hours
+        help="Days to keep unreferenced objects (default: %(default)s). "
+        "Caution: setting to 0 may result in database inconsistency in "
+        "certain scenarios.")
     parser.add_argument(
         "-e", "--exclude-db", dest="excludeDB",
         choices=['session', 'zodb'],
