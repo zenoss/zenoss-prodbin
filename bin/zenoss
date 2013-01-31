@@ -43,7 +43,7 @@ set_deamon_list() {
         C="$C zencommand"
         C="$C zenprocess"
     #C="$C zenmail"
-        if which redis-server 2>/dev/null ; then
+        if which redis-server 2>/dev/null 1>&2 ; then
             C="$C zredis"
         fi
 
