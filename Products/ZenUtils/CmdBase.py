@@ -148,7 +148,7 @@ class CmdBase(object):
             try:
                 zinfo= ZenossInfo('')
                 version= str(zinfo.getZenossVersion())
-            except:
+            except Exception:
                 from Products.ZenModel.ZVersion import VERSION
                 version= VERSION
             self.parser = OptionParser(usage=self.usage,
