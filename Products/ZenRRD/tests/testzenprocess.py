@@ -992,6 +992,19 @@ class TestZenprocess(BaseTestCase):
         config = TaskConfig(procDefs=procDefs)
         task._deviceStats.update(config)
         actual = self.compareTestFile('remodel_bug-1', task, expectedStats)
+    
+    def testCase3776(self):
+        procDefs = {}
+        self.updateProcDefs(procDefs, "pyres_manager: running ['pmta']", False, r"pyres_manager: running \['pmta'\]")
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': "pyres_manager: running ['pmta']",},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': "pyres_manager: running ['pmta']",},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',}
+                }
+
+        self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0, AFTERPIDTOPS=1))
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

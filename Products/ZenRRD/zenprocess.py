@@ -193,9 +193,15 @@ class ProcessStats:
         self._config = processProxy
         self._compiled_regex = re.compile(self._config.regex)
 
+        # Set up a regex for comparing the process name:
+        #   _config.name contains the MD5'd args appended to the process name,
+        # with the whole thing prepId'd.  We call prepId on the _name_only in
+        # order to strip trailing WS and underscores, which were not stripped
+        # originally due to the appended MD5 hash.
         result = self._config.name.rsplit(' ', 1)
-        self._name_only = result[0]
-        self._compiled_name_regex = re.compile('(.?)' + re.escape(self._name_only) + '$')
+        self._name_only = globalPrepId(result[0])
+        self._compiled_name_regex = re.compile('(.?)' + 
+                                               re.escape(self._name_only) + '$')
 
         self.digest = EMPTY_MD5_DIGEST
         if not self._config.ignoreParameters:
@@ -246,7 +252,8 @@ class ProcessStats:
             cleanNameOnly = globalPrepId(name)
             nameMatch = self._compiled_name_regex.search(cleanNameOnly)
             if not nameMatch or nameMatch.group(1) not in ('', '_'):
-                log.debug("Discarding match based on name mismatch: %s %s", cleanNameOnly, self._name_only)
+                log.debug("Discarding match based on name mismatch: %s %s", 
+                            cleanNameOnly, self._name_only)
                 result = False
 
         return result
