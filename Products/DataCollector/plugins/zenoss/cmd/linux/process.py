@@ -16,18 +16,3 @@ from Products.DataCollector.ProcessCommandPlugin import ProcessCommandPlugin
 
 class process(ProcessCommandPlugin):
     command = 'ps axho args'
-    
-    def condition(self, device, log):
-        """
-        If the device resides under the Server/SSH device class, then always
-        run this plugin.  Otherwise only run this plugin if uname has been
-        previously modeled as "Linux".
-        """
-        path = device.deviceClass().getPrimaryUrlPath()
-        
-        if path.startswith("/zport/dmd/Devices/Server/SSH"):
-            result = True
-        else:
-            result = device.os.uname == 'Linux'
-            
-        return result
