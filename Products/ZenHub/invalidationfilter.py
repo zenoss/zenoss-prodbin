@@ -67,8 +67,11 @@ class BaseOrganizerFilter(object):
         brains = ICatalogTool(root).search(self._types)
         results = {}
         for brain in brains:
-            obj = brain.getObject()
-            results[brain.getPath()] = self.organizerChecksum(obj)
+            try:
+                obj = brain.getObject()
+                results[brain.getPath()] = self.organizerChecksum(obj)
+            except KeyError:
+                log.warn("Unable to retrieve object: %s", brain.getPath())
         self.checksum_map = results
 
     def getZorCProperties(self, organizer):
