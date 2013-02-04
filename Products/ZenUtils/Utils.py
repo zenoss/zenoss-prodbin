@@ -54,6 +54,7 @@ from zExceptions import NotFound
 from AccessControl import getSecurityManager, Unauthorized
 from AccessControl.ZopeGuards import guarded_getattr
 from ZServer.HTTPServer import zhttp_channel
+from zope.i18n import translate
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 from Products.ZenUtils.jsonutils import unjson
@@ -2074,4 +2075,30 @@ def snmptranslate(*args):
         return 'Error translating: %s' % list(args)
 
     return output.strip()
+
+def getTranslation(msgId, REQUEST, domain='zenoss'):
+    """
+    Take a string like:
+       'en-us,en;q=0.7,ja;q=0.3'
+
+    and choose the best translation, if any.
+
+    Assumes that the input msgId is 
+    """
+    langs = REQUEST.get('HTTP_ACCEPT_LANGUAGE').split(',')
+    langOrder = []
+    for lang in langs:
+        data = lang.split(';q=')
+        if len(data) == 1:
+            langOrder.append( (1.0, lang) )
+        else:
+            langOrder.append( (data[1], data[0]) )
+    # Search for translations
+    for weight, lang in sorted(langOrder):
+        msg = translate(msgId, domain=domain,
+                        target_language=lang)
+        # Relies on Zenoss currently using the text as the msgId
+        if msg != msgId:
+            return msg
+    return msg
 

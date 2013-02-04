@@ -29,6 +29,7 @@ from DocumentTemplate.sequence.SortEx import sort
 from persistent.dict import PersistentDict
 
 from ZenTableState import ZenTableState
+from Products.ZenUtils.Utils import getTranslation
 
 log = logging.getLogger('zen.ZenTableManager')
 
@@ -254,13 +255,19 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
 
     def getTableHeader(self, tableName, fieldName, fieldTitle,
-                sortRule='cmp', style='tableheader',attributes=""):
+                sortRule='cmp', style='tableheader',attributes="",
+                i18n_domain='zenoss'):
         """generate a <th></th> tag that allows column sorting"""
         href = self.getTableHeaderHref(tableName, fieldName, sortRule)
         style = self.getTableHeaderStyle(tableName, fieldName, style)
         tag = """<th class="%s" %s>""" % (style, attributes)
-        tag += """<a class="%s" i18n:translate='' href="%s""" % (style, href)
-        tag += fieldTitle + "</a></th>\n"
+        tag += """<a class="%s" href="%s""" % (style, href)
+
+        # Owwwwwwwwwww
+        from Products.Zuul.utils import ZuulMessageFactory as _t
+        msg = getTranslation(_t(fieldTitle), self.REQUEST, domain=i18n_domain)
+        tag += msg + "</a></th>\n"
+
         return tag
 
 
