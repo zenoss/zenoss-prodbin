@@ -41,6 +41,10 @@ class ProcessCommandPlugin(CommandPlugin):
         relMap = self.relMap()
         for line in self._filterLines(results.splitlines()):
             words = line.split()
+
+            # Blank lines are possible. Skip them. (ZEN-798)
+            if not words:
+                continue
             
             relMap.append(self.objectMap({
                 "procName": words[0],
