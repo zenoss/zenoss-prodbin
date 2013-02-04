@@ -47,6 +47,7 @@ for daemonctl in * ; do
         if [ "$?" -eq "0" ]; then
             echo "Creating configuration file for $PRGNAME..."
             `$PRGNAME genconf > $CFGFILE`
+            chmod 0600 $CFGFILE
         fi
      fi
 done

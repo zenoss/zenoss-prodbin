@@ -66,6 +66,10 @@ confirm_rrd
 # set the python shebang to be the proper python
 shebang
 
+# Restrict permissions on existing config files.
+find ${ZENHOME}/etc -type f \( -name '*.conf' -o -name 'hubpasswd' \) \
+ -exec chmod go-rwx {} \;
+
 # copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
 # already exist (we don't want to clobber people's configs)
 update_conf_files
