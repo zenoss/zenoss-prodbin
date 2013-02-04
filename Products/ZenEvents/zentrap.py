@@ -567,8 +567,17 @@ class TrapTask(BaseTask, CaptureReplay):
             netsnmp.lib.snmp_free_pdu(reply)
         sess.close()
 
+    def _add_varbind_detail(self, result, oid, value):
+        # Add a detail for the variable binding.
+        detail_name = self.oid2name(oid, exactMatch=False, strip=False)
+        result[detail_name].append(str(value))
+
+        # Add a detail for the index-stripped variable binding.
+        detail_name_stripped = self.oid2name(oid, exactMatch=False, strip=True)
+        if detail_name_stripped != detail_name:
+            result[detail_name_stripped].append(str(value))
+
     def decodeSnmpv1(self, addr, pdu):
-        eventType = 'unknown'
         result = {}
 
         variables = self.getResult(pdu)
@@ -580,8 +589,6 @@ class TrapTask(BaseTask, CaptureReplay):
         result["device"] = addr[0] if new_addr == "0.0.0.0" or new_addr.startswith('127') else new_addr
 
         enterprise = self.getEnterpriseString(pdu)
-        eventType = self.oid2name(
-                enterprise, exactMatch=False, strip=False)
         generic = pdu.trap_type
         specific = pdu.specific_type
 
@@ -615,14 +622,7 @@ class TrapTask(BaseTask, CaptureReplay):
         for vb_oid, vb_value in variables:
             vb_value = self._convert_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
-
-            # Add a detail for the variable binding.
-            r = self.oid2name(vb_oid, exactMatch=False, strip=False)
-            vb_result[r].append(str(vb_value))
-
-            # Add a detail for the index-stripped variable binding.
-            r = self.oid2name(vb_oid, exactMatch=False, strip=True)
-            vb_result[r].append(str(vb_value))
+            self._add_varbind_detail(vb_result, vb_oid, vb_value)
 
         result.update({name:','.join(vals) for name, vals in vb_result.iteritems()})
         return eventType, result
@@ -642,12 +642,7 @@ class TrapTask(BaseTask, CaptureReplay):
                 eventType = self.oid2name(
                         vb_value, exactMatch=False, strip=False)
             else:
-                # Add a detail for the variable binding.
-                r = self.oid2name(vb_oid, exactMatch=False, strip=False)
-                vb_result[r].append(str(vb_value))
-                # Add a detail for the index-stripped variable binding.
-                r = self.oid2name(vb_oid, exactMatch=False, strip=True)
-                vb_result[r].append(str(vb_value))
+                self._add_varbind_detail(vb_result, vb_oid, vb_value)
         result.update({name:','.join(vals) for name, vals in vb_result.iteritems()})
 
         if eventType in ["linkUp", "linkDown"]:
