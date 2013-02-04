@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-__doc__="""ZenTableManager
+"""ZenTableManager
 
 ZenTableManager is a Zope Product that helps manage and display
 large sets of tabular data.  It allows for column sorting,
@@ -16,11 +16,7 @@ break down of the set into pages, and filtering of elements
 in the table.  It also allows users to store their own default
 page size (but publishes a hook to get this values from
 a different location).
-
-
-$Id: ZenTableManager.py,v 1.4 2004/04/03 04:18:22 edahl Exp $"""
-
-__revision__ = "$Revision: 1.4 $"[11:-2]
+"""
 
 import logging
 import re
@@ -263,7 +259,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         href = self.getTableHeaderHref(tableName, fieldName, sortRule)
         style = self.getTableHeaderStyle(tableName, fieldName, style)
         tag = """<th class="%s" %s>""" % (style, attributes)
-        tag += """<a class="%s" href="%s""" % (style, href)
+        tag += """<a class="%s" i18n:translate='' href="%s""" % (style, href)
         tag += fieldTitle + "</a></th>\n"
         return tag
 
