@@ -185,3 +185,16 @@ class IZenDMDStartedEvent(Interface):
     may listen to this event to do any custom modifications to the environment
     when zendmd is running.
     """
+
+
+class IPrivateObjectAdapter(Interface):
+    """
+    Can be provided by a ZenPack to signify that a particular object should not
+    be handled by other hub services.
+    """
+    def is_private():
+        """
+        Should configuration handling for the wrapped object be handled
+        exclusively by a specific ZenPack?
+        """
+

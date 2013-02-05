@@ -18,6 +18,7 @@ from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenModel.PerformanceConf import PerformanceConf
+from Products.ZenModel.privateobject import is_private
 from Products.ZenHub.zodb import onUpdate, onDelete
 from Products.ZenHub.interfaces import IBatchNotifier
 from Acquisition import aq_parent
@@ -208,6 +209,10 @@ class PerformanceConfig(HubService, ThresholdMixin):
         from Products.ZenModel.DeviceClass import DeviceClass
 
         while object:
+            # Don't bother with privately managed objects; the ZenPack
+            # will handle them on its own
+            if is_private(object):
+                return
             # walk up until you hit an organizer or a device
             if isinstance(object, DeviceClass):
                 uid = (self.__class__.__name__, self.instance)

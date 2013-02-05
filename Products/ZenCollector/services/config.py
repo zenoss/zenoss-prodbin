@@ -26,6 +26,7 @@ from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenModel.ThresholdClass import ThresholdClass
+from Products.ZenModel.privateobject import is_private
 from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 from Products.Zuul.utils import safe_hasattr as hasattr
 
@@ -161,12 +162,15 @@ class CollectorConfigService(HubService, ThresholdMixin):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
             if isinstance(object, self._getNotifiableClasses()):
                 self._reconfigureIfNotify(object)
-
             else:
                 if isinstance(object, Device):
                     return
                 # something else... mark the devices as out-of-date
                 while object:
+                    # Don't bother with privately managed objects; the ZenPack
+                    # will handle them on its own
+                    if is_private(object):
+                        return
                     # walk up until you hit an organizer or a device
                     if isinstance(object, DeviceClass):
                         uid = (self.__class__.__name__, self.instance)
