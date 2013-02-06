@@ -85,6 +85,12 @@ def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
             summary.cleared_by_event_uuid = "Event aging task"
         elif summary.status == zep_pb2.STATUS_CLOSED:
             occur = signal.clear_event.occurrence.add()
+            
+            # once an event is in a closed state, the ownerid (current_user_name) is removed
+            # determine who closed the event by extracting the most recent user_name in the event's audit_log
+            last_audit_entry = max(signal.event.audit_log, key=lambda x:x.timestamp)
+            summary.current_user_name = last_audit_entry.user_name
+            
             occur.summary = "User '" + summary.current_user_name + "' closed the event in the Zenoss event console."
             summary.cleared_by_event_uuid = "User action"
         data = NotificationEventContextWrapper(summary, signal.clear_event)
