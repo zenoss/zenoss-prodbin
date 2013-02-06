@@ -22,9 +22,11 @@ import Globals
 from Products.ZenRRD.CommandParser import CommandParser
 from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 
+
 # Keep track of state between runs
 AllPids = {} # (device, processName)
 emptySet = set()
+
 
 class ps(CommandParser):
 
@@ -67,7 +69,14 @@ class ps(CommandParser):
         @return: pid, rss, cpu, cmdAndArgs (ie full process name)
         @rtype: tuple
         """
-        pid, rss, cpu, cmdAndArgs = line.split(None, 3)
+        try:
+            pid, rss, cpu, cmdAndArgs = line.split(None, 3)
+        except ValueError:
+            # Defunct processes look like this (no RSS data)
+            # '28835916 00:00:00 <defunct>'
+            pid, cpu, cmdAndArgs = line.split(None, 2)
+            rss = '0'
+
         return pid, rss, cpu, cmdAndArgs
 
     def groupProcs(self, matchers, output):
@@ -85,8 +94,7 @@ class ps(CommandParser):
                               "rss=%s cpu=%s cmdAndArgs=%s",
                                line, pid, rss, cpu, cmdAndArgs)
 
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
+            except Exception:
                 log.warn("Unable to parse entry '%s'", line)
                 continue
 
@@ -128,8 +136,7 @@ class ps(CommandParser):
                     procInfo['cpu'] += cpu
                     procInfo['pids'].add(pid)
 
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
+            except Exception:
                 log.exception("Unable to convert entry data pid=%s " \
                               "rss=%s cpu=%s cmdAndArgs=%s",
                                pid, rss, cpu, cmdAndArgs)
@@ -139,7 +146,7 @@ class ps(CommandParser):
 
     def processResults(self, cmd, results):
 
-        # map data points by procesName
+        # map data points by processName
         matchers = {}
         for dp in cmd.points:
             matchers[dp] = re.compile(re.escape(dp.data['processName']))
@@ -204,3 +211,4 @@ class ps(CommandParser):
                             severity=0)
 
             AllPids[device, process] = after
+

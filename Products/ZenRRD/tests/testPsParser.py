@@ -98,6 +98,7 @@ class TestParsers(BaseTestCase):
         deviceConfig.device = 'localhost'
         cmd = Object()
         cmd.deviceConfig = deviceConfig
+        cmd.command = 'command'
         p1 = Object()
         p1.id = 'cpu_cpu'
         p1.data = dict(processName='bogoApplication --conf bogo.conf instance4',
@@ -161,6 +162,7 @@ class TestParsers(BaseTestCase):
         deviceConfig.device = 'localhost'
         cmd = Object()
         cmd.deviceConfig = deviceConfig
+        cmd.command = 'command'
         p1 = Object()
         p1.id = 'cpu_cpu'
         p1.data = dict(processName='oracleYAMDB1 (LOCAL=NO)',
@@ -185,6 +187,40 @@ class TestParsers(BaseTestCase):
             else:
                 raise AssertionError("unexpected event")
 
+    def testPsZen5278(self):
+        """
+        Jira 5278 - defunct process matching
+        """
+        deviceConfig = Object()
+        deviceConfig.device = 'localhost'
+        cmd = Object()
+        cmd.deviceConfig = deviceConfig
+        cmd.command = 'command'
+        p1 = Object()
+        p1.id = 'cpu_cpu'
+        p1.data = dict(processName='<defunct>',
+        #p1.data = dict(processName='aioserver',
+                       ignoreParams=False,
+                       alertOnRestart=False,
+                       failSeverity=0)
+        cmd.points = [p1]
+        cmd.result = Object()
+        cmd.result.output = """ PID   RSS        TIME COMMAND
+28835916 00:00:00 <defunct>
+28967020 1788 00:00:00 sshd: root@sherwood
+29622478 448 00:00:08 aioserver
+29688042 00:00:00 <defunct>
+"""
+        results = ParsedResults()
+        parser = ps()
+        parser.processResults(cmd, results)
+        # Ensure that we can track defunct processes
+        for ev in results.events:
+            summary = ev['summary']
+            if summary.find('defunct') >= 0:
+                assert summary.find('Process running') >= 0
+            else:
+                raise AssertionError("unexpected event")
 
 
 def test_suite():
