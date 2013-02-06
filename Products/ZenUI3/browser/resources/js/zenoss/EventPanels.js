@@ -549,7 +549,11 @@
                         grid = Ext.getCmp('event_panel');
                     }
                     if (grid) {
-                        return grid.getSelectionParameters();
+                        var params =  grid.getSelectionParameters();
+                        if (Zenoss.env.device_uid) {
+                            params.uid = Zenoss.env.device_uid;
+                        }
+                        return params;
                     }
                 }
             });
