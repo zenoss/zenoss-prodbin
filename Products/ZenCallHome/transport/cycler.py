@@ -58,8 +58,8 @@ class CallHomeCycler(object):
             direct_post(self.dmd)
             
             transaction.commit()
-        except Exception:
-            logger.exception('Callhome cycle failed')
+        except Exception as e:
+            logger.debug("Callhome cycle failed: '%r'", e)
 
 
 class GatherMetricsProtocol(ProcessProtocol):
