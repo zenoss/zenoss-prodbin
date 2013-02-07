@@ -9,7 +9,7 @@
 
 
 from zope.interface import Attribute
-from zope.component.interfaces import IObjectEvent
+from zope.component.interfaces import Interface, IObjectEvent
 
 
 class IObjectAddedToOrganizerEvent(IObjectEvent):
@@ -33,3 +33,12 @@ class IDeviceClassMoveEvent(IObjectEvent):
     """
     fromOrganizer = Attribute("Organizer the object is moved from")
     toOrganizer =  Attribute("Organizer the object is moved to")
+
+
+class IMessagePrePublishingEvent(Interface):
+    """
+    Fired just before a batch of ModelChangeList messages is published to
+    Rabbit.
+    """
+    msgs = Attribute("list of ModelChanges")
+

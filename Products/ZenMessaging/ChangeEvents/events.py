@@ -10,7 +10,8 @@
 
 from zope.interface import implements
 from Products.ZenMessaging.ChangeEvents.interfaces import \
-    IObjectAddedToOrganizerEvent, IObjectRemovedFromOrganizerEvent, IDeviceClassMoveEvent
+    IObjectAddedToOrganizerEvent, IObjectRemovedFromOrganizerEvent, \
+    IDeviceClassMoveEvent, IMessagePrePublishingEvent
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
 import logging
@@ -51,3 +52,14 @@ class DeviceClassMovedEvent(object):
         self.object = object
         self.fromOrganizer = fromOrganizer
         self.toOrganizer = toOrganizer
+
+
+class MessagePrePublishingEvent(object):
+    """
+    Fired just before a batch of ModelChangeList messages is published to
+    Rabbit.
+    """
+    implements(IMessagePrePublishingEvent)
+    def __init__(self, msgs):
+        self.msgs = msgs
+

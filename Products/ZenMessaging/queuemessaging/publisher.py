@@ -7,9 +7,9 @@
 # 
 ##############################################################################
 
-
 from twisted.internet import defer
 from zope.interface import implements
+from zope.event import notify
 from zenoss.protocols.twisted.amqp import AMQPFactory
 from zenoss.protocols.exceptions import NoRouteException
 from zenoss.protocols.amqp import Publisher as BlockingPublisher
@@ -17,6 +17,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
+from Products.ZenMessaging.ChangeEvents.events import MessagePrePublishingEvent
 from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer, IEventPublisher
 from contextlib import closing
 from zenoss.protocols.protobufutil import ProtobufEnum
@@ -29,6 +30,7 @@ import logging
 log = logging.getLogger('zen.queuepublisher')
 
 MODEL_TYPE = ProtobufEnum(modelevents_pb2.ModelEvent, 'model_type')
+
 
 class ModelChangePublisher(object):
     """
@@ -231,6 +233,7 @@ class PublishSynchronizer(object):
             publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
+                notify(MessagePrePublishingEvent(msgs))
                 if msgs:
                     self._queuePublisher = getUtility(IQueuePublisher, 'class')()
                     dataManager = AmqpDataManager(self._queuePublisher.channel, tx._manager)
@@ -286,7 +289,7 @@ class EventPublisherBase(object):
         try:
             self._publish("$RawZenEvents", routing_key, event,
                           mandatory=mandatory, immediate=immediate)
-        except NoRouteException as e:
+        except NoRouteException:
             # Queue hasn't been created yet. For this particular case, we don't
             # want to lose events by setting mandatory=False, so we'll create
             # the queue explicitly (but we don't want to pass it every time
