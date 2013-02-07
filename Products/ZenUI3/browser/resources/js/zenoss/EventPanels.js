@@ -208,10 +208,10 @@
                                 win.destroy();
                                 var title = result.success ?
                                     _t('Classified'):
-                                    _t('Error');
+                                    _t('Error');  
                                 Ext.MessageBox.show({
                                     title: title,
-                                    msg: result.msg,
+                                    msg: Ext.htmlDecode(result.msg),
                                     buttons: Ext.MessageBox.OK
                                 });
                             });

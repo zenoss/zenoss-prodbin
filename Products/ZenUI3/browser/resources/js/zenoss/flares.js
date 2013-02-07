@@ -147,6 +147,7 @@
          * @param args array Optional orguments to fill in the message template
          */
         _formatFlare: function(message, type, args) {
+            message = Ext.htmlDecode(message);        
             args = Array.prototype.slice.call(args, 1);
             var flare = new Zenoss.flares.Flare(message, args, {
                 iconCls: type,
