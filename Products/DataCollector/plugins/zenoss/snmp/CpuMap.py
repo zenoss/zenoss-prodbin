@@ -63,20 +63,14 @@ class CpuMap(SnmpPlugin):
     hrDeviceProcessor = ".1.3.6.1.2.1.25.3.1.3"
 
 
-    def condition(self, device, log):
-        """does device meet the proper conditions for this collector to run"""
-        return not device.hw.cpus()
-
-
     def process(self, device, results, log):
         """collect snmp information from this device"""
         log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         table = tabledata.get("deviceTableOid")
-        maps = []
         rm = self.relMap()
         slot = 0
-        for row in table.values():
+        for snmpindex, row in table.items():
             if not rm and not self.checkColumns(row, self.columns, log): 
                 return rm
             if row['_type'] != self.hrDeviceProcessor: continue
@@ -94,7 +88,8 @@ class CpuMap(SnmpPlugin):
             om = self.objectMap(row)
             om.setProductKey = getManufacturerAndModel(desc)
             om.id = '%d' % slot
+            om.snmpindex = snmpindex.strip('.')
             slot += 1
             rm.append(om)
-        maps.append(rm)
-        return maps
+
+        return rm
