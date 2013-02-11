@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2012-08-16 14:10:53.213553
+    Zenoss RelationshipManager export completed on 2013-02-11 08:46:47.395871
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.2.70]" export_date="2012-08-16 14:10:53.213553" zenoss_server="ubuntu1010-64" >
+<objects version="[Zenoss, version 4.2.70 r69489]" export_date="2013-02-11 08:46:47.395871" zenoss_server="umbra" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -3762,9 +3762,6 @@ PerformanceConf
 <object id='localhost' module='Products.ZenModel.PerformanceConf' class='PerformanceConf'>
 <property type="int" id="eventlogCycleInterval" mode="w" >
 60
-</property>
-<property type="int" id="perfsnmpCycleInterval" mode="w" >
-300
 </property>
 <property type="int" id="processCycleInterval" mode="w" >
 180

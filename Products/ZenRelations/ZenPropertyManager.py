@@ -73,7 +73,7 @@ Z_PROPERTIES = [
     ('zSysedgeDiskMapIgnoreNames', '', 'string'),
     ('zIpServiceMapMaxPort', 1024, 'int'),
     ('zDeviceTemplates', ['Device'], 'lines'),
-    ('zLocalIpAddresses', '^127|^0\\.0|^169\\.254|^224', 'string'),
+    ('zLocalIpAddresses', '^127|^0\\.0|^169\\.254|^224|^fe80::', 'string'),
     ('zLocalInterfaceNames', '^lo|^vmnet', 'string'),
 
     # Status monitor properties
