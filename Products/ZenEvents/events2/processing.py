@@ -11,11 +11,12 @@
 from Products.ZenEvents.events2.fields import EventField
 from Products.ZenEvents.interfaces import IEventIdentifierPlugin
 from Products.ZenModel.Device import Device
+from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenEvents.events2.proxy import ZepRawEventProxy, EventProxy
 from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
-from Products.ZenUtils.IpUtil import ipToDecimal, IpAddressError
+from Products.ZenUtils.IpUtil import isip, ipToDecimal
 from Products.ZenUtils.FunctionCache import FunctionCache
 from Products.Zuul.interfaces import ICatalogTool
 from Products.AdvancedQuery import Eq, Or
@@ -158,44 +159,48 @@ class Manager(object):
             return IGlobalIdentifier(obj).getGUID()
 
     def _findDevices(self, identifier, ipAddress, limit=None):
-        """returns a tuple ([device brains], [devices]) searching manage IP and interface IPs. limit is the maximum
-        total number in both lists."""
-        cat = ICatalogTool(self._devices)
+        """
+        Returns a tuple ([device brains], [devices]) searching manage IP and
+        interface IPs. limit is the maximum total number in both lists.
+        """
+        dev_cat = ICatalogTool(self._devices)
 
-        if ipAddress:
-            try:
-                ipAddress = str(ipToDecimal(ipAddress))
-            except IpAddressError:
-                ipAddress = None
+        try:
+            ip_address = next(i for i in (ipAddress, identifier) if isip(i))
+            ip_decimal = ipToDecimal(ip_address)
+        except Exception:
+            ip_address = None
+            ip_decimal = None
 
-        if identifier and not ipAddress:
-            try:
-                ipAddress = str(ipToDecimal(identifier))
-            except IpAddressError:
-                pass
+        query_set = Or(Eq('id', identifier), Eq('name', identifier))
+        if ip_decimal is not None:
+            query_set.addSubquery(Eq('ipAddress', str(ip_decimal)))
+        device_brains = list(dev_cat.search(types=Device,
+                                            query=query_set,
+                                            limit=limit,
+                                            filterPermissions=False))
 
-        querySet = Or(Eq('id', identifier), Eq('name', identifier))
-
-        if ipAddress:
-            querySet.addSubquery(Eq('ipAddress', ipAddress))
-
-        device_brains = list(cat.search(types=Device, query=querySet, limit=limit, filterPermissions=False))
-
-        if ipAddress:
-            # don't search interfaces for 127.x.x.x IPv4 addresses
-            if ipToDecimal('126.255.255.255') < long(ipAddress) < ipToDecimal('128.0.0.0'):
-                ipAddress = None
-            # don't search interfaces for the ::1 IPv6 address
-            elif ipToDecimal('::1') == long(ipAddress):
-                ipAddress = None
-
-        if not ipAddress or (limit is not None and len(device_brains) >= limit):
+        limit = None if limit is None else limit - len(device_brains)
+        if not limit:
             return device_brains, []
 
-        querySet = Eq('ipAddress', ipAddress)
-        component_limit = None if limit is None else limit - len(device_brains)
-        component_results = cat.search(types=DeviceComponent, query=querySet, limit=component_limit, filterPermissions=False)
-        devices = [component_brain.getObject().device() for component_brain in component_results]
+        if ip_decimal is not None:
+            # don't search interfaces for 127.x.x.x IPv4 addresses
+            if ipToDecimal('126.255.255.255') < ip_decimal < ipToDecimal('128.0.0.0'):
+                ip_decimal = None
+            # don't search interfaces for the ::1 IPv6 address
+            elif ipToDecimal('::1') == ip_decimal:
+                ip_decimal = None
+        if ip_decimal is None:
+            return [], []
+
+        net_cat = ICatalogTool(self._networks)
+        results = net_cat.search(types=IpAddress,
+                                 query=(Eq('name', ip_address)),
+                                 limit = limit,
+                                 filterPermissions = False)
+        devices = [brain.getObject().device() for brain in results]
+
         return device_brains, devices
 
     @FunctionCache("findDeviceUuid", cache_miss_marker=-1, default_timeout=300)
