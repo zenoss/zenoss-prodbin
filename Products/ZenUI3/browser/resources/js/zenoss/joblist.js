@@ -118,12 +118,12 @@ Ext.getCmp('center_panel').add({
                         selected = sm.getSelection();
                     // if we have a job token selected always expand the panel
                     if (index >= 0) {
-                        Ext.getCmp('job_detail_panel').expand();
                         grid.getSelectionModel().select(index);
+                        Ext.getCmp('job_detail_panel').expand();
                     }
                 };
             if (!store.loaded) {
-                store.on('prefetch', selectToken, this, {single:true});
+                store.on('load', selectToken, this, {single:true});
             } else {
                 selectToken();
             }
