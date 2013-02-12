@@ -1126,7 +1126,11 @@ Zenoss.nav.register({
             id: 'device_admin',
             text: _t('Device Administration'),
             contextRegex: '^/zport/dmd/Devices'
-        }
+        },{
+            id: 'overridden_objects',
+            text: _t('Overridden Objects'),
+            contextRegex: '^/zport/dmd/Devices'
+        }       
     ]
 });
 
@@ -1136,7 +1140,7 @@ Ext.define("Zenoss.InfraDetailNav", {
     constructor: function(config){
         Ext.applyIf(config, {
             text: _t('Details'),
-            target: 'detail_panel',
+            target: 'detail_panel', 
             manualAdjustHeight: true,
             menuIds: ['More','Add','TopLevel','Manage'],
             listeners:{
@@ -1194,7 +1198,8 @@ Ext.define("Zenoss.InfraDetailNav", {
             'collectorplugins': true,
             'configuration properties': true,
             'editcustschema': true,
-            'devicemanagement': true
+            'devicemanagement': true,
+            'overriddenobjects': true
         };
         var uid = Zenoss.env.PARENT_CONTEXT;
         if (config.contextRegex) {
@@ -1528,7 +1533,10 @@ Ext.getCmp('center_panel').add({
             },{
                 id: 'device_admin',
                 xtype: 'devadmincontainer'
-            }
+            },{
+                id: 'overridden_objects',
+                xtype: 'overriddenobjects'
+            }         
         ]
     }]
 });

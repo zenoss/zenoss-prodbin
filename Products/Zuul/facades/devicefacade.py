@@ -9,6 +9,7 @@
 
 
 import socket
+import re
 from itertools import imap  
 from ZODB.transact import transact
 from zope.interface import implements
@@ -36,6 +37,10 @@ from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
 from Products.ZenEvents.Event import Event
+from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
+from Acquisition import aq_base
+
+iszprop = re.compile("z[A-Z]").match
 
 class DeviceCollectorChangeEvent(object):
     implements(IDeviceCollectorChangeEvent)
@@ -670,5 +675,42 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         softwares = (IInfo(s) for s in obj.os.software.objectValuesGen())        
         return softwares  
+        
+    def getOverriddenObjectsList(self, uid, propname):
+        obj = self._getObject(uid)
+        objects = []
+        for inst in obj.getSubInstances('devices'):
+          if inst.isLocal(propname) and inst not in objects:
+            objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
+        for inst in obj.getOverriddenObjects(propname):
+          objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
+          
+          
+        return objects
+        
+    def getOverriddenObjectsParent(self, uid, propname=''):
+        obj = self._getObject(uid)        
+        if propname == '':
+            prop = ''  
+            proptype = ''
+        else:
+            prop = getattr(obj, propname)
+            proptype = obj.getPropertyType(propname)
+        return [{'devicelink':uid, 'props':prop, 'proptype':proptype}]
+        
+    def getOverriddenZprops(self, uid, all=True, pfilt=iszprop):
+        """
+        Return list of device tree property names.
+        If all use list from property root node.
+        """
+        obj = self._getObject(uid)        
+        if all:
+            rootnode = obj.getZenRootNode()
+        else:
+            if obj.id == obj.dmdRootName: return []
+            rootnode = aq_base(obj)
+        return sorted(prop for prop in rootnode.propertyIds() if pfilt(prop))    
+
+
         
        

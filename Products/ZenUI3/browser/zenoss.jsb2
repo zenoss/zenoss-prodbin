@@ -234,7 +234,10 @@
         },{        
             "text": "Administration.js",
             "path": "resources/js/zenoss/devicemanagement/"  
-        }, {
+        },{        
+            "text": "OverriddenObjects.js",
+            "path": "resources/js/zenoss/"  
+        },{
             "text": "PageStatistics.js",
             "path": "resources/js/zenoss/"
         }]

@@ -394,5 +394,246 @@
             Ext.getCmp(this.gridId).setContext(uid);
         }
     });
+    
+    
+    
+    var checkText = function(e){
+        uid = "/zport/dmd/Devices"; // to force it to apply to the root on every newly created prop
+        
+        var params = {
+            uid: uid,
+            zProperty: e
+        };          
+        Zenoss.remote.PropertiesRouter.getZenProperty(params, function(response){
+            if (response.success) {
+                if (response.data.type == "lines"){  
+                    var lines = response.data.value, context = Zenoss.zproperties.configPropertyConfigs.state.context, formID;
+                    context == "add" ? formID = "addCustomDialog" : formID = "editCustomDialog";
+                    var c = Ext.getCmp(formID).getForm().getForm().getValues();
+                        
+                    // we got a 'lines' item back. Lets save this so we can complete the users goal 
+
+                    var params = {
+                        uid: uid,
+                        id: c.name,
+                        type: c.type,
+                        label: c.description,
+                        value: c.value
+                    };
+                    var addToCombo = function(){
+                        // dump the array response.data.value into the combo box by breaking it up into an array of arrays 
+                        // for loadData to work
+                        var combo = Ext.getCmp('linesCombo');                    
+                        var data = [];
+                        for (var i = 0; i < lines.length; i++){
+                            data.push([lines[i]]);
+                        }                   
+                        combo.store.loadData(data);
+                        // fire off a selection of the first item so it's obvious something happened
+                        combo.setValue(combo.store.getAt('0'));                      
+                    }
+                    if (context == "add"){
+                        Zenoss.remote.PropertiesRouter.addCustomProperty(params, function(response){
+                            if (response.success) {
+                                addToCombo();
+                            }
+                        });                      
+                    }else{
+                        addToCombo();
+                    }
+                
+                }
+            }
+        });       
+    };        
+
+
+
+    
+    Zenoss.zproperties.configPropertyConfigs = {};    
+    var propValText = _t("Value for Property Type:");
+    Ext.apply(Zenoss.zproperties.configPropertyConfigs, {
+        'state': {
+            context: 'add'
+        },
+        'int': {
+            xtype: 'numberfield',
+            allowDecimals: false,
+            fieldLabel: _t(propValText+' INT'),            
+            name: 'value'
+        },
+        'float': {
+            xtype: 'numberfield',
+            fieldLabel: _t(propValText+' FLOAT'),            
+            name: 'value'
+        },
+        'long': {
+            xtype: 'numberfield',
+            fieldLabel: _t(propValText+' LONG'), 
+            name: 'value'
+        },
+        'date': {
+            xtype: 'datefield',
+            name: 'value',
+            fieldLabel: _t(propValText+' DATE')           
+        },
+        'string': {
+            xtype: 'textfield',
+            name: 'value',
+            fieldLabel: _t(propValText+' STRING'),
+            width:220            
+        },
+        'lines': {
+            xtype: 'textarea',
+            name: 'value',
+            width: 220,
+            height: 70,
+            fieldLabel: _t(propValText+' LINES')            
+        },
+        'boolean': {
+            xtype: 'checkbox',
+            name: 'value',
+            fieldLabel: _t(propValText+' BOOLEAN')           
+        },
+        'password': {
+            xtype: 'password',
+            name: 'value',
+            width:220,
+            fieldLabel: _t(propValText+' PASSWORD')
+        },
+        'selection': {
+            xtype: 'panel',
+            items: [
+                {
+                    xtype: 'panel',
+                    width: 260,
+                    layout: 'hbox',
+                    items: [
+                        {
+                            xtype: 'textfield',
+                            name: 'value',
+                            id: 'linesSearchBox',
+                            width:220,
+                            margin: '0 0 5px 0',
+                            fieldLabel: _t(propValText+' SELECTION')
+                        },{
+                            xtype: 'button',
+                            iconCls: 'acknowledge',
+                            listeners: {
+                                afterrender: function(button){
+                                    button.setTooltip(_t("Retrieve lines from property for selection"));
+                                    if (Zenoss.zproperties.configPropertyConfigs.state.context == "add"){
+                                        button.setTooltip(_t("Save new property and retrieve lines for selection"));
+                                    } 
+                                }
+                            },
+                            margin: '17px 0 0 7px',
+                            handler: function(button) {
+                                var txt = Ext.getCmp('linesSearchBox').getValue(), uid;
+                                if(Zenoss.zproperties.configPropertyConfigs.state.context == "add"){
+                                    uid = Ext.getCmp('addCustomDialog').uid;
+                                }else{
+                                    uid = Ext.getCmp('editCustomDialog').uid;                                
+                                }
+                                if(txt != ""){
+                                    checkText(txt, uid);
+                                }else{
+                                    Zenoss.message.info(_t('The "Lines" property type cannot be empty. Please enter a "Lines" custom property.'));                                
+                                }
+                            }
+                        }
+                        ]    
+                },{
+                    xtype: 'combo',
+                    name: 'selection',
+                    queryMode:'local',
+                    id: 'linesCombo',
+                    store: [ 'none' ],
+                    width:220
+                }
+            ]
+        }
+    });
+    
+    Zenoss.zproperties.showEditPropertyDialog = function(pkg) {
+        var handler, config, editConfig, dialog;
+       
+        Zenoss.zproperties.configPropertyConfigs.state.context = "edit";
+        // Try the specific property id, next the type and finall default to string
+        editConfig = Zenoss.zproperties.configPropertyConfigs[pkg.name] || Zenoss.zproperties.configPropertyConfigs[pkg.type] || Zenoss.zproperties.configPropertyConfigs['string'];
+
+        // in case of drop down lists
+        if (Ext.isArray(pkg.options) && pkg.options.length > 0 && pkg.type == 'string') {
+            // make it a combo and the options is the store
+            editConfig = Zenoss.zproperties.configPropertyConfigs['options'];
+            editConfig.store = pkg.options;
+        }
+        // set the default values common to all configs
+        Ext.apply(editConfig, {
+            fieldLabel: _t('Value'),
+            value: pkg.value,
+            ref: 'editConfig',
+            checked: pkg.value,
+            name: pkg.name
+        });
+
+        // lines come in as comma separated and should be saved as such
+        if (pkg.type == 'lines' && Ext.isArray(editConfig.value)){
+            editConfig.value = editConfig.value.join('\n');
+        }
+
+        handler = function() {
+            // save the junk and reload
+            var values = dialog.getForm().getForm().getValues(),
+                value = values[pkg.name];
+            if ((typeof values.applylocal) == "undefined"){
+                values.applylocal = false;
+            }                
+            if (pkg.type == 'lines') {
+                if (value) {
+                    // send back as an array separated by a new line
+                    value = Ext.Array.map(value.split('\n'), function(s) {return Ext.String.trim(s);});
+                } else {
+                    // send back an empty list if nothing is set
+                    value = [];
+                }
+            }
+            // if this is a selection type, then the value is form.selection and not form.value
+            if (pkg.type == 'selection'){
+                value = values.selection;
+            }
+            var params = {
+                uid: "/zport/dmd"+pkg.uid,
+                zProperty: pkg.name,
+                value: value
+            };         
+            Zenoss.remote.PropertiesRouter.setZenProperty(params, function(response){
+                if (response.success) {
+                    pkg.grid.refresh();
+                }
+            });
+
+        };
+        var items = pkg.items;        
+        Ext.Array.splice( items, -1, 0, editConfig )
+        var config = {
+            submitHandler: handler,
+            minHeight: pkg.minHeight,
+            autoHeight: true,
+            width: pkg.width,
+            uid: pkg.uid,
+            id: "editCustomDialog", 
+            title: _t('Edit Configuration Property'),
+            items: items,
+            keys: {}
+        };
+
+        dialog = new Zenoss.SmartFormDialog(config);
+
+        if (Zenoss.Security.hasPermission('zProperties Edit')) {
+            dialog.show();
+        }
+    }    
+    
 
 })();

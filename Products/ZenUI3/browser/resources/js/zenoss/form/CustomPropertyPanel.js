@@ -10,167 +10,17 @@
 
 (function(){
     var router = Zenoss.remote.PropertiesRouter,
-        customPropertyPanel,
-        cpropertyConfigs = {};
+        customPropertyPanel;
 
     Ext.ns('Zenoss.cproperties');
     
-    var checkText = function(e){
-        uid = "/zport/dmd/Devices"; // to force it to apply to the root on every newly created prop
-        
-        var params = {
-            uid: uid,
-            zProperty: e
-        };          
-        Zenoss.remote.PropertiesRouter.getZenProperty(params, function(response){
-            if (response.success) {
-                if (response.data.type == "lines"){  
-                    var lines = response.data.value, context = cpropertyConfigs.state.context, formID;
-                    context == "add" ? formID = "addCustomDialog" : formID = "editCustomDialog";
-                    var c = Ext.getCmp(formID).getForm().getForm().getValues();
-                        
-                    // we got a 'lines' item back. Lets save this so we can complete the users goal 
-
-                    var params = {
-                        uid: uid,
-                        id: c.name,
-                        type: c.type,
-                        label: c.description,
-                        value: c.value
-                    };
-                    var addToCombo = function(){
-                        // dump the array response.data.value into the combo box by breaking it up into an array of arrays 
-                        // for loadData to work
-                        var combo = Ext.getCmp('linesCombo');                    
-                        var data = [];
-                        for (var i = 0; i < lines.length; i++){
-                            data.push([lines[i]]);
-                        }                   
-                        combo.store.loadData(data);
-                        // fire off a selection of the first item so it's obvious something happened
-                        combo.setValue(combo.store.getAt('0'));                      
-                    }
-                    if (context == "add"){
-                        Zenoss.remote.PropertiesRouter.addCustomProperty(params, function(response){
-                            if (response.success) {
-                                addToCombo();
-                            }
-                        });                      
-                    }else{
-                        addToCombo();
-                    }
-                
-                }
-            }
-        });       
-    };    
-    
-    var propValText = _t("Value for Property Type:");
-    Ext.apply(cpropertyConfigs, {
-        'state': {
-            context: 'add'
-        },
-        'int': {
-            xtype: 'numberfield',
-            allowDecimals: false,
-            fieldLabel: _t(propValText+' INT'),            
-            name: 'value'
-        },
-        'float': {
-            xtype: 'numberfield',
-            fieldLabel: _t(propValText+' FLOAT'),            
-            name: 'value'
-        },
-        'long': {
-            xtype: 'numberfield',
-            fieldLabel: _t(propValText+' LONG'), 
-            name: 'value'
-        },
-        'date': {
-            xtype: 'datefield',
-            name: 'value',
-            fieldLabel: _t(propValText+' DATE')           
-        },
-        'string': {
-            xtype: 'textfield',
-            name: 'value',
-            fieldLabel: _t(propValText+' STRING'),
-            width:220            
-        },
-        'lines': {
-            xtype: 'textarea',
-            name: 'value',
-            width: 220,
-            height: 70,
-            fieldLabel: _t(propValText+' LINES')            
-        },
-        'boolean': {
-            xtype: 'checkbox',
-            name: 'value',
-            fieldLabel: _t(propValText+' BOOLEAN')           
-        },
-        'password': {
-            xtype: 'password',
-            name: 'value',
-            width:220,
-            fieldLabel: _t(propValText+' PASSWORD')
-        },
-        'selection': {
-            xtype: 'panel',
-            items: [
-                {
-                    xtype: 'panel',
-                    width: 260,
-                    layout: 'hbox',
-                    items: [
-                        {
-                            xtype: 'textfield',
-                            name: 'value',
-                            id: 'linesSearchBox',
-                            width:220,
-                            margin: '0 0 5px 0',
-                            fieldLabel: _t(propValText+' SELECTION')
-                        },{
-                            xtype: 'button',
-                            iconCls: 'acknowledge',
-                            listeners: {
-                                afterrender: function(button){
-                                    button.setTooltip(_t("Retrieve lines from property for selection"));
-                                    if (cpropertyConfigs.state.context == "add"){
-                                        button.setTooltip(_t("Save new property and retrieve lines for selection"));
-                                    } 
-                                }
-                            },
-                            margin: '17px 0 0 7px',
-                            handler: function(button) {
-                                var txt = Ext.getCmp('linesSearchBox').getValue();
-                                if(txt != ""){
-                                    checkText(txt);
-                                }else{
-                                    Zenoss.message.info(_t('The "Lines" property type cannot be empty. Please enter a "Lines" custom property.'));                                
-                                }
-                            }
-                        }
-                        ]    
-                },{
-                    xtype: 'combo',
-                    name: 'selection',
-                    queryMode:'local',
-                    id: 'linesCombo',
-                    store: [ 'none' ],
-                    width:220
-                }
-            ]
-        }
-    });
-  
 
     /**
      * Allow zenpack authors to register custom cproperty
      * editors.
      **/
     Zenoss.cproperties.registerCPropertyType = function(id, config){
-        cpropertyConfigs[id] = config;
+        Zenoss.zproperties.configPropertyConfigs[id] = config;
     };
     
     Zenoss.cproperties.hideApplyCheckbox = function(grid){
@@ -189,7 +39,7 @@
               panel.remove(f, true);// can do false to reuse the elements
             }
         }
-        cpropertyConfigs.state.context = "add";
+        Zenoss.zproperties.configPropertyConfigs.state.context = "add";
         msg = '<span style="color:#aaa;">';
         msg += _t('Names must start with a lower case c')+' <br>';
         msg += _t('Example: ');
@@ -310,7 +160,7 @@
                                 change: function(e){
                                     var panel = Ext.getCmp('typeSelectionPanel');
                                     clearPanel(panel);                            
-                                    panel.add(cpropertyConfigs[e.value]);
+                                    panel.add(Zenoss.zproperties.configPropertyConfigs[e.value]);
                                 }
                             },
                             listConfig: {
@@ -327,7 +177,7 @@
                             xtype: 'panel',
                             padding: '0 0 0 10px',
                             id:'typeSelectionPanel',
-                            items:[cpropertyConfigs.string]
+                            items:[Zenoss.zproperties.configPropertyConfigs.string]
         
                         }
                 ]
@@ -346,68 +196,9 @@
         }
             
 
-        };    
+    };    
 
-    function showEditCustPropertyDialog(data, grid) {
-        var handler, uid, config, editConfig, dialog, type;
-        type = data.type;
-        cpropertyConfigs.state.context = "edit";
-        // Try the specific property id, next the type and finall default to string
-        editConfig = cpropertyConfigs[data.id] || cpropertyConfigs[type] || cpropertyConfigs['string'];
-
-        // in case of drop down lists
-        if (Ext.isArray(data.options) && data.options.length > 0 && type == 'string') {
-            // make it a combo and the options is the store
-            editConfig = cpropertyConfigs['options'];
-            editConfig.store = data.options;
-        }
-
-        // set the default values common to all configs
-        Ext.apply(editConfig, {
-            fieldLabel: _t('Value'),
-            value: data.value,
-            ref: 'editConfig',
-            checked: data.value,
-            name: data.id
-        });
-
-        // lines come in as comma separated and should be saved as such
-        if (type == 'lines' && Ext.isArray(editConfig.value)){
-            editConfig.value = editConfig.value.join('\n');
-        }
-
-        handler = function() {
-            // save the junk and reload
-            var values = dialog.getForm().getForm().getValues(),
-                value = values[data.id];
-            if ((typeof values.applylocal) == "undefined"){
-                values.applylocal = false;
-            }                
-            if (type == 'lines') {
-                if (value) {
-                    // send back as an array separated by a new line
-                    value = Ext.Array.map(value.split('\n'), function(s) {return Ext.String.trim(s);});
-                } else {
-                    // send back an empty list if nothing is set
-                    value = [];
-                }
-            }
-            // if this is a selection type, then the value is form.selection and not form.value
-            if (type == 'selection'){
-                value = values.selection;
-            }
-            var params = {
-                uid: grid.uid,
-                zProperty: data.id,
-                value: value
-            };              
-            Zenoss.remote.PropertiesRouter.setZenProperty(params, function(response){
-                if (response.success) {
-                    grid.refresh();
-                }
-            });
-
-        };
+    function showEditCustPropertyDialog(data, grid){
         var path;
         if (grid.uid == "/zport/dmd/Devices"){
             path = "/";
@@ -420,16 +211,9 @@
         pathMsg += '<div style="color:#fff;background:#111;margin:2px 7px 2px 0;padding:5px;"> '+path+' </div>';
         pathMsg += '</div></div>';
         
-        var lbltemplate = '<div style="margin:5px 0 15px 0;"><b>{0}</b> <span style="display:inline-block;padding-left:5px;color:#aaccaa">{1}</span></div>'
-        // form config
-        config = {
-            submitHandler: handler,
-            minHeight: 300,
-            autoHeight: true,
-            width: 500,
-            id: 'editCustomDialog',            
-            title: _t('Edit Config Property'),
-            items: [
+        var lbltemplate = '<div style="margin:5px 0 15px 0;"><b>{0}</b> <span style="display:inline-block;padding-left:5px;color:#aaccaa">{1}</span></div>'        
+    
+        var items = [
                 {
                     xtype: 'label',
                     width: 500,
@@ -450,27 +234,29 @@
                     width: 500,
                     height: 50,
                     html: Ext.String.format(lbltemplate, _t("Type:"),data.type)
-                },  
-                  editConfig,
-                {
+                },{
                     xtype: 'label',
                     width: 300,
                     height: 90,
                     html: pathMsg
                 }   
-            ],
-            // explicitly do not allow enter to submit the dialog
-            keys: {
-
-            }
-        };
-        dialog = new Zenoss.SmartFormDialog(config);
-
-        if (Zenoss.Security.hasPermission('zProperties Edit')) {
-            dialog.show();
-        }
+        ];
+        
+        pkg = {
+            'items': items,
+            'uid': grid.uid,
+            'type': data.type,
+            'value': data.valueAsString,
+            'name': data.id,
+            'grid': grid,
+            'dialogId': 'editCustomDialog',
+            'minHeight': 300,
+            'width': 500,
+            'options': data.options
+        }        
+        Zenoss.zproperties.showEditPropertyDialog(pkg);    
+    
     }
-
     /**
      * @class Zenoss.CustomProperty.Model
      * @extends Ext.data.Model

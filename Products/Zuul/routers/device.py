@@ -33,9 +33,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
 
-
 log = logging.getLogger('zen.Zuul')
-
 
 class DeviceRouter(TreeRouter):
     """
@@ -1763,5 +1761,26 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(data=Zuul.marshal(software, keys))
 
         
+    def getOverriddenObjectsList(self, uid, propname):
+        """
+        returns a list of Overridden Objects and properties for this context
+        """
+        facade = self._getFacade()
+        data = facade.getOverriddenObjectsList(uid, propname) 
+        return DirectResponse.succeed(data=Zuul.marshal(data))
         
-    
+    def getOverriddenObjectsParent(self, uid, propname=''):
+        """
+        returns the base of the Overridden Objects
+        """    
+        facade = self._getFacade()
+        data = facade.getOverriddenObjectsParent(uid, propname) 
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+        
+    def getOverriddenZprops(self, uid, all=True, pfilt=''): 
+        """
+        returns a list of zProperty values for the overridden objects
+        """
+        facade = self._getFacade()
+        data = facade.getOverriddenZprops(uid, all)
+        return DirectResponse.succeed(data=Zuul.marshal(data))        
