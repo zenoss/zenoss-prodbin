@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -214,7 +214,7 @@ class TriggersFacade(ZuulFacade):
             name = newId,
             uuid = None,
             rule = dict(
-                source = ''
+                source = u'(dev.production_state == 1000) and (evt.severity >= 4)'
             )
         )
 
@@ -242,7 +242,6 @@ class TriggersFacade(ZuulFacade):
         trigger.name = name
         trigger.rule.api_version = 1
         trigger.rule.type = zep.RULE_TYPE_JYTHON
-
         if rule and 'source' in rule:
             trigger.rule.source = rule['source']
         else:
