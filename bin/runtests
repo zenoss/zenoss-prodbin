@@ -351,7 +351,7 @@ def runUnitTests(packages=None, modules=None, names=None, coverage="", count=0, 
     @type show_tests: boolean
     """
     valid_packages = findZenossProducts(include_zenpacks)
-    if packages is None:
+    if packages in (None, []):
         packages = valid_packages
     if modules is None:
         modules = []
