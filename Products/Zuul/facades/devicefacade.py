@@ -469,7 +469,7 @@ class DeviceFacade(TreeFacade):
                   osProductName="", priority = 3, tag="", serialNumber="",
                   locationPath="", zCommandUsername="", zCommandPassword="",
                   zWinUser="", zWinPassword="", systemPaths=[], groupPaths=[], 
-                  zProperties={}
+                  zProperties={}, cProperties={},
                   ):
         zProps = dict(zSnmpCommunity=snmpCommunity, 
                       zSnmpPort=snmpPort,
@@ -487,6 +487,7 @@ class DeviceFacade(TreeFacade):
                                                discoverProto=model,
                                                manageIp=manageIp,
                                                zProperties=zProps,
+                                               cProperties=cProperties,
                                                rackSlot=rackSlot,
                                                productionState=productionState,
                                                comments=comments,

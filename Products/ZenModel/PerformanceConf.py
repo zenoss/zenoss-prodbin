@@ -568,7 +568,8 @@ class PerformanceConf(Monitor, StatusColor):
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="", osManufacturer="",
             osProductName="", priority=3, locationPath="", systemPaths=[],
-            groupPaths=[], tag="", serialNumber="", zProperties={}):
+            groupPaths=[], tag="", serialNumber="",
+            zProperties={}, cProperties={},):
         """
         Creating a device has two steps: creating a 'stub' device in the
         database, then (if requested) running zendisc to model the device.
@@ -618,6 +619,7 @@ class PerformanceConf(Monitor, StatusColor):
                         systemPaths=systemPaths,
                         groupPaths=groupPaths,
                         zProperties=zProperties,
+                        cProperties=cProperties,
                     )
                 )
             ]

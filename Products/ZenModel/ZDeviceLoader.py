@@ -21,16 +21,15 @@ log = getLogger("zen.DeviceLoader")
 from ipaddr import IPAddress
 
 import transaction
-from ZODB.transact import transact
 from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
+from DateTime import DateTime
 from OFS.SimpleItem import SimpleItem
 
-from Products.ZenUtils.celeryintegration import current_app
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader
-from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
+from Products.ZenUtils.Utils import clearWebLoggingStream
 from Products.ZenUtils.IpUtil import getHostByName, ipwrap
 
 from Products.ZenUtils.Exceptions import ZentinelException
@@ -41,7 +40,6 @@ from Products.Jobber.jobs import Job
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
 from Products.ZenModel.interfaces import IDeviceLoader
-from Products.ZenEvents.Event import Event
 
 
 def manage_addZDeviceLoader(context, id="", REQUEST = None):
@@ -105,7 +103,7 @@ class BaseDeviceLoader(object):
 
             # Check to see if we got passed in an IPv6 address
             try:
-                ipv6addr = IPAddress(deviceName)
+                IPAddress(deviceName)
                 manageIp = deviceName
                 deviceName = ipwrap(deviceName)
                 deviceProperties.setdefault('title', manageIp)
@@ -193,7 +191,7 @@ class CreateDeviceJob(Job):
             hwManufacturer="", hwProductName="", osManufacturer="",
             osProductName="", locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost", discoverProto="snmp", priority=3,
-            manageIp="", zProperties=None, title="", zendiscCmd=[]):
+            manageIp="", zProperties=None, cProperties=None, title="", zendiscCmd=[]):
         """
         Returns the 'physical' path of the device.
         """
@@ -226,6 +224,12 @@ class CreateDeviceJob(Job):
 
         try:
             device = createDevice()
+
+            # Now set the custom properties
+            if cProperties is not None:
+                for prop, value in cProperties:
+                    self.setCustomProperty(device, prop, value)
+
             return '/'.join(device.getPhysicalPath())
         except DeviceExistsError as e:
             transaction.abort()
@@ -238,6 +242,24 @@ class CreateDeviceJob(Job):
             transaction.abort()
             self.log.exception("Failed to create device.")
             raise
+
+    def setCustomProperty(self, dev, cProperty, value):
+        # make sure it is the correct type
+        ztype = dev.getPropertyType(cProperty)
+        if ztype == 'int':
+            value = int(value)
+        if ztype == 'float':
+            value = float(value)
+        if ztype == 'string':
+            value = str(value)
+        if ztype == 'date':
+            value = value.replace('%20', ' ') # Ugh. Manually decode spaces
+            value = DateTime(value)
+        # do not save * as passwords
+        if dev.zenPropIsPassword(cProperty) and value == dev.zenPropertyString(cProperty):
+            return
+        return dev.setZenProperty(cProperty, value)
+
 
 
 class WeblogDeviceLoader(BaseDeviceLoader):

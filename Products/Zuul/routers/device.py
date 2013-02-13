@@ -1346,7 +1346,8 @@ class DeviceRouter(TreeRouter):
                   productionState=1000, comments="", hwManufacturer="",
                   hwProductName="", osManufacturer="", osProductName="",
                   priority=3, tag="", serialNumber="", zCommandUsername="",
-                  zCommandPassword="", zWinUser="", zWinPassword="", zProperties={}):
+                  zCommandPassword="", zWinUser="", zWinPassword="",
+                  zProperties={}, cProperties={},):
         
         """
         Add a device.
@@ -1457,7 +1458,8 @@ class DeviceRouter(TreeRouter):
                                                zWinPassword,
                                                systemPaths,
                                                groupPaths,
-                                               zProperties
+                                               zProperties,
+                                               cProperties,
                                                )
 
         deviceUid = '/'.join([organizerUid, 'devices', deviceName])
