@@ -64,7 +64,7 @@
         if (!grid.getTemplateUid()) {
             return;
         }
-        var context = Zenoss.env.PARENT_CONTEXT + '/thresholds';
+        var context = grid.getTemplateUid() + '/thresholds';
         var addThresholdDialog = Ext.create('Zenoss.dialog.BaseWindow', {
             id: 'addThresholdDialog',
             title: _t('Add Threshold'),

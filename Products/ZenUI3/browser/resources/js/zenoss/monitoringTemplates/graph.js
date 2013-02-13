@@ -835,7 +835,7 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     }
                 },
                 handler: function() {
-                    var context =  Zenoss.env.PARENT_CONTEXT + '/graphDefs',
+                    var context =  getSelectedTemplate().get('uid') + '/graphDefs',
                     dialog = Ext.create('Zenoss.dialog.BaseWindow', {
                         title: _t('Add Graph Definition'),
                         buttonAlign: 'left',

@@ -287,13 +287,14 @@ Ext.define('Zenoss.templates.DataSourceTypeModel',  {
 function showAddDataSourceDialog() {
     var cmp = Ext.getCmp(treeId),
         selectedNode = cmp.getSelectionModel().getSelectedNode(),
-        context = Zenoss.env.PARENT_CONTEXT + '/datasources';
+        context;
 
     // make sure they selected a node
     if (!selectedNode) {
         new Zenoss.dialog.ErrorDialog({message: _t('You must select a template.')});
         return;
     }
+    context = selectedNode.get('uid')  + '/datasources';
     // clear the entries (all of our forms are blank when you load them)
     Ext.create('Zenoss.dialog.BaseWindow', {
             id: 'addDataSourceDialog',
