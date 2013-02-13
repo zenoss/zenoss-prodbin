@@ -21,9 +21,9 @@ from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.DataCollector.plugins.CollectorPlugin \
     import SnmpPlugin, GetTableMap
 
+
 class HRFileSystemMap(SnmpPlugin):
 
-    maptype = "FileSystemMap"
     compname = "os"
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"
@@ -44,6 +44,8 @@ class HRFileSystemMap(SnmpPlugin):
     snmpGetTableMaps = (
         GetTableMap('fsTableOid', '.1.3.6.1.2.1.25.2.3.1', columns),
         GetTableMap("dskTable", dskTableOid, dskTableColumns),
+        GetTableMap('hrFSEntry', '.1.3.6.1.2.1.25.3.8.1', 
+                    {'.2':'mount', '.7':'storageIndex'}),
     )
 
     typemap = {
@@ -73,6 +75,9 @@ class HRFileSystemMap(SnmpPlugin):
 
         dskTable = tabledata.get("dskTable")
 
+        hrFSEntry = tabledata.get("hrFSEntry", {})
+        remoteMountMap = self._createRemoteMountMap(hrFSEntry)
+
         skipfsnames = getattr(device, 'zFileSystemMapIgnoreNames', None)
         skipfstypes = getattr(device, 'zFileSystemMapIgnoreTypes', None)
         maps = []
@@ -85,6 +90,11 @@ class HRFileSystemMap(SnmpPlugin):
             # to be ignored so we can pickup the real swap later in the table.
             if "virtual memory" in fs['mount'].lower():
                 continue
+
+            rmount = remoteMountMap.get(fs['snmpindex'])
+            if rmount is not None and fs['mount'] != rmount:
+                log.debug('Switching mount from %s to %s', fs['mount'], rmount)
+                fs['storageDevice'] = rmount
 
             totalBlocks = fs['totalBlocks']
 
@@ -105,7 +115,7 @@ class HRFileSystemMap(SnmpPlugin):
             # the model such as total memory or total swap.
             if fs['type'] == "ram":
                 maps.append(ObjectMap({"totalMemory": size}, compname="hw"))
-            elif fs['type'] == "virtualMemory":
+            elif fs['type'] == "virtualMemory" or fs['mount'] == 'Swap':
                 maps.append(ObjectMap({"totalSwap": size}, compname="os"))
             
             if skipfsnames and re.search(skipfsnames, fs['mount']):
@@ -136,7 +146,6 @@ class HRFileSystemMap(SnmpPlugin):
 
         return maps
 
-
     def _getDskIndex(self, dskTable, dskPath):
         retval = None
         if dskTable is not None:
@@ -145,3 +154,18 @@ class HRFileSystemMap(SnmpPlugin):
                     retval = dsk.get("dskIndex")
                     break
         return retval
+
+    def _createRemoteMountMap(self, table):
+        mountMap = {}
+        duplicateIndexes = set()
+        for data in table.values():
+            sindex = data['storageIndex']
+            if sindex in mountMap:
+                duplicateIndexes.add(sindex)
+                continue
+            mountMap[sindex] = data['mount']
+
+        for index in duplicateIndexes:
+            del mountMap[index]
+        return mountMap
+
