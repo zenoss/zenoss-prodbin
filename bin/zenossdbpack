@@ -24,8 +24,8 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 def get_config(database=None):
     _global_conf = getGlobalConfiguration()
     if database:
-        _global_conf['zodb_db'] = database
-    zodb_socket = _global_conf.get('zodb_socket')
+        _global_conf['zodb-db'] = database
+    zodb_socket = _global_conf.get('zodb-socket')
     if zodb_socket:
         _global_conf['socket'] = 'unix_socket %s' % zodb_socket
     else:
@@ -36,11 +36,11 @@ def get_config(database=None):
     pack-gc true
     keep-history false
     <mysql>
-        host %(zodb_host)s
-        port %(zodb_port)s
-        db %(zodb_db)s
-        user %(zodb_user)s
-        passwd %(zodb_password)s
+        host %(zodb-host)s
+        port %(zodb-port)s
+        db %(zodb-db)s
+        user %(zodb-user)s
+        passwd %(zodb-password)s
         %(socket)s
     </mysql>
 </relstorage>
