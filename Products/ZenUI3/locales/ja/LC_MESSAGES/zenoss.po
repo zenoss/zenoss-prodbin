@@ -29,7 +29,7 @@ msgid "Export"
 msgstr "エクスポート"
 
 msgid "Networks"
-msgstr "ネトワクス"
+msgstr "ネトワク"
 
 msgid "Event Console"
 msgstr "エヴェント　画面"
@@ -38,7 +38,7 @@ msgid "History"
 msgstr "過去"
 
 msgid "Processes"
-msgstr "プロシェス"
+msgstr "プロセス"
 
 msgid "Refresh"
 msgstr "レフレシュ"
@@ -56,10 +56,10 @@ msgid "Thresholds"
 msgstr "閾値"
 
 msgid "IP Services"
-msgstr "IP サブス"
+msgstr "IP サービス"
 
 msgid "Windows Services"
-msgstr "Windows サブス"
+msgstr "Windows サービス"
 
 msgid "Network Map"
 msgstr "ネトワク　地図"
@@ -72,4 +72,82 @@ msgstr "ようこそ!"
 
 msgid "Event Archive"
 msgstr "イベント　過去"
+
+msgid "Graphs"
+msgstr "図表"
+
+msgid "Administration"
+msgstr "経営"
+
+msgid "Configuration Properties"
+msgstr "構成プロペルチス"
+
+msgid "Custom Properties"
+msgstr "クsトム　プロペルチス"
+
+msgid "Collectors"
+msgstr "コレクトル"
+
+msgid "Collector"
+msgstr "コレクトル"
+
+msgid "Production"
+msgstr "プロドクシュン"
+
+msgid "Overview"
+msgstr "概要"
+
+msgid "Model Device..."
+msgstr "モデル"
+
+msgid "Instance Identifier"
+msgstr "インスタンス　ID"
+
+msgid "Zenoss Daemon"
+msgstr "Zenoss ダイモン"
+
+msgid "Actions"
+msgstr "ちゅもん"
+
+msgid "State"
+msgstr "スターツス"
+
+msgid "Component"
+msgstr "コンポーネント"
+
+msgid "Components"
+msgstr "コンポーネント"
+
+msgid "Modeler Plugins"
+msgstr "モデラープラグイン"
+
+msgid "Interface"
+msgstr "ネートインタファス"
+
+msgid "Interfaces"
+msgstr "ネートインタファス"
+
+msgid "IP Interface"
+msgstr "IP ネートインタファス"
+
+msgid "IP Interfaces"
+msgstr "IP ネートインタファス"
+
+msgid "Name"
+msgstr "名目"
+
+msgid "Monitoring Templates"
+msgstr "性能監視テンプレート"
+
+msgid "Description"
+msgstr "叙述"
+
+msgid "Reset"
+msgstr "リセート"
+
+msgid "Hourly"
+msgstr "時々刻々"
+
+msgid "Priority"
+msgstr "優先順位"
 
