@@ -136,6 +136,9 @@ msgstr "IP ネートインタファス"
 msgid "Name"
 msgstr "名目"
 
+msgid "Name:"
+msgstr "名目"
+
 msgid "Monitoring Templates"
 msgstr "性能監視テンプレート"
 
@@ -150,4 +153,61 @@ msgstr "時々刻々"
 
 msgid "Priority"
 msgstr "優先順位"
+
+msgid "Systems"
+msgstr "システムス"
+
+msgid "Groups"
+msgstr "グルプス"
+
+msgid "Locations"
+msgstr "ロカシュンス"
+
+msgid "Location"
+msgstr "ロカシュン"
+
+msgid "Links"
+msgstr "リンクス"
+
+msgid "Comments"
+msgstr "コメントス"
+
+msgid "Memory/Swap"
+msgstr "メモリ／パジング"
+
+msgid "Model Time"
+msgstr "モデル時間"
+
+msgid "Uptime"
+msgstr "ウプチム"
+
+msgid "Device ID"
+msgstr "デビスID"
+
+msgid "Locking"
+msgstr "ロキング"
+
+msgid "First Seen"
+msgstr "始まった時間"
+
+msgid "Last Change"
+msgstr "最後変化"
+
+msgid "Submit"
+msgstr "溜まる"
+
+msgid "Save"
+msgstr "溜まる"
+
+msgid "Cancel"
+msgstr "カンセル"
+
+msgid "Type"
+msgstr "デタタイプ"
+
+msgid "Value"
+msgstr "値"
+
+msgid "Edit Config Property"
+msgstr "構成プロペルチを変わる"
 
