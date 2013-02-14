@@ -62,7 +62,7 @@ msgid "Windows Services"
 msgstr "Windows サービス"
 
 msgid "Network Map"
-msgstr "ネトワク　地図"
+msgstr "ネトワク図"
 
 msgid "Manufacturers"
 msgstr "製造者"
@@ -210,4 +210,25 @@ msgstr "値"
 
 msgid "Edit Config Property"
 msgstr "構成プロペルチを変わる"
+
+msgid "Device Status"
+msgstr "デビスの状態"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Severity"
+msgstr "重大度"
+
+msgid "Event Class"
+msgstr "イベントクラス"
+
+msgid "Production State"
+msgstr "プロドクシュンスタト"
+
+msgid "Summary"
+msgstr "スマリ"
+
+msgid "Commands"
+msgstr "コマンド"
 
