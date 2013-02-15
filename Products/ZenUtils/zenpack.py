@@ -10,8 +10,8 @@
 
 """Script to manage ZenPacks."""
 
-import os, sys
-import contextlib
+import os
+import  sys
 import logging
 import ConfigParser
 import optparse
@@ -27,8 +27,11 @@ from ZODB.POSException import ConflictError
 
 from Products.ZenMessaging.audit import audit
 from Products.ZenMessaging.queuemessaging.schema import removeZenPackQueuesExchanges
-from Products.ZenModel.ZenPack import ZenPack, ZenPackException
-from Products.ZenModel.ZenPack import ZenPackNeedMigrateException
+from Products.ZenModel.ZenPack import (
+    ZenPack, ZenPackException,
+    ZenPackNotFoundException, 
+    ZenPackNeedMigrateException
+)
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, get_temp_dir
 import Products.ZenModel.ZenPackLoader as ZPL
@@ -53,7 +56,7 @@ def RemoveZenPack(dmd, packName, log=None,
     zp = None
     try:
         zp = dmd.ZenPackManager.packs._getOb(packName)
-    except AttributeError, ex:
+    except AttributeError:
         # Pack not in zeo, might still exist in filesystem
         if log:
             log.debug('No ZenPack named %s in zeo' % packName)
@@ -228,6 +231,9 @@ class ZenPackCmd(ZenScriptBase):
 
             if self.options.installPackName.lower().endswith('.egg'):
                 # standard prebuilt egg
+                if not os.path.exists(self.options.installPackName):
+                    raise ZenPackNotFoundException("Unable to find ZenPack named '%s'" % \
+                                           self.options.installPackName)
                 zf = ZipFile(self.options.installPackName)
                 if 'EGG-INFO/requires.txt' in zf.namelist():
                     reqZenpacks = zf.read('EGG-INFO/requires.txt').split('\n')
@@ -491,6 +497,9 @@ if __name__ == '__main__':
     except SystemExit as e:
         if e.code:
             sys.exit(LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING)
-    except:
+    except ZenPackNotFoundException as e:
+        log.error(e)
+        sys.exit(LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING)
+    except Exception:
         log.exception('zenpack command failed')
         sys.exit(LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING)
