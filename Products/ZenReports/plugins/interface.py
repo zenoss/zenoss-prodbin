@@ -38,16 +38,22 @@ class interface(AliasPlugin):
                     'deviceName', PythonColumnHandler('device.titleOrId()')
                 ),
                 Column('interface', PythonColumnHandler('component.name()')),
+                Column('macAddress', PythonColumnHandler( 'component.macaddress' )),
+                Column('multiIpAddress', PythonColumnHandler( '"(multiple)" if len(component.ipaddresses()) > 1 else ""' )),
+                Column('tmp_ipAddress', PythonColumnHandler( 'component.ipaddresses()[0].id if len(component.ipaddresses()) == 1 else ""' )),
+                Column('interface', PythonColumnHandler( 'component.name()' )),
                 Column('speed', PythonColumnHandler('component.speed')),
                 Column('input', RRDColumnHandler('inputOctets__bytes')),
                 Column('output', RRDColumnHandler('outputOctets__bytes')),
+                Column('status', PythonColumnHandler( '"Up" if component.getStatus()==0 else "Down"' ))
             ]
 
     def getCompositeColumns(self):
         return [
+                Column('ipAddress', PythonColumnHandler('multiIpAddress or tmp_ipAddress')),
                 Column('inputBits', PythonColumnHandler('input * 8 if input is not None else "N/A"')),
                 Column('outputBits', PythonColumnHandler('output * 8 if output is not None else "N/A"')),
-                Column('total', PythonColumnHandler('input + output if input is not None and output is not None else 0')),
+                Column('total', PythonColumnHandler('(input if input is not None else 0) + (output if output is not None else 0)')),
                 Column(
                     'totalBits', PythonColumnHandler('(input + output) * 8 if input is not None and output is not None else "N/A"')
                 ),

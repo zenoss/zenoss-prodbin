@@ -9,7 +9,6 @@
 
 
 import Globals
-from Products.ZenReports import Utils, Utilization
 from Products.ZenReports.AliasPlugin import AliasPlugin, Column, \
                                             RRDColumnHandler, PythonColumnHandler
 
@@ -19,6 +18,7 @@ class filesystems( AliasPlugin ):
     def getColumns(self):
         ##      alias/dp id : column name
         return [ Column( 'deviceName', PythonColumnHandler( 'device.titleOrId()' ) ),
+                 Column('device_url', PythonColumnHandler( 'device.getDeviceUrl()' )),
                  Column( 'mount', PythonColumnHandler( 'component.mount' ) ),
                  Column( 'usedBytes', RRDColumnHandler( 'usedFilesystemSpace__bytes' ) ),
                  Column( 'totalBytes', PythonColumnHandler( 'component.totalBytes()' ) ) ]

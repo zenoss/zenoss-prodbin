@@ -9,7 +9,7 @@
 
 
 import Globals
-from Products.ZenReports import Utils, Utilization
+from Products.ZenReports import Utils
 from Products.ZenReports.AliasPlugin import AliasPlugin, Column, \
                                             PythonColumnHandler, \
                                             RRDColumnHandler
@@ -36,6 +36,7 @@ class memory( AliasPlugin ):
     def getColumns(self):
         return [
                 Column('deviceName', PythonColumnHandler( 'device.titleOrId()' )),
+                Column('device_url', PythonColumnHandler( 'device.getDeviceUrl()' )),
                 Column('totalReal', PythonColumnHandler( 'device.hw.totalMemory')),
                 Column('availableReal_tmp', RRDColumnHandler( 'memoryAvailable__bytes')),
                 Column('buffered', RRDColumnHandler('memoryBuffered__bytes')),

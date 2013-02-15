@@ -18,10 +18,7 @@ from Products.ZenUtils.Time import Duration, getBeginningOfDay, getEndOfDay
 from Products.ZenReports import Utils
 from Products.Zuul import getFacade
 from Products.ZenEvents.Availability import Availability, _severityGreaterThanOrEqual, CLOSED_EVENT_STATUSES
-from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
-                                                SEVERITY_WARNING, SEVERITY_INFO,
-                                                SEVERITY_DEBUG, SEVERITY_CLEAR)
-
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
 
 def dateAsFloat(args, key, default):
     from Products.ZenUtils.Time import ParseUSDate
