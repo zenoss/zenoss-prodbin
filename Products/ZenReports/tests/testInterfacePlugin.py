@@ -66,7 +66,7 @@ class TestInterfacePlugin(BaseTestCase):
         device=createTestDevice( self.dmd, 'TestDevice1', dict(
                                 zDeviceTemplates=[template.id] ) )
 
-        records=interface().run( self.dmd, {'deviceClass':'/Devices/Server'} )
+        records=interface().run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
         self.assertEquals( 0, len( records ) )
         
     @replaceGetRRDValue( attributeAsRRDValue )
@@ -81,7 +81,7 @@ class TestInterfacePlugin(BaseTestCase):
                                       testInputOctets, testOutputOctets )
     
         plugin = interface()
-        records = plugin.run( self.dmd, {'deviceClass':'/Devices/Server'} )
+        records = plugin.run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
         
         self.assertEquals( 1, len( records ) )
         assertInterfaceRowIsCorrect( self, records, device, interface1, 
@@ -120,7 +120,7 @@ class TestInterfacePlugin(BaseTestCase):
             testObjects[device]=testInterfaces
         
         plugin = interface()
-        records = plugin.run( self.dmd, {'deviceClass':'/Devices/Server'} )
+        records = plugin.run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
         
         self.assertEquals( interfaceCount, len( records ) )
         for device, interfaceObjects in testObjects.iteritems():
