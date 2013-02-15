@@ -30,6 +30,7 @@ from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.Device import Device
 from Products.ZenModel.FileSystem import FileSystem
@@ -359,6 +360,20 @@ class FileSystemWrapper(ComponentWrapper):
 
     def name(self):
         return self._context.name()
+
+
+class DeviceOrganizerWrapper(SearchableMixin,IndexableWrapper):
+    adapts(DeviceOrganizer)
+    
+    def searchKeywords(self):
+        obj = self._context
+        return (obj.getOrganizerName(), obj.description)
+
+    def searchExcerpt(self):
+        return self._context.getOrganizerName()
+
+    def searchIcon(self):
+        return "/zport/dmd/img/icons/folder.png"
 
 
 class GlobalCatalog(ZCatalog):

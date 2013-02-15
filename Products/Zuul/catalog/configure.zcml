@@ -6,6 +6,7 @@
     <adapter factory = ".global_catalog.IndexableWrapper"/>
     <adapter factory = ".global_catalog.ComponentWrapper"/>
     <adapter factory = ".global_catalog.DeviceWrapper"/>
+    <adapter factory = ".global_catalog.DeviceOrganizerWrapper"/>
 
     <adapter
         provides=".interfaces.IIndexableWrapper"
