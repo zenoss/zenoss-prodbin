@@ -100,11 +100,11 @@ class ProductClass(ZenModelRM, ZenPackable):
         elif prodName:
             self.productKeys = [prodName]
         else:
-            # When adding manually through the gui both prodName and 
-            # productKey will be None
-            self.productKeys = []
-        if prodName is None:  self.name = id
-        else: self.name = prodName
+            # When adding manually through the gui or via device discovery if
+            # the device model is not already in the system, both prodName
+            # and productKey will be None
+            self.productKeys = [id]
+        self.name = prodName if prodName is not None else id
         self.partNumber = partNumber
         self.description = description
 
