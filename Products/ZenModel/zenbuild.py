@@ -107,7 +107,7 @@ class zenbuild(CmdBase):
                 print "zport portal object exists; exiting."
                 return
         except self.connectionFactory.exceptions.OperationalError as e:
-            print "zenbuild: Database does not exists."
+            print "zenbuild: Database does not exist."
             sys.exit(1)
         finally:
             if conn:
