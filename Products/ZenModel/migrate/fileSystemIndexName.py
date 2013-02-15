@@ -29,7 +29,10 @@ class FileSystemIndexName(Migrate.Step):
             try:
                 filesystem = brain.getObject()
                 notify(IndexingEvent(filesystem, idxs=('name',)))
-            except:
-                log.warn("Unable to reindex %s", brain.getPath())
+            except Exception:
+                try:
+                    log.warn("Unable to reindex %s", brain.getPath())
+                except Exception:
+                    log.warn("Unable to reindex unbrainable item")
 
 FileSystemIndexName()

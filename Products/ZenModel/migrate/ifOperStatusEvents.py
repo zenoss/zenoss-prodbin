@@ -53,6 +53,8 @@ class ifOperStatusEvents(Migrate.Step):
                 if etherInfo and dpInfo:
                     tf.addThreshold(etherInfo.uid, 'ValueChangeThreshold', 'ifOperStatusChange', [dpInfo.uid])
             except ObjectNotFoundException as e:
+                log.info("Object not found" + e.message)
+            except Exception as e:
                 log.info(e.message)
         #now add transform that sets the operstatus on the interface component
         eventClass = dmd.Events.Status.Perf

@@ -36,7 +36,10 @@ class CreateMissingGuids(Migrate.Step):
             # Column exists
             pass
         for brain in ICatalogTool(dmd).search(identifiables):
-            obj = brain.getObject()
+            try:
+                obj = brain.getObject()
+            except Exception:
+                continue
             identifier = IGlobalIdentifier(obj)
             if force or not identifier.getGUID():
                 guid = identifier.create(force)
