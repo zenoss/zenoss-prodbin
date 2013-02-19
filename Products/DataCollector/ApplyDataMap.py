@@ -303,10 +303,12 @@ class ApplyDataMap(object):
                 from Products.DataCollector.plugins.DataMaps import MultiArgs
                 if isinstance(value, MultiArgs):
                     args = value.args
+                    value_to_test = value.args
                 else:
                     args = (value,)
+                    value_to_test = value
                 try:
-                    change = not isSameData(value, getter())
+                    change = not isSameData(value_to_test, getter())
                 except UnicodeDecodeError:
                     change = True
                 if change:
