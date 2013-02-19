@@ -20,18 +20,19 @@ import os
 import sys
 from time import mktime
 from ConfigParser import ConfigParser, NoOptionError
+from copy import deepcopy
+from itertools import imap
+from uuid import uuid4
+from signal import signal, siginterrupt, SIGTERM, SIGINT
+from time import sleep
+
+import Globals
 
 from Products.ZenUtils.mysql import MySQLdb
 from MySQLdb import connect
 from MySQLdb.cursors import DictCursor
 from _mysql import escape_string
 
-from copy import deepcopy
-from itertools import imap
-from uuid import uuid4
-from signal import signal, siginterrupt, SIGTERM, SIGINT
-from time import sleep
-import Globals
 from zenoss.protocols.protobufs.zep_pb2 import (EventSummary, ZepRawEvent, STATUS_NEW, STATUS_ACKNOWLEDGED,
                                                 STATUS_SUPPRESSED, STATUS_CLOSED, STATUS_CLEARED,
                                                 SYSLOG_PRIORITY_EMERG, SYSLOG_PRIORITY_DEBUG)
