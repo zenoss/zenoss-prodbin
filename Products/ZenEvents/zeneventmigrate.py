@@ -13,6 +13,9 @@ Script used to migrate events from a Zenoss 3.1.x events database into the
 new ZEP event schema. All properties of the events are mapped to the new
 property values, and zeneventd identification/tagging is performed to ensure
 that events will be associated with the correct entities in Zenoss.
+
+The migration script assumes that the old server no longer accepts events, and
+saves the last event (per table) inside of the zeneventmigrate.conf file.
 """
 
 import logging
