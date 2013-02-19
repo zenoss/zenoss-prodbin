@@ -387,7 +387,7 @@ class IpNetwork(DeviceOrganizer):
         """
         netobj = self.getSubNetwork(ip)
         if not netobj:
-            net = IpNetwork(ipwrap(ip), netmask)
+            net = IpNetwork(ipwrap(ip), netmask, self.version)
             self._setObject(ipwrap(ip), net)
         return self.getSubNetwork(ip)
 
