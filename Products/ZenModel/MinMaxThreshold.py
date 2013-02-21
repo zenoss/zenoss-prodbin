@@ -69,7 +69,8 @@ class MinMaxThreshold(ThresholdClass):
         )
 
     def createThresholdInstance(self, context):
-        """Return the config used by the collector to process min/max
+        """
+        Return the config used by the collector to process min/max
         thresholds. (id, minval, maxval, severity, escalateCount)
         """
         mmt = MinMaxThresholdInstance(self.id,
@@ -78,46 +79,65 @@ class MinMaxThreshold(ThresholdClass):
                                       minval=self.getMinval(context),
                                       maxval=self.getMaxval(context),
                                       eventClass=self.eventClass,
-                                      severity=self.severity,
-                                      escalateCount=self.escalateCount)
+                                      severity=self.getSeverity(context),
+                                      escalateCount=self.getEscalateCount(context),
+              )
         return mmt
 
     def getMinval(self, context):
-        """Build the min value for this threshold.
         """
-        minval = None
-        if self.minval:
-            try:
-                express = "python:%s" % self.minval
-                minval = talesEval(express, context)
-            except:
-                msg= "User-supplied Python expression (%s) for minimum value caused error: %s" % \
-                           ( self.minval,  self.dsnames )
-                log.error( msg )
-                raise pythonThresholdException(msg)
-                minval = None
-        return nanToNone(minval)
-
+        Build the min value for this threshold.
+        """
+        return self.evaluateDataSourceExpression(context, 'minval', 'minimum value')
 
     def getMaxval(self, context):
-        """Build the max value for this threshold.
         """
-        maxval = None
-        if self.maxval:
+        Build the max value for this threshold.
+        """
+        return self.evaluateDataSourceExpression(context, 'maxval', 'maximum value')
+
+    def getSeverity(self, context):
+        """
+        Build the severity for this threshold.
+        """
+        return self.severity
+
+    def getEscalateCount(self, context):
+        """
+        Build the escalation count for this threshold.
+        """
+        return self.escalateCount
+
+    def evaluateDataSourceExpression(self, context, propName, readablePropName):
+        """
+        Return back a sane value from evaluation of an expression.
+
+        @paramter context: device or component object
+        @type context: device or component object
+        @paramter propName: name of the threshold property to evaluate
+        @type propName: string
+        @paramter readablePropName: property name for displaying in error messages
+        @type readablePropName: string
+        @returns: numeric
+        @rtype: numeric
+        """
+        value = getattr(self, propName, None)
+        if value:
             try:
-                express = "python:%s" % self.maxval
-                maxval = talesEval(express, context)
+                express = "python:%s" % value
+                evaluated = talesEval(express, context)
+                value = evaluated
             except:
-                msg= "User-supplied Python expression (%s) for maximum value caused error: %s" % \
-                           ( self.maxval,  self.dsnames )
-                log.error( msg )
+                msg= "User-supplied Python expression (%s) for %s caused error: %s" % (
+                           value, readablePropName, self.dsnames)
+                log.error(msg)
                 raise pythonThresholdException(msg)
-                maxval = None
-        return nanToNone(maxval)
+                value = None
+        return nanToNone(value)
+
 
 InitializeClass(MinMaxThreshold)
 MinMaxThresholdClass = MinMaxThreshold
-
 
 
 class MinMaxThresholdInstance(RRDThresholdInstance):
@@ -219,7 +239,6 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
         if how is not None:
             event_dict['how'] = how
         return event_dict
-    
 
     def processEvent(self, evt):
         """
@@ -250,7 +269,6 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
         msg= "The following RPN exception is from user-supplied code."
         log.exception( msg )
         raise rpnThresholdException(msg)
-
 
     def getGraphElements(self, template, context, gopts, namespace, color, 
                          legend, relatedGps):
@@ -323,7 +341,6 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
                     self.getNames(relatedGps), maxstr))
 
         return gopts
-
 
     def getNames(self, relatedGps):
         names = sorted(set(x.split('_', 1)[1] for x in self.dataPointNames))
