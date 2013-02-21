@@ -160,7 +160,7 @@ Ext.onReady(function () {
 
     disableTabContents = function(tab) {
         // disable everything in this tab, but then re-enable the tab itself so
-        // that we can still view it's contents.
+        // that we can still view its contents.
         tab.cascade(function(){
             this.disable();
         });

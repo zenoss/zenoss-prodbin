@@ -86,7 +86,7 @@ class IAction(Interface):
 
     def getInfo(notification):
         """
-        Given a notification, adapt it to it's appropriate ActionContentInfo object.
+        Given a notification, adapt it to its appropriate ActionContentInfo object.
         
         @param notificaiton: The notification to adapt
         @type notification: NotificationSubscription
