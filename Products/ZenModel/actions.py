@@ -42,8 +42,6 @@ import logging
 log = logging.getLogger("zen.actions")
 
 
-
-
 class ActionExecutionException(Exception): pass
 
 
@@ -196,8 +194,30 @@ class IActionBase(object):
     def getDefaultData(self, dmd):
         return {}
 
+    def updateContent(self, content=None, data=None):
+        """
+        Use the action's interface definition to grab the content pane 
+        information data and populate the content object.
+        """
+        updates = dict()
+
+        for k in self.actionContentInfo.names(all=True):
+            updates[k] = data.get(k)
+
+        content.update(updates)
+
+    def _signalToContextDict(self, signal, notification=None):
+        """
+        Parse the event data out from the signal
+        """
+        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+        return data
+
 
 class TargetableAction(object):
+    """
+    Mixin class for actions that use user information
+    """
     
     shouldExecuteInBatch = False
 
@@ -239,11 +259,9 @@ class TargetableAction(object):
                       message=traceback,
                       severity=SEV_WARNING, component="zenactiond")
         notification.dmd.ZenEventManager.sendEvent(event)
-
     
     def executeBatch(self, notification, signal, targets):
         raise NotImplemented()
-
 
     def execute(self, notification, signal):
         self.setupAction(notification.dmd)
@@ -269,6 +287,7 @@ class TargetableAction(object):
 
         if exceptionTargets:
             raise TargetableActionException(self, notification, exceptionTargets)
+
 
 class EmailAction(IActionBase, TargetableAction):
     implements(IAction)
@@ -310,7 +329,7 @@ class EmailAction(IActionBase, TargetableAction):
     def executeBatch(self, notification, signal, targets):
         self.setupAction(notification.dmd)
 
-        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+        data = self._signalToContextDict(signal, notification)
 
         # Check for email recipients in the event
         details = data['evt'].details
@@ -399,17 +418,6 @@ class EmailAction(IActionBase, TargetableAction):
         data = re.sub(tags, '', data)
         return data
 
-    def updateContent(self, content=None, data=None):
-        updates = dict()
-        updates['body_content_type'] = data.get('body_content_type', 'html')
-
-        properties = ['subject_format', 'body_format', 'clear_subject_format', 'clear_body_format']
-        properties.extend(['host', 'port', 'user', 'password', 'useTls', 'email_from'])
-        for k in properties:
-            updates[k] = data.get(k)
-
-        content.update(updates)
-
 
 class PageAction(IActionBase, TargetableAction):
     implements(IAction)
@@ -431,7 +439,7 @@ class PageAction(IActionBase, TargetableAction):
         """
         log.debug('Executing action: Page')
 
-        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+        data = self._signalToContextDict(signal, notification)
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = processTalSource(notification.content['clear_subject_format'], **data)
@@ -457,15 +465,6 @@ class PageAction(IActionBase, TargetableAction):
         """
         if IProvidesPagerAddresses.providedBy(target):
             return target.getPagerAddresses()
-
-    def updateContent(self, content=None, data=None):
-        updates = dict()
-
-        properties = ['subject_format', 'clear_subject_format', ]
-        for k in properties:
-            updates[k] = data.get(k)
-
-        content.update(updates)
 
 
 class EventCommandProtocol(ProcessProtocol):
@@ -556,7 +555,7 @@ class CommandAction(IActionBase, TargetableAction):
         user_env_format = notification.content.get('user_env_format', '')
         env = dict( envvar.split('=') for envvar in user_env_format.split(';') if '=' in envvar)
         environ = {'dev': device, 'component': component, 'dmd': notification.dmd, 'env': env}
-        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+        data = self._signalToContextDict(signal, notification)
         environ.update(data)
 
         if environ.get('evt', None):
@@ -588,15 +587,6 @@ class CommandAction(IActionBase, TargetableAction):
             ids = [x.id for x in target.getMemberUserSettings()]
         return ids
 
-    def updateContent(self, content=None, data=None):
-        updates = dict()
-
-        properties = ['body_format', 'clear_body_format', 'action_timeout', 'user_env_format']
-        for k in properties:
-            updates[k] = data.get(k)
-
-        content.update(updates)
-
     def _escapeEvent(self, evt):
         """
         Escapes the relavent fields of an event context for event commands.
@@ -618,6 +608,7 @@ class CommandAction(IActionBase, TargetableAction):
         BACKSLASH = '\\'
         return ''.join((QUOTE, msg.replace(QUOTE, BACKSLASH + QUOTE), QUOTE))
 
+
 class SNMPTrapAction(IActionBase):
     implements(IAction)
 
@@ -636,7 +627,7 @@ class SNMPTrapAction(IActionBase):
         """
         log.debug('Processing SNMP Trap action.')
         self.setupAction(notification.dmd)
-        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+        data = self._signalToContextDict(signal, notification)
 
         # For clear signals we need to send the "clear" event first so the
         # receiver will be able to correlate the later "cleared" event's
@@ -739,12 +730,6 @@ class SNMPTrapAction(IActionBase):
 
             varbinds.append( (oid, oidType, val) )
         return varbinds
-
-    def updateContent(self, content=None, data=None):
-        content['action_destination'] = data.get('action_destination')
-        content['community'] = data.get('community')
-        content['version'] = data.get('version')
-        content['port'] = int(data.get('port'))
 
     def _getSession(self, content):
         traphost = content['action_destination']
