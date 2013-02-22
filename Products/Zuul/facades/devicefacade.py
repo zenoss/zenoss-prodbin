@@ -14,7 +14,7 @@ from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
-from Products.AdvancedQuery import Eq, Or
+from Products.AdvancedQuery import Eq, Or, Generic, And
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
@@ -154,12 +154,18 @@ class DeviceFacade(TreeFacade):
             types = (types,)
         if isinstance(meta_type, basestring):
             meta_type = (meta_type,)
-        query = None
+        querySet = []
         if meta_type:
-            query = Or(*(Eq('meta_type', t) for t in meta_type))
+            querySet.append(Or(*(Eq('meta_type', t) for t in meta_type)))
+        querySet.append(Generic('getPrimaryId', uid))
+        query = And(*querySet)
         obj = self._getObject(uid)
+        if getattr(aq_base(obj.device()), 'componentSearch', None) is None:
+            obj.device()._create_componentSearch()
         
-        cat = obj.componentSearch
+        cat = obj.device().componentSearch
+        if 'getPrimaryId' not in cat.indexes():
+            obj.device()._createComponentSearchPathIndex()
         brains = cat.evalAdvancedQuery(query)
 
         # unbrain the results

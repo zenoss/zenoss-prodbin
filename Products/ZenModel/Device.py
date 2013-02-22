@@ -80,7 +80,8 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenModel.interfaces import IExpandedLinkProvider
 from Products.ZenUtils.Search import (
     makeCaseInsensitiveFieldIndex,
-    makeCaseInsensitiveKeywordIndex
+    makeCaseInsensitiveKeywordIndex,
+    makeMultiPathIndex
 )
 
 
@@ -515,6 +516,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: list
         """
         return self.getMonitoredComponents(collector=collector, type=type);
+    
+    def _createComponentSearchPathIndex(self):
+        if 'getPhysicalPath' not in self.componentSearch.indexes():
+            zcat = self._getOb("componentSearch")
+            cat = zcat._catalog
+            cat.addIndex('getPrimaryId', makeMultiPathIndex('getPrimaryId'))
+            for c in self.getDeviceComponentsNoIndexGen():
+                c.index_object()
 
     def _create_componentSearch(self):
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
