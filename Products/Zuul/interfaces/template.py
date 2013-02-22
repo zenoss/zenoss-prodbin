@@ -151,6 +151,10 @@ class IMinMaxThresholdInfo(IThresholdInfo):
     maxval = schema.TextLine(title=u'Maximum Value', order=7)
     escalateCount = schema.Int(title=_t(u'Escalate Count'), order=9)
 
+    description = schema.TextLine(title=u'Description', order=2)
+    explanation = schema.TextLine(title=u'Explanation', order=2)
+    resolution = schema.TextLine(title=u'Resolution', order=2)
+
 
 class IDataPointAlias(IInfo):
     """

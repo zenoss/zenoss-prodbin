@@ -47,11 +47,17 @@ class MinMaxThreshold(ThresholdClass):
     eventClass = Perf_Snmp
     severity = 3
     escalateCount = 0
+    description = ''
+    explanation = ''
+    resolution = ''
     
     _properties = ThresholdClass._properties + (
         {'id':'minval',        'type':'string',  'mode':'w'},
         {'id':'maxval',        'type':'string',  'mode':'w'},
-        {'id':'escalateCount', 'type':'int',     'mode':'w'}
+        {'id':'escalateCount', 'type':'int',     'mode':'w'},
+        {'id': 'description', 'type': 'string', 'mode': 'rw'},
+        {'id': 'explanation', 'type': 'string', 'mode': 'rw'},
+        {'id': 'resolution', 'type': 'string', 'mode': 'rw'},
         )
 
     factory_type_information = (
@@ -81,6 +87,7 @@ class MinMaxThreshold(ThresholdClass):
                                       eventClass=self.eventClass,
                                       severity=self.getSeverity(context),
                                       escalateCount=self.getEscalateCount(context),
+                                      eventFields=self.getEventFields(context),
               )
         return mmt
 
@@ -135,6 +142,22 @@ class MinMaxThreshold(ThresholdClass):
                 value = None
         return nanToNone(value)
 
+    def getEventFields(self, context):
+        """
+        Add these fields to any resulting threshold event generated on the daemon.
+
+        @paramter context: device or component object
+        @type context: device or component object
+        @returns: static event fields + values
+        @rtype: dictionary
+        """
+        fields = {}
+        for key in ('description', 'explanation', 'resolution'):
+            value = getattr(self, key, None)
+            if value:
+                fields[key] = value
+        return fields
+
 
 InitializeClass(MinMaxThreshold)
 MinMaxThresholdClass = MinMaxThreshold
@@ -146,12 +169,14 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
     count = {}
     
     def __init__(self, id, context, dpNames,
-                 minval, maxval, eventClass, severity, escalateCount):
+                 minval, maxval, eventClass, severity, escalateCount,
+                 eventFields={}):
         RRDThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
         self.count = {}
         self.minimum = minval
         self.maximum = maxval
         self.escalateCount = escalateCount
+        self.eventFields = eventFields
 
     def countKey(self, dp):
         return ':'.join(self.context().key()) + ':' + dp
@@ -238,6 +263,7 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
             event_dict["zenoss.device.path"] = devicePath
         if how is not None:
             event_dict['how'] = how
+        event_dict.update(self.eventFields)
         return event_dict
 
     def processEvent(self, evt):

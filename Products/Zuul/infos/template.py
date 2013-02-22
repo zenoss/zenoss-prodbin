@@ -553,6 +553,10 @@ class MinMaxThresholdInfo(ThresholdInfo):
     maxval = ProxyProperty("maxval")
     escalateCount = ProxyProperty("escalateCount")
 
+    description = ProxyProperty("description")
+    explanation = ProxyProperty("explanation")
+    resolution = ProxyProperty("resolution")
+
 
 class GraphInfo(InfoBase):
 
