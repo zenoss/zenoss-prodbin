@@ -168,3 +168,36 @@ class ISnmpTrapActionContentInfo(IInfo):
         description = _t(u'Port number used by the SNMP trap receiver process.'),
         default = 162
     )
+
+
+class ISyslogActionContentInfo(IInfo):
+    host = schema.Text(
+        title       = _t(u'Syslog Host'),
+        description = _t(u'Server hosting the syslog service that can receive syslog messages).'),
+    )
+
+    port = schema.Int(
+        title       = _t(u'Syslog Port (usually 514)'),
+        description = _t(u'TCP/IP port to access syslog.'),
+        default = 514
+    )
+
+    protocol = schema.Choice(
+        title       = _t(u'Protocol'),
+        description = _t(u'Syslog protocol.'),
+        vocabulary  = SimpleVocabulary.fromValues(['TCP', 'UDP']),
+        default = _t(u'UDP')
+    )
+
+    facility = schema.Choice(
+        title       = _t(u'Syslog Facility'),
+        description = _t(u'Outgoing syslog facility name to use.'),
+        vocabulary  = SimpleVocabulary.fromItems([
+              ('KERN', 0), ('USER', 1), ( 'MAIL',  2), ('DAEMON', 3), ('AUTH', 4),
+              ('SYSLOG', 5), ('LPR', 6), ('NEWS', 7), ('UUCP', 8), ('CRON', 9),
+              ('AUTHPRIV', 10), ('FTP', 11), ('LOCAL0', 16), ('LOCAL1', 17),
+              ('LOCAL2', 18), ('LOCAL3', 19), ('LOCAL4', 20), ('LOCAL5', 21),
+              ('LOCAL6', 22), ('LOCAL7', 23),
+        ]),
+    )   
+

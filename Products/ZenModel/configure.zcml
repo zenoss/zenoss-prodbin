@@ -41,7 +41,13 @@
         provides=".interfaces.IAction"
         name="trap"
         />
-     
+
+    <utility
+        factory=".actions.SyslogAction"
+        provides=".interfaces.IAction"
+        name="syslog"
+        />
+
     <meta:provides feature="zenoss:IExpandedLinkProvider" />
     <!-- Make sure that whenever process or services classes are removed their
          instances are as well -->

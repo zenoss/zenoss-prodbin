@@ -188,6 +188,11 @@
              factory=".actions.SnmpTrapActionContentInfo"
              />
 
+    <adapter provides="..interfaces.actions.ISyslogActionContentInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".actions.SyslogActionContentInfo"
+             />
+
     <adapter provides="..interfaces.INotificationSubscriptionInfo"
              for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
              factory=".triggers.NotificationSubscriptionInfo"

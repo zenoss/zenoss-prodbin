@@ -14,7 +14,11 @@ log = logging.getLogger('zen.actioninfos')
 from zope.interface import implements
 
 from Products.Zuul.infos import InfoBase
-from Products.Zuul.interfaces.actions import IEmailActionContentInfo, IPageActionContentInfo, ICommandActionContentInfo, ISnmpTrapActionContentInfo
+from Products.Zuul.interfaces.actions import (
+    IEmailActionContentInfo, IPageActionContentInfo,
+    ICommandActionContentInfo, ISnmpTrapActionContentInfo,
+    ISyslogActionContentInfo,
+)
 from zope.schema.fieldproperty import FieldProperty
 
 _marker = object()
@@ -96,3 +100,13 @@ class SnmpTrapActionContentInfo(InfoBase):
     community = ActionFieldProperty(ISnmpTrapActionContentInfo, 'community')
     version = ActionFieldProperty(ISnmpTrapActionContentInfo, 'version')
     port = ActionFieldProperty(ISnmpTrapActionContentInfo, 'port')
+
+
+class SyslogActionContentInfo(InfoBase):
+    implements(ISyslogActionContentInfo)
+
+    host = ActionFieldProperty(ISyslogActionContentInfo, 'host')
+    port = ActionFieldProperty(ISyslogActionContentInfo, 'port')
+    protocol = ActionFieldProperty(ISyslogActionContentInfo, 'protocol')
+    facility = ActionFieldProperty(ISyslogActionContentInfo, 'facility')
+

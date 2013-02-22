@@ -9,6 +9,8 @@
 
 
 import re
+from time import strftime, localtime
+import socket
 from socket import getaddrinfo
 from traceback import format_exc
 from zope.interface import implements
@@ -25,17 +27,30 @@ from email.Utils import formatdate
 from zenoss.protocols.protobufs import zep_pb2
 from Products.ZenEvents.events2.proxy import EventSummaryProxy
 from Products.ZenUtils.Utils import sendEmail
-from Products.Zuul.interfaces.actions import IEmailActionContentInfo, IPageActionContentInfo, ICommandActionContentInfo, ISnmpTrapActionContentInfo
+from Products.Zuul.interfaces.actions import (
+    IEmailActionContentInfo, IPageActionContentInfo,
+    ICommandActionContentInfo, ISnmpTrapActionContentInfo,
+    ISyslogActionContentInfo,
+)
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.ZenModel.UserSettings import GroupSettings
-from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal, INotificationContextProvider
+from Products.ZenModel.interfaces import (
+    IAction, IProvidesEmailAddresses, IProvidesPagerAddresses,
+    IProcessSignal, INotificationContextProvider,
+)
 from Products.ZenModel.NotificationSubscription import NotificationEventContextWrapper
 from Products.ZenEvents.Event import Event
 from Products.ZenUtils import Utils
+from Products.ZenUtils.IpUtil import getHostByName, isip
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
 from Products.ZenEvents.ZenEventClasses import Warning as SEV_WARNING
 from Products.ZenUtils.ZenTales import talEval
+
+from zenoss.protocols.protobufs.zep_pb2 import (
+    SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG,
+    SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
+)
 
 import logging
 
@@ -762,3 +777,116 @@ class SNMPTrapAction(IActionBase):
             self._sessions[destination] = session
 
         return session
+
+
+class SyslogAction(IActionBase):
+    implements(IAction)
+
+    id = 'syslog'
+    name = 'Syslog'
+    actionContentInfo = ISyslogActionContentInfo
+
+    _sock = None
+
+    severityToSyslogPriority = {
+       SEVERITY_CLEAR:    5, # NOTICE
+       SEVERITY_DEBUG:    7, # DEBUG
+       SEVERITY_INFO:     2, # INFO
+       SEVERITY_WARNING:  4, # WARNING
+       SEVERITY_ERROR:    3, # ERROR
+       SEVERITY_CRITICAL: 2, # CRITICAL
+    }
+     # Note: not using syslog priorities:
+     #      EMERGENCY 0
+     #      ALERT     1
+    def setupAction(self, dmd):
+        self.guidManager = GUIDManager(dmd)
+
+    def execute(self, notification, signal):
+        """
+        Send out a syslog message
+        """
+        log.debug('Processing syslog action.')
+        self.setupAction(notification.dmd)
+
+        data = self._signalToContextDict(signal, notification)
+        event = data['eventSummary']
+
+        # Construct the syslog packet
+        facility = self.getFacility(notification.content, event)
+        priority = self.getPriority(notification.content, event)
+        device = self.getDeviceName(event)
+        #import pdb;pdb.set_trace()
+
+        packet = self._makeSyslogPacket(facility, priority, event.last_seen_time,
+                                        device, event.summary)
+
+        # Send the syslog packet
+        self._openConnection(notification.id, notification.content)
+        try:
+            self._sock.sendall(packet)
+        except socket.error as ex:
+            self._sock.close()
+            self._sock = None
+            msg = "Notification '%s' FAILED to send syslog messages to %s: %s" % (
+                notification.id, (self.ipaddr, self.port, self.protocol), ex)
+            log.error(msg)
+            raise ActionExecutionException(msg)
+
+    def getFacility(self, content, event):
+        return content['facility']
+
+    def getPriority(self, content, event):
+        SyslogErrorLevel = 3
+        priority = self.severityToSyslogPriority.get(event.severity, SyslogErrorLevel)
+        return priority
+
+    def getDeviceName(self, event):
+        # See RFC3164:
+        #  * The preferred value is the hostname, and fallback to  IP address.
+        #  * The Domain Name MUST NOT be included in the HOSTNAME field.
+        #    However, lots of clients do it anyway.  Fall back to that field.
+        hostname = event.actor.element_title
+        if not isip(hostname):
+            hostname = hostname.split('.')[0].strip()
+        return hostname
+
+    def _openConnection(self, notificationId, content):
+
+        if self._sock is not None:
+            return
+
+        host = content['host']
+        self.port = int(content['port'])
+
+        self.ipaddr = getHostByName(host)
+
+        # IPv[46]
+        AF = socket.AF_INET6 if ':' in self.ipaddr else socket.AF_INET
+
+        # Set the socket type
+        self.protocol = content['protocol'].lower()
+        ST = socket.SOCK_STREAM if self.protocol == 'tcp' else socket.SOCK_DGRAM
+
+        # Try to connect
+        self._sock = socket.socket(AF, ST)
+        try:
+            self._sock.connect( (self.ipaddr, self.port) )
+        except socket.error as ex: # Connection failed
+            self._sock.close()
+            self._sock = None
+            msg = "Notification '%s' FAILED to send syslog messages to %s: %s" % (
+                notificationId, (self.ipaddr, self.port, self.protocol), ex)
+            log.error(msg)
+            raise ActionExecutionException(msg)
+
+    def _makeSyslogPacket(self, facility, priority, dt, host, msg):
+        # Force msg to have only ASCII 32-126 (inclusive)
+        # See RFC3164 for details
+        msg = ''.join([c if ord(c) >= 32 and ord(c) <= 126 else '_' for c in msg])
+        msg = msg.strip('_') # Strip off meaningless characters from the ends only
+
+        PRI = int(facility) * 8 + int(priority)
+        timestamp = strftime("%b %e %T", localtime(dt))
+        return ("<%d>%s %s %s" % (PRI, timestamp, host, msg))[:1023] + "\n"
+
