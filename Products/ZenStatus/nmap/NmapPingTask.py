@@ -43,7 +43,7 @@ from Products.ZenStatus import PingTask
 from Products.ZenStatus.ping.CmdPingTask import CmdPingTask
 from PingResult import PingResult, parseNmapXmlToDict
 from Products.ZenStatus.PingCollectionPreferences import PingCollectionPreferences
-from Products.ZenStatus.interfaces import IPingTaskFactory
+from Products.ZenStatus.interfaces import IPingTaskFactory, IPingTaskCorrelator
 from Products.ZenStatus import nmap
 
 _NMAP_BINARY = zenPath("bin/nmap")
@@ -75,7 +75,11 @@ class NmapPingCollectionPreferences(PingCollectionPreferences):
             'NmapPingTask',
             taskConfig=daemon._prefs
         )
-        daemon._scheduler.addTask(task, now=True)
+        # introduce a small delay to can have a chance to load some config
+        task.startDelay = 5
+        daemon._scheduler.addTask(task)
+        correlationBackend = daemon.options.correlationBackend
+        task._correlate = component.getUtility(IPingTaskCorrelator, correlationBackend)
 
     def buildOptions(self, parser):
         super(NmapPingCollectionPreferences, self).buildOptions(parser)
@@ -172,7 +176,6 @@ class NmapPingTask(BaseTask):
         # maps task name to ping down count and time of last ping down
         self._down_counts = defaultdict(lambda: (0, None))
 
-
     def _detectNmap(self):
         """
         Detect that nmap is present.
@@ -246,6 +249,26 @@ class NmapPingTask(BaseTask):
         )
         if resolution:
             evt['resolution'] = resolution
+        self._eventService.sendEvent(evt)
+
+    def _correlationExecution(self, ex=None):
+        """
+        Send/Clear event to show that correlation is executed properly.
+        """
+        if ex is None:
+            msg = "correlation executed correctly" 
+            severity = _CLEAR
+        else:
+            msg = "correlation did not execute correctly: %s" % ex
+            severity = _CRITICAL
+        evt = dict(
+            device=self.collectorName,
+            eventClass=ZenEventClasses.Status_Ping,
+            eventGroup='Ping',
+            eventKey="correlation_execution",
+            severity=severity,
+            summary=msg,
+        )
         self._eventService.sendEvent(evt)
 
     def _nmapExecution(self, ex=None):
@@ -339,7 +362,7 @@ class NmapPingTask(BaseTask):
         
         try:
             self._detectNmap()        # will clear nmap_missing
-            self._detectNmapIsSuid()  # will clear nmap_suid
+            #self._detectNmapIsSuid()  # will clear nmap_suid
             yield self._batchPing()   # will clear nmap_execution
 
         except nmap.NmapNotFound:
@@ -418,7 +441,6 @@ class NmapPingTask(BaseTask):
             self._cleanupDownCounts()
             dcs = self._down_counts
             delayCount = self._daemon.options.delayCount
-            downTasks = {}
             i = 0
             for taskName, ipTask in ipTasks.iteritems():
                 i += 1
@@ -426,12 +448,13 @@ class NmapPingTask(BaseTask):
                     if taskName in dcs:
                         del dcs[taskName]
                     log.debug("%s is up!", ipTask.config.ip)
+                    ipTask.delayedIsUp = True
                     ipTask.sendPingUp()
                 else:
                     dcs[taskName] = (dcs[taskName][0] + 1, datetime.now())
                     if dcs[taskName][0] > delayCount:
-                        log.debug("%s is down", ipTask.config.ip)
-                        downTasks[ipTask.config.ip] = ipTask
+                        log.debug("%s is down, %r", ipTask.config.ip, ipTask.trace)
+                        ipTask.delayedIsUp = False
                     else:
                         fmt = '{0} is down. {1} ping downs received. ' \
                               'Delaying events until more than {2} ping ' \
@@ -444,8 +467,14 @@ class NmapPingTask(BaseTask):
                 # give time to reactor to send events if necessary
                 if i % _SENDEVENT_YIELD_INTERVAL:
                     yield twistedTask.deferLater(reactor, 0, lambda: None)
-            
-            yield self._correlate(downTasks)
+
+            try:
+                yield defer.maybeDeferred(self._correlate, ipTasks)
+            except Exception as ex:
+                self._correlationExecution(ex)
+                log.critical("There was a problem performing correlation: %s", ex)
+            else:
+                self._correlationExecution() # send clear
             self._nmapExecution()
 
     def _cleanupDownCounts(self):
@@ -457,82 +486,8 @@ class NmapPingTask(BaseTask):
             if now - last_time > timeout:
                 del self._down_counts[taskName]
 
-    @defer.inlineCallbacks
-    def _correlate(self, downTasks):
-        """
-        Correlate ping down events.
-        
-        This simple correlator will take a list of PingTasks that are in the
-        down state. It loops through the list and the last known trace route
-        for each of the ip's. For every hop in the traceroute (starting from the
-        collector to the ip in question), the hop's ip is searched for in
-        downTasks. If it's found, then this collector was also monitoring the
-        source of the problem.
-        
-        Note: this does not take in to account multiple routes to the ip in
-        question. It uses only the last known traceroute as given by nmap which
-        will not have routing loops and hosts that block icmp.
-        """
-
-        # find connectedIps of down tasks, and create a lookup
-        downConnectedIps = {}
-        if self._daemon.options.connectedIps:
-            log.debug("Gathering connected IPs")
-            for ip, ipTask in downTasks.iteritems():
-                for connectedIp, componentId in ipTask._device.connectedIps:
-                    if connectedIp != ip and connectedIp not in downTasks:
-                        downConnectedIps[connectedIp] = ipTask, componentId
-        
-        # for every down ipTask
-        i = 0
-        for currentIp, ipTask in downTasks.iteritems():
-            i += 1
-            # walk the hops in the traceroute
-            for hop in ipTask.trace:
-                # if a hop.ip alog the traceroute is in our list of down ips
-                # and that hop.ip is not the currentIp then
-                if hop.ip != currentIp:
-                    if hop.ip in downTasks:
-                        # we found our root cause!
-                        rootCause = downTasks[hop.ip]
-                        rootCauseMessage = "IP %r on interface %r is connected "\
-                            "to device %r and is also in the traceroute "\
-                             "for monitored ip %r on device %r" % (
-                            hop.ip, rootCause.config.iface, rootCause.configId, currentIp, ipTask.configId,
-                        )
-                        cause = {
-                            'rootcause.deviceId': rootCause.configId,
-                            'rootcause.componentId': rootCause.config.iface or None,
-                            'rootcause.componentIP': hop.ip,
-                            'rootcause.message': rootCauseMessage,
-                            }
-                        ipTask.sendPingDown(suppressed=True, **cause)
-                        break
-                    if hop.ip in downConnectedIps:
-                        rootCause, componentId = downConnectedIps[hop.ip]
-                        rootCauseMessage = "IP %r on interface %r is connected "\
-                            "to device %r and is also in the traceroute "\
-                             "for monitored ip %r on device %r" % (
-                            hop.ip, componentId, rootCause.configId, currentIp, ipTask.configId,
-                        )
-                        cause={
-                            'rootcause.deviceId': rootCause.configId,
-                            'rootcause.componentId': componentId,
-                            'rootcause.componentIP': hop.ip,
-                            'rootcause.message': rootCauseMessage,
-                        }
-                        ipTask.sendPingDown( suppressed=True, suppressedWithconnectedIp='True', **cause)
-                        break
-            else:
-                # no root cause found
-                ipTask.sendPingDown()
-
-            # give time to reactor to send events if necessary
-            if i % _SENDEVENT_YIELD_INTERVAL:
-                yield twistedTask.deferLater(reactor, 0, lambda: None, )
-
-        # TODO: we could go a step further and ping all the ips along the last good
-        # traceroute to give some insight as to where the problem may lie
+    def _correlate(self, ipTasks):
+        raise Exception("_correlate is not implemented in %r", self.__class__)
 
     def displayStatistics(self):
         """
@@ -540,3 +495,4 @@ class NmapPingTask(BaseTask):
         see how each task is doing.
         """
         return ''
+

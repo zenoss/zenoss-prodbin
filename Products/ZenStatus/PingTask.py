@@ -59,6 +59,7 @@ class PingTask(BaseTask):
     STATE_PING_START = 'PING_START'
     STATE_PING_STOP  = 'PING_STOP'
     STATE_STORE_PERF = 'STORE_PERF_DATA'
+    delayedIsUp = True
 
     def __init__(self, taskName, deviceId, scheduleIntervalSeconds, taskConfig):
         """

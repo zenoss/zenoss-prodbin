@@ -28,4 +28,10 @@
         name="ping"
         />
 
+    <utility
+        factory=".SimpleCorrelator.SimpleCorrelator"
+        provides=".interfaces.IPingTaskCorrelator"
+        name="simple"
+        />
+
 </configure>

@@ -14,6 +14,7 @@ log = logging.getLogger("zen.zenping.pingcollectionprefs")
 import Globals
 import zope.interface
 import zope.component
+from zope.event import notify
 
 from Products.ZenCollector import daemon 
 from Products.ZenCollector import interfaces 
@@ -28,9 +29,17 @@ from Products.ZenHub.services.PingPerformanceConfig import PingPerformanceConfig
 unused(DeviceProxy)
 unused(PingPerformanceConfig)
 
+from .interfaces import IParserReadyForOptionsEvent
+
 # define some constants strings
 COLLECTOR_NAME = "zenping"
 CONFIG_SERVICE = 'Products.ZenHub.services.PingPerformanceConfig'
+
+
+class ParserReadyForOptionsEvent(object):
+    zope.interface.implements(IParserReadyForOptionsEvent)
+    def __init__(self, parser):
+        self.parser = parser
 
 
 class PingCollectionPreferences(object):
@@ -87,6 +96,13 @@ class PingCollectionPreferences(object):
             help="Delay down events until more than this many ping downs "
                  "are collected in a row. Default is 0 (no delay).")
 
+	parser.add_option('--connected-ips',
+            type='choice',
+            action='store',
+            choices=['enabled', 'disabled'],
+            default='disabled',
+            help="Use ip's connected to a device for ping correlation (default: %default)")
+
         # look up possible ping backends
         pingBackends = []
         for pingBackend, _ in zope.component.getUtilitiesFor(
@@ -97,6 +113,20 @@ class PingCollectionPreferences(object):
             dest='pingBackend',
             default='nmap',
             help=backendsHelp + " default: %default")
+
+        # look up possible correlation backends
+        correlationBackends = []
+        for correlationBackend, _ in zope.component.getUtilitiesFor(
+                Products.ZenStatus.interfaces.IPingTaskCorrelator):
+            correlationBackends.append(correlationBackend)
+        correlationBackendsHelp = "Correlationbackend to use (%s)" % ", ".join(correlationBackends)
+        parser.add_option('--correlation-backend',
+            dest='correlationBackend',
+            default=correlationBackend, # last registed backend is default
+            help=correlationBackendsHelp + " default: %default")
+
+        # allow extention points to add options
+        notify(ParserReadyForOptionsEvent(parser))
 
     def postStartup(self):
         pass

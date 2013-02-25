@@ -10,6 +10,7 @@
 
 from Products.ZenCollector import interfaces
 from zope import interface
+from zope.component.interfaces import Interface
 
 class IPingTask(interfaces.IScheduledTask):
     """
@@ -21,6 +22,13 @@ class IPingTask(interfaces.IScheduledTask):
             Process a ping result.
         """
         pass
+
+
+class IParserReadyForOptionsEvent(Interface):
+    """
+    A parser is ready for extra options to be added.
+    """
+    parser = interface.Attribute("The option parser")
 
 
 class IPingTaskFactory(interfaces.IScheduledTaskFactory):
@@ -35,6 +43,15 @@ class IPingCollectionPreferences(interfaces.ICollectorPreferences):
     Class to customize app startup based on ping backend.
     """
     pass
+
+
+class IPingTaskCorrelator(interface.Interface):
+    """
+    Class that will attempt correlation given the list of all 
+    ip tasks for a zenping instance.
+    """
+    def __call__(pingTasks):
+        pass
 
 
 class IPingResult(interface.Interface):
