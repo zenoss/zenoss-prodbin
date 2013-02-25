@@ -1434,4 +1434,66 @@ Ext.define("Zenoss.component.FanPanel", {
 
 ZC.registerName('Fan', _t('Fan'), _t('Fans'));
 
+
+Ext.define("Zenoss.component.HardDiskPanel", {
+    alias:['widget.HardDiskPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'HardDisk',
+            autoExpandColumn: 'name',
+            fields: [
+                {name: 'uid'},
+                {name: 'severity'},
+                {name: 'name'},
+                {name: 'serialNumber'},
+                {name: 'state'},
+                {name: 'type'},
+                {name: 'rpm'},
+                {name: 'locking'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name')
+            },{
+                id: 'serialNumber',
+                dataIndex: 'serialNumber',
+                header: _t('Serial Number')
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State')
+            },{
+                id: 'type',
+                dataIndex: 'type',
+                header: _t('Type')
+            },{
+                id: 'rpm',
+                dataIndex: 'rpm',
+                header: _t('RPM')
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.HardDiskPanel.superclass.constructor.call(this, config);
+    }
+});
+
+
+ZC.registerName('HardDisk', _t('HardDisk'), _t('HardDisks'));
+
+
 })();
