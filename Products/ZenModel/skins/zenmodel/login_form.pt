@@ -118,7 +118,7 @@
                     </div>
                     <tal:block tal:content="structure here/getLoginButton"/>
                     <div id="copyright">
-                        <p>Copyright &copy; 2005-2012 Zenoss, Inc. | Version
+                        <p>Copyright &copy; 2005-2013 Zenoss, Inc. | Version
                         <span tal:content="here/getZenossVersionShort"/>
                         </p>
                     </div>
