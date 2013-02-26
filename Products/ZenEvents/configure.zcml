@@ -15,7 +15,7 @@
     <subscriber handler=".zeneventdEvents.onDaemonStartRun"/>
 
     <adapter
-        for=".zenactiond.NotificationDao"
+        for=".NotificationDao.NotificationDao"
         factory=".zenactiond.ProcessSignalTask"
         provides=".interfaces.ISignalProcessorTask"
         />

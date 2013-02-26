@@ -23,7 +23,8 @@ log = logging.getLogger('signalProcessorTest')
 from zope.interface import implements
 
 from zenoss.protocols.protobufs.zep_pb2 import Signal
-from Products.ZenEvents.zenactiond import ProcessSignalTask, NotificationDao
+from Products.ZenEvents.zenactiond import ProcessSignalTask
+from Products.ZenEvents.NotificationDao import NotificationDao
 from Products.ZenModel.actions import TargetableAction
 from Products.ZenModel.Trigger import Trigger
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
