@@ -39,6 +39,8 @@ from zope.component import getUtility, getUtilitiesFor
 from zope.component.interfaces import ComponentLookupError
 from zope.interface import implements
 
+from Products.ZenEvents.interfaces import ISignalProcessorTask
+
 
 import logging
 log = logging.getLogger("zen.zenactiond")
@@ -94,7 +96,7 @@ class NotificationDao(object):
         return signal.subscriber_uuid == IGlobalIdentifier(notification).getGUID()
 
 class ProcessSignalTask(object):
-    implements(IQueueConsumerTask)
+    implements(IQueueConsumerTask, ISignalProcessorTask)
 
     def __init__(self, notificationDao):
         self.notificationDao = notificationDao
@@ -150,6 +152,11 @@ class ProcessSignalTask(object):
             if signal.clear and not notification.send_clear:
                 log.debug('Ignoring clearing signal since send_clear is set to False on this subscription %s' % notification.id)
                 continue
+
+            if self.shouldSuppress(notification, signal, trigger.id):
+                log.debug('Suppressing notification %s', notification.id)
+                continue
+
             try:
                 target = signal.subscriber_uuid or '<none>'
                 action = self.getAction(notification.action)
@@ -187,8 +194,17 @@ class ProcessSignalTask(object):
                 # audit trail of performed actions
                 audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
                                     audit_event_trigger_info, notification.action, "SUCCESS", target, action.getInfo(notification))
+                self.recordNotification(notification, signal, trigger.id)
+
             log.info(audit_msg)
         log.debug('Done processing signal. (%s)' % signal.message)
+
+    def shouldSuppress(self, notification, signal, triggerId):
+        return False
+
+    def recordNotification(self, notification, signal, triggerId):
+        pass
+
 
 class ZenActionD(ZCmdBase):
     def __init__(self):
@@ -234,7 +250,8 @@ class ZenActionD(ZCmdBase):
         for name, action in getUtilitiesFor(IAction):
             action.configure(options_dict)
 
-        task = ProcessSignalTask(NotificationDao(self.dmd))
+        dao = NotificationDao(self.dmd)
+        task = ISignalProcessorTask(dao)
 
         self._callHomeCycler.start()
         self._schedule.start()  # maintenance windows

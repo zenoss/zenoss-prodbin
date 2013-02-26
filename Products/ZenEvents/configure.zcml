@@ -14,4 +14,10 @@
     <subscriber handler=".zeneventdEvents.onDaemonCreated"/>
     <subscriber handler=".zeneventdEvents.onDaemonStartRun"/>
 
+    <adapter
+        for=".zenactiond.NotificationDao"
+        factory=".zenactiond.ProcessSignalTask"
+        provides=".interfaces.ISignalProcessor"
+        />
+
 </configure>

@@ -20,11 +20,11 @@ class ISendEvents(Interface):
         Send a list of events to the event system backend.
         """
 
-
     def sendEvent(self, event, keepopen=0):
         """
         Send a single event to the event system backend.
         """
+
 
 class IEventPlugin(Interface):
     """
@@ -35,15 +35,18 @@ class IEventPlugin(Interface):
         Apply the plugin to an event.
         """
 
+
 class IPreEventPlugin(IEventPlugin):
     """
     Event plugins applied before transforms.
     """
 
+
 class IPostEventPlugin(IEventPlugin):
     """
     Event plugins applied after transforms and before passing to ZEP.
     """
+
 
 class IEventIdentifierPlugin(Interface):
     """
@@ -53,3 +56,29 @@ class IEventIdentifierPlugin(Interface):
         """
         Update the identifiers in the event based on custom identifier resolution logic.
         """
+
+
+class ISignalProcessorTask(Interface):
+    """
+    A task used to processes a message from
+    the signal queue and run actions.
+    """
+
+    def shouldSuppress(notification, signal, triggerId):
+        """
+        Does this meet the criteria to invoke a notification action
+        or should it be suppressed?
+        """
+
+    def recordNotification(notification, signal, triggerId):
+        """
+        Log the successful notification for possible deduplication.
+        """
+
+    def processSignal(signal):
+        """
+        Processes a signal and runs any active subscribed Notifications.
+
+        Calls isSuppressable() and recordNotification()
+        """
+

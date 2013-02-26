@@ -17,7 +17,6 @@ from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces.actions import (
     IEmailActionContentInfo, IPageActionContentInfo,
     ICommandActionContentInfo, ISnmpTrapActionContentInfo,
-    ISyslogActionContentInfo,
 )
 from zope.schema.fieldproperty import FieldProperty
 
@@ -61,7 +60,13 @@ class ActionFieldProperty(FieldProperty):
             return getattr(self.__field, name)
 
 
-class EmailActionContentInfo(InfoBase):
+class ActionContentInfo(InfoBase):
+    """
+    Marker interface
+    """
+    pass
+
+class EmailActionContentInfo(ActionContentInfo):
     implements(IEmailActionContentInfo)
 
     body_content_type = ActionFieldProperty(IEmailActionContentInfo, 'body_content_type')
@@ -77,14 +82,14 @@ class EmailActionContentInfo(InfoBase):
     password = ActionFieldProperty(IEmailActionContentInfo, 'password')
 
 
-class PageActionContentInfo(InfoBase):
+class PageActionContentInfo(ActionContentInfo):
     implements(IPageActionContentInfo)
 
     clear_subject_format = ActionFieldProperty(IPageActionContentInfo, 'clear_subject_format')
     subject_format = ActionFieldProperty(IPageActionContentInfo, 'subject_format')
 
 
-class CommandActionContentInfo(InfoBase):
+class CommandActionContentInfo(ActionContentInfo):
     implements(ICommandActionContentInfo)
 
     action_timeout = ActionFieldProperty(ICommandActionContentInfo, 'action_timeout')
@@ -93,20 +98,11 @@ class CommandActionContentInfo(InfoBase):
     user_env_format = ActionFieldProperty(ICommandActionContentInfo, 'user_env_format')
 
 
-class SnmpTrapActionContentInfo(InfoBase):
+class SnmpTrapActionContentInfo(ActionContentInfo):
     implements(ISnmpTrapActionContentInfo)
 
     action_destination = ActionFieldProperty(ISnmpTrapActionContentInfo, 'action_destination')
     community = ActionFieldProperty(ISnmpTrapActionContentInfo, 'community')
     version = ActionFieldProperty(ISnmpTrapActionContentInfo, 'version')
     port = ActionFieldProperty(ISnmpTrapActionContentInfo, 'port')
-
-
-class SyslogActionContentInfo(InfoBase):
-    implements(ISyslogActionContentInfo)
-
-    host = ActionFieldProperty(ISyslogActionContentInfo, 'host')
-    port = ActionFieldProperty(ISyslogActionContentInfo, 'port')
-    protocol = ActionFieldProperty(ISyslogActionContentInfo, 'protocol')
-    facility = ActionFieldProperty(ISyslogActionContentInfo, 'facility')
 
