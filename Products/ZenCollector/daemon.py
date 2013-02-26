@@ -546,9 +546,14 @@ class CollectorDaemon(RRDDaemon):
         configLoader = self._ConfigurationLoaderTask(CONFIG_LOADER_NAME,
                                                taskConfig=self.preferences)
         configLoader.startDelay = startDelay
-        # Run initial maintenance cycle as soon as possible
-        # TODO: should we not run maintenance if running in non-cycle mode?
-        self._scheduler.addTask(configLoader)
+        # Don't add the config loader task if the scheduler already has
+        # an instance of it.
+        if configLoader not in self._scheduler:
+            # Run initial maintenance cycle as soon as possible
+            # TODO: should we not run maintenance if running in non-cycle mode?
+            self._scheduler.addTask(configLoader)
+        else:
+            self.log.info("%s already added to scheduler", configLoader.name)
         return defer.succeed("Configuration loader task started")
 
 

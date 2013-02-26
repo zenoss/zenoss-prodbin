@@ -267,6 +267,15 @@ class Scheduler(object):
         reactor.addSystemEventTrigger('during', 'shutdown', self.shutdown, 'during')
         reactor.addSystemEventTrigger('after', 'shutdown', self.shutdown, 'after')
 
+    def __contains__(self, task):
+        """
+        Returns True if the task has been added to the scheduler.  Otherwise
+        False is returned.
+        """
+        # If task has no 'name' attribute, assume the task name was passed in.
+        name = getattr(task, "name", task)
+        return name in self._tasks
+
     def shutdown(self, phase):
         """
         The reactor shutdown has three phases for event types:

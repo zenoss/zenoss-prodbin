@@ -38,7 +38,8 @@ from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
 
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
-from twisted.internet.error import ConnectionLost, ReactorNotRunning
+from twisted.internet.error import \
+        ConnectionLost, ReactorNotRunning, AlreadyCalled
 from twisted.spread import pb
 from twisted.python.failure import Failure
 import twisted.python.log
@@ -559,6 +560,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.counters = collections.Counter()
         self.loadCounters()
         self._pingedZenhub = None
+        self._connectionTimeout = None
 
         # Add a shutdown trigger to send a stop event and flush the event queue
         reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
@@ -578,6 +580,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         self.log.info("Connected to ZenHub")
         self.perspective = perspective
+        # Cancel the connection timeout timer as it's no longer needed.
+        if self._connectionTimeout:
+            try:
+                self._connectionTimeout.cancel()
+            except AlreadyCalled:
+                pass
+            self._connectionTimeout = None
         d2 = self.getInitialServices()
         if self.initialConnect:
             self.log.debug('Chaining getInitialServices with d2')
@@ -602,7 +611,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         def timeout(d):
             if not d.called:
                 self.connectTimeout()
-        reactor.callLater(self.options.hubtimeout, timeout, self.initialConnect)
+        self._connectionTimeout = reactor.callLater(
+                self.options.hubtimeout, timeout, self.initialConnect)
         return self.initialConnect
 
     def connectTimeout(self):
