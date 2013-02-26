@@ -17,7 +17,7 @@
     <adapter
         for=".zenactiond.NotificationDao"
         factory=".zenactiond.ProcessSignalTask"
-        provides=".interfaces.ISignalProcessor"
+        provides=".interfaces.ISignalProcessorTask"
         />
 
 </configure>
