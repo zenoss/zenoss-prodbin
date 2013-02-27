@@ -518,12 +518,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.getMonitoredComponents(collector=collector, type=type);
     
     def _createComponentSearchPathIndex(self):
-        if 'getPhysicalPath' not in self.componentSearch.indexes():
+        indexName = 'getAllPaths'
+        if indexName not in self.componentSearch.indexes():
             zcat = self._getOb("componentSearch")
             cat = zcat._catalog
-            cat.addIndex('getPrimaryId', makeMultiPathIndex('getPrimaryId'))
+            cat.addIndex(indexName, makeMultiPathIndex(indexName))
             for c in self.getDeviceComponentsNoIndexGen():
-                c.index_object()
+                c.index_object(idxs=[indexName])
 
     def _create_componentSearch(self):
         from Products.ZCatalog.ZCatalog import manage_addZCatalog

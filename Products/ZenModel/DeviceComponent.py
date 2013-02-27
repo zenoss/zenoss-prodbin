@@ -25,6 +25,7 @@ from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Lockable import Lockable
 from EventView import EventView
 from Products.ZenUtils.Utils import getAllConfmonObjects
+from Products.Zuul.catalog.interfaces import IPathReporter
 
 
 class DeviceComponent(Lockable):
@@ -228,5 +229,7 @@ class DeviceComponent(Lockable):
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)
 
+    def getAllPaths(self):        
+        return IPathReporter(self).getPaths()
 
 InitializeClass(DeviceComponent)

@@ -157,14 +157,14 @@ class DeviceFacade(TreeFacade):
         querySet = []
         if meta_type:
             querySet.append(Or(*(Eq('meta_type', t) for t in meta_type)))
-        querySet.append(Generic('getPrimaryId', uid))
+        querySet.append(Generic('getAllPaths', uid))
         query = And(*querySet)
         obj = self._getObject(uid)
         if getattr(aq_base(obj.device()), 'componentSearch', None) is None:
             obj.device()._create_componentSearch()
         
         cat = obj.device().componentSearch
-        if 'getPrimaryId' not in cat.indexes():
+        if 'getAllPaths' not in cat.indexes():
             obj.device()._createComponentSearchPathIndex()
         brains = cat.evalAdvancedQuery(query)
 
