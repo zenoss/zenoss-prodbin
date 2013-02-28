@@ -31,7 +31,7 @@ class TimeoutError(Exception):
 
 def getRunner(proxy=None, client=None, connection=None):
 
-    if issubclass(client, SshRunner.client):
+    if client and issubclass(client, SshRunner.client):
         runner = SshRunner(proxy, client)
         runner.connection = connection
     else:
@@ -90,7 +90,7 @@ class ProcessRunner(ProcessProtocol):
         Commands are run locally, so this is simply a passthrough
         """
         log.debug("Running command(s) locally")
-        return defer.success(None)
+        return defer.succeed(None)
 
     def send(self, command):
         """
