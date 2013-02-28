@@ -86,6 +86,12 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         factory.clientConnectionLost = stop
         factory.startLogin(c)
 
+    def audit(self, action):
+        """
+        zenhubworkers restart all the time, it is not necessary to audit log it.
+        """
+        pass
+
     def sighandler_USR2(self, *args):
         self.reportStats()
 
