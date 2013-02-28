@@ -27,7 +27,7 @@ from Products.ZenUtils.Utils import zenPath, rrd_daemon_args, rrd_daemon_retry
 EMPTY_RRD = zenPath('perf', 'empty.rrd')
 
 _UNWANTED_CHARS = ''.join(
-        set(string.punctuation + string.ascii_letters) - set(['.', '-', '+'])
+        set(string.punctuation + string.ascii_letters) - set(['.', '-', '+', 'e'])
     )
 _LAST_RRDFILE_WRITE = {}
 
