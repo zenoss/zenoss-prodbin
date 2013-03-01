@@ -58,3 +58,17 @@ class ZenPackRouter(DirectRouter):
         self._getFacade().addToZenPack(topack, zenpack)
         audit('UI.ZenPack.AddObject', zenpack, object=topack)
         return DirectResponse.succeed()
+
+    def getZenPackMetaData(self, zenpacks=None):
+        """
+        Return the list of meta-data information about installed ZenPacks.
+
+        @type  topack: list of strings
+        @param topack: Unique IDs of the installed ZenPack
+        @rtype:   DirectResponse
+        @return:  Success message
+        """
+        infos = self._getFacade().getZenPackInfos(zenpacks)
+        data = Zuul.marshal(infos)
+        return DirectResponse.succeed(count=len(infos), data=data)
+

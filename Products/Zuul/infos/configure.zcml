@@ -249,6 +249,11 @@
              for="Products.ZenModel.AdministrativeRole.AdministrativeRole"
              provides="..interfaces.IAdminRoleManagementInfo"/>              
 
+    <adapter provides="Products.Zuul.interfaces.zenpack.IZenPackInfo"
+             for="Products.ZenModel.ZenPack.ZenPack"
+             factory="Products.Zuul.infos.zenpack.ZenPackInfo"
+             />
+
     <include package=".component"/>
     <include file="graphpoint.zcml"/>
 </configure>

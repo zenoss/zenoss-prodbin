@@ -13,10 +13,12 @@ from Products.Zuul.facades import ZuulFacade
 from itertools import ifilter
 from itertools import imap
 from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.interfaces.info import IInfo
 from Products.Zuul.utils import unbrain
 from Products.ZenModel.ZenPack import ZenPack
 
 log = logging.getLogger('zen.ZenPackFacade')
+
 
 class ZenPackFacade(ZuulFacade):
 
@@ -28,3 +30,13 @@ class ZenPackFacade(ZuulFacade):
 
     def addToZenPack(self, topack, zenpack):
         self._dmd.ZenPackManager.addToZenPack(ids=[topack], pack=zenpack)
+
+    def getZenPackInfos(self, zenpacks=None):
+        zpInfo = {}
+        for zenpack in self._dmd.ZenPackManager.packs():
+            if zenpacks is None:
+                zpInfo[zenpack.id] = IInfo(zenpack)
+            elif zenpack.id in zenpacks:
+                zpInfo[zenpack.id] = IInfo(zenpack)
+        return zpInfo
+
