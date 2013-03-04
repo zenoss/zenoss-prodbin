@@ -42,7 +42,7 @@ from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, zenPath
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
 
@@ -664,7 +664,7 @@ class AutoDiscoveryJob(SubprocessJob):
     specifying IP ranges, not both. Also accepts a set of zProperties to be
     set on devices that are discovered.
     """
-    def _run(self, nets=(), ranges=(), zProperties=()):
+    def _run(self, nets=(), ranges=(), zProperties=(), collector='localhost'):
         # Store the nets and ranges
         self.nets = nets
         self.ranges = ranges
@@ -673,12 +673,14 @@ class AutoDiscoveryJob(SubprocessJob):
         if zProperties:
             self.setProperties(**zProperties)
         # Build the zendisc command
-        cmd = [binPath('zendisc')]
-        cmd.extend(['run', '--now',
-                   '--monitor', 'localhost',
-                   '--deviceclass', '/Discovered',
-                   '--parallel', '8',
-                   '--job', self.request.id
+        cmd = self.dmd.Monitors.getPerformanceMonitor(collector)._getZenDiscCommand(
+            '', '/Discovered', collector, 1000
+            )
+        # strip out the device option since we are discovering for a network
+        cmd = [c for c in cmd if c != '-d']
+        cmd.extend([
+                '--parallel', '8',
+                '--job', self.request.id
                    ])
         if not self.nets and not self.ranges:
             # Gotta have something

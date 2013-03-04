@@ -96,6 +96,10 @@ class DeviceAddView(BrowserView):
         return types
 
     @json
+    def collectors(self):
+        return [[name] for name in self.context.dmd.Monitors.getPerformanceMonitorNames()]
+
+    @json
     def device_types(self):
         """
         Build an object for populating an Ext ComboBox representing "device
@@ -165,6 +169,7 @@ class DeviceAddView(BrowserView):
             'zWinPassword': self.request.form.get('winpass'),
             'zSnmpCommunities': self.request.form.get('snmpcommunities').splitlines()
         }
+        collector = self.request.form.get('autodiscovery_collector', 'localhost')
         # Split rows into networks and ranges
         nets = []
         ranges = []
@@ -187,7 +192,8 @@ class DeviceAddView(BrowserView):
                     description="Discover %s" % netdesc,
                     kwargs=dict(
                         nets=nets,
-                        zProperties=zProperties
+                        zProperties=zProperties,
+                        collector=collector
                     )
                 )
             except Exception, e:
@@ -213,7 +219,8 @@ class DeviceAddView(BrowserView):
                     description="Discover %s" % rangedesc,
                     kwargs=dict(
                         ranges=ranges,
-                        zProperties=zProperties
+                        zProperties=zProperties,
+                        collector=collector
                     )
                 )
             except Exception, e:
@@ -252,6 +259,7 @@ class DeviceAddView(BrowserView):
             idx = k.split('_')[1]
             devclass, type_ = self.request.form.get(
                 'deviceclass_%s' % idx).split('_')
+            collector = self.request.form.get('collector_' + str(idx), 'localhost')
             # Set zProps based on type
             if type_=='ssh':
                 zProps = {
@@ -271,8 +279,8 @@ class DeviceAddView(BrowserView):
                     ).splitlines()
                 }
             deviceName = self.request.form.get(k)
-            perfConf = self.context.Monitors.getPerformanceMonitor('localhost')
-            perfConf.addCreateDeviceJob(deviceName=deviceName,
+            perfConf = self.context.Monitors.getPerformanceMonitor(collector)
+            perfConf.addCreateDeviceJob(deviceName=deviceName, performanceMonitor=collector,
                 devicePath=devclass, zProperties=zProps, discoverProto='auto')
             deviceClassUid = '/Devices' + devclass
             deviceUid = '/'.join([deviceClassUid, 'devices', deviceName])

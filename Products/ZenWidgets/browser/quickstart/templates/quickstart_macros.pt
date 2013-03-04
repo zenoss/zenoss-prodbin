@@ -89,6 +89,7 @@
 <script tal:content="string:
     var DEFAULT_SNMPCOMMUNITIES = ${view/default_communities};
     var DEVICE_TYPES = ${view/device_types};
+    var COLLECTORS = ${view/collectors};
 "></script>
 <script type="text/javascript">
 Ext.onReady(function() {
@@ -102,9 +103,36 @@ Ext.onReady(function() {
     });
     Ext.form.Field.prototype.msgTarget = 'side';
 
+    var collectorDefinition = {
+        xtype: 'combo',
+        width: 300,
+        // only show if we have multiple collectors
+        hidden: COLLECTORS.length == 1,
+        fieldLabel: 'Collector',
+        queryMode: 'local',
+        store: new Ext.data.ArrayStore({
+            data: COLLECTORS,
+            fields: ['name']
+        }),
+        valueField: 'name',
+        value: 'localhost',
+        displayField: 'name',
+        forceSelection: true,
+        editable: false,
+        allowBlank: false,
+        triggerAction: 'all',
+        listeners: {
+            change: function(combo, newValue) {
+                // when they add multiple devices default the selection
+                // of new rows to the last selected collector
+                lastCollector = newValue;
+            }
+        }
+    }, lastCollector = 'localhost';
+
     Ext.apply(Ext.form.VTypes, {
         iprangeOrNetwork: function(val, field) {
-            return isIPv4(val) || isIPv6(val);
+            return isIPv4(val) || isIPv6(val);
         },
         iprangeOrNetworkText: "Please enter a valid IP range or " + "<br/>network with subnet mask.<br/>" + "e.g., 10.1.1.1-50  or 10.1.1.1/24"
     });
@@ -119,8 +147,8 @@ Ext.onReady(function() {
         }
         var match = split[0].match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
         valid = match != null &&
-                match[1] <= 255 && match[2] <= 255 &&
-                match[3] <= 255 && match[4] <= 255;
+                match[1] <= 255 && match[2] <= 255 &&
+                match[3] <= 255 && match[4] <= 255;
         if(valid == true && split[1] != undefined){
             if(split[1].length != 0){
                 valid = split[1] <= 255;
@@ -316,7 +344,10 @@ Ext.onReady(function() {
                     fieldLabel: 'Community Strings',
                     name: 'snmpcommunities',
                     value: DEFAULT_SNMPCOMMUNITIES
-                }]
+                }, Ext.apply(collectorDefinition, {
+                    id: 'autodiscovery_collector',
+                    name: 'autodiscovery_collector'
+                })]
             }]
         }]
     };
@@ -369,8 +400,11 @@ Ext.onReady(function() {
                     'padding-bottom': '1em'
                 },
                 html: 'Details'
-            },
-            {
+            }, Ext.apply(collectorDefinition, {
+                id: 'collector_' + index,
+                name: 'collector_' + index,
+                value: lastCollector
+            }),{
                 xtype: 'combo',
                 id: 'combobox_' + index,
                 name: 'deviceclass_' + index,

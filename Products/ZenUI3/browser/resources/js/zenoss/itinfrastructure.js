@@ -755,7 +755,7 @@ Ext.apply(Zenoss.devices, {
         permissionContext: '/zport/dmd/Devices',
         handler: function(btn, e){
             window.open('/zport/dmd/easyAddDevice', "multi_add",
-            "menubar=0,toolbar=0,resizable=0,height=580, width=800,location=0");
+            "menubar=0,toolbar=0,resizable=0,height=630, width=800,location=0");
         }
     })
 });
@@ -1130,7 +1130,7 @@ Zenoss.nav.register({
             id: 'overridden_objects',
             text: _t('Overridden Objects'),
             contextRegex: '^/zport/dmd/Devices'
-        }       
+        }
     ]
 });
 
@@ -1140,7 +1140,7 @@ Ext.define("Zenoss.InfraDetailNav", {
     constructor: function(config){
         Ext.applyIf(config, {
             text: _t('Details'),
-            target: 'detail_panel', 
+            target: 'detail_panel',
             manualAdjustHeight: true,
             menuIds: ['More','Add','TopLevel','Manage'],
             listeners:{
@@ -1536,7 +1536,7 @@ Ext.getCmp('center_panel').add({
             },{
                 id: 'overridden_objects',
                 xtype: 'overriddenobjects'
-            }         
+            }
         ]
     }]
 });
