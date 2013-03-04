@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -14,9 +14,18 @@ Operations for Navigation
 Available at:  /zport/dmd/detailnav_router
 """
 
+import logging
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenUI3.security.security import permissionsForContext
+from Products.ZenUtils.Utils import zenPath
+log = logging.getLogger('zen.pagestats')
+# create file handler which logs even debug messages
+fh = logging.FileHandler(zenPath('log' + '/pagestats.log'))
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+log.addHandler(fh)
 
 
 class DetailNavRouter(DirectRouter):
@@ -111,3 +120,7 @@ class DetailNavRouter(DirectRouter):
         obj = self.context.dmd.unrestrictedTraverse(uid)
         permissions = permissionsForContext(obj)
         return DirectResponse.succeed(data=permissions)
+
+    def recordPageLoadTime(self, page, time):
+        user = self.context.zport.dmd.ZenUsers.getUserSettings()
+        log.info("PAGELOADTIME: %s %s %s (seconds)", user.id, page, time)

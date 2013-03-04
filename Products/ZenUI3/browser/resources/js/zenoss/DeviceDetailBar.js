@@ -132,6 +132,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
     setContext: function(uid) {
         this.contextUid = uid;
         this.directFn({uid:uid, keys:this.contextKeys}, function(result){
+            this.suspendLayouts();
             this.layout.targetEl.setWidth(this.getWidth());
             var ZR = Zenoss.render,
                 data = result.data;
@@ -149,19 +150,20 @@ Ext.define("Zenoss.DeviceDetailBar", {
             this.prodstateitem.setText(Zenoss.env.PRODUCTION_STATES_MAP[data.productionState]);
             this.priorityitem.setText(Zenoss.env.PRIORITIES_MAP[data.priority]);
 
-            // reset the positions based on text width and what not: 
-            this.iconitem.setPosition(0, 0);            
+            // reset the positions based on text width and what not:
+            this.iconitem.setPosition(0, 0);
             Ext.getCmp(Ext.query('.evdetail-sep')[0].id).setPosition(this.iconitem.getWidth()+this.iconitem.x, 0);
             var devitem_y = Ext.isEmpty(ipAddress) ? 7 : -2;
-            this.deviditem.setPosition(this.iconitem.getWidth() +this.iconitem.x + 30, devitem_y);            
+            this.deviditem.setPosition(this.iconitem.getWidth() +this.iconitem.x + 30, devitem_y);
             Ext.getCmp('detailrainbow').setPosition(this.deviditem.devname.getWidth() +this.deviditem.x + 30, 3);
             this.statusitem.setPosition(Ext.getCmp('detailrainbow').getWidth() +Ext.getCmp('detailrainbow').x + 30, -2);
-            Ext.getCmp(Ext.query('.x-toolbar-separator')[0].id).setPosition(this.statusitem.getWidth()+this.statusitem.x+10, 14);            
+            Ext.getCmp(Ext.query('.x-toolbar-separator')[0].id).setPosition(this.statusitem.getWidth()+this.statusitem.x+10, 14);
             this.prodstateitem.setPosition(this.statusitem.getWidth() +this.statusitem.x + 30, -2);
-            Ext.getCmp(Ext.query('.x-toolbar-separator')[1].id).setPosition(this.prodstateitem.getWidth()+this.prodstateitem.x+10, 14);             
-            this.priorityitem.setPosition(this.prodstateitem.getWidth() +this.prodstateitem.x + 30, -2);           
-            
+            Ext.getCmp(Ext.query('.x-toolbar-separator')[1].id).setPosition(this.prodstateitem.getWidth()+this.prodstateitem.x+10, 14);
+            this.priorityitem.setPosition(this.prodstateitem.getWidth() +this.prodstateitem.x + 30, -2);
+
             this.fireEvent('contextchange', this, data);
+            this.resumeLayouts();
         }, this);
     }
 });

@@ -35,6 +35,7 @@
     });
 
     Ext.define("Zenoss.stats.Infrastructure", {
+        pageName: 'Infrastructure',
         constructor: function() {
             this.addHooks();
         },
@@ -62,11 +63,13 @@
             }
 
             loadingTime = (loadingTime / 1000.00).toFixed(2);
-
+            Zenoss.remote.DetailNavRouter.recordPageLoadTime({
+                page: this.pageName,
+                time: loadingTime
+            });
             // do not listen to ajax requests anymore
             Ext.Ajax.un('beforerequest', beforeAjaxRequest);
             Ext.Ajax.un('requestcomplete', afterAjaxRequest);
-
             Ext.getCmp('footer_bar').add(['-', {
                 xtype: 'button',
                 text: Ext.String.format(_t("{0} seconds"), loadingTime),
@@ -85,6 +88,7 @@
 
     Ext.define("Zenoss.stats.Events", {
         extend: "Zenoss.stats.Infrastructure",
+        pageName: 'EventConsole',
         addHooks: function() {
             Ext.getCmp('events_grid').getStore().on('load', this.checkReady, this, {single:true});
         }
@@ -93,6 +97,7 @@
 
     Ext.define("Zenoss.stats.DeviceDetail", {
         extend: "Zenoss.stats.Infrastructure",
+        pageName: 'DeviceDetails',
         addHooks: function() {
             var detailnav = Ext.getCmp('deviceDetailNav');
             detailnav.on('componenttreeloaded', this.checkReady, this, {single:true});
@@ -107,6 +112,10 @@
      * we can match it up when the results come back from the server.
      **/
     function getTransactionId(transaction) {
+        if (!transaction) {
+            return null;
+        }
+
         if (Ext.isArray(transaction)) {
             var ids = Ext.pluck(transaction, "id");
             return ids.join(" ");
@@ -115,14 +124,17 @@
     }
 
     /**
-     * Log the start time and Url of each ajax request
+     * Log the start time and Url of each ajax request that has a transaction
+     * associated with it.
      **/
     function beforeAjaxRequest(conn, options) {
         var url = options.url, transactionId = getTransactionId(options.transaction);
-        openRequests[transactionId] = {
-            url: url,
-            starttime: new Date().getTime()
-        };
+        if (transactionId) {
+            openRequests[transactionId] = {
+                url: url,
+                starttime: new Date().getTime()
+            };
+        }
     }
 
     /**

@@ -713,7 +713,7 @@ Ext.getCmp('center_panel').add({
         xtype: 'devdetailbar',
         id: 'devdetailbar',
         listeners: {
-            afterrender: function(me) {
+            beforerender: function(me) {
                 // refresh once every minute
                 var delay = 60 * 1000, eventsGrid;
                 me.setContext(UID);

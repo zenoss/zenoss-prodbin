@@ -393,7 +393,8 @@ Ext.define("Zenoss.DeviceStore", {
             model: 'Zenoss.device.DeviceModel',
             initialSortColumn: "name",
             directFn: Zenoss.remote.DeviceRouter.getDevices,
-            root: 'devices'
+            root: 'devices',
+            purgePageCount: 0
         });
         this.callParent(arguments);
     }

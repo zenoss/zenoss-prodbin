@@ -774,7 +774,7 @@
 
     Ext.define("Zenoss.DetailContainer", {
         alias:['widget.detailcontainer'],
-        extend:"Ext.Panel",
+        extend:"Ext.Container",
         constructor:function (config) {
             Ext.applyIf(config, {
                 autoScroll:true,
