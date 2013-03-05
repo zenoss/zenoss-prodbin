@@ -48,8 +48,8 @@
     See events.py for the plugin implementations.
 
     <configure zcml:condition="have eventPlugins">
-        <preEventPlugin plugin=".events.ExamplePreEventPlugin">
-        <postEventPlugin plugin=".events.ExamplePostEventPlugin">
+        <preEventPlugin plugin=".events.ExamplePreEventPlugin" />
+        <postEventPlugin plugin=".events.ExamplePostEventPlugin" />
     </configure>
     -->
 
