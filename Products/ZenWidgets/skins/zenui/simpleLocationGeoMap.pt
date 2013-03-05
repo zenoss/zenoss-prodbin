@@ -31,23 +31,34 @@ v\:* {
 var IS_MAP_PORTLET = true;
 
 (function(){ // Private namespace
-    // let google listen and initiate everything
-    if(typeof google == 'undefined'){
-        alert("The server returned an error while trying to retrieve a map from Google. Please check your client key in the services page.");
-        return false; // no google object returned so something was wrong
-    }    
-    google.maps.event.addDomListener(window, 'load', function(){
-         if(typeof geocodecache == 'undefined') geocodecache = null;      
-         if (eventsdb) { 
-            loader = YAHOO.zenoss.getLoader();                  
-            loader.require(['geomap']);     
-            loader.insert(
-            {onSuccess:function(){  
-                    YAHOO.zenoss.geomap.initialize('geomapcontainer'); 
-                }
-            });     
-        }         
-    });    
+    var errorCount = 0;
+    function launchMap(){
+        google.maps.event.addDomListener(window, 'load', function(){
+             if(typeof geocodecache == 'undefined') geocodecache = null;
+             if (eventsdb) { 
+                loader = YAHOO.zenoss.getLoader();                  
+                loader.require(['geomap']);     
+                loader.insert(
+                {onSuccess:function(){  
+                        YAHOO.zenoss.geomap.initialize('geomapcontainer'); 
+                    }
+                });     
+            }         
+        });    
+    }
+    function checkGoogleStatus(){
+        if(typeof google == 'undefined'){
+            errorCount++;  
+            if(errorCount >= 5){
+                alert("The server returned an error while trying to retrieve a map from Google. Please reload and try again.");
+                return false; // no google object returned so something was wrong
+            }
+            setTimeout(function(){checkGoogleStatus()}, 1200);     
+        }else{
+            launchMap(); 
+        }
+    }
+    checkGoogleStatus(); 
 })(); // End private namespace
 </script>
 </tal:block>

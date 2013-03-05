@@ -146,7 +146,7 @@ YAHOO.namespace('zenoss.geomap');
                         errorCount = 0;
                         return false;
                     }
-                    setTimeout(function(){_overlay.addMarkers()}, 1200);
+                    setTimeout(function(){_overlay.addMarkers()}, 1200); 
                 }else{
                     _utils.statusDialog(status+" in geocoding node location addresses");
                     dialog.style.display = 'block';
@@ -237,7 +237,7 @@ YAHOO.namespace('zenoss.geomap');
                 setTimeout(function(){_overlay.addPolyline(geocoding)}, polling);                           
             }
         },
-        doDraw: function(results) {      
+        doDraw: function(results) { 
             // set cache for refresh
             if(!Geocoder.cached){
                 // there's no gcache = first time loading
@@ -425,10 +425,10 @@ YAHOO.namespace('zenoss.geomap');
     /* SET UP AND RUN THE MAP */
     YAHOO.zenoss.geomap.initialize = function (container) {
         addElementClass($('geomapcontainer'), "yui-skin-sam");
-        dialog = document.getElementById('geocodingdialog'); 
-        _engine.initMap(container);        
+        dialog = document.getElementById('geocodingdialog');         
         var pollrate = document.location.search.split('=')[1]?document.location.search.split('=')[1]:polling; 
         polling = pollrate;
+        _engine.initMap(container);        
         connect(currentWindow(), 'onresize', _engine.maximizeMapHeight);        
         if (IS_MAP_PORTLET) {
             var portlet_id = currentWindow().frameElement.parentNode.id.replace('_body', '');
