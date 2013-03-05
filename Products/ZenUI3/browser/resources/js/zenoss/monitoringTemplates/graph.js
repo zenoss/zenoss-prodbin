@@ -50,14 +50,7 @@ deleteGraphDefinition = function() {
 };
 
 
-new Zenoss.MessageDialog({
-    id: 'deleteGraphDefinitionDialog',
-    title: _t('Delete Graph Definition'),
-    // the message is generated dynamically
-    okHandler: function(){
-        deleteGraphDefinition();
-    }
-});
+
 
 /**
  * Deletes the selected graph point
@@ -75,96 +68,17 @@ function deleteGraphPoint() {
     router.deleteGraphPoint(params, callback);
 }
 
-new Zenoss.MessageDialog({
-    id: 'deleteGraphPointDialog',
-    title: _t('Delete Graph Point'),
-    // the message is generated dynamically
-    okHandler: deleteGraphPoint
-});
+
 
 /**
  * Adds the selected datapoint as a graph point to our
  * graph definition we are managing
  **/
 function addDataPointToGraph() {
-    var dataPointUid = Ext.getCmp('addDataPointToGraphDialog').comboBox.getValue(),
-        graphUid = getSelectedGraphDefinition().get("uid"),
-        includeThresholds = Ext.getCmp('addDataPointToGraphDialog').includeRelatedThresholds.getValue(),
-        params = {
-            dataPointUid: dataPointUid,
-            graphUid: graphUid,
-            includeThresholds: includeThresholds
-        },
-        callback = function() {
-            Ext.getCmp('graphPointGrid').refresh();
-        };
-    router.addDataPointToGraph(params, callback);
+
 }
 
-new Zenoss.HideFormDialog({
-    id: 'addDataPointToGraphDialog',
-    title: _t('Add Data Point'),
-    closeAction: 'hide',
-    items:[{
-        xtype: 'combo',
-        ref: 'comboBox',
-        getInnerTpl: function() {
-            return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
-        },
-        fieldLabel: _t('Data Point'),
-        valueField: 'uid',
-        displayField: 'name',
-        triggerAction: 'all',
-        forceSelection: true,
-        editable: false,
-        allowBlank: false,
-        listeners: {
-            validitychange: function(form, isValid){
-                var window = Ext.getCmp('addDataPointToGraphDialog');
-                if (window.isVisible()){
-                    window.submit.setDisabled(!isValid);
-                }
-            }
-        },
-        store: Ext.create('Zenoss.NonPaginatedStore', {
-            root: 'data',
-            model: 'Zenoss.model.Basic',
-            directFn: router.getDataPoints
-        })
-    },{
-        xtype: 'checkbox',
-        name: 'include_related_thresholds',
-        ref: 'includeRelatedThresholds',
-        fieldLabel: _t('Include Related Thresholds'),
-        checked: true
-    }],
-    listeners: {
-        show: function() {
-            var combo, uid;
-            combo = Ext.getCmp('addDataPointToGraphDialog').comboBox;
-            combo.reset();
-            Ext.getCmp('addDataPointToGraphDialog').submit.disable();
-            uid = getSelectedTemplate().data.uid;
-            combo.store.setContext(uid);
-        }
-    },
-    buttons: [
-    {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        ref: '../submit',
-        text: _t('Submit'),
-        disabled: true,
-        handler: function(button, event) {
-            addDataPointToGraph();
-        }
-    }, {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Cancel')
-    }]
 
-});
 
 addThresholdToGraph = function() {
     var params, callback;
@@ -178,63 +92,7 @@ addThresholdToGraph = function() {
     router.addThresholdToGraph(params, callback);
 };
 
-new Zenoss.HideFormDialog({
-    id: 'addThresholdToGraphDialog',
-    title: _t('Add Threshold'),
-    items: {
-        xtype: 'combo',
-        id: 'addThresholdToGraphCombo',
-        getInnerTpl: function() {
-            return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
-        },
-        fieldLabel: _t('Threshold'),
-        valueField: 'uid',
-        displayField: 'name',
-        triggerAction: 'all',
-        forceSelection: true,
-        editable: false,
-        allowBlank: false,
-        listeners: {
-            validitychange: function(form, isValid){
-                var button = Ext.getCmp('addThresholdToGraphSubmit');
-                if (button.isVisible()){
-                    button.setDisabled(!isValid);
-                }
-            }
-        },
-        store: Ext.create('Zenoss.NonPaginatedStore', {
-            root: 'data',
-            model: 'Zenoss.model.Basic',
-            directFn: router.getThresholds
-        })
-    },
-    listeners: {
-        show: function() {
-            var combo, uid;
-            combo = Ext.getCmp('addThresholdToGraphCombo');
-            combo.reset();
-            Ext.getCmp('addThresholdToGraphSubmit').disable();
-            uid = getSelectedTemplate().data.uid;
-            combo.store.setContext(uid);
-        }
-    },
-    buttons: [
-    {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        id: 'addThresholdToGraphSubmit',
-        text: _t('Submit'),
-        disabled: true,
-        handler: function(button, event) {
-            addThresholdToGraph();
-        }
-    }, {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Cancel')
-    }]
 
-});
 
 Ext.define('Zenoss.InstructionTypeModel', {
     extend: 'Ext.data.Model',
@@ -244,155 +102,14 @@ Ext.define('Zenoss.InstructionTypeModel', {
 
 
 
-new Zenoss.HideFormDialog({
-    id: 'addCustomToGraphDialog',
-    title: _t('Add Custom Graph Point'),
-    listeners: {
-        show: function(dialog) {
-            dialog.addForm.idField.reset();
-            dialog.addForm.typeCombo.reset();
-            dialog.addForm.typeCombo.store.load();
-        }
-    },
-    items: [{
-        xtype: 'form',
-        ref: 'addForm',
-        listeners: {
-            validitychange: function(formPanel, valid) {
-                Ext.getCmp('addCustomToGraphDialog').submitButton.setDisabled( !valid );
-            }
-        },
-        items: [{
-            xtype: 'idfield',
-            ref: 'idField',
-            fieldLabel: _t('Name'),
-            allowBlank: false
-        }, {
-            xtype: 'combo',
-            ref: 'typeCombo',
-            fieldLabel: _t('Instruction Type'),
-            valueField: 'pythonClassName',
-            displayField: 'label',
-            triggerAction: 'all',
-            forceSelection: true,
-            editable: false,
-            allowBlank: false,
-            store: Ext.create('Zenoss.NonPaginatedStore', {
-                root: 'data',
-                autoLoad: false,
-                model: 'Zenoss.InstructionTypeModel',
-                directFn: router.getGraphInstructionTypes
-            })
-        }]
-    }],
-    buttons: [{
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        disabled: true,
-        ref: '../submitButton',
-        text: _t('Add'),
-        handler: function(addButton) {
-            var params, callback, form = Ext.getCmp('addCustomToGraphDialog').addForm;
-            params = {
-                graphUid: getSelectedGraphDefinition().get("uid"),
-                customId: form.idField.getValue(),
-                customType: form.typeCombo.getValue()
-            };
-            callback = function() {
-                Ext.getCmp('graphPointGrid').refresh();
-            };
-            router.addCustomToGraph(params, callback);
-        }
-    }, {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        ref: '../cancelButton',
-        text: _t('Cancel')
-    }]
-});
+
 
 /**********************************************************************
  *
  * Graph Custom Definition
  *
  */
-Ext.create('Zenoss.dialog.BaseWindow', {
-    title: _t('Graph Custom Definition'),
-    id: 'graphCustomDefinitionDialog',
-    closeAction: 'hide',
-    buttonAlign: 'left',
-    autoScroll: true,
-    height: 500,
-    width: 400,
-    modal: true,
-    plain: true,
-    padding: 10,
-    items: [{
-        xtype:'form',
-        ref: 'formPanel',
-        paramsAsHash: true,
-        api: {
-            load: router.getGraphDefinition,
-            submit: router.setInfo
-        },
-        items:[{
-            xtype: 'label',
-            fieldLabel: _t('Name'),
-            name:'id',
-            ref: 'nameLabel'
-        },{
-            xtype: 'textarea',
-            fieldLabel: _t('Custom'),
-            width: 300,
-            height: 300,
-            name: 'custom',
-            ref: 'custom'
-        },{
-            xtype: 'label',
-            fieldLabel: _t('Available RRD Variables'),
-            ref: 'rrdVariables'
-        }]
-    }],
-    buttons: [{
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Submit'),
-        handler: function(button, event) {
-            var cmp = Ext.getCmp('graphCustomDefinitionDialog'),
-                routerCallback,
-                data = cmp.record,
-                params = {};
 
-            // we just need to update custom
-            params.uid = data.uid;
-            params.custom = cmp.formPanel.custom.getValue();
-
-            router.setInfo(params);
-        }
-    }, {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Cancel')
-    }],
-    loadAndShow: function(uid) {
-        this.uid = uid;
-        this.formPanel.getForm().load({
-            params: {uid:uid},
-            success: function(btn, response) {
-                var data = response.result.data;
-                this.record = data;
-                // populate the form
-                this.formPanel.nameLabel.setText(data.id);
-                this.formPanel.custom.setValue(data.custom);
-                this.formPanel.rrdVariables.setText(data.rrdVariables.join('<br />'), false);
-
-                this.show();
-            },
-            scope: this
-        });
-    }
-
-});
 
 /**
  * @class Zenoss.graph.GraphPointModel
@@ -419,28 +136,7 @@ Ext.define("Zenoss.GraphPointStore", {
 });
 
 
-new Ext.menu.Menu({
-    id: 'graphPointMenu',
-    items: [{
-        xtype: 'menuitem',
-        text: _t('Data Point'),
-        handler: function(){
-            Ext.getCmp('addDataPointToGraphDialog').show();
-        }
-    }, {
-        xtype: 'menuitem',
-        text: _t('Threshold'),
-        handler: function(){
-            Ext.getCmp('addThresholdToGraphDialog').show();
-        }
-    }, {
-        xtype: 'menuitem',
-        text: _t('Custom Graph Point'),
-        handler: function(){
-            Ext.getCmp('addCustomToGraphDialog').show();
-        }
-    }]
-});
+
 
 Ext.define("Zenoss.BaseSequenceGrid", {
     extend:"Ext.grid.GridPanel",
@@ -502,7 +198,221 @@ Ext.define("Zenoss.GraphPointGrid", {
                 xtype: 'button',
                 id: 'addGraphPointButton',
                 iconCls: 'add',
-                menu: 'graphPointMenu',
+                menu:  new Ext.menu.Menu({
+                    id: 'graphPointMenu',
+                    items: [{
+                        xtype: 'menuitem',
+                        text: _t('Data Point'),
+                        handler: function(){
+                            var dialog = new Zenoss.HideFormDialog({
+                                title: _t('Add Data Point'),
+                                items:[{
+                                    xtype: 'combo',
+                                    ref: 'comboBox',
+                                    getInnerTpl: function() {
+                                        return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
+                                    },
+                                    fieldLabel: _t('Data Point'),
+                                    valueField: 'uid',
+                                    displayField: 'name',
+                                    triggerAction: 'all',
+                                    forceSelection: true,
+                                    editable: false,
+                                    allowBlank: false,
+                                    listeners: {
+                                        validitychange: function(form, isValid){
+                                            if (dialog.isVisible()){
+                                                dialog.submit.setDisabled(!isValid);
+                                            }
+                                        }
+                                    },
+                                    store: Ext.create('Zenoss.NonPaginatedStore', {
+                                        root: 'data',
+                                        model: 'Zenoss.model.Basic',
+                                        directFn: router.getDataPoints
+                                    })
+                                },{
+                                    xtype: 'checkbox',
+                                    name: 'include_related_thresholds',
+                                    ref: 'includeRelatedThresholds',
+                                    fieldLabel: _t('Include Related Thresholds'),
+                                    checked: true
+                                }],
+                                listeners: {
+                                    show: function() {
+                                        var combo, uid;
+                                        combo = dialog.comboBox;
+                                        combo.reset();
+                                        dialog.submit.disable();
+                                        uid = getSelectedTemplate().data.uid;
+                                        combo.store.setContext(uid);
+                                    }
+                                },
+                                buttons: [
+                                    {
+                                        xtype: 'HideDialogButton',
+                                        ui: 'dialog-dark',
+                                        ref: '../submit',
+                                        text: _t('Submit'),
+                                        disabled: true,
+                                        handler: function(button, event) {
+                                            var dataPointUid = dialog.comboBox.getValue(),
+                                            graphUid = getSelectedGraphDefinition().get("uid"),
+                                            includeThresholds = dialog.includeRelatedThresholds.getValue(),
+                                            params = {
+                                                dataPointUid: dataPointUid,
+                                                graphUid: graphUid,
+                                                includeThresholds: includeThresholds
+                                            },
+                                            callback = function() {
+                                                Ext.getCmp('graphPointGrid').refresh();
+                                            };
+                                            router.addDataPointToGraph(params, callback);
+                                        }
+                                    }, {
+                                        xtype: 'HideDialogButton',
+                                        ui: 'dialog-dark',
+                                        text: _t('Cancel')
+                                    }]
+
+                            });
+                            dialog.show();
+                        }
+                    }, {
+                        xtype: 'menuitem',
+                        text: _t('Threshold'),
+                        handler: function(){
+                            var dialog = new Zenoss.SmartFormDialog({
+                                title: _t('Add Threshold'),
+                                items: {
+                                    xtype: 'combo',
+                                    id: 'addThresholdToGraphCombo',
+                                    getInnerTpl: function() {
+                                        return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
+                                    },
+                                    fieldLabel: _t('Threshold'),
+                                    valueField: 'uid',
+                                    displayField: 'name',
+                                    triggerAction: 'all',
+                                    forceSelection: true,
+                                    editable: false,
+                                    allowBlank: false,
+                                    listeners: {
+                                        validitychange: function(form, isValid){
+                                            var button = Ext.getCmp('addThresholdToGraphSubmit');
+                                            if (button.isVisible()){
+                                                button.setDisabled(!isValid);
+                                            }
+                                        }
+                                    },
+                                    store: Ext.create('Zenoss.NonPaginatedStore', {
+                                        root: 'data',
+                                        model: 'Zenoss.model.Basic',
+                                        directFn: router.getThresholds
+                                    })
+                                },
+                                listeners: {
+                                    show: function() {
+                                        var combo, uid;
+                                        combo = Ext.getCmp('addThresholdToGraphCombo');
+                                        combo.reset();
+                                        Ext.getCmp('addThresholdToGraphSubmit').disable();
+                                        uid = getSelectedTemplate().data.uid;
+                                        combo.store.setContext(uid);
+                                    }
+                                },
+                                buttons: [
+                                    {
+                                        xtype: 'DialogButton',
+                                        ui: 'dialog-dark',
+                                        id: 'addThresholdToGraphSubmit',
+                                        text: _t('Submit'),
+                                        disabled: true,
+                                        handler: function(button, event) {
+                                            addThresholdToGraph();
+                                        }
+                                    }, {
+                                        xtype: 'DialogButton',
+                                        ui: 'dialog-dark',
+                                        text: _t('Cancel')
+                                    }]
+
+                            });
+                            dialog.show();
+                        }
+                    }, {
+                        xtype: 'menuitem',
+                        text: _t('Custom Graph Point'),
+                        handler: function(){
+                            var dialog = new Zenoss.SmartFormDialog({
+                                title: _t('Add Custom Graph Point'),
+                                listeners: {
+                                    show: function(dialog) {
+                                        dialog.addForm.idField.reset();
+                                        dialog.addForm.typeCombo.reset();
+                                        dialog.addForm.typeCombo.store.load();
+                                    }
+                                },
+                                items: [{
+                                    xtype: 'form',
+                                    ref: '../addForm',
+                                    listeners: {
+                                        validitychange: function(formPanel, valid) {
+                                            dialog.submitButton.setDisabled( !valid );
+                                        }
+                                    },
+                                    items: [{
+                                        xtype: 'idfield',
+                                        ref: 'idField',
+                                        fieldLabel: _t('Name'),
+                                        allowBlank: false
+                                    }, {
+                                        xtype: 'combo',
+                                        ref: 'typeCombo',
+                                        fieldLabel: _t('Instruction Type'),
+                                        valueField: 'pythonClassName',
+                                        displayField: 'label',
+                                        triggerAction: 'all',
+                                        forceSelection: true,
+                                        editable: false,
+                                        allowBlank: false,
+                                        store: Ext.create('Zenoss.NonPaginatedStore', {
+                                            root: 'data',
+                                            autoLoad: false,
+                                            model: 'Zenoss.InstructionTypeModel',
+                                            directFn: router.getGraphInstructionTypes
+                                        })
+                                    }]
+                                }],
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    ui: 'dialog-dark',
+                                    disabled: true,
+                                    ref: '../submitButton',
+                                    text: _t('Add'),
+                                    handler: function(addButton) {
+                                        var params, callback, form = dialog.addForm;
+                                        params = {
+                                            graphUid: getSelectedGraphDefinition().get("uid"),
+                                            customId: form.idField.getValue(),
+                                            customType: form.typeCombo.getValue()
+                                        };
+                                        callback = function() {
+                                            Ext.getCmp('graphPointGrid').refresh();
+                                        };
+                                        router.addCustomToGraph(params, callback);
+                                    }
+                                }, {
+                                    xtype: 'DialogButton',
+                                    ui: 'dialog-dark',
+                                    ref: '../cancelButton',
+                                    text: _t('Cancel')
+                                }]
+                            });
+                            dialog.show();
+                        }
+                    }]
+                }),
                 listeners: {
                     render: function() {
                         Zenoss.registerTooltipFor('addGraphPointButton');
@@ -525,7 +435,10 @@ Ext.define("Zenoss.GraphPointGrid", {
                     html = Ext.String.format(html, getSelectedGraphPoint().data.name);
 
                     // show the dialog
-                    dialog = Ext.getCmp('deleteGraphPointDialog');
+                    dialog = new Zenoss.MessageDialog({
+                        title: _t('Delete Graph Point'),
+                        okHandler: deleteGraphPoint
+                    });
                     dialog.setText(html);
                     dialog.show();
                 }
@@ -559,6 +472,119 @@ function reloadGraphPoints() {
     grid.refresh();
 }
 
+
+function showGraphDefinitionDialog(uid) {
+    var dialog = Ext.create('Zenoss.dialog.BaseWindow', {
+        layout: 'fit',
+        title: _t('View and Edit Graph Definition'),
+        closeAction: 'hide',
+        buttonAlign: 'left',
+        autoScroll: true,
+        plain: true,
+        modal: true,
+        width: 400,
+        height: 500,
+        padding: 10,
+        buttons: [{
+            ref: '../submitButton',
+            xtype: 'DialogButton',
+            ui: 'dialog-dark',
+            text: _t('Submit'),
+            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+            handler: function(submitButton){
+                var dialogWindow, basicForm, params;
+                dialogWindow = submitButton.refOwner;
+                    basicForm = dialogWindow.formPanel.getForm();
+                params = Ext.applyIf(basicForm.getValues(), {
+                    uid: dialogWindow.uid,
+                    hasSummary: false,
+                    log: false,
+                    base: false
+                });
+                basicForm.api.submit(params, function() {
+                    Ext.getCmp('graphGrid').refresh();
+                });
+            }
+        },{
+            xtype: 'DialogButton',
+            ref: '../cancelButton',
+            ui: 'dialog-dark',
+            text: 'Cancel'
+        }],
+        items: {
+            xtype: 'form',
+            ref: 'formPanel',
+            autoScroll: true,
+            paramsAsHash: true,
+            api: {
+                load: router.getGraphDefinition,
+                submit: router.setGraphDefinition
+            },
+            listeners: {
+                validitychange: function(formPanel, valid){
+                    if (Zenoss.Security.hasPermission('Manage DMD')) {
+                        dialog.submitButton.setDisabled( ! valid );
+                    }
+                },
+                show: function(formPanel){
+                    formPanel.getForm().load();
+                }
+            },
+                items: [{
+                    xtype: 'idfield',
+                    fieldLabel: _t('Name'),
+                    name: 'newId',
+                    allowBlank: false
+                },{
+                    xtype: 'numberfield',
+                    fieldLabel: _t('Height'),
+                    name: 'height',
+                    minValue: 0
+                },{
+                    xtype: 'numberfield',
+                    fieldLabel: _t('Width'),
+                    name: 'width',
+                    minValue: 0
+                },{
+                    xtype: 'textfield',
+                    fieldLabel: _t('Units'),
+                    name: 'units'
+                },{
+                    xtype: 'checkbox',
+                    fieldLabel: _t('Logarithmic Scale'),
+                    name: 'log'
+                },{
+                    xtype: 'checkbox',
+                    fieldLabel: _t('Base 1024'),
+                    name: 'base'
+                },{
+                    xtype: 'numberfield',
+                    fieldLabel: _t('Min Y'),
+                    name: 'miny'
+                },{
+                    xtype: 'numberfield',
+                    fieldLabel: _t('Max Y'),
+                    name: 'maxy'
+                },{
+                    xtype: 'checkbox',
+                    fieldLabel: _t('Has Summary'),
+                    name: 'hasSummary'
+                }]
+        },
+        loadAndShow: function(uid) {
+            this.uid = uid;
+            this.formPanel.getForm().load({
+                params: {uid:uid},
+                success: function() {
+                    this.show();
+                },
+                scope: this
+            });
+        }
+    });
+    dialog.loadAndShow(uid);
+}
+
 /**
  * Call back function from when a user selects a graph point.
  * This shows yet another dialog for editing a graph point
@@ -585,193 +611,6 @@ function displayGraphPointForm() {
     router.getInfo({uid: record.get("uid")}, displayEditDialog);
 }
 
-new Zenoss.HideFitDialog({
-    id: 'manageGraphPointsDialog',
-    title: _t('Manage Graph Points'),
-    items: [{
-        xtype: 'graphpointgrid',
-        id: 'graphPointGrid',
-        ref: 'graphGrid'
-    }],
-    buttons: [
-    {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Save'),
-        handler: function(){
-            if (Zenoss.Security.hasPermission('Manage DMD')) {
-                var records, uids;
-                records = Ext.getCmp('graphPointGrid').getStore().getRange();
-                uids = Ext.Array.pluck(Ext.Array.pluck(records, 'data'), 'uid');
-                router.setGraphPointSequence({'uids': uids});
-            }
-        }
-    }, {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Cancel')
-    }]
-});
-
-Ext.create('Zenoss.dialog.BaseWindow', {
-    layout: 'fit',
-    id: 'viewGraphDefinitionDialog',
-    title: _t('View and Edit Graph Definition'),
-    closeAction: 'hide',
-    buttonAlign: 'left',
-    autoScroll: true,
-    plain: true,
-    modal: true,
-    width: 400,
-    height: 500,
-    padding: 10,
-    buttons: [{
-        ref: '../submitButton',
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Submit'),
-        disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-        handler: function(submitButton){
-            var dialogWindow, basicForm, params;
-            dialogWindow = submitButton.refOwner;
-            basicForm = dialogWindow.formPanel.getForm();
-            params = Ext.applyIf(basicForm.getValues(), {
-                uid: dialogWindow.uid,
-                hasSummary: false,
-                log: false,
-                base: false
-            });
-            basicForm.api.submit(params, function() {
-                Ext.getCmp('graphGrid').refresh();
-            });
-        }
-    },{
-        xtype: 'HideDialogButton',
-        ref: '../cancelButton',
-        ui: 'dialog-dark',
-        text: 'Cancel'
-    }],
-    items: {
-        xtype: 'form',
-        ref: 'formPanel',
-        autoScroll: true,
-        paramsAsHash: true,
-        api: {
-            load: router.getGraphDefinition,
-            submit: router.setGraphDefinition
-        },
-        listeners: {
-            validitychange: function(formPanel, valid){
-                var dialogWindow = Ext.getCmp('viewGraphDefinitionDialog');
-                if (Zenoss.Security.hasPermission('Manage DMD')) {
-                    dialogWindow.submitButton.setDisabled( ! valid );
-                }
-            },
-            show: function(formPanel){
-                formPanel.getForm().load();
-            }
-        },
-        items: [{
-            xtype: 'idfield',
-            fieldLabel: _t('Name'),
-            name: 'newId',
-            allowBlank: false
-        },{
-            xtype: 'numberfield',
-            fieldLabel: _t('Height'),
-            name: 'height',
-            minValue: 0
-        },{
-            xtype: 'numberfield',
-            fieldLabel: _t('Width'),
-            name: 'width',
-            minValue: 0
-        },{
-            xtype: 'textfield',
-            fieldLabel: _t('Units'),
-            name: 'units'
-        },{
-            xtype: 'checkbox',
-            fieldLabel: _t('Logarithmic Scale'),
-            name: 'log'
-        },{
-            xtype: 'checkbox',
-            fieldLabel: _t('Base 1024'),
-            name: 'base'
-        },{
-            xtype: 'numberfield',
-            fieldLabel: _t('Min Y'),
-            name: 'miny'
-        },{
-            xtype: 'numberfield',
-            fieldLabel: _t('Max Y'),
-            name: 'maxy'
-        },{
-            xtype: 'checkbox',
-            fieldLabel: _t('Has Summary'),
-            name: 'hasSummary'
-        }]
-    },
-    loadAndShow: function(uid) {
-        this.uid = uid;
-        this.formPanel.getForm().load({
-            params: {uid:uid},
-            success: function() {
-                this.show();
-            },
-            scope: this
-        });
-    }
-});
-
-new Ext.menu.Menu({
-    id: 'graphDefinitionMenu',
-    items: [{
-        xtype: 'menuitem',
-        text: _t('Manage Graph Points'),
-        handler: function(){
-            var uid, grid;
-            uid = getSelectedGraphDefinition().get("uid");
-            Ext.getCmp('manageGraphPointsDialog').show();
-            grid = Ext.getCmp('graphPointGrid');
-            grid.setContext(uid);
-        }
-    }, {
-        xtype: 'menuitem',
-        text: _t('View and Edit Details'),
-        handler: function(){
-            var dialogWindow, uid;
-            dialogWindow = Ext.getCmp('viewGraphDefinitionDialog');
-            uid = getSelectedGraphDefinition().get("uid");
-            dialogWindow.loadAndShow(uid);
-        }
-    },{
-        xtype: 'menuitem',
-        text: _t('Custom Graph Definition'),
-        handler: function () {
-            var win = Ext.getCmp('graphCustomDefinitionDialog'),
-                uid = getSelectedGraphDefinition().get("uid");
-            win.loadAndShow(uid);
-        }
-    },{
-        xtype: 'menuitem',
-        text: _t('Graph Commands'),
-        handler: function () {
-            var params = {
-                uid: getSelectedGraphDefinition().get("uid")
-            };
-
-            router.getGraphDefinition(params, function (response) {
-                Ext.MessageBox.show({
-                    title: _t('Graph Commands'),
-                    minWidth: 700,
-                    msg: Ext.String.format('<pre>{0}</pre>', response.data.fakeGraphCommands),
-                    buttons: Ext.MessageBox.OK
-                });
-            });
-        }
-    }]
-});
 
 Ext.define("Zenoss.templates.GraphGrid", {
     alias:['widget.graphgrid'],
@@ -804,10 +643,7 @@ Ext.define("Zenoss.templates.GraphGrid", {
                  * Double click to edit a graph definition
                  **/
                 itemdblclick: function()  {
-                    var dialogWindow, uid;
-                    dialogWindow = Ext.getCmp('viewGraphDefinitionDialog');
-                    uid = getSelectedGraphDefinition().get("uid");
-                    dialogWindow.loadAndShow(uid);
+                    showGraphDefinitionDialog(getSelectedGraphDefinition().get("uid"));
                 }
 
             },
@@ -903,7 +739,13 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     msg = _t("Are you sure you want to remove {0}? There is no undo.");
                     name = getSelectedGraphDefinition().data.name;
                     html = Ext.String.format(msg, name);
-                    dialog = Ext.getCmp('deleteGraphDefinitionDialog');
+                    dialog = new Zenoss.MessageDialog({
+                        title: _t('Delete Graph Definition'),
+                        // the message is generated dynamically
+                        okHandler: function(){
+                            deleteGraphDefinition();
+                        }
+                    });
                     dialog.setText(html);
                     dialog.show();
                 }
@@ -916,7 +758,154 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     }
                 },
                 iconCls: 'customize',
-                menu: 'graphDefinitionMenu',
+                menu: new Ext.menu.Menu({
+                    items: [{
+                        xtype: 'menuitem',
+                        text: _t('Manage Graph Points'),
+                        handler: function(){
+                            var uid, grid, dialog;
+                            uid = getSelectedGraphDefinition().get("uid");
+                            dialog = new Zenoss.dialog.BaseWindow({
+                                id: 'manageGraphPointsDialog',
+                                width: 600,
+                                height: 300,
+                                title: _t('Manage Graph Points'),
+                                items: [{
+                                    xtype: 'graphpointgrid',
+                                    id: 'graphPointGrid',
+                                    ref: 'graphGrid'
+                                }],
+                                buttons: [
+                                    {
+                                        xtype: 'DialogButton',
+                                        ui: 'dialog-dark',
+                                        text: _t('Save'),
+                                        handler: function(){
+                                            if (Zenoss.Security.hasPermission('Manage DMD')) {
+                                                var records, uids;
+                                                records = Ext.getCmp('graphPointGrid').getStore().getRange();
+                                                uids = Ext.Array.pluck(Ext.Array.pluck(records, 'data'), 'uid');
+                                                router.setGraphPointSequence({'uids': uids});
+                                            }
+                                        }
+                                    }, {
+                                        xtype: 'DialogButton',
+                                        ui: 'dialog-dark',
+                                        text: _t('Cancel')
+                                    }]
+                            });
+                            dialog.show();
+                            grid = Ext.getCmp('graphPointGrid');
+                            grid.setContext(uid);
+                        }
+                    }, {
+                        xtype: 'menuitem',
+                        text: _t('View and Edit Details'),
+                        handler: function(){
+                            showGraphDefinitionDialog(getSelectedGraphDefinition().get("uid"));
+                        }
+                    },{
+                        xtype: 'menuitem',
+                        text: _t('Custom Graph Definition'),
+                        handler: function () {
+                            var win,
+                            uid = getSelectedGraphDefinition().get("uid");
+                            win = Ext.create('Zenoss.dialog.BaseWindow', {
+                                title: _t('Graph Custom Definition'),
+                                buttonAlign: 'left',
+                                autoScroll: true,
+                                height: 500,
+                                width: 400,
+                                modal: true,
+                                plain: true,
+                                padding: 10,
+                                items: [{
+                                    xtype:'form',
+                                    ref: 'formPanel',
+                                    paramsAsHash: true,
+                                    api: {
+                                        load: router.getGraphDefinition,
+                                        submit: router.setInfo
+                                    },
+                                    items:[{
+                                        xtype: 'label',
+                                        fieldLabel: _t('Name'),
+                                        name:'id',
+                                        ref: 'nameLabel'
+                                    },{
+                                        xtype: 'textarea',
+                                        fieldLabel: _t('Custom'),
+                                        width: 300,
+                                        height: 300,
+                                        name: 'custom',
+                                        ref: 'custom'
+                                    },{
+                                        xtype: 'label',
+                                        fieldLabel: _t('Available RRD Variables'),
+                                        ref: 'rrdVariables'
+                                    }]
+                                }],
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    ui: 'dialog-dark',
+                                    text: _t('Submit'),
+                                    handler: function(button, event) {
+                                        var cmp = win,
+                                        routerCallback,
+                                        data = cmp.record,
+                                        params = {};
+
+                                        // we just need to update custom
+                                        params.uid = data.uid;
+                                        params.custom = cmp.formPanel.custom.getValue();
+
+                                        router.setInfo(params);
+                                    }
+                                }, {
+                                    xtype: 'DialogButton',
+                                    ui: 'dialog-dark',
+                                    text: _t('Cancel')
+                                }],
+                                loadAndShow: function(uid) {
+                                    this.uid = uid;
+                                    this.formPanel.getForm().load({
+                                        params: {uid:uid},
+                                        success: function(btn, response) {
+                                            var data = response.result.data;
+                                            this.record = data;
+                                            // populate the form
+                                            this.formPanel.nameLabel.setText(data.id);
+                                            this.formPanel.custom.setValue(data.custom);
+                                            this.formPanel.rrdVariables.setText(data.rrdVariables.join('<br />'), false);
+
+                                            this.show();
+                                        },
+                                        scope: this
+                                    });
+                                }
+
+                            });
+                            win.loadAndShow(uid);
+                        }
+                    },{
+                        xtype: 'menuitem',
+                        text: _t('Graph Commands'),
+                        handler: function () {
+                            var params = {
+                                uid: getSelectedGraphDefinition().get("uid")
+                            };
+
+                            router.getGraphDefinition(params, function (response) {
+                                Ext.MessageBox.show({
+                                    title: _t('Graph Commands'),
+                                    minWidth: 700,
+                                    msg: Ext.String.format('<pre>{0}</pre>', response.data.fakeGraphCommands),
+                                    buttons: Ext.MessageBox.OK
+                                });
+                            });
+                        }
+                    }]
+                }),
                 disabled: true
             }]
         });

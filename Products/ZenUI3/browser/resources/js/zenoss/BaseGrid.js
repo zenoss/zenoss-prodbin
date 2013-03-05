@@ -493,7 +493,7 @@
             Ext.applyIf(viewConfig, {
                 autoScroll:false,
                 stripeRows:true,
-                loadMask:true,
+                loadMask:false,
                 preserveScrollOnRefresh: true
             });
 
@@ -763,8 +763,15 @@
         extend:'Ext.toolbar.TextItem',
         alias:['widget.livegridinfopanel'],
         cls:'livegridinfopanel',
+        constructor: function(config){
+            this.emptyMsg = _t('NO RESULTS');
+            config = config || {};
+            Ext.applyIf(config,{
+                text: this.emptyMsg
+            });
+            this.callParent([config]);
+        },
         initComponent:function () {
-            this.setText(this.emptyMsg);
             if (this.grid) {
                 if (!Ext.isObject(this.grid)) {
                     this.grid = Ext.getCmp(this.grid);
@@ -784,7 +791,6 @@
             this.rowHeight = null;
             this.visibleRows = null;
             this.displayMsg = _t('DISPLAYING {0} - {1} of {2} ROWS');
-            this.emptyMsg = _t('NO RESULTS');
             this.callParent(arguments);
         },
         onResize: function() {
@@ -856,6 +862,11 @@
                 this.onScrollTask = new Ext.util.DelayedTask(this._doOnScroll, this);
             }
             this.onScrollTask.delay(250);
+        },
+        setText: function(text) {
+            if (text != this.text) {
+                this.callParent(arguments);
+            }
         },
         _doOnScroll: function() {
             var pagingScroller = this.grid.verticalScroller;

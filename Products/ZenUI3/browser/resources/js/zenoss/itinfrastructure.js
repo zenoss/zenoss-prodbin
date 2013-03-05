@@ -1272,12 +1272,17 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     desc.push(result.data.description);
                 }
 
-                if ( desc ) {
-                    Ext.QuickTips.register({target: this.headerCt, text: Ext.util.Format.nl2br(desc.join('<hr>')), title: result.data.name});
-                    this.setTitle(Ext.String.format("{0} {1}", title, desc.join(' - ')));
-                }else {
-                    this.setTitle(title);
+                // avoid a rendering of the grid if the title
+                // hasn't changed
+                if (this.title != title) {
+                    if ( desc.length ) {
+                        Ext.QuickTips.register({target: this.headerCt, text: Ext.util.Format.nl2br(desc.join('<hr>')), title: result.data.name});
+                        this.setTitle(Ext.String.format("{0} {1}", title, desc.join(' - ')));
+                    }else {
+                        this.setTitle(title);
+                    }
                 }
+
             }, this);
         },
         scope: device_grid

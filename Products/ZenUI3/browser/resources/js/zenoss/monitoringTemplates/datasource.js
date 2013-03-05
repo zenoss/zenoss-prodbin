@@ -375,7 +375,28 @@ function showDeleteDataSourceDialog() {
         html = Ext.String.format(msg, name);
 
         // show the dialog
-        dialog = Ext.getCmp('deleteDataSourceDialog');
+        dialog = new Zenoss.MessageDialog({
+            title: _t('Delete'),
+            // msg is generated dynamically
+            okHandler: function(){
+                var params, node = getSelectedDataSourceOrPoint(),
+                selectedId;
+                params = {
+                    uid: getSelectedDataSourceOrPoint().get("uid")
+                };
+
+                // data points are always leafs
+                if (getSelectedDataSourceOrPoint().data.leaf) {
+                    selectedId = node.parentNode.data.id;
+                    function callback() {
+                        refreshDataSourceGrid(selectedId);
+                    }
+                    router.deleteDataPoint(params, callback);
+                }else {
+                    router.deleteDataSource(params, refreshDataSourceGrid);
+                }
+            }
+        });
         dialog.setText(html);
         dialog.show();
     }else{
@@ -383,29 +404,7 @@ function showDeleteDataSourceDialog() {
     }
 }
 
-new Zenoss.MessageDialog({
-    id: 'deleteDataSourceDialog',
-    title: _t('Delete'),
-    // msg is generated dynamically
-    okHandler: function(){
-        var params, node = getSelectedDataSourceOrPoint(),
-        selectedId;
-        params = {
-            uid: getSelectedDataSourceOrPoint().get("uid")
-        };
 
-        // data points are always leafs
-        if (getSelectedDataSourceOrPoint().data.leaf) {
-            selectedId = node.parentNode.data.id;
-            function callback() {
-                refreshDataSourceGrid(selectedId);
-            }
-            router.deleteDataPoint(params, callback);
-        }else {
-            router.deleteDataSource(params, refreshDataSourceGrid);
-        }
-    }
-});
 
 /**********************************************************************
  *
@@ -563,25 +562,7 @@ function editDataSourceOrPoint() {
     }
 }
 
-dataSourceMenu = new Ext.menu.Menu({
-    id: 'dataSourceMenu',
-    items: [{
-        xtype: 'menuitem',
-        text: _t('Add Data Point To Graph'),
-        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-        handler: showAddToGraphDialog
-    },{
-        xtype: 'menuitem',
-        text: _t('Add Data Point'),
-        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-        handler: showAddDataPointDialog
-    },{
-        xtype: 'menuitem',
-        text: _t('View and Edit Details'),
-        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-        handler: editDataSourceOrPoint
-    }]
-});
+
 
 
 /**
@@ -641,6 +622,7 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
     alias: ['widget.DataSourceTreeGrid'],
 
     constructor: function(config) {
+
         Ext.applyIf(config, {
             useArrows: true,
             cls: 'x-tree-noicon',
@@ -688,7 +670,24 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                         Zenoss.registerTooltipFor('datasourceEditButton');
                     }
                 },
-                menu: 'dataSourceMenu'
+                menu: new Ext.menu.Menu({
+                    items: [{
+                        xtype: 'menuitem',
+                        text: _t('Add Data Point To Graph'),
+                        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                        handler: showAddToGraphDialog
+                    },{
+                        xtype: 'menuitem',
+                        text: _t('Add Data Point'),
+                        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                        handler: showAddDataPointDialog
+                    },{
+                        xtype: 'menuitem',
+                        text: _t('View and Edit Details'),
+                        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                        handler: editDataSourceOrPoint
+                    }]
+                })
             }],
             columns: [{
                 xtype: 'treecolumn', //this is so we know which column will show the tree
