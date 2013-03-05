@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-02-11 08:46:07.396858
+    Zenoss RelationshipManager export completed on 2013-03-05 17:49:56.049005
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.2.70 r69489]" export_date="2013-02-11 08:46:07.396858" zenoss_server="umbra" >
+<objects version="[Zenoss, version 4.2.70]" export_date="2013-03-05 17:49:56.049005" zenoss_server="localhost.localdomain" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -88,7 +88,7 @@ False
 ['Device']
 </property>
 <property visible="True" type="string" id="zLocalIpAddresses" >
-^127|^0\.0|^169\.254|^224|^fe80::
+^127|^0\.0|^169\.254|^224
 </property>
 <property visible="True" type="string" id="zLocalInterfaceNames" >
 ^lo|^vmnet
