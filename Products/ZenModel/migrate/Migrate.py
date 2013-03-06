@@ -310,6 +310,7 @@ class Migration(ZenScriptBase):
             return
         self.backup()
         try:
+            self.disableTimeout()
             self.migrate()
             self.success()
         except Exception, ex:
@@ -317,6 +318,12 @@ class Migration(ZenScriptBase):
             self.recover()
             raise
 
+    def disableTimeout(self):
+        try:
+            from ZenPacks.zenoss.CatalogService.service import disableTransactionTimeout
+            disableTransactionTimeout()
+        except ImportError:
+            pass
 
     def error(self, msg):
         "Deprecated"
