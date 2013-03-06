@@ -301,6 +301,8 @@ class Migration(ZenScriptBase):
             rl.setupLogging()
             rl.loadDatabase()
 
+            # Update JavaScript portlets
+            self.dmd.ZenPortletManager.update_source()
 
     def cutover(self):
         '''perform the migration, applying all the new steps,
@@ -313,7 +315,7 @@ class Migration(ZenScriptBase):
             self.disableTimeout()
             self.migrate()
             self.success()
-        except Exception, ex:
+        except Exception:
             log.warning("Recovering")
             self.recover()
             raise
