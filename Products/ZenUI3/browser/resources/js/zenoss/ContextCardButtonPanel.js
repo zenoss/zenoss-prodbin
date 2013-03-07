@@ -28,7 +28,7 @@ Ext.override(Ext.layout.CardLayout, {
 });
 
 Ext.define("Zenoss.ContextCardPanel", {
-    extend:"Ext.Container",
+    extend:"Ext.Panel",
     alias: ['widget.contextcardpanel'],
     contextUid: null,
     constructor: function(config) {
