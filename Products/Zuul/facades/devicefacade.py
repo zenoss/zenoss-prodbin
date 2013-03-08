@@ -170,16 +170,13 @@ class DeviceFacade(TreeFacade):
 
         # unbrain the results
         comps=map(IInfo, map(unbrain, brains))
-        total = len(comps)
-        hash_ = str(total)
-        
         
         # filter the components
         if name is not None:
-            wrapped = map(IInfo, map(unbrain, brains))
-            comps = self._filterComponents(wrapped, keys, name)
-            total = len(comps)
-            hash_ = str(total)
+            comps = self._filterComponents(comps, keys, name)
+
+        total = len(comps)
+        hash_ = str(total)
 
         # sort the components
         sortedResults = list(sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse))
