@@ -8,24 +8,26 @@
 ##############################################################################
 
 
-__doc__="""ManagedEntity
-
-$Id: DeviceComponent.py,v 1.1 2004/04/06 21:05:03 edahl Exp $"""
+"""ManagedEntity
+Objects that may of be interest from a CMDB perspective.
+"""
 
 import logging
 log = logging.getLogger("zen.DeviceComponent")
+
+from zope.event import notify
 
 from ZenModelRM import ZenModelRM
 from DeviceResultInt import DeviceResultInt
 from RRDView import RRDView
 from EventView import EventView
-from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
 
-from Products.ZenRelations.RelSchema import *
-from .ZenossSecurity import *
+from Products.ZenRelations.RelSchema import ToMany
+from .ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE
 from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets.interfaces import IMessageSender
+
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
     """
@@ -72,7 +74,6 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
         """
         return self.convertProdState(self.productionState)
 
-
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, maintWindowChange=False, REQUEST=None):
         """
@@ -99,3 +100,4 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
                                       self.getProductionStateString())
             )
             return self.callZenScreen(REQUEST)
+
