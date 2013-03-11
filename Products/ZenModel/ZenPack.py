@@ -396,7 +396,8 @@ class ZenPack(ZenModelRM):
         @type app: ZenPack object
         """
         for name, value, pType in self.packZProperties:
-            app.zport.dmd.Devices._delProperty(name)
+            if app.zport.dmd.Devices.hasProperty(name):
+                app.zport.dmd.Devices._delProperty(name)
 
 
     def removeCatalogedObjects(self, app):
