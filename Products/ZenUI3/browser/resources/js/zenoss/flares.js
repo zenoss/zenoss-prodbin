@@ -350,6 +350,7 @@
                 this.checkMessages();
             }, this);
             this._task.delay(this.interval);
+            this.checkMessages()
         },
         checkMessages: function() {
             Zenoss.remote.MessagingRouter.getUserMessages({}, function(results) {
