@@ -26,7 +26,7 @@ different user."
     exit 1
 fi
 
-PIDFILE=$ZENHOME/var/zredis.pid
+PIDFILE=$ZENHOME/var/zredis-localhost.pid
 CONF_FILE=$ZENHOME/var/redis.conf
 REDIS_SERVER=`which redis-server`
 if [ -z "REDIS_SERVER" ];then
@@ -87,6 +87,14 @@ stop() {
     echo "stopping..."
     if running; then
         kill `cat $PIDFILE`
+        x=1
+        while running; do
+          sleep 1
+          x=$(( $x + 1 ));
+          if [ $x -ge 5 ]; then
+            break
+          fi
+        done
     else
         echo "already stopped"
     fi

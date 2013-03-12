@@ -400,6 +400,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
       "zenrrdcached": "Controls the write cache for performance data",
       "zenmail": "Listen for e-mail and convert messages to Zenoss events",
       "zenpop3": "Connect via pop3 to an e-mail server and convert messages to Zenoss events",
+      "zredis": "Multipurpose cross-collector transient data storage in Redis"
     }
 
     def getZenossDaemonStates(self):
@@ -654,7 +655,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             )
             return []
 
-        if daemon in [ 'zeoctl', 'zopectl', 'zeneventserver' ]:
+        if daemon in [ 'zeoctl', 'zopectl', 'zeneventserver', 'zredis' ]:
             return []
 
         # sanitize the input
