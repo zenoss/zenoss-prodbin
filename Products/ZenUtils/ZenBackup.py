@@ -31,6 +31,9 @@ import Globals
 from ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath, readable_time, unused
 from ZenBackupBase import *
+from zope.interface import implements
+from Products.Zuul.interfaces import IPreBackupEvent, IPostBackupEvent
+from zope.event import notify
 
 unused(Globals)
 
@@ -46,6 +49,16 @@ def strip_definer(mysqldump_line):
         #    (2) are shorter than 500 characters.
         return mysqldump_line
     return DEFINER_PATTERN.sub('', mysqldump_line)
+
+class PreBackupEvent(object):
+    implements(IPreBackupEvent)
+    def __init__(self, zen_backup_object):
+        self._zen_backup_object = zen_backup_object
+
+class PostBackupEvent(object):
+    implements(IPostBackupEvent)
+    def __init__(self, zen_backup_object):
+        self._zen_backup_object = zen_backup_object
 
 class ZenBackupException(Exception):
     def __init__(self, value="", critical=False):
@@ -423,7 +436,7 @@ class ZenBackup(ZenBackupBase):
         self.tempDir = os.path.join(self.rootTempDir, BACKUP_DIR)
         self.log.debug("Use %s as a staging directory for the backup", self.tempDir)
         os.mkdir(self.tempDir, 0750)
-
+        
         # Do a full backup of zep if noEventsDb is false, otherwise only back
         # up a small subset of tables to capture the event triggers.
         if not self.options.noEventsDb or not self.options.noZopeDb:
@@ -434,12 +447,7 @@ class ZenBackup(ZenBackupBase):
                 messages.append(str(e))
         else:
             self.log.info('Skipping backup of the events database.')
-
-        if self.options.noZopeDb:
-            self.log.info('Skipping backup of ZODB.')
-        else:
-            self.backupZODB()
-
+        
         # Copy /etc to backup dir (except for sockets)
         self.log.info('Backing up config files.')
         etcTar = tarfile.open(os.path.join(self.tempDir, 'etc.tar'), 'w')
@@ -447,13 +455,24 @@ class ZenBackup(ZenBackupBase):
         etcTar.add(zenPath('etc'), 'etc')
         etcTar.close()
         self.log.info("Backup of config files completed.")
+        
+        if self.options.noZopeDb:
+            self.log.info('Skipping backup of ZODB.')
+        else:
+            notify(PreBackupEvent(self))
+            self.backupZODB()
 
         if self.options.noZenPacks:
             self.log.info('Skipping backup of ZenPack data.')
         else:
+            partBeginTime = time.time()
             self.backupZenPacks()
             self.backupZenPackContents()
-            self.log.info("Backup of ZenPacks completed.")
+            partEndTime = time.time()
+            subtotalTime = readable_time(partEndTime - partBeginTime)
+            self.log.info("Backup of ZenPacks completed in %s.", subtotalTime)
+        
+        notify(PostBackupEvent(self))
 
         if self.options.noPerfData:
             self.log.info('Skipping backup of performance data.')
