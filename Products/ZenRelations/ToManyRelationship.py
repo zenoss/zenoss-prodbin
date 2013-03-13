@@ -176,13 +176,7 @@ class ToManyRelationship(ToManyRelationshipBase):
 
     def objectValuesGen(self):
         """Generator that returns all related objects."""
-        rname = self.remoteName()
-        parobj = self.getPrimaryParent()
         for obj in self._objects:
-            # Disabling relationship checking code.
-            # http://dev.zenoss.org/trac/ticket/5391
-            #if self.checkObjectRelation(obj, rname, parobj, True):
-            #    continue
             yield obj.__of__(self)
 
 
