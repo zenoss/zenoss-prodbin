@@ -243,6 +243,7 @@ def findZenossProducts(include_zenpacks):
         'ZenWidgets',
         'Zuul',
         'ZenCollector',
+        'ZenMessaging',
     )]
     if include_zenpacks:
         zenpacks = findZenPackNames()

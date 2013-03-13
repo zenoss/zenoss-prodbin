@@ -80,18 +80,64 @@ class ModelChangePublisher(object):
         return str(IGlobalIdentifier(ob).create())
 
     def publishAdd(self, ob):
+        """
+        Schedules a ModelChange event message with the 'ADDED' operation for ob.
+
+        This method and the publishRemove method maintain the following set invariants
+        after their execution:
+            - _removedGuids & _addedGuids == set()
+            - guid in (_removedGuids | _addedGuids)
+            - _total == # of calls to publish*
+            - len([msg for msg in _msgs
+                    if msg[1][0] == ob and msg[1][1] in ('ADDED', 'REMOVED')]) == 1
+        In addition, this method assures:
+            - guid in _addedGuids
+            - (function, (ob, 'ADDED')) in _msgs
+        @param ob: the object added to the model
+        @type ob: IGlobalIdentifier
+        """
         self._total+=1
         guid = self._getGUID(ob)
         if not guid in self._addedGuids:
+            if guid in self._removedGuids:
+                # get rid of the previously scheduled removal of this object
+                try:
+                    self._msgs.remove((self._createModelEventProtobuf, (ob, 'REMOVED')))
+                except ValueError: pass
+                self._removedGuids.remove(guid)
+                self._discarded+=1
             self._msgs.append((self._createModelEventProtobuf, (ob, 'ADDED')))
             self._addedGuids.add(guid)
         else:
             self._discarded+=1
 
     def publishRemove(self, ob):
+        """
+        Schedules a ModelChange event message with the 'REMOVED' operation for ob.
+
+        This method and the publishAdd method maintain the following set invariants
+        after their execution:
+            - _removedGuids & _addedGuids == set()
+            - guid in (_removedGuids | _addedGuids)
+            - _total == # of calls to publish*
+            - len([msg for msg in _msgs
+                    if msg[1][0] == ob and msg[1][1] in ('ADDED', 'REMOVED')]) == 1
+        In addition, this method assures:
+            - guid in _removedGuids
+            - (function, (ob, 'REMOVED')) in _msgs
+        @param ob: the object added to the model
+        @type ob: IGlobalIdentifier
+        """
         self._total+=1
         guid = self._getGUID(ob)
         if not guid in self._removedGuids:
+            if guid in self._addedGuids:
+                # get rid of the previously scheduled add of this object
+                try:
+                    self._msgs.remove((self._createModelEventProtobuf, (ob, 'ADDED')))
+                except ValueError: pass
+                self._addedGuids.remove(guid)
+                self._discarded+=1
             self._msgs.append((self._createModelEventProtobuf, (ob, 'REMOVED')))
             self._removedGuids.add(guid)
         else:
@@ -163,36 +209,20 @@ class PublishSynchronizer(object):
 
     _queuePublisher = None
 
-    def findNonImpactingEvents(self, events, attribute):
-        removeEventIds = []
-        addEvents = [event for event in events if event.type == event.ADDED]
-        removeEvents = [event for event in events if event.type == event.REMOVED]
-        for removeEvent in removeEvents:
-            if not addEvents:
-                break
-            removeComp = getattr(removeEvent, attribute)
-            for addEvent in addEvents:
-                addComp = getattr(addEvent, attribute)
-                if addComp.uuid == removeComp.uuid:
-                    removeEventIds.append(addEvent.event_uuid)
-                    removeEventIds.append(removeEvent.event_uuid)
-                    addEvents.remove(addEvent)
-                    break
-
-        return removeEventIds
+    def findNonImpactingEvents(self, events):
+        """
+        Detect and return the event_uuid for each event that we don't actually want to send
+        to the model change queue. Currently de-duplicating all ADD/REMOVE events is handled
+        when calling publishAdd/publishRemove.
+        """
+        return []
 
     def correlateEvents(self, events):
         """
-        In the case of moving objects we get a ton of add
-        and a ton of remove events. This method removes all the
-        add/removes where nothing changes.
-        NOTE: this only works on devices and components for now.
-        Also it expects for devices to have a "move" event associated.
+        In the case of moving objects we get only the latest add or remove event per device
+        or component. Also we expect devices to have a "move" event associated.
         """
-        eventsToRemove = []
-        for attribute in ("device", "component"):
-            eventsToRemove.extend(self.findNonImpactingEvents(events, attribute))
-
+        eventsToRemove = self.findNonImpactingEvents(events)
 
         eventsToKeep = events
         if eventsToRemove:
