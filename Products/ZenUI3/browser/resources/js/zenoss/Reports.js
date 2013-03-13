@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -70,6 +70,9 @@ function insertNewNode(tree, data, organizerNode) {
 
 Ext.define('Zenoss.ReportTreePanel', {
     extend: 'Zenoss.HierarchyTreePanel',
+    // Do not automatically select the first filtered result since running
+    // a report is so expensive.
+    postFilter: Ext.emptFn,
     addNode: function (nodeType, id) {
         var selNode = this.getSelectionModel().getSelectedNode(),
             tree = this,

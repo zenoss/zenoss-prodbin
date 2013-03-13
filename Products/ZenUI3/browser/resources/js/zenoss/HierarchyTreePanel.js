@@ -31,6 +31,8 @@
      * @constructor
      */
 
+
+
     /**
      * The default sort for hierarchical tree panels.
      * Show anything with a folder icon first and then sort Alpha.
@@ -573,15 +575,6 @@
                 node.expandChildNodes();
             });
         },
-        filterTree:function (e) {
-            if (!this.onFilterTask) {
-                this.onFilterTask = new Ext.util.DelayedTask(function () {
-                    this.doFilter(e);
-                }, this);
-            }
-
-            this.onFilterTask.delay(500);
-        },
         expandAll:function () {
             // we have a hidden pseudo-root so we need to
             // expand all from the first visible root
@@ -591,58 +584,59 @@
                 this.callParent(arguments);
             }
         },
-        doFilter:function (e) {
-            var text = e.getValue(),
-                me = this,
-                root = this.getRootNode();
-            this.fireEvent('filter', e);
-            if (this.hiddenPkgs) {
-                Ext.each(this.hiddenPkgs, function (n) {
-                    me.setNodeVisible(n.getId(), true);
-                });
+        filterTree:function (e) {
+            if (!this.onFilterTask) {
+                this.onFilterTask = new Ext.util.DelayedTask(function () {
+                    this.doFilter(e);
+                }, this);
             }
-            this.hiddenPkgs = [];
-            if (!text) {
-                // reset the tree to the initial state
-                this.collapseAll();
-                if (root) {
-                    root.expand();
-                    if (root.childNodes) {
-                        root.childNodes[0].expand();
-                    }
-                }
-                return;
-            }
-            this.expandAll();
-            var re = new RegExp(Ext.escapeRe(text), 'i');
 
-            root.cascadeBy(function (n) {
-                var attr = n.data.text;
+            this.onFilterTask.delay(1000);
+        },
+        postFilter: function(){
+            var rootNode = this.getRootNode(),
+                childNodes = rootNode.childNodes;
+
+
+            // select the first leaf
+            while (childNodes.length) {
+                if (childNodes[0].childNodes.length) {
+                    childNodes = childNodes[0].childNodes;
+                } else {
+                    break;
+                }
+            }
+
+            this.getSelectionModel().select(childNodes[0]);
+
+            // and then focus on back on the filter text
+            this.up('HierarchyTreePanelSearch').down('searchfield').focus([false]);
+        },
+        getFilterFn: function(text) {
+            var regex = new RegExp(Ext.String.escapeRegex(text),'i');
+            var fn = function(item){
+                // text can be either an object with the property text or a string
+                var attr = item.get('text');
                 if (Ext.isObject(attr)) {
                     attr = attr.text;
                 }
+                return regex.test(attr);
+            };
+            return fn;
+        },
+        doFilter:function (e) {
+            var text = e.getValue(),
+                me = this,
+                root = this.getRootNode(),
+                store = this.getStore();
+            store.clearFilter(true);
 
-                if (!n.isRoot()) {
-                    if (re.test(attr)) {
-
-                        var parentNode = n.parentNode;
-                        while (parentNode) {
-                            me.setNodeVisible(parentNode.getId(), true);
-                            parentNode.expand();
-                            parentNode = parentNode.parentNode;
-                        }
-                        // the cascade is stopped on this branch
-                        return false;
-                    } else {
-                        me.setNodeVisible(n.getId(), false);
-                        this.hiddenPkgs.push(n);
-                    }
-                }
-                // continue cascading down the tree from this node
-                return true;
-            }, this);
-
-            this.doLayout();
+            this.fireEvent('filter', e);
+            if (text) {
+                store.filter(new Ext.util.Filter({
+                    filterFn: this.getFilterFn(text)
+                }));
+            }
         },
 
         addNode:function (type, id) {

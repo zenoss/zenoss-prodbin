@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -185,6 +185,17 @@ Ext.define("Zenoss.TemplateTreePanel", {
             this.templateViewSelectByToken(id);
         }
     },
+    getFilterFn: function(text) {
+        if (this.currentView != Zenoss.templates.deviceClassView){
+            var regex = new RegExp(Ext.String.escapeRegex(text),'i');
+            var fn = function(item){
+                return regex.test(item.get('id'));
+            };
+            return fn;
+        }
+        // match against the displayed text
+        return this.callParent(arguments);
+    },
     addHistoryToken: function(view, node) {
         Ext.History.add(this.id + Ext.History.DELIMITER + node.get('uid'));
     },
@@ -230,6 +241,7 @@ Ext.define("Zenoss.TemplateTreePanel", {
         }
 
     },
+
     manualSelect: function(uid, templateName) {
         var theTree = this;
         var callback = function(success, foundNode) {

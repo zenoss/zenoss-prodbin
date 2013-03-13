@@ -961,7 +961,7 @@ var devtree = {
     loadMask: true,
     id: 'devices',
     searchField: true,
-    directFn: Zenoss.util.isolatedRequest(treeLoaderFn),
+    directFn: treeLoaderFn,
     extraFields: [{name: 'zPythonClass', type: 'string'}],
     allowOrganizerMove: false,
     stateful: treeStateful,
