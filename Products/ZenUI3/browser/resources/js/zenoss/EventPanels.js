@@ -642,6 +642,70 @@
                         }
                     }),
                     new Zenoss.ActionButton({
+                        iconCls: 'addslide',
+                        tooltip: _t('Add Log'),
+                        permission: 'Manage Events',
+                        itemId: 'addNote',
+                        handler: function(button) {
+                            var grid = Ext.getCmp(gridId),
+                                sm = grid.getSelectionModel(),
+                                selected = sm.getSelection(),
+                                data = Ext.pluck(selected, "data"),
+                                uuids = Ext.pluck(data, "evid"),
+                                addNoteWindow;
+
+                            addNoteWindow = Ext.create('Zenoss.dialog.BaseWindow', {
+                                title: _t('Add Note'),
+                                id: 'addNoteWindow',
+                                layout: 'fit',
+                                autoHeight: true,
+                                modal: true,
+                                width: 310,
+                                plain: true,
+                                items: [{
+                                    id: 'addNoteForm',
+                                    xtype: 'form',
+                                    defaults: {width: 290},
+                                    autoHeight: true,
+                                    frame: false,
+                                    fieldDefaults: {
+                                        labelWidth: 100
+                                    },
+                                    items: [{
+                                        xtype: 'textarea',
+                                        name: 'note',
+                                        fieldLabel: _t('note'),
+                                        allowBlank: false
+                                    }],
+                                    buttons: [{
+                                        text: _t('Submit'),
+                                        xtype: 'DialogButton',
+                                        formBind: true,
+                                        handler: function() {
+                                            var form = Ext.getCmp('addNoteForm'),
+                                                note = form.getValues().note;
+
+                                            Ext.each(uuids, function(uuid) {
+                                                Zenoss.remote.EventsRouter.write_log(
+                                                {
+                                                    evid: uuid,
+                                                    message: note
+                                                });
+                                            });
+                                        }
+                                    },{
+                                        text: _t('Cancel'),
+                                        xtype: 'DialogButton',
+                                        handler: function(){
+                                            addNoteWindow.hide();
+                                        }
+                                    }]
+                                }]
+                            });
+                            addNoteWindow.show();
+                        }
+                    }),
+                    new Zenoss.ActionButton({
                         iconCls: 'add',
                         tooltip: _t('Add an event'),
                         permission: 'Manage Events',
@@ -780,7 +844,7 @@
                 this.on('selectionchange', function(selectionmodel) {
                     // Disable buttons if nothing selected (and vice-versa)
                     var actionsToChange = ['acknowledge', 'close', 'reopen',
-                                           'unacknowledge', 'classify'],
+                                           'unacknowledge', 'classify', 'addNote'],
                         newDisabledValue = !selectionmodel.hasSelection() && selectionmodel.selectState !== 'All',
                         tbar = this.getGrid().tbar,
                         history_combo = Ext.getCmp('history_combo'),
