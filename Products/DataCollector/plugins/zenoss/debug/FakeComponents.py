@@ -124,7 +124,7 @@ class FakeComponents(PythonPlugin):
         return attributes
 
     def createComponent(self, current, idTemplate, settings, attributes,
-                        compname=None, relname=None, modname=None):
+                        compname=None, modname=None):
         """
         Create an object map (om) from the definition
         """
@@ -132,7 +132,6 @@ class FakeComponents(PythonPlugin):
         om.id = idTemplate % { 'counter': current }
         if compname:
             om.compname = compname
-        om.relname = relname
         om.modname = modname
         return om
 
