@@ -23,13 +23,15 @@ from RRDView import RRDView
 from EventView import EventView
 from Products.Zuul.catalog.events import IndexingEvent
 
-from Products.ZenRelations.RelSchema import ToMany
+from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
 from .ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE
 from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets.interfaces import IMessageSender
+from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
 
 
-class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
+class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView,
+                    MaintenanceWindowable):
     """
     ManagedEntity is an entity in the system that is managed by it.
     Its basic property is that it can be classified by the ITClass Tree.
@@ -57,6 +59,8 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
     _relations = (
         ("dependencies", ToMany(ToMany, "Products.ZenModel.ManagedEntity", "dependents")),
         ("dependents", ToMany(ToMany, "Products.ZenModel.ManagedEntity", "dependencies")),
+        ("maintenanceWindows",ToManyCont(
+            ToOne, "Products.ZenModel.MaintenanceWindow", "productionState")),
     )
 
     security = ClassSecurityInfo()
