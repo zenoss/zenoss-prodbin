@@ -32,7 +32,7 @@ from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenEvents.events2.processing import (Manager, EventPluginPipe, CheckInputPipe, IdentifierPipe,
     AddDeviceContextAndTagsPipe, TransformAndReidentPipe, TransformPipe, UpdateDeviceContextAndTagsPipe,
     AssignDefaultEventClassAndTagPipe, FingerprintPipe, SerializeContextPipe, ClearClassRefreshPipe,
-    EventContext, DropEvent, ProcessingException)
+    EventContext, DropEvent, ProcessingException, CheckHeartBeatPipe)
 from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
 from Products.ZenEvents.daemonlifecycle import DaemonCreatedEvent, SigTermEvent, SigUsr1Event
 from Products.ZenEvents.daemonlifecycle import DaemonStartRunEvent, BuildOptionsEvent
@@ -67,6 +67,7 @@ class EventPipelineProcessor(object):
             SerializeContextPipe(self._manager),
             EventPluginPipe(self._manager, IPostEventPlugin, 'PostEventPluginPipe'),
             ClearClassRefreshPipe(self._manager),
+            CheckHeartBeatPipe(self._manager)
         )
 
         if not self.SYNC_EVERY_EVENT:

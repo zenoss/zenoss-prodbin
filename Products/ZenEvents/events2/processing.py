@@ -806,3 +806,22 @@ class TestPipeExceptionPipe(EventProcessorPipe):
 
     def __call__(self, eventContext):
         raise self.exceptionClass('Testing pipe processing failure')
+
+class CheckHeartBeatPipe(EventProcessorPipe):
+    """
+    After the mappings and transforms have been applied, we
+    need to recheck to see if it is a HeartBeat event as those are
+    treated differently.
+    """
+    def __call__(self, eventContext):
+        proxy = eventContext.eventProxy
+        if proxy.eventClass == ZenEventClasses.Heartbeat:
+            log.debug("Converting %s to a heartbeat event", proxy)
+            # do not publish this event
+            proxy._action = proxy.ACTION_DROP
+            try:
+                self._manager.dmd.ZenEventManager._sendHeartbeat(proxy)
+            except Exception as e:
+                log.error("Unable to send heartbeat event %s", proxy)
+                log.exception(e)
+        return eventContext
