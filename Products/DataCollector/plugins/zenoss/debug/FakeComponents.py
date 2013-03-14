@@ -72,10 +72,12 @@ class FakeComponents(PythonPlugin):
 
         count = settings.getint(section, 'count')
         idTemplate = settings.get(section, 'idTemplate')
-        attributes = self.getAttributes(section, log)
+        attributes = self.getAttributes(settings, section, log)
         compname, relname, modname = self.getComponentTypeInfo(settings, section, log)
 
         rm = self.relMap()
+        rm.compname = compname
+        rm.relname = relname
         for i in xrange(count):
             om = self.createComponent(i, idTemplate, settings, attributes,
                                       compname, relname, modname)
