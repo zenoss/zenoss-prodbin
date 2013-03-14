@@ -2,6 +2,7 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
     xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:meta="http://namespaces.zope.org/meta"
     >
 
     <include package=".extdirect.zope"/>
@@ -31,5 +32,8 @@
             for="zope.processlifetime.IDatabaseOpenedWithRoot"
             handler=".events.notifyZopeApplicationOpenedSubscribers"
             />
+
+    <!-- advertize that Zenoss provides pre/post backup events -->
+    <meta:provides feature="PrePostBackupEvents" /> 
 
 </configure>
