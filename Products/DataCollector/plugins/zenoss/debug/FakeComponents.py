@@ -80,7 +80,7 @@ class FakeComponents(PythonPlugin):
         rm.relname = relname
         for i in xrange(count):
             om = self.createComponent(i, idTemplate, settings, attributes,
-                                      compname, relname, modname)
+                                      compname, modname)
             if om is not None:
                 rm.append(om)
 
