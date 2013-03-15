@@ -156,3 +156,32 @@ class TriggersRouter(DirectRouter):
         response = self._getFacade().updateWindow(data)
         audit('UI.NotificationWindow.Edit', windowUid, data_=data)
         return DirectResponse.succeed(data=Zuul.marshal(response))
+
+    @serviceConnectionError
+    def exportConfiguration(self, triggerIds=None, notificationIds=None):
+        facade = self._getFacade()
+        triggers, notifications = facade.exportConfiguration(triggerIds, notificationIds)
+        msg = "Exported %d triggers and %d notifications" % (
+                 len(triggers), len(notifications)) 
+        audit('UI.TriggerNotification.Export', msg)
+        return DirectResponse.succeed(triggers=Zuul.marshal(triggers),
+                                      notifications=Zuul.marshal(notifications),
+                                      msg=msg)
+
+    @serviceConnectionError
+    def importConfiguration(self, triggers=None, notifications=None):
+        try:
+            tcount = len(triggers) if triggers is not None else 0
+            ncount = len(notifications) if notifications is not None else 0
+            facade = self._getFacade()
+            itcount, incount = facade.importConfiguration(triggers, notifications)
+            msg = "Imported %d of %d triggers and %d of %d notifications" % (
+                        tcount, itcount, ncount, incount)
+            audit('UI.TriggerNotification.Import', msg) 
+            return DirectResponse.succeed(msg=msg)
+        except Exception as ex:
+            audit('UI.TriggerNotification.Import', "Failed to import trigger/notification data")
+            log.exception("Unable to import data:\ntriggers=%s\nnotifications=%s",
+                          repr(triggers), repr(notifications))
+            return DirectResponse.fail(str(ex))
+

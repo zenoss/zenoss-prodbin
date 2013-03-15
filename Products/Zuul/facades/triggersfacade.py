@@ -8,15 +8,18 @@
 ##############################################################################
 
 
+from copy import deepcopy
 from datetime import datetime
 import logging
 import parser
+
 from Acquisition import aq_parent
 from zExceptions import BadRequest
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
 from zope.interface import providedBy
 
+from Products.Zuul import marshal
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
@@ -562,6 +565,206 @@ class TriggersFacade(ZuulFacade):
 
         log.debug('updated window')
 
+    def exportConfiguration(self, triggerIds=None, notificationIds=None):
+        notifications = []
+        if notificationIds is None:
+            notificationIds = []
+            notifications = list(self.getNotifications())
+        elif isinstance(notificationIds, str):
+            notificationIds = [notificationIds]
+
+        triggers = self.getTriggers()
+        if triggerIds is not None:
+            names = [triggerIds] if isinstance(triggerIds, str) else triggerIds
+            triggers = [x for x in triggers if x['name'] in names]
+            for trigger in triggers:
+                uid = trigger['uuid']
+                nsIds = [x.id for x in self.getNotificationsBySubscription(uid)]
+                notificationIds.extend(nsIds)
+
+        triggerData = self.exportTriggers(triggers)
+
+        if notificationIds:
+            notifications = [x for x in notifications if x.id in notificationIds]
+
+        notificationData = self.exportNotifications(notifications)
+
+        return triggerData, notificationData
+
+    def exportTriggers(self, triggers):
+        configs = []
+        junkColumns = ('id', 'newId')
+        for config in triggers:
+            for item in junkColumns:
+                if item in config:
+                    del config[item]
+            configs.append(config)
+        return configs
+
+    def exportNotifications(self, notifications):
+        configs = []
+        junkColumns = ('id', 'newId', 'uid', 'inspector_type', 'meta_type')
+        for notificationInfo in notifications:
+            config = marshal(notificationInfo)
+            for item in junkColumns:
+                if item in config:
+                    del config[item]
+
+            contentsTab = self._extractNotificationContentInfo(config)
+            del config['content']
+            config.update(contentsTab)
+
+            config['recipients'] = [r['label'] for r in config['recipients']]
+            config['subscriptions'] = [x['name'] for x in config['subscriptions']]
+
+            windows = []
+            for window in notificationInfo._object.windows():
+                winconfig = marshal(IInfo(window))
+                for witem in ('meta_type', 'newId', 'id', 'inspector_type', 'uid'):
+                    del winconfig[witem]
+                windows.append(winconfig)
+            config['windows'] =  windows
+
+            configs.append(config)
+        return configs
+
+    def _extractNotificationContentInfo(self, notification):
+        contents = {}
+        try:
+            for itemInfo in notification['content']['items'][0]['items']:
+                key = itemInfo['name']
+                contents[key] = itemInfo['value']
+        except Exception:
+            log.exception("Unable to extract data from notifcation: %s",
+                          notification)
+        return contents
+
+    def importConfiguration(self, triggers=None, notifications=None):
+        itcount, incount = 0, 0
+        if triggers:
+            itcount = self.importTriggers(triggers)
+        if notifications:
+            incount = self.importNotifications(notifications)
+        return itcount, incount
+
+    def importTriggers(self, triggers):
+        """
+        Add any new trigger definitions to the system.
+
+        Note: modifies the triggers argument to add 'new_uuid' to the definition.
+
+        Does not attempt to link a trigger to a notification.
+        """
+        existingTriggers = [x['name'] for x in self.getTriggerList()]
+        existingUsers = [x.id for x in self._dmd.ZenUsers.getAllUserSettings()]
+
+        removeDataList = [ 'subscriptions' ]
+
+        imported = 0
+        for trigger in triggers:
+            name = trigger.get('name')
+            if name is None:
+                log.warn("Missing name in trigger definition: %s", trigger)
+                continue
+            if name in existingTriggers:
+                log.warn("Skipping existing trigger '%s'", name)
+                continue
+
+            data = deepcopy(trigger)
+            trigger['new_uuid'] = data['uuid'] = self.addTrigger(name)
+
+            # Cleanup
+            for key in removeDataList:
+                if key in data:
+                    del data[key]
+
+            # Don't delete data from list you're looping through
+            for user in trigger.get('users', []):
+                if user not in existingUsers:
+                    log.warning("Unable to find trigger %s user '%s' on this server -- skipping",
+                                name, user)
+                    data['users'].remove(user)
+
+            # Make changes to the definition
+            self.updateTrigger(**data)
+            imported += 1
+
+        return imported
+
+    def importNotifications(self, notifications):
+        """
+        Add new notification definitions to the system.
+        """
+        existingNotifications = [x.id for x in self.getNotifications()]
+        existingTypes = [x.action for x in self.getNotifications()]
+        usersGroups = dict( (x['label'], x) for x in self.getRecipientOptions())
+        trigerToUuid = dict( (x['name'], x['uuid']) for x in self.getTriggers())
+
+        imported = 0
+        for notification in notifications:
+            name = notification.get('name')
+            if name is None:
+                log.warn("Missing name in notification definition: %s", notification)
+                continue
+            if name in existingNotifications:
+                log.warn("Skipping existing notification '%s'", name)
+                continue
+            ntype = notification.get('action')
+            if ntype is None:
+                log.warn("Missing 'action' in notification definition: %s", notification)
+                continue
+            if ntype not in existingTypes:
+                log.warn("The notification %s references an unknown action type: %s",
+                         name, ntype)
+                continue
+
+            data = deepcopy(notification)
+            obj = self.addNotification(name, ntype)
+            notification['uid'] = data['uid'] = obj.getPrimaryUrlPath()
+
+            self.getRecipientsToImport(name, data, usersGroups)
+
+            if 'action' in data:
+                del data['action']
+
+            self.linkImportedNotificationToTriggers(data, trigerToUuid)
+
+            windows = data.get('windows', [])
+            if windows:
+                for window in windows:
+                    iwindow = self.addWindow(data['uid'], window['name'])
+                    del window['name']
+                    window['uid'] = iwindow.uid
+                    self.updateWindow(window)
+                del data['windows']
+
+            # Make changes to the definition
+            self.updateNotification(**data)
+            imported += 1
+
+        return imported
+
+    def getRecipientsToImport(self, name, data, usersGroups):
+        recipients = []
+        for label in data.get('recipients', []):
+            if label in usersGroups:
+                recipients.append(usersGroups[label])
+            else:
+                log.warn("Unable to find %s for recipients for notification %s",
+                         label, name)
+        data['recipients'] = recipients
+
+    def linkImportedNotificationToTriggers(self, notification, trigerToUuid):
+        subscriptions = []
+        for subscription in notification.get('subscriptions', []):
+            uuid = trigerToUuid.get(subscription['name'])
+            if uuid is not None:
+                subscriptions.append(uuid)
+            else:
+                log.warn("Unable to link notification %s to missing trigger '%s'",
+                         notification['name'], subscription['name'])
+        notification['subscriptions'] = subscriptions
+
 
 class TriggerPermissionManager(object):
     """
@@ -777,3 +980,4 @@ class NotificationPermissionManager(object):
              NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE),
             acquire=False
         )
+
