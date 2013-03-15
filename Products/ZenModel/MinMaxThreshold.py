@@ -304,10 +304,10 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
         if not color.startswith('#'):
             color = '#%s' % color
         minval = self.minimum
-        if minval is None:
+        if minval is None or minval == '':
             minval = NaN
         maxval = self.maximum
-        if maxval is None:
+        if maxval is None or maxval == '':
             maxval = NaN
         if not self.dataPointNames:
             return gopts
@@ -333,7 +333,7 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
             except:
                 maxval= 0
                 self.raiseRPNExc()
-
+        
         minstr = self.setPower(minval)
         maxstr = self.setPower(maxval)
 

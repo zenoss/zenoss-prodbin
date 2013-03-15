@@ -50,7 +50,7 @@ class TestPublishModelChanges(BaseTestCase):
     def testObjectRemovedEvent(self):
         self.publisher._eventList = ModelEventList()
         self.publisher.publishRemove(self.device)
-        self.assertEqual(len(self.publisher.events), 2)
+        self.assertEqual(len(self.publisher.events), 1)
 
     def testAddToOrganizer(self):
         self.publisher._eventList = ModelEventList()
