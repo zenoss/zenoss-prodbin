@@ -24,6 +24,7 @@ from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenUtils.PkgResources import pkg_resources
 from Products.Zuul.utils import CatalogLoggingFilter
 import Products.ZenModel.ZenPackLoader as ZPL
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_ERROR
 import zenpack as oldzenpack
 import transaction
 import os, sys
@@ -246,11 +247,11 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                 nonCriticalErrorEncountered = True
                 if sendEvent:
                     ZPEvent(dmd, 3, ex.message)
-    except Exception, e:
+    except Exception as e:
         # Get that exception out there in case it gets blown away by ZPEvent
         log.exception("Error installing ZenPack %s" % eggPath)
         if sendEvent:
-            ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
+            ZPEvent(dmd, SEVERITY_ERROR, 'Error installing ZenPack %s' % eggPath,
                 '%s: %s' % sys.exc_info()[:2])
         # Don't just raise, because if ZPEvent blew away exception context
         # it'll be None, which is bad. This manipulates the stack to look like
@@ -262,7 +263,7 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
         if zenPackIds:
             ZPEvent(dmd, 2, 'Installed ZenPacks %s' % ','.join(zenPackIds))
         elif not nonCriticalErrorEncountered:
-            ZPEvent(dmd, 4, 'Unable to install %s' % eggPath)
+            ZPEvent(dmd, SEVERITY_ERROR, 'Unable to install %s' % eggPath)
     return zenPacks
 
 
@@ -274,8 +275,7 @@ def InstallEgg(dmd, eggPath, link=False):
     """
     eggPath = os.path.abspath(eggPath)
     zenPackDir = zenPath('ZenPacks')
-    eggInZenPacksDir = eggPath.startswith(zenPackDir + '/')
-        
+
     # Make sure $ZENHOME/ZenPacks exists
     CreateZenPacksDir()
 
@@ -684,7 +684,7 @@ def FetchAndInstallZenPack(dmd, zenPackName, sendEvent=True):
     except Exception, ex:
         log.exception("Error fetching ZenPack %s" % zenPackName)
         if sendEvent:
-            ZPEvent(dmd, 4, 'Failed to install ZenPack %s' % zenPackName,
+            ZPEvent(dmd, SEVERITY_ERROR, 'Failed to install ZenPack %s' % zenPackName,
                 '%s: %s' % sys.exc_info()[:2])
 
         raise ex
@@ -693,7 +693,7 @@ def FetchAndInstallZenPack(dmd, zenPackName, sendEvent=True):
         if zenPackIds:
             ZPEvent(dmd, 2, 'Installed ZenPacks: %s' % ', '.join(zenPackIds))
         if zenPackName not in zenPackIds:
-            ZPEvent(dmd, 4, 'Unable to install ZenPack %s' % zenPackName)
+            ZPEvent(dmd, SEVERITY_ERROR, 'Unable to install ZenPack %s' % zenPackName)
     return zenPacks
 
 
@@ -763,12 +763,10 @@ def UploadZenPack(dmd, packName, project, description, znetUser, znetPass):
 
     # Export the zenpack
     fileName = zp.manage_exportPack()
-    filePath = zenPath('export', fileName)
 
     # Login to Zenoss.net
     from DotNetCommunication import DotNetSession
     session = DotNetSession()
-    userSettings = dmd.ZenUsers.getUserSettings()
     session.login(znetUser, znetPass)
 
     # Upload
@@ -889,7 +887,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
         # Get that exception out there in case it gets blown away by ZPEvent
         log.exception("Error removing ZenPack %s" % packName)
         if sendEvent:
-            ZPEvent(dmd, 4, 'Error removing ZenPack %s' % packName,
+            ZPEvent(dmd, SEVERITY_ERROR, 'Error removing ZenPack %s' % packName,
                 '%s: %s' % sys.exc_info()[:2])
 
         # Don't just raise, because if ZPEvent blew away exception context
