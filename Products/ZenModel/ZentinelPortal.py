@@ -15,6 +15,7 @@ $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 
 import urllib, urlparse
 import re
+import textwrap
 
 import Globals
 
@@ -61,6 +62,28 @@ class ZentinelPortal ( PortalObjectBase ):
 
     def _additionalQuery(self):
         return None
+
+    def getLoginMessage(self):
+        WIDTH = 27
+        DELIMITER = "<br />"
+
+        request = self.REQUEST
+        session = self.session_data_manager.getSessionData()
+
+        url = request.form.get('came_from')
+
+        if 'terms' in url:
+            msg = "You did not accept the Zenoss Terms."
+        elif session.get('login_message'):
+            msg = session.get('login_message')
+            del session['login_message']
+        elif 'submitted' in url:
+            msg = "Your session has expired, or the entered password, or " \
+                  "the username is incorrect."
+        else:
+            msg = ""
+
+        return DELIMITER.join(textwrap.wrap(msg, WIDTH))
 
     security.declareProtected(ZEN_COMMON, 'searchDevices')
     @deprecated

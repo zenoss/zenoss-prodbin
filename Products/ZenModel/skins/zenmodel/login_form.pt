@@ -109,7 +109,7 @@
                     <input id="passwrd" type="password" name="__ac_password" 
                            class="inputbox" style="top:202px;"/> 
                     <div id="errorbox">
-                        <tal:block define="msg here/getLoginMessage"
+                        <tal:block define="msg here/zport/getLoginMessage"
                             tal:omit-tag=""
                             tal:on-error="string:">
                             <span class="error" tal:condition="msg"
