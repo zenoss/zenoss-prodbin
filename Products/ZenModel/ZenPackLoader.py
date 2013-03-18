@@ -519,7 +519,8 @@ class ZPZep(ZenPackLoader):
         data = {}
         try:
             with open(conf, "r") as configFile:
-                data = json.load(configFile)
+                cleanJson = self._stripComments(configFile)
+                data = json.loads(cleanJson)
         except IOError as e:
             # this file doesn't exist in this zenpack.
             log.debug("File could not be opened for reading: %s",
@@ -528,6 +529,10 @@ class ZPZep(ZenPackLoader):
             log.error("%s JSON data has an error:\n%s",
                       conf, e)
         return data
+
+    def _stripComments(self, configFile):
+        # Remove from // to the end of line for each line
+        return ''.join(line.split('//',1)[0] for line in configFile)
 
     def _prepare(self, pack, app):
         """
@@ -564,21 +569,35 @@ class ZPZep(ZenPackLoader):
             handler.upgrade(data)
 
 
-
 class EventDetailItemHandler(object):
     key = 'EventDetailItem'
     
     def load(self, configData):
         """
-        configData is a json dict. This is the entire config structure.
+        configData is a JSON dict that contains a key of the same
+        name as specified in this class (ie self.key).
+
+        The value from this key is expected to be an arrary of dictionaries
+        as used by the ZEP system. See the documentation in the 
+        ZenModel/ZenPackTemplate/CONTENT/zep/zep.json.example file.
         """
         if configData:
             self.zep = getFacade('zep')
-            items = configData.get(EventDetailItemHandler.key, [])
+            items = configData.get(EventDetailItemHandler.key)
+            if items is None:
+                log.warn("Expected key '%s' for details is missing from the zep.json file",
+                          self.key)
+                return
             detailItemSet = from_dict(EventDetailItemSet, dict(
+                # An empty array in details casues ZEP to puke
                 details = items
             ))
-            self.zep.addIndexedDetails(detailItemSet)
+            try:
+                self.zep.addIndexedDetails(detailItemSet)
+            except Exception as ex:
+                log.error("ZEP %s error adding detailItemSet data: %s\nconfigData= %s",
+                              getattr(ex, 'status', 'unknown'), detailItemSet, configData)
+                log.error("See the ZEP logs for more information.")
         
     def list(self, configData):
         if configData:
@@ -603,7 +622,6 @@ class EventDetailItemHandler(object):
                     else:
                         log.warning("Failed to remove indexed detail: %s", e.message)
 
-
     def upgrade(self, configData):
         if configData:
             self.zep = getFacade('zep')
@@ -612,3 +630,4 @@ class EventDetailItemHandler(object):
                 log.info("Upgrading the following to be indexed by ZEP: %s" % item)
                 detailItem = from_dict(EventDetailItem, item)
                 self.zep.updateIndexedDetailItem(detailItem)
+
