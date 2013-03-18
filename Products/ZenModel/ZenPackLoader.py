@@ -95,7 +95,7 @@ class ZPLObject(ZenPackLoader):
                         obj.buildRelations()
                         obj.removeRelation('pack')
                         obj.addRelation('pack', pack)
-                    except Exception, ex:
+                    except Exception:
                         log.exception("Error adding pack to %s",
                                       obj.getPrimaryUrlPath())
 
@@ -130,7 +130,7 @@ class ZPLObject(ZenPackLoader):
                         obj._delObject(id)
                     except ObjectNotFound:
                         obj._delOb(id)
-                except (AttributeError, KeyError), ex:
+                except (AttributeError, KeyError):
                     log.warning("Unable to remove %s on %s", id,
                                 '/'.join(path))
 
@@ -413,7 +413,6 @@ class ZPTriggerAction(ZenPackLoader):
         
         for conf in findFiles(pack, 'zep',lambda f: f == 'actions.json'):
 
-            import json
             data = json.load(open(conf, "r"))
             log.debug("DATA IS: %s" % data)
 
@@ -521,10 +520,13 @@ class ZPZep(ZenPackLoader):
         try:
             with open(conf, "r") as configFile:
                 data = json.load(configFile)
-        except IOError, e:
+        except IOError as e:
             # this file doesn't exist in this zenpack.
-            log.debug("File could not be opened for reading: %s" % conf)
-            pass
+            log.debug("File could not be opened for reading: %s",
+                      conf)
+        except ValueError as e:
+            log.error("%s JSON data has an error:\n%s",
+                      conf, e)
         return data
 
     def _prepare(self, pack, app):
