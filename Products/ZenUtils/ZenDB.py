@@ -144,6 +144,43 @@ class ZenDB(object):
             if rc:
                 raise subprocess.CalledProcessError(rc, cmd)
     
+    def asynchronousDump(self, file_handler, no_data=False):
+        """
+        kick off an SQL dump in the background & return the handler(s) to the process(es) which invoked the backup  
+        """
+        cmd = None
+        env = os.environ.copy()
+        if self.dbtype == 'mysql':
+            # TODO: Handle compression of stream (--compress)?
+            env['MYSQL_PWD'] = self.dbparams.get('password')
+            cmd = ['mysqldump',
+                   '--user=%s' % self.dbparams.get('user'),
+                   '--host=%s' % self.dbparams.get('host'),
+                   '--port=%s' % str(self.dbparams.get('port')),
+                   '--single-transaction',
+                   '--routines',
+                   '-p%s' % env['MYSQL_PWD'],
+                   self.dbparams.get('db')]
+            
+            if no_data:
+                cmd.append("--no-data")
+            
+            # 1. Kickoff the mysqldump
+            ##### Every dump file created using the mysqldump command includes a clause named DEFINER.
+            ##### Currently, this clause cannot be excluded. If you try to restore the dumps on a
+            ##### remote database server or database server you would get an error referring to DEFINERS.
+            ##### Therefore...
+            # 2. Filter out the DEFINERS from the mysqldump
+            # 3. Write the filtered mysqldump to a gzip file
+            log.debug(cmd)
+            mysqldump_process_handle = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            remove_definer_process_handle = subprocess.Popen(
+                ["perl", "-p", "-i.bak", "-e", "\"s/DEFINER=\`\w.*\`@\`\d[0-3].*[0-3]\`//g\""],
+                stdin=mysqldump_process_handle.stdout, stdout=subprocess.PIPE)
+            gzip_process_handle = subprocess.Popen(["gzip", "-c"], stdin=remove_definer_process_handle.stdout, stdout=file_handler)
+            
+            return (mysqldump_process_handle, gzip_process_handle)
+    
     def executeSql(self, sql=None):
         cmd = None
         env = os.environ.copy()

@@ -34,6 +34,7 @@ from ZenBackupBase import *
 from zope.interface import implements
 from Products.Zuul.interfaces import IPreBackupEvent, IPostBackupEvent
 from zope.event import notify
+from ZenDB import ZenDB
 
 unused(Globals)
 
@@ -79,6 +80,14 @@ class ZenBackup(ZenBackupBase):
         self.log = logging.getLogger("zenbackup")
         logging.basicConfig()
         self.log.setLevel(self.options.logseverity)
+        
+        self._zodb_backup_file_handler = None
+        self._zodb_mysqldump_process = None
+        self._zodb_backup_gzip_process = None
+        
+        self._zodb_session_backup_file_handler = None
+        self._zodb_session_mysqldump_process = None
+        self._zodb_session_backup_gzip_process = None
 
     def isZeoUp(self):
         '''
@@ -340,31 +349,38 @@ class ZenBackup(ZenBackupBase):
         for pack in dmd.ZenPackManager.packs():
             pack.backup(self.tempDir, self.log)
         self.log.info("Backup of ZenPack contents complete.")
-
-    def backupZODB(self):
+    
+    def startBackupZODB(self):
         """
         Backup the Zope database.
         """
+        self.log.info('Initiating ZODB backup...')
+        zodb_handler = ZenDB(useDefault='zodb')
+        self._zodb_backup_file_handler = open(os.path.join(self.tempDir, 'zodb.sql.gz'), 'wb')
+        (self._zodb_mysqldump_process, self._zodb_backup_gzip_process) = zodb_handler.asynchronousDump(self._zodb_backup_file_handler)
+        
+        self._zodb_session_backup_file_handler = open(os.path.join(self.tempDir, 'zodb_session.sql.gz'), 'wb')
+        (self._zodb_session_mysqldump_process, self._zodb_session_backup_gzip_process) = zodb_handler.asynchronousDump(self._zodb_session_backup_file_handler, no_data=True)
+    
+    def waitForZODBBackup(self):
+        """
+        Wait for the ZODB backup to finish (which was kicked off from the method startBackupZODB)
+        """
         partBeginTime = time.time()
-
-        self.log.info('Backing up the ZODB.')
-        if self.options.saveSettings:
-            self.saveSettings()
-        self.backupMySqlDb(self.options.zodb_host, self.options.zodb_port,
-                           self.options.zodb_db, self.options.zodb_user,
-                           'zodb_password', 'zodb.sql.gz',
-                           socket=self.options.zodb_socket)
-        # Back up the zodb_session database schema
-       
-        self.backupMySqlDb(self.options.zodb_host, self.options.zodb_port,
-                           self.options.zodb_db + '_session', self.options.zodb_user,
-                           'zodb_password', 'zodb_session.sql.gz',
-                           socket=self.options.zodb_socket, tables=[])
-
+        self.log.info("Waiting for the ZODB backup to finish...")
+        
+        self._zodb_mysqldump_process.wait()
+        self._zodb_backup_gzip_process.wait()
+        self._zodb_backup_file_handler.close()
+        
+        self._zodb_session_mysqldump_process.wait()
+        self._zodb_session_backup_gzip_process.wait()
+        self._zodb_session_backup_file_handler.close()
+        
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)
-        self.log.info("Backup of ZODB database completed in %s.", subtotalTime)
-
+        self.log.info("Waited %s seconds for the ZODB backup to finish.", subtotalTime)
+    
     def backupPerfData(self):
         """
         Back up the RRD files storing performance data.
@@ -460,7 +476,7 @@ class ZenBackup(ZenBackupBase):
             self.log.info('Skipping backup of ZODB.')
         else:
             notify(PreBackupEvent(self))
-            self.backupZODB()
+            self.startBackupZODB()
 
         if self.options.noZenPacks:
             self.log.info('Skipping backup of ZenPack data.')
@@ -473,6 +489,8 @@ class ZenBackup(ZenBackupBase):
             self.log.info("Backup of ZenPacks completed in %s.", subtotalTime)
         
         notify(PostBackupEvent(self))
+        if not self.options.noZopeDb:
+            self.waitForZODBBackup()
 
         if self.options.noPerfData:
             self.log.info('Skipping backup of performance data.')
