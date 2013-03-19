@@ -18,7 +18,7 @@ def parseRedisUrl(url):
     if parsedUrl is None:
         raise ValueError("malformed redis URL")
     host = parsedUrl.group('host')
-    port = 6379 if parsedUrl.group('port') is None else int(parsedUrl.group('port'))
+    port = 16379 if parsedUrl.group('port') is None else int(parsedUrl.group('port'))
     db = 0 if parsedUrl.group('db') is None else int(parsedUrl.group('db'))
     options = {'host': host, 'port': port, 'db': db}
     optStr = parsedUrl.group('optionStr')

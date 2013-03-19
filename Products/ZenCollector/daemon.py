@@ -259,7 +259,7 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-        self.parser.add_option('--redis-url', default='redis://localhost:6379/0',
+        self.parser.add_option('--redis-url', default='redis://localhost:16379/0',
             help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
