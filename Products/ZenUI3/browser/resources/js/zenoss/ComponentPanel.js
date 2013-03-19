@@ -856,7 +856,7 @@ Ext.define("Zenoss.component.IpRouteEntryPanel", {
                 id: 'interface',
                 dataIndex: 'interface',
                 header: _t('Interface'),
-                renderer: render_link
+                renderer: Zenoss.render.default_uid_renderer
             },{
                 id: 'protocol',
                 dataIndex: 'protocol',
