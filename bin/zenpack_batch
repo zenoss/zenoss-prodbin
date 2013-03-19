@@ -38,7 +38,7 @@ def atomicWrite(filename, data):
 class ZenPackBatchManager(object):
 
     _actions = {
-            "+": ("", "--install"),
+            "+": ("", "--skip-same-version --install"),
             "*": ("--link", "--install"),
             "-": ("--if-installed", "--remove"),
         }

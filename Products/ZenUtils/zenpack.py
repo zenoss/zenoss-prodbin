@@ -95,6 +95,24 @@ class ZenPackCmd(ZenScriptBase):
         except ServiceException:
             return False
 
+    def _sameVersion(self):
+        """
+        Returns True if the zenpack we are trying to install is the same
+        version of the zenpack already installed.
+        This is mainly used to speed up upgrades, see ticket ZEN-5789
+        """
+        name, version, unused = self.options.installPackName.split('-')
+        # if a path was provided just get the zenpack name
+        name = name.split('/')[-1]
+        try:
+            if self.dmd.ZenPackManager.packs._getOb(name).version == version:
+                self.log.info("%s is already at version %s", name, version)
+                return True
+        except AttributeError:
+            # zenpack isn't installed yet
+            pass
+        return False
+
     def run(self):
         """Execute the user's request"""
         if self.args:
@@ -155,6 +173,8 @@ class ZenPackCmd(ZenScriptBase):
             sys.exit(1)
 
         if self.options.installPackName:
+            if self.options.skipSameVersion and self._sameVersion():
+                return
             if not self.preInstallCheck(eggInstall):
                 self.stop('%s not installed' % self.options.installPackName)
             if eggInstall:
@@ -483,6 +503,11 @@ class ZenPackCmd(ZenScriptBase):
                                dest='ifinstalled',
                                default=False,
                                help="Delete ZenPack only if installed")
+        self.parser.add_option('--skip-same-version',
+                               action="store_true",
+                               dest='skipSameVersion',
+                               default=False,
+                               help="Do not install the zenpack if the version is unchanged")
         self.parser.prog = "zenpack"
         ZenScriptBase.buildOptions(self)
 
