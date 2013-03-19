@@ -567,7 +567,7 @@ class CommandAction(IActionBase, TargetableAction):
         if actor.element_sub_uuid:
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
-        user_env_format = notification.content.get('user_env_format', '')
+        user_env_format = notification.content.get('user_env_format', '') or ''
         env = dict( envvar.split('=') for envvar in user_env_format.split(';') if '=' in envvar)
         environ = {'dev': device, 'component': component, 'dmd': notification.dmd, 'env': env}
         data = self._signalToContextDict(signal, notification)
