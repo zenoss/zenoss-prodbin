@@ -1,7 +1,6 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
-    xmlns:meta="http://namespaces.zope.org/meta"
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.ZenStatus">
 
@@ -29,7 +28,6 @@
         name="ping"
         />
 
-    <meta:provides feature="pingCorrelation" />
     <utility
         factory=".SimpleCorrelator.SimpleCorrelator"
         provides=".interfaces.IPingTaskCorrelator"
