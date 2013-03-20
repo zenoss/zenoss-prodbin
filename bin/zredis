@@ -29,9 +29,12 @@ fi
 PIDFILE=$ZENHOME/var/zredis-localhost.pid
 CONF_FILE=$ZENHOME/var/redis.conf
 REDIS_SERVER=`which redis-server`
-if [ -z "REDIS_SERVER" ];then
-    echoerr "redis-server not in path."
-    exit 1
+if [ -z "$REDIS_SERVER" ];then
+    REDIS_SERVER=/usr/sbin/redis-server
+    if [ ! -f "$REDIS_SERVER" ]; then
+        echoerr "redis-server not in path."
+        exit 1
+    fi
 fi
 REDIS_DAEMONIZE=yes
 
