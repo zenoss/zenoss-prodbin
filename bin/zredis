@@ -35,9 +35,16 @@ if [ -z "REDIS_SERVER" ];then
 fi
 REDIS_DAEMONIZE=yes
 
+# Generate only our non-default settings in the config file.
+# For a full redis log file, see $ZENHOME/etc/zredis.conf on the master server.
 genconf() {
-    echo "# Do NOT use this file"
-    echo "# Edit $ZENHOME/etc/zredis.conf."
+    echo "pidfile $PIDFILE"
+    echo "daemonize $REDIS_DAEMONIZE"
+    echo "dbfilename zredis.rdb"
+    echo "dir $ZENHOME/var/"
+    echo "# Zenoss uses 16379 to avoid conflicting with the system Redis instance."
+    echo "port 16379"
+    echo "logfile $ZENHOME/log/zredis.log"
 }
 
 running() {
@@ -67,10 +74,7 @@ start() {
         echo is already running
     else
         echo starting...
-        echo "pidfile $PIDFILE" > $CONF_FILE
-        echo "daemonize $REDIS_DAEMONIZE" >> $CONF_FILE
-        echo "dbfilename zredis.rdb" >> $CONF_FILE
-        echo "dir $ZENHOME/var/" >> $CONF_FILE
+        genconf > $CONF_FILE
         if [ -f "$ZENHOME/etc/zredis.conf" ]; then
             echo "include $ZENHOME/etc/zredis.conf" >> $CONF_FILE
         fi
