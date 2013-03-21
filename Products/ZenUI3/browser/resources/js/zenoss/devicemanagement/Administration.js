@@ -90,13 +90,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             {"value":"400", "name":"Test"},
             {"value":"300", "name":"Maintenance"},
             {"value":"-1", "name":"Decommissioned"}           
-        ],
-        allowedNameTextMask: /[\w\s]/i,
-        allowedNameText: /^[\w\s]+$/,
-        allowedNameTextFeedback: _t('Only letters, numbers, underscores and spaces allowed'),
-        allowedDescTextMask: /[\w\?,\s\.\-]/i,
-        allowedDescText: /^[\w\?,\s\.\-]+$/,
-        allowedDescTextFeedback: _t('Allowed text: . - ? spaces, letters and numbers only')        
+        ]      
     }
 
 // ----------------------------------------------------------------- DIALOGS
@@ -201,8 +195,8 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                             fieldLabel: _t('Name'), 
                             margin: '0 10px 0 0',
                             width:220, 
-                            regex: Zenoss.devicemanagement.allowedNameText,
-                            regexText: Zenoss.devicemanagement.allowedNameTextFeedback,
+                            regex: Zenoss.env.textMasks.allowedNameText,
+                            regexText: Zenoss.env.textMasks.allowedNameTextFeedback,
                             allowBlank: false
                         },{
                             xtype: 'hiddenfield',
@@ -492,8 +486,8 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                     disabled: !newEntry,                    
                     fieldLabel: _t('Name'), 
                     width:220,
-                    regexText: Zenoss.devicemanagement.allowedNameTextFeedback,
-                    regex: Zenoss.devicemanagement.allowedNameText,
+                    regexText: Zenoss.env.textMasks.allowedNameTextFeedback,
+                    regex: Zenoss.env.textMasks.allowedNameText,
                     allowBlank: false
                 },{
                     xtype: 'hiddenfield',
@@ -505,8 +499,8 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                     width:457,
                     height:55,
                     ref: 'desc',
-                    regexText: Zenoss.devicemanagement.allowedDescTextFeedback,
-                    regex: Zenoss.devicemanagement.allowedDescText,                    
+                    regexText: Zenoss.env.textMasks.allowedDescTextFeedback,
+                    regex: Zenoss.env.textMasks.allowedDescText,                    
                     fieldLabel: _t('Description')
                 },{
                     xtype: 'textareafield',

@@ -10,7 +10,7 @@
 
 import socket
 import re
-from itertools import imap  
+from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
@@ -160,9 +160,7 @@ class DeviceFacade(TreeFacade):
         querySet.append(Generic('getAllPaths', uid))
         query = And(*querySet)
         obj = self._getObject(uid)
-        if getattr(aq_base(obj.device()), 'componentSearch', None) is None:
-            obj.device()._create_componentSearch()
-        
+
         cat = obj.device().componentSearch
         if 'getAllPaths' not in cat.indexes():
             obj.device()._createComponentSearchPathIndex()
@@ -170,7 +168,8 @@ class DeviceFacade(TreeFacade):
 
         # unbrain the results
         comps=map(IInfo, map(unbrain, brains))
-        
+
+
         # filter the components
         if name is not None:
             comps = self._filterComponents(comps, keys, name)
@@ -180,13 +179,13 @@ class DeviceFacade(TreeFacade):
 
         # sort the components
         sortedResults = list(sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse))
-        
+
         # limit the search results to the specified range
         if limit is None:
             pagedResult = sortedResults[start:]
         else:
             pagedResult = sortedResults[start:start + limit]
-            
+
         return SearchResults(iter(pagedResult), total, hash_, False)
 
     def getComponents(self, uid=None, types=(), meta_type=(), start=0,
@@ -471,10 +470,10 @@ class DeviceFacade(TreeFacade):
                   hwManufacturer="", hwProductName="", osManufacturer="",
                   osProductName="", priority = 3, tag="", serialNumber="",
                   locationPath="", zCommandUsername="", zCommandPassword="",
-                  zWinUser="", zWinPassword="", systemPaths=[], groupPaths=[], 
+                  zWinUser="", zWinPassword="", systemPaths=[], groupPaths=[],
                   zProperties={}, cProperties={},
                   ):
-        zProps = dict(zSnmpCommunity=snmpCommunity, 
+        zProps = dict(zSnmpCommunity=snmpCommunity,
                       zSnmpPort=snmpPort,
                       zCommandUsername=zCommandUsername,
                       zCommandPassword=zCommandPassword,
@@ -659,7 +658,7 @@ class DeviceFacade(TreeFacade):
         device = self._getObject(uid)
         device.os.addIpInterface(newId, userCreated)
 
-    def addOSProcess(self, uid, newClassName, userCreated):  
+    def addOSProcess(self, uid, newClassName, userCreated):
         device = self._getObject(uid)
         device.os.addOSProcess(newClassName, userCreated)
 
@@ -674,47 +673,41 @@ class DeviceFacade(TreeFacade):
     def addWinService(self, uid, newClassName, userCreated):
         device = self._getObject(uid)
         device.os.addWinService(newClassName, userCreated)
-        
+
     def getSoftware(self, uid):
         obj = self._getObject(uid)
-        softwares = (IInfo(s) for s in obj.os.software.objectValuesGen())        
-        return softwares  
-        
-    def getOverriddenObjectsList(self, uid, propname):
+        softwares = (IInfo(s) for s in obj.os.software.objectValuesGen())
+        return softwares
+
+    def getOverriddenObjectsList(self, uid, propname, relName='devices'):
         obj = self._getObject(uid)
         objects = []
-        for inst in obj.getSubInstances('devices'):
+        for inst in obj.getSubInstances(relName):
           if inst.isLocal(propname) and inst not in objects:
             objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
         for inst in obj.getOverriddenObjects(propname):
           objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
-          
-          
         return objects
-        
+
     def getOverriddenObjectsParent(self, uid, propname=''):
-        obj = self._getObject(uid)        
+        obj = self._getObject(uid)
         if propname == '':
-            prop = ''  
+            prop = ''
             proptype = ''
         else:
             prop = getattr(obj, propname)
             proptype = obj.getPropertyType(propname)
         return [{'devicelink':uid, 'props':prop, 'proptype':proptype}]
-        
+
     def getOverriddenZprops(self, uid, all=True, pfilt=iszprop):
         """
         Return list of device tree property names.
         If all use list from property root node.
         """
-        obj = self._getObject(uid)        
+        obj = self._getObject(uid)
         if all:
             rootnode = obj.getZenRootNode()
         else:
             if obj.id == obj.dmdRootName: return []
             rootnode = aq_base(obj)
-        return sorted(prop for prop in rootnode.propertyIds() if pfilt(prop))    
-
-
-        
-       
+        return sorted(prop for prop in rootnode.propertyIds() if pfilt(prop))

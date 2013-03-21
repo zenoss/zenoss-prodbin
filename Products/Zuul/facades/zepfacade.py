@@ -617,9 +617,9 @@ class ZepFacade(ZuulFacade):
         # redirect
         url = None
         if len(evdata) == 1 and evmap:
-            url = evmap.absolute_url()
+            url = evmap.getPrimaryId()
         elif evclass and evmap:
-            url = evclass.absolute_url()
+            url = evclass.getPrimaryId()
         return msg, url
 
     def _getEventTagSeverities(self, eventClass=(), severity=(), status=(), tags=()):

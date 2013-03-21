@@ -241,3 +241,4 @@ from triggersfacade import TriggersFacade
 from zepfacade import ZepFacade
 from reportfacade import ReportFacade
 from jobsfacade import JobsFacade
+from eventclassesfacade import EventClassesFacade

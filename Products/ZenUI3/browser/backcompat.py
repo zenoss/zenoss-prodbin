@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -24,6 +24,10 @@ def immediate_view(ob):
 def Device(ob):
     id = '/'.join(ob.getPhysicalPath())
     return id + '/devicedetail#deviceDetailNav:device_overview'
+
+def EventClass(ob):
+    id = '.'.join(ob.getPhysicalPath())
+    return '/zport/dmd/Events/eventclasses#classes:' + id
 
 def DeviceClass(ob):
     id = '.'.join(ob.getPhysicalPath())

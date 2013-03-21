@@ -240,6 +240,9 @@
         },{
             "text": "PageStatistics.js",
             "path": "resources/js/zenoss/"
+        },{
+            "text": "ClassPanels.js",
+            "path": "resources/js/zenoss/eventclasses/"
         }]
     }],
     "resources": []

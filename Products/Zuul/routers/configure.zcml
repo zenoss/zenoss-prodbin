@@ -24,20 +24,26 @@
 <browser:directRouter
     name="evconsole_router"
     for="*"
-    class=".zep.EventsRouter" 
+    class=".zep.EventsRouter"
     namespace="Zenoss.remote"
+    />
 
+<browser:directRouter
+    name="evclasses_router"
+    for="*"
+    class=".eventclasses.EventClassesRouter"
+    namespace="Zenoss.remote"
     />
 
 <browser:directRouter
     name="process_router"
-    for="*"  
+    for="*"
     class=".process.ProcessRouter"
     namespace="Zenoss.remote"
     />
 
 <browser:directRouter
-    name="service_router"  
+    name="service_router"
     for="*"
     class=".service.ServiceRouter"
     namespace="Zenoss.remote"
@@ -51,20 +57,20 @@
     namespace="Zenoss.remote"
     timeout="180000"
     />
-    
+
 <browser:directRouter
     name="properties_router"
     for="*"
     class=".properties.PropertiesRouter"
     namespace="Zenoss.remote"
-    />    
-    
+    />
+
 <browser:directRouter
     name="devicemanagement_router"
     for="*"
     class=".devicemanagement.DeviceManagementRouter"
     namespace="Zenoss.remote"
-    />       
+    />
 
 <browser:directRouter
     name="network_router"
@@ -128,13 +134,13 @@
     class=".jobs.JobsRouter"
     namespace="Zenoss.remote"
     />
-    
-<browser:directRouter 	 	 
-    name="introspection_router" 	 	 
-    for="*" 	 	 
-    class=".introspection.IntrospectionRouter" 	 	 
-    namespace="Zenoss.remote" 	 	 
-    />    
+
+<browser:directRouter
+    name="introspection_router"
+    for="*"
+    class=".introspection.IntrospectionRouter"
+    namespace="Zenoss.remote"
+    />
 
 <browser:directRouter
     name="devicedumpload_router"

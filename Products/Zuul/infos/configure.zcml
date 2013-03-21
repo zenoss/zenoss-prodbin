@@ -247,7 +247,15 @@
              
     <adapter factory=".devicemanagement.AdminRoleManagementInfo"
              for="Products.ZenModel.AdministrativeRole.AdministrativeRole"
-             provides="..interfaces.IAdminRoleManagementInfo"/>              
+             provides="..interfaces.IAdminRoleManagementInfo"/>    
+             
+    <adapter factory=".eventclasses.EventClassTreeNode"
+             for="Products.ZenEvents.EventClass.EventClass"
+             provides="..interfaces.IEventClassTreeNode"/>      
+             
+    <adapter factory=".eventclasses.EventClassInfo"
+             for="Products.ZenEvents.EventClassInst.EventClassInst"
+             provides="..interfaces.IEventClassInfo"/>              
 
     <adapter provides="Products.Zuul.interfaces.zenpack.IZenPackInfo"
              for="Products.ZenModel.ZenPack.ZenPack"

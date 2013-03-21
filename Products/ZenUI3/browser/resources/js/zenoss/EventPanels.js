@@ -9,6 +9,7 @@
 
 (function(){
     Ext.ns('Zenoss.events');
+    Ext.ns('Zenoss.eventclasses');
 
     Zenoss.events.getRowClass = function(record, index) {
         var stateclass = record.get('eventState')=='New' ?
@@ -137,10 +138,20 @@
         addevent.show();
     }
 
+
     /*
      * Show the dialog that allows one to classify an event
      */
     function showClassifyDialog(gridId) {
+
+        Zenoss.events.launchMappingDialog = function(uid){
+            var grid = null;
+            var data = {};
+            data['whichPanel'] = 'default';
+            data['uid'] = "/zport/dmd/"+uid.split("| ")[1];
+            Zenoss.eventclasses.mappingDialog(grid, data);
+        };
+
 
         var win = new Zenoss.dialog.BaseWindow({
             title: _t('Classify Events'),
@@ -206,12 +217,11 @@
                                 'evrows': evrows
                             }, function(result){
                                 win.destroy();
-                                var title = result.success ?
-                                    _t('Classified'):
-                                    _t('Error');  
+                                var title = result.success ? _t('Classified'): _t('Error');
+
                                 Ext.MessageBox.show({
                                     title: title,
-                                    msg: Ext.htmlDecode(result.msg),
+                                    msg: '<a href="javascript:void(0)" onclick="Zenoss.events.launchMappingDialog(\''+result.msg+'\')" >Edit new mapping</a>',//Ext.htmlDecode(result.msg),
                                     buttons: Ext.MessageBox.OK
                                 });
                             });
@@ -396,7 +406,6 @@
             if (Ext.isDefined(config.actionsMenu)) {
                 showActions = config.actionsMenu;
             }
-
             if (showActions) {
                 tbarItems.push({
                     id: 'event-actions-menu',

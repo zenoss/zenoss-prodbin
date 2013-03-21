@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,7 +12,7 @@
 Operations for Device Organizers and Devices.
 
 Available at:  /zport/dmd/device_router
-"""             
+"""
 import logging
 from itertools import islice
 from AccessControl import Unauthorized
@@ -142,7 +142,7 @@ class DeviceRouter(TreeRouter):
                                      limit=limit, sort=sort, dir=dir, name=name, keys=keys)
         total = comps.total
         hash = comps.hash_
-        
+
         data = Zuul.marshal(comps, keys=keys)
         return DirectResponse(data=data, totalCount=total,
                               hash=hash)
@@ -293,7 +293,7 @@ class DeviceRouter(TreeRouter):
             if 'priority' in newData:
                 newData['priority'] = dmd.convertPriority(newData['priority'])
         audit(['UI', getDisplayType(process._object), 'Edit'], the_uid,
-              data_=newData, oldData_=oldData, skipFields_='uid')        
+              data_=newData, oldData_=oldData, skipFields_='uid')
         return DirectResponse.succeed()
 
     def _getInfoData(self, info, keys):
@@ -333,7 +333,7 @@ class DeviceRouter(TreeRouter):
         Retrieves a list of device uuids. For use in combos.
         """
         facade = self._getFacade()
-        devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit 
+        devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
         result = []
         for dev in devices:
             result.append({'name':dev.name,
@@ -1348,7 +1348,7 @@ class DeviceRouter(TreeRouter):
                   priority=3, tag="", serialNumber="", zCommandUsername="",
                   zCommandPassword="", zWinUser="", zWinPassword="",
                   zProperties={}, cProperties={},):
-        
+
         """
         Add a device.
 
@@ -1681,7 +1681,7 @@ class DeviceRouter(TreeRouter):
         data = []
         for template in templates:
             label = '%s (%s)' % (template.text, template.getUIPath())
-            data.append(dict(label=label, uid=template.uid))  
+            data.append(dict(label=label, uid=template.uid))
         return DirectResponse.succeed(data=data)
 
     @require('Manage DMD')
@@ -1716,15 +1716,15 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def addIpInterface(self, uid, newId, userCreated=True):
-        """ 
-        Adds an Ip Interface 
+        """
+        Adds an Ip Interface
         """
         facade = self._getFacade()
         data = facade.addIpInterface(uid, newId, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def addOSProcess(self, uid, newClassName, userCreated=True):
-        """ 
+        """
         Adds an os processes
         """
         facade = self._getFacade()
@@ -1759,30 +1759,29 @@ class DeviceRouter(TreeRouter):
     def getSoftware(self, uid, keys=None):
 
         facade = self._getFacade()
-        software = facade.getSoftware(uid)    
+        software = facade.getSoftware(uid)
         return DirectResponse(data=Zuul.marshal(software, keys))
 
-        
-    def getOverriddenObjectsList(self, uid, propname):
+    def getOverriddenObjectsList(self, uid, propname, relName):
         """
         returns a list of Overridden Objects and properties for this context
         """
         facade = self._getFacade()
-        data = facade.getOverriddenObjectsList(uid, propname) 
+        data = facade.getOverriddenObjectsList(uid, propname, relName)
         return DirectResponse.succeed(data=Zuul.marshal(data))
-        
+
     def getOverriddenObjectsParent(self, uid, propname=''):
         """
         returns the base of the Overridden Objects
-        """    
+        """
         facade = self._getFacade()
-        data = facade.getOverriddenObjectsParent(uid, propname) 
+        data = facade.getOverriddenObjectsParent(uid, propname)
         return DirectResponse.succeed(data=Zuul.marshal(data))
-        
-    def getOverriddenZprops(self, uid, all=True, pfilt=''): 
+
+    def getOverriddenZprops(self, uid, all=True, pfilt=''):
         """
         returns a list of zProperty values for the overridden objects
         """
         facade = self._getFacade()
         data = facade.getOverriddenZprops(uid, all)
-        return DirectResponse.succeed(data=Zuul.marshal(data))        
+        return DirectResponse.succeed(data=Zuul.marshal(data))

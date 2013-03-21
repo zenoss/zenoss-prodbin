@@ -819,7 +819,7 @@ class EventsRouter(DirectRouter):
         """
         msg, url = self.zep.createEventMapping(evrows, evclass)
         if url:
-            msg += "<br/><a href='%s'>Go to the new mapping.</a>" % url
+            msg += " | "+url.split('/dmd/')[1] 
         return DirectResponse(msg, success=bool(url))
 
     @require('Manage Events')

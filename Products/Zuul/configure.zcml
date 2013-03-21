@@ -81,6 +81,12 @@
              for="*"
              />              
 
+    <adapter factory=".facades.EventClassesFacade"
+             provides=".interfaces.IEventClassesFacade" 
+             name="eventclasses"
+             for="*"
+             /> 
+             
     <adapter factory=".facades.ZepFacade"
              provides=".interfaces.IZepFacade"
              name="zep"

@@ -100,6 +100,19 @@ Zenoss.env.initPriorities = function(){
     }
 };
 
+
+Zenoss.env.textMasks = {
+        allowedNameTextMask: /[\w\s]/i,
+        allowedNameText: /^[\w\s]+$/,
+        allowedNameTextFeedback: 'Only letters, numbers, underscores and spaces allowed',
+        allowedNameTextMaskDash: /[\w\s\-]/i,
+        allowedNameTextDash: /^[\w\s\-]+$/,
+        allowedNameTextFeedbackDash: 'Only letters, numbers, underscores, dashes and spaces allowed',
+        allowedDescTextMask: /[\w\?,\s\.\-]/i,
+        allowedDescText: /^[\w\?,\s\.\-]+$/,
+        allowedDescTextFeedback: 'Allowed text: . - ? spaces, letters and numbers only'
+};
+
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
     directFn: Zenoss.remote.MessagingRouter.setBrowserState,
@@ -809,7 +822,7 @@ Ext.define("EventActionManager", {
             run: function() {
                 // First request
                 if (me.next_request === null) {
-                    Ext.apply(me.params, {limit: 100})
+                    Ext.apply(me.params, {limit: 100});
                     me.action(me.params, me.requestCallback);
                 }
                 else {
@@ -969,7 +982,7 @@ Zenoss.util.addLoadingMaskToGrid = function(grid){
         var mask = container._treeLoadMask;
         mask.hide();
     }, grid);
-}
+};
 
 Zenoss.env.SEVERITIES = [
     [5, 'Critical'],
@@ -1350,7 +1363,7 @@ Date.prototype.readable = function(precision) {
     }
     var base = result.join(' ');
     return diff >= 0 ? base + " ago" : "in " + base;
-}
+};
 
 
 /* Cross-Browser Split 1.0.1
@@ -1472,7 +1485,7 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
             }
             return threshold <= len;
     }
-}
+};
 
 
 })(); // End local scope

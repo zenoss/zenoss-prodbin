@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -113,7 +113,7 @@
                 zProperty: data.id,
                 value: value
             };
-            Zenoss.remote.PropertiesRouter.setZenProperty(params, function(response){  
+            Zenoss.remote.PropertiesRouter.setZenProperty(params, function(response){
                 if (response.success) {
                     grid.refresh();
                 }
@@ -188,7 +188,7 @@
      * @class Zenoss.ConfigProperty.Store
      * @extends Zenoss.DirectStore
      * Store for our configuration properties grid
-     **/ 
+     **/
     Ext.define("Zenoss.ConfigProperty.Store", {
         extend: "Zenoss.DirectStore",
         constructor: function(config) {
@@ -296,7 +296,6 @@
                 }),
                 columns: [{
                         header: _t("Is Local"),
-                        id: 'islocal',
                         dataIndex: 'islocal',
                         width: 60,
                         sortable: true,
@@ -308,18 +307,15 @@
                             return '';
                         }
                     },{
-                        id: 'category',
                         dataIndex: 'category',
                         header: _t('Category'),
                         sortable: true
                     },{
-                        id: 'id',
                         dataIndex: 'id',
                         header: _t('Name'),
                         width: 200,
                         sortable: true
                     },{
-                        id: 'value',
                         dataIndex: 'valueAsString',
                         header: _t('Value'),
                         flex: 1,
@@ -333,7 +329,7 @@
                         },
                         sortable: false
                     },{
-                        id: 'path',
+                        //id: 'path',
                         dataIndex: 'path',
                         header: _t('Path'),
                         width: 200,
@@ -394,24 +390,24 @@
             Ext.getCmp(this.gridId).setContext(uid);
         }
     });
-    
-    
-    
+
+
+
     var checkText = function(e){
-        uid = "/zport/dmd/Devices"; // to force it to apply to the root on every newly created prop
-        
+        var uid = "/zport/dmd/Devices"; // to force it to apply to the root on every newly created prop
+
         var params = {
             uid: uid,
             zProperty: e
-        };          
+        };
         Zenoss.remote.PropertiesRouter.getZenProperty(params, function(response){
             if (response.success) {
-                if (response.data.type == "lines"){  
+                if (response.data.type == "lines"){
                     var lines = response.data.value, context = Zenoss.zproperties.configPropertyConfigs.state.context, formID;
                     context == "add" ? formID = "addCustomDialog" : formID = "editCustomDialog";
                     var c = Ext.getCmp(formID).getForm().getForm().getValues();
-                        
-                    // we got a 'lines' item back. Lets save this so we can complete the users goal 
+
+                    // we got a 'lines' item back. Lets save this so we can complete the users goal
 
                     var params = {
                         uid: uid,
@@ -421,36 +417,36 @@
                         value: c.value
                     };
                     var addToCombo = function(){
-                        // dump the array response.data.value into the combo box by breaking it up into an array of arrays 
+                        // dump the array response.data.value into the combo box by breaking it up into an array of arrays
                         // for loadData to work
-                        var combo = Ext.getCmp('linesCombo');                    
+                        var combo = Ext.getCmp('linesCombo');
                         var data = [];
                         for (var i = 0; i < lines.length; i++){
                             data.push([lines[i]]);
-                        }                   
+                        }
                         combo.store.loadData(data);
                         // fire off a selection of the first item so it's obvious something happened
-                        combo.setValue(combo.store.getAt('0'));                      
-                    }
+                        combo.setValue(combo.store.getAt('0'));
+                    };
                     if (context == "add"){
                         Zenoss.remote.PropertiesRouter.addCustomProperty(params, function(response){
                             if (response.success) {
                                 addToCombo();
                             }
-                        });                      
+                        });
                     }else{
                         addToCombo();
                     }
-                
+
                 }
             }
-        });       
-    };        
+        });
+    };
 
 
 
-    
-    Zenoss.zproperties.configPropertyConfigs = {};    
+
+    Zenoss.zproperties.configPropertyConfigs = {};
     var propValText = _t("Value for Property Type:");
     Ext.apply(Zenoss.zproperties.configPropertyConfigs, {
         'state': {
@@ -459,41 +455,41 @@
         'int': {
             xtype: 'numberfield',
             allowDecimals: false,
-            fieldLabel: _t(propValText+' INT'),            
+            fieldLabel: _t(propValText+' INT'),
             name: 'value'
         },
         'float': {
             xtype: 'numberfield',
-            fieldLabel: _t(propValText+' FLOAT'),            
+            fieldLabel: _t(propValText+' FLOAT'),
             name: 'value'
         },
         'long': {
             xtype: 'numberfield',
-            fieldLabel: _t(propValText+' LONG'), 
+            fieldLabel: _t(propValText+' LONG'),
             name: 'value'
         },
         'date': {
             xtype: 'datefield',
             name: 'value',
-            fieldLabel: _t(propValText+' DATE')           
+            fieldLabel: _t(propValText+' DATE')
         },
         'string': {
             xtype: 'textfield',
             name: 'value',
             fieldLabel: _t(propValText+' STRING'),
-            width:220            
+            width:220
         },
         'lines': {
             xtype: 'textarea',
             name: 'value',
             width: 220,
             height: 70,
-            fieldLabel: _t(propValText+' LINES')            
+            fieldLabel: _t(propValText+' LINES')
         },
         'boolean': {
             xtype: 'checkbox',
             name: 'value',
-            fieldLabel: _t(propValText+' BOOLEAN')           
+            fieldLabel: _t(propValText+' BOOLEAN')
         },
         'password': {
             xtype: 'password',
@@ -524,7 +520,7 @@
                                     button.setTooltip(_t("Retrieve lines from property for selection"));
                                     if (Zenoss.zproperties.configPropertyConfigs.state.context == "add"){
                                         button.setTooltip(_t("Save new property and retrieve lines for selection"));
-                                    } 
+                                    }
                                 }
                             },
                             margin: '17px 0 0 7px',
@@ -533,16 +529,16 @@
                                 if(Zenoss.zproperties.configPropertyConfigs.state.context == "add"){
                                     uid = Ext.getCmp('addCustomDialog').uid;
                                 }else{
-                                    uid = Ext.getCmp('editCustomDialog').uid;                                
+                                    uid = Ext.getCmp('editCustomDialog').uid;
                                 }
                                 if(txt != ""){
                                     checkText(txt, uid);
                                 }else{
-                                    Zenoss.message.info(_t('The "Lines" property type cannot be empty. Please enter a "Lines" custom property.'));                                
+                                    Zenoss.message.info(_t('The "Lines" property type cannot be empty. Please enter a "Lines" custom property.'));
                                 }
                             }
                         }
-                        ]    
+                        ]
                 },{
                     xtype: 'combo',
                     name: 'selection',
@@ -554,10 +550,10 @@
             ]
         }
     });
-    
+
     Zenoss.zproperties.showEditPropertyDialog = function(pkg) {
         var handler, config, editConfig, dialog;
-       
+
         Zenoss.zproperties.configPropertyConfigs.state.context = "edit";
         // Try the specific property id, next the type and finall default to string
         editConfig = Zenoss.zproperties.configPropertyConfigs[pkg.name] || Zenoss.zproperties.configPropertyConfigs[pkg.type] || Zenoss.zproperties.configPropertyConfigs['string'];
@@ -588,7 +584,7 @@
                 value = values[pkg.name];
             if ((typeof values.applylocal) == "undefined"){
                 values.applylocal = false;
-            }                
+            }
             if (pkg.type == 'lines') {
                 if (value) {
                     // send back as an array separated by a new line
@@ -606,7 +602,7 @@
                 uid: "/zport/dmd"+pkg.uid,
                 zProperty: pkg.name,
                 value: value
-            };         
+            };
             Zenoss.remote.PropertiesRouter.setZenProperty(params, function(response){
                 if (response.success) {
                     pkg.grid.refresh();
@@ -614,15 +610,15 @@
             });
 
         };
-        var items = pkg.items;        
-        Ext.Array.splice( items, -1, 0, editConfig )
+        var items = pkg.items;
+        Ext.Array.splice( items, -1, 0, editConfig );
         var config = {
             submitHandler: handler,
             minHeight: pkg.minHeight,
             autoHeight: true,
             width: pkg.width,
             uid: pkg.uid,
-            id: "editCustomDialog", 
+            id: "editCustomDialog",
             title: _t('Edit Configuration Property'),
             items: items,
             keys: {}
@@ -633,7 +629,7 @@
         if (Zenoss.Security.hasPermission('zProperties Edit')) {
             dialog.show();
         }
-    }    
-    
+    };
+
 
 })();

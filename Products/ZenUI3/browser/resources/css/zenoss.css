@@ -1099,7 +1099,7 @@ span.status-down-large {
 }
 
 
-.ext-ie span.status-up-large, .ext-id span.status-down-large {
+.ext-ie span.status-up-large, .ext-ie span.status-down-large {
   zoom: 1;
 }
 
@@ -1696,4 +1696,117 @@ a.z-entity:hover{
 .watch-list-objects .yui-ac-content{
     height: 150px;
     overflow-y: auto !important; 
+}
+
+
+/* --------- event classes --------- */
+#nav_combo{
+    top:8px !important;
+}
+.CodeMirror {
+  height: inherit !important;
+}
+.CodeMirror-scroll {
+  height: auto;
+  overflow: auto;
+  width: 100%;
+  height: inherit;
+}
+.codemirror-field,
+.codemirror-field tbody,
+.codemirror-field tbody tr,
+.codemirror-field tbody tr td {
+  height: inherit !important;
+}
+.codemirror-field td.x-form-item-body  {
+  vertical-align: top;
+}
+#eventClassMapTabs .x-tab-bar{
+    background: none !important;
+}
+#eventClassMapTabs .x-tab-bar-top .x-tab-bar-body{
+    border: none !important;
+}
+#eventClassMapTabs .x-tab-bar-body .x-box-inner{
+    overflow:visible !important;
+}
+#eventClassMapTabs .x-tab-bar-top .x-tab-bar-strip{
+    height: 1px;
+    border: 1px solid #666;
+}
+#eventClassMapTabs .x-tab-top-active {
+  background-color: #555;
+  background-image: -moz-linear-gradient(center top , #888, #666 25%, #222 45%);
+}
+#eventClassMapTabs .x-tab-default-top-active {
+  border-bottom-color: #666 !important;
+  top: 2px !important;
+}
+#eventClassMapTabs .x-tab-default-top {
+  background-color: #111;
+  background-image: -moz-linear-gradient(center top , #666, #444 25%, #111 45%);
+  border-bottom: 0px solid #666 !important;
+  box-shadow: none;
+}
+#eventClassMapTabs .x-tab-active button {
+  color: #fff !important;
+}
+#eventClassMapTabs .x-tab button {
+  color: #888;  
+}
+#eventClassMapTabs .x-tab {
+  border-color: #aaa;
+}
+#eventClassMapTabs .x-column-header-inner{
+    color:#111;
+}
+#eventClassMapTabs #xform_mapping_panel{
+    background: #fff;
+    border: 2px solid #888;
+    border-bottom: 0px; 
+}
+.transform-headers{
+    padding:6px;
+    line-height:25px;
+    font-weight:bold;
+    color:#444;
+}
+.main_transform .x-panel-header-default {
+  background-color: #607fa2;
+  background-image: none; 
+  border-color: #666;
+}
+.inherited_transforms .x-panel-header-default {
+  background-color: #7f8fa1;
+  background-image: none;
+  border-color: #fff;
+  box-shadow: 0 1px 0 0 #fff inset;
+}
+.hastransform, .sanstransform{
+    display: inline-block;
+    vertical-align: top;
+    height:18px;
+    width:18px;
+    background-position:-2px -2px;
+}
+.hastransform{
+    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/is-transform.png);
+}
+.sanstransform{
+    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/no-transform.png);
+}
+.edited_feedback .x-panel-header-text{
+    color: yellow !important;
+}
+.xforms_grid, .ie_xforms_grid{
+    position:relative;
+    overflow:visible;
+}
+.xforms_grid img{
+    position:absolute;
+    top: -5px;
+}
+.ie_xforms_grid img{
+    position:absolute;
+    top: -1px !important;
 }

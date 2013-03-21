@@ -258,6 +258,13 @@
                 }, 100, me);
         }
 
+    },
+    getSelectedIndex: function(){
+        var combo = this,
+            v = combo.getValue(),
+            record = combo.findRecord(combo.valueField || combo.displayField, v),
+            index = combo.store.indexOf(record);
+        return index;
     }
    });
 

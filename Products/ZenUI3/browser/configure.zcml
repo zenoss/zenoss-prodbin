@@ -136,6 +136,13 @@
     for="*"
     permission="zenoss.View"
     />
+    
+<browser:page
+    template="templates/eventclasses.pt"
+    name="eventclasses" 
+    for="*"
+    permission="zenoss.View"
+    />    
 
 <browser:page
     template="templates/process.pt"

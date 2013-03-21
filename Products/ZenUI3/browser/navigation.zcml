@@ -1,11 +1,11 @@
 <!--
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 -->
 
@@ -77,13 +77,12 @@
 
         <browser:viewlet
             name="Event Classes"
-            url="/zport/dmd/Events/eventClassStatus"
-            subviews="/zport/dmd/Events(?!/evconsole$|/evhistory$|/triggers$)"
-            weight="2"
+            url="/zport/dmd/Events/eventclasses"
+            weight="3"
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zenoss.View"
+            permission="zenoss.Common"
             layer="..navigation.interfaces.IZenossNav"
             />
 
