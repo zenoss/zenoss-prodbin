@@ -111,11 +111,15 @@ class SnmpPerformanceConfig(CollectorConfigService):
                     log.warn("The data source %s OID is blank -- ignoring", ds.id)
                     continue
                 elif not validOID.match(oid):
-                    msg =  "The OID %s is invalid -- ignoring" % oid
-                    self.sendEvent(dict(
-                        device=comp.device().id, component=ds.getPrimaryUrlPath(),
-                        eventClass='/Status/Snmp', severity=Warning, summary=msg,
-                    ))
+                    oldOid = oid
+                    oid = self.dmd.Mibs.name2oid(oid)
+                    if not oid:
+                        msg =  "The OID %s is invalid -- ignoring" % oldOid
+                        self.sendEvent(dict(
+                            device=comp.device().id, component=ds.getPrimaryUrlPath(),
+                            eventClass='/Status/Snmp', severity=Warning, summary=msg,
+                        ))
+                        continue
 
                 for dp in ds.getRRDDataPoints():
                     # Everything under ZenModel *should* use titleOrId but it doesn't
