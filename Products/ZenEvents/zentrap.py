@@ -679,9 +679,21 @@ class TrapTask(BaseTask, CaptureReplay):
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
 
+        community = self.getCommunity(pdu)
+        self.sendTrapEvent(result, community, eventType,
+                           startProcessTime)
+
+        if self.isReplaying():
+            self.replayed += 1
+            # Don't attempt to respond back if we're replaying packets
+            return
+
+        if pdu.command == netsnmp.SNMP_MSG_INFORM:
+            self.snmpInform(addr, pdu)
+
+    def sendTrapEvent(self, result, community, eventType, startProcessTime):
         summary = 'snmp trap %s' % eventType
         self.log.debug(summary)
-        community = self.getCommunity(pdu)
         result.setdefault('component', '')
         result.setdefault('eventClassKey', eventType)
         result.setdefault('eventGroup', 'trap')
@@ -693,14 +705,6 @@ class TrapTask(BaseTask, CaptureReplay):
         result.setdefault('monitor', self.options.monitor)
         self._eventService.sendEvent(result)
         self.stats.add(time.time() - startProcessTime)
-
-        if self.isReplaying():
-            self.replayed += 1
-            # Don't attempt to respond back if we're replaying packets
-            return
-
-        if pdu.command == netsnmp.SNMP_MSG_INFORM:
-            self.snmpInform(addr, pdu)
 
     def displayStatistics(self):
         totalTime, totalEvents, maxTime = self.stats.report()
