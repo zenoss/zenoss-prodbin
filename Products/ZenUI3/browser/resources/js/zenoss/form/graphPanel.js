@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -475,16 +475,22 @@
             if (!result.success){
                 return;
             }
-            var data = result.data, panel = this, el = this.getEl();
+            var data = result.data,
+                panel = this,
+                el = this.getEl(),
+                graphs = [],
+                graph,
+                graphId,
+                i;
 
             if (el.isMasked()) {
                 el.unmask();
             }
             if (data.length > 0){
-
-                Ext.each(data, function(graph){
-                    var graphId = Ext.id();
-                    panel.add(new Zenoss.SwoopyGraph({
+                for (i=0; i < data.length; i++) {
+                    graphId = Ext.id();
+                    graph = data[i];
+                    graphs.push(new Zenoss.SwoopyGraph({
                         graphUrl: graph.url,
                         graphTitle: graph.title,
                         graphId: graphId,
@@ -493,7 +499,8 @@
                         ref: graphId
                     }));
 
-                });
+                }
+                this.add(graphs);
             }else{
                 el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
             }
