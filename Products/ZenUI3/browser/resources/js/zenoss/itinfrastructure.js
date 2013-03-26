@@ -1124,8 +1124,7 @@ Zenoss.nav.register({
             contextRegex: '^/zport/dmd/Devices'
         },{
             id: 'device_admin',
-            text: _t('Device Administration'),
-            contextRegex: '^/zport/dmd/Devices'
+            text: _t('Device Administration')
         },{
             id: 'overridden_objects',
             text: _t('Overridden Objects'),
@@ -1199,7 +1198,8 @@ Ext.define("Zenoss.InfraDetailNav", {
             'configuration properties': true,
             'editcustschema': true,
             'devicemanagement': true,
-            'overriddenobjects': true
+            'administration': true,
+            'overriddenobjects': true 
         };
         var uid = Zenoss.env.PARENT_CONTEXT;
         if (config.contextRegex) {

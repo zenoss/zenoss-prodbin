@@ -763,6 +763,25 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     }, 
                     {
                     xtype: 'button',
+                    iconCls: 'customize',
+                    tooltip: _t('Edit selected Maintenance Window'),
+                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    ref: 'customizeButton',
+                        handler: function(button) {
+                            var grid = Ext.getCmp("maintWindowGrid"),
+                                data,
+                                selected = grid.getSelectionModel().getSelection();
+    
+                            if (Ext.isEmpty(selected)) {
+                                return;
+                            }
+                            // single selection
+                            data = selected[0].data;
+                            maintDialog(grid, data);
+                        }
+                    }, 
+                    {
+                    xtype: 'button',
                     iconCls: 'suppress',
                     tooltip: _t('Toggle Enable/Disable on selected Maintenance Window'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
@@ -803,25 +822,6 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                                 });
                             }                            
                             // do an update that only toggles the enabled
-                        }
-                    }, 
-                    {
-                    xtype: 'button',
-                    iconCls: 'customize',
-                    tooltip: _t('Edit selected Maintenance Window'),
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
-                    ref: 'customizeButton',
-                        handler: function(button) {
-                            var grid = Ext.getCmp("maintWindowGrid"),
-                                data,
-                                selected = grid.getSelectionModel().getSelection();
-    
-                            if (Ext.isEmpty(selected)) {
-                                return;
-                            }
-                            // single selection
-                            data = selected[0].data;
-                            maintDialog(grid, data);
                         }
                     }
                 ],
@@ -916,6 +916,14 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             maintDialog(this, data);
         }
     });
+    
+    var contextIsDevice = function(uid){
+        var split = uid.split('/devices/');
+        if(split[1]){
+            return true;
+        }
+        return false;
+    }
     
     
 // ------------------------------------------------------- Commands:
@@ -1036,6 +1044,33 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         zp_dialog.setTarget(grid.uid);
                         zp_dialog.show();
                     }
+                    },{
+                        xtype: 'button',
+                        iconCls: 'acknowledge',
+                        tooltip: _t('Run the selected command'),
+                        disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                        listeners: {
+                            afterrender: function(b){
+                                b.setVisible(contextIsDevice(Ext.getCmp("deviceCommandsGrid").uid));
+                            }
+                        },
+                        handler: function(button){
+                                var grid = Ext.getCmp("deviceCommandsGrid"),
+                                data,
+                                selected = grid.getSelectionModel().getSelection();
+    
+                            if (Ext.isEmpty(selected)) {
+                                return;
+                            }
+                            // single selection
+                            data = selected[0].data;
+                            var win = new Zenoss.CommandWindow({
+                                uids: [grid.uid],
+                                target: grid.uid + '/run_command',
+                                command: data.id
+                            });
+                            win.show();
+                        } 
                     }
                 ],
                 store: Ext.create('Zenoss.admincommands.Store', {}),
@@ -1065,7 +1100,6 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             this.on('itemdblclick', this.onRowDblClick, this);
         },
         setContext: function(uid) {
-
             this.uid = uid;
             // load the grid's store
             this.callParent(arguments);
