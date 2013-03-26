@@ -17,16 +17,20 @@
     Ext.apply(zpropertyConfigs, {
         'int': {
             xtype: 'numberfield',
-            allowDecimals: false
+            allowDecimals: false,
+            width: 100
         },
         'float': {
-            xtype: 'numberfield'
+            xtype: 'numberfield',
+            width: 100
         },
         'string': {
             xtype: 'textfield'
         },
         'lines': {
-            xtype: 'textarea'
+            xtype: 'textarea',
+            resizable: true,
+            width: 300
         },
         'severity': {
             xtype: 'severity'
@@ -71,9 +75,9 @@
     function showEditConfigPropertyDialog(data, grid) {
         var handler, uid, config, editConfig, dialog, type;
         type = data.type;
-        // Try the specific property id, next the type and finall default to string
-        editConfig = zpropertyConfigs[data.id] || zpropertyConfigs[type] || zpropertyConfigs['string'];
-
+        editConfig = {};
+        // Try the specific property id, next the type and finally default to string
+        Ext.apply(editConfig, zpropertyConfigs[data.id] || zpropertyConfigs[type] || zpropertyConfigs['string']);
         // in case of drop down lists
         if (Ext.isArray(data.options) && data.options.length > 0 && type == 'string') {
             // make it a combo and the options is the store
@@ -82,12 +86,13 @@
         }
 
         // set the default values common to all configs
-        Ext.apply(editConfig, {
+        Ext.applyIf(editConfig, {
             fieldLabel: _t('Value'),
             value: data.value,
             ref: 'editConfig',
             checked: data.value,
-            name: data.id
+            name: data.id,
+            width: 250
         });
 
         // lines come in as comma separated and should be saved as such
