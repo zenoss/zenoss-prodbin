@@ -907,14 +907,23 @@ def DoEasyUninstall(name):
     an egg as described here:
     http://peak.telecommunity.com/DevCenter/EasyInstall#uninstalling-packages
     """
-    from setuptools.command import easy_install        
+    from setuptools.command import easy_install
     args = ['--site-dirs', zenPath('ZenPacks'),
         '-d', zenPath('ZenPacks'),
         #'--record', tempPath,
         '--quiet',
         '-m',
         name]
-    easy_install.main(args)
+
+    #Try to run the easy install command.  If this fails with an attribute
+    #error, then we know that easy_install doesn't know about this ZenPack and
+    #we can continue normally
+
+    try:
+        easy_install.main(args)
+    except AttributeError:
+        log.info("%s not found by easy_install.  Continuing to remove." % name)
+        pass
 
 
 def CanRemoveZenPacks(dmd, packNames):

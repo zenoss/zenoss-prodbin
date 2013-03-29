@@ -214,8 +214,9 @@ class ZenPackCmd(ZenScriptBase):
 
             if not pack:
                 if not self.options.ifinstalled:
-                    raise ZenPackException('ZenPack %s is not installed.' %
+                    self.log.info('ZenPack %s is not installed.' %
                                             self.options.removePackName)
+                    return False
             else:
                 removeZenPackQueuesExchanges(pack.path())
                 if pack.isEggPack():

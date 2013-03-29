@@ -132,7 +132,7 @@ upgrade_to_persistent_sessions
 # remove it so it doesn't throw an error.  It will get reinstalled as part of the uplevel WindowsMonitor egg.
 if [ -f ${ZENHOME}/ZenPacks/ZenPacks.zenoss.ZenWinPerf*/ZenPacks/zenoss/ZenWinPerf/daemons/zenwinperf ];then
 	rm ${ZENHOME}/ZenPacks/ZenPacks.zenoss.ZenWinPerf*/ZenPacks/zenoss/ZenWinPerf/daemons/zenwinperf
-	if [ -f ${ZENHOME}/bin/zenwinperf ];then
+	if [ -f ${ZENHOME}/bin/zenwinperf -o -L ${ZENHOME}/bin/zenwinperf ];then
 		rm ${ZENHOME}/bin/zenwinperf 
 	fi
 fi
