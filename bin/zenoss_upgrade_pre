@@ -137,5 +137,8 @@ if [ -f ${ZENHOME}/ZenPacks/ZenPacks.zenoss.ZenWinPerf*/ZenPacks/zenoss/ZenWinPe
 	fi
 fi
 
+# fix any accidental or otherwise changes to ownership/perms in ZENHOME
+fix_zenhome_owner_and_group ${OS_USERNAME}
+
 # migrate the zeo database
 run_zenmigrate
