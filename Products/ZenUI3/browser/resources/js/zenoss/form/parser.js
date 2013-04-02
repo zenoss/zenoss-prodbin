@@ -23,9 +23,10 @@
                  forceSelection: true,
                  autoSelect: true,
                  triggerAction: 'all',
-                 minListWidth: 250,
+                 matchFieldWidth: false,
                  listConfig: {
-                     resizable: true
+                     resizable: true,
+                     minWidth: 250
                  },
                  queryMode: 'local',
                  store: record.availableParsers

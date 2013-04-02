@@ -48,9 +48,9 @@ var hwManufacturers = {
 var hwProduct = {
     xtype: 'productcombo',
     prodType: 'HW',
-    minListWidth: 250,
     listConfig: {
-        resizable: true
+        resizable: true,
+        minWidth: 250
     },
     name: 'hwProductName',
     fieldLabel: _t('HW Product'),
@@ -71,9 +71,9 @@ var osManufacturers = {
 var osProduct = {
     xtype: 'productcombo',
     prodType: 'OS',
-    minListWidth: 250,
     listConfig: {
-        resizable: true
+        resizable: true,
+        minWidth: 250
     },
     name: 'osProductName',
     id: 'osproductcombo',
@@ -82,7 +82,6 @@ var osProduct = {
 
 var deviceClassCombo = {
     xtype: 'combo',
-    minListWidth: 250,
     width: 300,
     name: 'deviceClass',
     fieldLabel: _t('Device Class'),
@@ -93,7 +92,8 @@ var deviceClassCombo = {
     displayField: 'name',
     allowBlank: false,
     listConfig: {
-        resizable: true
+        resizable: true,
+        minWidth: 250
     },
     store: new Ext.data.DirectStore({
         id: 'deviceClassStore',
@@ -557,11 +557,13 @@ Ext.apply(Zenoss.devices, {
                             }, {
                                 xtype: 'ProductionStateCombo',
                                 name: 'productionState',
-                                minListWidth: 250,
                                 id: 'production-combo',
                                 width: 250,
                                 allowBlank: false,
                                 fieldLabel: _t("Production State"),
+                                listConfig: {
+                                    minWidth: 250
+                                },
                                 listeners: {
                                     'afterrender': function(component) {
                                         component.store.load({callback:function(){
@@ -576,9 +578,11 @@ Ext.apply(Zenoss.devices, {
                                 xtype: 'PriorityCombo',
                                 name: 'priority',
                                 fieldLabel: _t("Device Priority"),
-                                minListWidth: 250,
                                 width: 250,
                                 allowBlank: false,
+                                listConfig: {
+                                    minWidth: 250
+                                },
                                 listeners: {
                                     'afterrender': function(component) {
                                         component.store.load({callback: function() {
