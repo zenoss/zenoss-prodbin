@@ -333,7 +333,7 @@ class ZenDisc(ZenModeler):
             """
             self.log.debug("findRemoteDeviceInfo.inner: Doing SNMP lookup on device %s", ip)
             yield self.config().callRemote('getSnmpConfig', devicePath)
-            communities, port, version, timeout, retries = driver.next()
+            communities, ports, version, timeout, retries = driver.next()
             self.log.debug("findRemoteDeviceInfo.inner: override acquired community strings")
             # Override the device class communities with the ones set on
             # this device, if they exist
@@ -346,12 +346,14 @@ class ZenDisc(ZenModeler):
 
             configs = []
             for i, community in enumerate(communities):
-                configs.append(SnmpV1Config(
-                    ip, weight=i, port=port, timeout=timeout,
-                    retries=retries, community=community))
-                configs.append(SnmpV2cConfig(
-                    ip, weight=i+100, port=port, timeout=timeout,
-                    retries=retries, community=community))
+                for port in ports:
+                    port = int(port)
+                    configs.append(SnmpV1Config(
+                        ip, weight=i, port=port, timeout=timeout,
+                        retries=retries, community=community))
+                    configs.append(SnmpV2cConfig(
+                        ip, weight=i+100, port=port, timeout=timeout,
+                        retries=retries, community=community))
 
             yield SnmpAgentDiscoverer().findBestConfig(configs)
             driver.next()
@@ -411,7 +413,6 @@ class ZenDisc(ZenModeler):
                         #@FIXME we are not getting deviceProps, check calling
                         # chain for clues. twisted upgrade heartburn perhaps?
 
-                snmpDeviceInfo = None
                 # if we are using SNMP, lookup the device SNMP info and use the
                 # name defined there for deviceName
                 if not self.options.nosnmp:

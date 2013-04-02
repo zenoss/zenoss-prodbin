@@ -27,6 +27,9 @@ False
 <property visible="True" type="string" id="zSnmpCommunity" >
 public
 </property>
+<property visible="True" type="lines" id="zSnmpDiscoveryPorts" >
+[]
+</property>
 <property visible="True" type="int" id="zSnmpPort" >
 161
 </property>

@@ -9,7 +9,6 @@
 
 
 import math
-import re
 from ipaddr import IPNetwork
 import logging
 
@@ -21,15 +20,13 @@ from twisted.spread import pb
 from ZODB.transact import transact
 
 from Products.Jobber.exceptions import NoSuchJobException
-from Products.ZenUtils.IpUtil import strip, ipwrap, ipunwrap, isip
-from Products.ZenEvents.Event import Event
+from Products.ZenUtils.IpUtil import strip, ipunwrap, isip
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Exceptions import DeviceExistsError
 from Products.ZenRelations.ZenPropertyManager import iszprop
-
-from .ModelerService import ModelerService
+from Products.ZenHub.services.ModelerService import ModelerService
 
 
 DEFAULT_PING_THRESH = 168
@@ -255,8 +252,10 @@ class DiscoverService(ModelerService):
     def remote_getSnmpConfig(self, devicePath):
         "Get the snmp configuration defaults for scanning a device"
         devroot = self.dmd.Devices.createOrganizer(devicePath)
+        ports = devroot.zSnmpDiscoveryPorts
+        ports = ports if ports else [devroot.zSnmpPort]
         return (devroot.zSnmpCommunities,
-                devroot.zSnmpPort,
+                ports,
                 devroot.zSnmpVer,
                 devroot.zSnmpTimeout,
                 devroot.zSnmpTries)

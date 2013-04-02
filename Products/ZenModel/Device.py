@@ -131,7 +131,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
 def findCommunity(context, ip, devicePath,
                   community="", port=None, version=None):
     """
-    Find the SNMP community and version for an ip address using zSnmpCommunities.
+    Find the SNMP community and version for an IP address using zSnmpCommunities.
 
     @rtype: tuple of (community, port, version, device name)
     """

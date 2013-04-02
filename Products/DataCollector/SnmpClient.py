@@ -21,8 +21,6 @@ from Products.ZenUtils.snmp import SnmpAgentDiscoverer
 
 from pynetsnmp.twistedsnmp import snmpprotocol, Snmpv3Error
 
-import Globals
-
 from Products.ZenUtils.Driver import drive
 
 global defaultTries, defaultTimeout
@@ -96,7 +94,7 @@ class SnmpClient(BaseClient):
         yield self.proxy.walk('.1.3')
         try:
             driver.next()
-        except TimeoutError, ex:
+        except TimeoutError:
             log.info("Device timed out: " + self.connInfo.summary())
             if self.options.discoverCommunity:
                 yield self.findSnmpCommunity()
@@ -116,10 +114,10 @@ class SnmpClient(BaseClient):
                 self.initSnmpProxy()
             else:
                 return
-        except Snmpv3Error, ex:
+        except Snmpv3Error:
             log.info("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
             return
-        except Exception, ex:
+        except Exception:
             log.exception("Unable to talk: " + self.connInfo.summary())
             return
 
@@ -147,22 +145,26 @@ class SnmpClient(BaseClient):
             communities = list(self.device.zSnmpCommunities)
             communities.reverse()
 
+            ports = self.device.zSnmpDiscoveryPorts
+            ports = ports if ports else [self.device.zSnmpPort]
+
             configs = []
             weight = 0
-            port = int(self.device.zSnmpPort)
             for community in communities:
-                weight+=1
-                configs.append(SnmpV1Config(
-                    self.device.manageIp, weight=weight,
-                    port=port,
-                    timeout=self.connInfo.zSnmpTimeout,
-                    retries=self.connInfo.zSnmpTries,
-                    community=community))
-                configs.append(SnmpV2cConfig(
-                    self.device.manageIp, weight=weight+1000, port=port,
-                    timeout=self.connInfo.zSnmpTimeout,
-                    retries=self.connInfo.zSnmpTries,
-                    community=community))
+                for port in ports:
+                    weight+=1
+                    port = int(port)
+                    configs.append(SnmpV1Config(
+                        self.device.manageIp, weight=weight,
+                        port=port,
+                        timeout=self.connInfo.zSnmpTimeout,
+                        retries=self.connInfo.zSnmpTries,
+                        community=community))
+                    configs.append(SnmpV2cConfig(
+                        self.device.manageIp, weight=weight+1000, port=port,
+                        timeout=self.connInfo.zSnmpTimeout,
+                        retries=self.connInfo.zSnmpTries,
+                        community=community))
 
             yield SnmpAgentDiscoverer().findBestConfig(configs)
             driver.next()
@@ -232,29 +234,3 @@ class SnmpClient(BaseClient):
     def stop(self):
         self.proxy.close()
 
-def buildOptions(parser=None, usage=None):
-    "build options list that both telnet and ssh use"
-    if not usage:
-        usage = "%prog [options] hostname[:port] oids"
-    if not parser:
-        from optparse import OptionParser
-        parser = OptionParser(usage=usage)
-
-    parser.add_option('--snmpCommunity',
-                dest='snmpCommunity',
-                default=defaultSnmpCommunity,
-                help='Snmp Community string')
-
-
-if __name__ == "__main__":
-    import pprint
-    logging.basicConfig()
-    log = logging.getLogger()
-    log.setLevel(20)
-    import sys
-    sys.path.append("plugins")
-    from plugins.zenoss.snmp.InterfaceMap import InterfaceMap
-    ifmap = InterfaceMap()
-    sc = SnmpClient("gate.confmon.loc", community="zentinel", plugins=[ifmap,])
-    reactor.run()
-    pprint.pprint(sc.getResults())
