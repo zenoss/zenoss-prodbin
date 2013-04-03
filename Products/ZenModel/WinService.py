@@ -7,7 +7,7 @@
 # 
 ##############################################################################
 
-
+import re
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import *
@@ -18,16 +18,18 @@ from Products.ZenWidgets import messaging
 from Products.ZenModel.WinServiceClass import WinServiceClass
 from Service import Service
 
+
 def manage_addWinService(context, id, description, userCreated=None, 
-                         REQUEST=None):
+                         REQUEST=None, newClassName="/WinService/"):
     """
-    Create a WinService and add it to context. context should be a
+    Create a WinService and add it to context. context should be a 
     device.os.winservices relationship.
     """
+    className = re.sub(r'/serviceclasses/.*', r'/', newClassName)
     s = WinService(id)
     # Indexing is subscribed to ObjectAddedEvent, which fires
     # on _setObject, so we want to set service class first.
-    args = {'name':id, 'description':description}
+    args = {'name':id, 'description':description, 'newClassName':className}
     s.__of__(context).setServiceClass(args)
     context._setObject(id, s)
     s = context._getOb(id)
@@ -142,7 +144,7 @@ class WinService(Service):
         """
         self.serviceName = kwargs['name']
         self.caption = kwargs['description']
-        path = "/WinService/"
+        path = kwargs['newClassName'] 
         srvs = self.dmd.getDmdRoot("Services")
         srvclass = srvs.createServiceClass(
             name=self.serviceName, description=self.caption, path=path, factory=WinServiceClass)

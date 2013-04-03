@@ -304,7 +304,8 @@ class OperatingSystem(Software):
             ws = manage_addWinService(self.winservices, 
                                     wsc.id,
                                     wsc.description,
-                                    userCreated=userCreated)
+                                    userCreated=userCreated,
+                                    newClassName=newClassName)
             self._p_changed = True
         elif REQUEST:
             messaging.IMessageSender(self).sendToBrowser(

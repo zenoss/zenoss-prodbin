@@ -319,7 +319,7 @@
             Ext.define(modelId, {
                 extend: 'Ext.data.Model',
                 idProperty: 'value',
-                fields: ['name', 'value']
+                fields: ['path', 'value']
             });
             Ext.applyIf(config, {
                 height: 150,
@@ -333,15 +333,15 @@
                     xtype: 'combo',
                     fieldLabel: _t('Service Class'),
                     name: 'newClassName',
-                    width: 150,
+                    width: 350,
                     typeAhead:true,
                     forceSelection: true,
-                    displayField: 'name',
+                    displayField: 'path',
                     valueField: 'value',
                     triggerAction: 'all',
                     store: new Zenoss.NonPaginatedStore({
                         model: modelId,
-                        directFn: Zenoss.remote.ServiceRouter.getClassNames,
+                        directFn: Zenoss.remote.ServiceRouter.getClassNames, 
                         listeners: {
                             beforeload: function(store, operation){
                                 operation.params.uid = '/zport/dmd/Services/WinService';

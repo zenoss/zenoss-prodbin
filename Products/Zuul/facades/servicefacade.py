@@ -9,6 +9,7 @@
 
 
 import logging
+import re
 from zope.interface import implements
 from Products.AdvancedQuery import MatchRegexp, And
 from Products.ZenModel.ServiceClass import ServiceClass
@@ -100,7 +101,8 @@ class ServiceFacade(TreeFacade):
         brains = self._serviceSearch(uid=uid, params=params)
         for klass in brains:
             value = klass.getPath().lstrip('/zport/dmd/Services')
-            data.append({'value':value, 'name':klass.name})
+            path = re.sub(r'/serviceclasses/.*', r'/', value)+klass.name
+            data.append({'value':value, 'name':klass.name, 'path':path}) 
         return data
 
     @info
