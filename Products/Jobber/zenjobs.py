@@ -23,10 +23,8 @@ from Products.ZenUtils.celeryintegration.worker import CeleryZenWorker
 from celery import concurrency
 from celery.signals import task_prerun
 from celery.exceptions import SystemTerminate
-try:
-    from celery.concurrency.processes.forking import freeze_support
-except ImportError:
-    freeze_support = lambda *_: None
+
+from billiard import freeze_support
 
 from Products.Jobber.exceptions import NoSuchJobException
 from Products.Jobber.jobs import JobAborted
