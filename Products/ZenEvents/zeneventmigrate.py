@@ -14,8 +14,27 @@ new ZEP event schema. All properties of the events are mapped to the new
 property values, and zeneventd identification/tagging is performed to ensure
 that events will be associated with the correct entities in Zenoss.
 
-The migration script assumes that the old server no longer accepts events, and
-saves the last event (per table) inside of the zeneventmigrate.conf file.
+The migration script assumes that the old MySQL database no longer accepts
+events, and saves the last event (per table) inside of the
+zeneventmigrate.conf file. Note that only the MySQL server is required to be
+available, and not all of Zenoss.
+
+On the 3x source system (assuming separate 3x and 4x systems), ensure that 
+the 4x system (in this example: 10.87.207.181) can acces the database. Create
+a new user to access the events.
+
+mysql> grant SELECT on *.* to 'event_migrate'@'10.87.207.181' identified by 'password';
+mysql> flush privileges;
+
+From the remote machine, test the access to the 3x database, which (in this example
+resides on 10.87.207.80.
+
+zends -uevent_migrate -ppassword -h 10.87.207.80 --port 3306 -D events
+
+From the 4.x system, you can then start the migration:
+
+zeneventmigrate --evthost=10.87.207.80 --evtport=3306 \
+                --evtuser=event_migrate --evtpass=password --dont-fetch-args
 """
 
 import logging
