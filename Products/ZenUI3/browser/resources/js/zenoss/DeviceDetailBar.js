@@ -147,7 +147,12 @@ Ext.define("Zenoss.DeviceDetailBar", {
             this.eventsitem.updateRainbow(data.events);
             this.statusitem.setText(
                 ZR.pingStatusLarge(data.status));
-            this.prodstateitem.setText(Zenoss.env.PRODUCTION_STATES_MAP[data.productionState]);
+            /* reformat the production state name so that it doesn't mess up the UI when too long */
+            var pstatetxt = Zenoss.env.PRODUCTION_STATES_MAP[data.productionState];
+            var pstate =  "<span title='"+pstatetxt+"'>";
+                pstate += pstatetxt.length > 14 ? pstatetxt.substring(0, 12)+"..." : pstatetxt;
+                pstate += "</span>";
+            this.prodstateitem.setText(pstate);
             this.priorityitem.setText(Zenoss.env.PRIORITIES_MAP[data.priority]);
 
             // reset the positions based on text width and what not:
