@@ -29,6 +29,7 @@ import zenoss.protocols.protobufs.zep_pb2 as zep
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
+from Products.ZenUtils import Utils
 from AccessControl import getSecurityManager
 
 from zenoss.protocols.interfaces import IQueueSchema
@@ -348,6 +349,32 @@ class TriggersFacade(ZuulFacade):
         if self.triggerPermissions.userCanUpdateTrigger(user, triggerObj):
             if "name" in data:
                 triggerObj.setTitle(data["name"])
+                parent = triggerObj.getPrimaryParent()
+                path = triggerObj.absolute_url_path()
+                oldId = triggerObj.getId()
+                newId = triggerObj.title
+                if not isinstance(newId, unicode):
+                    newId = Utils.prepId(newId)
+                newId = newId.strip()
+                if not newId:
+                    raise Exception("New trigger id cannot be empty.")
+                if newId != oldId:
+                    # Now we have to rename the trigger id since its title changed
+                    try:
+                        if triggerObj.getDmd().Triggers.findObject(newId):
+                            message = 'Trigger %s already exists' % newId
+                            # Duplicate trigger found
+                            raise Exception(message)    
+                    except AttributeError as ex:
+                        # We came here in the good case, because the newId is not a duplicate
+                        pass                            
+        
+                    try:
+                        parent.manage_renameObject(oldId, newId)
+                        triggerObj.id = newId
+                    except CopyError:
+                        raise Exception("Trigger rename failed.")
+                    
             trigger = from_dict(zep.EventTrigger, data)
             response, content = self.triggers_service.updateTrigger(trigger)
             return content
