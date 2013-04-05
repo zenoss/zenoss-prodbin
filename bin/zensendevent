@@ -9,9 +9,14 @@
 ##############################################################################
 
 '''
-Send events on a command line via XML-RPC or from a XML file.
+Send events on a command line via XML-RPC.
+
 This command can be put on any machine with Python installed, and
 does not need Zope or Zenoss.
+
+Sending events from a XML file requires either:
+ * called from Zenoss box that has $ZENHOME/Products/ZenEvents/XmlEvents.py
+ * a copy of XmlEvents.py in the same directory as this file
 '''
 
 import os
@@ -19,8 +24,6 @@ import socket
 
 from xmlrpclib import ServerProxy
 from optparse import OptionParser
-from xml.sax import make_parser
-from xml.sax.handler import ContentHandler
 
 
 # Map of human severity strings to Zenoss severity values.
@@ -43,7 +46,7 @@ DEFAULT_SERVER = 'localhost'
 XML_RPC_PORT = 8081
 DEFAULT_AUTH = 'admin:zenoss'
 
-# Default ZENHOME in case we're on a Zenoss server, but no the zenoss user.
+# Default ZENHOME in case we're on a Zenoss server, but not the zenoss user.
 ZENHOME = os.environ.get('ZENHOME', '/opt/zenoss')
 
 
@@ -86,80 +89,6 @@ def auth_from_conf():
     entries = [ x.strip() for x in lines.splitlines() if x.strip() ]
     if entries:
         return entries[0]
-
-
-class ImportEventXML(ContentHandler):
-    ignoredElements = set([
-        'ZenossEvents', 'url', 'SourceComponent',
-        'ReporterComponent', 'EventId',
-        'clearid', 'eventClassMapping',
-        'eventState', 'lastTime', 'firstTime', 'prodState',
-        'EventSpecific', 'stateChange',
-        ])
-    evt = {}
-    property = ''
-    value = ''
-
-    def __init__(self, serv):
-        ContentHandler.__init__(self)
-        self.sent = 0
-        self.total = 0
-        self.serv = serv
-
-    def startElement(self, name, attrs):
-        self.value = ''
-        if name == 'ZenossEvent':
-            self.evt = {}
-        elif name == 'property':
-            self.property = attrs['name']
-
-    def characters(self, content):
-        self.value += content
-
-    def endElement(self, name):
-        name = str(name)
-        value = str(self.value)
-        if name in self.ignoredElements:
-            return
-
-        elif name == 'property' and value and value != '|':
-                self.evt[self.property] = value
-
-        elif name in ['Systems', 'DeviceGroups']:
-                if value and value != '|':
-                    self.evt[name] = value
-
-        elif name in ['eventClassKey', 'eventKey']:
-                if value:
-                    self.evt[name] = value
-
-        elif name == 'severity':
-                self.evt[name] = int(value)
-
-        elif name == 'ZenossEvent':
-            self.total += 1
-            try:
-                self.serv.sendEvent(self.evt)
-                self.sent += 1
-            except Exception, ex:
-                print str(ex)
-                print evt
-
-        elif value:
-            self.evt[name] = value
-
-
-def sendXMLEvents(serv, xmlfile):
-    infile = open(xmlfile)
-    parser = make_parser()
-    CH = ImportEventXML(serv)
-    parser.setContentHandler(CH)
-    try:
-        parser.parse(infile)
-    finally:
-        infile.close()
-    print "Sent %s of %s events" % (CH.sent, CH.total)
-
 
 device = socket.getfqdn()
 if device.endswith('.'):
@@ -223,8 +152,18 @@ url = "http://%s@%s:%s" % (opts.auth, opts.server, opts.port)
 serv = ServerProxy(url)
 
 if opts.input_file:
-    sendXMLEvents(serv, opts.input_file)
     import sys
+    try:
+        import Globals
+        from Products.ZenEvents.XmlEvents import sendXMLEvents
+    except ImportError:
+        try:
+            from XmlEvents import sendXMLEvents
+        except ImportError:
+            print "Unable to import needed XmlEvents.py libray -- exiting!"
+            sys.exit(1)
+    sent, total = sendXMLEvents(serv, opts.input_file)
+    print "Sent %s of %s events" % (sent, total)
     sys.exit(0)
 
 evt = {}
