@@ -20,10 +20,78 @@ from .interfaces import IPingTaskCorrelator
 from Products import ZenCollector
 
 import logging
-log = logging.getLogger("zen.zenping.SimpleCorrelator")
+LOG = logging.getLogger("zen.zenping.SimpleCorrelator")
 
 # amount of IPs/events to process before giving time to the reactor
 _SENDEVENT_YIELD_INTERVAL = 100  # should always be >= 1
+
+
+def noOpYield():
+    return twistedTask.deferLater(reactor, 0, lambda: None,)
+
+def simpleCorrelator(ipTasks, connected_ips=True, reactorYield=noOpYield):
+
+    downTasks = {ipTask.config.ip: ipTask for ipTask in ipTasks.itervalues() if not ipTask.delayedIsUp}
+
+    # find connectedIps of down tasks, and create a lookup
+    downConnectedIps = {}
+
+    if connected_ips:
+	for ip, ipTask in ipTasks.iteritems():
+	    if ipTask.isUp or ipTask.delayedIsUp:
+		continue
+	    if  ipTask._device.connectedIps:
+                for connectedIp, componentId in ipTask._device.connectedIps:
+		    if connectedIp != ip and connectedIp not in downTasks:
+		        downConnectedIps[connectedIp] = ipTask, componentId
+
+    i = 0
+    # for every down ipTask
+    for currentIp, ipTask in downTasks.iteritems():
+	i += 1
+	# walk the hops in the traceroute
+	for hop in ipTask.trace:
+
+	    if hop.ip != currentIp:
+		if hop.ip in downTasks:
+		    # we found our root cause!
+		    rootCause = downTasks[hop.ip]
+		    rootCauseMessage = "IP %r on interface %r is connected "\
+			"to device %r and is also in the traceroute "\
+			 "for monitored ip %r on device %r" % (
+			hop.ip, rootCause.config.iface, rootCause.configId, currentIp, ipTask.configId,
+		    )
+		    cause = {
+			'rootcause.deviceId': rootCause.configId,
+			'rootcause.componentId': rootCause.config.iface or None,
+			'rootcause.componentIP': hop.ip,
+			'rootcause.message': rootCauseMessage,
+			}
+		    ipTask.sendPingDown(suppressed=True, **cause)
+		    break
+		if hop.ip in downConnectedIps:
+		    rootCause, componentId = downConnectedIps[hop.ip]
+		    rootCauseMessage = "IP %r on interface %r is connected "\
+			"to device %r and is also in the traceroute "\
+			 "for monitored ip %r on device %r" % (
+			hop.ip, componentId, rootCause.configId, currentIp, ipTask.configId,
+		    )
+		    cause={
+			'rootcause.deviceId': rootCause.configId,
+			'rootcause.componentId': componentId,
+			'rootcause.componentIP': hop.ip,
+			'rootcause.message': rootCauseMessage,
+		    }
+		    ipTask.sendPingDown( suppressed=True, suppressedWithconnectedIp='True', **cause)
+		    break
+	else:
+	    # no root cause found
+	    ipTask.sendPingDown()
+
+	# give time to reactor to send events if necessary
+	if i % _SENDEVENT_YIELD_INTERVAL:
+	    yield reactorYield()
+
 
 class SimpleCorrelator(object):
     interface.implements(IPingTaskCorrelator)
@@ -44,64 +112,10 @@ class SimpleCorrelator(object):
         question. It uses only the last known traceroute as given by nmap which
         will not have routing loops and hosts that block icmp.
         """
-        downTasks = {ipTask.config.ip: ipTask for ipTask in ipTasks.itervalues() if not ipTask.delayedIsUp}
 
         options = component.getUtility(ZenCollector.interfaces.ICollector).options
-        # find connectedIps of down tasks, and create a lookup
-        downConnectedIps = {}
+        connected_ips = True if options.connected_ips == 'enabled' else False
 
-        if options.connected_ips == 'enabled':
-            for ip, ipTask in ipTasksMap.iteritems():
-                if ipTask.isUp or ipTask.delayedIsUp:
-                    continue
-                for connectedIp, componentId in ipTask._device.connectedIps:
-                    if connectedIp != ip and connectedIp not in downTasks:
-                        downConnectedIps[connectedIp] = ipTask, componentId
+        yield simpleCorrelator(ipTasks, connected_ips)
 
-        i = 0
-        # for every down ipTask
-        for currentIp, ipTask in downTasks.iteritems():
-            i += 1
-            # walk the hops in the traceroute
-            for hop in ipTask.trace:
-
-                if hop.ip != currentIp:
-                    if hop.ip in downTasks:
-                        # we found our root cause!
-                        rootCause = downTasks[hop.ip]
-                        rootCauseMessage = "IP %r on interface %r is connected "\
-                            "to device %r and is also in the traceroute "\
-                             "for monitored ip %r on device %r" % (
-                            hop.ip, rootCause.config.iface, rootCause.configId, currentIp, ipTask.configId,
-                        )
-                        cause = {
-                            'rootcause.deviceId': rootCause.configId,
-                            'rootcause.componentId': rootCause.config.iface or None,
-                            'rootcause.componentIP': hop.ip,
-                            'rootcause.message': rootCauseMessage,
-                            }
-                        ipTask.sendPingDown(suppressed=True, **cause)
-                        break
-                    if hop.ip in downConnectedIps:
-                        rootCause, componentId = downConnectedIps[hop.ip]
-                        rootCauseMessage = "IP %r on interface %r is connected "\
-                            "to device %r and is also in the traceroute "\
-                             "for monitored ip %r on device %r" % (
-                            hop.ip, componentId, rootCause.configId, currentIp, ipTask.configId,
-                        )
-                        cause={
-                            'rootcause.deviceId': rootCause.configId,
-                            'rootcause.componentId': componentId,
-                            'rootcause.componentIP': hop.ip,
-                            'rootcause.message': rootCauseMessage,
-                        }
-                        ipTask.sendPingDown( suppressed=True, suppressedWithconnectedIp='True', **cause)
-                        break
-            else:
-                # no root cause found
-                ipTask.sendPingDown()
-
-            # give time to reactor to send events if necessary
-            if i % _SENDEVENT_YIELD_INTERVAL:
-                yield twistedTask.deferLater(reactor, 0, lambda: None, )
 
