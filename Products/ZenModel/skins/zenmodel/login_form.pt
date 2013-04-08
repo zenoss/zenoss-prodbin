@@ -88,9 +88,22 @@
                 z-index: 2;
             }
         </style>
+        <script>
+            function onload() {
+                if (window.location != window.top.location) {
+                    window.top.location.href = window.location.href;
+                }
+                if ( window.location.hash) {
+                    var fragment = document.getElementById('fragment')
+                    var hash = encodeURIComponent( window.location.hash)
+                    fragment.value = hash
+                }
+                document.getElementById('username').focus();
+            }
+        </script>
     </head>
 
-    <body onload="if (window.location != window.top.location) {window.top.location.href = window.location.href;} document.getElementById('username').focus();">
+    <body onload="onload()">
         <div id="topbar"></div>
         <form name="loginform"
             method="POST"
@@ -98,6 +111,7 @@
                 <input type="hidden" name="came_from" value=""
                        tal:attributes="value request/came_from | string:"/>
                 <input type="hidden" name="submitted" value="true" />
+            <input id="fragment" type="hidden" name="fragment" value="" />
             <div id="middlebar">
                 <div id="container">
                     <div id="loginimg"
@@ -127,6 +141,4 @@
         </form>
         <tal:block tal:content="structure here/getExtraLoginFormContents"/>
     </body>
-
-
 </html>

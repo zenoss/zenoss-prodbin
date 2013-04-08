@@ -174,11 +174,19 @@ def login(self):
     else:
         submittedQs = 'submitted=%s' % submitted
         came_from = '/zport/dmd?%s' % submittedQs
+
     if not self.dmd.acceptedTerms:
         url = "%s/zenoss_terms/?came_from=%s" % (
                     self.absolute_url(), urllib.quote(came_from))
     else:
         url = came_from
+
+    fragment = request.get('fragment', '')
+    if fragment:
+        fragment = urllib.unquote( fragment)
+        if not fragment.startswith( '#'):
+            fragment = '#' + fragment
+        url += fragment
 
     if self.dmd.uuid is None:
         self.dmd.uuid = str(uuid1())
