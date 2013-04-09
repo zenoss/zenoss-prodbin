@@ -210,7 +210,7 @@ Ext.define("Zenoss.GraphPointGrid", {
                                     xtype: 'combo',
                                     ref: 'comboBox',
                                     getInnerTpl: function() {
-                                        return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
+                                        return '<tpl for="."><div data-qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
                                     },
                                     fieldLabel: _t('Data Point'),
                                     valueField: 'uid',
@@ -288,7 +288,7 @@ Ext.define("Zenoss.GraphPointGrid", {
                                     xtype: 'combo',
                                     id: 'addThresholdToGraphCombo',
                                     getInnerTpl: function() {
-                                        return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
+                                        return '<tpl for="."><div data-qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
                                     },
                                     fieldLabel: _t('Threshold'),
                                     valueField: 'uid',

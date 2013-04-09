@@ -461,7 +461,7 @@ Ext.apply(Zenoss.render, {
         msg = Ext.htmlEncode(msg);
         msg = "<pre style='white-space:normal;'>" + msg + "</pre>";
         msg = msg.replace(/\"/g, '&quot;');
-        metadata.attr = 'ext:qtip="' + msg + '" ext:qwidth="500"';
+        metadata.tdAttr = 'data-qtip="' + msg + '" data-qwidth="500"';
         data = Ext.htmlEncode(data);
         return data;
     }
