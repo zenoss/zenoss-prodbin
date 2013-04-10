@@ -144,7 +144,9 @@ class WinService(Service):
         """
         self.serviceName = kwargs['name']
         self.caption = kwargs['description']
-        path = kwargs['newClassName'] 
+        path = kwargs.get('newClassName')
+        if not path:
+            path = '/WinService/'
         srvs = self.dmd.getDmdRoot("Services")
         srvclass = srvs.createServiceClass(
             name=self.serviceName, description=self.caption, path=path, factory=WinServiceClass)
