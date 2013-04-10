@@ -166,6 +166,8 @@ class ServiceRouter(TreeRouter):
         """
         service = self.api.getInfo(uid)
         data = Zuul.marshal(service, keys)
+        if 'serviceKeys' in data and isinstance(data['serviceKeys'], (tuple, list)):
+            data['serviceKeys'] = ', '.join(data['serviceKeys'])
         disabled = not Zuul.checkPermission('Manage DMD')
         return DirectResponse.succeed(data=data, disabled=disabled)
 
