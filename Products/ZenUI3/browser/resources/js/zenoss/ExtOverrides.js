@@ -241,33 +241,32 @@
     * so we end up with the part that should have scrollbars the same size as the child, thus
     * no scrollbars. This normalizes the sizes between elements in IE only.
     **/
-   Ext.override(Ext.form.ComboBox, {
-    onExpand: function() {
-        var me = this,
-            picker = this.getPicker();
-
-        if(Ext.isIE){
-            var child = Ext.DomQuery.selectNode('#'+picker.id+' .x-boundlist-list-ct');
-            Ext.defer(function(){ // defer a bit so the grandpaw will have a height
+    if(Ext.isIE){
+        Ext.override(Ext.form.ComboBox, {
+            onExpand: function() {
+                var me = this, picker = this.getPicker();
+                var child = Ext.DomQuery.selectNode('#'+picker.id+' .x-boundlist-list-ct');
+                Ext.defer(function(){ // defer a bit so the grandpaw will have a height
                     try{
                         var grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
                         child.style.cssText = 'width: 100%; height: 100%; overflow: auto;';
                     }catch(e){
-                        // couldn't traverse, so just swallow it.
+                      // couldn't traverse, so just swallow it.
                     }
                 }, 100, me);
+                this.callOverridden()
+            }
         }
+    )};
 
-    },
-    getSelectedIndex: function(){
-        var combo = this,
-            v = combo.getValue(),
+    Ext.override(Ext.form.ComboBox, {
+        getSelectedIndex: function() {
+            var combo = this,
+                v = combo.getValue(),
             record = combo.findRecord(combo.valueField || combo.displayField, v),
             index = combo.store.indexOf(record);
-        return index;
-    }
-   });
-
+            return index;
+    }});
 
     /**
      * The Event console filters are not rendering correctly in our application. This override is a temporary workaround
