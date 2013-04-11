@@ -197,6 +197,14 @@ class IScheduler(zope.interface.Interface):
         """
         pass
 
+    def removeTasks(self, taskNames):
+        """
+        Remove tasks from scheduler.
+        @param taskNames: a list of task names to remove
+        @type: taskNames: list(string)
+        """
+        pass
+
     def removeTasksForConfig(self, configId):
         """
         Remove all tasks associated with the specified identifier.

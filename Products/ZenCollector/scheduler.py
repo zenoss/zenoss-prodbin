@@ -385,6 +385,8 @@ class Scheduler(object):
         startDelay = getattr(newTask, 'startDelay', None)
         if startDelay is None:
             startDelay = 0 if now else self._getStartDelay(newTask)
+        # explicitly set, next expected call in case task was never executed/schedule
+        loopingCall._expectNextCallAt = loopingCall.call.seconds() + startDelay
         reactor.callLater(startDelay, d.callback, None)
 
         # just in case someone does not implement scheduled, lets be careful
@@ -446,30 +448,34 @@ class Scheduler(object):
                 tasks.append(task)
         return tasks
 
-    def removeTasksForConfig(self, configId):
+    def getNextExpectedRun(self, taskName):
         """
-        Remove all tasks associated with the specified identifier.
+        Get the next expected execution time for given task
+        """
+        loopingCall = self._loopingCalls.get(taskName, None)
+        if loopingCall:
+            return loopingCall._expectNextCallAt
 
-        @paramater configId: the identifier to search for
-        @type configId: string
+    def removeTasks(self, taskNames):
+        """
+        Remove tasks
         """
         doomedTasks = []
         # child ids are any task that are children of the current task being
         # removed
         childIds = []
-        for (taskName, taskWrapper) in self._tasks.iteritems():
+        for taskName in taskNames:
+            taskWrapper = self._tasks[taskName]
             task = taskWrapper.task
-            if task.configId == configId:
-                subIds = getattr(task, "childIds", None)
-                if subIds:
-                    childIds.extend(subIds)
-                log.debug("Stopping task %s, %s", taskName, task)
+            subIds = getattr(task, "childIds", None)
+            if subIds:
+                childIds.extend(subIds)
+            log.debug("Stopping task %s, %s", taskName, task)
+            if self._loopingCalls[taskName].running:
+                self._loopingCalls[taskName].stop()
 
-                if self._loopingCalls[taskName].running:
-                    self._loopingCalls[taskName].stop()
-
-                doomedTasks.append(taskName)
-                self.taskRemoved(taskWrapper)
+            doomedTasks.append(taskName)
+            self.taskRemoved(taskWrapper)
 
         for taskName in doomedTasks:
             task = self._tasks[taskName].task
@@ -480,11 +486,19 @@ class Scheduler(object):
             del self._taskStats[taskName]
             # TODO: ponder task statistics and keeping them around?
 
-        for childId in childIds:
-            self.removeTasksForConfig(childId)
+        map(self.removeTasksForConfig, childIds)
 
         # TODO: don't let any tasks for the same config start until
         # these old tasks are really gone
+
+    def removeTasksForConfig(self, configId):
+        """
+        Remove all tasks associated with the specified identifier.
+
+        @paramater configId: the identifier to search for
+        @type configId: string
+        """
+        self.removeTasks(taskName for taskName, taskWrapper in self._tasks.iteritems() if taskWrapper.task.configId == configId)
 
     def pauseTasksForConfig(self, configId):
         for (taskName, taskWrapper) in self._tasks.items():

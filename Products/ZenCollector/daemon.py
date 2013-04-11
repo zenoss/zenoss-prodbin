@@ -387,12 +387,18 @@ class CollectorDaemon(RRDDaemon):
         """
         Called remotely by ZenHub when a device we're monitoring is deleted.
         """
+        # guard against parsing updates during a disconnect
+        if devId is None:
+            return
         self._deleteDevice(devId)
 
     def remote_deleteDevices(self, deviceIds):
         """
         Called remotely by ZenHub when devices we're monitoring are deleted.
         """
+        # guard against parsing updates during a disconnect
+        if deviceIds is None:
+            return
         for devId in Zipper.load(deviceIds):
             self._deleteDevice(devId)
 
@@ -400,6 +406,9 @@ class CollectorDaemon(RRDDaemon):
         """
         Called remotely by ZenHub when asynchronous configuration updates occur.
         """
+        # guard against parsing updates during a disconnect
+        if config is None:
+            return
         self.log.debug("Device %s updated", config.configId)
         if not self.options.device or self.options.device in (config.id, config.configId):
             self._updateConfig(config)
@@ -409,6 +418,8 @@ class CollectorDaemon(RRDDaemon):
         """
         Called remotely by ZenHub when asynchronous configuration updates occur.
         """
+        if configs is None:
+            return
         for config in Zipper.load(configs):
             self.remote_updateDeviceConfig(config)
             
@@ -464,8 +475,11 @@ class CollectorDaemon(RRDDaemon):
         configId = cfg.configId
         self.log.debug("Processing configuration for %s", configId)
 
+        nextExpectedRuns = {}
         if configId in self._devices:
-            self._scheduler.removeTasksForConfig(configId)
+            tasksToRemove = self._scheduler.getTasksForConfig(configId)
+            nextExpectedRuns = { taskToRemove.name: self._scheduler.getNextExpectedRun(taskToRemove.name) for taskToRemove in tasksToRemove }
+            self._scheduler.removeTasks(task.name for task in tasksToRemove)
             self._configListener.updated(cfg)
         else:
             self._devices.add(configId)
@@ -474,10 +488,21 @@ class CollectorDaemon(RRDDaemon):
         newTasks = self._taskSplitter.splitConfiguration([cfg])
         self.log.debug("Tasks for config %s: %s", configId, newTasks)
 
+        nowTime = time.time()
         for (taskName, task_) in newTasks.iteritems():
             #if not cycling run the task immediately otherwise let the scheduler
             #decide when to run the task
             now = not self.options.cycle
+            nextExpectedRun = nextExpectedRuns.get(taskName, None)
+            if nextExpectedRun:
+                startDelay = nextExpectedRun - nowTime
+                if startDelay <= 0:
+                    # handle edge case where we are about to run
+                    # so run immediately
+                    now = True
+                    task_.startDelay = 0
+                else:
+                    task_.startDelay = startDelay
             self._scheduler.addTask(task_, self._taskCompleteCallback, now)
 
             # TODO: another hack?
