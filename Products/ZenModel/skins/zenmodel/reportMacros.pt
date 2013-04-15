@@ -105,12 +105,22 @@
         </td>
       </tr><tr>
         <td class="tableheader">Summary Type:</td>
-        <td class="tablevalues" colspan="4">
+        <td class="tablevalues">
            <select class="tablevalues" name='how'>
              <tal:block tal:repeat="summary summaryOptions">
                 <option tal:attributes="value summary; 
                                         selected python:how==summary;"
                         tal:content="python:summary.capitalize()"/>
+             </tal:block>
+           </select>
+        </td>
+        <td tal:condition="exists:cfOptions" class="tableheader">Consolidation:</td>
+        <td tal:condition="exists:cfOptions" class="tablevalues">
+           <select class="tablevalues" name='cfhow'>
+             <tal:block tal:repeat="cfi cfOptions">
+                <option tal:attributes="value cfi; 
+                                        selected python:cfhow==cfi;"
+                        tal:content="python:cfi.capitalize()"/>
              </tal:block>
            </select>
         </td>

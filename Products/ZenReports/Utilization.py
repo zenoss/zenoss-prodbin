@@ -23,7 +23,8 @@ def getSummaryArgs(dmd, args):
     endDate = Time.getEndOfDay(endDate)
     startDate = min(startDate, endDate - 24 * 60 * 60 + 1) # endDate - 23:59:59
     how = args.get('how', 'AVERAGE')
-    return dict(start=startDate, end=endDate, function=how)
+    cfhow = args.get('cfhow', 'AVERAGE')
+    return dict(start=startDate, end=endDate, function=how, cf=cfhow)
 
 def reversedSummary(summary):
     swapper = { 'MAXIMUM':'MINIMUM', 'MINIMUM':'MAXIMUM'}

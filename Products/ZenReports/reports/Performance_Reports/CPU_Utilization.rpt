@@ -12,6 +12,8 @@
                        zem.defaultAvailabilityEnd());
     how python:sts(tableName, 'how', 'AVERAGE');
     summaryOptions python:('AVERAGE', 'MAXIMUM', 'MINIMUM', 'LAST');
+    cfhow python:sts(tableName, 'cfhow', 'AVERAGE');
+    cfOptions python:('AVERAGE', 'MAX');
     deviceClass python:sts(tableName, 'deviceClass', '/');
     deviceFilter python:sts(tableName, 'deviceFilter', '');
     generate python:tm.setTableState(tableName, 'generate', 
