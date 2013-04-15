@@ -386,7 +386,7 @@ class Scheduler(object):
         if startDelay is None:
             startDelay = 0 if now else self._getStartDelay(newTask)
         # explicitly set, next expected call in case task was never executed/schedule
-        loopingCall._expectNextCallAt = loopingCall.call.seconds() + startDelay
+        loopingCall._expectNextCallAt = time.time() + startDelay
         reactor.callLater(startDelay, d.callback, None)
 
         # just in case someone does not implement scheduled, lets be careful
