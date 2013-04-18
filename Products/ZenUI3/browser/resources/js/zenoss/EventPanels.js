@@ -543,13 +543,7 @@
                         grid = Ext.getCmp('event_panel');
                     }
                     if (grid) {
-                        // make sure nothing is selected, and we have nothing saved
-                        grid.getSelectionModel().selectNone();
-                        grid.clearSavedSelections();
-
-                        // completely reload the store so the user does not
-                        // have the chance to see cached events if they scroll
-                        grid.getStore().load();
+                        grid.refresh();
                     }
                 },
                 findParams: function() {
@@ -592,7 +586,6 @@
                         if (context == "/zport/dmd/Events") {
                             context = location.pathname.replace('/viewEvents', '');
                         }
-
                         this.setContext(context);
                     },
                     scope: this
@@ -615,7 +608,7 @@
                         permission: 'Manage Events',
                         itemId: 'close',
                         id: 'events_toolbar_close_events',
-                        handler: function() {
+                        handler: function() {                        
                             Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
                         }
                     }),
@@ -625,7 +618,7 @@
                         permission: 'Manage Events',
                         itemId: 'classify',
                         id: 'events_toolbar_reclassify_event',
-                        handler: function(button) {
+                        handler: function(button) {                        
                             var gridId = button.ownerCt.ownerCt.id;
                             showClassifyDialog(gridId);
                         }
@@ -636,7 +629,7 @@
                         permission: 'Manage Events',
                         itemId: 'unacknowledge',
                         id: 'events_toolbar_unack',
-                        handler: function() {
+                        handler: function() {                       
                             Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
                         }
                     }),
@@ -646,7 +639,7 @@
                         permission: 'Manage Events',
                         itemId: 'reopen',
                         id: 'events_toolbar_reopen',
-                        handler: function() {
+                        handler: function() {                        
                             Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
                         }
                     }),
@@ -662,7 +655,6 @@
                                 data = Ext.pluck(selected, "data"),
                                 uuids = Ext.pluck(data, "evid"),
                                 addNoteWindow;
-
                             addNoteWindow = Ext.create('Zenoss.dialog.BaseWindow', {
                                 title: _t('Add Note'),
                                 id: 'addNoteWindow',
