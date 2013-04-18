@@ -121,12 +121,12 @@ class ZenPackPersistence(object):
     # this class then ZenPacks would not be able to override Zenoss
     # classes that already participate in catalogs, eg DeviceClass.
     
-    def index_object(self):
+    def index_object(self, idxs=None):
         """A common method to allow Findables to index themselves."""
         cat = getattr(self, ZENPACK_PERSISTENCE_CATALOG, None)
         if cat is not None:
             cat.catalog_object(self, self.getPrimaryId())            
-        super(ZenPackPersistence, self).index_object()
+        super(ZenPackPersistence, self).index_object(idxs=None)
 
 
     def unindex_object(self):

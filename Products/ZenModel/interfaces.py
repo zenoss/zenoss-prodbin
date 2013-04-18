@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -28,8 +28,14 @@ class IIndexed(Interface):
     """
     Object with ability to keep itself indexed in one or more catalogs.
     """
-    def index_object():
-        pass
+
+    def index_object(idxs=None):
+        """
+        updates entry for this object in its default catalog, idxs is
+        a tuple of specific indexes to update so you don't have to update
+        everything.
+        """
+
     def unindex_object():
         pass
 
@@ -74,7 +80,7 @@ class IAction(Interface):
         @type  options: Dictionary.
         """
         pass
-    
+
     def execute(notification, signal):
         """
         @param notification: The notification that should be sent.
@@ -87,11 +93,11 @@ class IAction(Interface):
     def getInfo(notification):
         """
         Given a notification, adapt it to its appropriate ActionContentInfo object.
-        
+
         @param notificaiton: The notification to adapt
         @type notification: NotificationSubscription
         """
-        
+
     def generateJavascriptContent(notification):
         """
         Generate a block of JS that will be used to render this action's
@@ -100,7 +106,7 @@ class IAction(Interface):
         @param notification: The notification providing the data.
         @type notification: NotificationSubscription
         """
-    
+
     def updateContent(content, **kwargs):
         """
         Update the notification's content.
@@ -197,4 +203,3 @@ class IPrivateObjectAdapter(Interface):
         Should configuration handling for the wrapped object be handled
         exclusively by a specific ZenPack?
         """
-
