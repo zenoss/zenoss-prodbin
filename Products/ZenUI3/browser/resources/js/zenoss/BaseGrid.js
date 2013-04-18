@@ -83,7 +83,7 @@
                     type:'direct',
                     limitParam:undefined,
                     startParam:undefined,
-                    pageParam:undefined,
+                    pageParam: undefined,
                     sortParam: undefined,
                     extraParams: config.baseParams || {},
                     directFn:config.directFn,
@@ -93,6 +93,15 @@
                     }
                 }
             });
+            if (config.initialSortColumn || config.initialSortDirection) {
+                Ext.applyIf(config, {
+                    sorters:[ {
+                            property:config.initialSortColumn || undefined,
+                            direction:config.initialSortDirection || 'ASC'
+                        }
+                    ]
+                });
+            }
             this.callParent(arguments);
         },
         setContext:function (context) {

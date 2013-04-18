@@ -24,6 +24,7 @@ from AccessControl import getSecurityManager
 from Products.Zuul.infos import InfoBase
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import memoize
+from Products.ZenUtils.NaturalSort import natural_compare
 import logging
 log = logging.getLogger("zen.tree")
 
@@ -432,7 +433,7 @@ class CatalogTool(object):
             return value
 
         return sorted((unbrain(brain) for brain in queryResults),
-                        key=getValue, reverse=reverse)
+                        key=getValue, reverse=reverse, cmp=natural_compare)
 
 
 class PermissionedCatalogTool(CatalogTool):
