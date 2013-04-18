@@ -30,7 +30,6 @@ def noOpYield():
     return twistedTask.deferLater(reactor, 0, lambda: None,)
 
 
-@defer.inlineCallbacks
 def simpleCorrelator(ipTasks, connected_ips=True, reactorYield=noOpYield):
 
     downTasks = {ipTask.config.ip: ipTask for ipTask in ipTasks.itervalues() if not ipTask.delayedIsUp}
@@ -117,6 +116,7 @@ class SimpleCorrelator(object):
         options = component.getUtility(ZenCollector.interfaces.ICollector).options
         connected_ips = True if options.connected_ips == 'enabled' else False
 
-        return simpleCorrelator(ipTasks, connected_ips)
+        f = defer.inlineCallbacks(simpleCorrelator)
+        return f(ipTasks, connected_ips)
 
 
