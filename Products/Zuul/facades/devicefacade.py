@@ -37,7 +37,6 @@ from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
 from Products.ZenEvents.Event import Event
-from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 from Acquisition import aq_base
 
 iszprop = re.compile("z[A-Z]").match
@@ -338,6 +337,7 @@ class DeviceFacade(TreeFacade):
             if isinstance(dev, Device):
                 dev.setProdState(int(state))
                 devids.append(dev.id)
+        return devids
 
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):
