@@ -17,6 +17,7 @@ import logging
 log = logging.getLogger("zen.NmapPingTask")
 import tempfile
 import subprocess
+import math
 from twisted.internet import utils
 from twisted.internet import task as twistedTask
 from twisted.internet import defer
@@ -52,6 +53,9 @@ _NMAP_BINARY = zenPath("bin/nmap")
 _CLEAR = 0
 _CRITICAL = 5
 _WARNING = 3
+
+MAX_PARALLELISM = 150
+DEFAULT_PARALLELISM = 10
 
 # amount of IPs/events to process before giving time to the reactor
 _SENDEVENT_YIELD_INTERVAL = 100  # should always be >= 1
@@ -292,7 +296,7 @@ class NmapPingTask(BaseTask):
         self._eventService.sendEvent(evt)
 
     @defer.inlineCallbacks
-    def _executeNmapCmd(self, inputFileFilename, traceroute=False, outputType='xml'):
+    def _executeNmapCmd(self, inputFileFilename, traceroute=False, outputType='xml', num_devices=0):
         """
         Execute nmap and return its output.
         """
@@ -310,6 +314,12 @@ class NmapPingTask(BaseTask):
         args.extend(["--initial-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
         args.extend(["--min-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
         args.extend(["--max-retries", "0"])
+        if num_devices > 0:
+            min_parallelism = int(math.floor((num_devices * self._preferences.pingTimeOut * 2) / self._daemon._prefs.pingCycleInterval + 0.5))
+            if min_parallelism > MAX_PARALLELISM:
+                min_parallelism = MAX_PARALLELISM
+            if min_parallelism > DEFAULT_PARALLELISM:
+                args.extend(["--min-parallelism", "%d" % min_parallelism])
         
 
         if traceroute:
@@ -421,7 +431,7 @@ class NmapPingTask(BaseTask):
             for attempt in range(0, self._daemon._prefs.pingTries):
 
                 start = time.time()
-                results = yield self._executeNmapCmd(tfile.name, doTraceroute)
+                results = yield self._executeNmapCmd(tfile.name, doTraceroute, num_devices=len(ipTasks))
                 elapsed = time.time() - start
                 log.debug("Nmap execution took %f seconds", elapsed)
 
