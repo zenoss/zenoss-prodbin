@@ -76,13 +76,15 @@
         var handler, uid, config, editConfig, dialog, type;
         type = data.type;
         editConfig = {};
-        // Try the specific property id, next the type and finally default to string
-        Ext.apply(editConfig, zpropertyConfigs[data.id] || zpropertyConfigs[type] || zpropertyConfigs['string']);
+
         // in case of drop down lists
         if (Ext.isArray(data.options) && data.options.length > 0 && type == 'string') {
             // make it a combo and the options is the store
-            editConfig = zpropertyConfigs['options'];
             editConfig.store = data.options;
+            Ext.apply( editConfig, zpropertyConfigs['options']);
+        } else {
+            // Try the specific property id, next the type and finally default to string
+            Ext.apply( editConfig, zpropertyConfigs[data.id] || zpropertyConfigs[type] || zpropertyConfigs['string']);
         }
 
         // set the default values common to all configs
