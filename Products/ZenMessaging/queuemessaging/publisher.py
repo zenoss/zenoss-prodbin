@@ -7,6 +7,7 @@
 # 
 ##############################################################################
 
+from metrology import Metrology
 from twisted.internet import defer
 from zope.interface import implements
 from zope.event import notify
@@ -31,6 +32,7 @@ log = logging.getLogger('zen.queuepublisher')
 
 MODEL_TYPE = ProtobufEnum(modelevents_pb2.ModelEvent, 'model_type')
 
+_prepublishing_timer = Metrology.timer("MessagePrePublishingEvents")
 
 class ModelChangePublisher(object):
     """
@@ -263,7 +265,8 @@ class PublishSynchronizer(object):
             publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
-                notify(MessagePrePublishingEvent(msgs))
+                with _prepublishing_timer:
+                    notify(MessagePrePublishingEvent(msgs))
                 if msgs:
                     self._queuePublisher = getUtility(IQueuePublisher, 'class')()
                     dataManager = AmqpDataManager(self._queuePublisher.channel, tx._manager)
