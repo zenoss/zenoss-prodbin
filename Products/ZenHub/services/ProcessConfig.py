@@ -82,6 +82,18 @@ class ProcessConfig(CollectorConfigService):
         proxy.processes = {}
         proxy.snmpConnInfo = device.getSnmpConnInfo()
         for p in procs:
+            # Find out which datasources are responsible for this process
+            # if SNMP is not responsible, then do not add it to the list
+            snmpMonitored = False
+            for rrdTpl in p.getRRDTemplates():
+                if any(rrdDS == "SNMP" for rrdDS in rrdTpl.getRRDDataSources()):
+                    snmpMonitored = True
+                    break
+
+            # In case the process is not SNMP monitored
+            if not snmpMonitored:
+                log.debug("Skipping process %r - not an SNMP monitored process", p)
+                continue
             # In case the catalog is out of sync above
             if not p.monitored():
                 log.debug("Skipping process %r - zMonitor disabled", p)
