@@ -72,13 +72,13 @@ class FakeComponents(PythonPlugin):
 
         count = settings.getint(section, 'count')
         idTemplate = settings.get(section, 'idTemplate')
-        attributes = self.getAttributes(settings, section, log)
         compname, relname, modname = self.getComponentTypeInfo(settings, section, log)
 
         rm = self.relMap()
         rm.compname = compname
         rm.relname = relname
         for i in xrange(count):
+            attributes = self.getAttributes(i, settings, section, log)
             om = self.createComponent(i, idTemplate, settings, attributes,
                                       compname, modname)
             if om is not None:
@@ -106,21 +106,23 @@ class FakeComponents(PythonPlugin):
         modname = settings.get(section, 'modname')
         return compname, relname, modname
 
-    def getAttributes(self, settings, section, log):
+    def getAttributes(self, current, settings, section, log):
         """
         eval() the 'attributes' argument, if any
         """
         attributes = {}
         if not settings.has_option(section, 'attributes'):
             return attributes
-        attributes = settings.get(section, 'attributes')
+        attributesTemplate = settings.get(section, 'attributes')
         try:
+            attributes= attributesTemplate % { 'counter': current }
             attributes = eval(attributes)
             if not attributes:
                 attributes = {}
         except Exception:
             log.warn("Unable to parse section '%s' attributes entry: %s",
                           section, attributes)   
+            attributes = {}
         return attributes
 
     def createComponent(self, current, idTemplate, settings, attributes,
