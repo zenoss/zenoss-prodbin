@@ -15,7 +15,12 @@
             [3628800, _t('Weekly')],
             [41472000, _t('Monthly')],
             [62208000, _t('Yearly')]
-    ];
+    ],
+    /*
+     * If a given request is over GRAPHPAGESIZE then
+     * the results will be paginated.
+     **/
+    GRAPHPAGESIZE = 50;
     /**********************************************************************
      *
      * Swoopy
@@ -119,6 +124,7 @@
             this.graphEl = Ext.get(this.graphId);
             this.graphEl.on('click', this.onGraphClick, this);
             this.graphEl.on('load', function(){
+                this.suspendLayouts();
                 var size = this.graphEl.getSize();
                 // set out panel to be the size of the graph
                 // plus a little for the padding
@@ -130,6 +136,7 @@
                 } else {
                     this.parseGraphParams();
                 }
+                this.resumeLayouts(true);
             }, this, {single:true});
         },
         showFailure: function() {
@@ -158,7 +165,7 @@
             gp = Ext.apply({url:href[0]}, Ext.urlDecode(href[1]));
             // Encoding can screw with the '=' padding at the end of gopts, so
             // strip and recreate it
-                gp.gopts = fixBase64Padding(gp.gopts);
+            gp.gopts = fixBase64Padding(gp.gopts);
             gp.width = Number(gp.width);
             gp.drange = Number(gp.drange);
             gp.start = Ext.isDefined(gp.start) ? Number(start_re.exec(gp.start)[1]) : gp.drange;
@@ -167,8 +174,8 @@
         },
         getComment: function(start, end) {
             var now = new Date(),
-            endDate = now.minus(end).toPretty(),
-            startDate = now.minus(start + end).toPretty();
+                endDate = now.minus(end).toPretty(),
+                startDate = now.minus(start + end).toPretty();
             var com_ctr = "\\t\\t to \\t\\t";
             var comment = startDate + com_ctr + endDate;
             comment = comment.replace(/:/g, '\\:');
@@ -463,6 +470,7 @@
         setContext: function(uid) {
             // remove all the graphs
             this.removeAll();
+            this.lastShown = 0;
 
             var params = {
                 uid: uid,
@@ -477,35 +485,59 @@
             }
             var data = result.data,
                 panel = this,
-                el = this.getEl(),
-                graphs = [],
-                graph,
-                graphId,
-                i;
+                el = this.getEl();
 
             if (el.isMasked()) {
                 el.unmask();
             }
-            if (data.length > 0){
-                for (i=0; i < data.length; i++) {
-                    graphId = Ext.id();
-                    graph = data[i];
-                    graphs.push(new Zenoss.SwoopyGraph({
-                        graphUrl: graph.url,
-                        graphTitle: graph.title,
-                        graphId: graphId,
-                        isLinked: panel.isLinked,
-                        height: 250,
-                        ref: graphId
-                    }));
 
-                }
-                this.add(graphs);
+            if (data.length > 0){
+                this.addGraphs(data);
             }else{
                 el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
             }
+        },
+        addGraphs: function(data) {
+            var graphs = [],
+                graph,
+                graphId,
+                me = this,
+                start = this.lastShown,
+                end = this.lastShown + GRAPHPAGESIZE,
+                i;
+            // load graphs until we have either completed the page or
+            // we ran out of graphs
+            for (i=start; i < Math.min(end, data.length); i++) {
+                graphId = Ext.id();
+                graph = data[i];
+                graphs.push(new Zenoss.SwoopyGraph({
+                    graphUrl: graph.url,
+                    graphTitle: graph.title,
+                    graphId: graphId,
+                    isLinked: this.isLinked,
+                    height: 250,
+                    ref: graphId
+                }));
+            }
 
-            panel.doLayout();
+            // set up for the next page
+            this.lastShown = end;
+
+            // if we have more to show, add a button
+            if (data.length > end) {
+                graphs.push({
+                    xtype: 'button',
+                    text: _t('Show more results...'),
+                    handler: function(t) {
+                        t.hide();
+                        // will show the next page by looking at this.lastShown
+                        me.addGraphs(data);
+                    }
+                });
+            }
+
+            // render the graphs
+            this.add(graphs);
         },
         setDrange: function(drange) {
             drange = drange || this.drange;
