@@ -463,6 +463,18 @@ class ZenHub(ZCmdBase):
             except Exception:
                 pass
 
+    def sighandler_USR1(self, signum, frame):
+        #handle it ourselves
+        super(ZenHub, self).sighandler_USR1(signum, frame)
+
+        # send SIGUSR1 signal to all workers
+        for worker in self.workerprocessmap.values():
+            try:
+                worker.signalProcess(signal.SIGUSR1)
+                time.sleep(0.5)
+            except Exception:
+                pass
+
     def stop(self):
         self.shutdown = True
 
