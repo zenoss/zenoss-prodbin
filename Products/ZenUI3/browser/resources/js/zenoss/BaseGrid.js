@@ -208,7 +208,7 @@
 
                     col.filter = Ext.apply({
                         id:filterDivId,
-                        hidden:col.isHidden(),
+                        hidden:false,
                         xtype:'component',
                         baseCls:'x-grid-filter',
                         width:col.width - 2,
