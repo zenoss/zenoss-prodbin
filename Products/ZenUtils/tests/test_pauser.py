@@ -20,6 +20,7 @@ from zope.component.interfaces import IObjectEvent
 from Products.Zuul.catalog.events import IndexingEvent
 
 from OFS.SimpleItem import SimpleItem
+from OFS.event import ObjectWillBeRemovedEvent
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.component import provideHandler
 from zope.event import notify
@@ -36,10 +37,8 @@ class IndexedObject(SimpleItem):
         self.id = id
 
 
-class UnindexingEvent(object):
-    implements(IObjectEvent)
-    def __init__(self, object):
-        self.object = object
+class UnindexingEvent(ObjectWillBeRemovedEvent):
+    pass
 
 
 class TestPauser(BaseTestCase):

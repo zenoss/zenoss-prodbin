@@ -119,16 +119,18 @@ class OptimizedIndexingBuffer(object):
         self.update_metadatas = {}
         self.args = {}
         from Products.Zuul.catalog.events import IndexingEvent
+        from OFS.event import ObjectWillBeRemovedEvent
         self.IndexingEvent = IndexingEvent
+        self.ObjectWillBeRemovedEvent = ObjectWillBeRemovedEvent
     
     def append(self, (args, kwargs)):
         ob, event = args
-        if not isinstance(event, self.IndexingEvent):
+        if isinstance(event, self.ObjectWillBeRemovedEvent):
             # Removal event; just delete what's there
             self.indexes.pop(ob, None)
             self.update_metadatas.pop(ob, None)
             self.removed_buffer.append((args, kwargs))
-        else:
+        elif isinstance(event, self.IndexingEvent):
             # If indexes are specified, we have decisions to make
             if event.idxs:
                 idxs = ((event.idxs,) if isinstance(event.idxs, basestring) 
@@ -149,7 +151,7 @@ class OptimizedIndexingBuffer(object):
 
     def __iter__(self):
         for ob, idxs in self.indexes.iteritems():
-            yield ((ob, self.IndexingEvent(ob, tuple(self.indexes.get(ob, ())), 
+            yield ((ob, self.IndexingEvent(ob, list(self.indexes.get(ob, [])), 
                         self.update_metadatas.get(ob, False))), {})
 
 
