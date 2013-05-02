@@ -22,10 +22,12 @@ from Acquisition import aq_base
 
 from Products.ZenUtils.Utils import importClass
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.DataCollector.Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 from Products.ZenEvents import Event
+from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from zExceptions import NotFound
 
 zenmarker = "__ZENMARKER__"
@@ -136,6 +138,7 @@ class ApplyDataMap(object):
                 return False
 
         changed = False
+
         if hasattr(datamap, "compname"):
             if datamap.compname:
                 try:
@@ -145,12 +148,17 @@ class ApplyDataMap(object):
                     return False
             else:
                 tobj = device
-            if hasattr(datamap, "relname"):
-                changed = self._updateRelationship(tobj, datamap)
-            elif hasattr(datamap, 'modname'):
-                changed = self._updateObject(tobj, datamap)
-            else:
-                log.warn("plugin returned unknown map skipping")
+
+            # Delay indexing until the map has been fully processed
+            # so we index the minimum amount
+            with pausedAndOptimizedIndexing():
+                if hasattr(datamap, "relname"):
+                    changed = self._updateRelationship(tobj, datamap)
+                elif hasattr(datamap, 'modname'):
+                    changed = self._updateObject(tobj, datamap)
+                else:
+                    log.warn("plugin returned unknown map skipping")
+
         if not changed:
             transaction.abort()
         else:
@@ -385,7 +393,8 @@ class ApplyDataMap(object):
             rel._setObject(remoteObj.id, remoteObj)
             remoteObj = rel._getOb(remoteObj.id)
             changed = True
-            notify(ObjectMovedEvent(remoteObj, rel, remoteObj.id, rel, remoteObj.id))
+            if not isinstance(rel, ToManyContRelationship):
+                notify(ObjectMovedEvent(remoteObj, rel, remoteObj.id, rel, remoteObj.id))
         return self._updateObject(remoteObj, objmap) or changed, remoteObj
 
 

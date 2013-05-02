@@ -176,8 +176,7 @@ class ToManyRelationship(ToManyRelationshipBase):
 
     def objectValuesGen(self):
         """Generator that returns all related objects."""
-        for obj in self._objects:
-            yield obj.__of__(self)
+        return (obj.__of__(self) for obj in self._objects)
 
 
     def objectValues(self, spec=None):
@@ -193,10 +192,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         """
         Return object items where key is primaryId.
         """
-        objs = []
-        for obj in self._objects:
-            objs.append((obj.getPrimaryId(), obj))
-        return objs
+        return [(obj.getPrimaryId(), obj) for obj in self._objects]
 
 
     def objectItems(self, spec=None):

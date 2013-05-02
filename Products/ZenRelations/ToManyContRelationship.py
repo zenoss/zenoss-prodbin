@@ -234,8 +234,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     def objectValuesGen(self):
         """Generator that returns all related objects."""
-        for obj in self._objects.values():
-            yield obj.__of__(self)
+        return (obj.__of__(self) for obj in self._objects.values())
 
 
     def objectItems(self, spec=None):

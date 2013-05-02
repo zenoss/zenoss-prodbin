@@ -58,7 +58,7 @@ def refireEventOnObjectAddOrMove(object, event):
         else:
             # Refire in the case where an object already has a guid
             # but that guid has been removed from the guid table
-            notify(GUIDEvent(object, oldguid, oldguid))
+            notify(GUIDEvent(object, oldguid, oldguid, False))
 
 
 @adapter(IGloballyIdentifiable, IObjectWillBeMovedEvent)

@@ -10,6 +10,7 @@
 
 import sys
 import logging
+import time
 from itertools import chain
 
 from Globals import *
@@ -285,6 +286,8 @@ class ZenCatalog(ZCmdBase):
             log.info("Reconnected.")
             self.syncdb()
 
+        start = time.time()
+
         def set_flag(r):
             """
             Set a flag in the database saying we've finished indexing.
@@ -295,7 +298,7 @@ class ZenCatalog(ZCmdBase):
             self.syncdb()
             zport._zencatalog_completed = True
             transaction.commit()
-            log.info("Reindexing completed.")
+            log.info("Reindexing completed in %s seconds." % (time.time() - start))
 
         log.info("Reindexing your system. This may take some time.")
         d = chunk(recurse(zport), handle_chunk, reconnect, CHUNK_SIZE, 5)

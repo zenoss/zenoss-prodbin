@@ -22,7 +22,9 @@ from Products.ZenModel.ZenPack import ZenPackException, \
 from Products.ZenModel.ZenPack import ZenPackDependentsException
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenUtils.PkgResources import pkg_resources
+from Products.ZenUtils.events import paused
 from Products.Zuul.utils import CatalogLoggingFilter
+from Products.Zuul.catalog.events import onIndexingEvent
 import Products.ZenModel.ZenPackLoader as ZPL
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_ERROR
 import zenpack as oldzenpack
@@ -230,34 +232,36 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
     """
     zenPacks = []
     nonCriticalErrorEncountered = False
-    try:
-        zpDists = InstallEgg(dmd, eggPath, link=link)
-        for d in zpDists:
-            try:
-                zp = InstallDistAsZenPack(dmd,
-                                          d,
-                                          eggPath, 
-                                          link, 
-                                          filesOnly=filesOnly,
-                                          previousVersion=previousVersion,
-                                          forceRunExternal=forceRunExternal,
-                                          fromUI=fromUI)
-                zenPacks.append(zp)
-            except NonCriticalInstallError, ex:
-                nonCriticalErrorEncountered = True
-                if sendEvent:
-                    ZPEvent(dmd, 3, ex.message)
-    except Exception as e:
-        # Get that exception out there in case it gets blown away by ZPEvent
-        log.exception("Error installing ZenPack %s" % eggPath)
-        if sendEvent:
-            ZPEvent(dmd, SEVERITY_ERROR, 'Error installing ZenPack %s' % eggPath,
-                '%s: %s' % sys.exc_info()[:2])
-        # Don't just raise, because if ZPEvent blew away exception context
-        # it'll be None, which is bad. This manipulates the stack to look like
-        # this is the source of the exception, but we logged it above so no
-        # info is lost.
-        raise e
+    with paused(onIndexingEvent):
+        try:
+            zpDists = InstallEgg(dmd, eggPath, link=link)
+            for d in zpDists:
+                try:
+                    zp = InstallDistAsZenPack(dmd,
+                                              d,
+                                              eggPath, 
+                                              link, 
+                                              filesOnly=filesOnly,
+                                              previousVersion=previousVersion,
+                                              forceRunExternal=forceRunExternal,
+                                              fromUI=fromUI)
+                    zenPacks.append(zp)
+                except NonCriticalInstallError, ex:
+                    nonCriticalErrorEncountered = True
+                    if sendEvent:
+                        ZPEvent(dmd, 3, ex.message)
+        except Exception as e:
+            # Get that exception out there in case it gets blown away by ZPEvent
+            log.exception("Error installing ZenPack %s" % eggPath)
+            if sendEvent:
+                ZPEvent(dmd, SEVERITY_ERROR, 'Error installing ZenPack %s' % eggPath,
+                    '%s: %s' % sys.exc_info()[:2])
+            # Don't just raise, because if ZPEvent blew away exception context
+            # it'll be None, which is bad. This manipulates the stack to look like
+            # this is the source of the exception, but we logged it above so no
+            # info is lost.
+            raise e
+    transaction.commit()
     if sendEvent:
         zenPackIds = [zp.id for zp in zenPacks]
         if zenPackIds:
@@ -399,6 +403,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                     oldzenpack.RemoveZenPack(dmd, existing.id,
                                     skipDepsCheck=True, leaveObjects=True,
                                     deleteFiles=False)
+
             if runExternalZenpack or forceRunExternal:
                 log.info("installing zenpack %s; launching process" % packName)
                 cmd = [binPath('zenpack')]

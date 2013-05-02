@@ -17,6 +17,7 @@ up a business function
 import re
 import copy
 import logging
+from itertools import chain
 log = logging.getLogger("zen.IpInterface")
 
 from Globals import DTMLFile
@@ -38,6 +39,10 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenModel.Linkable import Layer2Linkable
 
 from Products.ZenModel.ZenossSecurity import *
+
+
+_IPADDRESS_CACHE_ATTR = "_v_ipaddresses"
+
 
 def manage_addIpInterface(context, newId, userCreated, REQUEST = None):
     """
@@ -80,6 +85,7 @@ class IpInterface(OSComponent, Layer2Linkable):
     operStatus = 0
     duplex = 0
     _ipAddresses =  []
+
 
 
     _properties = OSComponent._properties + (
@@ -148,6 +154,9 @@ class IpInterface(OSComponent, Layer2Linkable):
         OSComponent.__init__(self, id, title)
         self._ipAddresses = []
 
+
+    def _invalidate_ipaddress_cache(self):
+        setattr(self, _IPADDRESS_CACHE_ATTR, None)
 
     security.declareProtected('View', 'viewName')
     def viewName(self):
@@ -239,6 +248,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         Add an ip to the ipaddresses relationship on this interface.
         """
+        self._invalidate_ipaddress_cache()
         networks = self.device().getNetworkRoot()
         ip, netmask = self._prepIp(ip, netmask)
         #see if ip exists already and link it to interface
@@ -276,6 +286,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         if not ips:
             self.removeRelation('ipaddresses')
+            self._invalidate_ipaddress_cache()
             return True
 
 
@@ -326,6 +337,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         Remove an ipaddress from this interface.
         """
+        self._invalidate_ipaddress_cache()
         for ipobj in self.ipaddresses():
             if ipobj.id == ip:
                 self.ipaddresses.removeRelation(ipobj)
@@ -371,23 +383,31 @@ class IpInterface(OSComponent, Layer2Linkable):
             return self.ipaddresses()[0]
 
 
+    def getIpAddressObjsGen(self):
+        return chain(self.ipaddresses.objectValuesGen(), self._ipAddresses)
+
+
     def getIpAddressObjs(self):
         """
         Return a list of the ip objects on this interface.
         """
-        retval=[]
-        for ip in self.ipaddresses.objectValuesAll():
-            retval.append(ip)
-        for ip in self._ipAddresses:
-            retval.append(ip)
-        return retval
+        return list(self.getIpAddressObjsGen())
 
 
     def getIpAddresses(self):
         """
         Return list of ip addresses as strings in the form 1.1.1.1/24.
+
+        Because this is somewhat expensive to calculate, cache the
+        result on a volatile attribute. This cache will only have the
+        lifespan of this instance, but many operations (e.g., indexing)
+        need it multiple times.
         """
-        return map(str, self.getIpAddressObjs())
+        addrs = getattr(self, _IPADDRESS_CACHE_ATTR, None)
+        if addrs is None:
+            addrs = map(str, self.getIpAddressObjsGen())
+            setattr(self, _IPADDRESS_CACHE_ATTR, addrs)
+        return addrs
 
 
     def getNetwork(self):
