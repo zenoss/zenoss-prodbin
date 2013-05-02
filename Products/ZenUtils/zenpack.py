@@ -101,7 +101,7 @@ class ZenPackCmd(ZenScriptBase):
         version of the zenpack already installed.
         This is mainly used to speed up upgrades, see ticket ZEN-5789
         """
-        name, version, unused = self.options.installPackName.split('-')
+        name, version, unused = self.options.installPackName.split('-', 2)
         # if a path was provided just get the zenpack name
         name = name.split('/')[-1]
         try:
