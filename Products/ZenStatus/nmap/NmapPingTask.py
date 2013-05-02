@@ -313,7 +313,7 @@ class NmapPingTask(BaseTask):
         # give up on a host after spending too much time on it
         args.extend(["--initial-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
         args.extend(["--min-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
-        args.extend(["--max-retries", "0"])
+        #args.extend(["--max-retries", "0"])         Remove to reduce false negatives by re-trying
         if num_devices > 0:
             min_parallelism = int(math.floor((num_devices * self._preferences.pingTimeOut * 2) / self._daemon._prefs.pingCycleInterval + 0.5))
             if min_parallelism > MAX_PARALLELISM:
