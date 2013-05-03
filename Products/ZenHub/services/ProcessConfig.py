@@ -86,7 +86,7 @@ class ProcessConfig(CollectorConfigService):
             # if SNMP is not responsible, then do not add it to the list
             snmpMonitored = False
             for rrdTpl in p.getRRDTemplates():
-                if any(rrdDS == "SNMP" for rrdDS in rrdTpl.getRRDDataSources()):
+                if len(rrdTpl.getRRDDataSources("SNMP")) > 0:
                     snmpMonitored = True
                     break
 
