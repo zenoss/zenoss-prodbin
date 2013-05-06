@@ -187,6 +187,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         # index our ip addresses if necessary
         for ip in self.ipaddresses():
             ip.index_object()
+        self._invalidate_ipaddress_cache()
 
     def unindex_object(self):
         """
