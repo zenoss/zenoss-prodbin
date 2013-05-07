@@ -372,7 +372,7 @@ Ext.onReady(function(){
                                                                 }]
                                                         }).show();
                                                     }else{
-                                                        rule_panel.collapse();                                                        
+                                                        rule_panel.collapse();
                                                     }
                                                 }
                                             }
@@ -897,4 +897,4 @@ Ext.onReady(function(){
         }
     });
 
-}); // Ext. OnReady
+});
