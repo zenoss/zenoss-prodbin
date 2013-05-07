@@ -19,8 +19,10 @@
     /*
      * If a given request is over GRAPHPAGESIZE then
      * the results will be paginated.
+     * IE can't handle the higher number that compliant browsers can
+     * so setting lower.
      **/
-    GRAPHPAGESIZE = 50;
+    GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
     /**********************************************************************
      *
      * Swoopy
@@ -528,6 +530,7 @@
                 graphs.push({
                     xtype: 'button',
                     text: _t('Show more results...'),
+                    margin: '0 0 7 7',
                     handler: function(t) {
                         t.hide();
                         // will show the next page by looking at this.lastShown
