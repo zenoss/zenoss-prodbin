@@ -102,10 +102,19 @@ sed -i -e 's/[ \t]*configpath .*//' $ZENHOME/etc/zenstatus.conf
 if [ "${ZODB_HOST}" = "localhost" ];then
     check_mysql
 fi
-start_rabbitmq
 
-# Update AMQP configuration files
-configure_amqp
+# start/configure amqp/rabbitmq if configured to run locally
+if is_amqp_local ; then
+    # start it
+    start_rabbitmq
+
+    # Update AMQP configuration files
+    configure_amqp
+fi
+
+if ! confirm_amqp_connectivity ; then
+    fail "Failed connecting to rabbitmq"
+fi
 
 # patch any ZenPack code that isn't compatible with this version of core
 . ${ZENHOME}/bin/zenoss_upgrade_patch_zenpacks.sh

@@ -79,42 +79,65 @@ class ZenAmqp(object):
              return conn.server_properties.get('version')
 
 class Main(object):
-
     def __init__(self, verbose=False):
         self._verbose = verbose
+        LOG.debug("Getting global conf")
+        self._global_conf = getGlobalConfiguration()
 
-    def verify(self, expected_version):
+    def _get_setting(self, name):
+        val = self._global_conf.get(name, None)
+        if val is None:
+            print >> sys.stderr, "global.conf setting %s must be set." % name
+            sys.exit(1)
+        return val
+
+    def verify_settings(self):
+        # verify all settings exist
+        for setting in _ZEN_AMQP_SETTINGS:
+            self._get_setting(setting)
+
+    def verify(self, expected_version, check_settings):
         rc = 1
+        conn = None
+        if check_settings:
+            self.verify_settings()
         try:
-            server_version = ZenAmqp().getVersion()
-            e_ver = tuple(int(v) for v in expected_version.split('.'))
-            s_ver = tuple(int(v) for v in server_version.split('.'))
-            if s_ver < e_ver:
-                print >> sys.stderr, "Server version: %s < Expected version: %s" % (
-                    server_version, expected_version)
-                rc = 2
+            conn = ZenAmqp().getConnection()
+            server_version = conn.server_properties.get('version')
+            if expected_version:
+                e_ver = tuple(int(v) for v in expected_version.split('.'))
+                s_ver = tuple(int(v) for v in server_version.split('.'))
+                if s_ver < e_ver:
+                    print >> sys.stderr, "Server version: %s < Expected version: %s" % (
+                        server_version, expected_version)
+                    rc = 2
+                else:
+                    if self._verbose:
+                        print "Server version: %s" % server_version
+                    rc = 0
             else:
                 if self._verbose:
                     print "Server version: %s" % server_version
                 rc = 0
-        except Exception as e:
-            print >> sys.stderr, "Error determining RabbitMQ version: %s" % e
-            rc = 1
+        finally:
+            if conn:
+                conn.close()
         sys.exit(rc)
 
 if __name__=="__main__":
-    usage = "%prog VERSION_NUMBER" 
+    usage = "%prog VERSION_NUMBER?" 
     epilog = "Verifies connectivity with the amqp server configued in global.conf and " \
              "checks if server version is >= VERSION_NUMBER. Returns exit code 1 if " \
              "connection fails, 2 if server version < VERSION_NUMBER, and 0 if " \
              "connection is OK and server version >= VERSION_NUMBER."
     parser = OptionParser(usage=usage, epilog=epilog)
     parser.add_option("--verbose", "-v", default=False, action='store_true')
+    parser.add_option("--disable-settings-check", default=False, action='store_true', dest='disable_settings_check')
     (options, args) = parser.parse_args()
 
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit(1)
+    version = None
+    if len(args) >= 1:
+       version = args[0]
 
-    main = Main(options.verbose)
-    main.verify(args[0])
+    main = Main(options.verbose) 
+    main.verify( version, not options.disable_settings_check)
