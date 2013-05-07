@@ -173,17 +173,18 @@
             permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
-
+            
         <browser:viewlet
             name="Manufacturers"
-            url="/zport/dmd/Manufacturers"
+            url="/zport/dmd/manufacturers"
             weight="7"
             parentItem="Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
             permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
-            />
+            />  
+          
 
 
     <browser:viewlet

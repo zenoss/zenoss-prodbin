@@ -243,6 +243,9 @@
         },{
             "text": "ClassPanels.js",
             "path": "resources/js/zenoss/eventclasses/"
+        },{
+            "text": "ManufacturersPanels.js",
+            "path": "resources/js/zenoss/manufacturers/"
         }]
     }],
     "resources": []

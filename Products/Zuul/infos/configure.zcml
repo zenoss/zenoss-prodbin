@@ -255,7 +255,11 @@
              
     <adapter factory=".eventclasses.EventClassInfo"
              for="Products.ZenEvents.EventClassInst.EventClassInst"
-             provides="..interfaces.IEventClassInfo"/>              
+             provides="..interfaces.IEventClassInfo"/>             
+             
+    <adapter factory=".manufacturers.ManufacturersInfo"
+             for="Products.ZenModel.Manufacturer.Manufacturer"
+             provides="..interfaces.IManufacturersInfo"/>                   
 
     <adapter provides="Products.Zuul.interfaces.zenpack.IZenPackInfo"
              for="Products.ZenModel.ZenPack.ZenPack"

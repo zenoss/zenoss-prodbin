@@ -248,7 +248,7 @@ Ext.onReady(function(){
                     width:100
                 },{
                     xtype: 'tabpanel',
-                    id: 'eventClassMapTabs',
+                    id: 'blackTabs',
                     listeners: {
                         'afterrender': function(p){
                             if(data['whichPanel'] == 'sequence'){

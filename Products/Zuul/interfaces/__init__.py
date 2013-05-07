@@ -84,4 +84,5 @@ from jobs import *
 from software import *
 from devicedumpload import *
 from eventclasses import *
+from manufacturers import *
 from backup import *

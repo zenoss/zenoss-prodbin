@@ -1,11 +1,11 @@
 <!--
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 -->
 
@@ -52,15 +52,15 @@
         interface=".interfaces.IMibEntity"
         class="Products.ZenModel.MibModule.MibModule"
         />
- 
+
     <five:implements
         interface=".interfaces.IDevice"
         class="Products.ZenModel.Device.Device"
-        /> 
-        
+        />
+
     <five:implements
         interface=".interfaces.IMarshallable"
-        class="Products.ZenModel.GraphDefinition.GraphDefinition"  
+        class="Products.ZenModel.GraphDefinition.GraphDefinition"
         />
 
     <adapter factory=".facades.DeviceFacade"
@@ -73,20 +73,26 @@
              provides=".interfaces.IPropertiesFacade"
              name="properties"
              for="*"
-             />    
-             
+             />
+
     <adapter factory=".facades.DeviceManagementFacade"
-             provides=".interfaces.IDeviceManagementFacade" 
+             provides=".interfaces.IDeviceManagementFacade"
              name="devicemanagement"
              for="*"
-             />              
+             />
 
     <adapter factory=".facades.EventClassesFacade"
-             provides=".interfaces.IEventClassesFacade" 
+             provides=".interfaces.IEventClassesFacade"
              name="eventclasses"
              for="*"
-             /> 
-             
+             />
+
+    <adapter factory=".facades.ManufacturersFacade"
+             provides=".interfaces.IManufacturersFacade"
+             name="manufacturers"
+             for="*"
+             />
+
     <adapter factory=".facades.ZepFacade"
              provides=".interfaces.IZepFacade"
              name="zep"

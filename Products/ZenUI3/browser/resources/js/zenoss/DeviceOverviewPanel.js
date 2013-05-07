@@ -31,17 +31,50 @@
                         }
                     }
                 });
+    
                 obj.superclass.constructor.call(this, config);
                 this.addEvents('labelclick');
-            }
+            },
+            setValue: function(value) {
+                var origValue = value;
+                if (Ext.isEmpty(value)) {
+                    value = _t('None');
+                } else {
+                    if (Ext.isArray(value)){
+                        var items = [];
+                        Ext.each(value, function(v){
+                            items.push(Zenoss.render.link(v));
+                        });
+                        value = items.join('<br/>');
+                    } else {
+                        if(value.uid && value.uid.match(/Manufacturers/)){
+                            var grid = null;
+                            var data = value;                    
+                            if(value.uid.match(/products/)){
+                                Zenoss.manufacturers.launchProductDialog = function(){
+                                    Zenoss.manufacturers.productsDialog(grid, data);                            
+                                }                     
+                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.id+'</a>';                        
+                            }else{
+                                value = '<a title="Go to the grid for this Manufacturer" href="/zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.'+value.name+'" >'+value.name+'</a>';                    
+                            }
+                        }else{
+                            value = Zenoss.render.link(value);
+                        }
+                    }
+                }
+                this.setRawValue(value)
+                this.rawValue = origValue;
+            } 
+
+
         };
     };
 
     Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField, {});
 
 
-    Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField,
-                                  clickToEditConfig(Zenoss.ClickToEditField));
+    Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField, clickToEditConfig(Zenoss.ClickToEditField));
     Ext.reg('clicktoedit', "Zenoss.ClickToEditField");
 
     Zenoss.ClickToEditNoLink = Ext.extend(Ext.form.DisplayField, {});
