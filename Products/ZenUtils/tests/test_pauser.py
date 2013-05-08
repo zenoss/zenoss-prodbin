@@ -106,6 +106,8 @@ class TestPauser(BaseTestCase):
         with pausedAndOptimizedIndexing(testOnIndexingEvent, 
                                         testOnUnindexingEvent):
             notify(UnindexingEvent(ob1))
+            # Make sure the removal event has proceeded uninterrupted
+            self.assertEquals(1, len(seen_unindexed))
             notify(IndexingEvent(ob1))
 
         self.assertEquals(1, len(seen_indexed))

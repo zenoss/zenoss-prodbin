@@ -69,7 +69,13 @@ def notifyZopeApplicationOpenedSubscribers(event):
         conn.close()
 
 
-def pauseHandler(handler, buffer=None):
+
+def teeHandler(handler, buffer=None):
+    """
+    All calls to C{handler} will also call C{buffer.append}.
+
+    The buffer and any temporary handlers registered will be returned.
+    """
     if buffer is None:
         buffer = []
 
@@ -85,15 +91,43 @@ def pauseHandler(handler, buffer=None):
             provideHandler(tempHandler, required)
             handlers.append((tempHandler, required))
 
-            GSM.unregisterHandler(handler, required=required)  
-
     return buffer, handlers
 
 
-def unpauseHandler(handler, buffer=None, temp_handlers=None):
+def pauseHandler(handler, buffer=None):
+    """
+    First tee calls to C{handler} to C{buffer.append}, then unregister the
+    original handler so only the buffer gets the events.
+
+    The buffer and any temporary handlers registered will be returned.
+    """
+    buffer, temp_handlers = teeHandler(handler, buffer)
+
+    for _, required in temp_handlers:
+        GSM.unregisterHandler(handler, required=required)  
+
+    return buffer, temp_handlers
+
+
+def unteeHandler(temp_handlers=None):
+    """
+    Unregister any temporary handlers returned by L{teeHandler}.
+    """
     if temp_handlers is not None:
         for temp_handler, required in temp_handlers:
             GSM.unregisterHandler(temp_handler, required=required)
+
+
+def unpauseHandler(handler, buffer=None, temp_handlers=None):
+    """
+    First untee temporary handlers; then, reregister handlers paused by
+    L{pauseHandler}. Finally, replay the buffered events through the original
+    handler.
+    """
+    unteeHandler(temp_handlers)
+
+    if temp_handlers is not None:
+        for temp_handler, required in temp_handlers:
             provideHandler(handler, required)
 
     if buffer is not None:
@@ -101,11 +135,32 @@ def unpauseHandler(handler, buffer=None, temp_handlers=None):
             handler(*args, **kwargs)
 
 
+
 @contextmanager
 def paused(handler, buffer=None):
+    """
+    Pause this handler for the duration of the with block.
+
+    WARNING: This is NOT safe to use in an async I/O environment if you
+    yield to the event loop within the context manager!
+    """
     buffer, temp_handlers = pauseHandler(handler, buffer)
     yield 
     unpauseHandler(handler, buffer, temp_handlers)
+
+
+@contextmanager
+def teed(handler, buffer=None):
+    """
+    Tee events destined for this handler for the duration of
+    the with block.
+
+    WARNING: This is NOT safe to use in an async I/O environment if you
+    yield to the event loop within the context manager!
+    """
+    buffer, temp_handlers = teeHandler(handler, buffer)
+    yield
+    unteeHandler(temp_handlers)
      
 
 class OptimizedIndexingBuffer(object):
@@ -114,7 +169,6 @@ class OptimizedIndexingBuffer(object):
     fired per object.
     """
     def __init__(self):
-        self.removed_buffer = []
         self.indexes = defaultdict(set)
         self.update_metadatas = {}
         self.args = {}
@@ -126,10 +180,10 @@ class OptimizedIndexingBuffer(object):
     def append(self, (args, kwargs)):
         ob, event = args
         if isinstance(event, self.ObjectWillBeRemovedEvent):
-            # Removal event; just delete what's there
+            # Removal event; just delete pending indexing requests,
+            # since they would be invalid. Removal will then continue.
             self.indexes.pop(ob, None)
             self.update_metadatas.pop(ob, None)
-            self.removed_buffer.append((args, kwargs))
         elif isinstance(event, self.IndexingEvent):
             # If indexes are specified, we have decisions to make
             if event.idxs:
@@ -155,22 +209,17 @@ class OptimizedIndexingBuffer(object):
                         self.update_metadatas.get(ob, False))), {})
 
 
-class UnindexingBuffer(object):
-    def __init__(self, wrapped_buffer):
-        self.wrapped_buffer = wrapped_buffer
-
-    def append(self, *args, **kwargs):
-        self.wrapped_buffer.append(*args, **kwargs)
-
-    def __iter__(self):
-        return iter(self.wrapped_buffer.removed_buffer)
-
-
 @contextmanager
 def pausedAndOptimizedIndexing(index_handler=None, unindex_handler=None):
     """
     Delay global catalog indexing for the duration of the with block. Also,
     collapse indexing events so that only one is fired per object.
+
+    Uncataloging will not be paused, since it must happen immediately before
+    the object being uncataloged disappears or is moved.
+
+    WARNING: This is NOT safe to use in an async I/O environment if you
+    yield to the event loop within the context manager!
     """
     # Circular import
     from Products.Zuul.catalog.events import onIndexingEvent
@@ -182,6 +231,6 @@ def pausedAndOptimizedIndexing(index_handler=None, unindex_handler=None):
 
     index_buffer = OptimizedIndexingBuffer()
     with paused(index_handler, index_buffer):
-        with paused(unindex_handler, UnindexingBuffer(index_buffer)):
+        with teed(unindex_handler, index_buffer):
             yield
 
