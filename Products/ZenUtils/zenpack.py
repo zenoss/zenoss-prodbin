@@ -279,7 +279,7 @@ class ZenPackCmd(ZenScriptBase):
 
             prereqsMet = True
             for req in reqZenpacks:
-                if req.startswith('Zenoss'):
+                if not req.startswith('ZenPacks'):
                     continue
                 for parsed_req in parse_requirements([req]):
                     installed_version = installedPacks.get(parsed_req.project_name, None)
