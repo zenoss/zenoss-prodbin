@@ -641,7 +641,10 @@ class DeviceFacade(TreeFacade):
                 except ImportError:
                     # unable to import skip over this one
                     continue
-            docs[plugin.pluginName] = module.__doc__
+            pluginDocs = module.__doc__
+            if pluginDocs:
+                pluginDocs = '<pre>' + pluginDocs.replace('\n', '\n<br/>') + '</pre>'
+            docs[plugin.pluginName] = pluginDocs
         return docs
 
     def getGraphDefs(self, uid, drange):
