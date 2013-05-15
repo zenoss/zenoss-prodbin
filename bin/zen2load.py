@@ -158,7 +158,7 @@ class ImportRM(CmdBase, ContentHandler):
         if proptype == 'selection':
             alist = getattr(obj, selvar, [])
             if (len(alist) == 0 or 
-                (len(alist) > 0 and isinstance(alist[0], basestring)):
+                (len(alist) > 0 and isinstance(alist[0], basestring))):
                 proptype = 'string'
         if proptype == "date":
             try: value = float(value)
