@@ -624,6 +624,10 @@
                 verticalScrollerType:'paginggridscroller',
                 invalidateScrollerOnRefresh:false,
                 scroll:'both',
+                verticalScroller: {
+                    numFromEdge: 10,
+                    scrollToLoadBuffer: 100
+                },
                 bbar: {
                     cls: 'commonlivegridinfopanel',
                     items: [

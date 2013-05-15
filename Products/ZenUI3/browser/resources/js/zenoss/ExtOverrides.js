@@ -308,13 +308,14 @@ Ext.override(Ext.util.Sorter, {
                         var grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
                         child.style.cssText = 'width: 100%; height: 100%; overflow: auto;';
                     }catch(e){
-                      // couldn't traverse, so just swallow it.
+                        // couldn't traverse, so just swallow it.
                     }
                 }, 100, me);
-                this.callOverridden()
+                this.callOverridden();
             }
         }
-    )};
+                    );
+    }
 
     Ext.override(Ext.form.ComboBox, {
         getSelectedIndex: function() {
@@ -436,34 +437,6 @@ Ext.override(Ext.util.Sorter, {
     });
 
 
-    /**
-     * We use the guarantee range mechanism to refresh the grid without reloading the store.
-     * This method is overriden so that we can refresh page 0 if necessary. Previously it would send a negative
-     * number as start.
-     * It was using (page - 1 * pageSize)
-     **/
-    Ext.override(Ext.data.Store, {
-        prefetchPage: function(page, options) {
-            var me = this,
-            pageSize = me.pageSize || me.defaultPageSize,
-            // JRH: make sure start is not less than 0 if we are prefetching the first page
-            start = Math.max((page - 1) * me.pageSize, 0),
-            total = me.totalCount;
-
-            // No more data to prefetch.
-            if (total !== undefined && me.getCount() === total) {
-                return;
-            }
-
-            // Copy options into a new object so as not to mutate passed in objects
-            me.prefetch(Ext.apply({
-                page     : page,
-                start    : start,
-                limit    : pageSize
-            }, options));
-        }
-
-    });
 
     /*
         Fixes a known issue in Ext where sometimes the target is null and so getTarget cannot connect the

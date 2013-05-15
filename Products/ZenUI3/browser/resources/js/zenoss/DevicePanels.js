@@ -370,7 +370,7 @@ Ext.define('Zenoss.device.DeviceModel',{
         {name: 'systems', type: 'object'},
         {name: 'groups', type: 'object'},
         {name: 'location', type: 'object'},
-        {name: 'events', type: 'auto'},
+        {name: 'events', type: 'object'},
         {name: 'availability', type: 'float'},
         {name: 'pythonClass', type: 'string'}
     ],
@@ -393,8 +393,7 @@ Ext.define("Zenoss.DeviceStore", {
             model: 'Zenoss.device.DeviceModel',
             initialSortColumn: "name",
             directFn: Zenoss.remote.DeviceRouter.getDevices,
-            root: 'devices',
-            purgePageCount: 0
+            root: 'devices'
         });
         this.callParent(arguments);
     }
