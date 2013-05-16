@@ -124,9 +124,7 @@
             grid.headerCt.on('columnhide', this.resetFilterRow, this);
 
             grid.headerCt.on('columnmove', this.resetFilterRow, this);
-            grid.on('columnmove', function(col, moved, movedIndex){
-                this.gridColumnMoveWithFilter(col, moved, movedIndex);
-            }, this);
+            grid.on('columnmove', this.gridColumnMoveWithFilter(col, moved, movedIndex), this);
             this.view = this.grid.getView();
             this.view.on('bodyscroll', this.onViewScroll, this);
         },
@@ -208,7 +206,7 @@
 
                     col.filter = Ext.apply({
                         id:filterDivId,
-                        hidden:false,
+                        hidden:col.isHidden(),
                         xtype:'component',
                         baseCls:'x-grid-filter',
                         width:col.width - 2,
@@ -316,14 +314,12 @@
                 this.applyTemplate();
             }
             this.eachColumn(function (col) {
+                col.filterField.setVisible(!col.isHidden());
                 // do not apply a filter to a hidden column (will be confusing for the user)
-                if (!col.isHidden()) {
-                    if (Ext.isDefined(state[col.filterKey]) && !Ext.isEmpty(state[col.filterKey])) {
+                if (!col.isHidden() && 
+                    Ext.isDefined(state[col.filterKey]) && 
+                    !Ext.isEmpty(state[col.filterKey])) {
                         col.filterField.setValue(state[col.filterKey]);
-                    }
-                } else {
-                    // column is hidden so hide the filter
-                    col.filterField.setVisible(false);
                 }
             });
         },
@@ -477,7 +473,7 @@
         },
         // Iterates over each column in column config array
         eachColumn:function (func) {
-            Ext.each(this.grid.headerCt.getGridColumns(), func, this);
+            Ext.each(this.grid.columns, func, this);
         }
     });
 
