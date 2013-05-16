@@ -54,6 +54,7 @@ import cPickle as pickle
 import time
 import re
 import DateTime
+import gzip
 
 import os
 import os.path
@@ -639,6 +640,10 @@ class ZenModeler(PBDaemon):
                         self.log.warn("The plugin %s returned no results.",
                                       plugin.name())
                         continue
+
+                    if self.options.save_raw_results:
+                        self.savePluginData(device.id, plugin.name(), 'raw', results)
+
                     self.log.debug("Plugin %s results = %s", plugin.name(), results)
                     datamaps = []
                     try:
@@ -660,9 +665,6 @@ class ZenModeler(PBDaemon):
                         #     Also, report it against the device, rather than at
                         #     a collector as it might be just for this device.
                         import socket
-                        component= os.path.splitext(
-                            os.path.basename( sys.argv[0] )
-                            )[0]
                         collector_host= socket.gethostname()
                         evt= { "eventClass":"/Status/Update",
                               "agent":collector_host, "device":device.id,
@@ -682,7 +684,11 @@ class ZenModeler(PBDaemon):
                     if not isinstance(datamaps, (list, tuple)):
                         datamaps = [datamaps,]
                     if datamaps:
-                        maps += [m for m in datamaps if m]
+                        newmaps = [m for m in datamaps if m]
+                        if self.options.save_processed_results:
+                            self.savePluginData(device.id, plugin.name(), 'processed', newmaps)
+                        maps += newmaps
+
                 if maps:
                     deviceClass = Classifier.classifyDevice(pluginStats,
                                                 self.classCollectorPlugins)
@@ -729,7 +735,14 @@ class ZenModeler(PBDaemon):
         d = drive(processClient)
         d.addBoth(processClientFinished)
 
-
+    def savePluginData(self, deviceName, pluginName, dataType, data):
+        filename = "/tmp/%s.%s.%s.pickle.gz" % (deviceName, pluginName, dataType)
+        try:
+            with gzip.open(filename, 'wb') as fd:
+                pickle.dump(data, fd)
+        except Exception as ex:
+            self.log.warn("Unable to save data into file '%s': %s",
+                          filename, ex)
 
     def fillError(self, reason):
         """
@@ -977,6 +990,14 @@ class ZenModeler(PBDaemon):
         self.parser.add_option('--checkstatus',
                 dest='checkStatus', action="store_true", default=False,
                 help="Don't model if the device is ping or snmp down")
+
+        self.parser.add_option('--save_raw_results',
+                dest='save_raw_results', action="store_true", default=False,
+                help="Save raw results for replay purposes in /tmp")
+        self.parser.add_option('--save_processed_results',
+                dest='save_processed_results', action="store_true", default=False,
+                help="Save modeler plugin outputs for replay purposes in /tmp")
+
         TCbuildOptions(self.parser, self.usage)
         if USE_WMI:
             addNTLMv2Option(self.parser)
@@ -1016,7 +1037,7 @@ class ZenModeler(PBDaemon):
                 client.timedOut = True
                 try:
                     client.stop()
-                except AssertionError, ex:
+                except AssertionError:
                     pass # session closed twice http://dev.zenoss.org/trac/ticket/6354
             else:
                 active.append(client)
