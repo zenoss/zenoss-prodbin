@@ -16,7 +16,9 @@ from Products.ZenUtils.Driver import drive
 
 # Import from zenhub before importing twisted.internet.reactor
 from Products.ZenHub.zenhub import ZenHub
+from Products.ZenHub.PBDaemon import RemoteException, RemoteConflictError
 
+from twisted.python.failure import Failure
 from twisted.internet import reactor
 from twisted.cred import credentials
 from twisted.spread import pb
@@ -46,8 +48,8 @@ class TestClient(pb.Referenceable):
         self.tester = tester
         factory = pb.PBClientFactory()
         self.connector = reactor.connectTCP("localhost", port, factory)
-        d = factory.login(credentials.UsernamePassword("admin", "zenoss"),
-                          client=self)
+        creds = credentials.UsernamePassword("admin", "zenoss")
+        d = factory.login(creds, client=self)
         d.addCallback(self.connected)
         d.addErrback(self.bad)
 
@@ -80,8 +82,34 @@ class SendEventClient(TestClient):
             yield service.callRemote('sendEvents', [evt])
             self.tester.assertEqual(driver.next(), 1)
             self.success = True
-        drive(Test).addBoth(stop)
+        drive(Test).addBoth(stop, connector=self.connector)
 
+
+class RaiseExceptionClient(TestClient):
+    exception = None
+
+    def complete( self, result):
+        stop( self.connector)
+        self.tester.assertIsInstance( result, Failure)
+        self.exception = result.value
+
+    def test(self, service):
+        def Test(driver):
+            yield service.callRemote('raiseException', "an exception message")
+        drive(Test).addBoth(self.complete)
+
+class RaiseConflictErrorClient(TestClient):
+    exception = None
+
+    def complete( self, result):
+        stop( self.connector)
+        self.tester.assertIsInstance( result, Failure)
+        self.exception = result.value
+
+    def test(self, service):
+        def Test(driver):
+            yield service.callRemote('raiseConflictError', "an error message")
+        drive(Test).addBoth(self.complete)
 
 class TestZenHub(BaseTestCase):
 
@@ -119,13 +147,31 @@ class TestZenHub(BaseTestCase):
 
     def testGetService(self):
         client = TestClient(self, self.base + count)
+        self.assertFalse(client.success)
         self.zenhub.main()
         self.assertTrue(client.success)
 
     def testSendEvent(self):
         client = SendEventClient(self, self.base + count)
+        self.assertFalse(client.success)
         self.zenhub.main()
         self.assertTrue(client.success)
+
+    def testRaiseRemoteException(self):
+        client = RaiseExceptionClient(self, self.base + count)
+        self.assertIs( client.exception, None)
+        self.zenhub.main()
+        self.assertIsInstance( client.exception, RemoteException)
+        self.assertIn( "an exception message", str(client.exception))
+        self.assertIsNotNone( client.exception.traceback)
+
+    def testRaiseRemoteConflictError(self):
+        client = RaiseConflictErrorClient(self, self.base + count)
+        self.assertIs( client.exception, None)
+        self.zenhub.main()
+        self.assertIsInstance( client.exception, RemoteConflictError)
+        self.assertIn( "an error message", str(client.exception))
+        self.assertIsNotNone( client.exception.traceback)
 
 def test_suite():
     suite = unittest.TestSuite()

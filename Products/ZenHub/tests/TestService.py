@@ -9,8 +9,20 @@
 
 
 from Products.ZenHub.HubService import HubService
+from Products.ZenHub.PBDaemon import translateError
+
+from ZODB.POSException import ConflictError
 
 class TestService(HubService):
 
     def remote_echo(self, value):
         return value
+
+    @translateError
+    def remote_raiseException(self, message):
+        raise Exception( message)
+
+    @translateError
+    def remote_raiseConflictError(self, message):
+        raise ConflictError( message)
+
