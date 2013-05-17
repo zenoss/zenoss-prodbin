@@ -64,6 +64,8 @@ def onObjectRemoved(ob, event):
         if len(path)<=3 or path[2]!='dmd':
             return
         uid = '/'.join(path)
+        if catalog.getrid(uid) is None:
+            return
         catalog.uncatalog_object(uid)
 
 
