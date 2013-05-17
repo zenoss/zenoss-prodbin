@@ -34,9 +34,9 @@ function CreateFormField(theForm, name, value) {
 }
 
 function ShowPrintable() {
-    printableForm = document.getElementById('printableForm');
-    while (printableForm.hasChildNodes())
-        printableForm.removeChild(printableForm.firstChild);
+    printbleFrm = document.getElementById('printableForm');
+    while (printbleFrm.hasChildNodes())
+        printbleFrm.removeChild(printbleFrm.firstChild);
     var numGraphs = 0;
     for (var name in ZenGraphs) {
         if (ZenGraphs.hasOwnProperty(name)) {
@@ -45,8 +45,8 @@ function ShowPrintable() {
                 title = graph[1],
                 i = numGraphs;
             var graph = document.getElementById('graph_' + numGraphs);
-            CreateFormField(printableForm, 'graph_' + numGraphs, graph.src);
-            CreateFormField(printableForm, 'title_' + numGraphs, title);
+            CreateFormField(printbleFrm, 'graph_' + numGraphs, graph.src);
+            CreateFormField(printbleFrm, 'title_' + numGraphs, title);
             numGraphs++;
         }
     }
@@ -56,10 +56,10 @@ function ShowPrintable() {
     if (drange) {
        var selected = drange.options[drange.selectedIndex].value;
        if (selected) {
-           CreateFormField(printableForm, 'drange', selected);
+           CreateFormField(printbleFrm, 'drange', selected);
        }
     }
-    printableForm.submit();
+    printbleFrm.submit();
 }
 </script>
 

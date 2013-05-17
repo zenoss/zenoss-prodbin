@@ -23,30 +23,30 @@ function CreateFormField(theForm, name, value) {
 }
 
 function ShowPrintable() {
-    printableForm = document.getElementById('printableForm');
-    while (printableForm.hasChildNodes())
-        printableForm.removeChild(printableForm.firstChild);
+    printbleFrm = document.getElementById('printableForm');
+    while (printbleFrm.hasChildNodes())
+        printbleFrm.removeChild(printbleFrm.firstChild);
     var numGraphs = 0;
     for (var name in ZenGraphs) {
         if (ZenGraphs.hasOwnProperty(name)) {
             var graph = ZenGraphs[name],
                 title = graph[1];
             var graph = document.getElementById('graph_' + numGraphs);
-            CreateFormField(printableForm, 'graph_' + numGraphs, graph.src);
-            CreateFormField(printableForm, 'title_' + numGraphs, title);
+            CreateFormField(printbleFrm, 'graph_' + numGraphs, graph.src);
+            CreateFormField(printbleFrm, 'title_' + numGraphs, title);
             numGraphs++;
         }
     }
-    CreateFormField(printableForm, 'numGraphs', numGraphs);
+    CreateFormField(printbleFrm, 'numGraphs', numGraphs);
 
     var drange = document.getElementById('drange_select');
     if (drange) {
        var selected = drange.options[drange.selectedIndex].value;
        if (selected) {
-           CreateFormField(printableForm, 'drange', selected);
+           CreateFormField(printbleFrm, 'drange', selected);
        }
     }
-    printableForm.submit();
+    printbleFrm.submit();
 }
 </script>
 
