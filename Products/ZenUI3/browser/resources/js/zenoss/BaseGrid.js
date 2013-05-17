@@ -124,7 +124,9 @@
             grid.headerCt.on('columnhide', this.resetFilterRow, this);
 
             grid.headerCt.on('columnmove', this.resetFilterRow, this);
-            grid.on('columnmove', this.gridColumnMoveWithFilter(col, moved, movedIndex), this);
+            grid.on('columnmove', function(col, moved, movedIndex){
+            	this.gridColumnMoveWithFilter(col, moved, movedIndex);
+            }, this);
             this.view = this.grid.getView();
             this.view.on('bodyscroll', this.onViewScroll, this);
         },
