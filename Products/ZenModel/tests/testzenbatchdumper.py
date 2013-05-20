@@ -33,47 +33,44 @@ class Testzenbatchdumper(BaseTestCase):
         self.zdumper.options = FakeOptions()
         self.zdumper.options.regex = '.*'
         self.zdumper.options.prune = False
-        self.zdumper.options.root = 'Devices/TestZenBatchDumper'
+        self.zdumper.options.root = '/zport/dmd/Devices/TestZenBatchDumper'
 
         self.zloader = BatchDeviceLoader(noopts=1)
         self.zloader.options = FakeOptions()
         self.zloader.options.nomodel = True
         self.zloader.options.nocommit = False
 
-        # WARNING: brutal nasty hack to get around weirdness in TestSuite
-        # otherwise only last instantiated object gets a real database connection
+        # Ensure that both commands get
+        # a real database connection
         self.zdumper.dmd = self.zloader.dmd
 
         self.log = logging.getLogger("zen.BatchDeviceDumper")
         self.zdumper.log = self.log
         self.zloader.log = logging.getLogger("zen.BatchDeviceLoader")
 
+        # Actually add the organizer we use in testing
+        testRoot = self.zdumper.options.root.rsplit('/', 1)[1]
+        self.zdumper.dmd.Devices.manage_addOrganizer(testRoot)
+
     def testDump(self):
-        self.zdumper.options.root = 'Devices'
         olympics = DateTime("2010/02/28")
-        configs = ["device1 cDateTest=%s" % repr(olympics)]
+        configs = ["/Devices/TestZenBatchDumper", "device1 cDateTest=%s" % repr(olympics)]
         device_list, unparseable = self.zloader.parseDevices(configs)
         self.zloader.processDevices(device_list)
-        self.log.debug(self.zloader.dmd.Devices.getSubDevices())
-        self.log.debug(self.zdumper.dmd.Devices.getSubDevices())
 
         outFile = StringIO()
-        numLoc = self.zdumper.listLSGOTree(outFile, self.zdumper.dmd.Locations)
-        numSys = self.zdumper.listLSGOTree(outFile, self.zdumper.dmd.Systems)
-        numGrp = self.zdumper.listLSGOTree(outFile, self.zdumper.dmd.Groups)
         numDevs = self.zdumper.listDeviceTree(outFile)
 
-        total = len([d for d in self.zdumper.root.getSubDevices() \
-                     if not 'ZenPack' in d.zPythonClass])
-        self.log.info("dumped %d of %d devices", numDevs['Devices'], total)
-        self.assert_(numDevs['Devices'] == total)
-        self.log.info(numLoc, numSys, numGrp, numDevs)
+        total = len([d for d in self.zdumper.root.getSubDevices() ])
+        self.assert_(total > 0, "Didn't load any devices")
+        self.assert_(numDevs['Devices'] == total,
+            "Dumped %d of %d devices" % ( numDevs['Devices'], total))
         outText = outFile.getvalue()
         outFile.close()
+
         self.log.info(outText)
         outConfigs = outText.split('\n')
         out_device_list, unparseable = self.zloader.parseDevices(outConfigs)
-        self.log.info(out_device_list)
         self.assert_(numDevs['Devices'] == len(out_device_list))
         dev = self.zloader.dmd.Devices.findDevice('device1')
         self.assert_(dev.cDateTest == olympics)
