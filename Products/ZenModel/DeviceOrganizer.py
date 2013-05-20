@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-__doc__ = """DeviceOrganizer
+"""DeviceOrganizer
 Base class for device organizers
 """
 
@@ -28,10 +28,10 @@ from AdministrativeRoleable import AdministrativeRoleable
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.CMFCore.utils import getToolByName
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenWidgets.interfaces import IMessageSender
 
-from ZenossSecurity import *
+from ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD, ZEN_COMMON, ZEN_CHANGE_DEVICE_PRODSTATE
 from Products.ZenUtils.Utils import unused, getObjectsFromCatalog
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
@@ -66,11 +66,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (ZEN_VIEW, )
                 },
-#                { 'id'            : 'historyEvents'
-#                , 'name'          : 'History'
-#                , 'action'        : 'viewHistoryEvents'
-#                , 'permissions'   : (ZEN_VIEW, )
-#                },
                 { 'id'            : 'manage'
                 , 'name'          : 'Administration'
                 , 'action'        : 'deviceOrganizerManage'
@@ -122,7 +117,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
 
         if not 'path' in catalog.indexes():
             LOG.warn('Please run zenmigrate to create device path indexes.')
-            yield self.getSubDevicesGen_recursive(devfilter)
+            yield self.getSubDevicesGen_recursive(devfilter=None)
 
         devices = getObjectsFromCatalog(catalog, {
             'path': "/".join(self.getPhysicalPath())}, LOG)
