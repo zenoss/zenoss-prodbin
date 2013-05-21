@@ -28,7 +28,7 @@
     <tooltip>
         <target>event_archive_purge_interval_days</target>
         <anchor>top</anchor>
-        <html>The number of days that events in the event archive are saved. 
+        <html>The number of days that events in the event archive are saved.
             By default they are kept in the archive for 90 days. The minimum
             value is 1 and the maximum value is determined by the range of
             event archive partitions. With the default configuration, the
@@ -106,6 +106,36 @@
         <target>archive_interval_milliseconds</target>
         <anchor>top</anchor>
         <html>The interval when events are scanned for moving to the archive.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>enable_event_flapping_detection</target>
+        <anchor>top</anchor>
+        <html>Check this if you wish to enable event flapping detection. If an event is created and then cleared flapping_threshold times in event_flapping_interval time then an event of event flapping event class is created.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>flapping_threshold</target>
+        <anchor>top</anchor>
+        <html>If an event flaps this number of times in the event_flapping_interval a flap event is created.</html>
+    </tooltip>
+
+    <tooltip>
+        <target>flapping_interval_seconds</target>
+        <anchor>top</anchor>
+        <html>The time interval that flapping_threshold number of flaps must occur in to be considered flapping.</html>
+    </tooltip>
+
+    <tooltip>
+      <target>flapping_severity_threshold</target>
+      <anchor>top</anchor>
+      <html>if an event is below this severity level, then the next event is above, it is considered a flap.</html>
+    </tooltip>
+
+    <tooltip>
+      <target>flapping_event_class</target>
+      <anchor>top</anchor>
+      <html>The event class under which generated flapping events belong.</html>
     </tooltip>
 
 </view>
