@@ -171,6 +171,8 @@ windows_device7 cDateTest='2010/02/28'
         ZCmdBase.__init__(self, *args, **kwargs)
         self.defaults = {}
 
+        self.collectorNames = self.dmd.Monitors.getPerformanceMonitorNames()
+
         self.loader = self.dmd.DeviceLoader.loadDevice
 
         self.fqdn = socket.getfqdn()
@@ -751,6 +753,14 @@ windows_device7 cDateTest='2010/02/28'
                     if method in optionsDict:
                         optionsDict[setting] = optionsDict.pop(method)
                 configs.update(optionsDict)
+
+                collector = configs.get('performanceMonitor')
+                if collector is not None:
+                    if collector not in self.collectorNames:
+                        self.log.warn("'%s' collector '%s' does not exist --"
+                                      " resetting to 'localhost'", name, collector)
+                        del configs['performanceMonitor']
+
             except Exception:
                 self.log.error("Unable to parse the entry for %s -- skipping", name)
                 self.log.error("Raw string: %s", options)
