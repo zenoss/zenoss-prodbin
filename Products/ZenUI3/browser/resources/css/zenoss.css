@@ -1823,4 +1823,6 @@ a.z-entity:hover{
 #editManufacturerDialog fieldset{
   border: 1px solid #555 !important;
 }
-}
+#device_grid-body .x-grid-cell-inner {
+  height:23px !important;
+} 
