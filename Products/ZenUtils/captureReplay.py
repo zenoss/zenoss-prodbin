@@ -132,7 +132,7 @@ class CaptureReplay(object):
         else:
             self._replayAll()
     
-    def _replayAll(self, ignored):
+    def _replayAll(self, ignored=None):
         # Note what you are about to see below is a direct result of optparse
         # adding in the arguments *TWICE* each time --replayFilePrefix is used.
         files = []
