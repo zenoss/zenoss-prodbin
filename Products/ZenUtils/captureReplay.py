@@ -116,7 +116,7 @@ class CaptureReplay(object):
             capFile.write(data)
             capFile.close()
             self.captureSerialNum += 1
-        except:
+        except Exception:
             self.log.exception("Couldn't write capture data to '%s'" % name )
 
     def replayAll(self):
