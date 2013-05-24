@@ -20,22 +20,20 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
-from OFS.ObjectManager import checkValidId, BeforeDeleteException
-from ZODB.POSException import ConflictError
+from OFS.ObjectManager import checkValidId
 
-import OFS.subscribers
 from OFS.event import ObjectWillBeAddedEvent
 from OFS.event import ObjectWillBeRemovedEvent
 from zope.event import notify
 from zope.container.contained import ObjectAddedEvent
 from zope.container.contained import ObjectRemovedEvent
-from zope.container.contained import dispatchToSublocations
 
 from BTrees.OOBTree import OOBTree
 
 from ToManyRelationshipBase import ToManyRelationshipBase
 
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import RelationshipExistsError, ObjectNotFound
+from Products.ZenRelations.RelationshipManager import zenmarker
 
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.tbdetail import log_tb
@@ -315,6 +313,18 @@ class ToManyContRelationship(ToManyRelationshipBase):
         remoteName = self.remoteName()
         parentObject = self.getPrimaryParent()
         for obj in self._objects.values():
+            if not hasattr(obj, remoteName):
+                path = parentObject.getPrimaryUrlPath()
+                if repair:
+                    log.warn("Deleting %s object '%s' relation '%s' (missing remote relation '%s')",
+                             path, obj, self.id, remoteName)
+                    self._remove(obj, True)
+                    continue
+                else:
+                    msg = "%s object '%s' relation '%s' missing remote relation '%s'" % (
+                             path, obj, self.id, remoteName)
+                    raise AttributeError(msg)
+
             rrel = getattr(obj, remoteName)
             if not rrel.hasobject(parentObject):
                 log.error("remote relation %s doesn't point back to %s",

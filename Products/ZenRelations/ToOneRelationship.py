@@ -214,9 +214,16 @@ class ToOneRelationship(RelationshipBase):
 
         if not self.obj: return
 
-        rname = self.remoteName()
-        rrel = getattr(self.obj, rname)
         parobj = self.getPrimaryParent()
+        try:
+            rname = self.remoteName()
+        except ZenSchemaError:
+            path = parobj.getPrimaryUrlPath()
+            log.exception("Object %s (parent %s) has a bad schema" % (self.obj, path))
+            log.warn("Might be able to fix by re-installing ZenPack")
+            return
+
+        rrel = getattr(self.obj, rname)
         if not rrel.hasobject(parobj):
             log.error("remote relation %s doesn't point back to %s",
                       rrel.getPrimaryId(), self.getPrimaryId())
