@@ -501,6 +501,11 @@ class BatchDeviceDumper(ZCmdBase):
              action = 'store_true',
              help = "Should organizers (device classes, groups, etc) be dumped?")
 
+        self.parser.add_option('--collectors_only',
+             dest = 'collectors_only', default = False,
+             action = 'store_true',
+             help = "Dump only the distributed hub/collector information?")
+
     def run(self):
         """
         Run the batch device dump
@@ -516,6 +521,11 @@ class BatchDeviceDumper(ZCmdBase):
                 sys.exit(2)
 
         self.printHeader(outFile)
+        self.listHubsCollectors(outFile)
+        if self.options.collectors_only:
+            outFile.close()
+            sys.exit(0)
+
         foundLSGO = {}
         foundLSGO['Locations'] = self.listLSGOTree(outFile, self.dmd.Locations)
         foundLSGO['Systems'] = self.listLSGOTree(outFile, self.dmd.Systems)
@@ -570,6 +580,14 @@ class BatchDeviceDumper(ZCmdBase):
             line = "loader='ciscoucs', loader_arg_keys=['host', 'username', 'password', 'useSsl', 'port', 'collector']"
             return name, [line]
 
+        elif path.startswith('/zport/dmd/Monitors/Hub/'):
+            line = "loader='dc_hub', loader_arg_keys=['id', 'hubHost', 'hubPort', 'hubPassword', 'zeoHost', 'xmlRpcPort', 'rootPassword', 'installcreds']"
+            return name, [line]
+
+        elif path.startswith('/zport/dmd/Monitors/Performance/'):
+            line = "loader='dc_collector', loader_arg_keys=['id', 'hubPath', 'host', 'rootPassword', 'installtype', 'installcreds']"
+            return name, [line]
+
     def getLoaderProps(self, obj):
         """
         Workaround to avoid adding a dumper interface and RPS'ing all the way back to 2.5.2
@@ -596,6 +614,33 @@ class BatchDeviceDumper(ZCmdBase):
             props.append('port=%s' % obj.zCiscoUCSManagerPort)
             return props
 
+        elif path.startswith('/zport/dmd/Monitors/Hub/'):
+            # Hub
+            installcreds = 'No_creds' if obj.password is None else "rootpasswd"
+            password = 'not_stored'
+            props = dict(hubHost=obj.hostname, zeoHost=obj.zeodbHost,
+                         installcreds=installcreds, hubPassword=obj.password,
+                         rootPassword=password, id=obj.id,
+                        )
+            props = ["%s='%s'" % (key, value) for key, value in props.items()]
+
+            props.append('hubPort=%s' % obj.port)
+            props.append('xmlRpcPort=%s' % obj.xmlrpcport)
+            return props
+
+        elif path.startswith('/zport/dmd/Monitors/Performance/'):
+            # Collector
+            installtype = 'local' if obj._isLocalHost else 'remote'
+            installcreds = "rootpasswd"
+            password = 'not_stored'
+            hubPath = obj.hub().getPrimaryUrlPath()
+            props = dict(host=obj.hostname, installtype=installtype,
+                         hubPath=hubPath, rootPassword=password, id=obj.id,
+                        )
+            props = ["%s='%s'" % (key, value) for key, value in props.items()]
+
+            return props
+
     def listVMwareEndpoints(self, outFile, branch):
         result = dict(Devices=0)
         # Note: VMware endpoints are organizers under /Devices/VMware
@@ -616,6 +661,94 @@ class BatchDeviceDumper(ZCmdBase):
             result['Devices'] += 1
 
         return result
+
+    def listHubsCollectors(self, outFile):
+        dcHeader = """
+#
+# ==== Begin distributed hub/collector information ===================
+#
+# Note:
+#   1. The root password for the initial install of a hub/collector
+#      is NOT stored, so this output MUST be modified IF passwords
+#      are being used (as opposed to SSH keys).
+#
+#   2. 'installcreds' is either 'rootpasswd' or not (ie random text works fine)
+#      This is subject to change.
+#
+#   3. 'installtype' is either 'local' or not (ie random text works fine)
+#
+#   4. The 'localhost' hub/collector is *NOT* dumped.
+#
+#   5. Collector properties are not loadable by zenbatchdump.
+#      A commented out version of the properties suitable for running
+#      in zendmd is output.
+#      awk -F 'ZENDMD ' '/ZENDMD/ { print $2; }' batchloadfile > collector_config.zendmd
+#      zendmd --script collector_config.zendmd
+#
+"""
+
+        dcTrailer = """
+# ==== End distributed hub/collector information ===================
+
+"""
+
+        dumpedConfig = False
+        for hub in self.dmd.Monitors.Hub.getHubs():
+            if hub.id != 'localhost':
+                if not dumpedConfig:
+                    outFile.write(dcHeader)
+                    dumpedConfig = True
+
+                # Always dump hub definitions
+                name, props = self.getLoaderDefinition(hub)
+                name = '/Monitors/Hub'
+                outFile.write("\n%s %s\n" % (name, ", ".join(props)))
+                props = self.getLoaderProps(hub)
+                name = hub.id
+                outFile.write("%s %s\n" % (name, ", ".join(props)))
+
+            # Only dump collector definitions once per hub
+            dumpedDefLine = False
+            for collector in hub.collectors():
+                if not dumpedConfig:
+                    outFile.write(dcHeader)
+                    dumpedConfig = True
+
+                if collector.id == 'localhost':
+                    self.dumpCollectorProperties(outFile, collector)
+                    continue
+
+                if not dumpedDefLine:
+                    name, props = self.getLoaderDefinition(collector)
+                    name = '/Monitors/Performance'
+                    outFile.write("\n%s %s\n" % (name, ", ".join(props)))
+                    dumpedDefLine = True
+
+                props = self.getLoaderProps(collector)
+                name = collector.id
+                outFile.write("%s %s\n" % (name, ", ".join(props)))
+                self.dumpCollectorProperties(outFile, collector)
+
+        if dumpedConfig:
+            outFile.write(dcTrailer)
+
+        result = dict(Devices=0)
+        return result
+
+    def dumpCollectorProperties(self, outFile, collector):
+        # Write out configuration information not directly loadable
+        # by zenbatchloader
+        # The following command is to be run in zendmd
+        preface = "col=%s" % '.'.join(collector.getPrimaryPath()[2:])
+        props = [preface]
+        for key, value in sorted(collector.propertyItems()):
+            if isinstance(value, str):
+                if not value:
+                    continue # Don't add empty strings
+                value = "'%s'" % value
+            data = "col.%s = %s" % (key, value)
+            props.append(data)
+        outFile.write("# ZENDMD %s\n" % '; '.join(props))
 
 
 if __name__=='__main__':
