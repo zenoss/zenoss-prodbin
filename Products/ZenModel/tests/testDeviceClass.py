@@ -17,7 +17,7 @@ from zExceptions import Redirect
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.DeviceClass import *
 from Products.ZenModel.Device import Device
-
+from Products.Zuul import getFacade
 from ZenModelBaseTest import ZenModelBaseTest
 
 class TestDeviceClass(ZenModelBaseTest):
@@ -213,7 +213,7 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assert_('/Layer' in devices.getOrganizerNames())
         self.assert_(dc not in devices.children())
         self.assert_(dc in devices.getSubOrganizers())
-        devices.manage_deleteOrganizers(['/Layer'])
+        getFacade('device', self.dmd).deleteNode('/zport/dmd/Devices/Layer')
         self.assert_(layer not in devices.children())
         self.assert_(dc not in devices.getSubOrganizers())
 

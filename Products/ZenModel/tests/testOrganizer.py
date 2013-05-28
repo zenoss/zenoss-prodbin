@@ -14,7 +14,7 @@ if __name__ == '__main__':
   
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.Organizer import *
-
+from Products.Zuul import getFacade
 from ZenModelBaseTest import ZenModelBaseTest
   
 class TestOrganizer(ZenModelBaseTest):
@@ -60,9 +60,11 @@ class TestOrganizer(ZenModelBaseTest):
         self.assert_(foo in org.children())
         self.assert_(test in org.children())
         self.assert_(number in org.children())
-        org.manage_deleteOrganizer('/foo')
+        facade = getFacade('device', self.dmd)
+        facade.deleteNode('/'.join(foo.getPhysicalPath()))
         self.assert_(foo not in org.children())
-        org.manage_deleteOrganizers(['/test','/number'])
+        getFacade('device', self.dmd).deleteNode('/'.join(test.getPhysicalPath()))
+        getFacade('device', self.dmd).deleteNode('/'.join(number.getPhysicalPath()))
         self.assert_(org.children() == [])
         
     def testGetOrganizer(self):

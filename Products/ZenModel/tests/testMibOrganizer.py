@@ -15,7 +15,7 @@ if __name__ == '__main__':
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.MibOrganizer import *
 from Products.ZenModel.MibOrganizer import _oid2name
-
+from Products.Zuul import getFacade
 from ZenModelBaseTest import ZenModelBaseTest
 
 
@@ -149,10 +149,13 @@ class TestMibOrganizer(ZenModelBaseTest):
         self.assert_(modLoc in mibOrg.getSubOrganizers())
         self.assert_('/sub' in mibOrg.getOrganizerNames())
         self.assert_('/modLoc' in mibOrg.getOrganizerNames())
+        facade = getFacade('device', self.dmd)
         mibOrg.moveOrganizer('/sub', ['mobile'])
         self.assert_(moveMe not in mibOrg.children())
         self.assert_(moveMe in subOrg.children())
-        mibOrg.manage_deleteOrganizers(['sub','modLoc'])
+        facade.deleteNode("/zport/dmd/Mibs/sub")
+        facade.deleteNode("/zport/dmd/Mibs/modLoc")
+        
         self.assert_(subOrg not in mibOrg.getSubOrganizers())
         self.assert_(modLoc not in mibOrg.getSubOrganizers())
         self.assert_(moveMe not in mibOrg.getSubOrganizers())

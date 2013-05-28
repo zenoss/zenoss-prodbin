@@ -227,7 +227,7 @@ class TestComponentIndexing(ZenModelBaseTest):
         self.assertEqual(len(brains), 1)
 
         # Delete the network
-        self.dmd.Networks.manage_deleteOrganizer(self.net.id)
+        self.dmd.Networks._delObject(self.net.id)
 
         # See that the link has been unindexed
         brains = self.layer3cat(deviceId = self.dev.id)
