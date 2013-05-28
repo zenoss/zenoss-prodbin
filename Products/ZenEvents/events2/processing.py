@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -331,7 +331,7 @@ class CheckInputPipe(EventProcessorPipe):
 
         missingFields = ','.join(ifilterfalse(eventContext.event.HasField, self.REQUIRED_EVENT_FIELDS))
         if missingFields:
-            raise DropEvent('Required event fields %s not found' % missingFields, 
+            raise DropEvent('Required event fields %s not found' % missingFields,
                             eventContext.event)
 
         return eventContext
@@ -550,7 +550,7 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
                 device = element
             elif sub_element_type_id == DEVICE:
                 device = sub_element
-            
+
             if device:
                 eventContext.setDeviceObject(device)
 
@@ -580,7 +580,7 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
                 component = element
             elif sub_element_type_id == COMPONENT:
                 component = sub_element
-            
+
             if component:
                 eventContext.setComponentObject(component)
 
@@ -653,7 +653,21 @@ class AssignDefaultEventClassAndTagPipe(EventProcessorPipe):
             except (KeyError, AttributeError):
                 log.info("Event has nonexistent event class %s." % eventClass)
 
+        if eventClass:
+            self._setEventFlappingSettings(eventContext, eventClass)
         return eventContext
+
+    def _setEventFlappingSettings(self, eventContext, eventClass):
+        """
+        Add the event flappings settings from the event class zproperties.
+        This might be better as a separate pipe.
+        """
+        # the migrate script might not have ran yet so make sure the properties exist
+        if getattr(eventClass, 'zFlappingIntervalSeconds', None):
+            eventContext.eventProxy.flappingInterval = eventClass.zFlappingIntervalSeconds
+            eventContext.eventProxy.flappingThreshold = eventClass.zFlappingThreshold
+            eventContext.eventProxy.flappingSeverity = eventClass.zFlappingSeverity
+
 
 class FingerprintPipe(EventProcessorPipe):
     """

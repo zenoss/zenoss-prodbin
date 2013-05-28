@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -54,7 +54,7 @@ class EventTagProxy(object):
 
         if not uuid in tag_uuids:
             tag_uuids.add(uuid)
-            
+
             event_tag = None
             for tag in self._eventProtobuf.tags:
                 if tag.type == type:
@@ -228,10 +228,10 @@ class ProtobufWrapper(object):
 
 class EventProxy(object):
     """
-    Wraps an org.zenoss.protobufs.zep.Event 
+    Wraps an org.zenoss.protobufs.zep.Event
     and makes it look like an old style Event.
     """
-    
+
     DEVICE_PRIORITY_DETAIL_KEY = "zenoss.device.priority"
     PRODUCTION_STATE_DETAIL_KEY = "zenoss.device.production_state"
     DEVICE_IP_ADDRESS_DETAIL_KEY = 'zenoss.device.ip_address'
@@ -298,7 +298,7 @@ class EventProxy(object):
         if isinstance( eventClassValue, unicode ):
             eventClassValue = str( eventClassValue )
         return eventClassValue
-        
+
     @eventClass.setter
     def eventClass(self, val):
         self._event.set(EventField.EVENT_CLASS, val)
@@ -451,6 +451,30 @@ class EventProxy(object):
         if values:
             return '|' + '|'.join(values)
 
+    @property
+    def flappingInterval(self):
+        return self._event.get(EventField.FLAPPING_INTERVAL)
+
+    @flappingInterval.setter
+    def flappingInterval(self, val):
+        self._event.set(EventField.FLAPPING_INTERVAL, val)
+
+    @property
+    def flappingThreshold(self):
+        return self._event.get(EventField.FLAPPING_THRESHOLD)
+
+    @flappingThreshold.setter
+    def flappingThreshold(self, val):
+        self._event.set(EventField.FLAPPING_THRESHOLD, val)
+
+    @property
+    def flappingSeverity(self):
+        return self._event.get(EventField.FLAPPING_SEVERITY)
+
+    @flappingSeverity.setter
+    def flappingSeverity(self, val):
+        self._event.set(EventField.FLAPPING_SEVERITY, val)
+
     def setReadOnly(self, name, value):
         """
         Adds a read only attribute for transforms to read.
@@ -463,6 +487,8 @@ class EventProxy(object):
         Clears a read only attribute so it can be updated.
         """
         self._readOnly.pop(name, None)
+
+
 
     # Just put everything else in the details
     def __getattr__(self, name):
@@ -493,7 +519,7 @@ class EventSummaryProxy(EventProxy):
 
         event = self._eventSummary.occurrence[0]
         EventProxy.__init__(self, event)
-        
+
     @property
     def evid(self):
         return self._eventSummary.get(EventSummaryField.UUID)

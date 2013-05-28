@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -311,6 +311,19 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         edict._setProperty("zEventClearClasses", [], type="lines")
         edict._setProperty("zEventAction", "status")
         edict._setProperty("zEventSeverity", -1, type="int")
+
+        self._buildEventFlappingZProperties()
+
+    def _buildEventFlappingZProperties(self):
+        edict = self.getDmdRoot("Events")
+        if getattr(aq_base(edict), "zFlappingThreshold", None) is None:
+            edict._setProperty("zFlappingThreshold", 4, type="int")
+
+        if getattr(aq_base(edict), "zFlappingIntervalSeconds", None) is None:
+            edict._setProperty("zFlappingIntervalSeconds", 3600, type="int")
+
+        if getattr(aq_base(edict), "zFlappingSeverity", None) is None:
+            edict._setProperty("zFlappingSeverity", 4, type="severity")
 
     def testTransformStyle(self):
         """Test our transform by compiling it.

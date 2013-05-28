@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -29,6 +29,9 @@ class EventField:
     DETAILS = 'details'
     STATUS = 'status'
     TAGS = 'tags'
+    FLAPPING_INTERVAL = 'flapping_interval_seconds'
+    FLAPPING_THRESHOLD = 'flapping_threshold'
+    FLAPPING_SEVERITY = 'flapping_severity'
 
     class Actor:
         ELEMENT_TYPE_ID = 'element_type_id'

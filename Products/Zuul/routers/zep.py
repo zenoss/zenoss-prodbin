@@ -747,22 +747,6 @@ class EventsRouter(DirectRouter):
                 'id': 'enable_event_flapping_detection',
                 'name': _t('Enable Event Flapping Detection'),
                 'xtype': 'checkbox',
-                },{
-                'id': 'flapping_threshold',
-                'name': _t('Flapping Threshold'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'minValue': 3
-                },{
-                'id': 'flapping_interval_seconds',
-                'name': _t('Event Flapping Interval'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'minValue': 600
-                },{
-                'id': 'flapping_severity_threshold',
-                'name': _t('Event Flapping Severity Threshold'),
-                'xtype': 'severity'
                 }, {
                 'id': 'flapping_event_class',
                 'name': _t('Event Flapping Event Class'),

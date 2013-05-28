@@ -115,24 +115,6 @@
     </tooltip>
 
     <tooltip>
-        <target>flapping_threshold</target>
-        <anchor>top</anchor>
-        <html>If an event flaps this number of times in the event_flapping_interval a flap event is created.</html>
-    </tooltip>
-
-    <tooltip>
-        <target>flapping_interval_seconds</target>
-        <anchor>top</anchor>
-        <html>The time interval that flapping_threshold number of flaps must occur in to be considered flapping.</html>
-    </tooltip>
-
-    <tooltip>
-      <target>flapping_severity_threshold</target>
-      <anchor>top</anchor>
-      <html>if an event is below this severity level, then the next event is above, it is considered a flap.</html>
-    </tooltip>
-
-    <tooltip>
       <target>flapping_event_class</target>
       <anchor>top</anchor>
       <html>The event class under which generated flapping events belong.</html>
