@@ -14,6 +14,7 @@ import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products.ZenUtils.config import ConfigFile
 from Products.Zuul import getFacade
 
 from zenoss.protocols.jsonformat import from_dict
@@ -208,8 +209,12 @@ class ZPLDaemons(ZenPackLoader):
             logpath = pack.About._getLogPath(name).rsplit('/', 1)[0]
             if logpath != zenPath('log'):
                 try:
-                    with open(zenPath('etc', '%s.conf' % name), 'a') as conf:
-                        conf.write('logpath %s' % logpath)
+                    with open(zenPath('etc', '%s.conf' % name), 'r') as conf: 
+                        confFile = ConfigFile(conf) 
+                        confFile.parse() 
+                        if 'logpath' not in (key for key, value in confFile.items()): 
+                            with open(zenPath('etc', '%s.conf' % name), 'a') as conf: 
+                                conf.write('\nlogpath %s\n' % logpath) 
                 except IOError:
                     # No conf file. Move on.
                     pass
