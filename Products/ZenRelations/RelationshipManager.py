@@ -41,7 +41,6 @@ from Exceptions import *
 from Products.ZenUtils.Utils import unused
 from Products.ZenModel.interfaces import IZenDocProvider
 
-zenmarker = "__ZENMARKER__"
 
 def manage_addRelationshipManager(context, id, title=None, REQUEST = None):
     """Relationship factory"""

@@ -33,7 +33,7 @@ from BTrees.OOBTree import OOBTree
 from ToManyRelationshipBase import ToManyRelationshipBase
 
 from Products.ZenRelations.Exceptions import RelationshipExistsError, ObjectNotFound
-from Products.ZenRelations.RelationshipManager import zenmarker
+from Exceptions import zenmarker
 
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.tbdetail import log_tb
