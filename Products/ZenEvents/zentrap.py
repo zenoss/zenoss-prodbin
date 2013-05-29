@@ -773,8 +773,13 @@ class TrapDaemon(CollectorDaemon):
 
     def _createUsers(self, users):
         fmt = 'TrapDaemon._createUsers {0} users'
-        log.debug(fmt.format(len(users)))
-        self._prefs.task.session.create_users(users)
+        count = len(users)
+        log.debug(fmt.format(count))
+        if self._prefs.task.session is None:
+            log.debug("No session created, so unable to create users")
+        else:
+            self._prefs.task.session.create_users(users)
+
 
 if __name__=='__main__':
     myPreferences = SnmpTrapPreferences()
