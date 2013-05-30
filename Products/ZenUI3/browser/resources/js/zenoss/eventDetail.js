@@ -675,8 +675,9 @@ Ext.onReady(function() {
             logHtml = logTemplate.apply(eventData);
             Ext.getCmp('evdetail_log').update(logHtml);
             this.doLayout();
-
-            this.updateEventActions(eventData);
+            if (this.showActions) {
+                this.updateEventActions(eventData);
+            }
         },
         updateEventActions: function(eventData) {
             Zenoss.EventActionManager.configure({
