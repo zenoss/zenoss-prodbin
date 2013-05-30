@@ -727,18 +727,22 @@ class ZepFacade(ZuulFacade):
         """
         @type detailItemSet: zenoss.protocols.protobufs.zep_pb2.EventDetailItemSet
         """
+        _ZEP_DETAILS_INFO = []
         return self.configClient.addIndexedDetails(detailItemSet)
 
     def updateIndexedDetail(self, item):
         """
         @type item: zenoss.protocols.protobufs.zep_pb2.EventDetailItem
         """
+        _ZEP_DETAILS_INFO = []
         return self.configClient.updateIndexedDetail(item)
 
     def removeIndexedDetail(self, key):
         """
         @type key: string
         """
+        # Gather the new details information
+        _ZEP_DETAILS_INFO = []
         return self.configClient.removeIndexedDetail(key)
 
     def countEventsSince(self, since):
