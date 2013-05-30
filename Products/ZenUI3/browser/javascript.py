@@ -11,6 +11,7 @@
 import os
 import Globals
 import zope.interface
+import md5
 from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
@@ -18,6 +19,7 @@ from Products.ZenUI3.browser.interfaces import IJavaScriptSrcViewlet,\
     IJavaScriptBundleViewlet, IJavaScriptSrcManager
 from Products.Five.viewlet.viewlet import ViewletBase
 from Products.ZenUI3.navigation.manager import WeightOrderedViewletManager
+from Products.ZenUtils.extdirect.zope.metaconfigure import allDirectRouters
 from zope.publisher.browser import TestRequest
 from zope.component import getAdapter
 from Products.ZenModel.ZVersion import VERSION
@@ -82,6 +84,22 @@ class JavaScriptSrcBundleViewlet(ViewletBase):
         if vals:
             js = "".join(vals)
         return js
+
+class ExtDirectViewlet(JavaScriptSrcViewlet):
+    """
+    A specialized renderer for ExtDirect. We can not cache-bust this
+    file by the modified time so we use a hash of the defined routers
+    """
+    directHash = None
+
+    def render(self):
+        if self.directHash is None:
+            # append the extdirect request with a hash or all routers
+            # so that it is updated when a new zenpack is installed
+            routernames = sorted([r['name'] for r in allDirectRouters.values()])
+            self.directHash = md5.new(" ".join(routernames)).hexdigest()
+        path = self.path  + "?v=" + self.directHash
+        return SCRIPT_TAG_SRC_TEMPLATE % path
 
 class ZenossAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)

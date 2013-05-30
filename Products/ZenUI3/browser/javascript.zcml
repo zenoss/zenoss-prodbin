@@ -46,10 +46,10 @@
 
 <browser:viewlet
         name="js-all"
-        paths="extdirect.js"
+        path="extdirect.js"
         weight="4"
         manager=".interfaces.IJavaScriptSrcManager"
-        class=".javascript.JavaScriptSrcBundleViewlet"
+        class=".javascript.ExtDirectViewlet"
         permission="zope2.Public"
         />
 
