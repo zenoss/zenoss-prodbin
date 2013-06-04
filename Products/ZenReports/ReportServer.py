@@ -104,7 +104,11 @@ class ReportServer(ZenModelRM):
         try:
             if templateArgs is None:
                 return instance.run(dmd, args)
-            return instance.run(dmd, args, templateArgs)
+            result = instance.run(dmd, args, templateArgs)
+            # abort the current transaction so long running reports do not
+            # cause a conflict
+            self._p_jar.sync()
+            return result
         except Exception:
             log.exception("Failed to run plugin %s (%s)", name, instance)
             return []
