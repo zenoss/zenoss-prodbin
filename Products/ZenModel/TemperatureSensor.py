@@ -14,6 +14,8 @@ TemperatureSensor is an abstraction of a temperature sensor or probe.
 
 """
 
+from math import isnan
+
 from Globals import InitializeClass
 
 from Products.ZenRelations.RelSchema import ToOne, ToManyCont
@@ -23,7 +25,6 @@ from HWComponent import HWComponent
 
 
 class TemperatureSensor(HWComponent):
-    """TemperatureSensor object"""
 
     portal_type = meta_type = 'TemperatureSensor'
 
@@ -70,25 +71,24 @@ class TemperatureSensor(HWComponent):
         Return the current temperature in degrees celsius
         """
         tempC = self.cacheRRDValue('temperature_celsius', default)
-        if tempC is None:
+        if tempC is None or isnan(tempC):
             tempF = self.cacheRRDValue('temperature_fahrenheit', default)
-            if tempF is not None: tempC = (tempF - 32) / 9 * 5
-        if tempC is not None:
+            if tempF is not None and not isnan(tempF):
+                tempC = (tempF - 32) / 9.0 * 5
+        if tempC is not None and not isnan(tempC):
             return long(tempC)
         return None
     temperature = temperatureCelsius
-
 
     def temperatureFahrenheit(self, default=None):
         """
         Return the current temperature in degrees fahrenheit
         """
         tempC = self.temperatureCelsius(default)
-        if tempC is not None:
-            tempF = tempC * 9 / 5 + 32
+        if tempC is not None and not isnan(tempC):
+            tempF = tempC * 9 / 5 + 32.0
             return long(tempF)
         return None
-
 
     def temperatureCelsiusString(self):
         """
@@ -106,9 +106,5 @@ class TemperatureSensor(HWComponent):
         tempF = self.temperatureFahrenheit()
         return tempF is None and "unknown" or "%dF" % (tempF,)
 
-
-    def viewName(self):
-        return self.id
-    name = viewName
 
 InitializeClass(TemperatureSensor)
