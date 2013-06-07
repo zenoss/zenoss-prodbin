@@ -101,8 +101,8 @@ function ShowPrintable() {
         <td valign="top">
         <table>
         <tr>
-            <th class="tabletitle" tal:content="string:${element/getSummary}">
-            </th>
+            <td class="tabletitle" tal:content="structure element/getSummary">
+            </td>
         </tr>
         <tr>
             <td class="tablevalues" tal:attributes="id string:td_${graphid}">
