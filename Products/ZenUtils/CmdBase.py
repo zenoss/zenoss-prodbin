@@ -227,7 +227,7 @@ class CmdBase(object):
             self.generate_xml_configs( self.parser, self.options )
 
 
-    def getConfigFileDefaults(self, filename):
+    def getConfigFileDefaults(self, filename, correctErrors=True):
         # TODO: This should be refactored - duplicated code with CmdBase.
         """
         Parse a config file which has key-value pairs delimited by white space,
@@ -240,7 +240,8 @@ class CmdBase(object):
         options = self.parser.get_default_values()
         lines = self.loadConfigFile(filename)
         if lines:
-            lines, errors = self.validateConfigFile(filename, lines)
+            lines, errors = self.validateConfigFile(filename, lines,
+                                                    correctErrors=correctErrors)
 
             args = self.getParamatersFromConfig(lines)
             try:
@@ -332,7 +333,8 @@ class CmdBase(object):
         errors = []
         validLines = []
         date = datetime.datetime.now().isoformat()
-        errorTemplate = '## Commenting out by config parser on %s: %%s\n' % date
+        errorTemplate = '## Commenting out by config parser (%s) on %s: %%s\n' % (
+                sys.argv[0], date)
 
         for lineno, line in enumerate(lines):
             if line['type'] == 'comment':
