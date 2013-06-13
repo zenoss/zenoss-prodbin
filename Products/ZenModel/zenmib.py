@@ -113,16 +113,13 @@ class MibFile(object):
         cursor = 0
         fc = []
         while cursor < len(fileContents):
-            searchParty = BLOCK_QUOTE, BLOCK_COMMENT, LINE_COMMENT = \
-                (fileContents.find('"',cursor), 
-                 fileContents.find('/*',cursor), 
-                 fileContents.find('--',cursor))
+            searchParty = [ fileContents.find('"',cursor), fileContents.find('/*',cursor), fileContents.find('--',cursor) ]
             try:
                 cursor = min( x for x in searchParty if x >= 0 )
             except ValueError:
                 break
 
-            if BLOCK_QUOTE == cursor:
+            if searchParty[0] == cursor:
                 '''
                 MIB block quote rules
                 1.  Begins with '"'
@@ -142,7 +139,7 @@ class MibFile(object):
                     raise ValueError("Syntax Error: missing close (\")")
 
                 continue
-            elif BLOCK_COMMENT == cursor:
+            elif searchParty[1] == cursor:
                 '''
                 MIB block comment rules:
                 1.  Begins with '/*'
@@ -173,7 +170,7 @@ class MibFile(object):
                     nestCount += 1
 
                 endComment += 2
-            elif LINE_COMMENT == cursor:
+            elif searchParty[2] == cursor:
                 '''
                 MIB single line comment rules:
                 1.  Begins with '--'
@@ -370,8 +367,7 @@ class PackageManager:
                         unzipped = open(file, "w")
                     unzipped.write(contents)
                     unzipped.close()
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
+            except Exception:
                 self.log.error("Error in extracting %s because %s" % (
                     file, sys.exc_info()[1] ) )
                 return
@@ -388,8 +384,7 @@ class PackageManager:
             for tarInfo in pkgTar:
                 pkgTar.extract(tarInfo)
             pkgTar.close()
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.error("Error in un-tarring %s because %s" % ( file,
                                                         sys.exc_info()[1] ) )
             return
@@ -428,8 +423,7 @@ class PackageManager:
             if not os.path.isdir(self.extractdir):
                 os.makedirs(self.extractdir)
             extractDir = tempfile.mkdtemp(prefix=self.extractdir)
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.error("Error in creating temp dir because %s",
                                                     sys.exc_info()[1] )
             sys.exit(1)
@@ -577,8 +571,7 @@ class ZenMib(ZCmdBase):
             pythonFile = open(pythonFileName, 'w')
             pythonFile.write(pythonCode)
             pythonFile.close()
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.warn('Could not output converted MIB to %s' %
                 pythonFileName)
 
@@ -671,8 +664,7 @@ class ZenMib(ZCmdBase):
             result = {}
             try:
                 exec pythonCode in result
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
+            except Exception:
                 self.log.exception("Unable to import Pythonized-MIB: %s",
                     name)
             return result.get('MIB', None)
@@ -770,6 +762,13 @@ class ZenMib(ZCmdBase):
         mibName = pythonMib['moduleName']
 
         for name, values in pythonMib[leafType].items():
+            # smidump sometimes adds zeroes into OIDs 
+            oid = values['oid']
+            if '.0.' in oid:
+                values['oid'] = oid.replace('.0.', '.')
+                self.log.warn("Found a zero index  in OID '%s' -- converting to '%s'",
+                              oid, values['oid'])
+            
             try:
                 functor(name, **values)
                 entriesAdded += 1
@@ -785,8 +784,7 @@ class ZenMib(ZCmdBase):
                     entriesAdded += 1
                     self.log.warn("Renamed '%s' to '%s' and added to"
                                 " MIB %s", name, newName, leafType)
-                except (SystemExit, KeyboardInterrupt): raise
-                except:
+                except Exception:
                     self.log.warn("Unable to add %s id '%s' -- skipping",
                                 leafType, name)
             else:
