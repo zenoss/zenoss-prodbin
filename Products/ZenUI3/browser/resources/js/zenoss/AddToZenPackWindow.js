@@ -24,7 +24,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
     constructor: function(config) {
         var me = this;
         config = Ext.applyIf(config || {}, {
-            title: _t('Add to Zen Pack'),
+            title: _t('Add to ZenPack'),
             layout: 'fit',
             modal: true,
             autoHeight: true,
@@ -47,11 +47,11 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                 },
                 buttonAlign: 'left',
                 items: [{
-                    fieldLabel: _t('Zen Pack'),
+                    fieldLabel: _t('ZenPack'),
                     name: 'zpname',
                     xtype: 'combo',
-                    emptyText: _t('Please select a zenpack...'),
-                    listEmptyText: _t('No zenpacks available'),
+                    emptyText: _t('Please select a ZenPack...'),
+                    listEmptyText: _t('No ZenPacks in development mode'),
                     allowBlank: false,
                     listConfig:{
                         resizable: true
@@ -84,7 +84,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                                 zenpack: chosenzenpack
                             },
                             function (data) {
-                                Zenoss.message.info(_t("The item was added to the zenpack, {0}"), chosenzenpack);
+                                Zenoss.message.info(_t("The item was added to {0}"), chosenzenpack);
                             }
                         );
                     }
