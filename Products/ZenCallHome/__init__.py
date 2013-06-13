@@ -72,6 +72,20 @@ class IZenossEnvData(Interface):
         """
 
 
+class IDeviceLink(Interface):
+    """
+    Subscription Adapter to determine if a device is linked to
+    another resource (such as a VM component). The adapter name of this interface
+    is used for the call home key: Linked Devices - %s, where %s is 
+    the name of the adapter.
+    """
+
+    def linkedDevice(self):
+        """
+        Return a linked object, if it exists.
+        @return: A linked object of ZenModelRM type or None 
+        """
+
 class IDeviceResource(Interface):
     """
     Subscription Adapter to Provide more resource data about a device

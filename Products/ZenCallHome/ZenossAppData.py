@@ -11,13 +11,14 @@
 import time
 from Products.ZenCallHome import IZenossData, IDeviceResource, IDeviceCpuCount, IDeviceType, IVirtualDeviceType
 from zope.interface import implements
-from zope.component import subscribers
+from zope.component import subscribers, getAdapters
 from Products.Zuul import getFacade
 from itertools import *
 
 import logging
 from Products.Zuul.interfaces.tree import ICatalogTool
 from zenoss.protocols.services.zep import ZepConnectionError
+from . import IDeviceLink
 
 log = logging.getLogger("zen.callhome")
 
@@ -209,6 +210,9 @@ class ZenossResourceData(object):
         stats = {'Device Count': 0,
                  'Decommissioned Devices': 0,
                  'CPU Cores':0}
+        LINKED_DEVICES = "Linked Devices"
+        if LINKED_DEVICES not in stats:
+            stats[LINKED_DEVICES] = 0
         for device in self._dmd.Devices.getSubDevicesGen_recursive():
             stats['Device Count'] += 1
             if device.productionState < 0:
@@ -218,5 +222,16 @@ class ZenossResourceData(object):
             stats['CPU Cores'] += cpuCount
             for adapter in subscribers([device], IDeviceResource):
                 adapter.processDevice(stats)
+            found_linked = False
+            for name, adapter in getAdapters((device,), IDeviceLink):
+                if adapter.linkedDevice():
+                    key = "%s - %s" (LINKED_DEVICES, name)
+                    if key not in stats:
+                        stats[key] = 0
+                    stats[key] += 1
+                    if not found_linked:
+                        stats[LINKED_DEVICES] += 1
+                        found_linked = True
+                    
                 
         return stats
