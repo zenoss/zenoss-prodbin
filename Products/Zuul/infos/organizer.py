@@ -43,6 +43,8 @@ class LocationOrganizerInfo(OrganizerInfo, HasEventsInfoMixin):
         return self._object.address
 
     def _setAddress(self, value):
+        # whenever the address changes invalidate the cached location
         self._object.address = value
+        self._object.latlong = None
 
     address = property(_getAddress, _setAddress)

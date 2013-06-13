@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -20,13 +20,14 @@ import transaction
 from AccessControl import ClassSecurityInfo
 
 from AccessControl import Permissions as permissions
-
+from ZenossSecurity import ZEN_COMMON
 from Products.ZenRelations.RelSchema import *
 
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable
-
+from zExceptions import NotFound
 from Products.ZenUtils.jsonutils import json
+from Products.ZenUtils.Utils import extractPostContent
 
 def manage_addLocation(context, id, description = "",
                        address="", REQUEST = None):
@@ -51,11 +52,12 @@ class Location(DeviceOrganizer, ZenPackable):
     dmdRootName = "Locations"
 
     address = ''
-
+    latlong = None
     portal_type = meta_type = event_key = 'Location'
 
     _properties = DeviceOrganizer._properties + (
         {'id':'address','type':'string','mode':'w'},
+        {'id':'latlong', 'type':'string','mode':'w'}
     )
 
     _relations = DeviceOrganizer._relations + ZenPackable._relations + (
@@ -143,7 +145,8 @@ class Location(DeviceOrganizer, ZenPackable):
         if linkToMap:
             link+='/locationGeoMap'
         summarytext = self.mapTooltip() # mapTooltip is a page template
-        return [self.address, color, link, summarytext]
+        uid = "/".join(self.getPhysicalPath())
+        return [self.address, color, link, summarytext, uid]
 
     @json
     def getChildGeomapData(self):
@@ -165,5 +168,36 @@ class Location(DeviceOrganizer, ZenPackable):
         data = []
         # Short-circuit the method for now
         return data
+
+    security.declareProtected(ZEN_COMMON, 'getGeoCache')
+    @json
+    def getGeoCache(self):
+        cache = dict()
+        for loc in self.children():
+            uid = "/".join(loc.getPhysicalPath())
+            cache[uid] = dict(latlong=loc.latlong,
+                                      address=loc.address)
+        return cache
+
+    security.declareProtected(ZEN_COMMON, 'setGeocodeCache')
+    def setGeocodeCache(self, REQUEST=None):
+        """
+        This method takes the geocodecache from the client and
+        updates the methods on the locations with the latest latlong
+        """
+        cache = extractPostContent(REQUEST)
+        try: cache = cache.decode('utf-8')
+        except: pass
+        from json import loads
+        geocode = loads(cache)
+        for uid, geo in geocode.iteritems():
+            try:
+                loc = self.unrestrictedTraverse(str(uid))
+                if loc.latlong != geo['latlong']:
+                    loc.latlong = geo['latlong']
+            except (KeyError, NotFound):
+                # the location might have been removed or renamed
+                # and the client still had the cache.
+                continue
 
 InitializeClass(Location)

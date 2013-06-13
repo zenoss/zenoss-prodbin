@@ -10,6 +10,7 @@
 
 import socket
 import re
+import logging
 from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
@@ -40,6 +41,8 @@ from Products.ZenEvents.Event import Event
 from Acquisition import aq_base
 
 iszprop = re.compile("z[A-Z]").match
+log = logging.getLogger('zen.DeviceFacade')
+
 
 class DeviceCollectorChangeEvent(object):
     implements(IDeviceCollectorChangeEvent)
@@ -714,3 +717,15 @@ class DeviceFacade(TreeFacade):
             if obj.id == obj.dmdRootName: return []
             rootnode = aq_base(obj)
         return sorted(prop for prop in rootnode.propertyIds() if pfilt(prop))
+
+    def clearGeocodeCache(self):
+        """
+        This clears the geocode cache by reseting the latlong property of
+        all locations.
+        """
+        results = ICatalogTool(self._dmd.Locations).search('Products.ZenModel.Location.Location')
+        for brain in results:
+            try:
+                brain.getObject().latlong = None
+            except:
+                log.warn("Unable to clear the geocodecache from %s " % brain.getPath())

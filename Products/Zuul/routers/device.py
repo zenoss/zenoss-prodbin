@@ -1692,7 +1692,8 @@ class DeviceRouter(TreeRouter):
         @rtype:   DirectResponse
         @return:  Success message
         """
-        self.context.clearGeocodeCache()
+        facade = self._getFacade()
+        facade.clearGeocodeCache()
         audit('UI.GeocodeCache.Clear')
         return DirectResponse.succeed()
 

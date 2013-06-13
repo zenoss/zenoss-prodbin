@@ -23,7 +23,7 @@ v\:* {
             src string:http://maps.googleapis.com/maps/api/js?key=${apikey}&sensor=false"></script>                       
     <script tal:content="string:
         var eventsdb=true,
-            geocodecache = ${here/dmd/getGeoCache};
+            geocodecache = ${here/getGeoCache};
     " tal:on-error="string:var eventsdb=false;"></script>                        
    
 <script>

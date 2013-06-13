@@ -89,7 +89,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     emailFrom = ''
     iconMap = {}
     geomapapikey = ''
-    geocache = ''
     version = ""
     # how we should store our user credentials
     AUTH_TYPE_SESSION = "session"
@@ -121,7 +120,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
-        {'id':'geocache', 'type': 'string', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         )
 
@@ -569,30 +567,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     ' in command definition names.'
         return ZenModelRM.checkValidId(self, id, prep_id)
 
-
-    def setGeocodeCache(self, REQUEST=None):
-        """ Store a JSON representation of
-            the Google Maps geocode cache
-        """
-        cache = extractPostContent(REQUEST)
-        try: cache = cache.decode('utf-8')
-        except: pass
-        self.geocache = cache
-        return True
-
-    def clearGeocodeCache(self, REQUEST=None):
-        """
-        Clear the Google Maps cache.
-        """
-        self.geocache = ''
-
-    security.declareProtected(ZEN_COMMON, 'getGeoCache')
-    @json
-    def getGeoCache(self):
-        cachestr = self.geocache
-        for char in ('\\r', '\\n'):
-            cachestr = cachestr.replace(char, ' ')
-        return cachestr
 
     def goToStatusPage(self, objid, REQUEST=None):
         """ Find a device or network and redirect
