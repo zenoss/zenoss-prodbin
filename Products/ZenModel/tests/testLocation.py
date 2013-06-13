@@ -35,7 +35,7 @@ class TestLocation(ZenModelBaseTest):
         a.address = 'rome, italy'
         data = a.getGeomapData()
         self.assert_(isinstance(data, list))
-        addr, color, path, tpl = data
+        addr, color, path, tpl, uid = data
         self.assertEqual(addr, 'rome, italy')
         self.assertEqual(path, '/zport/dmd/Locations/A')
         self.assertEqual(tpl, 'PAGE TEMPLATE')

@@ -196,15 +196,16 @@ YAHOO.namespace('zenoss.geomap');
                 return;
             }
             var points  = [];
-            var start   = Geocoder.cache[linkdata[index][0][0]];
-            var end     = Geocoder.cache[linkdata[index][0][1]];
+
+            var start   = (Geocoder.cache[linkdata[index][0][0]]) ? Geocoder.cache[linkdata[index][0][0]].latlong : null;
+            var end     = (Geocoder.cache[linkdata[index][0][1]]) ? Geocoder.cache[linkdata[index][0][1]].latlong : null;
             if(start && end){
                 points.push([start[0],start[1]]);
                 points.push([end[0],end[1]]);
             }else{
                 // abandon this line since something is wrong with the addresses
                 index++;
-                setTimeout(function(){_overlay.addPolyLine();}, polling);
+                setTimeout(function(){_overlay.addPolyLine();});
                 return false;
             }
             _overlay.constructLine(points);
@@ -271,7 +272,7 @@ YAHOO.namespace('zenoss.geomap');
                 return;
             }else{
                 // done with that line, but wait, there's more...
-                setTimeout(function(){_overlay.addPolyline();}, polling);
+                setTimeout(function(){_overlay.addPolyline();});
             }
         },
         doDraw: function(results) {
