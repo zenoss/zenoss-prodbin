@@ -31,7 +31,7 @@
                         }
                     }
                 });
-    
+
                 obj.superclass.constructor.call(this, config);
                 this.addEvents('labelclick');
             },
@@ -49,23 +49,23 @@
                     } else {
                         if(value.uid && value.uid.match(/Manufacturers/)){
                             var grid = null;
-                            var data = value;                    
+                            var data = value;
                             if(value.uid.match(/products/)){
                                 Zenoss.manufacturers.launchProductDialog = function(){
-                                    Zenoss.manufacturers.productsDialog(grid, data);                            
-                                }                     
-                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.id+'</a>';                        
+                                    Zenoss.manufacturers.productsDialog(grid, data);
+                                }
+                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.id+'</a>';
                             }else{
-                                value = '<a title="Go to the grid for this Manufacturer" href="/zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.'+value.name+'" >'+value.name+'</a>';                    
+                                value = '<a title="Go to the grid for this Manufacturer" href="/zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.'+value.name+'" >'+value.name+'</a>';
                             }
                         }else{
                             value = Zenoss.render.link(value);
                         }
                     }
                 }
-                this.setRawValue(value)
+                this.setRawValue(value);
                 this.rawValue = origValue;
-            } 
+            }
 
 
         };
@@ -976,14 +976,12 @@
                     D.memory = 'Unknown/Unknown';
                 }
                 this.setValues(D);
-                this.doLayout();
 
                 // load zLinks and uptime in a separate request since they
                 // can be very expensive
                 var opts = Ext.apply({keys:['links', 'uptime']}, this.baseParams);
                 this.api.load(opts, function(results){
                     this.setValues(results.data);
-                    this.doLayout();
                 }, this);
             };
 
@@ -1003,9 +1001,11 @@
             return o;
         },
         setValues: function(d) {
+            this.suspendLayouts();
             Ext.each(this.forms, function(form){
                 form.getForm().setValues(d);
             });
+            this.resumeLayouts(true);
         }
     });
 
