@@ -17,7 +17,7 @@ $Id: Fan.py,v 1.7 2004/04/06 22:33:24 edahl Exp $"""
 __version__ = "$Revision: 1.7 $"[11:-2]
 
 from Globals import InitializeClass
-
+from math import isnan
 from Products.ZenRelations.RelSchema import *
 
 from HWComponent import HWComponent
@@ -81,7 +81,7 @@ class Fan(HWComponent):
         Return the current RPM
         """
         rpm = self.cacheRRDValue('rpm', default)
-        if rpm is not None:
+        if rpm is not None and not isnan(rpm):
             return long(rpm)
         return None
 
