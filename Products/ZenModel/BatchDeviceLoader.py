@@ -22,6 +22,7 @@ import Globals
 from ZODB.POSException import ConflictError
 from ZODB.transact import transact
 from zope.component import getUtility
+from zope.component.interfaces import ComponentLookupError
 from zope.event import notify
 
 from zExceptions import BadRequest
@@ -458,6 +459,9 @@ windows_device7 cDateTest='2010/02/28'
                     devobj = self.runLoader(deviceLoader, device_specs)
                 except ConflictError:
                     raise
+                except ComponentLookupError:
+                    self.log.critical("Unknown device loader '%s'", loaderName)
+                    sys.exit(1)
                 except Exception:
                     devName = device_specs.get('device_specs', 'Unkown Device')
                     msg = "Ignoring device loader issue for %s" % devName
