@@ -21,7 +21,6 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
 from Products.Zuul.facades import ObjectNotFoundException
-
 import logging
 log = logging.getLogger(__name__)
 
