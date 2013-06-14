@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -20,6 +20,8 @@ from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
+from Products.Zuul.facades import ObjectNotFoundException
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -173,6 +175,22 @@ class TreeRouter(DirectRouter):
             root['children'] = children
             return [root]
         return children
+
+    def objectExists(self, uid):
+        """
+        @rtype:  DirectResponse
+        @return:
+            - Properties:
+                - B{exists} - Returns true if we can find the object specified by the uid
+
+        """
+        facade = self._getFacade()
+        try:
+            facade._getObject(uid)
+            exists = True
+        except ObjectNotFoundException:
+            exists = False
+        return DirectResponse(success=True, exists=exists)
 
     def _canDeleteUid(self, uid):
         """
