@@ -27,6 +27,7 @@ from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.ZodbFactory import IZodbFactory
 
 _DEFAULT_MYSQLPORT = 3306
+_DEFAULT_COMMIT_LOCK_TIMEOUT = 30
 
 
 def _getZendsConfig():
@@ -134,7 +135,9 @@ class MySqlZodbFactory(object):
             connectionParams['unix_socket'] = socket
         relstoreParams = {
             'cache_module_name':'memcache',
-            'keep_history': kwargs.get('zodb_keep_history', False)
+            'keep_history': kwargs.get('zodb_keep_history', False),
+            'commit_lock_timeout': kwargs.get(
+                'zodb_commit_lock_timeout', _DEFAULT_COMMIT_LOCK_TIMEOUT)
         }
         adapter = relstorage.adapters.mysql.MySQLAdapter(
              options=relstorage.options.Options(**relstoreParams),
@@ -196,6 +199,15 @@ class MySqlZodbFactory(object):
         group.add_option('--zodb-poll-interval', dest='zodb_poll_interval', default=None, type='int',
                     help='Defer polling the database for the specified maximum time interval, in seconds.'
                     ' This will default to 60 only if --zodb-cacheservers is set.')
+        group.add_option(
+            '--zodb-commit-lock-timeout',
+            dest='zodb_commit_lock_timeout', default=30, type='int',
+            help=(
+                "Specify the number of seconds a database connection will "
+                "wait to acquire a database 'commit' lock before failing "
+                "(defaults to 30 seconds if not specified)."
+            )
+        )
         parser.add_option_group(group)
 
 
