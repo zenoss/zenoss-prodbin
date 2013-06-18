@@ -221,6 +221,12 @@ class ZenBackup(ZenBackupBase):
                                 action='store_false',
                                 help='Do not include zodb and zep credentials'
                                     ' in the backup file for use during restore.')
+        self.parser.add_option('--collector',
+                               dest="collector",
+                               default=False,
+                               action='store_true',
+                               help='include only data relevant to collector'
+                                    ' in the backup.')
 
         self.parser.remove_option('-v')
         self.parser.add_option('-v', '--logseverity',
@@ -452,6 +458,12 @@ class ZenBackup(ZenBackupBase):
         self.tempDir = os.path.join(self.rootTempDir, BACKUP_DIR)
         self.log.debug("Use %s as a staging directory for the backup", self.tempDir)
         os.mkdir(self.tempDir, 0750)
+
+        if self.options.collector:
+            self.options.noEventsDb = True
+            self.options.noZopeDb = True
+            self.options.noZepIndexes = True
+            self.options.noZenPacks = True
         
         # Do a full backup of zep if noEventsDb is false, otherwise only back
         # up a small subset of tables to capture the event triggers.
