@@ -19,10 +19,15 @@ Error types:
     3. bad value - value returned did not match expectRegex
 
 """
+
 import re
 import logging
 log = logging.getLogger("zen.ZenTcpClient")
-from socket import getfqdn
+
+import socket  # So we can refer to the exception socket.error
+from socket import getfqdn, SOL_SOCKET, SO_LINGER
+from struct import pack
+
 hostname = getfqdn()
 
 from twisted.internet import reactor, protocol, defer
@@ -194,5 +199,34 @@ class ZenTcpClient(protocol.ClientFactory):
         @rtype: Twisted deferred
         """
         d = self.deferred = defer.Deferred()
-        reactor.connectTCP(ip_address, self.cfg.port, self, self.cfg.timeout)
+        connector = reactor.connectTCP(ip_address, self.cfg.port, self, self.cfg.timeout)
+        self.setNoLinger(connector)
         return d
+
+    def setNoLinger(self, connector):
+        """
+        Stop zenstatus from leaving large numbers of sockets in TIME-WAIT state.
+
+        The TIME-WAIT state is a TCP/IP sanity check to ensure that a packet
+        that arrives from the network AFTER the connection is closed doesn't
+        result in more error-handling communication between the devices.
+        This is almost always a good thing.
+
+        zenstatus does not perform long-running protocol-specific checks
+        (ie usually just does socket open() + close()), so the TIME-WAIT
+        sanity checks just pile up on the system, consuming kernel resources.
+
+        Setting the LINGER socket option to *not* wait means that
+        closed connections immediately discard the socket state AND
+        send a TCP/IP RST ('reset') packet to the other device.
+        This will result in "Connection reset by peer" messages on the
+        remote device.
+        """
+        OPTION_STATE = 1 # on
+        LINGER = 0       # Wait 0 seconds after closing the socket
+        VALUES_STRUCT = pack('ii', OPTION_STATE, LINGER)
+        try:
+            connector.transport.socket.setsockopt(SOL_SOCKET, SO_LINGER, VALUES_STRUCT)
+        except socket.error as ex:
+            log.warn("Unable to set SO_LINGER on socket because: %s", ex)
+
