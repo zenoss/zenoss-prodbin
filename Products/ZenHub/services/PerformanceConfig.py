@@ -37,6 +37,7 @@ ATTRIBUTES = (
     'zSnmpAuthType',
     'zSnmpCommunity',
     'zSnmpCommunities',
+    'zSnmpDiscoveryPorts',
     'zSnmpPort',
     'zSnmpPrivPassword',
     'zSnmpPrivType',
