@@ -975,9 +975,6 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--anyworker', dest='anyworker',
             action='store_true', default=False,
             help='Allow any priority job to run on any worker')
-        self.parser.add_option('--logworkerstats', dest='logworkerstats',
-            action='store_true', default=False,
-            help='Log current worker state to $ZENHOME/log/workerstats')
         self.parser.add_option('--no-graph-proxy', dest='graph_proxy',
             action='store_false', default=True,
             help="Don't listen to proxy graph requests to zenrender")
