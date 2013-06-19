@@ -115,10 +115,6 @@ class ZenCatalog(ZCmdBase):
                                action="store_true",
                                default=False,
                                help="Create global catalog and populate it")
-        self.parser.add_option("--continueindex",
-                               action="store_true",
-                               default=False,
-                               help="Attempt to continue a --createcatalog")
         self.parser.add_option("--forceindex",
                                action="store_true",
                                default=False,
@@ -182,23 +178,9 @@ class ZenCatalog(ZCmdBase):
             factory.create(zport)
             catalog = self._getCatalog(zport)
             transaction.commit()
-        elif not self.options.continueindex:
-            log.info('Global catalog already exists. Run with --forceindex to drop and recreate catalog or --continueindex to continue rebuilding the catalog')
+        else:
+            log.info('Global catalog already exists. Run with --forceindex to drop and recreate catalog')
             return defer.succeed(None)
-        
-        # create a set of paths for all the objects already in the global catalog
-        paths = set(zport.global_catalog._catalog.uids)
-
-        def is_new(ob):
-            """
-            Return True if the object was not in the global catalog
-            on start up; False otherwise.
-            """
-            try:
-                path = "/".join(ob.getPhysicalPath())
-                return not (path in paths)
-            except Exception:
-                return True
 
         def recurse(obj):
             if _reconnect[0]:
@@ -251,8 +233,7 @@ class ZenCatalog(ZCmdBase):
             if hasattr(ob, 'index_object'):
                 ob.index_object()
             catalog.catalog_object(ob)
-            if log.isEnabledFor(logging.DEBUG):
-                log.debug('Catalogued object %s' % ob.absolute_url_path())
+            log.debug('Catalogued object %s' % ob.absolute_url_path())
 
         # Count of catalogued objects. Because the nested func has no access to
         # this scope, have to make it a mutable
@@ -272,8 +253,7 @@ class ZenCatalog(ZCmdBase):
             try:
                 for ob in filter(None, c):
                     try:
-                        if is_new(ob):
-                            catalog_object(ob)
+                        catalog_object(ob)
                     except Exception:
                         log.info("Error indexing object %r. Skipping." % ob)
                 transaction.commit()
