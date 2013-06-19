@@ -16,11 +16,11 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.Lockable import UNLOCKED
 from Acquisition import aq_base
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from ZenPackable import ZenPackable
-
 from Organizer import Organizer
 from OSProcessClass import OSProcessClass
 
@@ -201,7 +201,8 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         self._setProperty("zAlertOnRestart", False, type="boolean")
         self._setProperty("zMonitor", True, type="boolean")
         self._setProperty("zFailSeverity", 4, type="int")
-
+        self._setProperty("zModelerLock", UNLOCKED, type="int")
+        self._setProperty("zSendEventWhenBlockedFlag", False, type="boolean")
 
     def getUserCommandTargets(self):
         ''' Called by Commandable.doCommand() to ascertain objects on which

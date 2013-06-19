@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -368,7 +368,6 @@ function actioncompleteHandler(basicForm, action) {
        // Ext.getCmp('exampleTextField').setDisabled(!processInfo.hasRegex);
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
-        regexFieldSet.doLayout();
     } else if (action.type == 'directsubmit') {
         var processTree = Ext.getCmp(treeId);
         var selectionModel = processTree.getSelectionModel();
@@ -380,7 +379,6 @@ function actioncompleteHandler(basicForm, action) {
             processTree.refresh();
         }
         Ext.getCmp('detail_panel').detailCardPanel.setContext(selectedNode.data.uid);
-
     }
 }
 
@@ -406,6 +404,7 @@ var regexTextField = {
     name: 'regex',
     allowBlank: false
 };
+
 
 var ignoreParametersWhenModelingSelect = {
     xtype: 'select',
@@ -489,6 +488,40 @@ var zFailSeverity = {
     }
 };
 
+var zModelerLock = {
+    xtype: 'zprop',
+    ref: '../../zModelerLock',
+    title: _t('Lock Process Components? (zModelerLock)'),
+    name: 'zModelerLock',
+    localField: {
+        xtype: 'select',
+        queryMode: 'local',
+        displayField: 'name',
+        valueField: 'value',
+        store: new Ext.data.ArrayStore({
+            data: [['Unlocked', 0], [_t('Lock from Deletes'), 1], [_t('Lock from Updates'), 2]],
+            model: 'Zenoss.model.NameValue'
+        })
+    }
+};
+
+var zSendEventWhenBlockedFlag = {
+    xtype: 'zprop',
+    ref: '../../zSendEventWhenBlockedFlag',
+    title: _t('Send an event when action is blocked? (zSendEventWhenBlockedFlag)'),
+    name: 'zSendEventWhenBlockedFlag',
+    localField: {
+        xtype: 'select',
+        queryMode: 'local',
+        displayField: 'name',
+        valueField: 'value',
+        store: new Ext.data.ArrayStore({
+            data: [['Yes', true], ['No', false]],
+            model: 'Zenoss.model.NameValue'
+        })
+    }
+};
+
 var regexFieldSet = {
     xtype: 'fieldset',
     id: 'regexFieldSet',
@@ -506,6 +539,7 @@ var regexFieldSet = {
 // the items that make up the form
 var processFormItems = {
     layout: 'column',
+    autoScroll: true,
     defaults: {
         layout: 'anchor',
         bodyStyle: 'padding: 15px',
@@ -513,7 +547,7 @@ var processFormItems = {
     },
     items: [
         {defaults:{anchor:'95%'}, items: [nameTextField2, descriptionTextField, regexFieldSet]},
-        {defaults:{anchor:'95%'}, items: [zMonitor, zAlertOnRestart, zFailSeverity]}
+        {defaults:{anchor:'95%'}, items: [zMonitor, zAlertOnRestart, zFailSeverity, zModelerLock, zSendEventWhenBlockedFlag]}
     ]
 }; // processFormItems
 
@@ -542,6 +576,7 @@ Ext.getCmp('center_panel').add(
                 layout: 'border',
                 items: [{
                     xtype: 'basedetailform',
+                    layout: 'fit',
                     trackResetOnLoad: true,
                     id: 'processForm',
                     permission: 'Manage DMD',

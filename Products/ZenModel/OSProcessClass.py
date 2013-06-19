@@ -23,7 +23,6 @@ from zope.component import adapter
 from OFS.interfaces import IObjectWillBeRemovedEvent
 from ZenModelRM import ZenModelRM
 
-
 def manage_addOSProcessClass(context, id=None, REQUEST = None):
     """make a device class"""
     if id:

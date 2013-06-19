@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,12 +12,12 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Products.ZenModel.ZenossSecurity import *
-
+from Products.ZenModel.Lockable import Lockable
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
 from Acquisition import aq_chain
-
+from Lockable import UNLOCKED, DELETE_LOCKED, UPDATE_LOCKED
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 from md5 import md5
@@ -70,6 +70,9 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     procName = ""
     parameters = ""
     _procKey = ""
+
+    modelerLock = None
+    sendEventWhenBlockedFlag = None
 
     collectors = ('zenprocess','zencommand')
 
@@ -170,6 +173,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         return self.procName + " " + self.parameters
 
     title = name
+
 
     def monitored(self):
         """
@@ -279,6 +283,63 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
                                       None if pc.ignoreParameters else om.parameters))
                 return True
         return False
+
+    # override the lock methods to look for the process classes'
+    # lock state instead of the current object if it has not been set
+
+    def _getSendEventWhenBlockedFlag(self):
+        if self.sendEventWhenBlockedFlag is None and self.osProcessClass():
+            return self.osProcessClass().getZ("zSendEventWhenBlockedFlag")
+        return self.sendEventWhenBlockedFlag
+
+    def sendEventWhenBlocked(self):
+        return self._getSendEventWhenBlockedFlag()
+
+    def _getModelerLock(self):
+        if self.modelerLock is None and self.osProcessClass():
+            return self.osProcessClass().getZ("zModelerLock")
+        return self.modelerLock
+
+    def isUnlocked(self):
+        return self._getModelerLock() == UNLOCKED
+
+    def isLockedFromDeletion(self):
+        lock = self._getModelerLock()
+        return (lock == DELETE_LOCKED
+                or lock == UPDATE_LOCKED)
+
+    def isLockedFromUpdates(self):
+        return self._getModelerLock() == UPDATE_LOCKED
+
+    def _checkLockProperties(self):
+        """
+        If we are reseting the locking properties of a process
+        to the same as the class then delete the local copy.
+
+        This means that if you override a process instance to have
+        a locking policy different then its parent, but then change your
+        mind and reset it to the parents it will update with the parents.
+        """
+        if self.osProcessClass():
+            pclass = self.osProcessClass()
+            if pclass.getZ("zModelerLock") == self.modelerLock:
+                self.modelerLock = None
+                # if they reset the modeler lock see if we can reset the
+                # send flag as well
+                if pclass.getZ("zSendEventWhenBlockedFlag") == self.sendEventWhenBlockedFlag:
+                    self.sendEventWhenBlockedFlag = None
+
+    def unlock(self, REQUEST=None):
+        Lockable.unlock(self, REQUEST=REQUEST)
+        self._checkLockProperties()
+
+    def lockFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
+        Lockable.lockFromDeletion(self, sendEventWhenBlocked=sendEventWhenBlocked, REQUEST=REQUEST)
+        self._checkLockProperties()
+
+    def lockFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
+        Lockable.lockFromUpdates(self, sendEventWhenBlocked=sendEventWhenBlocked, REQUEST=REQUEST)
+        self._checkLockProperties()
 
 
 InitializeClass(OSProcess)

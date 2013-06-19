@@ -1,20 +1,16 @@
 (function(){
 
     /**
-     * @class Zenoss.dialog.LockForm
-     * @extends Zenoss.SmartFormDialog
-     * Dialog for locking an object.
+     * @class Zenoss.lockpanel
+     * @extends Ext.Panel
+     * Panel for locking an object
      **/
-    Ext.define('Zenoss.dialog.LockForm',{
-        extend: 'Zenoss.SmartFormDialog',
+    Ext.define('Zenoss.LockPanel', {
+        extend: 'Ext.panel.Panel',
+        alias: ['widget.lockpanel'],
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                submitFn: Zenoss.remote.DeviceRouter.lockDevices,
-                applyOptions: Ext.emptyFn,
-                height: 220,
-                title: _t('Locking'),
-                submitHandler: Ext.bind(this.lockObject, this),
                 listeners:  {
                     show: Ext.bind(this.setCheckboxes, this)
                 },
@@ -31,7 +27,7 @@
                     },
                     items: [{
                         name: 'updates',
-                        ref: '../../updates',
+                        ref: '../updates',
                         boxLabel: _t('Lock from updates'),
                         listeners: {
                             change: Ext.bind(this.setCheckboxes, this)
@@ -39,7 +35,7 @@
                         checked: config.updatesChecked
                     },{
                         name: 'deletion',
-                        ref: '../../deletion',
+                        ref: '../deletion',
                         boxLabel: _t('Lock from deletion'),
                         listeners: {
                             change: Ext.bind(this.setCheckboxes, this)
@@ -47,16 +43,17 @@
                         checked: config.deletionChecked
                     },{
                         name: 'sendEvent',
-                        ref: '../../sendEventWhenBlocked',
+                        ref: '../sendEventWhenBlocked',
                         boxLabel: _t('Send an event when an action is blocked'),
                         checked: config.sendEventChecked
                     }]
                 }]
 
             });
+
             this.callParent([config]);
         },
-         /**
+        /**
           * This dialog consists of three checkboxes.
           * The rules for enabling or disabling the checkboxes:
           *
@@ -67,7 +64,7 @@
           **/
         setCheckboxes: function() {
             var updatesChecked = this.updates.getValue(),
-                deletionChecked = this.deletion.getValue();
+                    deletionChecked = this.deletion.getValue();
             // rule 1. sendEvents
             if (updatesChecked || deletionChecked) {
                 this.sendEventWhenBlocked.enable();
@@ -84,7 +81,36 @@
                 this.deletion.enable();
             }
 
+        }
+
+    });
+
+
+    /**
+     * @class Zenoss.dialog.LockForm
+     * @extends Zenoss.SmartFormDialog
+     * Dialog for locking an object.
+     **/
+    Ext.define('Zenoss.dialog.LockForm',{
+        extend: 'Zenoss.SmartFormDialog',
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                submitFn: Zenoss.remote.DeviceRouter.lockDevices,
+                applyOptions: Ext.emptyFn,
+                height: 220,
+                title: _t('Locking'),
+                submitHandler: Ext.bind(this.lockObject, this),
+                items:{
+                    xtype: 'lockpanel',
+                    updatesChecked: config.updatesChecked,
+                    deletionChecked: config.deletionChecked,
+                    sendEventChecked: config.sendEventChecked
+                }
+            });
+            this.callParent([config]);
         },
+
         lockObject: function(values) {
             this.applyOptions(values);
             this.submitFn(values);

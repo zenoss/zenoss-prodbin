@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -109,6 +109,25 @@ class ProcessInfo(InfoBase):
         setZPropertyInfo(self._object, 'zFailSeverity', **data)
 
     zFailSeverity = property(getZFailSeverity, setZFailSeverity)
+
+    def getZModelerLock(self):
+        return getZPropertyInfo(self._object, 'zModelerLock', 0)
+
+    def setZModelerLock(self, data):
+        setZPropertyInfo(self._object, 'zModelerLock', **data)
+
+
+    zModelerLock = property(getZModelerLock, setZModelerLock)
+
+    def getZSendEventWhenBlockedFlag(self):
+        def translate(rawValue):
+            return {False: 'No', True: 'Yes'}[rawValue]
+        return getZPropertyInfo(self._object, 'zSendEventWhenBlockedFlag', False, translate)
+
+    def setZSendEventWhenBlockedFlag(self, data):
+        setZPropertyInfo(self._object, 'zSendEventWhenBlockedFlag', **data)        
+
+    zSendEventWhenBlockedFlag = property(getZSendEventWhenBlockedFlag, setZSendEventWhenBlockedFlag)
 
     def getHasRegex(self):
         return isinstance(self._object, OSProcessClass)

@@ -119,4 +119,4 @@ class ProcessFacade(TreeFacade):
         wrapped = imap(IInfo, imap(unbrain, brains))
         return SearchResults(wrapped, brains.total, brains.hash_)
 
-    
+
