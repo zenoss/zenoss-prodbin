@@ -225,7 +225,7 @@ class ZenossResourceData(object):
             found_linked = False
             for name, adapter in getAdapters((device,), IDeviceLink):
                 if adapter.linkedDevice():
-                    key = "%s - %s" (LINKED_DEVICES, name)
+                    key = "%s - %s" % (LINKED_DEVICES, name)
                     if key not in stats:
                         stats[key] = 0
                     stats[key] += 1
