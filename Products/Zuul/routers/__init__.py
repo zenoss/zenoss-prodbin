@@ -20,7 +20,6 @@ from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
-from Products.Zuul.facades import ObjectNotFoundException
 import logging
 log = logging.getLogger(__name__)
 
@@ -183,6 +182,7 @@ class TreeRouter(DirectRouter):
                 - B{exists} - Returns true if we can find the object specified by the uid
 
         """
+        from Products.Zuul.facades import ObjectNotFoundException
         facade = self._getFacade()
         try:
             facade._getObject(uid)
