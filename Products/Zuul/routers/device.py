@@ -1188,6 +1188,8 @@ class DeviceRouter(TreeRouter):
         @rtype:   [string]
         @return:  A list of component uids
         """
+        if uid is None:
+            uid = "/".join(self.context.getPhysicalPath())
         facade = self._getFacade()
         comps = facade.getComponents(uid, types, meta_type, start, limit, sort,
                                      dir, name)
