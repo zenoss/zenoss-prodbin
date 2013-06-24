@@ -296,7 +296,7 @@ class TemplateFacade(ZuulFacade):
                 selectedOption = option[1]
 
         if selectedOption is None:
-            raise "%s is not a valid DataSource Type" % type
+            raise Exception("%s is not a valid DataSource Type" % type)
 
         # create the datasource and return it
         datasource = template.manage_addRRDDataSource(name, selectedOption)
