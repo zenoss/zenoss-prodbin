@@ -28,6 +28,7 @@ fi
 
 PIDFILE=$ZENHOME/var/zredis-localhost.pid
 CONF_FILE=$ZENHOME/var/redis.conf
+PATH="$PATH:/usr/sbin"
 REDIS_SERVER=`which redis-server`
 if [ -z "$REDIS_SERVER" ];then
     REDIS_SERVER=/usr/sbin/redis-server
