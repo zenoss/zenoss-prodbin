@@ -470,14 +470,17 @@ class SshPerformanceCollectionTask(BaseTask):
         results = []
         for success, datasource in resultList:
             parsedResults = ParsedResults()
+            
             if not success:
                 # In this case, our datasource is actually a defer.Failure
                 reason = datasource
                 datasource, = reason.value.args
-                msg = "Datasource %s command timed out" % (datasource.name)
+                msg = "Datasource %s command timed out" % datasource.name
                 event = self._makeCmdEvent(datasource, msg)
-                parsedResults.events.append(event)
             else:
+                # clear our timeout event
+                msg = "Datasource %s command timed out" % datasource.name
+                event = self._makeCmdEvent(datasource, msg, severity=Clear)
                 # Re-use our results for any similar datasources
                 cache = cacheableDS.get(datasource.command, [])
                 for ds in cache:
@@ -487,7 +490,7 @@ class SshPerformanceCollectionTask(BaseTask):
                     parsedResults = ParsedResults()
 
                 self._processDatasourceResults(datasource, parsedResults)
-
+            parsedResults.events.append(event)
             results.append((datasource, parsedResults))
         return results
 
@@ -503,7 +506,7 @@ class SshPerformanceCollectionTask(BaseTask):
         exitCode = datasource.result.exitCode
         output = datasource.result.output.strip()
         stderr = datasource.result.stderr.strip()
-
+        
         if exitCode == 0 and not output:
             msg = "No data returned for command"
             if self._showfullcommand:
@@ -573,7 +576,9 @@ class SshPerformanceCollectionTask(BaseTask):
 
             eventList = results.events
             exitCode = getattr(datasource.result, 'exitCode', -1)
-            output = datasource.result.output.strip()
+            output = None
+            if not isinstance(datasource.result, Failure):
+                output = datasource.result.output.strip()
             if exitCode == 0 and output:
                 # Ensure a CLEAR event is sent for any command that
                 # successfully completes

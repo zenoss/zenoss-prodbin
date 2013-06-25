@@ -269,6 +269,7 @@ class SshRunner(object):
         """
         Create a channel on the connection and send the command
         """
+        self.command = command
         d = self.command_defer = self.connection.addCommand(command.command)
         self._timer = reactor.callLater(self._sshOptions.commandTimeout,
                                         self.timeout)
