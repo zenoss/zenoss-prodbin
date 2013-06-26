@@ -623,7 +623,7 @@
                 invalidateScrollerOnRefresh:false,
                 scroll:'both',
                 verticalScroller: {
-                    numFromEdge: 10,
+                    numFromEdge: config.store.pageSize <= 25 ? 5 : Math.pow(config.store.pageSize, .7),
                     scrollToLoadBuffer: 100
                 },
                 bbar: {
