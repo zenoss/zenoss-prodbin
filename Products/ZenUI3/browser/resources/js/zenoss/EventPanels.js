@@ -1173,6 +1173,7 @@
                 try {
                     state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));
                     this.applyState(state);
+                    this.filterRow.storeSearch();
                 } catch(e) { }
             }
         },
