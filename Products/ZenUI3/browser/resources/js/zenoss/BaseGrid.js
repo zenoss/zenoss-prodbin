@@ -38,16 +38,20 @@
         alias:'store.zendirectstore',
         constructor:function (config) {
             config = config || {};
-            Ext.applyIf(config, {
-                remoteSort:true,
-                pageSize:config.pageSize || 50,
-                buffered: true,
-                sorters:[
+            var sorters = undefined;
+            if (config.initialSortColumn) {
+                sorters =[
                     {
                         property:config.initialSortColumn,
                         direction:config.initialSortDirection || 'ASC'
                     }
-                ],
+                ];
+            }
+            Ext.applyIf(config, {
+                remoteSort:true,
+                pageSize:config.pageSize || 50,
+                buffered: true,
+                sorters: sorters,
                 proxy:{
                     type:'direct',
                     simpleSortMode: true,
@@ -125,7 +129,7 @@
 
             grid.headerCt.on('columnmove', this.resetFilterRow, this);
             grid.on('columnmove', function(col, moved, movedIndex){
-            	this.gridColumnMoveWithFilter(col, moved, movedIndex);
+                this.gridColumnMoveWithFilter(col, moved, movedIndex);
             }, this);
             this.view = this.grid.getView();
             this.view.on('bodyscroll', this.onViewScroll, this);
@@ -318,8 +322,8 @@
             this.eachColumn(function (col) {
                 col.filterField.setVisible(!col.isHidden());
                 // do not apply a filter to a hidden column (will be confusing for the user)
-                if (!col.isHidden() && 
-                    Ext.isDefined(state[col.filterKey]) && 
+                if (!col.isHidden() &&
+                    Ext.isDefined(state[col.filterKey]) &&
                     !Ext.isEmpty(state[col.filterKey])) {
                         col.filterField.setValue(state[col.filterKey]);
                 }
