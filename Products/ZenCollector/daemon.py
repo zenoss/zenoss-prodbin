@@ -11,6 +11,7 @@
 import signal
 import time
 import logging
+import os
 
 import zope.interface
 
@@ -28,6 +29,7 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IStatisticsService
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
+from zenoss.collector.publisher import publisher
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
@@ -212,6 +214,8 @@ class CollectorDaemon(RRDDaemon):
         self._devices = set()
         self._thresholds = Thresholds()
         self._unresponsiveDevices = set()
+        self._publisher = None
+        self._metricsChannel = publisher.defaultMetricsChannel
         self._rrd = None
         self.reconfigureTimeout = None
 
@@ -327,50 +331,55 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
+    def writeMetric(self, metric, value, timestamp, uuid):
+        self._publisher.put(self._metricsChannel, metric, value, timestamp, uuid)
+
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):
         now = time.time()
 
-        hasThresholds = bool(self._thresholds.byFilename.get(path))
-        if hasThresholds:
-            rrd_write_fn = self._rrd.save
-        else:
-            rrd_write_fn = self._rrd.put            
-        
-        # save the raw data directly to the RRD files
-        value = rrd_write_fn(
-            path,
-            value,
-            rrdType,
-            rrdCommand,
-            cycleTime,
-            min,
-            max,
-            timestamp=timestamp,
-            allowStaleDatapoint=allowStaleDatapoint,
-        )
+        self.writeMetric(os.path.basename(path), value, now, os.path.dirname(path))
 
-        # check for threshold breaches and send events when needed
-        if hasThresholds:
-            if 'eventKey' in threshEventData:
-                eventKeyPrefix = [threshEventData['eventKey']]
-            else:
-                eventKeyPrefix = [path.rsplit('/')[-1]]
+        # hasThresholds = bool(self._thresholds.byFilename.get(path))
+        # if hasThresholds:
+        #     rrd_write_fn = self._rrd.save
+        # else:
+        #     rrd_write_fn = self._rrd.put            
+        # 
+        # # save the raw data directly to the RRD files
+        # value = rrd_write_fn(
+        #     path,
+        #     value,
+        #     rrdType,
+        #     rrdCommand,
+        #     cycleTime,
+        #     min,
+        #     max,
+        #     timestamp=timestamp,
+        #     allowStaleDatapoint=allowStaleDatapoint,
+        # )
 
-            for ev in self._thresholds.check(path, now, value):
-                parts = eventKeyPrefix[:]
-                if 'eventKey' in ev:
-                    parts.append(ev['eventKey'])
-                ev['eventKey'] = '|'.join(parts)
+        # # check for threshold breaches and send events when needed
+        # if hasThresholds:
+        #     if 'eventKey' in threshEventData:
+        #         eventKeyPrefix = [threshEventData['eventKey']]
+        #     else:
+        #         eventKeyPrefix = [path.rsplit('/')[-1]]
 
-                # add any additional values for this threshold
-                # (only update if key is not in event, or if
-                # the event's value is blank or None)
-                for key,value in threshEventData.items():
-                    if ev.get(key, None) in ('',None):
-                        ev[key] = value
+        #     for ev in self._thresholds.check(path, now, value):
+        #         parts = eventKeyPrefix[:]
+        #         if 'eventKey' in ev:
+        #             parts.append(ev['eventKey'])
+        #         ev['eventKey'] = '|'.join(parts)
 
-                self.sendEvent(ev)
+        #         # add any additional values for this threshold
+        #         # (only update if key is not in event, or if
+        #         # the event's value is blank or None)
+        #         for key,value in threshEventData.items():
+        #             if ev.get(key, None) in ('',None):
+        #                 ev[key] = value
+
+        #         self.sendEvent(ev)
 
     def readRRD(self, path, consolidationFunction, start, end):
         return RRDUtil.read(path, consolidationFunction, start, end)
@@ -610,6 +619,7 @@ class CollectorDaemon(RRDDaemon):
                 log.exception("Unable to import class %s", c)
 
     def _configureRRD(self, rrdCreateCommand, thresholds):
+        self._publisher = publisher.RedisListPublisher()
         self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
         self.rrdStats.config(self.options.monitor,
                              self.name,
