@@ -9,6 +9,7 @@
 import cgi
 import inspect
 import logging
+import time
 from Products.ZenUtils.jsonutils import json, unjson
 import transaction
 from uuid import uuid4
@@ -134,6 +135,7 @@ class DirectRouter(object):
         return directResponses
 
     def _processDirectRequest(self, directRequest):
+        startTime = time.time()
         savepoint = transaction.savepoint()
 
         # Add a UUID so we can track it in the logs
@@ -185,7 +187,9 @@ class DirectRouter(object):
 
         if isinstance(response.result, DirectResponse) and response.result.type == 'exception':
             savepoint.rollback()
-
+        # setBrowserState is very spammy and not useful so don't log it.
+        if log.isEnabledFor(logging.DEBUG) and method != 'setBrowserState':
+            log.debug("Action: %s Method %s Data %s TotalTime: %s", action, method, data, time.time() - startTime)
         return response
 
 
