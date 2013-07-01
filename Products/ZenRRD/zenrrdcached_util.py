@@ -49,9 +49,14 @@ def commandLoop(cmds=None):
     sockfile = None
     try:
         zenhome = os.environ['ZENHOME']
+        sockName = zenhome + "/var/rrdcached.sock"
+        if not os.path.exists(sockName):
+            sys.stderr.write("rrdcached daemon is not running and attached to %s\n" \
+                             % sockName)
+            sys.exit(1)
 
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        s.connect(zenhome + "/var/rrdcached.sock")
+        s.connect(sockName)
         sockfile = s.makefile('rw', 1024)
         if sys.stdin.isatty():
             prompt = "rrdcached> "
@@ -129,3 +134,4 @@ if __name__ == "__main__":
         commandLoop(['STATS'])
     else:
         parser.print_usage()
+
