@@ -1182,12 +1182,12 @@ class UserSettings(ZenModelRM):
                 o.exportXml(ofile, ignorerels)
 
     def getPagerAddresses(self):
-        if self.pager.strip():
+        if self.pager and self.pager.strip():
             return [self.pager.strip()]
         return []
 
     def getEmailAddresses(self):
-        if self.email.strip():
+        if self.email and self.email.strip():
             return [self.email]
         return []
 
