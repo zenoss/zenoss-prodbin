@@ -1,0 +1,7 @@
+Products/README.txt
+Products/ZenUI3/browser/resources/js/deploy/
+bin/runzope
+bin/runzope.bat
+bin/zope2.wsgi
+bin/zopectl
+bin/zopectl.bat
