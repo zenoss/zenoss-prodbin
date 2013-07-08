@@ -88,7 +88,7 @@ from Products.ZenModel.IpNetwork import IpNetworkPrinterFactory
 from Products.ZenMessaging import audit
 from Products.Zuul.utils import safe_hasattr
 from Products.ZenModel.interfaces import IZenDMDStartedEvent
-
+from Products.Zuul.catalog.events import IndexingEvent
 
 
 _CUSTOMSTUFF = []
@@ -233,6 +233,14 @@ def _customStuff():
                 if pattern.search(key):
                     print key
 
+    def indexObject(obj):
+        """
+        Updates every index available for the object.
+        """
+        if hasattr(obj, 'index_object'):
+            obj.index_object()        
+        notify(IndexingEvent(obj))
+        
     def lookupGuid(guid):
         """
         Given a guid this returns the object that it identifies
