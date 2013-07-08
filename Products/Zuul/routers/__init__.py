@@ -143,6 +143,7 @@ class TreeRouter(DirectRouter):
         @rtype:   [dictionary]
         @return:  Object representing the immediate children
         """
+        showEventSeverityIcons = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
         facade = self._getFacade()
         currentNode = facade.getTree(id)
         # we want every tree property except the "children" one
@@ -150,13 +151,15 @@ class TreeRouter(DirectRouter):
 
         # load the severities in one request
         childNodes = list(currentNode.children)
-        uuids = [n.uuid for n in childNodes if n.uuid]
-        zep = Zuul.getFacade('zep', self.context.dmd)
-        if uuids:
-            severities = zep.getWorstSeverity(uuids)
-            for child in childNodes:
-                if child.uuid:
-                    child.setSeverity(zep.getSeverityName(severities.get(child.uuid, 0)).lower())
+        if showEventSeverityIcons:
+            uuids = [n.uuid for n in childNodes if n.uuid]
+            zep = Zuul.getFacade('zep', self.context.dmd)
+
+            if uuids:
+                severities = zep.getWorstSeverity(uuids)
+                for child in childNodes:
+                    if child.uuid:
+                        child.setSeverity(zep.getSeverityName(severities.get(child.uuid, 0)).lower())
 
         children = []
         # explicitly marshall the children

@@ -125,6 +125,7 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
         self._severities = {}
         self._eventFacade = getFacade('zep')
         self._uuids = {}
+        self.showSeverityIcons = root._shouldShowSeverityIcons()
 
     def _getNodeUuid(self, node):
         if node not in self._uuids:
@@ -159,7 +160,7 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
         if 'uuid' in keys:
             obj['uuid'] = self._getNodeUuid(node)
 
-        if iconCls:
+        if iconCls and self.showSeverityIcons:
             severity = self._allSeverities.get(self._getNodeUuid(node), 'clear')
             obj['iconCls'] = node.getIconCls(severity)
 

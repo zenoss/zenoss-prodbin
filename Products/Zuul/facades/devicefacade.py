@@ -209,11 +209,14 @@ class DeviceFacade(TreeFacade):
         # Do one big lookup of component events and merge back in to type later
         if not uuidMap:
             return []
+        
         zep = getFacade('zep')
-        severities = zep.getWorstSeverity(uuidMap.keys())
-        for uuid, sev in severities.iteritems():
-            compType = componentTypes[uuidMap[uuid]]
-            compType['severity'] = max(compType['severity'], sev)
+        showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+        if showSeverityIcon:
+            severities = zep.getWorstSeverity(uuidMap.keys())
+            for uuid, sev in severities.iteritems():
+                compType = componentTypes[uuidMap[uuid]]
+                compType['severity'] = max(compType['severity'], sev)
 
         result = []
         for name, compType in componentTypes.iteritems():

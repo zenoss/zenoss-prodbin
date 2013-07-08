@@ -110,7 +110,6 @@ Ext.define("Zenoss.DeviceDetailBar", {
             'deviceClass',
             'name',
             'icon',
-            'events',
             'status',
             'productionState',
             'priority'
@@ -144,7 +143,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
             var ipAddress = data.ipAddressString;
             this.deviditem.ipAddress.setText(ipAddress);
             this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));
-            this.eventsitem.updateRainbow(data.events);
+            this.eventsitem.setContext(uid);
             this.statusitem.setText(
                 ZR.pingStatusLarge(data.status));
             /* reformat the production state name so that it doesn't mess up the UI when too long */

@@ -28,8 +28,9 @@ class UserInterfaceSettings(ZenModelRM):
     _relations = ()
 
     _properties = (
-        {'id': 'enableLiveSearch', 'type': 'boolean', 'mode': 'w'},
+        {'id': 'enableLiveSearch', 'type': 'boolean', 'mode': 'w'},        
         {'id': 'incrementalTreeLoad', 'type': 'boolean', 'mode': 'w'},
+        {'id': 'showEventSeverityIcons', 'type': 'boolean', 'mode': 'w'},
         {'id': 'enableTreeFilters', 'type': 'boolean', 'mode': 'w'},
         {'id': 'showPageStatistics', 'type' : 'boolean', 'mode':'w'},
         {'id': 'deviceGridBufferSize', 'type': 'int', 'mode': 'w'},
@@ -43,6 +44,7 @@ class UserInterfaceSettings(ZenModelRM):
     _propertyMetaData = {
         'enableLiveSearch': {'xtype': 'checkbox', 'name': _t('Enable Live Filters'), 'defaultValue': True},
         'incrementalTreeLoad': {'xtype': 'checkbox', 'name': _t('Enable Incremental Tree Loading on the Infrastructure Page'), 'defaultValue': True},
+        'showEventSeverityIcons': {'xtype': 'checkbox', 'name': _t('Show Tree Event Severity Icons (disabling may speed up the page load)'), 'defaultValue': True},
         'enableTreeFilters': {'xtype': 'checkbox', 'name': _t('Enable Tree Filters'), 'defaultValue': True},
         'deviceGridBufferSize': {'xtype': 'numberfield', 'name': _t('Device Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 1000, 'allowBlank': False},
         'componentGridBufferSize': {'xtype': 'numberfield', 'name': _t('Component Grid Buffer Size'), 'defaultValue': 50, 'minValue': 25, 'maxValue': 1000, 'allowBlank': False},

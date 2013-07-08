@@ -206,13 +206,15 @@ function treeselectionchange(sm, newnodes, oldnode) {
 
         Zenoss.env.contextUid = uid;
 
-        Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
-                               'commands-menu', 'footer_bar');
-        setDeviceButtonsDisabled(true);
-
+        Zenoss.util.setContext(uid, 'detail_panel', 'commands-menu',
+                               'footer_bar');
         // explicitly set the new security context (to update permissions)
         Zenoss.Security.setContext(uid);
 
+        // this router request is isolated so it is forced to happen after the other contexts are set
+        Ext.getCmp('organizer_events').setContext(uid);
+
+        setDeviceButtonsDisabled(true);
 
         //should "ask" the DetailNav if there are any details before showing
         //the button
@@ -1203,7 +1205,7 @@ Ext.define("Zenoss.InfraDetailNav", {
             'editcustschema': true,
             'devicemanagement': true,
             'administration': true,
-            'overriddenobjects': true 
+            'overriddenobjects': true
         };
         var uid = Zenoss.env.PARENT_CONTEXT;
         if (config.contextRegex) {

@@ -50,6 +50,12 @@ class TreeNode(object):
         self._object = ob
         self._parent = parent or None
         self._severity = None
+        # allow showing the event severity icons to be configurable
+        if not hasattr(self._root, 'showSeverityIcons'):
+            self._root._showSeverityIcons = self._shouldShowSeverityIcons()
+
+    def _shouldShowSeverityIcons(self):
+        return self._get_object().dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
 
     def _get_object(self):
         obj = self._root._ob_cache.get(self.uid)
@@ -110,8 +116,10 @@ class TreeNode(object):
 
     @property
     def iconCls(self):
-        sev = self._loadSeverity();
-        return self.getIconCls(sev)
+        if self._root._showSeverityIcons:
+            sev = self._loadSeverity();
+            return self.getIconCls(sev)
+        return None
 
     def getIconCls(self, sev):
         return 'tree-severity-icon-small-%s' % (sev or 'clear')
