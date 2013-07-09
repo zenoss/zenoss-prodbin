@@ -331,55 +331,52 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
-    def writeMetric(self, metric, value, timestamp, uuid):
-        self._publisher.put(self._metricsChannel, metric, value, timestamp, uuid)
+    def writeMetric(self, path, metric, value, metricType, timestamp, metricId, min='U', max='U',
+            hasThresholds=False, threshEventData={}, allowStaleDatapoint=True):
+        # write the raw metric to Redis
+        self._publisher.put(self._metricsChannel, 
+                metric,
+                value,
+                timestamp,
+                metricId)
+
+        # check for threshold breaches and send events when needed
+        if hasThresholds:
+            if 'eventKey' in threshEventData:
+                eventKeyPrefix = [threshEventData['eventKey']]
+            else:
+                eventKeyPrefix = [path.rsplit('/')[-1]]
+
+            for ev in self._thresholds.check(path, timestamp, value):
+                parts = eventKeyPrefix[:]
+                if 'eventKey' in ev:
+                    parts.append(ev['eventKey'])
+                ev['eventKey'] = '|'.join(parts)
+
+                # add any additional values for this threshold
+                # (only update if key is not in event, or if
+                # the event's value is blank or None)
+                for key,value in threshEventData.items():
+                    if ev.get(key, None) in ('',None):
+                        ev[key] = value
+
+                self.sendEvent(ev)
+
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):
-        now = time.time()
-
-        self.writeMetric(os.path.basename(path), value, now, os.path.dirname(path))
-
-        # hasThresholds = bool(self._thresholds.byFilename.get(path))
-        # if hasThresholds:
-        #     rrd_write_fn = self._rrd.save
-        # else:
-        #     rrd_write_fn = self._rrd.put            
-        # 
-        # # save the raw data directly to the RRD files
-        # value = rrd_write_fn(
-        #     path,
-        #     value,
-        #     rrdType,
-        #     rrdCommand,
-        #     cycleTime,
-        #     min,
-        #     max,
-        #     timestamp=timestamp,
-        #     allowStaleDatapoint=allowStaleDatapoint,
-        # )
-
-        # # check for threshold breaches and send events when needed
-        # if hasThresholds:
-        #     if 'eventKey' in threshEventData:
-        #         eventKeyPrefix = [threshEventData['eventKey']]
-        #     else:
-        #         eventKeyPrefix = [path.rsplit('/')[-1]]
-
-        #     for ev in self._thresholds.check(path, now, value):
-        #         parts = eventKeyPrefix[:]
-        #         if 'eventKey' in ev:
-        #             parts.append(ev['eventKey'])
-        #         ev['eventKey'] = '|'.join(parts)
-
-        #         # add any additional values for this threshold
-        #         # (only update if key is not in event, or if
-        #         # the event's value is blank or None)
-        #         for key,value in threshEventData.items():
-        #             if ev.get(key, None) in ('',None):
-        #                 ev[key] = value
-
-        #         self.sendEvent(ev)
+        # reroute to new writeMetric method
+        self.writeMetric(path,
+                os.path.basename(path),
+                value,
+                rrdType,
+                time.time(),
+                os.path.dirname(path),
+                min,
+                max,
+                bool(self._thresholds.byFilename.get(path)),
+                threshEventData,
+                allowStaleDatapoint)
 
     def readRRD(self, path, consolidationFunction, start, end):
         return RRDUtil.read(path, consolidationFunction, start, end)
