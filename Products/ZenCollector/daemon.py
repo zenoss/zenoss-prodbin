@@ -216,6 +216,7 @@ class CollectorDaemon(RRDDaemon):
         self._unresponsiveDevices = set()
         self._publisher = None
         self._metricsChannel = publisher.defaultMetricsChannel
+        self._timedMetricCache = {}
         self._rrd = None
         self.reconfigureTimeout = None
 
@@ -331,8 +332,28 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
-    def writeMetric(self, path, metric, value, metricType, timestamp, metricId, min='U', max='U',
+    def _derivative(self, path, timedMetric, min, max):
+        lastTimedMetric = self._timedMetricCache.get(path)
+        if lastTimedMetric:
+            # identical timestamps?
+            if timedMetric[1] == lastTimedMetric[1]:
+                return 0
+            else:
+                delta = float(timedMetric[0]-lastTimedMetric[0]) / float(timedMetric[1]-lastTimedMetric[1])
+                if isinstance(min, (int, float)) and delta < min:
+                    delta = min
+                if isinstance(max, (int, float)) and delta > max:
+                    delta = max
+                return delta
+        else:
+            # first value we've seen for path
+            self._timedMetricCache[path] = timedMetric
+            return None
+
+    def writeMetric(self, path, metric, value, metricType, metricId, timestamp='N', min='U', max='U',
             hasThresholds=False, threshEventData={}, allowStaleDatapoint=True):
+        timestamp = int(time.time()) if timestamp == 'N' else timestamp
+
         # write the raw metric to Redis
         self._publisher.put(self._metricsChannel, 
                 metric,
@@ -340,8 +361,12 @@ class CollectorDaemon(RRDDaemon):
                 timestamp,
                 metricId)
 
+        # compute (and cache) a rate for COUNTER/DERIVE
+        if metricType in ('COUNTER', 'DERIVE'):
+            value = self._derivative(path, (int(value), timestamp), min, max)
+
         # check for threshold breaches and send events when needed
-        if hasThresholds:
+        if hasThresholds and value != None:
             if 'eventKey' in threshEventData:
                 eventKeyPrefix = [threshEventData['eventKey']]
             else:
@@ -365,13 +390,13 @@ class CollectorDaemon(RRDDaemon):
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):
-        # reroute to new writeMetric method
+        # reroute to new writeMetric Method
         self.writeMetric(path,
                 os.path.basename(path),
                 value,
                 rrdType,
-                time.time(),
                 os.path.dirname(path),
+                timestamp,
                 min,
                 max,
                 bool(self._thresholds.byFilename.get(path)),

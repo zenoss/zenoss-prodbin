@@ -401,7 +401,7 @@ class IDataService(zope.interface.Interface):
     A service that provides a mechanism to persist collected data.
     """
 
-    def writeMetric(self, path, metric, value, metricType, timestamp, metricId,
+    def writeMetric(self, path, metric, value, timestamp, metricType, metricId,
             min, max, hasThresholds, threshEventData, allowStaleDatapoint):
         """
         Write the value provided for the specified metric to Redis
