@@ -236,68 +236,81 @@
 </form>
 <br />
 
-<form tal:attributes="method string:post;
-                action here/absolute_url_path;
-                name string:graphReportElementListform">
-    <input type="hidden" name="zenScreenName" 
-        value="editGraphReport" /> 
-    <input type="hidden" name="redirect" value="true" />
+<tal:block tal:define="tableName string:graphReportElementList; 
+                       objects here/elements;
+                       batch python:here.ZenTableManager.getBatch(tableName,objects, sortedHeader='sequence'); 
+                       tabletitle string:Graphs;
+		       menu_id string:GraphReportElement_list">
 
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
-        <tal:block tal:define="tableName string:graphReportElementList; 
-        objects here/elements;
-        batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='sequence'); 
-        tabletitle string:Graphs;
-		menu_id string:GraphReportElement_list">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-        <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
+    <tal:block metal:fill-slot="zentablecontents">
+    
+    <!-- BEGIN TABLE CONTENTS -->
             
     <tal:block>
-    <tr>
-        <th tal:condition="here/isManager"
-	    tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'sequence','Seq')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'id','Name')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'deviceId','Device')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'componentPath','Component')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'graphId','Graph')"/>
-    </tr>
-    <tr class="tablevalues" tal:repeat="element batch">
-        <td valign="top" tal:condition="here/isManager">
-            <input type="text" name="seqmap:list" size="2" 
-		tal:attributes="value element/sequence"/>
-            <input
-                type="hidden" name="origseq:list"
-                tal:attributes="value element/sequence" />
-        </td>
-        <td valign="top">
-            <input tal:condition="here/isManager"
-                type="checkbox" name="ids:list" 
-                tal:attributes="value element/getId"/>
-            <a tal:attributes="href element/getPrimaryUrlPath" 
-                tal:content="element/getId">name</a>
-        </td>
-        <td valign="top" tal:content="element/deviceId"/>
-        <td valign="top" tal:content="element/getComponentName"/>
-        <td valign="top" tal:content="element/graphId"/>
-    </tr>
+
+      <form tal:attributes="method string:post;
+                            action here/absolute_url_path;
+                            name string:graphReportElementListform">
+
+        <input type="hidden" name="zenScreenName" value="editGraphReport" /> 
+        <input type="hidden" name="redirect" value="true" />
+        <input type='hidden' name='tableName' tal:attributes="value tableName" />
+
+        <tr>
+            <th tal:condition="here/isManager"
+        	    tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'sequence','Seq')"/>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'id','Name')"/>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'deviceId','Device')"/>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'componentPath','Component')"/>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'graphId','Graph')"/>
+        </tr>
+        <tr class="tablevalues" tal:repeat="element batch">
+            <td valign="top" tal:condition="here/isManager">
+                <input type="text" name="seqmap:list" size="2" 
+        		tal:attributes="value element/sequence"/>
+                <input
+                    type="hidden" name="origseq:list"
+                    tal:attributes="value element/sequence" />
+            </td>
+            <td valign="top">
+                <input tal:condition="here/isManager"
+                    type="checkbox" name="ids:list" 
+                    tal:attributes="value element/getId"/>
+                <a tal:attributes="href element/getPrimaryUrlPath" 
+                    tal:content="element/getId">name</a>
+            </td>
+            <td valign="top" tal:content="element/deviceId"/>
+            <td valign="top" tal:content="element/getComponentName"/>
+            <td valign="top" tal:content="element/graphId"/>
+        </tr>
+    
+      </form>
+
+      <form tal:attributes="method string:get; action request/URL;">
+         <input type="hidden" name="zenScreenName" value="editGraphReport" /> 
+         <input type="hidden" name="redirect" value="true" />
+         <input type='hidden' name='tableName' tal:attributes="value tableName" />
+         <tr>
+            <td colspan="5" class="tableheader">
+               <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+            </td>
+         </tr>
+      </form>
     </tal:block>
 
-        <!-- END TABLE CONTENTS -->
+    <!-- END TABLE CONTENTS -->
 
-        </tal:block>
-        </tal:block>
-        </tal:block>
-        
-</form>
+    </tal:block>
+    </tal:block>
+
+</tal:block>
 
 <script type="text/javascript">
     function getThirdList() {
