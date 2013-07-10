@@ -7,3 +7,4 @@ bin/zopectl
 bin/zopectl.bat
 *.pyc
 *~
+
