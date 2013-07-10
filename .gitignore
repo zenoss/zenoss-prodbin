@@ -5,3 +5,5 @@ bin/runzope.bat
 bin/zope2.wsgi
 bin/zopectl
 bin/zopectl.bat
+*.pyc
+*~
