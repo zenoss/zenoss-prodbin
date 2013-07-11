@@ -39,5 +39,46 @@ if [ ! -f "$PIDFILE" ];then
 fi
 
 
-$SUPERVISORCTL -c $CONF_FILE "$@"
+genconf(){
+cat - <<GENCONF
+[supervisord]
+nodaemon=false
+logfile = log/supervisord.log
+pidfile = var/supervisord.pid
+[unix_http_server]
+file=var/supervisor.sock
 
+[supervisorctl]
+serverurl=unix://var/supervisor.sock ; use a unix:// URL  for a unix socket
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+GENCONF
+}
+
+help(){
+cat - <<HELP
+
+HELP
+}
+
+zsuperviser_run() {
+    case "$CMD" in
+      genconf)
+	    genconf
+	    ;;
+      help)
+	    help
+	    ;;
+      *)
+	    cd $ZENHOME
+        $SUPERVISORCTL -c $CONF_FILE "$@"
+        ;;
+    esac
+    exit
+}
+
+CMD=$1
+
+zsuperviser_run "$@"
