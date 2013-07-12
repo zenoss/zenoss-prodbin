@@ -521,7 +521,8 @@ class BatchDeviceDumper(ZCmdBase):
                 sys.exit(2)
 
         self.printHeader(outFile)
-        self.listHubsCollectors(outFile)
+        if hasattr(self.dmd.Monitors, 'Hub'):
+            self.listHubsCollectors(outFile)
         if self.options.collectors_only:
             outFile.close()
             sys.exit(0)
