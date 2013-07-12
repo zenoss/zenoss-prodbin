@@ -10,9 +10,9 @@
 import re
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 from Products.ZenUtils.Utils import prepId
 from Products.ZenWidgets import messaging
 from Products.ZenModel.WinServiceClass import WinServiceClass

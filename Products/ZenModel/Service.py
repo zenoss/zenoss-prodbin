@@ -13,17 +13,14 @@ __doc__="""Service.py
 Service is a function provided by computer (like a server).  it
 is defined by a protocol type (udp/tcp) and a port number.
 
-$Id: Service.py,v 1.15 2003/03/11 23:32:13 edahl Exp $"""
-
-__version__ = "$Revision: 1.15 $"[11:-2]
+"""
 
 import Globals
 from Acquisition import aq_chain
 from AccessControl import ClassSecurityInfo
 from Commandable import Commandable
 
-from Products.CMFCore.utils import getToolByName
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
 from Products.ZenWidgets import messaging
 
 from EventView import EventView
