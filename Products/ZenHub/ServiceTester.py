@@ -51,7 +51,7 @@ class ServiceTester(ZCmdBase):
 
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('--monitor', dest='monitor', default='localhost',
+        self.parser.add_option('--monitor', '--collector', dest='monitor', default='localhost',
                                help="Specify the collector to collect against.")
         self.parser.add_option('-d', '--device', dest='device',
                                help="Show the configs for a single device")
