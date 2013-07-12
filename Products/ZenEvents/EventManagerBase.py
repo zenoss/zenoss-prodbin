@@ -21,8 +21,9 @@ log = logging.getLogger("zen.Events")
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenModel.ZenossSecurity import *
-from Products.ZenRelations.RelSchema import *
+from Products.ZenModel.ZenossSecurity import ZEN_SEND_EVENTS, ZEN_COMMON
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
+from Products.ZenEvents.XmlEvents import sendXMLEvents
 from Products.ZenUtils import Time
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
@@ -256,7 +257,7 @@ class EventManagerBase(ZenModelRM):
             # Event class rainbows show all events through DEBUG severity
             uuid = IGlobalIdentifier(me).getGUID()
             return zep.getWorstSeverityByUuid(uuid)
-        except TypeError, e:
+        except TypeError:
             log.warn("Attempted to query events for %r which does not have a uuid" % self)
             return 0
 
@@ -349,6 +350,22 @@ class EventManagerBase(ZenModelRM):
         value = severity < 0 and "unknown" or severity
         acked = acked and "acked" or "noack"
         return "zenevents_%s_%s %s" % (value, acked, acked)
+
+    def handleUploadedFile(self, REQUEST):
+        """
+        Assumes the file to be a file with events XML data so we
+        need to import the file data.
+
+        File will be available with REQUEST.upload
+        """
+        eventsXml = REQUEST.upload.read()
+        try:
+            loaded, total = sendXMLEvents(self._dmd.ZenEventManager, eventsXml, log=log)
+        except Exception as ex:
+            log.exception("Unable to load events.xml data:\n%s\n", eventsXml)
+            return "Unable to load events XML data: %s\nSee event.log for details" % str(ex)
+        
+        return "Loaded %d of %d events" % (loaded, total)
 
     #==========================================================================
     # Utility functions
