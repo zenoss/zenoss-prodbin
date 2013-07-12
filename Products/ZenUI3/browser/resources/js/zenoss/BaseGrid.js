@@ -664,6 +664,9 @@
         },
         setContext: function(uid) {
             this.scrollToTop();
+            if (this.getStore().pageMap) {
+                this.getStore().pageMap.clear();
+            }
             this.callParent([uid]);
         },
         refresh:function (callback, scope) {
