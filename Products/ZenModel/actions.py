@@ -11,6 +11,7 @@
 import re
 from time import strftime, localtime
 import socket
+import logging
 from socket import getaddrinfo
 from traceback import format_exc
 from zope.interface import implements
@@ -23,6 +24,8 @@ from twisted.internet.protocol import ProcessProtocol
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
+
+from zope.tales.tales import CompilerError
 
 from zenoss.protocols.protobufs import zep_pb2
 from Products.ZenEvents.events2.proxy import EventSummaryProxy
@@ -44,20 +47,21 @@ from Products.ZenUtils import Utils
 from Products.ZenUtils.IpUtil import getHostByName, isip
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
-from Products.ZenEvents.ZenEventClasses import Warning as SEV_WARNING
-from Products.ZenUtils.ZenTales import talEval
-
+from Products.ZenUtils.ZenTales import talesEvalStr, InvalidTalesException
 from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG,
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
 )
 
-import logging
 
 log = logging.getLogger("zen.actions")
 
 
 class ActionExecutionException(Exception): pass
+
+class TalesMissingZenossDevice(ActionExecutionException): pass
+
+class BadTalesExpresssion(ActionExecutionException): pass
 
 
 class ActionMissingException(Exception): pass
@@ -75,15 +79,36 @@ class TargetableActionException(ActionExecutionException):
             targets = ','.join(self.exceptionTargets)
         )
 
+DEVICE_TAL = re.compile('\$\{dev[ice]*/([-A-Za-z_.0-9]+)\}')
+NO_ZEN_DEVICE = 'Unable to perform TALES evaluation on "%s" -- no Zenoss device'
+BAD_TALES = 'Unable to perform TALES evaluation on "%s"'
 def processTalSource(source, **kwargs):
     """
     This function is used to parse fields made available to actions that allow
     for TAL expressions.
     """
-    sourceStr = source
-    context = kwargs.get('here', {})
-    context.update(kwargs)
-    return talEval(sourceStr, context, kwargs)
+    if not kwargs.get('dev'):
+        hasDevReference = re.search(DEVICE_TAL, source)
+        if hasDevReference:
+            attributes = hasDevReference.groups()
+            log.error("The TALES string '%s' references ${dev/xxx} %s,"
+                          " but no Zenoss device exists (use ${evt/xxx} fields instead?)",
+                          source, attributes)
+            message = NO_ZEN_DEVICE % source
+            raise TalesMissingZenossDevice(message)
+
+    try:
+        sourceStr = source
+        context = kwargs.get('here')
+        return talesEvalStr(sourceStr, context, kwargs)
+    except CompilerError as ex:
+        message = "%s: %s" % (ex, source)
+        log.error("%s context = %s data = %s", message, context, kwargs)
+        raise BadTalesExpresssion(message)
+    except InvalidTalesException:
+        message = BAD_TALES % source
+        log.error("%s context = %s data = %s", message, context, kwargs)
+        raise BadTalesExpresssion(message)
 
 
 def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
@@ -211,7 +236,7 @@ class IActionBase(object):
 
     def updateContent(self, content=None, data=None):
         """
-        Use the action's interface definition to grab the content pane 
+        Use the action's interface definition to grab the content pane
         information data and populate the content object.
         """
         updates = dict()
@@ -233,7 +258,7 @@ class TargetableAction(object):
     """
     Mixin class for actions that use user information
     """
-    
+
     shouldExecuteInBatch = False
 
     def setupAction(self, dmd):
@@ -272,7 +297,7 @@ class TargetableAction(object):
                       eventClass="/App/Failed",
                       summary=msg,
                       message=traceback,
-                      severity=SEV_WARNING, component="zenactiond")
+                      severity=SEVERITY_WARNING, component="zenactiond")
         notification.dmd.ZenEventManager.sendEvent(event)
     
     def executeBatch(self, notification, signal, targets):
@@ -342,6 +367,7 @@ class EmailAction(IActionBase, TargetableAction):
         return plain_body
     
     def executeBatch(self, notification, signal, targets):
+        log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
 
         data = self._signalToContextDict(signal, notification)
@@ -354,8 +380,6 @@ class EmailAction(IActionBase, TargetableAction):
             log.debug("Adding recipients defined in the event %s", mail_targets)
             targets |= set(mail_targets)
 
-        log.debug("Executing %s action for targets: %s", self.name, targets)
-
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = processTalSource(notification.content['clear_subject_format'], **data)
@@ -364,10 +388,11 @@ class EmailAction(IActionBase, TargetableAction):
             subject = processTalSource(notification.content['subject_format'], **data)
             body = processTalSource(notification.content['body_format'], **data)
 
-        log.debug('Sending this subject: %s' % subject)
-        log.debug('Sending this body: %s' % body)
+        log.debug('Sending this subject: %s', subject)
+
         body = self._stripTags(body)
         plain_body = self._encodeBody(body)
+        log.debug('Sending this body: %s', body)
             
         email_message = plain_body
 
@@ -483,37 +508,54 @@ class PageAction(IActionBase, TargetableAction):
 
 
 class EventCommandProtocol(ProcessProtocol):
-    def __init__(self, cmd):
+    def __init__(self, cmd, notification):
         self.cmd = cmd
+        self.notification = notification
         self.data = ''
         self.error = ''
 
-    def timedOut(self, value):
-        log.error("Command '%s' timed out" % self.cmd.id)
-        # FIXME: send an event or something?
-        return value
+    def timedOut(self, reason):
+        message = "Notification command %s timed out -- %s: stdout: %s\nstderr: %s" % (
+                  self.notification.titleOrId(), self.data, self.error)
+        log.error(message)
+        log.error("Command executed: %s", self.cmd)
+        self.sendEvent(reason, "Command timed out", message, SEVERITY_ERROR)
+        return reason
 
     def processEnded(self, reason):
-        log.debug("Command finished: '%s'" % reason.getErrorMessage())
-
-        # FIXME: send an event or something?
-        #
-        # code = 1
-        # try:
-        #     code = reason.value.exitCode
-        # except AttributeError:
-        #     pass
-        # code = reason.value.exitCode
-        # if code == 0:
-        #     cmdData = self.data or "<command produced no output>"
-        # else:
-        #     cmdError = self.error or "<command produced no output>"
+        code = reason.value.exitCode
+        if code == 0:
+            message = "Command %s finished successfully (exit code 0) with the following output: %s %s" % (
+                     self.notification.titleOrId(), self.data, self.error)
+            log.info(message)
+            log.debug("Command executed: %s", self.cmd)
+            self.sendEvent(reason, "Command failed", message, SEVERITY_CLEAR)
+        else:
+            message = "Command %s failed (exit code %s) -- %s: stdout: %s\nstderr: %s" % (
+                      self.notification.titleOrId(), reason.getErrorMessage(), code, self.data, self.error)
+            log.error(message)
+            log.error("Command executed: %s", self.cmd)
+            self.sendEvent(reason, "Command failed", message, SEVERITY_ERROR)
 
     def outReceived(self, text):
         self.data += text
 
     def errReceived(self, text):
         self.error += text
+
+    def sendEvent(self, reason, summary, message, severity):
+        eventKey= '_'.join([self.notification.action, self.notification.id])
+        event = Event(device="localhost",
+                      eventClass="/Cmd/Failed",
+                      summary="%s %s" % (self.notification.id, summary),
+                      message=message,
+                      eventKey=eventKey, 
+                      notification=self.notification.titleOrId(),
+                      stdout=self.data,
+                      stderr=self.error,
+                      severity=severity,
+                      component="zenactiond")
+        self.notification.dmd.ZenEventManager.sendEvent(event)
 
 
 class CommandAction(IActionBase, TargetableAction):
@@ -567,11 +609,8 @@ class CommandAction(IActionBase, TargetableAction):
         if actor.element_sub_uuid:
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
-        user_env_format = notification.content.get('user_env_format', '')
-        env = {}
-        if user_env_format is not None:
-            env = dict( envvar.split('=') for envvar in user_env_format.split(';') \
-                       if envvar is not None and '=' in envvar)
+        user_env_format = notification.content.get('user_env_format', '') or ''
+        env = dict( envvar.split('=') for envvar in user_env_format.split(';') if '=' in envvar)
         environ = {'dev': device, 'component': component, 'dmd': notification.dmd, 'env': env}
         data = self._signalToContextDict(signal, notification)
         environ.update(data)
@@ -581,13 +620,12 @@ class CommandAction(IActionBase, TargetableAction):
         if environ.get('clearEvt', None):
             environ['clearEvt'] = self._escapeEvent(environ['clearEvt'])
         environ.update(extra_env)
-        try:
-            command = processTalSource(command, **environ)
-        except Exception:
-            raise ActionExecutionException('Unable to perform TALES evaluation on "%s" -- is there an unescaped $?' % command)
+
+        # Get the proper command
+        command = processTalSource(command, **environ)
 
         log.debug('Executing this compiled command: "%s"' % command)
-        _protocol = EventCommandProtocol(command)
+        _protocol = EventCommandProtocol(command, notification)
 
         log.debug('Queueing up command action process.')
         self.processQueue.queueProcess(
