@@ -627,7 +627,10 @@ class ZenMib(ZCmdBase):
         # (ie forever).  Poll from time to time to avoid the problem with large MIBs.
         pythonCode = ''
         warnings = ''
-        while proc.poll() is None:
+        # make sure we always capture the output from the process
+        firstPass = True
+        while firstPass or proc.poll() is None:
+            firstPass = False
             output, err = proc.communicate()
             # convert dictionary values to raw strings
             # "key": "value" becomes "key": r"value"
