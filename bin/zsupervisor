@@ -41,7 +41,7 @@ fi
 
 genconf(){
 cat - <<GENCONF
-supervisord]
+[supervisord]
 nodaemon=false
 logfile = log/supervisord.log
 pidfile = var/supervisord.pid
