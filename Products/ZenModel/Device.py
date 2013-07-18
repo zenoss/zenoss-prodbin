@@ -528,21 +528,27 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
         manage_addZCatalog(self, "componentSearch", "componentSearch")
         zcat = self._getOb("componentSearch")
+
         cat = zcat._catalog
         cat.addIndex('meta_type', makeCaseInsensitiveFieldIndex('meta_type'))
         cat.addIndex('getCollectors',
             makeCaseInsensitiveKeywordIndex('getCollectors'))
+        cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
+        cat.addIndex('titleOrId', makeCaseInsensitiveFieldIndex('titleOrId'))
 
         zcat.addIndex('monitored', FieldIndex('monitored'))
         zcat.addColumn('meta_type')
         zcat.addColumn('getUUID')
+        zcat.addColumn('id')
+        zcat.addColumn('titleOrId')
+        zcat.addColumn('description')
+
         for c in self.getDeviceComponentsNoIndexGen():
             c.index_object()
         # see ZEN-4087 double index the first component when creating this catalog
         # otherwise it will not appear in the list of components. 
         if len(self.componentSearch):
             self.componentSearch()[0].getObject().index_object()
-        
 
     security.declareProtected(ZEN_VIEW, 'getDeviceComponents')
     def getDeviceComponents(self, monitored=None, collector=None, type=None):
