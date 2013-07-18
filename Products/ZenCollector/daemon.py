@@ -198,6 +198,7 @@ class CollectorDaemon(RRDDaemon):
         self._statService.addStatistic("dataPoints", "DERIVE")
         self._statService.addStatistic("runningTasks", "GAUGE")
         self._statService.addStatistic("queuedTasks", "GAUGE")
+        self._statService.addStatistic("missedRuns", "GAUGE")
         zope.component.provideUtility(self._statService, IStatisticsService)
 
         # register the collector's own preferences object so it may be easily
@@ -640,6 +641,7 @@ class CollectorDaemon(RRDDaemon):
         will self-schedule each run.
         """
         self.log.debug("Performing periodic maintenance")
+
         def _processDeviceIssues(result):
             self.log.debug("deviceIssues=%r", result)
             if result is None:
@@ -686,6 +688,9 @@ class CollectorDaemon(RRDDaemon):
 
                 stat = self._statService.getStatistic("queuedTasks")
                 stat.value = self._scheduler._executor.queued
+
+                stat = self._statService.getStatistic("missedRuns")
+                stat.value = self._scheduler.missedRuns
 
                 events = self._statService.postStatistics(self.rrdStats,
                                                           self.preferences.cycleInterval)

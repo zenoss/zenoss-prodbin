@@ -204,7 +204,7 @@ class CallableTask(object):
         return self.task.doTask()
 
     def _finished(self, result):
-        log.debug("Task %s finished, result: %r", self.task.name, 
+        log.debug("Task %s finished, result: %r", self.task.name,
                   result)
 
         # Unless the task completed or paused itself, make sure
@@ -223,7 +223,7 @@ class CallableTask(object):
         return result
 
     def _late(self):
-        log.debug("Task %s skipped because it was not idle", 
+        log.debug("Task %s skipped because it was not idle",
                   self.task.name)
         self.late()
 
@@ -254,12 +254,12 @@ class Scheduler(object):
         self._taskStats = {}
         self._callableTaskFactory = callableTaskFactory
         self._shuttingDown = False
-        # create a cleanup task that will periodically sweep the 
+        # create a cleanup task that will periodically sweep the
         # cleanup dictionary for tasks that need to be cleaned
         self._tasksToCleanup = set()
         self._cleanupTask = task.LoopingCall(self._cleanupTasks)
         self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
-        
+
         self._executor = TwistedExecutor(1)
 
         # Ensure that we can cleanly shutdown all of our tasks
@@ -328,7 +328,7 @@ class Scheduler(object):
         cleanupList = self._cleanupTasks()
         return defer.DeferredList(cleanupList)
 
-    @property 
+    @property
     def executor(self):
         return self._executor
 
@@ -395,14 +395,14 @@ class Scheduler(object):
 
     def _getStartDelay(self, task):
         """
-        amount of time to delay the start of a task. Prevents bunching up of 
-        task execution when a large amount of tasks are scheduled at the same 
+        amount of time to delay the start of a task. Prevents bunching up of
+        task execution when a large amount of tasks are scheduled at the same
         time.
         """
         #simple delay of random number between 0 and half the task interval
         delay = random.randint(0, int(task.interval/2))
         return delay
-    
+
     def taskAdded(self, taskWrapper):
         """
         Called whenever the scheduler adds a task.
@@ -540,6 +540,24 @@ class Scheduler(object):
         loopingCall = task._dataService._scheduler._loopingCalls[task.name]
         loopingCall.interval = newValue
 
+    @property
+    def missedRuns(self):
+        totalMissedRuns = 0
+        for taskWrapper in self._tasks.itervalues():
+            task = taskWrapper.task
+            taskStats = self._taskStats[task.name]
+            totalMissedRuns += taskStats.missedRuns
+        return totalMissedRuns
+
+    @property
+    def failedRuns(self):
+        totalFailedRuns = 0
+        for taskWrapper in self._tasks.itervalues():
+            task = taskWrapper.task
+            taskStats = self._taskStats[task.name]
+            totalFailedRuns += taskStats.failedRuns
+        return totalFailedRuns
+
     def displayStatistics(self, verbose):
         totalRuns = 0
         totalFailedRuns = 0
@@ -583,7 +601,7 @@ class Scheduler(object):
                 taskStats = self._taskStats[task.name]
 
                 buffer += "%s Current State: %s Successful_Runs: %d Failed_Runs: %d Missed_Runs: %d\n" \
-                    % (task.name, task.state, taskStats.totalRuns, 
+                    % (task.name, task.state, taskStats.totalRuns,
                        taskStats.failedRuns, taskStats.missedRuns)
 
             buffer += "\nDetailed Task States:\n"
@@ -606,7 +624,7 @@ class Scheduler(object):
             log.info("Detailed Scheduler Statistics:\n%s", buffer)
 
         # TODO: the above logic doesn't print out any stats for the 'current'
-        # state... i.e. enter the PAUSED state and wait there an hour, and 
+        # state... i.e. enter the PAUSED state and wait there an hour, and
         # you'll see no data
 
         # TODO: should we reset the statistics here, or do it on a periodic
@@ -646,7 +664,7 @@ class Scheduler(object):
 
     def _cleanupTasks(self):
         """
-        Periodically cleanup tasks that have been queued up for cleaning. 
+        Periodically cleanup tasks that have been queued up for cleaning.
         """
         # Build a list of the tasks that need to be cleaned up so that there
         # is no issue with concurrent modifications to the _tasksToCleanup
