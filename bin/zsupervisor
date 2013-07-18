@@ -21,21 +21,11 @@ different user."
 fi
 
 PIDFILE=$ZENHOME/var/supervisord.pid
-CONF_FILE=$ZENHOME/etc/supervisord.conf
+CONF_FILE=$ZENHOME/etc/zsupervisor.conf
 SUPERVISORCTL=`which supervisorctl`
 if [ -z "$SUPERVISORCTL" ];then
     echoerr "supervisorctl not in path."
     exit 1
-fi
-
-if [ ! -f "$CONF_FILE" ];then
-    echoerr "supervisor config not found."
-    exit 1
-fi
-
-if [ ! -f "$PIDFILE" ];then
-    cd $ZENHOME
-    supervisord -c $CONF_FILE --pidfile=$PIDFILE -d $ZENHOME -i zenoss
 fi
 
 
@@ -71,10 +61,27 @@ zsuperviser_run() {
       genconf)
 	    genconf
 	    ;;
+      startup)
+        if [ ! -f "$PIDFILE" ];then
+            cd $ZENHOME
+            supervisord -c $CONF_FILE --pidfile=$PIDFILE -d $ZENHOME -i zenoss
+        fi
+	    ;;
       help)
 	    help
 	    ;;
       *)
+	    if [ ! -f "$CONF_FILE" ];then
+	        echoerr "supervisor config not found."
+	        exit 1
+	    fi
+        if [ ! -f "$PIDFILE" ];then
+            if [ $CMD == "shutdown" ]; then
+                exit 0
+            fi
+	        echoerr "supervisord not running"
+	        exit 2
+        fi
 	    cd $ZENHOME
         $SUPERVISORCTL -c $CONF_FILE "$@"
         ;;
