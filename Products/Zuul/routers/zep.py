@@ -237,9 +237,14 @@ class EventsRouter(DirectRouter):
         @type  params: dictionary
         @param params: (optional) Key-value pair of filters for this search.
                        (default: None)
-        @type  uid: string
-        @param uid: (optional) Context for the query (default: None)
+        @type  uids: iterable(string)
+        @param uids: (optional) Contexts for the query (default: None)
         """
+        if not uids:
+            uids=[]
+        elif isinstance(uids, basestring):
+            uids = [uids]
+
         if params:
             log.debug('logging params for building filter: %s', params)
             if isinstance(params, basestring):
