@@ -20,7 +20,10 @@ from Products.ZenEvents.ZenEventClasses import Unknown
 from zenoss.protocols.interfaces import IQueueSchema
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig, EventNote, EventSummaryUpdate
+from zenoss.protocols.protobufs.zep_pb2 import (
+    EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig, EventNote,
+    EventSummaryUpdate, EventDetailSet,
+)
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils import safeTuple
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -841,6 +844,17 @@ class ZepFacade(ZuulFacade):
         event = ZenEvent(rcvtime=rcvtime, **args)
         publisher = getUtility(IEventPublisher)
         publisher.publish(event, mandatory=mandatory, immediate=immediate)
+
+    def updateDetails(self, evid, **detailInfo):
+        """
+        Given an evid, update the detail key/value pairs in ZEP.
+        """
+        detailSet = EventDetailSet()
+        for key, value in detailInfo.items():
+            detailSet.details.add(name=key, value=(value,))
+
+        return self.zep.client.updateDetails(evid, detailSet)
+
 
 class ZepDetailsInfo:
     """
