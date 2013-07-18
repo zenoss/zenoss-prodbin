@@ -205,7 +205,7 @@ YAHOO.namespace('zenoss.geomap');
             }else{
                 // abandon this line since something is wrong with the addresses
                 index++;
-                setTimeout(function(){_overlay.addPolyLine();});
+                setTimeout(function(){_overlay.addPolyline();});
                 return false;
             }
             _overlay.constructLine(points);
