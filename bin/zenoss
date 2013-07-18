@@ -283,7 +283,7 @@ EXITCODE=4
 case "$FUNC" in
   start)
         issue
-        zsupervisor starup
+        zsupervisor startup
         EXITCODE=$?
         ;;
   stop)
@@ -301,7 +301,7 @@ case "$FUNC" in
         ZENDAEMONS=`reverse $ZENDAEMONS`
     FUNC=start
         issue
-        zsupervisor starup
+        zsupervisor startup
         EXITCODE=$?
         ;;
   status)

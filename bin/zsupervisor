@@ -65,6 +65,15 @@ zsuperviser_run() {
         if [ ! -f "$PIDFILE" ];then
             cd $ZENHOME
             supervisord -c $CONF_FILE --pidfile=$PIDFILE -d $ZENHOME -i zenoss
+            EXITCODE=$?
+            if [ ${EXITCODE} == 0 ];then
+                echo "Started supervisord"
+            else
+                echo "Failed to start supervisord"
+                exit ${EXITCODE}
+            fi
+        else
+            echo "Already started"
         fi
 	    ;;
       help)
@@ -76,7 +85,7 @@ zsuperviser_run() {
 	        exit 1
 	    fi
         if [ ! -f "$PIDFILE" ];then
-            if [ $CMD == "shutdown" ]; then
+            if [ "$CMD" == "shutdown" ]; then
                 exit 0
             fi
 	        echoerr "supervisord not running"
