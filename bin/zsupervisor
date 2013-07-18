@@ -41,7 +41,7 @@ fi
 
 genconf(){
 cat - <<GENCONF
-[supervisord]
+supervisord]
 nodaemon=false
 logfile = log/supervisord.log
 pidfile = var/supervisord.pid
@@ -53,6 +53,9 @@ serverurl=unix://var/supervisor.sock ; use a unix:// URL  for a unix socket
 
 [rpcinterface:supervisor]
 supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[include]
+files = supervisor/*.conf
 
 GENCONF
 }
