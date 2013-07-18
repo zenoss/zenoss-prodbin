@@ -1,0 +1,103 @@
+#! /usr/bin/env bash
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+# zsupervisor is a pass through to supervisorctl.
+
+echoerr() { echo "$@" 1>&2; }
+
+if [ -z "$ZENHOME" ] ; then
+    echoerr "ERROR: '$ZENHOME' is not set."
+    echoerr "This is usually caused by executing this command as root rather than \
+as the zenoss user.  Either define '$ZENHOME' or run this command as a \
+different user."
+    exit 1
+fi
+
+PIDFILE=$ZENHOME/var/supervisord.pid
+CONF_FILE=$ZENHOME/etc/zsupervisor.conf
+SUPERVISORCTL=`which supervisorctl`
+if [ -z "$SUPERVISORCTL" ];then
+    echoerr "supervisorctl not in path."
+    exit 1
+fi
+
+
+genconf(){
+cat - <<GENCONF
+[supervisord]
+nodaemon=false
+logfile = log/supervisord.log
+pidfile = var/supervisord.pid
+[unix_http_server]
+file=var/supervisor.sock
+
+[supervisorctl]
+serverurl=unix://var/supervisor.sock ; use a unix:// URL  for a unix socket
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[include]
+files = supervisor/*.conf
+
+GENCONF
+}
+
+help(){
+cat - <<HELP
+
+HELP
+}
+
+zsuperviser_run() {
+    case "$CMD" in
+      genconf)
+	    genconf
+	    ;;
+      startup)
+        if [ ! -f "$PIDFILE" ];then
+            cd $ZENHOME
+            supervisord -c $CONF_FILE --pidfile=$PIDFILE -d $ZENHOME -i zenoss
+            EXITCODE=$?
+            if [ ${EXITCODE} == 0 ];then
+                echo "Started supervisord"
+            else
+                echo "Failed to start supervisord"
+                exit ${EXITCODE}
+            fi
+        else
+            echo "Already started"
+        fi
+	    ;;
+      help)
+	    help
+	    ;;
+      *)
+	    if [ ! -f "$CONF_FILE" ];then
+	        echoerr "supervisor config not found."
+	        exit 1
+	    fi
+        if [ ! -f "$PIDFILE" ];then
+            if [ "$CMD" == "shutdown" ]; then
+                exit 0
+            fi
+	        echoerr "supervisord not running"
+	        exit 2
+        fi
+	    cd $ZENHOME
+        $SUPERVISORCTL -c $CONF_FILE "$@"
+        ;;
+    esac
+    exit
+}
+
+CMD=$1
+
+zsuperviser_run "$@"
