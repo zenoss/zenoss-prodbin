@@ -129,10 +129,14 @@ class ServiceFacade(TreeFacade):
             if isinstance(sourceObj, ServiceOrganizer):
                 sourceParent = aq_parent(sourceObj)
                 sourceParent.moveOrganizer( moveTarget, (sourceObj.id,) )
+                targetServiceOrganizer = getattr(sourceParent.getDmdRoot(sourceParent.dmdRootName).getOrganizer(moveTarget), sourceObj.id) 
+                for serviceClass in targetServiceOrganizer.serviceclasses(): 
+                    serviceClass.updateServicesInGlobalCatalog() 
 
             elif isinstance(sourceObj, ServiceClass):
                 sourceParent = sourceObj.serviceorganizer()
                 sourceParent.moveServiceClasses( moveTarget, (sourceObj.id,) )
+                getattr(sourceParent.getChildMoveTarget(moveTarget).serviceclasses, sourceObj.id).updateServicesInGlobalCatalog()
 
             else:
                 args = (sourceUid, sourceObj.__class__.__name__)
