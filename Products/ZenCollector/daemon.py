@@ -11,6 +11,7 @@
 import signal
 import time
 import logging
+import os
 
 import zope.interface
 
@@ -28,6 +29,7 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IStatisticsService
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
+from zenoss.collector.publisher import publisher
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
@@ -213,6 +215,9 @@ class CollectorDaemon(RRDDaemon):
         self._devices = set()
         self._thresholds = Thresholds()
         self._unresponsiveDevices = set()
+        self._publisher = None
+        self._metricsChannel = publisher.defaultMetricsChannel
+        self._timedMetricCache = {}
         self._rrd = None
         self.reconfigureTimeout = None
 
@@ -328,37 +333,47 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
-    def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-                 min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):
-        now = time.time()
-
-        hasThresholds = bool(self._thresholds.byFilename.get(path))
-        if hasThresholds:
-            rrd_write_fn = self._rrd.save
+    def _derivative(self, path, timedMetric, min, max):
+        lastTimedMetric = self._timedMetricCache.get(path)
+        if lastTimedMetric:
+            # identical timestamps?
+            if timedMetric[1] == lastTimedMetric[1]:
+                return 0
+            else:
+                delta = float(timedMetric[0]-lastTimedMetric[0]) / float(timedMetric[1]-lastTimedMetric[1])
+                if isinstance(min, (int, float)) and delta < min:
+                    delta = min
+                if isinstance(max, (int, float)) and delta > max:
+                    delta = max
+                return delta
         else:
-            rrd_write_fn = self._rrd.put            
-        
-        # save the raw data directly to the RRD files
-        value = rrd_write_fn(
-            path,
-            value,
-            rrdType,
-            rrdCommand,
-            cycleTime,
-            min,
-            max,
-            timestamp=timestamp,
-            allowStaleDatapoint=allowStaleDatapoint,
-        )
+            # first value we've seen for path
+            self._timedMetricCache[path] = timedMetric
+            return None
+
+    def writeMetric(self, path, metric, value, metricType, metricId, timestamp='N', min='U', max='U',
+            hasThresholds=False, threshEventData={}, allowStaleDatapoint=True):
+        timestamp = int(time.time()) if timestamp == 'N' else timestamp
+
+        # write the raw metric to Redis
+        self._publisher.put(self._metricsChannel, 
+                metric,
+                value,
+                timestamp,
+                metricId)
+
+        # compute (and cache) a rate for COUNTER/DERIVE
+        if metricType in ('COUNTER', 'DERIVE'):
+            value = self._derivative(path, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
-        if hasThresholds:
+        if hasThresholds and value != None:
             if 'eventKey' in threshEventData:
                 eventKeyPrefix = [threshEventData['eventKey']]
             else:
                 eventKeyPrefix = [path.rsplit('/')[-1]]
 
-            for ev in self._thresholds.check(path, now, value):
+            for ev in self._thresholds.check(path, timestamp, value):
                 parts = eventKeyPrefix[:]
                 if 'eventKey' in ev:
                     parts.append(ev['eventKey'])
@@ -372,6 +387,22 @@ class CollectorDaemon(RRDDaemon):
                         ev[key] = value
 
                 self.sendEvent(ev)
+
+
+    def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
+                 min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):
+        # reroute to new writeMetric Method
+        self.writeMetric(path,
+                os.path.basename(path),
+                value,
+                rrdType,
+                os.path.dirname(path),
+                timestamp,
+                min,
+                max,
+                bool(self._thresholds.byFilename.get(path)),
+                threshEventData,
+                allowStaleDatapoint)
 
     def readRRD(self, path, consolidationFunction, start, end):
         return RRDUtil.read(path, consolidationFunction, start, end)
@@ -611,6 +642,7 @@ class CollectorDaemon(RRDDaemon):
                 log.exception("Unable to import class %s", c)
 
     def _configureRRD(self, rrdCreateCommand, thresholds):
+        self._publisher = publisher.RedisListPublisher()
         self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
         self.rrdStats.config(self.options.monitor,
                              self.name,
