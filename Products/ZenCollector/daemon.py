@@ -15,8 +15,10 @@ import os
 
 import zope.interface
 
-from twisted.internet import defer, reactor, task
+from twisted.internet import defer, protocol, reactor, task
 from twisted.python.failure import Failure
+
+from txredis import RedisClient
 
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
@@ -641,8 +643,11 @@ class CollectorDaemon(RRDDaemon):
             except ImportError:
                 log.exception("Unable to import class %s", c)
 
+    @defer.inlineCallbacks
     def _configureRRD(self, rrdCreateCommand, thresholds):
-        self._publisher = publisher.RedisListPublisher()
+        cc = protocol.ClientCreator(reactor, RedisClient)
+        redis = yield cc.connectTCP(publisher.defaultRedisHost, publisher.defaultRedisPort)
+        self._publisher = publisher.RedisListPublisher(redis)
         self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
         self.rrdStats.config(self.options.monitor,
                              self.name,
