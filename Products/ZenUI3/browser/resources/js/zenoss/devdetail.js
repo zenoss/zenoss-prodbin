@@ -530,9 +530,6 @@ Ext.define('Zenoss.DeviceDetailNav', {
                 navloaded: function() {
                     if(!this.hasComponents) return;
                     this.loadComponents();
-                    Ext.History.init(function(mgr){
-                        Ext.History.selectByToken(mgr.getToken());
-                    });
                 },
                 nodeloaded: function(tree, node) {
                     if (node.id==UID) {
