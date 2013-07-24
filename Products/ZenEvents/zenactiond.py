@@ -39,7 +39,7 @@ from Products.ZenEvents.interfaces import ISignalProcessorTask
 
 import logging
 log = logging.getLogger("zen.zenactiond")
-
+import transaction
 
 DEFAULT_MONITOR = "localhost"
 
@@ -195,6 +195,7 @@ class ZenActionD(ZCmdBase):
 
     def run(self):
         # Configure all actions with the command-line options
+        self.abortIfWaiting()
         options_dict = dict(vars(self.options))
         for name, action in getUtilitiesFor(IAction):
             action.configure(options_dict)
@@ -212,6 +213,14 @@ class ZenActionD(ZCmdBase):
         self._consumer = QueueConsumer(task, self.dmd)
         reactor.callWhenRunning(self._start)
         reactor.run()
+
+    def abortIfWaiting(self):
+        # If this process is doing nothing, abort the transaction to avoid long INNODB history
+        try:
+            transaction.abort()
+        except Exception:
+            pass
+        reactor.callLater(30.0, self.abortIfWaiting)
 
     def _start(self):
         log.info('starting zenactiond consumer.')
