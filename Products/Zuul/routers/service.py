@@ -62,18 +62,8 @@ class ServiceRouter(TreeRouter):
              defined by posQuery
         """
         newUid = self.api.addClass(contextUid, id)
-        if isinstance(posQuery.get('params'), basestring):
-            posQuery['params'] = unjson(posQuery['params'])
-        result = self.api.getList(**posQuery)
-        for count, serviceInfo in enumerate(result['serviceInfos']):
-            if serviceInfo.uid == newUid:
-                newIndex = count
-                break
-        else:
-            raise Exception('The new service was added, but the system was '
-                            'unable to add it to the list.')
         audit('UI.Service.Add', contextUid + '/' + id)
-        return DirectResponse(newIndex=newIndex)
+        return DirectResponse()
 
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
               page=None, history=False, uid=None, criteria=()):
