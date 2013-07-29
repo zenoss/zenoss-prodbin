@@ -8,14 +8,24 @@
  ****************************************************************************/
 
 
+
+
 (function(){
-    var DATE_RANGES =[
-            [129600, _t('Hourly')],
-            [864000, _t('Daily')],
-            [3628800, _t('Weekly')],
-            [41472000, _t('Monthly')],
-            [62208000, _t('Yearly')]
-    ],
+    DATE_RANGES =[
+            [3600000, _t('Hourly')],
+            [86400000, _t('Daily')],
+            [604800000, _t('Weekly')],
+            [2419200000, _t('Monthly')],
+            [31536000000, _t('Yearly')]
+    ];
+
+    DOWNSMAPLE = [
+            [86400000, '1h-avg'],    // Day
+            [604800000, '12h-avg'],  // Week
+            [2419200000, '1d-avg'],  // Month
+            [31536000000, '30d-avg'] // Year
+    ];
+
     /*
      * If a given request is over GRAPHPAGESIZE then
      * the results will be paginated.
@@ -23,6 +33,22 @@
      * so setting lower.
      **/
     GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
+
+    Number.prototype.pad = function(count) {
+        var zero = count - this.toString().length + 1;
+        return Array(+(zero > 0 && zero)).join("0") + this;
+    };
+
+    function now() {
+        return new Date().getTime();
+    }
+
+    function formatForMetricService(ms) {
+        var d = new Date(ms);
+        return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1).pad(2) + '/' + d.getUTCDate().pad(2) + '-'
+            + d.getUTCHours().pad(2) + ':' + d.getUTCMinutes().pad(2) + ':' + d.getUTCSeconds().pad(2) + '-UTC';
+    }
+
     /**********************************************************************
      *
      * Swoopy
@@ -66,6 +92,159 @@
     Ext.ns('Zenoss');
 
     Zenoss.SWOOP_CALLBACKS = {};
+
+    Zenoss.EuropaGraph = Ext.extend(Ext.Panel, {
+        constructor: function(config) {
+            config = Ext.applyIf(config||{}, {
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;"></div>',
+                width: 607,
+                height: 250,
+                ls: 'graph-panel',
+                tbar: {
+                    items: [{
+                        xtype: 'tbtext',
+                        text: config.graphTitle + ' : ' + config.uid
+                    },'->',{
+                        text: '&lt;',
+                        width: 67,
+                        handler: Ext.bind(function(btn, e) {
+                            this.onPanLeft(this);
+                        }, this)
+                    },{
+                        text: _t('Zoom In'),
+                        ref: '../zoomin',
+                        handler: Ext.bind(function(btn, e) {
+                            this.zoomIn(this);
+                        }, this)
+                    },{
+                        text: _t('Zoom Out'),
+                        handler: Ext.bind(function(btn, e) {
+                            this.zoomOut(this);
+                        }, this)
+                    },{
+                        text: '&gt;',
+                        width: 67,
+                        handler: Ext.bind(function(btn, e) {
+                            this.onPanRight(this);
+                        }, this)
+                    }]
+                },
+                graph_params: {
+                    drange: DATE_RANGES[0][0],
+                    end: now(),
+                    start: now() - DATE_RANGES[0][0]
+                }
+            });
+            Zenoss.EuropaGraph.superclass.constructor.call(this, config);
+
+            zenoss.visualization.chart.create(config.graphId, config.graphId, {
+                'exact' : true,
+                'range' : {
+                    'start' : formatForMetricService(this.graph_params.start),
+                    'end' : formatForMetricService(this.graph_params.end),
+                },
+                width: config.width,
+                height: config.height - 25,
+                'tags' : {
+                    'ip_address' : '10.175.209.127' // '10.175.209.127' //config.uid.split('/').pop()
+                }
+            });
+        },
+        initEvents: function() {
+            Zenoss.EuropaGraph.superclass.initEvents.call(this);
+            this.on('updateimage', this.updateGraph, this);
+        },
+        getComment: function(start, end) {
+            var now = new Date(),
+                endDate = now.minus(end).toPretty(),
+                startDate = now.minus(start + end).toPretty();
+            var com_ctr = "\\t\\t to \\t\\t";
+            var comment = startDate + com_ctr + endDate;
+            comment = comment.replace(/:/g, '\\:');
+            return comment;
+        },
+        linked: function() {
+            return this.isLinked;
+        },
+        setLinked: function(isLinked) {
+            this.isLinked = isLinked;
+        },
+        updateGraph: function(params) {
+            var gp = Ext.apply({}, params, this.graph_params);
+            gp.start = gp.end - gp.drange;
+            if (gp.start < 0) {
+                gp.start = 0;
+            }
+            gp.end = Math.max(gp.start + gp.drange, new Date().getTime())
+            gp.comment = this.getComment(gp.start, gp.end);
+            var changes = {
+                range : {
+                    start: formatForMetricService(gp.start),
+                    end: formatForMetricService(gp.end)
+                }
+            };
+            var delta = gp.end - gp.start;
+            changes.downsample = '-';
+            DOWNSMAPLE.forEach(function(v) {
+                if (delta >= v[0]) {
+                    changes.downsample = v[1];
+                }
+            });
+            zenoss.visualization.chart.update(this.graphId, changes);
+            //zenoss.visualization.chart.setRange(this.graphId,
+            //    formatForMetricService(gp.start),
+            //    formatForMetricService(gp.end));
+            this.graph_params = gp;
+        },
+        onPanLeft: function(graph) {
+            var gp = this.graph_params;
+            var delta = Math.round(gp.drange/pan_factor);
+            var newstart = gp.start - delta > 0 ? gp.start - delta : 0;
+            var newend = newstart + gp.drange;
+            this.fireEventsToAll("updateimage", {start:newstart, end:newend});
+        },
+        onPanRight: function(graph) {
+            var gp = this.graph_params;
+            var delta = Math.round(gp.drange/pan_factor);
+            var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
+            var newend = newstart + gp.drange;
+            var now = new Date().getTime();
+            if (newend > now) {
+                newend = now;
+                newstart = now - drange;
+            }
+            this.fireEventsToAll("updateimage", {start:newstart, end:newend});
+        },
+        doZoom: function(factor) {
+            var gp = this.graph_params;
+            var drange = Math.round(gp.drange/factor),
+                // Zoom from the end
+                newend = gp.end;
+                newstart = (gp.end - drange < 0 ? 0 : gp.end - drange);
+            console.error(+drange + " " + newend + " " + newstart);
+            this.fireEventsToAll("updateimage", {
+                drange: drange,
+                start: newstart,
+                end: newend
+            });
+        },
+        zoomIn: function(graph) {
+            this.doZoom(zoom_factor);
+        },
+        zoomOut: function(graph) {
+            this.doZoom(1/zoom_factor);
+        },
+        fireEventsToAll: function() {
+            if (this.linked()) {
+                var args = arguments;
+                Ext.each(this.refOwner.getGraphs(), function(g) {
+                    g.fireEvent.apply(g, args);
+                });
+            } else {
+                this.fireEvent.apply(this, arguments);
+            }
+        }
+    });
 
     Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
         constructor: function(config) {
@@ -380,7 +559,7 @@
                     forceSelection: true,
                     autoSelect: true,
                     triggerAction: 'all',
-                    value: 129600,
+                    value: 3600000,
                     queryMode: 'local',
                     store: new Ext.data.ArrayStore({
                         id: 0,
@@ -512,14 +691,22 @@
             for (i=start; i < Math.min(end, data.length); i++) {
                 graphId = Ext.id();
                 graph = data[i];
-                graphs.push(new Zenoss.SwoopyGraph({
+                graphs.push(new Zenoss.EuropaGraph({
+                    uid: this.uid,
                     graphUrl: graph.url,
-                    graphTitle: graph.title,
                     graphId: graphId,
+                    graphTitle: graph.title,
                     isLinked: this.isLinked,
-                    height: 250,
                     ref: graphId
                 }));
+                //graphs.push(Zenoss.SwoopyGraph({
+                //    graphUrl: graph.url,
+                //    graphTitle: graph.title,
+                //    graphId: graphId,
+                //    isLinked: this.isLinked,
+                //    height: 250,
+                //    ref: graphId
+                //}));
             }
 
             // set up for the next page
@@ -548,8 +735,6 @@
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEvent("updateimage", {
                     drange: drange,
-                    start: drange,
-                    end: 0
                 }, this);
             });
         },
