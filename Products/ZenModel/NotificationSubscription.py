@@ -94,6 +94,17 @@ class NotificationEventSummaryProxy(EventSummaryProxy):
         except KeyError:
             return "Unknown"
 
+    @property
+    def component(self):
+        """
+        Mapping title to component to support unmangled component names.
+        """
+        return self._event.actor.element_sub_title
+
+    @property
+    def componentId(self):
+        return self._event.actor.element_sub_identifier
+
 class NotificationEventContextWrapper(NoneDefaultingDict):
     def __init__(self, evtsummary, clearevtsummary=None):
         super(NotificationEventContextWrapper,self).__init__()
