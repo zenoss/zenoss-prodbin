@@ -645,15 +645,14 @@ class CollectorDaemon(RRDDaemon):
 
     @defer.inlineCallbacks
     def _configureRRD(self, rrdCreateCommand, thresholds):
-        cc = protocol.ClientCreator(reactor, RedisClient)
-        redis = yield cc.connectTCP(publisher.defaultRedisHost, publisher.defaultRedisPort)
-        self._publisher = publisher.RedisListPublisher(redis)
         self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
         self.rrdStats.config(self.options.monitor,
                              self.name,
                              thresholds,
                              rrdCreateCommand)
-
+        redis = yield publisher.RedisListPublisher.getConnection()
+        self._publisher = publisher.RedisListPublisher(redis)
+ 
     def _isRRDConfigured(self):
         return (self.rrdStats and self._rrd)
 
