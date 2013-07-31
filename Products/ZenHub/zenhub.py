@@ -736,7 +736,7 @@ class ZenHub(ZCmdBase):
 
         self.updateStatusAtFinish(wId, job, error)
         reactor.callLater(0,self.giveWorkToWorkers)
-        returnValue(result)
+        yield returnValue(result)
 
     @inlineCallbacks
     def giveWorkToWorkers(self, requeue=False):

@@ -103,7 +103,7 @@
                 tbar: {
                     items: [{
                         xtype: 'tbtext',
-                        text: config.graphTitle + ' : ' + config.uid
+                        text: config.graphTitle // + ' : ' + config.uid
                     },'->',{
                         text: '&lt;',
                         width: 67,
@@ -135,20 +135,21 @@
                     start: now() - DATE_RANGES[0][0]
                 }
             });
-            Zenoss.EuropaGraph.superclass.constructor.call(this, config);
 
-            zenoss.visualization.chart.create(config.graphId, config.graphId, {
-                'exact' : true,
-                'range' : {
-                    'start' : formatForMetricService(this.graph_params.start),
-                    'end' : formatForMetricService(this.graph_params.end),
+            Zenoss.EuropaGraph.superclass.constructor.call(this, config);
+            var visconfig = {
+                exact : true,
+                range : {
+                    start : formatForMetricService(this.graph_params.start),
+                    end : formatForMetricService(this.graph_params.end)
                 },
                 width: config.width,
                 height: config.height - 25,
-                'tags' : {
-                    'ip_address' : '10.175.209.127' // '10.175.209.127' //config.uid.split('/').pop()
-                }
-            });
+                tags: config.tags
+            };
+            console.log(visconfig);
+            console.log(config);
+            zenoss.visualization.chart.create(config.graphId, config.graphId, visconfig);
         },
         initEvents: function() {
             Zenoss.EuropaGraph.superclass.initEvents.call(this);
@@ -191,6 +192,7 @@
                 }
             });
             zenoss.visualization.chart.update(this.graphId, changes);
+
             //zenoss.visualization.chart.setRange(this.graphId,
             //    formatForMetricService(gp.start),
             //    formatForMetricService(gp.end));
@@ -689,16 +691,17 @@
             // load graphs until we have either completed the page or
             // we ran out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
-                graphId = Ext.id();
                 graph = data[i];
-                graphs.push(new Zenoss.EuropaGraph({
+                graphId = graph.name;
+                graphTitle = graph.title;
+                delete graph.title;
+                graphs.push(new Zenoss.EuropaGraph(Ext.apply(graph, {
                     uid: this.uid,
-                    graphUrl: graph.url,
                     graphId: graphId,
-                    graphTitle: graph.title,
+                    graphTitle: graphTitle,
                     isLinked: this.isLinked,
                     ref: graphId
-                }));
+                })));
                 //graphs.push(Zenoss.SwoopyGraph({
                 //    graphUrl: graph.url,
                 //    graphTitle: graph.title,
@@ -734,7 +737,7 @@
             this.drange = drange;
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEvent("updateimage", {
-                    drange: drange,
+                    drange: drange
                 }, this);
             });
         },

@@ -598,3 +598,70 @@ class GraphInfo(InfoBase):
         Used to display the graph commands to the user
         """
         return self._object.getFakeGraphCmds()
+
+
+class MetricServiceGraph(object):
+    implements(templateInterfaces.IMetricServiceGraphDefinition)
+
+    def __init__(self, graph):
+        self._object = graph
+
+class MetricServiceGraphDefinition(MetricServiceGraph):
+
+    def setContext(self, context):
+        self._context = context
+
+    @property
+    def width(self):
+        return self._object.width
+
+    @property
+    def height(self):
+        return self._object.height
+    
+    @property
+    def name(self):
+        return self._context.id + " - " + self._object.id
+
+    @property
+    def title(self):
+        return self._object.titleOrId()
+
+    @property
+    def type(self):
+        return "line"
+
+    @property
+    def tags(self):
+        return {'uuid': self._context.getUUID(),
+                'ip_address': self._context.getManageIp(),
+                'uid': "/".join(self._context.getPhysicalPath()) }
+
+    @property
+    def datapoints(self):
+        graphDefs = self._object.graphPoints()
+        return [templateInterfaces.IMetricServiceGraphDefinition(g) for g in graphDefs]
+
+
+class MetricServiceGraphPoint(MetricServiceGraph):
+
+    @property
+    def metric(self):
+        return getattr(self._object, "dpName", None)
+
+    @property
+    def legend(self):
+        o = self._object
+        return o.talesEval(o.legend, None)
+
+    @property
+    def color(self):
+        return self._object.getColor(self._object.sequence)
+
+    @property
+    def type(self):
+        return self._object.meta_type
+
+    @property
+    def aggregator(self):
+        return getattr(self._object, "cFunc", None)

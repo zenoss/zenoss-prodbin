@@ -51,7 +51,13 @@
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides="..interfaces.IGraphInfo"/>
 
+    <adapter factory=".template.MetricServiceGraphDefinition"
+             for="Products.ZenModel.GraphDefinition.GraphDefinition"
+             provides="..interfaces.IMetricServiceGraphDefinition"/>
 
+    <adapter factory=".template.MetricServiceGraphPoint"
+             for="Products.ZenModel.GraphPoint.GraphPoint"
+             provides="..interfaces.IMetricServiceGraphDefinition"/>
 
     <adapter factory=".template.DataPointInfo"
              for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
