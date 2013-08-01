@@ -650,8 +650,7 @@ class CollectorDaemon(RRDDaemon):
                              self.name,
                              thresholds,
                              rrdCreateCommand)
-        redis = yield publisher.RedisListPublisher.getConnection()
-        self._publisher = publisher.RedisListPublisher(redis)
+        self._publisher= yield publisher.RedisListPublisher.create()
  
     def _isRRDConfigured(self):
         return (self.rrdStats and self._rrd)
