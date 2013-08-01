@@ -70,8 +70,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         return self._getGraphPoints(ThresholdGraphPoint)
 
 
-class MetricServiceThreshold(MetricServiceGraph):
-
+class ColorMetricServiceGraphPoint(MetricServiceGraph):
     @property
     def legend(self):
         o = self._object
@@ -81,7 +80,11 @@ class MetricServiceThreshold(MetricServiceGraph):
     def color(self):
         return self._object.getColor(self._object.sequence)
 
-class MetricServiceGraphPoint(MetricServiceGraph):
+
+class MetricServiceThreshold(ColorMetricServiceGraphPoint):
+    pass
+
+class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
     _aggregationMapping = {
         'average': 'avg',
@@ -98,15 +101,6 @@ class MetricServiceGraphPoint(MetricServiceGraph):
     @property
     def metric(self):
         return self._object.dataPointId()
-
-    @property
-    def legend(self):
-        o = self._object
-        return o.talesEval(o.legend, None)
-
-    @property
-    def color(self):
-        return self._object.getColor(self._object.sequence)
 
     @property
     def type(self):
