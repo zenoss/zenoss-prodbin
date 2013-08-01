@@ -22,6 +22,8 @@ from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.deprecated import deprecated
+from zope.interface import implements
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 
 @deprecated
 def manage_addGraphPoint(context, id, REQUEST = None):
@@ -37,7 +39,7 @@ def manage_addGraphPoint(context, id, REQUEST = None):
 class GraphPoint(ZenModelRM, ZenPackable):
     '''
     '''
-    
+    implements(IGloballyIdentifiable)
     isThreshold = False
 
     DEFAULT_FORMAT = '%5.2lf%s'

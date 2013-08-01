@@ -11,7 +11,7 @@
 
 
 (function(){
-    DATE_RANGES =[
+    var DATE_RANGES =[
             [3600000, _t('Hourly')],
             [86400000, _t('Daily')],
             [604800000, _t('Weekly')],
@@ -19,7 +19,7 @@
             [31536000000, _t('Yearly')]
     ];
 
-    DOWNSMAPLE = [
+    var DOWNSMAPLE = [
             [86400000, '1h-avg'],    // Day
             [604800000, '12h-avg'],  // Week
             [2419200000, '1d-avg'],  // Month
@@ -32,7 +32,7 @@
      * IE can't handle the higher number that compliant browsers can
      * so setting lower.
      **/
-    GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
+    var GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
 
     Number.prototype.pad = function(count) {
         var zero = count - this.toString().length + 1;
@@ -97,8 +97,6 @@
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
                 html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;"></div>',
-                width: 607,
-                height: 250,
                 ls: 'graph-panel',
                 tbar: {
                     items: [{
@@ -137,6 +135,7 @@
             });
 
             Zenoss.EuropaGraph.superclass.constructor.call(this, config);
+
             var visconfig = {
                 exact : true,
                 range : {
@@ -145,11 +144,12 @@
                 },
                 width: config.width,
                 height: config.height - 25,
-                tags: config.tags
+                tags: config.tags,
+                datapoints: config.datapoints,
+                type: config.type
             };
-            console.log(visconfig);
-            console.log(config);
-            zenoss.visualization.chart.create(config.graphId, config.graphId, visconfig);
+            zenoss.visualization.chart.create(config.graphId, visconfig);
+
         },
         initEvents: function() {
             Zenoss.EuropaGraph.superclass.initEvents.call(this);
@@ -213,7 +213,7 @@
             var now = new Date().getTime();
             if (newend > now) {
                 newend = now;
-                newstart = now - drange;
+                newstart = now - delta;
             }
             this.fireEventsToAll("updateimage", {start:newstart, end:newend});
         },
@@ -692,10 +692,10 @@
             // we ran out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
                 graph = data[i];
-                graphId = graph.name;
+                graphId = graph.title.replace(' ', '_');
                 graphTitle = graph.title;
                 delete graph.title;
-                graphs.push(new Zenoss.EuropaGraph(Ext.apply(graph, {
+                graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
                     uid: this.uid,
                     graphId: graphId,
                     graphTitle: graphTitle,
