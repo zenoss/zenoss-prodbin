@@ -56,6 +56,8 @@ _WARNING = 3
 
 MAX_PARALLELISM = 150
 DEFAULT_PARALLELISM = 10
+MAX_NMAP_OVERHEAD = 0.5 # in seconds
+MIN_PING_TIMEOUT = 0.1 # in seconds
 
 # amount of IPs/events to process before giving time to the reactor
 _SENDEVENT_YIELD_INTERVAL = 100  # should always be >= 1
@@ -175,10 +177,45 @@ class NmapPingTask(BaseTask):
         self._pings = 0
         self._nmapPresent = False    # assume nmap is not present at startup
         self._nmapIsSuid = False     # assume nmap is not SUID at startup
+        self._cycleIntervalReasonable = True # assume interval is fine at startup
         self.collectorName = self._daemon._prefs.collectorName
 
         # maps task name to ping down count and time of last ping down
         self._down_counts = defaultdict(lambda: (0, None))
+
+    def _detectCycleInterval(self):
+        """
+        Detect whether the Ping Cycle Time is too short.
+        """
+        cycleInterval = self._daemon._prefs.pingCycleInterval
+        minCycleInterval = MIN_PING_TIMEOUT + MAX_NMAP_OVERHEAD
+        newValue = (cycleInterval >= minCycleInterval)
+        if self._cycleIntervalReasonable != newValue:
+            self._cycleIntervalReasonable = newValue
+            if self._cycleIntervalReasonable == False:
+                raise nmap.ShortCycleIntervalError(cycleInterval)
+        self._sendShortCycleInterval(cycleInterval)
+
+    def _sendShortCycleInterval(self, cycleInterval):
+        """
+        Send/Clear event to show that ping cycle time is short/fine.
+        """
+        if self._cycleIntervalReasonable:
+            msg = "ping cycle time (%.1f seconds) is fine" % cycleInterval
+            severity = _CLEAR
+        else:
+            minimum = MIN_PING_TIMEOUT + MAX_NMAP_OVERHEAD
+            msg = "ping cycle time (%.1f seconds) is too short (keep it under %.1f seconds)" % (cycleInterval, minimum)
+            severity = _CRITICAL
+        evt = dict(
+            device=self.collectorName,
+            eventClass=ZenEventClasses.Status_Ping,
+            eventGroup='Ping',
+            eventKey="cycle_interval",
+            severity=severity,
+            summary=msg,
+        )
+        self._eventService.sendEvent(evt)
 
     def _detectNmap(self):
         """
@@ -303,19 +340,42 @@ class NmapPingTask(BaseTask):
         args = []
         args.extend(["-iL", inputFileFilename])  # input file
         args.append("-sn")               # don't port scan the hosts
-        args.append("-PE")               # use ICMP echo 
+        args.append("-PE")               # use ICMP echo
         args.append("-n")                # don't resolve hosts internally
         args.append("--privileged")      # assume we can open raw socket
         args.append("--send-ip")         # don't allow ARP responses
+        args.append("-T5")               # "insane" speed
         if self._daemon.options.dataLength > 0:
             args.extend(["--data-length", str(self._daemon.options.dataLength)])
-        
-        # give up on a host after spending too much time on it
-        args.extend(["--initial-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
-        args.extend(["--min-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
-        #args.extend(["--max-retries", "0"])         Remove to reduce false negatives by re-trying
+
+        cycle_interval = self._daemon._prefs.pingCycleInterval
+        ping_tries     = self._daemon._prefs.pingTries
+        ping_timeout   = self._preferences.pingTimeOut
+
+        # Make sure the cycle interval is not unreasonably short.
+        self._detectCycleInterval()
+
+        # Make sure the timeout fits within one cycle.
+        if ping_timeout + MAX_NMAP_OVERHEAD > cycle_interval:
+            ping_timeout = cycle_interval - MAX_NMAP_OVERHEAD
+
+        # Give each host at least that much time to respond.
+        args.extend(["--min-rtt-timeout", "%.1fs" % ping_timeout])
+
+        # But not more, so we can be exact with our calculations.
+        args.extend(["--max-rtt-timeout", "%.1fs" % ping_timeout])
+
+        # Make sure we can safely complete the number of tries within one cycle.
+        if (ping_tries * ping_timeout + MAX_NMAP_OVERHEAD > cycle_interval):
+            ping_tries = int(math.floor((cycle_interval - MAX_NMAP_OVERHEAD) / ping_timeout))
+        args.extend(["--max-retries", "%d" % (ping_tries - 1)])
+
+        # Try to force nmap to go fast enough to finish within one cycle.
+        min_rate = int(math.ceil(num_devices / (1.0 * cycle_interval / ping_tries)))
+        args.extend(["--min-rate","%d" % min_rate])
+
         if num_devices > 0:
-            min_parallelism = int(math.floor((num_devices * self._preferences.pingTimeOut * 2) / self._daemon._prefs.pingCycleInterval + 0.5))
+            min_parallelism = int(math.ceil(2 * num_devices * ping_timeout / cycle_interval))
             if min_parallelism > MAX_PARALLELISM:
                 min_parallelism = MAX_PARALLELISM
             if min_parallelism > DEFAULT_PARALLELISM:
@@ -324,7 +384,8 @@ class NmapPingTask(BaseTask):
 
         if traceroute:
             args.append("--traceroute")
-        
+            # FYI, all bets are off as far as finishing within the cycle interval.
+
         if outputType == 'xml':
             args.extend(["-oX", '-']) # outputXML to stdout
         else:
@@ -379,6 +440,8 @@ class NmapPingTask(BaseTask):
             self._sendNmapMissing()
         except nmap.NmapNotSuid:
             self._sendNmapNotSuid()
+        except nmap.ShortCycleIntervalError:
+            self._sendShortCycleInterval(self.interval)
         except nmap.NmapExecutionError as ex:
             self._nmapExecution(ex) 
             
@@ -428,6 +491,7 @@ class NmapPingTask(BaseTask):
                     doTraceroute = True # try to traceroute on next ping
 
             import time
+            i = 0
             for attempt in range(0, self._daemon._prefs.pingTries):
 
                 start = time.time()
@@ -440,6 +504,7 @@ class NmapPingTask(BaseTask):
 
                 # record the results!
                 for taskName, ipTask in ipTasks.iteritems():
+                    i += 1
                     ip = ipTask.config.ip
                     if ip in results:
                         result = results[ip]
@@ -447,11 +512,14 @@ class NmapPingTask(BaseTask):
                     else:
                         # received no result, log as down
                         ipTask.logPingResult(PingResult(ip, isUp=False))
+                    # give time to reactor to send events if necessary
+                    if i % _SENDEVENT_YIELD_INTERVAL:
+                        yield twistedTask.deferLater(reactor, 0, lambda: None)
 
             self._cleanupDownCounts()
             dcs = self._down_counts
             delayCount = self._daemon.options.delayCount
-            i = 0
+            pingTimeOut = self._preferences.pingTimeOut
             for taskName, ipTask in ipTasks.iteritems():
                 i += 1
                 if ipTask.isUp:
@@ -460,6 +528,12 @@ class NmapPingTask(BaseTask):
                     log.debug("%s is up!", ipTask.config.ip)
                     ipTask.delayedIsUp = True
                     ipTask.sendPingUp()
+                    averageRtt = ipTask.averageRtt()
+                    if averageRtt is not None:
+                        if averageRtt/1000.0 > pingTimeOut: #millisecs to secs
+                            ipTask.sendPingDegraded(rtt=averageRtt)
+                        else:
+                            ipTask.clearPingDegraded(rtt=averageRtt)
                 else:
                     dcs[taskName] = (dcs[taskName][0] + 1, datetime.now())
                     if dcs[taskName][0] > delayCount:
