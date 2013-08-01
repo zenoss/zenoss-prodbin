@@ -12,7 +12,7 @@ from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
-
+from Products.ZenModel.Device import Device
 
 __doc__ = """
 These adapters are responsible for serializing the graph
@@ -53,13 +53,17 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def tags(self):
-        return {'device_name': self._context.id,
-                'ip_address': self._context.getManageIp(),
-                'uid': "/".join(self._context.getPhysicalPath()) }
+        if isinstance(self._context, Device):
+            return {'device_name': self._context.id,
+                    'ip_address': self._context.getManageIp(),
+                    'uid': "/".join(self._context.getPhysicalPath()) }
+        else:
+            return {'component_name': self._context.id,
+                    'uid': "/".join(self._context.getPhysicalPath()) }
 
     def _getGraphPoints(self, klass):
-        graphDefs = self._object.graphPoints()
-        return [templateInterfaces.IMetricServiceGraphDefinition(g) for g in graphDefs if isinstance(g, klass)]
+        graphDefs = self._object.getGraphPoints(True)
+        return [templateInterfaces.IMetricServiceGraphDefinition(g) for g in graphDefs if isinstance(g, klass) ]
 
     @property
     def datapoints(self):
@@ -69,6 +73,10 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     def thresholds(self):
         return self._getGraphPoints(ThresholdGraphPoint)
 
+    base = ProxyProperty('base')
+    miny = ProxyProperty('miny')
+    maxy = ProxyProperty('maxy')
+    units = ProxyProperty('units')
 
 class ColorMetricServiceGraphPoint(MetricServiceGraph):
     @property

@@ -692,7 +692,7 @@
             // we ran out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
                 graph = data[i];
-                graphId = graph.title.replace(' ', '_');
+                graphId = Ext.id();
                 graphTitle = graph.title;
                 delete graph.title;
                 graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
@@ -749,7 +749,7 @@
         },
         getGraphs: function() {
             var graphs = Zenoss.util.filter(this.items.items, function(item){
-                return item.graphUrl;
+                return item.graphId;
             });
             return graphs;
         },
