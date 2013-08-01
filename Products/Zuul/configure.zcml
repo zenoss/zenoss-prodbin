@@ -65,7 +65,7 @@
 
     <five:implements
         interface=".interfaces.IMarshallable"
-        class="Products.Zuul.infos.template.MetricServiceGraph"
+        class="Products.Zuul.infos.metricserver.MetricServiceGraph"
         />
     
 

@@ -9,14 +9,12 @@
 
 
 from zope.interface import implements
-from Products.Zuul.infos import InfoBase, ProxyProperty, HasUuidInfoMixin
+from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
 from Products.Zuul.interfaces import template as templateInterfaces
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUtils.Utils import snmptranslate
-from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
-from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 
 class TemplateInfo(InfoBase):
     description = ProxyProperty('description')
@@ -601,90 +599,3 @@ class GraphInfo(InfoBase):
         return self._object.getFakeGraphCmds()
 
 
-class MetricServiceGraph(HasUuidInfoMixin):
-    implements(templateInterfaces.IMetricServiceGraphDefinition)
-
-    def __init__(self, graph):
-        self._object = graph
-
-class MetricServiceGraphDefinition(MetricServiceGraph):
-
-    def setContext(self, context):
-        self._context = context
-
-    @property
-    def width(self):
-        return self._object.width * 2.0
-
-    @property
-    def height(self):
-        return self._object.height * 4
- 
-    @property
-    def title(self):
-        return self._object.titleOrId()
-
-    @property
-    def type(self):
-        # previously the type was stored on the datapoint
-        # and now it is a property of the graph. Graph the first graphdef
-        # type and just use that for now.
-        datapoints = self.datapoints
-        if len(datapoints):
-            return datapoints[0].type
-
-    @property
-    def tags(self):
-        return {'device_name': self._context.id,
-                'ip_address': self._context.getManageIp(),
-                'uid': "/".join(self._context.getPhysicalPath()) }
-
-    def _getGraphPoints(self, klass):
-        graphDefs = self._object.graphPoints()
-        return [templateInterfaces.IMetricServiceGraphDefinition(g) for g in graphDefs if isinstance(g, klass)]
-
-    @property
-    def datapoints(self):
-        return self._getGraphPoints(DataPointGraphPoint)
-
-    @property
-    def thresholds(self):
-        return self._getGraphPoints(ThresholdGraphPoint)
-
-
-class MetricServiceGraphPoint(MetricServiceGraph):
-
-    _aggregationMapping = {
-        'average': 'avg',
-        'minimum': 'min',
-        'maximum': 'max',
-        'total': 'sum',
-        #TODO: get last agg function working
-        'last': None
-    }
-    @property
-    def id(self):
-        return self._object.id
-
-    @property
-    def metric(self):
-        if hasattr(self._object, "dataPointId"):
-            return self._object.dataPointId()
-
-    @property
-    def legend(self):
-        o = self._object
-        return o.talesEval(o.legend, None)
-
-    @property
-    def color(self):
-        return self._object.getColor(self._object.sequence)
-
-    @property
-    def type(self):
-        return getattr(self._object, "lineType", "").lower()
-
-    @property
-    def aggregator(self):
-        agg = getattr(self._object, "cFunc", 'average').lower()
-        return self._aggregationMapping.get(agg, agg)
