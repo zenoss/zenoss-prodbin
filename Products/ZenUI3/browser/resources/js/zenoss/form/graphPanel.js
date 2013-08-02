@@ -61,6 +61,7 @@
 
 
     Ext.define("Zenoss.EuropaGraph", {
+        alias:['widget.europagraph'],
         extend: "Ext.Panel",
 
 
