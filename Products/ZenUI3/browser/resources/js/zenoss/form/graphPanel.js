@@ -82,6 +82,13 @@
         end: now() - DATE_RANGES[0][0],
 
         /**
+         * @cfg {String}  graphId
+         * The id of the div that is used to contain the graph
+         *
+         */
+        graphId: "",
+
+        /**
          * @cfg {String}  graphTitle
          * The upper left hand title of the graph
          * Defaults to an empty string.
