@@ -53,6 +53,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def tags(self):
+        # TODO: possibly create a new adapter so zenpacks can register their own metric service tags
         if isinstance(self._context, Device):
             return {'device_name': self._context.id,
                     'ip_address': self._context.getManageIp(),

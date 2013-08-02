@@ -580,7 +580,9 @@
                     xtype: 'tbtext',
                     text: _t('Performance Graphs')
 
-                }, '-', '->', {
+                }, '-', '->',
+
+                  , {
                     xtype: 'drangeselector',
                     ref: '../drange_select',
                     listeners: {
@@ -681,13 +683,46 @@
             }
         },
         addGraphs: function(data) {
-            var graphs = [],
+            var graphs,
                 graph,
                 graphId,
                 me = this,
                 start = this.lastShown,
                 end = this.lastShown + GRAPHPAGESIZE,
                 i;
+            graphs = [{
+                margin: '10, 0, 15, 0',
+                xtype: 'container',
+                layout: 'hbox',
+                items:[{
+                    xtype: 'datefield',
+                    ref: '../start_date',
+                    fieldLabel: _t('Start'),
+                    value: new Date()
+                }, {
+                    xtype: 'timefield',
+                    ref: '../start_time',
+                    width: 100
+                },{
+                    xtype: 'container',
+                    width: 15
+                },{
+                    xtype: 'datefield',
+                    ref: '../end_date',
+                    fieldLabel: _t('End'),
+                    value: new Date()
+                },{
+                    xtype: 'timefield',
+                    ref: '../end_time',
+                    width: 100
+                },{
+                    xtype: 'container',
+                    width: 15
+                }, {
+                    xtype: 'button',
+                    text: _t('Update')
+                }]
+            }];
             // load graphs until we have either completed the page or
             // we ran out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
