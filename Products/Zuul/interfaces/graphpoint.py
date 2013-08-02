@@ -142,3 +142,4 @@ class IShiftGraphPointInfo(IGraphPointInfo):
     """
     vname = schema.TextLine(title=_t(u'Vname'))
     offset = schema.Int(title=_t(u'Offset'))
+

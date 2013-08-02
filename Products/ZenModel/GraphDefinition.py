@@ -29,6 +29,8 @@ from Acquisition import aq_base
 from Products.ZenUtils.Utils import resequence
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenMessaging.audit import audit
+from zope.interface import implements
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 
 @deprecated
 def manage_addGraphDefinition(context, id, REQUEST = None):
@@ -70,7 +72,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     """
     GraphDefinition defines the global options for a graph.
     """
-    
+    implements(IGloballyIdentifiable)
     meta_type = 'GraphDefinition'
    
     height = 100
