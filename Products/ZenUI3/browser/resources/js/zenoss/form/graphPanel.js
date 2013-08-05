@@ -171,6 +171,12 @@
             Zenoss.EuropaGraph.superclass.constructor.call(this, config);
         },
         initComponent: function() {
+            // the visualization library depends on our div rendering,
+            // let's make sure that has happened
+            this.on('afterrender', this.initChart, this);
+            this.callParent(arguments);
+        },
+        initChart: function() {
             var visconfig = {
                 exact : true,
                 range : {
@@ -181,10 +187,10 @@
                 height: this.height - 25,
                 tags: this.tags,
                 datapoints: this.datapoints,
-                type: this.type
+                type: this.type,
+                footer: true
             };
             zenoss.visualization.chart.create(this.graphId, visconfig);
-            this.callParent(arguments);
         },
         initEvents: function() {
             Zenoss.EuropaGraph.superclass.initEvents.call(this);
@@ -210,7 +216,13 @@
             if (gp.start < 0) {
                 gp.start = 0;
             }
-            gp.end = Math.max(gp.start + gp.drange, new Date().getTime());
+
+            // see if end is explicitly defined on the params
+            if (Ext.isDefined(params.end)){
+                gp.end = params.end;
+            } else {
+                gp.end = Math.max(gp.start + gp.drange, new Date().getTime());
+            }
             var changes = {
                 range : {
                     start: formatForMetricService(gp.start),
@@ -243,7 +255,7 @@
             var delta = Math.round(gp.drange/this.pan_factor);
             var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
             var newend = newstart + gp.drange;
-            var now = now();
+            var now = new Date().getTime();
             if (newend > now) {
                 newend = now;
                 newstart = now - delta;
