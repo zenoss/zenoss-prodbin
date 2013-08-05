@@ -63,6 +63,12 @@
         class="Products.ZenModel.GraphDefinition.GraphDefinition"
         />
 
+    <five:implements
+        interface=".interfaces.IMarshallable"
+        class="Products.Zuul.infos.metricserver.MetricServiceGraph"
+        />
+    
+
     <adapter factory=".facades.DeviceFacade"
              provides=".interfaces.IDeviceFacade"
              name="device"
@@ -170,6 +176,11 @@
     <adapter provides=".interfaces.IMarshaller"
              for=".interfaces.IInfo"
              factory=".marshalling.InfoMarshaller"
+             />
+
+    <adapter provides=".interfaces.IMarshaller"
+             for=".interfaces.IMetricServiceGraphDefinition"
+             factory=".marshalling.Marshaller"
              />
 
     <adapter provides=".interfaces.IMarshaller"

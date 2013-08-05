@@ -16,7 +16,6 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUtils.Utils import snmptranslate
 
-
 class TemplateInfo(InfoBase):
     description = ProxyProperty('description')
     targetPythonClass = ProxyProperty('targetPythonClass')
@@ -598,3 +597,5 @@ class GraphInfo(InfoBase):
         Used to display the graph commands to the user
         """
         return self._object.getFakeGraphCmds()
+
+
