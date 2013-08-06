@@ -9,7 +9,7 @@
 
 
 import time
-
+import json
 from xmlrpclib import ProtocolError
 import logging
 log = logging.getLogger("zen.RRDView")
@@ -19,7 +19,7 @@ from Acquisition import aq_chain
 from Products.ZenRRD.RRDUtil import convertToRRDTime
 from Products.ZenUtils import Map
 from Products.ZenWidgets import messaging
-
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenModel.ConfigurationError import ConfigurationError
 
 CACHE_TIME = 60.
@@ -290,7 +290,17 @@ class RRDView(object):
         return result
 
     def rrdPath(self):
-        return GetRRDPath(self)
+        """
+        Overriding this method to return the uuid since that
+        is what we want to store in the metric DB.
+        getUUID is defined on ManagedEntity.
+        """
+        return json.dumps({
+            'type': 'METRIC_DATA',
+            'contextUUID': self.getUUID(),
+            'deviceUUID': self.device().getUUID(),
+            'contextId': self.id
+        }, sort_keys=True)
 
     def fullRRDPath(self):
         from PerformanceConf import performancePath
@@ -362,6 +372,8 @@ class RRDView(object):
             )
             return self.callZenScreen(REQUEST)
 
+    def getUUID(self):
+        return IGlobalIdentifier(self).getGUID()
 
 def updateCache(filenameValues):
     _cache.update(dict(filenameValues))

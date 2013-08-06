@@ -331,7 +331,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
                     # We should always get something useful back
                     if value == '' or value is None:
-                        if oid not in self._bad_oids:                 
+                        if oid not in self._bad_oids:
                             log.error("SNMP get returned empty value: {0} {1}".format(self.configId, oid))
                             self._addBadOids([oid])
                         continue
@@ -342,14 +342,13 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     # An OID's data can be stored multiple times
                     for rrdMeta in self._oids[oid]:
                         try:
-                            cname, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
-                            self._dataService.writeRRD(
-                                path, value, rrdType,
-                                rrdCommand=rrdCommand,
-                                cycleTime=self._device.cycleInterval,
-                                min=rrdMin, max=rrdMax)
+                            # see SnmpPerformanceConfig line _getComponentConfig
+                            contextId, metric, contextUUID, devuuid, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
+                            self._dataService.writeMetric(
+                                contextUUID, metric, value, rrdType, contextId,
+                                min=rrdMin, max=rrdMax, deviceuuid=devuuid)
                         except Exception, e:
-                            log.error("Failed to write to RRD file: {0} {1.__class__.__name__} {1}".format(path, e))
+                            log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(contextUUID, e))
                             continue
             finally:
                 self.state = TaskStates.STATE_RUNNING
