@@ -16,7 +16,7 @@ from copy import deepcopy
 from AccessControl import ClassSecurityInfo, getSecurityManager
 from Globals import InitializeClass
 from zope.interface import Interface, implements
-
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
@@ -219,4 +219,7 @@ class EventView(object):
             result = 0
         return result
 
+    def getUUID(self):
+        return IGlobalIdentifier(self).getGUID()
+    
 InitializeClass(EventView)
