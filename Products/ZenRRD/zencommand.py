@@ -566,11 +566,11 @@ class SshPerformanceCollectionTask(BaseTask):
                     'eventKey': datasource.getEventKey(dp),
                     'component': dp.component,
                 }
-                self._dataService.writeMetric(dp.compuuid,
+                self._dataService.writeMetric(dp.contextUUID,
                                               dp.dpName,
                                               value,
                                               dp.rrdType,
-                                              dp.component,
+                                              dp.componentId,
                                               deviceuuid=dp.devuuid,
                                               min=dp.rrdMin,
                                               max=dp.rrdMax,

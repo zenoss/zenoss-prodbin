@@ -113,7 +113,7 @@ class ProcessConfig(CollectorConfigService):
                 continue
 
             proc = ProcessProxy()
-            proc.uuid = p.getUUID()
+            proc.contextUUID = p.getUUID()
             proc.deviceuuid = devuuid
             proc.regex = regex
             proc.name = p.id

@@ -11,8 +11,7 @@
 import signal
 import time
 import logging
-import os
-
+import json
 import zope.interface
 
 from twisted.internet import defer, reactor, task, protocol
@@ -351,8 +350,24 @@ class CollectorDaemon(RRDDaemon):
             self._timedMetricCache[uuid] = timedMetric
             return None
 
-    def writeMetric(self, uuid, metric, value, metricType, name, timestamp='N', min='U', max='U',
-            hasThresholds=False, threshEventData={}, allowStaleDatapoint=True, deviceuuid=None):
+    def writeMetric(self, contextUUID, metric, value, metricType, contextId, timestamp='N', min='U', max='U',
+            hasThresholds=False, threshEventData={}, deviceuuid=None):
+        """
+        Writes the metric to the metric publisher.
+        @param contextUUID: This is who the metric applies to. This is usually a component or a device.
+        @param metric: the name of the metric, we expect it to be of the form datasource_datapoint
+        @param value: the value of the metric
+        @param metricType: rrdtype of theme (e.g. 'COUNTER', 'GUAGE', 'DERIVE' etc)
+        @param contextId: used for the threshold events, the id of who this metric is for
+        @param timestamp: defaults to time.time() if not specified, the time the metric occurred
+        @param min: used in the derive the min value for the metric
+        @param max: used in the derive the max value for the metric
+        @param hasThresholds: true if the rrd has thresholds
+        @param threshEventData: extra data put into threshold events
+        @param deviceuuid: the unique identifier of the device for
+        this metric, maybe the same as contextUUID if the context is a
+        device
+        """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
         extraTags = {
             'datasource': metric.split("_")[0]
@@ -364,22 +379,22 @@ class CollectorDaemon(RRDDaemon):
                 metric.split("_")[1], # metric id is the datapoint name
                 value,
                 timestamp,
-                uuid,
+                contextUUID,
                 extraTags
             )
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in ('COUNTER', 'DERIVE'):
-            value = self._derivative(uuid, (int(value), timestamp), min, max)
+            value = self._derivative(contextUUID, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
         if hasThresholds and value != None:
             if 'eventKey' in threshEventData:
                 eventKeyPrefix = [threshEventData['eventKey']]
             else:
-                eventKeyPrefix = [name]
+                eventKeyPrefix = [contextId]
 
-            for ev in self._thresholds.check(uuid, timestamp, value):
+            for ev in self._thresholds.check(contextUUID, timestamp, value):
                 parts = eventKeyPrefix[:]
                 if 'eventKey' in ev:
                     parts.append(ev['eventKey'])
@@ -397,18 +412,25 @@ class CollectorDaemon(RRDDaemon):
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):
-        # reroute to new writeMetric Method
-        self.writeMetric(path,
-                os.path.basename(path),
+        # we rely on the fact that rrdPath now returns the guid for an object
+        uuidInfo, metric = path.rsplit('/', 1)
+        if not 'METRIC_DATA'  in str(uuidInfo):
+            raise Exception("Unable to write RRD with given path { %s }please see the rrdpath method" % str(uuidInfo))
+
+        uuidInfo = json.loads(uuidInfo)
+        # reroute to new writeMetric method
+        self.writeMetric(uuidInfo['contextUUID'],
+                metric,
                 value,
                 rrdType,
-                os.path.dirname(path),
+                uuidInfo['contextId'],
                 timestamp,
                 min,
                 max,
                 bool(self._thresholds.byFilename.get(path)),
                 threshEventData,
-                allowStaleDatapoint)
+                uuidInfo['deviceUUID']
+            )
 
     def readRRD(self, path, consolidationFunction, start, end):
         return RRDUtil.read(path, consolidationFunction, start, end)

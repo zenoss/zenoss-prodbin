@@ -100,7 +100,7 @@ class SnmpPerformanceConfig(CollectorConfigService):
             return None
 
         validOID = re.compile(r'(?:\.?\d+)+$')
-        compuuid  = comp.getUUID()
+        contextUUID  = comp.getUUID()
         devuuid = comp.device().getUUID()
         for templ in comp.getRRDTemplates():
             for ds in templ.getRRDDataSources("SNMP"):
@@ -123,11 +123,10 @@ class SnmpPerformanceConfig(CollectorConfigService):
                         continue
 
                 for dp in ds.getRRDDataPoints():
-                    # Everything under ZenModel *should* use titleOrId but it doesn't
-                    cname = comp.viewName() if comp.meta_type != "Device" else dp.id
+                    cname = comp.id
                     oidData = (cname,
                                  dp.name(),
-                                 compuuid,
+                                 contextUUID,
                                  devuuid,
                                  dp.rrdtype,
                                  dp.getRRDCreateCommand(perfServer).strip(),

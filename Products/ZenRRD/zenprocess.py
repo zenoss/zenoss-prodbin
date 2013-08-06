@@ -872,7 +872,7 @@ class ZenProcessTask(ObservableMixin):
         @param rrdType: Metric data type (eg ABSOLUTE, DERIVE, COUNTER)
         @type rrdType: string
         """
-        uuid = pidName._config.uuid
+        uuid = pidName._config.contextUUID
         devuuid = pidName._config.deviceuuid
         try:
             self._dataService.writeMetric(uuid, statName, value, rrdType, pidName._config.name, min=min, deviceuuid=devuuid)

@@ -9,7 +9,7 @@
 
 
 import time
-
+import json
 from xmlrpclib import ProtocolError
 import logging
 log = logging.getLogger("zen.RRDView")
@@ -295,7 +295,12 @@ class RRDView(object):
         is what we want to store in the metric DB.
         getUUID is defined on ManagedEntity.
         """
-        return self.getUUID()
+        return json.dumps({
+            'type': 'METRIC_DATA',
+            'contextUUID': self.getUUID(),
+            'deviceUUID': self.device().getUUID(),
+            'contextId': self.id
+        })
 
     def fullRRDPath(self):
         from PerformanceConf import performancePath

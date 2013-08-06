@@ -343,12 +343,12 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     for rrdMeta in self._oids[oid]:
                         try:
                             # see SnmpPerformanceConfig line _getComponentConfig
-                            cname, metric, compuuid, devuuid, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
+                            contextId, metric, contextUUID, devuuid, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
                             self._dataService.writeMetric(
-                                compuuid, metric, value, rrdType, cname,
+                                contextUUID, metric, value, rrdType, contextId,
                                 min=rrdMin, max=rrdMax, deviceuuid=devuuid)
                         except Exception, e:
-                            log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(compuuid, e))
+                            log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(contextUUID, e))
                             continue
             finally:
                 self.state = TaskStates.STATE_RUNNING
