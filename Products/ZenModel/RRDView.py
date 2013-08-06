@@ -290,7 +290,12 @@ class RRDView(object):
         return result
 
     def rrdPath(self):
-        return GetRRDPath(self)
+        """
+        Overriding this method to return the uuid since that
+        is what we want to store in the metric DB.
+        getUUID is defined on ManagedEntity.
+        """
+        return self.getUUID()
 
     def fullRRDPath(self):
         from PerformanceConf import performancePath

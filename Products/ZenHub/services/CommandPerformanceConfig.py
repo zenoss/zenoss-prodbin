@@ -51,12 +51,15 @@ class CommandPerformanceConfig(CollectorConfigService):
         parser = ploader.create()
         points = []          
         component_name = ds.getComponent(comp)
-        basepath = comp.rrdPath()
+        compuuid = comp.getUUID()
+        devuuid = comp.device().getUUID()
         for dp in ds.getRRDDataPoints():
             dpc = DataPointConfig()
             dpc.id = dp.id
             dpc.component = component_name
-            dpc.rrdPath = "/".join((basepath, dp.name()))
+            dpc.compuuid = compuuid
+            dpc.dpName = dp.name()
+            dpc.devuuid = devuuid
             dpc.rrdType = dp.rrdtype
             dpc.rrdCreateCommand = dp.getRRDCreateCommand(perfServer)
             dpc.rrdMin = dp.rrdmin

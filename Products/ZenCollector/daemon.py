@@ -15,9 +15,9 @@ import os
 
 import zope.interface
 
-from twisted.internet import defer, reactor, task
+from twisted.internet import defer, reactor, task, protocol
 from twisted.python.failure import Failure
-
+from txredis import RedisClient
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
@@ -333,8 +333,8 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
-    def _derivative(self, path, timedMetric, min, max):
-        lastTimedMetric = self._timedMetricCache.get(path)
+    def _derivative(self, uuid, timedMetric, min, max):
+        lastTimedMetric = self._timedMetricCache.get(uuid)
         if lastTimedMetric:
             # identical timestamps?
             if timedMetric[1] == lastTimedMetric[1]:
@@ -348,32 +348,38 @@ class CollectorDaemon(RRDDaemon):
                 return delta
         else:
             # first value we've seen for path
-            self._timedMetricCache[path] = timedMetric
+            self._timedMetricCache[uuid] = timedMetric
             return None
 
-    def writeMetric(self, path, metric, value, metricType, metricId, timestamp='N', min='U', max='U',
-            hasThresholds=False, threshEventData={}, allowStaleDatapoint=True):
+    def writeMetric(self, uuid, metric, value, metricType, name, timestamp='N', min='U', max='U',
+            hasThresholds=False, threshEventData={}, allowStaleDatapoint=True, deviceuuid=None):
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
-
+        extraTags = {
+            'datasource': metric.split("_")[0]
+        }
+        if deviceuuid:
+            extraTags['device'] = deviceuuid
         # write the raw metric to Redis
-        self._publisher.put(self._metricsChannel, 
-                metric,
+        self._publisher.put(self._metricsChannel,
+                metric.split("_")[1], # metric id is the datapoint name
                 value,
                 timestamp,
-                metricId)
+                uuid,
+                extraTags
+            )
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in ('COUNTER', 'DERIVE'):
-            value = self._derivative(path, (int(value), timestamp), min, max)
+            value = self._derivative(uuid, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
         if hasThresholds and value != None:
             if 'eventKey' in threshEventData:
                 eventKeyPrefix = [threshEventData['eventKey']]
             else:
-                eventKeyPrefix = [path.rsplit('/')[-1]]
+                eventKeyPrefix = [name]
 
-            for ev in self._thresholds.check(path, timestamp, value):
+            for ev in self._thresholds.check(uuid, timestamp, value):
                 parts = eventKeyPrefix[:]
                 if 'eventKey' in ev:
                     parts.append(ev['eventKey'])
@@ -641,13 +647,15 @@ class CollectorDaemon(RRDDaemon):
             except ImportError:
                 log.exception("Unable to import class %s", c)
 
+    @defer.inlineCallbacks
     def _configureRRD(self, rrdCreateCommand, thresholds):
-        self._publisher = publisher.RedisListPublisher()
+
         self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
         self.rrdStats.config(self.options.monitor,
                              self.name,
                              thresholds,
                              rrdCreateCommand)
+        self._publisher = yield publisher.RedisListPublisher.create()
 
     def _isRRDConfigured(self):
         return (self.rrdStats and self._rrd)

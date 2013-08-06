@@ -18,7 +18,6 @@ from Globals import InitializeClass
 from zope.interface import Interface, implements
 
 from Products.Zuul import getFacade
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
 from zenoss.protocols.services.zep import ZepConnectionError
@@ -38,7 +37,7 @@ def zepConnectionError(retval=None):
                 return func(self, *args, **kwargs)
             except ZepConnectionError, e:
                 msg = 'Connection refused. Check zeneventserver status on <a href="/zport/About/zenossInfo">Daemons</a>'
-                messaging.IMessageSender(self).sendToBrowser("ZEP connection error",
+                messaging.IMessagSender(self).sendToBrowser("ZEP connection error",
                                                         msg,
                                                         priority=messaging.CRITICAL,
                                                         sticky=True)
@@ -189,9 +188,6 @@ class EventView(object):
             return 0
         result = zep.getEventSummaries(0, filter=event_filter, limit=0)
         return int(result['total'])
-
-    def getUUID(self):
-        return IGlobalIdentifier(self).getGUID()
 
     @zepConnectionError({})
     def getEventSeveritiesCount(self):

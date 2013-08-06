@@ -22,7 +22,7 @@ from DeviceResultInt import DeviceResultInt
 from RRDView import RRDView
 from EventView import EventView
 from Products.Zuul.catalog.events import IndexingEvent
-
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
 from .ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE
 from AccessControl import ClassSecurityInfo
@@ -105,3 +105,5 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView,
             )
             return self.callZenScreen(REQUEST)
 
+    def getUUID(self):
+        return IGlobalIdentifier(self).getGUID()
