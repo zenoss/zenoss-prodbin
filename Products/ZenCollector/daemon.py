@@ -14,9 +14,11 @@ import logging
 import json
 import zope.interface
 
-from twisted.internet import defer, reactor, task, protocol
+from twisted.internet import defer, protocol, reactor, task
 from twisted.python.failure import Failure
+
 from txredis import RedisClient
+
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
@@ -671,13 +673,13 @@ class CollectorDaemon(RRDDaemon):
 
     @defer.inlineCallbacks
     def _configureRRD(self, rrdCreateCommand, thresholds):
-
         self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
         self.rrdStats.config(self.options.monitor,
                              self.name,
                              thresholds,
                              rrdCreateCommand)
-        self._publisher = yield publisher.RedisListPublisher.create()
+
+        self._publisher= yield publisher.RedisListPublisher.create()
 
     def _isRRDConfigured(self):
         return (self.rrdStats and self._rrd)
