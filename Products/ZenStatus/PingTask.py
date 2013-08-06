@@ -313,14 +313,13 @@ class PingTask(BaseTask):
             }
         
         for rrdMeta in self.config.points:
-            name, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
-            value = datapoints.get(name, None)
+            id, metric, contextUUID, deviceuuid, rrdType, rrdCommand, rrdMin, rrdMax, contextId = rrdMeta
+            value = datapoints.get(id, None)
             if value is None:
                 log.debug("No datapoint '%s' found on the %s pingTask",
-                          name, self)
+                          id, self)
             else:
-                self._dataService.writeRRD(
-                    path, value, rrdType,
-                    rrdCommand=rrdCommand,
-                    min=rrdMin, max=rrdMax,
+                self._dataService.writeMetric(
+                    contextUUID, metric, value, rrdType, contextId,
+                    min=rrdMin, max=rrdMax, deviceuuid=deviceuuid
                 )

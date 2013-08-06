@@ -54,13 +54,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     @property
     def tags(self):
         # TODO: possibly create a new adapter so zenpacks can register their own metric service tags
-        if isinstance(self._context, Device):
-            return {'device_name': self._context.id,
-                    'ip_address': self._context.getManageIp(),
-                    'uid': "/".join(self._context.getPhysicalPath()) }
-        else:
-            return {'component_name': self._context.id,
-                    'uid': "/".join(self._context.getPhysicalPath()) }
+        return { 'uuid': self._context.getUUID() }
 
     def _getGraphPoints(self, klass):
         graphDefs = self._object.getGraphPoints(True)
@@ -120,5 +114,8 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         agg = self._object.cFunc.lower()
         return self._aggregationMapping.get(agg, agg)
 
+    @property
+    def tags(self):
+        return {'datasource': self._object.dpName.split("_")[0]}
     format = ProxyProperty('format')
     rpn = ProxyProperty('rpn')

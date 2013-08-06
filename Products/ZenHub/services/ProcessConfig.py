@@ -81,6 +81,7 @@ class ProcessConfig(CollectorConfigService):
         proxy.thresholds = []
         proxy.processes = {}
         proxy.snmpConnInfo = device.getSnmpConnInfo()
+        devuuid = device.getUUID()
         for p in procs:
             # Find out which datasources are responsible for this process
             # if SNMP is not responsible, then do not add it to the list
@@ -112,6 +113,8 @@ class ProcessConfig(CollectorConfigService):
                 continue
 
             proc = ProcessProxy()
+            proc.contextUUID = p.getUUID()
+            proc.deviceuuid = devuuid
             proc.regex = regex
             proc.name = p.id
             proc.originalName = p.name()
