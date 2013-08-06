@@ -119,7 +119,7 @@ Zenoss.nav.register({
                     text: _t('Refresh'),
                     handler: function(btn) {
                         if (cardid && Ext.getCmp(cardid)) {
-                            Ext.getCmp(cardid).resetSwoopies();
+                            Ext.getCmp(cardid).refresh();
                         }
                     }
                 }

@@ -283,9 +283,11 @@ EXITCODE=4
 case "$FUNC" in
   start)
         issue
+        zsupervisor startup
         EXITCODE=$?
         ;;
   stop)
+        zsupervisor shutdown
         ZENDAEMONS=`reverse $ZENDAEMONS`
         issue
         EXITCODE=$?
@@ -295,17 +297,21 @@ case "$FUNC" in
         ZENDAEMONS=`reverse $ZENDAEMONS`
     FUNC=stop
     issue
+    zsupervisor shutdown
         ZENDAEMONS=`reverse $ZENDAEMONS`
     FUNC=start
         issue
+        zsupervisor startup
         EXITCODE=$?
         ;;
   status)
         issue
+        zsupervisor status
         EXITCODE=$?
         ;;
   xstatus)
     xissue
+    zsupervisor status
     EXITCODE=$?
     ;;
   list)
@@ -314,6 +320,7 @@ case "$FUNC" in
         echo $i
         EXITCODE=0
     done
+    echo "zsupervisor"
     ;;
   *)
         echo $"Usage: $0 {start|stop|restart|status|xstatus|list}"

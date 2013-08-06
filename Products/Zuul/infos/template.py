@@ -16,7 +16,6 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUtils.Utils import snmptranslate
 
-
 class TemplateInfo(InfoBase):
     description = ProxyProperty('description')
     targetPythonClass = ProxyProperty('targetPythonClass')
@@ -147,7 +146,7 @@ class DeviceClassTemplateNode(TreeNode):
     @property
     @memoize
     def qtip(self):
-        return self._get_object.description
+        return self._get_object().description
 
     @property
     @memoize
@@ -159,9 +158,8 @@ class DeviceClassTemplateNode(TreeNode):
 
     @property
     def _organizer(self):
-        return self if self.isOrganizer else self._parent._get_object
+        return self if self.isOrganizer else self._parent._get_object()
 
-    @property
     @memoize
     def _get_object(self):
         return self._object.getObject()
@@ -171,7 +169,7 @@ class DeviceClassTemplateNode(TreeNode):
         if self.isOrganizer:
             return ''
         # check to see if it is a component template
-        template = self._get_object
+        template = self._get_object()
         if template.targetPythonClass != 'Products.ZenModel.Device':
             return 'tree-template-icon-component'
         # check to see if it is bound
@@ -196,7 +194,7 @@ class DeviceClassTemplateNode(TreeNode):
         if self._organizerPath in self.uid:
             path = _t('Locally Defined')
         else:
-            path = self._get_object.getUIPath()
+            path = self._get_object().getUIPath()
         return "%s (%s)" % (self._object.name, path)
 
     def _get_templates(self):
@@ -599,3 +597,5 @@ class GraphInfo(InfoBase):
         Used to display the graph commands to the user
         """
         return self._object.getFakeGraphCmds()
+
+

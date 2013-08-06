@@ -42,7 +42,11 @@
         <script src="/++resource++zenui/js/zenoss/codemirror/codemirror.js"></script>
         <link rel="stylesheet" href="/++resource++zenui/js/zenoss/codemirror/codemirror.css" />
         <script src="/++resource++zenui/js/zenoss/codemirror/mode/python/python.js"></script>
-
+        <script type="text/javascript" src="/api/visualization.js"></script>
+        <script type="text/javascript">
+            zenoss.visualization.url = window.location.protocol + "//" + window.location.host;
+            zenoss.visualization.debug = false;
+        </script>
     </head>
 
     <body>

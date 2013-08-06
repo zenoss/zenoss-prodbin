@@ -42,3 +42,12 @@ class NmapNotSuid(Exception):
     NmapNotFound raised when nmap is not found.
     """
     pass
+
+class ShortCycleIntervalError(Exception):
+    """
+    ShortCycleIntervalError raised when the Ping Cycle Interval is unreasonably
+    short.
+    """
+    def __init__(self, cycle_interval):
+        msg = "Ping cycle interval (%.1f seconds) is too short"
+        super(ShortCycleIntervalError, self).__init__(msg % cycle_interval)
