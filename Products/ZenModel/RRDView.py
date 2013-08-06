@@ -300,7 +300,7 @@ class RRDView(object):
             'contextUUID': self.getUUID(),
             'deviceUUID': self.device().getUUID(),
             'contextId': self.id
-        })
+        }, sort_keys=True)
 
     def fullRRDPath(self):
         from PerformanceConf import performancePath

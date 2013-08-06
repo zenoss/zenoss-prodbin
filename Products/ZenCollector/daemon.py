@@ -357,12 +357,12 @@ class CollectorDaemon(RRDDaemon):
         @param contextUUID: This is who the metric applies to. This is usually a component or a device.
         @param metric: the name of the metric, we expect it to be of the form datasource_datapoint
         @param value: the value of the metric
-        @param metricType: rrdtype of theme (e.g. 'COUNTER', 'GUAGE', 'DERIVE' etc)
+        @param metricType: type of the metric (e.g. 'COUNTER', 'GUAGE', 'DERIVE' etc)
         @param contextId: used for the threshold events, the id of who this metric is for
         @param timestamp: defaults to time.time() if not specified, the time the metric occurred
         @param min: used in the derive the min value for the metric
         @param max: used in the derive the max value for the metric
-        @param hasThresholds: true if the rrd has thresholds
+        @param hasThresholds: true if the metric has thresholds
         @param threshEventData: extra data put into threshold events
         @param deviceuuid: the unique identifier of the device for
         this metric, maybe the same as contextUUID if the context is a
@@ -415,7 +415,7 @@ class CollectorDaemon(RRDDaemon):
         # we rely on the fact that rrdPath now returns the guid for an object
         uuidInfo, metric = path.rsplit('/', 1)
         if not 'METRIC_DATA'  in str(uuidInfo):
-            raise Exception("Unable to write RRD with given path { %s }please see the rrdpath method" % str(uuidInfo))
+            raise Exception("Unable to write Metric with given path { %s } please see the rrdpath method" % str(uuidInfo))
 
         uuidInfo = json.loads(uuidInfo)
         # reroute to new writeMetric method
