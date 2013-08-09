@@ -1136,6 +1136,7 @@ Ext.define("Zenoss.component.CPUPanel", {
                 {name: 'extspeed'},
                 {name: 'cacheSizeL1'},
                 {name: 'cacheSizeL2'},
+                {name: 'cacheSizeL3'},
                 {name: 'voltage'},
                 {name: 'locking'},
                 {name: 'usesMonitorAttribute'},
@@ -1178,6 +1179,12 @@ Ext.define("Zenoss.component.CPUPanel", {
                 id: 'cacheSizeL2',
                 dataIndex: 'cacheSizeL2',
                 header: _t('L2'),
+                width: 70,
+                renderer: function(x){ return x + ' KB';}
+            },{
+                id: 'cacheSizeL3',
+                dataIndex: 'cacheSizeL3',
+                header: _t('L3'),
                 width: 70,
                 renderer: function(x){ return x + ' KB';}
             },{
