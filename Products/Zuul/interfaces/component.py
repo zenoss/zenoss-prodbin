@@ -199,6 +199,7 @@ class ICPUInfo(IComponentInfo):
     voltage = schema.Int(title=_t(u"Voltage"), readonly=True)
     cacheSizeL1 = schema.Int(title=_t(u"L1"), readonly=True)
     cacheSizeL2 = schema.Int(title=_t(u"L2"), readonly=True)
+    cacheSizeL3 = schema.Int(title=_t(u"L3"), readonly=True)
     product = schema.Entity(title=_t(u"Model"), readonly=True)
     manufacturer = schema.Entity(title=_t(u"Manufacturer"), readonly=True)
 
