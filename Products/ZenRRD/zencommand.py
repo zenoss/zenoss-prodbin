@@ -566,13 +566,15 @@ class SshPerformanceCollectionTask(BaseTask):
                     'eventKey': datasource.getEventKey(dp),
                     'component': dp.component,
                 }
-                self._dataService.writeRRD(dp.rrdPath,
-                                           value, dp.rrdType,
-                                           dp.rrdCreateCommand,
-                                           datasource.cycleTime,
-                                           dp.rrdMin,
-                                           dp.rrdMax,
-                                           threshData)
+                self._dataService.writeMetric(dp.contextUUID,
+                                              dp.dpName,
+                                              value,
+                                              dp.rrdType,
+                                              dp.componentId,
+                                              deviceuuid=dp.devuuid,
+                                              min=dp.rrdMin,
+                                              max=dp.rrdMax,
+                                              threshEventData=threshData)
 
             eventList = results.events
             exitCode = getattr(datasource.result, 'exitCode', -1)

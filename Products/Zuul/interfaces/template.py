@@ -7,7 +7,7 @@
 # 
 ##############################################################################
 
-
+from zope.interface import Interface
 from Products.Zuul.interfaces import IInfo, IFacade
 from Products.Zuul.form import schema
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -167,7 +167,11 @@ class IGraphInfo(IInfo):
     Adapts GraphDefinition.
     """
 
-
+class IMetricServiceGraphDefinition(Interface):
+    """
+    Adapts a graph definition for being sent over to the server
+    """
+    
 class ITemplateFacade(IFacade):
     """
     A facade for monitoring templates.
@@ -313,3 +317,5 @@ class ITemplateFacade(IFacade):
         Set the sequence of the graph definitions uniquely identified by the
         items in the uids paramter.
         """
+
+

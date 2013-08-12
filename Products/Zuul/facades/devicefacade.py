@@ -19,7 +19,7 @@ from Products.AdvancedQuery import Eq, Or, Generic, And
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode
+from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
@@ -655,7 +655,13 @@ class DeviceFacade(TreeFacade):
 
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
-        return obj.getDefaultGraphDefs(drange)
+        graphs = []
+        for template in obj.getRRDTemplates():
+            for graph in template.getGraphDefs():
+                info = IMetricServiceGraphDefinition(graph)
+                info.setContext(obj)
+                graphs.append(info)
+        return graphs
 
     def addIpRouteEntry(self, uid, dest, routemask, nexthopid, interface,
                         routeproto, routetype, userCreated):
