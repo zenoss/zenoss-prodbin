@@ -13,17 +13,38 @@
      * Graph Panel
      *
      */
+    function syntaxHighlight(json) {
+        json = JSON.stringify(json, undefined, 4);
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'syntax-number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'syntax-string';
+                } else {
+                    cls = 'syntax-text';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'syntax-boolean';
+            } else if (/null/.test(match)) {
+                cls = 'syntax-null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+
     var router = Zenoss.remote.DeviceRouter,
         GraphPanel,
         DRangeSelector,
         GraphRefreshButton,
         tbarConfig,
+        dateRangePanel,
         DATE_RANGES = [
-            [3600000, _t('Hourly')],
-            [86400000, _t('Daily')],
-            [604800000, _t('Weekly')],
-            [2419200000, _t('Monthly')],
-            [31536000000, _t('Yearly')]
+            [3600000, _t('Last Hour')],
+            [86400000, _t('Yesterday')],
+            [604800000, _t('Last Week')],
+            [2419200000, _t('Last Month')],
+            [31536000000, _t('Last Year')]
         ],
         DOWNSMAPLE = [
             [86400000, '1h-avg'],    // Day
@@ -137,6 +158,10 @@
                         xtype: 'tbtext',
                         text: config.graphTitle // + ' : ' + config.uid
                     },'->',{
+                        xtype: 'button',
+                        text: "?",
+                        handler: Ext.bind(this.displayDefinition, this)
+                    },{
                         text: '&lt;',
                         width: 67,
                         handler: Ext.bind(function(btn, e) {
@@ -190,7 +215,22 @@
                 type: this.type,
                 footer: true
             };
+            this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);
+        },
+        displayDefinition: function(){
+            Ext.create('Zenoss.dialog.BaseWindow', {
+                closeAction: 'destroy',
+                title: _t('Graph JSON Definition'),
+                autoScroll: true,
+                minWidth: 700,
+                height: 500,
+                items: [{
+                    xtype: 'panel',
+                    autoScroll: true,
+                    html: Ext.String.format('<pre>{0}</pre>', syntaxHighlight(this.chartdefinition))
+                }]
+            }).show();
         },
         initEvents: function() {
             Zenoss.EuropaGraph.superclass.initEvents.call(this);
@@ -218,7 +258,7 @@
             }
 
             // see if end is explicitly defined on the params
-            if (Ext.isDefined(params.end)){
+            if (Ext.isDefined(params.end) && (params.end > params.start)){
                 gp.end = params.end;
             } else {
                 gp.end = Math.max(gp.start + gp.drange, new Date().getTime());
@@ -373,15 +413,68 @@
         }
     });
 
-
+    dateRangePanel = [{
+        margin: '10, 0, 15, 0',
+        xtype: 'container',
+        layout: 'hbox',
+        defaults: {
+            margin: '0 0 0 10',
+            labelWidth: 30
+        },
+        items:[{
+            xtype: 'datefield',
+            ref: '../start_date',
+            width: 250,
+            fieldLabel: _t('Start'),
+            format:'Y-m-d H:i:s',
+            // the default is one hour ago
+            value: Ext.Date.format(new Date((new Date().getTime() - 3600 * 1000)), "Y-m-d H:i:s")
+        },{
+            xtype: 'container',
+            width: 5
+        },{
+            xtype: 'datefield',
+            ref: '../end_date',
+            width: 250,
+            fieldLabel: _t('End'),
+            disabled: true,
+            format:'Y-m-d H:i:s',
+            value: Ext.Date.format(new Date(), "Y-m-d H:i:s")
+        }, {
+            xtype: 'checkbox',
+            ref: '../checkbox_now',
+            fieldLabel: _t('Now'),
+            checked: true,
+            listeners: {
+                change: function(chkbox, newValue) {
+                    chkbox.refOwner.end_date.setDisabled(newValue);
+                }
+            }
+        }, {
+            xtype: 'button',
+            text: _t('Update'),
+            ref: '../updatebutton',
+            handler: function(b){
+                var me = b.refOwner;
+                me.start = me.start_date.getValue().getTime();
+                me.updateEndTime();
+                me.end = me.end_date.getValue().getTime();
+                Ext.each(me.getGraphs(), function(g) {
+                    g.fireEvent("updateimage", {
+                        start: me.start,
+                        end: me.end
+                    }, me);
+                });
+            }
+        }]
+    }];
     tbarConfig = [
         {
             xtype: 'tbtext',
             text: _t('Performance Graphs')
-
         },
         '-',
-        '->' ,
+        '->',
         {
             xtype: 'drangeselector',
             ref: '../drange_select',
@@ -416,7 +509,6 @@
         }, '-',{
             xtype: 'graphrefreshbutton',
             ref: '../refreshmenu',
-            stateId: 'graphRefresh',
             iconCls: 'refresh',
             text: _t('Refresh'),
             handler: function(btn) {
@@ -424,6 +516,29 @@
                     var panel = btn.refOwner;
                     panel.refresh();
                 }
+            }
+        }, '-', {
+            xtype: 'button',
+            ref: '../newwindow',
+            iconCls: 'newwindow',
+            hidden: true,
+            handler: function(btn) {
+                var panel = btn.refOwner;
+                    var config = panel.initialConfig,
+                        win = Ext.create('Zenoss.dialog.BaseWindow',  {
+                        cls: 'white-background-panel',
+                        layout: 'fit',
+                        items: [Ext.apply(config,{
+                            id: 'device_graphs_window',
+                            xtype: 'graphpanel',
+                            ref: 'graphPanel',
+                            uid: panel.uid,
+                            newWindowButton: false
+                        })],
+                        maximized: true
+                    });
+                win.show();
+                win.graphPanel.setContext(panel.uid);
             }
         }];
 
@@ -436,12 +551,11 @@
             if (!Ext.isDefined(config.showToolbar) ) {
                 config.showToolbar = true;
             }
-            if (config.showToolbar){
-                config.tbar = tbarConfig;
-            }
+
             Ext.applyIf(config, {
-                drange: 129600,
+                drange: DATE_RANGES[0][0],
                 isLinked: true,
+                newWindowButton: true,
                 // images show up after Ext has calculated the
                 // size of the div
                 bodyStyle: {
@@ -449,9 +563,20 @@
                 },
                 directFn: router.getGraphDefs
             });
+            if (config.showToolbar){
+                config.tbar = tbarConfig;
+            }
             Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
         },
         setContext: function(uid) {
+            if (this.newwindow) {
+                if (this.newWindowButton) {
+                    this.newwindow.show();
+                } else {
+                    this.newwindow.hide();
+                }
+            }
+
             // remove all the graphs
             this.removeAll();
             this.lastShown = 0;
@@ -488,48 +613,12 @@
                 me = this,
                 start = this.lastShown,
                 end = this.lastShown + GRAPHPAGESIZE,
-                now = new Date(),
-                hourAgo = new Date((new Date().getTime() - 3600 * 1000)),
                 i;
-            graphs = [{
-                margin: '10, 0, 15, 0',
-                xtype: 'container',
-                layout: 'hbox',
-                items:[{
-                    xtype: 'datefield',
-                    ref: '../start_date',
-                    width: 250,
-                    fieldLabel: _t('Start'),
-                    format:'Y-m-d H:i:s',
-                    value: Ext.Date.format(hourAgo, "Y-m-d H:i:s")
-                },{
-                    xtype: 'container',
-                    width: 15
-                },{
-                    xtype: 'datefield',
-                    ref: '../end_date',
-                    width: 250,
-                    fieldLabel: _t('End'),
-                    format:'Y-m-d H:i:s',
-                    value: Ext.Date.format(now, "Y-m-d H:i:s")
-                },{
-                    xtype: 'container',
-                    width: 15
-                }, {
-                    xtype: 'button',
-                    text: _t('Update'),
-                    handler: function(b){
-                        me.start = me.start_date.getValue().getTime();
-                        me.end = me.end_date.getValue().getTime();
-                        Ext.each(me.getGraphs(), function(g) {
-                            g.fireEvent("updateimage", {
-                                start: me.start,
-                                end: me.end
-                            }, me);
-                        });
-                    }
-                }]
-            }];
+            // if we haven't already, show the start and end time widgets
+            if (!this.start_date) {
+                graphs = Ext.Array.clone(dateRangePanel);
+            }
+
             // load graphs until we have either completed the page or
             // we ran out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
@@ -544,14 +633,6 @@
                     isLinked: this.isLinked,
                     ref: graphId
                 })));
-                //graphs.push(Zenoss.SwoopyGraph({
-                //    graphUrl: graph.url,
-                //    graphTitle: graph.title,
-                //    graphId: graphId,
-                //    isLinked: this.isLinked,
-                //    height: 250,
-                //    ref: graphId
-                //}));
             }
 
             // set up for the next page
@@ -570,15 +651,24 @@
                     }
                 });
             }
-
             // render the graphs
             this.add(graphs);
+        },
+        updateEndTime: function(){
+            if (this.checkbox_now.getValue()) {
+                this.end_date.setValue(new Date());
+            }
         },
         setDrange: function(drange) {
             this.start = null;
             this.end = null;
             drange = drange || this.drange;
             this.drange = drange;
+            //  set the start and end dates to the selected range
+            this.end_date.setValue(new Date());
+            this.start_date.setValue(new Date(new Date().getTime() - drange));
+
+            // tell each graph to update
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEvent("updateimage", {
                     drange: drange
@@ -586,6 +676,7 @@
             });
         },
         refresh: function() {
+            this.updateEndTime();
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEvent("updateimage", {
                     start: this.start || null,
