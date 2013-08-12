@@ -12,7 +12,6 @@ from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
-from Products.ZenModel.Device import Device
 
 __doc__ = """
 These adapters are responsible for serializing the graph
