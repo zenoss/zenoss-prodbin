@@ -616,7 +616,7 @@
                 i;
             // if we haven't already, show the start and end time widgets
             if (!this.start_date) {
-                graphs = dateRangePanel;
+                graphs = Ext.Array.clone(dateRangePanel);
             }
 
             // load graphs until we have either completed the page or
