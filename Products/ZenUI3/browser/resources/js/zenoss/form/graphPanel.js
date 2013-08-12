@@ -509,7 +509,6 @@
         }, '-',{
             xtype: 'graphrefreshbutton',
             ref: '../refreshmenu',
-            // stateId: 'graphRefresh',
             iconCls: 'refresh',
             text: _t('Refresh'),
             handler: function(btn) {
@@ -570,11 +569,14 @@
             Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
         },
         setContext: function(uid) {
-            if (this.newWindowButton) {
-                this.newwindow.show();
-            } else {
-                this.newwindow.hide();
+            if (this.newwindow) {
+                if (this.newWindowButton) {
+                    this.newwindow.show();
+                } else {
+                    this.newwindow.hide();
+                }
             }
+
             // remove all the graphs
             this.removeAll();
             this.lastShown = 0;
@@ -649,7 +651,6 @@
                     }
                 });
             }
-
             // render the graphs
             this.add(graphs);
         },
