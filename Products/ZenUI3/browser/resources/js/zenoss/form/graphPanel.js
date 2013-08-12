@@ -553,7 +553,7 @@
             }
 
             Ext.applyIf(config, {
-                drange: 3600000,
+                drange: DATE_RANGES[0][0],
                 isLinked: true,
                 newWindowButton: true,
                 // images show up after Ext has calculated the
