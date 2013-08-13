@@ -352,6 +352,7 @@ class CollectorDaemon(RRDDaemon):
             self._timedMetricCache[uuid] = timedMetric
             return None
 
+    @defer.inlineCallbacks
     def writeMetric(self, contextUUID, metric, value, metricType, contextId, timestamp='N', min='U', max='U',
             hasThresholds=False, threshEventData={}, deviceuuid=None):
         """
@@ -377,13 +378,17 @@ class CollectorDaemon(RRDDaemon):
         if deviceuuid:
             extraTags['device'] = deviceuuid
         # write the raw metric to Redis
-        self._publisher.put(self._metricsChannel,
-                metric.split("_")[1], # metric id is the datapoint name
-                value,
-                timestamp,
-                contextUUID,
-                extraTags
-            )
+        try:
+            yield self._publisher.put(self._metricsChannel,
+                    metric.split("_")[1], # metric id is the datapoint name
+                    value,
+                    timestamp,
+                    contextUUID,
+                    extraTags
+                )
+        except Exception as x:
+            log.exception('Unable to write metric {reason}'.format(reason=x))
+            return
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in ('COUNTER', 'DERIVE'):
