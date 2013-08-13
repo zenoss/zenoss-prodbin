@@ -105,6 +105,12 @@
              for="*"
              />
 
+    <adapter factory=".facades.MetricFacade"
+             provides=".interfaces.IMetricFacade"
+             name="metric"
+             for="*"
+             />
+
     <adapter factory=".facades.NetworkFacade"
              provides=".interfaces.INetworkFacade"
              name="network"

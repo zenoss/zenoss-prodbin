@@ -10,29 +10,28 @@
 
 import time
 import json
-from xmlrpclib import ProtocolError
 import logging
 log = logging.getLogger("zen.RRDView")
 
 from Acquisition import aq_chain
-
-from Products.ZenRRD.RRDUtil import convertToRRDTime
 from Products.ZenUtils import Map
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenModel.ConfigurationError import ConfigurationError
-
+from Products.Zuul import getFacade
 CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
 
-def GetRRDPath(deviceOrComponent):
-    d = deviceOrComponent.device()
-    if not d:
-        return "Devices/" + deviceOrComponent.id
-    skip = len(d.getPrimaryPath()) - 1
-    return 'Devices/' + '/'.join(deviceOrComponent.getPrimaryPath()[skip:])
 
+AGGREGATION_MAPPING = {
+        'average': 'avg',
+        'minimum': 'min',
+        'maximum': 'max',
+        'total': 'sum',
+        #TODO: get last agg function working
+        'last': None
+    }
 
 class RRDViewError(Exception): pass
 
@@ -41,26 +40,6 @@ class RRDView(object):
     """
     Mixin to provide hooks to RRD management functions
     """
-
-    def getGraphDefUrl(self, graph, drange=None, template=None):
-        """resolve template and graph names to objects
-        and pass to graph performance"""
-        if not drange: drange = self.defaultDateRange
-        templates = self.getRRDTemplates()
-        if template:
-            templates = [template]
-        if isinstance(graph, basestring):
-            for t in templates:
-                if hasattr(t.graphDefs, graph):
-                    template = t
-                    graph = getattr(t.graphDefs, graph)
-                    break
-        targetpath = self.rrdPath()
-        objpaq = self.primaryAq()
-        perfServer = objpaq.device().getPerformanceServer()
-        if perfServer:
-            return perfServer.performanceGraphUrl(objpaq, targetpath,
-                                                  template, graph, drange)
 
     def cacheRRDValue(self, dsname, default = "Unknown"):
         """
@@ -128,49 +107,17 @@ class RRDView(object):
         Return a dict of key value pairs where dsnames are the keys.
         """
         try:
-            if not start:
-                start = time.time() - self.defaultDateRange
-            gopts = []
-            # must copy dsnames into mutable list
-            names = list(dsnames)
-            for dsname in dsnames:
-                dp = next((d for d in self._getRRDDataPointsGen() 
-                                        if dsname in d.name()), None)
+            fac = getFacade('metric', self.dmd)
+            results = dict()
+            for ds in dsnames:
+                dp = next((d for d in self._getRRDDataPointsGen() if ds in d.name()), None)
                 if dp is None:
-                    names.remove(dsname)
+                    log.info("Unable to find a datapoint for metric %s" % ds)
                     continue
-                filename = self.getRRDFileName(dp.name())
-                rpn = str(dp.rpn)
-                if rpn:
-                    rpn = "," + rpn
-                if extraRpn:
-                    rpn = rpn + "," + extraRpn
-
-                gopts.append("DEF:%s_r=%s:ds0:%s" % (dsname,filename,cf))
-                gopts.append("CDEF:%s_c=%s_r%s" % (dsname,dsname,rpn))
-                gopts.append("VDEF:%s=%s_c,%s" % (dsname,dsname,function))
-                gopts.append("PRINT:%s:%s" % (dsname, format))
-                gopts.append("--start=%s" % convertToRRDTime(start))
-                if end:
-                    gopts.append("--end=%s" % convertToRRDTime(end))
-            if not names:
-                return {}
-            perfServer = self.device().getPerformanceServer()
-            vals = []
-            if perfServer:
-                vals = perfServer.performanceCustomSummary(gopts)
-                if vals is None:
-                    vals = [None] * len(dsnames)
-            def cvt(val):
-                if val is None or val.lower() == "nan":
-                    return None
-                return float(val)
-            return dict(zip(names, map(cvt, vals)))
-        except ProtocolError as e:
-            log.warn("Unable to get RRD values for %s: %s for URL %s" % (
-                self.getPrimaryId(), e.errmsg, e.url))
+                results[ds] = fac.getLastValue(self, [dp.name()])
+            return results
         except Exception:
-            log.exception("Unable to collect RRD Values for %s", self.getPrimaryId())
+            log.exception("Unable to collect metric values for %s", self.getPrimaryId())
 
     def getRRDSum(self, points, start=None, end=None, function="LAST"):
         "Return a sum of listed datapoints."
@@ -240,7 +187,7 @@ class RRDView(object):
         """Look up an rrd file based on its data point name"""
         nm = next((p.name() for p in self._getRRDDataPointsGen() 
                             if p.name().endswith(dsname)), dsname)
-        return '%s/%s.rrd' % (self.rrdPath(), nm)
+        return '%s/%s' % (str(self.rrdPath()), nm)
 
     def getRRDNames(self):
         return []
