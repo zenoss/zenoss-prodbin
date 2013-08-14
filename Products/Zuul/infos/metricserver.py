@@ -12,6 +12,7 @@ from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
+from Products.ZenModel.RRDView import AGGREGATION_MAPPING
 
 __doc__ = """
 These adapters are responsible for serializing the graph
@@ -88,14 +89,6 @@ class MetricServiceThreshold(ColorMetricServiceGraphPoint):
 
 class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
-    _aggregationMapping = {
-        'average': 'avg',
-        'minimum': 'min',
-        'maximum': 'max',
-        'total': 'sum',
-        #TODO: get last agg function working
-        'last': None
-    }
     @property
     def id(self):
         return self._object.id
@@ -111,7 +104,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def aggregator(self):
         agg = self._object.cFunc.lower()
-        return self._aggregationMapping.get(agg, agg)
+        return AGGREGATION_MAPPING.get(agg, agg)
 
     @property
     def tags(self):
