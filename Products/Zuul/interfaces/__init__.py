@@ -86,3 +86,4 @@ from devicedumpload import *
 from eventclasses import *
 from manufacturers import *
 from backup import *
+from metric import *
