@@ -196,7 +196,8 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         return self.rrdtype in ('COUNTER', 'DERIVE')
 
     def isCounter(self):
-        return self.rrdtype == 'COUNTER' or (self.rrdtype =='DERIVE' and self.rrdmin == 0)
+        # rrdmin is defined as a string above
+        return self.rrdtype == 'COUNTER' or (self.rrdtype =='DERIVE' and str(self.rrdmin) == '0')
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointAlias')
     def manage_addDataPointAlias(self, id, formula, REQUEST=None ):

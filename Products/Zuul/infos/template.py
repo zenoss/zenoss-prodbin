@@ -470,6 +470,24 @@ class DataPointInfo(InfoBase):
     isrow = ProxyProperty('isrow')
     rrdmin = ProxyProperty('rrdmin')
     rrdmax = ProxyProperty('rrdmax')
+        
+    @property
+    def rate(self):
+        return self._object.isRate()
+    
+    def getRateOptions(self):
+        """
+        Given a datapoint returns the rate options
+        """
+        if self._object.isRate():
+            rateOptions = dict()
+            if self._object.isCounter():
+                rateOptions['counter'] = True
+            if self._object.rrdmax is not None:
+                rateOptions['counterMax'] = self._object.rrdmax
+            return rateOptions
+        return None
+
 
 
 class DataPointAliasInfo(InfoBase):

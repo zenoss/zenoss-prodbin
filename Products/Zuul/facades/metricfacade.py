@@ -9,6 +9,7 @@
 from datetime import datetime, timedelta
 from zenoss.protocols.services import JsonRestServiceClient
 from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 import logging
 log = logging.getLogger("zen.MetricFacade")
@@ -118,35 +119,24 @@ class MetricFacade(ZuulFacade):
         return dict(uuid=context.getUUID())
 
     def _buildMetric(self, dp, cf, extraRpn="", format=""):
-        # get the rpn off of the datapoint
-        rpn = str(dp.rpn)
-        if rpn:
-            rpn = "," + rpn
-        if extraRpn:
-            rpn = rpn + "," + extraRpn
-
+        datasource = dp.datasource()
+        dsId = datasource.id
+        info = IInfo(dp)
+                
         # find out our aggregation function
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
-        dsId = dp.datasource().id
-        dpId = dp.id
-        rateOptions = dict()
-        if dp.isRate() and dp.isCounter():
-            rateOptions['counter'] = True
-        if dp.rrdmax:
-            rateOptions['counterMax'] = dp.rrdmax
-            
+        rateOptions = info.getRateOptions()
         metric = dict(
-            metric=dpId,
+            metric=dp.id,
             aggregator=agg,
-            rpn=rpn,
+            rpn=extraRpn,
             format=format,
             tags={'datasource': dsId},
-            rate=dp.isRate()
+            rate=info.rate
         )
         if rateOptions:
             metric['rateOptions'] = rateOptions
         return metric
-
 
     def _formatTime(self, t):
         """

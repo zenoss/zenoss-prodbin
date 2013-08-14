@@ -9,7 +9,7 @@
 
 from zope.interface import implements
 from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
-from Products.Zuul.interfaces import template as templateInterfaces
+from Products.Zuul.interfaces import template as templateInterfaces, IInfo
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
@@ -104,7 +104,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
     def _getDataPoint(self):
         try:
-            return self._object.graphDef().rrdTemplate().getRRDDataPoint(self._object.dpName)
+            return IInfo(self._object.graphDef().rrdTemplate().getRRDDataPoint(self._object.dpName))
         except ConfigurationError:
             return None
 
@@ -112,18 +112,14 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     def rate(self):
         datapoint = self._getDataPoint()
         if datapoint:
-            return datapoint.isRate()
+            return datapoint.rate
 
     @property
     def rateOptions(self):
         datapoint = self._getDataPoint()
-        if datapoint and datapoint.isRate():
-            options = dict()
-            options['counter'] = datapoint.isCounter()
-            if not datapoint.rrdmax is None:
-                options['counterMax'] = datapoint.rrdmax
-            return options
-        
+        if datapoint:
+            return datapoint.getRateOptions()
+
     @property
     def aggregator(self):
         agg = self._object.cFunc.lower()
