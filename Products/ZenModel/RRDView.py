@@ -24,14 +24,7 @@ CACHE_TIME = 60.
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
 
 
-AGGREGATION_MAPPING = {
-        'average': 'avg',
-        'minimum': 'min',
-        'maximum': 'max',
-        'total': 'sum',
-        #TODO: get last agg function working
-        'last': None
-    }
+
 
 class RRDViewError(Exception): pass
 
