@@ -10,13 +10,20 @@ from datetime import datetime, timedelta
 from zenoss.protocols.services import JsonRestServiceClient
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenModel.RRDView import AGGREGATION_MAPPING
 import logging
 log = logging.getLogger("zen.MetricFacade")
 
+
 DATE_FORMAT = "%Y/%m/%d-%H:%M:%S-%z"
 METRIC_URL = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
-
+AGGREGATION_MAPPING = {
+    'average': 'avg',
+    'minimum': 'min',
+    'maximum': 'max',
+    'total': 'sum',
+    #TODO: get last agg function working
+    'last': None
+}
 class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
@@ -122,13 +129,24 @@ class MetricFacade(ZuulFacade):
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
         dsId = dp.datasource().id
         dpId = dp.id
-        return dict(
+        rateOptions = dict()
+        if dp.isRate() and dp.isCounter():
+            rateOptions['counter'] = True
+        if dp.rrdmax:
+            rateOptions['counterMax'] = dp.rrdmax
+            
+        metric = dict(
             metric=dpId,
             aggregator=agg,
             rpn=rpn,
             format=format,
-            tags={'datasource': dsId}
+            tags={'datasource': dsId},
+            rate=dp.isRate()
         )
+        if rateOptions:
+            metric['rateOptions'] = rateOptions
+        return metric
+
 
     def _formatTime(self, t):
         """

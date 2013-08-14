@@ -192,6 +192,11 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         """
         return [ alias.id for alias in self.aliases() ]
 
+    def isRate(self):
+        return self.rrdtype in ('COUNTER', 'DERIVE')
+
+    def isCounter(self):
+        return self.rrdtype == 'COUNTER' or (self.rrdtype =='DERIVE' and self.rrdmin == 0)
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointAlias')
     def manage_addDataPointAlias(self, id, formula, REQUEST=None ):
