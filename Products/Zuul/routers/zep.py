@@ -282,6 +282,15 @@ class EventsRouter(DirectRouter):
 
             log.debug('FilterEventUuids is: %s', filterEventUuids)
 
+            # 'tags' comes from managed object guids.
+            # see Zuul/security/security.py
+            param_tags = params.get('tags')
+            if params.get('excludeNonActionables'):
+                if param_tags:
+                    param_tags = [tag for tag in param_tags if Zuul.checkPermission("Manage Events", self.manager.getObject(tag))]
+                if not param_tags:
+                    param_tags = ['dne']
+
             event_filter = self.zep.createEventFilter(
                 severity = params.get('severity'),
                 status = [i for i in params.get('eventState', [])],
@@ -298,11 +307,7 @@ class EventsRouter(DirectRouter):
                 agent = params.get('agent'),
                 monitor = params.get('monitor'),
                 fingerprint = params.get('dedupid'),
-
-                # 'tags' comes from managed object guids.
-                # see Zuul/security/security.py
-                tags = params.get('tags'),
-
+                tags = param_tags,
                 details = details,
                 event_key = params.get('eventKey'),
                 event_class_key = params.get('eventClassKey'),
@@ -371,7 +376,19 @@ class EventsRouter(DirectRouter):
         else:
             raise Exception('Could not find event %s' % evid)
 
-    @require('Manage Events')
+    def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+        if Zuul.checkPermission('Manage Events', self.context):
+            return True
+        if params.get('excludeNonActionables'):
+            return Zuul.checkPermission('ZenCommon', self.context)
+        return False
+
+    def write_event_logs(self, evid=None, message=None):
+        data = self.detail(evid).data['event'][0]
+        uuid = data['component_uuid'] or data['device_uuid']
+        return Zuul.checkPermission("Manage Events", self.manager.getObject(uuid))
+
+    @require(write_event_logs)
     def write_log(self, evid=None, message=None):
         """
         Write a message to an event's log.
@@ -478,7 +495,7 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
-    @require('Manage Events')
+    @require(manage_events)
     def close(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Close event(s).
@@ -520,7 +537,7 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
-    @require('Manage Events')
+    @require(manage_events)
     def acknowledge(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Acknowledge event(s).
@@ -561,7 +578,7 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
-    @require('Manage Events')
+    @require(manage_events)
     @deprecated
     def unacknowledge(self, *args, **kwargs):
         """
@@ -569,7 +586,7 @@ class EventsRouter(DirectRouter):
         """
         return self.reopen(*args, **kwargs)
 
-    @require('Manage Events')
+    @require(manage_events)
     def reopen(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Reopen event(s).

@@ -717,7 +717,8 @@ class ZepFacade(ZuulFacade):
                                                                                        'systems',
                                                                                        'location',
                                                                                        'devicegroups',
-                                                                                       'message'
+                                                                                       'message',
+                                                                                       'excludenonactionables'
                                                                                        ))
         if leftovers:
             raise InvalidQueryParameterException("Invalid query parameters specified: %s" % ', '.join(leftovers))

@@ -383,6 +383,29 @@
                 }
             }];
 
+            if (!_has_global_roles())
+                configureMenuItems.unshift({
+                    id: 'excludenonactionables_checkitem',
+                    xtype: 'menucheckitem',
+                    text: 'Only show actionable events',
+                    handler: function(checkitem) {
+                        var checked = checkitem.checked;
+                        var grid = Ext.getCmp(gridId);
+                        var actionsToChange = ['acknowledge', 'close', 'reopen', 'unacknowledge', 'addNote']
+                        var tbar = grid.tbar
+                        if (tbar && tbar.getComponent) {
+                            Ext.each(actionsToChange, function(actionItemId) {
+                                var cmp = tbar.getComponent(actionItemId);
+                                if (cmp) {
+                                    cmp.filtered = checked;
+                                    cmp.updateDisabled();
+                                }
+                            });
+                        }
+                        grid.toggleNonActionables(checked);
+                    }
+                });
+
             if (/^\/zport\/dmd\/Events/.test(window.location.pathname)) {
                 configureMenuItems.splice(2, 0, {
                     text: 'Save this configuration...',
@@ -564,6 +587,19 @@
             Ext.applyIf(config, {
                 ref: 'tbar',
                 listeners: {
+                    beforerender: function(){
+                        var grid = Ext.getCmp(gridId),
+                        actionsToChange = ['acknowledge', 'close', 'reopen', 'unacknowledge', 'addNote'],
+                        tbar = this;
+                        if (tbar.getComponent) {
+                            Ext.each(actionsToChange, function(actionItemId) {
+                                var cmp = tbar.getComponent(actionItemId);
+                                if (cmp) {
+                                    cmp.filtered = grid.excludeNonActionables;
+                                }
+                            });
+                        }
+                    },
                     afterrender: function(){
                         var grid = Ext.getCmp(gridId),
                         store = grid.getStore(),
@@ -1046,6 +1082,7 @@
     Ext.define('Zenoss.events.Grid', {
         extend: 'Zenoss.FilterGridPanel',
         rowcolors: false,
+        excludeNonActionables: false,
         constructor: function(config) {
             config = config || {};
             config.viewConfig = config.viewConfig || {};
@@ -1053,9 +1090,11 @@
                 getRowClass: Zenoss.events.getRowClass
 
             });
+
             this.callParent(arguments);
             this.on('itemclick', this.onItemClick, this );
             this.on('filterschanged', this.onFiltersChanged, this);
+            this.excludeNonActionables = Ext.state.Manager.get('excludeNonActionables');
         },
         initComponent: function() {
             this.getSelectionModel().grid = this;
@@ -1073,6 +1112,10 @@
                 var rowcolorsCheckItem = Ext.getCmp('rowcolors_checkitem');
                 if (rowcolorsCheckItem)
                     rowcolorsCheckItem.setChecked(this.rowcolors);
+
+                var excludeNonActionablesCheckItem = Ext.getCmp('excludenonactionables_checkitem');
+                if (excludeNonActionablesCheckItem)
+                    excludeNonActionablesCheckItem.setChecked(this.excludeNonActionables);
             }
         },
         applyOptions: function() {
@@ -1090,6 +1133,7 @@
             // grab any fields zenpack authors may add
             keys = Ext.Array.union(keys, Zenoss.events.eventFields);
             store.setBaseParam("keys", keys);
+            store.setParamsParam("excludeNonActionables", this.excludeNonActionables);
         },
         getSelectionParameters: function() {
             var grid = this,
@@ -1159,11 +1203,17 @@
         getUpdateParameters: function() {
             var o = {};
             o.params = this.filterRow.getSearchValues();
+            o.params.excludeNonActionables = this.excludeNonActionables;
             return o;
         },
         toggleRowColors: function(bool) {
             this.rowcolors = bool;
             Ext.state.Manager.set('rowcolor', bool);
+            this.refresh();
+        },
+        toggleNonActionables: function(bool) {
+            this.excludeNonActionables = bool;
+            Ext.state.Manager.set('excludeNonActionables', bool);
             this.refresh();
         },
         restoreURLState: function() {
