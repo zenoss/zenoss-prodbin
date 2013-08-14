@@ -9,14 +9,22 @@
 from datetime import datetime, timedelta
 from zenoss.protocols.services import JsonRestServiceClient
 from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenModel.RRDView import AGGREGATION_MAPPING
 import logging
 log = logging.getLogger("zen.MetricFacade")
 
+
 DATE_FORMAT = "%Y/%m/%d-%H:%M:%S-%z"
 METRIC_URL = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
-
+AGGREGATION_MAPPING = {
+    'average': 'avg',
+    'minimum': 'min',
+    'maximum': 'max',
+    'total': 'sum',
+    #TODO: get last agg function working
+    'last': None
+}
 class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
@@ -111,24 +119,24 @@ class MetricFacade(ZuulFacade):
         return dict(uuid=context.getUUID())
 
     def _buildMetric(self, dp, cf, extraRpn="", format=""):
-        # get the rpn off of the datapoint
-        rpn = str(dp.rpn)
-        if rpn:
-            rpn = "," + rpn
-        if extraRpn:
-            rpn = rpn + "," + extraRpn
-
+        datasource = dp.datasource()
+        dsId = datasource.id
+        info = IInfo(dp)
+                
         # find out our aggregation function
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
-        dsId = dp.datasource().id
-        dpId = dp.id
-        return dict(
-            metric=dpId,
+        rateOptions = info.getRateOptions()
+        metric = dict(
+            metric=dp.id,
             aggregator=agg,
-            rpn=rpn,
+            rpn=extraRpn,
             format=format,
-            tags={'datasource': dsId}
+            tags={'datasource': dsId},
+            rate=info.rate
         )
+        if rateOptions:
+            metric['rateOptions'] = rateOptions
+        return metric
 
     def _formatTime(self, t):
         """
