@@ -120,7 +120,8 @@ class MetricFacade(ZuulFacade):
 
         # find out our aggregation function
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
-        dsId, dpId = dp.name().split("_")
+        dsId = dp.datasource().id
+        dpId = dp.id
         return dict(
             metric=dpId,
             aggregator=agg,
