@@ -28,15 +28,19 @@ class MetricFacadeTest(ZuulFacadeTestCase):
     def testTagBuilder(self):
         dev = self.dmd.Devices.createInstance('device1')
         self.assertTrue(dev.getUUID())
-        tags = self.facade._buildTagsFromContext([dev])
+        tags = self.facade._buildTagsFromContext(dev)
         self.assertEquals(tags.keys()[0], 'uuid')
-        self.assertEquals(tags.values()[0][0], dev.getUUID())
+        self.assertEquals(tags.values()[0], dev.getUUID())
 
     def testMetricBuilder(self):
-        metric = ["laLoadInt1_laLoadInt1"]
+        templateFac = Zuul.getFacade('template', self.dmd)
+        template = templateFac.addTemplate('test', '/zport/dmd/Devices')._object
+        templateFac.addDataSource(template.getPrimaryId(), 'test', 'SNMP')
+        metric = template.datasources()[0].datapoints()[0]
         cf = "avg"
-        metric = self.facade._buildMetrics(metric, cf)[0]
-        self.assertEquals(metric['tags'][0], 'laLoadInt1')
+        metric = self.facade._buildMetric(metric, cf)
+        self.assertEquals(metric['tags']['datasource'], 'test')
+        self.assertEquals(metric['aggregator'], 'avg')
 
     def testRequestBuilder(self):
         metric = ["laLoadInt1_laLoadInt1"]

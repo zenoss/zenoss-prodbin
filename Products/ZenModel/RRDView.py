@@ -108,14 +108,8 @@ class RRDView(object):
         """
         try:
             fac = getFacade('metric', self.dmd)
-            results = dict()
-            for ds in dsnames:
-                dp = next((d for d in self._getRRDDataPointsGen() if ds in d.name()), None)
-                if dp is None:
-                    log.info("Unable to find a datapoint for metric %s" % ds)
-                    continue
-                results[ds] = fac.getLastValue(self, [dp.name()])
-            return results
+            return fac.getValues(self, dsnames, start=start, end=end, format=format,
+                                    extraRpn=extraRpn, cf=cf)
         except Exception:
             log.exception("Unable to collect metric values for %s", self.getPrimaryId())
 

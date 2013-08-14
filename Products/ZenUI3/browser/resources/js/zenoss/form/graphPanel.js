@@ -203,7 +203,7 @@
         },
         initChart: function() {
             var visconfig = {
-                returnset: "exact",
+                returnset: "EXACT",
                 range : {
                     start : formatForMetricService(this.graph_params.start),
                     end : formatForMetricService(this.graph_params.end)
