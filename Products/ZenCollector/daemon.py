@@ -14,10 +14,8 @@ import logging
 import json
 import zope.interface
 
-from twisted.internet import defer, protocol, reactor, task
+from twisted.internet import defer, reactor, task
 from twisted.python.failure import Failure
-
-from txredis import RedisClient
 
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
@@ -370,6 +368,7 @@ class CollectorDaemon(RRDDaemon):
         @param deviceuuid: the unique identifier of the device for
         this metric, maybe the same as contextUUID if the context is a
         device
+        @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
         extraTags = {
@@ -388,7 +387,6 @@ class CollectorDaemon(RRDDaemon):
                 )
         except Exception as x:
             log.exception('Unable to write metric {reason}'.format(reason=x))
-            return
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in ('COUNTER', 'DERIVE'):
