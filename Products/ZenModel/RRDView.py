@@ -112,6 +112,8 @@ class RRDView(object):
                                     extraRpn=extraRpn, cf=cf)
         except Exception:
             log.exception("Unable to collect metric values for %s", self.getPrimaryId())
+        # couldn't get any metrics return an empty dictionary 
+        return {}
 
     def getRRDSum(self, points, start=None, end=None, function="LAST"):
         "Return a sum of listed datapoints."
