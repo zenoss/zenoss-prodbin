@@ -667,11 +667,6 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                                 Ext.getCmp('collectorok').enable();
                                             }
                                         }
-                                    },{
-                                         xtype: 'checkbox',
-                                         name: 'moveData',
-                                         id: 'moveData',
-                                         fieldLabel: _t('Move Data')
                                     }],
                                     buttons: [{
                                         xtype: 'DialogButton',
@@ -680,8 +675,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                         text: _t('OK'),
                                         handler: function(){
                                             var opts = Ext.apply(fetcher(), {
-                                                collector: Ext.getCmp('collector').getValue(),
-                                                moveData: Ext.getCmp('moveData').getValue()
+                                                collector: Ext.getCmp('collector').getValue()
                                             });
                                             opts['asynchronous'] = Zenoss.settings.deviceMoveIsAsync(opts.uids);
                                             REMOTE.setCollector(opts, saveHandler);

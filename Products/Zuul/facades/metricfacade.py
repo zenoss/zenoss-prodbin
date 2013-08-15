@@ -7,7 +7,7 @@
 #
 ##############################################################################
 from datetime import datetime, timedelta
-from zenoss.protocols.services import JsonRestServiceClient
+from zenoss.protocols.services import JsonRestServiceClient, ServiceResponseError
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -92,7 +92,13 @@ class MetricFacade(ZuulFacade):
         request = self._buildRequest(context, datapoints, start, end)
 
         # submit it to the client
-        response, content = self._client.post('query/performance', request)
+        try:
+            response, content = self._client.post('query/performance', request)
+        except ServiceResponseError, e:
+            # there was an error returned by the metric service, log it here
+            log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
+            return {}
+
         if content and content.get('results'):
            # Output of this request should be something like this:
            # [{u'timestamp': 1376477481, u'metric': u'sysUpTime',

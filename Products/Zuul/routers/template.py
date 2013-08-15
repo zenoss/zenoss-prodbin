@@ -114,7 +114,7 @@ class TemplateRouter(TreeRouter):
     def getObjTemplates(self, uid):
         """
         @type  uid: string
-        @param uid: Identifier for the object we want templates on, must descend from RRDView
+        @param uid: Identifier for the object we want templates on, must descend from MetricMixin
         @rtype: DirectResponse
         @return: List of templates
         """

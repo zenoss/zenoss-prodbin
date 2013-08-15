@@ -22,10 +22,10 @@ from Globals import InitializeClass
 
 from ZenModelRM import ZenModelRM
 from DeviceManagerBase import DeviceManagerBase
-from RRDView import RRDView
+from MetricMixin import MetricMixin
 from Products.ZenWidgets import messaging
 
-class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
+class Monitor(ZenModelRM, DeviceManagerBase, MetricMixin):
     meta_type = 'Monitor'
 
     def snmpIgnore(self):
