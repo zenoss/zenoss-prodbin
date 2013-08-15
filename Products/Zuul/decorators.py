@@ -63,10 +63,16 @@ def require(permission):
     """
     @decorator
     def wrapped_fn(f, self, *args, **kwargs):
-        if not Zuul.checkPermission(permission, self.context):
-            args = (f.__name__, permission)
-            raise Unauthorized('Calling %s requires "%s" permission.' % args)
-        return f(self, *args, **kwargs)
+        if callable(permission):
+            if not permission(self, *args, **kwargs):
+                args = (f.__name__, permission.__name__)
+                raise Unauthorized('Calling %s requires "%s" permission' % args)
+            return f(self, *args, **kwargs)
+        else:
+            if not Zuul.checkPermission(permission, self.context):
+                args = (f.__name__, permission)
+                raise Unauthorized('Calling %s requires "%s" permission' % args)
+            return f(self, *args, **kwargs)
     return wrapped_fn
 
 
