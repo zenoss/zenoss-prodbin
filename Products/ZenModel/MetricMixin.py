@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import time
 import json
 import logging
 log = logging.getLogger("zen.MetricMixin")
