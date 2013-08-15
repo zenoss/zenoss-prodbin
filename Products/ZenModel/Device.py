@@ -1494,8 +1494,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_CHANGE_DEVICE
         """
         if newPerformanceMonitor:
-            #self.dmd.RenderServer.moveRRDFiles(self.id,
-            #    newPerformanceMonitor, performanceMonitor, REQUEST)
             performanceMonitor = newPerformanceMonitor
 
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(

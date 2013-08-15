@@ -134,7 +134,6 @@ class PerformanceConf(Monitor, StatusColor):
 
     modelerCycleInterval = 720
 
-    renderurl = '/zport/RenderServer'
     renderuser = ''
     renderpass = ''
 
@@ -162,7 +161,6 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'wmiqueryTimeout', 'type': 'int', 'mode': 'w',
          'description':"Number of milliseconds to wait for WMI query to respond",},
         {'id': 'configCycleInterval', 'type': 'int', 'mode': 'w'},
-        {'id': 'renderurl', 'type': 'string', 'mode': 'w'},
         {'id': 'renderuser', 'type': 'string', 'mode': 'w'},
         {'id': 'renderpass', 'type': 'string', 'mode': 'w'},
         {'id': 'defaultRRDCreateCommand', 'type': 'lines', 'mode': 'w'
