@@ -27,7 +27,7 @@
             if (this.permission) {
                 if (this.permissionContext) {
                     if (Zenoss.env.PARENT_CONTEXT == this.permissionContext) {
-                        return !Zenoss.Security.doesNotHavePermission(this.permission);
+                        return Zenoss.Security.hasPermission(this.permission);
                     } else {
                         return Zenoss.Security.hasGlobalPermission(this.permission);
                     }
@@ -40,6 +40,10 @@
         },
         setPermission: function(config) {
             var me = this;
+            var recheck = function() {
+                me.permitted = me.checkPermitted();
+                me.updateDisabled();
+            }
             // if they set the permissions config property
             // and the logged in user does not have permission, disable this element
             if (config.permission) {
@@ -47,16 +51,10 @@
                 // register the control to be disabled or enabled based on the current context
                 if (config.permissionContext) {
                     this.permissionContext = config.permissionContext;
-                    Zenoss.Security.onPermissionsChange(function() {
-                        me.permitted = me.checkPermitted();
-                        me.updateDisabled();
-                    });
+                    Zenoss.Security.onPermissionsChange(recheck);
                 } else {
                     // update when the context changes
-                    Zenoss.Security.onPermissionsChange(function() {
-                        me.permitted = me.checkPermitted();
-                        me.updateDisabled();
-                    }, this);
+                    Zenoss.Security.onPermissionsChange(recheck, this);
                 }
             }
             this.permitted = this.checkPermitted();

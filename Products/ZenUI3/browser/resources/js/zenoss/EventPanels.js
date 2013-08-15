@@ -339,14 +339,15 @@
                 showActions = true,
                 showCommands = true,
                 configureMenuItems,
-                tbarItems = config.tbarItems || [];
+                tbarItems = config.tbarItems || [],
+                eventSpecificTbarActions = ['acknowledge', 'close', 'reopen', 'unacknowledge', 'addNote'];
             if (!gridId) {
                 throw ("Event console tool bar did not receive a grid id");
             }
             configureMenuItems = [{
                 id: 'rowcolors_checkitem',
                 xtype: 'menucheckitem',
-                text: 'Show severity row colors',
+                text: _t('Show severity row colors'),
                 handler: function(checkitem) {
                     var checked = checkitem.checked;
                     var grid = Ext.getCmp(gridId);
@@ -354,14 +355,14 @@
                 }
             },{
                 id: 'clearfilters',
-                text: 'Clear filters',
+                text: _t('Clear filters'),
                 listeners: {
                     click: function(){
                         Ext.getCmp(gridId).clearFilters();
                     }
                 }
             },{
-                text: "Restore defaults",
+                text: _t("Restore defaults"),
                 handler: function(){
                     new Zenoss.dialog.SimpleMessageDialog({
                         message: Ext.String.format(_t('Are you sure you want to restore '
@@ -387,14 +388,13 @@
                 configureMenuItems.unshift({
                     id: 'excludenonactionables_checkitem',
                     xtype: 'menucheckitem',
-                    text: 'Only show actionable events',
+                    text: _t('Only show actionable events'),
                     handler: function(checkitem) {
                         var checked = checkitem.checked;
                         var grid = Ext.getCmp(gridId);
-                        var actionsToChange = ['acknowledge', 'close', 'reopen', 'unacknowledge', 'addNote']
-                        var tbar = grid.tbar
+                        var tbar = grid.tbar;
                         if (tbar && tbar.getComponent) {
-                            Ext.each(actionsToChange, function(actionItemId) {
+                            Ext.each(eventSpecificTbarActions, function(actionItemId) {
                                 var cmp = tbar.getComponent(actionItemId);
                                 if (cmp) {
                                     cmp.filtered = checked;
@@ -408,7 +408,7 @@
 
             if (/^\/zport\/dmd\/Events/.test(window.location.pathname)) {
                 configureMenuItems.splice(2, 0, {
-                    text: 'Save this configuration...',
+                    text: _t('Save this configuration...'),
                     handler: function(){
                         var grid = Ext.getCmp(gridId),
                         link = grid.getPermalink();
@@ -589,10 +589,9 @@
                 listeners: {
                     beforerender: function(){
                         var grid = Ext.getCmp(gridId),
-                        actionsToChange = ['acknowledge', 'close', 'reopen', 'unacknowledge', 'addNote'],
                         tbar = this;
                         if (tbar.getComponent) {
-                            Ext.each(actionsToChange, function(actionItemId) {
+                            Ext.each(eventSpecificTbarActions, function(actionItemId) {
                                 var cmp = tbar.getComponent(actionItemId);
                                 if (cmp) {
                                     cmp.filtered = grid.excludeNonActionables;
@@ -1094,7 +1093,7 @@
             this.callParent(arguments);
             this.on('itemclick', this.onItemClick, this );
             this.on('filterschanged', this.onFiltersChanged, this);
-            this.excludeNonActionables = Ext.state.Manager.get('excludeNonActionables');
+            this.excludeNonActionables = !_has_global_roles() && Ext.state.Manager.get('excludeNonActionables');
         },
         initComponent: function() {
             this.getSelectionModel().grid = this;
