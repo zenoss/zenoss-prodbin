@@ -19,7 +19,7 @@ from zope.event import notify
 
 from ZenModelRM import ZenModelRM
 from DeviceResultInt import DeviceResultInt
-from RRDView import RRDView
+from MetricMixin import MetricMixin
 from EventView import EventView
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
@@ -29,12 +29,12 @@ from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
 
 
-class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView,
+class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
                     MaintenanceWindowable):
     """
     ManagedEntity is an entity in the system that is managed by it.
     Its basic property is that it can be classified by the ITClass Tree.
-    Also has EventView and RRDView available.
+    Also has EventView and MetricMixin available.
     """
 
     # list of performance multigraphs (see PerformanceView.py)
