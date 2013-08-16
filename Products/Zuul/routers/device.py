@@ -29,7 +29,7 @@ from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, serviceConnectionError
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
 
@@ -328,16 +328,23 @@ class DeviceRouter(TreeRouter):
         audit('UI.Device.Edit', uid, data_=data)
         return DirectResponse()
 
-    def getDeviceUuidsByName(self, query="", start=0, limit=25, page=1):
+    def getDeviceUuidsByName(self, query="", start=0, limit=25, page=1, uuid=None):
         """
         Retrieves a list of device uuids. For use in combos.
+        If uuid is set, ensures that it is included in the returned list.
         """
         facade = self._getFacade()
         devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
-        result = []
-        for dev in devices:
-            result.append({'name':dev.name,
-                           'uuid':IGlobalIdentifier(dev._object).getGUID()})
+        result = [{'name':dev.name,
+                   'uuid':IGlobalIdentifier(dev._object).getGUID()}
+                  for dev in devices]
+
+        if uuid and uuid not in (device['uuid'] for device in result):
+            guidManager = IGUIDManager(self.context.dmd)
+            device = guidManager.getObject(uuid)
+            if device:
+                result.append({'name':device.name(), 'uuid':uuid})
+
         return DirectResponse.succeed(data=result)
 
     def getDeviceUids(self, uid):
