@@ -53,10 +53,4 @@
          instances are as well -->
     <subscriber handler=".OSProcessClass.onProcessClassRemoved"/>
     <subscriber handler=".ServiceClass.onServiceClassRemoved"/>
-
-    <adapter 
-        for=".PerformanceConf.RenderURLUtilContext"
-        factory=".PerformanceConf.RenderURLUtil"
-        provides=".interfaces.IRenderURLUtil"
-        />
 </configure>

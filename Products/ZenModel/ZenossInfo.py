@@ -236,25 +236,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             if db:
                 db.close()
 
-    @versionmeta("RRD", "http://oss.oetiker.ch/rrdtool")
-    def getRRDToolVersion(self):
-        """
-        This function returns a Version-ready tuple. For use with the Version
-        object, use extended call syntax:
-
-            v = Version(*getRRDToolVersion())
-            v.full()
-        """
-        cmd = binPath('rrdtool')
-        if not os.path.exists(cmd):
-            cmd = 'rrdtool'
-        fd = os.popen(cmd)
-        output = fd.readlines()[0].strip()
-        fd.close()
-        name, version = output.split()[:2]
-        major, minor, micro = getVersionTupleFromString(version)
-        return Version(name, major, minor, micro)
-
     @versionmeta("Twisted", "http:///twistedmatrix.com/trac")
     def getTwistedVersion(self):
         """
@@ -342,7 +323,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 self.getZopeVersion,
                 self.getPythonVersion,
                 self.getMySQLVersion,
-                self.getRRDToolVersion,
                 self.getTwistedVersion,
                 self.getRabbitMQVersion,
                 self.getErlangVersion,

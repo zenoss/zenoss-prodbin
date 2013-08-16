@@ -241,7 +241,7 @@ class MultiGraphReport(BaseReport):
 
     def getDefaultGraphDefs(self, drange=None):
         """ Construct the list of graph dicts for this report.
-        Similar in functionality to RRDView.getDefaultGraphDefs
+        Similar in functionality to MetricMixin.getDefaultGraphDefs
         """
         graphs = []
         def AppendToGraphs(thing, cmds, title):

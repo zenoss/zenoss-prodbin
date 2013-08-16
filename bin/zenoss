@@ -28,7 +28,6 @@ set_deamon_list() {
         fi
         C="$C zeneventserver"
         C="$C ${WEBSERVERCTL}"
-        C="$C zenrrdcached"
         C="$C zenhub"
         C="$C zenjobs"
         C="$C zeneventd"
@@ -38,7 +37,6 @@ set_deamon_list() {
         C="$C zenactiond"
         C="$C zentrap"
         C="$C zenmodeler"
-    #C="$C zenrender"
         C="$C zenperfsnmp"
         C="$C zencommand"
         C="$C zenprocess"
