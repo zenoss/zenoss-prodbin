@@ -93,22 +93,5 @@ class Monitor(ZenModelRM, DeviceManagerBase, MetricMixin):
         context['name'] = self.id
         return context
 
-    def getGraphDefUrl(self, graph, drange=None, template=None):
-        """resolve template and graph names to objects 
-        and pass to graph performance"""
-        if not drange: drange = self.defaultDateRange
-        templates = self.getRRDTemplates()
-        if template:
-            templates = [template]
-        if isinstance(graph, basestring):
-            for t in templates:
-                if hasattr(t.graphDefs, graph):
-                    template = t
-                    graph = getattr(t.graphDefs, graph)
-                    break
-        targetpath = self.rrdPath()
-        objpaq = self.primaryAq()
-        return self.performanceGraphUrl(objpaq, targetpath, template, graph, drange)
-
-
+    
 InitializeClass(Monitor)

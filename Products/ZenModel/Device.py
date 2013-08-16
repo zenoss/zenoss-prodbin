@@ -1800,10 +1800,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             eventFilter = { 'tag_filter': [ tagFilter ] }
             log.debug("Closing events for device: %s", self.getId())
             zep.closeEventSummaries(eventFilter=eventFilter)
-        if deletePerf:
-            perfserv = self.getPerformanceServer()
-            if perfserv:
-                perfserv.deleteRRDFiles(self.id)
         if REQUEST:
             audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
