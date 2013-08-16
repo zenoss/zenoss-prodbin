@@ -562,6 +562,9 @@ class PerformanceConf(Monitor, StatusColor):
             result = executeCommand(zenmodelerCmd, REQUEST, write)
         return result
 
+class RenderURLUtilContext(object):
+    pass
+
 class RenderURLUtil(object):
     """
     This is no longer used but the stub class so zenpacks will work on an upgrade.
