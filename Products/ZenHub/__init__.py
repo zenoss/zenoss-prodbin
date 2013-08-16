@@ -12,7 +12,6 @@
 
 XML_RPC_PORT = 8081
 PB_PORT = 8789
-ZENHUB_ZENRENDER = "zenhubrender"
 
 def installReactor():
     # Tries to install epoll first, then poll, and if neither are

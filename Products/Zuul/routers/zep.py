@@ -28,6 +28,7 @@ from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
 from Products.ZenMessaging.audit import audit
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_EVENTS
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -282,6 +283,16 @@ class EventsRouter(DirectRouter):
 
             log.debug('FilterEventUuids is: %s', filterEventUuids)
 
+            # 'tags' comes from managed object guids.
+            # see Zuul/security/security.py
+            param_tags = params.get('tags')
+            if params.get('excludeNonActionables'):
+                if param_tags:
+                    param_tags = [tag for tag in param_tags if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.manager.getObject(tag))]
+                if not param_tags:
+                    if not Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
+                        param_tags = ['dne']
+
             event_filter = self.zep.createEventFilter(
                 severity = params.get('severity'),
                 status = [i for i in params.get('eventState', [])],
@@ -298,11 +309,7 @@ class EventsRouter(DirectRouter):
                 agent = params.get('agent'),
                 monitor = params.get('monitor'),
                 fingerprint = params.get('dedupid'),
-
-                # 'tags' comes from managed object guids.
-                # see Zuul/security/security.py
-                tags = params.get('tags'),
-
+                tags = param_tags,
                 details = details,
                 event_key = params.get('eventKey'),
                 event_class_key = params.get('eventClassKey'),
@@ -371,7 +378,23 @@ class EventsRouter(DirectRouter):
         else:
             raise Exception('Could not find event %s' % evid)
 
-    @require('Manage Events')
+    def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+        if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
+            return True
+        if params.get('excludeNonActionables'):
+            return Zuul.checkPermission('ZenCommon', self.context)
+        return False
+
+    def write_event_logs(self, evid=None, message=None):
+        data = self.detail(evid).data['event'][0]
+        uuid = data['component_uuid'] or data['device_uuid']
+        if uuid is None:
+            ctx = self.context
+        else:
+            ctx = self.manager.getObject(uuid)
+        return Zuul.checkPermission(ZEN_MANAGE_EVENTS, ctx)
+
+    @require(write_event_logs)
     def write_log(self, evid=None, message=None):
         """
         Write a message to an event's log.
@@ -390,7 +413,7 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed()
 
-    @require('Manage Events')
+    @require(ZEN_MANAGE_EVENTS)
     def postNote(self, uuid, note):
         self.zep.postNote(uuid, note)
         return DirectResponse.succeed()
@@ -428,7 +451,7 @@ class EventsRouter(DirectRouter):
 
         return includeFilter, excludeFilter
 
-    @require('Manage Events')
+    @require(ZEN_MANAGE_EVENTS)
     def nextEventSummaryUpdate(self, next_request):
         """
         When performing updates from the event console, updates are performed in batches
@@ -448,7 +471,7 @@ class EventsRouter(DirectRouter):
         log.debug('Completed updates: %s', summaryUpdateResponse)
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
-    @require('Manage Events')
+    @require(ZEN_MANAGE_EVENTS)
     def clear_device_heartbeats(self, params, limit=None):
         """
         @type  params: dictionary
@@ -478,7 +501,7 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
-    @require('Manage Events')
+    @require(manage_events)
     def close(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Close event(s).
@@ -520,7 +543,7 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
-    @require('Manage Events')
+    @require(manage_events)
     def acknowledge(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Acknowledge event(s).
@@ -561,7 +584,7 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
-    @require('Manage Events')
+    @require(manage_events)
     @deprecated
     def unacknowledge(self, *args, **kwargs):
         """
@@ -569,7 +592,7 @@ class EventsRouter(DirectRouter):
         """
         return self.reopen(*args, **kwargs)
 
-    @require('Manage Events')
+    @require(manage_events)
     def reopen(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         """
         Reopen event(s).
@@ -612,13 +635,13 @@ class EventsRouter(DirectRouter):
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
 
-    @require("Manage Events")
+    @require(ZEN_MANAGE_EVENTS)
     def updateEventSummaries(self, update, event_filter=None, exclusion_filter=None, limit=None, timeout=None):
         status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
         return DirectResponse.succeed(data=response)
 
 
-    @require('Manage Events')
+    @require(ZEN_MANAGE_EVENTS)
     def add_event(self, summary, device, component, severity, evclasskey, evclass=None):
         """
         Create a new event.
@@ -817,7 +840,7 @@ class EventsRouter(DirectRouter):
         """
         return column_config(self.request, archive)
 
-    @require('Manage Events')
+    @require(ZEN_MANAGE_EVENTS)
     def classify(self, evrows, evclass):
         """
         Associate event(s) with an event class.
@@ -836,7 +859,7 @@ class EventsRouter(DirectRouter):
             msg += " | "+url.split('/dmd/')[1]
         return DirectResponse(msg, success=bool(url))
 
-    @require('Manage Events')
+    @require(ZEN_MANAGE_EVENTS)
     def clear_heartbeats(self):
         """
         Clear all heartbeat events
@@ -849,7 +872,7 @@ class EventsRouter(DirectRouter):
         audit('UI.Event.ClearHeartbeats', self.context)
         return DirectResponse.succeed()
 
-    @require('Manage Events')
+    @require(ZEN_MANAGE_EVENTS)
     def clear_heartbeat(self, monitor, daemon):
         """
         Clears a specific heartbeat event.
@@ -866,7 +889,7 @@ class EventsRouter(DirectRouter):
               daemon=daemon)
         return DirectResponse.succeed()
 
-    @require('Manage Events')
+    @require(ZEN_MANAGE_EVENTS)
     def updateDetails(self, evid, **detailInfo):
         """
         On success, returns the status.

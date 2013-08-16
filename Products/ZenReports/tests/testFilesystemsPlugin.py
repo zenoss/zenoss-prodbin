@@ -10,7 +10,6 @@
 
 from datetime import datetime
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.ZenModel.RRDView import RRDView
 from Products.ZenModel.FileSystem import manage_addFileSystem
 from Products.ZenModel.tests.RRDTestUtils import *
 from Products.ZenReports.AliasPlugin import *

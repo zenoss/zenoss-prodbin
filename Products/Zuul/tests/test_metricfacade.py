@@ -45,7 +45,7 @@ class MetricFacadeTest(BaseTestCase):
     def testRequestBuilder(self):
         metric = ["laLoadInt1_laLoadInt1"]
         dev = self.dmd.Devices.createInstance('device1')
-        request = self.facade._buildRequest(dev, metric)
+        request = self.facade._buildRequest(dev, metric, None, None, "LAST")
         self.assertEquals(request['returnset'], 'LAST')
 
 

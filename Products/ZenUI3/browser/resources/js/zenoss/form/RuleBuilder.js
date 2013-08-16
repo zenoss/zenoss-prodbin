@@ -586,6 +586,43 @@
         }
     });
 
+    Ext.define("Zenoss.form.rule.DeviceCombo",{
+            extend: "Zenoss.form.SmartCombo",
+            alias: ["widget.rule.devicecombo"],
+            constructor: function(config){
+                config = Ext.applyIf(config || {}, {
+                    queryMode: 'remote',
+                    directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
+                    root: 'data',
+                    model: 'Zenoss.model.BasicUUID',
+                    remoteFilter: true,
+                    minChars: 3,
+                    typeAhead: true,
+                    valueField: 'uuid',
+                    displayField: 'name',
+                    forceSelection: true,
+                    triggerAction: 'all',
+                    editable: true,
+                    autoLoad: false
+                })
+                this.callParent([config])
+            },
+
+            setValue: function() {
+                var uuid = arguments[0];
+                // uuid can be undefined, an empty string, a string containing the uuid,
+                // or a BasicUUID object.  Force a reload if it is a uuid-containing string
+                // and the corresponding device is not already in the combobox dropdown.
+                if (uuid && Ext.isString(uuid)) {
+                    this.getStore().setBaseParam("uuid", uuid);
+                    if (this.getStore().getById(uuid) === null) {
+                        this.getStore().load();
+                    }
+                }
+                return this.callParent(arguments);
+            }
+        }
+    )
 
 
     ZF.STRINGCOMPARISONS = [
@@ -680,24 +717,10 @@
             value: 'device_uuid',
             comparisons: ZF.IDENTITYCOMPARISONS,
             field: {
-                xtype: 'combo',
-                queryMode: 'remote',
+                xtype: 'rule.devicecombo',
                 listConfig: {
                     maxWidth:200
-                },
-                store: new Ext.data.DirectStore({
-                    directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
-                    root: 'data',
-                    model: 'Zenoss.model.BasicUUID',
-                    remoteFilter: true
-                }),
-                minChars: 3,
-                listeners: directStoreWorkaroundListeners,
-                typeAhead: true,
-                valueField: 'uuid',
-                displayField: 'name',
-                forceSelection: true,
-                triggerAction: 'all'
+                }
             }
         },
         DEVICECLASS: {
@@ -761,5 +784,4 @@
             }
         }
     });
-
 })();

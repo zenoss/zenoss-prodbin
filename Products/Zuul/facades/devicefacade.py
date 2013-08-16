@@ -656,11 +656,10 @@ class DeviceFacade(TreeFacade):
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         graphs = []
-        for template in obj.getRRDTemplates():
-            for graph in template.getGraphDefs():
-                info = IMetricServiceGraphDefinition(graph)
-                info.setContext(obj)
-                graphs.append(info)
+        for graph in obj.getDefaultGraphDefs():
+            info = IMetricServiceGraphDefinition(graph)
+            info.setContext(obj)
+            graphs.append(info)
         return graphs
 
     def addIpRouteEntry(self, uid, dest, routemask, nexthopid, interface,

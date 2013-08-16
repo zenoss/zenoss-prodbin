@@ -28,8 +28,6 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
 from Products.ZenUtils.deprecated import deprecated
-
-import RRDView
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
                                      ipunwrap, getHostByName
 from Products.ZenModel.interfaces import IIndexed
@@ -365,11 +363,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if template:
                 result.append(template)
         return result
-
-
-    def getRRDNames(self):
-        return ['sysUpTime']
-
 
     def getDataSourceOptions(self):
         """
@@ -1501,8 +1494,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_CHANGE_DEVICE
         """
         if newPerformanceMonitor:
-            #self.dmd.RenderServer.moveRRDFiles(self.id,
-            #    newPerformanceMonitor, performanceMonitor, REQUEST)
             performanceMonitor = newPerformanceMonitor
 
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
@@ -1809,10 +1800,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             eventFilter = { 'tag_filter': [ tagFilter ] }
             log.debug("Closing events for device: %s", self.getId())
             zep.closeEventSummaries(eventFilter=eventFilter)
-        if deletePerf:
-            perfserv = self.getPerformanceServer()
-            if perfserv:
-                perfserv.deleteRRDFiles(self.id)
         if REQUEST:
             audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
@@ -1866,34 +1853,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if self.title:
                 self.title = newId
             parent.manage_renameObject(oldId, newId)
-            self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
             return self.absolute_url_path()
 
         except CopyError:
             raise Exception("Device rename failed.")
-
-    def renameDeviceInPerformance(self, old, new):
-        """
-        Rename the directory that holds performance data for this device.
-
-        @param old: old performance directory name
-        @type old: string
-        @param new: new performance directory name
-        @type new: string
-        """
-        root = os.path.dirname(self.fullRRDPath())
-        oldpath = os.path.join(root, old)
-        newpath = os.path.join(root, new)
-        perfsvr = self.getPerformanceServer()
-        if hasattr(perfsvr, 'isLocalHost') and not perfsvr.isLocalHost():
-            command = 'mv "%s" "%s"' % (oldpath, newpath)
-            perfsvr.executeCommand(command, 'zenoss')
-        elif os.path.exists(oldpath):
-            if os.path.exists(newpath):
-                shutil.rmtree(newpath)
-            shutil.move(oldpath, newpath)
-
 
     def index_object(self, idxs=None, noips=False):
         """
@@ -1923,28 +1887,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         brains = cat(deviceId=self.id)
         for brain in brains:
             brain.getObject().unindex_links()
-
-
-    def cacheComponents(self):
-        """
-        Read current RRD values for all of a device's components
-        """
-        paths = self.getRRDPaths()[:]
-        #FIXME need better way to scope and need to get DataSources
-        # from RRDTemplates
-        #for c in self.os.interfaces(): paths.extend(c.getRRDPaths())
-        for c in self.os.filesystems(): paths.extend(c.getRRDPaths())
-        #for c in self.hw.harddisks(): paths.extend(c.getRRDPaths())
-        objpaq = self.primaryAq()
-        perfServer = objpaq.getPerformanceServer()
-        if perfServer:
-            try:
-                result = perfServer.currentValues(paths)
-                if result:
-                    RRDView.updateCache(zip(paths, result))
-            except Exception:
-                log.exception("Unable to cache values for %s", self.id)
-
 
     def getUserCommandTargets(self):
         """
