@@ -168,6 +168,23 @@ class PingTask(BaseTask):
         isUp = receivedPackets > 0
         return isUp
 
+    def averageRtt(self):
+        """
+        Determine if the device ping times are lagging.
+        @param timeout: in seconds
+        @param minimalPercent: what percentage of ping RTTs ought to
+               be less than the timeout. Between 0 and 1.
+        Return None if can't compute, recent average RTT (in milliseconds) otherwise.
+        """
+        total = 0
+        count = 0
+        for rtt in self._rtt:
+            if rtt is None or math.isnan(rtt): continue
+            count += 1
+            total += rtt
+        if count == 0: return None
+        return float(total) / count
+
     def resetPingResult(self):
         """
         Clear out current ping statistics.
@@ -239,6 +256,26 @@ class PingTask(BaseTask):
         """
         return self.sendPingEvent(msgTpl, events.SEVERITY_CRITICAL, **kwargs)
 
+    def clearPingDegraded(self, rtt=None):
+        """
+        Send a "clear" ping degraded event to the event backend.
+        """
+        msgTpl = '%s is NOT LAGGING!'
+        if rtt is not None:
+            msgTpl += ' (%.1f milliseconds)' % rtt
+        return self.sendPingEvent(msgTpl, events.SEVERITY_CLEAR,
+                    eventClass=("%s/Lag" % Status_Ping), eventKey='ping_lag')
+
+    def sendPingDegraded(self, rtt=None):
+        """
+        Send a ping degraded event to the event backend.
+        """
+        msgTpl = '%s is LAGGING!'
+        if rtt is not None:
+            msgTpl += ' (%.1f milliseconds)' % rtt
+        return self.sendPingEvent(msgTpl, events.SEVERITY_WARNING,
+                    eventClass=("%s/Lag" % Status_Ping), eventKey='ping_lag')
+
     def storeResults(self):
         """
         Store the datapoint results asked for by the RRD template.
@@ -276,14 +313,13 @@ class PingTask(BaseTask):
             }
         
         for rrdMeta in self.config.points:
-            name, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
-            value = datapoints.get(name, None)
+            id, metric, contextUUID, deviceuuid, rrdType, rrdCommand, rrdMin, rrdMax, contextId = rrdMeta
+            value = datapoints.get(id, None)
             if value is None:
                 log.debug("No datapoint '%s' found on the %s pingTask",
-                          name, self)
+                          id, self)
             else:
-                self._dataService.writeRRD(
-                    path, value, rrdType,
-                    rrdCommand=rrdCommand,
-                    min=rrdMin, max=rrdMax,
+                self._dataService.writeMetric(
+                    contextUUID, metric, value, rrdType, contextId,
+                    min=rrdMin, max=rrdMax, deviceuuid=deviceuuid
                 )

@@ -760,7 +760,7 @@ class ZenProcessTask(ObservableMixin):
             if len(pids) != 1:
                 log.debug("There are %d pids by the name %s - %s",
                           len(pids), procStat._config.name, procStat._config.originalName)
-            procName = procStat._config.name
+            procName = procStat
             for pid in pids:
                 cpu = results.get(CPU + str(pid), None)
                 mem = results.get(MEM + str(pid), None)
@@ -869,16 +869,16 @@ class ZenProcessTask(ObservableMixin):
         @type statName: string
         @param value: data to be stored
         @type value: number
-        @param rrdType: RRD data type (eg ABSOLUTE, DERIVE, COUNTER)
+        @param rrdType: Metric data type (eg ABSOLUTE, DERIVE, COUNTER)
         @type rrdType: string
         """
-        deviceName = self._devId
-        path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
+        uuid = pidName._config.contextUUID
+        devuuid = pidName._config.deviceuuid
         try:
-            self._dataService.writeRRD(path, value, rrdType, min=min)
+            self._dataService.writeMetric(uuid, statName, value, rrdType, pidName._config.name, min=min, deviceuuid=devuuid)
         except Exception, ex:
-            summary = "Unable to save data for process-monitor RRD %s" %\
-                      path
+            summary = "Unable to save data for process-monitor metric %s" %\
+                      uuid
             log.critical(summary)
 
             message = "Data was value= %s, type=%s" %\
@@ -892,14 +892,13 @@ class ZenProcessTask(ObservableMixin):
 
             self._eventService.sendEvent(dict(
                 dedupid="%s|%s" % (self._preferences.options.monitor,
-                                   'RRD write failure'),
+                                   'Metric write failure'),
                 severity=Event.Critical,
                 device=self._preferences.options.monitor,
                 eventClass=Status_Perf,
-                component="RRD",
+                component="METRIC",
                 pidName=pidName,
                 statName=statName,
-                path=path,
                 message=message,
                 traceback=trace_info,
                 summary=summary))

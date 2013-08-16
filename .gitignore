@@ -1,0 +1,17 @@
+Products/README.txt
+Products/ZenUI3/browser/resources/js/deploy/
+bin/runzope
+bin/runzope.bat
+bin/zope2.wsgi
+bin/zopectl
+bin/zopectl.bat
+.idea/
+Core.iml
+bin/powerline
+bin/powerline-lint
+bin/virtualenv-clone
+bin/virtualenvwrapper.sh
+bin/virtualenvwrapper_lazy.sh
+*.pyc
+*~
+
