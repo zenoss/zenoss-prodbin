@@ -32,11 +32,6 @@ class MetricWriter(object):
         self._metrics_channel = 'metrics'
         self._timedMetricCache = {}
 
-    @defer.inlineCallbacks
-    def _acquire_publisher(self):
-        if not self._publisher:
-            pub = yield self._publisher_def
-            self._publisher = pub
 
     def _derivative(self, uuid, timedMetric, min, max):
         lastTimedMetric = self._timedMetricCache.get(uuid)
@@ -74,6 +69,24 @@ class MetricWriter(object):
         this metric, maybe the same as contextUUID if the context is a
         device
         """
+        self._write_twisted(contextUUID, metric, value, metricType, contextId,
+                            timestamp, min, max, threshEventData, deviceuuid)
+
+    @defer.inlineCallbacks
+    def _write_twisted(self, contextUUID, metric, value, metricType,
+                       contextId, timestamp='N', min='U', max='U',
+                       threshEventData={}, deviceuuid=None):
+        if not self._publisher:
+            pub = yield self._publisher_def
+            self._publisher = pub
+            self._writeMetric(contextUUID, metric, value, metricType,
+                              contextId, timestamp, min, max, threshEventData, deviceuuid)
+        else:
+            self._writeMetric(contextUUID, metric, value, metricType,
+                              contextId, timestamp, min, max, threshEventData, deviceuuid)
+
+    def _writeMetric(self, contextUUID, metric, value, metricType, contextId, timestamp='N', min='U', max='U',
+                     threshEventData={}, deviceuuid=None):
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
         extraTags = {
             'datasource': metric.split("_")[0]
@@ -82,7 +95,6 @@ class MetricWriter(object):
             extraTags['device'] = deviceuuid
             # write the raw metric to Redis
 
-        self._acquire_publisher()
         self._publisher.put(self._metrics_channel,
                             metric.split("_")[1],  # metric id is the datapoint name
                             value,
