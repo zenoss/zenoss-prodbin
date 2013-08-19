@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -29,24 +29,15 @@ class MetricMixin(object):
 
     def cacheValue(self, dsname, default = "Unknown"):
         """
-        Cache RRD values for up to CACHE_TIME seconds.
+        Cache metric values for up to CACHE_TIME(60) seconds.
         """
-        # Notes:
-        #  * _cache takes care of the time-limited-offer bits
-        #  * rrdcached does cache results, but the first query
-        #    could potentially cause a flush()
-        #  * Remote collectors need this call to prevent extra
-        #    calls across the network
         cacheKey = self.getCacheKey(dsname)
         try:
             value = _cache[cacheKey]
         except KeyError:
             try:
-                # Grab rrdcached value locally or from network
                 value = self.getRRDValue(dsname)
             except Exception as ex:
-                # Generally a remote collector issue
-                # We'll cache this for a minute and then try again
                 value = None
                 log.error('Unable to get RRD value for %s: %s', dsname, ex)
             _cache[cacheKey] = value
