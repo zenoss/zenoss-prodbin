@@ -47,18 +47,18 @@ class DaemonStats(object):
         """Write a DERIVE value, return empty list"""
         self.metric_writer.writeMetric(
             self._uuid(), self._metric(name), value, 'DERIVE',
-            self._context_id(), hasThresholds=True)
+            self._context_id())
         return []
 
     def counter(self, name, cycleTime, value):
         """Write a DERIVE value, return empty list"""
         self.metric_writer.writeMetric(
             self._uuid(), self._metric(name), value, 'COUNTER',
-            self._context_id(), hasThresholds=True)
+            self._context_id())
         return []
 
     def gauge(self, name, cycleTime, value):
         self.metric_writer.writeMetric(
             self._uuid(), self._metric(name), value, 'GAUGE',
-            self._context_id(), hasThresholds=True)
+            self._context_id())
         return []
