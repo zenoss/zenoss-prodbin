@@ -399,11 +399,11 @@ class ZenHub(ZCmdBase):
         # make sure we don't reserve more than n-1 workers for events
         maxReservedEventsWorkers = 0
         if self.options.workers:
-            maxReservedEventsWorkers = self.options.workers-1
+            maxReservedEventsWorkers = self.options.workers - 1
         if self.options.workersReservedForEvents > maxReservedEventsWorkers:
             self.options.workersReservedForEvents = maxReservedEventsWorkers
             self.log.info("reduced number of workers reserved for sending events to %d",
-                          self. options.workersReservedForEvents)
+                          self.options.workersReservedForEvents)
 
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
