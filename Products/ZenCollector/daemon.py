@@ -840,13 +840,15 @@ class StatisticsService(object):
             # figure out which function to use to post this statistical data
             try:
                 func = {
-                    'COUNTER' : rrdStats.counter,
-                    'GAUGE' : rrdStats.gauge,
-                    'DERIVE' : rrdStats.derive,
+                    'COUNTER': rrdStats.counter,
+                    'GAUGE': rrdStats.gauge,
+                    'DERIVE': rrdStats.derive,
                 }[stat.type]
             except KeyError:
                 raise TypeError("Statistic type %s not supported" % stat.type)
 
+            # These should always come back empty now because DaemonStats
+            # posts the events for us
             events += func(stat.name, interval, stat.value)
 
             # counter is an ever-increasing value, but otherwise...

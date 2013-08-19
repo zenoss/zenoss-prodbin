@@ -48,6 +48,7 @@ class DaemonStats(object):
         self.metric_writer.writeMetric(
             self._uuid(), self._metric(name), value, 'DERIVE',
             self._context_id(), hasThresholds=True)
+        return []
 
     def counter(self, name, cycleTime, value):
         """Write a DERIVE value, return empty list"""

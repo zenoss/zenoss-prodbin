@@ -92,7 +92,7 @@ class MetricWriter(object):
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in ('COUNTER', 'DERIVE'):
-            value = self._derivative(contextUUID, (int(value), timestamp), min, max)                   1
+            value = self._derivative(contextUUID, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
         #import pdb
