@@ -55,7 +55,6 @@ from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.ZenHub.services.RenderConfig import RenderConfig
 from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid, IHubConfProvider, IHubHeartBeatCheck
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
@@ -81,7 +80,6 @@ unused(DataMaps, ObjectMap)
 
 from Products.ZenHub import XML_RPC_PORT
 from Products.ZenHub import PB_PORT
-from Products.ZenHub import ZENHUB_ZENRENDER
 
 HubWorklistItem = collections.namedtuple('HubWorklistItem', 'priority recvtime deferred servicename instance method args')
 WorkerStats = collections.namedtuple('WorkerStats', 'status description lastupdate previdle')
@@ -419,10 +417,6 @@ class ZenHub(ZCmdBase):
 
         xmlsvc = AuthXmlRpcService(self.dmd, checker)
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc), interface=interface)
-
-        #start listening for zenrender requests
-        if self.options.graph_proxy:
-            self.renderConfig = RenderConfig(self.dmd, ZENHUB_ZENRENDER )
 
         # responsible for sending messages to the queues
         import Products.ZenMessaging.queuemessaging
@@ -984,9 +978,6 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--anyworker', dest='anyworker',
             action='store_true', default=False,
             help='Allow any priority job to run on any worker')
-        self.parser.add_option('--no-graph-proxy', dest='graph_proxy',
-            action='store_false', default=True,
-            help="Don't listen to proxy graph requests to zenrender")
         self.parser.add_option('--workers-reserved-for-events', dest='workersReservedForEvents',
             type='int', default=1,
             help="Number of worker instances to reserve for handling events")

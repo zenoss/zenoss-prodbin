@@ -7,16 +7,24 @@
 #
 ##############################################################################
 from datetime import datetime, timedelta
-from zenoss.protocols.services import JsonRestServiceClient
+from zenoss.protocols.services import JsonRestServiceClient, ServiceResponseError
 from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenModel.RRDView import AGGREGATION_MAPPING
 import logging
 log = logging.getLogger("zen.MetricFacade")
 
+
 DATE_FORMAT = "%Y/%m/%d-%H:%M:%S-%z"
 METRIC_URL = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
-
+AGGREGATION_MAPPING = {
+    'average': 'avg',
+    'minimum': 'min',
+    'maximum': 'max',
+    'total': 'sum',
+    #TODO: get last agg function working
+    'last': None
+}
 class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
@@ -25,7 +33,7 @@ class MetricFacade(ZuulFacade):
 
     def getLastValue(self, context, metric):
         """
-        Convience method for retrieving the last value for a metric on a context. Will return -1 if not found.
+        Convenience method for retrieving the last value for a metric on a context. Will return -1 if not found.
         """
         result = self.getValues(context, [metric])
         if result and metric in result:
@@ -33,7 +41,7 @@ class MetricFacade(ZuulFacade):
         return -1
 
     def getValues(self, context, metrics, start=None, end=None,
-                     format="%.2lf", extraRpn="", cf="avg"):
+                     format="%.2lf", extraRpn="", cf="avg", returnSet="LAST"):
         """
         Return a dict of key value pairs where metric names are the keys and
         the most recent value in the given time range is the value.
@@ -47,13 +55,12 @@ class MetricFacade(ZuulFacade):
         @param format: the format we are returning the data in
         @param extraRpn: an extra rpn expression appended to the datapoint RPN expression
         @param cf: Consolidation functions, valid consolidation functions are avg, min, max, and sum
+        @param returnSet: default "LAST" (which returns the last value) the other options are ALL which returns everthing, and EXACT which returns what is in the date range
         @return: Dictionary of [dataPointId: value]
         """
         # if it is a uid look up the object
         if isinstance(context, basestring):
             context = self._getObject(context)
-
-        results = dict()
 
         # build the metrics section of the query
         datapoints = []
@@ -81,11 +88,17 @@ class MetricFacade(ZuulFacade):
         if start is None:
             start = self._formatTime(datetime.today() - timedelta(seconds = context.defaultDateRange))
 
-        request = self._buildRequest(context, datapoints, start, end)
+        request = self._buildRequest(context, datapoints, start, end, returnSet)
 
         # submit it to the client
-        response, content = self._client.post('query/performance', request)
-        if content and content.get('results'):
+        try:
+            response, content = self._client.post('query/performance', request)
+        except ServiceResponseError, e:
+            # there was an error returned by the metric service, log it here
+            log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
+            return {}
+
+        if content and content.get('results') and returnSet=="LAST":
            # Output of this request should be something like this:
            # [{u'timestamp': 1376477481, u'metric': u'sysUpTime',
            #   u'value': 2418182400.0, u'tags': {u'device':
@@ -93,14 +106,17 @@ class MetricFacade(ZuulFacade):
            #   u'55d1bbf8-efab-4175-b585-1d748b275b2a', u'datasource':
            #   u'sysUpTime'}}]
            #
+           results = dict()
            for r in content['results']:
                results[r['metric']] = r['value']
-        return results
+           return results
+        else:
+           return content.get('results')
 
-    def _buildRequest(self, context, metrics, start=None, end=None):
+    def _buildRequest(self, context, metrics, start, end, returnSet):
         request = {
             'tags': self._buildTagsFromContext(context),
-            'returnset': 'LAST',
+            'returnset': returnSet,
             'start': start,
             'end': end,
             'metrics': metrics
@@ -111,24 +127,24 @@ class MetricFacade(ZuulFacade):
         return dict(uuid=context.getUUID())
 
     def _buildMetric(self, dp, cf, extraRpn="", format=""):
-        # get the rpn off of the datapoint
-        rpn = str(dp.rpn)
-        if rpn:
-            rpn = "," + rpn
-        if extraRpn:
-            rpn = rpn + "," + extraRpn
+        datasource = dp.datasource()
+        dsId = datasource.id
+        info = IInfo(dp)
 
         # find out our aggregation function
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
-        dsId = dp.datasource().id
-        dpId = dp.id
-        return dict(
-            metric=dpId,
+        rateOptions = info.getRateOptions()
+        metric = dict(
+            metric=dp.id,
             aggregator=agg,
-            rpn=rpn,
+            rpn=extraRpn,
             format=format,
-            tags={'datasource': dsId}
+            tags={'datasource': dsId},
+            rate=info.rate
         )
+        if rateOptions:
+            metric['rateOptions'] = rateOptions
+        return metric
 
     def _formatTime(self, t):
         """

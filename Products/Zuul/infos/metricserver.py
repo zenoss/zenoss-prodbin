@@ -9,10 +9,11 @@
 
 from zope.interface import implements
 from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
-from Products.Zuul.interfaces import template as templateInterfaces
+from Products.Zuul.interfaces import template as templateInterfaces, IInfo
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
-from Products.ZenModel.RRDView import AGGREGATION_MAPPING
+from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
+from Products.ZenModel.ConfigurationError import ConfigurationError
 
 __doc__ = """
 These adapters are responsible for serializing the graph
@@ -100,6 +101,24 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def type(self):
         return self._object.lineType.lower()
+
+    def _getDataPoint(self):
+        try:
+            return IInfo(self._object.graphDef().rrdTemplate().getRRDDataPoint(self._object.dpName))
+        except ConfigurationError:
+            return None
+
+    @property
+    def rate(self):
+        datapoint = self._getDataPoint()
+        if datapoint:
+            return datapoint.rate
+
+    @property
+    def rateOptions(self):
+        datapoint = self._getDataPoint()
+        if datapoint:
+            return datapoint.getRateOptions()
 
     @property
     def aggregator(self):

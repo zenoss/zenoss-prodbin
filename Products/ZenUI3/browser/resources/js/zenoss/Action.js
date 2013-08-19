@@ -12,44 +12,58 @@
     Ext.ns('Zenoss.Action');
 
     Ext.define('Zenoss.PermissionableAction', {
-
+        externallyDisabled: false,
+        permitted: false,
+        filtered: false,
+        updateDisabled: function() {
+            this.setDisabled(this.checkDisabled());
+        },
+        checkDisabled: function() {
+            if (this.externallyDisabled) return true;
+            if (!this.permitted && !this.filtered) return true;
+            return false;
+        },
+        checkPermitted: function() {
+            if (this.permission) {
+                if (this.permissionContext) {
+                    if (Zenoss.env.PARENT_CONTEXT == this.permissionContext) {
+                        return Zenoss.Security.hasPermission(this.permission);
+                    } else {
+                        return Zenoss.Security.hasGlobalPermission(this.permission);
+                    }
+                } else {
+                    return !Zenoss.Security.doesNotHavePermission(this.permission);
+                }
+            } else {
+                return true;
+            }
+        },
         setPermission: function(config) {
             var me = this;
+            var recheck = function() {
+                me.permitted = me.checkPermitted();
+                me.updateDisabled();
+            }
             // if they set the permissions config property
-            // and the logged in user does not have permission, hide this element
-            if (config.permission){
-                var permission = config.permission;
-                config.disabled = Zenoss.Security.doesNotHavePermission(permission);
-
+            // and the logged in user does not have permission, disable this element
+            if (config.permission) {
+                this.permission = config.permission;
                 // register the control to be disabled or enabled based on the current context
                 if (config.permissionContext) {
-                    Zenoss.Security.onPermissionsChange(function(){
-                        var cmp = me, uid = Zenoss.env.PARENT_CONTEXT;
-                        if (uid == config.permissionContext) {
-                            cmp.setDisabled(Zenoss.Security.doesNotHavePermission(permission));
-                        } else {
-                            cmp.setDisabled(!Zenoss.Security.hasGlobalPermission(permission));
-                        }
-                    });
+                    this.permissionContext = config.permissionContext;
+                    Zenoss.Security.onPermissionsChange(recheck);
                 } else {
                     // update when the context changes
-                    Zenoss.Security.onPermissionsChange(function(){
-                        this.setDisabled(Zenoss.Security.doesNotHavePermission(permission));
-                    }, this);
+                    Zenoss.Security.onPermissionsChange(recheck, this);
                 }
             }
-
-
+            this.permitted = this.checkPermitted();
         }
-
     });
 
-    function setDisabled(disable){
-        var enable = !disable;
-        if (disable || (Ext.isDefined(this.initialConfig.permission) && enable &&
-                        Zenoss.Security.hasPermission(this.initialConfig.permission)===true)) {
-            this.callParent([disable]);
-        }
+    function setDisabled(disable) {
+        this.externallyDisabled = disable;
+        this.callParent([this.checkDisabled()]);
     }
 
     Ext.define("Zenoss.Action", {
@@ -60,6 +74,8 @@
         },
         constructor: function(config){
             this.setPermission(config);
+            this.filtered = config.filtered;
+            config.disabled = this.checkDisabled();
             this.callParent([config]);
         },
         setDisabled: setDisabled
@@ -73,6 +89,8 @@
         },
         constructor: function(config){
             this.setPermission(config);
+            this.filtered = config.filtered;
+            config.disabled = this.checkDisabled();
             this.callParent([config]);
         },
         setDisabled: setDisabled
