@@ -35,19 +35,19 @@ from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 from Products.Zuul.utils import safe_hasattr as hasattr
-from twisted.python.failure import Failure
-
-from PythonClient   import PythonClient
-from SshClient      import SshClient
-from TelnetClient   import TelnetClient, buildOptions as TCbuildOptions
-from SnmpClient     import SnmpClient
-from PortscanClient import PortscanClient
-
+from Products.ZenUtils.metricwriter import MetricWriter
 from Products.DataCollector import Classifier
 from Products.ZenCollector.interfaces import IEventService
+from zenoss.collector.publisher.publisher import RedisListPublisher
 
+from twisted.python.failure import Failure
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
+from PythonClient import PythonClient
+from SshClient import SshClient
+from TelnetClient import TelnetClient, buildOptions as TCbuildOptions
+from SnmpClient import SnmpClient
+from PortscanClient import PortscanClient
 
 import collections
 import cPickle as pickle
@@ -57,7 +57,6 @@ import DateTime
 import gzip
 
 import os
-import os.path
 import sys
 import traceback
 from random import randint
@@ -74,6 +73,7 @@ _DEFAULT_CYCLE_INTERVAL = 720
 from Products.DataCollector import DeviceProxy
 from Products.DataCollector import Plugins
 unused(DeviceProxy, Plugins)
+
 
 class ZenModeler(PBDaemon):
     """
@@ -144,7 +144,6 @@ class ZenModeler(PBDaemon):
         """
         self.log.error("Error occured: %s", error)
 
-
     def connected(self):
         """
         Called after connected to the zenhub service
@@ -152,7 +151,6 @@ class ZenModeler(PBDaemon):
         d = self.configure()
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
-
 
     def configure(self):
         """
@@ -182,16 +180,11 @@ class ZenModeler(PBDaemon):
             yield self.config().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())
 
-            self.log.debug("Fetching default RRDCreateCommand...")
-            yield self.config().callRemote('getDefaultRRDCreateCommand')
-            createCommand = driver.next()
-
             self.log.debug("Getting collector thresholds...")
             yield self.config().callRemote('getCollectorThresholds')
-            self.rrdStats.config(self.options.monitor,
-                                 self.name,
-                                 driver.next(),
-                                 createCommand)
+            publisher = RedisListPublisher.create()  # TODO: Don't use defaults!
+            metric_writer = MetricWriter(self.sendEvent, publisher, driver.next())
+            self.rrdStats.config(self.options.monitor, self.name, metric_writer)
 
             self.log.debug("Getting collector plugins for each DeviceClass")
             yield self.config().callRemote('getClassCollectorPlugins')
@@ -199,13 +192,11 @@ class ZenModeler(PBDaemon):
 
         return drive(inner)
 
-
     def config(self):
         """
         Get the ModelerService
         """
         return self.services.get('ModelerService', FakeRemote())
-
 
     def selectPlugins(self, device, transport):
         """
@@ -292,8 +283,6 @@ class ZenModeler(PBDaemon):
                 result.append(plugin)
         return result
 
-
-
     def collectDevice(self, device):
         """
         Collect data from a single device.
@@ -312,8 +301,6 @@ class ZenModeler(PBDaemon):
         self.cmdCollect(device, ip, timeout)
         self.snmpCollect(device, ip, timeout)
         self.portscanCollect(device, ip, timeout)
-
-
 
     def wmiCollect(self, device, ip, timeout):
         """
@@ -349,8 +336,6 @@ class ZenModeler(PBDaemon):
             self.log.exception("Error opening WMI collector")
         self.addClient(client, timeout, 'WMI', device.id)
 
-
-
     def pythonCollect(self, device, ip, timeout):
         """
         Start local Python collection client.
@@ -380,7 +365,6 @@ class ZenModeler(PBDaemon):
         except:
             self.log.exception("Error opening pythonclient")
         self.addClient(client, timeout, 'python', device.id)
-
 
     def cmdCollect(self, device, ip, timeout):
         """
@@ -449,8 +433,6 @@ class ZenModeler(PBDaemon):
             self.log.exception("Error opening command collector")
         self.addClient(client, timeout, clientType, device.id)
 
-
-
     def snmpCollect(self, device, ip, timeout):
         """
         Start SNMP collection client.
@@ -493,7 +475,6 @@ class ZenModeler(PBDaemon):
             self.log.exception("Error opening the SNMP collector")
         self.addClient(client, timeout, 'SNMP', device.id)
 
-
 ######## need to make async test for snmp work at some point -EAD #########
     # def checkSnmpConnection(self, device):
     #     """
@@ -527,7 +508,6 @@ class ZenModeler(PBDaemon):
     #
     #     return drive(inner)
 
-
     def addClient(self, device, timeout, clientType, name):
         """
         If device is not None, schedule the device to be collected.
@@ -550,7 +530,6 @@ class ZenModeler(PBDaemon):
         else:
             self.log.warn('Unable to create a %s collector for %s',
                           clientType, name)
-
 
     # XXX double-check this, once the implementation is in place
     def portscanCollect(self, device, ip, timeout):
@@ -586,7 +565,6 @@ class ZenModeler(PBDaemon):
             self.log.exception("Error opening portscan collector")
         self.addClient(client, timeout, 'portscan', device.id)
 
-
     def checkCollection(self, device):
         """
         See how old the data is that we've collected
@@ -613,6 +591,7 @@ class ZenModeler(PBDaemon):
         """
         device = collectorClient.device
         self.log.debug("Client for %s finished collecting", device.id)
+
         def processClient(driver):
             try:
                 if (isinstance(collectorClient, SnmpClient)
@@ -754,7 +733,6 @@ class ZenModeler(PBDaemon):
         """
         self.log.error("Unable to fill collection slots: %s" % reason)
 
-
     def cycleTime(self):
         """
         Return our cycle time (in minutes)
@@ -763,7 +741,6 @@ class ZenModeler(PBDaemon):
         @rtype: integer
         """
         return self.modelerCycleInterval * 60
-
 
     def heartbeat(self, ignored=None):
         """
@@ -834,7 +811,6 @@ class ZenModeler(PBDaemon):
                 result = True
                 self.devicegen = chain([first], self.devicegen)
         return result
-
 
     def checkStop(self, unused = None):
         """
@@ -1043,8 +1019,6 @@ class ZenModeler(PBDaemon):
                 active.append(client)
         self.clients = active
 
-
-
     def timeoutClients(self, unused=None):
         """
         Check to see which clients have timed out and which ones haven't.
@@ -1058,8 +1032,6 @@ class ZenModeler(PBDaemon):
         d = drive(self.fillCollectionSlots)
         d.addCallback(self.checkStop)
         d.addErrback(self.fillError)
-
-
 
     def reactorLoop(self):
         """
@@ -1075,8 +1047,6 @@ class ZenModeler(PBDaemon):
             except Exception:
                 if reactor.running:
                     self.log.exception("Unexpected error in main loop.")
-
-
 
     def getDeviceList(self):
         """
@@ -1110,7 +1080,6 @@ class ZenModeler(PBDaemon):
             reactor.running = False
             sys.exit(1)
 
-
         d.addErrback(handle)
         return d
 
@@ -1141,8 +1110,6 @@ class ZenModeler(PBDaemon):
         driver.next()
         self.log.debug("Collection slots filled")
 
-
-
     def main(self, unused=None):
         """
         Wrapper around the mainLoop
@@ -1156,8 +1123,6 @@ class ZenModeler(PBDaemon):
         d = drive(self.mainLoop)
         d.addCallback(self.timeoutClients)
         return d
-
-
 
     def remote_deleteDevice(self, device):
         """

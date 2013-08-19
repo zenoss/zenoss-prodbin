@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-__doc__='''EventServer
+__doc__ = '''EventServer
 
 Base class for ZenSyslog, ZenTrap and others
 
@@ -24,11 +24,14 @@ import Globals
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive
+from Products.ZenUtils.metricwriter import MetricWriter
+from zenoss.collector.publisher.publisher import RedisListPublisher
 
 from Products.ZenEvents.ZenEventClasses import App_Start
 from twisted.internet import reactor
 
 import time
+
 
 class Stats:
     totalTime = 0.
@@ -43,8 +46,9 @@ class Stats:
     def report(self):
         return self.totalTime, self.totalEvents, self.maxTime
 
+
 class EventServer(PBDaemon):
-    'Base class for a daemon whose primary job is to post events'
+    """Base class for a daemon whose primary job is to post events"""
 
     name = 'EventServer'
     
@@ -52,7 +56,6 @@ class EventServer(PBDaemon):
         PBDaemon.__init__(self, keeproot=True)
         self.stats = Stats()
         self.rrdStats = DaemonStats()
-
 
     def connected(self):
         self.sendEvent(dict(device=self.options.monitor, 
@@ -63,40 +66,35 @@ class EventServer(PBDaemon):
         self.log.info("started")
         self.configure()
 
-
     def model(self):
         return self.services.get('EventService', FakeRemote())
 
-
     def configure(self):
         def inner(driver):
-            self.log.info("fetching default RRDCreateCommand")
-            yield self.model().callRemote('getDefaultRRDCreateCommand')
-            createCommand = driver.next()
-        
             self.log.info("getting threshold classes")
             yield self.model().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())
         
             self.log.info("getting collector thresholds")
             yield self.model().callRemote('getCollectorThresholds')
-            self.rrdStats.config(self.options.monitor, self.name,
-                                 driver.next(), createCommand)
+            publisher = RedisListPublisher.create()  # TODO: Don't use defaults!
+            metric_writer = MetricWriter(self.sendEvent, publisher, driver.next())
+            self.rrdStats.config(self.options.monitor, self.name, metric_writer)
+
             self.heartbeat()
             self.reportCycle()
         d = drive(inner)
+
         def error(result):
             self.log.error("Unexpected error in configure: %s" % result)
         d.addErrback(error)
         return d
-
 
     def sendEvent(self, event, **kw):
         # FIXME: get real event processing stats
         if 'firstTime' in event:
             self.stats.add(min(time.time() - event['firstTime'], 0))
         PBDaemon.sendEvent(self, event, **kw)
-
 
     def useUdpFileDescriptor(self, fd):
         from twisted.internet import udp
@@ -115,9 +113,9 @@ class EventServer(PBDaemon):
         self.numPorts = 1
         transport.startReading()
 
-
     def useTcpFileDescriptor(self, fd, factory):
-        import os, socket
+        import os
+        import socket
         for i in range(19800, 19999):
             try:
                 p = reactor.listenTCP(i, factory)
@@ -131,12 +129,10 @@ class EventServer(PBDaemon):
                 pass
         raise socket.error("Unable to find an open socket to listen on")
 
-
     def reportCycle(self):
         if self.options.statcycle:
             self.report()
             reactor.callLater(self.options.statcycle, self.reportCycle)
-
 
     def heartbeat(self):
         """Since we don't do anything on a regular basis, just
@@ -153,9 +149,8 @@ class EventServer(PBDaemon):
                                          int(totalTime * 1000))):
             self.sendEvent(ev)
 
-        
     def report(self):
-        'report some simple diagnostics at shutdown'
+        """report some simple diagnostics at shutdown"""
         totalTime, totalEvents, maxTime = self.stats.report()
         self.log.info("%d events processed in %.2f seconds",
                       totalEvents,
@@ -165,7 +160,6 @@ class EventServer(PBDaemon):
                        (totalTime / totalEvents))
             self.log.info("Maximum processing time for one event was %.5f",
                           maxTime)
-
 
     def buildOptions(self):
         PBDaemon.buildOptions(self)

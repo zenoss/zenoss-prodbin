@@ -17,8 +17,6 @@ import zope.interface
 from twisted.internet import defer, protocol, reactor, task
 from twisted.python.failure import Failure
 
-from txredis import RedisClient
-
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
@@ -37,8 +35,11 @@ from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, unused
 from Products.ZenUtils.picklezipper import Zipper
 from Products.ZenUtils.observable import ObservableProxy
+from Products.ZenUtils.metricwriter import MetricWriter
+
 
 log = logging.getLogger("zen.daemon")
+
 
 class DummyListener(object):
     zope.interface.implements(IConfigurationListener)
@@ -674,15 +675,16 @@ class CollectorDaemon(RRDDaemon):
     @defer.inlineCallbacks
     def _configureRRD(self, rrdCreateCommand, thresholds):
         self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
+        self._publisher = yield publisher.RedisListPublisher.create()
+        metric_writer = MetricWriter(self.sendEvent,
+                                     self._publisher,
+                                     thresholds)
         self.rrdStats.config(self.options.monitor,
                              self.name,
-                             thresholds,
-                             rrdCreateCommand)
-
-        self._publisher= yield publisher.RedisListPublisher.create()
+                             metric_writer)
 
     def _isRRDConfigured(self):
-        return (self.rrdStats and self._rrd)
+        return self.rrdStats and self._rrd
 
     def _startMaintenance(self, ignored=None):
         unused(ignored)
