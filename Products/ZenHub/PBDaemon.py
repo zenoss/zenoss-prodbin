@@ -567,15 +567,15 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.loadCounters()
         self._pingedZenhub = None
         self._connectionTimeout = None
-        self._publisher_deferred = None
+        self._publisher = None
         self._metric_writer = None
         self._derivative_tracker = None
 
         # Add a shutdown trigger to send a stop event and flush the event queue
         reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
 
-    def publisherDeferred(self):
-        if not self._publisher_deferred:
+    def publisher(self):
+        if not self._publisher:
             host, port = urlparse(self.options.redisUrl).netloc.split(':')
             try:
                 port = int(port)
@@ -584,13 +584,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                    "value {port}, defaulting to {default}".
                                    format(port=port, default=16379))
                 port = publisher.defaultRedisPort
-            self._publisher_deferred = RedisListPublisher.create(
-                host, port, self.options.metricBufferSize)
-        return self._publisher_deferred
+            self._publisher = RedisListPublisher(host, port, self.options.metricBufferSize)
+        return self._publisher
 
     def metricWriter(self):
         if not self._metric_writer:
-            self._metric_writer = MetricWriter(self.publisherDeferred())
+            self._metric_writer = MetricWriter(self.publisher())
         return self._metric_writer
 
     def derivativeTracker(self):

@@ -494,8 +494,7 @@ class ZenHub(ZCmdBase):
         threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
         # TODO: Don't use defaults!
-        publisher = RedisListPublisher.create()
-        metric_writer = MetricWriter(publisher)
+        metric_writer = MetricWriter(RedisListPublisher())
         derivative_tracker = DerivativeTracker()
 
         rrdStats.config('zenhub', perfConf.id, metric_writer,

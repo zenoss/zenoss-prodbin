@@ -17,11 +17,9 @@ log = logging.getLogger("zen.MetricWriter")
 
 class MetricWriter(object):
 
-    def __init__(self, publisher_def):
-        self._publisher_def = publisher_def
-        self._publisher = None
+    def __init__(self, publisher):
+        self._publisher = publisher
 
-    @defer.inlineCallbacks
     def write_metric(self, metric, value, timestamp, tags):
         """
         Wraps calls to a deferred publisher
@@ -32,11 +30,10 @@ class MetricWriter(object):
         @param tags:
         @return:
         """
-        if self._publisher:
+        try:
             self._publisher.put(metric, value, timestamp, tags)
-        else:
-            self._publisher = yield self._publisher_def
-            self._publisher.put(metric, value, timestamp, tags)
+        except Exception as x:
+            log.exception(x)
 
 
 class DerivativeTracker(object):
