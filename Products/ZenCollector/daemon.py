@@ -33,9 +33,7 @@ from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, unused
 from Products.ZenUtils.picklezipper import Zipper
 from Products.ZenUtils.observable import ObservableProxy
-from Products.ZenUtils.metricwriter import MetricWriter
 from Products.ZenUtils.metricwriter import ThresholdNotifier
-from Products.ZenUtils.metricwriter import DerivativeTracker
 
 
 log = logging.getLogger("zen.daemon")
@@ -269,8 +267,21 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-        self.parser.add_option('--redis-url', default='redis://localhost:16379/0',
-            help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
+        self.parser.add_option('--redis-url', 
+                               dest='redisUrl',
+                               type='string',
+                               default='redis://localhost:{default}/0'.format(default=publisher.defaultRedisPort),
+                               help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
+        self.parser.add_option('--metricBufferSize',
+                               dest='metricBufferSize',
+                               type='int',
+                               default=publisher.defaultMetricBufferSize,
+                               help='Number of metrics to buffer if redis goes down')
+        self.parser.add_option('--metricsChannel',
+                               dest='metricsChannel',
+                               type='string',
+                               default=publisher.defaultMetricsChannel,
+                               help='redis channel to which metrics are published')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
@@ -340,6 +351,7 @@ class CollectorDaemon(RRDDaemon):
     def writeMetric(self, contextUUID, metric, value, metricType, contextId,
                     timestamp='N', min='U', max='U', hasThresholds=False,
                     threshEventData={}, deviceuuid=None):
+
         """
         Writes the metric to the metric publisher.
         @param contextUUID: This is who the metric applies to. This is usually a component or a device.
@@ -355,6 +367,7 @@ class CollectorDaemon(RRDDaemon):
         @param deviceuuid: the unique identifier of the device for
         this metric, maybe the same as contextUUID if the context is a
         device
+        @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
         data_source, data_point_name = metric.split("_")
@@ -368,6 +381,7 @@ class CollectorDaemon(RRDDaemon):
         # write the raw metric to Redis
         self._metric_writer.write_metric(
             data_point_name, value, timestamp, tags)
+
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
@@ -646,6 +660,10 @@ class CollectorDaemon(RRDDaemon):
                              self._threshold_notifier,
                              self.derivativeTracker())
 
+
+
+        self._publisher= yield
+ 
     def _isRRDConfigured(self):
         return self.rrdStats and self._rrd
 

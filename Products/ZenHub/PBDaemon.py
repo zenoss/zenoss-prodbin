@@ -19,10 +19,12 @@ import collections
 import sys
 import time
 import traceback
+from urlparse import urlparse
 from hashlib import sha1
 from itertools import chain
 from functools import partial
 from zenoss.collector.publisher.publisher import RedisListPublisher
+from zenoss.collector.publisher import publisher
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
 from twisted.internet.error import ConnectionLost, ReactorNotRunning, AlreadyCalled
@@ -574,8 +576,16 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def publisherDeferred(self):
         if not self._publisher_deferred:
-            # TODO: Don't use defaults!
-            self._publisher_deferred = RedisListPublisher.create()
+            host, port = urlparse(self.options.redisUrl).netloc.split(':')
+            try:
+                port = int(port)
+            except ValueError:
+                self.log.exception("redis url contains non-integer port " +
+                                   "value {port}, defaulting to {default}".
+                                   format(port=port, default=16379))
+                port = publisher.defaultRedisPort
+            self._publisher_deferred = RedisListPublisher.create(
+                host, port, self.options.metricBufferSize)
         return self._publisher_deferred
 
     def metricWriter(self):
