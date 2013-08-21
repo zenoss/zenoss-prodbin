@@ -60,6 +60,8 @@ from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidatio
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
 from Products.ZenHub.WorkerSelection import WorkerSelector
 from Products.ZenUtils.metricwriter import MetricWriter
+from Products.ZenUtils.metricwriter import ThresholdNotifier
+from Products.ZenUtils.metricwriter import DerivativeTracker
 from zenoss.collector.publisher.publisher import RedisListPublisher
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
@@ -489,11 +491,15 @@ class ZenHub(ZCmdBase):
 
         from Products.ZenModel.BuiltInDS import BuiltInDS
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
+        threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
-        publisher = RedisListPublisher.create()  # TODO: Don't use defaults!
-        metric_writer = MetricWriter(self.sendEvent, publisher, threshs)
+        # TODO: Don't use defaults!
+        publisher = RedisListPublisher.create()
+        metric_writer = MetricWriter(publisher)
+        derivative_tracker = DerivativeTracker()
 
-        rrdStats.config(perfConf.id, 'zenhub', metric_writer)
+        rrdStats.config('zenhub', perfConf.id, metric_writer,
+                        threshold_notifier, derivative_tracker)
 
         return rrdStats
 

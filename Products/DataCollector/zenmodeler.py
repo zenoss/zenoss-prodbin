@@ -35,10 +35,9 @@ from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 from Products.Zuul.utils import safe_hasattr as hasattr
-from Products.ZenUtils.metricwriter import MetricWriter
+from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.DataCollector import Classifier
 from Products.ZenCollector.interfaces import IEventService
-from zenoss.collector.publisher.publisher import RedisListPublisher
 
 from twisted.python.failure import Failure
 from twisted.internet import reactor
@@ -182,9 +181,14 @@ class ZenModeler(PBDaemon):
 
             self.log.debug("Getting collector thresholds...")
             yield self.config().callRemote('getCollectorThresholds')
-            publisher = RedisListPublisher.create()  # TODO: Don't use defaults!
-            metric_writer = MetricWriter(self.sendEvent, publisher, driver.next())
-            self.rrdStats.config(self.options.monitor, self.name, metric_writer)
+            thresholds = driver.next()
+            threshold_notifier = ThresholdNotifier(self.sendEvent, thresholds)
+
+            self.rrdStats.config(self.name,
+                                 self.options.monitor,
+                                 self.metricWriter(),
+                                 threshold_notifier,
+                                 self.derivativeTracker())
 
             self.log.debug("Getting collector plugins for each DeviceClass")
             yield self.config().callRemote('getClassCollectorPlugins')

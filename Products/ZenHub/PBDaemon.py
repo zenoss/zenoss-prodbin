@@ -22,9 +22,17 @@ import traceback
 from hashlib import sha1
 from itertools import chain
 from functools import partial
-
+from zenoss.collector.publisher.publisher import RedisListPublisher
+from twisted.cred import credentials
+from twisted.internet import reactor, defer
+from twisted.internet.error import ConnectionLost, ReactorNotRunning, AlreadyCalled
+from twisted.spread import pb
+from twisted.python.failure import Failure
+import twisted.python.log
+from zope.interface import implements
+from zope.component import getUtilitiesFor
+from ZODB.POSException import ConflictError
 import Globals
-
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
@@ -36,19 +44,8 @@ from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
                                         ICollectorEventTransformer,
                                         TRANSFORM_DROP, TRANSFORM_STOP)
 from Products.ZenUtils.metricwriter import MetricWriter
-from zenoss.collector.publisher.publisher import RedisListPublisher
-
-from twisted.cred import credentials
-from twisted.internet import reactor, defer
-from twisted.internet.error import ConnectionLost, ReactorNotRunning, AlreadyCalled
-from twisted.spread import pb
-from twisted.python.failure import Failure
-import twisted.python.log
-
-from zope.interface import implements
-from zope.component import getUtilitiesFor
-
-from ZODB.POSException import ConflictError
+from Products.ZenUtils.metricwriter import DerivativeTracker
+from Products.ZenUtils.metricwriter import ThresholdNotifier
 
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
@@ -568,9 +565,28 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.loadCounters()
         self._pingedZenhub = None
         self._connectionTimeout = None
+        self._publisher_deferred = None
+        self._metric_writer = None
+        self._derivative_tracker = None
 
         # Add a shutdown trigger to send a stop event and flush the event queue
         reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
+
+    def publisherDeferred(self):
+        if not self._publisher_deferred:
+            # TODO: Don't use defaults!
+            self._publisher_deferred = RedisListPublisher.create()
+        return self._publisher_deferred
+
+    def metricWriter(self):
+        if not self._metric_writer:
+            self._metric_writer = MetricWriter(self.publisherDeferred())
+        return self._metric_writer
+
+    def derivativeTracker(self):
+        if not self._derivative_tracker:
+            self._derivative_tracker = DerivativeTracker()
+        return self._derivative_tracker
 
     def connecting(self):
         """
@@ -694,9 +710,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         pass
 
     def run(self):
-        publisher = RedisListPublisher.create()  # TODO: Don't use defaults!
-        metric_writer = MetricWriter(self.sendEvent, publisher, None)
-        self.rrdStats.config(self.options.monitor, self.name, metric_writer)
+        threshold_notifier = ThresholdNotifier(self.sendEvent, None)
+        self.rrdStats.config(self.name,
+                             self.options.monitor,
+                             self.metricWriter(),
+                             threshold_notifier,
+                             self.derivativeTracker())
         self.log.debug('Starting PBDaemon initialization')
         d = self.connect()
 

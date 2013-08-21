@@ -17,30 +17,51 @@ log = logging.getLogger("zen.MetricWriter")
 
 class MetricWriter(object):
 
-    def __init__(self, sendEvent, publisher, thresholds):
-        self._sendEvent = sendEvent
-        self._publisher_def = publisher
+    def __init__(self, publisher_def):
+        self._publisher_def = publisher_def
         self._publisher = None
-        if isinstance(thresholds, list):
-            self._thresholds = Thresholds()
-            self._thresholds.updateList(thresholds)
-        elif isinstance(thresholds, Thresholds):
-            self._thresholds = thresholds
+
+    @defer.inlineCallbacks
+    def write_metric(self, metric, value, timestamp, tags):
+        """
+        Wraps calls to a deferred publisher
+
+        @param metric:
+        @param value:
+        @param timestamp:
+        @param tags:
+        @return:
+        """
+        if self._publisher:
+            self._publisher.put(metric, value, timestamp, tags)
         else:
-            log.debug('thresholds was None or invalid type')
-            self._thresholds = None
-        self._metrics_channel = 'metrics'
-        self._timedMetricCache = {}
+            self._publisher = yield self._publisher_def
+            self._publisher.put(metric, value, timestamp, tags)
 
 
-    def _derivative(self, uuid, timedMetric, min, max):
-        lastTimedMetric = self._timedMetricCache.get(uuid)
-        if lastTimedMetric:
+class DerivativeTracker(object):
+
+    def __init__(self):
+        self._timed_metric_cache = {}
+
+    def derivative(self, name, timed_metric, min='U', max='U'):
+        """
+        Tracks a metric value over time and returns deltas
+
+        @param name: used to track a specific metric over time
+        @param timed_metric: tuple of (value, timestamp)
+        @param min: restricts minimum value returned
+        @param max: restricts maximum value returned
+        @return: change from previous value if a previous value exists
+        """
+        last_timed_metric = self._timed_metric_cache.get(name)
+        if last_timed_metric:
             # identical timestamps?
-            if timedMetric[1] == lastTimedMetric[1]:
+            if timed_metric[1] == last_timed_metric[1]:
                 return 0
             else:
-                delta = float(timedMetric[0] - lastTimedMetric[0]) / float(timedMetric[1] - lastTimedMetric[1])
+                delta = float(timed_metric[0] - last_timed_metric[0]) / \
+                    float(timed_metric[1] - last_timed_metric[1])
                 if isinstance(min, (int, float)) and delta < min:
                     delta = min
                 if isinstance(max, (int, float)) and delta > max:
@@ -48,84 +69,38 @@ class MetricWriter(object):
                 return delta
         else:
             # first value we've seen for path
-            self._timedMetricCache[uuid] = timedMetric
+            self._timed_metric_cache[name] = timed_metric
             return None
 
-    def writeMetric(self, contextUUID, metric, value, metricType, contextId, timestamp='N', min='U', max='U',
-                    hasThresholds=False, threshEventData={}, deviceuuid=None):
-        """
-        Writes the metric to the metric publisher.
-        @param contextUUID: This is who the metric applies to. This is usually a component or a device.
-        @param metric: the name of the metric, we expect it to be of the form datasource_datapoint
-        @param value: the value of the metric
-        @param metricType: type of the metric (e.g. 'COUNTER', 'GUAGE', 'DERIVE' etc)
-        @param contextId: used for the threshold events, the id of who this metric is for
-        @param timestamp: defaults to time.time() if not specified, the time the metric occurred
-        @param min: used in the derive the min value for the metric
-        @param max: used in the derive the max value for the metric
-        @param hasThresholds: true if the metric has thresholds
-        @param threshEventData: extra data put into threshold events
-        @param deviceuuid: the unique identifier of the device for
-        this metric, maybe the same as contextUUID if the context is a
-        device
-        """
-        self._write_twisted(contextUUID, metric, value, metricType, contextId,
-                            timestamp, min, max, threshEventData, deviceuuid)
 
-    @defer.inlineCallbacks
-    def _write_twisted(self, contextUUID, metric, value, metricType,
-                       contextId, timestamp='N', min='U', max='U',
-                       threshEventData={}, deviceuuid=None):
-        if not self._publisher:
-            pub = yield self._publisher_def
-            self._publisher = pub
-            self._writeMetric(contextUUID, metric, value, metricType,
-                              contextId, timestamp, min, max, threshEventData, deviceuuid)
+class ThresholdNotifier(object):
+
+    def __init__(self, send_callback, thresholds):
+        self._send_callback = send_callback
+        if isinstance(thresholds, list):
+            self._thresholds = Thresholds()
+            self._thresholds.updateList(thresholds)
+        elif isinstance(thresholds, Thresholds):
+            self._thresholds = thresholds
         else:
-            self._writeMetric(contextUUID, metric, value, metricType,
-                              contextId, timestamp, min, max, threshEventData, deviceuuid)
+            self._thresholds = None
 
-    def _writeMetric(self, contextUUID, metric, value, metricType, contextId, timestamp='N', min='U', max='U',
-                     threshEventData={}, deviceuuid=None):
-        timestamp = int(time.time()) if timestamp == 'N' else timestamp
-        extraTags = {
-            'datasource': metric.split("_")[0]
-        }
-        if deviceuuid:
-            extraTags['device'] = deviceuuid
-            # write the raw metric to Redis
-
-        self._publisher.put(self._metrics_channel,
-                            metric.split("_")[1],  # metric id is the datapoint name
-                            value,
-                            timestamp,
-                            contextUUID,
-                            extraTags)
-
-        # compute (and cache) a rate for COUNTER/DERIVE
-        if metricType in ('COUNTER', 'DERIVE'):
-            value = self._derivative(contextUUID, (int(value), timestamp), min, max)
-
-        # check for threshold breaches and send events when needed
-        #import pdb
-        #pdb.set_trace()
+    def notify(self, context_uuid, context_id, timestamp, value, thresh_event_data={}):
         if self._thresholds and value:
-            if 'eventKey' in threshEventData:
-                eventKeyPrefix = [threshEventData['eventKey']]
+            if 'eventKey' in thresh_event_data:
+                eventKeyPrefix = [thresh_event_data['eventKey']]
             else:
-                eventKeyPrefix = [contextId]
+                eventKeyPrefix = [context_id]
 
-            for ev in self._thresholds.check(contextUUID, timestamp, value):
+            for ev in self._thresholds.check(context_uuid, timestamp, value):
                 parts = eventKeyPrefix[:]
                 if 'eventKey' in ev:
                     parts.append(ev['eventKey'])
                 ev['eventKey'] = '|'.join(parts)
-
                 # add any additional values for this threshold
                 # (only update if key is not in event, or if
                 # the event's value is blank or None)
-                for key, value in threshEventData.items():
+                for key, value in thresh_event_data.items():
                     if ev.get(key, None) in ('', None):
                         ev[key] = value
-
                 self._sendEvent(ev)

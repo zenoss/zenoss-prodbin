@@ -24,8 +24,7 @@ import Globals
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive
-from Products.ZenUtils.metricwriter import MetricWriter
-from zenoss.collector.publisher.publisher import RedisListPublisher
+from Products.ZenUtils.metricwriter import ThresholdNotifier
 
 from Products.ZenEvents.ZenEventClasses import App_Start
 from twisted.internet import reactor
@@ -77,9 +76,15 @@ class EventServer(PBDaemon):
         
             self.log.info("getting collector thresholds")
             yield self.model().callRemote('getCollectorThresholds')
-            publisher = RedisListPublisher.create()  # TODO: Don't use defaults!
-            metric_writer = MetricWriter(self.sendEvent, publisher, driver.next())
-            self.rrdStats.config(self.options.monitor, self.name, metric_writer)
+
+            thresholds = driver.next()
+            threshold_notifier = ThresholdNotifier(self.sendEvent, thresholds)
+
+            self.rrdStats.config(self.name,
+                                 self.options.monitor,
+                                 self.metricWriter(),
+                                 threshold_notifier,
+                                 self.derivativeTracker())
 
             self.heartbeat()
             self.reportCycle()
