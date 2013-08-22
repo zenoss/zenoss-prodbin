@@ -33,9 +33,9 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
     """
     name = None
     originalName = None
-    ignoreParameters = False
     restart = None
     regex = None
+    excludeRegex = None
     severity = Event.Warning
     cycleTime = None
     processClass = None
@@ -94,11 +94,14 @@ class ProcessConfig(CollectorConfigService):
             if not snmpMonitored:
                 log.debug("Skipping process %r - not an SNMP monitored process", p)
                 continue
+
             # In case the catalog is out of sync above
             if not p.monitored():
                 log.debug("Skipping process %r - zMonitor disabled", p)
                 continue
+
             regex = getattr(p.osProcessClass(), 'regex', False)
+            excludeRegex = getattr(p.osProcessClass(), 'excludeRegex', False)
             if regex:
                 try:
                     re.compile(regex)
@@ -113,10 +116,9 @@ class ProcessConfig(CollectorConfigService):
 
             proc = ProcessProxy()
             proc.regex = regex
+            proc.excludeRegex = excludeRegex
             proc.name = p.id
             proc.originalName = p.name()
-            proc.ignoreParameters = (
-                getattr(p.osProcessClass(), 'ignoreParameters', False))
             proc.restart = p.alertOnRestart()
             proc.severity = p.getFailSeverity()
             proc.processClass = p.getOSProcessClass()
@@ -165,6 +167,6 @@ if __name__ == '__main__':
     tester = ServiceTester(ProcessConfig)
     def printer(config):
         for proc in config.processes.values():
-            print '\t'.join([proc.name, str(proc.ignoreParameters), proc.regex])
+            print '\t'.join([proc.name, str(proc.regex)])
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()
