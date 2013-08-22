@@ -392,7 +392,7 @@ class CollectorDaemon(RRDDaemon):
             extraTags['device'] = deviceuuid
         # write the raw metric to Redis
         try:
-            yield self._publisher.put(self._metricsChannel,
+            yield self._publisher.put(self.options.metricsChannel,
                     metric.split("_")[1], # metric id is the datapoint name
                     value,
                     timestamp,
