@@ -187,7 +187,6 @@ class ConfigurationLoaderTask(ObservableMixin):
                                 self._prefs)
         d.addCallback(self._processPropertyItems)
         d.addCallback(self._processThresholdClasses)
-        d.addCallback(self._processThresholds)
         return d
 
     def _deviceConfigs(self, d, devices):
@@ -216,10 +215,6 @@ class ConfigurationLoaderTask(ObservableMixin):
                 # Allow the loader to be reaped and re-added
                 self.state = TaskStates.STATE_COMPLETED
         return result
-
-    def _processThresholds(self, thresholds):
-        rrdCreateCommand = '\n'.join(self._prefs.defaultRRDCreateCommand)
-        self._daemon._configureRRD(rrdCreateCommand, thresholds)
 
     def _processThresholdClasses(self, thresholdClasses):
         self._daemon._loadThresholdClasses(thresholdClasses)

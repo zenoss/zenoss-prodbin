@@ -17,7 +17,6 @@ import os.path
 import logging
 import time
 
-from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.ZenEvents.ZenEventClasses import Critical, Status_Perf
 
 
@@ -69,80 +68,7 @@ class RRDImpl(object):
         @return: valid value (ie long or float) or None
         @rtype: number or None
         """
-        log.debug('Writing %s %s' % (dpName, value))
-        dev = self.getDeviceOrComponent(devId, compType, compId)
-        dp = dev.getRRDDataPoint(dpName)
-        if not dp:
-            log.warn('Did not find datapoint %s on device %s', dpName, devId)
-            return None
-        rrdKey = (dev.getPrimaryPath(), dp.getPrimaryPath())
-        rrdCreateCmd = None
-        if rrdKey in self.rrd:
-            rrd = self.rrd[rrdKey]
-        else:
-            rrdCreateCmd = dp.createCmd or self.getDefaultRRDCreateCommand(dev)
-            rrd = RRDUtil(rrdCreateCmd, dp.datasource.cycletime)
-            self.rrd[rrdKey] = rrd
-
-        # convert value to a long if our data point uses a long type
-        if dp.rrdtype in RRDImpl.LONG_RRD_TYPES:
-            try:
-                value = long(value)
-            except ValueError:
-                log.warn("Value '%s' received for data point '%s' that " \
-                         "could not be converted to a long" % \
-                         (value, dp.rrdtype))
-
-        # see if there are any thresholds defined for this datapoint, so we can
-        # choose a more optimal RRD storage method if there aren't any
-        dp_has_threshold = self.hasThreshold(dp)
-        if dp_has_threshold:
-            rrd_write_fn = rrd.save
-        else:
-            rrd_write_fn = rrd.put
-            
-        path = os.path.join(dev.rrdPath(), dp.name())
-        try:
-            value = rrd_write_fn( path,
-                        value, 
-                        dp.rrdtype,
-                        rrdCreateCmd,
-                        dp.datasource.cycletime,
-                        dp.rrdmin,
-                        dp.rrdmax)
-
-        except Exception, ex:
-            summary= "Unable to save data in zenhub for RRD %s" % \
-                              path
-            log.critical( summary )
-
-            message= "Data was value= %s, type=%s, min=%s, max=%s" % \
-                     ( value, dp.rrdtype, dp.rrdmin, dp.rrdmax, )
-            log.critical( message )
-            log.exception( ex )
-
-            import traceback
-            trace_info= traceback.format_exc()
-
-            evid= self.zem.sendEvent(dict(
-                dedupid="%s|%s" % (devId, 'RRD write failure'),
-                severity=Critical,
-                device=devId,
-                eventClass=Status_Perf,
-                component="RRD",
-                compType=compType,
-                compId=compId,
-                datapoint=dpName,
-                message=message,
-                traceback=trace_info,
-                summary=summary))
-
-            # Skip thresholds
-            return
-
-        if dp_has_threshold:
-            self.checkThresholds(dev, dp, value)
-        return value
+        raise NotImplemented("Use write Metrics, writeRRD is depracated")
 
 
     def getDefaultRRDCreateCommand(self, device):

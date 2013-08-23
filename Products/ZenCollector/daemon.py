@@ -32,7 +32,6 @@ from Products.ZenCollector.utils.maintenance import MaintenanceCycle
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from zenoss.collector.publisher import publisher
 from Products.ZenRRD.RRDDaemon import RRDDaemon
-from Products.ZenRRD import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, unused
 from Products.ZenUtils.picklezipper import Zipper
@@ -392,7 +391,7 @@ class CollectorDaemon(RRDDaemon):
             extraTags['device'] = deviceuuid
         # write the raw metric to Redis
         try:
-            yield self._publisher.put(self._metricsChannel,
+            yield self._publisher.put(self.options.metricsChannel,
                     metric.split("_")[1], # metric id is the datapoint name
                     value,
                     timestamp,
@@ -450,9 +449,6 @@ class CollectorDaemon(RRDDaemon):
                 threshEventData,
                 uuidInfo['deviceUUID']
             )
-
-    def readRRD(self, path, consolidationFunction, start, end):
-        return RRDUtil.read(path, consolidationFunction, start, end)
 
     def stop(self, ignored=""):
         if self._stoppingCallback is not None:
