@@ -62,7 +62,7 @@ from Products.ZenHub.WorkerSelection import WorkerSelector
 from Products.ZenUtils.metricwriter import MetricWriter
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.metricwriter import DerivativeTracker
-from zenoss.collector.publisher.publisher import RedisListPublisher
+from zenoss.collector.publisher.publisher import HttpPostPublisher
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
@@ -493,8 +493,8 @@ class ZenHub(ZCmdBase):
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
         threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
-        # TODO: Don't use defaults!
-        metric_writer = MetricWriter(RedisListPublisher())
+        self.log.info('Will post metrics to: %s', self.options.metrics_store_url)
+        metric_writer = MetricWriter(HttpPostPublisher(self.options.metrics_store_url))
         derivative_tracker = DerivativeTracker()
 
         rrdStats.config('zenhub', perfConf.id, metric_writer,
@@ -992,6 +992,9 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--invalidation-poll-interval', 
             type='int', default=30,
             help="Interval at which to poll invalidations (default: %default)")
+        self.parser.add_option('--metrics-store-url', dest='metrics_store_url',
+            type='string', default='https://localhost:8443/api/metrics/store',
+            help='URL for posting internal metrics (default: %default)')
             
         notify(ParserReadyForOptionsEvent(self.parser))
 
