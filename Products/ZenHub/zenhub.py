@@ -903,14 +903,13 @@ class ZenHub(ZCmdBase):
         reactor.callLater(seconds, self.heartbeat)
         r = self.rrdStats
         totalTime = sum(s.callTime for s in self.services.values())
-        events = r.counter('totalTime', seconds, int(self.totalTime * 1000))
-        events += r.counter('totalEvents', seconds, self.totalEvents)
-        events += r.gauge('services', seconds, len(self.services))
-        events += r.counter('totalCallTime', seconds, totalTime)
-        events += r.gauge('workListLength', seconds, len(self.workList))
+        r.counter('totalTime', int(self.totalTime * 1000))
+        r.counter('totalEvents', self.totalEvents)
+        r.gauge('services', len(self.services))
+        r.counter('totalCallTime', totalTime)
+        r.gauge('workListLength', len(self.workList))
         for name, value in self.counters.items():
-            events += r.counter(name, seconds, value)
-        self.zem.sendEvents(events)
+            r.counter(name, value)
 
         # persist counters values
         self.saveCounters()

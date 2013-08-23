@@ -71,7 +71,11 @@ class DerivativeTracker(object):
 
 
 class ThresholdNotifier(object):
-
+    """
+    Encapsulates the logic necessary to evaluate a datapoint value
+    against thresholds and send any events that are generated from
+    threshold evaluation. Used by CollectorDaemon and DaemonStats.
+    """
     def __init__(self, send_callback, thresholds):
         self._send_callback = send_callback
         if isinstance(thresholds, list):
@@ -83,6 +87,17 @@ class ThresholdNotifier(object):
             self._thresholds = None
 
     def notify(self, context_uuid, context_id, timestamp, value, thresh_event_data={}):
+        """
+        Check the specified value against thresholds and send any generated
+        events
+
+        @param context_uuid: context name used to check thresholds
+        @param context_id: can be used for event key prefix
+        @param timestamp: timestamp for the value
+        @param value: the value to check
+        @param thresh_event_data: additional data to send with any events
+        @return:
+        """
         if self._thresholds and value:
             if 'eventKey' in thresh_event_data:
                 eventKeyPrefix = [thresh_event_data['eventKey']]

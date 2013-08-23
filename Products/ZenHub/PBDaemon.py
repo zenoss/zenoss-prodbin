@@ -582,7 +582,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             except ValueError:
                 self.log.exception("redis url contains non-integer port " +
                                    "value {port}, defaulting to {default}".
-                                   format(port=port, default=16379))
+                                   format(port=port, default=publisher.defaultRedisPort))
                 port = publisher.defaultRedisPort
             self._publisher = RedisListPublisher(host, port, self.options.metricBufferSize)
         return self._publisher
@@ -811,10 +811,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         now = time.time()
         if self.rrdStats.name and now >= (self.lastStats + 300):
             self.lastStats = now
-            events = self.rrdStats.gauge('eventQueueLength',
-                300, self.eventQueueManager.event_queue_length)
-            for event in events:
-                self.eventQueueManager.addPerformanceEvent(event)
+            self.rrdStats.gauge(
+                'eventQueueLength', self.eventQueueManager.event_queue_length)
 
     @defer.inlineCallbacks
     def pushEvents(self):
@@ -868,12 +866,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         # heartbeat is normally 3x cycle time
         self.niceDoggie(self.heartbeatTimeout / 3)
 
-        events = []
         # save daemon counter stats
         for name, value in self.counters.items():
             self.log.info("Counter %s, value %d", name, value)
-            events += self.rrdStats.counter(name, 300, value)
-        self.sendEvents(events)
+            self.rrdStats.counter(name, value)
 
         # persist counters values
         self.saveCounters()

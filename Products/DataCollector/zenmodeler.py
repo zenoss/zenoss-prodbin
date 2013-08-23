@@ -776,10 +776,10 @@ class ZenModeler(PBDaemon):
                 reactor.callLater(self.startDelay, self.main)
 
         # save modeled device rate
-        self.rrdStats.derive('modeledDevices', ARBITRARY_BEAT, self.counters['modeledDevicesCount'])
+        self.rrdStats.derive('modeledDevices', self.counters['modeledDevicesCount'])
 
         # save running count
-        self.rrdStats.gauge('modeledDevicesCount', ARBITRARY_BEAT, self.counters['modeledDevicesCount'])
+        self.rrdStats.gauge('modeledDevicesCount', self.counters['modeledDevicesCount'])
 
         # persist counters values
         self.saveCounters()
@@ -833,11 +833,9 @@ class ZenModeler(PBDaemon):
             self.log.info("Scan time: %0.2f seconds", runTime)
             devices = len(self.finished)
             timedOut = len([c for c in self.finished if c.timedOut])
-            self.sendEvents(
-                self.rrdStats.gauge('cycleTime', self.cycleTime(), runTime) +
-                self.rrdStats.gauge('devices', self.cycleTime(), devices) +
-                self.rrdStats.gauge('timedOut', self.cycleTime(), timedOut)
-                )
+            self.rrdStats.gauge('cycleTime', runTime)
+            self.rrdStats.gauge('devices', devices)
+            self.rrdStats.gauge('timedOut', timedOut)
             if not self.options.cycle:
                 self.stop()
             self.finished = []

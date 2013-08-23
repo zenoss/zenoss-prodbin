@@ -14,14 +14,15 @@ import time
 
 class DaemonStats(object):
     """
-    Utility for a daemon to write out internal perfo
-    rmance statistics
+    Utility for a daemon to write out internal performance statistics
     """
 
     def __init__(self):
         self.name = ""
         self.monitor = ""
         self.metric_writer = None
+        self._threshold_notifier = None
+        self._derivative_tracker = None
 
     def config(self, name, monitor, metric_writer, threshold_notifier,
                derivative_tracker):
@@ -42,40 +43,33 @@ class DaemonStats(object):
     def _context_id(self):
         return self.name + "-" + self.monitor
 
-    def _tags(self):
+    def _tags(self, metric_type):
         return {
             'daemon': self.name,
-            'monitor': self.monitor
+            'monitor': self.monitor,
+            'metricType': metric_type
         }
 
-    def derive(self, name, cycleTime, value):
-        """Write a DERIVE value, return empty list"""
-        tags = self._tags()
-        tags['metricType'] = 'DERIVE'
-        self._post_metrics(name, value, tags)
-        return []
+    def derive(self, name, value):
+        """Write a DERIVE value and post any relevant events"""
+        self.post_metrics(name, value, 'DERIVE')
 
-    def counter(self, name, cycleTime, value):
-        """Write a DERIVE value, return empty list"""
-        tags = self._tags()
-        tags['metricType'] = 'COUNTER'
-        self._post_metrics(name, value, tags)
-        return []
+    def counter(self, name, value):
+        """Write a COUNTER value and post any relevant events"""
+        self.post_metrics(name, value, 'COUNTER')
 
-    def gauge(self, name, cycleTime, value):
-        """Write a DERIVE value, return empty list"""
-        tags = self._tags()
-        tags['metricType'] = 'GAUGE'
-        self._post_metrics(name, value, tags)
-        return []
+    def gauge(self, name, value):
+        """Write a GAUGE value and post any relevant events"""
+        self.post_metrics(name, value, 'GAUGE')
 
-    def _post_metrics(self, name, value, tags):
+    def post_metrics(self, name, value, metric_type):
+        tags = self._tags(metric_type)
         timestamp = time.time()
         self._metric_writer.write_metric(name, value, timestamp, tags)
 
         context_id = self._context_id()
 
-        if tags['metricType'] in {'DERIVE', 'COUNTER'}:
+        if metric_type in {'DERIVE', 'COUNTER'}:
             # compute (and cache) a rate for COUNTER/DERIVE
             value = self._derivative_tracker.derivative(
                 context_id, (int(value), timestamp))

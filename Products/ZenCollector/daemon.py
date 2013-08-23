@@ -739,9 +739,7 @@ class CollectorDaemon(RRDDaemon):
                 stat = self._statService.getStatistic("missedRuns")
                 stat.value = self._scheduler.missedRuns
 
-                events = self._statService.postStatistics(self.rrdStats,
-                                                          self.preferences.cycleInterval)
-                self.sendEvents(events)
+                self._statService.postStatistics(self.rrdStats)
 
         def _maintenance():
             if self.options.cycle:
@@ -815,8 +813,7 @@ class StatisticsService(object):
     def getStatistic(self, name):
         return self._stats[name]
 
-    def postStatistics(self, rrdStats, interval):
-        events = []
+    def postStatistics(self, rrdStats):
         for stat in self._stats.values():
             # figure out which function to use to post this statistical data
             try:
@@ -830,10 +827,8 @@ class StatisticsService(object):
 
             # These should always come back empty now because DaemonStats
             # posts the events for us
-            events += func(stat.name, interval, stat.value)
+            func(stat.name, stat.value)
 
             # counter is an ever-increasing value, but otherwise...
             if stat.type != 'COUNTER':
                 stat.value = 0
-
-        return events
