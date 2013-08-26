@@ -48,29 +48,6 @@ class RRDImpl(object):
         self.dmd = dmd
         self.zem = dmd.ZenEventManager
 
-
-    def writeRRD(self, devId, compType, compId, dpName, value):
-        """
-        Write the given data to its RRD file.
-        Also check any thresholds and send events if value is out of bounds.
-        Note that if the write does not succeed, a None value is returned.
-
-        @param devId: device name (as known by DMD)
-        @type devId: string
-        @param compType: component type (found in objects meta_type field)
-        @type compType: string
-        @param compId:  name of the component
-        @type compId: string
-        @param dpName: name of the data point
-        @type dpName: string
-        @param value: performance metric to store
-        @type value: number
-        @return: valid value (ie long or float) or None
-        @rtype: number or None
-        """
-        raise NotImplemented("Use write Metrics, writeRRD is depracated")
-
-
     def getDefaultRRDCreateCommand(self, device):
         """
         Get the overridable create command for new RRD files.
