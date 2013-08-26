@@ -13,12 +13,9 @@ import time
 import logging
 import json
 import zope.interface
-
-from twisted.internet import defer, reactor, task
+from twisted.internet import defer,  reactor, task
 from twisted.python.failure import Failure
-
-from urlparse import urlparse
-
+from zenoss.collector.publisher import publisher
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
@@ -30,14 +27,16 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IStatisticsService
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
-from zenoss.collector.publisher import publisher
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, unused
 from Products.ZenUtils.picklezipper import Zipper
 from Products.ZenUtils.observable import ObservableProxy
+from Products.ZenUtils.metricwriter import ThresholdNotifier
+
 
 log = logging.getLogger("zen.daemon")
+
 
 class DummyListener(object):
     zope.interface.implements(IConfigurationListener)
@@ -61,6 +60,7 @@ class DummyListener(object):
         """
         log.debug('DummyListener: configuration %s updated' % newConfiguration)
 
+
 class ConfigListenerNotifier(object):
     zope.interface.implements(IConfigurationListener)
 
@@ -83,13 +83,13 @@ class ConfigListenerNotifier(object):
         for listener in self._listeners:
             listener.added(configuration)
 
-
     def updated(self, newConfiguration):
         """
         Called when a configuration is updated in collector
         """
         for listener in self._listeners:
             listener.updated(newConfiguration)
+
 
 class DeviceGuidListener(object):
     zope.interface.implements(IConfigurationListener)
@@ -122,6 +122,7 @@ class DeviceGuidListener(object):
 
 DUMMY_LISTENER = DummyListener()
 CONFIG_LOADER_NAME = 'configLoader'
+
 
 class CollectorDaemon(RRDDaemon):
     """
@@ -215,9 +216,10 @@ class CollectorDaemon(RRDDaemon):
         self._devices = set()
         self._thresholds = Thresholds()
         self._unresponsiveDevices = set()
-        self._publisher = None
-        self._timedMetricCache = {}
         self._rrd = None
+        self._threshold_notifier = None
+        self._metric_writer = None
+        self._derivative_tracker = None
         self.reconfigureTimeout = None
 
         # keep track of pending tasks if we're doing a single run, and not a
@@ -345,27 +347,10 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
-    def _derivative(self, uuid, timedMetric, min, max):
-        lastTimedMetric = self._timedMetricCache.get(uuid)
-        if lastTimedMetric:
-            # identical timestamps?
-            if timedMetric[1] == lastTimedMetric[1]:
-                return 0
-            else:
-                delta = float(timedMetric[0]-lastTimedMetric[0]) / float(timedMetric[1]-lastTimedMetric[1])
-                if isinstance(min, (int, float)) and delta < min:
-                    delta = min
-                if isinstance(max, (int, float)) and delta > max:
-                    delta = max
-                return delta
-        else:
-            # first value we've seen for path
-            self._timedMetricCache[uuid] = timedMetric
-            return None
+    def writeMetric(self, contextUUID, metric, value, metricType, contextId,
+                    timestamp='N', min='U', max='U', hasThresholds=False,
+                    threshEventData={}, deviceuuid=None):
 
-    @defer.inlineCallbacks
-    def writeMetric(self, contextUUID, metric, value, metricType, contextId, timestamp='N', min='U', max='U',
-            hasThresholds=False, threshEventData={}, deviceuuid=None):
         """
         Writes the metric to the metric publisher.
         @param contextUUID: This is who the metric applies to. This is usually a component or a device.
@@ -384,49 +369,28 @@ class CollectorDaemon(RRDDaemon):
         @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
-        extraTags = {
-            'datasource': metric.split("_")[0]
+        data_source, data_point_name = metric.split("_")
+        tags = {
+            'datasource': data_source,
+            'uuid': contextUUID
         }
         if deviceuuid:
-            extraTags['device'] = deviceuuid
+            tags['device'] = deviceuuid
+
         # write the raw metric to Redis
-        try:
-            yield self._publisher.put(self.options.metricsChannel,
-                    metric.split("_")[1], # metric id is the datapoint name
-                    value,
-                    timestamp,
-                    contextUUID,
-                    extraTags
-                )
-        except Exception as x:
-            log.exception('Unable to write metric {reason}'.format(reason=x))
+        self._metric_writer.write_metric(
+            data_point_name, value, timestamp, tags)
+
 
         # compute (and cache) a rate for COUNTER/DERIVE
-        if metricType in ('COUNTER', 'DERIVE'):
-            value = self._derivative(contextUUID, (int(value), timestamp), min, max)
+        if metricType in {'COUNTER', 'DERIVE'}:
+            value = self._derivative_tracker.derivative(
+                contextUUID, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
-        if hasThresholds and value != None:
-            if 'eventKey' in threshEventData:
-                eventKeyPrefix = [threshEventData['eventKey']]
-            else:
-                eventKeyPrefix = [contextId]
-
-            for ev in self._thresholds.check(contextUUID, timestamp, value):
-                parts = eventKeyPrefix[:]
-                if 'eventKey' in ev:
-                    parts.append(ev['eventKey'])
-                ev['eventKey'] = '|'.join(parts)
-
-                # add any additional values for this threshold
-                # (only update if key is not in event, or if
-                # the event's value is blank or None)
-                for key,value in threshEventData.items():
-                    if ev.get(key, None) in ('',None):
-                        ev[key] = value
-
-                self.sendEvent(ev)
-
+        if hasThresholds and value:
+            self._threshold_notifier.notify(contextUUID, contextId, timestamp,
+                                            value, threshEventData)
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):
@@ -527,8 +491,7 @@ class CollectorDaemon(RRDDaemon):
             self.log.debug("Changing config task interval from %s to %s minutes" % (oldValue, newValue))
             self._scheduler.removeTasksForConfig(CONFIG_LOADER_NAME)
             #values are in minutes, scheduler takes seconds
-            self._startConfigCycle(startDelay=newValue*60)
-
+            self._startConfigCycle(startDelay=newValue * 60)
 
     def _taskCompleteCallback(self, taskName):
         # if we're not running a normal daemon cycle then we need to shutdown
@@ -656,14 +619,12 @@ class CollectorDaemon(RRDDaemon):
             self.log.info("%s already added to scheduler", configLoader.name)
         return defer.succeed("Configuration loader task started")
 
-
     def setPropertyItems(self, items):
         """
         Override so that preferences are updated
         """
         super(CollectorDaemon, self).setPropertyItems(items)
         self._setCollectorPreferences(dict(items))
-
 
     def _setCollectorPreferences(self, preferenceItems):
         for name, value in preferenceItems.iteritems():
@@ -684,25 +645,23 @@ class CollectorDaemon(RRDDaemon):
             except ImportError:
                 log.exception("Unable to import class %s", c)
 
-    @defer.inlineCallbacks
     def _configureRRD(self, rrdCreateCommand, thresholds):
         self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
-        self.rrdStats.config(self.options.monitor,
-                             self.name,
-                             thresholds,
-                             rrdCreateCommand)
 
-        host, port = urlparse(self.options.redisUrl).netloc.split(':')
-        try:
-            port = int(port)
-        except ValueError:
-            log.exception("redis url contains non-integer port value {port}, defaulting to {default}".format(port=port, default=16379))
-            port = publisher.defaultRedisPort
+        self._threshold_notifier = ThresholdNotifier(self.sendEvent, thresholds)
 
-        self._publisher= yield publisher.RedisListPublisher.create(host, port, self.options.metricBufferSize)
+        self.rrdStats.config(self.name,
+                             self.options.monitor,
+                             self.metricWriter(),
+                             self._threshold_notifier,
+                             self.derivativeTracker())
+
+
+
+        self._publisher= yield
  
     def _isRRDConfigured(self):
-        return (self.rrdStats and self._rrd)
+        return self.rrdStats and self._rrd
 
     def _startMaintenance(self, ignored=None):
         unused(ignored)
@@ -776,9 +735,7 @@ class CollectorDaemon(RRDDaemon):
                 stat = self._statService.getStatistic("missedRuns")
                 stat.value = self._scheduler.missedRuns
 
-                events = self._statService.postStatistics(self.rrdStats,
-                                                          self.preferences.cycleInterval)
-                self.sendEvents(events)
+                self._statService.postStatistics(self.rrdStats)
 
         def _maintenance():
             if self.options.cycle:
@@ -852,23 +809,22 @@ class StatisticsService(object):
     def getStatistic(self, name):
         return self._stats[name]
 
-    def postStatistics(self, rrdStats, interval):
-        events = []
+    def postStatistics(self, rrdStats):
         for stat in self._stats.values():
             # figure out which function to use to post this statistical data
             try:
                 func = {
-                    'COUNTER' : rrdStats.counter,
-                    'GAUGE' : rrdStats.gauge,
-                    'DERIVE' : rrdStats.derive,
+                    'COUNTER': rrdStats.counter,
+                    'GAUGE': rrdStats.gauge,
+                    'DERIVE': rrdStats.derive,
                 }[stat.type]
             except KeyError:
                 raise TypeError("Statistic type %s not supported" % stat.type)
 
-            events += func(stat.name, interval, stat.value)
+            # These should always come back empty now because DaemonStats
+            # posts the events for us
+            func(stat.name, stat.value)
 
             # counter is an ever-increasing value, but otherwise...
             if stat.type != 'COUNTER':
                 stat.value = 0
-
-        return events
