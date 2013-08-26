@@ -18,6 +18,8 @@ log = logging.getLogger("zen.MetricFacade")
 
 DATE_FORMAT = "%Y/%m/%d-%H:%M:%S-%z"
 METRIC_URL = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
+METRIC_URL_PATH = "/api/performance/query"
+
 AGGREGATION_MAPPING = {
     'average': 'avg',
     'minimum': 'min',
@@ -154,7 +156,7 @@ class MetricFacade(ZuulFacade):
 
         # submit it to the client
         try:
-            response, content = self._client.post('query/performance', request)
+            response, content = self._client.post(METRIC_URL_PATH, request)
         except ServiceResponseError, e:
             # there was an error returned by the metric service, log it here
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
@@ -186,7 +188,7 @@ class MetricFacade(ZuulFacade):
         return request
 
     def _buildTagsFromContext(self, contexts):
-        return dict(uuid="|".join([context.getUUID() for context in contexts]))
+        return dict(uuid=[context.getUUID() for context in contexts])
 
     def _buildMetric(self, dp, cf, extraRpn="", format=""):
         datasource = dp.datasource()
@@ -201,7 +203,7 @@ class MetricFacade(ZuulFacade):
             aggregator=agg,
             rpn=extraRpn,
             format=format,
-            tags={'datasource': dsId},
+            tags={'datasource': [dsId]},
             rate=info.rate
         )
         if rateOptions:
