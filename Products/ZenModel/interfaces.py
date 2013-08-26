@@ -203,3 +203,7 @@ class IPrivateObjectAdapter(Interface):
         Should configuration handling for the wrapped object be handled
         exclusively by a specific ZenPack?
         """
+
+class IAuthorization(Interface):
+    """
+    """

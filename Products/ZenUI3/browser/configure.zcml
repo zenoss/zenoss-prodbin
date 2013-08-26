@@ -258,6 +258,20 @@
     />
 
 <browser:view
+    class="..security.authorization.Login"
+    name="login"
+    for="Products.ZenModel.interfaces.IAuthorization"
+    permission="zope2.Public"
+    />
+
+<browser:view
+    class="..security.authorization.Validate"
+    name="validate"
+    for="Products.ZenModel.interfaces.IAuthorization"
+    permission="zope2.Public"
+    />
+
+<browser:view
     class=".views.FileUpload"
     name="uploadfile"
     for="*"

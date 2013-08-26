@@ -8,7 +8,7 @@ Ext.BLANK_IMAGE_URL = '/++resource++zenui/img/s.gif';
 /**
  * Enable this setting to log the stack trace of all direct requests to the browser console
  **/
-Zenoss.logDirectRequests = false;
+Zenoss.logDirectRequests = true;
 
     Ext.apply(Ext.direct.RemotingProvider.prototype, {
         queueTransaction: Ext.Function.createInterceptor(Ext.direct.RemotingProvider.prototype.queueTransaction, function(transaction) {
