@@ -6,7 +6,7 @@ bin/zope2.wsgi
 bin/zopectl
 bin/zopectl.bat
 .idea/
-Core.iml
+*.iml
 bin/powerline
 bin/powerline-lint
 bin/virtualenv-clone
