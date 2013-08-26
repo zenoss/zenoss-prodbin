@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -116,7 +116,7 @@ class ConfigurationProxy(object):
 
 class ConfigurationLoaderTask(ObservableMixin):
     """
-    A task that periodically retrieves collector configuration via the 
+    A task that periodically retrieves collector configuration via the
     IConfigurationProxy service.
     """
     zope.interface.implements(IScheduledTask)
@@ -187,7 +187,12 @@ class ConfigurationLoaderTask(ObservableMixin):
                                 self._prefs)
         d.addCallback(self._processPropertyItems)
         d.addCallback(self._processThresholdClasses)
+        d.addCallback(self._processThresholds)
         return d
+
+    def _processThresholds(self, thresholds):
+        rrdCreateCommand = '\n'.join(self._prefs.defaultRRDCreateCommand)
+        self._daemon._configureRRD(rrdCreateCommand, thresholds)
 
     def _deviceConfigs(self, d, devices):
         """

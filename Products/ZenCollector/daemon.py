@@ -646,8 +646,6 @@ class CollectorDaemon(RRDDaemon):
                 log.exception("Unable to import class %s", c)
 
     def _configureRRD(self, rrdCreateCommand, thresholds):
-        self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
-
         self._threshold_notifier = ThresholdNotifier(self.sendEvent, thresholds)
 
         self.rrdStats.config(self.name,
