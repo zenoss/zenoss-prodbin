@@ -23,7 +23,6 @@ class FixMysqlPermissions(Migrate.Step):
         sql_cmd = textwrap.dedent('''
             GRANT SELECT ON mysql.proc TO '{zep-user}'@'{zep-host}';
             GRANT SELECT ON mysql.proc TO '{zep-user}'@'%';
-            GRANT REPLICATION SLAVE ON *.* TO '{zep-user}'@'%';
             FLUSH PRIVILEGES;
         ''')
         d = GlobalConfig.globalConfToDict()
