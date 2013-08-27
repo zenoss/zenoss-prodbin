@@ -267,11 +267,7 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-        self.parser.add_option('--redis-url', 
-                               dest='redisUrl',
-                               type='string',
-                               default='redis://localhost:{default}/0'.format(default=publisher.defaultRedisPort),
-                               help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
+
         self.parser.add_option('--metricBufferSize',
                                dest='metricBufferSize',
                                type='int',

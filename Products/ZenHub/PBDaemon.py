@@ -988,4 +988,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                action='store_false',
                                help='Disable event de-duplication')
 
+        self.parser.add_option('--redis-url',
+                               dest='redisUrl',
+                               type='string',
+                               default='redis://localhost:{default}/0'.format(default=publisher.defaultRedisPort),
+                               help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
+
         ZenDaemon.buildOptions(self)

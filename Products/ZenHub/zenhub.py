@@ -992,7 +992,7 @@ class ZenHub(ZCmdBase):
             type='int', default=30,
             help="Interval at which to poll invalidations (default: %default)")
         self.parser.add_option('--metrics-store-url', dest='metrics_store_url',
-            type='string', default='https://localhost:8443/api/metrics/store',
+            type='string', default='http://localhost:8080/api/metrics/store',
             help='URL for posting internal metrics (default: %default)')
             
         notify(ParserReadyForOptionsEvent(self.parser))
