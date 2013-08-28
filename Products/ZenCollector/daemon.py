@@ -268,17 +268,6 @@ class CollectorDaemon(RRDDaemon):
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
 
-        self.parser.add_option('--metricBufferSize',
-                               dest='metricBufferSize',
-                               type='int',
-                               default=publisher.defaultMetricBufferSize,
-                               help='Number of metrics to buffer if redis goes down')
-        self.parser.add_option('--metricsChannel',
-                               dest='metricsChannel',
-                               type='string',
-                               default=publisher.defaultMetricsChannel,
-                               help='redis channel to which metrics are published')
-
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
             # During upgrades we'll be missing this option

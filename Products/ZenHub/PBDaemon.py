@@ -994,4 +994,16 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                default='redis://localhost:{default}/0'.format(default=publisher.defaultRedisPort),
                                help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
 
+        self.parser.add_option('--metricBufferSize',
+                               dest='metricBufferSize',
+                               type='int',
+                               default=publisher.defaultMetricBufferSize,
+                               help='Number of metrics to buffer if redis goes down')
+
+        self.parser.add_option('--metricsChannel',
+                               dest='metricsChannel',
+                               type='string',
+                               default=publisher.defaultMetricsChannel,
+                               help='redis channel to which metrics are published')
+
         ZenDaemon.buildOptions(self)
