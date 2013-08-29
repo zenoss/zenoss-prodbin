@@ -993,7 +993,7 @@ Ext.define("Zenoss.component.OSProcessPanel", {
             },{
                 id: 'processName',
                 dataIndex: 'processName',
-                header: _t('Name')
+                header: _t('Example')
             },{
                 id: 'alertOnRestart',
                 dataIndex: 'alertOnRestart',
