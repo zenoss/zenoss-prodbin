@@ -13,6 +13,7 @@ import time
 from Products.Five.browser import BrowserView
 from Products.PluggableAuthService import interfaces
 
+
 class Login(BrowserView):
     """
     """
@@ -22,14 +23,14 @@ class Login(BrowserView):
         """
 
         type = interfaces.plugins.IExtractionPlugin
-        plugins = self.context.zport.acl_users.plugins.listPlugins( type)
+        plugins = self.context.zport.acl_users.plugins.listPlugins(type)
 
         login = None
         password = None
 
         # look in the extraction plugins for the credentials
         for (extractor_id, extractor) in plugins:
-            creds = extractor.extractCredentials( self.request)
+            creds = extractor.extractCredentials(self.request)
             if 'login' in creds and 'password' in creds:
                 login = creds['login']
                 password = creds['password']
@@ -42,12 +43,12 @@ class Login(BrowserView):
 
         # no credentials to test authentication
         if login is None or password is None:
-            self.request.response.setStatus( 401)
+            self.request.response.setStatus(401)
             return
 
         # test authentication
-        if not self.authenticate( login, password):
-            self.request.response.setStatus( 401)
+        if not self.authenticate(login, password):
+            self.request.response.setStatus(401)
             return
 
         # successful authentication
@@ -62,7 +63,8 @@ class Login(BrowserView):
 
 
     def authenticate(self, login, password):
-        return self.context.zport.dmd.ZenUsers.authenticateCredentials( login, password)
+        return self.context.zport.dmd.ZenUsers.authenticateCredentials(login, password)
+
 
 class Validate(BrowserView):
     """
@@ -73,24 +75,24 @@ class Validate(BrowserView):
         """
         """
 
-        token_id = self.request.get( 'id', None)
+        token_id = self.request.get('id', None)
 
         # missing token id
         if token_id is None:
-            self.request.response.setStatus( 401)
+            self.request.response.setStatus(401)
             return
 
-        session_data = self.context.temp_folder.session_data.get( token_id, None)
+        session_data = self.context.temp_folder.session_data.get(token_id, None)
 
         # missing session data
         if session_data is None:
-            self.request.response.setStatus( 401)
+            self.request.response.setStatus(401)
             return
 
         # test expiration
-        expires = session_data.get( 'expires', None)
+        expires = session_data.get('expires', None)
         if expires is None or time.time() >= expires:
-            self.request.response.setStatus( 401)
+            self.request.response.setStatus(401)
             return
 
         return json.dumps(session_data)
