@@ -37,6 +37,12 @@ class Authorization(ZenModelRM):
     def __init__(self, id):
         ZenModelRM.__init__(self, id);
 
+    def setCookie(self):
+        """
+        Set the ZAuth cookie so ajax requests will be authorized
+        """
+        self.REQUEST.response.setCookie('ZAuthToken', self.REQUEST.SESSION.id, path="/")
+
     def createToken(self, sessionId, tokenId, expires):
         """
         @param sessionId:

@@ -59,18 +59,19 @@ class Validate(BrowserView):
         """
             extract token id, test token expiration, and return token
         """
-
         tokenId = self.request.get('id', None)
-
+        if tokenId is None:
+            tokenId = self.request.getHeader('X-ZAuth-Token')
+            
         # missing token id
         if tokenId is None:
             self.request.response.setStatus(401)
             return
-
+        
         # tokenId == sessionId
         if self.context.tokenExpired(tokenId):
             self.request.response.setStatus(401)
             return
-
+        tokenId = tokenId.strip('"')
         token = self.context.getToken(tokenId)
         return json.dumps(token)

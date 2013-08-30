@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -54,6 +54,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         user in the current context.  The permissions will be in the
         form of a dictionary.
         """
+        self._setAuthorizationCookie()
         permissions = self.permissionsForCurrentContext()
         managedObjectGuids = self.getManagedObjectGuids()
         data = json(permissions)
@@ -73,6 +74,9 @@ class PermissionsDeclaration(viewlet.ViewletBase):
 </script>
         """ % (data, json(managedObjectGuids), str(self.hasGlobalRoles()).lower())
         return func
+
+    def _setAuthorizationCookie(self):
+        self.context.authorization.setCookie()
 
     def hasGlobalRoles(self):
         """

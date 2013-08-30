@@ -996,10 +996,10 @@ class ZenHub(ZCmdBase):
             type='string', default='http://localhost:8080/api/metrics/store',
             help='URL for posting internal metrics (default: %default)')
         self.parser.add_option(
-            "--username", dest="username", default="zenhub",
+            "--username", dest="username", default="admin",
             help="Username to use when publishing to metric consumer. Default is %default")
         self.parser.add_option(
-            "--password", dest="password", default="changeme",
+            "--password", dest="password", default="zenoss",
             help="Password to use when publishing to metric consumer. Default is %default")
             
         notify(ParserReadyForOptionsEvent(self.parser))

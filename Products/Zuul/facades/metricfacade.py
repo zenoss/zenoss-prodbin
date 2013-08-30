@@ -156,7 +156,7 @@ class MetricFacade(ZuulFacade):
 
         # submit it to the client
         try:
-            response, content = self._client.post(METRIC_URL_PATH, request)
+            response, content = self._client.post(METRIC_URL_PATH, request, headers={'Authorization': 'basic YWRtaW46emVub3Nz'})
         except ServiceResponseError, e:
             # there was an error returned by the metric service, log it here
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
