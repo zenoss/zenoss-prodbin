@@ -41,3 +41,14 @@ class TestAuthorization(ZenModelBaseTest):
         self.assertTrue( self.auth.tokenExpired( 1))
         self.assertIsNone( self.auth.getToken( 1))
 
+    def testClearExpiredTokens(self):
+        t1 = self.auth.createToken( 1, 1, time.time() + 120)
+        self.assertIs( t1, self.auth.getToken( 1))
+        self.auth.clearExpiredTokens()
+        self.assertIs( t1, self.auth.getToken( 1))
+
+        t2 = self.auth.createToken( 2, 1, 0)
+        self.assertIs( t1, self.auth.getToken( 1))
+        self.assertIs( t2, self.auth.getToken( 2))
+        self.auth.clearExpiredTokens()
+        self.assertIs( None, self.auth.getToken( 2))
