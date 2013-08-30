@@ -286,13 +286,14 @@ class EventsRouter(DirectRouter):
             # 'tags' comes from managed object guids.
             # see Zuul/security/security.py
             param_tags = params.get('tags')
-            if params.get('excludeNonActionables'):
+            if params.get('excludeNonActionables') and not Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
+                if not param_tags:
+                    us = self.context.dmd.ZenUsers.getUserSettings()
+                    param_tags = [IGlobalIdentifier(ar.managedObject()).getGUID() for ar in us.getAllAdminRoles()]
                 if param_tags:
                     param_tags = [tag for tag in param_tags if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.manager.getObject(tag))]
                 if not param_tags:
-                    if not Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
-                        param_tags = ['dne']
-
+                    param_tags = ['dne'] # Filter everything (except "does not exist'). An empty tag list would be ignored.
             event_filter = self.zep.createEventFilter(
                 severity = params.get('severity'),
                 status = [i for i in params.get('eventState', [])],
