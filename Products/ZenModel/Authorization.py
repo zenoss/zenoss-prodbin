@@ -20,11 +20,11 @@ def manage_addAuthorization(context):
     """
     Add a new authorization object.
     """
-    #import pprint; pprint.pprint( dir( context))
-
-    authorization = Authorization('authorization')
-    context._setObject(authorization.getId(), authorization)
-
+    try:
+        context.authorization
+    except AttributeError, ex:
+        authorization = Authorization('authorization')
+        context._setObject(authorization.getId(), authorization)
 
 class Authorization(ZenModelRM):
     """
@@ -74,9 +74,10 @@ class Authorization(ZenModelRM):
 
     def clearExpiredTokens(self):
         to_delete = []
+        now = time.time()
         for (key, value) in self.temp_folder.session_data.items():
             if isinstance( value, dict) and 'expires' in value:
-                if time.time() <= time.time():
+                if value['expires'] <= now:
                     to_delete.append( key)
 
         for key in to_delete:
