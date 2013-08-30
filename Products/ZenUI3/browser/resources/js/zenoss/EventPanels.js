@@ -1094,7 +1094,7 @@
             this.on('itemclick', this.onItemClick, this );
             this.on('filterschanged', this.onFiltersChanged, this);
             this.excludeNonActionables = !_global_permissions()['manage events'] && Ext.state.Manager.get('excludeNonActionables');
-            this.getStore().autoLoad = config;
+            this.getStore().autoLoad = true;
         },
         initComponent: function() {
             this.getSelectionModel().grid = this;
