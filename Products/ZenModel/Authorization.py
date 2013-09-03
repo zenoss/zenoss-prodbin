@@ -6,6 +6,7 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+from App.config import getConfiguration
 from zope.interface import implements
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -15,6 +16,7 @@ from .interfaces import IAuthorization
 
 import time
 
+_SESSION_TIMEOUT_SECONDS = 60 * getConfiguration().session_timeout_minutes
 
 def manage_addAuthorization(context):
     """
@@ -25,6 +27,7 @@ def manage_addAuthorization(context):
     except AttributeError, ex:
         authorization = Authorization('authorization')
         context._setObject(authorization.getId(), authorization)
+
 
 class Authorization(ZenModelRM):
     """
@@ -46,13 +49,16 @@ class Authorization(ZenModelRM):
         """
         self.REQUEST.response.setCookie('ZAuthToken', self.REQUEST.SESSION.id, path="/")
         token = self.getTokenId()
-        self.createToken(token, token, time.time() + 3600)
+        self.createToken(token, token)
 
-    def createToken(self, sessionId, tokenId, expires):
+    def createToken(self, sessionId, tokenId, expires=None):
         """
         @param sessionId:
         @return:
         """
+        if expires is None:
+          expires = time.time() + _SESSION_TIMEOUT_SECONDS
+
         token = dict(id=tokenId, expires=expires)
         self.temp_folder.session_data[sessionId] = token
         return token
@@ -64,29 +70,24 @@ class Authorization(ZenModelRM):
         """
         return self.temp_folder.session_data.get(sessionId, None)
 
-
     def tokenExpired(self, sessionId):
         token = self.getToken(sessionId)
         if token is None:
             return True
 
-        if token['expires'] <= time.time():
-            del self.temp_folder.session_data[sessionId]
-            return True
-
-        return False
-
+        return time.time() >= token['expires']
 
     def clearExpiredTokens(self):
         to_delete = []
         now = time.time()
+
         for (key, value) in self.temp_folder.session_data.items():
-            if isinstance( value, dict) and 'expires' in value:
+            if isinstance(value, dict) and 'expires' in value:
                 if value['expires'] <= now:
-                    to_delete.append( key)
+                    to_delete.append(key)
 
         for key in to_delete:
-            del self.temp_folder.session_data[ key]
+            del self.temp_folder.session_data[key]
 
     def extractCredentials(self, request):
         type = interfaces.plugins.IExtractionPlugin
@@ -105,5 +106,6 @@ class Authorization(ZenModelRM):
 
     def authenticateCredentials(self, login, password):
         return self.zport.dmd.ZenUsers.authenticateCredentials(login, password)
+
 
 InitializeClass(Authorization)

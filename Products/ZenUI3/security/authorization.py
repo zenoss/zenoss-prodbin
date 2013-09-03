@@ -12,7 +12,6 @@ import time
 
 from Products.Five.browser import BrowserView
 
-
 class Login(BrowserView):
     """
     """
@@ -22,7 +21,9 @@ class Login(BrowserView):
           extract login/password credentials, test authentication, and create a token
         """
 
-        self.context.clearExpiredTokens()
+        #The session_folder auto clears data objects -
+        #  http://docs.zope.org/zope2/zope2book/Sessions.html
+        #self.context.clearExpiredTokens()
 
         credentials = self.context.extractCredentials(self.request)
 
@@ -45,7 +46,8 @@ class Login(BrowserView):
         expires = time.time() + 10 * 60
 
         # create the session data
-        token = self.context.createToken(session.id, tokenId, expires)
+        token = self.context.createToken(session.id, tokenId)
+
         return json.dumps(token)
 
 
@@ -67,7 +69,6 @@ class Validate(BrowserView):
             self.request.response.setStatus(401)
             return
         tokenId = tokenId.strip('"')
-        # tokenId == sessionId
         if self.context.tokenExpired(tokenId):
             self.request.response.setStatus(401)
             return
