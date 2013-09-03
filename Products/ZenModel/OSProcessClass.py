@@ -39,8 +39,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
 
     name = ""
     regex = ""
-    ignoreParametersWhenModeling = False
-    ignoreParameters = False
+    excludeRegex = ".*(vim|tail|grep|tar|cat|bash).*"
     description = ""
     example = ""
     sequence = 0
@@ -48,8 +47,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
     _properties = (
         {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
-        {'id': 'ignoreParametersWhenModeling', 'type':'boolean', 'mode':'w'},
-        {'id':'ignoreParameters', 'type':'boolean', 'mode':'w'},
+        {'id':'excludeRegex', 'type':'string', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         {'id':'sequence', 'type':'int', 'mode':'w'},
         {'id':'example', 'type':'string', 'mode':'w'},
@@ -127,9 +125,8 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
                                   zAlertOnRestart=False,
                                   zFailSeverity=3,
                                   regex="",
+                                  excludeRegex="",
                                   description="",
-                                  ignoreParametersWhenModeling=False,
-                                  ignoreParameters=False,
                                   REQUEST=None):
                                  
         """
@@ -142,10 +139,9 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
         self.name = name
         id = self.prepId(name)
         redirect = self.rename(id)
-        self.regex = regex        
+        self.regex = regex
+        self.excludeRegex = excludeRegex
         self.description = description
-        self.ignoreParametersWhenModeling = ignoreParametersWhenModeling
-        self.ignoreParameters = ignoreParameters
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             messaging.IMessageSender(self).sendToBrowser(

@@ -33,9 +33,9 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
     """
     name = None
     originalName = None
-    ignoreParameters = False
     restart = None
     regex = None
+    excludeRegex = None
     severity = Event.Warning
     cycleTime = None
     processClass = None
@@ -100,6 +100,8 @@ class ProcessConfig(CollectorConfigService):
                 log.debug("Skipping process %r - zMonitor disabled", p)
                 continue
             regex = getattr(p.osProcessClass(), 'regex', False)
+            excludeRegex = getattr(p.osProcessClass(), 'excludeRegex', False)
+            
             if regex:
                 try:
                     re.compile(regex)
@@ -116,10 +118,9 @@ class ProcessConfig(CollectorConfigService):
             proc.contextUUID = p.getUUID()
             proc.deviceuuid = devuuid
             proc.regex = regex
+            proc.excludeRegex = excludeRegex
             proc.name = p.id
             proc.originalName = p.name()
-            proc.ignoreParameters = (
-                getattr(p.osProcessClass(), 'ignoreParameters', False))
             proc.restart = p.alertOnRestart()
             proc.severity = p.getFailSeverity()
             proc.processClass = p.getOSProcessClass()
@@ -168,6 +169,6 @@ if __name__ == '__main__':
     tester = ServiceTester(ProcessConfig)
     def printer(config):
         for proc in config.processes.values():
-            print '\t'.join([proc.name, str(proc.ignoreParameters), proc.regex])
+            print '\t'.join([proc.name, str(proc.regex)])
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()

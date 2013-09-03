@@ -23,6 +23,7 @@ from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenRRD.zencommand import Cmd, DataPointConfig
 from Products.DataCollector.Plugins import getParserLoader
 from Products.ZenEvents.ZenEventClasses import Error, Clear, Cmd_Fail
+from Products.ZenModel.OSProcess import OSProcess
 
 _ZCOMMAND_USERNAME_NOT_SET = 'zCommandUsername is not set so SSH-based commands will not run'
 
@@ -138,6 +139,17 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.parser = ploader
                 cmd.ds = ds.titleOrId()
                 cmd.points = self._getDsDatapoints(comp, ds, ploader, perfServer)
+
+                if isinstance(comp, OSProcess):
+                    # save off the regex's specified in the UI to later run
+                    # against the processes running on the device
+                    cmd.regex = comp.osProcessClass().regex
+                    cmd.excludeRegex = comp.osProcessClass().excludeRegex
+                    
+                    # We need the comp.id in order to determine if a process matches
+                    # a regex that has a name capture group
+                    # see OSProcess.py ... method: generateId
+                    cmd.componentId = comp.id
 
                 # If the datasource supports an environment dictionary, use it
                 cmd.env = getattr(ds, 'env', None)

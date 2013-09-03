@@ -363,9 +363,8 @@ function actioncompleteHandler(basicForm, action) {
         var isRoot = processInfo.name == 'Processes';
         Ext.getCmp('nameTextField2').setDisabled(isRoot);
         Ext.getCmp('regexTextField').setDisabled(!processInfo.hasRegex).allowBlank = !processInfo.hasRegex;
-        Ext.getCmp('ignoreParametersSelect').setDisabled(!processInfo.hasRegex).allowBlank = !processInfo.hasRegex;
-        Ext.getCmp('ignoreParametersWhenModelingSelect').allowBlank = !processInfo.hasRegex;
-       // Ext.getCmp('exampleTextField').setDisabled(!processInfo.hasRegex);
+        Ext.getCmp('regexExcludeTextField').setDisabled(!processInfo.hasRegex);
+        // Ext.getCmp('exampleTextField').setDisabled(!processInfo.hasRegex);
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
     } else if (action.type == 'directsubmit') {
@@ -400,38 +399,17 @@ var descriptionTextField = {
 var regexTextField = {
     xtype: 'textfield',
     id: 'regexTextField',
-    fieldLabel: _t('Pattern'),
+    fieldLabel: _t('Search Pattern'),
     name: 'regex',
     allowBlank: false
 };
 
-
-var ignoreParametersWhenModelingSelect = {
-    xtype: 'select',
-    id: 'ignoreParametersWhenModelingSelect',
-    fieldLabel: _t('Ignore Parameters When Modeling'),
-    name: 'ignoreParametersWhenModeling',
-    queryMode: 'local',
-    displayField: 'name',
-    valueField: 'value',
-    store: new Ext.data.ArrayStore({
-        data: [['Yes', true], ['No', false]],
-        model: 'Zenoss.model.NameValue'
-    })
-};
-
-var ignoreParametersSelect = {
-    xtype: 'select',
-    id: 'ignoreParametersSelect',
-    fieldLabel: _t('Ignore Parameters'),
-    name: 'ignoreParameters',
-    queryMode: 'local',
-    displayField: 'name',
-    valueField: 'value',
-    store: new Ext.data.ArrayStore({
-        data: [['Yes', true], ['No', false]],
-        model: 'Zenoss.model.NameValue'
-    })
+var regexExcludeTextField = {
+    xtype: 'textfield',
+    id: 'regexExcludeTextField',
+    fieldLabel: _t('Exclude Pattern'),
+    name: 'excludeRegex',
+    allowBlank: true
 };
 
 var exampleTextField = {
@@ -546,8 +524,7 @@ var regexFieldSet = {
     style: 'padding: 5px 0 0 0',
     items: [
         regexTextField,
-        ignoreParametersWhenModelingSelect,
-        ignoreParametersSelect
+        regexExcludeTextField,
         // , exampleTextField
     ]
 }; // regexFieldSet
