@@ -16,7 +16,12 @@ from .interfaces import IAuthorization
 
 import time
 
-_SESSION_TIMEOUT_SECONDS = 60 * getConfiguration().session_timeout_minutes
+try:
+    _SESSION_TIMEOUT_SECONDS = 60 * getConfiguration().session_timeout_minutes
+except AttributeError:
+    # we may not always have access to zope.conf so make a default session timeout
+    _SESSION_TIMEOUT_SECONDS = 3600 * 20
+
 
 def manage_addAuthorization(context):
     """
