@@ -82,18 +82,6 @@ class Authorization(ZenModelRM):
 
         return time.time() >= token['expires']
 
-    def clearExpiredTokens(self):
-        to_delete = []
-        now = time.time()
-
-        for (key, value) in self.temp_folder.session_data.items():
-            if isinstance(value, dict) and 'expires' in value:
-                if value['expires'] <= now:
-                    to_delete.append(key)
-
-        for key in to_delete:
-            del self.temp_folder.session_data[key]
-
     def extractCredentials(self, request):
         type = interfaces.plugins.IExtractionPlugin
         plugins = self.zport.acl_users.plugins.listPlugins(type)
