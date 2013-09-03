@@ -8,7 +8,6 @@
 ##############################################################################
 
 import json
-import time
 
 from Products.Five.browser import BrowserView
 
@@ -41,9 +40,8 @@ class Login(BrowserView):
             return
 
         # successful authentication
-        session = self.request.get('SESSION', None)
+        session = self.request.get('SESSION')
         tokenId = self.context.getTokenId()
-        expires = time.time() + 10 * 60
 
         # create the session data
         token = self.context.createToken(session.id, tokenId)
@@ -68,10 +66,12 @@ class Validate(BrowserView):
         if tokenId is None:
             self.request.response.setStatus(401)
             return
+
+        #grab token to handle edge case, when expiration happens after expiration test
+        token = self.context.getToken(tokenId)
         tokenId = tokenId.strip('"')
         if self.context.tokenExpired(tokenId):
             self.request.response.setStatus(401)
             return
 
-        token = self.context.getToken(tokenId)
         return json.dumps(token)
