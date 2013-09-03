@@ -11,7 +11,6 @@ import json
 import time
 
 from Products.Five.browser import BrowserView
-from Products.PluggableAuthService import interfaces
 
 
 class Login(BrowserView):
@@ -42,7 +41,7 @@ class Login(BrowserView):
 
         # successful authentication
         session = self.request.get('SESSION', None)
-        tokenId = session.id
+        tokenId = self.context.getTokenId()
         expires = time.time() + 10 * 60
 
         # create the session data
@@ -67,11 +66,11 @@ class Validate(BrowserView):
         if tokenId is None:
             self.request.response.setStatus(401)
             return
-        
+        tokenId = tokenId.strip('"')
         # tokenId == sessionId
         if self.context.tokenExpired(tokenId):
             self.request.response.setStatus(401)
             return
-        tokenId = tokenId.strip('"')
+
         token = self.context.getToken(tokenId)
         return json.dumps(token)
