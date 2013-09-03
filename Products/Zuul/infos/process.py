@@ -173,6 +173,22 @@ class ProcessInfo(InfoBase):
 
     example = property(getExample, setExample)
 
+    def getMinProcessCount(self):
+        return getattr(self._object, 'minProcessCount', '')
+
+    def setMinProcessCount(self, minProcessCount):
+        self._object.minProcessCount = minProcessCount
+
+    minProcessCount = property(getMinProcessCount, setMinProcessCount)
+
+    def getMaxProcessCount(self):
+        return getattr(self._object, 'maxProcessCount', '')
+
+    def setMaxProcessCount(self, maxProcessCount):
+        self._object.maxProcessCount = maxProcessCount
+
+    maxProcessCount = property(getMaxProcessCount, setMaxProcessCount)
+
     @property
     def count(self):
         if isinstance(self._object, OSProcessOrganizer):
