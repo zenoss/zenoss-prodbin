@@ -494,7 +494,8 @@ class ZenHub(ZCmdBase):
         threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
         self.log.info('Will post metrics to: %s', self.options.metrics_store_url)
-        metric_writer = MetricWriter(HttpPostPublisher(self.options.metrics_store_url))
+        metric_writer = MetricWriter(HttpPostPublisher(
+            self.options.zauthUsername, self.options.zauthPassword, self.options.metrics_store_url))
         derivative_tracker = DerivativeTracker()
 
         rrdStats.config('zenhub', perfConf.id, metric_writer,
@@ -992,8 +993,14 @@ class ZenHub(ZCmdBase):
             type='int', default=30,
             help="Interval at which to poll invalidations (default: %default)")
         self.parser.add_option('--metrics-store-url', dest='metrics_store_url',
-            type='string', default='https://localhost:8443/api/metrics/store',
+            type='string', default='http://localhost:8080/api/metrics/store',
             help='URL for posting internal metrics (default: %default)')
+        self.parser.add_option(
+            "--zauth-username", dest="zauthUsername", 
+            help="Username to use when publishing to metric consumer. Default is %default")
+        self.parser.add_option(
+            "--zauth-password", dest="zauthPassword", 
+            help="Password to use when publishing to metric consumer. Default is %default")
             
         notify(ParserReadyForOptionsEvent(self.parser))
 

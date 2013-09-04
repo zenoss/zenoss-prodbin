@@ -267,21 +267,6 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-        self.parser.add_option('--redis-url', 
-                               dest='redisUrl',
-                               type='string',
-                               default='redis://localhost:{default}/0'.format(default=publisher.defaultRedisPort),
-                               help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
-        self.parser.add_option('--metricBufferSize',
-                               dest='metricBufferSize',
-                               type='int',
-                               default=publisher.defaultMetricBufferSize,
-                               help='Number of metrics to buffer if redis goes down')
-        self.parser.add_option('--metricsChannel',
-                               dest='metricsChannel',
-                               type='string',
-                               default=publisher.defaultMetricsChannel,
-                               help='redis channel to which metrics are published')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
@@ -650,8 +635,6 @@ class CollectorDaemon(RRDDaemon):
                 log.exception("Unable to import class %s", c)
 
     def _configureRRD(self, rrdCreateCommand, thresholds):
-        self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
-
         self._threshold_notifier = ThresholdNotifier(self.sendEvent, thresholds)
 
         self.rrdStats.config(self.name,
