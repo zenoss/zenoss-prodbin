@@ -258,6 +258,28 @@
     />
 
 <browser:view
+    class="..security.authorization.Authorization"
+    name="authorization"
+    for="OFS.interfaces.IApplication"
+    permission="zope2.Public"
+    />
+
+<browser:view
+    class="..security.authorization.Login"
+    name="login"
+    for="zope.publisher.interfaces.browser.IBrowserView"
+    permission="zope2.Public"
+    />
+
+
+<browser:view
+    class="..security.authorization.Validate"
+    name="validate"
+    for="zope.publisher.interfaces.browser.IBrowserView"
+    permission="zope2.Public"
+    />
+
+<browser:view
     class=".views.FileUpload"
     name="uploadfile"
     for="*"

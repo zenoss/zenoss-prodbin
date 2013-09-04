@@ -655,7 +655,7 @@
             this.add(graphs);
         },
         updateEndTime: function(){
-            if (this.checkbox_now.getValue()) {
+            if (this.checkbox_now && this.checkbox_now.getValue()) {
                 this.end_date.setValue(new Date());
             }
         },
@@ -676,13 +676,16 @@
             });
         },
         refresh: function() {
-            this.updateEndTime();
-            Ext.each(this.getGraphs(), function(g) {
-                g.fireEvent("updateimage", {
-                    start: this.start || null,
-                    end: this.end || null
-                }, this);
-            });
+            // if we are rendered but not visible do not refresh
+            if (this.isVisible()) {
+                this.updateEndTime();
+                Ext.each(this.getGraphs(), function(g) {
+                    g.fireEvent("updateimage", {
+                        start: this.start || null,
+                        end: this.end || null
+                    }, this);
+                });
+            }
         },
         getGraphs: function() {
             var graphs = Zenoss.util.filter(this.items.items, function(item){
