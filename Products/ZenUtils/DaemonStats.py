@@ -43,6 +43,9 @@ class DaemonStats(object):
     def _context_id(self):
         return self.name + "-" + self.monitor
 
+    def _contextKey(self):
+        return "/".join(('Daemons', self.monitor))
+
     def _tags(self, metric_type):
         return {
             'daemon': self.name,
@@ -74,7 +77,7 @@ class DaemonStats(object):
             value = self._derivative_tracker.derivative(
                 context_id, (int(value), timestamp))
 
-            # check for threshold breaches and send events when needed
-            self._threshold_notifier.notify(
-                context_id, context_id, timestamp, value)
+        # check for threshold breaches and send events when needed
+        self._threshold_notifier.notify(
+            self._contextKey(), context_id, self.name+'_'+name, timestamp, value)
 

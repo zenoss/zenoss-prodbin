@@ -90,7 +90,6 @@ class ZenProcessPreferences(object):
         values for needed attributes.
         """
         self.collectorName = "zenprocess"
-        self.defaultRRDCreateCommand = None
         self.configCycleInterval = 20 # minutes
 
         #will be updated based on Performance Config property of same name
