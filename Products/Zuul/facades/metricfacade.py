@@ -19,9 +19,7 @@ log = logging.getLogger("zen.MetricFacade")
 
 
 DATE_FORMAT = "%Y/%m/%d-%H:%M:%S-%z"
-METRIC_URL = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
-METRIC_USERNAME = getGlobalConfiguration().get('zauth-username', 'admin')
-METRIC_PASSWORD = getGlobalConfiguration().get('zauth-password', 'zenoss')
+
 METRIC_URL_PATH = "/api/performance/query"
 
 AGGREGATION_MAPPING = {
@@ -36,7 +34,8 @@ class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
         super(MetricFacade, self).__init__(context)
-        self._client = JsonRestServiceClient(METRIC_URL)
+        metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
+        self._client = JsonRestServiceClient(metric_url)
 
     def getLastValue(self, context, metric):
         """
@@ -162,7 +161,11 @@ class MetricFacade(ZuulFacade):
         request = self._buildRequest(subjects, datapoints, start, end, returnSet)
 
         # submit it to the client
-        auth = base64.b64encode('%s:%s' %(METRIC_USERNAME, METRIC_PASSWORD))
+        metric_username = getGlobalConfiguration().get('zauth-username', None)
+        metric_password = getGlobalConfiguration().get('zauth-password', None)
+        if not metric_username:
+            raise Exception("Missing global.conf zauth-username")
+        auth = base64.b64encode('%s:%s' %(metric_username, metric_password))
         try:
             response, content = self._client.post(METRIC_URL_PATH, request, headers={'Authorization': 'basic %s' %  auth})
         except ServiceResponseError, e:
