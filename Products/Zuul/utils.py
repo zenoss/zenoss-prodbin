@@ -7,8 +7,9 @@
 # 
 ##############################################################################
 
-
+import time
 import transaction
+from App.config import getConfiguration
 from copy import deepcopy
 from types import ClassType
 from Acquisition import aq_base, aq_chain
@@ -347,3 +348,16 @@ class PathIndexCache(object):
         instances = ICatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
         tree = PathIndexCache(results, instances, 'devices')
         print tree
+
+        
+def createAuthToken(request, dmd, expires=None):
+    """
+    @param request
+    @return:
+    """
+    if expires is None:
+        expires = time.time() + 60 * getConfiguration().session_timeout_minutes
+    tokenId = request.SESSION.id
+    token = dict(id=tokenId, expires=expires)
+    dmd.temp_folder.session_data[tokenId] = token
+    return token

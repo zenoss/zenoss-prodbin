@@ -260,14 +260,14 @@
 <browser:view
     class="..security.authorization.Login"
     name="login"
-    for="Products.ZenModel.interfaces.IAuthorization"
+    for="OFS.interfaces.IApplication"
     permission="zope2.Public"
     />
 
 <browser:view
     class="..security.authorization.Validate"
     name="validate"
-    for="Products.ZenModel.interfaces.IAuthorization"
+    for="OFS.interfaces.IApplication"
     permission="zope2.Public"
     />
 
