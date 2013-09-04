@@ -205,28 +205,25 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
             return []
         if isinstance(value, basestring):
             value = float(value)
-        thresh = None
 
-        # Handle all cases where both minimum and maximum are set.
-        if self.maximum is not None and self.minimum is not None:
-            if self.maximum >= self.minimum:
-                if value > self.maximum:
-                    thresh = self.maximum
-                    how = 'exceeded'
-                elif value < self.minimum:
-                    thresh = self.minimum
-                    how = 'not met'
-            elif self.maximum < value < self.minimum:
-                thresh = self.maximum
-                how = 'violated'
+        # Check the boundaries
+        minbounds = self.minimum is None or value >= self.minimum
+        maxbounds = self.maximum is None or value <= self.maximum
+        violated = None not in (self.minimum, self.maximum) and \
+            self.minimum > self.maximum
 
-        # Handle simple cases where only minimum or maximum is set.
-        elif self.maximum is not None and value > self.maximum:
+        if violated:
+            thresh = self.maximum
+            how = 'violated'
+        elif not maxbounds:
             thresh = self.maximum
             how = 'exceeded'
-        elif self.minimum is not None and value < self.minimum:
+        elif not minbounds:
             thresh = self.minimum
             how = 'not met'
+        else:
+            thresh = None
+            how = None
 
         if thresh is not None:
             severity = self.severity

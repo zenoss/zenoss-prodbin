@@ -25,4 +25,3 @@ for module in os.listdir(os.path.dirname(__file__)):
         continue
     __import__(module[:-3], locals(), globals())
 del module
-
