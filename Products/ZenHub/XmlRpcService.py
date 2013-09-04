@@ -122,7 +122,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
 
     def xmlrpc_writeRRD(self, devId, compType, compId, dpName, value):
-        raise NotImplementedError("ZenHub can no longer write RRD values, please use the MetricFacade")
+        raise NotImplementedError("ZenHub can no longer write RRD values. Please use the MetricFacade")
 
 
     def xmlrpc_getPerformanceConfig(self, monitor):
