@@ -199,7 +199,6 @@ class CollectorDaemon(RRDDaemon):
         # setup daemon statistics
         self._statService = StatisticsService()
         self._statService.addStatistic("devices", "GAUGE")
-        # self._statService.addStatistic("cyclePoints", "GAUGE")
         self._statService.addStatistic("dataPoints", "DERIVE")
         self._statService.addStatistic("runningTasks", "GAUGE")
         self._statService.addStatistic("taskCount", "GAUGE")
@@ -542,6 +541,7 @@ class CollectorDaemon(RRDDaemon):
             self._scheduler.addTask(task_, self._taskCompleteCallback, now)
 
             # TODO: another hack?
+            if hasattr(cfg, 'thresholds'):
             if hasattr(cfg, 'thresholds'):
                 self.getThresholds().updateForDevice(configId, cfg.thresholds)
 

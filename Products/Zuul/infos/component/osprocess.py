@@ -63,6 +63,22 @@ class OSProcessInfo(ComponentInfo):
             self._object.deleteZenProperty('zFailSeverity')
     failSeverity = property(getFailSeverity, setFailSeverity)
 
+    def getMinProcessCount(self):
+        return self._object.minProcessCount
+
+    def setMinProcessCount(self, minProcessCount):
+        self._object.minProcessCount = minProcessCount
+
+    minProcessCount = property(getMinProcessCount, setMinProcessCount)
+
+    def getMaxProcessCount(self):
+        return self._object.maxProcessCount
+
+    def setMaxProcessCount(self, maxProcessCount):
+        self._object.maxProcessCount = maxProcessCount
+
+    maxProcessCount = property(getMaxProcessCount, setMaxProcessCount)
+
     monitor = ServiceMonitor()
 
     @property

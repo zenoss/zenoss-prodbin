@@ -146,23 +146,17 @@ class ProcessInfo(InfoBase):
 
     regex = property(getRegex, setRegex)
 
-    def getIgnoreParametersWhenModeling(self):
-        return getattr(self._object, 'ignoreParametersWhenModeling', None)
+    def getExcludeRegex(self):
+        return getattr(self._object, 'excludeRegex', None)
 
-    def setIgnoreParametersWhenModeling(self, ignoreParametersWhenModeling):
+    def setExcludeRegex(self, excludeRegex):
         if self.hasRegex:
-            self._object.ignoreParametersWhenModeling = ignoreParametersWhenModeling
+            if excludeRegex == "":
+                excludeRegex = ".*(vim|tail|grep|tar|cat|watch).*"
+            self._object.excludeRegex = excludeRegex
 
-    ignoreParametersWhenModeling = property(getIgnoreParametersWhenModeling, setIgnoreParametersWhenModeling)
-
-    def getIgnoreParameters(self):
-        return getattr(self._object, 'ignoreParameters', None)
-
-    def setIgnoreParameters(self, ignoreParameters):
-        if self.hasRegex:
-            self._object.ignoreParameters = ignoreParameters
-
-    ignoreParameters = property(getIgnoreParameters, setIgnoreParameters)
+    excludeRegex = property(getExcludeRegex, setExcludeRegex)
+    
 
     def getExample(self):
         return getattr(self._object, 'example', '')
@@ -172,6 +166,22 @@ class ProcessInfo(InfoBase):
             self._object.example = example
 
     example = property(getExample, setExample)
+
+    def getMinProcessCount(self):
+        return getattr(self._object, 'minProcessCount', '')
+
+    def setMinProcessCount(self, minProcessCount):
+        self._object.minProcessCount = minProcessCount
+
+    minProcessCount = property(getMinProcessCount, setMinProcessCount)
+
+    def getMaxProcessCount(self):
+        return getattr(self._object, 'maxProcessCount', '')
+
+    def setMaxProcessCount(self, maxProcessCount):
+        self._object.maxProcessCount = maxProcessCount
+
+    maxProcessCount = property(getMaxProcessCount, setMaxProcessCount)
 
     @property
     def count(self):

@@ -31,6 +31,12 @@
   </tooltip>
 
   <tooltip>
+    <target>regexExcludeTextField</target>
+    <anchor>left</anchor>
+    <html>Exclude regular expression</html>
+  </tooltip>
+
+  <tooltip>
     <target>ignoreParametersSelect</target>
     <anchor>left</anchor>
     <html>Ignore command parameters</html>

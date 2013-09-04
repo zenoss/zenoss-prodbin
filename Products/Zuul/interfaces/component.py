@@ -137,6 +137,10 @@ class IOSProcessInfo(IComponentInfo):
                                  alwaysEditable=True)
     failSeverity = schema.Int(title=_t(u"Fail Severity"), xtype="severity",
                               group="Details", alwaysEditable=True)
+    minProcessCount = schema.Int(title=u"Min Process Count",
+                                 group="Details", alwaysEditable=True)
+    maxProcessCount = schema.Int(title=u"Max Process Count",
+                                 group="Details", alwaysEditable=True)
 
 
 class IWinServiceInfo(IComponentInfo):

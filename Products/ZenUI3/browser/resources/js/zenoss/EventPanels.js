@@ -384,7 +384,7 @@
                 }
             }];
 
-            if (!_has_global_roles())
+            if (!_global_permissions()['manage events'])
                 configureMenuItems.unshift({
                     id: 'excludenonactionables_checkitem',
                     xtype: 'menucheckitem',
@@ -1093,7 +1093,8 @@
             this.callParent(arguments);
             this.on('itemclick', this.onItemClick, this );
             this.on('filterschanged', this.onFiltersChanged, this);
-            this.excludeNonActionables = !_has_global_roles() && Ext.state.Manager.get('excludeNonActionables');
+            this.excludeNonActionables = !_global_permissions()['manage events'] && Ext.state.Manager.get('excludeNonActionables');
+            this.getStore().autoLoad = true;
         },
         initComponent: function() {
             this.getSelectionModel().grid = this;
