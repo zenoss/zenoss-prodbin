@@ -14,8 +14,14 @@ from Products.PluggableAuthService import interfaces
 from Products.Zuul.utils import createAuthToken
 
 
-class Authorization(BrowserView):
+ZAUTH_HEADER_ID = 'X-ZAuth-Token'
 
+
+class Authorization(BrowserView):
+    """
+    This view acts as a namespace so the client requests are /authorization/login and
+    /authorization/validate
+    """
     def __getitem__(self, index):
         if index == "login":
             return Login(self.context, self.request)
@@ -25,6 +31,7 @@ class Authorization(BrowserView):
 
 class Login(BrowserView):
     """
+    Validates the credentials supplied and creates a new authorization token.
     """
     def extractCredentials(self, request):
         type = interfaces.plugins.IExtractionPlugin
@@ -41,13 +48,12 @@ class Login(BrowserView):
         password = request.get('password', None)
         return {'login': login, 'password': password}
 
-
     def authenticateCredentials(self, login, password):
         return self.context.context.zport.dmd.ZenUsers.authenticateCredentials(login, password)
 
     def __call__(self, *args, **kwargs):
         """
-          extract login/password credentials, test authentication, and create a token
+        Extract login/password credentials, test authentication, and create a token
         """
 
         #The session_folder auto clears data objects -
@@ -76,7 +82,7 @@ class Login(BrowserView):
 
 class Validate(BrowserView):
     """
-      assert token id exists in session data and token id hasn't expired
+    Assert token id exists in session data and token id hasn't expired
     """
 
     def getToken(self, sessionId):
@@ -99,7 +105,7 @@ class Validate(BrowserView):
         """
         tokenId = self.request.get('id', None)
         if tokenId is None:
-            tokenId = self.request.getHeader('X-ZAuth-Token')
+            tokenId = self.request.getHeader(ZAUTH_HEADER_ID)
 
         # missing token id
         if tokenId is None:
@@ -107,8 +113,8 @@ class Validate(BrowserView):
             return
 
         #grab token to handle edge case, when expiration happens after expiration test
-        token = self.getToken(tokenId)
         tokenId = tokenId.strip('"')
+        token = self.getToken(tokenId)
         if self.tokenExpired(tokenId):
             self.request.response.setStatus(401)
             return
