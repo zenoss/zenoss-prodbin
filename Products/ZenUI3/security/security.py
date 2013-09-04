@@ -17,6 +17,7 @@ from interfaces import ISecurityManager, IPermissionsDeclarationViewlet
 from AccessControl import getSecurityManager
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
+ZAUTH_COOKIE = 'ZAuthToken'
 
 class SecurityManager(ViewletManagerBase):
     """The Viewlet manager class for the permissions declaration
@@ -78,7 +79,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
 
     def _setAuthorizationCookie(self):
         token = createAuthToken(self.request, self.context)
-        self.request.response.setCookie('ZAuthToken', token['id'], path="/")
+        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/")
 
     def hasGlobalRoles(self):
         """

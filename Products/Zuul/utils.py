@@ -352,8 +352,11 @@ class PathIndexCache(object):
         
 def createAuthToken(request, dmd, expires=None):
     """
+    Creates an authentication token. Since zauth tokens are currently stored in the session
+    the expires can be no further than ( now + session time out).
+    TODO: Allow a config option for default expires.
     @param request
-    @return:
+    @return: dictionary with the token id and expiration
     """
     if expires is None:
         expires = time.time() + 60 * getConfiguration().session_timeout_minutes
