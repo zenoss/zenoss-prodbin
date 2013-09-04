@@ -11,7 +11,6 @@
 import logging
 import pprint
 import sys
-from Products.ZenModel.OSProcess import getProcessIdentifier
 
 log = logging.getLogger('zen.testzenprocess')
 
@@ -20,8 +19,6 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRRD.zenprocess import ZenProcessTask
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenHub.services.ProcessConfig import ProcessProxy
-
-IS_MD5 = re.compile('^[A-Fa-f0-9]{32}$')
 
 class Options(object): pass
 
@@ -141,7 +138,9 @@ class TestZenprocess(BaseTestCase):
         The results are passed back from the method
         """
         procs = task._parseProcessNames(data)
+        #print "procs  : ", procs
         results = task._determineProcessStatus(procs)
+        #print "results: ", results
 
         actual = dict(zip(ProcessResults.resultKeys, results))
         actual[ProcessResults.PROCESSES] = procs
@@ -209,11 +208,11 @@ class TestZenprocess(BaseTestCase):
         # Return back the results in case somebody wants to dive in
         return actual
 
-    def updateProcDefs(self, procDefs, name, ignoreParams, regex):
+    def updateProcDefs(self, procDefs, name, regex, excludeRegex):
         procDef = ProcessProxy()
-        procDef.name = name if IS_MD5.match(name.rsplit(' ',1)[-1]) else getProcessIdentifier(name, '')
+        procDef.name = name
         procDef.regex = re.compile(regex)
-        procDef.ignoreParameters = ignoreParams
+        procDef.excludeRegex = re.compile(excludeRegex)
         procDefs[procDef.name] = procDef
 
     def getProcDefsFrom(self, procDefString):
@@ -229,9 +228,8 @@ class TestZenprocess(BaseTestCase):
             line = line.strip()
             if line == '':
                 continue
-            modeler_match, useArgs, regex = line.rsplit(None, 2)
-            useArgs = True if useArgs.strip() == 'True' else False
-            self.updateProcDefs(procDefs, modeler_match.strip(), useArgs, regex.strip())
+            modeler_match, regex, excludeRegex = line.rsplit(None, 2)
+            self.updateProcDefs(procDefs, modeler_match.strip(), regex.strip(), excludeRegex.strip())
         return procDefs
 
     def getProcDefsFromFile(self, procDefFile):
@@ -247,18 +245,18 @@ class TestZenprocess(BaseTestCase):
         name = base + '/' + procDefFile
         try:
             for line in open(name).readlines():
-                procname, md5, useArgs, regex = line.rsplit(None, 3)
-                useArgs = True if useArgs.strip() == 'True' else False
-                self.updateProcDefs(procDefs, ' '.join((procname.strip(), md5.strip())), useArgs, regex.strip())
+                procname, regex, excludeRegex = line.rsplit(None, 3)
+                self.updateProcDefs(procDefs, procname.strip(), regex.strip(), excludeRegex.strip())
         except Exception, ex:
             log.warn('Unable to evaluate data file %s because %s',
                      name, str(ex))
         return procDefs
 
-    def getSingleProcessTask(self, ignoreArgs=False):
+    def getSingleProcessTask(self):
         procDefs = {}
-        procName = 'testProcess' if ignoreArgs else getProcessIdentifier('testProcess', 'args')
-        self.updateProcDefs(procDefs, procName, ignoreArgs, '/fake/path/testProcess')
+        procName = 'url_testProcess_args'
+        self.updateProcDefs(procDefs, procName, '/fake/path/testProcess', 'nothing')
+        procDefs['url_testProcess_args'].restart = True
         task = self.makeTask(procDefs)
 
         #Sanity check our definition with a valid data run
@@ -269,25 +267,12 @@ class TestZenprocess(BaseTestCase):
         
         return task
 
-    def testProcessCountIgnoreParams(self):
-        task = self.getSingleProcessTask(ignoreArgs=True)
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'testProcess',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.3': 'testProcess',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.4': 'testProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testProcess',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.2': '/fake/path/testProcess',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.3': '/fake/path/testProcess',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.4': '/fake/path/testProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '1',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.2': '2',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.3': '3',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.4': '4'}}
-        self.compareTestData(data, task, self.expected(PROCESSES=4))
+    def printTestTitle(self, title):
+        print "..Running %s..." % title
 
     def testProcessCount(self):
-        task = self.getSingleProcessTask(ignoreArgs=False)
+        self.printTestTitle("testProcessCount")
+        task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess',
                                             '.1.3.6.1.2.1.25.4.2.1.2.2': 'testProcess',
@@ -302,34 +287,22 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.5.3': '3',
                                             '.1.3.6.1.2.1.25.4.2.1.5.4': '4'}}
         # Process count is not dependent on actual matching, just on the SNMP data returned.
-        self.compareTestData(data, task, self.expected(PROCESSES=4))
-
-    def testMissingNoMatchIgnoreParams(self):
-        task = self.getSingleProcessTask(ignoreArgs=True)
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.9': 'otherProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.9': '/non/matching/otherProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.9': 'other'}}
-        self.compareTestData(data, task, self.expected(MISSING=1))
+        self.compareTestData(data, task, self.expected(PROCESSES=4, AFTERBYCONFIG=1))
 
     def testMissingNoMatch(self):
-        task = self.getSingleProcessTask(ignoreArgs=False)
+        self.printTestTitle("testMissingNoMatch")
+        
+        task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.9': 'otherProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.9': '/non/matching/otherProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.9': ''}}
         self.compareTestData(data, task, self.expected(MISSING=1))
 
-    def testMissingMismatchNameIgnoreParams(self):
-        task = self.getSingleProcessTask(ignoreArgs=True)
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'WRONGNAME'},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'args'}}
-        self.compareTestData(data, task, self.expected(MISSING=0))
-
     def testMissingMismatchName(self):
-        task = self.getSingleProcessTask(ignoreArgs=False)
+        self.printTestTitle("testMissingMismatchName")
+        
+        task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'WRONGNAME'},
                 '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testProcess'},
@@ -337,9 +310,11 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(MISSING=0))
 
     def testMissingMismatchNameNoArgs(self):
+        self.printTestTitle("testMissingMismatchNameNoArgs")
+        
         procDefs = {}
-        self.updateProcDefs(procDefs, getProcessIdentifier('testProcess1', ''), False, 'testProc')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testProcess2', ''), False, 'testProc')
+        self.updateProcDefs(procDefs, 'url_testProcess1', 'testProc', 'nothing')
+        self.updateProcDefs(procDefs, 'url_testProcess2', 'testProc', 'nothing')
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess1',
@@ -348,107 +323,48 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.4.2': 'testProcess2'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': ''}}
-        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=2, MISSING=0))
-
-    def testMissingMismatchPathIgnoreParams(self):
-        task = self.getSingleProcessTask(ignoreArgs=True)
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/WRONG/PATH'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'args'}}
-        self.compareTestData(data, task, self.expected(MISSING=1))
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=1, MISSING=1))
 
     def testMissingMismatchPath(self):
-        task = self.getSingleProcessTask(ignoreArgs=False)
+        self.printTestTitle("testMissingMismatchPath")
+        
+        task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/WRONG/PATH'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'args'}}
         self.compareTestData(data, task, self.expected(MISSING=1))
 
-    def testMissingMismatchArgsIgnoreParams(self):
-        task = self.getSingleProcessTask(ignoreArgs=True)
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'WRONGARGS'}}
-        self.compareTestData(data, task, self.expected(MISSING=0))
-
     def testMissingMismatchArgs(self):
-        task = self.getSingleProcessTask(ignoreArgs=False)
+        self.printTestTitle("testMissingMismatchArgs")
+        
+        task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'WRONGARGS'}}
-        #TODO: INCORRECT FUNCTIONALITY: Clearly one should be missing here. The process has
-        #      non-matching arguments. The lax matching after a failure is the culprit.
-        #self.compareTestData(data, task, self.expected(MISSING=1))
-
-    def testMissingMismatchPidIgnoreParams(self):
-        task = self.getSingleProcessTask(ignoreArgs=True)
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.999': 'testProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.999': '/fake/path/testProcess'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.999': 'args'}}
-        # a mismatched PID is just a restarted process, not actually missing
         self.compareTestData(data, task, self.expected(MISSING=0))
 
     def testMissingMismatchPid(self):
-        task = self.getSingleProcessTask(ignoreArgs=False)
+        self.printTestTitle("testMissingMismatchPid")
+        
+        task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.999': 'testProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.999': '/fake/path/testProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.999': 'args'}}
-        # a mismatched PID is just a restarted process, not actually missing
-        self.compareTestData(data, task, self.expected(MISSING=0))
-
-    def testMultipleMissingIgnoreParams(self):
-        procDefs = {}
-        self.updateProcDefs(procDefs, 'testFirst',  True, '/fake/path/testFirst')
-        self.updateProcDefs(procDefs, 'testSecond', True, '/fake/path/testSecond')
-        self.updateProcDefs(procDefs, 'testThird',  True, '/fake/path/testThird')
-        self.updateProcDefs(procDefs, 'testFourth', True, '/fake/path/testFourth')
-        self.updateProcDefs(procDefs, 'testFifth',  True, '/fake/path/testFifth')
-        task = self.makeTask(procDefs)
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testFirst',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'testSecond',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.3': 'testThird',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.4': 'testFourth',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.5': 'testFifth',},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testFirst',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.2': '/fake/path/testSecond',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.3': '/fake/path/testThird',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.4': '/fake/path/testFourth',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.5': '/fake/path/testFifth'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'some',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'args',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.3': 'went',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.4': 'here',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.5': 'five'}}
-        self.compareTestData(data, task, self.expected(PROCESSES=5, MISSING=0))
-
-        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'WRONGPROCESS',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'testSecond',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.4': 'testFourth',
-                                            '.1.3.6.1.2.1.25.4.2.1.2.99':'testFifth'},
-                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testFirst',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.2': '/fake/path/WRONGPATH',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.4': '/fake/path/testFourth',
-                                            '.1.3.6.1.2.1.25.4.2.1.4.99':'/fake/path/testFifth'},
-                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'some',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'args',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.4': 'WRONGARGS',
-                                            '.1.3.6.1.2.1.25.4.2.1.5.99':'five'}}
-        self.compareTestData(data, task, self.expected(MISSING=2))
+        self.compareTestData(data, task, self.expected(MISSING=0, RESTARTED=1))
 
     def testMultipleMissing(self):
+        self.printTestTitle("testMultipleMissing")
+        
         procDefs = {}
-        self.updateProcDefs(procDefs, getProcessIdentifier('testFirst',  'some'), False, '/fake/path/testFirst')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testSecond', 'args'), False, '/fake/path/testSecond')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testThird',  'went'), False, '/fake/path/testThird')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testFourth', 'here'), False, '/fake/path/testFourth')
-        self.updateProcDefs(procDefs, getProcessIdentifier('testFifth',  'five'), False, '/fake/path/testFifth')
+        self.updateProcDefs(procDefs, 'url_testFirst_some', '/fake/path/testFirst', 'nothing')
+        self.updateProcDefs(procDefs, 'url_testSecond_args', '/fake/path/testSecond', 'nothing')
+        self.updateProcDefs(procDefs, 'url_testThird_went', '/fake/path/testThird', 'nothing')
+        self.updateProcDefs(procDefs, 'url_testFourth_here', '/fake/path/testFourth', 'nothing')
+        self.updateProcDefs(procDefs, 'url_testFifth_five', '/fake/path/testFifth', 'nothing')
+        procDefs['url_testFifth_five'].restart = True
         task = self.makeTask(procDefs)
         
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testFirst',
@@ -480,14 +396,14 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': 'args',
                                             '.1.3.6.1.2.1.25.4.2.1.5.4': 'WRONGARGS',
                                             '.1.3.6.1.2.1.25.4.2.1.5.99':'five'}}
-        #TODO: INCORRECT FUNCTIONALITY: Clearly more than two should be missing here. In particular, the process testFourth has
-        #      non-matching arguments. The lax matching after a failure is the culprit.
-        #self.compareTestData(data, task, self.expected(MISSING=3))
+        self.compareTestData(data, task, self.expected(MISSING=2, RESTARTED=1))
 
     def testDoubleSendmail(self):
+        self.printTestTitle("testDoubleSendmail")
+        
         procDefs = {}
-        self.updateProcDefs(procDefs, 'sendmail_ accepting connections', False, 'sendmail')
-        self.updateProcDefs(procDefs, 'sendmail_ something else', False, 'sendmail')
+        self.updateProcDefs(procDefs, 'sendmail_ accepting connections', 'sendmail', 'nothing')
+        self.updateProcDefs(procDefs, 'sendmail_ something else', 'sendmail', 'nothing')
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'sendmail: accepting connections',
@@ -496,22 +412,24 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.4.2': 'sendmail: something else'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': ''}}
-
-        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=2, MISSING=0, AFTERPIDTOPS=2))
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=1, MISSING=1, AFTERPIDTOPS=2))
 
     def testMingetty(self):
         """
         Sanity check for simplified example
         """
+        self.printTestTitle("testMingetty")
+
         procDefs = {}
-        self.updateProcDefs(procDefs, 'mingetty', True, '/sbin/mingetty')
-        mingetty = procDefs[getProcessIdentifier('mingetty', '')]
+        self.updateProcDefs(procDefs, 'url_mingetty', '/sbin/mingetty', 'nothing')
+        mingetty = procDefs['url_mingetty']
         task = self.makeTask(procDefs)
 
         expectedStats = self.expected(6, 1, 6, 0, 6, 0, 0, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
         # No changes if there are no changes
+        # second run of zenprocess --- keeps a history of what was previously monitored
         expectedStats = self.expected(6, 1, 6, 1, 0, 0, 0, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
@@ -523,96 +441,6 @@ class TestZenprocess(BaseTestCase):
         mingetty.restart = True
         expectedStats = self.expected(6, 1, 6, 1, 1, 1, 1, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
-
-    def testCase15875part1(self):
-        procDefs = {}
-        self.updateProcDefs(procDefs, getProcessIdentifier('syslogd', '-m 0'), False, '^syslogd')
-        self.updateProcDefs(procDefs, getProcessIdentifier('usr_bin_perl', '-w /opt/sysadmin/packages/scooper/bin/scooperd /opt/sysadmin/packages/scooper/config/config.xml /opt/sysadmin/packages/scooper/config/sanity.xml'), False, '^.*?/usr/bin/perl\s+-w\s+/opt/sysadmin/packages/scooper/bin/scooperd\s+/opt.*')
-        self.updateProcDefs(procDefs, getProcessIdentifier('usr_java_jdk_bin_java', '-Djava.awt.headless=true -Djava.endorsed.dirs=/opt/gsp/nationwideUKFraudCard-cqa/tomcat/common/endorsed -classpath /usr/java/jdk/lib/tools.jar:/opt/gsp/nationwideUKFraudCard-cqa/tomcat/bin/bootstrap.jar:/opt/gsp/nationwideUKFraudCard-cqa/tomcat/bin/commons-logging-api.jar -Dcatalina.base=/opt/gsp/nationwideUKFraudCard-cqa/tomcat -Dcatalina.home=/opt/gsp/nationwideUKFraudCard-cqa/tomcat -Djava.io.tmpdir=/opt/gsp/nationwideUKFraudCard-cqa/tomcat/temp org.apache.catalina.startup.Bootstrap start'), False, '/opt/gsp/')
-        self.updateProcDefs(procDefs, getProcessIdentifier('ntpd', '-u ntp:ntp -p /var/run/ntpd.pid'), False, '^ntpd')
-        self.updateProcDefs(procDefs, getProcessIdentifier('perl', './aSecure.pl -d'), False, 'aSecure\.rb|aSecure\.pl')
-        self.updateProcDefs(procDefs, 'crond', True, '^crond')
-
-        task = self.makeTask(procDefs)
-        expectedStats = self.expected(117, 6, 7, 0, 7, 0, 0, 0)
-        self.compareTestFile('case15875-0', task, expectedStats)
-
-    def testCase15875part2(self):
-        """
-        Test the case where we want to know about the arg lists.  This adds the
-        MD5 hash into the name of the process definition.
-        """
-        procDefs = {}
-        self.updateProcDefs(procDefs, 'usr_java_jdk1.6_bin_java a9286b43deac884c793529289e7b1a61', False, '.*?/opt/tomcat-emailservice-')
-        self.updateProcDefs(procDefs, 'usr_java_jdk1.6_bin_java 46213332b61b77a47dafd204cb7ea2db', False, '.*?/opt/tomcat-emailservice-')
-        self.updateProcDefs(procDefs, 'usr_java_jdk1.6_bin_java 6180cffd001309eeec52efdb5f4ae007', False, '.*?/opt/tomcat-emailservice-')
-
-        task = self.makeTask(procDefs)
-        expectedStats = self.expected(97, 3, 3, 0, 3, 0, 0, 0)
-        self.compareTestFile('case15875-1', task, expectedStats)
-
-        # Now what happens when the remote agent screws up a bit
-        # and *ALMOST* sends us all the stuff?
-        expectedStats = self.expected(97, 3, 3, 3, 0, 0, 0, 0)
-        results = self.compareTestFile('case15875-2', task, expectedStats)
-        deadPids = results[ProcessResults.DEAD]
-        
-        self.assert_(len(deadPids) == 0,
-                     "Failed to recover from terrible SNMP agent output")
-
-    def testCase15875part3(self):
-        procDefs = {}
-
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 989031ccce92ac84e183a6f127b3e279', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'java b2bdc8a61846f09f58aec8c748a204e4', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python adb8994c7ba8b1f6395cc8dc12ba5c1b', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 286221f4ce20c06cb4777df35ec5ed89', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 4775a3fa1682df2f095aab454031d702', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python fba04951fda76b915671af901bb874b5', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python dcac4d78470d919d41a24f0fa32dda90', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'ntpd 869db238ffc5f88024ff5fb8ffabb084', False, '^ntpd',)
-        self.updateProcDefs(procDefs, 'java bbffd7e3fa9d6853d7682156d5dd7e97', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'usr_sbin_httpd', True, '^[^ ]*httpd[^ /]*( |$)',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 1b480820ba996e468d89297c15b842e9', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python f686cbe618bf158a01ce23f10573518d', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 799802c1cb9d56c0b7a036f59512176e', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 4d2eeb2773decebf5bf03c657d6a66c9', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 4fb2e41e1057bc98418ea3923ff924d0', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python b1decc46fd0d2006952e773ab2fb3ae2', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python f2eaff8e78abf5423d41b9698137e28d', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python e83ae4187a18d82891c7f877c4036edb', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 18aeb381536e1f263037fb2c830cf293', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 560d3c6b462208bbf41807626c87ca8a', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python c73166185748470cff8468fbad6f8d15', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'crond', True, '^crond',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python ce658ba39869d9238ef281fdd7829058', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 895c56a50ec67fb7253d3c5bf16e54fc', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python fbabb34cc04d9a7b1b49927c55608dce', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 0297fd22e7fd76c7996b0cec7b65edfd', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 65e57f32917b59ccb63a264a2e7fdb9c', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'usr_sbin_mysqld', True, 'sbin\/mysqld',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python e9c6b5fc30781634e8a4c8e179ba6bee', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 43a302e41b239c0dd962bb6f5108f033', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python cbeab9686cc961499879ca1abf83598e', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
-
-        task = self.makeTask(procDefs)
-        expectedStats = self.expected(174, 31, 52, 0, 52, 0, 0, 0)
-        self.compareTestFile('case15875-3', task, expectedStats)
-
-    def testCase15875part4(self):
-        procDefs = {}
-
-        self.updateProcDefs(procDefs, 'usr_bin_perl', True, '^.*\/*httpd')
-        self.updateProcDefs(procDefs, 'usr_sbin_slurpd', True, '/usr/sbin/(?:slapd|slurpd)')
-        self.updateProcDefs(procDefs, 'ntpd b5552db5824a818094a496e52982919e', False, '^ntpd')
-        self.updateProcDefs(procDefs, 'syslogd 14cc14f9b12338978b9d35cbb947581b', False, '^syslogd')
-        self.updateProcDefs(procDefs, 'usr_sbin_slapd', True, '/usr/sbin/(?:slapd|slurpd)')
-        self.updateProcDefs(procDefs, 'usr_sbin_httpd', True, '^[^ ]*httpd[^ /]*( |$)')
-        self.updateProcDefs(procDefs, 'crond', True, '^crond')
-
-        task = self.makeTask(procDefs)
-        expectedStats = self.expected(253, 7, 15, 0, 15, 0, 0, 0)
-        self.compareTestFile('case15875-4', task, expectedStats)
 
     def pprintProcStats(self, actual, prefix):
         #resultKeys = (AFTERBYCONFIG, AFTERPIDTOPS, BEFOREBYCONFIG, NEW, RESTARTED, DEAD, MISSING)
@@ -653,110 +481,90 @@ class TestZenprocess(BaseTestCase):
         >                              '.1.3.6.1.2.1.25.4.2.1.2.8478': 'vim',
         >                              '.1.3.6.1.2.1.25.4.2.1.2.8501': 'pyraw',
         """
+        self.printTestTitle("testRemodels")
 
-        procDefs = self.getProcDefsFrom("""
-        opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
-        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
-        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
-        opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
-        python   False  python
-        opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f   False  python
-        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
-        opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca   False  python
-        """)
-
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'url_python', 'python', 'nothing')
+        self.updateProcDefs(procDefs, 'url_pyraw', '.*zenping.py.*', 'nothing')
+        self.updateProcDefs(procDefs, 'url_java', '.*zeneventserver.*', 'nothing')
         task = self.makeTask(procDefs)
-        expectedStats = self.expected(PROCESSES=136,
+
+        expectedStats = self.expected(
+            PROCESSES=136,
             AFTERBYCONFIG={
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
-                                                                           32075,
-                                                                           32076],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004],
-                'opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca': [6948]
+                'url_python': [1004, 32073, 32075, 32076, 3736, 6948, 8447, 8450, 8470],
+                'url_pyraw': [32209],
+                'url_java': [31948],
             },
             AFTERPIDTOPS={
-                1004: 'python d41d8cd98f00b204e9800998ecf8427e',
-                3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
-                6948: 'opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca',
-                31948: 'java ad3a6a186ca1dbfba40db6645f4135ff',
-                32073: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32075: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32076: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
+                1004: 'url_python',
+                3736: 'url_python',
+                6948: 'url_python',
+                31948: 'url_java',
+                32073: 'url_python',
+                32075: 'url_python',
+                32076: 'url_python',
+                32209: 'url_pyraw',
+                8447: 'url_python',
+                8450: 'url_python',
+                8470: 'url_python'
             },
-            BEFOREBYCONFIG={
-            },
+            BEFOREBYCONFIG={},
             NEW=set([
-                3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004
+                3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004, 8447, 8450, 8470
             ]),
             RESTARTED=0,
-            DEAD=set([
-            ]),
-            MISSING=[
-                'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f',
-                'opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f',
-            ])
+            DEAD=set([]),
+            MISSING=[]
+        )
 
         actual = self.compareTestFile('remodel_bug-0', task, expectedStats)
 
-        procDefs = self.getProcDefsFrom("""
-        opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
-        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
-        vim 91ff9650aeb2217a2e393e63efd08723    False   .*zenprocess.py.*
-        opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d   False  python
-        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
-        opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
-        python   False  python
-        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
-        """)
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'url_python', 'python', 'nothing')
+        self.updateProcDefs(procDefs, 'url_pyraw', '.*zenping.py.*', 'nothing')
+        self.updateProcDefs(procDefs, 'url_java', '.*zeneventserver.*', 'nothing')
+        self.updateProcDefs(procDefs, 'url_vim', '.*zenprocess.py.*', 'nothing')
 
-        expectedStats = self.expected(PROCESSES=134,
+        expectedStats = self.expected(
+            PROCESSES=134,
             AFTERBYCONFIG={
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
-                                                                           32075,
-                                                                           32076],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004],
-                'opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d': [8447],
-                'vim 91ff9650aeb2217a2e393e63efd08723': [8478]
+                'url_python': [1004, 32073, 32075, 32076, 3736, 8447],
+                'url_pyraw': [32209],
+                'url_java': [31948],
+                'url_vim': [8478]
             },
             AFTERPIDTOPS={
-                1004: 'python d41d8cd98f00b204e9800998ecf8427e',
-                3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
-                8447: 'opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d',
-                8478: 'vim 91ff9650aeb2217a2e393e63efd08723',
-                31948: 'java ad3a6a186ca1dbfba40db6645f4135ff',
-                32073: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32075: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32076: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
+                1004: 'url_python',
+                3736: 'url_python',
+                8447: 'url_python',
+                8478: 'url_vim',
+                31948: 'url_java',
+                32073: 'url_python',
+                32075: 'url_python',
+                32076: 'url_python',
+                32209: 'url_pyraw'
             },
             BEFOREBYCONFIG={
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
-                                                                           32075,
-                                                                           32076],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004]
+                'url_python': [1004, 32073, 32075, 32076, 3736, 6948, 8447, 8450, 8470],
+                'url_pyraw': [32209],
+                'url_java': [31948],
             },
-            NEW=set([8478, 8447]),
+            NEW=set([8478]),
             RESTARTED=0,
-            DEAD=set([]),
-            MISSING=['opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f'])
+            DEAD=set([6948, 8450, 8470]),
+            MISSING=[]
+        )
         config = TaskConfig(procDefs=procDefs)
         task._deviceStats.update(config)
         actual = self.compareTestFile('remodel_bug-1', task, expectedStats)
 
     def testSubsetCorrectMatch(self):
+        self.printTestTitle("testSubsetCorrectMatch")
+        
         procDefs = {}
-        self.updateProcDefs(procDefs, 'rpciod_3', False, 'rpc')
-        self.updateProcDefs(procDefs, 'rpciod_32', False, 'rpc')
+        self.updateProcDefs(procDefs, 'url_rpciod_3', 'rpc', 'nothing')
+        self.updateProcDefs(procDefs, 'url_rpciod_32', 'rpc', 'nothing')
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'rpciod/3',
@@ -765,14 +573,17 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.4.2': 'rpciod/32'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': ''}}
-        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=2, MISSING=0))
+
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=1, MISSING=1))
 
     def testSuffixCorrectMatch(self):
+        self.printTestTitle("testSuffixCorrectMatch")
+
         procDefs = {}
-        self.updateProcDefs(procDefs, 'iod_3', False, 'iod')
-        self.updateProcDefs(procDefs, 'ciod_3', False, 'iod')
-        self.updateProcDefs(procDefs, 'pciod_3', False, 'iod')
-        self.updateProcDefs(procDefs, 'rpciod_3', False, 'iod')
+        self.updateProcDefs(procDefs, 'url_iod_3', 'iod', 'nothing')
+        self.updateProcDefs(procDefs, 'url_ciod_3', 'iod', 'nothing')
+        self.updateProcDefs(procDefs, 'url_pciod_3', 'iod', 'nothing')
+        self.updateProcDefs(procDefs, 'url_rpciod_3', 'iod', 'nothing')
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'iod/3',
@@ -787,16 +598,22 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': '',
                                             '.1.3.6.1.2.1.25.4.2.1.5.3': '',
                                             '.1.3.6.1.2.1.25.4.2.1.5.4': ''}}
-        self.compareTestData(data, task, self.expected(PROCESSES=4, AFTERBYCONFIG=4, MISSING=0))
+
+        self.compareTestData(data, task, self.expected(PROCESSES=4, AFTERBYCONFIG=1, MISSING=3))
 
     def testRpciods(self):
-        procDefs = self.getProcDefsFromFile('rpciod_test_config')
+        self.printTestTitle("testRpciods")
+        
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'url_rpciod_0', 'rpc', 'nothing')
         task = self.makeTask(procDefs)
-        self.compareTestFile('rpciod_test', task, self.expected(PROCESSES=33, NEW=33, MISSING=0))
+        self.compareTestFile('rpciod_test', task, self.expected(PROCESSES=33, AFTERBYCONFIG=1, NEW=33, MISSING=0))
 
     def testSpecialCharacterSuffix(self):
+        self.printTestTitle("testSpecialCharacterSuffix")
+        
         procDefs = {}
-        self.updateProcDefs(procDefs, 'sendmail_ accepting connections', False, 'sendmail')
+        self.updateProcDefs(procDefs, 'url_sendmail_accepting_connections', 'sendmail', 'nothing')
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'sendmail: accepting connections'},
@@ -804,198 +621,12 @@ class TestZenprocess(BaseTestCase):
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': ''}}
         
         self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0))
-
-    def testRemodelsAndChangeToIgnoreParamsTrue(self):
-
-        procDefs = self.getProcDefsFrom("""
-        opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
-        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
-        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
-        opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
-        python   False  python
-        opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f   False  python
-        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
-        opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca   False  python
-        """)
-
-        task = self.makeTask(procDefs)
-        expectedStats = self.expected(PROCESSES=136,
-            AFTERBYCONFIG={
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
-                                                                           32075,
-                                                                           32076],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004],
-                'opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca': [6948]
-            }, 
-            AFTERPIDTOPS={
-                1004: 'python d41d8cd98f00b204e9800998ecf8427e',
-                3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
-                6948: 'opt_zenoss_bin_python 1148c1c9fc0650d75599732a315961ca',
-                31948: 'java ad3a6a186ca1dbfba40db6645f4135ff',
-                32073: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32075: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32076: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
-            },
-            BEFOREBYCONFIG={},
-            NEW=set([
-                3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004,
-            ]),
-            RESTARTED=0,
-            DEAD=set([]),
-            MISSING=[
-                'opt_zenoss_bin_python 984f90697fbe429c1ac3332b7dc21e3f',
-                'opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f',
-            ])
-        actual = self.compareTestFile('remodel_bug-0', task, expectedStats)
-
-        procDefs = self.getProcDefsFrom("""
-        opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e   True  python
-        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
-        vim 91ff9650aeb2217a2e393e63efd08723    False   .*zenprocess.py.*
-        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
-        python   False  python
-        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
-        """)
-
-        expectedStats = self.expected(PROCESSES=134,
-            AFTERBYCONFIG={
-                'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e': [32073,
-                                                                           32075,
-                                                                           32076,
-                                                                           8447],
-                'vim 91ff9650aeb2217a2e393e63efd08723': [8478],
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004]
-            },
-            AFTERPIDTOPS={
-                1004: 'python d41d8cd98f00b204e9800998ecf8427e',
-                3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
-                8447: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                8478: 'vim 91ff9650aeb2217a2e393e63efd08723',
-                31948: 'java ad3a6a186ca1dbfba40db6645f4135ff',
-                32073: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                32075: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                32076: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
-            },
-            BEFOREBYCONFIG={
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004]
-            },
-            NEW=set([8478, 32073, 32075, 32076, 8447]),
-            RESTARTED=0,
-            DEAD=set([]),
-            MISSING=[])
-
-        config = TaskConfig(procDefs=procDefs)
-        task._deviceStats.update(config)
-        actual = self.compareTestFile('remodel_bug-1', task, expectedStats)
-
-    def testRemodelsAndChangeToIgnoreParamsFalse(self):
-
-        procDefs = self.getProcDefsFrom("""
-        opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e   True  python
-        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
-        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
-        python   False  python
-        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
-        """)
-
-        task = self.makeTask(procDefs)
-        expectedStats = self.expected(PROCESSES=136,
-            AFTERBYCONFIG={
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e': [8450,
-                                                                           8470,
-                                                                           6948,
-                                                                           32073,
-                                                                           32075,
-                                                                           32076,
-                                                                           8447],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004],
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209]
-            },
-            AFTERPIDTOPS={
-                1004: 'python d41d8cd98f00b204e9800998ecf8427e',
-                3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
-                6948: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                8447: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                8450: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                8470: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                31948: 'java ad3a6a186ca1dbfba40db6645f4135ff',
-                32073: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                32075: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                32076: 'opt_zenoss_bin_python d41d8cd98f00b204e9800998ecf8427e',
-                32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
-            },
-            BEFOREBYCONFIG={},
-            NEW=set([8450, 8470, 3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004, 8447]),
-            RESTARTED=0,
-            DEAD=set([]),
-            MISSING=[])
-        actual = self.compareTestFile('remodel_bug-0', task, expectedStats)
-
-        procDefs = self.getProcDefsFrom("""
-        opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f   False  python
-        opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936    False  .*zenping.py.*
-        vim 91ff9650aeb2217a2e393e63efd08723    False   .*zenprocess.py.*
-        opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d   False  python
-        java ad3a6a186ca1dbfba40db6645f4135ff    False  .*zeneventserver.*
-        opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e   False  python
-        python   False  python
-        usr_bin_python 201b6c901f17f7f787349360d9c40ee5   False  python
-        """)
-
-        expectedStats = self.expected(PROCESSES=134,
-            AFTERBYCONFIG={
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004],
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209],
-                'vim 91ff9650aeb2217a2e393e63efd08723': [8478],
-                'opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d': [8447],
-                'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e': [32073,
-                                                                           32075,
-                                                                           32076]
-            },
-            AFTERPIDTOPS={
-                1004: 'python d41d8cd98f00b204e9800998ecf8427e',
-                3736: 'usr_bin_python 201b6c901f17f7f787349360d9c40ee5',
-                8447: 'opt_zenoss_bin_python f38f002284e23bc8c054586ba160cd5d',
-                8478: 'vim 91ff9650aeb2217a2e393e63efd08723',
-                31948: 'java ad3a6a186ca1dbfba40db6645f4135ff',
-                32073: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32075: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32076: 'opt_zenoss_bin_python 1a46b3274b08c5c72e6fa85c6682988e',
-                32209: 'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936'
-            },
-            BEFOREBYCONFIG={
-                'java ad3a6a186ca1dbfba40db6645f4135ff': [31948],
-                'usr_bin_python 201b6c901f17f7f787349360d9c40ee5': [3736],
-                'python d41d8cd98f00b204e9800998ecf8427e': [1004],
-                'opt_zenoss_bin_pyraw e134c4b85da839309dc63a2bac59d936': [32209]
-            },
-            NEW=set([8478, 32073, 32075, 32076, 8447]),
-            RESTARTED=0,
-            DEAD=set([]),
-            MISSING=['opt_zenoss_bin_python e3859e5bcea9193e1d5ee56fa6f8038f'])
-
-        config = TaskConfig(procDefs=procDefs)
-        task._deviceStats.update(config)
-        actual = self.compareTestFile('remodel_bug-1', task, expectedStats)
     
     def testCase3776(self):
+        self.printTestTitle("testCase3776")
+        
         procDefs = {}
-        self.updateProcDefs(procDefs, "pyres_manager: running ['pmta']", False, r"pyres_manager: running \['pmta'\]")
+        self.updateProcDefs(procDefs, "pyres_manager", r"pyres_manager: running \['pmta'\]", 'nothing')
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': "pyres_manager: running ['pmta']",},
@@ -1005,9 +636,223 @@ class TestZenprocess(BaseTestCase):
 
         self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0, AFTERPIDTOPS=1))
 
+    def testSingleExcludeRegex(self):
+        self.printTestTitle("testSingleExcludeRegex")
+
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'url_process1', 'proc', '.*process.*')
+        self.updateProcDefs(procDefs, 'url_proc2', 'doesntMatter', 'doesntMatter')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'name1',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'name2'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/path/to/process1',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.2': '/path/to/process2'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments'}}
+        
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=0, MISSING=2))
+    
+    def testMultipleExcludeRegex(self):
+        self.printTestTitle("testMultipleExcludeRegex")
+        
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'url_myapp1', '.*myapp.*', '.*(vim|tail|grep|tar|cat|bash).*')
+        self.updateProcDefs(procDefs, 'url_myapp2', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp3', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp4', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp5', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp6', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp7', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp8', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp9', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp10', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp11', 'doesntMatter', 'doesntMatter')
+        self.updateProcDefs(procDefs, 'url_myapp12', 'doesntMatter', 'doesntMatter')
+        task = self.makeTask(procDefs)
+
+        '''
+        1.  myapp                               #legitimate
+        2.  vim myapp
+        3.  vim /path/to/myapp
+        4.  tail -f myapp.log
+        5.  tail -f /path/to/myapp.log
+        6.  /path/to/myapp                      #legitimate
+        7.  grep foo myapp
+        8.  grep foo /path/to/myapp
+        9.  tar cvfz bar.tgz /path/to/myapp
+        10. cat /path/to/myapp
+        11. bash -c "/path/to/myapp"
+        12. bash -c myapp
+        '''
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'myapp', #legitimate
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'vim',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.3': 'vim',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.4': 'tail',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.5': 'tail',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.6': 'myapp', #legitimate
+                                            '.1.3.6.1.2.1.25.4.2.1.2.7': 'grep',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.8': 'grep',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.9': 'tar',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.10': 'cat',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.11': 'bash',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.12': 'bash'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'myapp', #legitimate
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'vim',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.3': 'vim',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.4': 'tail',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.5': 'tail',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.6': '/path/to/myapp', #legitimate
+                                            '.1.3.6.1.2.1.25.4.2.1.2.7': 'grep',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.8': 'grep',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.9': 'tar',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.10': 'cat',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.11': 'bash',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.12': 'bash'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '', #legitimate
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'myapp',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.3': '/path/to/myapp',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.4': '-f myapp.log',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.5': '-f /path/to/myapp.log',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.6': '', #legitimate
+                                            '.1.3.6.1.2.1.25.4.2.1.2.7': 'foo myapp',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.8': 'foo /path/to/myapp',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.9': 'cvfz bar.tgz /path/to/myapp',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.10': '/path/to/myapp',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.11': '-c "/path/to/myapp"',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.12': '-c myapp'}}
+        expectedStats = self.expected(
+            PROCESSES=12,
+            AFTERBYCONFIG={
+                'url_myapp1': [1, 6]
+            },
+            AFTERPIDTOPS={
+                1: 'url_myapp1',
+                6: 'url_myapp1',
+            },
+            MISSING=11
+        )
+        
+        self.compareTestData(data, task, expectedStats)
+    
+    def testSingleNameCaptureGroupSingleProcesses(self):
+        self.printTestTitle("testSingleNameCaptureGroupSingleProcesses")
+
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'url_myapp', '(myapp[^\/]*\/)', 'nothing')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'myapp'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/home/zenoss/dummy_processes/myapp/somedir/myapp'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments'}}
+        
+        self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0))
+    
+    def testSingleNameCaptureGroupMultipleProcesses(self):
+        self.printTestTitle("testSingleNameCaptureGroupMultipleProcesses")
+
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'url_myapp', '(myapp[^\/]*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_myappiscool', '(myapp[^\/]*\/)', 'nothing')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'myapp',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'otherapp'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/home/zenoss/dummy_processes/myapp/somedir/myapp',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.2': '/home/zenoss/dummy_processes/myappiscool/otherapp'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments'}}
+        
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=2, MISSING=0))
+    
+    def testMultipleNameCaptureGroupsMultipleProcesses(self):
+        self.printTestTitle("testMultipleNameCaptureGroupsMultipleProcesses")
+        
+        procDefs = {}
+        
+        self.updateProcDefs(procDefs, 'url_telecel_television_celtic',          '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_telecel_television_celery',          '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_telecel_television_cellular_phones', '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_telecel_telephone_celtic',           '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_telecel_telephone_celery',           '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_telecel_telephone_cellular_phones',  '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_telecel_telekinesis_celtic',         '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_telecel_telekinesis_celery',         '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'url_telecel_telekinesis_cellular_phones','(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.3': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.4': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.5': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.6': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.7': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.8': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.9': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.10': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.11': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.12': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.13': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.14': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.15': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.16': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.17': 'telecel',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.18': 'telecel'},
+                                            '.1.3.6.1.2.1.25.4.2.1.2.1': 'telecel',
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/home/zenoss/dummy_processes/test_two_name_capture_groups/television/folder1/celtic/test1.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.2': '/home/zenoss/dummy_processes/test_two_name_capture_groups/television/folder1/celtic/test11.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.3': '/home/zenoss/dummy_processes/test_two_name_capture_groups/television/folder1/celery/test2.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.4': '/home/zenoss/dummy_processes/test_two_name_capture_groups/television/folder1/celery/test22.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.5': '/home/zenoss/dummy_processes/test_two_name_capture_groups/television/folder1/cellular_phones/test3.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.6': '/home/zenoss/dummy_processes/test_two_name_capture_groups/television/folder1/cellular_phones/test33.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.7': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telephone/folder1/celtic/test1.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.8': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telephone/folder1/celtic/test11.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.9': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telephone/folder1/celery/test2.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.10': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telephone/folder1/celery/test22.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.11': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telephone/folder1/cellular_phones/test3.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.12': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telephone/folder1/cellular_phones/test33.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.13': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telekinesis/folder1/celtic/test1.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.14': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telekinesis/folder1/celtic/test11.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.15': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telekinesis/folder1/celery/test2.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.16': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telekinesis/folder1/celery/test22.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.17': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telekinesis/folder1/cellular_phones/test3.sh',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.18': '/home/zenoss/dummy_processes/test_two_name_capture_groups/telekinesis/folder1/cellular_phones/test33.sh'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments'}}
+        
+        self.compareTestData(data, task, self.expected(PROCESSES=18, AFTERBYCONFIG=9, MISSING=0))
+
 
 def test_suite():
+    print "..Starting the test suite........."
     from unittest import TestSuite, makeSuite
+    
+    # TestSuite - aggregate of individual test cases/suites
     suite = TestSuite()
-    suite.addTest(makeSuite(TestZenprocess))
+
+    # makeSuite - Returns a suite with one instance of TestZenProcess for each method starting with the word 'test'
+    testSuite = makeSuite(TestZenprocess)
+
+    # addTest - Add a TestCase or TestSuite to the suite
+    suite.addTest(testSuite)
+
     return suite
