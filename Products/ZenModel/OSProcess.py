@@ -70,6 +70,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     processText = ""
     procName = "" 
     parameters = "" 
+    minProcessCount = ""
+    maxProcessCount = ""
     _procKey = ""
 
     modelerLock = None
@@ -83,6 +85,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         {'id':'processText', 'type':'string', 'mode':'w'},
         {'id':'zAlertOnRestarts', 'type':'boolean', 'mode':'w'},
         {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
+        {'id':'minProcessCount', 'type':'int', 'mode':'w'},
+        {'id':'maxProcessCount', 'type':'int', 'mode':'w'},
     )
 
     _relations = OSComponent._relations + ZenPackable._relations + (
@@ -260,6 +264,29 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
                 return proccl.getOSProcessClassName()
         return ""
 
+    def getMinProcessCount(self):
+        """
+        Return the min process count threshold value
+        """
+        if not self.minProcessCount and not self.maxProcessCount and \
+           self.osProcessClass():
+            value = self.osProcessClass().minProcessCount
+        else:
+            value = self.minProcessCount
+
+        return float(value or '0')
+
+    def getMaxProcessCount(self):
+        """
+        Return the max process count threshold value
+        """
+        if not self.minProcessCount and not self.maxProcessCount and \
+           self.osProcessClass():
+            value = self.osProcessClass().maxProcessCount
+        else:
+            value = self.maxProcessCount
+
+        return float(value or 'nan')
 
     def name(self):
         """

@@ -420,6 +420,22 @@ var exampleTextField = {
 
 };
 
+var minCountThreshold = {
+    xtype: 'numberfield',
+    id: 'minProcessCount',
+    fieldLabel: _t("Minimum"),
+    name: 'minProcessCount',
+    allowBlank: true
+};
+
+var maxCountThreshold = {
+    xtype: 'numberfield',
+    id: 'maxProcessCount',
+    fieldLabel: _t("Maximum"),
+    name: 'maxProcessCount',
+    allowBlank: true
+};    
+
 var zMonitor = {
     xtype: 'zprop',
     ref: '../../zMonitor',
@@ -513,6 +529,18 @@ var regexFieldSet = {
     ]
 }; // regexFieldSet
 
+var processCountThreshold = {
+    xtype: 'fieldset',
+    id: 'processCountFieldSet',
+    title: _t("Process Count Threshold"),
+    hidden: false,
+    style: 'padding: 5px 0 0 0',
+    items: [
+        minCountThreshold,
+        maxCountThreshold
+    ]
+}; // processCountThreshold
+
 // the items that make up the form
 var processFormItems = {
     layout: 'column',
@@ -523,7 +551,7 @@ var processFormItems = {
         columnWidth: 0.5
     },
     items: [
-        {defaults:{anchor:'95%'}, items: [nameTextField2, descriptionTextField, regexFieldSet]},
+        {defaults:{anchor:'95%'}, items: [nameTextField2, descriptionTextField, regexFieldSet, processCountThreshold]},
         {defaults:{anchor:'95%'}, items: [zMonitor, zAlertOnRestart, zFailSeverity, zModelerLock, zSendEventWhenBlockedFlag]}
     ]
 }; // processFormItems
