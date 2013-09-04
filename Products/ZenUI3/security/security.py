@@ -77,7 +77,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         return func
 
     def _setAuthorizationCookie(self):
-        token = createAuthToken(self.request)
+        token = createAuthToken(self.request, self.context)
         self.request.response.setCookie('ZAuthToken', token['id'], path="/")
 
     def hasGlobalRoles(self):

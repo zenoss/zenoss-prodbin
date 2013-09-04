@@ -13,13 +13,22 @@ from Products.Five.browser import BrowserView
 from Products.PluggableAuthService import interfaces
 from Products.Zuul.utils import createAuthToken
 
+
+class Authorization(BrowserView):
+
+    def __getitem__(self, index):
+        if index == "login":
+            return Login(self.context, self.request)
+        if index == "validate":
+            return Validate(self.context, self.request)
+        raise Exception("Invalid authorization view %s" % index)
+
 class Login(BrowserView):
     """
     """
-
     def extractCredentials(self, request):
         type = interfaces.plugins.IExtractionPlugin
-        plugins = self.context.zport.acl_users.plugins.listPlugins(type)
+        plugins = self.context.context.zport.acl_users.plugins.listPlugins(type)
 
         # look in the extraction plugins for the credentials
         for (extractor_id, extractor) in plugins:
@@ -34,7 +43,7 @@ class Login(BrowserView):
 
 
     def authenticateCredentials(self, login, password):
-        return self.context.zport.dmd.ZenUsers.authenticateCredentials(login, password)
+        return self.context.context.zport.dmd.ZenUsers.authenticateCredentials(login, password)
 
     def __call__(self, *args, **kwargs):
         """
@@ -44,7 +53,6 @@ class Login(BrowserView):
         #The session_folder auto clears data objects -
         #  http://docs.zope.org/zope2/zope2book/Sessions.html
         #self.context.clearExpiredTokens()
-
         credentials = self.extractCredentials(self.request)
 
         login = credentials.get('login', None)
@@ -61,7 +69,7 @@ class Login(BrowserView):
             return
 
         # create the session data
-        token = createAuthToken(self.request, self.context.zport.dmd)
+        token = createAuthToken(self.request, self.context.context.zport.dmd)
 
         return json.dumps(token)
 
@@ -76,7 +84,7 @@ class Validate(BrowserView):
         @param sessionId:
         @return:
         """
-        return self.context.temp_folder.session_data.get(sessionId, None)
+        return self.context.context.temp_folder.session_data.get(sessionId, None)
 
     def tokenExpired(self, sessionId):
         token = self.getToken(sessionId)
