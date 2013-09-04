@@ -6,11 +6,11 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-import base64
 import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
-from zenoss.protocols.services import JsonRestServiceClient, ServiceResponseError
+from zenoss.protocols.services import ServiceResponseError
+from Products.ZenUtils.AuthenticatedJsonRestClient import AuthenticatedJsonRestClient
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -34,8 +34,8 @@ class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
         super(MetricFacade, self).__init__(context)
-        metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
-        self._client = JsonRestServiceClient(metric_url)
+        metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')        
+        self._client = AuthenticatedJsonRestClient(metric_url)
 
     def getLastValue(self, context, metric):
         """
@@ -161,13 +161,8 @@ class MetricFacade(ZuulFacade):
         request = self._buildRequest(subjects, datapoints, start, end, returnSet)
 
         # submit it to the client
-        metric_username = getGlobalConfiguration().get('zauth-username', None)
-        metric_password = getGlobalConfiguration().get('zauth-password', None)
-        if not metric_username:
-            raise Exception("Missing global.conf zauth-username")
-        auth = base64.b64encode('%s:%s' %(metric_username, metric_password))
         try:
-            response, content = self._client.post(METRIC_URL_PATH, request, headers={'Authorization': 'basic %s' %  auth})
+            response, content = self._client.post(METRIC_URL_PATH, request)
         except ServiceResponseError, e:
             # there was an error returned by the metric service, log it here
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
