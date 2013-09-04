@@ -116,7 +116,7 @@ class ConfigurationProxy(object):
 
 class ConfigurationLoaderTask(ObservableMixin):
     """
-    A task that periodically retrieves collector configuration via the 
+    A task that periodically retrieves collector configuration via the
     IConfigurationProxy service.
     """
     zope.interface.implements(IScheduledTask)

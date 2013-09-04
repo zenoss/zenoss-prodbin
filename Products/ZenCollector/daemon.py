@@ -15,7 +15,6 @@ import json
 import zope.interface
 from twisted.internet import defer,  reactor, task
 from twisted.python.failure import Failure
-from zenoss.collector.publisher import publisher
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
@@ -28,14 +27,10 @@ from Products.ZenCollector.interfaces import ICollector,\
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenRRD.RRDDaemon import RRDDaemon
-from Products.ZenRRD import RRDUtil
-from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, unused
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.picklezipper import Zipper
 from Products.ZenUtils.observable import ObservableProxy
-from Products.ZenUtils.metricwriter import ThresholdNotifier
-
 
 log = logging.getLogger("zen.daemon")
 
@@ -408,9 +403,6 @@ class CollectorDaemon(RRDDaemon):
                 uuidInfo.get('deviceUUID', None)
             )
 
-    def readRRD(self, path, consolidationFunction, start, end):
-        return RRDUtil.read(path, consolidationFunction, start, end)
-
     def stop(self, ignored=""):
         if self._stoppingCallback is not None:
             try:
@@ -541,7 +533,6 @@ class CollectorDaemon(RRDDaemon):
             self._scheduler.addTask(task_, self._taskCompleteCallback, now)
 
             # TODO: another hack?
-            if hasattr(cfg, 'thresholds'):
             if hasattr(cfg, 'thresholds'):
                 self.getThresholds().updateForDevice(configId, cfg.thresholds)
 

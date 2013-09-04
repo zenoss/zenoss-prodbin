@@ -27,8 +27,7 @@ _daemons = [
     ["zenmodeler", ["program running", "not running"]],
     ["zenperfsnmp", ["program running", "not running"]],
     ["zencommand", ["program running", "not running"]],
-    ["zenprocess", ["program running", "not running"]],
-    ["zenrrdcached", ["program running", "not running"]],
+    ["zenprocess", ["program running", "not running"]]    
 ]
 
 
