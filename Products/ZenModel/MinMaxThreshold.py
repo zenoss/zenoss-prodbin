@@ -173,8 +173,8 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
                  eventFields={}):
         RRDThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
         self.count = {}
-        self.minimum = minval
-        self.maximum = maxval
+        self.minimum = minval if minval != '' else None
+        self.maximum = maxval if maxval != '' else None
         self.escalateCount = escalateCount
         self.eventFields = eventFields
 
