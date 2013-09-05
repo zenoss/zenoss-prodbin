@@ -32,7 +32,7 @@ class Thresholds:
             del self.byKey[doomed.key()]
             ctx = doomed.context()
             for dp in doomed.dataPoints():
-                contextKey = self._contextKey(ctx, dp)
+                contextKey = self._contextKey(ctx.contextKey, dp)
                 lst = self.byContextKey[contextKey]
                 if (doomed, dp) in lst:
                     lst.remove( (doomed, dp) )
