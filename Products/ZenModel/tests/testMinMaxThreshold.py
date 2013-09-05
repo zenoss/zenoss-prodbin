@@ -99,7 +99,7 @@ class TestMinMaxThreshold(ZenModelBaseTest):
         self.assert_(result[0]['current'] == 99)
         self.assert_(result[0]['how'] == 'not met')
 
-        # minimum is not None and maximum is not None
+        # minimum <= maximum
         self.threshold.minimum = 100
         self.threshold.maximum = 100
 
@@ -121,27 +121,37 @@ class TestMinMaxThreshold(ZenModelBaseTest):
         self.assert_(result[0]['current'] == 99)
         self.assert_(result[0]['how'] == 'not met')
 
-        ## violated constraints
-        self.threshold.minimum = 100
-        self.threshold.maximum = -100
+        # minimum > maximum
+        self.threshold.minimum = 101
+        self.threshold.maximum = 99
 
-        # greater than minimum
+        ## in bounds
         result = self.threshold.checkRange('point', 101)
         self.assert_(len(result) == 1)
         self.assert_(result[0]['current'] == 101)
-        self.assert_(result[0]['how'] == 'violated')
+        self.assert_(result[0]['severity'] == Event.Clear)
 
-        # greater than maximum
+        result = self.threshold.checkRange('point', 102)
+        self.assert_(len(result) == 1)
+        self.assert_(result[0]['current'] == 102)
+        self.assert_(result[0]['severity'] == Event.Clear)
+
+        result = self.threshold.checkRange('point', 98)
+        self.assert_(len(result) == 1)
+        self.assert_(result[0]['current'] == 98)
+        self.assert_(result[0]['severity'] == Event.Clear)
+
+        result = self.threshold.checkRange('point', 99)
+        self.assert_(len(result) == 1)
+        self.assert_(result[0]['current'] == 99)
+        self.assert_(result[0]['severity'] == Event.Clear)
+
+        ## violated
         result = self.threshold.checkRange('point', 100)
         self.assert_(len(result) == 1)
         self.assert_(result[0]['current'] == 100)
         self.assert_(result[0]['how'] == 'violated')
 
-        # less than maximum
-        result = self.threshold.checkRange('point',-101)
-        self.assert_(len(result) == 1)
-        self.assert_(result[0]['current'] == -101)
-        self.assert_(result[0]['how'] == 'violated')
 
 def test_suite():
     from unittest import TestSuite, makeSuite
