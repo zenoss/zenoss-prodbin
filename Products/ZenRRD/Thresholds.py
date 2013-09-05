@@ -16,8 +16,12 @@ class Thresholds:
 
     def __init__(self):
         self.byKey = {}
-        self.byFilename = {}
+        self.byContextKey = {}
         self.byDevice = {}
+
+    def _contextKey(self, contextKey, dp):
+        return '%s/%s' % (contextKey, dp)
+
 
     def remove(self, threshold):
         d = self.byDevice.get(threshold.context().deviceName, None)
@@ -28,11 +32,12 @@ class Thresholds:
             del self.byKey[doomed.key()]
             ctx = doomed.context()
             for dp in doomed.dataPoints():
-                lst = self.byFilename[ctx.fileKey(dp)]
+                contextKey = self._contextKey(ctx.contextKey, dp)
+                lst = self.byContextKey[contextKey]
                 if (doomed, dp) in lst:
                     lst.remove( (doomed, dp) )
                 if not lst:
-                    del self.byFilename[ctx.fileKey(dp)]
+                    del self.byContextKey[contextKey]
         return doomed
 
     def add(self, threshold):
@@ -41,7 +46,7 @@ class Thresholds:
         d[threshold.key()] = threshold
         ctx = threshold.context()
         for dp in threshold.dataPoints():
-            self.byFilename.setdefault(ctx.fileKey(dp), []).append((threshold, dp))
+            self.byContextKey.setdefault(self._contextKey(ctx.contextKey, dp), []).append((threshold, dp))
         
     def update(self, threshold):
         "Store a threshold instance for future computation"
@@ -69,13 +74,14 @@ class Thresholds:
         for d in doomed.values():
             self.remove(d)
 
-    def check(self, filename, timeAt, value):
+    def check(self, contextId, datapoint, timeAt, value):
         "Check a given threshold based on an updated value"
         result = []
-        if filename in self.byFilename:
-            log.debug("Checking value %s on %s", value, filename)
-            for t, dp in self.byFilename[filename]:
-                result += t.checkRaw(dp, timeAt, value)
+        contextKey = self._contextKey(contextId, datapoint)
+        if contextKey in self.byContextKey:
+            log.debug("Checking value %s on %s", value, contextKey)
+            for t, dp in self.byContextKey[contextKey]:
+                result += t.checkValue(dp, timeAt, value)
         return result
 
 def test():

@@ -828,7 +828,7 @@ class DeviceRouter(TreeRouter):
         uids = filterUidsByPermission(self.context.dmd, ZEN_ADMIN_DEVICE, uids)
         try:
             # iterate through uids so that logging works as expected
-            result = facade.setCollector(uids, collector, moveData, asynchronous)
+            result = facade.setCollector(uids, collector, asynchronous)
             for devUid in uids:
                 audit('UI.Device.ChangeCollector', devUid, collector=collector)
             if asynchronous and result:

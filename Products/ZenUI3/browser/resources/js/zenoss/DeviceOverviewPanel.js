@@ -240,10 +240,6 @@
                 editable: false,
                 autoSelect: true,
                 triggerAction: 'all'
-            },{
-                xtype: 'checkbox',
-                name: 'moveData',
-                fieldLabel: _t('Move Data')
             }],
             buttons: [{
                 text: _t('Save'),
@@ -257,8 +253,7 @@
                         uids: [uid],
                         asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
                         collector: vals.collector,
-                        hashcheck: '',
-                        moveData: vals.moveData
+                        hashcheck: ''
                     };
                     Zenoss.remote.DeviceRouter.setCollector(submitVals, function(data) {
                         Ext.getCmp('device_overview').load();

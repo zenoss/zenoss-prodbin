@@ -84,7 +84,7 @@ class ICollector(zope.interface.Interface):
     This object acts as the overall collector controller.
     
     Assumptions on a collector's behavior are:
-    1. A collector keeps track of its own performance statistics using RRDTool.
+    1. A collector keeps track of its own performance statistics.
     2. A collector interfaces with the rest of Zenoss using the ZenHub sevice
        and remote service proxies.
     """
