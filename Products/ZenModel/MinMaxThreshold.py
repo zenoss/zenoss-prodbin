@@ -173,8 +173,8 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
                  eventFields={}):
         MetricThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
         self.count = {}
-        self.minimum = minval
-        self.maximum = maxval
+        self.minimum = minval if minval != '' else None
+        self.maximum = maxval if maxval != '' else None
         self.escalateCount = escalateCount
         self.eventFields = eventFields
 
@@ -196,7 +196,7 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
 
     def resetCount(self, dp):
         self.count[self.countKey(dp)] = 0
-    
+
     def checkRange(self, dp, value):
         'Check the value for min/max thresholds'
         log.debug("Checking %s %s against min %s and max %s",
@@ -209,21 +209,23 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
         # Check the boundaries
         minbounds = self.minimum is None or value >= self.minimum
         maxbounds = self.maximum is None or value <= self.maximum
-        violated = None not in (self.minimum, self.maximum) and \
-            self.minimum > self.maximum
+        outbounds = None not in (self.minimum, self.maximum) and \
+                    self.minimum > self.maximum
 
-        if violated:
-            thresh = self.maximum
-            how = 'violated'
-        elif not maxbounds:
-            thresh = self.maximum
-            how = 'exceeded'
-        elif not minbounds:
-            thresh = self.minimum
-            how = 'not met'
+        thresh = None
+        how = None
+
+        if outbounds:
+            if not maxbounds and not minbounds:
+                thresh = self.maximum
+                how = 'violated'
         else:
-            thresh = None
-            how = None
+            if not maxbounds:
+                thresh = self.maximum
+                how = 'exceeded'
+            elif not minbounds:
+                thresh = self.minimum
+                how = 'not met'
 
         if thresh is not None:
             severity = self.severity
