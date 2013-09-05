@@ -3,12 +3,8 @@
 from locust import Locust, TaskSet, task
 
 ## Authorization.py defines test cases to benchmark the ZAuth service. The test
-#  cases are written using Locust IO (http://locust.io/).  Execute the following
-#  to  run the test cases:
-#    mkvirtualenv europa.testing
-#    workon europa.testing
-#    pip install locustio
-#    locust -H http://localhost:9080 -f Authorization.py
+#  cases are written using Locust IO (http://locust.io/).  See ../README for
+#  directions.
 
 class AuthorizationTaskSet(TaskSet):
 
