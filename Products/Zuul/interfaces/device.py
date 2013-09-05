@@ -36,7 +36,6 @@ class IDeviceCollectorChangeEvent(Interface):
     context = Attribute("Reference to contextual database object.")
     collector = Attribute("The collector the devices are moving to")
     movedDevices = Attribute("Device moves (dict of device 'id' and 'fromCollector' references)")
-    moveData = Attribute("Attempt to move data associated with device to new collector")
 
 
 class IDeviceInfo(IInfo):

@@ -12,21 +12,16 @@
 The configuration object for Performance servers
 """
 
-import os
-import zlib
-import socket
-from collections import namedtuple
-from base64 import urlsafe_b64encode
-from urllib import urlencode
-from ipaddr import IPAddress
 import logging
+
+from ipaddr import IPAddress
+
 log = logging.getLogger('zen.PerformanceConf')
 
 from zope import component
 
 from Products.ZenUtils.IpUtil import ipwrap
 
-import xmlrpclib
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Globals import DTMLFile
@@ -35,11 +30,10 @@ from Monitor import Monitor
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenRelations.RelSchema import ToMany, ToOne
 from Products.ZenUtils.deprecated import deprecated
-from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
+from Products.ZenUtils.Utils import binPath
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Utils import isXmlRpc
 from Products.ZenUtils.Utils import executeCommand
-from Products.ZenUtils.Utils import addXmlServerTimeout
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenModel.ZDeviceLoader import CreateDeviceJob
 from Products.ZenWidgets import messaging
@@ -48,33 +42,6 @@ from StatusColor import StatusColor
 
 
 SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float( getGlobalConfiguration().get('collectorRequestTimeout', 5) )
-
-PERF_ROOT = None
-
-"""
-Prefix for renderurl if zenoss is running a reverse proxy on the master. Prefix will be stripped when appropriate and
-requests for data will be made to the proxy server when appropriate.  Render url should be of the form "rev_proxy:/<path>" eg:
-"rev_proxy:/mypath" where /mypath should be proxied to an appropriate zenrender/renderserver by the installed proxy server
-"""
-REVERSE_PROXY = "rev_proxy:"
-
-ProxyConfig = namedtuple('ProxyConfig', ['useSSL', 'port'])
-
-def performancePath(target):
-    """
-    Return the base directory where RRD performance files are kept.
-
-    @param target: path to performance file
-    @type target: string
-    @return: sanitized path to performance file
-    @rtype: string
-    """
-    global PERF_ROOT
-    if PERF_ROOT is None:
-        PERF_ROOT = zenPath('perf')
-    if target.startswith('/'):
-        target = target[1:]
-    return os.path.join(PERF_ROOT, target)
 
 
 def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
@@ -134,18 +101,6 @@ class PerformanceConf(Monitor, StatusColor):
     modelerCycleInterval = 720
     discoveryNetworks = ()
 
-    # make the default rrdfile size smaller
-    # we need the space to live within the disk cache
-    defaultRRDCreateCommand = (
-        'RRA:AVERAGE:0.5:1:600',   # every 5 mins for 2 days
-        'RRA:AVERAGE:0.5:6:600',   # every 30 mins for 12 days
-        'RRA:AVERAGE:0.5:24:600',  # every 2 hours for 50 days
-        'RRA:AVERAGE:0.5:288:600', # every day for 600 days
-        'RRA:MAX:0.5:6:600',
-        'RRA:MAX:0.5:24:600',
-        'RRA:MAX:0.5:288:600',
-        )
-
     _properties = (
         {'id': 'eventlogCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'processCycleInterval', 'type': 'int', 'mode': 'w'},
@@ -156,8 +111,6 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'wmiqueryTimeout', 'type': 'int', 'mode': 'w',
          'description':"Number of milliseconds to wait for WMI query to respond",},
         {'id': 'configCycleInterval', 'type': 'int', 'mode': 'w'},
-        {'id': 'defaultRRDCreateCommand', 'type': 'lines', 'mode': 'w'
-         },
         {'id': 'zenProcessParallelJobs', 'type': 'int', 'mode': 'w'},
         {'id': 'pingTimeOut', 'type': 'float', 'mode': 'w'},
         {'id': 'pingTries', 'type': 'int', 'mode': 'w'},
@@ -199,22 +152,6 @@ class PerformanceConf(Monitor, StatusColor):
         )
 
     
-    security.declareProtected('View', 'getDefaultRRDCreateCommand')
-    def getDefaultRRDCreateCommand(self):
-        """
-        Get the default RRD Create Command, as a string.
-        For example:
-        '''RRA:AVERAGE:0.5:1:600
-        RRA:AVERAGE:0.5:6:600
-        RRA:AVERAGE:0.5:24:600
-        RRA:AVERAGE:0.5:288:600
-        RRA:MAX:0.5:288:600'''
-
-        @return: RRD create command
-        @rtype: string
-        """
-        return '\n'.join(self.defaultRRDCreateCommand)
-
 
     def findDevice(self, deviceName):
         """
@@ -563,10 +500,14 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
 class RenderURLUtilContext(object):
+    """
+    Deprecated
+    """
     pass
 
 class RenderURLUtil(object):
     """
+    Deprecated
     This is no longer used but the stub class so zenpacks will work on an upgrade.
     """
     pass

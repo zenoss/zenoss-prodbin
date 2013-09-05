@@ -50,11 +50,10 @@ class DeviceCollectorChangeEvent(object):
     Collector change event for device.
     """
 
-    def __init__(self, context, collector, movedDevices, moveData, asynchronous):
+    def __init__(self, context, collector, movedDevices, asynchronous):
         self._context = context
         self._collector = collector
         self._movedDevices = movedDevices
-        self._moveData = moveData
         self._asynchronous = asynchronous
         self.jobs = []
 
@@ -69,10 +68,6 @@ class DeviceCollectorChangeEvent(object):
     @property
     def movedDevices(self):
         return self._movedDevices
-
-    @property
-    def moveData(self):
-        return self._moveData
 
     @property
     def asynchronous(self):
@@ -465,7 +460,7 @@ class DeviceFacade(TreeFacade):
             notify(IndexingEvent(info._object))
 
         event = DeviceCollectorChangeEvent(self.context, collector,
-                                          movedDevices, moveData, asynchronous)
+                                          movedDevices, asynchronous)
         notify(event) # This will put the job records on the event, maybe
         return event.jobs if event.jobs else None
 

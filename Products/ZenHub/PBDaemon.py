@@ -40,6 +40,7 @@ from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Utils import zenPath, atomicWrite
+from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
     Clear, Warning
 from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
@@ -551,6 +552,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.log.critical(traceback.format_exc(0))
             sys.exit(1)
 
+        self._thresholds = None
+        self._threshold_notifier = None
         self.rrdStats = DaemonStats()
         self.lastStats = 0
         self.perspective = None
@@ -718,8 +721,20 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def connected(self):
         pass
 
+
+    def _getThresholdNotifier(self):
+        if not self._threshold_notifier:
+            self._threshold_notifier = ThresholdNotifier(self.sendEvent, self.getThresholds())
+        return self._threshold_notifier
+
+    def getThresholds(self):
+        if not self._thresholds:
+            self._thresholds = Thresholds()
+        return self._thresholds
+
+
     def run(self):
-        threshold_notifier = ThresholdNotifier(self.sendEvent, None)
+        threshold_notifier = self._getThresholdNotifier()
         self.rrdStats.config(self.name,
                              self.options.monitor,
                              self.metricWriter(),
@@ -807,9 +822,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         reactor.callLater(self.options.eventflushseconds, self.pushEventsLoop)
         yield self.pushEvents()
    
-        # Record the number of events in the queue every 5 minutes.
+        # Record the number of events in the queue up to every 2 seconds.
         now = time.time()
-        if self.rrdStats.name and now >= (self.lastStats + 300):
+        if self.rrdStats.name and now >= (self.lastStats + 2):
             self.lastStats = now
             self.rrdStats.gauge(
                 'eventQueueLength', self.eventQueueManager.event_queue_length)
@@ -999,7 +1014,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                default=publisher.defaultMetricBufferSize,
                                help='Number of metrics to buffer if redis goes down')
-
         self.parser.add_option('--metricsChannel',
                                dest='metricsChannel',
                                type='string',

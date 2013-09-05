@@ -64,7 +64,6 @@ class SnmpPerformanceCollectionPreferences(object):
         provides default values for needed attributes.
         """
         self.collectorName = COLLECTOR_NAME
-        self.defaultRRDCreateCommand = None
         self.configCycleInterval = 20 # minutes
         self.cycleInterval = 5 * 60 # seconds
 
