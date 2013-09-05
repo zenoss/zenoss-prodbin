@@ -294,11 +294,10 @@ class PublishSynchronizer(object):
 class EventPublisherBase(object):
     implements(IEventPublisher)
 
-    def _publish(self, exchange, routing_key, proto, mandatory=False,
-                 immediate=False, createQueues=None):
+    def _publish(self, exchange, routing_key, proto, mandatory=False, createQueues=None):
         raise NotImplementedError
 
-    def publish(self, event, mandatory=False, immediate=False):
+    def publish(self, event, mandatory=False):
         if not isinstance(event, Event):
             queueSchema = getUtility(IQueueSchema)
             if not hasattr(event, "evid"):
@@ -321,38 +320,34 @@ class EventPublisherBase(object):
                   "queue:%s, with this routing key: %s" % (event, routing_key))
         try:
             self._publish("$RawZenEvents", routing_key, event,
-                          mandatory=mandatory, immediate=immediate)
+                          mandatory=mandatory)
         except NoRouteException:
             # Queue hasn't been created yet. For this particular case, we don't
             # want to lose events by setting mandatory=False, so we'll create
             # the queue explicitly (but we don't want to pass it every time
             # because it could get expensive). See ZEN-3361.
             self._publish("$RawZenEvents", routing_key, event,
-                          mandatory=mandatory, immediate=immediate,
-                          createQueues=('$RawZenEvents',))
+                          mandatory=mandatory, createQueues=('$RawZenEvents',))
 
     def close(self):
         pass
 
 
 class ClosingEventPublisher(EventPublisherBase):
-    def _publish(self, exchange, routing_key, proto, mandatory=False,
-                 immediate=False, createQueues=None):
+    def _publish(self, exchange, routing_key, proto, mandatory=False, createQueues=None):
         with closing(BlockingQueuePublisher()) as publisher:
             publisher.publish(exchange, routing_key, proto,
-                              mandatory=mandatory, immediate=immediate,
-                              createQueues=createQueues)
+                              mandatory=mandatory, createQueues=createQueues)
 
 
 class EventPublisher(EventPublisherBase):
     _publisher = None
 
-    def _publish(self, exchange, routing_key, proto, mandatory=False,
-                 immediate=False, createQueues=None):
+    def _publish(self, exchange, routing_key, proto, mandatory=False, createQueues=None):
         if EventPublisher._publisher is None:
             EventPublisher._publisher = BlockingQueuePublisher()
         EventPublisher._publisher.publish(exchange, routing_key, proto,
-                                          mandatory=mandatory, immediate=immediate, createQueues=createQueues)
+                                          mandatory=mandatory, createQueues=createQueues)
 
     def close(self):
         if EventPublisher._publisher:
@@ -360,7 +355,7 @@ class EventPublisher(EventPublisherBase):
 
 
 class AsyncEventPublisher(EventPublisher):
-    def _publish(self, exchange, routing_key, proto, mandatory=False, immediate=False):
+    def _publish(self, exchange, routing_key, proto, mandatory=False):
         publisher = AsyncQueuePublisher()
         d = publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
         d.addCallback(lambda r:publisher.close())
@@ -382,14 +377,13 @@ class AsyncQueuePublisher(object):
 
     @defer.inlineCallbacks
     def publish(self, exchange, routing_key, message, createQueues=None,
-                mandatory=False, immediate=False, headers=None,
+                mandatory=False, headers=None,
                 declareExchange=True):
         if createQueues:
             for queue in createQueues:
                 yield self._amqpClient.createQueue(queue)
         result = yield self._amqpClient.send(exchange, routing_key, message,
                                              mandatory=mandatory,
-                                             immediate=immediate,
                                              headers=headers,
                                              declareExchange=declareExchange)
         defer.returnValue(result)
@@ -418,14 +412,14 @@ class BlockingQueuePublisher(object):
         self._client = BlockingPublisher(connectionInfo, queueSchema)
 
     def publish(self, exchange, routing_key, message, createQueues=None,
-                mandatory=False, immediate=False, headers=None,
+                mandatory=False, headers=None,
                 declareExchange=True):
         if createQueues:
             for queue in createQueues:
                 self._client.createQueue(queue)
         self._client.publish(exchange, routing_key, message,
-                             mandatory=mandatory, immediate=immediate,
-                             headers=headers, declareExchange=declareExchange)
+                             mandatory=mandatory, headers=headers,
+                             declareExchange=declareExchange)
 
     @property
     def channel(self):
@@ -444,7 +438,7 @@ class DummyQueuePublisher(object):
     """
     implements(IQueuePublisher)
 
-    def publish(self, exchange, routing_key, message, createQueues=None, mandatory=False, immediate=False):
+    def publish(self, exchange, routing_key, message, createQueues=None, mandatory=False):
         pass
 
     @property
@@ -463,7 +457,7 @@ class DummyEventPublisher(object):
     """
     implements(IEventPublisher)
 
-    def publish(self, event, mandatory=False, immediate=False):
+    def publish(self, event, mandatory=False):
         pass
 
     def close(self):
