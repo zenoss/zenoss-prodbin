@@ -785,7 +785,7 @@ class ZepFacade(ZuulFacade):
         """
         self.heartbeatClient.deleteHeartbeat(monitor, daemon)
 
-    def create(self, summary, severity, device, component=None, mandatory=True, immediate=False,
+    def create(self, summary, severity, device, component=None, mandatory=True, 
                **kwargs):
         """
         Create an event.
@@ -826,11 +826,6 @@ class ZepFacade(ZuulFacade):
         @param mandatory:  If True, message will be returned unless it can be routed to
             a queue.
         @type mandatory: boolean
-
-        @param immediate: If True, message will be returned unless it can be consumed
-            immediately.
-        @type immediate: boolean
-
         @param eventClass: Name of the event class to fall under.
         @type eventClass: string
 
@@ -844,7 +839,7 @@ class ZepFacade(ZuulFacade):
         args.update(kwargs)
         event = ZenEvent(rcvtime=rcvtime, **args)
         publisher = getUtility(IEventPublisher)
-        publisher.publish(event, mandatory=mandatory, immediate=immediate)
+        publisher.publish(event, mandatory=mandatory)
 
     def updateDetails(self, evid, **detailInfo):
         """

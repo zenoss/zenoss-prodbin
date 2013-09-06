@@ -665,7 +665,7 @@ class EventsRouter(DirectRouter):
         device = device.strip()  # ZEN-2479: support entries like "localhost "
         try:
             self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
-                            eventClass=evclass, immediate=True)
+                            eventClass=evclass)
             return DirectResponse.succeed("Created event")
         except NoConsumersException:
             # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not
