@@ -39,9 +39,11 @@ class IProcessInfo(IInfo):
                          ' do not')
     regex = Attribute('Regular expression used to match process to a running '
                       'command on the managed host')
-    ignoreParameters = Attribute('Only match the regex to the command not its'
-                                 ' parameters')
     example = Attribute('An example of the process from a process listing')
+    minProcessCount = Attribute('Numerical value describing the minimum number'
+                                ' of this process to be running at any time.') 
+    maxProcessCount = Attribute('Numerical value describing the maximum number'
+                                ' of this process to be running at any time.')
 
 
 class IProcessFacade(IFacade):

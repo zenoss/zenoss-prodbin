@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -42,7 +42,6 @@ import copy
 from functools import partial
 from decorator import decorator
 from itertools import chain
-import rrdtool
 from subprocess import check_call, call, PIPE, STDOUT, Popen
 from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
@@ -74,16 +73,16 @@ class HtmlFormatter(logging.Formatter):
     def __init__(self):
         logging.Formatter.__init__(self,
         """
-        %(asctime)s %(levelname)s %(name)s %(message)s 
+        %(asctime)s %(levelname)s %(name)s %(message)s
         """,
-        "%Y-%m-%d %H:%M:%S") 
+        "%Y-%m-%d %H:%M:%S")
 
     def formatException(self, exc_info):
         """
         Format a Python exception
 
         @param exc_info: Python exception containing a description of what went wrong
-        @type exc_info: Python exception class 
+        @type exc_info: Python exception class
         @return: formatted exception
         @rtype: string
         """
@@ -1692,63 +1691,34 @@ def load_config_override(file, package=None, execute=True):
             _context.execute_actions()
         _LOADED_CONFIGS.add(key)
 
-
-CACHE_TIME = 30
-_rrdDaemonStatus = Map.Locked(Map.Timed({}, CACHE_TIME))
-_RRD_DAEMON_STATUS_KEY = "RRD_daemon_running"
-
 def rrd_daemon_running():
     """
-    Look to see if the rrdcached daemon is running. Use a timed map so that we don't 
-    have to actually *look* every time an RRD function is called - instead we only check every
-    CACHE_TIME seconds. Function callers should still handle rrdtool.error exceptions if the
-    daemon turns out *not* to be running, and should call rrd_daemon_reset() in that event.
-    (Or just wrap rrd behavior in an internal function, and decorate that function with
-    the rrd_daemon_retry decorator.)
+    The RRD methods in this module are deprecated.
     """
-    try:
-        return _rrdDaemonStatus[_RRD_DAEMON_STATUS_KEY]
-    except KeyError:
-        sockfile = zenPath('var', 'rrdcached.sock')
-        if not os.path.exists(sockfile):
-            sockfile = None
-        _rrdDaemonStatus[_RRD_DAEMON_STATUS_KEY] = sockfile
-        return sockfile
+    pass
 
 def rrd_daemon_args():
     """
-    Return tuple of RRD arguments for rrdcached access, depending on whether the 
-    daemon is running or not.
+    The RRD methods in this module are deprecated.
     """
-    daemon = rrd_daemon_running()
-    if daemon:
-        return '--daemon', daemon
-    else:
-        return tuple()
+    pass
 
 def rrd_daemon_reset():
     """
-    Exception handlers should call this method to clear the rrdcached daemon socketfile,
-    in case the daemon has shutdown since the last time we looked.
+    The RRD methods in this module are deprecated.
     """
-    _rrdDaemonStatus.pop(_RRD_DAEMON_STATUS_KEY, None)
+    pass
 
 def rrd_daemon_retry(fn):
-    def _inner(*args, **kwargs):
-        for tries in range(2):
-            try:
-                return fn(*args,**kwargs)
-            except rrdtool.error:
-                if not tries and rrd_daemon_running():
-                    rrd_daemon_reset()
-                else:
-                    raise
-    return _inner
+    """
+    The RRD methods in this module are deprecated.
+    """
+    pass
 
 @contextlib.contextmanager
 def get_temp_dir():
     import shutil
-    
+
     dirname = tempfile.mkdtemp()
     try:
         yield dirname
@@ -2083,7 +2053,7 @@ def getTranslation(msgId, REQUEST, domain='zenoss'):
 
     and choose the best translation, if any.
 
-    Assumes that the input msgId is 
+    Assumes that the input msgId is
     """
     langs = REQUEST.get('HTTP_ACCEPT_LANGUAGE').split(',')
     langOrder = []
@@ -2101,4 +2071,3 @@ def getTranslation(msgId, REQUEST, domain='zenoss'):
         if msg != msgId:
             return msg
     return msg
-

@@ -18,7 +18,6 @@ and store process performance in RRD files.
 import logging
 import sys
 import re
-from hashlib import md5
 from pprint import pformat
 import os.path
 
@@ -35,6 +34,7 @@ from Products.ZenCollector.tasks import SimpleTaskFactory, SimpleTaskSplitter,\
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess,\
     Status_Perf
+from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
@@ -70,10 +70,6 @@ MEM = PERFROOT + '.1.1.2.'        # note trailing dot
 # Max size for CPU numbers
 WRAP = 0xffffffffL
 
-# Regex to see if a string is all hex digits
-IS_MD5 = re.compile('^[a-f0-9]{32}$')
-EMPTY_MD5_DIGEST = md5('').hexdigest()
-
 PROC_SCAN_ERROR = 'Unable to read processes on device %s'
 
 class HostResourceMIBException(Exception):
@@ -90,7 +86,6 @@ class ZenProcessPreferences(object):
         values for needed attributes.
         """
         self.collectorName = "zenprocess"
-        self.defaultRRDCreateCommand = None
         self.configCycleInterval = 20 # minutes
 
         #will be updated based on Performance Config property of same name
@@ -192,6 +187,9 @@ class ProcessStats:
     def update(self, processProxy):
         self._config = processProxy
         self._compiled_regex = re.compile(self._config.regex)
+        self.regex = self._config.regex
+        self._compiled_exclude_regex = re.compile(self._config.excludeRegex)
+        self.excludeRegex = self._config.excludeRegex
 
         # Set up a regex for comparing the process name:
         #   _config.name contains the MD5'd args appended to the process name,
@@ -200,15 +198,10 @@ class ProcessStats:
         # originally due to the appended MD5 hash.
         result = self._config.name.rsplit(' ', 1)
         self._name_only = globalPrepId(result[0])
-        self._compiled_name_regex = re.compile('(.?)' + 
-                                               re.escape(self._name_only) + '$')
+        self._compiled_name_regex = re.compile('(.?)' + re.escape(self._name_only) + '$')
 
-        self.digest = EMPTY_MD5_DIGEST
-        if not self._config.ignoreParameters:
-            # The modeler plugin computes the MD5 hash of the args,
-            # and then tosses that into the name of the process
-            if len(result) == 2 and result[1] != '':
-                self.digest = result[1]
+        if len(result) == 2 and result[1] != '':
+            self.digest = result[1]
 
     def __str__(self):
         """
@@ -217,46 +210,6 @@ class ProcessStats:
         return str(self._config.name)
 
     __repr__ = __str__
-
-    def match(self, name, args, useName=True, useMd5Digest=True):
-        """
-        Perform exact comparisons on the process names.
-
-        @parameter name: name of a process to compare
-        @type name: string
-        @parameter args: argument list of the process
-        @type args: string
-        @parameter useMd5Digest: ignore true result if MD5 doesn't match the process name?
-        @type useMd5Digest: boolean
-        @return: does the name match this process's info?
-        @rtype: Boolean
-        """
-        if self._config.name is None:
-            return False
-
-        # SNMP agents return a 'flexible' number of characters,
-        # so exact matching isn't always reliable.
-        processName = ('%s %s' % (name, args or '')).strip()
-
-        # Make the comparison
-        result = self._compiled_regex.search(processName) is not None
-
-        # We can a match, but it might not be for us
-        if result and useMd5Digest:
-            # Compare this arg list against the digest of this proc
-            digest = md5(args).hexdigest()
-            if self.digest and digest != self.digest:
-                result = False
-
-        if result and useName:
-            cleanNameOnly = globalPrepId(name)
-            nameMatch = self._compiled_name_regex.search(cleanNameOnly)
-            if not nameMatch or nameMatch.group(1) not in ('', '_'):
-                log.debug("Discarding match based on name mismatch: %s %s", 
-                            cleanNameOnly, self._name_only)
-                result = False
-
-        return result
 
     def updateCpu(self, pid, value):
         """
@@ -411,6 +364,7 @@ class ZenProcessTask(ObservableMixin):
             self._deviceStats = DeviceStats(self._device)
             ZenProcessTask.DEVICE_STATS[self._devId] = self._deviceStats
 
+
     @defer.inlineCallbacks
     def doTask(self):
         """
@@ -435,8 +389,7 @@ class ZenProcessTask(ObservableMixin):
         Callback called after a connect or previous collection so that another
         collection can take place.
         """
-        log.debug("Scanning for processes from %s [%s]",
-                  self._devId, self._manageIp)
+        log.debug("Scanning for processes from %s [%s]", self._devId, self._manageIp)
 
         self.state = ZenProcessTask.STATE_SCANNING_PROCS
         tables = [NAMETABLE, PATHTABLE, ARGSTABLE]
@@ -446,6 +399,7 @@ class ZenProcessTask(ObservableMixin):
             self._clearSnmpError("%s - timeout cleared" % summary, 'table_scan_timeout')
             if self.snmpConnInfo.zSnmpVer == 'v3':
                 self._clearSnmpError("%s - v3 error cleared" % summary, 'table_scan_v3_error')
+            
             processes = self._parseProcessNames(tableResult)
             self._clearSnmpError(summary, 'resource_mib')
             self._deviceStats.update(self._device)
@@ -568,7 +522,8 @@ class ZenProcessTask(ObservableMixin):
             self.capturePacket(self._devId, results)
 
         showrawtables = self._preferences.options.showrawtables
-        args, procs = mapResultsToDicts(showrawtables, results)
+        procs = mapResultsToDicts(showrawtables, results)
+        
         if self._preferences.options.showprocs:
             self._showProcessList(procs)
         return procs
@@ -613,8 +568,7 @@ class ZenProcessTask(ObservableMixin):
             if procStat in pidCounts:
                 pidCounts[procStat] += 1
             else:
-                log.warn('%s monitored proc %s %s not in process stats', self._devId, procStat._config.name,
-                         procStat._config.originalName)
+                log.warn('%s monitored proc %s %s not in process stats', self._devId, procStat._config.name, procStat._config.originalName)
                 log.debug("%s pidcounts is %s", self._devId, pidCounts)
         for procName, count in pidCounts.iteritems():
             self._save(procName, 'count_count', count, 'GAUGE')
@@ -624,51 +578,21 @@ class ZenProcessTask(ObservableMixin):
         """
         Determine the up/down/restarted status of processes.
 
-        @parameter procs: array of pid, (name, args) info
+        @parameter procs: array of pid, (name_with_args) info
         @type procs: list
+        @parameter deviceStats: 
+        @type procs: 
         """
         beforePids = set(self._deviceStats.pids)
         afterPidToProcessStats = {}
-        pStatsWArgsAndSums, pStatsWoArgs = self._splitPStatMatchers()
-        for pid, (name, psargs) in procs:
-            pStats = self._deviceStats._pidToProcess.get(pid)
-            if pStats:
-                # We saw the process before, so there's a good
-                # chance that it's the same.
-                if pStats.match(name, psargs):
-                    # Yep, it's the same process
-                    log.debug("Found process %d on %s, matching %s %s with MD5",
-                              pid, pStats._config.name, name, psargs)
-                    log.debug("%s found existing stat %s %s for pid %s - using MD5", self._devId, pStats._config.name,
-                              pStats._config.originalName, pid)
-                    afterPidToProcessStats[pid] = pStats
-                    continue
 
-                elif pStats.match(name, psargs, useMd5Digest=False):
-                    # In this case, our raw SNMP data from the
-                    # remote agent got futzed
-                    # It's the same process. Yay!
-                    log.debug("%s - Found process %d on %s, matching %s %s without MD5",
-                              self._devId, pid, pStats._config.name, name, psargs)
-                    afterPidToProcessStats[pid] = pStats
-                    continue
-
-            # Search for the first match in our list of regexes
-            # that have arguments AND an MD5-sum argument matching.
-            # Explicitly *IGNORE* any matchers not modeled by zenmodeler
-            for pStats in pStatsWArgsAndSums:
-                if pStats.match(name, psargs):
-                    log.debug("%s Found process %d on %s %s",
-                              self._devId, pid, pStats._config.originalName, pStats._config.name)
-                    afterPidToProcessStats[pid] = pStats
-                    break
-            else:
-                # Now look for the first match in our list of regexes
-                # that don't have arguments.
-                for pStats in pStatsWoArgs:
-                    if pStats.match(name, psargs, useMd5Digest=False):
-                        log.debug("Found process %d on %s",
-                                      pid, pStats._config.name)
+        for pid, name_with_args in procs:
+            log.debug("pid: %s --- name_with_args: %s" % (pid, name_with_args))
+            for pStats in self._deviceStats.processStats:
+                if pStats._config.name is not None:
+                    if OSProcess.matchRegex(pStats._compiled_regex, pStats._compiled_exclude_regex, name_with_args) and \
+                       OSProcess.matchNameCaptureGroups(pStats._compiled_regex, name_with_args, pStats._config):
+                        log.debug("Found process %s belonging to %s", name_with_args, pStats._config)
                         afterPidToProcessStats[pid] = pStats
                         break
 
@@ -700,21 +624,6 @@ class ZenProcessTask(ObservableMixin):
         return (afterByConfig, afterPidToProcessStats,
                 beforeByConfig, newPids, restarted, deadPids,
                 missing)
-
-    def _splitPStatMatchers(self):
-        pStatsWArgsAndSums = []; pStatsWoArgs = []
-        for pStat in self._deviceStats.processStats:
-            if pStat._config.ignoreParameters:
-                pStatsWoArgs.append(pStat)
-            else:
-                nameList = pStat._config.name.rsplit(' ', 1)
-                if len(nameList) < 2: # (name, md5sum)
-                    nameList = (nameList[0], EMPTY_MD5_DIGEST)
-
-                possibleMd5Sum = nameList[-1].lower()
-                if IS_MD5.match(possibleMd5Sum):
-                    pStatsWArgsAndSums.append(pStat)
-        return pStatsWArgsAndSums, pStatsWoArgs
 
     @defer.inlineCallbacks
     def _fetchPerf(self):
@@ -946,10 +855,9 @@ def mapResultsToDicts(showrawtables, results):
         if path and path.find('\\') == -1:
             name = path
         arg = args.get(pid, '')
-        procs.append((pid, (name, arg) ))
+        procs.append( (pid, ( name + " " + arg).strip() ) )
 
-    return args, procs
-
+    return procs
 
 def reverseDict(d):
     """
@@ -960,7 +868,6 @@ def reverseDict(d):
     for a, v in d.iteritems():
         result.setdefault(v, []).append(a)
     return result
-
 
 def chunk(lst, n):
     """

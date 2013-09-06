@@ -28,7 +28,7 @@ class MetricFacadeTest(BaseTestCase):
     def testTagBuilder(self):
         dev = self.dmd.Devices.createInstance('device1')
         self.assertTrue(dev.getUUID())
-        tags = self.facade._buildTagsFromContext(dev)
+        tags = self.facade._buildTagsFromContext([dev])
         self.assertEquals(tags.keys()[0], 'uuid')
         self.assertEquals(tags.values()[0], dev.getUUID())
 
@@ -45,7 +45,7 @@ class MetricFacadeTest(BaseTestCase):
     def testRequestBuilder(self):
         metric = ["laLoadInt1_laLoadInt1"]
         dev = self.dmd.Devices.createInstance('device1')
-        request = self.facade._buildRequest(dev, metric, None, None, "LAST")
+        request = self.facade._buildRequest([dev], metric, None, None, "LAST")
         self.assertEquals(request['returnset'], 'LAST')
 
 

@@ -40,16 +40,13 @@ class ProcessCommandPlugin(CommandPlugin):
 
         relMap = self.relMap()
         for line in self._filterLines(results.splitlines()):
-            words = line.split()
-
             # Blank lines are possible. Skip them. (ZEN-798)
-            if not words:
+            if not line.strip():
                 continue
             
-            relMap.append(self.objectMap({
-                "procName": words[0],
-                "parameters": " ".join(words[1:])}))
-                
+            om = self.objectMap({"processText": line.strip()})
+            relMap.append(om)
+            
         log.debug("First three modeled processes:\n%s" % 
                 pformat(relMap.maps[:3]))
                 

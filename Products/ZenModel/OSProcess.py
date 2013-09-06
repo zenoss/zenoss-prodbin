@@ -20,7 +20,11 @@ from Acquisition import aq_chain
 from Lockable import UNLOCKED, DELETE_LOCKED, UPDATE_LOCKED
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
-from md5 import md5
+from Products.ZenUtils.Utils import prepId
+import logging
+import re
+
+log = logging.getLogger("zen.osprocess")
 
 def manage_addOSProcess(context, newClassName, userCreated, REQUEST=None):
     """
@@ -33,7 +37,7 @@ def manage_addOSProcess(context, newClassName, userCreated, REQUEST=None):
     osp.__of__(context).setOSProcessClass(newClassName)
     context._setObject(id, osp)
     osp = context._getOb(id)
-    osp.procName = id
+    osp.processText = id
     if userCreated: osp.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
@@ -41,24 +45,20 @@ def manage_addOSProcess(context, newClassName, userCreated, REQUEST=None):
 
 
 def createFromObjectMap(context, objectMap):
+    # invoked from Products/DataCollector/ProcessCommandPlugin.py
     om = objectMap
-    device = context.device()
     processes = context.device().getDmdRoot("Processes")
     pcs = processes.getSubOSProcessClassesSorted()
-    fullname = (om.procName + ' ' + om.parameters).rstrip()
+
     for pc in pcs:
-        if pc.match(fullname):
-            id = getProcessIdentifier(om.procName, None if pc.ignoreParameters else om.parameters)
-            result = OSProcess(device.prepId(id))
+        if OSProcess.matchRegex(re.compile(pc.regex), re.compile(pc.excludeRegex), om.processText):
+            uniqueId = OSProcess.generateId(re.compile(pc.regex), pc.getPrimaryUrlPath(), om.processText)
+            
+            result = OSProcess(uniqueId)
             om.setOSProcessClass = pc.getPrimaryDmdId()
+            om.id = uniqueId
+
             return result
-
-
-def getProcessIdentifier(name, parameters):
-    """
-    Get a process identifier string from the name and parameters of the process.
-    """
-    return ('%s %s' % (name, md5((parameters or '').strip()).hexdigest())).strip()
 
 
 class OSProcess(OSComponent, Commandable, ZenPackable):
@@ -67,8 +67,11 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     """
     portal_type = meta_type = 'OSProcess'
 
-    procName = ""
-    parameters = ""
+    processText = ""
+    procName = "" 
+    parameters = "" 
+    minProcessCount = ""
+    maxProcessCount = ""
     _procKey = ""
 
     modelerLock = None
@@ -77,10 +80,13 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     collectors = ('zenprocess','zencommand')
 
     _properties = OSComponent._properties + (
-        {'id':'procName', 'type':'string', 'mode':'w'},
-        {'id':'parameters', 'type':'string', 'mode':'w'},
+        {'id':'procName', 'type':'string', 'mode':'w'}, 
+        {'id':'parameters', 'type':'string', 'mode':'w'}, 
+        {'id':'processText', 'type':'string', 'mode':'w'},
         {'id':'zAlertOnRestarts', 'type':'boolean', 'mode':'w'},
         {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
+        {'id':'minProcessCount', 'type':'int', 'mode':'w'},
+        {'id':'maxProcessCount', 'type':'int', 'mode':'w'},
     )
 
     _relations = OSComponent._relations + ZenPackable._relations + (
@@ -121,13 +127,110 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     security = ClassSecurityInfo()
 
 
+    @staticmethod
+    def extractNameCaptureGroups(groups):
+        name_captured_groups = ""
+        if isinstance(groups[0], basestring):
+            return prepId(groups[0])
+        else:
+            for group in groups[0]:
+                name_captured_groups = name_captured_groups + "_" + prepId(group)
+            
+            return name_captured_groups[1:]
+
+
+    @staticmethod
+    def generateId(searchRegex, primaryURLPath, processText):
+        """
+        Generate a unique ID based on the primaryURLPath AND any name capture groups
+        
+        @parameter searchRegex: regex to search the name_with_args for
+        @type searchRegex: regex
+        @parameter primaryURLPath: url path
+        @type primaryURLPath:: string
+        @parameter processText: name of a process to compare (includes args)
+        @type processText: string
+        @return: uniqueId based on the primaryURLPath + name capture groups (if any are present)
+        @rtype: string
+        """
+        preparedId = prepId(primaryURLPath)
+
+        if searchRegex.groups is not 0:
+            name_captured_groups = OSProcess.extractNameCaptureGroups( searchRegex.findall(processText) )
+            log.debug("generateId's name_captured_groups: %s" % name_captured_groups)
+            preparedId = preparedId + "_" + name_captured_groups
+        
+        log.debug("Generated unique ID: %s" % preparedId)
+        return preparedId
+
+
+    @staticmethod
+    def matchRegex(searchRegex, excludeRegex, name_with_args):
+        """
+        Perform exact comparisons on the process names.
+        
+        @parameter searchRegex: regex to search the name_with_args for
+        @type searchRegex:: regex
+        @parameter excludeRegex: regex to search the name_with_args for and return False if anything is found
+        @type excludeRegex:: regex
+        @parameter name_with_args: name of a process to compare (includes args)
+        @type name_with_args:: string
+        @return: does the name match this process's info?
+        @rtype: Boolean
+        """
+        # search for the regex we are looking for
+        if searchRegex.search(name_with_args) is not None:
+            # ensure the excluded regex does NOT apply
+            if excludeRegex.search(name_with_args) is None:
+                return True
+            else:
+                log.debug("Rejecting %s due to exclude regex" % name_with_args)
+
+        # return False if the search regex is NOT found ... or ... if the excluded regex IS found
+        return False
+
+
+    @staticmethod
+    def matchNameCaptureGroups(searchRegex, name_with_args, originalId):
+        """
+        if there are 0 name capture groups in the searchRegex, return True
+        if there is at least 1 name capture group in the searchRegex, return True ONLY if the
+            name capure group match matches with the suffix of the originalId
+        
+        @parameter searchRegex: regex to search the name_with_args for
+        @type searchRegex:: regex
+        @parameter name_with_args: name of a process to compare (includes args)
+        @type name_with_args:: string
+        @parameter originalId: componentID determined at model time
+        @type originalId:: string
+        @return: 
+        @rtype: Boolean
+        """
+        # no name capture groups!
+        if searchRegex.groups is 0:
+            log.debug("Found: %s to be a member of %s" % (name_with_args, originalId))
+            return True
+        
+        # at least one name capture groups...
+        else:
+            # Return all non-overlapping matches
+            name_captured_groups = OSProcess.extractNameCaptureGroups( searchRegex.findall(name_with_args) )
+
+            # example originalId: zport_dmd_Processes_osProcessClasses_capturing_groups_myapp
+            # search at the END of the originalId (produced during modeling)
+            name_capture_groups_regex = re.compile(name_captured_groups + "$")
+            if name_capture_groups_regex.search(str(originalId)) is not None:
+                log.debug("Found: %s to be a member of %s" % (name_with_args, originalId))
+                return True
+
+        return False
+
+
     def getOSProcessConf(self):
         """
         Return information used to monitor this process.
         """
-        ignoreParams = getattr(self.osProcessClass(), 'ignoreParameters', False)
-        return (self.id, self.name(), ignoreParams,
-                self.alertOnRestart(), self.getFailSeverity())
+        return (self.id, self.alertOnRestart(), self.getFailSeverity())
 
 
     def setOSProcessClass(self, procKey):
@@ -161,16 +264,35 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
                 return proccl.getOSProcessClassName()
         return ""
 
+    def getMinProcessCount(self):
+        """
+        Return the min process count threshold value
+        """
+        if not self.minProcessCount and not self.maxProcessCount and \
+           self.osProcessClass():
+            value = self.osProcessClass().minProcessCount
+        else:
+            value = self.minProcessCount
+
+        return float(value or '0')
+
+    def getMaxProcessCount(self):
+        """
+        Return the max process count threshold value
+        """
+        if not self.minProcessCount and not self.maxProcessCount and \
+           self.osProcessClass():
+            value = self.osProcessClass().maxProcessCount
+        else:
+            value = self.maxProcessCount
+
+        return float(value or 'nan')
 
     def name(self):
         """
-        Return a string that is the process name and, if ignoreParamaters
-        is not True, then also the parameters.
+        Return a string that is the process text (process name + parameters)
         """
-        ignoreParams = getattr(self.osProcessClass(), 'ignoreParameters', False)
-        if not self.parameters or ignoreParams:
-            return self.procName
-        return self.procName + " " + self.parameters
+        return self.processText
 
     title = name
 
@@ -270,19 +392,6 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         Return the url where UserCommands are viewed for this object
         """
         return self.getPrimaryUrlPath() + '/osProcessManage'
-
-    def filterAutomaticCreation(self):
-        # get the processes defined in Zenoss
-        pcs = sorted(self.getDmdRoot("Processes").getSubOSProcessClassesGen(), key=lambda a: a.sequence)
-
-        fullname = (self.procName + ' ' + self.parameters).rstrip()
-        for pc in pcs:
-            if pc.match(fullname):
-                self.setOSProcessClass(pc.getPrimaryDmdId())
-                self.id = self.prepId(getProcessIdentifier(om.procName,
-                                      None if pc.ignoreParameters else om.parameters))
-                return True
-        return False
 
     # override the lock methods to look for the process classes'
     # lock state instead of the current object if it has not been set

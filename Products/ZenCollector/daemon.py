@@ -15,7 +15,6 @@ import json
 import zope.interface
 from twisted.internet import defer,  reactor, task
 from twisted.python.failure import Failure
-from zenoss.collector.publisher import publisher
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
@@ -28,13 +27,10 @@ from Products.ZenCollector.interfaces import ICollector,\
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenRRD.RRDDaemon import RRDDaemon
-from Products.ZenRRD import RRDUtil
-from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, unused
+from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.picklezipper import Zipper
 from Products.ZenUtils.observable import ObservableProxy
-from Products.ZenUtils.metricwriter import ThresholdNotifier
-
 
 log = logging.getLogger("zen.daemon")
 
@@ -198,9 +194,9 @@ class CollectorDaemon(RRDDaemon):
         # setup daemon statistics
         self._statService = StatisticsService()
         self._statService.addStatistic("devices", "GAUGE")
-        self._statService.addStatistic("cyclePoints", "GAUGE")
         self._statService.addStatistic("dataPoints", "DERIVE")
         self._statService.addStatistic("runningTasks", "GAUGE")
+        self._statService.addStatistic("taskCount", "GAUGE")
         self._statService.addStatistic("queuedTasks", "GAUGE")
         self._statService.addStatistic("missedRuns", "GAUGE")
         zope.component.provideUtility(self._statService, IStatisticsService)
@@ -215,10 +211,8 @@ class CollectorDaemon(RRDDaemon):
 
         self._deviceGuids = {}
         self._devices = set()
-        self._thresholds = Thresholds()
         self._unresponsiveDevices = set()
         self._rrd = None
-        self._threshold_notifier = None
         self._metric_writer = None
         self._derivative_tracker = None
         self.reconfigureTimeout = None
@@ -267,21 +261,12 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-        self.parser.add_option('--redis-url', 
-                               dest='redisUrl',
-                               type='string',
-                               default='redis://localhost:{default}/0'.format(default=publisher.defaultRedisPort),
-                               help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
-        self.parser.add_option('--metricBufferSize',
-                               dest='metricBufferSize',
+
+        self.parser.add_option('--writeStatistics',
+                               dest='writeStatistics',
                                type='int',
-                               default=publisher.defaultMetricBufferSize,
-                               help='Number of metrics to buffer if redis goes down')
-        self.parser.add_option('--metricsChannel',
-                               dest='metricsChannel',
-                               type='string',
-                               default=publisher.defaultMetricsChannel,
-                               help='redis channel to which metrics are published')
+                               default=5,
+                               help='How often to write internal statistics value in seconds')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
@@ -341,7 +326,7 @@ class CollectorDaemon(RRDDaemon):
 
     def generateEvent(self, event, **kw):
         eventCopy = super(CollectorDaemon, self).generateEvent(event, **kw)
-        if eventCopy.get("device"):
+        if eventCopy and eventCopy.get("device"):
             device_id = eventCopy.get("device")
             guid = self._deviceGuids.get(device_id)
             if guid:
@@ -349,7 +334,7 @@ class CollectorDaemon(RRDDaemon):
         return eventCopy
 
     def writeMetric(self, contextUUID, metric, value, metricType, contextId,
-                    timestamp='N', min='U', max='U', hasThresholds=False,
+                    timestamp='N', min='U', max='U',
                     threshEventData={}, deviceuuid=None):
 
         """
@@ -362,7 +347,6 @@ class CollectorDaemon(RRDDaemon):
         @param timestamp: defaults to time.time() if not specified, the time the metric occurred
         @param min: used in the derive the min value for the metric
         @param max: used in the derive the max value for the metric
-        @param hasThresholds: true if the metric has thresholds
         @param threshEventData: extra data put into threshold events
         @param deviceuuid: the unique identifier of the device for
         this metric, maybe the same as contextUUID if the context is a
@@ -389,12 +373,17 @@ class CollectorDaemon(RRDDaemon):
                 contextUUID, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
-        if hasThresholds and value:
-            self._threshold_notifier.notify(contextUUID, contextId, timestamp,
+        if value is not None:
+            self._threshold_notifier.notify(contextUUID, contextId, metric, timestamp,
                                             value, threshEventData)
 
+    @deprecated
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U', threshEventData={}, timestamp='N', allowStaleDatapoint=True):
+        """
+        Use writeMetric
+        """
+
         # we rely on the fact that rrdPath now returns the guid for an object
         uuidInfo, metric = path.rsplit('/', 1)
         if not 'METRIC_DATA'  in str(uuidInfo):
@@ -410,13 +399,9 @@ class CollectorDaemon(RRDDaemon):
                 timestamp,
                 min,
                 max,
-                bool(self._thresholds.byFilename.get(path)),
                 threshEventData,
-                uuidInfo['deviceUUID']
+                uuidInfo.get('deviceUUID', None)
             )
-
-    def readRRD(self, path, consolidationFunction, start, end):
-        return RRDUtil.read(path, consolidationFunction, start, end)
 
     def stop(self, ignored=""):
         if self._stoppingCallback is not None:
@@ -549,7 +534,7 @@ class CollectorDaemon(RRDDaemon):
 
             # TODO: another hack?
             if hasattr(cfg, 'thresholds'):
-                self._thresholds.updateForDevice(configId, cfg.thresholds)
+                self.getThresholds().updateForDevice(configId, cfg.thresholds)
 
             # if we're not running a normal daemon cycle then keep track of the
             # tasks we just added for this device so that we can shutdown once
@@ -649,23 +634,8 @@ class CollectorDaemon(RRDDaemon):
             except ImportError:
                 log.exception("Unable to import class %s", c)
 
-    def _configureRRD(self, rrdCreateCommand, thresholds):
-        self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self.preferences.cycleInterval)
-
-        self._threshold_notifier = ThresholdNotifier(self.sendEvent, thresholds)
-
-        self.rrdStats.config(self.name,
-                             self.options.monitor,
-                             self.metricWriter(),
-                             self._threshold_notifier,
-                             self.derivativeTracker())
-
-
-
-        self._publisher= yield
- 
-    def _isRRDConfigured(self):
-        return self.rrdStats and self._rrd
+    def _configureThresholds(self, thresholds):
+        self.getThresholds().updateList(thresholds)
 
     def _startMaintenance(self, ignored=None):
         unused(ignored)
@@ -676,6 +646,11 @@ class CollectorDaemon(RRDDaemon):
             log.debug("Starting Task Stat logging")
             loop = task.LoopingCall(self._displayStatistics, verbose=True)
             loop.start(self.options.logTaskStats, now=False)
+
+        log.debug("Starting Statistic posting")
+        loop = task.LoopingCall(self._postStatistics)
+        loop.start(self.options.writeStatistics, now=False)
+
         interval = self.preferences.cycleInterval
         self.log.debug("Initializing maintenance Cycle")
         maintenanceCycle = MaintenanceCycle(interval, self, self._maintenanceCycle)
@@ -710,44 +685,18 @@ class CollectorDaemon(RRDDaemon):
 
             return result
 
-        def _getDeviceIssues(result):
+        def _getDeviceIssues():
             # TODO: handle different types of device issues, such as WMI issues
             d = self.getDevicePingIssues()
             return d
 
-        def _postStatistics():
-            self._displayStatistics()
-
-            # update and post statistics if we've been configured to do so
-            if self._isRRDConfigured():
-                stat = self._statService.getStatistic("devices")
-                stat.value = len(self._devices)
-
-                stat = self._statService.getStatistic("cyclePoints")
-                stat.value = self._rrd.endCycle()
-
-                stat = self._statService.getStatistic("dataPoints")
-                stat.value = self._rrd.dataPoints
-
-                # Scheduler statistics
-                stat = self._statService.getStatistic("runningTasks")
-                stat.value = self._scheduler._executor.running
-
-                stat = self._statService.getStatistic("queuedTasks")
-                stat.value = self._scheduler._executor.queued
-
-                stat = self._statService.getStatistic("missedRuns")
-                stat.value = self._scheduler.missedRuns
-
-                self._statService.postStatistics(self.rrdStats)
-
         def _maintenance():
             if self.options.cycle:
-                d = defer.maybeDeferred(_postStatistics)
                 if getattr(self.preferences, 'pauseUnreachableDevices', True):
-                    d.addCallback(_getDeviceIssues)
+                    d = defer.maybeDeferred(_getDeviceIssues)
                     d.addCallback(_processDeviceIssues)
-
+                else:
+                    d = defer.succeed(None)
             else:
                 d = defer.succeed("No maintenance required")
             return d
@@ -771,10 +720,39 @@ class CollectorDaemon(RRDDaemon):
                 self._scheduler.addTask(task, now=True)
             self.addedPostStartupTasks = True
 
+    def _postStatistics(self):
+        self._displayStatistics()
+
+        # update and post statistics if we've been configured to do so
+        if self.rrdStats:
+            stat = self._statService.getStatistic("devices")
+            stat.value = len(self._devices)
+
+            # stat = self._statService.getStatistic("cyclePoints")
+            # stat.value = self._rrd.endCycle()
+
+            stat = self._statService.getStatistic("dataPoints")
+            stat.value = self.metricWriter().dataPoints
+
+            # Scheduler statistics
+            stat = self._statService.getStatistic("runningTasks")
+            stat.value = self._scheduler._executor.running
+
+            stat = self._statService.getStatistic("taskCount")
+            stat.value = self._scheduler.taskCount
+
+            stat = self._statService.getStatistic("queuedTasks")
+            stat.value = self._scheduler._executor.queued
+
+            stat = self._statService.getStatistic("missedRuns")
+            stat.value = self._scheduler.missedRuns
+
+            self._statService.postStatistics(self.rrdStats)
+
     def _displayStatistics(self, verbose=False):
-        if self._rrd:
+        if self.metricWriter():
             self.log.info("%d devices processed (%d datapoints)",
-                          len(self._devices), self._rrd.dataPoints)
+                          len(self._devices), self.metricWriter().dataPoints)
         else:
             self.log.info("%d devices processed (0 datapoints)",
                           len(self._devices))

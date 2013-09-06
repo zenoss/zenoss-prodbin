@@ -134,10 +134,6 @@ class PerformanceConfig(HubService, ThresholdMixin):
         return self.config.propertyItems()
 
 
-    def remote_getDefaultRRDCreateCommand(self, *args, **kwargs):
-        return self.config.getDefaultRRDCreateCommand(*args, **kwargs)
-
-
     def notifyAll(self, device):
         self.procrastinator.doLater(device)
 

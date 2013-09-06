@@ -6,18 +6,20 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
-from zenoss.protocols.services import JsonRestServiceClient, ServiceResponseError
+from zenoss.protocols.services import ServiceResponseError
+from Products.ZenUtils.AuthenticatedJsonRestClient import AuthenticatedJsonRestClient
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-import logging
+
 log = logging.getLogger("zen.MetricFacade")
 
 
 DATE_FORMAT = "%Y/%m/%d-%H:%M:%S-%z"
-METRIC_URL = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
+
 METRIC_URL_PATH = "/api/performance/query"
 
 AGGREGATION_MAPPING = {
@@ -32,7 +34,8 @@ class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
         super(MetricFacade, self).__init__(context)
-        self._client = JsonRestServiceClient(METRIC_URL)
+        metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')        
+        self._client = AuthenticatedJsonRestClient(metric_url)
 
     def getLastValue(self, context, metric):
         """
@@ -111,22 +114,25 @@ class MetricFacade(ZuulFacade):
 
     def _queryServer(self, contexts, metrics, start=None, end=None,
                      format="%.2lf", extraRpn="", cf="avg", returnSet="LAST"):
-
+        subjects = []
         # make sure we are always dealing with a list
         if not isinstance(contexts, (list, tuple)):
             contexts = [contexts]
-        # if it is a uid look up the object
-        if isinstance(contexts, basestring):
-            contexts = self._getObject(contexts)
-
+        
+        for context in contexts:
+            if isinstance(context, basestring):
+                subjects.append(self._getObject(context))
+            else:
+                subjects.append(context)
+        
         # build the metrics section of the query
         datapoints = []
         for ds in metrics:
             # find the first occurrence of a datapoint on a context.
             # in theory it is possible that a passed in metric exists on one context
             # but not another.
-            for context in contexts:
-                dp = next((d for d in context._getRRDDataPointsGen() if ds in d.name()), None)
+            for subject in subjects:
+                dp = next((d for d in subject._getRRDDataPointsGen() if ds in d.name()), None)
                 if dp is None:
                     continue
                 else:
@@ -152,7 +158,7 @@ class MetricFacade(ZuulFacade):
         if start is None:
             start = self._formatTime(datetime.today() - timedelta(seconds = self._dmd.defaultDateRange))
 
-        request = self._buildRequest(contexts, datapoints, start, end, returnSet)
+        request = self._buildRequest(subjects, datapoints, start, end, returnSet)
 
         # submit it to the client
         try:
@@ -162,7 +168,7 @@ class MetricFacade(ZuulFacade):
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
             return {}
 
-        if content and content.get('results') and returnSet=="LAST":
+        if content and content.get('results') is not None and returnSet=="LAST":
            # Output of this request should be something like this:
            # [{u'timestamp': 1376477481, u'metric': u'sysUpTime',
            #   u'value': 2418182400.0, u'tags': {u'device':

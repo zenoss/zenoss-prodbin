@@ -65,7 +65,6 @@ class ZenStatusPreferences(object):
         values for needed attributes.
         """
         self.collectorName = "zenstatus"
-        self.defaultRRDCreateCommand = None
         self.cycleInterval = 60  # seconds
         self.configCycleInterval = 20  # minutes
         self.statusCycleInterval = 60
