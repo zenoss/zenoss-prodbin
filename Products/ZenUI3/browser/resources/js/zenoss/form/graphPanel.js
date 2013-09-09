@@ -39,13 +39,21 @@
         GraphRefreshButton,
         tbarConfig,
         dateRangePanel,
+        CURRENT_TIME = "0s-ago",
         DATE_RANGES = [
-            [3600000, _t('Last Hour')],
-            [86400000, _t('Yesterday')],
-            [604800000, _t('Last Week')],
-            [2419200000, _t('Last Month')],
-            [31536000000, _t('Last Year')]
+            ["1h-ago", _t('Last Hour')],
+            ["1d-ago", _t('Yesterday')],
+            ["7d-ago", _t('Last Week')],
+            ["1m-ago", _t('Last Month')],
+            ["1y-ago", _t('Last Year')]
         ],
+        RANGE_TO_MILLISECONDS = {
+            '1h-ago': 3600000,
+            '1d-ago': 86400000,
+            '7d-ago': 604800000,
+            '1m-ago': 2419200000,
+            '1y-ago': 31536000000
+        },
         DOWNSMAPLE = [
             [86400000, '1h-avg'],    // Day
             [604800000, '12h-avg'],  // Week
@@ -70,7 +78,18 @@
         return new Date().getTime();
     }
 
+    function rangeToMilliseconds(range){
+        if (RANGE_TO_MILLISECONDS[range]) {
+            return RANGE_TO_MILLISECONDS[range];
+        }
+        return range;
+    }
+
     function formatForMetricService(ms) {
+        // only format absolute times
+        if (!Ext.isNumber(ms)) {
+            return ms;
+        }
         var d = new Date(ms);
         return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1).pad(2) + '/' + d.getUTCDate().pad(2) + '-'
             + d.getUTCHours().pad(2) + ':' + d.getUTCMinutes().pad(2) + ':' + d.getUTCSeconds().pad(2) + '-UTC';
@@ -94,14 +113,14 @@
          * The start time of the graph in unix seconds.
          * Defaults to <code>new DateTime().getTime()</code>.
          */
-        start: now(),
+        start: DATE_RANGES[0][0] ,
 
         /**
          * @cfg {int} end
          * The end time of the graph in unix seconds.
          * Defaults to <code>new DateTime().getTime() - 3600 (an hour ago)</code>.
          */
-        end: now() - DATE_RANGES[0][0],
+        end: CURRENT_TIME,
 
         /**
          * @cfg {String}  graphId
@@ -188,8 +207,8 @@
                 },
                 graph_params: {
                     drange: DATE_RANGES[0][0],
-                    end: config.end || now(),
-                    start: config.start || now() - DATE_RANGES[0][0]
+                    end: config.end || CURRENT_TIME,
+                    start: config.start || DATE_RANGES[0][0]
                 }
             });
 
@@ -252,7 +271,7 @@
         },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
-            gp.start = params.start || (gp.end - gp.drange);
+            gp.start = params.start || gp.drange;
             if (gp.start < 0) {
                 gp.start = 0;
             }
@@ -261,7 +280,8 @@
             if (Ext.isDefined(params.end) && (params.end > params.start)){
                 gp.end = params.end;
             } else {
-                gp.end = Math.max(gp.start + gp.drange, new Date().getTime());
+                // otherwise it needs to be now
+                gp.end = CURRENT_TIME;
             }
             var changes = {
                 range : {
@@ -269,7 +289,14 @@
                     end: formatForMetricService(gp.end)
                 }
             };
-            var delta = gp.end - gp.start;
+            // gp.start is something like "1h-ago", convert to milliseconds
+            var delta;
+            if (Ext.isNumber(gp.start)) {
+                delta = new Date() - gp.start;
+            } else {
+                delta = rangeToMilliseconds(gp.start);
+            }
+
             changes.downsample = '-';
             DOWNSMAPLE.forEach(function(v) {
                 if (delta >= v[0]) {
@@ -283,18 +310,32 @@
             //    formatForMetricService(gp.end));
             this.graph_params = gp;
         },
+        convertStartToAbsoluteTime: function(start) {
+            if (Ext.isNumber(start)) {
+                return start;
+            }
+            return new Date() - rangeToMilliseconds(start);
+        },
+        convertEndToAbsolute: function(end) {
+            if (end == CURRENT_TIME) {
+                return new Date().getTime();
+            }
+            return end;
+        },
         onPanLeft: function(graph) {
             var gp = this.graph_params;
-            var delta = Math.round(gp.drange/this.pan_factor);
-            var newstart = gp.start - delta > 0 ? gp.start - delta : 0;
-            var newend = newstart + gp.drange;
+            gp.start = this.convertStartToAbsoluteTime(gp.start);
+            var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
+            var newstart = (gp.start) - delta > 0 ? gp.start - delta : 0;
+            var newend = newstart + rangeToMilliseconds(gp.drange);
             this.fireEventsToAll("updateimage", {start:newstart, end:newend});
         },
         onPanRight: function(graph) {
             var gp = this.graph_params;
-            var delta = Math.round(gp.drange/this.pan_factor);
+            gp.start = this.convertStartToAbsoluteTime(gp.start);
+            var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
-            var newend = newstart + gp.drange;
+            var newend = newstart + rangeToMilliseconds(gp.drange);
             var now = new Date().getTime();
             if (newend > now) {
                 newend = now;
@@ -304,13 +345,12 @@
         },
         doZoom: function(factor) {
             var gp = this.graph_params;
-            var drange = Math.round(gp.drange/factor),
+            gp.end = this.convertEndToAbsolute(gp.end);
+            var delta = Math.round(rangeToMilliseconds(gp.drange)/factor),
                 // Zoom from the end
-                newend = gp.end;
-                newstart = (gp.end - drange < 0 ? 0 : gp.end - drange);
-
+                newend = gp.end,
+                newstart = (gp.end - rangeToMilliseconds(gp.drange) < 0 ? 0 : gp.end - delta);
             this.fireEventsToAll("updateimage", {
-                drange: drange,
                 start: newstart,
                 end: newend
             });
@@ -399,7 +439,7 @@
                     forceSelection: true,
                     autoSelect: true,
                     triggerAction: 'all',
-                    value: 3600000,
+                    value: '1h-ago',
                     queryMode: 'local',
                     store: new Ext.data.ArrayStore({
                         id: 0,
@@ -664,9 +704,9 @@
             this.end = null;
             drange = drange || this.drange;
             this.drange = drange;
-            //  set the start and end dates to the selected range
+            //  set the start and end dates to the selected range. 
             this.end_date.setValue(new Date());
-            this.start_date.setValue(new Date(new Date().getTime() - drange));
+            this.start_date.setValue(new Date(new Date().getTime() - rangeToMilliseconds(drange)));
 
             // tell each graph to update
             Ext.each(this.getGraphs(), function(g) {
@@ -681,8 +721,9 @@
                 this.updateEndTime();
                 Ext.each(this.getGraphs(), function(g) {
                     g.fireEvent("updateimage", {
-                        start: this.start || null,
-                        end: this.end || null
+                        // if they selected a specific start then use that otherwise use the drange
+                        start: this.start || this.drange,
+                        end: this.end || CURRENT_TIME
                     }, this);
                 });
             }
