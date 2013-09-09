@@ -602,6 +602,7 @@ Ext.getCmp('center_panel').add(
                     router: router,
                     bufferSize: 100,
                     nearLimit: 20,
+                    showProcessCount: true,
                     instancesTitle: _t('Process Instances'),
                     zPropertyEditListeners: {
                         frameload: function() {

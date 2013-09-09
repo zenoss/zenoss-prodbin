@@ -64,7 +64,7 @@ class OSProcessInfo(ComponentInfo):
     failSeverity = property(getFailSeverity, setFailSeverity)
 
     def getMinProcessCount(self):
-        return self._object.minProcessCount
+        return self._object.getMinProcessCount()
 
     def setMinProcessCount(self, minProcessCount):
         self._object.minProcessCount = minProcessCount
@@ -72,7 +72,7 @@ class OSProcessInfo(ComponentInfo):
     minProcessCount = property(getMinProcessCount, setMinProcessCount)
 
     def getMaxProcessCount(self):
-        return self._object.maxProcessCount
+        return self._object.getMaxProcessCount()
 
     def setMaxProcessCount(self, maxProcessCount):
         self._object.maxProcessCount = maxProcessCount
