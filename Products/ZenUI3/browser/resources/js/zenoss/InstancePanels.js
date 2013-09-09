@@ -27,6 +27,8 @@ Ext.define('Zenoss.InstanceModel',  {
         {name: 'device'},
         {name: 'name'},
         {name: 'description'},
+        {name: 'minProcessCount'},
+        {name: 'maxProcessCount'},
         {name: 'monitored'},
         {name: 'pingStatus'}
     ]
@@ -75,6 +77,18 @@ Ext.define("Zenoss.SimpleInstanceGridPanel", {
                 return Zenoss.render.link(device.uid, undefined,
                                           device.name);
             }
+        }, {
+            dataIndex: 'minProcessCount',
+            header: _t('Min Threshold'),
+            width: 85,
+            sortable: false,
+            hidden: !config.showProcessCount,
+        }, {
+            dataIndex: 'maxProcessCount',
+            header: _t('Max Threshold'),
+            width: 85,
+            sortable: false,
+            hidden: !config.showProcessCount,
         }, {
             id: 'monitored',
             dataIndex: 'monitored',
@@ -190,7 +204,8 @@ Ext.define("Zenoss.InstanceCardPanel", {
                 nameDataIndex: config.nameDataIndex || "name",
                 columns: config.columns,
                 sm: config.sm,
-                store: config.store
+                store: config.store,
+                showProcessCount: config.showProcessCount
             }
         });
         this.callParent(arguments);

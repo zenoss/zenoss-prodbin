@@ -274,7 +274,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         else:
             value = self.minProcessCount
 
-        return float(value or '0')
+        return float(value) if value else None
 
     def getMaxProcessCount(self):
         """
@@ -286,7 +286,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         else:
             value = self.maxProcessCount
 
-        return float(value or 'nan')
+        return float(value) if value else None
 
     def name(self):
         """
