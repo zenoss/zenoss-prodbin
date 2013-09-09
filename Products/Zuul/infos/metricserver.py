@@ -59,7 +59,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     def _getGraphPoints(self, klass):
         graphDefs = self._object.getGraphPoints(True)
         infos = [templateInterfaces.IMetricServiceGraphDefinition(g) for g in graphDefs if isinstance(g, klass) ]
-        # pass in the context incase they need to do a tales eval 
+        # pass in the context so graph points can do tales evaluation
         for info in infos:
             info.setContext(self._context)
         return infos
