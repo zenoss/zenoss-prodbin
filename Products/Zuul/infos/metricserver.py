@@ -26,11 +26,10 @@ class MetricServiceGraph(HasUuidInfoMixin):
     def __init__(self, graph):
         self._object = graph
 
-
-class MetricServiceGraphDefinition(MetricServiceGraph):
     def setContext(self, context):
         self._context = context
 
+class MetricServiceGraphDefinition(MetricServiceGraph):
     @property
     def width(self):
         return self._object.width * 2
@@ -59,7 +58,11 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     def _getGraphPoints(self, klass):
         graphDefs = self._object.getGraphPoints(True)
-        return [templateInterfaces.IMetricServiceGraphDefinition(g) for g in graphDefs if isinstance(g, klass) ]
+        infos = [templateInterfaces.IMetricServiceGraphDefinition(g) for g in graphDefs if isinstance(g, klass) ]
+        # pass in the context so graph points can do tales evaluation
+        for info in infos:
+            info.setContext(self._context)
+        return infos
 
     @property
     def datapoints(self):
@@ -129,4 +132,9 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     def tags(self):
         return {'datasource': [self._object.dpName.split("_")[0]]}
     format = ProxyProperty('format')
-    rpn = ProxyProperty('rpn')
+
+    @property
+    def expression(self):
+        rpn = self._object.rpn
+        if rpn:
+            return "rpn:" + self._object.talesEval(rpn, self._context)
