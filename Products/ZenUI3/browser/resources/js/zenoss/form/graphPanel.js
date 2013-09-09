@@ -44,7 +44,7 @@
             ["1h-ago", _t('Last Hour')],
             ["1d-ago", _t('Yesterday')],
             ["7d-ago", _t('Last Week')],
-            ["1m-ago", _t('Last Month')],
+            ["30d-ago", _t('Last Month')],
             ["1y-ago", _t('Last Year')]
         ],
         RANGE_TO_MILLISECONDS = {
@@ -704,7 +704,7 @@
             this.end = null;
             drange = drange || this.drange;
             this.drange = drange;
-            //  set the start and end dates to the selected range. 
+            //  set the start and end dates to the selected range.
             this.end_date.setValue(new Date());
             this.start_date.setValue(new Date(new Date().getTime() - rangeToMilliseconds(drange)));
 
