@@ -233,7 +233,8 @@
                 datapoints: this.datapoints,
                 overlays: this.thresholds,
                 type: this.type,
-                footer: true
+                footer: true,
+                yAxisLabel: this.units
             };
             this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);

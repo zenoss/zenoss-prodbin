@@ -14,8 +14,7 @@ from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
 from Products.ZenModel.ConfigurationError import ConfigurationError
-from Products.ZenRRD.utils import rpneval
-from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
+
 
 __doc__ = """
 These adapters are responsible for serializing the graph
