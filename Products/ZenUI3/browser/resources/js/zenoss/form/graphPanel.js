@@ -44,7 +44,7 @@
             ["1h-ago", _t('Last Hour')],
             ["1d-ago", _t('Yesterday')],
             ["7d-ago", _t('Last Week')],
-            ["30d-ago", _t('Last Month')],
+            ["30d-ago", _t('Last 30 days')],
             ["1y-ago", _t('Last Year')]
         ],
         RANGE_TO_MILLISECONDS = {
@@ -231,8 +231,10 @@
                 height: this.height - 25,
                 tags: this.tags,
                 datapoints: this.datapoints,
+                overlays: this.thresholds,
                 type: this.type,
-                footer: true
+                footer: true,
+                yAxisLabel: this.units
             };
             this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);
