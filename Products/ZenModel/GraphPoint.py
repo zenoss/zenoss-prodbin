@@ -69,13 +69,13 @@ class GraphPoint(ZenModelRM, ZenPackable):
         },
     )
 
-    colors = (
-        '#00cc00', '#0000ff', '#00ffff', '#ff0000', 
-        '#ff9900', '#cc0000', '#0000cc', '#0080c0',
-        '#8080c0', '#ff0080', '#800080', '#0000a0',
-        '#408080', '#808000', '#000000', '#00ff00',
-        '#fb31fb', '#0080ff', '#ff8000', '#800000', 
-        )
+    # category 20 colors from d3
+    # see https://github.com/mbostock/d3/wiki/Ordinal-Scales#wiki-category20
+    colors = ["#1f77b4", "#aec7e8", "#98df8a", "#ff7f0e", "#ffbb78", "#2ca02c",
+              "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b",
+              "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7", "#bcbd22",
+              "#dbdb8d", "#17becf", "#9edae5"];
+
 
     security = ClassSecurityInfo()
 
@@ -174,11 +174,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
             index %= len(self.colors)
             color = self.colors[index]
         color = '#%s' % color.lstrip('#')
-        if hasattr(self, 'stacked'): 
-            # This is setting the alpha channel?
-            # Why is this needed?
-            if not self.stacked and index>0: color += "99"
-            else: color += "ff"
+        
         return color
 
 
