@@ -231,6 +231,7 @@
                 height: this.height - 25,
                 tags: this.tags,
                 datapoints: this.datapoints,
+                overlays: this.thresholds,
                 type: this.type,
                 footer: true
             };

@@ -14,6 +14,8 @@ from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
 from Products.ZenModel.ConfigurationError import ConfigurationError
+from Products.ZenRRD.utils import rpneval
+from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
 
 __doc__ = """
 These adapters are responsible for serializing the graph
@@ -89,7 +91,19 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
 
 
 class MetricServiceThreshold(ColorMetricServiceGraphPoint):
-    pass
+
+    @property
+    def values(self):
+        """
+        Return the values we wish to display for this threshold. 
+        """
+        cls = self._object.getThreshClass(self._context)
+        relatedGps = self._object.getRelatedGraphPoints(self._context)
+        if cls:
+            instance = cls.createThresholdInstance(self._context)
+            # filter out the None's 
+            return [x for x in instance.getGraphValues(relatedGps) if x is not None]
+        return []
 
 class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
