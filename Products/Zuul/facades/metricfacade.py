@@ -7,13 +7,22 @@
 #
 ##############################################################################
 import logging
+import base64
+import requests
+import json
+import cookielib
+
 from collections import defaultdict
 from datetime import datetime, timedelta
+from zope import component
 from zenoss.protocols.services import ServiceResponseError
-from Products.ZenUtils.AuthenticatedJsonRestClient import AuthenticatedJsonRestClient
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.Five.browser import BrowserView
+from Products.Zuul.interfaces import IAuthorizationTool
+from Products.Zuul.utils import safe_hasattr
+from Products.ZenUtils.AuthenticatedJsonRestClient import AuthenticatedJsonRestClient
 
 log = logging.getLogger("zen.MetricFacade")
 
@@ -34,8 +43,14 @@ class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
         super(MetricFacade, self).__init__(context)
-        metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')        
-        self._client = AuthenticatedJsonRestClient(metric_url)
+        self._metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080/')
+
+        self._cookies = cookielib.CookieJar()
+        self._authorization = component.getAdapter( self.context, IAuthorizationTool, 'authorization')
+        if safe_hasattr( context, 'REQUEST'):
+            self._credentials = self._authorization.extractSessionCredentials()
+        else:
+            self._credentials = self._authorization.extractGlobalConfCredentials()
 
     def getLastValue(self, context, metric):
         """
@@ -162,7 +177,8 @@ class MetricFacade(ZuulFacade):
 
         # submit it to the client
         try:
-            response, content = self._client.post(METRIC_URL_PATH, request)
+            response = self._post_request( self._uri(METRIC_URL_PATH), request)
+            content = response.json()
         except ServiceResponseError, e:
             # there was an error returned by the metric service, log it here
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
@@ -222,3 +238,21 @@ class MetricFacade(ZuulFacade):
         @return: the date as a string.
         """
         return t.strftime(DATE_FORMAT)
+
+    def _uri(self, path):
+        return "%s/%s" %( self._metric_url, path)
+
+    def _post_request(self, path, request):
+        uri = self._uri(METRIC_URL_PATH)
+        login = self._credentials['login']
+        password = self._credentials['password']
+        auth = base64.b64encode('%s:%s' %(login, password))
+        headers = {
+            'Authorization': 'basic %s' % auth,
+            'content-type': 'application/json'
+        }
+        response = requests.post( uri, json.dumps(request), headers=headers, cookies=self._cookies)
+        status_code = response.status_code
+        if not (status_code >= 200 and status_code <= 299):
+            raise ServiceResponseError(response.reason, status_code, request, response, response.content)
+        return response
