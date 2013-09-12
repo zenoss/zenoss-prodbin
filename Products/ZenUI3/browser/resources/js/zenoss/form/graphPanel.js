@@ -241,6 +241,8 @@
                 type: this.type,
                 footer: true,
                 yAxisLabel: this.units,
+                miny: (this.miny != -1) ? this.miny : null,
+                maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
                 // one format for chart, not per metric
                 format: this.datapoints[0].format
