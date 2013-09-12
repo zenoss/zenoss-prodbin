@@ -144,7 +144,16 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def tags(self):
         return {'datasource': [self._object.dpName.split("_")[0]]}
-    format = ProxyProperty('format')
+
+    @property
+    def format(self):
+        fmt = self._object.format
+        if fmt:
+            # RRD had an lf that meant the same thing as %f so just drop the l
+            # the "s" means scale it to the appropiate units. This maybe something
+            # we need to replicate later
+            # also sometimes we had a %% which means to display a literal percent.
+            return fmt.replace("l", "").replace("%s", "").rstrip("%")
 
     @property
     def expression(self):
