@@ -212,10 +212,16 @@
              for="*"
              />
 
+    <adapter provides=".interfaces.IAuthorizationTool"
+             factory=".security.AuthorizationTool"
+             for="*"
+             />
+
     <include package=".routers"/>
     <include package=".catalog"/>
     <include package=".search"/>
     <include package=".form"/>
     <include package=".infos"/>
+    <include package=".security"/>
 
 </configure>

@@ -30,7 +30,7 @@ class MetricFacadeTest(BaseTestCase):
         self.assertTrue(dev.getUUID())
         tags = self.facade._buildTagsFromContext([dev])
         self.assertEquals(tags.keys()[0], 'uuid')
-        self.assertEquals(tags.values()[0], dev.getUUID())
+        self.assertEquals(tags.values()[0], [dev.getUUID()])
 
     def testMetricBuilder(self):
         templateFac = Zuul.getFacade('template', self.dmd)
@@ -39,7 +39,7 @@ class MetricFacadeTest(BaseTestCase):
         metric = template.datasources()[0].datapoints()[0]
         cf = "avg"
         metric = self.facade._buildMetric(metric, cf)
-        self.assertEquals(metric['tags']['datasource'], 'test')
+        self.assertEquals(metric['tags']['datasource'], ['test'])
         self.assertEquals(metric['aggregator'], 'avg')
 
     def testRequestBuilder(self):
