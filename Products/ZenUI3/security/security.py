@@ -8,14 +8,14 @@
 ##############################################################################
 
 
-from zope import interface
+from zope import interface, component
 from Products.Five.viewlet.manager import ViewletManagerBase
 from Products.ZenUtils.jsonutils import json
 from Products.Five.viewlet import viewlet
-from Products.Zuul.utils import createAuthToken
 from interfaces import ISecurityManager, IPermissionsDeclarationViewlet
 from AccessControl import getSecurityManager
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.Zuul.interfaces import IAuthorizationTool
 
 ZAUTH_COOKIE = 'ZAuthToken'
 
@@ -78,7 +78,8 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         return func
 
     def _setAuthorizationCookie(self):
-        token = createAuthToken(self.request, self.context)
+        authorization = IAuthorizationTool(self.context)
+        token = authorization.createAuthToken(self.request)
         self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/")
 
     def hasGlobalRoles(self):
