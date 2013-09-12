@@ -234,7 +234,10 @@
                 overlays: this.thresholds,
                 type: this.type,
                 footer: true,
-                yAxisLabel: this.units
+                yAxisLabel: this.units,
+                // the visualization library currently only supports
+                // one format for chart, not per metric
+                format: this.datapoints[0].format
             };
             this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);
