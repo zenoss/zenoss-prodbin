@@ -22,7 +22,6 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Five.browser import BrowserView
 from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
-from Products.ZenUtils.AuthenticatedJsonRestClient import AuthenticatedJsonRestClient
 
 log = logging.getLogger("zen.MetricFacade")
 
@@ -39,6 +38,13 @@ AGGREGATION_MAPPING = {
     #TODO: get last agg function working
     'last': None
 }
+
+def _isRunningFromUI( context):
+    if not safe_hasattr( context, 'REQUEST'):
+        return False
+
+    return safe_hasattr( context.REQUEST, 'SESSION')
+
 class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
@@ -46,9 +52,9 @@ class MetricFacade(ZuulFacade):
         self._metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080/')
 
         self._cookies = cookielib.CookieJar()
-        self._authorization = component.getAdapter( self.context, IAuthorizationTool, 'authorization')
-        if safe_hasattr( context, 'REQUEST'):
-            self._credentials = self._authorization.extractSessionCredentials()
+        self._authorization = IAuthorizationTool( self.context)
+        if _isRunningFromUI( context):
+            self._credentials = self._authorization.extractCredentials( context.REQUEST)
         else:
             self._credentials = self._authorization.extractGlobalConfCredentials()
 

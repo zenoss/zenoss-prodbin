@@ -8,7 +8,6 @@
 ##############################################################################
 
 import json
-from zope import component
 from Products.Five.browser import BrowserView
 from Products.Zuul.interfaces import IAuthorizationTool
 
@@ -35,7 +34,7 @@ class Login(BrowserView):
         Extract login/password credentials, test authentication, and create a token
         """
 
-        authorization = component.getAdapter( self.context.context, IAuthorizationTool, 'authorization')
+        authorization = IAuthorizationTool( self.context.context)
 
         credentials = authorization.extractCredentials(self.request)
 
@@ -78,7 +77,7 @@ class Validate(BrowserView):
             self.request.response.setStatus(401)
             return
 
-        authorization = component.getAdapter( self.context.context, IAuthorizationTool, 'authorization')
+        authorization = IAuthorizationTool( self.context.context)
 
         #grab token to handle edge case, when expiration happens after expiration test
         tokenId = tokenId.strip('"')

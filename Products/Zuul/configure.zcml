@@ -214,7 +214,6 @@
 
     <adapter provides=".interfaces.IAuthorizationTool"
              factory=".security.AuthorizationTool"
-             name="authorization"
              for="*"
              />
 

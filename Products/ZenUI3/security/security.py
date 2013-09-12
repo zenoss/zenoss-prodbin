@@ -78,7 +78,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         return func
 
     def _setAuthorizationCookie(self):
-        authorization = component.getAdapter( self.context, IAuthorizationTool, 'authorization')
+        authorization = IAuthorizationTool(self.context)
         token = authorization.createAuthToken(self.request)
         self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/")
 
