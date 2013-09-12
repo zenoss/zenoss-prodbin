@@ -170,13 +170,17 @@
         datapoints: [],
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;padding-top:45px;height:' + String(config.height - 75)  + '"></div>',
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;padding:45px 20px 15px 0px;height:' + String(config.height - 75)  + '"></div>',
                 cls: 'graph-panel',
                 dockedItems: [{
                     xtype: 'toolbar',
                     dock: 'top',
                     items: [{
                         xtype: 'tbtext',
+                        style: {
+                            fontWeight: 'bolder',
+                            fontSize: '1.5em'
+                        },
                         text: config.graphTitle // + ' : ' + config.uid
                     },'->',{
                         xtype: 'button',
