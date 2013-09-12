@@ -37,7 +37,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def height(self):
-        return self._object.height * 3
+        return 500
 
     @property
     def title(self):

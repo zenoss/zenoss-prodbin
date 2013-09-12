@@ -170,9 +170,11 @@
         datapoints: [],
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;"></div>',
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;padding-top:45px;height:' + String(config.height - 75)  + '"></div>',
                 cls: 'graph-panel',
-                tbar: {
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'top',
                     items: [{
                         xtype: 'tbtext',
                         text: config.graphTitle // + ' : ' + config.uid
@@ -204,7 +206,7 @@
                             this.onPanRight(this);
                         }, this)
                     }]
-                },
+                }],
                 graph_params: {
                     drange: DATE_RANGES[0][0],
                     end: config.end || CURRENT_TIME,
