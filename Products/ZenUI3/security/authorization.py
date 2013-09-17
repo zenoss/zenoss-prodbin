@@ -8,14 +8,10 @@
 ##############################################################################
 
 import json
-import time
 from Products.Five.browser import BrowserView
-from Products.PluggableAuthService import interfaces
-from Products.Zuul.utils import createAuthToken
-
+from Products.Zuul.interfaces import IAuthorizationTool
 
 ZAUTH_HEADER_ID = 'X-ZAuth-Token'
-
 
 class Authorization(BrowserView):
     """
@@ -33,71 +29,39 @@ class Login(BrowserView):
     """
     Validates the credentials supplied and creates a new authorization token.
     """
-    def extractCredentials(self, request):
-        type = interfaces.plugins.IExtractionPlugin
-        plugins = self.context.context.zport.acl_users.plugins.listPlugins(type)
-
-        # look in the extraction plugins for the credentials
-        for (extractor_id, extractor) in plugins:
-            creds = extractor.extractCredentials(request)
-            if 'login' in creds and 'password' in creds:
-                return creds
-
-        # look in the request headers for the creds
-        login = request.get('login', None)
-        password = request.get('password', None)
-        return {'login': login, 'password': password}
-
-    def authenticateCredentials(self, login, password):
-        return self.context.context.zport.dmd.ZenUsers.authenticateCredentials(login, password)
-
     def __call__(self, *args, **kwargs):
         """
         Extract login/password credentials, test authentication, and create a token
         """
 
-        #The session_folder auto clears data objects -
-        #  http://docs.zope.org/zope2/zope2book/Sessions.html
-        #self.context.clearExpiredTokens()
-        credentials = self.extractCredentials(self.request)
+        authorization = IAuthorizationTool( self.context.context)
+
+        credentials = authorization.extractCredentials(self.request)
 
         login = credentials.get('login', None)
         password = credentials.get('password', None)
 
         # no credentials to test authentication
         if login is None or password is None:
+            self.request.response.write( "Missing Authentication Credentials")
             self.request.response.setStatus(401)
             return
 
         # test authentication
-        if not self.authenticateCredentials(login, password):
+        if not authorization.authenticateCredentials(login, password):
+            self.request.response.write( "Failed Authentication")
             self.request.response.setStatus(401)
             return
 
         # create the session data
-        token = createAuthToken(self.request, self.context.context.zport.dmd)
+        token = authorization.createAuthToken(self.request)
 
         return json.dumps(token)
-
 
 class Validate(BrowserView):
     """
     Assert token id exists in session data and token id hasn't expired
     """
-
-    def getToken(self, sessionId):
-        """
-        @param sessionId:
-        @return:
-        """
-        return self.context.context.temp_folder.session_data.get(sessionId, None)
-
-    def tokenExpired(self, sessionId):
-        token = self.getToken(sessionId)
-        if token is None:
-            return True
-
-        return time.time() >= token['expires']
 
     def __call__(self, *args, **kwargs):
         """
@@ -109,13 +73,17 @@ class Validate(BrowserView):
 
         # missing token id
         if tokenId is None:
+            self.request.response.write( "Missing Token Id")
             self.request.response.setStatus(401)
             return
 
+        authorization = IAuthorizationTool( self.context.context)
+
         #grab token to handle edge case, when expiration happens after expiration test
         tokenId = tokenId.strip('"')
-        token = self.getToken(tokenId)
-        if self.tokenExpired(tokenId):
+        token = authorization.getToken(tokenId)
+        if authorization.tokenExpired(tokenId):
+            self.request.response.write( "Token Expired")
             self.request.response.setStatus(401)
             return
 
