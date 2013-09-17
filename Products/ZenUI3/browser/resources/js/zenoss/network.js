@@ -414,7 +414,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
             },
             function(infoData) {
                 Ext.getCmp('network-descriptionField').setText(
-                    infoData.success ? infoData.data.description : '');
+                    infoData.success ? Ext.htmlEncode(infoData.data.description) : '');
                 Ext.getCmp('network-ipcountField').setText(
                     infoData.success ? 'IPs Used/Free: ' + infoData.data.ipcount : '');
                 detailCardPanel.doLayout();
