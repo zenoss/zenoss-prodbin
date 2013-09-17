@@ -225,5 +225,10 @@ class ReportRouter(TreeRouter):
         """
         facade = self._getFacade()
         data = facade.getGraphReportDefs(uid)
-        return DirectResponse(data=Zuul.marshal(data))
+        data = Zuul.marshal(data)
+        # show the context in the report title, otherwise the user
+        # has no idea which component the graph is for
+        for row in data:
+            row['title'] = row['contextTitle']
+        return DirectResponse(data=data)
 

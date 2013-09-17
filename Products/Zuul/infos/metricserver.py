@@ -8,6 +8,7 @@
 ##############################################################################
 
 from zope.interface import implements
+from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces, IInfo
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
@@ -42,6 +43,13 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     @property
     def title(self):
         return self._object.titleOrId()
+
+    @property
+    def contextTitle(self):
+        title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
+        if isinstance(self._context, DeviceComponent):
+            title =  "%s - %s" %(title, self._context.name())
+        return "%s - %s" % (self.title, title)
 
     @property
     def type(self):
@@ -94,13 +102,13 @@ class MetricServiceThreshold(ColorMetricServiceGraphPoint):
     @property
     def values(self):
         """
-        Return the values we wish to display for this threshold. 
+        Return the values we wish to display for this threshold.
         """
         cls = self._object.getThreshClass(self._context)
         relatedGps = self._object.getRelatedGraphPoints(self._context)
         if cls:
             instance = cls.createThresholdInstance(self._context)
-            # filter out the None's 
+            # filter out the None's
             return [x for x in instance.getGraphValues(relatedGps) if x is not None]
         return []
 
