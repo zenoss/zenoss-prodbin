@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/templates/macros/page2withext">
 <tal:block metal:fill-slot="contentPane">
 
 <tal:block tal:content="structure python:here.auditRunReport()"/>
@@ -67,11 +67,7 @@ function ShowPrintable() {
 
     <div id="graphs" >
     </div>
-    <script type="text/javascript" src="/static/performance/query/visualization.js"></script>
-        <script type="text/javascript">
-            zenoss.visualization.url = window.location.protocol + "//" + window.location.host;
-            zenoss.visualization.debug = false;
-        </script>
+    
     <script tal:content='string:
             Zenoss.env.CURRENT_CONTEXT = decodeURIComponent("${context/absolute_url_path}");
             Zenoss.env.REPORT_TITLE = "${here/id}";
