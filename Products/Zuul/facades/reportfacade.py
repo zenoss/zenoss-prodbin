@@ -14,7 +14,7 @@ log = logging.getLogger('zen.ReportFacade')
 from zope.interface import implements
 
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import ITreeFacade, IReportFacade
+from Products.Zuul.interfaces import ITreeFacade, IReportFacade, IMetricServiceGraphDefinition
 from Products.Zuul.routers.report import reportTypes, essentialReportOrganizers
 
 _createMethods = [
@@ -66,3 +66,22 @@ class ReportFacade(TreeFacade):
         report.getParentNode()._delObject(id)
         targetNode = self._dmd.restrictedTraverse(contextUid)
         targetNode._setObject(id, report)
+
+    def getGraphReportDefs(self, uid):
+        obj = self._getObject(uid)
+        defs = []
+        for element in obj.getElements():
+            try:
+                info = IMetricServiceGraphDefinition(element.getGraphDef())
+            except AttributeError:
+                # if they remove or move a graphdef then we might not
+                # be able to find it
+                log.warning("%s has an invalid graph definition, skipping" % element)
+                continue
+            component = element.getComponent()
+            if not component:
+                log.warning("%s has is missing a component, skipping", element)
+            info.setContext(element.getComponent())
+            defs.append(info)
+        return defs
+

@@ -316,7 +316,8 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
         if rpn:
             try:
                 rpn = talesEvalStr(rpn, self._context)
-            except:
+            except Exception, e:
+                log.exception(e)
                 self.raiseRPNExc()
                 return []
 

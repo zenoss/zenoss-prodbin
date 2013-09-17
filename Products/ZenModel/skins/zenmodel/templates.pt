@@ -26,7 +26,15 @@
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
         <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
-
+        <tal:block tal:content="structure provider:js-security"/>
+        <tal:block tal:content="structure provider:all-js"/>
+        <script tal:define="container context/getPrimaryParent" tal:content="string:
+            Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
+        " tal:on-error="string:"></script>
+        <tal:block tal:content="structure provider:head-extra"/>
+        <tal:block metal:define-slot="head-local"/>
+        <tal:block tal:content="structure provider:jssnippets"/>
+        
         <script>
         (function() {
             var ua = navigator.userAgent.toLowerCase();
@@ -39,7 +47,7 @@
             }
         })();
         </script>
-        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
+        
 
         <script>
         // Fix an IE bug

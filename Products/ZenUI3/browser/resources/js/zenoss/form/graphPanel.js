@@ -37,7 +37,6 @@
         GraphPanel,
         DRangeSelector,
         GraphRefreshButton,
-        tbarConfig,
         dateRangePanel,
         CURRENT_TIME = "0s-ago",
         DATE_RANGES = [
@@ -170,7 +169,7 @@
         datapoints: [],
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;padding:45px 20px 15px 0px;height:' + String(config.height - 75)  + '"></div>',
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;padding:45px 20px 15px 0px;height:' + String(config.height - 75)  + 'px;"></div>',
                 cls: 'graph-panel',
                 dockedItems: [{
                     xtype: 'toolbar',
@@ -241,6 +240,8 @@
                 type: this.type,
                 footer: true,
                 yAxisLabel: this.units,
+                miny: (this.miny != -1) ? this.miny : null,
+                maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
                 // one format for chart, not per metric
                 format: this.datapoints[0].format
@@ -519,64 +520,66 @@
             }
         }]
     }];
-    tbarConfig = [
-        {
-            xtype: 'tbtext',
-            text: _t('Performance Graphs')
-        },
-        '-',
-        '->',
-        {
-            xtype: 'drangeselector',
-            ref: '../drange_select',
-            listeners: {
-                select: function(combo, records, index){
-                    var value = records[0].data.id,
-                    panel = combo.refOwner;
-                    panel.setDrange(value);
+
+    function getTBarConfig(title) {
+        var tbarConfig = [
+            {
+                xtype: 'tbtext',
+                text: title || _t('Performance Graphs')
+            },
+            '-',
+            '->',
+            {
+                xtype: 'drangeselector',
+                ref: '../drange_select',
+                listeners: {
+                    select: function(combo, records, index){
+                        var value = records[0].data.id,
+                        panel = combo.refOwner;
+                        panel.setDrange(value);
+                    }
                 }
-            }
-        },'-', {
-            xtype: 'button',
-            ref: '../resetBtn',
-            text: _t('Reset'),
-            handler: function(btn) {
-                var panel = btn.refOwner;
-                panel.setDrange();
-            }
-        },'-',{
-            xtype: 'tbtext',
-            text: _t('Link Graphs?:')
-        },{
-            xtype: 'checkbox',
-            ref: '../linkGraphs',
-            checked: true,
-            listeners: {
-                change: function(chkBx, checked) {
-                    var panel = chkBx.refOwner;
-                    panel.setLinked(checked);
-                }
-            }
-        }, '-',{
-            xtype: 'graphrefreshbutton',
-            ref: '../refreshmenu',
-            iconCls: 'refresh',
-            text: _t('Refresh'),
-            handler: function(btn) {
-                if (btn) {
+            },'-', {
+                xtype: 'button',
+                ref: '../resetBtn',
+                text: _t('Reset'),
+                handler: function(btn) {
                     var panel = btn.refOwner;
-                    panel.refresh();
+                    panel.setDrange();
                 }
-            }
-        }, '-', {
-            xtype: 'button',
-            ref: '../newwindow',
-            iconCls: 'newwindow',
-            hidden: true,
-            handler: function(btn) {
-                var panel = btn.refOwner;
+            },'-',{
+                xtype: 'tbtext',
+                text: _t('Link Graphs?:')
+            },{
+                xtype: 'checkbox',
+                ref: '../linkGraphs',
+                checked: true,
+                listeners: {
+                    change: function(chkBx, checked) {
+                        var panel = chkBx.refOwner;
+                        panel.setLinked(checked);
+                    }
+                }
+            }, '-',{
+                xtype: 'graphrefreshbutton',
+                ref: '../refreshmenu',
+                iconCls: 'refresh',
+                text: _t('Refresh'),
+                handler: function(btn) {
+                    if (btn) {
+                        var panel = btn.refOwner;
+                            panel.refresh();
+                    }
+                }
+            }, '-', {
+                xtype: 'button',
+                ref: '../newwindow',
+                iconCls: 'newwindow',
+                hidden: true,
+                handler: function(btn) {
+                    var panel = btn.refOwner;
                     var config = panel.initialConfig,
-                        win = Ext.create('Zenoss.dialog.BaseWindow',  {
+                    win = Ext.create('Zenoss.dialog.BaseWindow',  {
                         cls: 'white-background-panel',
                         layout: 'fit',
                         items: [Ext.apply(config,{
@@ -588,10 +591,13 @@
                         })],
                         maximized: true
                     });
-                win.show();
-                win.graphPanel.setContext(panel.uid);
-            }
-        }];
+                    win.show();
+                    win.graphPanel.setContext(panel.uid);
+                }
+            }];
+        return tbarConfig;
+    }
+
 
     Ext.define("Zenoss.form.GraphPanel", {
         alias:['widget.graphpanel'],
@@ -615,7 +621,7 @@
                 directFn: router.getGraphDefs
             });
             if (config.showToolbar){
-                config.tbar = tbarConfig;
+                config.tbar = getTBarConfig(config.tbarTitle);
             }
             Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
         },
