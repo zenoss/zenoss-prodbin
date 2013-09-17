@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/templates/macros/page2WithZenossAll">
 <tal:block metal:fill-slot="contentPane">
 
 <tal:block tal:content="structure python:here.auditRunReport()"/>

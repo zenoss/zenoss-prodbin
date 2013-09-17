@@ -207,7 +207,7 @@
 
 
 
-<tal:block metal:define-macro="page2withext">
+<tal:block metal:define-macro="page2WithZenossAll">
   <tal:block metal:use-macro="here/templates/macros/page2">
     <tal:block metal:fill-slot="extdefine">
       <tal:block tal:content="structure provider:js-security"/>
