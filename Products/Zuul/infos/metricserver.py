@@ -62,7 +62,6 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def tags(self):
-        # TODO: possibly create a new adapter so zenpacks can register their own metric service tags
         return { 'uuid': [self._context.getUUID()] }
 
     def _getGraphPoints(self, klass):
@@ -90,7 +89,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
     @property
     def legend(self):
         o = self._object
-        return o.talesEval(o.legend, None)
+        return o.talesEval(o.legend, self._context)
 
     @property
     def color(self):
@@ -129,7 +128,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     def _getDataPoint(self):
         try:
             return IInfo(self._object.graphDef().rrdTemplate().getRRDDataPoint(self._object.dpName))
-        except ConfigurationError:
+        except (ConfigurationError, AttributeError):
             return None
 
     @property
@@ -137,6 +136,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         datapoint = self._getDataPoint()
         if datapoint:
             return datapoint.rate
+        return False
 
     @property
     def rateOptions(self):

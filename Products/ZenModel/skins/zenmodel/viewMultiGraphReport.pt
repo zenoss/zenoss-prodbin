@@ -50,17 +50,37 @@ function ShowPrintable() {
 }
 </script>
 
+<div id="graphs"></div>
+<script tal:content='string:
+            Zenoss.env.CURRENT_CONTEXT = decodeURIComponent("${context/absolute_url_path}");
+            Zenoss.env.REPORT_TITLE = "${here/id}";
+        ' tal:on-error="string:"></script>
+    
+    <script>
+      Ext.onReady(function(){
+          var graphs = Ext.create('Zenoss.form.GraphPanel', {
+              id: 'graph_report',
+              renderTo: "graphs",
+              tbarTitle: Zenoss.env.REPORT_TITLE,
+              directFn: Zenoss.remote.ReportRouter.getMultiGraphReportDefs,
+              newWindowButton: false
+           });
+           
+          graphs.setContext(Zenoss.env.CURRENT_CONTEXT);
+          });
+    </script>
+
 <tal:block tal:define="tabletitle here/id">
-<tal:block metal:use-macro="here/viewPerformanceDetail/macros/objectperf">
+<!-- <tal:block metal:use-macro="here/viewPerformanceDetail/macros/objectperf"> -->
 
-    <tal:block metal:fill-slot="filterslot">
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        <input class="tableheader" type="button" value="Printable"
-        onclick="ShowPrintable()"
-        style="margin-left:2em;"/>
-    </tal:block>
+<!--     <tal:block metal:fill-slot="filterslot"> -->
+<!--         &nbsp;&nbsp;&nbsp;&nbsp; -->
+<!--         <input class="tableheader" type="button" value="Printable" -->
+<!--         onclick="ShowPrintable()" -->
+<!--         style="margin-left:2em;"/> -->
+<!--     </tal:block> -->
 
-</tal:block>
+<!-- </tal:block> -->
 </tal:block>
 
 </tal:block>

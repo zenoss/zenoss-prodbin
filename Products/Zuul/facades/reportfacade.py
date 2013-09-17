@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -85,3 +85,11 @@ class ReportFacade(TreeFacade):
             defs.append(info)
         return defs
 
+    def getMultiGraphReportDefs(self, uid):
+        obj = self._getObject(uid)
+        graphs = []
+        for graphDef in obj.getDefaultGraphDefs():
+            info = IMetricServiceGraphDefinition(graphDef['graphDef'])
+            info.setContext(graphDef['context'])
+            graphs.append(info)
+        return graphs
