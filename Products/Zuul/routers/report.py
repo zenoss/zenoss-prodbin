@@ -58,7 +58,7 @@ class ReportRouter(TreeRouter):
         self.api = Zuul.getFacade('reports')
         self.context = context
         self.request = request
-        self.keys = ('deletable', 'edit_url')
+        self.keys = ('deletable', 'edit_url', 'isMultiGraphReport', 'isGraphReport')
         super(ReportRouter, self).__init__(context, request)
 
     def _getFacade(self):

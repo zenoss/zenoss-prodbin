@@ -25,10 +25,9 @@
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
-        <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
-        <tal:block metal:define-slot="extdefine">
-          <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
-        </tal:block>
+        <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>        
+        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
+        
         
         
         <script>
@@ -174,11 +173,6 @@
  ====================================================== -->
 <tal:block metal:define-macro="page2">
     <html metal:use-macro="here/templates/macros/page1" >
-      <tal:block metal:fill-slot="extdefine">
-        <tal:block metal:define-slot="extdefine">
-          <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
-        </tal:block>
-      </tal:block>
         <tal:block metal:fill-slot="title">
             <tal:block metal:define-slot="title">
                 <tal:block tal:content="here/titleOrId"/>
@@ -204,30 +198,6 @@
         </tal:block>
     </html>
 </tal:block>
-
-
-
-<tal:block metal:define-macro="page2WithZenossAll">
-  <tal:block metal:use-macro="here/templates/macros/page2">
-    <tal:block metal:fill-slot="extdefine">
-      <tal:block tal:content="structure provider:js-security"/>
-        <tal:block tal:content="structure provider:all-js"/>
-        <script tal:define="container context/getPrimaryParent" tal:content="string:
-            Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
-        " tal:on-error="string:"></script>
-        <tal:block tal:content="structure provider:head-extra"/>
-        <tal:block metal:define-slot="head-local"/>
-        <tal:block tal:content="structure provider:jssnippets"/>
-        
-    </tal:block>
-    <tal:block metal:fill-slot="contentPane">
-      <tal:block metal:define-slot="contentPane">
-
-      </tal:block>
-    </tal:block>
-  </tal:block>
-</tal:block>
-
 
 <!-- ======================================================
     Page3 - page template with std BreadCrumbs and no tabs

@@ -305,21 +305,6 @@
     />
 
 <browser:page
-    template="../../ZenModel/skins/zenmodel/viewMultiGraphReport.pt"
-    name="viewMultiGraphReport"
-    for="*"
-    permission="zenoss.View"
-    />
-
-
-<browser:page
-    template="../../ZenModel/skins/zenmodel/editRRDDataSource.pt"
-    name="editRRDDataSource"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:page
     template="../../ZenModel/skins/zenmodel/editRRDDataPoint.pt"
     name="editRRDDataPoint"
     for="*"

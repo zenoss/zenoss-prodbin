@@ -252,22 +252,6 @@ class MultiGraphReport(BaseReport):
             if not things or not graphDef:
                 continue
             if gg.combineDevices:
-                # this isn't supported yet, but basically we
-                # need to make one graph with several different components on it
-                pass
-                # cmds = []
-                # idxOffset = 0
-                # for thing in things:
-                #     cmds = graphDef.getGraphCmds(
-                #                     thing.primaryAq(), 
-                #                     thing.fullRRDPath(),
-                #                     includeSetup = not cmds,
-                #                     includeThresholds = not cmds,
-                #                     cmds = cmds,
-                #                     prefix = GetThingTitle(thing, gg.id),
-                #                     idxOffset=idxOffset)
-                #     idxOffset += len(graphDef.graphPoints())
-                # AppendToGraphs(things[0], cmds, gg.id)
                 graphs.append(dict(context=things, graphDef=graphDef, separateGraphs=False))
             else:
                 for thing in things:

@@ -1,7 +1,27 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
-<table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
 
+  <script tal:content='string:
+            Zenoss.env.CURRENT_CONTEXT = decodeURIComponent("${context/absolute_url_path}");
+            Zenoss.env.REPORT_TITLE = "${here/id}";
+        ' tal:on-error="string:"></script>
+
+<div id="graphs">
+  
+</div>
+
+<script>
+Ext.onReady(function(){
+          var graphs = Ext.create('Zenoss.form.GraphPanel', {
+              id: 'graph_report',
+              renderTo: "graphs",
+              tbarTitle: Zenoss.env.REPORT_TITLE
+              newWindowButton: false
+           });
+           
+          graphs.setContext(Zenoss.env.CURRENT_CONTEXT);
+          });
+</script>
 </tal:block>
 </tal:block>
