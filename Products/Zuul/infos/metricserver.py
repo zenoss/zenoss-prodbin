@@ -45,9 +45,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def contextTitle(self):
-        title = ""
-        if hasattr(self._context, 'device'):
-            title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
+        title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
             title =  "%s - %s" %(title, self._context.name())
         return "%s - %s" % (self.title, title)

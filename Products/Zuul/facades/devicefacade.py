@@ -655,6 +655,7 @@ class DeviceFacade(TreeFacade):
         graphs = []
         for graph in obj.getDefaultGraphDefs():
             if obj.meta_type in ('HubConf', 'PerformanceConf'):
+                # TODO, possibly make this a multi-adapter
                 info = CollectorMetricServiceGraphDefinition(graph)
             else:
                 info = IMetricServiceGraphDefinition(graph)
