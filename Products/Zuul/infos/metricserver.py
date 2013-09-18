@@ -16,7 +16,6 @@ from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
 from Products.ZenModel.ConfigurationError import ConfigurationError
 
-
 __doc__ = """
 These adapters are responsible for serializing the graph
 definitions into a form that is consumable by the metric service
@@ -46,7 +45,9 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def contextTitle(self):
-        title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
+        title = ""
+        if hasattr(self._context, 'device'):
+            title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
             title =  "%s - %s" %(title, self._context.name())
         return "%s - %s" % (self.title, title)
@@ -168,3 +169,26 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         rpn = self._object.rpn
         if rpn:
             return "rpn:" + self._object.talesEval(rpn, self._context)
+
+# Charts adapters for collector graphs
+class CollectorMetricServiceGraphDefinition(MetricServiceGraphDefinition):
+
+    @property
+    def tags(self):
+        return dict(monitor=[self._context.id])
+
+    @property
+    def datapoints(self):
+        infos = []
+        for g in self._object.graphPoints():
+            if isinstance(g, DataPointGraphPoint):
+                info = CollectorDataPointGraphPoint(g)
+                info.setContext(self._context)
+                infos.append(info)
+        return infos
+
+class CollectorDataPointGraphPoint(MetricServiceGraphPoint):
+
+    @property
+    def tags(self):
+        return {'daemon': [self._object.dpName.split("_")[0]]}

@@ -16,7 +16,7 @@ Ext.onReady(function(){
           var graphs = Ext.create('Zenoss.form.GraphPanel', {
               id: 'graph_report',
               renderTo: "graphs",
-              tbarTitle: Zenoss.env.REPORT_TITLE
+              tbarTitle: Zenoss.env.REPORT_TITLE,
               newWindowButton: false
            });
            

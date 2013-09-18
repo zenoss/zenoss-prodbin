@@ -297,12 +297,6 @@
     permission="zenoss.View"
     />
 
-<browser:page
-    template="../../ZenModel/skins/zenmodel/viewGraphReport.pt"
-    name="viewGraphReport"
-    for="*"
-    permission="zenoss.View"
-    />
 
 <browser:page
     template="../../ZenModel/skins/zenmodel/editRRDDataPoint.pt"
