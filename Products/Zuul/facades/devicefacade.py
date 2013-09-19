@@ -15,6 +15,7 @@ from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
+from zope.component import getMultiAdapter
 from Products.AdvancedQuery import Eq, Or, Generic, And
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
@@ -654,12 +655,7 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         graphs = []
         for graph in obj.getDefaultGraphDefs():
-            if obj.meta_type in ('HubConf', 'PerformanceConf'):
-                # TODO, possibly make this a multi-adapter
-                info = CollectorMetricServiceGraphDefinition(graph)
-            else:
-                info = IMetricServiceGraphDefinition(graph)
-            info.setContext(obj)
+            info = getMultiAdapter((graph,obj), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
 

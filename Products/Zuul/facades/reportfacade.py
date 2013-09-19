@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger('zen.ReportFacade')
 
 from zope.interface import implements
-
+from zope.component import getMultiAdapter
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import ITreeFacade, IReportFacade, IMetricServiceGraphDefinition
 from Products.Zuul.routers.report import reportTypes, essentialReportOrganizers
@@ -71,17 +71,17 @@ class ReportFacade(TreeFacade):
         obj = self._getObject(uid)
         defs = []
         for element in obj.getElements():
+            component = element.getComponent()
+            if not component:
+                log.warning("%s is missing a component, skipping", element)
+                continue
             try:
-                info = IMetricServiceGraphDefinition(element.getGraphDef())
+                info = getMultiAdapter((element.getGraphDef(), component), IMetricServiceGraphDefinition)
             except AttributeError:
                 # if they remove or move a graphdef then we might not
                 # be able to find it
                 log.warning("%s has an invalid graph definition, skipping" % element)
                 continue
-            component = element.getComponent()
-            if not component:
-                log.warning("%s has is missing a component, skipping", element)
-            info.setContext(element.getComponent())
             defs.append(info)
         return defs
 
@@ -89,7 +89,6 @@ class ReportFacade(TreeFacade):
         obj = self._getObject(uid)
         graphs = []
         for graphDef in obj.getDefaultGraphDefs():
-            info = IMetricServiceGraphDefinition(graphDef['graphDef'])
-            info.setContext(graphDef['context'])
+            info = getMultiAdapter((graphDef['graphDef'], graphDef['context']), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
