@@ -200,6 +200,10 @@ endif
 #============================================================================
 # NB:  Adding guard-logic to avoid nuisance rebuilds of discovery lists
 #      especially during installs when we don't want to affect the build tree.
+
+#      Also, depend upon a checked environment so we ensure uplevel version of make
+#      that won't fail on the .ONESHELL idiom used here.
+
 ifeq "$(filter install install-ascii install-shell install-python install-dosbat install-bash,$(MAKECMDGOALS))" ""
 .ONESHELL:        $(discovered_src)
 .DELETE_ON_ERROR: $(discovered_src)
@@ -208,7 +212,7 @@ $(discovered_src): include_filter = $(patsubst %.$(DISCOVERED_SRC_EXT),%_INCLUDE
 $(discovered_src): src_dir        = $(_SRC_DIR)
 $(discovered_src): find_opts      = -maxdepth 1 -mindepth 1 -type f -exec file {} \\;
 $(discovered_src): filetype       = $(patsubst %.$(DISCOVERED_SRC_EXT),%,$@)
-$(discovered_src): | .rediscover
+$(discovered_src): | .rediscover $(CHECKED_ENV)
 	@if [ -z '$($(include_filter))' ] ;then
 		$(call echol,"Error: Detected null value for the $(include_filter) variable.")
 		$(call echol,"       Unable to discern which files in $(ABS_SRC_DIR) are $(filetype)-ish files.")
@@ -322,7 +326,7 @@ mrclean distclean: clean dflt_component_distclean
 		fi ;\
 	fi
 
-build: checkenv $(BIN_TYPES)
+build: $(CHECKED_ENV) $(BIN_TYPES)
 
 .PHONY: install
 ifeq "$(wildcard $(bintype_mk_files))" ""
