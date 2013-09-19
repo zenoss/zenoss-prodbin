@@ -200,6 +200,10 @@ class CollectorDataPointGraphPoint(MetricServiceGraphPoint):
 
 
 class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
+    """
+    This is a specialized adapter for multi graph reports where we have metrics for multiple
+    contexts on a single adapter. 
+    """
     implements(templateInterfaces.IMetricServiceGraphDefinition)
 
     @property

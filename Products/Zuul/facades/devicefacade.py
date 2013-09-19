@@ -29,7 +29,6 @@ from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.Device import Device
 from Products.ZenMessaging.ChangeEvents.events import ObjectAddedToOrganizerEvent, \
     ObjectRemovedFromOrganizerEvent
@@ -37,7 +36,6 @@ from Products.Zuul import getFacade
 from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
-from Products.Zuul.infos.metricserver import CollectorMetricServiceGraphDefinition
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
 from Products.ZenEvents.Event import Event
