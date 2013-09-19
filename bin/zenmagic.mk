@@ -119,6 +119,12 @@ TOUCH        = touch
 TR           = tr
 XARGS        = xargs
 
+# Making use of .ONESHELL to simplify multi-line rules.
+# http://www.electric-cloud.com/blog/2010/08/03/gnu-make-3-82-is-out/
+REQD_MAKE_MIN_VER = 3.82
+REQD_MAKE_BRAND   = GNU
+CHECK_TOOLS_VERSION_BRAND += make:$(REQD_MAKE_MIN_VER):$(REQD_MAKE_BRAND)
+
 ifndef CHECK_TOOLS
 
     # Avoid odd error messages when the build ecosystem is incomplete by iterating
@@ -139,6 +145,7 @@ ifeq "$(COMPONENT_SRC)" ""
     DFLT_COMPONENT_SRC := $(shell $(FIND) $(SRC_DIR) -type f)
 endif
 
+
 ifeq "$(REQUIRES_JDK)" "1"
     POM ?= pom.xml
 
@@ -149,9 +156,7 @@ ifeq "$(REQUIRES_JDK)" "1"
     REQD_MVN_MIN_VER   = 3.0.0
     #REQD_MVN_BRAND    = Apache
 
-    ifndef CHECK_TOOLS_VERSION_BRAND
-        CHECK_TOOLS_VERSION_BRAND := java:$(REQD_JDK_MIN_VER):$(REQD_JDK_BRAND) mvn:$(REQD_MVN_MIN_VER):$(REQD_MVN_BRAND)
-    endif
+    CHECK_TOOLS_VERSION_BRAND += java:$(REQD_JDK_MIN_VER):$(REQD_JDK_BRAND) mvn:$(REQD_MVN_MIN_VER):$(REQD_MVN_BRAND)
 
     DFLT_MAVEN_OPTS = -DskipTests
     ifndef MAVEN_OPTS
@@ -386,9 +391,29 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 					exit 1;\
 				else \
 					desired_brand=`echo $${tool_version_brand} | cut -d":" -f3` ;\
-					actual_brand=`java -version 2>&1 | grep -v java | awk '{print $$1}' | sort -u | grep -i jdk` ;\
+					actual_brand=`$(JAVA) -version 2>&1 | grep -v java | awk '{print $$1}' | sort -u | grep -i jdk` ;\
 					if [ ! -z "$${desired_brand}" -a "$${actual_brand}" != "$${desired_brand}" ];then \
 						$(call echol,"ERROR: jdk brand is $${actual_brand}.  Expecting $${desired_brand}.") ;\
+						exit 1;\
+					fi ;\
+				fi ;\
+				;;\
+			"make") \
+				dotted_min_desired_ver=`echo $${tool_version_brand} | cut -d":" -f2` ;\
+				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				dotted_actual_ver=`make -v 2>&1 | head -1 | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'"` ;\
+				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				$(call echol,"CHKVER $${tool}  >= $${dotted_min_desired_ver}") ;\
+				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
+					$(call echol,"ERROR: make version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
+					$(call echol,"       Upgrade to avoid vexing 'unexpected end of file' errors.") ;\
+					exit 1;\
+				else \
+					desired_brand=`echo $${tool_version_brand} | cut -d":" -f3` ;\
+					actual_brand=`make -v 2>&1 | head -1 | awk '{print $$1}'` ;\
+					if [ ! -z "$${desired_brand}" -a "$${actual_brand}" != "$${desired_brand}" ];then \
+						$(call echol,"ERROR: make brand is $${actual_brand}.  Expecting $${desired_brand}.") ;\
+						$(call echol,"ERROR: make brand is $${actual_brand}.  Expecting $${desired_brand}.") ;\
 						exit 1;\
 					fi ;\
 				fi ;\
@@ -404,7 +429,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 					exit 1;\
 				else \
 					desired_brand=`echo $${tool_version_brand} | cut -d":" -f3` ;\
-					actual_brand=`mvn -version 2>&1 | head -1 | awk '{print $$1}'` ;\
+					actual_brand=`$(MVN) -version 2>&1 | head -1 | awk '{print $$1}'` ;\
 					if [ ! -z "$${desired_brand}" -a "$${actual_brand}" != "$${desired_brand}" ];then \
 						$(call echol,"ERROR: mvn brand is $${actual_brand}.  Expecting $${desired_brand}.") ;\
 						exit 1;\
@@ -463,18 +488,17 @@ ifeq "$(REQUIRES_JDK)" "1"
 	$(call cmd,MVN,clean)
 endif
 
-.ONESHELL: dflt_component_mrclean dflt_component_distclean
 .PHONY: dflt_component_mrclean dflt_component_distclean
 dflt_component_mrclean dflt_component_distclean: dflt_component_clean
-	@if [ -f "$(CHECKED_TOOLS_VERSION_BRAND)" ]; then
-		$(call cmd_noat,RM,$(CHECKED_TOOLS_VERSION_BRAND))
+	@if [ -f "$(CHECKED_TOOLS_VERSION_BRAND)" ]; then \
+		$(call cmd_noat,RM,$(CHECKED_TOOLS_VERSION_BRAND)) ;\
 	fi
-	if [ -f "$(CHECKED_TOOLS)" ]; then
-		$(call cmd_noat,RM,$(CHECKED_TOOLS))
+	@if [ -f "$(CHECKED_TOOLS)" ]; then \
+		$(call cmd_noat,RM,$(CHECKED_TOOLS)) ;\
 	fi
-	if [ -f "$(CHECKED_ENV)" ]; then
-		$(call cmd_noat,RM,$(CHECKED_ENV))
+	@if [ -f "$(CHECKED_ENV)" ]; then \
+		$(call cmd_noat,RM,$(CHECKED_ENV)) ;\
 	fi
-	if [ -f "$(BUILD_LOG)" ]; then
-		$(RM) $(BUILD_LOG)
+	@if [ -f "$(BUILD_LOG)" ]; then \
+		$(RM) $(BUILD_LOG) ;\
 	fi

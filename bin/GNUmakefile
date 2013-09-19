@@ -300,28 +300,26 @@ ifeq "$(filter $(no-include-targets),$(MAKECMDGOALS))" ""
     endif
 endif
 
-.ONESHELL: clean
 clean:
-	@if [ -d "$(BUILD_TOP)" ];then
-		if [ "$(ABS_BUILD_DIR)" != "$(ABS_SRC_DIR)" ];then
-			$(call cmd_noat,RMDIR,$(BUILD_TOP))
-		else
-			$(call echol,"Error: Ignorning request to remove the build directory which is")
-			$(call echol,"       currently the same as your source directory.")
-			$(call echol,$(LINE))
-			$(call echol,"       ABS_BUILD_DIR $(ABS_BUILD_DIR)")
-			$(call echol,"       ABS_SRC_DIR   $(ABS_SRC_DIR)")
-		fi
+	@if [ -d "$(BUILD_TOP)" ];then \
+		if [ "$(ABS_BUILD_DIR)" != "$(ABS_SRC_DIR)" ];then \
+			$(call cmd_noat,RMDIR,$(BUILD_TOP)) ;\
+		else \
+			$(call echol,"Error: Ignorning request to remove the build directory which is") ;\
+			$(call echol,"       currently the same as your source directory.") ;\
+			$(call echol,$(LINE)) ;\
+			$(call echol,"       ABS_BUILD_DIR $(ABS_BUILD_DIR)") ;\
+			$(call echol,"       ABS_SRC_DIR   $(ABS_SRC_DIR)") ;\
+		fi ;\
 	fi
-	$(foreach target_file,$(wildcard $(discovered_src) $(bintype_mk_files) .rediscover),$(call cmd_noat,RM,$(target_file));)
+	@$(foreach target_file,$(wildcard $(discovered_src) $(bintype_mk_files) .rediscover),$(call cmd_noat,RM,$(target_file));)
 
-.ONESHELL :mrclean distclean
 mrclean distclean: clean dflt_component_distclean
-	@if [ -d "$(_DESTDIR)$(_PREFIX)" ];then
-		count=$(shell ls -a1 $(_DESTDIR)$(_PREFIX) 2>/dev/null|wc -l)
-		if ((count >= 3 ));then
-			echo "You may also run 'make uninstall' to uninstall from $(_DESTDIR)$(_PREFIX)"
-		fi
+	@if [ -d "$(_DESTDIR)$(_PREFIX)" ];then \
+		count=$(shell ls -a1 $(_DESTDIR)$(_PREFIX) 2>/dev/null|wc -l) ;\
+		if ((count >= 3 ));then \
+			echo "You may also run 'make uninstall' to uninstall from $(_DESTDIR)$(_PREFIX)" ;\
+		fi ;\
 	fi
 
 build: checkenv $(BIN_TYPES)
