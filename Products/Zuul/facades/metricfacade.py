@@ -102,10 +102,10 @@ class MetricFacade(ZuulFacade):
             return data
         # if the returnSet is exact or all then organize the results into something more digestable
         for row in data:
-            uuid = row['tags']['uuid']
+            uuid, metric = row['metric'].split('_')
             if not results.get(uuid):
                 results[uuid] = defaultdict(list)
-            results[row['tags']['uuid']][row['metric']].append(dict(timestamp=row['timestamp'], value=row['value']))
+            results[uuid][metric].append(dict(timestamp=row['timestamp'], value=row['value']))
         return results
 
     def getValues(self, context, metrics, start=None, end=None,
@@ -139,13 +139,13 @@ class MetricFacade(ZuulFacade):
         # make sure we are always dealing with a list
         if not isinstance(contexts, (list, tuple)):
             contexts = [contexts]
-        
+
         for context in contexts:
             if isinstance(context, basestring):
                 subjects.append(self._getObject(context))
             else:
                 subjects.append(context)
-        
+
         # build the metrics section of the query
         datapoints = []
         for ds in metrics:
@@ -158,7 +158,8 @@ class MetricFacade(ZuulFacade):
                     continue
                 else:
                     # we have found a definition for a datapoint, use it and continue onp
-                    datapoints.append(self._buildMetric(dp, cf, extraRpn, format))
+                    for subject in subjects:
+                        datapoints.append(self._buildMetric(subject, dp, cf, extraRpn, format))
                     break
 
         # no valid datapoint names were entered
@@ -189,7 +190,7 @@ class MetricFacade(ZuulFacade):
             # there was an error returned by the metric service, log it here
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
             return {}
-
+        
         if content and content.get('results') is not None and returnSet=="LAST":
            # Output of this request should be something like this:
            # [{u'timestamp': 1376477481, u'metric': u'sysUpTime',
@@ -200,14 +201,14 @@ class MetricFacade(ZuulFacade):
            #
            results = defaultdict(dict)
            for r in content['results']:
-               results[r['tags']['uuid']][r['metric']] = r['value']
+               uuid, metric = r['metric'].split('_')
+               results[uuid][metric] = r['value']
            return results
         else:
            return content.get('results')
 
     def _buildRequest(self, contexts, metrics, start, end, returnSet):
         request = {
-            'tags': self._buildTagsFromContext(contexts),
             'returnset': returnSet,
             'start': start,
             'end': end,
@@ -215,10 +216,10 @@ class MetricFacade(ZuulFacade):
             }
         return request
 
-    def _buildTagsFromContext(self, contexts):
-        return dict(uuid=[context.getUUID() for context in contexts])
+    def _buildTagsFromContextAndMetric(self, context, dsId):
+        return dict(uuid=[context.getUUID()], datasource=[dsId])
 
-    def _buildMetric(self, dp, cf, extraRpn="", format=""):
+    def _buildMetric(self, context, dp, cf, extraRpn="", format=""):
         datasource = dp.datasource()
         dsId = datasource.id
         info = IInfo(dp)
@@ -226,13 +227,15 @@ class MetricFacade(ZuulFacade):
         # find out our aggregation function
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
         rateOptions = info.getRateOptions()
+        tags = self._buildTagsFromContextAndMetric(context, dsId)
         metric = dict(
             metric=dp.id,
             aggregator=agg,
             rpn=extraRpn,
             format=format,
-            tags={'datasource': [dsId]},
-            rate=info.rate
+            tags=tags,
+            rate=info.rate,
+            name=context.getUUID() + "_" + dp.id
         )
         if rateOptions:
             metric['rateOptions'] = rateOptions
