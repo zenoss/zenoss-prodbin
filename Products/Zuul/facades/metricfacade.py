@@ -102,7 +102,7 @@ class MetricFacade(ZuulFacade):
             return data
         # if the returnSet is exact or all then organize the results into something more digestable
         for row in data:
-            uuid, metric = row['metric'].split('_')
+            uuid, metric = row['metric'].split('_', 1)
             if not results.get(uuid):
                 results[uuid] = defaultdict(list)
             results[uuid][metric].append(dict(timestamp=row['timestamp'], value=row['value']))
@@ -201,7 +201,7 @@ class MetricFacade(ZuulFacade):
            #
            results = defaultdict(dict)
            for r in content['results']:
-               uuid, metric = r['metric'].split('_')
+               uuid, metric = r['metric'].split('_', 1)
                results[uuid][metric] = r['value']
            return results
         else:

@@ -16,6 +16,7 @@ from zope.component import getMultiAdapter
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import ITreeFacade, IReportFacade, IMetricServiceGraphDefinition
 from Products.Zuul.routers.report import reportTypes, essentialReportOrganizers
+from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
 
 _createMethods = [
     'manage_addDeviceReport',
@@ -89,6 +90,10 @@ class ReportFacade(TreeFacade):
         obj = self._getObject(uid)
         graphs = []
         for graphDef in obj.getDefaultGraphDefs():
-            info = getMultiAdapter((graphDef['graphDef'], graphDef['context']), IMetricServiceGraphDefinition)
+            if  graphDef['separateGraphs']:
+                info = getMultiAdapter((graphDef['graphDef'], graphDef['context']), IMetricServiceGraphDefinition)
+            else:
+                # specialized adapter for combined graph groups
+                info = MultiContextMetricServiceGraphDefinition(graphDef['graphDef'], graphDef['context'])
             graphs.append(info)
         return graphs

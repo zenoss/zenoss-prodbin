@@ -64,10 +64,6 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         if len(datapoints):
             return datapoints[0].type
 
-    @property
-    def tags(self):
-        return { 'uuid': [self._context.getUUID()] }
-
     def _getGraphPoints(self, klass):
         graphDefs = self._object.getGraphPoints(True)
         infos = [getMultiAdapter((g, self._context), templateInterfaces.IMetricServiceGraphPoint)
@@ -124,7 +120,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     
     @property
     def name(self):
-        return self._object.id
+        return "%s %s" % (self._context.id,self._object.id)
 
     @property
     def metric(self):
@@ -160,7 +156,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
     @property
     def tags(self):
-        return {'datasource': [self._object.dpName.split("_")[0]]}
+        return {'datasource': [self._object.dpName.split("_")[0]], 'uuid': [self._context.getUUID()]}
 
     @property
     def format(self):
@@ -201,3 +197,23 @@ class CollectorDataPointGraphPoint(MetricServiceGraphPoint):
     @property
     def tags(self):
         return {'daemon': [self._object.dpName.split("_")[0]]}
+
+
+class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
+    implements(templateInterfaces.IMetricServiceGraphDefinition)
+
+    @property
+    def contextTitle(self):
+        pass
+
+    def _getGraphPoints(self, klass):
+        """
+        For each context we have we need a new datapoint. 
+        """
+        graphDefs = self._object.getGraphPoints(True)
+        infos = []
+        for context in self._context:
+            infos.extend([getMultiAdapter((g, context), templateInterfaces.IMetricServiceGraphPoint)
+                          for g in graphDefs if isinstance(g, klass) ])
+        return infos
+
