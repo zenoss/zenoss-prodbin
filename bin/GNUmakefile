@@ -277,18 +277,21 @@ discover:
 .PHONY: manifests
 manifests: $(manifest_src)
 
+$(manifest_src): | $(CHECKED_ENV)
 ifeq "$(filter manifests install install-ascii install-shell install-python install-dosbat install-bash,$(MAKECMDGOALS))" ""
     ifeq "$(USE_MANIFEST_SRC)" "yes"
 $(manifest_src): | $(patsubst %.$(MANIFEST_SRC_EXT),%.$(DISCOVERED_SRC_EXT),$@)
-	$(call cmd,CP,$?,$@)
     else
 $(manifest_src): %.$(MANIFEST_SRC_EXT) : %.$(DISCOVERED_SRC_EXT)
-	$(call cmd,CP,$?,$@)
     endif
 else
 $(manifest_src): %.$(MANIFEST_SRC_EXT) : %.$(DISCOVERED_SRC_EXT)
-	$(call cmd,CP,$?,$@)
 endif
+	@if [ -f "$?" ];then \
+		$(call cmd_noat,CP,$?,$@) ;\
+	else \
+		$(error "Unable to create $@ from (missing) $(patsubst %.$(MANIFEST_SRC_EXT),%.$(DISCOVERED_SRC_EXT),$@)");\
+	fi
 
 help: dflt_component_help
 
