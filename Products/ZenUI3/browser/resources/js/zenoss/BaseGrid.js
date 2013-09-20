@@ -21,6 +21,11 @@
         setBaseParam:function (key, value) {
             this.proxy.extraParams[key] = value;
         },
+        setParamsParam:function (key, value) {
+            if (! this.proxy.extraParams.params)
+                this.proxy.extraParams.params = {};
+            this.proxy.extraParams.params[key] = value;
+        },
         onGuaranteedRange: function(range, start, end, options) {
             this.callParent(arguments);
             this.fireEvent('afterguaranteedrange', this);

@@ -25,7 +25,6 @@ from XmlRpcService import XmlRpcService
 
 import collections
 import heapq
-import socket
 import time
 import signal
 import cPickle as pickle
@@ -56,16 +55,17 @@ from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.ZenHub.services.RenderConfig import RenderConfig
 from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid, IHubConfProvider, IHubHeartBeatCheck
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
 from Products.ZenHub.WorkerSelection import WorkerSelector
+from Products.ZenUtils.metricwriter import MetricWriter
+from Products.ZenUtils.metricwriter import ThresholdNotifier
+from Products.ZenUtils.metricwriter import DerivativeTracker
+from zenoss.collector.publisher.publisher import HttpPostPublisher
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
-
-from BTrees.IIBTree import IITreeSet
 
 # Due to the manipulation of sys.path during the loading of plugins,
 # we can get ObjectMap imported both as DataMaps.ObjectMap and the
@@ -82,7 +82,6 @@ unused(DataMaps, ObjectMap)
 
 from Products.ZenHub import XML_RPC_PORT
 from Products.ZenHub import PB_PORT
-from Products.ZenHub import ZENHUB_ZENRENDER
 
 HubWorklistItem = collections.namedtuple('HubWorklistItem', 'priority recvtime deferred servicename instance method args')
 WorkerStats = collections.namedtuple('WorkerStats', 'status description lastupdate previdle')
@@ -100,14 +99,12 @@ class AuthXmlRpcService(XmlRpcService):
         XmlRpcService.__init__(self, dmd)
         self.checker = checker
 
-
     def doRender(self, unused, request):
         """
         Call the inherited render engine after authentication succeeds.
         See @L{XmlRpcService.XmlRpcService.Render}.
         """
         return XmlRpcService.render(self, request)
-
 
     def unauthorized(self, request):
         """
@@ -117,7 +114,6 @@ class AuthXmlRpcService(XmlRpcService):
         @return: None
         """
         self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
-
 
     def render(self, request):
         """
@@ -154,7 +150,6 @@ class HubAvitar(pb.Avatar):
 
     def __init__(self, hub):
         self.hub = hub
-
 
     def perspective_ping(self):
         return 'pong'
@@ -196,14 +191,17 @@ class HubAvitar(pb.Avatar):
         """
         worker.busy = False
         self.hub.workers.append(worker)
+
         def removeWorker(worker):
             if worker in self.hub.workers:
                 self.hub.workers.remove(worker)
+
         worker.notifyOnDisconnect(removeWorker)
 
 
 class ServiceAddedEvent(object):
     implements(IServiceAddedEvent)
+
     def __init__(self, name, instance):
         self.name = name
         self.instance = instance
@@ -211,19 +209,24 @@ class ServiceAddedEvent(object):
 
 class HubWillBeCreatedEvent(object):
     implements(IHubWillBeCreatedEvent)
+
     def __init__(self, hub):
         self.hub = hub
 
 
 class HubCreatedEvent(object):
     implements(IHubCreatedEvent)
+
     def __init__(self, hub):
         self.hub = hub
 
+
 class ParserReadyForOptionsEvent(object):
     implements(IParserReadyForOptionsEvent)
+
     def __init__(self, parser):
         self.parser = parser
+
 
 class HubRealm(object):
     """
@@ -253,7 +256,7 @@ class WorkerInterceptor(pb.Referenceable):
         self.service = service
 
     def remoteMessageReceived(self, broker, message, args, kw):
-        "Intercept requests and send them down to workers"
+        """Intercept requests and send them down to workers"""
         svc = str(self.service.__class__).rpartition('.')[0]
         instance = self.service.instance
         args = broker.unserialize(args)
@@ -276,7 +279,7 @@ class WorkerInterceptor(pb.Referenceable):
         return broker.serialize(deferred, self.perspective)
 
     def __getattr__(self, attr):
-        "Implement the HubService interface by forwarding to the local service"
+        """Implement the HubService interface by forwarding to the local service"""
         return getattr(self.service, attr)
 
 
@@ -323,6 +326,7 @@ class _ZenHubWorklist(object):
     def push(self, job):
         heapq.heappush(self[job.method], job)
     append = push
+
 
 class ZenHub(ZCmdBase):
     """
@@ -397,11 +401,11 @@ class ZenHub(ZCmdBase):
         # make sure we don't reserve more than n-1 workers for events
         maxReservedEventsWorkers = 0
         if self.options.workers:
-            maxReservedEventsWorkers = self.options.workers-1
+            maxReservedEventsWorkers = self.options.workers - 1
         if self.options.workersReservedForEvents > maxReservedEventsWorkers:
             self.options.workersReservedForEvents = maxReservedEventsWorkers
             self.log.info("reduced number of workers reserved for sending events to %d",
-                            self.options.workersReservedForEvents)
+                          self.options.workersReservedForEvents)
 
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
@@ -415,10 +419,6 @@ class ZenHub(ZCmdBase):
 
         xmlsvc = AuthXmlRpcService(self.dmd, checker)
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc), interface=interface)
-
-        #start listening for zenrender requests
-        if self.options.graph_proxy:
-            self.renderConfig = RenderConfig(self.dmd, ZENHUB_ZENRENDER )
 
         # responsible for sending messages to the queues
         import Products.ZenMessaging.queuemessaging
@@ -491,8 +491,15 @@ class ZenHub(ZCmdBase):
 
         from Products.ZenModel.BuiltInDS import BuiltInDS
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
-        createCommand = getattr(perfConf, 'defaultRRDCreateCommand', None)
-        rrdStats.config(perfConf.id, 'zenhub', threshs, createCommand)
+        threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
+
+        self.log.info('Will post metrics to: %s', self.options.metrics_store_url)
+        metric_writer = MetricWriter(HttpPostPublisher(
+            self.options.zauthUsername, self.options.zauthPassword, self.options.metrics_store_url))
+        derivative_tracker = DerivativeTracker()
+
+        rrdStats.config('zenhub', perfConf.id, metric_writer,
+                        threshold_notifier, derivative_tracker)
 
         return rrdStats
 
@@ -576,11 +583,12 @@ class ZenHub(ZCmdBase):
         if changes_dict is not None:
             processor = getUtility(IInvalidationProcessor)
             d = processor.processQueue(tuple(set(self._filter_oids(changes_dict))))
+
             def done(n):
                 if n:
                     self.log.debug('Processed %s oids' % n)
-            d.addCallback(done)
 
+            d.addCallback(done)
 
     def sendEvent(self, **kw):
         """
@@ -635,8 +643,9 @@ class ZenHub(ZCmdBase):
         """
         # Sanity check the names given to us
         if not self.dmd.Monitors.Performance._getOb(instance, False):
-            raise RemoteBadMonitor( "The provided performance monitor '%s'" % \
-                 self.options.monitor + " is not in the current list" )
+            raise RemoteBadMonitor("The provided performance monitor '%s'" %
+                                   self.options.monitor +
+                                   " is not in the current list")
 
         try:
             return self.services[name, instance]
@@ -702,7 +711,7 @@ class ZenHub(ZCmdBase):
         self.executionTimer[job.method][3] = now
         stats = self.workTracker.pop(wId, None)
         if stats:
-            elapsed  = now - stats.lastupdate
+            elapsed = now - stats.lastupdate
             self.executionTimer[job.method][2] += elapsed
             self.log.debug("worker %s, work %s finished in %s" % (wId, stats.description, elapsed))
         self.workTracker[wId] = WorkerStats('Error: %s' % error if error else 'Idle',
@@ -735,8 +744,8 @@ class ZenHub(ZCmdBase):
             job.deferred.callback(result)
 
         self.updateStatusAtFinish(wId, job, error)
-        reactor.callLater(0,self.giveWorkToWorkers)
-        returnValue(result)
+        reactor.callLater(0, self.giveWorkToWorkers)
+        yield returnValue(result)
 
     @inlineCallbacks
     def giveWorkToWorkers(self, requeue=False):
@@ -778,10 +787,10 @@ class ZenHub(ZCmdBase):
             self.workList.push(job)
 
         if incompleteJobs:
-            reactor.callLater(0,self.giveWorkToWorkers)
+            reactor.callLater(0, self.giveWorkToWorkers)
 
         if requeue and not self.shutdown:
-            reactor.callLater(5,self.giveWorkToWorkers, True)
+            reactor.callLater(5, self.giveWorkToWorkers, True)
 
     def _workerStats(self):
         now = time.time()
@@ -816,7 +825,7 @@ class ZenHub(ZCmdBase):
         workerconfigdir = os.path.dirname(self.workerconfig)
         if not os.path.exists(workerconfigdir):
             os.makedirs(workerconfigdir)
-        with open(self.workerconfig,'w') as workerfd:
+        with open(self.workerconfig, 'w') as workerfd:
             workerfd.write("hubport %s\n" % self.options.pbport)
             workerfd.write("username %s\n" % self.workerUsername)
             workerfd.write("password %s\n" % self.workerPassword)
@@ -871,7 +880,7 @@ class ZenHub(ZCmdBase):
         if NICE_PATH:
             exe = NICE_PATH
             args = (NICE_PATH, "-n", "%+d" % self.options.hubworker_priority,
-                zenPath('bin', 'zenhubworker'), 'run', '-C', self.workerconfig)
+                    zenPath('bin', 'zenhubworker'), 'run', '-C', self.workerconfig)
         else:
             exe = zenPath('bin', 'zenhubworker')
             args = (exe, 'run', '-C', self.workerconfig)
@@ -895,14 +904,13 @@ class ZenHub(ZCmdBase):
         reactor.callLater(seconds, self.heartbeat)
         r = self.rrdStats
         totalTime = sum(s.callTime for s in self.services.values())
-        events = r.counter('totalTime', seconds, int(self.totalTime * 1000))
-        events += r.counter('totalEvents', seconds, self.totalEvents)
-        events += r.gauge('services', seconds, len(self.services))
-        events += r.counter('totalCallTime', seconds, totalTime)
-        events += r.gauge('workListLength', seconds, len(self.workList))
+        r.counter('totalTime', int(self.totalTime * 1000))
+        r.counter('totalEvents', self.totalEvents)
+        r.gauge('services', len(self.services))
+        r.counter('totalCallTime', totalTime)
+        r.gauge('workListLength', len(self.workList))
         for name, value in self.counters.items():
-            events += r.counter(name, seconds, value)
-        self.zem.sendEvents(events)
+            r.counter(name, value)
 
         # persist counters values
         self.saveCounters()
@@ -975,9 +983,6 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--anyworker', dest='anyworker',
             action='store_true', default=False,
             help='Allow any priority job to run on any worker')
-        self.parser.add_option('--no-graph-proxy', dest='graph_proxy',
-            action='store_false', default=True,
-            help="Don't listen to proxy graph requests to zenrender")
         self.parser.add_option('--workers-reserved-for-events', dest='workersReservedForEvents',
             type='int', default=1,
             help="Number of worker instances to reserve for handling events")
@@ -987,6 +992,15 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--invalidation-poll-interval', 
             type='int', default=30,
             help="Interval at which to poll invalidations (default: %default)")
+        self.parser.add_option('--metrics-store-url', dest='metrics_store_url',
+            type='string', default='http://localhost:8080/api/metrics/store',
+            help='URL for posting internal metrics (default: %default)')
+        self.parser.add_option(
+            "--zauth-username", dest="zauthUsername", 
+            help="Username to use when publishing to metric consumer. Default is %default")
+        self.parser.add_option(
+            "--zauth-password", dest="zauthPassword", 
+            help="Password to use when publishing to metric consumer. Default is %default")
             
         notify(ParserReadyForOptionsEvent(self.parser))
 

@@ -12,21 +12,16 @@
 The configuration object for Performance servers
 """
 
-import os
-import zlib
-import socket
-from collections import namedtuple
-from base64 import urlsafe_b64encode
-from urllib import urlencode
-from ipaddr import IPAddress
 import logging
+
+from ipaddr import IPAddress
+
 log = logging.getLogger('zen.PerformanceConf')
 
 from zope import component
 
 from Products.ZenUtils.IpUtil import ipwrap
 
-import xmlrpclib
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Globals import DTMLFile
@@ -35,11 +30,10 @@ from Monitor import Monitor
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenRelations.RelSchema import ToMany, ToOne
 from Products.ZenUtils.deprecated import deprecated
-from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
+from Products.ZenUtils.Utils import binPath
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Utils import isXmlRpc
 from Products.ZenUtils.Utils import executeCommand
-from Products.ZenUtils.Utils import addXmlServerTimeout
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenModel.ZDeviceLoader import CreateDeviceJob
 from Products.ZenWidgets import messaging
@@ -48,33 +42,6 @@ from StatusColor import StatusColor
 
 
 SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float( getGlobalConfiguration().get('collectorRequestTimeout', 5) )
-
-PERF_ROOT = None
-
-"""
-Prefix for renderurl if zenoss is running a reverse proxy on the master. Prefix will be stripped when appropriate and
-requests for data will be made to the proxy server when appropriate.  Render url should be of the form "rev_proxy:/<path>" eg:
-"rev_proxy:/mypath" where /mypath should be proxied to an appropriate zenrender/renderserver by the installed proxy server
-"""
-REVERSE_PROXY = "rev_proxy:"
-
-ProxyConfig = namedtuple('ProxyConfig', ['useSSL', 'port'])
-
-def performancePath(target):
-    """
-    Return the base directory where RRD performance files are kept.
-
-    @param target: path to performance file
-    @type target: string
-    @return: sanitized path to performance file
-    @rtype: string
-    """
-    global PERF_ROOT
-    if PERF_ROOT is None:
-        PERF_ROOT = zenPath('perf')
-    if target.startswith('/'):
-        target = target[1:]
-    return os.path.join(PERF_ROOT, target)
 
 
 def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
@@ -109,7 +76,6 @@ class PerformanceConf(Monitor, StatusColor):
     Configuration for Performance servers
     """
     portal_type = meta_type = 'PerformanceConf'
-
     monitorRootName = 'Performance'
 
     security = ClassSecurityInfo()
@@ -133,24 +99,7 @@ class PerformanceConf(Monitor, StatusColor):
     maxPingFailures = 1440
 
     modelerCycleInterval = 720
-
-    renderurl = '/zport/RenderServer'
-    renderuser = ''
-    renderpass = ''
-
     discoveryNetworks = ()
-
-    # make the default rrdfile size smaller
-    # we need the space to live within the disk cache
-    defaultRRDCreateCommand = (
-        'RRA:AVERAGE:0.5:1:600',   # every 5 mins for 2 days
-        'RRA:AVERAGE:0.5:6:600',   # every 30 mins for 12 days
-        'RRA:AVERAGE:0.5:24:600',  # every 2 hours for 50 days
-        'RRA:AVERAGE:0.5:288:600', # every day for 600 days
-        'RRA:MAX:0.5:6:600',
-        'RRA:MAX:0.5:24:600',
-        'RRA:MAX:0.5:288:600',
-        )
 
     _properties = (
         {'id': 'eventlogCycleInterval', 'type': 'int', 'mode': 'w'},
@@ -162,11 +111,6 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'wmiqueryTimeout', 'type': 'int', 'mode': 'w',
          'description':"Number of milliseconds to wait for WMI query to respond",},
         {'id': 'configCycleInterval', 'type': 'int', 'mode': 'w'},
-        {'id': 'renderurl', 'type': 'string', 'mode': 'w'},
-        {'id': 'renderuser', 'type': 'string', 'mode': 'w'},
-        {'id': 'renderpass', 'type': 'string', 'mode': 'w'},
-        {'id': 'defaultRRDCreateCommand', 'type': 'lines', 'mode': 'w'
-         },
         {'id': 'zenProcessParallelJobs', 'type': 'int', 'mode': 'w'},
         {'id': 'pingTimeOut', 'type': 'float', 'mode': 'w'},
         {'id': 'pingTries', 'type': 'int', 'mode': 'w'},
@@ -207,26 +151,7 @@ class PerformanceConf(Monitor, StatusColor):
           },
         )
 
-    def _getRenderURLUtil(self):
-        context = RenderURLUtilContext(self.renderurl)
-        return component.getAdapter(context)
-
-    security.declareProtected('View', 'getDefaultRRDCreateCommand')
-    def getDefaultRRDCreateCommand(self):
-        """
-        Get the default RRD Create Command, as a string.
-        For example:
-        '''RRA:AVERAGE:0.5:1:600
-        RRA:AVERAGE:0.5:6:600
-        RRA:AVERAGE:0.5:24:600
-        RRA:AVERAGE:0.5:288:600
-        RRA:MAX:0.5:288:600'''
-
-        @return: RRD create command
-        @rtype: string
-        """
-        return '\n'.join(self.defaultRRDCreateCommand)
-
+    
 
     def findDevice(self, deviceName):
         """
@@ -250,193 +175,6 @@ class PerformanceConf(Monitor, StatusColor):
         @rtype: Network object
         """
         return self.dmd.Networks.getNetworkRoot(version)
-
-
-    def buildGraphUrlFromCommands(self, gopts, drange):
-        """
-        Return an URL for the given graph options and date range
-
-        @param gopts: graph options
-        @type gopts: string
-        @param drange: time range to use
-        @type drange: string
-        @return: URL to a graphic
-        @rtype: string
-        """
-        newOpts = []
-        width = 0
-        for o in gopts:
-            if o.startswith('--width'):
-                width = o.split('=')[1].strip()
-                continue
-            newOpts.append(o)
-
-        encodedOpts = urlsafe_b64encode(
-            zlib.compress('|'.join(newOpts), 9))
-        params = {
-            'gopts': encodedOpts,
-            'drange': drange,
-            'width': width,
-            }
-
-        url = self._getSanitizedRenderURL()
-        if self._getRenderURLUtil().proxiedByZenoss():
-            params['remoteHost'] = self.getRemoteRenderUrl()
-            url = '/zport/RenderServer'
-
-        url = '%s/render?%s' % (url, urlencode(params),)
-        return url
-
-    def _getSanitizedRenderURL(self):
-        """
-        remove any keywords/directives from renderurl.
-        example is "proxy://host:8091" is changed to "http://host:8091"
-        """
-        return self._getRenderURLUtil().getSanitizedRenderURL()
-
-    def performanceGraphUrl(self, context, targetpath, targettype, view, drange):
-        """
-        Set the full path of the target and send to view
-
-        @param context: Where you are in the Zope acquisition path
-        @type context: Zope context object
-        @param targetpath: device path of performance metric
-        @type targetpath: string
-        @param targettype: unused
-        @type targettype: string
-        @param view: view object
-        @type view: Zope object
-        @param drange: date range
-        @type drange: string
-        @return: URL to graph
-        @rtype: string
-        """
-        unused(targettype)
-        targetpath = performancePath(targetpath)
-        gopts = view.getGraphCmds(context, targetpath)
-        return self.buildGraphUrlFromCommands(gopts, drange)
-
-
-    def getRemoteRenderUrl(self):
-        """
-        return the full render url with http protocol prepended if the renderserver is remote.
-        Return empty string otherwise
-        """
-        return self._getRenderURLUtil().getRemoteRenderUrl()
-
-    def _get_render_server(self, allow_none=False,
-                           timeout=None):
-        if self.getRemoteRenderUrl():
-            renderurl = self.getRemoteRenderUrl()
-            # Going through the hub or directly to zenrender
-            log.info("Remote renderserver at %s", renderurl)
-            url = basicAuthUrl(str(self.renderuser),
-                               str(self.renderpass), renderurl)
-            server = xmlrpclib.Server(url, allow_none=allow_none)
-            if timeout is not None:
-                addXmlServerTimeout( server, timeout )
-        else:
-            if not self.renderurl:
-                raise KeyError("No render URL is defined")
-            server = self.getObjByPath(self.renderurl)
-        return server
-
-    def performanceCustomSummary(self, gopts,
-                                 timeout=SUMMARY_COLLECTOR_REQUEST_TIMEOUT ):
-        """
-        Fill out full path for custom gopts and call to server
-
-        @param gopts: graph options
-        @type gopts: string
-        @param timeout: the connection timeout in seconds. By default the value
-                       is 5s or the value for the global property 'collectorRequestTimeout'
-                       None translates to the global default
-                       socket timeout. 0 would translate to 'never timeout'.
-        @type timeout: float
-        @return: URL
-        @rtype: string
-        """
-        gopts = self._fullPerformancePath(gopts)
-        server = self._get_render_server(timeout=timeout)
-        try:
-            value = server.summary(gopts)
-            return value
-        except IOError, e:
-            log.error( "Error collecting performance summary from collector %s: %s",
-                       self.id, e )
-            log.debug( "Error collecting with params %s", gopts )
-
-    def fetchValues(self, paths, cf, resolution, start, end="",
-                    timeout=None):
-        """
-        Return values
-
-        NOTE: This is called for bulk metric fetch which
-              needs a more lenient timeout than performanceCustomSummary.
-
-        @param paths: paths to performance metrics
-        @type paths: list
-        @param cf: RRD CF
-        @type cf: string
-        @param resolution: resolution
-        @type resolution: string
-        @param start: start time
-        @type start: string
-        @param end: end time
-        @type end: string
-        @param timeout: the connection timeout in seconds. By default the value
-                       is None which translates to the global default
-                       socket timeout. 0 would translate to 'never timeout'.
-        @type timeout: float
-        @return: values
-        @rtype: list
-        """
-        server = self._get_render_server(allow_none=True, timeout=timeout)
-        return server.fetchValues(map(performancePath, paths), cf,
-                                  resolution, start, end)
-
-
-    def currentValues(self, paths, timeout=SUMMARY_COLLECTOR_REQUEST_TIMEOUT):
-        """
-        Fill out full path and call to server
-
-        NOTE: This call should be deprecated. The only internal clients
-              are now defunct.
-
-        @param paths: paths to performance metrics
-        @type paths: list
-        @param timeout: the connection timeout in seconds. By default the value
-                       is 5s or the value for the global property 'collectorRequestTimeout'
-                       None translates to the global default
-                       socket timeout. 0 would translate to 'never timeout'.
-        @type timeout: float
-        @return: values
-        @rtype: list
-        """
-        server = self._get_render_server(timeout=timeout)
-        return server.currentValues(map(performancePath, paths))
-
-
-    def _fullPerformancePath(self, gopts):
-        """
-        Add full path to a list of custom graph options
-
-        @param gopts: graph options
-        @type gopts: string
-        @return: full path + graph options
-        @rtype: string
-        """
-        for i in range(len(gopts)):
-            opt = gopts[i]
-            if opt.find('DEF') == 0:
-                opt = opt.split(':')
-                (var, file) = opt[1].split('=')
-                file = performancePath(file)
-                opt[1] = '%s=%s' % (var, file)
-                opt = ':'.join(opt)
-                gopts[i] = opt
-        return gopts
-
 
     security.declareProtected('View', 'performanceDeviceList')
     def performanceDeviceList(self, force=True):
@@ -481,33 +219,6 @@ class PerformanceConf(Monitor, StatusColor):
             dses.append(dstmpl % (ds.getName(), ds.rrdtype,
                         ds.getName(), inst))
         return '\n'.join(dses)
-
-    def deleteRRDFiles(self, device, datasource=None, datapoint=None):
-        """
-        Remove RRD performance data files
-
-        @param device: Name of a device or entry in DMD
-        @type device: string
-        @param datasource: datasource name
-        @type datasource: string
-        @param datapoint: datapoint name
-        @type datapoint: string
-        """
-        remoteUrl = None
-        renderurl = self.getRemoteRenderUrl() or self._getSanitizedRenderURL()
-        if renderurl.startswith('http'):
-            if datapoint:
-                remoteUrl = '%s/deleteRRDFiles?device=%s&datapoint=%s' % (
-                     renderurl, device, datapoint)
-            elif datasource:
-                remoteUrl = '%s/deleteRRDFiles?device=%s&datasource=%s' % (
-                     renderurl, device, datasource)
-            else:
-                remoteUrl = '%s/deleteRRDFiles?device=%s' % (
-                     renderurl, device)
-        rs = self.getDmd().getParentNode().RenderServer
-        rs.deleteRRDFiles(device, datasource, datapoint, remoteUrl)
-
 
     def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, REQUEST=None):
         """
@@ -788,70 +499,16 @@ class PerformanceConf(Monitor, StatusColor):
             result = executeCommand(zenmodelerCmd, REQUEST, write)
         return result
 
-
 class RenderURLUtilContext(object):
-    def __init__(self, renderurl):
-        self.renderurl = renderurl
-    
+    """
+    Deprecated
+    """
+    pass
+
 class RenderURLUtil(object):
-
-    def __init__(self, context):
-        self._renderurl = context.renderurl
-
-    def getSanitizedRenderURL(self):
-        """
-        remove any keywords/directives from renderurl.
-        example is "proxy://host:8091" is changed to "http://host:8091"
-        """
-        renderurl = self._renderurl
-        if renderurl.startswith('proxy'):
-            renderurl = renderurl.replace('proxy', 'http')
-        elif renderurl.startswith(REVERSE_PROXY):
-            renderurl = renderurl.replace(REVERSE_PROXY, '', 1)
-        return renderurl
-
-    def getRemoteRenderUrl(self):
-            """
-            return the full render url with http protocol prepended if the renderserver is remote.
-            Return empty string otherwise
-            """
-            renderurl = str(self._renderurl)
-            if renderurl.startswith('proxy'):
-                renderurl = renderurl.replace('proxy', 'http')
-            elif renderurl.startswith(REVERSE_PROXY):
-                renderurl =  self._get_reverseproxy_renderurl()
-            else:
-                # lookup utilities from zenpacks
-                if renderurl.startswith('/remote-collector/'):
-                    renderurl =  self._get_reverseproxy_renderurl(force=True)
-
-            if renderurl.lower().startswith('http'):
-                return renderurl
-            return ''
-
-    def proxiedByZenoss(self):
-        """
-        Should the render request be proxied by zenoss/zope
-        """
-        return self._renderurl.startswith('proxy')
-
-    def _get_reverseproxy_renderurl(self, force=False):
-        # DistributedCollector + WebScale scenario
-        renderurl = self._renderurl
-        if not force and not renderurl.startswith(REVERSE_PROXY):
-            raise Exception("Renderurl, %s, should start with %s to be proxied", renderurl, REVERSE_PROXY)
-        config = self._get_reverseproxy_config()
-        kwargs = dict(fqdn=socket.getfqdn(),
-                      port=config.port,
-                      protocol= 'https' if config.useSSL else 'http',
-                      path=str(self.getSanitizedRenderURL()).strip("/") + "/")
-        # take into account https
-        return '{protocol}://{fqdn}:{port}/{path}'.format(**kwargs)
-
-    def _get_reverseproxy_config(self):
-        # overridden by webscale -- see renderurlutil.py
-        http_port = 8080
-        return http_port
-
-
+    """
+    Deprecated
+    This is no longer used but the stub class so zenpacks will work on an upgrade.
+    """
+    pass
 InitializeClass(PerformanceConf)

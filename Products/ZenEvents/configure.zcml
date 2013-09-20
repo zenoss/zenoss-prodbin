@@ -20,4 +20,8 @@
         provides=".interfaces.ISignalProcessorTask"
         />
 
+    <include package="Products.ZenEvents" file="meta.zcml"/>
+    <eventIdentifierPlugin plugin=".events2.processing.BaseEventIdentifierPlugin"
+        name="default"/>
+
 </configure>

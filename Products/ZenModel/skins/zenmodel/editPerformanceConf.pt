@@ -123,46 +123,17 @@
     </tr>
     <tr>
       <td class="tableheader">
-	Default Discovery Networks
-	<br/>
-	(eg: 10.1.2.0/24)
+    Default Discovery Networks
+    <br/>
+    (eg: 10.1.2.0/24)
       </td>
       <td class="tablevalues">
-	<textarea class="tablevalues" title="" name="discoveryNetworks:lines"
-		  rows="3" cols="35"
-		  tal:content="python: '\n'.join(here.discoveryNetworks)"/>
+    <textarea class="tablevalues" title="" name="discoveryNetworks:lines"
+          rows="3" cols="35"
+          tal:content="python: '\n'.join(here.discoveryNetworks)"/>
       </td>
     </tr>
-    <tr>
-      <td class="tableheader" align="left">Render URL</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="renderurl" size="50"
-            tal:attributes="value here/renderurl" />
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Render User</td>
-      <td class="tablevalues">
-        <input class="tablevalues" autocomplete="off" type="text" name="renderuser" 
-            tal:attributes="value here/renderuser" />
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Render Password</td>
-      <td class="tablevalues">
-        <input class="tablevalues" autocomplete="off" type="password" name="renderpass" 
-            tal:attributes="value here/renderpass" />
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Default RRD Create Command</td>
-      <td class="tablevalues">
-          <textarea class="tablevalues" rows=5 cols=60
-                name="defaultRRDCreateCommand:lines" 
-                tal:content="python:'\n'.join(here.defaultRRDCreateCommand)">
-        </textarea>
-      </td>
-    </tr>
+    
     <tr>
         <td class=tableheader align="left" >
         </td>

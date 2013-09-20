@@ -119,7 +119,7 @@ Zenoss.nav.register({
                     text: _t('Refresh'),
                     handler: function(btn) {
                         if (cardid && Ext.getCmp(cardid)) {
-                            Ext.getCmp(cardid).resetSwoopies();
+                            Ext.getCmp(cardid).refresh();
                         }
                     }
                 }
@@ -993,7 +993,7 @@ Ext.define("Zenoss.component.OSProcessPanel", {
             },{
                 id: 'processName',
                 dataIndex: 'processName',
-                header: _t('Name')
+                header: _t('Example')
             },{
                 id: 'alertOnRestart',
                 dataIndex: 'alertOnRestart',

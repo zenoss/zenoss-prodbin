@@ -19,53 +19,60 @@ import collections
 import sys
 import time
 import traceback
+from urlparse import urlparse
 from hashlib import sha1
 from itertools import chain
 from functools import partial
-
+from zenoss.collector.publisher.publisher import RedisListPublisher
+from zenoss.collector.publisher import publisher
+from twisted.cred import credentials
+from twisted.internet import reactor, defer
+from twisted.internet.error import ConnectionLost, ReactorNotRunning, AlreadyCalled
+from twisted.spread import pb
+from twisted.python.failure import Failure
+import twisted.python.log
+from zope.interface import implements
+from zope.component import getUtilitiesFor
+from ZODB.POSException import ConflictError
 import Globals
-
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Utils import zenPath, atomicWrite
+from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
-                                                Clear, Warning
+    Clear, Warning
 from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
                                         ICollectorEventTransformer,
                                         TRANSFORM_DROP, TRANSFORM_STOP)
+from Products.ZenUtils.metricwriter import MetricWriter
+from Products.ZenUtils.metricwriter import DerivativeTracker
+from Products.ZenUtils.metricwriter import ThresholdNotifier
 
-from twisted.cred import credentials
-from twisted.internet import reactor, defer
-from twisted.internet.error import \
-        ConnectionLost, ReactorNotRunning, AlreadyCalled
-from twisted.spread import pb
-from twisted.python.failure import Failure
-import twisted.python.log
-
-from zope.interface import implements
-from zope.component import getUtilitiesFor
-
-from ZODB.POSException import ConflictError
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
-    "Exception that can cross the PB barrier"
+    """Exception that can cross the PB barrier"""
+
     def __init__(self, msg, tb):
         Exception.__init__(self, msg)
         self.traceback = tb
+
     def __str__(self):
         return "%s: %s" % (
             Exception.__str__(self), self.traceback or '<no traceback>')
 
 pb.setUnjellyableForClass(RemoteException, RemoteException)
 
+
 # ZODB conflicts
 class RemoteConflictError(RemoteException): pass
 pb.setUnjellyableForClass(RemoteConflictError, RemoteConflictError)
 
+
 # Invalid monitor specified
 class RemoteBadMonitor(RemoteException): pass
+
 
 def translateError(callable):
     """
@@ -100,13 +107,13 @@ startEvent = {
     'eventClass': App_Start, 
     'summary': 'started',
     'severity': Clear,
-    }
+}
 
 stopEvent = {
     'eventClass':App_Stop, 
     'summary': 'stopped',
     'severity': Warning,
-    }
+}
 
 
 DEFAULT_HUB_HOST = 'localhost'
@@ -115,7 +122,9 @@ DEFAULT_HUB_USERNAME = 'admin'
 DEFAULT_HUB_PASSWORD = 'zenoss'
 DEFAULT_HUB_MONITOR = 'localhost'
 
+
 class HubDown(Exception): pass
+
 
 class FakeRemote:
     def callRemote(self, *unused):
@@ -347,7 +356,6 @@ class DeDupingEventQueue(BaseEventQueue):
         return self.queue.itervalues()
 
 
-
 class EventQueueManager(object):
 
     CLEAR_FINGERPRINT_FIELDS = ('device','component','eventKey','eventClass')
@@ -438,7 +446,7 @@ class EventQueueManager(object):
 
         discarded = queue.append(event)
         self.log.debug("Queued event (total of %d) %r", len(self.event_queue),
-            event)
+                       event)
         if discarded:
             self.log.debug("Discarded event - queue overflow: %r", discarded)
             self._removeDiscardedEventFromClearState(discarded)
@@ -510,15 +518,14 @@ class EventQueueManager(object):
             # Remove any clear state for events that were discarded
             for discarded in chain(discarded_perf_events, discarded_events):
                 self.log.debug("Discarded event - queue overflow: %r",
-                    discarded)
+                               discarded)
                 self._removeDiscardedEventFromClearState(discarded)
             raise
 
     @property
     def event_queue_length(self):
         return len(self.event_queue) + len(self.perf_event_queue) + \
-               len(self.heartbeat_event_queue)
-
+            len(self.heartbeat_event_queue)
 
 
 class PBDaemon(ZenDaemon, pb.Referenceable):
@@ -542,9 +549,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         except IOError:
             import traceback
-            self.log.critical( traceback.format_exc( 0 ) )
+            self.log.critical(traceback.format_exc(0))
             sys.exit(1)
 
+        self._thresholds = None
+        self._threshold_notifier = None
         self.rrdStats = DaemonStats()
         self.lastStats = 0
         self.perspective = None
@@ -561,9 +570,35 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.loadCounters()
         self._pingedZenhub = None
         self._connectionTimeout = None
+        self._publisher = None
+        self._metric_writer = None
+        self._derivative_tracker = None
 
         # Add a shutdown trigger to send a stop event and flush the event queue
         reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
+
+    def publisher(self):
+        if not self._publisher:
+            host, port = urlparse(self.options.redisUrl).netloc.split(':')
+            try:
+                port = int(port)
+            except ValueError:
+                self.log.exception("redis url contains non-integer port " +
+                                   "value {port}, defaulting to {default}".
+                                   format(port=port, default=publisher.defaultRedisPort))
+                port = publisher.defaultRedisPort
+            self._publisher = RedisListPublisher(host, port, self.options.metricBufferSize)
+        return self._publisher
+
+    def metricWriter(self):
+        if not self._metric_writer:
+            self._metric_writer = MetricWriter(self.publisher())
+        return self._metric_writer
+
+    def derivativeTracker(self):
+        if not self._derivative_tracker:
+            self._derivative_tracker = DerivativeTracker()
+        return self._derivative_tracker
 
     def connecting(self):
         """
@@ -593,7 +628,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.initialConnect, d = None, self.initialConnect
             d2.chainDeferred(d)
 
-
     def connect(self):
         pingInterval = self.options.zhPingInterval
         factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=True,
@@ -622,12 +656,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def eventService(self):
         return self.getServiceNow('EventService')
         
-        
     def getServiceNow(self, svcName):
         if not svcName in self.services:
             self.log.warning('No service named %r: ZenHub may be disconnected' % svcName)
         return self.services.get(svcName, None) or FakeRemote()
-
 
     def getService(self, serviceName, serviceListeningInterface=None):
         """
@@ -686,20 +718,38 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         d.addErrback(errback)
         return d
 
-
     def connected(self):
         pass
 
+
+    def _getThresholdNotifier(self):
+        if not self._threshold_notifier:
+            self._threshold_notifier = ThresholdNotifier(self.sendEvent, self.getThresholds())
+        return self._threshold_notifier
+
+    def getThresholds(self):
+        if not self._thresholds:
+            self._thresholds = Thresholds()
+        return self._thresholds
+
+
     def run(self):
-        self.rrdStats.config(self.options.monitor, self.name, [])
+        threshold_notifier = self._getThresholdNotifier()
+        self.rrdStats.config(self.name,
+                             self.options.monitor,
+                             self.metricWriter(),
+                             threshold_notifier,
+                             self.derivativeTracker())
         self.log.debug('Starting PBDaemon initialization')
         d = self.connect()
+
         def callback(result):
             self.sendEvent(self.startEvent)
             self.pushEventsLoop()
             self.log.debug('Calling connected.')
             self.connected()
             return result
+
         d.addCallback(callback)
         d.addErrback(twisted.python.log.err)
         reactor.run()
@@ -725,8 +775,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         if 'EventService' in self.services:
             # send stop event if we don't have an implied --cycle,
             # or if --cycle has been specified
-            if not hasattr(self.options, 'cycle') or\
-               getattr(self.options, 'cycle', True):
+            if not hasattr(self.options, 'cycle') or \
+                    getattr(self.options, 'cycle', True):
                 self.sendEvent(self.stopEvent)
                 self.log.debug("Sent a 'stop' event")
             if self._pushEventsDeferred:
@@ -746,17 +796,17 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         map(self.sendEvent, events)
         
     def sendEvent(self, event, **kw):
-        ''' Add event to queue of events to be sent.  If we have an event
+        """ Add event to queue of events to be sent.  If we have an event
         service then process the queue.
-        '''
+        """
         generatedEvent = self.generateEvent(event, **kw)
         self.eventQueueManager.addEvent(generatedEvent)
         self.counters['eventCount'] += 1
 
     def generateEvent(self, event, **kw):
-        ''' Add event to queue of events to be sent.  If we have an event
+        """ Add event to queue of events to be sent.  If we have an event
         service then process the queue.
-        '''
+        """
         if not reactor.running: return
         event = event.copy()
         event['agent'] = self.name
@@ -772,14 +822,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         reactor.callLater(self.options.eventflushseconds, self.pushEventsLoop)
         yield self.pushEvents()
    
-        # Record the number of events in the queue every 5 minutes.
+        # Record the number of events in the queue up to every 2 seconds.
         now = time.time()
-        if self.rrdStats.name and now >= (self.lastStats + 300):
+        if self.rrdStats.name and now >= (self.lastStats + 2):
             self.lastStats = now
-            events = self.rrdStats.gauge('eventQueueLength',
-                300, self.eventQueueManager.event_queue_length)
-            for event in events:
-                self.eventQueueManager.addPerformanceEvent(event)
+            self.rrdStats.gauge(
+                'eventQueueLength', self.eventQueueManager.event_queue_length)
 
     @defer.inlineCallbacks
     def pushEvents(self):
@@ -824,7 +872,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             d.callback('sent')
 
     def heartbeat(self):
-        'if cycling, send a heartbeat, else, shutdown'
+        """if cycling, send a heartbeat, else, shutdown"""
         if not self.options.cycle:
             self.stop()
             return
@@ -833,12 +881,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         # heartbeat is normally 3x cycle time
         self.niceDoggie(self.heartbeatTimeout / 3)
 
-        events = []
         # save daemon counter stats
         for name, value in self.counters.items():
             self.log.info("Counter %s, value %d", name, value)
-            events += self.rrdStats.counter(name, 300, value)
-        self.sendEvents(events)
+            self.rrdStats.counter(name, value)
 
         # persist counters values
         self.saveCounters()
@@ -859,15 +905,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def remote_getName(self):
         return self.name
 
-
     def remote_shutdown(self, unused):
         self.stop()
         self.sigTerm()
 
-
     def remote_setPropertyItems(self, items):
         pass
-
 
     @translateError
     def remote_updateThresholdClasses(self, classes):
@@ -878,7 +921,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 importClass(c)
             except ImportError:
                 self.log.error("Unable to import class %s", c)
-
 
     def buildOptions(self):
         self.parser.add_option('--hubhost',
@@ -960,5 +1002,22 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                default=True,
                                action='store_false',
                                help='Disable event de-duplication')
+
+        self.parser.add_option('--redis-url',
+                               dest='redisUrl',
+                               type='string',
+                               default='redis://localhost:{default}/0'.format(default=publisher.defaultRedisPort),
+                               help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
+
+        self.parser.add_option('--metricBufferSize',
+                               dest='metricBufferSize',
+                               type='int',
+                               default=publisher.defaultMetricBufferSize,
+                               help='Number of metrics to buffer if redis goes down')
+        self.parser.add_option('--metricsChannel',
+                               dest='metricsChannel',
+                               type='string',
+                               default=publisher.defaultMetricsChannel,
+                               help='redis channel to which metrics are published')
 
         ZenDaemon.buildOptions(self)

@@ -19,7 +19,7 @@ from Products.AdvancedQuery import Eq, Or, Generic, And
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode
+from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
@@ -50,11 +50,10 @@ class DeviceCollectorChangeEvent(object):
     Collector change event for device.
     """
 
-    def __init__(self, context, collector, movedDevices, moveData, asynchronous):
+    def __init__(self, context, collector, movedDevices, asynchronous):
         self._context = context
         self._collector = collector
         self._movedDevices = movedDevices
-        self._moveData = moveData
         self._asynchronous = asynchronous
         self.jobs = []
 
@@ -69,10 +68,6 @@ class DeviceCollectorChangeEvent(object):
     @property
     def movedDevices(self):
         return self._movedDevices
-
-    @property
-    def moveData(self):
-        return self._moveData
 
     @property
     def asynchronous(self):
@@ -465,7 +460,7 @@ class DeviceFacade(TreeFacade):
             notify(IndexingEvent(info._object))
 
         event = DeviceCollectorChangeEvent(self.context, collector,
-                                          movedDevices, moveData, asynchronous)
+                                          movedDevices, asynchronous)
         notify(event) # This will put the job records on the event, maybe
         return event.jobs if event.jobs else None
 
@@ -655,7 +650,12 @@ class DeviceFacade(TreeFacade):
 
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
-        return obj.getDefaultGraphDefs(drange)
+        graphs = []
+        for graph in obj.getDefaultGraphDefs():
+            info = IMetricServiceGraphDefinition(graph)
+            info.setContext(obj)
+            graphs.append(info)
+        return graphs
 
     def addIpRouteEntry(self, uid, dest, routemask, nexthopid, interface,
                         routeproto, routetype, userCreated):

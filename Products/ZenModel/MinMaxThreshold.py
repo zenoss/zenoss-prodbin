@@ -1,14 +1,14 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
-from Products.ZenModel.ThresholdInstance import RRDThresholdInstance
+from Products.ZenModel.ThresholdInstance import MetricThresholdInstance
 
 __doc__= """MinMaxThreshold
 Make threshold comparisons dynamic by using TALES expresssions,
@@ -41,7 +41,7 @@ class MinMaxThreshold(ThresholdClass):
     """
     Threshold class that can evaluate RPNs and Python expressions
     """
-    
+
     minval = ""
     maxval = ""
     eventClass = Perf_Snmp
@@ -50,7 +50,7 @@ class MinMaxThreshold(ThresholdClass):
     description = ''
     explanation = ''
     resolution = ''
-    
+
     _properties = ThresholdClass._properties + (
         {'id':'minval',        'type':'string',  'mode':'w'},
         {'id':'maxval',        'type':'string',  'mode':'w'},
@@ -61,10 +61,10 @@ class MinMaxThreshold(ThresholdClass):
         )
 
     factory_type_information = (
-        { 
+        {
         'immediate_view' : 'editRRDThreshold',
         'actions'        :
-        ( 
+        (
         { 'id'            : 'edit'
           , 'name'          : 'Min/Max Threshold'
           , 'action'        : 'editRRDThreshold'
@@ -163,24 +163,24 @@ InitializeClass(MinMaxThreshold)
 MinMaxThresholdClass = MinMaxThreshold
 
 
-class MinMaxThresholdInstance(RRDThresholdInstance):
+class MinMaxThresholdInstance(MetricThresholdInstance):
     # Not strictly necessary, but helps when restoring instances from
     # pickle files that were not constructed with a count member.
     count = {}
-    
+
     def __init__(self, id, context, dpNames,
                  minval, maxval, eventClass, severity, escalateCount,
                  eventFields={}):
-        RRDThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
+        MetricThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
         self.count = {}
-        self.minimum = minval
-        self.maximum = maxval
+        self.minimum = minval if minval != '' else None
+        self.maximum = maxval if maxval != '' else None
         self.escalateCount = escalateCount
         self.eventFields = eventFields
 
     def countKey(self, dp):
         return ':'.join(self.context().key()) + ':' + dp
-        
+
     def getCount(self, dp):
         countKey = self.countKey(dp)
         if not countKey in self.count:
@@ -196,7 +196,7 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
 
     def resetCount(self, dp):
         self.count[self.countKey(dp)] = 0
-    
+
     def checkRange(self, dp, value):
         'Check the value for min/max thresholds'
         log.debug("Checking %s %s against min %s and max %s",
@@ -205,28 +205,27 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
             return []
         if isinstance(value, basestring):
             value = float(value)
-        thresh = None
 
-        # Handle all cases where both minimum and maximum are set.
-        if self.maximum is not None and self.minimum is not None:
-            if self.maximum >= self.minimum:
-                if value > self.maximum:
-                    thresh = self.maximum
-                    how = 'exceeded'
-                elif value < self.minimum:
-                    thresh = self.minimum
-                    how = 'not met'
-            elif self.maximum < value < self.minimum:
+        # Check the boundaries
+        minbounds = self.minimum is None or value >= self.minimum
+        maxbounds = self.maximum is None or value <= self.maximum
+        outbounds = None not in (self.minimum, self.maximum) and \
+                    self.minimum > self.maximum
+
+        thresh = None
+        how = None
+
+        if outbounds:
+            if not maxbounds and not minbounds:
                 thresh = self.maximum
                 how = 'violated'
-
-        # Handle simple cases where only minimum or maximum is set.
-        elif self.maximum is not None and value > self.maximum:
-            thresh = self.maximum
-            how = 'exceeded'
-        elif self.minimum is not None and value < self.minimum:
-            thresh = self.minimum
-            how = 'not met'
+        else:
+            if not maxbounds:
+                thresh = self.maximum
+                how = 'exceeded'
+            elif not minbounds:
+                thresh = self.minimum
+                how = 'not met'
 
         if thresh is not None:
             severity = self.severity
@@ -296,13 +295,12 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
         log.exception( msg )
         raise rpnThresholdException(msg)
 
-    def getGraphElements(self, template, context, gopts, namespace, color, 
-                         legend, relatedGps):
-        """Produce a visual indication on the graph of where the
-        threshold applies."""
-        unused(template, namespace)
-        if not color.startswith('#'):
-            color = '#%s' % color
+    def getGraphValues(self, relatedGps):
+        """
+        Returns the values that we want to include for the
+        visualization of this threshold. For a minmax we simply
+        display lines representing the minval and maxval.
+        """
         minval = self.minimum
         if minval is None or minval == '':
             minval = NaN
@@ -310,17 +308,18 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
         if maxval is None or maxval == '':
             maxval = NaN
         if not self.dataPointNames:
-            return gopts
+            return []
         gp = relatedGps[self.dataPointNames[0]]
 
         # Attempt any RPN expressions
         rpn = getattr(gp, 'rpn', None)
         if rpn:
             try:
-                rpn = talesEvalStr(rpn, context)
-            except:
+                rpn = talesEvalStr(rpn, self._context)
+            except Exception, e:
+                log.exception(e)
                 self.raiseRPNExc()
-                return gopts
+                return []
 
             try:
                 minval = rpneval(minval, rpn)
@@ -333,40 +332,18 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
             except:
                 maxval= 0
                 self.raiseRPNExc()
-        
-        minstr = self.setPower(minval)
-        maxstr = self.setPower(maxval)
 
         minval = nanToNone(minval)
         maxval = nanToNone(maxval)
-        if legend:
-            gopts.append(
-                "HRULE:%s%s:%s\\j" % (minval or maxval, color, legend))
-        elif minval is not None and maxval is not None:
-            if minval == maxval:
-                gopts.append(
-                    "HRULE:%s%s:%s not equal to %s\\j" % (minval, color,
-                        self.getNames(relatedGps), minstr))
-            elif minval < maxval:
-                gopts.append(
-                    "HRULE:%s%s:%s not within %s and %s\\j" % (minval, color,
-                        self.getNames(relatedGps), minstr, maxstr))
-                gopts.append("HRULE:%s%s" % (maxval, color))
-            elif minval > maxval:
-                gopts.append(
-                    "HRULE:%s%s:%s between %s and %s\\j" % (minval, color,
-                        self.getNames(relatedGps), maxstr, minstr))
-                gopts.append("HRULE:%s%s" % (maxval, color))
-        elif minval is not None :
-            gopts.append(
-                "HRULE:%s%s:%s less than %s\\j" % (minval, color,
-                    self.getNames(relatedGps), minstr))
-        elif maxval is not None:
-            gopts.append(
-                "HRULE:%s%s:%s greater than %s\\j" % (maxval, color,
-                    self.getNames(relatedGps), maxstr))
+        return [minval, maxval]
 
-        return gopts
+    def getGraphElements(self, template, context, gopts, namespace, color,
+                         legend, relatedGps):
+        """
+        Deprecated
+        Produce a visual indication on the graph of where the
+        threshold applies."""
+        pass
 
     def getNames(self, relatedGps):
         names = sorted(set(x.split('_', 1)[1] for x in self.dataPointNames))
@@ -377,7 +354,7 @@ class MinMaxThresholdInstance(RRDThresholdInstance):
         if number < 1000: return number
         for power in powers:
             number = number / 1000.0
-            if number < 1000:  
+            if number < 1000:
                 return "%0.2f%s" % (number, power)
         return "%.2f%s" % (number, powers[-1])
 

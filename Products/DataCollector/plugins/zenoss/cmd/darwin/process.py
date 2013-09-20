@@ -35,7 +35,7 @@ class process(CommandPlugin):
         for line in results.split("\n")[1:]:
             vals = line.split(None, 1)
             if len(vals) != 2: continue
-            proc = dict(procName=vals[0], parameters=vals[1])
+            proc = dict(processText=line.strip())
             om = self.objectMap(proc)
             rm.append(om)
         return rm

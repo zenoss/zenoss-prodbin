@@ -116,7 +116,7 @@ class ConfigurationProxy(object):
 
 class ConfigurationLoaderTask(ObservableMixin):
     """
-    A task that periodically retrieves collector configuration via the 
+    A task that periodically retrieves collector configuration via the
     IConfigurationProxy service.
     """
     zope.interface.implements(IScheduledTask)
@@ -218,8 +218,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         return result
 
     def _processThresholds(self, thresholds):
-        rrdCreateCommand = '\n'.join(self._prefs.defaultRRDCreateCommand)
-        self._daemon._configureRRD(rrdCreateCommand, thresholds)
+        self._daemon._configureThresholds(thresholds)
 
     def _processThresholdClasses(self, thresholdClasses):
         self._daemon._loadThresholdClasses(thresholdClasses)

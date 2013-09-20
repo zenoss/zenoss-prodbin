@@ -62,9 +62,5 @@ class EventService(HubService, ThresholdMixin):
             return None
 
     @translateError
-    def remote_getDefaultRRDCreateCommand(self):
-        return self.config.getDefaultRRDCreateCommand()
-
-    @translateError
     def remote_getDefaultPriority(self):
         return self.zem.defaultPriority

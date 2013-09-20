@@ -215,3 +215,20 @@ class ReportRouter(TreeRouter):
             paths.append('/'.join(tokens[:x]))
         nodes = [self._getFacade().getTree(id) for id in paths]
         return [Marshaller(node).marshal(localKeys) for node in nodes]
+
+    def getGraphReportDefs(self, uid, drange=None):
+        """
+        Returns the url and title for each graph
+        for the object passed in.
+        @type  uid: string
+        @param uid: unique identifier of an object
+        """
+        facade = self._getFacade()
+        data = facade.getGraphReportDefs(uid)
+        data = Zuul.marshal(data)
+        # show the context in the report title, otherwise the user
+        # has no idea which component the graph is for
+        for row in data:
+            row['title'] = row['contextTitle']
+        return DirectResponse(data=data)
+

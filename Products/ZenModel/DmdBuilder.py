@@ -41,7 +41,6 @@ from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenModel.ZenossInfo import manage_addZenossInfo
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
-from Products.ZenRRD.RenderServer import manage_addRenderServer
 from Products.ZenReports.ReportServer import manage_addReportServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
 from Products.ZenEvents.EventClass import manage_addEventClass
@@ -120,8 +119,6 @@ class DmdBuilder(object):
             perf.sub_class = 'PerformanceConf'
             perfConfId = 'localhost'
             manage_addPerformanceConf(perf, perfConfId)
-            perfConf = monitors.Performance._getOb(perfConfId)
-            perfConf.renderurl = '/zport/RenderServer'
 
     def buildUserCommands(self):
         for id, cmd, desc in (
@@ -171,7 +168,6 @@ class DmdBuilder(object):
         manage_addZenTableManager(self.portal)
         manage_addZenossInfo(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
-        manage_addRenderServer(self.portal, "RenderServer")
         manage_addReportServer(self.portal, "ReportServer")
         manage_addMySqlEventManager(self.dmd, evthost=self.evthost,
                                     evtuser=self.evtuser, evtpass=self.evtpass,

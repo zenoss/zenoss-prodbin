@@ -558,6 +558,10 @@ class Scheduler(object):
             totalFailedRuns += taskStats.failedRuns
         return totalFailedRuns
 
+    @property
+    def taskCount(self):
+        return len(self._tasks)
+
     def displayStatistics(self, verbose):
         totalRuns = 0
         totalFailedRuns = 0
