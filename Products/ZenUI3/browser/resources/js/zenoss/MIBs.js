@@ -420,10 +420,10 @@ MibBrowser = Ext.extend(Ext.Container, {
         Zenoss.env.currentUid = response.data.uid;
         var mib_form_left = Ext.getCmp('mib_form_left'),
             mib_form_right = Ext.getCmp('mib_form_right');
-        mib_form_left.name.setValue(response.data.name);
-        mib_form_left.contact.setValue(response.data.contact);
-        mib_form_right.language.setValue(response.data.language);
-        mib_form_right.description.setValue(response.data.description);
+        mib_form_left.name.setValue(Ext.htmlEncode(response.data.name));
+        mib_form_left.contact.setValue(Ext.htmlEncode(response.data.contact));
+        mib_form_right.language.setValue(Ext.htmlEncode(response.data.language));
+        mib_form_right.description.setValue(Ext.htmlEncode(response.data.description));
         Ext.getCmp('gridCardPanel').layout.activeItem.setContext(Zenoss.env.PARENT_CONTEXT);
     }
 });
