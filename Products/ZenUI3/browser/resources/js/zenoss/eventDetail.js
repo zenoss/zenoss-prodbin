@@ -364,7 +364,7 @@ Ext.onReady(function() {
                             sourceData.device_url,
                             sourceData.device_title);
                     }
-                    return val;
+                    return Ext.htmlEncode(val);
                 },
                 component: function(value, sourceData) {
                     var val = sourceData.component_title;
@@ -373,7 +373,7 @@ Ext.onReady(function() {
                             sourceData.component_url,
                             sourceData.component_title);
                     }
-                    return val;
+                    return Ext.htmlEncode(val);
                 },
                 eventClass: function(value, sourceData) {
                     return  Zenoss.render.EventClass(
@@ -407,8 +407,9 @@ Ext.onReady(function() {
                 message: function(value, sourceData) {
                     return Ext.htmlEncode(value);
                 },
-
-
+                eventClassKey: function(value, sourceData) {
+                    return Ext.htmlEncode(value);
+                },
                 DeviceGroups: function(value, sourceData) {
                     return Zenoss.render.LinkFromGridUidGroup(value);
                 },
