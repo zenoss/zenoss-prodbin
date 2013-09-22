@@ -6,7 +6,7 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 #============================================================================
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := build # build|help
 
 PROGRAM        = zensocket
 
@@ -16,12 +16,11 @@ PROGRAM_PERMS  = 04750
 PROGRAM_OWNER  = root
 ZENHOME       ?= /opt/zenoss
 PREFIX        ?= $(ZENHOME)/bin
-PREFIX         = inst
 INSTDIR        = $(DESTDIR)$(PREFIX)
 
 # Define build-related attributes
 
-OBJDIR              = obj
+BUILD_DIR           = obj
 INCLUDE_SYSINC_DEPS = no
 INCLUDE_DEBUG_SYMS  = yes
 CC                  = gcc
@@ -44,6 +43,34 @@ CPPFLAGS = -D__GNU_LIBRARY__
 #============================================================================
 # Convenience Macros
 #============================================================================
+
+#---------------------------------------------------------------------------#
+# Pull in zenmagic.mk
+#---------------------------------------------------------------------------#
+# Locate and include common build idioms tucked away in 'zenmagic.mk'
+# This holds convenience macros and default target implementations.
+#
+# Generate a list of directories starting here and going up the tree where we
+# should look for an instance of zenmagic.mk to include.
+#
+#     ./zenmagic.mk ../zenmagic.mk ../../zenmagic.mk ../../../zenmagic.mk
+#
+# Stop at the closest instance.  Also, stop if we hit a directory called 
+# 'obj' or 'src' since we're probably outside the sandbox otherwise.
+#---------------------------------------------------------------------------#
+NEAREST_ZENMAGIC_MK := $(word 1,$(wildcard ./zenmagic.mk $(shell for slash in $$(echo $(abspath .) | sed -e "s|.*\(/obj/\)\(.*\)|\1\2|g" -e "s|.*\(/src/\)\(.*\)|\1\2|g" | egrep "^/obj|^/src" | sed -e "s|[^/]||g" -e "s|/|/ |g"); do string=$${string}../;echo $${string}zenmagic.mk; done | xargs echo)))
+
+ifeq "$(NEAREST_ZENMAGIC_MK)" ""
+    $(warning "Missing zenmagic.mk")
+    $(warning "Unable to find our file of build idioms in the current or parent directories.")
+    $(error   "A fully populated src tree usually resolves that.")
+else
+    #ifneq "$(MAKECMDGOALS)" ""
+    #    $(warning "Including $(NEAREST_ZENMAGIC_MK) $(MAKECMDGOALS)")
+    #endif
+    include $(NEAREST_ZENMAGIC_MK)
+endif
+
 # Primitive to use when installing files.
 INSTALL  = install
 LINE     = "-----------------------------------------------------------------------------"
@@ -88,52 +115,84 @@ endef
 # Build Targets
 #============================================================================
 ifneq "$(MAKECMDGOALS)" "clean"
-    -include $(OBJDIR)/$(PROGRAM).d
+    -include $(BUILD_DIR)/$(PROGRAM).d
 endif
 
-.PHONY: all build 
-all build: $(OBJDIR)/$(PROGRAM)
+.PHONY: all build $(PROGRAM)
+all build $(PROGRAM): $(BUILD_DIR)/$(PROGRAM)
 
-$(OBJDIR) $(INSTDIR):
+$(BUILD_DIR):
 	mkdir -p $@
 
-$(OBJDIR)/$(PROGRAM): $(OBJDIR)/$(PROGRAM).o
+$(INSTDIR):
+	@echo mkdir -p $@
+	@if ! mkdir -p $@ ;then \
+		echo "[$@] Maybe you intended 'sudo make install' instead?" ;\
+		exit 1 ;\
+	fi
+
+$(BUILD_DIR)/$(PROGRAM): $(BUILD_DIR)/$(PROGRAM).o
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-$(OBJDIR)/$(PROGRAM).o: | $(PYTHON_INCDIR)
-$(OBJDIR)/$(PROGRAM).o: | $(OBJDIR)
-$(OBJDIR)/$(PROGRAM).o: $(PROGRAM).c
+$(BUILD_DIR)/$(PROGRAM).o: | $(PYTHON_INCDIR)
+$(BUILD_DIR)/$(PROGRAM).o: | $(BUILD_DIR)
+$(BUILD_DIR)/$(PROGRAM).o: $(PROGRAM).c
 	$(call make-depend,$<,$@,$(subst .o,.d,$@))
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
-OBJFILES = $(wildcard $(patsubst %,$(OBJDIR)/%,$(PROGRAM) $(PROGRAM).o $(PROGRAM).d))
+BUILT_FILES = $(wildcard $(patsubst %,$(BUILD_DIR)/%,$(PROGRAM) $(PROGRAM).o $(PROGRAM).d))
 .PHONY: clean
 clean:
-	@for objfile in $(OBJFILES);\
+	@for builtfile in $(BUILT_FILES);\
 	do \
-		echo "rm $${objfile}" ;\
-		rm $${objfile} ;\
+		echo "rm $${builtfile}" ;\
+		rm $${builtfile} ;\
 	done
-	@count=`ls -a1 $(OBJDIR) 2>/dev/null|wc -l` ;\
+	@count=`ls -a1 $(BUILD_DIR) 2>/dev/null|wc -l` ;\
 	if ((count < 3 ));then \
-		echo "rm -rf $(OBJDIR)" ;\
-		rm -rf $(OBJDIR) ;\
+		echo "rm -rf $(BUILD_DIR)" ;\
+		rm -rf $(BUILD_DIR) ;\
 	fi
 
 .PHONY: install
 install: | $(INSTDIR)
 install:
-	@if [ ! -f "$(OBJDIR)/$(PROGRAM)" ]; then \
-		echo "Unable to install $(PROGRAM).  Missing $(OBJDIR)/$(PROGRAM)." ;\
+	@if [ ! -f "$(BUILD_DIR)/$(PROGRAM)" ]; then \
+		echo "Unable to install $(PROGRAM).  Missing $(BUILD_DIR)/$(PROGRAM)." ;\
 		echo $(LINE) ;\
 		echo "Run 'make build' first" ;\
 		echo ;\
 		exit 1 ;\
 	fi
-	@echo "$(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(OBJDIR)/$(PROGRAM) $(INSTDIR)"
-	@if ! $(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(OBJDIR)/$(PROGRAM) $(INSTDIR) ;then \
+	@if [ -z "$(INSTDIR)" ]; then \
+		echo "[$@] Error: The INSTDIR variable must be set to something before I can install $(PROGRAM) there." ;\
+		exit 1 ;\
+	fi
+	@echo "$(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(BUILD_DIR)/$(PROGRAM) $(INSTDIR)"
+	@if ! $(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(BUILD_DIR)/$(PROGRAM) $(INSTDIR) ;then \
 		echo $(LINE) ;\
-		echo "Try 'sudo make install'" ;\
+		install_woe=`$(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(BUILD_DIR)/$(PROGRAM) $(INSTDIR) 2>&1` ;\
+		case $${install_woe} in \
+			*cannot*overwrite*directory*) \
+				echo "[$@] Error: Whoa. You seem to have a directory where a file was expected?" ;\
+				echo "                 Something went wrong or this is a hybrid dev environment." ;\
+				echo "                 Abandoning install attempt." ;\
+				ls -ld $(INSTDIR)/$(PROGRAM) ;\
+				:;;\
+			*cannot*change*ownership*) \
+				echo "[$@] Error: Here is what you attempted to overwrite:" ;\
+				ls -ld $(INSTDIR)/$(PROGRAM) ;\
+				echo "                 Maybe you intended 'sudo make install' instead?" ;\
+				:;;\
+			*Permission*denied*) \
+				echo "[$@] Error: Here is where you attempted to install:" ;\
+				ls -ld $(INSTDIR) ;\
+				echo "                 Maybe you intended 'sudo make install' instead?" ;\
+				:;;\
+			*) \
+				echo "Please investigate." ;\
+				:;;\
+		esac ;\
 		echo ;\
 		exit 1 ;\
 	fi
@@ -151,3 +210,8 @@ uninstall:
 		echo "rm -rf $(INSTDIR)" ;\
 		rm -rf $(INSTDIR) ;\
 	fi
+
+.PHONY: help
+help: dflt_component_help
+	@echo Using common build idioms from $(NEAREST_ZENMAGIC_MK)
+	@echo

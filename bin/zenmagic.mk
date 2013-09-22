@@ -40,7 +40,9 @@ _SAFE_UNINSTALL = $(strip $(SAFE_UNINSTALL))
 # If the install prefix has not been configured in, default to a 
 # component-defined install directory.
 
-PREFIX = @prefix@
+ifndef PREFIX
+    PREFIX ?= @prefix@
+endif
 ifeq "$(PREFIX)" "@prefix@"
     PREFIX := $(COMPONENT_PREFIX)
 endif
@@ -458,7 +460,7 @@ dflt_component_help:
 	@echo "where <target> is one or more of the following:"
 	@echo $(LINE)
 	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(EGREP) -v ".PHONY|:=|^\[|^\"|^\@|^\.|^echo"| $(SORT) |\
-	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(BUILD_DIR)\/|install|$(PREFIX)|^\/|^dflt_|clean|\.|\/" | $(PR) -t -w 80 -3
+	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(BUILD_DIR)\/|install|^$(PREFIX)\/|^\/|^dflt_|clean|\.|\/" | $(PR) -t -w 80 -3
 	@echo $(LINE)
 	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(EGREP) -v ".PHONY" | $(SORT) |\
 	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(BUILD_DIR)\/|^$(PREFIX)\/|^\/|^dflt_|clean|\.|\/" | $(EGREP) "^install|^devinstall" | $(PR) -t -w 80 -3
@@ -467,7 +469,6 @@ dflt_component_help:
 	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(BUILD_DIR)\/|^$(PREFIX)\/|^\/|^dflt_|\.|\/" | $(EGREP) "^clean|^un|clean" |  $(PR) -t -w 80 -3
 	@echo $(LINE)
 	@echo "Build results logged to $(BUILD_LOG)."
-	@echo
 
 .PHONY: dflt_devinstall
 dflt_devinstall: parent_target = $(shell echo $@ | sed -e "s/dflt_//g")
