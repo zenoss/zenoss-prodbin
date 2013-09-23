@@ -252,7 +252,7 @@ class DiscoverService(ModelerService):
     def remote_getSnmpConfig(self, devicePath):
         "Get the snmp configuration defaults for scanning a device"
         devroot = self.dmd.Devices.createOrganizer(devicePath)
-        ports = devroot.zSnmpDiscoveryPorts or [devroot.zSnmpPort]
+        ports = getattr(devroot, 'zSnmpDiscoveryPorts', None) or [devroot.zSnmpPort]
         return (devroot.zSnmpCommunities,
                 ports,
                 devroot.zSnmpVer,
