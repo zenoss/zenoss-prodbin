@@ -24,7 +24,7 @@ BUILD_DIR                = obj
 WITH_ZENOSS_PYTHON_DEVEL = yes
 INCLUDE_SYSINC_DEPS      = no
 PYTHON_MAJ_MIN_VER       = 2.7
-
+REQUIRES_GCC             = 1
 
 #============================================================================
 # Compiling and Linking Configuration
@@ -190,6 +190,7 @@ $(INSTDIR):
 $(BUILD_DIR)/$(PROGRAM): $(BUILD_DIR)/$(PROGRAM).o
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
+$(BUILD_DIR)/$(PROGRAM).o: | $(CHECKED_ENV)
 $(BUILD_DIR)/$(PROGRAM).o: | $(PYTHON_INCDIR)
 $(BUILD_DIR)/$(PROGRAM).o: | $(BUILD_DIR)
 $(BUILD_DIR)/$(PROGRAM).o: $(PROGRAM).c
@@ -204,10 +205,21 @@ clean:
 		echo "rm $${builtfile}" ;\
 		rm $${builtfile} ;\
 	done
-	@count=`ls -a1 $(BUILD_DIR) 2>/dev/null|wc -l` ;\
-	if ((count < 3 ));then \
-		echo "rm -rf $(BUILD_DIR)" ;\
-		rm -rf $(BUILD_DIR) ;\
+	@if [ -d "$(BUILD_DIR)" ];then \
+		count=`ls -a1 $(BUILD_DIR) 2>/dev/null|wc -l` ;\
+		if ((count < 3 ));then \
+			echo "rm -rf $(BUILD_DIR)" ;\
+			rm -rf $(BUILD_DIR) ;\
+		fi ;\
+	fi
+
+.PHONY: mrclean distclean
+mrclean distclean: clean dflt_component_distclean
+	@if [ -e "$(INSTDIR)/$(PROGRAM)" ];then \
+		count=$(shell ls -a1 $(INSTDIR) 2>/dev/null|wc -l) ;\
+		if ((count >= 3 ));then \
+			echo "You may also run 'make uninstall' to uninstall $(PROGRAM) from $(INSTDIR)" ;\
+		fi ;\
 	fi
 
 .PHONY: install

@@ -104,6 +104,8 @@ CUT          = cut
 DATE         = date
 EGREP        = egrep
 FIND         = find
+GCC         ?= gcc
+CC           = $(GCC)
 GREP         = grep
 HEAD         = head
 INSTALL      = install
@@ -111,7 +113,9 @@ JAVA         = java
 LN           = ln
 MKDIR        = mkdir
 MVN          = mvn
+PIP          = pip
 PR           = pr
+PYTHON       = python
 RM           = rm
 SED          = sed
 SORT         = sort
@@ -135,9 +139,9 @@ ifndef CHECK_TOOLS
     #
     # Easy to override at component level for component-specific tool sets.
 
-    CHECK_TOOLS := $(AWK)  $(CUT) $(DATE)  $(EGREP) $(FIND) $(HEAD) 
-    CHECK_TOOLS += $(JAVA) $(LN)  $(MKDIR) $(MVN)   $(PR)   $(RM)
-    CHECK_TOOLS += $(SED)  $(SORT) $(TAR) $(TEE)   $(TOUCH) $(XARGS)
+    CHECK_TOOLS := $(AWK)  $(CUT) $(DATE)  $(EGREP) $(FIND) $(GCC)   $(HEAD) 
+    CHECK_TOOLS += $(JAVA) $(LN)  $(MKDIR) $(MVN)   $(PIP)  $(PR)    $(PYTHON)
+    CHECK_TOOLS += $(RM)   $(SED) $(SORT)  $(TAR)   $(TEE)  $(TOUCH) $(XARGS)
 
 endif
 CHECK_TOOLS += $($(_COMPONENT)_CHECK_TOOLS)
@@ -147,6 +151,13 @@ ifeq "$(COMPONENT_SRC)" ""
     DFLT_COMPONENT_SRC := $(shell $(FIND) $(SRC_DIR) -type f)
 endif
 
+ifeq "$(REQUIRES_GCC)" "1"
+    # These become subsitution variables once our configure script is aware
+    # of this makefile.
+    REQD_GCC_MIN_VER = 4.0.0
+
+    CHECK_TOOLS_VERSION_BRAND += gcc:$(REQD_GCC_MIN_VER):
+endif
 
 ifeq "$(REQUIRES_JDK)" "1"
     POM ?= pom.xml
@@ -382,12 +393,23 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 	do \
 		tool=`echo $${tool_version_brand} | cut -d":" -f1`;\
 		case "$${tool}" in \
+			"gcc") \
+				dotted_min_desired_ver=`echo $${tool_version_brand} | cut -d":" -f2` ;\
+				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				dotted_actual_ver=`$(GCC) -dumpversion 2>&1 | head -1 | $(AWK) '{print $$1}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
+				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
+				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
+					$(call echol,"ERROR: gcc version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
+					exit 1;\
+				fi ;\
+				;;\
 			"java") \
 				dotted_min_desired_ver=`echo $${tool_version_brand} | cut -d":" -f2` ;\
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(JAVA) -version 2>&1 | grep "^java version" | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool} >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}   >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: java version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -405,7 +427,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`make -v 2>&1 | head -1 | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'"` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}  >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}   >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: make version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					$(call echol,"       Upgrade to avoid vexing 'unexpected end of file' errors.") ;\
@@ -425,7 +447,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(MVN) -version 2>&1 | head -1 | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}  >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: mvn version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -437,6 +459,33 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 						exit 1;\
 					fi ;\
 				fi ;\
+				;;\
+			"pip") \
+				dotted_min_desired_ver=`echo $${tool_version_brand} | cut -d":" -f2` ;\
+				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				dotted_actual_ver=`$(PIP) -V 2>&1 | head -1 | $(AWK) '{print $$2}' | tr -d '"' | tr -d "'"` ;\
+				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
+				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
+					$(call echol,"ERROR: mvn version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
+					exit 1;\
+				fi ;\
+				;;\
+			"python") \
+				dotted_min_desired_ver=`echo $${tool_version_brand} | cut -d":" -f2` ;\
+				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				dotted_actual_ver=`$(PYTHON) -V 2>&1 | head -1 | $(AWK) '{print $$2}' | tr -d '"' | tr -d "'"` ;\
+				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				$(call echol,"CHKVER $${tool} >= $${dotted_min_desired_ver}") ;\
+				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
+					$(call echol,"ERROR: python version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
+					exit 1;\
+				fi ;\
+				;;\
+			*) \
+				$(call echol,"ERROR: You're asking me to check the version of a tool i don't know about: $${tool}") ;\
+				$(call echol,"       Please update the $@ target portion of zenmagic.mk with the proper fu.") ;\
+				exit 1;\
 				;;\
 		esac ;\
 	done
