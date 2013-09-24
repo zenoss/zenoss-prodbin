@@ -581,11 +581,4 @@ Ext.override(Ext.util.Sorter, {
             return !! snapshot && snapshot !== this.getRootNode();
         }
     });
-
-
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 8f94551... ZEN-8376: Fixing a set of security vulnerabilities
 }());
