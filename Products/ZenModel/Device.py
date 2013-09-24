@@ -41,6 +41,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
 from ZODB.POSException import POSError
+from BTrees.OOBTree import OOSet
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
@@ -220,6 +221,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     comments = ""
     sysedgeLicenseMode = ""
     priority = 3
+    macaddresses = None
 
 
     # Flag indicating whether device is in process of creation
@@ -2211,12 +2213,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if ip:
             return str(numbip(ip))
 
+    def getMacAddressCache(self):
+        if self.macaddresses is None:
+            self.macaddresses = OOSet()
+
+        return self.macaddresses
+
     def getMacAddresses(self):
-        macs = []
-        if hasattr(self, 'os') and hasattr(self.os, 'interfaces'):
-            for intf in self.os.interfaces():
-                if intf.macaddress:
-                    macs.append(intf.macaddress)
-        return macs
-    
+        return list(self.macaddresses or [])
+
 InitializeClass(Device)

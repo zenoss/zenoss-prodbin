@@ -39,6 +39,7 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenModel.Linkable import Layer2Linkable
 
 from Products.ZenModel.ZenossSecurity import *
+from Products.Zuul.catalog.events import IndexingEvent
 
 
 _IPADDRESS_CACHE_ATTR = "_v_ipaddresses"
@@ -189,6 +190,10 @@ class IpInterface(OSComponent, Layer2Linkable):
             ip.index_object()
         self._invalidate_ipaddress_cache()
 
+        if self.macaddress:
+            if (self.device().getMacAddressCache().add(self.macaddress)): 
+                notify(IndexingEvent(self.device(), idxs=('macAddresses',), update_metadata=False))
+
     def unindex_object(self):
         """
         Override the default so that links are unindexed.
@@ -199,6 +204,13 @@ class IpInterface(OSComponent, Layer2Linkable):
         for ip in self.ipaddresses():
             ip.index_object()
 
+        macs = self.device().getMacAddressCache()
+        try: 
+            macs.remove(self.macaddress)
+            notify(IndexingEvent(self.device(), idxs=('macAddresses',), update_metadata=False))
+        except KeyError:
+            pass
+            
     def manage_deleteComponent(self, REQUEST=None):
         """
         Reindexes all the ip addresses on this interface
@@ -332,7 +344,6 @@ class IpInterface(OSComponent, Layer2Linkable):
             ipobj.index_object()
         for ip in localips:
             self._ipAddresses.remove(ip)
-
 
     def removeIpAddress(self, ip):
         """
