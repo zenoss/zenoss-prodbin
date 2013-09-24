@@ -25,6 +25,7 @@ WITH_ZENOSS_PYTHON_DEVEL = yes
 INCLUDE_SYSINC_DEPS      = no
 PYTHON_MAJ_MIN_VER       = 2.7
 REQUIRES_GCC             = 1
+IGNORE_LD_LIBRARY_PATH   = yes
 
 #============================================================================
 # Compiling and Linking Configuration
@@ -78,7 +79,23 @@ ifeq "$(WITH_ZENOSS_PYTHON_DEVEL)" "yes"
     # See: http://man7.org/linux/man-pages/man8/ld.so.8.html  (search on ORIGIN).
     
     LIBPYTHON_RPATH = '$$ORIGIN/../lib'
-    RPATH_OPT       = -Wl,-rpath,$(LIBPYTHON_RPATH) -Wl,-z,origin
+    ifeq "$(IGNORE_LD_LIBRARY_PATH)" "yes"
+        # Ignore LD_LIBRARY_PATH when it comes to resolving the location of
+        # libpython*.so at runtime.
+        RPATH_OPT       = -Wl,-rpath,$(LIBPYTHON_RPATH) -Wl,-z,origin
+    else
+        # Allow LD_LIBRARY_PATH to influence the search path for shared libraries at
+        # runtime.
+        #
+        # Adding --enable-new-dtags sets RPATH /and/ RUNPATH to the same value
+        # within the ELF dynamic string table. The presence of RUNPATH causes RPATH 
+        # to be ignored at runtime.  RUNPATH provides a mechanism for setting
+        # default search directories that may be overridden by LD_LIBRARY_PATH
+        # on the deployed system.
+        #
+        # See: http://blog.tremily.us/posts/rpath/
+        RPATH_OPT       = -Wl,-rpath,$(LIBPYTHON_RPATH),--enable-new-dtags -Wl,-z,origin
+    endif
 else
     PYTHON_INCDIR  = /usr/include/python$(PYTHON_MAJ_MIN_VER)
     PYTHON_LIBDIR  = /usr/lib64
@@ -284,3 +301,62 @@ help: dflt_component_help
 	@echo Using common build idioms from $(NEAREST_ZENMAGIC_MK)
 	@echo
 
+check: | $(BUILD_DIR)
+check:
+	@if [ ! -f "$(BUILD_DIR)/$(PROGRAM)" ]; then \
+		echo "Unable to check $(PROGRAM).  Missing $(BUILD_DIR)/$(PROGRAM)." ;\
+		echo $(LINE) ;\
+		echo "Run 'make build' first" ;\
+		echo ;\
+		exit 1 ;\
+	fi
+ifeq "$(IGNORE_LD_LIBRARY_PATH)" "yes"
+	@echo -en "Checking that $(BUILD_DIR)/$(PROGRAM) will ignore LD_LIBRARY_PATH: " ;\
+	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1 ;then \
+		echo "[FAIL]" ;\
+		echo $(LINE) ;\
+		echo "The presence of RUNPATH in the dynamic string table of $(PROGRAM) indicates" ;\
+		echo "the environment variable, LD_LIBRARY_PATH, will influence the dynamic loader's" ;\
+		echo "search path for finding shared libraries required by $(PROGRAM)." ;\
+		echo ;\
+		echo "See: http://blog.tremily.us/posts/rpath/" ;\
+		echo ;\
+		echo "$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RUNPATH" ;\
+		$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RUNPATH | xargs echo ;\
+		echo ;\
+		exit 1 ;\
+	else \
+		echo "[PASS]" ;\
+	fi
+else
+	@echo -en "Checking that $(BUILD_DIR)/$(PROGRAM) will honor LD_LIBRARY_PATH: " ;\
+	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1	;then \
+		echo "[PASS]" ;\
+	else \
+		if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RPATH ;then \
+			echo "[FAIL]" ;\
+			echo $(LINE) ;\
+			echo "The presence of RPATH and absence of RUNPATH in the dynamic string table of $(PROGRAM) indicates" ;\
+			echo "LD_LIBRARY_PATH will be ignored by the dynamic loader when searching for shared libraries" ;\
+			echo "needed by $(PROGRAM)." ;\
+			echo ;\
+			echo "See: http://blog.tremily.us/posts/rpath/" ;\
+			echo ;\
+			echo "$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep PATH" ;\
+			$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep PATH | sed -e "s| [ ]*| |g" ;\
+			echo ;\
+			exit 1 ;\
+		else \
+			echo "[PASS]" ;\
+		fi ;\
+	fi
+endif
+	@echo -en "Checking list of shared libraries needed by $(BUILD_DIR)/$(PROGRAM) at runtime: " ;\
+	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep NEEDED 1>/dev/null 2>&1	;then \
+		echo ;\
+		echo $(LINE) ;\
+		$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep NEEDED |sed -e "s|.*\(NEEDED.*\)|\1|g" -e "s|)||g" -e "s| [ ]*| |g" ;\
+	else \
+		echo "[FAIL]" ;\
+		echo "[$@] Error: Unable to dump the list of shared libraries required by $(BUILD_DIR)/$(PROGRAM)." ;\
+	fi

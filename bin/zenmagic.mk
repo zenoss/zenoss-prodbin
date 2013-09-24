@@ -139,9 +139,9 @@ ifndef CHECK_TOOLS
     #
     # Easy to override at component level for component-specific tool sets.
 
-    CHECK_TOOLS := $(AWK)  $(CUT) $(DATE)  $(EGREP) $(FIND) $(GCC)   $(HEAD) 
-    CHECK_TOOLS += $(JAVA) $(LN)  $(MKDIR) $(MVN)   $(PIP)  $(PR)    $(PYTHON)
-    CHECK_TOOLS += $(RM)   $(SED) $(SORT)  $(TAR)   $(TEE)  $(TOUCH) $(XARGS)
+    CHECK_TOOLS  = $(AWK)  $(CUT)     $(DATE)  $(EGREP) $(FIND) $(GCC)  $(HEAD) 
+    CHECK_TOOLS += $(JAVA) $(LN)      $(MKDIR) $(MVN)   $(PIP)  $(PR)   $(PYTHON)
+    CHECK_TOOLS += $(RM)   $(READELF) $(SED)   $(SORT)  $(TAR)  $(TEE)  $(TOUCH) $(XARGS)
 
 endif
 CHECK_TOOLS += $($(_COMPONENT)_CHECK_TOOLS)
@@ -155,8 +155,11 @@ ifeq "$(REQUIRES_GCC)" "1"
     # These become subsitution variables once our configure script is aware
     # of this makefile.
     REQD_GCC_MIN_VER = 4.0.0
-
     CHECK_TOOLS_VERSION_BRAND += gcc:$(REQD_GCC_MIN_VER):
+
+    READELF = readelf
+    #REQD_READELF_MIN_VER = 2.22
+    #CHECK_TOOLS_VERSION_BRAND += readelf:$(REQD_READELF_MIN_VER):
 endif
 
 ifeq "$(REQUIRES_JDK)" "1"
@@ -398,7 +401,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(GCC) -dumpversion 2>&1 | head -1 | $(AWK) '{print $$1}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}     >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: gcc version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -409,7 +412,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(JAVA) -version 2>&1 | grep "^java version" | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}   >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: java version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -427,7 +430,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`make -v 2>&1 | head -1 | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'"` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}   >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: make version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					$(call echol,"       Upgrade to avoid vexing 'unexpected end of file' errors.") ;\
@@ -447,7 +450,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(MVN) -version 2>&1 | head -1 | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}     >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: mvn version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -465,7 +468,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(PIP) -V 2>&1 | head -1 | $(AWK) '{print $$2}' | tr -d '"' | tr -d "'"` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}     >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: mvn version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -476,9 +479,20 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(PYTHON) -V 2>&1 | head -1 | $(AWK) '{print $$2}' | tr -d '"' | tr -d "'"` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool} >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"CHKVER $${tool}  >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: python version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
+					exit 1;\
+				fi ;\
+				;;\
+			"readelf") \
+				dotted_min_desired_ver=`echo $${tool_version_brand} | cut -d":" -f2` ;\
+				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				dotted_actual_ver=`$(READELF) -v | head -1 | sed -e "s|[^0-9,.,-, ]||g" | cut -d"." -f1-3 | xargs echo` ;\
+				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
+				$(call echol,"CHKVER $${tool} >= $${dotted_min_desired_ver}") ;\
+				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
+					$(call echol,"ERROR: readelf version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
 				fi ;\
 				;;\
