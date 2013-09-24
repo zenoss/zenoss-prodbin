@@ -171,7 +171,10 @@ class IMetricServiceGraphDefinition(Interface):
     """
     Adapts a graph definition for being sent over to the server
     """
-    
+
+class IMetricServiceGraphPoint(Interface):
+    pass
+
 class ITemplateFacade(IFacade):
     """
     A facade for monitoring templates.

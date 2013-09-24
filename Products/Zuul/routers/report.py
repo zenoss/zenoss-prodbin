@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -58,7 +58,7 @@ class ReportRouter(TreeRouter):
         self.api = Zuul.getFacade('reports')
         self.context = context
         self.request = request
-        self.keys = ('deletable', 'edit_url')
+        self.keys = ('deletable', 'edit_url', 'isMultiGraphReport', 'isGraphReport')
         super(ReportRouter, self).__init__(context, request)
 
     def _getFacade(self):
@@ -216,15 +216,7 @@ class ReportRouter(TreeRouter):
         nodes = [self._getFacade().getTree(id) for id in paths]
         return [Marshaller(node).marshal(localKeys) for node in nodes]
 
-    def getGraphReportDefs(self, uid, drange=None):
-        """
-        Returns the url and title for each graph
-        for the object passed in.
-        @type  uid: string
-        @param uid: unique identifier of an object
-        """
-        facade = self._getFacade()
-        data = facade.getGraphReportDefs(uid)
+    def _correctReportTitles(self, data):
         data = Zuul.marshal(data)
         # show the context in the report title, otherwise the user
         # has no idea which component the graph is for
@@ -232,3 +224,22 @@ class ReportRouter(TreeRouter):
             row['title'] = row['contextTitle']
         return DirectResponse(data=data)
 
+    def getGraphReportDefs(self, uid, drange=None):
+        """
+        Returns the json necessary for rendering graphs with the metric
+        service for each component in the graph definition.
+        @type  uid: string
+        @param uid: unique identifier of an object
+        """
+        facade = self._getFacade()
+        return self._correctReportTitles(facade.getGraphReportDefs(uid))
+
+    def getMultiGraphReportDefs(self, uid, drange=None):
+        """
+        Gets the json necessary for rendering graphs with the metric services
+        for multi graph reports.
+        @type  uid: string
+        @param uid: unique identifier of an object
+        """
+        facade = self._getFacade()
+        return self._correctReportTitles(facade.getMultiGraphReportDefs(uid))

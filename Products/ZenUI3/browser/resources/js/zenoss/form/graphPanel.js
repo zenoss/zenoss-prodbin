@@ -246,6 +246,21 @@
                 // one format for chart, not per metric
                 format: this.datapoints[0].format
             };
+            var delta;
+            if (Ext.isNumber(this.graph_params.start)) {
+                delta = new Date().getTime() - this.graph_params.start;
+            } else {
+                delta = rangeToMilliseconds(this.graph_params.start);
+            }
+            // always down sample to a 1m-avg for now. This
+            // means that if we collect at less than a minute the
+            // values will be averaged out.
+            visconfig.downsample = '1m-avg';
+            DOWNSMAPLE.forEach(function(v) {
+                if (delta >= v[0]) {
+                    visconfig.downsample = v[1];
+                }
+            });
             this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);
         },

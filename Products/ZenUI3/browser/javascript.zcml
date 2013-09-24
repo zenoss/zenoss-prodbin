@@ -32,6 +32,25 @@
 
 
 <browser:viewlet
+        name="visualization-library"
+        weight="4"
+        manager=".interfaces.IJavaScriptSrcManager"
+        permission="zope2.Public"
+        class=".javascript.JavaScriptSrcBundleViewlet"
+        paths="/static/performance/query/visualization.js"
+        />
+
+
+<browser:viewlet
+        name="visualizationinit"
+        weight="5"
+        manager=".interfaces.IJavaScriptSrcManager"
+        class=".javascript.VisualizationInit"
+        permission="zope2.Public"
+        />
+
+
+<browser:viewlet
         name="Ext-extensions"
         weight="3"
         manager=".interfaces.IJavaScriptSrcManager"
