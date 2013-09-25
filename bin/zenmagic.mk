@@ -7,7 +7,7 @@
 #
 #============================================================================
 ifdef DEBUG_SHELL
-    SHELL = /bin/shell -x -v
+    SHELL = /bin/sh -x -v
 endif
 # Assume the build component name is the same as the base directory name.  
 #
@@ -86,6 +86,30 @@ ifeq "$(SYSCONFDIR)" "@sysconfdir@"
     SYSCONFDIR = $(COMPONENT_SYSCONFDIR)
 endif
 
+ifndef INST_OWNER
+    ifeq "$(USER)" "root"
+        ifeq "$(SUDO_USER)" ""
+            INST_OWNER = zenoss
+        else
+            INST_OWNER = $(SUDO_USER)
+        endif
+    else
+        INST_OWNER = $(USER)
+    endif
+endif
+
+ifndef INST_GROUP
+    ifeq "$(USER)" "root"
+        ifeq "$(SUDO_USER)" ""
+            INST_GROUP = zenoss
+        else
+            INST_GROUP := $(shell id -g -n $(SUDO_USER))
+        endif
+    else
+        INST_GROUP := $(shell id -g -n $(USER))
+    endif
+endif
+
 # Distro.  This dies after configure comes online.  OSX, for example, has backlevel 
 # command-line tools (circa 1999) that don't support modern options.
 DISTRO := $(shell uname -s)
@@ -99,6 +123,7 @@ DISTRO := $(shell uname -s)
 #----------------------------------------------------------------------------
 AWK          = awk
 BC           = bc
+CHOWN        = chown
 CP           = cp
 CUT          = cut
 DATE         = date
@@ -139,7 +164,7 @@ ifndef CHECK_TOOLS
     #
     # Easy to override at component level for component-specific tool sets.
 
-    CHECK_TOOLS  = $(AWK)  $(CUT)     $(DATE)  $(EGREP) $(FIND) $(GCC)  $(HEAD) 
+    CHECK_TOOLS  = $(AWK)  $(CUT)     $(CHOWN) $(DATE)  $(EGREP) $(FIND) $(GCC)  $(HEAD) 
     CHECK_TOOLS += $(JAVA) $(LN)      $(MKDIR) $(MVN)   $(PIP)  $(PR)   $(PYTHON)
     CHECK_TOOLS += $(RM)   $(READELF) $(SED)   $(SORT)  $(TAR)  $(TEE)  $(TOUCH) $(XARGS)
 
@@ -309,6 +334,11 @@ quiet_cmd_MVN = MVN    $2 $3
 
 quiet_cmd_MVNASM = MVN    assemble $3
       cmd_MVNASM = $(MVN) $(MAVEN_OPTS) $2 
+
+#------------------------------------------------------------
+# Invoke chown on something
+quiet_cmd_CHOWN = CHOWN  $2:$3 $4
+      cmd_CHOWN = $(CHOWN) -R $2:$3 $4
 
 #----------------------------------------------------------------------------
 # Remove a file.
@@ -542,8 +572,14 @@ dflt_devinstall:
 dflt_component_uninstall:
 	@if [ -d "$(_DESTDIR)$(_PREFIX)" ];then \
 		$(call cmd_noat,SAFE_RMDIR,$(_DESTDIR)$(_PREFIX)) ;\
-		$(call echol,$(LINE)) ;\
-		$(call echol,"$(_COMPONENT) uninstalled from $(_DESTDIR)$(_PREFIX)") ;\
+		if [ $$? -eq 0 ];then \
+			$(call echol,$(LINE)) ;\
+			$(call echol,"$(_COMPONENT) uninstalled from $(_DESTDIR)$(_PREFIX)") ;\
+		else \
+			echo "[$@] Error unable to remove [$(_DESTDIR)$(_PREFIX)]." ;\
+			echo "[$@] Maybe you intended 'sudo make uninstall' instead?  But be sure. :-)" ;\
+			exit 1 ;\
+		fi ;\
 	fi
 
 .PHONY: dflt_component_clean

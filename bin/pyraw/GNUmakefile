@@ -6,17 +6,17 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 #============================================================================
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := help # build|help
 
-PROGRAM        = pyraw
+PROGRAM = pyraw
 
 # Define install-related attributes.
 
-PROGRAM_PERMS  = 04750
-PROGRAM_OWNER  = root
-ZENHOME       ?= /opt/zenoss
-PREFIX        ?= $(ZENHOME)/bin
-INSTDIR        = $(DESTDIR)$(PREFIX)
+PROGRAM_PERMS    = 04750
+PROGRAM_OWNER    = root
+ZENHOME         ?= /opt/zenoss
+PREFIX          ?= $(ZENHOME)/bin
+INSTDIR          = $(DESTDIR)$(PREFIX)
 
 # Define build-related attributes
 
@@ -199,9 +199,11 @@ $(BUILD_DIR):
 
 $(INSTDIR):
 	@echo mkdir -p $@
-	@if ! mkdir -p $@ ;then \
-		echo "[$@] Maybe you intended 'sudo make install' instead?" ;\
+	if ! mkdir -p $@ ;then \
+		echo "[$@] Error: Maybe you intended 'sudo make install' instead?" ;\
 		exit 1 ;\
+	else \
+		chown -R $(INST_OWNER):$(INST_GROUP) $@ ;\
 	fi
 
 $(BUILD_DIR)/$(PROGRAM): $(BUILD_DIR)/$(PROGRAM).o

@@ -8,7 +8,7 @@
 #============================================================================
 .DEFAULT_GOAL := help # all|build|clean|distclean|devinstall|install|help
 .SUFFIXES:
-MAKEFLAGS += -r
+MAKEFLAGS     += -r
 
 #============================================================================
 # Build component configuration.
@@ -17,14 +17,14 @@ MAKEFLAGS += -r
 # Don't let your editor turn tabs into spaces or vice versa.
 #============================================================================
 COMPONENT              = bin
-COMPONENT_OWNER       ?= $(USER)
-COMPONENT_GROUP       ?= $(USER)
-BIN_TYPES              = ascii bash dosbat python shell
+
+PROGRAMS               = pyraw zensocket
+SCRIPT_TYPES           = ascii bash python # shell dosbat
+
 USE_MANIFEST_SRC      ?= no
 SRC_DIR                = .
 BUILD_TOP              = build
 COMPONENT_PREFIX       = install/bin
-
 
 # Normalize src dir by adding trailing slash.
 _SRC_DIR              := $(shell echo $(strip $(SRC_DIR)) | sed -e "s|\([^\/]\)$$|\1\/|g")
@@ -37,34 +37,34 @@ ABS_BUILD_DIR         := $(abspath $(BUILD_DIR))
 ABS_SRC_DIR           := $(abspath $(_SRC_DIR))
 DISCOVERED_SRC_EXT    := discovered
 MANIFEST_SRC_EXT      := manifest
-META_SRC               = GNUmakefile|zenmagic.mk|.*.mk|$(COMPONENT).log|\.git.*|\.svn.*|.*.$(DISCOVERED_SRC_EXT)|.checked.*|.*.$(MANIFEST_SRC_EXT)|.*\.log
+META_SRC               = GNUmakefile|zenmagic\.mk|.*\.mk|$(COMPONENT)\.log|\.git.*|\.svn.*|.*\.$(DISCOVERED_SRC_EXT)|\.checked.*|.*\.$(MANIFEST_SRC_EXT)|.*\.log
 #
 bash_EXCLUDE_FILTER   := $(META_SRC)
 bash_INCLUDE_FILTER   := bash|bourne.*again
 bash_MAGIC            := /bin/bash
 bash_PERMS             = $(EXEC_FILE_PERMS)
-bash_OWNER            ?= $(COMPONENT_OWNER)
-bash_GROUP            ?= $(COMPONENT_GROUP)
+bash_OWNER            ?= $(INST_OWNER)
+bash_GROUP            ?= $(INST_GROUP)
 #
 dosbat_EXCLUDE_FILTER := $(META_SRC)
 dosbat_INCLUDE_FILTER := dos batch
 dosbat_PERMS           = $(EXEC_FILE_PERMS)
-dosbat_OWNER          ?= $(COMPONENT_OWNER)
-dosbat_GROUP          ?= $(COMPONENT_GROUP)
+dosbat_OWNER          ?= $(INST_OWNER)
+dosbat_GROUP          ?= $(INST_GROUP)
 #
 python_EXCLUDE_FILTER := $(META_SRC)
 python_INCLUDE_FILTER := python
 python_MAGIC          := /usr/bin/env python
 python_PERMS           = $(EXEC_FILE_PERMS)
-python_OWNER          ?= $(COMPONENT_OWNER)
-python_GROUP          ?= $(COMPONENT_GROUP)
+python_OWNER          ?= $(INST_OWNER)
+python_GROUP          ?= $(INST_GROUP)
 #
 shell_EXCLUDE_FILTER  := $(META_SRC)|bash|bourne.*again
 shell_INCLUDE_FILTER  := shell script
 shell_MAGIC           := /bin/sh
 shell_PERMS            = $(EXEC_FILE_PERMS)
-shell_OWNER           ?= $(COMPONENT_OWNER)
-shell_GROUP           ?= $(COMPONENT_GROUP)
+shell_OWNER           ?= $(INST_OWNER)
+shell_GROUP           ?= $(INST_GROUP)
 #
 # This is a catch-all category.  We amp up on the exclusion filter to
 # avoid overlap with other categories.
@@ -72,8 +72,8 @@ shell_GROUP           ?= $(COMPONENT_GROUP)
 ascii_EXCLUDE_FILTER  := $(META_SRC)|dos batch|python|shell|bash|bourne.*again
 ascii_INCLUDE_FILTER  := ascii text
 ascii_PERMS            = $(DATA_FILE_PERMS)
-ascii_OWNER           ?= $(COMPONENT_OWNER)
-ascii_GROUP           ?= $(COMPONENT_GROUP)
+ascii_OWNER           ?= $(INST_OWNER)
+ascii_GROUP           ?= $(INST_GROUP)
 
 #============================================================================
 # Hide common build macros, idioms, and default rules in a separate file.
@@ -112,41 +112,51 @@ endif
 
 INSTALL_MKDIRS    = $(_DESTDIR)$(_PREFIX)
 
-discovered_src    = $(patsubst %,%.$(DISCOVERED_SRC_EXT),$(BIN_TYPES))
-manifest_src      = $(patsubst %,%.$(MANIFEST_SRC_EXT),$(BIN_TYPES))
-bintype_mk_files  = $(patsubst %,%.mk,$(BIN_TYPES))
-build_dirs        = $(patsubst %,$(BUILD_DIR)/%,$(BIN_TYPES))
+discovered_src    = $(patsubst %,%.$(DISCOVERED_SRC_EXT),$(SCRIPT_TYPES))
+manifest_src      = $(patsubst %,%.$(MANIFEST_SRC_EXT),$(SCRIPT_TYPES))
+script_mk_files   = $(patsubst %,%.mk,$(SCRIPT_TYPES))
+build_dirs        = $(patsubst %,$(BUILD_DIR)/%,$(SCRIPT_TYPES))
 abs_build_dirs    = $(patsubst $(BUILD_DIR)/%,$(ABS_BUILD_DIR)/%,$(build_dirs))
-install_bintypes := $(patsubst %,install-%,$(BIN_TYPES))
+install_scripts  := $(patsubst %,install-%,$(SCRIPT_TYPES))
+install_programs := $(patsubst %,install-%,$(PROGRAMS))
 
-$(INSTALL_MKDIRS) $(ABS_BUILD_DIR) $(abs_build_dirs):
+$(ABS_BUILD_DIR) $(abs_build_dirs):
 	$(call cmd,MKDIR,$@)
 
+$(INSTALL_MKDIRS):
+	$(call cmd,MKDIR,$@)
+	$(call cmd,CHOWN,$(INST_OWNER),$(INST_GROUP),$@)
 
 #============================================================================
 # Rule to create files like:
 #
-#     python.mk
+#     python.mk bash.mk ..
 #
-# from the list of python files specified in:
+# from the list of files respectiviely specified in:
 #
 #     python.manifest or python.discovered
+#     bash.manifest   or bash.discovered
+#     ..
 #
 # depending upon the value of $(USE_MANIFEST_SRC).
+#
+# These makefiles implement a glorified copy from src to build dir to 
+# install dir but with the ability to normalize magic strings, file ownership, 
+# and file permissions as desired.
 #============================================================================
 ifeq "$(MAKECMDGOALS)" "install"
-$(bintype_mk_files):
+$(script_mk_files):
 	$(error "Please run 'make build' first.")
 else
-.ONESHELL: $(bintype_mk_files)
-.DELETE_ON_ERROR: $(bintype_mk_files)
+.ONESHELL: $(script_mk_files)
+.DELETE_ON_ERROR: $(script_mk_files)
 ifeq "$(USE_MANIFEST_SRC)" "yes"
 # e.g., python.mk is dependent upon python.manifest
-$(bintype_mk_files): %.mk : %.$(MANIFEST_SRC_EXT)
+$(script_mk_files): %.mk : %.$(MANIFEST_SRC_EXT)
 else
 # e.g., python.mk is dependent upon python.discovered
-$(bintype_mk_files): ESCAPED_SRC_DIR := $(shell echo $(_SRC_DIR) | sed -e "s|\.|\\\\.|g")
-$(bintype_mk_files): %.mk : %.$(DISCOVERED_SRC_EXT)
+$(script_mk_files): ESCAPED_SRC_DIR := $(shell echo $(_SRC_DIR) | sed -e "s|\.|\\\\.|g")
+$(script_mk_files): %.mk : %.$(DISCOVERED_SRC_EXT)
 endif
 	@$(call echol,"CREATE $@")
 	echo "#$(LINE)" > $@
@@ -187,7 +197,7 @@ endif
 	echo '.ONESHELL: $$($*_install)' >> $@
 	echo '.PHONY: $$($*_install)' >> $@
 	echo '$$($*_install): build_dir = $$(BUILD_DIR)/$*' >> $@
-	echo '$$($*_install): bintype   = $*' >> $@
+	echo '$$($*_install): scripttype   = $*' >> $@
 	echo '$$($*_install): INSTALL_PERMS = $($*_PERMS)' >> $@
 	echo '$$($*_install): INSTALL_OWNER = $($*_OWNER)' >> $@
 	echo '$$($*_install): INSTALL_GROUP = $($*_GROUP)' >> $@
@@ -196,7 +206,7 @@ endif
 	echo '		$$(call cmd,INSTALL,$$(build_dir)/$$(@F),$$@,$$(INSTALL_PERMS),$$(INSTALL_OWNER),$$(INSTALL_GROUP))' >> $@
 	echo "	else" >> $@
 	echo '		$$(call echol,"Error: Missing $$(build_dir)/$$(@F).")' >> $@
-	echo '		$$(call echol,"Unable to install $$(bintype) files.")' >> $@
+	echo '		$$(call echol,"Unable to install $$(scripttype) files.")' >> $@
 	echo '		$$(call echol,"$$(LINE)")' >> $@
 	echo '		$$(call echol,"Please run \"make build\" first.")' >> $@
 	echo '		exit 1' >> $@
@@ -271,7 +281,7 @@ $(discovered_src): | .rediscover $(CHECKED_ENV)
 endif
 
 #============================================================================
-# Trigger the discovery of various 'binary' files in the source tree via:
+# Trigger the discovery of various 'binary' script files in the source tree via:
 #
 #    make discover
 #
@@ -279,7 +289,7 @@ endif
 #
 # The overall work-flow is:
 #
-# 1. Add or delete 'binary' files in the src directory.
+# 1. Add or delete 'binary' script files in the src directory.
 # 2. Run 'make clean discover build install'
 # 3. If you're happy with the result:
 #        'make manifests'
@@ -289,9 +299,9 @@ endif
 .PHONY: discover
 .ONESHELL: discover
 discover:
-	@$(foreach target_file,$(wildcard $(discovered_src) $(bintype_mk_files) .rediscover),$(call cmd_noat,RM,$(target_file));)
+	@$(foreach target_file,$(wildcard $(discovered_src) $(script_mk_files) .rediscover),$(call cmd_noat,RM,$(target_file));)
 	$(MAKE)  -s --no-print-directory  $(discovered_src)
-	$(MAKE)  -s --no-print-directory  $(bintype_mk_files)
+	$(MAKE)  -s --no-print-directory  $(script_mk_files)
 
 .rediscover:
 	$(call cmd,TOUCH,$@)
@@ -316,6 +326,8 @@ endif
 	fi
 
 help: dflt_component_help
+	@echo Using common build idioms from $(NEAREST_ZENMAGIC_MK)
+	@echo
 
 no-include-targets  = devinstall help discover manifests $(manifest_src) $(discovered_src) distclean mrclean clean uninstall clean-mk dflt_component_clean dflt_component_help dflt_component_uninstall $(INSTALL_MKDIRS) $(ABS_BUILD_DIR) $(abs_build_dirs) checkenv
 ifeq "$(filter $(no-include-targets),$(MAKECMDGOALS))" ""
@@ -341,7 +353,7 @@ clean:
 			$(call echol,"       ABS_SRC_DIR   $(ABS_SRC_DIR)") ;\
 		fi ;\
 	fi
-	@$(foreach target_file,$(wildcard $(discovered_src) $(bintype_mk_files) .rediscover),$(call cmd_noat,RM,$(target_file));)
+	@$(foreach target_file,$(wildcard $(discovered_src) $(script_mk_files) .rediscover),$(call cmd_noat,RM,$(target_file));)
 
 mrclean distclean: clean dflt_component_distclean
 	@if [ -d "$(_DESTDIR)$(_PREFIX)" ];then \
@@ -351,17 +363,32 @@ mrclean distclean: clean dflt_component_distclean
 		fi ;\
 	fi
 
-build: $(CHECKED_ENV) $(BIN_TYPES)
+build: $(CHECKED_ENV) $(PROGRAMS) $(SCRIPT_TYPES)
+
+.PHONY: $(PROGRAMS)
+$(PROGRAMS): | $@
+	cd $@ && make build BUILD_DIR=$(abspath $(BUILD_TOP)/$@)
 
 .PHONY: install
-ifeq "$(wildcard $(bintype_mk_files))" ""
+ifeq "$(wildcard $(script_mk_files))" ""
 install:
 	@$(call echol,"Please run 'make build' first.")
 else
-install: $(install_bintypes)
+install: $(install_programs) $(install_scripts)
 endif
 
-.PHONY : devinstall
+.PHONY: $(install_programs)
+$(install_programs): program = $(patsubst install-%,%,$@)
+$(install_programs): 
+	cd $(program) && make install BUILD_DIR=$(abspath $(BUILD_TOP)/$(program)) INSTDIR=$(abspath $(_DESTDIR)$(_PREFIX)) INST_OWNER=$(INST_OWNER) INST_GROUP=$(INST_GROUP)
+
+.PHONY: devinstall
 devinstall: dflt_devinstall
 
+.PHONY: uninstall
 uninstall: dflt_component_uninstall
+	@count=`ls -a1 $(_DESTDIR)$(_PREFIX) 2>/dev/null|wc -l` ;\
+	if ((count < 3 ));then \
+		echo "rm -rf $(_DESTDIR)$(_PREFIX)" ;\
+		rm -rf $(_DESTDIR)$(_PREFIX) ;\
+	fi
