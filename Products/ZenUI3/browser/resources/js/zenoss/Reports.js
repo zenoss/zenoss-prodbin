@@ -41,7 +41,8 @@ report_panel = Ext.create('Ext.panel.Panel', {
         this.graph_reports.removeAll();
         var graphs = Ext.create('Zenoss.form.GraphPanel', {
             tbarTitle: attrs.text,
-            directFn: directFn
+            directFn: directFn,
+            columns: attrs.columns
         });
         graphs.setContext(attrs.uid);
         this.graph_reports.add(graphs);
@@ -249,6 +250,9 @@ report_tree = new Zenoss.ReportTreePanel({
     }, {
         name: 'isGraphReport',
         type: 'boolean'
+    }, {
+        name: 'columns',
+        type: 'integer'
     }]
 });
 
