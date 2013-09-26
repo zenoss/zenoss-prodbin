@@ -16,7 +16,6 @@ from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.GraphDefinition import GraphDefinition
-from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
 from Products.ZenModel.ConfigurationError import ConfigurationError
 
 __doc__ = """
@@ -152,6 +151,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def aggregator(self):
         agg = self._object.cFunc.lower()
+        from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
         return AGGREGATION_MAPPING.get(agg, agg)
 
     @property
