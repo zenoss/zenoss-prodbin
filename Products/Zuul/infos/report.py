@@ -101,6 +101,11 @@ class ReportNode(TreeNode):
     @property
     def isGraphReport(self):
         return isinstance(self._object.getObject(), GraphReport)
+
+    @property
+    def columns(self):
+        report = self._object.getObject()
+        return getattr(report, 'numColumns')
     
     @property
     def edit_url(self):
