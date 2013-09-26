@@ -187,13 +187,12 @@
                         handler: Ext.bind(this.displayDefinition, this)
                     },{
                         text: '&lt;',
-                        width: 67,
+                        width: 40,
                         handler: Ext.bind(function(btn, e) {
                             this.onPanLeft(this);
                         }, this)
                     },{
                         text: _t('Zoom In'),
-                        ref: '../zoomin',
                         handler: Ext.bind(function(btn, e) {
                             this.zoomIn(this);
                         }, this)
@@ -204,7 +203,7 @@
                         }, this)
                     },{
                         text: '&gt;',
-                        width: 67,
+                        width: 40,
                         handler: Ext.bind(function(btn, e) {
                             this.onPanRight(this);
                         }, this)
@@ -679,17 +678,13 @@
             }
         },
         addGraphs: function(data) {
-            var graphs,
+            var graphs = [],
                 graph,
                 graphId,
                 me = this,
                 start = this.lastShown,
                 end = this.lastShown + GRAPHPAGESIZE,
                 i;
-            // if we haven't already, show the start and end time widgets
-            if (!this.start_date) {
-                graphs = Ext.Array.clone(dateRangePanel);
-            }
 
             // load graphs until we have either completed the page or
             // we ran out of graphs
@@ -724,7 +719,53 @@
                 });
             }
             // render the graphs
-            this.add(graphs);
+            if (this.columns) {
+                this.organizeGraphsIntoColumns(graphs, this.columns);
+            } else {
+                // if we are not paginating then add the date range filter
+                if (!this.start_date) {
+                    graphs = Ext.Array.clone(dateRangePanel).concat(graphs);
+                }
+                this.add(graphs);
+            }
+        },
+        organizeGraphsIntoColumns: function(graphs, numCols) {
+            var columns = [], i, col=0;
+            // create a column container for each column specified
+            for (i=0; i < numCols; i ++) {
+                columns.push({
+                    xtype: 'container',
+                    items: [],
+                    // make them equal space
+                    columnWidth: 1 / numCols
+                });
+            }
+
+            // divide the graphs into buckets based on the order in which they were defined.
+            for (i=0; i < graphs.length; i ++) {
+                columns[col].items.push(graphs[i]);
+                col++;
+                if (col>=numCols) {
+                    col = 0;
+                }
+            }
+
+            if (!this.start_date) {
+                // add the date filters as well as the columns
+                this.add([{
+                    xtype: 'container',
+                    items: Ext.Array.clone(dateRangePanel)
+                },{
+                    layout: 'column',
+                    items: columns
+                }]);
+            } else {
+                // just add the columns
+                this.add({
+                    layout: 'column',
+                    items: columns
+                });
+            }
         },
         updateEndTime: function(){
             if (this.checkbox_now && this.checkbox_now.getValue()) {
