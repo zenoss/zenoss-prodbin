@@ -89,11 +89,8 @@ ascii_GROUP           ?= $(INST_GROUP)
 # should look for an instance of zenmagic.mk to include.
 #
 #     ./zenmagic.mk ../zenmagic.mk ../../zenmagic.mk ../../../zenmagic.mk
-#
-# Stop at the closest instance.  Also, stop if we hit a directory called 
-# 'obj' or 'src' since we're probably outside the sandbox otherwise.
 #---------------------------------------------------------------------------#
-NEAREST_ZENMAGIC_MK := $(word 1,$(wildcard ./zenmagic.mk $(shell for slash in $$(echo $(abspath .) | sed -e "s|.*\(/obj/\)\(.*\)|\1\2|g" -e "s|.*\(/src/\)\(.*\)|\1\2|g" | egrep "^/obj|^/src" | sed -e "s|[^/]||g" -e "s|/|/ |g"); do string=$${string}../;echo $${string}zenmagic.mk; done | xargs echo)))
+NEAREST_ZENMAGIC_MK := $(word 1,$(wildcard ./zenmagic.mk $(shell for slash in $$(echo $(abspath .) | sed -e "s|.*\(/obj/\)\(.*\)|\1\2|g" -e "s|.*\(/src/\)\(.*\)|\1\2|g" | sed -e "s|[^/]||g" -e "s|/|/ |g"); do string=$${string}../;echo $${string}zenmagic.mk; done | xargs echo)))
 
 ifeq "$(NEAREST_ZENMAGIC_MK)" ""
     $(warning "Missing zenmagic.mk needed by the $(COMPONENT)-component makefile.")

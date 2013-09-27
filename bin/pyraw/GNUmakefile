@@ -26,6 +26,10 @@ INCLUDE_SYSINC_DEPS      = no
 PYTHON_MAJ_MIN_VER       = 2.7
 REQUIRES_GCC             = 1
 IGNORE_LD_LIBRARY_PATH   = yes
+# Dump out a PROGRAM's link-time dependencies to $(BUILD_DIR)/PROGRAM.dlibs
+# This does not materially affect the build, but it does provide a means
+# for understanding where certain library dependencies are creeping in.
+DUMP_LD_LIBDEPS          = yes
 
 #============================================================================
 # Compiling and Linking Configuration
@@ -82,7 +86,7 @@ ifeq "$(WITH_ZENOSS_PYTHON_DEVEL)" "yes"
     ifeq "$(IGNORE_LD_LIBRARY_PATH)" "yes"
         # Ignore LD_LIBRARY_PATH when it comes to resolving the location of
         # libpython*.so at runtime.
-        RPATH_OPT       = -Wl,-rpath,$(LIBPYTHON_RPATH) -Wl,-z,origin
+        RPATH_OPT  = -Wl,-rpath,$(LIBPYTHON_RPATH) -Wl,-z,origin
     else
         # Allow LD_LIBRARY_PATH to influence the search path for shared libraries at
         # runtime.
@@ -94,7 +98,7 @@ ifeq "$(WITH_ZENOSS_PYTHON_DEVEL)" "yes"
         # on the deployed system.
         #
         # See: http://blog.tremily.us/posts/rpath/
-        RPATH_OPT       = -Wl,-rpath,$(LIBPYTHON_RPATH),--enable-new-dtags -Wl,-z,origin
+        RPATH_OPT  = -Wl,-rpath,$(LIBPYTHON_RPATH),--enable-new-dtags -Wl,-z,origin
     endif
 else
     PYTHON_INCDIR  = /usr/include/python$(PYTHON_MAJ_MIN_VER)
@@ -127,11 +131,8 @@ LDFLAGS  += -L$(PYTHON_LIBDIR)
 # should look for an instance of zenmagic.mk to include.
 #
 #     ./zenmagic.mk ../zenmagic.mk ../../zenmagic.mk ../../../zenmagic.mk
-#
-# Stop at the closest instance.  Also, stop if we hit a directory called 
-# 'obj' or 'src' since we're probably outside the sandbox otherwise.
 #---------------------------------------------------------------------------#
-NEAREST_ZENMAGIC_MK := $(word 1,$(wildcard ./zenmagic.mk $(shell for slash in $$(echo $(abspath .) | sed -e "s|.*\(/obj/\)\(.*\)|\1\2|g" -e "s|.*\(/src/\)\(.*\)|\1\2|g" | egrep "^/obj|^/src" | sed -e "s|[^/]||g" -e "s|/|/ |g"); do string=$${string}../;echo $${string}zenmagic.mk; done | xargs echo)))
+NEAREST_ZENMAGIC_MK := $(word 1,$(wildcard ./zenmagic.mk $(shell for slash in $$(echo $(abspath .) | sed -e "s|.*\(/obj/\)\(.*\)|\1\2|g" -e "s|.*\(/src/\)\(.*\)|\1\2|g" | sed -e "s|[^/]||g" -e "s|/|/ |g"); do string=$${string}../;echo $${string}zenmagic.mk; done | xargs echo)))
 
 ifeq "$(NEAREST_ZENMAGIC_MK)" ""
     $(warning "Missing zenmagic.mk")
@@ -147,42 +148,6 @@ endif
 # Primitive to use when installing files.
 INSTALL  = install
 LINE     = "-----------------------------------------------------------------------------"
-
-#---------------------------------------------------------------------------#
-# Configure gcc to dump out header files actually used at compile-time.
-#---------------------------------------------------------------------------#
-
-GCC_MAKE_DEPENDENCY_RULES = -M
-ifeq "$(INCLUDE_SYSINC_DEPS)" "yes"
-    SUPPRESS_SYSINC_DEPS =
-else
-    # Do not include system header directories (nor headers files that are
-    # included directly or indirectly from such headers).  These hardly
-    # ever change so making rebuilds sensitive to their modtimes is
-    # usually overkill.
-    SUPPRESS_SYSINC_DEPS = M
-endif
-
-# Give us control on the name of the dependency file (e.g., hello.d).
-GCC_MAKE_DEP_FILENAME = -MF
-
-# Work-around errors make gives if you remove header files without 
-# updating the makefile to match.
-GCC_MAKE_PHONY_TARGETS = -MP
-
-# Override target of emitted dependency rule so we can include proper
-# pathing to our objdir.
-GCC_MAKE_MOD_TARGET_PATH  = -MT
-GCC ?= gcc
-# $(call make-depend,source-file,object-file,depend-file)
-define make-depend 
-    $(GCC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $1\
-	$(GCC_MAKE_DEPENDENCY_RULES)$(SUPPRESS_SYSINC_DEPS)\
-	$(GCC_MAKE_PHONY_TARGETS)    \
-	$(GCC_MAKE_MOD_TARGET_PATH) $2  \
-	$(GCC_MAKE_DEP_FILENAME) $3 
-endef
-
 
 #============================================================================
 # Build Targets
@@ -207,6 +172,9 @@ $(INSTDIR):
 	fi
 
 $(BUILD_DIR)/$(PROGRAM): $(BUILD_DIR)/$(PROGRAM).o
+ifeq "$(DUMP_LD_LIBDEPS)" "yes"
+	@$(call make-lib-depend,$^,$@)
+endif
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 $(BUILD_DIR)/$(PROGRAM).o: | $(CHECKED_ENV)
@@ -216,7 +184,7 @@ $(BUILD_DIR)/$(PROGRAM).o: $(PROGRAM).c
 	$(call make-depend,$<,$@,$(subst .o,.d,$@))
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
-BUILT_FILES = $(wildcard $(patsubst %,$(BUILD_DIR)/%,$(PROGRAM) $(PROGRAM).o $(PROGRAM).d))
+BUILT_FILES = $(wildcard $(patsubst %,$(BUILD_DIR)/%,$(PROGRAM) $(PROGRAM).o $(PROGRAM).d $(PROGRAM).dlibs))
 .PHONY: clean
 clean:
 	@for builtfile in $(BUILT_FILES);\
@@ -353,6 +321,7 @@ else
 		fi ;\
 	fi
 endif
+	@echo
 	@echo -en "Checking list of shared libraries needed by $(BUILD_DIR)/$(PROGRAM) at runtime: " ;\
 	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep NEEDED 1>/dev/null 2>&1	;then \
 		echo ;\
@@ -361,4 +330,16 @@ endif
 	else \
 		echo "[FAIL]" ;\
 		echo "[$@] Error: Unable to dump the list of shared libraries required by $(BUILD_DIR)/$(PROGRAM)." ;\
+	fi
+	@echo
+	@echo -en "Checking rpath and runpath elf attributes specified internally for $(BUILD_DIR)/$(PROGRAM): " ;\
+	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | egrep "RPATH|RUNPATH" 1>/dev/null 2>&1 ;then \
+		echo ;\
+		echo $(LINE) ;\
+		$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | egrep "RPATH|RUNPATH" ;\
+	else \
+		echo "[INFO]" ;\
+		echo "Info: rpath and runpath attributes not set for $(BUILD_DIR)/$(PROGRAM)." ;\
+		echo "      This means standard system lib paths and LD_LIBRARY_PATH will" ;\
+		echo "      be used at runtime by the loader to resolve shared libarary dependencies." ;\
 	fi

@@ -397,6 +397,61 @@ quiet_cmd_TOUCH = TOUCH  $2
 quiet_cmd_UNTAR = UNTAR  $2 -> $3
       cmd_UNTAR = $(TAR) -xvf $2 -C $3
 
+#---------------------------------------------------------------------------#
+# Configure gcc to dump out header files actually used at compile-time.
+#---------------------------------------------------------------------------#
+GCC_MAKE_DEPENDENCY_RULES = -M
+ifeq "$(INCLUDE_SYSINC_DEPS)" "yes"
+    SUPPRESS_SYSINC_DEPS =
+else
+    # Do not include system header directories (nor headers files that are
+    # included directly or indirectly from such headers).  These hardly
+    # ever change so making rebuilds sensitive to their modtimes is
+    # usually overkill.
+    SUPPRESS_SYSINC_DEPS = M
+endif
+
+# Give us control on the name of the dependency file (e.g., hello.d).
+GCC_MAKE_DEP_FILENAME = -MF
+
+# Work-around errors make gives if you remove header files without 
+# updating the makefile to match.
+GCC_MAKE_PHONY_TARGETS = -MP
+
+# Override target of emitted dependency rule so we can include proper
+# pathing to our objdir.
+GCC_MAKE_MOD_TARGET_PATH  = -MT
+GCC ?= gcc
+# $(call make-depend,source-file,object-file,depend-file)
+define make-depend 
+    $(GCC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $1\
+	$(GCC_MAKE_DEPENDENCY_RULES)$(SUPPRESS_SYSINC_DEPS)\
+	$(GCC_MAKE_PHONY_TARGETS)    \
+	$(GCC_MAKE_MOD_TARGET_PATH) $2  \
+	$(GCC_MAKE_DEP_FILENAME) $3 
+endef
+
+# $(call make-lib-depend,object-file,program-file)
+define make-lib-depend 
+    if $(LINK.c) $1 $(LOADLIBES) -Wl,--trace $(LDLIBS) -o $2 2>/dev/null 1>&2 ;then \
+        libdep_file=$2.dlibs ;\
+	echo "$2: $1 \\" > $${libdep_file} ;\
+        $(LINK.c) $1 $(LOADLIBES) -Wl,--trace $(LDLIBS) -o $2 |\
+            sed -e "s|^-l[^ ]*||g" | sed -e "s|(\([^ ]*\.a\))\([^ ]*\)|\1[\2]|g" | sed -e "s|^[ ]*$$||g" | egrep -v "$1" | sed "/^[ ]*$$/d" | sed -e "s|[()]*||g" -e "s|^[ ]*||g" -e "s|.*ld: mode.*||g" | sed /^$$/d |\
+	while read line ;\
+	do \
+		case $${line} in \
+			*..*) \
+				readlink -m $${line} ;\
+				:;;\
+			*) \
+				echo $${line} ;\
+				:;;\
+		esac ;\
+	done | sed -e "s|^| |g" -e "s|$$| \\\\|g" >> $${libdep_file} ;\
+    fi
+endef
+
 #----------------------------------------------------------------------------
 # Verify that required build tools are present in the environment.
 #----------------------------------------------------------------------------
