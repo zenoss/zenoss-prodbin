@@ -507,6 +507,7 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
 });
 
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
+    columns: 2,
     id: 'device_graphs'
 });
 

@@ -599,6 +599,8 @@ class GraphInfo(InfoBase):
     maxy = ProxyProperty('maxy')
     hasSummary = ProxyProperty('hasSummary')
     sequence = ProxyProperty('sequence')
+    autoscale = ProxyProperty('autoscale')
+    ceiling = ProxyProperty('ceiling')
 
     @property
     def rrdVariables(self):

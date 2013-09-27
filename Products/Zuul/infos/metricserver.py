@@ -34,7 +34,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def width(self):
-        return self._object.width * 2
+        return 800
 
     @property
     def height(self):
@@ -77,7 +77,20 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     def thresholds(self):
         return self._getGraphPoints(ThresholdGraphPoint)
 
-    base = ProxyProperty('base')
+    @property
+    def base(self):
+        if self._object.base:
+            return 1024
+        return 1000
+
+    @property
+    def autoscale(self):
+        return self._object.shouldAutoScale()
+
+    @property
+    def ceiling(self):
+        return self._object.getCeiling()
+
     miny = ProxyProperty('miny')
     maxy = ProxyProperty('maxy')
     units = ProxyProperty('units')
