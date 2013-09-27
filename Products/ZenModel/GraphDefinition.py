@@ -86,19 +86,24 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     custom = ""
     hasSummary = True
     sequence = 0
-
+    autoscale = None
+    ceiling = None
+    
     _properties = (
         {'id':'height', 'type':'int', 'mode':'w'},
         {'id':'width', 'type':'int', 'mode':'w'},
         {'id':'units', 'type':'string', 'mode':'w'},
         {'id':'log', 'type':'boolean', 'mode':'w'},
         {'id':'base', 'type':'boolean', 'mode':'w'},
+        {'id':'autoscale', 'type':'boolean', 'mode':'w'},
         #{'id':'summary', 'type':'boolean', 'mode':'w'},
         {'id':'miny', 'type':'int', 'mode':'w'},
+        {'id':'ceiling', 'type':'int', 'mode':'w'},
         {'id':'maxy', 'type':'int', 'mode':'w'},
         {'id':'custom', 'type':'text', 'mode':'w'},
         {'id':'hasSummary', 'type':'boolean', 'mode':'w'},
         {'id':'sequence', 'type':'long', 'mode':'w'},
+        
         )
 
     _relations =  (
@@ -539,6 +544,32 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 if isinstance(gp, DataPointGraphPoint)
                 and gp.dpName == dpName]
 
+    def shouldAutoScale(self):
+        """
+        Returns if we should scale the values down (i.e. convert bytes to megabytes)
+        """
+        if self.autoscale is not None:
+            return self.autoscale
+        # preserve backwards compatability for zenpacks
+        for dp in self.graphPoints():
+            if dp.meta_type == 'DataPointGraphPoint' and dp.shouldAutoScale():
+                return True
+        return False
+
+    def getCeiling(self):
+        """
+        Returns how many digits should be displayed on the left hand
+        side of the chart
+        """
+        if self.ceiling is not None:
+            return self.ceiling
+        # preserve backwards compatability for zenpacks
+        for dp in self.graphPoints():
+            if dp.meta_type == 'DataPointGraphPoint' and dp.format:
+                lhs = dp.format.split(".")[0][-1]
+                rhs = dp.format.split(".")[1][0]
+                return int(lhs) - int(rhs)
+        return 3
 
     def getUniqueDpNames(self, limit=None):
         """

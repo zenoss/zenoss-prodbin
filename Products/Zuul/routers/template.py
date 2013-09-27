@@ -683,6 +683,7 @@ class TemplateRouter(TreeRouter):
             data[int_attr] = x
         obj = self._getFacade()._getObject(uid)
         oldData = self._getInfoData(obj, data)
+        self._getFacade().setInfo(uid, data)
         newData = self._getInfoData(obj, data)
         audit(['UI', getDisplayType(obj), 'Edit'], data_=newData, oldData_=oldData,
               skipFields_=('newId',))  # special case in TemplateFacade.setInfo()

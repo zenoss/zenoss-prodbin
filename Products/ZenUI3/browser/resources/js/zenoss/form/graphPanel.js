@@ -168,8 +168,13 @@
          **/
         datapoints: [],
         constructor: function(config) {
+            var padding = "padding:45px 20px 15px 0px;";
+            if (config.height <= 400) {
+                padding = "padding:0px 0px 0px 0px;";
+            }
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;padding:45px 20px 15px 0px;height:' + String(config.height - 75)  + 'px;"></div>',
+
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 75)  + 'px;"></div>',
                 cls: 'graph-panel',
                 dockedItems: [{
                     xtype: 'toolbar',
@@ -237,8 +242,9 @@
                 datapoints: this.datapoints,
                 overlays: this.thresholds,
                 type: this.type,
-                footer: true,
-                yAxisLabel: this.units,
+                // lose the footer and yaxis label as the image gets smaller
+                footer: (this.height >= 350) ? true : false,
+                yAxisLabel: (this.width >= 500) ? this.units : null,
                 miny: (this.miny != -1) ? this.miny : null,
                 maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
@@ -260,6 +266,14 @@
                     visconfig.downsample = v[1];
                 }
             });
+
+            // determine scaling
+            if (this.autoscale) {
+                visconfig.autoscale = {
+                    factor: this.base,
+                    ceiling: this.ceiling
+                };
+            }
             this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);
         },
@@ -390,7 +404,7 @@
         fireEventsToAll: function() {
             if (this.linked()) {
                 var args = arguments;
-                Ext.each(this.refOwner.getGraphs(), function(g) {
+                Ext.each(this.up('graphpanel').getGraphs(), function(g) {
                     g.fireEvent.apply(g, args);
                 });
             } else {
@@ -802,10 +816,7 @@
             }
         },
         getGraphs: function() {
-            var graphs = Zenoss.util.filter(this.items.items, function(item){
-                return item.graphId;
-            });
-            return graphs;
+            return this.query('europagraph');
         },
         setLinked: function(isLinked) {
             this.isLinked = isLinked;
