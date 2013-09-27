@@ -260,6 +260,14 @@
                     visconfig.downsample = v[1];
                 }
             });
+
+            // determine scaling
+            if (this.autoscale) {
+                visconfig.autoscale = {
+                    factor: this.base,
+                    ceiling: this.ceiling
+                };
+            }
             this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);
         },
