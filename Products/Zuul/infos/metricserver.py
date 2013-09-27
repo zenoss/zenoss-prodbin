@@ -34,7 +34,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def width(self):
-        return int(self._object.width) * 2
+        return 800
 
     @property
     def height(self):
