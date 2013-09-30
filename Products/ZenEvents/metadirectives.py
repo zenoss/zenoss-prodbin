@@ -38,5 +38,6 @@ class IEventIdentifierPluginDirective(IEventPluginDirective):
     """
     name = TextLine(
         title=u"Name",
-        description=u"The name of the event identifier plugin to register"
+        description=u"The name of the event identifier plugin to register",
+        required=False,
     )
