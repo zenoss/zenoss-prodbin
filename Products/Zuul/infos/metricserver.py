@@ -17,7 +17,8 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.ConfigurationError import ConfigurationError
-
+from Products.ZenEvents.Exceptions import rpnThresholdException
+        
 __doc__ = """
 These adapters are responsible for serializing the graph
 definitions into a form that is consumable by the metric service
@@ -110,6 +111,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
 class MetricServiceThreshold(ColorMetricServiceGraphPoint):
     adapts(ThresholdGraphPoint, ZenModelRM)
     implements(templateInterfaces.IMetricServiceGraphPoint)
+    
     @property
     def values(self):
         """
@@ -120,7 +122,11 @@ class MetricServiceThreshold(ColorMetricServiceGraphPoint):
         if cls:
             instance = cls.createThresholdInstance(self._context)
             # filter out the None's
-            return [x for x in instance.getGraphValues(relatedGps) if x is not None]
+            try:
+                return [x for x in instance.getGraphValues(relatedGps, self._context) if x is not None]
+            except rpnThresholdException:
+                # the exception is logged by the threshold instance class
+                pass
         return []
 
 class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
