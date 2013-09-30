@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-__doc__="""Add /App/Zenoos event class"""
+__doc__="""Add /App/Zenoss event class"""
 
 import Migrate
 
@@ -17,6 +17,5 @@ class EventsAppZenoss(Migrate.Step):
     
     def cutover(self, dmd):
         dmd.Events.createOrganizer("/App/Zenoss")
-        dmd.ZenEventManager.buildRelations()
 
 EventsAppZenoss()
