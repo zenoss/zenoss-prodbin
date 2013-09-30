@@ -1642,6 +1642,245 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         ZFR.DEVICEPRIORITY
     );
 
+    var trigger_tab_subjects = [
+        dev_priority_rule,
+        prod_state_rule,
+        {
+            text: _t('Device (Element)'),
+            value: 'elem.name',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Component (Sub-Element)'),
+            value: 'sub_elem.name',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Element Type'),
+            value: 'elem.type',
+            comparisons: ZFR.IDENTITYCOMPARISONS,
+            field: {
+                xtype: 'combo',
+                queryMode: 'local',
+                valueField: 'name',
+                displayField: 'name',
+                typeAhead: false,
+                forceSelection: true,
+                triggerAction: 'all',
+                listConfig: {
+                    maxWidth:200
+                },
+                store: new Ext.data.ArrayStore({
+                    model: 'Zenoss.model.Name',
+                    data: [[
+                        'COMPONENT'
+                    ],[
+                        'DEVICE'
+                    ],[
+                        'SERVICE'
+                    ],[
+                        'ORGANIZER'
+                    ]]
+                })
+            }
+        },{
+            text: _t('Sub Element Type'),
+            value: 'sub_elem.type',
+            comparisons: ZFR.IDENTITYCOMPARISONS,
+            field: {
+                xtype: 'combo',
+                queryMode: 'local',
+                valueField: 'name',
+                displayField: 'name',
+                typeAhead: false,
+                forceSelection: true,
+                triggerAction: 'all',
+                listConfig: {
+                    maxWidth:200
+                },
+                store: new Ext.data.ArrayStore({
+                    model: 'Zenoss.model.Name',
+                    data: [[
+                        'COMPONENT'
+                    ],[
+                        'DEVICE'
+                    ],[
+                        'SERVICE'
+                    ],[
+                        'ORGANIZER'
+                    ]]
+                })
+            }
+        }, {
+            text: _t('Event Class'),
+            value: 'evt.event_class',
+            comparisons: STRINGCMPS,
+            field: {
+                xtype: 'eventclass'
+            }
+        },{
+            text: _t('Event Key'),
+            value: 'evt.event_key',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Summary'),
+            value: 'evt.summary',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Message'),
+            value: 'evt.message',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Severity'),
+            value: 'evt.severity',
+            comparisons: NUMCMPS,
+            field: {
+                xtype: 'combo',
+                queryMode: 'local',
+                valueField: 'value',
+                displayField: 'name',
+                typeAhead: false,
+                forceSelection: true,
+                triggerAction: 'all',
+                listConfig: {
+                    maxWidth:200
+                },
+                store: new Ext.data.ArrayStore({
+                    model: 'Zenoss.model.NameValue',
+                    data: [[
+                        _t('Critical'), 5
+                    ],[
+                        _t('Error'), 4
+                    ],[
+                        _t('Warning'), 3
+                    ],[
+                        _t('Info'), 2
+                    ],[
+                        _t('Debug'), 1
+                    ],[
+                        _t('Clear'), 0
+                    ]]
+                })
+            }
+        },{
+            text: _t('Fingerprint'),
+            value: 'evt.fingerprint',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Agent'),
+            value: 'evt.agent',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Monitor'),
+            value: 'evt.monitor',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Count'),
+            value: 'evt.count',
+            comparisons: NUMCMPS,
+            field: {
+                xtype: 'numberfield'
+            }
+        },{
+            text: _t('Status'),
+            value: 'evt.status',
+            comparisons: NUMCMPS,
+            field: {
+                xtype: 'combo',
+                queryMode: 'local',
+                valueField: 'value',
+                displayField: 'name',
+                typeAhead: false,
+                forceSelection: true,
+                triggerAction: 'all',
+                listConfig: {
+                    maxWidth:200
+                },
+                store: new Ext.data.ArrayStore({
+                    model: 'Zenoss.model.NameValue',
+                    data: [[
+                        _t('New'), Zenoss.STATUS_NEW
+                    ],[
+                        _t('Acknowledged'), Zenoss.STATUS_ACKNOWLEDGED
+                    ],[
+                        _t('Suppressed'), Zenoss.STATUS_SUPPRESSED
+                    ]]
+                })
+            }
+        },{
+            text: _t('Event Class Key'),
+            value: 'evt.event_class_key',
+            comparisons: STRINGCMPS
+        },{
+            text: _t('Syslog Priority'),
+            value: 'evt.syslog_priority',
+            comparisons: NUMCMPS,
+            field: {
+                xtype: 'combo',
+                queryMode: 'local',
+                valueField: 'value',
+                displayField: 'name',
+                typeAhead: false,
+                forceSelection: true,
+                triggerAction: 'all',
+                listConfig: {
+                    maxWidth:200
+                },
+                store: new Ext.data.ArrayStore({
+                    model: 'Zenoss.model.NameValue',
+                    data: [[
+                        _t('Emergency'), 0
+                    ],[
+                        _t('Alert'), 1
+                    ],[
+                        _t('Critical'), 2
+                    ],[
+                        _t('Error'), 3
+                    ],[
+                        _t('Warning'), 4
+                    ],[
+                        _t('Notice'), 5
+                    ],[
+                        _t('Info'), 6
+                    ],[
+                        _t('Debug'), 7
+                    ]]
+                })
+            }
+        },{
+            text: _t('Location'),
+            value: 'dev.location',
+            comparisons: STRINGCMPS
+        },
+        ZFR.DEVICECLASS,
+        {
+            text: _t('Syslog Facility'),
+            value: 'evt.syslog_facility',
+            comparisons: NUMCMPS,
+            field: {
+                xtype: 'numberfield'
+            }
+        },{
+            text: _t('NT Event Code'),
+            value: 'evt.nt_event_code',
+            comparisons: NUMCMPS,
+            field: {
+                xtype: 'numberfield'
+            }
+        },{
+            text: _t('IP Address'),
+            value: 'dev.ip_address',
+            comparisons: STRINGCMPS
+        },
+        ZFR.SYSTEMS,
+        ZFR.DEVICEGROUPS,
+        {
+            text: _t('Owner'),
+            value: 'evt.current_user_name',
+            comparisons: STRINGCMPS
+        }
+    ];
+
+    trigger_tab_subjects = trigger_tab_subjects.concat(Zenoss.env.ZP_DETAILS);
+
     var trigger_tab_content = {
         xtype:'panel',
         ref: '../../tab_content',
@@ -1692,251 +1931,10 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 name: 'criteria',
                 ref: 'rule',
                 id: 'triggerRule',
-                subjects: [
-                dev_priority_rule,
-                prod_state_rule,
-                {
-                    text: _t('Device (Element)'),
-                    value: 'elem.name',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Component (Sub-Element)'),
-                    value: 'sub_elem.name',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Element Type'),
-                    value: 'elem.type',
-                    comparisons: ZFR.IDENTITYCOMPARISONS,
-                    field: {
-                        xtype: 'combo',
-                        queryMode: 'local',
-                        valueField: 'name',
-                        displayField: 'name',
-                        typeAhead: false,
-                        forceSelection: true,
-                        triggerAction: 'all',
-                        listConfig: {
-                            maxWidth:200,
-                            maxHeight:240
-                        },
-                        store: new Ext.data.ArrayStore({
-                            model: 'Zenoss.model.Name',
-                            data: [[
-                                'COMPONENT'
-                            ],[
-                                'DEVICE'
-                            ],[
-                                'SERVICE'
-                            ],[
-                                'ORGANIZER'
-                            ]]
-                        })
-                    }
-                },{
-                    text: _t('Sub Element Type'),
-                    value: 'sub_elem.type',
-                    comparisons: ZFR.IDENTITYCOMPARISONS,
-                    field: {
-                        xtype: 'combo',
-                        queryMode: 'local',
-                        valueField: 'name',
-                        displayField: 'name',
-                        typeAhead: false,
-                        forceSelection: true,
-                        triggerAction: 'all',
-                        listConfig: {
-                            maxWidth:200,
-                            maxHeight:240
-                        },
-                        store: new Ext.data.ArrayStore({
-                            model: 'Zenoss.model.Name',
-                            data: [[
-                                'COMPONENT'
-                            ],[
-                                'DEVICE'
-                            ],[
-                                'SERVICE'
-                            ],[
-                                'ORGANIZER'
-                            ]]
-                        })
-                    }
-                }, {
-                    text: _t('Event Class'),
-                    value: 'evt.event_class',
-                    comparisons: STRINGCMPS,
-                    field: {
-                        xtype: 'eventclass'
-                    }
-                },{
-                    text: _t('Event Key'),
-                    value: 'evt.event_key',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Summary'),
-                    value: 'evt.summary',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Message'),
-                    value: 'evt.message',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Severity'),
-                    value: 'evt.severity',
-                    comparisons: NUMCMPS,
-                    field: {
-                        xtype: 'combo',
-                        queryMode: 'local',
-                        valueField: 'value',
-                        displayField: 'name',
-                        typeAhead: false,
-                        forceSelection: true,
-                        triggerAction: 'all',
-                        listConfig: {
-                            maxWidth:200,
-                            maxHeight:240
-                        },
-                        store: new Ext.data.ArrayStore({
-                            model: 'Zenoss.model.NameValue',
-                            data: [[
-                                _t('Critical'), 5
-                            ],[
-                                _t('Error'), 4
-                            ],[
-                                _t('Warning'), 3
-                            ],[
-                                _t('Info'), 2
-                            ],[
-                                _t('Debug'), 1
-                            ],[
-                                _t('Clear'), 0
-                            ]]
-                        })
-                    }
-                },{
-                    text: _t('Fingerprint'),
-                    value: 'evt.fingerprint',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Agent'),
-                    value: 'evt.agent',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Monitor'),
-                    value: 'evt.monitor',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Count'),
-                    value: 'evt.count',
-                    comparisons: NUMCMPS,
-                    field: {
-                        xtype: 'numberfield'
-                    }
-                },{
-                    text: _t('Status'),
-                    value: 'evt.status',
-                    comparisons: NUMCMPS,
-                    field: {
-                        xtype: 'combo',
-                        queryMode: 'local',
-                        valueField: 'value',
-                        displayField: 'name',
-                        typeAhead: false,
-                        forceSelection: true,
-                        triggerAction: 'all',
-                        listConfig: {
-                            maxWidth:200,
-                            maxHeight:240
-                        },                       
-                        store: new Ext.data.ArrayStore({
-                            model: 'Zenoss.model.NameValue',
-                            data: [[
-                                _t('New'), Zenoss.STATUS_NEW
-                            ],[
-                                _t('Acknowledged'), Zenoss.STATUS_ACKNOWLEDGED
-                            ],[
-                                _t('Suppressed'), Zenoss.STATUS_SUPPRESSED
-                            ]]
-                        })
-                    }
-                },{
-                    text: _t('Event Class Key'),
-                    value: 'evt.event_class_key',
-                    comparisons: STRINGCMPS
-                },{
-                    text: _t('Syslog Priority'),
-                    value: 'evt.syslog_priority',
-                    comparisons: NUMCMPS,
-                    field: {
-                        xtype: 'combo',
-                        queryMode: 'local',
-                        valueField: 'value',
-                        displayField: 'name',
-                        typeAhead: false,
-                        forceSelection: true,
-                        triggerAction: 'all',
-                        listConfig: {
-                            maxWidth:200,
-                            maxHeight:240
-                        },
-                        store: new Ext.data.ArrayStore({
-                            model: 'Zenoss.model.NameValue',
-                            data: [[
-                                _t('Emergency'), 0
-                            ],[
-                                _t('Alert'), 1
-                            ],[
-                                _t('Critical'), 2
-                            ],[
-                                _t('Error'), 3
-                            ],[
-                                _t('Warning'), 4
-                            ],[
-                                _t('Notice'), 5
-                            ],[
-                                _t('Info'), 6
-                            ],[
-                                _t('Debug'), 7
-                            ]]
-                        })
-                    }
-                },{
-                    text: _t('Location'),
-                    value: 'dev.location',
-                    comparisons: STRINGCMPS
-                },
-                ZFR.DEVICECLASS,
-                {
-                    text: _t('Syslog Facility'),
-                    value: 'evt.syslog_facility',
-                    comparisons: NUMCMPS,
-                    field: {
-                        xtype: 'numberfield'
-                    }
-                },{
-                    text: _t('NT Event Code'),
-                    value: 'evt.nt_event_code',
-                    comparisons: NUMCMPS,
-                    field: {
-                        xtype: 'numberfield'
-                    }
-                },{
-                    text: _t('IP Address'),
-                    value: 'dev.ip_address',
-                    comparisons: STRINGCMPS
-                },
-                ZFR.SYSTEMS,
-                ZFR.DEVICEGROUPS,
-                {
-                    text: _t('Owner'),
-                    value: 'evt.current_user_name',
-                    comparisons: STRINGCMPS
-                }
-                ]
+                subjects: trigger_tab_subjects
             }
         ]
     };
-
 
     var trigger_tab_users = {
         xtype: 'panel',
