@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-03-05 17:50:33.729594
+    Zenoss RelationshipManager export completed on 2013-09-20 18:48:44.415959
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.2.70]" export_date="2013-03-05 17:50:33.729594" zenoss_server="localhost.localdomain" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2013-09-20 18:48:44.415959" zenoss_server="jcrocker-424.zenoss.loc" >
 <object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
