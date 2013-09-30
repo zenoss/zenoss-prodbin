@@ -295,7 +295,7 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
         log.exception( msg )
         raise rpnThresholdException(msg)
 
-    def getGraphValues(self, relatedGps):
+    def getGraphValues(self, relatedGps, context):
         """
         Returns the values that we want to include for the
         visualization of this threshold. For a minmax we simply
@@ -315,7 +315,7 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
         rpn = getattr(gp, 'rpn', None)
         if rpn:
             try:
-                rpn = talesEvalStr(rpn, self._context)
+                rpn = talesEvalStr(rpn, context)
             except Exception, e:
                 log.exception(e)
                 self.raiseRPNExc()
