@@ -57,12 +57,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def type(self):
-        # previously the type was stored on the datapoint
-        # and now it is a property of the graph. Graph the first graphdef
-        # type and just use that for now.
-        datapoints = self.datapoints
-        if len(datapoints):
-            return datapoints[0].type
+        return "line"
 
     def _getGraphPoints(self, klass):
         graphDefs = self._object.getGraphPoints(True)
@@ -135,7 +130,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def id(self):
         return self._object.id
-    
+
     @property
     def name(self):
         return "%s %s" % (self._context.id,self._object.id)
@@ -192,6 +187,12 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         rpn = self._object.rpn
         if rpn:
             return "rpn:" + self._object.talesEval(rpn, self._context)
+
+    @property
+    def fill(self):
+        if self.type == "area":
+            return True
+        return False
 
 # Charts adapters for collector graphs
 class CollectorMetricServiceGraphDefinition(MetricServiceGraphDefinition):
