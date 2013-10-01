@@ -146,8 +146,10 @@ class VisualizationInit(JavaScriptSnippet):
     """
     def snippet(self):
         js = """
-            zenoss.visualization.url = window.location.protocol + "//" + window.location.host;
-            zenoss.visualization.debug = false;
+            if (window.zenoss !== undefined) {
+                zenoss.visualization.url = window.location.protocol + "//" + window.location.host;
+                zenoss.visualization.debug = false;
+            }
         """
         return  SCRIPT_TAG_TEMPLATE % js
 

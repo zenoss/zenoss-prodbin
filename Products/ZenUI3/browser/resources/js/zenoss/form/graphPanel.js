@@ -684,10 +684,14 @@
             if (el.isMasked()) {
                 el.unmask();
             }
-
-            if (data.length > 0){
+            // this is defined by the visualization library, if it is missing then we can not
+            // render any charts
+            if (!Ext.isDefined(window.zenoss)) {
+                el.mask(_t('Unable to load the visualization library.') , 'x-mask-msg-noicon');
+            } else if (data.length > 0){
                 this.addGraphs(data);
             }else{
+                // no graphs were returned
                 el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
             }
         },
@@ -698,6 +702,7 @@
                 me = this,
                 start = this.lastShown,
                 end = this.lastShown + GRAPHPAGESIZE,
+                graphTitle,
                 i;
 
             // load graphs until we have either completed the page or
