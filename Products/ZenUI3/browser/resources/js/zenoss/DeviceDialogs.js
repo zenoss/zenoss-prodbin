@@ -60,7 +60,7 @@
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                height: 250,
+                height: 175,
                 title: _t('Delete Device'),
                 submitHandler: Ext.bind(this.removeDevice, this),
                 items: [{
@@ -77,11 +77,6 @@
                     fieldLabel: _t('Close Events?'),
                     xtype: 'checkbox',
                     checked: true
-                },{
-                    name: "deletePerf",
-                    fieldLabel: _t('Delete performance data?'),
-                    xtype: 'checkbox',
-                    checked: true
                 }]
             });
             this.callParent([config]);
@@ -92,8 +87,7 @@
                 action: 'delete',
                 uids: [values.uid],
                 hashcheck: 1,
-                deleteEvents: values.deleteEvents,
-                deletePerf: values.deletePerf
+                deleteEvents: values.deleteEvents
             };
 
             router.removeDevices(options, function(response){
