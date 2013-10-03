@@ -190,9 +190,10 @@ class IpInterface(OSComponent, Layer2Linkable):
             ip.index_object()
         self._invalidate_ipaddress_cache()
 
-        if self.macaddress:
-            if (self.device().getMacAddressCache().add(self.macaddress)): 
-                notify(IndexingEvent(self.device(), idxs=('macAddresses',), update_metadata=False))
+        device = self.device()
+        if self.macaddress and device:
+            if (device.getMacAddressCache().add(self.macaddress)): 
+                notify(IndexingEvent(device, idxs=('macAddresses',), update_metadata=False))
 
     def unindex_object(self):
         """
