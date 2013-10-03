@@ -6,9 +6,105 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 #============================================================================
-ifdef DEBUG_SHELL
-    SHELL = /bin/sh -x -v
+pkg  := zenoss # zenoss|zenoss_analytics|zenoss_impact|..
+_pkg := $(strip $(pkg))
+
+#---------------------------------------------------------------------------#
+# Specify install-related macros that affect where on the filesystem our
+# package is deployed.
+#---------------------------------------------------------------------------#
+
+# Define the primary install home for the package.  This becomes /usr when 
+# we're in the distros.
+# prefix ?= /opt/$(_pkg)
+prefix ?= /usr/local/$(_pkg)
+
+#---------------------------------------------------------------------------#
+# Normally DESTDIR is a pass-through and simply prepends the install prefix,
+# enabling staged installs (typically needed during package creation).
+#
+# Here, we hijack DESTDIR to implement a simple sandbox-relative install
+# capability that doesn't require root privileges.
+#
+#    make installhere    installs here:   ./here/opt/zenoss/*
+# 
+# Alternatively,
+#
+#    sudo make install   installs here:   /opt/zenoss/*
+#
+# Optionally,
+#
+#    export DESTDIR=/var/tmp
+#    sudo make install   installs here:   /var/tmp/opt/zenoss/*
+#
+# http://www.gnu.org/prep/standards/html_node/DESTDIR.html#DESTDIR
+#---------------------------------------------------------------------------#
+heretoken  := here
+_heretoken := $(strip $(heretoken))
+heredir    := ./$(_heretoken)
+
+# Turn install, unintall, etc  --into--> installhere, uninstallhere, ..
+append-here-targets := $(patsubst %,%$(_heretoken),install uninstall devinstall devuninstall)
+
+ifneq "$(filter $(append-here-targets),$(MAKECMDGOALS))" ""
+    # Hit this path if user has typed:  'make installhere|uninstallhere|..'
+    
+    # During a dev work-flow, you may want to install stuff under a 
+    # sandbox-relative directory as a preview to a package-level install.  
+    # We do this by hijacking DESTDIR which is ideally suited for restaging 
+    # an install, which is exactly what we're doing.
+    
+    ifeq "$(DESTDIR)" ""
+        _DESTDIR := $(strip $(heredir))
+    else
+        # Those cases where we want the 'here' directory to be relative to some
+        # parent component.  In that case, honor whatever has been passed in via DESTDIR
+        _DESTDIR := $(strip $(DESTDIR))
+    endif
+else
+    _DESTDIR = $(strip $(DESTDIR))
 endif
+
+# If we're doing a normal 'make install', then let the DESTDIR envvar simply
+# pass through.  If it is not defined, it has no effect on the install directory.
+
+# Normalize DESTDIR so we can use this idiom in our install targets:
+#
+#    $(_DESTDIR)$(prefix)
+#
+# and not end up with double slashes.
+
+ifneq "$(_DESTDIR)" ""
+    PREFIX_HAS_LEADING_SLASH = $(patsubst /%,/,$(prefix))
+    ifeq "$(PREFIX_HAS_LEADING_SLASH)" "/"
+        _DESTDIR := $(shell echo $(_DESTDIR) | sed -e "s|\/$$||g")
+    else
+        _DESTDIR := $(shell echo $(_DESTDIR) | sed -e "s|\/$$||g" -e "s|$$|\/|g")
+    endif
+endif
+
+# NB: Avoid making these immediate assignments since we want generated
+#     makefile that reference these macros to be sensitive to DESTDIR and prefix
+#     at that time they are called.
+ifndef srcdir
+srcdir       = .
+endif
+ifndef blddir
+blddir       = build
+endif
+exec_prefix  = $(prefix)
+bindir       = $(prefix)/bin
+sbindir      = $(prefix)/sbin
+
+# Define a package-relative conf dir (e.g., /opt/zenoss/etc).  This collapses
+# to sysconfdir when we're in the distros.
+
+pkgconfdir   = $(prefix)/etc
+sysconfdir   = /etc
+
+# NB: Use 'sysconfdir' for stuff that goes in /etc.
+#     Use 'pkgconfdir' for stuff that goes in /opt/zenoss/etc
+
 # Assume the build component name is the same as the base directory name.  
 #
 # Can be overridden in the calling makefile via:
@@ -21,15 +117,15 @@ DFLT_COMPONENT := $(shell basename `pwd`)
 ifeq "$(COMPONENT)" ""
     COMPONENT  := $(DFLT_COMPONENT)
 endif
+
 # Use this version internally as it avoids subtle errors introduced by 
 # trailing whitespace.
 _COMPONENT     := $(strip $(COMPONENT))
 
 BUILD_LOG      ?= $(_COMPONENT).log
 ABS_BUILD_LOG   = $(abspath $(BUILD_LOG))
-ABS_BUILD_DIR   = $(abspath $(BUILD_DIR))
+ABS_blddir      = $(abspath $(blddir))
 CHECKED_ENV    ?= .checkedenv
-
 
 # Prompt before uninstalling a given component.  Nice since this usually
 # involves wildcard removal of all the stuff in a common install directory.
@@ -40,51 +136,10 @@ _SAFE_UNINSTALL = $(strip $(SAFE_UNINSTALL))
 # If the install prefix has not been configured in, default to a 
 # component-defined install directory.
 
-ifndef PREFIX
-    PREFIX ?= @prefix@
-endif
-ifeq "$(PREFIX)" "@prefix@"
-    PREFIX := $(COMPONENT_PREFIX)
-endif
-ABS_PREFIX := $(abspath $(PREFIX))
-# Flag _PREFIX to avoid edge case where we hit a circular dependency
-# in the install target if the directory we're installing to is also called 'install'
-ifeq "$(PREFIX)" "install"
-    $(error "Using treacherous install directory name.  Must be something other than 'install')
-else
-    _PREFIX := $(PREFIX)
-endif
 
-# Normalize DESTDIR so we can use this idiom in our install targets:
-#
-#    $(_DESTDIR)$(_PREFIX)
-#
-# such that we don't end up with double slashes.
-#
-# DESTDIR is used for staged-installs, a requirement of packaged
-# builds as a non-root user.
-# 
-# http://www.gnu.org/prep/standards/html_node/DESTDIR.html#DESTDIR
-
-_DESTDIR = $(strip $(DESTDIR))
-ifneq "$(_DESTDIR)" ""
-    # Normalize _DESTDIR to include trailing slash if DESTDIR is non-null
-    # (unless _PREFIX already begins with a leading slash).
-    PREFIX_HAS_LEADING_SLASH = $(patsubst /%,/,$(_PREFIX))
-    ifeq "$(PREFIX_HAS_LEADING_SLASH)" "/"
-        _DESTDIR := $(shell echo $(_DESTDIR) | sed -e "s|\/$$||g")
-    else
-        _DESTDIR := $(shell echo $(_DESTDIR) | sed -e "s|\/$$||g" -e "s|$$|\/|g")
-    endif
-endif
 
 # If the sysconfdir (e.g., etc) has not been configured in, default to a 
 # component-defined sysconfdir.
-
-SYSCONFDIR = @sysconfdir@
-ifeq "$(SYSCONFDIR)" "@sysconfdir@"
-    SYSCONFDIR = $(COMPONENT_SYSCONFDIR)
-endif
 
 ifndef INST_OWNER
     ifeq "$(USER)" "root"
@@ -173,7 +228,7 @@ CHECK_TOOLS += $($(_COMPONENT)_CHECK_TOOLS)
 
 # Default idiom for specifying the source associated with a given target.
 ifeq "$(COMPONENT_SRC)" ""
-    DFLT_COMPONENT_SRC := $(shell $(FIND) $(SRC_DIR) -type f)
+    DFLT_COMPONENT_SRC := $(shell $(FIND) $(srcdir) -type f)
 endif
 
 ifeq "$(REQUIRES_GCC)" "1"
@@ -286,41 +341,82 @@ endif
 
 TIME_TAG=[$(shell $(DATE) +"%H:%M")]
 
+
 ifeq "$(ZBUILD_VERBOSE)" "1"
     #--------------------------------------------------------------
     # For verbose builds, we echo the raw command and stdout/stderr
     # to the console and log file.
+    # PIPESTATUS places a dependency upon bash.
     #--------------------------------------------------------------
     cmd = @$(if $($(quiet)cmd_$(1)),\
-        echo '  $(TIME_TAG)  $($(quiet)cmd_$(1))  ' &&) $(cmd_$(1)) 2>&1 | $(TEE) -a $(BUILD_LOG)
+        (echo '  $(TIME_TAG) $($(quiet)cmd_$(1)) ' | tee -a $(BUILD_LOG)) &&) $(cmd_$(1)) 2>&1 | $(TEE) -a $(BUILD_LOG) ; exit $${PIPESTATUS[0]}
     cmd_noat = $(if $($(quiet)cmd_$(1)),\
-        echo '  $(TIME_TAG)  $($(quiet)cmd_$(1))  ' &&) $(cmd_$(1)) 2>&1 | $(TEE) -a $(BUILD_LOG)
+        (echo '  $(TIME_TAG) $($(quiet)cmd_$(1)) ' | tee -a $(BUILD_LOG)) &&) $(cmd_$(1)) 2>&1 | $(TEE) -a $(BUILD_LOG) ; exit $${PIPESTATUS[0]}
+
+    define echol
+        echo "  $(TIME_TAG) "$(1) ; echo $(1) >> $(BUILD_LOG)
+    endef
+
+    define echobothl
+        echo "  $(TIME_TAG) "$(1) | $(TEE) -a $(BUILD_LOG)
+    endef
 else
     #--------------------------------------------------------------
     # For quiet builds, we present abbreviated output to the console.
-    # Build log contains full command plus stdout/stderr.
+    # On error, we dump the full command plus error to stdout.
+    # We dump everything to build log.
+    #
+    # The '3>&1' business is all about swapping stdout and stderr so
+    # we can tee stderr to the console and log.
     #--------------------------------------------------------------
+    # (echo GCC_FAILS | tee -a blah.log) && (echo 'gcc --bummer' 2>&1 1>> blah.log ; gcc --bummer 3>&1 1>>blah.log 2>&3 | tee -a blah.log ; exit ${PIPESTATUS[0]})
     cmd = @$(if $($(quiet)cmd_$(1)),\
-        echo '  $(TIME_TAG)  $($(quiet)cmd_$(1))  ' &&) (echo '$(cmd_$(1))' ;$(cmd_$(1))) 2>&1 >>$(BUILD_LOG) || (echo "  $(TIME_TAG)  ERROR: See $(ABS_BUILD_LOG) for details."; echo ; exit 1)
+        (echo '  $(TIME_TAG) $($(quiet)cmd_$(1))  ' | tee -a $(BUILD_LOG)) &&) echo '$(cmd_$(1))' 2>&1 1>> $(BUILD_LOG) ; $(cmd_$(1)) 3>&1 1>>$(BUILD_LOG) 2>&3 | $(TEE) -a $(BUILD_LOG) ; exit $${PIPESTATUS[0]}
     cmd_noat = $(if $($(quiet)cmd_$(1)),\
-        echo '  $(TIME_TAG)  $($(quiet)cmd_$(1))  ' &&) (echo '$(cmd_$(1))' ;$(cmd_$(1))) 2>&1 >>$(BUILD_LOG) || (echo "  $(TIME_TAG)  ERROR: See $(ABS_BUILD_LOG) for details."; echo  ; exit 1)
+        (echo '  $(TIME_TAG) $($(quiet)cmd_$(1))  ' | tee -a $(BUILD_LOG)) &&) echo '$(cmd_$(1))' 2>&1 1>> $(BUILD_LOG) ; $(cmd_$(1)) 3>&1 1>>$(BUILD_LOG) 2>&3 | $(TEE) -a $(BUILD_LOG) ; exit $${PIPESTATUS[0]}
+    define echol
+        $(if $(2),echo "  $(TIME_TAG) "$2,echo "  $(TIME_TAG) "$1) | $(TEE) -a $(BUILD_LOG)
+    endef
+
+    define echobothl
+        echo "  $(TIME_TAG) "$2 ; echo $1 >> $(BUILD_LOG)
+    endef
 endif
 
 #----------------------------------------------------------------------------
-# Echo and log.
-define echol
-    echo "  $(TIME_TAG)  "$1 | $(TEE) -a $(BUILD_LOG)
-endef
+# Compile a file
+quiet_cmd_CC = CC     $4
+      cmd_CC = $2 $3 $4 $5
 
 #----------------------------------------------------------------------------
-# Remove a file.
+# Copy a file.
 quiet_cmd_CP = CP     $2 $3
       cmd_CP = $(CP) $2 $3
+
+#----------------------------------------------------------------------------
+# Copy a file.
+quiet_cmd_CP_interactive = CP     $2 $3
+      cmd_CP_interactive = $(CP) -i $2 $3
 
 #----------------------------------------------------------------------------
 # Remove a file.
 quiet_cmd_INSTALL = INSTALL [m=$4 o=$5 g=$6] $3
       cmd_INSTALL = $(INSTALL) -m $4 -o $5 -g $6 $2 $3
+
+#----------------------------------------------------------------------------
+# Link some C modules into a program.
+quiet_cmd_LINKC = LINK   $6
+      cmd_LINKC = $2 $3 $4 $5 -o $6
+
+#----------------------------------------------------------------------------
+# Make deps for a C source file.
+quiet_cmd_MKDEPC = MKDEPC $4
+      cmd_MKDEPC = $(call make-depend,$2,$3,$4)
+
+#----------------------------------------------------------------------------
+# Make library deps for a C program.
+quiet_cmd_MKDEPL = MKDEPL $3.$(LINKDEP_EXT)
+      cmd_MKDEPL = $(call make-lib-depend,$2,$3)
 
 #----------------------------------------------------------------------------
 # Make a directory.
@@ -343,7 +439,7 @@ quiet_cmd_CHOWN = CHOWN  $2:$3 $4
 #----------------------------------------------------------------------------
 # Remove a file.
 quiet_cmd_RM = RM     $2
-      cmd_RM = $(RM) -f "$2"
+      cmd_RM = $(RM) -f $2
 
 #----------------------------------------------------------------------------
 # Remove a directory.
@@ -432,9 +528,10 @@ define make-depend
 endef
 
 # $(call make-lib-depend,object-file,program-file)
+LINKDEP_EXT = dlibs
 define make-lib-depend 
     if $(LINK.c) $1 $(LOADLIBES) -Wl,--trace $(LDLIBS) -o $2 2>/dev/null 1>&2 ;then \
-        libdep_file=$2.dlibs ;\
+        libdep_file=$2.$(LINKDEP_EXT) ;\
 	echo "$2: $1 \\" > $${libdep_file} ;\
         $(LINK.c) $1 $(LOADLIBES) -Wl,--trace $(LDLIBS) -o $2 |\
             sed -e "s|^-l[^ ]*||g" | sed -e "s|(\([^ ]*\.a\))\([^ ]*\)|\1[\2]|g" | sed -e "s|^[ ]*$$||g" | egrep -v "$1" | sed "/^[ ]*$$/d" | sed -e "s|[()]*||g" -e "s|^[ ]*||g" -e "s|.*ld: mode.*||g" | sed /^$$/d |\
@@ -486,7 +583,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(GCC) -dumpversion 2>&1 | head -1 | $(AWK) '{print $$1}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}     >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"chkver $${tool} >= $${dotted_min_desired_ver}","CHKVER $${tool}     >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: gcc version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -497,7 +594,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(JAVA) -version 2>&1 | grep "^java version" | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"chkver $${tool} >= $${dotted_min_desired_ver}","CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: java version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -515,7 +612,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`make -v 2>&1 | head -1 | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'"` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"chkver $${tool} >= $${dotted_min_desired_ver}","CHKVER $${tool}    >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: make version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					$(call echol,"       Upgrade to avoid vexing 'unexpected end of file' errors.") ;\
@@ -535,7 +632,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 				min_desired_ver=`echo $${dotted_min_desired_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
 				dotted_actual_ver=`$(MVN) -version 2>&1 | head -1 | $(AWK) '{print $$3}' | tr -d '"' | tr -d "'" | cut -d"." -f1-3|cut -d"_" -f1` ;\
 				actual_ver=`echo $${dotted_actual_ver} |tr "." " "|$(AWK) '{printf("(%d*100)+(%d*10)+(%d)\n",$$1,$$2,$$3)}'|$(BC)` ;\
-				$(call echol,"CHKVER $${tool}     >= $${dotted_min_desired_ver}") ;\
+				$(call echol,"chkver $${tool}     >= $${dotted_min_desired_ver}","CHKVER $${tool}     >= $${dotted_min_desired_ver}") ;\
 				if [ $${actual_ver} -lt $${min_desired_ver} ];then \
 					$(call echol,"ERROR: mvn version is $${dotted_actual_ver}  Expecting version  >= $${dotted_min_desired_ver}") ;\
 					exit 1;\
@@ -594,7 +691,7 @@ $(CHECKED_TOOLS_VERSION_BRAND):
 checkenv: $(CHECKED_ENV)
 $(CHECKED_ENV): | $(CHECKED_TOOLS) $(CHECKED_TOOLS_VERSION_BRAND)
 	$(call cmd,TOUCH,$@)
-	@$(call echol,"BLDLOG $(ABS_BUILD_LOG)")
+	@$(call echol,"bldlog $(ABS_BUILD_LOG)","BLDLOG $(ABS_BUILD_LOG)")
 	@echo $(LINE)
 
 .PHONY: dflt_component_help
@@ -608,13 +705,13 @@ dflt_component_help:
 	@echo "where <target> is one or more of the following:"
 	@echo $(LINE)
 	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(EGREP) -v ".PHONY|:=|^\[|^\"|^\@|^\.|^echo"| $(SORT) |\
-	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(BUILD_DIR)\/|install|^$(PREFIX)\/|^\/|^dflt_|clean|\.|\/" | $(PR) -t -w 80 -3
+	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|install|^$(prefix)\/|^\/|^dflt_|clean|\.|\/" | $(PR) -t -w 80 -3
 	@echo $(LINE)
 	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(EGREP) -v ".PHONY" | $(SORT) |\
-	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(BUILD_DIR)\/|^$(PREFIX)\/|^\/|^dflt_|clean|\.|\/" | $(EGREP) "^install|^devinstall" | $(PR) -t -w 80 -3
+	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|^$(prefix)\/|^\/|^dflt_|clean|\.|\/" | $(EGREP) "^install|^devinstall|^uninstall" | $(PR) -t -w 80 -3
 	@echo $(LINE)
 	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(EGREP) -v ".PHONY" | $(SORT) |\
-	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(BUILD_DIR)\/|^$(PREFIX)\/|^\/|^dflt_|\.|\/" | $(EGREP) "^clean|^un|clean" |  $(PR) -t -w 80 -3
+	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|^$(prefix)\/|^\/|^dflt_|\.|\/" | $(EGREP) "^clean|clean" |  $(PR) -t -w 80 -3
 	@echo $(LINE)
 	@echo "Build results logged to $(BUILD_LOG)."
 
@@ -625,13 +722,13 @@ dflt_devinstall:
 
 .PHONY: dflt_component_uninstall
 dflt_component_uninstall:
-	@if [ -d "$(_DESTDIR)$(_PREFIX)" ];then \
-		$(call cmd_noat,SAFE_RMDIR,$(_DESTDIR)$(_PREFIX)) ;\
+	@if [ -d "$(_DESTDIR)$(prefix)" ];then \
+		$(call cmd_noat,SAFE_RMDIR,$(_DESTDIR)$(prefix)) ;\
 		if [ $$? -eq 0 ];then \
 			$(call echol,$(LINE)) ;\
-			$(call echol,"$(_COMPONENT) uninstalled from $(_DESTDIR)$(_PREFIX)") ;\
+			$(call echol,"$(_COMPONENT) uninstalled from $(_DESTDIR)$(prefix)") ;\
 		else \
-			echo "[$@] Error unable to remove [$(_DESTDIR)$(_PREFIX)]." ;\
+			echo "[$@] Error unable to remove [$(_DESTDIR)$(prefix)]." ;\
 			echo "[$@] Maybe you intended 'sudo make uninstall' instead?  But be sure. :-)" ;\
 			exit 1 ;\
 		fi ;\
@@ -645,15 +742,15 @@ endif
 
 .PHONY: dflt_component_mrclean dflt_component_distclean
 dflt_component_mrclean dflt_component_distclean: dflt_component_clean
-	@if [ -f "$(CHECKED_TOOLS_VERSION_BRAND)" ]; then \
-		$(call cmd_noat,RM,$(CHECKED_TOOLS_VERSION_BRAND)) ;\
-	fi
-	@if [ -f "$(CHECKED_TOOLS)" ]; then \
-		$(call cmd_noat,RM,$(CHECKED_TOOLS)) ;\
-	fi
-	@if [ -f "$(CHECKED_ENV)" ]; then \
-		$(call cmd_noat,RM,$(CHECKED_ENV)) ;\
-	fi
+	@for target_file in $(wildcard $(CHECKED_TOOLS_VERSION_BRAND) $(CHECKED_TOOLS) $(CHECKED_ENV)) ;\
+	do \
+		$(call echol,"rm -f $${target_file}","RM     $${target_file}") ;\
+		rm -rf "$${target_file}" ;\
+		rc=$$? ;\
+		if [ $${rc} -ne 0 ];then \
+			exit $${rc} ;\
+		fi ;\
+	done
 	@if [ -f "$(BUILD_LOG)" ]; then \
 		$(RM) $(BUILD_LOG) ;\
 	fi

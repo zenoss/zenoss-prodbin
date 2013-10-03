@@ -12,21 +12,17 @@ PROGRAM = pyraw
 
 # Define install-related attributes.
 
-PROGRAM_PERMS    = 04750
-PROGRAM_OWNER    = root
-ZENHOME         ?= /opt/zenoss
-PREFIX          ?= $(ZENHOME)/bin
-INSTDIR          = $(DESTDIR)$(PREFIX)
+PROGRAM_PERMS = 04750
 
 # Define build-related attributes
 
-BUILD_DIR                = obj
-WITH_ZENOSS_PYTHON_DEVEL = yes
+blddir                   = obj
+WITH_ZENOSS_PYTHON_DEVEL = no
 INCLUDE_SYSINC_DEPS      = no
 PYTHON_MAJ_MIN_VER       = 2.7
 REQUIRES_GCC             = 1
 IGNORE_LD_LIBRARY_PATH   = yes
-# Dump out a PROGRAM's link-time dependencies to $(BUILD_DIR)/PROGRAM.dlibs
+# Dump out a PROGRAM's link-time dependencies to $(blddir)/PROGRAM.dlibs
 # This does not materially affect the build, but it does provide a means
 # for understanding where certain library dependencies are creeping in.
 DUMP_LD_LIBDEPS          = yes
@@ -149,121 +145,167 @@ endif
 INSTALL  = install
 LINE     = "-----------------------------------------------------------------------------"
 
+here-targets  = installhere uninstallhere
+ifeq "$(filter $(here-targets),$(MAKECMDGOALS))" ""
+PROGRAM_OWNER = root
+else
+PROGRAM_OWNER = $(INST_OWNER)
+endif
+
 #============================================================================
 # Build Targets
 #============================================================================
 ifneq "$(MAKECMDGOALS)" "clean"
-    -include $(BUILD_DIR)/$(PROGRAM).d
+    -include $(blddir)/$(PROGRAM).d
 endif
 
 .PHONY: all build $(PROGRAM)
-all build $(PROGRAM): $(BUILD_DIR)/$(PROGRAM)
+all build $(PROGRAM): $(blddir)/$(PROGRAM)
 
-$(BUILD_DIR): 
-	mkdir -p $@
+$(blddir): 
+	$(call cmd,MKDIR,$@)
 
-$(INSTDIR):
-	@echo mkdir -p $@
-	if ! mkdir -p $@ ;then \
-		echo "[$@] Error: Maybe you intended 'sudo make install' instead?" ;\
-		exit 1 ;\
+$(_DESTDIR)$(bindir):
+	@($(call cmd_noat,MKDIR,$@)) ;\
+	rc=$$? ;\
+	if [ $${rc} -ne 0 ] ; then \
+		echo $(LINE) ;\
+		echo "Maybe you intended 'sudo make install' or 'make installhere' instead?" ;\
+		echo ;\
+		exit $${rc} ;\
 	else \
-		chown -R $(INST_OWNER):$(INST_GROUP) $@ ;\
+		$(call cmd_noat,CHOWN,$(INST_OWNER),$(INST_GROUP),$@) ;\
+		rc=$$? ;\
+		if [ $${rc} -ne 0 ] ; then \
+			exit $${rc} ;\
+		fi ;\
 	fi
 
-$(BUILD_DIR)/$(PROGRAM): $(BUILD_DIR)/$(PROGRAM).o
+$(blddir)/$(PROGRAM): $(blddir)/$(PROGRAM).o
 ifeq "$(DUMP_LD_LIBDEPS)" "yes"
-	@$(call make-lib-depend,$^,$@)
+	$(call cmd,MKDEPL,$^,$@)
 endif
-	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(call cmd,LINKC,$(LINK.c),$^,$(LOADLIBES),$(LDLIBS),$@)
 
-$(BUILD_DIR)/$(PROGRAM).o: | $(CHECKED_ENV)
-$(BUILD_DIR)/$(PROGRAM).o: | $(PYTHON_INCDIR)
-$(BUILD_DIR)/$(PROGRAM).o: | $(BUILD_DIR)
-$(BUILD_DIR)/$(PROGRAM).o: $(PROGRAM).c
-	$(call make-depend,$<,$@,$(subst .o,.d,$@))
-	$(COMPILE.c) $(OUTPUT_OPTION) $<
+$(blddir)/$(PROGRAM).o: | $(CHECKED_ENV)
+$(blddir)/$(PROGRAM).o: | $(PYTHON_INCDIR)
+$(blddir)/$(PROGRAM).o: | $(blddir)
+$(blddir)/$(PROGRAM).o: $(PROGRAM).c
+	$(call cmd,MKDEPC,$<,$@,$(subst .o,.d,$@))
+	$(call cmd,CC,$(COMPILE.c),$(OUTPUT_OPTION),$<)
 
-BUILT_FILES = $(wildcard $(patsubst %,$(BUILD_DIR)/%,$(PROGRAM) $(PROGRAM).o $(PROGRAM).d $(PROGRAM).dlibs))
+BUILT_FILES = $(wildcard $(patsubst %,$(blddir)/%,$(PROGRAM) $(PROGRAM).o $(PROGRAM).d $(PROGRAM).dlibs))
 .PHONY: clean
 clean:
-	@for builtfile in $(BUILT_FILES);\
+	@for target_file in $(BUILT_FILES) ;\
 	do \
-		echo "rm $${builtfile}" ;\
-		rm $${builtfile} ;\
+		$(call echol,"rm -f $${target_file}","RM     $${target_file}") ;\
+		rm -rf "$${target_file}" ;\
+		rc=$$? ;\
+		if [ $${rc} -ne 0 ];then \
+			exit $${rc} ;\
+		fi ;\
 	done
-	@if [ -d "$(BUILD_DIR)" ];then \
-		count=`ls -a1 $(BUILD_DIR) 2>/dev/null|wc -l` ;\
+	@if [ -d "$(blddir)" ];then \
+		count=`ls -a1 $(blddir) 2>/dev/null|wc -l` ;\
 		if ((count < 3 ));then \
-			echo "rm -rf $(BUILD_DIR)" ;\
-			rm -rf $(BUILD_DIR) ;\
+			$(call cmd_noat,RMDIR,$(blddir)) ;\
 		fi ;\
 	fi
 
 .PHONY: mrclean distclean
 mrclean distclean: clean dflt_component_distclean
-	@if [ -e "$(INSTDIR)/$(PROGRAM)" ];then \
-		count=$(shell ls -a1 $(INSTDIR) 2>/dev/null|wc -l) ;\
+	@if [ -e "$(_DESTDIR)$(bindir)/$(PROGRAM)" ];then \
+		count=$(shell ls -a1 $(_DESTDIR)$(bindir) 2>/dev/null|wc -l) ;\
 		if ((count >= 3 ));then \
-			echo "You may also run 'make uninstall' to uninstall $(PROGRAM) from $(INSTDIR)" ;\
+			echo "You may also run 'make uninstall' to uninstall $(PROGRAM) from $(_DESTDIR)$(bindir)" ;\
 		fi ;\
 	fi
+	@if [ -d "$(heredir)$(bindir)" ];then \
+		count=$(shell ls -a1 $(heredir)$(bindir) 2>/dev/null|wc -l) ;\
+		if ((count >= 3 ));then \
+			echo "You may also run 'make uninstallhere' to uninstall from $(heredir)$(bindir)" ;\
+		fi ;\
+	fi
+	@if [ -f "$(COMPONENT).log" ];then \
+		rm $(COMPONENT).log ;\
+	fi
 
-.PHONY: install
-install: | $(INSTDIR)
-install:
-	@if [ ! -f "$(BUILD_DIR)/$(PROGRAM)" ]; then \
-		echo "Unable to install $(PROGRAM).  Missing $(BUILD_DIR)/$(PROGRAM)." ;\
+.PHONY: install installhere
+install installhere: | $(_DESTDIR)$(bindir)
+install installhere:
+	@if [ ! -f "$(blddir)/$(PROGRAM)" ]; then \
+		echo "Unable to install $(PROGRAM).  Missing $(blddir)/$(PROGRAM)." ;\
 		echo $(LINE) ;\
 		echo "Run 'make build' first" ;\
 		echo ;\
 		exit 1 ;\
 	fi
-	@if [ -z "$(INSTDIR)" ]; then \
-		echo "[$@] Error: The INSTDIR variable must be set to something before I can install $(PROGRAM) there." ;\
+	@if [ -z "$(_DESTDIR)$(bindir)" ]; then \
+		echo "[$@] Error: The bindir variable must be set to something before I can install $(PROGRAM) there." ;\
 		exit 1 ;\
 	fi
-	@echo "$(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(BUILD_DIR)/$(PROGRAM) $(INSTDIR)"
-	@if ! $(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(BUILD_DIR)/$(PROGRAM) $(INSTDIR) ;then \
+	@($(call cmd_noat,INSTALL,$(blddir)/$(PROGRAM),$(_DESTDIR)$(bindir)/$(PROGRAM),$(PROGRAM_PERMS),$(PROGRAM_OWNER),$(INST_GROUP))) ;\
+	rc=$$? ;\
+	if [ $${rc} -ne 0 ]; then \
 		echo $(LINE) ;\
-		install_woe=`$(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(BUILD_DIR)/$(PROGRAM) $(INSTDIR) 2>&1` ;\
+		install_woe=`$(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(blddir)/$(PROGRAM) $(_DESTDIR)$(bindir) 2>&1` ;\
 		case $${install_woe} in \
 			*cannot*overwrite*directory*) \
-				echo "[$@] Error: Whoa. You seem to have a directory where a file was expected?" ;\
-				echo "                 Something went wrong or this is a hybrid dev environment." ;\
-				echo "                 Abandoning install attempt." ;\
-				ls -ld $(INSTDIR)/$(PROGRAM) ;\
+				echo "Whoa. You seem to have a directory where a file was expected?" ;\
+				echo "Something went wrong or this is a hybrid dev environment." ;\
+				echo "Abandoning install attempt." ;\
+				echo $(LINE) ;\
+				ls -ld $(_DESTDIR)$(bindir)/$(PROGRAM) ;\
 				:;;\
 			*cannot*change*ownership*) \
-				echo "[$@] Error: Here is what you attempted to overwrite:" ;\
-				ls -ld $(INSTDIR)/$(PROGRAM) ;\
-				echo "                 Maybe you intended 'sudo make install' instead?" ;\
+				echo "Here is what you attempted to overwrite:" ;\
+				ls -ld $(_DESTDIR)$(bindir)/$(PROGRAM) ;\
+				echo $(LINE) ;\
+				echo "Maybe you intended 'sudo make install' or 'make installhere' instead?" ;\
 				:;;\
 			*Permission*denied*) \
-				echo "[$@] Error: Here is where you attempted to install:" ;\
-				ls -ld $(INSTDIR) ;\
-				echo "                 Maybe you intended 'sudo make install' instead?" ;\
+				echo "Here is where you attempted to install:" ;\
+				ls -ld $(_DESTDIR)$(bindir) ;\
+				echo $(LINE) ;\
+				echo "Maybe you intended 'sudo make install' or 'make installhere' instead?" ;\
 				:;;\
 			*) \
 				echo "Please investigate." ;\
 				:;;\
 		esac ;\
-		echo ;\
-		exit 1 ;\
+		echo "[rc = $${rc}]";\
+		exit ${rc} ;\
 	fi
 
-INSTFILES = $(wildcard $(patsubst %,$(INSTDIR)/%,$(PROGRAM) $(PROGRAM).dSYM))
+INSTFILES = $(wildcard $(patsubst %,$(_DESTDIR)$(bindir)/%,$(PROGRAM) $(PROGRAM).dSYM))
 .PHONY: uninstall
 uninstall:
-	@for instfile in $(INSTFILES);\
+	@for target_file in $(INSTFILES) ;\
 	do \
-		echo "rm $${instfile}" ;\
-		rm $${instfile} ;\
+		$(call echol,"rm -f $${target_file}","RM     $${target_file}") ;\
+		rm -rf "$${target_file}" ;\
+		rc=$$? ;\
+		if [ $${rc} -ne 0 ];then \
+			exit $${rc} ;\
+		fi ;\
 	done
-	@count=`ls -a1 $(INSTDIR) 2>/dev/null|wc -l` ;\
+	@count=`ls -a1 $(_DESTDIR)$(bindir) 2>/dev/null|wc -l` ;\
 	if ((count < 3 ));then \
-		echo "rm -rf $(INSTDIR)" ;\
-		rm -rf $(INSTDIR) ;\
+		($(call cmd_noat,RMDIR,$(_DESTDIR)$(bindir))) ;\
+		rc=$$? ;\
+		if [ $${rc} -ne 0 ] ; then \
+			echo $(LINE) ;\
+			echo "Maybe you intended 'sudo make $@' instead?" ;\
+			echo ;\
+			exit $${rc} ;\
+		fi ;\
+	fi
+
+.PHONY: uninstallhere
+uninstallhere: uninstall
+	@if [ -d "$(heredir)" ];then \
+		$(call cmd_noat,RMDIR,$(heredir)) ;\
 	fi
 
 .PHONY: help
@@ -271,18 +313,18 @@ help: dflt_component_help
 	@echo Using common build idioms from $(NEAREST_ZENMAGIC_MK)
 	@echo
 
-check: | $(BUILD_DIR)
+check: | $(blddir)
 check:
-	@if [ ! -f "$(BUILD_DIR)/$(PROGRAM)" ]; then \
-		echo "Unable to check $(PROGRAM).  Missing $(BUILD_DIR)/$(PROGRAM)." ;\
+	@if [ ! -f "$(blddir)/$(PROGRAM)" ]; then \
+		echo "Unable to check $(PROGRAM).  Missing $(blddir)/$(PROGRAM)." ;\
 		echo $(LINE) ;\
 		echo "Run 'make build' first" ;\
 		echo ;\
 		exit 1 ;\
 	fi
 ifeq "$(IGNORE_LD_LIBRARY_PATH)" "yes"
-	@echo -en "Checking that $(BUILD_DIR)/$(PROGRAM) will ignore LD_LIBRARY_PATH: " ;\
-	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1 ;then \
+	@echo -en "Checking that $(blddir)/$(PROGRAM) will ignore LD_LIBRARY_PATH: " ;\
+	if $(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1 ;then \
 		echo "[FAIL]" ;\
 		echo $(LINE) ;\
 		echo "The presence of RUNPATH in the dynamic string table of $(PROGRAM) indicates" ;\
@@ -291,19 +333,19 @@ ifeq "$(IGNORE_LD_LIBRARY_PATH)" "yes"
 		echo ;\
 		echo "See: http://blog.tremily.us/posts/rpath/" ;\
 		echo ;\
-		echo "$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RUNPATH" ;\
-		$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RUNPATH | xargs echo ;\
+		echo "$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RUNPATH" ;\
+		$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RUNPATH | xargs echo ;\
 		echo ;\
 		exit 1 ;\
 	else \
 		echo "[PASS]" ;\
 	fi
 else
-	@echo -en "Checking that $(BUILD_DIR)/$(PROGRAM) will honor LD_LIBRARY_PATH: " ;\
-	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1	;then \
+	@echo -en "Checking that $(blddir)/$(PROGRAM) will honor LD_LIBRARY_PATH: " ;\
+	if $(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1	;then \
 		echo "[PASS]" ;\
 	else \
-		if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep RPATH ;then \
+		if $(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RPATH ;then \
 			echo "[FAIL]" ;\
 			echo $(LINE) ;\
 			echo "The presence of RPATH and absence of RUNPATH in the dynamic string table of $(PROGRAM) indicates" ;\
@@ -312,8 +354,8 @@ else
 			echo ;\
 			echo "See: http://blog.tremily.us/posts/rpath/" ;\
 			echo ;\
-			echo "$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep PATH" ;\
-			$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep PATH | sed -e "s| [ ]*| |g" ;\
+			echo "$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep PATH" ;\
+			$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep PATH | sed -e "s| [ ]*| |g" ;\
 			echo ;\
 			exit 1 ;\
 		else \
@@ -322,24 +364,24 @@ else
 	fi
 endif
 	@echo
-	@echo -en "Checking list of shared libraries needed by $(BUILD_DIR)/$(PROGRAM) at runtime: " ;\
-	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep NEEDED 1>/dev/null 2>&1	;then \
+	@echo -en "Checking list of shared libraries needed by $(blddir)/$(PROGRAM) at runtime: " ;\
+	if $(READELF) --dynamic $(blddir)/$(PROGRAM) | grep NEEDED 1>/dev/null 2>&1	;then \
 		echo ;\
 		echo $(LINE) ;\
-		$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | grep NEEDED |sed -e "s|.*\(NEEDED.*\)|\1|g" -e "s|)||g" -e "s| [ ]*| |g" ;\
+		$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep NEEDED |sed -e "s|.*\(NEEDED.*\)|\1|g" -e "s|)||g" -e "s| [ ]*| |g" ;\
 	else \
 		echo "[FAIL]" ;\
-		echo "[$@] Error: Unable to dump the list of shared libraries required by $(BUILD_DIR)/$(PROGRAM)." ;\
+		echo "[$@] Error: Unable to dump the list of shared libraries required by $(blddir)/$(PROGRAM)." ;\
 	fi
 	@echo
-	@echo -en "Checking rpath and runpath elf attributes specified internally for $(BUILD_DIR)/$(PROGRAM): " ;\
-	if $(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | egrep "RPATH|RUNPATH" 1>/dev/null 2>&1 ;then \
+	@echo -en "Checking rpath and runpath elf attributes specified internally for $(blddir)/$(PROGRAM): " ;\
+	if $(READELF) --dynamic $(blddir)/$(PROGRAM) | egrep "RPATH|RUNPATH" 1>/dev/null 2>&1 ;then \
 		echo ;\
 		echo $(LINE) ;\
-		$(READELF) --dynamic $(BUILD_DIR)/$(PROGRAM) | egrep "RPATH|RUNPATH" ;\
+		$(READELF) --dynamic $(blddir)/$(PROGRAM) | egrep "RPATH|RUNPATH" ;\
 	else \
 		echo "[INFO]" ;\
-		echo "Info: rpath and runpath attributes not set for $(BUILD_DIR)/$(PROGRAM)." ;\
+		echo "Info: rpath and runpath attributes not set for $(blddir)/$(PROGRAM)." ;\
 		echo "      This means standard system lib paths and LD_LIBRARY_PATH will" ;\
 		echo "      be used at runtime by the loader to resolve shared libarary dependencies." ;\
 	fi
