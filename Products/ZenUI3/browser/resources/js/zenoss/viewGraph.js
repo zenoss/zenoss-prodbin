@@ -21,12 +21,13 @@ Ext.onReady(function(){
     var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),
         data = decodedUrl.data;
 
-    if (!data){
+    if (data){
+        buildGraph(data);
+    } else {
         Ext.DomHelper.append("graphView", {
             tag: 'h1',
-            html: _t('Missing "data" query parameter, unable to render the graph')
+            html: _t('Missing "data" query parameter, unable to render the graph.')
         });
-    } else {
-        buildGraph(data);
+
     }
 });
