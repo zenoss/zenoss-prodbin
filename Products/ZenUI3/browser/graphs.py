@@ -8,7 +8,6 @@
 ##############################################################################
 import json
 import logging
-from datetime import datetime
 from Products.ZenUtils.Time import LocalDateTimeFromMilli
 from Products.Five.browser import BrowserView
 log = logging.getLogger('zen.graphexport')
@@ -16,6 +15,7 @@ log = logging.getLogger('zen.graphexport')
 
 class ExportGraph(BrowserView):
     """
+    This view takes the chart data and sends it back to the client as a CSV.
     """
     def __call__(self, *args, **kwargs):
         """
