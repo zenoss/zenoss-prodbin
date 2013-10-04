@@ -1,0 +1,28 @@
+ifeq ($(shell uname), SunOS)
+CC=cc
+CFLAGS=-g
+LDFLAGS=-lsocket
+else
+CC=gcc
+CFLAGS=-Wall -pedantic -D__GNU_LIBRARY__ -g
+LDFLAGS=
+endif
+PROGRAM=zensocket
+
+$(PROGRAM): zensocket.c
+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $<
+
+install: $(DESTDIR)$(ZENHOME)/bin/$(PROGRAM)
+
+$(DESTDIR)$(ZENHOME)/bin/$(PROGRAM): $(PROGRAM)
+ifndef ZENHOME
+	$(error ZENHOME must be specified)
+endif
+	rm -f $@
+	cp $(PROGRAM) $@
+#ifneq ($(SETUID),)
+#	su root -c "chown root $@ ; chmod uog+rx,u+ws $@"
+#endif
+
+clean:
+	rm -rf $(PROGRAM) $(PROGRAM).dSYM
