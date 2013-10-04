@@ -307,6 +307,12 @@
     permission="zenoss.Common"
     />
 
+<browser:page
+    template="templates/viewGraph.pt"
+    name="viewGraph"
+    for="*"
+    permission="zenoss.Common"
+    />
 <browser:viewlet
     name="zenoss_settings"
     manager=".interfaces.IMainSnippetManager"
