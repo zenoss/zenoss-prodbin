@@ -195,8 +195,10 @@
                         }, {
                             text: _t('Export to CSV'),
                             handler: Ext.bind(this.exportData, this)
+                        }, {
+                            text: _t('Link to this Graph'),
+                            handler: Ext.bind(this.displayLink, this)
                         }]
-
                     },{
                         text: '&lt;',
                         width: 40,
@@ -283,6 +285,18 @@
             }
             this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);
+        },
+        displayLink: function(){
+            var config = Zenoss.util.base64.encode(Ext.JSON.encode(this.initialConfig)),
+                link = "/zport/dmd/viewGraph?data=" + config;
+            new Zenoss.dialog.ErrorDialog({
+                message: Ext.String.format(_t('<div>'
+                                              + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'), '<br/><br/><a href="'
+                                              + link
+                                              + '">Graph: ' + this.graphTitle +  ' </a>')
+                                              + '</div>')),
+                title: _t('Save Configuration')
+            });
         },
         displayDefinition: function(){
             Ext.create('Zenoss.dialog.BaseWindow', {
