@@ -188,8 +188,15 @@
                         text: config.graphTitle // + ' : ' + config.uid
                     },'->',{
                         xtype: 'button',
-                        text: "?",
-                        handler: Ext.bind(this.displayDefinition, this)
+                        iconCls: 'customize',
+                        menu: [{
+                            text: _t('Definition'),
+                            handler: Ext.bind(this.displayDefinition, this)
+                        }, {
+                            text: _t('Export to CSV'),
+                            handler: Ext.bind(this.exportData, this)
+                        }]
+
                     },{
                         text: '&lt;',
                         width: 40,
@@ -291,6 +298,31 @@
                 }]
             }).show();
         },
+        exportData: function() {
+            var chart = zenoss.visualization.__charts[this.graphId],
+                plots = Ext.JSON.encode(chart.plots),
+                form;
+            form = Ext.DomHelper.append(document.body, {
+                tag: 'form',
+                method: 'POST',
+                action: '/zport/dmd/exportGraph',
+                children: [{
+                    tag: 'textarea',
+                    style: {
+                        display: 'none'
+                    },
+                    name: 'plots',
+                    html: plots
+                }, {
+                    tag: 'input',
+                    type: 'hidden',
+                    name: 'title',
+                    value: this.graphTitle
+                }]
+            });
+            form.submit();
+        },
+
         initEvents: function() {
             Zenoss.EuropaGraph.superclass.initEvents.call(this);
             this.addEvents(
