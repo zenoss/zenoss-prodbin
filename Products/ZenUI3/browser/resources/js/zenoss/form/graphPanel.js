@@ -188,8 +188,17 @@
                         text: config.graphTitle // + ' : ' + config.uid
                     },'->',{
                         xtype: 'button',
-                        text: "?",
-                        handler: Ext.bind(this.displayDefinition, this)
+                        iconCls: 'customize',
+                        menu: [{
+                            text: _t('Definition'),
+                            handler: Ext.bind(this.displayDefinition, this)
+                        }, {
+                            text: _t('Export to CSV'),
+                            handler: Ext.bind(this.exportData, this)
+                        }, {
+                            text: _t('Link to this Graph'),
+                            handler: Ext.bind(this.displayLink, this)
+                        }]
                     },{
                         text: '&lt;',
                         width: 40,
@@ -277,6 +286,18 @@
             this.chartdefinition = visconfig;
             zenoss.visualization.chart.create(this.graphId, visconfig);
         },
+        displayLink: function(){
+            var config = Zenoss.util.base64.encode(Ext.JSON.encode(this.initialConfig)),
+                link = "/zport/dmd/viewGraph?data=" + config;
+            new Zenoss.dialog.ErrorDialog({
+                message: Ext.String.format(_t('<div>'
+                                              + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'), '<br/><br/><a href="'
+                                              + link
+                                              + '">Graph: ' + this.graphTitle +  ' </a>')
+                                              + '</div>')),
+                title: _t('Save Configuration')
+            });
+        },
         displayDefinition: function(){
             Ext.create('Zenoss.dialog.BaseWindow', {
                 closeAction: 'destroy',
@@ -291,6 +312,31 @@
                 }]
             }).show();
         },
+        exportData: function() {
+            var chart = zenoss.visualization.__charts[this.graphId],
+                plots = Ext.JSON.encode(chart.plots),
+                form;
+            form = Ext.DomHelper.append(document.body, {
+                tag: 'form',
+                method: 'POST',
+                action: '/zport/dmd/exportGraph',
+                children: [{
+                    tag: 'textarea',
+                    style: {
+                        display: 'none'
+                    },
+                    name: 'plots',
+                    html: plots
+                }, {
+                    tag: 'input',
+                    type: 'hidden',
+                    name: 'title',
+                    value: this.graphTitle
+                }]
+            });
+            form.submit();
+        },
+
         initEvents: function() {
             Zenoss.EuropaGraph.superclass.initEvents.call(this);
             this.addEvents(
