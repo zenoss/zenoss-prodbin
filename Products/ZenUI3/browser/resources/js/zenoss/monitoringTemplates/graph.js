@@ -536,16 +536,6 @@ function showGraphDefinitionDialog(uid) {
                     name: 'newId',
                     allowBlank: false
                 },{
-                    xtype: 'numberfield',
-                    fieldLabel: _t('Height'),
-                    name: 'height',
-                    minValue: 0
-                },{
-                    xtype: 'numberfield',
-                    fieldLabel: _t('Width'),
-                    name: 'width',
-                    minValue: 0
-                },{
                     xtype: 'textfield',
                     fieldLabel: _t('Units'),
                     name: 'units'
