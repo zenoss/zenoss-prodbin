@@ -175,6 +175,7 @@
             config = Ext.applyIf(config||{}, {
 
                 html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 75)  + 'px;"></div>',
+                maxWidth: 800,
                 cls: 'graph-panel',
                 dockedItems: [{
                     xtype: 'toolbar',

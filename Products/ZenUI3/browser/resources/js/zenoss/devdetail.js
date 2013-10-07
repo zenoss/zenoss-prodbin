@@ -510,7 +510,7 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
 // on the width of the detail panel
 var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275,
     extra_column_threshold = 1000;
-console.log(center_panel_width);
+
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
     columns: (center_panel_width > extra_column_threshold) ? 2 : 1,
     id: 'device_graphs'
@@ -531,7 +531,7 @@ device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
     }
 
     // always redraw the graphs completely when we resize the page,
-    // this way the svg's are the correct size.	
+    // this way the svg's are the correct size.
     panel.setContext(panel.uid);
 });
 
