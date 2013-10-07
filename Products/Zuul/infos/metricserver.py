@@ -34,14 +34,6 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     implements(templateInterfaces.IMetricServiceGraphDefinition)
 
     @property
-    def width(self):
-        return 800
-
-    @property
-    def height(self):
-        return 500
-
-    @property
     def title(self):
         return self._object.titleOrId()
 
