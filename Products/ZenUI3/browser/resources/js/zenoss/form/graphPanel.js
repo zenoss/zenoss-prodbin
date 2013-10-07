@@ -239,21 +239,21 @@
             this.callParent(arguments);
         },
         initChart: function() {
+            // these assume that the graph panel has already been rendered
+            var width = this.getEl().getWidth(), height = this.getEl().getHeight();
             var visconfig = {
                 returnset: "EXACT",
                 range : {
                     start : formatForMetricService(this.graph_params.start),
                     end : formatForMetricService(this.graph_params.end)
                 },
-                width: this.width,
-                height: this.height - 25,
                 tags: this.tags,
                 datapoints: this.datapoints,
                 overlays: this.thresholds,
                 type: this.type,
                 // lose the footer and yaxis label as the image gets smaller
-                footer: (this.height >= 350) ? true : false,
-                yAxisLabel: (this.width >= 500) ? this.units : null,
+                footer: (height >= 350) ? true : false,
+                yAxisLabel: this.units,
                 miny: (this.miny != -1) ? this.miny : null,
                 maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
@@ -763,7 +763,8 @@
                     graphId: graphId,
                     graphTitle: graphTitle,
                     isLinked: this.isLinked,
-                    ref: graphId
+                    ref: graphId,
+                    height: 500
                 })));
             }
 
