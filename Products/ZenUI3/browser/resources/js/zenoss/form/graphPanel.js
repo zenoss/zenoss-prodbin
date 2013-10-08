@@ -550,7 +550,7 @@
         },
         items:[{
             xtype: 'datefield',
-            ref: '../start_date',
+            ref: '../../start_date',
             width: 250,
             fieldLabel: _t('Start'),
             format:'Y-m-d H:i:s',
@@ -561,7 +561,7 @@
             width: 5
         },{
             xtype: 'datefield',
-            ref: '../end_date',
+            ref: '../../end_date',
             width: 250,
             fieldLabel: _t('End'),
             disabled: true,
@@ -569,7 +569,7 @@
             value: Ext.Date.format(new Date(), "Y-m-d H:i:s")
         }, {
             xtype: 'checkbox',
-            ref: '../checkbox_now',
+            ref: '../../checkbox_now',
             fieldLabel: _t('Now'),
             checked: true,
             listeners: {
@@ -580,7 +580,7 @@
         }, {
             xtype: 'button',
             text: _t('Update'),
-            ref: '../updatebutton',
+            ref: '../../updatebutton',
             handler: function(b){
                 var me = b.refOwner;
                 me.start = me.start_date.getValue().getTime();
@@ -688,6 +688,7 @@
                 drange: DATE_RANGES[0][0],
                 isLinked: true,
                 newWindowButton: true,
+                columns: 1,
                 // images show up after Ext has calculated the
                 // size of the div
                 bodyStyle: {
@@ -712,7 +713,6 @@
             // remove all the graphs
             this.removeAll();
             this.lastShown = 0;
-
             var params = {
                 uid: uid,
                 drange: this.drange
@@ -741,6 +741,7 @@
                 // no graphs were returned
                 el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
             }
+
         },
         addGraphs: function(data) {
             var graphs = [],
@@ -786,15 +787,7 @@
                 });
             }
             // render the graphs
-            if (this.columns) {
-                this.organizeGraphsIntoColumns(graphs, this.columns);
-            } else {
-                // if we are not paginating then add the date range filter
-                if (!this.start_date) {
-                    graphs = Ext.Array.clone(dateRangePanel).concat(graphs);
-                }
-                this.add(graphs);
-            }
+            this.organizeGraphsIntoColumns(graphs, this.columns);
         },
         organizeGraphsIntoColumns: function(graphs, numCols) {
             var columns = [], i, col=0;
