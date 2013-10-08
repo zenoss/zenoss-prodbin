@@ -14,7 +14,7 @@ import os
 import math
 import platform
 import socket
-import rrdtool
+#import rrdtool
 
 from subprocess import Popen, PIPE
 from Products.ZenCallHome import IHostData, IZenossEnvData
