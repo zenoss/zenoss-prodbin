@@ -521,7 +521,7 @@ var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
  **/
 device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
     var columns = panel.columns;
-    console.log(width, columns);
+
     if (width >= extra_column_threshold && columns == 1) {
         panel.columns = 2;
     }
