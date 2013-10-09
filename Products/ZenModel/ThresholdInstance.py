@@ -11,7 +11,6 @@
 import os
 
 import Globals
-import rrdtool
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenUtils.Utils import unused, rrd_daemon_args, rrd_daemon_retry

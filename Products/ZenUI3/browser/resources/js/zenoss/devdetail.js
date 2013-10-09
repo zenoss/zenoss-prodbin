@@ -506,10 +506,33 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
     id: 'device_administration'
 });
 
+// find out how many columns the graph panel should be based on
+// on the width of the detail panel
+var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275,
+    extra_column_threshold = 1000;
+
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
-    columns: 2,
+    columns: (center_panel_width > extra_column_threshold) ? 2 : 1,
     id: 'device_graphs'
 });
+/**
+ * Show either one column of graphs or two depending on how much space is available
+ * after a resize.
+ **/
+device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
+    var columns = panel.columns;
+
+    if (width >= extra_column_threshold && columns == 1) {
+        panel.columns = 2;
+    }
+    if (width < extra_column_threshold && columns == 2) {
+        panel.columns = 1;
+    }
+    // always redraw the graphs completely when we resize the page,
+    // this way the svg's are the correct size.
+    panel.setContext(panel.uid);
+});
+
 
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
     id: 'softwares'

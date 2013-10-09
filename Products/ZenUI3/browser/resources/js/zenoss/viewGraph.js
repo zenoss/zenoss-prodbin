@@ -16,6 +16,7 @@ Ext.onReady(function(){
             graphId: Ext.id(),
             renderTo: 'graphView'
         }))
+        document.title = graph.graphTitle;
     }
 
     var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),
