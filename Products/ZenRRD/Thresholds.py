@@ -81,7 +81,9 @@ class Thresholds:
         if contextKey in self.byContextKey:
             log.debug("Checking value %s on %s", value, contextKey)
             for t, dp in self.byContextKey[contextKey]:
-                result += t.checkValue(dp, timeAt, value)
+                events = t.checkValue(dp, timeAt, value)
+                if events:
+                    result.extend(events)
         return result
 
 def test():
