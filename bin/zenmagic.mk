@@ -9,6 +9,8 @@
 pkg  := zenoss # zenoss|zenoss_analytics|zenoss_impact|..
 _pkg := $(strip $(pkg))
 
+SHELL := $(shell which bash)
+
 #---------------------------------------------------------------------------#
 # Specify install-related macros that affect where on the filesystem our
 # package is deployed.
@@ -207,7 +209,7 @@ XARGS        = xargs
 
 # Making use of .ONESHELL to simplify multi-line rules.
 # http://www.electric-cloud.com/blog/2010/08/03/gnu-make-3-82-is-out/
-REQD_MAKE_MIN_VER = 3.82
+REQD_MAKE_MIN_VER = 3.81
 REQD_MAKE_BRAND   = GNU
 CHECK_TOOLS_VERSION_BRAND += make:$(REQD_MAKE_MIN_VER):$(REQD_MAKE_BRAND)
 
@@ -520,11 +522,11 @@ GCC_MAKE_MOD_TARGET_PATH  = -MT
 GCC ?= gcc
 # $(call make-depend,source-file,object-file,depend-file)
 define make-depend 
-    $(GCC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $1\
-	$(GCC_MAKE_DEPENDENCY_RULES)$(SUPPRESS_SYSINC_DEPS)\
-	$(GCC_MAKE_PHONY_TARGETS)    \
-	$(GCC_MAKE_MOD_TARGET_PATH) $2  \
-	$(GCC_MAKE_DEP_FILENAME) $3 
+    $(GCC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $1 \
+	$(GCC_MAKE_DEPENDENCY_RULES)$(SUPPRESS_SYSINC_DEPS) \
+	$(GCC_MAKE_PHONY_TARGETS) \
+	$(GCC_MAKE_MOD_TARGET_PATH) $2 \
+	$(GCC_MAKE_DEP_FILENAME) $3
 endef
 
 # $(call make-lib-depend,object-file,program-file)

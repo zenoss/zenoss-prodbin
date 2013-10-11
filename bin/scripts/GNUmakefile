@@ -10,7 +10,7 @@
 .SUFFIXES:
 MAKEFLAGS     += -r
 
-SHELL = /usr/bin/bash
+SHELL := $(shell which bash)
 
 #============================================================================
 # Build component configuration.
@@ -162,7 +162,6 @@ ifneq "$(filter $(install-targets),$(MAKECMDGOALS))" ""
 $(script_mk_files):
 	$(error "Please run 'make build' first.")
 else
-.ONESHELL: $(script_mk_files)
 .DELETE_ON_ERROR: $(script_mk_files)
 $(script_mk_files): ESCAPED_srcdir := $(shell echo $(_srcdir) | sed -e "s|\.|\\\\.|g")
 $(script_mk_files): | $(blddir)
@@ -174,88 +173,86 @@ else
 $(script_mk_files): %.mk : %.$(DISCOVERED_SRC_EXT)
 endif
 	@$(call echol,"create $@","CREATE $@")
-	echo "#$(LINE)" > $@
-	echo "# THIS IS A GENERATED FILE.  EDITS TO THIS FILE WILL BE LOST." >> $@
-	echo "#" >> $@
-	echo "# $(*F) build target : dependencies" >> $@
-	echo "#$(LINE)" >> $@
-	echo '# blddir      = $(blddir)' >> $@
-	echo '# ABS_blddir  = $(ABS_blddir)' >> $@
-	echo '# _srcdir     = $(_srcdir)' >> $@
-	echo '# $(*F)_MAGIC = $($(*F)_MAGIC)' >> $@
-	echo '# cmd_uses_stdio = $(cmd_uses_stdio)' >> $@
-	echo "#$(LINE)" >> $@
-	echo $(*F)_build = $$(cat $? | sed -e 's|^\($(ESCAPED_srcdir)\)\(.*\)|$$(blddir)/$(*F)/\2|g') >> $@
-	echo '.PHONY: $(*F)' >> $@
-	echo '$(*F) : $$($(*F)_build)' >> $@
-	echo >> $@
-	echo '.ONESHELL: $$($(*F)_build)' >> $@
-	echo '$$($(*F)_build): | $$(ABS_blddir)/$(*F)' >> $@
-	echo '$$($(*F)_build): NORMALIZE_MAGIC_STRING := -e "1,3s|^\#\!.*|\#!$$($(*F)_MAGIC)|g"' >> $@
-	echo '$$($(*F)_build): ESC_NORMALIZE_MAGIC_STRING := -e \"1,3s|^\#\!.*|\#!$$($(*F)_MAGIC)|g\"' >> $@
-	echo '$$($(*F)_build): $$(blddir)/$(*F)/% : $$(_srcdir)%' >> $@
-	echo "	@if [ -z \"\$$($(*F)_MAGIC)\" ];then" >> $@
-	echo '		$$(call cmd_noat,CP,$$<,$$@)' >> $@
-	echo '		rc=$$$$?' >> $@
-	echo '		if [ $$$${rc} -ne 0 ];then' >> $@	
-	echo '			exit $$$${rc}' >> $@
-	echo '		fi' >> $@
-	echo "	else" >> $@
-	echo '		$(call echobothl,"$$(SED) $$(ESC_NORMALIZE_MAGIC_STRING) $$< > $$@","SED    #!$$($(*F)_MAGIC) $$<")' >> $@
-	echo '		$(SED) $$(NORMALIZE_MAGIC_STRING) $$< > $$@' >> $@
-	echo '		rc=$$$$?' >> $@
-	echo '		if [ $$$${rc} -ne 0 ];then' >> $@	
-	echo '			exit $$$${rc}' >> $@
-	echo '		fi' >> $@
-	echo "	fi" >> $@
-	echo >> $@
-	cat $? | sed -e 's|^\($(ESCAPED_srcdir)\)\(.*\)|$$(blddir)/$(*F)/\2 : \1\2|g' >> $@
-	echo >> $@
-	echo "#$(LINE)" >> $@
-	echo "# $* install target : dependencies" >> $@
-	echo "# NB: Make the install deps 'existence-only' via the pipe since install should not trigger" >> $@
-	echo "#     changes to the build tree." >> $@
-	echo "#$(LINE)" >> $@
-	echo '# bindir            = $(bindir)' >> $@
-	echo '# _DESTDIR          = $(_DESTDIR)' >> $@
-	echo '# INSTALL_MKDIRS    = $(INSTALL_MKDIRS)' >> $@
-	echo '# USE_DELTA_INSTALL = $(USE_DELTA_INSTALL)' >> $@
-	echo "#$(LINE)" >> $@
-	echo $(*F)_install = $$(cat $? | sed -e 's|^\($(ESCAPED_srcdir)\)\(.*\)|$$(_DESTDIR)$$(bindir)/\2|g') >> $@
-	echo '.PHONY: install-$(*F)' >> $@
-	echo 'install-$(*F) : $$($(*F)_install)' >> $@
-	echo >> $@
-	echo '.ONESHELL: $$($(*F)_install)' >> $@
-	echo 'ifeq "$$(USE_DELTA_INSTALL)" "yes"' >> $@
-	echo '#.PHONY: $$($(*F)_install)' >> $@
-	echo 'else' >> $@
-	echo '.PHONY: $$($(*F)_install)' >> $@
-	echo 'endif' >> $@
-	echo '$$($(*F)_install): build_dir = $$(blddir)/$(*F)' >> $@
-	echo '$$($(*F)_install): scripttype    = $(*F)' >> $@
-	echo '$$($(*F)_install): INSTALL_PERMS = $($(*F)_PERMS)' >> $@
-	echo '$$($(*F)_install): INSTALL_OWNER = $($(*F)_OWNER)' >> $@
-	echo '$$($(*F)_install): INSTALL_GROUP = $($(*F)_GROUP)' >> $@
-	echo '$$($(*F)_install): | $$(INSTALL_MKDIRS)' >> $@
-	echo 'ifeq "$$(USE_DELTA_INSTALL)" "yes"' >> $@
-	echo '$$($(*F)_install): $$(_DESTDIR)$$(bindir)/% : $$(blddir)/$(*F)/%' >> $@
-	echo 'endif' >> $@
-	echo "	@if [ -f \"\$$(build_dir)/\$$(@F)\" ];then" >> $@
-	echo '		$$(call cmd_noat,INSTALL,$$(build_dir)/$$(@F),$$@,$$(INSTALL_PERMS),$$(INSTALL_OWNER),$$(INSTALL_GROUP))' >> $@
-	echo '		rc=$$$$?' >> $@
-	echo '		if [ $$$${rc} -ne 0 ];then' >> $@	
-	echo '			exit $$$${rc}' >> $@
-	echo '		fi' >> $@
-	echo "	else" >> $@
-	echo '		$$(call echol,"Error: Missing $$(build_dir)/$$(@F).")' >> $@
-	echo '		$$(call echol,"Unable to install $$(scripttype) files.")' >> $@
-	echo '		$$(call echol,"$$(LINE)")' >> $@
-	echo '		$$(call echol,"Please run \"make build\" first.")' >> $@
-	echo '		exit 1' >> $@
-	echo "	fi" >> $@
-	echo >> $@
-	echo 'ifeq "$$(USE_DELTA_INSTALL)" "yes"' >> $@
-	cat $? | sed -e 's|^\($(ESCAPED_srcdir)\)\(.*\)|$$(_DESTDIR)$$(bindir)/\2 : $$(blddir)/$(*F)/\2|g' >> $@
+	@echo "#$(LINE)" > $@; \
+	echo "# THIS IS A GENERATED FILE.  EDITS TO THIS FILE WILL BE LOST." >> $@; \
+	echo "#" >> $@; \
+	echo "# $(*F) build target : dependencies" >> $@; \
+	echo "#$(LINE)" >> $@; \
+	echo '# blddir      = $(blddir)' >> $@; \
+	echo '# ABS_blddir  = $(ABS_blddir)' >> $@; \
+	echo '# _srcdir     = $(_srcdir)' >> $@; \
+	echo '# $(*F)_MAGIC = $($(*F)_MAGIC)' >> $@; \
+	echo '# cmd_uses_stdio = $(cmd_uses_stdio)' >> $@; \
+	echo "#$(LINE)" >> $@; \
+	echo $(*F)_build = $$(cat $? | sed -e 's|^\($(ESCAPED_srcdir)\)\(.*\)|$$(blddir)/$(*F)/\2|g') >> $@; \
+	echo '.PHONY: $(*F)' >> $@; \
+	echo '$(*F) : $$($(*F)_build)' >> $@; \
+	echo >> $@; \
+	echo '$$($(*F)_build): | $$(ABS_blddir)/$(*F)' >> $@; \
+	echo '$$($(*F)_build): NORMALIZE_MAGIC_STRING := -e "1,3s|^\#\!.*|\#!$$($(*F)_MAGIC)|g"' >> $@; \
+	echo '$$($(*F)_build): ESC_NORMALIZE_MAGIC_STRING := -e \"1,3s|^\#\!.*|\#!$$($(*F)_MAGIC)|g\"' >> $@; \
+	echo '$$($(*F)_build): $$(blddir)/$(*F)/% : $$(_srcdir)%' >> $@; \
+	echo "	@if [ -z \"\$$($(*F)_MAGIC)\" ];then \\" >> $@; \
+	echo '		$$(call cmd_noat,CP,$$<,$$@); \' >> $@; \
+	echo '		rc=$$$$?; \' >> $@; \
+	echo '		if [ $$$${rc} -ne 0 ];then \' >> $@; \
+	echo '			exit $$$${rc}; \' >> $@; \
+	echo '		fi \' >> $@; \
+	echo "	else \\" >> $@; \
+	echo '		$(call echobothl,"$$(SED) $$(ESC_NORMALIZE_MAGIC_STRING) $$< > $$@","SED    #!$$($(*F)_MAGIC) $$<"); \' >> $@; \
+	echo '		$(SED) $$(NORMALIZE_MAGIC_STRING) $$< > $$@; \' >> $@; \
+	echo '		rc=$$$$?; \' >> $@; \
+	echo '		if [ $$$${rc} -ne 0 ];then \' >> $@; \
+	echo '			exit $$$${rc}; \' >> $@; \
+	echo '		fi \' >> $@; \
+	echo "	fi" >> $@; \
+	echo >> $@; \
+	cat $? | sed -e 's|^\($(ESCAPED_srcdir)\)\(.*\)|$$(blddir)/$(*F)/\2 : \1\2|g' >> $@; \
+	echo >> $@; \
+	echo "#$(LINE)" >> $@; \
+	echo "# $* install target : dependencies" >> $@; \
+	echo "# NB: Make the install deps 'existence-only' via the pipe since install should not trigger" >> $@; \
+	echo "#     changes to the build tree." >> $@; \
+	echo "#$(LINE)" >> $@; \
+	echo '# bindir            = $(bindir)' >> $@; \
+	echo '# _DESTDIR          = $(_DESTDIR)' >> $@; \
+	echo '# INSTALL_MKDIRS    = $(INSTALL_MKDIRS)' >> $@; \
+	echo '# USE_DELTA_INSTALL = $(USE_DELTA_INSTALL)' >> $@; \
+	echo "#$(LINE)" >> $@; \
+	echo $(*F)_install = $$(cat $? | sed -e 's|^\($(ESCAPED_srcdir)\)\(.*\)|$$(_DESTDIR)$$(bindir)/\2|g') >> $@; \
+	echo '.PHONY: install-$(*F)' >> $@; \
+	echo 'install-$(*F) : $$($(*F)_install)' >> $@; \
+	echo >> $@; \
+	echo 'ifeq "$$(USE_DELTA_INSTALL)" "yes"' >> $@; \
+	echo '#.PHONY: $$($(*F)_install)' >> $@; \
+	echo 'else' >> $@; \
+	echo '.PHONY: $$($(*F)_install)' >> $@; \
+	echo 'endif' >> $@; \
+	echo '$$($(*F)_install): build_dir = $$(blddir)/$(*F)' >> $@; \
+	echo '$$($(*F)_install): scripttype    = $(*F)' >> $@; \
+	echo '$$($(*F)_install): INSTALL_PERMS = $($(*F)_PERMS)' >> $@; \
+	echo '$$($(*F)_install): INSTALL_OWNER = $($(*F)_OWNER)' >> $@; \
+	echo '$$($(*F)_install): INSTALL_GROUP = $($(*F)_GROUP)' >> $@; \
+	echo '$$($(*F)_install): | $$(INSTALL_MKDIRS)' >> $@; \
+	echo 'ifeq "$$(USE_DELTA_INSTALL)" "yes"' >> $@; \
+	echo '$$($(*F)_install): $$(_DESTDIR)$$(bindir)/% : $$(blddir)/$(*F)/%' >> $@; \
+	echo 'endif' >> $@; \
+	echo "	@if [ -f \"\$$(build_dir)/\$$(@F)\" ];then \\" >> $@; \
+	echo '		$$(call cmd_noat,INSTALL,$$(build_dir)/$$(@F),$$@,$$(INSTALL_PERMS),$$(INSTALL_OWNER),$$(INSTALL_GROUP)); \' >> $@; \
+	echo '		rc=$$$$?; \' >> $@; \
+	echo '		if [ $$$${rc} -ne 0 ];then \' >> $@; \
+	echo '			exit $$$${rc}; \' >> $@; \
+	echo '		fi \' >> $@; \
+	echo "	else \\" >> $@; \
+	echo '		$$(call echol,"Error: Missing $$(build_dir)/$$(@F)."); \' >> $@; \
+	echo '		$$(call echol,"Unable to install $$(scripttype) files."); \' >> $@; \
+	echo '		$$(call echol,"$$(LINE)"); \' >> $@; \
+	echo '		$$(call echol,"Please run \"make build\" first."); \' >> $@; \
+	echo '		exit 1; \' >> $@; \
+	echo "	fi" >> $@; \
+	echo >> $@; \
+	echo 'ifeq "$$(USE_DELTA_INSTALL)" "yes"' >> $@; \
+	cat $? | sed -e 's|^\($(ESCAPED_srcdir)\)\(.*\)|$$(_DESTDIR)$$(bindir)/\2 : $$(blddir)/$(*F)/\2|g' >> $@; \
 	echo 'endif' >> $@
 endif
 
@@ -282,7 +279,6 @@ endif
 #      that won't fail on the .ONESHELL idiom used here.
 
 ifeq "$(filter install install-ascii install-shell install-python install-dosbat install-bash,$(MAKECMDGOALS))" ""
-.ONESHELL:        $(discovered_src)
 .DELETE_ON_ERROR: $(discovered_src)
 $(discovered_src): exclude_filter = $(patsubst $(blddir)/%.$(DISCOVERED_SRC_EXT),%_EXCLUDE_FILTER,$@)
 $(discovered_src): include_filter = $(patsubst $(blddir)/%.$(DISCOVERED_SRC_EXT),%_INCLUDE_FILTER,$@)
@@ -290,39 +286,39 @@ $(discovered_src): src_dir        = $(_srcdir)
 $(discovered_src): find_opts      = -maxdepth 1 -mindepth 1 -type f -exec file {} \\;
 $(discovered_src): filetype       = $(patsubst $(blddir)/%.$(DISCOVERED_SRC_EXT),%,$@)
 $(discovered_src): | .rediscover $(CHECKED_ENV) $(blddir)
-	@if [ -z '$($(include_filter))' ] ;then
-		$(call echol,"Error: Detected null value for the $(include_filter) variable.")
-		$(call echol,"       Unable to discern which files in $(ABS_srcdir) are $(filetype)-ish files.")
-		$(call echol,"       Consider updating the $(COMPONENT) component makefile accordingly.")
-		$(call echol,"FAILED $@")
-		exit 1
-	else
-		if [ -z '$($(exclude_filter))' ];then
-			if ! (find $(src_dir) $(find_opts) | (egrep -i "$($(include_filter))" | cut -d: -f1 | sort -u > $@); exit $${PIPESTATUS[0]}) ; then
-				$(call echol,"Error: find $(src_dir) $(find_opts)")
-				$(call echol,"       Unable to discern which files in $(ABS_srcdir) are $(filetype)-ish files.")
-				$(call echol,"FAILED $@")
-				exit 1
-			fi
-		else
-			if ! (find $(src_dir) $(find_opts) | (egrep -iv "$($(exclude_filter))" | egrep -i "$($(include_filter))" | cut -d: -f1 | sort -u >$@); exit $${PIPESTATUS[0]}) ; then
-				$(call echol,"Error: find $(src_dir) $(find_opts)")
-				$(call echol,"       Unable to discern which files in $(ABS_srcdir) are $(filetype)-ish files.")
-				$(call echol,"FAILED $@")
-				exit 1
-			fi
-		fi
-	fi
-	if [ -f "$@" -a ! -s "$@" ];then
-		$(call echol,"Warning: 0-length $@ file generated.")
-		$(call echol,"         This implies that no $(filetype) type files were discovered by my logic in:")
-		$(call echol,"            $(ABS_srcdir)")
-		$(call echol,"         Consequently files of this type will not be built or installed.")
-		format_filetype_and_count=`wc -l $@|cut -d" " -f1|awk '{printf("%-10s [%2s files]\n","$(filetype)",$$1)}'`
-		$(call echol,"found $${format_filetype_and_count} warning","FOUND  $${format_filetype_and_count} warning")
-	else
-		format_filetype_and_count=`wc -l $@|cut -d" " -f1|awk '{printf("%-10s [%2s files]\n","$(filetype)",$$1)}'|sed -e "s| 1 files| 1 file |g"`
-		$(call echol,"found $${format_filetype_and_count}","FOUND  $${format_filetype_and_count}")
+	@if [ -z '$($(include_filter))' ] ;then \
+		$(call echol,"Error: Detected null value for the $(include_filter) variable."); \
+		$(call echol,"       Unable to discern which files in $(ABS_srcdir) are $(filetype)-ish files."); \
+		$(call echol,"       Consider updating the $(COMPONENT) component makefile accordingly."); \
+		$(call echol,"FAILED $@"); \
+		exit 1; \
+	else \
+		if [ -z '$($(exclude_filter))' ];then \
+			if ! (find $(src_dir) $(find_opts) | (egrep -i "$($(include_filter))" | cut -d: -f1 | sort -u > $@); exit $${PIPESTATUS[0]}) ; then \
+				$(call echol,"Error: find $(src_dir) $(find_opts)"); \
+				$(call echol,"       Unable to discern which files in $(ABS_srcdir) are $(filetype)-ish files."); \
+				$(call echol,"FAILED $@"); \
+				exit 1; \
+			fi; \
+		else \
+			if ! (find $(src_dir) $(find_opts) | (egrep -iv "$($(exclude_filter))" | egrep -i "$($(include_filter))" | cut -d: -f1 | sort -u >$@); exit $${PIPESTATUS[0]}) ; then \
+				$(call echol,"Error: find $(src_dir) $(find_opts)"); \
+				$(call echol,"       Unable to discern which files in $(ABS_srcdir) are $(filetype)-ish files."); \
+				$(call echol,"FAILED $@"); \
+				exit 1; \
+			fi; \
+		fi; \
+	fi; \
+	if [ -f "$@" -a ! -s "$@" ];then \
+		$(call echol,"Warning: 0-length $@ file generated."); \
+		$(call echol,"         This implies that no $(filetype) type files were discovered by my logic in:"); \
+		$(call echol,"            $(ABS_srcdir)"); \
+		$(call echol,"         Consequently files of this type will not be built or installed."); \
+		format_filetype_and_count=`wc -l $@|cut -d" " -f1|awk '{printf("%-10s [%2s files]\n","$(filetype)",$$1)}'`; \
+		$(call echol,"found $${format_filetype_and_count} warning","FOUND  $${format_filetype_and_count} warning"); \
+	else \
+		format_filetype_and_count=`wc -l $@|cut -d" " -f1|awk '{printf("%-10s [%2s files]\n","$(filetype)",$$1)}'|sed -e "s| 1 files| 1 file |g"`; \
+		$(call echol,"found $${format_filetype_and_count}","FOUND  $${format_filetype_and_count}"); \
 	fi
 endif
 
@@ -343,7 +339,7 @@ endif
 # 5. Production build will use your checked in manifest with the next build.
 #============================================================================
 .PHONY: discover
-.ONESHELL: discover
+#.ONESHELL: discover
 discover:
 	@$(foreach target_file,$(wildcard $(discovered_src) $(script_mk_files) .rediscover),$(call cmd_noat,RM,$(target_file));)
 	$(MAKE)  -s --no-print-directory  $(discovered_src)
