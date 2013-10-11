@@ -1,0 +1,21 @@
+PROJECT = pyraw
+OUTPUT  = $(DESTDIR)$(ZENHOME)/bin/$(PROJECT)
+CFLAGS  = -I$(DESTDIR)$(ZENHOME)/include/python2.7
+LDFLAGS = -L$(DESTDIR)$(ZENHOME)/lib
+LDLIBS  = -lpython2.7 -ldl
+CC     ?= gcc
+
+ifeq ($(shell uname), Darwin)
+	LDFLAGS += -framework CoreFoundation -u _PyMac_Error
+else
+	LDLIBS += -lpthread -lutil -lm
+	LDFLAGS += -Xlinker -export-dynamic -Wl,-rpath,$(ZENHOME)/lib
+endif
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(PROJECT).o
+	$(LINK.c) $< $(LDLIBS) $(OUTPUT_OPTION)
+
+clean:
+	rm -rf *.o $(OUTPUT)
