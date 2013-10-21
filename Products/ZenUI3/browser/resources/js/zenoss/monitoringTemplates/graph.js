@@ -70,15 +70,6 @@ function deleteGraphPoint() {
 
 
 
-/**
- * Adds the selected datapoint as a graph point to our
- * graph definition we are managing
- **/
-function addDataPointToGraph() {
-
-}
-
-
 
 addThresholdToGraph = function() {
     var params, callback;
@@ -605,6 +596,55 @@ function displayGraphPointForm() {
     router.getInfo({uid: record.get("uid")}, displayEditDialog);
 }
 
+function addToGraphDefinition(record, graphDef) {
+
+    new Zenoss.dialog.SimpleMessageDialog({
+        message: Ext.String.format(_t("Are you sure you want to add {0} to the graph,  {1}?"), record.get("name"),  graphDef.get("name")),
+        title: _t('Add To Graph Definition'),
+        buttons: [{
+            xtype: 'DialogButton',
+            text: _t('OK'),
+            handler: function() {
+                var callback = function(response) {
+                    if (response.success){
+                        var message =  Ext.String.format(_t("Added {0} to the graph {1}."), record.get("name"),  graphDef.get("name"));
+                        Zenoss.message.info(message);
+                        Ext.getCmp('graphGrid').refresh();
+                    }
+                }, params = {
+                    graphUid: graphDef.get('uid')
+                }, method = null;
+
+
+
+                // We don't really have a generic add to graph
+                // definition router method so determine the type
+                if (record.$className == 'Zenoss.templates.DataSourceModel' ) {
+                    // this means it is a datasource we are working with not a
+                    // datapoint
+                    if (record.get('uid').search('datapoints') == -1) {
+                        method = router.addDataSourcetoGraphDef;
+                        params.dataSourceUid = record.get('uid');
+                    } else {
+                        // if it is a datapoint just add it,
+                        method = router.addDataPointToGraph;
+                        params.dataPointUid = record.get('uid');
+                    }
+                } else if (record.$className == 'Zenoss.thresholds.Model'){
+                    method = router.addThresholdToGraph;
+                    params.thresholdUid = record.get('uid');
+                }
+
+                // add the selected points to the graph definition
+                // refresh when done
+                method(params, callback);
+            }
+        }, {
+            xtype: 'DialogButton',
+            text: _t('Cancel')
+        }]
+    }).show();
+}
 
 Ext.define("Zenoss.templates.GraphGrid", {
     alias:['widget.graphgrid'],
@@ -618,9 +658,26 @@ Ext.define("Zenoss.templates.GraphGrid", {
             viewConfig: {
                 forcefit: true,
                 plugins: {
-                    ptype: 'gridviewdragdrop'
+                    ptype: 'gridviewdragdrop',
+                    dragGroup: 'addtoGraph',
+                    dropGroup: 'addtoGraph'
                 },
                 listeners: {
+                    /**
+                     * If it is a graph definition then allow it to be placed
+                     * otherwise prompt to add to graph
+                     **/
+                    beforedrop: function(node, data, overModel, dropPosition){
+                        // for now we only support one
+                        var record = data.records[0],
+                            uid = record.get('uid');
+                        if (record.$className == 'Zenoss.GraphModel') {
+                            // allow the drop function to resequence the grid
+                            return true;
+                        }
+                        addToGraphDefinition(record, overModel);
+                        return false;
+                    },
                     /**
                      * Updates the graph order when the user drags and drops them
                      **/
@@ -651,7 +708,15 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     }
                 }
             }),
-            columns: [{dataIndex: 'name', header: _t('Name'), flex:1, width: 400}],
+            columns: [{dataIndex: 'name', header: _t('Name'), flex:.75, width: 400},
+                     {dataIndex: 'graphPoints', header: _t('Graph Points'), flex:.25,
+                      renderer: function(value) {
+                          if (value.length) {
+                              return value.split(',').length;
+                          }
+                          return 0;
+                      }
+                     }],
 
             tbar: [{
                 id: 'addGraphDefinitionButton',
