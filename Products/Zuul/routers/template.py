@@ -724,5 +724,5 @@ class TemplateRouter(TreeRouter):
         facade._setGraphDefinitionSequence(uids)
         # TODO: Is it enforced that they're all in the same template?
         #       If so:  template=/blah/uid sequence=[one,two,three]
-        audit('UI.Template,SetGraphDefinitionSequence', sequence=uids)
+        audit('UI.Template.SetGraphDefinitionSequence', sequence=uids)
         return DirectResponse.succeed()
