@@ -14,7 +14,6 @@ import os
 import math
 import platform
 import socket
-#import rrdtool
 
 from subprocess import Popen, PIPE
 from Products.ZenCallHome import IHostData, IZenossEnvData
@@ -36,19 +35,6 @@ class PlatformData(object):
         system = platform.system()
         release = platform.release()
         yield "OS", "{distro} {processor} ({system} kernel {release})".format(**locals())
-
-class CollectionVolumeData(object):
-    implements(IHostData)
-    def callHomeData(self):
-        volume = 0.0
-        zenhome_ = zenhome.value
-        for dirpath, dirnames, filenames in os.walk("{zenhome_}/perf/Devices".format(**locals())):
-            for filename in filenames:
-                if filename.endswith(".rrd"):
-                    rrdinfo = rrdtool.info("{dirpath}/{filename}".format(**locals()))
-                    if time.time() - rrdinfo["last_update"] < rrdinfo["step"] * 12: # 12 is fudge factor to take rrdcached into consideration
-                        volume += 1.0 / rrdinfo["step"]
-        yield "Collection Volume", "{volume:.1f} datapoints per second".format(**locals())
 
 class ProcFileData(object):
     """
