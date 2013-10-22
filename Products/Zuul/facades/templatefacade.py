@@ -368,10 +368,19 @@ class TemplateFacade(ZuulFacade):
         graphs.sort(key=lambda graph: graph.sequence)
         return graphs.__iter__()
 
+    def addDataSourceToGraph(self, dataSourceUid, graphUid, includeThresholds=False):
+        datasource = self._getObject(dataSourceUid)
+        for dp in datasource.datapoints():
+            self.addDataPointToGraph(dp.getPrimaryId(), graphUid, includeThresholds)
+            
     def addDataPointToGraph(self, dataPointUid, graphUid, includeThresholds=False):
-        dataPoint = self._getObject(dataPointUid)
+        if isinstance(dataPointUid, basestring):
+            uids = [dataPointUid]
+        else:
+            uids = dataPointUid
+        datapoints = [self._getObject(u) for u in uids]
         graph = self._getObject(graphUid)
-        return graph.manage_addDataPointGraphPoints([dataPoint.name()], includeThresholds)
+        return graph.manage_addDataPointGraphPoints([d.name() for d in datapoints], includeThresholds)
 
     def getCopyTargets(self, uid, query=''):
         catalog = ICatalogTool(self._dmd)
