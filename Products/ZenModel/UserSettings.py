@@ -404,10 +404,10 @@ class UserSettingsManager(ZenModelRM):
         #
         # XXX this needs to be reviewed when new plugins are added, such as the
         # LDAP plugin
-        if 'admin' in userids:
+        if 'admin' in userids or 'zenoss_system' in userids:
             messaging.IMessageSender(self).sendToBrowser(
                 'Error',
-                "Cannot delete admin user. No users were deleted.",
+                "Cannot delete admin or zenoss_system user. No users were deleted.",
                 messaging.WARNING
             )
             return self.callZenScreen(REQUEST)
