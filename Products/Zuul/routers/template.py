@@ -436,6 +436,27 @@ class TemplateRouter(TreeRouter):
               includeThresholds=includeThresholds)
         return DirectResponse.succeed()
 
+    @require('Manage DMD')
+    def addDataSourcetoGraphDef(self, dataSourceUid, graphUid, includeThresholds=False):
+        """
+        Add all the datapoints in a datasource to the graph definition.
+
+        @type  dataSourceUid: string
+        @param dataSourceUid: Unique ID of the data source to add to graph
+        @type  graphUid: string
+        @param graphUid: Unique ID of the graph to add data source to
+        @type  includeThresholds: boolean
+        @param includeThresholds: (optional) True to include related thresholds
+                                  (default: False)
+        @rtype:   DirectResponse
+        @return:  Success message
+        """
+        facade = self._getFacade()
+        facade.addDataSourceToGraph(dataSourceUid, graphUid, includeThresholds)
+        audit('UI.Graph.AddDataSource', graphUid, datapoint=dataSourceUid,
+              includeThresholds=includeThresholds)
+        return DirectResponse.succeed()
+
     def getCopyTargets(self, uid, query=''):
         """
         Get a list of available device classes to copy a template to.
@@ -703,5 +724,5 @@ class TemplateRouter(TreeRouter):
         facade._setGraphDefinitionSequence(uids)
         # TODO: Is it enforced that they're all in the same template?
         #       If so:  template=/blah/uid sequence=[one,two,three]
-        audit('UI.Template,SetGraphDefinitionSequence', sequence=uids)
+        audit('UI.Template.SetGraphDefinitionSequence', sequence=uids)
         return DirectResponse.succeed()
