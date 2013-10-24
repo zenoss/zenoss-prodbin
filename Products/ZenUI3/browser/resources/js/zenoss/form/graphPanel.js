@@ -53,7 +53,7 @@
             '1m-ago': 2419200000,
             '1y-ago': 31536000000
         },
-        DOWNSMAPLE = [
+        DOWNSAMPLE = [
             [86400000, '1h-avg'],    // Day
             [604800000, '12h-avg'],  // Week
             [2419200000, '1d-avg'],  // Month
@@ -208,13 +208,17 @@
                         }, this)
                     },{
                         text: _t('Zoom In'),
+                        ref: '../zoomin',
+                        enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
-                            this.zoomIn(this);
+                            this.fireEventsToAll("zoommodechange", this, !btn.pressed);
                         }, this)
                     },{
                         text: _t('Zoom Out'),
+                        ref: '../zoomout',
+                        enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
-                            this.zoomOut(this);
+                            this.fireEventsToAll("zoommodechange", this, btn.pressed);
                         }, this)
                     },{
                         text: '&gt;',
@@ -271,7 +275,7 @@
             // means that if we collect at less than a minute the
             // values will be averaged out.
             visconfig.downsample = '1m-avg';
-            DOWNSMAPLE.forEach(function(v) {
+            DOWNSAMPLE.forEach(function(v) {
                 if (delta >= v[0]) {
                     visconfig.downsample = v[1];
                 }
@@ -346,15 +350,31 @@
                  * Fire this event to force the chart to redraw itself.
                  * @param {object} params The parameters we are sending to the object.
                  **/
-                'updateimage'
+                'updateimage',
+                /**
+                 * @event zoommodechange
+                 * This fies when the zoom mode change (e.g. from zooming out to zooming in)
+                 **/
+                'zoommodechange'
             );
             this.on('updateimage', this.updateGraph, this);
+            this.on("zoommodechange", this.onZoomModeChange, this);
+            this.graphEl = Ext.get(this.graphId);
+            this.graphEl.on('click', this.onGraphClick, this);
         },
         linked: function() {
             return this.isLinked;
         },
         setLinked: function(isLinked) {
             this.isLinked = isLinked;
+        },
+        onZoomModeChange: function(graph, zoomOut) {
+            this.zoomout.toggle(zoomOut);
+            this.zoomin.toggle(!zoomOut);
+            var dir = zoomOut ? 'out' : 'in',
+                cls = Ext.isGecko ? '-moz-zoom-'+dir :
+                (Ext.isWebKit ? '-webkit-zoom-'+dir : 'crosshair');
+            this.graphEl.setStyle({'cursor': cls});
         },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
@@ -379,22 +399,18 @@
             // gp.start is something like "1h-ago", convert to milliseconds
             var delta;
             if (Ext.isNumber(gp.start)) {
-                delta = new Date() - gp.start;
+                delta = this.convertEndToAbsolute(gp.end) - gp.start;
             } else {
                 delta = rangeToMilliseconds(gp.start);
             }
-
-            changes.downsample = '-';
-            DOWNSMAPLE.forEach(function(v) {
+            changes.downsample = '1m-avg';
+            DOWNSAMPLE.forEach(function(v) {
                 if (delta >= v[0]) {
                     changes.downsample = v[1];
                 }
             });
             zenoss.visualization.chart.update(this.graphId, changes);
 
-            //zenoss.visualization.chart.setRange(this.graphId,
-            //    formatForMetricService(gp.start),
-            //    formatForMetricService(gp.end));
             this.graph_params = gp;
         },
         convertStartToAbsoluteTime: function(start) {
@@ -430,23 +446,34 @@
             }
             this.fireEventsToAll("updateimage", {start:newstart, end:newend});
         },
-        doZoom: function(factor) {
-            var gp = this.graph_params;
+        doZoom: function(xpos, factor) {
+            var gp = this.graph_params,
+                el = Ext.get(this.graphId),
+                width = el.getWidth();
             gp.end = this.convertEndToAbsolute(gp.end);
-            var delta = Math.round(rangeToMilliseconds(gp.drange)/factor),
-                // Zoom from the end
-                newend = gp.end,
-                newstart = (gp.end - rangeToMilliseconds(gp.drange) < 0 ? 0 : gp.end - delta);
+            var drange = Math.round(rangeToMilliseconds(gp.drange)/factor),
+                // Get the new end time based on where they click on the graph
+                delta = ((width/2) - xpos) * (rangeToMilliseconds(gp.drange)/width) + (rangeToMilliseconds(gp.drange) - drange)/2,
+                end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0),
+                start = (gp.end - drange);
+
             this.fireEventsToAll("updateimage", {
-                start: newstart,
-                end: newend
+                drange: drange,
+                start: start,
+                end: end
             });
         },
-        zoomIn: function(graph) {
-            this.doZoom(this.zoom_factor);
+        onGraphClick: function(e) {
+            var graph = e.getTarget(null, null, true),
+                x = e.getPageX() - graph.getX() - 67,
+            func = this.zoomin.pressed ? this.onZoomIn : this.onZoomOut;
+            func.call(this, this, x);
         },
-        zoomOut: function(graph) {
-            this.doZoom(1/this.zoom_factor);
+        onZoomIn: function(graph, xpos) {
+            this.doZoom(xpos, this.zoom_factor);
+        },
+        onZoomOut: function(graph, xpos) {
+            this.doZoom(xpos, 1/this.zoom_factor);
         },
         fireEventsToAll: function() {
             if (this.linked()) {
