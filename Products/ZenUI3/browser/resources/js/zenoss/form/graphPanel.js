@@ -208,13 +208,17 @@
                         }, this)
                     },{
                         text: _t('Zoom In'),
+                        ref: '../zoomin',
+                        enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
-                            this.zoomIn(this);
+                            this.fireEventsToAll("zoommodechange", this, !btn.pressed);
                         }, this)
                     },{
                         text: _t('Zoom Out'),
+                        ref: '../zoomout',
+                        enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
-                            this.zoomOut(this);
+                            this.fireEventsToAll("zoommodechange", this, btn.pressed);
                         }, this)
                     },{
                         text: '&gt;',
@@ -346,15 +350,31 @@
                  * Fire this event to force the chart to redraw itself.
                  * @param {object} params The parameters we are sending to the object.
                  **/
-                'updateimage'
+                'updateimage',
+                /**
+                 * @event zoommodechange
+                 * This fies when the zoom mode change (e.g. from zooming out to zooming in)
+                 **/
+                'zoommodechange'
             );
             this.on('updateimage', this.updateGraph, this);
+            this.on("zoommodechange", this.onZoomModeChange, this);
+            this.graphEl = Ext.get(this.graphId);
+            this.graphEl.on('click', this.onGraphClick, this);
         },
         linked: function() {
             return this.isLinked;
         },
         setLinked: function(isLinked) {
             this.isLinked = isLinked;
+        },
+        onZoomModeChange: function(graph, zoomOut) {
+            this.zoomout.toggle(zoomOut);
+            this.zoomin.toggle(!zoomOut);
+            var dir = zoomOut ? 'out' : 'in',
+                cls = Ext.isGecko ? '-moz-zoom-'+dir :
+                (Ext.isWebKit ? '-webkit-zoom-'+dir : 'crosshair');
+            this.graphEl.setStyle({'cursor': cls});
         },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
@@ -430,23 +450,33 @@
             }
             this.fireEventsToAll("updateimage", {start:newstart, end:newend});
         },
-        doZoom: function(factor) {
-            var gp = this.graph_params;
+        doZoom: function(xpos, factor) {
+            var gp = this.graph_params,
+                el = Ext.get(this.graphId),
+                width = el.getWidth();
             gp.end = this.convertEndToAbsolute(gp.end);
-            var delta = Math.round(rangeToMilliseconds(gp.drange)/factor),
-                // Zoom from the end
-                newend = gp.end,
-                newstart = (gp.end - rangeToMilliseconds(gp.drange) < 0 ? 0 : gp.end - delta);
+            var drange = Math.round(rangeToMilliseconds(gp.drange)/factor),
+                // Get the new end time based on where they click on the graph
+                delta = ((width/2) - xpos) * (rangeToMilliseconds(gp.drange)/width) + (rangeToMilliseconds(gp.drange) - drange)/2,
+                end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0),
+                start = (gp.end - drange);
             this.fireEventsToAll("updateimage", {
-                start: newstart,
-                end: newend
+                drange: drange,
+                start: start,
+                end: end
             });
         },
-        zoomIn: function(graph) {
-            this.doZoom(this.zoom_factor);
+        onGraphClick: function(e) {
+            var graph = e.getTarget(null, null, true),
+                x = e.getPageX() - graph.getX() - 67,
+            func = this.zoomin.pressed ? this.onZoomIn : this.onZoomOut;
+            func.call(this, this, x);
         },
-        zoomOut: function(graph) {
-            this.doZoom(1/this.zoom_factor);
+        onZoomIn: function(graph, xpos) {
+            this.doZoom(xpos, this.zoom_factor);
+        },
+        onZoomOut: function(graph, xpos) {
+            this.doZoom(xpos, 1/this.zoom_factor);
         },
         fireEventsToAll: function() {
             if (this.linked()) {
