@@ -53,7 +53,7 @@
             '1m-ago': 2419200000,
             '1y-ago': 31536000000
         },
-        DOWNSMAPLE = [
+        DOWNSAMPLE = [
             [86400000, '1h-avg'],    // Day
             [604800000, '12h-avg'],  // Week
             [2419200000, '1d-avg'],  // Month
@@ -275,7 +275,7 @@
             // means that if we collect at less than a minute the
             // values will be averaged out.
             visconfig.downsample = '1m-avg';
-            DOWNSMAPLE.forEach(function(v) {
+            DOWNSAMPLE.forEach(function(v) {
                 if (delta >= v[0]) {
                     visconfig.downsample = v[1];
                 }
@@ -399,22 +399,18 @@
             // gp.start is something like "1h-ago", convert to milliseconds
             var delta;
             if (Ext.isNumber(gp.start)) {
-                delta = new Date() - gp.start;
+                delta = this.convertEndToAbsolute(gp.end) - gp.start;
             } else {
                 delta = rangeToMilliseconds(gp.start);
             }
-
-            changes.downsample = '-';
-            DOWNSMAPLE.forEach(function(v) {
+            changes.downsample = '1m-avg';
+            DOWNSAMPLE.forEach(function(v) {
                 if (delta >= v[0]) {
                     changes.downsample = v[1];
                 }
             });
             zenoss.visualization.chart.update(this.graphId, changes);
 
-            //zenoss.visualization.chart.setRange(this.graphId,
-            //    formatForMetricService(gp.start),
-            //    formatForMetricService(gp.end));
             this.graph_params = gp;
         },
         convertStartToAbsoluteTime: function(start) {
@@ -460,6 +456,7 @@
                 delta = ((width/2) - xpos) * (rangeToMilliseconds(gp.drange)/width) + (rangeToMilliseconds(gp.drange) - drange)/2,
                 end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0),
                 start = (gp.end - drange);
+
             this.fireEventsToAll("updateimage", {
                 drange: drange,
                 start: start,
