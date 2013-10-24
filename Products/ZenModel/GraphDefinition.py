@@ -568,7 +568,12 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             if dp.meta_type == 'DataPointGraphPoint' and dp.format:
                 lhs = dp.format.split(".")[0][-1]
                 rhs = dp.format.split(".")[1][0]
-                return int(lhs) - int(rhs)
+                try:
+                    return int(lhs) - int(rhs)
+                except (ValueError, TypeError):
+                    # unable to parse the format just continue 
+                    # or use the default
+                    pass
         return 3
 
     def getUniqueDpNames(self, limit=None):
