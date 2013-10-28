@@ -18,6 +18,7 @@ from Products.Zuul.interfaces import (
     IApplicationManager, IApplication, IApplicationLog
 )
 from Products.Zuul.utils import unbrain
+from Products.ZenUtils.controlplane.interfaces import IControlPlaneClient
 
 
 @implementer(IApplicationManager)
@@ -25,31 +26,30 @@ class ServiceApplicationManager(object):
     """
     """
 
-    def __init__(self):
+    def __init__(self, dataroot):
         """
         """
-        self._svc = getUtility("controlplane")
+        self._dmd = dataroot
+        self._svc = getUtility(IControlPlaneClient)
 
     def query(self):
         """
         Returns a sequence of IApplication objects.
         """
-        result = self._svc.query()
+        result = self._svc.queryServices()
         if not result:
             return ()
-        return tuple(
-            getAdapter(instance, IApplication) for instance in result
-        )
+        return tuple(ServiceApplication(instance) for instance in result)
 
     def get(self, name, default=None):
         """
         Returns the IApplicationInfo object of the named application.
         """
-        result = self._svc.query(name=name)
+        result = self._svc.queryServices(name=name)
         if not result:
             return default
         instance = list(result)[0]
-        return getAdapter(instance, IApplication)
+        return ServiceApplication(instance)
 
 
 @implementer(IApplication)
@@ -59,15 +59,31 @@ class ServiceApplication(object):
 
     def __init__(self, instance):
         self._instance = instance
-        self._svc = getUtility("controlplane")
+        self._svc = getUtility(IControlPlaneClient)
+
+    @property
+    def id(self):
+        return self._instance.id
+
+    @property
+    def name(self):
+        return self._instance.name
 
     @property
     def description(self):
         return self._instance.description
 
     @property
+    def processId(self):
+        return self._instance.processId
+
+    @property
+    def state(self):
+        return self._instance.state
+
+    @property
     def enabled(self):
-        return self._instance.status
+        return self._instance.status == "ENABLED"
 
     @enabled.setter
     def enabled(self, value):
@@ -134,7 +150,7 @@ class ServiceApplicationLog(object):
 
     def __init__(self, instance):
         self._instance = instance
-        self._svc = getUtility("controlplane")
+        self._svc = getUtility(IControlPlaneClient)
 
     def first(self, count):
         """

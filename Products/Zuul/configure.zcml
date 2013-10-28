@@ -67,103 +67,6 @@
         interface=".interfaces.IMarshallable"
         class="Products.Zuul.infos.metricserver.MetricServiceGraph"
         />
-    
-
-    <adapter factory=".facades.DeviceFacade"
-             provides=".interfaces.IDeviceFacade"
-             name="device"
-             for="*"
-             />
-
-    <adapter factory=".facades.PropertiesFacade"
-             provides=".interfaces.IPropertiesFacade"
-             name="properties"
-             for="*"
-             />
-
-    <adapter factory=".facades.DeviceManagementFacade"
-             provides=".interfaces.IDeviceManagementFacade"
-             name="devicemanagement"
-             for="*"
-             />
-
-    <adapter factory=".facades.EventClassesFacade"
-             provides=".interfaces.IEventClassesFacade"
-             name="eventclasses"
-             for="*"
-             />
-
-    <adapter factory=".facades.ManufacturersFacade"
-             provides=".interfaces.IManufacturersFacade"
-             name="manufacturers"
-             for="*"
-             />
-
-    <adapter factory=".facades.ZepFacade"
-             provides=".interfaces.IZepFacade"
-             name="zep"
-             for="*"
-             />
-
-    <adapter factory=".facades.MetricFacade"
-             provides=".interfaces.IMetricFacade"
-             name="metric"
-             for="*"
-             />
-
-    <adapter factory=".facades.NetworkFacade"
-             provides=".interfaces.INetworkFacade"
-             name="network"
-             for="*"
-             />
-
-    <adapter factory=".facades.Network6Facade"
-             provides=".interfaces.INetworkFacade"
-             name="network6"
-             for="*"
-             />
-
-    <adapter factory=".facades.ProcessFacade"
-             provides=".interfaces.IProcessFacade"
-             name="process"
-             for="*"
-             />
-
-    <adapter factory=".facades.ServiceFacade"
-             provides=".interfaces.IServiceFacade"
-             name="service"
-             for="*"
-             />
-
-    <adapter factory=".facades.MibFacade"
-             provides=".interfaces.IFacade"
-             name="mibs"
-             for="*"
-             />
-
-    <adapter factory=".facades.ReportFacade"
-             provides=".interfaces.IFacade"
-             name="reports"
-             for="*"
-             />
-
-    <adapter factory=".facades.ZenPackFacade"
-             provides=".interfaces.IFacade"
-             name="zenpack"
-             for="*"
-             />
-
-    <adapter factory=".facades.TemplateFacade"
-             provides=".interfaces.IFacade"
-             name="template"
-             for="*"
-             />
-
-    <adapter factory=".facades.DeviceDumpLoadFacade"
-             provides=".interfaces.IDeviceDumpLoadFacade"
-             name="devicedumpload"
-             for="*"
-             />
 
     <utility component=".utils.get_dmd"
              provides=".interfaces.IDataRootFactory"
@@ -200,23 +103,12 @@
              factory=".tree.CatalogTool"
              />
 
-    <adapter factory=".facades.TriggersFacade"
-             provides=".interfaces.IFacade"
-             name="triggers"
-             for="*"
-             />
-
-    <adapter factory=".facades.JobsFacade"
-             provides=".interfaces.IFacade"
-             name="jobs"
-             for="*"
-             />
-
     <adapter provides=".interfaces.IAuthorizationTool"
              factory=".security.AuthorizationTool"
              for="*"
              />
 
+    <include package=".facades"/>
     <include package=".routers"/>
     <include package=".catalog"/>
     <include package=".search"/>

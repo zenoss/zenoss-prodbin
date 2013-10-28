@@ -18,7 +18,7 @@ class IControlPlaneClient(Interface):
         """
         """
 
-    def getService(instanceId):
+    def getService(instanceId, default=None):
         """
         """
 

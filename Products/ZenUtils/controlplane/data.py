@@ -7,11 +7,15 @@
 #
 ##############################################################################
 
-import json
-
 """
 Application JSON format:
 
+    'query' result
+    [
+        <application-node>,...
+    ]
+
+    'get' result
     {
         "uri":    <string>,
         "id":     <string>,
@@ -25,8 +29,14 @@ Application JSON format:
     }
 """
 
+_app1 = """{"uri": "uri-to-app", "id": "app-uuid", "name": "app-name", "tags": ["daemon"], "log": "uri-to-app-log", "conf": "uri-to-app-conf", "status": "ENABLED", "state": "RUNNING", "pid": 5}"""
 
-def serviceapp_json_decoder(obj):
+_app2 = """{"uri": "uri-to-app2", "id": "app2-uuid", "name": "app2-name", "tags": ["daemon"], "log": "uri-to-app2-log", "conf": "uri-to-app2-conf", "status": "DISABLED", "state": "STOPPED", "pid": null}"""
+
+_apps = "[%s,%s]" % (_app1, _app2)
+
+
+def json2ServiceApplication(obj):
     try:
         args = {
             "url": obj["uri"],
@@ -49,7 +59,7 @@ class ServiceApplication(object):
 
     STATES = type('enum_states', (object,), dict(
         (name, value) for value, name in enumerate(
-            "STARTING", "STARTED", "RUNNING", "STOPPING", "STOPPED"
+            ("STARTING", "STARTED", "RUNNING", "STOPPING", "STOPPED")
         )
     ))()
 
