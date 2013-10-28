@@ -13,6 +13,7 @@ __doc__ = """Device
 Base device (remote computer) class
 """
 
+import cgi
 import os
 import shutil
 import time
@@ -2093,7 +2094,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         href = altHref if altHref else self.getPrimaryUrlPath()
         name = self.titleOrId()
 
-        rendered = template % (icon, name)
+        rendered = template % (icon, cgi.escape(name))
 
         if not self.checkRemotePerm(ZEN_VIEW, self):
             return rendered
