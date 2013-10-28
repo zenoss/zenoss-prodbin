@@ -13,17 +13,24 @@ from Products.Zuul.interfaces import IApplicationInfo, IApplicationLogInfo
 
 @implementer(IApplicationInfo)
 class ApplicationInfo(object):
+    """
+    """
 
-    def __init__(self, data):
-        self._data = data
+    def __init__(self, application):
+        """
+        Initialize an instance of ApplicationInfo.
+
+        :param IApplication application: The IApplication facade.
+        """
+        self._application = application
 
     @property
     def id(self):
-        return self._object.id
+        return ''
 
     @property
     def name(self):
-        return self._object.name
+        return self._application.name
 
     @property
     def uid(self):
@@ -31,38 +38,33 @@ class ApplicationInfo(object):
 
     @property
     def description(self):
-        return self._object.description
+        return self._application.description
 
     @property
     def enabled(self):
-        return self._object.status == "ENABLED"
+        return self._application.enabled
 
     @property
     def processId(self):
-        return self._object.processId
+        return self._application.processId
 
 
 @implementer(IApplicationLogInfo)
 class ApplicationLogInfo(object):
+    """
+    """
 
-    def __init__(self, data):
-        self._data = data
+    def __init__(self, applicationlog):
+        """
+        Initialize an instance of ApplicationLogInfo.
 
-    @property
-    def id(self):
-        return self._data.id
-
-    @property
-    def name(self):
-        return self._data.name
-
-    @property
-    def uid(self):
-        return ''
+        :param IApplicationLog applog: The IApplicationLog facade.
+        """
+        self._applicationlog = applicationlog
 
     @property
     def lines(self):
-        return self._data.lines
-
-    def last(self, count):
-        return self._data.lines[-count:]
+        """
+        :rtype: A sequence of strings.
+        """
+        return self._applicationlog.last(100)

@@ -13,10 +13,10 @@ from zope.component import getAdapter, getMultiAdapter
 from zope.interface import implementer
 from ZODB.transact import transact
 
-from Products.Zuul import getFacade
+from Products.Zuul import getUtility
 from Products.Zuul.decorators import info
 from Products.Zuul.interfaces import (
-    IApplicationManager, IApplicationInfo, IApplicationLog
+    IApplicationManager, IApplication, IApplicationLog
 )
 from Products.Zuul.utils import unbrain
 
@@ -29,11 +29,11 @@ class ServiceApplicationManager(object):
     def __init__(self):
         """
         """
-        self._svc = getFacade(IControlService)
+        self._svc = getUtility("controlplane")
 
     def query(self):
         """
-        Returns a sequence of IApplicationInfo objects.
+        Returns a sequence of IApplication objects.
         """
         result = self._svc.query()
         if not result:
@@ -60,15 +60,15 @@ class ServiceApplication(object):
 
     def __init__(self, instance):
         self._instance = instance
-        self._svc = getFacade(IControlService)
+        self._svc = getUtility("controlplane")
 
     @property
     def description(self):
-        return self._object.description
+        return self._instance.description
 
     @property
     def enabled(self):
-        return self._object.status
+        return self._instance.status
 
     @enabled.setter
     def enabled(self, value):
@@ -77,50 +77,45 @@ class ServiceApplication(object):
 
     @property
     def processId(self):
-        return self._object.processId
+        return self._instance.processId
 
     def start(self):
         """
         Starts the named application.
         """
-        instance = self._getInstance(name)
-        instance.state = instance.states.START
-        self._svc.updateInstance(instance)
+        self._instance.state = instance.states.START
+        self._svc.updateInstance(self._instance)
 
-    def stop(self, name):
+    def stop(self):
         """
         Stops the named application.
         """
-        instance = self._getInstance(name)
-        instance.state = instance.states.STOP
-        self._svc.updateInstance(instance)
+        self._instance.state = instance.states.STOP
+        self._svc.updateInstance(self._instance)
 
-    def restart(self, name):
+    def restart(self):
         """
         Restarts the named application.
         """
-        instance = self._getInstance(name)
-        instance.state = instance.states.RESTART
-        self._svc.updateInstance(instance)
+        self._instance.state = instance.states.RESTART
+        self._svc.updateInstance(self._instance)
 
-    def getLog(self, name):
+    def getLog(self):
         """
         Retrieves the log of the named application.
 
         :rtype: Sequence of strings.
         """
-        instance = self._getInstance(name)
-        return getAdapter(instance, IApplicationLog)
+        return getAdapter(self._instance, IApplicationLog)
 
-    def getConfig(self, name):
+    def getConfig(self):
         """
         Retrieves the IConfig object of the named application.
         """
-        instance = self._getInstance(name)
         data = self._svc.getConfiguration(instance.id)
         return Config
 
-    def setConfig(self, name, config):
+    def setConfig(self, config):
         """
         Sets the config of the named application.
         """
@@ -140,33 +135,33 @@ class ServiceApplicationLog(object):
 
     def __init__(self, instance):
         self._instance = instance
-        self._svc = getFacade(IControlService)
+        self._svc = getUtility("controlplane")
 
     def first(self, count):
         """
         Returns a sequence containing the first count lines of the log.
 
-        :rtype IApplicationLogInfo: The log data.
+        :rtype: A sequence of strings.
         """
         result = self._svc.getInstanceLog(
             instance.id, start=0, end=count
         )
-        return getAdapter(result.data, IApplicationLogInfo)
+        return result.data
 
     def last(self, count):
         """
         Returns a sequence containing the last count lines of the log.
 
-        :rtype IApplicationLogInfo: The log data.
+        :rtype: A sequence of strings.
         """
         result = self._svc.getInstanceLog(instance.id, start=-count)
-        return getAdapter(result.data, IApplicationLogInfo)
+        return result.data
 
     def slice(self, start, end):
         """
         Returns a sequence of lines from start line to end line in the log.
 
-        :rtype IApplicationLogInfo: The log data.
+        :rtype: A sequence of strings.
         """
         result = self._svc.getInstanceLog(instance.id, start=start, end=end)
-        return getAdapter(result.data, IApplicationLogInfo)
+        return result.data

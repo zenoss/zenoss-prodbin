@@ -54,27 +54,21 @@ class IApplicationLog(IFacade):
         """
 
 
-class IApplicationManager(IFacade):
+class IApplication(IFacade):
     """
-    Implements management of Zenoss applications.
     """
 
-    def query():
-        """
-        Returns a sequence of IApplicationInfo objects.
-        """
+    name = Attribute("Name of the application")
+    description = Attribute("Brief description of the application's function")
+    enabled = Attribute("True if the application will run on startup")
+    processId = Attribute("The process ID (pid) of the running application")
 
-    def get(name):
-        """
-        Returns the IApplicationInfo object of the named application.
-        """
-
-    def start(name):
+    def start():
         """
         Starts the named application.
         """
 
-    def stop(name):
+    def stop():
         """
         Stops the named application.
         """
@@ -103,4 +97,20 @@ class IApplicationManager(IFacade):
         Sets the config of the named application.
 
         :param config: The configuration object.
+        """
+
+
+class IApplicationManager(IFacade):
+    """
+    Implements management of Zenoss applications.
+    """
+
+    def query():
+        """
+        Returns a sequence of IApplicationInfo objects.
+        """
+
+    def get(name):
+        """
+        Returns the IApplicationInfo object of the named application.
         """
