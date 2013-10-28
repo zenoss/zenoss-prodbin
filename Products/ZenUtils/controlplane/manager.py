@@ -7,8 +7,14 @@
 #
 ##############################################################################
 
+import json
+from fnmatch import fnmatch
+
 from zope.interface import implementer
+
 from .interfaces import IControlPlaneClient
+from .data import json2ServiceApplication, ServiceApplication
+from .data import _app1, _app2, _apps
 
 
 @implementer(IControlPlaneClient)
@@ -16,15 +22,22 @@ class ControlPlaneClient(object):
     """
     """
 
-    def queryServices(self, **kwargs):
+    def queryServices(self, name="*", **kwargs):
         """
         """
+        results = json.loads(_apps, object_hook=json2ServiceApplication)
+        return [app for app in results if fnmatch(app.name, name)]
 
     def getService(self, instanceId):
         """
         """
         # get data from url
-        # app = json.loads(jsondata)
+        if instanceId == "app-name":
+            return json.loads(_app1, object_hook=json2ServiceApplication)
+        elif instanceId == "app2-name":
+            return json.loads(_app2, object_hook=json2ServiceApplication)
+        else:
+            return default
 
     def updateService(self, instance):
         """
