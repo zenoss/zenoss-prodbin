@@ -7,37 +7,33 @@
 #
 ##############################################################################
 
-from zope.interface import implementer
-from .interfaces import IControlPlaneClient
+from zope.interface import Interface
 
 
-@implementer(IControlPlaneClient)
-class ControlPlaneClient(object):
-    """
-    """
+class IControlPlaneClient(Interface):
+    ""
+    ""
 
-    def queryServices(self, **kwargs):
+    def queryServices(**kwargs):
         """
         """
 
-    def getService(self, instanceId):
-        """
-        """
-        # get data from url
-        # app = json.loads(jsondata)
-
-    def updateService(self, instance):
+    def getService(instanceId):
         """
         """
 
-    def getServiceLog(self, uri, start=0, end=None):
+    def updateService(instance):
         """
         """
 
-    def getServiceConfiguration(self, uri):
+    def getServiceLog(uri, start=0, end=None):
         """
         """
 
-    def updateServiceConfiguration(self, uri, config):
+    def getServiceConfiguration(uri):
+        """
+        """
+
+    def updateServiceConfiguration(uri, config):
         """
         """

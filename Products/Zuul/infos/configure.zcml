@@ -281,14 +281,14 @@
 
 	<adapter
 		provides="Products.Zuul.interfaces.application.IApplicationInfo"
-		for="Products.Zuul.facades.application.Application"
-		factory="Products.Zuul.infos.ApplicationInfo"
+		for="Products.Zuul.facades.application.ServiceApplication"
+		factory="Products.Zuul.infos.application.ApplicationInfo"
 		/>
 
 	<adapter
 		provides="Products.Zuul.interfaces.application.IApplicationLogInfo"
-		for="Products.Zuul.facades.application.ApplicationLog"
-		factory="Products.Zuul.infos.ApplicationLogInfo"
+		for="Products.Zuul.facades.application.ServiceApplicationLog"
+		factory="Products.Zuul.infos.application.ApplicationLogInfo"
 		/>
 
     <include package=".component"/>
