@@ -139,7 +139,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
             this.iconitem.getEl().setStyle({
                 'background-image' : 'url(' + data.icon + ')'
             });
-            this.deviditem.devname.setText(data.name);
+            this.deviditem.devname.setText(Ext.htmlEncode(data.name));
             var ipAddress = data.ipAddressString;
             this.deviditem.ipAddress.setText(ipAddress);
             this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));

@@ -31,6 +31,7 @@ function jobLinkRenderer(value, metadata, record) {
     var job = record.data,
     description = job.description;
     description = description.length > 58 ? description.substring(0, 55) + '...' : description;
+    // Not htmlEncod()ing the 'description' below, as it's already coming to use encoded
     return "<a href='/zport/dmd/joblist#jobs:" + job.uuid + "'>" + description + "</a>";
 }
 
@@ -241,10 +242,10 @@ Ext.define("Zenoss.JobsWidget", {
         this.tip.show();
     },
     alert_new: function(job) {
-        this.alert("<b>New job</b>: " + job.description);
+        this.alert("<b>New job</b>: " + Ext.htmlEncode(job.description));
     },
     alert_finished: function(job) {
-        this.alert("<b>Finished job</b>: " + job.description);
+        this.alert("<b>Finished job</b>: " + Ext.htmlEncode(job.description));
     },
     poll: function() {
         this.update();

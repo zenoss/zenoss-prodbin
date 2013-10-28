@@ -970,6 +970,11 @@
                 } else {
                     D.memory = 'Unknown/Unknown';
                 }
+                D.comments = Ext.htmlDecode(D.comments);
+                D.tagNumber = Ext.htmlDecode(D.tagNumber);
+                D.serialNumber = Ext.htmlDecode(D.serialNumber);
+                D.rackSlot = Ext.htmlDecode(D.rackSlot);
+                D.name = Ext.htmlDecode(D.name);
                 this.setValues(D);
 
                 // load zLinks and uptime in a separate request since they
