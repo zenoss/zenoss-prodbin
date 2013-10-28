@@ -9,11 +9,10 @@
 
 import logging
 
-from zope.component import getAdapter, getMultiAdapter
+from zope.component import getUtility, getAdapter, getMultiAdapter
 from zope.interface import implementer
 from ZODB.transact import transact
 
-from Products.Zuul import getUtility
 from Products.Zuul.decorators import info
 from Products.Zuul.interfaces import (
     IApplicationManager, IApplication, IApplicationLog
