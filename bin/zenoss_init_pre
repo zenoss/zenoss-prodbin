@@ -70,4 +70,4 @@ run_zenbuild
 # this must be done before zenoss starts so that the daemons
 # have the correct credentials
 echo "Creating system account"
-zendmd --script ${ZENHOME}/bin/addSystemUser.py
+${ZENHOME}/bin/zendmd --script ${ZENHOME}/bin/addSystemUser.py
