@@ -59,6 +59,14 @@
                 xtype: 'button',
                 text: _t('Restart'),
                 ref: 'restart'
+            }, {
+                xtype: 'button',
+                text: _t('Enable'),
+                ref: 'enable'
+            },{
+                xtype: 'button',
+                text: _t('Disable'),
+                ref: 'disable'
             },'->',{
                 xtype: 'daemonsearchfield',
                 id: 'component_searchfield',

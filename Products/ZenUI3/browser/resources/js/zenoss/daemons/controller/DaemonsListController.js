@@ -47,6 +47,12 @@
                 'daemonslist button[ref="restart"]': {
                     click: this.restartSelectedDeamons
                 },
+                'daemonslist button[ref="enable"]': {
+                    click: this.enableSelectedDaemons
+                },
+                'daemonslist button[ref="disable"]': {
+                    click: this.disableSelectedDaemons
+                },
                 // restart icon on the columns
                 'daemonslist actioncolumn[ref="restartcolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
@@ -189,6 +195,16 @@
                 uids: uids,
                 enabled: enabled
             });
+        },
+        enableSelectedDaemons: function() {
+            this.setDisabledDaemons(
+                this.getTreegrid().getSelectionModel().getSelection(),
+                true);
+        },
+        disableSelectedDaemons: function() {
+            this.setDisabledDaemons(
+                this.getTreegrid().getSelectionModel().getSelection(),
+                false);
         }
     });
 })();
