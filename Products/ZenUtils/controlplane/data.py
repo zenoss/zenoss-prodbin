@@ -135,3 +135,9 @@ class ServiceApplication(object):
     @property
     def configResourceId(self):
         return self._configurl
+
+
+# Define the names to export via 'from data import *'.
+__all__ = (
+    "json2ServiceApplication", "ServiceApplication"
+)

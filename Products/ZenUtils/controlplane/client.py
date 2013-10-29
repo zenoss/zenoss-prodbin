@@ -16,6 +16,7 @@ import urllib2
 
 from cookielib import CookieJar
 from fnmatch import fnmatch
+from urlparse import urlunparse
 
 from zope.interface import implementer
 
@@ -25,6 +26,7 @@ from .interfaces import IControlPlaneClient
 from .data import json2ServiceApplication, ServiceApplication
 
 _DEFAULT_PORT = 8787
+_DEFAULT_HOST = "localhost"
 
 
 def _getDefaults(options=None):
@@ -33,6 +35,7 @@ def _getDefaults(options=None):
     else:
         o = options
     settings = {
+        "host": o.get("controlplane-host", _DEFAULT_HOST),
         "port": o.get("controlplane-port", _DEFAULT_PORT),
         "user": o.get("controlplane-user", "zenoss"),
         "password": o.get("controlplane-password", "zenoss"),
@@ -49,7 +52,7 @@ def _login(opener, settings):
         "Content-Type": "application/json"
     }
     req = urllib2.Request(
-        "http://localhost:%(port)s/login" % settings,
+        "http://%(host)s:%(port)s/login" % settings,
         encodedbody,
         headers
     )
@@ -57,7 +60,11 @@ def _login(opener, settings):
     response.close()
 
 
-def _dorequest(request, opener, settings):
+def _dorequest(uri, opener, settings):
+    url = urlunparse((
+        "http", "%(host)s:%(port)s" % settings, uri, "", "", ""
+    ))
+    request = urllib2.Request(url)
     response = None
     try:
         response = opener.open(request)
@@ -71,10 +78,7 @@ def _dorequest(request, opener, settings):
 
 
 def _services(opener, settings):
-    req = urllib2.Request(
-        "http://localhost:%(port)s/services" % settings
-    )
-    return _dorequest(req, opener, settings)
+    return _dorequest("/services", opener, settings)
 
 
 @implementer(IControlPlaneClient)
@@ -99,19 +103,12 @@ class ControlPlaneClient(object):
         response = _services(self._opener, self._settings)
         body = ''.join(response.readlines())
         decoded = json.loads(body, object_hook=json2ServiceApplication)
-        #results = json.loads(_apps, object_hook=json2ServiceApplication)
         return [app for app in decoded if fnmatch(app.name, name)]
 
     def getService(self, instanceId):
         """
         """
-        # get data from url
-        if instanceId == "app-name":
-            return json.loads(_app1, object_hook=json2ServiceApplication)
-        elif instanceId == "app2-name":
-            return json.loads(_app2, object_hook=json2ServiceApplication)
-        else:
-            return default
+        response = _services()
 
     def updateService(self, instance):
         """
@@ -128,3 +125,8 @@ class ControlPlaneClient(object):
     def updateServiceConfiguration(self, uri, config):
         """
         """
+
+# Define the names to export via 'from client import *'.
+__all__ = (
+    "ControlPlaneClient",
+)
