@@ -47,19 +47,15 @@
                 'daemonslist button[ref="restart"]': {
                     click: this.restartSelectedDeamons
                 },
-                'daemonslist button[ref="enable"]': {
-                    click: this.enableSelectedDaemons
-                },
-                'daemonslist button[ref="disable"]': {
-                    click: this.disableSelectedDaemons
-                },
-                // restart icon on the columns
+                // Column Actions
+                // restart
                 'daemonslist actioncolumn[ref="restartcolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.updateRefreshIcon([record]);
                         this.updateSelectedDeamons([record], 'restart', 'status', 'up');
                     }, this)
                 },
+                // start/stop
                 'daemonslist actioncolumn[ref="statuscolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         // find out if we need to stop or start the record
@@ -70,6 +66,7 @@
                         }
                     }, this)
                 },
+                // enable/disable
                 'daemonslist actioncolumn[ref="enabled"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.setDisabledDaemons([record], !record.get('enabled'));
@@ -195,16 +192,6 @@
                 uids: uids,
                 enabled: enabled
             });
-        },
-        enableSelectedDaemons: function() {
-            this.setDisabledDaemons(
-                this.getTreegrid().getSelectionModel().getSelection(),
-                true);
-        },
-        disableSelectedDaemons: function() {
-            this.setDisabledDaemons(
-                this.getTreegrid().getSelectionModel().getSelection(),
-                false);
         }
     });
 })();
