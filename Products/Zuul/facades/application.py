@@ -83,11 +83,12 @@ class ServiceApplication(object):
 
     @property
     def enabled(self):
-        return self._instance.status == "ENABLED"
+        return self._instance.status == self._instance.STATUS.AUTO
 
     @enabled.setter
     def enabled(self, value):
-        self._instance.status = bool(value)
+        value = bool(value)
+        self._instance.status = self._instance.STATUS[value]
         self._svc.updateInstance(self._instance)
 
     @property
@@ -98,21 +99,21 @@ class ServiceApplication(object):
         """
         Starts the named application.
         """
-        self._instance.state = self._instance.STATES.START
+        self._instance.state = self._instance.STATE.START
         self._svc.updateInstance(self._instance)
 
     def stop(self):
         """
         Stops the named application.
         """
-        self._instance.state = self._instance.STATES.STOP
+        self._instance.state = self._instance.STATE.STOP
         self._svc.updateInstance(self._instance)
 
     def restart(self):
         """
         Restarts the named application.
         """
-        self._instance.state = self._instance.STATES.RESTART
+        self._instance.state = self._instance.STATE.RESTART
         self._svc.updateInstance(self._instance)
 
     def getLog(self):
