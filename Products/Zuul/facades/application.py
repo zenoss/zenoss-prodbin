@@ -98,21 +98,21 @@ class ServiceApplication(object):
         """
         Starts the named application.
         """
-        self._instance.state = instance.states.START
+        self._instance.state = self._instance.STATES.START
         self._svc.updateInstance(self._instance)
 
     def stop(self):
         """
         Stops the named application.
         """
-        self._instance.state = instance.states.STOP
+        self._instance.state = self._instance.STATES.STOP
         self._svc.updateInstance(self._instance)
 
     def restart(self):
         """
         Restarts the named application.
         """
-        self._instance.state = instance.states.RESTART
+        self._instance.state = self._instance.STATES.RESTART
         self._svc.updateInstance(self._instance)
 
     def getLog(self):
@@ -127,19 +127,19 @@ class ServiceApplication(object):
         """
         Retrieves the IConfig object of the named application.
         """
-        data = self._svc.getConfiguration(instance.id)
+        data = self._svc.getConfiguration(self._instance.id)
         return Config
 
     def setConfig(self, config):
         """
         Sets the config of the named application.
         """
-        instance = self._getInstance(name)
+        instance = self._getInstance(self.name)
 
     def _getInstance(self):
         result = self._svc.get(self._instance.id)
         if not result:
-            raise UnknownApplicationError(name)
+            raise UnknownApplicationError(self.name)
         self._instance = list(result)[0]
 
 
