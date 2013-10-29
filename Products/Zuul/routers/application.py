@@ -53,9 +53,9 @@ class ApplicationRouter(TreeRouter):
         applications = facade.query()
         for app in applications:
             if app.id in uids:
-                app.start()
+                #app.start()
                 audit('UI.Applications.Start', id)
-        return DirectResponse.succeed("Started %s" % ",".join(uids))
+        return DirectResponse.succeed("Started %s daemon(s)" % len(uids))
 
     def stop(self, uids):
         """
@@ -69,9 +69,9 @@ class ApplicationRouter(TreeRouter):
         applications = facade.query()
         for app in applications:
             if app.id in uids:
-                app.stop()
+                #app.stop()
                 audit('UI.Applications.Stop', id)
-        return DirectResponse.succeed("Stopped %s" % ",".join(uids))
+        return DirectResponse.succeed("Stopped %s daemon(s)" % len(uids))
 
     def restart(self, uids):
         """
@@ -85,9 +85,22 @@ class ApplicationRouter(TreeRouter):
         applications = facade.query()
         for app in applications:
             if app.id in uids:
-                app.restart()
+                #app.restart()
                 audit('UI.Applications.Restart', id)
-        return DirectResponse.succeed("Restarted %s" % ",".join(uids))
+        return DirectResponse.succeed("Restarted %s daemon(s)" % len(uids))
+
+    def setDisabled(self, uids, enabled):
+        """
+        Enables or disabled all applications passed into uids. If it is already in that
+        state it is a noop.
+        @type uids: Array[Strings]
+        @param uids: List of valid daemon ids that will need to enabled
+        @type enabled: boolean
+        @param uids: true for enabled or false for disabled
+        @rtype: DirectResposne
+        @return: DirectReponse of success if no errors are encountered
+        """
+        pass
 
     def getInfo(self, id):
         """

@@ -49,19 +49,24 @@
                 },
                 // restart icon on the columns
                 'daemonslist actioncolumn[ref="restartcolumn"]': {
-                    click: Ext.bind(function(grid, cell, rowIdx, colIdx, event, record) {
+                    click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.updateRefreshIcon([record]);
                         this.updateSelectedDeamons([record], 'restart', 'status', 'up');
                     }, this)
                 },
                 'daemonslist actioncolumn[ref="statuscolumn"]': {
-                    click: Ext.bind(function(grid, cell, rowIdx, colIdx, event, record) {
+                    click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         // find out if we need to stop or start the record
                         if (record.get('status') != "up") {
                             this.updateSelectedDeamons([record], 'start', 'status', 'up');
                         } else {
                             this.updateSelectedDeamons([record], 'stop', 'status', 'down');
                         }
+                    }, this)
+                },
+                'daemonslist actioncolumn[ref="enabled"]': {
+                    click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
+                        this.setDisabledDaemons([record], !record.get('enabled'));
                     }, this)
                 }
             });
@@ -168,8 +173,22 @@
                     id: this.restartingDaemons[daemon].row.get('id')
                 }, callback, this);
             }
-
             this.pollForChanges();
+        },
+
+        /**
+         * Updates the enabled flag for all the rows passed in.
+         **/
+        setDisabledDaemons: function(rows, enabled) {
+            var uids = [], i;
+            for (i=0; i<rows.length; i++) {
+                uids.push(rows[i].get('uid'));
+                rows[i].set("enabled", enabled);
+            }
+            router.setDisabled({
+                uids: uids,
+                enabled: enabled
+            });
         }
     });
 })();
