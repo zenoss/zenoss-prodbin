@@ -22,32 +22,39 @@ class ApplicationInfo(object):
 
         :param IApplication application: The IApplication facade.
         """
-        self._application = application
+        self._object = application
 
     @property
     def id(self):
-        return ''
+        return self._object.id
 
     @property
     def name(self):
-        return self._application.name
+        return self._object.name
 
     @property
     def uid(self):
-        return ''
+        return self._object.id
 
     @property
     def description(self):
-        return self._application.description
+        return self._object.description
 
     @property
     def enabled(self):
-        return self._application.enabled
+        return self._object.enabled
 
     @property
     def processId(self):
-        return self._application.processId
+        return self._object.processId
 
+    @property
+    def leaf(self):
+        return True
+    
+    @property
+    def children(self):
+        return []
 
 @implementer(IApplicationLogInfo)
 class ApplicationLogInfo(object):

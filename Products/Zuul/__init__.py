@@ -94,7 +94,7 @@ def marshal(obj, keys=None, marshallerName='', objs=None):
         verify.verifyObject(IMarshaller, marshaller)
 
         if IInfo.providedBy(obj):
-            key = (obj._object._p_oid, obj.__class__)
+            key = (getattr(obj._object, '_p_oid', id(obj)), obj.__class__)
             if key in objs:
                 raise AlreadySeenException()
             else:

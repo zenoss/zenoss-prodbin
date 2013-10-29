@@ -93,7 +93,7 @@ class ServiceApplication(object):
     @property
     def id(self):
         return self._id
-
+    
     @property
     def resourceId(self):
         return self._url
