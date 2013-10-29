@@ -53,10 +53,11 @@ def json2ServiceApplication(obj):
             "url":              obj.get("uri"),
             "id":               obj.get("Id"),
             "name":             obj.get("Name"),
+            "parentId":         obj.get("ParentServiceId"),
             "description":      obj.get("Description"),
             "logResourceId":    obj.get("log"),
             "configResourceId": obj.get("conf"),
-            "status":           obj.get("Launch") == "auto",
+            "status":           obj.get("Launch"),
             "currentState":     obj.get("CurrentState"),
             "desiredState":     obj.get("DesiredState"),
             "pid":              obj.get("pid")
@@ -66,15 +67,44 @@ def json2ServiceApplication(obj):
         raise ValueError("Invalid JSON document; %s: %s" % (ex, obj))
 
 
+class _StateEnum(object):
+
+    __map = {1: "RUN", 0: "STOP", -1: "RESTART", None: "UNKNOWN"}
+    __slots__ = ("RUN", "STOP", "RESTART", "UNKNOWN")
+
+    def __init__(self):
+        for value, name in self.__map.items():
+            setattr(self, name, value)
+
+    def __contains__(self, value):
+        return value in self.__slots__
+
+    def __getitem__(self, index):
+        return self.__map[index]
+
+
+class _StatusEnum(object):
+
+    __map = {True: "AUTO", False: "MANUAL", None: "UNKNOWN"}
+    __slots__ = ("AUTO", "MANUAL", "UNKNOWN")
+
+    def __init__(self):
+        for value, name in self.__map.items():
+            setattr(self, name, value)
+
+    def __contains__(self, value):
+        return value in self.__slots__
+
+    def __getitem__(self, index):
+        return self.__map[index]
+
+
 class ServiceApplication(object):
     """
     """
 
-    STATES = type('enum_states', (object,), dict(
-        (name, value) for value, name in enumerate(
-            ("STARTED", "RUNNING", "STOPPED", "UNKNOWN")
-        )
-    ))()
+    STATE = _StateEnum()
+    STATUS = _StatusEnum()
 
     def __init__(self, **kwargs):
         """
@@ -83,10 +113,11 @@ class ServiceApplication(object):
         self._url = kwargs.get("url")
         self._pid = kwargs.get("pid")
         self._name = kwargs.get("name")
+        self._parentId = kwargs.get("parentId")
         self._description = kwargs.get("description")
-        self._status = kwargs.get("status")
-        self._currentstate = kwargs.get("currentState", "UNKNOWN")
-        self._desiredstate = kwargs.get("desiredState")
+        self.status = kwargs.get("status", "UNKNOWN").upper()
+        self._currentstate = self.STATE[kwargs.get("currentState")]
+        self._desiredstate = self.STATE[kwargs.get("desiredState")]
         self._logurl = kwargs.get("logResourceId")
         self._confurl = kwargs.get("configResourceId")
 
@@ -107,6 +138,10 @@ class ServiceApplication(object):
         return self._name
 
     @property
+    def parentId(self):
+        return self._parentId
+
+    @property
     def description(self):
         return self._description
 
@@ -116,17 +151,21 @@ class ServiceApplication(object):
 
     @status.setter
     def status(self, value):
-        self._status = bool(value)
+        if value is None:
+            value = "UNKNOWN"
+        if value not in self.STATUS:
+            raise ValueError("Invalid status value: %s" % (value,))
+        self._status = value
 
     @property
     def state(self):
-        return self._state
+        return self._currentstate
 
     @state.setter
     def state(self, value):
         if value not in self.STATES:
             raise ValueError("Invalid state: %s", value)
-        self._state = value
+        self._currentstate = self._desiredstate = value
 
     @property
     def logResourceId(self):

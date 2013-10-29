@@ -77,10 +77,6 @@ def _dorequest(uri, opener, settings):
     return response
 
 
-def _services(opener, settings):
-    return _dorequest("/services", opener, settings)
-
-
 @implementer(IControlPlaneClient)
 class ControlPlaneClient(object):
     """
@@ -100,7 +96,7 @@ class ControlPlaneClient(object):
     def queryServices(self, name="*", **kwargs):
         """
         """
-        response = _services(self._opener, self._settings)
+        response = _dorequest("/services", self._opener, self._settings)
         body = ''.join(response.readlines())
         decoded = json.loads(body, object_hook=json2ServiceApplication)
         return [app for app in decoded if fnmatch(app.name, name)]
@@ -108,7 +104,9 @@ class ControlPlaneClient(object):
     def getService(self, instanceId):
         """
         """
-        response = _services()
+        response = _dorequest(
+            "/services/%s" % instanceId, self._opener, self._settings
+        )
 
     def updateService(self, instance):
         """
