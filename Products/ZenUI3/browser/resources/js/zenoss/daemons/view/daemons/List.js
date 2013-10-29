@@ -92,6 +92,7 @@
                 flex: .25,
                 dataIndex: 'enabled',
                 tooltip: _t('Enable or disable deamon'),
+                ref: 'enabled',
                 sortable: true,
                 getClass: function(v, m, record) {
                     if (record.data.enabled) {
@@ -106,10 +107,6 @@
                 menuDisabled: true,
                 xtype: 'actioncolumn',
                 tooltip: _t('restart deamon'),
-                // Only leaf level tasks may be edited
-                isDisabled: function(view, rowIdx, colIdx, item, record) {
-                    return !record.data.leaf;
-                },
                 refreshingIcon: '/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif',
                 stillIcon: '/++resource++zenui/img/ext4/icon/circle_arrows_still.png',
                 ref: 'restartcolumn',
