@@ -7,6 +7,7 @@
  *
  ****************************************************************************/
 (function(){
+    var router = Zenoss.remote.ApplicationRouter;
 
     /**
      * @class Daemons.controller.DaemonsListController
@@ -18,7 +19,88 @@
         views: [
             "daemons.List"
         ],
-        extend: 'Ext.app.Controller'
-        //the rest of the Controller here
+        refs: [{
+            ref: 'treegrid',
+            selector: 'daemonslist'
+        }],
+        extend: 'Ext.app.Controller',
+        init: function() {
+            // toolbar button handlers
+            this.control({
+                // start
+                'daemonslist button[ref="start"]': {
+                    click: this.startSelectedDeamons
+                },
+                // stop
+                'daemonslist button[ref="stop"]': {
+                    click: this.stopSelectedDeamons
+                },
+                // restart
+                'daemonslist button[ref="restart"]': {
+                    click: this.restartSelectedDeamons
+                }
+            });
+        },
+        /**
+         * Updates the model representation of the selected rows
+         * this will update the view as well.
+         **/
+        updateRows: function(selectedRows, field, value) {
+            var i;
+            for(i=0;i<selectedRows.length;i++) {
+                selectedRows[i].set(field, value);
+            }
+        },
+        /**
+         * Performs the "action" on every selected daemon.
+         **/
+        updateSelectedDeamons: function(selectedRows, action, field, value) {
+            var grid = this.getTreegrid(),
+                uids = [], i=0;
+            if (selectedRows.length) {
+                // get a list of ids from the server
+                for(i=0;i<selectedRows.length;i++) {
+                    uids.push(selectedRows[i].get('uid'));
+                }
+                // call the server
+                router[action]({
+                    uids: uids
+                }, function(response) {
+                    if (response.success) {
+                        // this will update the grid without refreshing it
+                        this.updateRows(selectedRows, field, value);
+                    }
+                }, this);
+            }
+        },
+        /**
+         * Starts every daemon that is selected
+         **/
+        startSelectedDeamons: function() {
+            this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
+                                       'start', 'status', 'up');
+        },
+        /**
+         * Stops every daemon that is selected
+         **/
+        stopSelectedDeamons: function() {
+            this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
+                                       'stop', 'status', 'down');
+        },
+        /**
+         * restarts every daemon that is selected
+         **/
+        restartSelectedDeamons: function() {
+            var selected = this.getTreegrid().getSelectionModel().getSelection();
+            this.updateSelectedDeamons(selected, 'restart', 'status', 'up');
+            this.updateRefreshIcon(selected);
+        },
+
+        /**
+         * Let the user know that the deamon is restarting.
+         **/
+        updateRefreshIcon: function() {
+
+        }
     });
 })();

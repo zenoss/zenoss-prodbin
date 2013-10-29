@@ -48,11 +48,17 @@
             xtype: 'toolbar',
             dock: 'top',
             items: [{
-                iconCls: 'add'
-            }, {
-                iconCls: 'delete'
-            }, {
-                iconCls: 'customize'
+                xtype: 'button',
+                text: _t('Start'),
+                ref: 'start'
+            },{
+                xtype: 'button',
+                text: _t('Stop'),
+                ref: 'stop'
+            },{
+                xtype: 'button',
+                text: _t('Restart'),
+                ref: 'restart'
             },'->',{
                 xtype: 'daemonsearchfield',
                 id: 'component_searchfield',
@@ -60,6 +66,7 @@
                 enableKeyEvents: true
             }]
         }],
+        selectionModel: 'rowmodel',
         initComponent: function() {
             this.columns = [{
                 xtype: 'treecolumn', //this is so we know which column will show the tree
@@ -88,17 +95,9 @@
                 sortable: true,
                 getClass: function(v, m, record) {
                     if (record.data.enabled) {
-                        if (record.data.acknowledgeDisabled) {
-                            return 'grid-action checked disabled';
-                        } else {
-                            return 'grid-action checked enabled';
-                        }
+                        return 'grid-action checked enabled';
                     } else {
-                        if (record.data.acknowledgeDisabled) {
-                            return 'grid-action unchecked disabled';
-                        } else {
-                            return 'grid-action unchecked enabled';
-                        }
+                        return 'grid-action unchecked enabled';
                     }
                 }
             },{
@@ -114,6 +113,7 @@
                 items: [{
                     text: _t('Restart'),
                     icon: '/++resource++zenui/img/ext4/icon/circle_arrows_still.png',
+                    iconCls: 'restarticon',
                     handler: function(grid, rowIdx, colIdx) {
                         // swap out the image with a spinning circle and periodically poll
                         // until the service has restarted

@@ -15,9 +15,9 @@
             {name: 'id',  type: 'string'},
             {name: 'uid',  type: 'string'},
             {name: 'uuid',  type: 'string'},
-            {name: 'children',  type: 'Array'},
             {name: 'status',  type: 'string'},
-            {name: 'enabled',  type: 'boolean'}
+            {name: 'enabled',  type: 'boolean'},
+            {name: 'qtip',  type: 'string'}
         ]),
 
         proxy: {

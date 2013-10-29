@@ -39,6 +39,10 @@ class ApplicationInfo(object):
     @property
     def description(self):
         return self._object.description
+    
+    @property
+    def qtip(self):
+        return self._object.description
 
     @property
     def enabled(self):
