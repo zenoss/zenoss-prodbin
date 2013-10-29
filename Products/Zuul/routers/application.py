@@ -55,7 +55,7 @@ class ApplicationRouter(TreeRouter):
             if app.id in uids:
                 app.start()
                 audit('UI.Applications.Start', id)
-        return DirectResponse.success("Started %s" % ",".join(uids))
+        return DirectResponse.succeed("Started %s" % ",".join(uids))
 
     def stop(self, uids):
         """
@@ -71,7 +71,7 @@ class ApplicationRouter(TreeRouter):
             if app.id in uids:
                 app.stop()
                 audit('UI.Applications.Stop', id)
-        return DirectResponse.success("Stopped %s" % ",".join(uids))
+        return DirectResponse.succeed("Stopped %s" % ",".join(uids))
 
     def restart(self, uids):
         """
@@ -87,4 +87,17 @@ class ApplicationRouter(TreeRouter):
             if app.id in uids:
                 app.restart()
                 audit('UI.Applications.Restart', id)
-        return DirectResponse.success("Restarted %s" % ",".join(uids))
+        return DirectResponse.succeed("Restarted %s" % ",".join(uids))
+
+    def getInfo(self, id):
+        """
+        Returns the serialized info object for the given id
+        @type: id: String
+        @param id: Valid id of a application
+        @rtype: DirectResponse
+        @return: DirectResponse with data of the application
+        """
+        facade = self._getFacade()
+        info = facade.get(id)
+        data = Zuul.marshal(IInfo(info))
+        return DirectResponse.succeed(data=data)

@@ -110,22 +110,30 @@
                 isDisabled: function(view, rowIdx, colIdx, item, record) {
                     return !record.data.leaf;
                 },
+                refreshingIcon: '/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif',
+                stillIcon: '/++resource++zenui/img/ext4/icon/circle_arrows_still.png',
+                ref: 'restartcolumn',
                 items: [{
                     text: _t('Restart'),
                     icon: '/++resource++zenui/img/ext4/icon/circle_arrows_still.png',
-                    iconCls: 'restarticon',
-                    handler: function(grid, rowIdx, colIdx) {
-                        // swap out the image with a spinning circle and periodically poll
-                        // until the service has restarted
-                    }
+                    iconCls: 'restarticon'
                 }]
             },{
                 text: _t('Status'),
                 flex: .25,
+                xtype: 'actioncolumn',
+                ref: 'statuscolumn',
                 tooltip: _t('Click to stop/start the deamon'),
                 dataIndex: 'status',
                 sortable: true,
-                renderer: Zenoss.render.pingStatus
+                renderer: Zenoss.render.pingStatus,
+                /**
+                 * Action columns expect an image so override the
+                 * defaultRenderer to just use the supplied renderer (pingStatus)
+                 **/
+                defaultRenderer: function(v, meta, record, rowIdx, colIdx, store, view) {
+                    return this.origRenderer.apply(this, arguments);
+                }
             }];
 
             this.callParent(arguments);
