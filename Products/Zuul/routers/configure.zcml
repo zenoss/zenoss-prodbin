@@ -115,6 +115,13 @@
     />
 
 <browser:directRouter
+    name="application_router"
+    for="*"
+    class=".application.ApplicationRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="mib_router"
     for="*"
     class=".mibs.MibRouter"
