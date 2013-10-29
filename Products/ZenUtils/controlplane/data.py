@@ -15,11 +15,28 @@ Application JSON format:
         <application-node>,...
     ]
 
-    'get' result
+    'get' result example
     {
-        "uri":    <string>,
+        "Id":              "zentrap",
+        "Name":            "Trapful",
+        "Startup":         "/bin/true",
+        "Description":     "This is a collector deamon 4",
+        "Instances":       0,
+        "ImageId":         "zenoss",
+        "PoolId":          "default",
+        "DesiredState":    1,
+        "Launch":          "auto",
+        "Endpoints":       null,
+        "ParentServiceId": "localhost",
+        "CreatedAt":       "0001-01-01T00:00:00Z",
+        "UpdatedAt":       "2013-10-29T07:31:22-05:00"
+    }
+    missing current-state, pid, conf, and log.
+    
+    {
         "id":     <string>,
         "name":   <string>,
+        "uri":    <string>,
         "tags":   [<string>, ...],
         "log":    <uri-string>,
         "conf":   <uri-string>,
@@ -29,24 +46,20 @@ Application JSON format:
     }
 """
 
-_app1 = """{"uri": "uri-to-app", "id": "app-uuid", "name": "app-name", "tags": ["daemon"], "log": "uri-to-app-log", "conf": "uri-to-app-conf", "status": "ENABLED", "state": "RUNNING", "pid": 5}"""
-
-_app2 = """{"uri": "uri-to-app2", "id": "app2-uuid", "name": "app2-name", "tags": ["daemon"], "log": "uri-to-app2-log", "conf": "uri-to-app2-conf", "status": "DISABLED", "state": "STOPPED", "pid": null}"""
-
-_apps = "[%s,%s]" % (_app1, _app2)
-
 
 def json2ServiceApplication(obj):
     try:
         args = {
-            "url": obj["uri"],
-            "id": obj["id"],
-            "name": obj["name"],
-            "logResourceId": obj["log"],
-            "configResourceId": obj["conf"],
-            "status": obj["status"],
-            "state": obj["state"],
-            "pid": obj.get("pid")
+            "url":              obj.get("uri"),
+            "id":               obj.get("Id"),
+            "name":             obj.get("Name"),
+            "description":      obj.get("Description"),
+            "logResourceId":    obj.get("log"),
+            "configResourceId": obj.get("conf"),
+            "status":           obj.get("Launch") == "auto",
+            "currentState":     obj.get("CurrentState"),
+            "desiredState":     obj.get("DesiredState"),
+            "pid":              obj.get("pid")
         }
         return ServiceApplication(**args)
     except KeyError as ex:
@@ -59,22 +72,23 @@ class ServiceApplication(object):
 
     STATES = type('enum_states', (object,), dict(
         (name, value) for value, name in enumerate(
-            ("STARTING", "STARTED", "RUNNING", "STOPPING", "STOPPED")
+            ("STARTED", "RUNNING", "STOPPED", "UNKNOWN")
         )
     ))()
 
     def __init__(self, **kwargs):
         """
         """
-        self._id = kwargs["id"]
-        self._url = kwargs["url"]
+        self._id = kwargs.get("id")
+        self._url = kwargs.get("url")
         self._pid = kwargs.get("pid")
-        self._name = kwargs["name"]
-        self._description = ""
-        self._status = kwargs["status"]
-        self._state = kwargs["state"]
-        self._logurl = kwargs["logResourceId"]
-        self._confurl = kwargs["configResourceId"]
+        self._name = kwargs.get("name")
+        self._description = kwargs.get("description")
+        self._status = kwargs.get("status")
+        self._currentstate = kwargs.get("currentState", "UNKNOWN")
+        self._desiredstate = kwargs.get("desiredState")
+        self._logurl = kwargs.get("logResourceId")
+        self._confurl = kwargs.get("configResourceId")
 
     @property
     def id(self):
