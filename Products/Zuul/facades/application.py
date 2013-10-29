@@ -99,14 +99,14 @@ class ServiceApplication(object):
         """
         Starts the named application.
         """
-        self._instance.state = self._instance.STATE.START
+        self._instance.state = "RUN"
         self._svc.updateInstance(self._instance)
 
     def stop(self):
         """
         Stops the named application.
         """
-        self._instance.state = self._instance.STATE.STOP
+        self._instance.state = "STOP"
         self._svc.updateInstance(self._instance)
 
     def restart(self):
