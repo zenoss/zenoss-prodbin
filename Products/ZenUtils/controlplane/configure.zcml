@@ -6,7 +6,7 @@
 
   <utility
     provides=".interfaces.IControlPlaneClient"
-    factory=".manager.ControlPlaneClient"
+    factory=".client.ControlPlaneClient"
     />
 
 </configure>
