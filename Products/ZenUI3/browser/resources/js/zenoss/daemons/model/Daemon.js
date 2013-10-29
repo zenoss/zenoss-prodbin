@@ -17,6 +17,7 @@
             {name: 'uuid',  type: 'string'},
             {name: 'status',  type: 'string'},
             {name: 'enabled',  type: 'boolean'},
+            {name: 'isRestarting',  type: 'boolean'},
             {name: 'qtip',  type: 'string'}
         ]),
 

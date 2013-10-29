@@ -49,6 +49,10 @@ class ApplicationInfo(object):
         return self._object.enabled
 
     @property
+    def isRestarting(self):
+        return False
+    
+    @property
     def processId(self):
         return self._object.processId
 
