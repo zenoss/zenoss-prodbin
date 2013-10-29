@@ -13,6 +13,7 @@
         extend: 'Ext.data.Model',
         fields: Zenoss.model.BASE_TREE_FIELDS.concat([
             {name: 'id',  type: 'string'},
+            {name: 'name',  type: 'string'},
             {name: 'uid',  type: 'string'},
             {name: 'uuid',  type: 'string'},
             {name: 'status',  type: 'string'},
