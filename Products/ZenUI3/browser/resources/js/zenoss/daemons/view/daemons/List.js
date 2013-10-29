@@ -78,11 +78,10 @@
         initComponent: function() {
             this.columns = [{
                 xtype: 'treecolumn', //this is so we know which column will show the tree
-                text: _t('ID'),
+                text: _t('Name'),
                 flex: 2,
-                tooltip: _t('Deamon ID'),
                 sortable: true,
-                dataIndex: 'id'
+                dataIndex: 'name'
             }, {
                 text: _t('Logs'),
                 flex: .25,

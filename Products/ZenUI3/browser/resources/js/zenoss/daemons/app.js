@@ -30,7 +30,7 @@
             });
             Ext.getCmp('center_panel').add(panel);
             var store = Ext.getCmp('daemonslist').getStore();
-            store.setRootNode({id: 'localhost', uuid: '12', status: '1', enabled: true, uid:'localhost'});
+            store.setRootNode({id: 'localhost', uuid: '12', status: '1', enabled: true, uid:'localhost', name: 'Localhost'});
             // this will trigger a router request to get the subservices of localhost
             store.getRootNode().expand();
         }
