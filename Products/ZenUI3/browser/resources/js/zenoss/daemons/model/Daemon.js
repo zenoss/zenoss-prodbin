@@ -18,9 +18,9 @@
             {name: 'uuid',  type: 'string'},
             {name: 'state',  type: 'boolean',
              convert: function(value, record) {
-                 if (value == "RUN") return true;
-                 if (value == "STOP") return false;
-                 if (value == "RESTART") return false;
+                 if (value == Daemons.states.UP) return true;
+                 if (value == Daemons.states.DOWN) return false;
+                 if (value == Daemons.states.RESTARTING) return false;
                  return null;
              }
             },
