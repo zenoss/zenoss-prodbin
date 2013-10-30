@@ -16,8 +16,15 @@
             {name: 'name',  type: 'string'},
             {name: 'uid',  type: 'string'},
             {name: 'uuid',  type: 'string'},
-            {name: 'status',  type: 'string'},
-            {name: 'enabled',  type: 'boolean'},
+            {name: 'state',  type: 'boolean',
+             convert: function(value, record) {
+                 if (value == "RUN") return true;
+                 if (value == "STOP") return false;
+                 if (value == "RESTART") return false;
+                 return null;
+             }
+            },
+            {name: 'autostart',  type: 'boolean'},
             {name: 'isRestarting',  type: 'boolean'},
             {name: 'qtip',  type: 'string'}
         ]),

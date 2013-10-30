@@ -87,14 +87,14 @@
                 }
             },{
                 xtype: 'actioncolumn',
-                text: _t('Enabled'),
+                text: _t('AutoStart'),
                 flex: .25,
-                dataIndex: 'enabled',
-                tooltip: _t('Enable or disable deamon'),
-                ref: 'enabled',
+                dataIndex: 'autostart',
+                tooltip: _t('Automatically or manually start this deamon'),
+                ref: 'autostart',
                 sortable: true,
                 getClass: function(v, m, record) {
-                    if (record.data.enabled) {
+                    if (record.data.autostart) {
                         return 'grid-action checked enabled';
                     } else {
                         return 'grid-action unchecked enabled';
@@ -110,17 +110,16 @@
                 stillIcon: '/++resource++zenui/img/ext4/icon/circle_arrows_still.png',
                 ref: 'restartcolumn',
                 items: [{
-                    text: _t('Restart'),
                     icon: '/++resource++zenui/img/ext4/icon/circle_arrows_still.png',
                     iconCls: 'restarticon'
                 }]
             },{
-                text: _t('Status'),
+                text: _t('State'),
                 flex: .25,
                 xtype: 'actioncolumn',
                 ref: 'statuscolumn',
                 tooltip: _t('Click to stop/start the deamon'),
-                dataIndex: 'status',
+                dataIndex: 'state',
                 sortable: true,
                 renderer: Zenoss.render.pingStatus,
                 /**
