@@ -45,17 +45,13 @@ class ApplicationInfo(object):
         return self._object.description
 
     @property
-    def enabled(self):
-        return self._object.enabled
+    def autostart(self):
+        return self._object.autostart
 
     @property
     def isRestarting(self):
         return False
     
-    @property
-    def processId(self):
-        return self._object.processId
-
     @property
     def leaf(self):
         return True
@@ -63,6 +59,7 @@ class ApplicationInfo(object):
     @property
     def children(self):
         return []
+
 
 @implementer(IApplicationLogInfo)
 class ApplicationLogInfo(object):

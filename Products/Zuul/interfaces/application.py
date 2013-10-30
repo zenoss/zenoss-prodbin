@@ -17,8 +17,7 @@ class IApplicationInfo(IInfo):
     """
 
     description = Attribute("Brief description of the application's function")
-    enabled = Attribute("True if the application will run on startup")
-    processId = Attribute("The process ID (pid) of the running application")
+    autostart = Attribute("True if the application will run on startup")
 
 
 class IApplicationLogInfo(IInfo):
@@ -60,8 +59,7 @@ class IApplication(IFacade):
 
     name = Attribute("Name of the application")
     description = Attribute("Brief description of the application's function")
-    enabled = Attribute("True if the application will run on startup")
-    processId = Attribute("The process ID (pid) of the running application")
+    autostart = Attribute("True if the application will run on startup")
 
     def start():
         """
