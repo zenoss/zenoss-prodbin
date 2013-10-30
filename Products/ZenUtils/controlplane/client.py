@@ -121,14 +121,8 @@ class ControlPlaneClient(object):
         """
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
-        url = urlunparse((
-            "http",
-            self._netloc,
-            uri,
-            "",
-            urllib.urlencode(query) if query else "",
-            ""
-        ))
+        query = urllib.urlencode(query) if query else ""
+        url = urlunparse(("http", self._netloc, uri, "", query, ""))
         args = {}
         if method:
             args["method"] = method

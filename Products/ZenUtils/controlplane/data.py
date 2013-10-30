@@ -169,7 +169,7 @@ class ServiceApplication(object):
 
     @property
     def state(self):
-        return self.__map.get(self._data.get("CurrentState"))
+        return self.__map.get(self._data.get("DesiredState"))
 
     @state.setter
     def state(self, value):
