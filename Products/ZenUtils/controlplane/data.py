@@ -15,10 +15,10 @@ Application JSON format:
         <application-node>,...
     ]
 
-    'get' result example
+    /services 'get' result example
     {
-        "Id":              "zentrap",
-        "Name":            "Trapful",
+        "Id":              "9827-939070095",
+        "Name":            "zentrap",
         "Startup":         "/bin/true",
         "Description":     "This is a collector deamon 4",
         "Instances":       0,
@@ -26,12 +26,17 @@ Application JSON format:
         "PoolId":          "default",
         "DesiredState":    1,
         "Launch":          "auto",
-        "Endpoints":       null,
-        "ParentServiceId": "localhost",
+        "Endpoints":       {
+            "Protocol" : "tcp",
+            "PortNumber": 6379,
+            "Application": "redis",
+            "Purpose": "export"
+        },
+        "ParentServiceId": "293482085035",
         "CreatedAt":       "0001-01-01T00:00:00Z",
         "UpdatedAt":       "2013-10-29T07:31:22-05:00"
     }
-    missing current-state, pid, conf, and log.
+    missing current-state, conf, and log.
     
     {
         "id":     <string>,
@@ -42,141 +47,146 @@ Application JSON format:
         "conf":   <uri-string>,
         "status": <string>,
         "state":  <string>,
-        "pid":    <integer>,
     }
 """
 
+import json
 
-def json2ServiceApplication(obj):
-    try:
-        args = {
-            "url":              obj.get("uri"),
-            "id":               obj.get("Id"),
-            "name":             obj.get("Name"),
-            "parentId":         obj.get("ParentServiceId"),
-            "description":      obj.get("Description"),
-            "logResourceId":    obj.get("log"),
-            "configResourceId": obj.get("conf"),
-            "status":           obj.get("Launch"),
-            "currentState":     obj.get("CurrentState"),
-            "desiredState":     obj.get("DesiredState"),
-            "pid":              obj.get("pid")
-        }
-        return ServiceApplication(**args)
-    except KeyError as ex:
-        raise ValueError("Invalid JSON document; %s: %s" % (ex, obj))
+class _Value(object):
+
+    def __init__(self, name, value=None):
+        self._name = name
+        self._value = value if value is not None else name
+
+    def __str__(self):
+        return self._name
+
+    def __int__(self):
+        return int(self._value)
+
+    def __repr__(self):
+        return str(self._value)
 
 
-class _StateEnum(object):
+_serviceKeys = set([
+    "Id", "Name", "ParentServiceId", "Description", "Launch", "DesiredState",
+])
 
-    __map = {1: "RUN", 0: "STOP", -1: "RESTART", None: "UNKNOWN"}
-    __slots__ = ("RUN", "STOP", "RESTART", "UNKNOWN")
-
-    def __init__(self):
-        for value, name in self.__map.items():
-            setattr(self, name, value)
-
-    def __contains__(self, value):
-        return value in self.__slots__
-
-    def __getitem__(self, index):
-        return self.__map[index]
+def _decodeServiceJsonObject(obj):
+    foundKeys = _serviceKeys & set(obj.keys())
+    if foundKeys == _serviceKeys:
+        service = ServiceApplication()
+        service.__setstate__(obj)
+        return service
+    return obj
 
 
-class _StatusEnum(object):
-
-    __map = {True: "AUTO", False: "MANUAL", None: "UNKNOWN"}
-    __slots__ = ("AUTO", "MANUAL", "UNKNOWN")
+class ServiceJsonDecoder(json.JSONDecoder):
+    """
+    """
 
     def __init__(self):
-        for value, name in self.__map.items():
-            setattr(self, name, value)
+        kwargs = {"object_hook": _decodeServiceJsonObject}
+        super(ServiceJsonDecoder, self).__init__(**kwargs)
 
-    def __contains__(self, value):
-        return value in self.__slots__
 
-    def __getitem__(self, index):
-        return self.__map[index]
+class ServiceJsonEncoder(json.JSONEncoder):
+    """
+    """
+
+    def encode(self, src):
+        data = src.__getstate__()
+        return super(ServiceJsonEncoder, self).encode(data)
 
 
 class ServiceApplication(object):
     """
     """
 
-    STATE = _StateEnum()
-    STATUS = _StatusEnum()
+    class STATE(object):
+        RUN = _Value("RUN", 1)
+        STOP = _Value("STOP", 0)
+        RESTART = _Value("RESTART", -1)
 
-    def __init__(self, **kwargs):
-        """
-        """
-        self._id = kwargs.get("id")
-        self._url = kwargs.get("url")
-        self._pid = kwargs.get("pid")
-        self._name = kwargs.get("name")
-        self._parentId = kwargs.get("parentId")
-        self._description = kwargs.get("description")
-        self.status = kwargs.get("status", "UNKNOWN").upper()
-        self._currentstate = self.STATE[kwargs.get("currentState")]
-        self._desiredstate = self.STATE[kwargs.get("desiredState")]
-        self._logurl = kwargs.get("logResourceId")
-        self._confurl = kwargs.get("configResourceId")
+    class STATUS(object):
+        AUTO = _Value("AUTO", "auto")
+        MANUAL = _Value("MANUAL", "manual")
+
+    __map = {
+        1: STATE.RUN, 2: STATE.STOP, -1: STATE.RESTART
+    }
+
+    def __getstate__(self):
+        return self._data
+
+    def __setstate__(self, data):
+        self._data = data
+
+    #def __init__(self, **kwargs):
+    #    """
+    #    """
+    #    self._data = {}
+    #    self._id = kwargs.get("id")
+    #    self._name = kwargs.get("name")
+    #    self._parentId = kwargs.get("parentId")
+    #    self._description = kwargs.get("description")
+    #    self.status = kwargs.get("status").upper()
+    #    self._currentstate = self.__map.get(kwargs.get("currentState"))
+    #    self._desiredstate = self.__map.get(kwargs.get("desiredState"))
+    #    self._loguri = kwargs.get("logResourceId")
+    #    self._confuri = kwargs.get("configResourceId")
+    #    self._uri = "/services/%s" % self._id
 
     @property
     def id(self):
-        return self._id
+        return self._data.get("Id")
     
     @property
     def resourceId(self):
-        return self._url
-
-    @property
-    def processId(self):
-        return self._pid
+        return "/services/%s" % (self._data.get("Id"),)
 
     @property
     def name(self):
-        return self._name
+        return self._data.get("Name")
 
     @property
     def parentId(self):
-        return self._parentId
+        return self._data.get("ParentServiceId")
 
     @property
     def description(self):
-        return self._description
+        return self._data.get("Description")
 
     @property
     def status(self):
-        return self._status
+        return self.STATUS.__dict__.get(self._data.get("Launch").upper())
 
     @status.setter
     def status(self, value):
-        if value is None:
-            value = "UNKNOWN"
-        if value not in self.STATUS:
+        if str(value) not in self.STATUS.__dict__:
             raise ValueError("Invalid status value: %s" % (value,))
-        self._status = value
+        self._data["Launch"] = repr(value)
 
     @property
     def state(self):
-        return self._currentstate
+        return self.__map.get(self._data.get("CurrentState"))
 
     @state.setter
     def state(self, value):
-        if value not in self.STATE:
-            raise ValueError("Invalid state: %s", value)
-        self._currentstate = self._desiredstate = value
+        if str(value) not in self.STATE.__dict__:
+            raise ValueError("Invalid state: %s" % (value,))
+        self._data["DesiredState"] = int(value)
 
     @property
     def logResourceId(self):
-        return self._logurl
+        return self._data.get("LogId")
 
     @property
     def configResourceId(self):
-        return self._configurl
+        return self._data.get("ConfigurationId")
 
 
 # Define the names to export via 'from data import *'.
 __all__ = (
-    "json2ServiceApplication", "ServiceApplication"
+    "ServiceJsonDecoder", "ServiceJsonEncoder", "ServiceApplication"
 )

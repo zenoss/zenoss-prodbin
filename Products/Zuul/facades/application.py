@@ -74,39 +74,32 @@ class ServiceApplication(object):
         return self._instance.description
 
     @property
-    def processId(self):
-        return self._instance.processId
-
-    @property
     def state(self):
         return self._instance.state
 
     @property
-    def enabled(self):
+    def autostart(self):
         return self._instance.status == self._instance.STATUS.AUTO
 
-    @enabled.setter
-    def enabled(self, value):
-        value = bool(value)
-        self._instance.status = self._instance.STATUS[value]
+    @autostart.setter
+    def autostart(self, value):
+        value = self._instance.STATUS.AUTO \
+                if bool(value) else self._instance.STATUS.MANUAL
+        self._instance.status = value
         self._svc.updateInstance(self._instance)
-
-    @property
-    def processId(self):
-        return self._instance.processId
 
     def start(self):
         """
         Starts the named application.
         """
-        self._instance.state = "RUN"
+        self._instance.state = self._instance.STATE.RUN
         self._svc.updateInstance(self._instance)
 
     def stop(self):
         """
         Stops the named application.
         """
-        self._instance.state = "STOP"
+        self._instance.state = self._instance.STATE.STOP
         self._svc.updateInstance(self._instance)
 
     def restart(self):

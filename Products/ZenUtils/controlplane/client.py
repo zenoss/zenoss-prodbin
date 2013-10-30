@@ -12,6 +12,7 @@ ControlPlaneClient
 """
 
 import json
+import urllib
 import urllib2
 
 from cookielib import CookieJar
@@ -23,10 +24,25 @@ from zope.interface import implementer
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from .interfaces import IControlPlaneClient
-from .data import json2ServiceApplication, ServiceApplication
+from .data import ServiceJsonDecoder, ServiceJsonEncoder, ServiceApplication
 
 _DEFAULT_PORT = 8787
 _DEFAULT_HOST = "localhost"
+
+
+class _Request(urllib2.Request):
+    """
+    Extend urllib2.Request to override the get_method() method so that
+    the HTTP method can be specified.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.__method = kwargs.pop("method", None)
+        urllib2.Request.__init__(self, *args, **kwargs)
+
+    def get_method(self):
+        return self.__method \
+                if self.__method else urllib2.Request.get_method(self)
 
 
 def _getDefaults(options=None):
@@ -41,40 +57,6 @@ def _getDefaults(options=None):
         "password": o.get("controlplane-password", "zenoss"),
     }
     return settings
-
-
-def _login(opener, settings):
-    body = {
-        "username": settings["user"], "password": settings["password"]
-    }
-    encodedbody = json.dumps(body)
-    headers = {
-        "Content-Type": "application/json"
-    }
-    req = urllib2.Request(
-        "http://%(host)s:%(port)s/login" % settings,
-        encodedbody,
-        headers
-    )
-    response = opener.open(req)
-    response.close()
-
-
-def _dorequest(uri, opener, settings):
-    url = urlunparse((
-        "http", "%(host)s:%(port)s" % settings, uri, "", "", ""
-    ))
-    request = urllib2.Request(url)
-    response = None
-    try:
-        response = opener.open(request)
-    except urllib2.HTTPError as ex:
-        if ex.getcode() == 401:
-            _login(opener, settings)
-            response = opener.open(request)
-        else:
-            raise
-    return response
 
 
 @implementer(IControlPlaneClient)
@@ -92,25 +74,39 @@ class ControlPlaneClient(object):
             urllib2.HTTPCookieProcessor(self._cj)
         )
         self._settings = _getDefaults()
+        self._netloc = "%(host)s:%(port)s" % self._settings
 
     def queryServices(self, name="*", **kwargs):
         """
         """
-        response = _dorequest("/services", self._opener, self._settings)
+        query = {"Name": name}
+        response = self._dorequest("/services", query=query)
         body = ''.join(response.readlines())
-        decoded = json.loads(body, object_hook=json2ServiceApplication)
+        response.close()
+        decoded = ServiceJsonDecoder().decode(body)
         return [app for app in decoded if fnmatch(app.name, name)]
 
     def getService(self, instanceId):
         """
         """
-        response = _dorequest(
-            "/services/%s" % instanceId, self._opener, self._settings
-        )
+        response = self._dorequest("/services/%s" % instanceId)
+        body = ''.join(response.readlines())
+        response.close()
+        decoded = ServiceJsonDecoder().decode(body)
+        return decoded
 
     def updateService(self, instance):
         """
         """
+        body = ServiceJsonEncoder().encode(instance)
+        response = self._dorequest(
+            instance.resourceId, method="PUT", data=body
+        )
+        body = ''.join(response.readlines())
+        response.close()
+        print response.code
+        import json
+        print json.loads(body)
 
     def getServiceLog(self, uri, start=0, end=None):
         """
@@ -123,6 +119,48 @@ class ControlPlaneClient(object):
     def updateServiceConfiguration(self, uri, config):
         """
         """
+
+    def _makeRequest(self, uri, method=None, data=None, query=None):
+        url = urlunparse((
+            "http",
+            self._netloc,
+            uri,
+            "",
+            urllib.urlencode(query) if query else "",
+            ""
+        ))
+        args = {}
+        if method:
+            args["method"] = method
+        if data:
+            args["data"] = data
+            args["headers"] = {"Content-Type": "application/json"}
+        return _Request(url, **args)
+
+    def _login(self):
+        body = {
+            "username": self._settings["user"],
+            "password": self._settings["password"]
+        }
+        encodedbody = json.dumps(body)
+        request = self._makeRequest("/login", data=encodedbody)
+        response = self._opener.open(request)
+        response.close()
+
+    def _dorequest(self, uri, method=None, data=None, query=None):
+        request = self._makeRequest(
+            uri, method=method, data=data, query=query)
+        response = None
+        try:
+            response = self._opener.open(request)
+        except urllib2.HTTPError as ex:
+            if ex.getcode() == 401:
+                self._login()
+                response = self._opener.open(request)
+            else:
+                raise
+        return response
+
 
 # Define the names to export via 'from client import *'.
 __all__ = (
