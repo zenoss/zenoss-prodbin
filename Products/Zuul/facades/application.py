@@ -86,28 +86,28 @@ class ServiceApplication(object):
         value = self._instance.STATUS.AUTO \
                 if bool(value) else self._instance.STATUS.MANUAL
         self._instance.status = value
-        self._svc.updateInstance(self._instance)
+        self._svc.updateService(self._instance)
 
     def start(self):
         """
         Starts the named application.
         """
         self._instance.state = self._instance.STATE.RUN
-        self._svc.updateInstance(self._instance)
+        self._svc.updateService(self._instance)
 
     def stop(self):
         """
         Stops the named application.
         """
         self._instance.state = self._instance.STATE.STOP
-        self._svc.updateInstance(self._instance)
+        self._svc.updateService(self._instance)
 
     def restart(self):
         """
         Restarts the named application.
         """
         self._instance.state = self._instance.STATE.RESTART
-        self._svc.updateInstance(self._instance)
+        self._svc.updateService(self._instance)
 
     def getLog(self):
         """
@@ -152,7 +152,7 @@ class ServiceApplicationLog(object):
 
         :rtype: A sequence of strings.
         """
-        result = self._svc.getInstanceLog(
+        result = self._svc.getServiceLog(
             instance.id, start=0, end=count
         )
         return result.data
@@ -163,7 +163,7 @@ class ServiceApplicationLog(object):
 
         :rtype: A sequence of strings.
         """
-        result = self._svc.getInstanceLog(instance.id, start=-count)
+        result = self._svc.getServiceLog(instance.id, start=-count)
         return result.data
 
     def slice(self, start, end):
@@ -172,5 +172,5 @@ class ServiceApplicationLog(object):
 
         :rtype: A sequence of strings.
         """
-        result = self._svc.getInstanceLog(instance.id, start=start, end=end)
+        result = self._svc.getServiceLog(instance.id, start=start, end=end)
         return result.data
