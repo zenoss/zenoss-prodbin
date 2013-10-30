@@ -7,6 +7,12 @@
  *
  ****************************************************************************/
 (function(){
+    Ext.ns('Daemons');
+    Daemons.states = {
+        UP: 'RUN',
+        DOWN: 'STOP',
+        RESTARTING: 'RESTART'
+    };
     Ext.application({
         name: 'Daemons',
         appFolder: "/++resource++zenui/js/zenoss/daemons",

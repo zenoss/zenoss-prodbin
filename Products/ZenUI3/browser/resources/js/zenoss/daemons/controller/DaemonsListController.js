@@ -52,7 +52,7 @@
                 'daemonslist actioncolumn[ref="restartcolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.updateRefreshIcon([record]);
-                        this.updateSelectedDeamons([record], 'restart', 'state', "RUN");
+                        this.updateSelectedDeamons([record], 'restart', 'state', Daemons.states.UP);
                     }, this)
                 },
                 // start/stop
@@ -60,9 +60,9 @@
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         // find out if we need to stop or start the record
                         if (record.get('state')) {
-                            this.updateSelectedDeamons([record], 'stop', 'state', "STOP");
+                            this.updateSelectedDeamons([record], 'stop', 'state', Daemons.states.DOWN);
                         } else {
-                            this.updateSelectedDeamons([record], 'start', 'state', "RUN");
+                            this.updateSelectedDeamons([record], 'start', 'state', Daemons.states.UP);
                         }
                     }, this)
                 },
@@ -111,14 +111,14 @@
          **/
         startSelectedDeamons: function() {
             this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
-                                       'start', 'state', "RUN");
+                                       'start', 'state', Daemons.states.UP);
         },
         /**
          * Stops every daemon that is selected
          **/
         stopSelectedDeamons: function() {
             this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
-                                       'stop', 'state', "STOP");
+                                       'stop', 'state', Daemons.states.DOWN);
         },
         /**
          * restarts every daemon that is selected
@@ -126,7 +126,7 @@
         restartSelectedDeamons: function() {
             var selected = this.getTreegrid().getSelectionModel().getSelection();
             this.updateRefreshIcon(selected);
-            this.updateSelectedDeamons(selected, 'restart', 'state', "RUN");
+            this.updateSelectedDeamons(selected, 'restart', 'state', Daemons.states.UP);
         },
 
         /**
