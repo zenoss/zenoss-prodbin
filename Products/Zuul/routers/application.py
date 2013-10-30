@@ -55,7 +55,9 @@ class ApplicationRouter(TreeRouter):
             if app.id in uids:
                 app.start()
                 audit('UI.Applications.Start', id)
-        return DirectResponse.succeed("Started %s daemon(s)" % len(uids))
+        if len(uids) > 1:
+            return DirectResponse.succeed("Started %s daemons" % len(uids))
+        return DirectResponse.succeed()
 
     def stop(self, uids):
         """
@@ -71,7 +73,9 @@ class ApplicationRouter(TreeRouter):
             if app.id in uids:
                 app.stop()
                 audit('UI.Applications.Stop', id)
-        return DirectResponse.succeed("Stopped %s daemon(s)" % len(uids))
+        if len(uids) > 1:
+            return DirectResponse.succeed("Stopped %s daemons" % len(uids))
+        return DirectResponse.succeed()
 
     def restart(self, uids):
         """
@@ -87,7 +91,9 @@ class ApplicationRouter(TreeRouter):
             if app.id in uids:
                 app.restart()
                 audit('UI.Applications.Restart', id)
-        return DirectResponse.succeed("Restarted %s daemon(s)" % len(uids))
+        if len(uids) > 1:
+            return DirectResponse.succeed("Restarted %s daemons" % len(uids))
+        return DirectResponse.succeed()
 
     def setAutoStart(self, uids, enabled):
         """
