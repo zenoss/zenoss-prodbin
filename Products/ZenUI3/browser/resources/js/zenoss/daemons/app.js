@@ -9,9 +9,9 @@
 (function(){
     Ext.ns('Daemons');
     Daemons.states = {
-        UP: 'RUN',
-        DOWN: 'STOP',
-        RESTARTING: 'RESTART'
+        UP: 'RUNNING',
+        DOWN: 'STOPPED',
+        STARTING: 'STARTING'
     };
     Ext.application({
         name: 'Daemons',

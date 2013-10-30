@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from zope.interface import Attribute, Interface
+from zope.interface import Attribute
 from Products.Zuul.interfaces import IFacade, IInfo
 
 
@@ -18,10 +18,12 @@ class IApplicationInfo(IInfo):
 
     description = Attribute("Brief description of the application's function")
     autostart = Attribute("True if the application will run on startup")
+    state = Attribute("Current running state of the application")
 
 
 class IApplicationLogInfo(IInfo):
     """
+    Read-only set of attributes describing a Zenoss application's log.
     """
 
     lines = Attribute("Sequence containing the entire log")
@@ -29,14 +31,8 @@ class IApplicationLogInfo(IInfo):
 
 class IApplicationLog(IFacade):
     """
+    Interface for reading an applications's log.
     """
-
-    def first(count):
-        """
-        Returns a sequence containing the first count lines of the log.
-
-        :rtype IApplicationLogInfo: The log data.
-        """
 
     def last(count):
         """
@@ -45,21 +41,17 @@ class IApplicationLog(IFacade):
         :rtype IApplicationLogInfo: The log data.
         """
 
-    def slice(start, end):
-        """
-        Returns a sequence of lines from start line to end line in the log.
-
-        :rtype IApplicationLogInfo: The log data.
-        """
-
 
 class IApplication(IFacade):
     """
+    Interface for controlling and inspecting Zenoss applications.
     """
 
     name = Attribute("Name of the application")
     description = Attribute("Brief description of the application's function")
     autostart = Attribute("True if the application will run on startup")
+    log = Attribute("The IApplicationLog facade")
+    config = Attribute("The application configuration object")
 
     def start():
         """
@@ -76,39 +68,19 @@ class IApplication(IFacade):
         Restarts the named application.
         """
 
-    def getLog(name):
-        """
-        Retrieves the log of the named application.
-
-        :rtype: An IApplicationLog object.
-        """
-
-    def getConfig(name):
-        """
-        Retrieves the configuration of the named application.
-
-        :rtype: The configuration object.
-        """
-
-    def setConfig(name, config):
-        """
-        Sets the config of the named application.
-
-        :param config: The configuration object.
-        """
-
 
 class IApplicationManager(IFacade):
     """
-    Implements management of Zenoss applications.
+    Interface for locating Zenoss applications.
     """
 
-    def query():
+    def query(name=None):
         """
-        Returns a sequence of IApplicationInfo objects.
+        Returns a sequence of IApplication objects.
         """
 
-    def get(name):
+    def get(id, default=None):
         """
-        Returns the IApplicationInfo object of the named application.
+        Retrieve the IApplication object of the identified application.
+        The default argument is returned if the application doesn't exist.
         """
