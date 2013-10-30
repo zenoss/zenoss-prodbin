@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 from zope.interface import implementer
@@ -39,7 +39,7 @@ class ApplicationInfo(object):
     @property
     def description(self):
         return self._object.description
-    
+
     @property
     def qtip(self):
         return self._object.description
@@ -50,12 +50,16 @@ class ApplicationInfo(object):
 
     @property
     def isRestarting(self):
-        return False
-    
+        return self._object.state == self._object._instance.STATE.RESTART
+
+    @property
+    def state(self):
+        return str(self._object.state)
+
     @property
     def leaf(self):
         return True
-    
+
     @property
     def children(self):
         return []

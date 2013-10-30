@@ -52,24 +52,24 @@
                 'daemonslist actioncolumn[ref="restartcolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.updateRefreshIcon([record]);
-                        this.updateSelectedDeamons([record], 'restart', 'status', 'up');
+                        this.updateSelectedDeamons([record], 'restart', 'state', "RUN");
                     }, this)
                 },
                 // start/stop
                 'daemonslist actioncolumn[ref="statuscolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         // find out if we need to stop or start the record
-                        if (record.get('status') != "up") {
-                            this.updateSelectedDeamons([record], 'start', 'status', 'up');
+                        if (record.get('state')) {
+                            this.updateSelectedDeamons([record], 'stop', 'state', "STOP");
                         } else {
-                            this.updateSelectedDeamons([record], 'stop', 'status', 'down');
+                            this.updateSelectedDeamons([record], 'start', 'state', "RUN");
                         }
                     }, this)
                 },
                 // enable/disable
-                'daemonslist actioncolumn[ref="enabled"]': {
+                'daemonslist actioncolumn[ref="autostart"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
-                        this.setDisabledDaemons([record], !record.get('enabled'));
+                        this.setAutoStartDaemons([record], !record.get('autostart'));
                     }, this)
                 }
             });
@@ -111,14 +111,14 @@
          **/
         startSelectedDeamons: function() {
             this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
-                                       'start', 'status', 'up');
+                                       'start', 'state', "RUN");
         },
         /**
          * Stops every daemon that is selected
          **/
         stopSelectedDeamons: function() {
             this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
-                                       'stop', 'status', 'down');
+                                       'stop', 'state', "STOP");
         },
         /**
          * restarts every daemon that is selected
@@ -126,7 +126,7 @@
         restartSelectedDeamons: function() {
             var selected = this.getTreegrid().getSelectionModel().getSelection();
             this.updateRefreshIcon(selected);
-            this.updateSelectedDeamons(selected, 'restart', 'status', 'up');
+            this.updateSelectedDeamons(selected, 'restart', 'state', "RUN");
         },
 
         /**
@@ -182,13 +182,13 @@
         /**
          * Updates the enabled flag for all the rows passed in.
          **/
-        setDisabledDaemons: function(rows, enabled) {
+        setAutoStartDaemons: function(rows, enabled) {
             var uids = [], i;
             for (i=0; i<rows.length; i++) {
                 uids.push(rows[i].get('uid'));
-                rows[i].set("enabled", enabled);
+                rows[i].set("autostart", enabled);
             }
-            router.setDisabled({
+            router.setAutoStart({
                 uids: uids,
                 enabled: enabled
             });
