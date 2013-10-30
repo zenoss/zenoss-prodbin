@@ -20,7 +20,7 @@
              convert: function(value, record) {
                  if (value == Daemons.states.UP) return true;
                  if (value == Daemons.states.DOWN) return false;
-                 if (value == Daemons.states.RESTARTING) return false;
+                 if (value == Daemons.states.STARTING) return false;
                  return null;
              }
             },

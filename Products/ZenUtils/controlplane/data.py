@@ -15,13 +15,22 @@ Application JSON format:
         <application-node>,...
     ]
 
-    /services 'get' result example
+    /services/<service-id> 'get' result example
     {
         "Id":              "9827-939070095",
         "Name":            "zentrap",
         "Startup":         "/bin/true",
         "Description":     "This is a collector deamon 4",
         "Instances":       0,
+        #"Running": [
+        #    {
+        #      "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
+        #      "ServiceId": "c412e4cf-48be-b53d-d144-867ffa596ffa",
+        #      "HostId": "007f0101",
+        #      "DockerId": "3b52fc18767f",
+        #      "StartedAt": "2013-10-29T17:59:13-05:00",
+        #    }
+        #]
         "ImageId":         "zenoss",
         "PoolId":          "default",
         "DesiredState":    1,
@@ -37,7 +46,26 @@ Application JSON format:
         "UpdatedAt":       "2013-10-29T07:31:22-05:00"
     }
     missing current-state, conf, and log.
-    
+
+    /services/<service-id>/running example
+    [
+      {
+        "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
+        "ServiceId": "c412e4cf-48be-b53d-d144-867ffa596ffa",
+        "HostId": "007f0101",
+        "DockerId": "3b52fc18767f",
+        "StartedAt": "2013-10-29T17:59:13-05:00",
+        "Name": "redis",
+        "Startup": "/usr/sbin/redis-server",
+        "Description": "",
+        "Instances": 1,
+        "ImageId": "zenoss/redis",
+        "PoolId": "default",
+        "DesiredState": 1,
+        "ParentServiceId": ""
+      }
+    ]
+
     {
         "id":     <string>,
         "name":   <string>,
@@ -51,6 +79,9 @@ Application JSON format:
 """
 
 import json
+
+from datetime import datetime
+
 
 class _Value(object):
 
@@ -68,16 +99,28 @@ class _Value(object):
         return str(self._value)
 
 
-_serviceKeys = set([
+_definitionKeys = set([
     "Id", "Name", "ParentServiceId", "Description", "Launch", "DesiredState",
 ])
 
+_instanceKeys = set([
+    "Id", "ServiceId", "HostId", "DockerId", "StartedAt", "Name",
+    "Startup", "Description", "Instances", "ImageId",
+    "PoolId", "DesiredState", "ParentServiceId"
+])
+
+
 def _decodeServiceJsonObject(obj):
-    foundKeys = _serviceKeys & set(obj.keys())
-    if foundKeys == _serviceKeys:
-        service = ServiceApplication()
+    foundKeys = _definitionKeys & set(obj.keys())
+    if foundKeys == _definitionKeys:
+        service = ServiceDefinition()
         service.__setstate__(obj)
         return service
+    foundKeys = _instanceKeys & set(obj.keys())
+    if foundKeys == _instanceKeys:
+        instance = ServiceInstance()
+        instance.__setstate__(obj)
+        return instance
     return obj
 
 
@@ -99,21 +142,53 @@ class ServiceJsonEncoder(json.JSONEncoder):
         return super(ServiceJsonEncoder, self).encode(data)
 
 
-class ServiceApplication(object):
+class ServiceInstance(object):
     """
     """
+
+    def __getstate__(self):
+        return self._data
+
+    def __setstate__(self, data):
+        self._data = data
+
+    def __init__(self):
+        self._data = {}
+
+    @property
+    def id(self):
+        return self._data.get("Id")
+
+    @property
+    def resourceId(self):
+        return "/running/%s" % (self._data.get("Id"),)
+
+    @property
+    def serviceId(self):
+        return self._data.get("ServiceId")
+
+    @property
+    def startedAt(self):
+        src = self._data.get("StartedAt")
+        dttm = datetime.strptime(src[:-6], "%Y-%m-%dT%H:%M:%S")
+        return dttm
+
+
+class ServiceDefinition(object):
+    """
+    """
+
+    class LAUNCH_MODE(object):
+        AUTO = _Value("AUTO", "auto")
+        MANUAL = _Value("MANUAL", "manual")
 
     class STATE(object):
         RUN = _Value("RUN", 1)
         STOP = _Value("STOP", 0)
         RESTART = _Value("RESTART", -1)
 
-    class STATUS(object):
-        AUTO = _Value("AUTO", "auto")
-        MANUAL = _Value("MANUAL", "manual")
-
     __map = {
-        1: STATE.RUN, 2: STATE.STOP, -1: STATE.RESTART
+        1: STATE.RUN, 0: STATE.STOP, -1: STATE.RESTART
     }
 
     def __getstate__(self):
@@ -122,25 +197,15 @@ class ServiceApplication(object):
     def __setstate__(self, data):
         self._data = data
 
-    #def __init__(self, **kwargs):
-    #    """
-    #    """
-    #    self._data = {}
-    #    self._id = kwargs.get("id")
-    #    self._name = kwargs.get("name")
-    #    self._parentId = kwargs.get("parentId")
-    #    self._description = kwargs.get("description")
-    #    self.status = kwargs.get("status").upper()
-    #    self._currentstate = self.__map.get(kwargs.get("currentState"))
-    #    self._desiredstate = self.__map.get(kwargs.get("desiredState"))
-    #    self._loguri = kwargs.get("logResourceId")
-    #    self._confuri = kwargs.get("configResourceId")
-    #    self._uri = "/services/%s" % self._id
+    def __init__(self):
+        """
+        """
+        self._data = {}
 
     @property
     def id(self):
         return self._data.get("Id")
-    
+
     @property
     def resourceId(self):
         return "/services/%s" % (self._data.get("Id"),)
@@ -158,21 +223,21 @@ class ServiceApplication(object):
         return self._data.get("Description")
 
     @property
-    def status(self):
-        return self.STATUS.__dict__.get(self._data.get("Launch").upper())
+    def launch(self):
+        return self.LAUNCH_MODE.__dict__.get(self._data.get("Launch").upper())
 
-    @status.setter
-    def status(self, value):
-        if str(value) not in self.STATUS.__dict__:
+    @launch.setter
+    def launch(self, value):
+        if str(value) not in self.LAUNCH_MODE.__dict__:
             raise ValueError("Invalid status value: %s" % (value,))
         self._data["Launch"] = repr(value)
 
     @property
-    def state(self):
+    def desiredState(self):
         return self.__map.get(self._data.get("DesiredState"))
 
-    @state.setter
-    def state(self, value):
+    @desiredState.setter
+    def desiredState(self, value):
         if str(value) not in self.STATE.__dict__:
             raise ValueError("Invalid state: %s" % (value,))
         self._data["DesiredState"] = int(value)
@@ -185,8 +250,19 @@ class ServiceApplication(object):
     def configResourceId(self):
         return self._data.get("ConfigurationId")
 
+    def update(self, data):
+        """
+        Update this ServiceDefinition from another ServiceDefinition.
+        """
+        self._data["Instances"] = data["Instances"]
+        self._data["PoolId"] = data["PoolId"]
+        self._data["DesiredState"] = data["DesiredState"]
+        self._data["Launch"] = data["Launch"]
+        self._data["ParentServiceId"] = data["ParentServiceId"]
+        self._data["UpdatedAt"] = data["UpdatedAt"]
+
 
 # Define the names to export via 'from data import *'.
 __all__ = (
-    "ServiceJsonDecoder", "ServiceJsonEncoder", "ServiceApplication"
+    "ServiceJsonDecoder", "ServiceJsonEncoder", "ServiceDefinition"
 )

@@ -24,7 +24,7 @@ from zope.interface import implementer
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from .interfaces import IControlPlaneClient
-from .data import ServiceJsonDecoder, ServiceJsonEncoder, ServiceApplication
+from .data import ServiceJsonDecoder, ServiceJsonEncoder
 
 _DEFAULT_PORT = 8787
 _DEFAULT_HOST = "localhost"
@@ -42,7 +42,7 @@ class _Request(urllib2.Request):
 
     def get_method(self):
         return self.__method \
-                if self.__method else urllib2.Request.get_method(self)
+            if self.__method else urllib2.Request.get_method(self)
 
 
 def _getDefaults(options=None):
@@ -78,6 +78,8 @@ class ControlPlaneClient(object):
 
     def queryServices(self, name="*", **kwargs):
         """
+        Returns a sequence of ServiceDefinition objects that match
+        the given requirements.
         """
         query = {"Name": name}
         response = self._dorequest("/services", query=query)
@@ -86,31 +88,60 @@ class ControlPlaneClient(object):
         decoded = ServiceJsonDecoder().decode(body)
         return [app for app in decoded if fnmatch(app.name, name)]
 
-    def getService(self, instanceId):
+    def getService(self, serviceId, default=None):
         """
+        Returns the ServiceDefinition object for the given service.
         """
-        response = self._dorequest("/services/%s" % instanceId)
+        response = self._dorequest("/services/%s" % serviceId)
         body = ''.join(response.readlines())
         response.close()
-        decoded = ServiceJsonDecoder().decode(body)
-        return decoded
+        return ServiceJsonDecoder().decode(body)
 
-    def updateService(self, instance):
+    def updateService(self, service):
         """
+        Updates the definition/state of a service.
+
+        :param ServiceDefinition service: The modified definition
         """
-        body = ServiceJsonEncoder().encode(instance)
+        body = ServiceJsonEncoder().encode(service)
         response = self._dorequest(
-            instance.resourceId, method="PUT", data=body
+            service.resourceId, method="PUT", data=body
         )
         body = ''.join(response.readlines())
         response.close()
-        print response.code
-        import json
-        print json.loads(body)
 
-    def getServiceLog(self, uri, start=0, end=None):
+    def queryServiceInstances(self, serviceId):
+        """
+        Returns a sequence of ServiceInstance objects.
+        """
+        response = self._dorequest("/services/%s/running" % serviceId)
+        body = ''.join(response.readlines())
+        response.close()
+        return ServiceJsonDecoder().decode(body)
+
+    def getInstance(self, instanceId, default=None):
+        """
+        Returns the requested ServiceInstance object.
+        """
+        response = self._dorequest("/running/%s" % instanceId)
+        body = ''.join(response.readlines())
+        response.close()
+        return ServiceJsonDecoder().decode(body)
+
+    def getInstanceLog(self, instanceId, start=0, end=None):
         """
         """
+        response = self._dorequest("/running/%s/logs" % instanceId)
+        body = ''.join(response.readlines())
+        response.close()
+        log = json.loads(body)
+        return log["Detail"]
+
+    def killInstance(self, instanceId):
+        """
+        """
+        response = self._dorequest("/running/%s" % instanceId)
+        response.close()
 
     def getServiceConfiguration(self, uri):
         """

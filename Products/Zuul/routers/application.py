@@ -20,7 +20,8 @@ log = logging.getLogger('zen.ApplicationRouter')
 
 
 class ApplicationRouter(TreeRouter):
-
+    """
+    """
 
     def _getFacade(self):
         return Zuul.getFacade('applications', self.context)
@@ -97,8 +98,8 @@ class ApplicationRouter(TreeRouter):
 
     def setAutoStart(self, uids, enabled):
         """
-        Enables or disables autostart on all applications passed into uids. If it is already in that
-        state it is a noop.
+        Enables or disables autostart on all applications passed into uids.
+        If it is already in that state it is a noop.
         @type uids: Array[Strings]
         @param uids: List of valid daemon ids that will need to enabled
         @type enabled: boolean
@@ -123,6 +124,6 @@ class ApplicationRouter(TreeRouter):
         @return: DirectResponse with data of the application
         """
         facade = self._getFacade()
-        info = facade.get(id)
-        data = Zuul.marshal(IInfo(info))
+        app = facade.get(id)
+        data = Zuul.marshal(IInfo(app))
         return DirectResponse.succeed(data=data)
