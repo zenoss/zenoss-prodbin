@@ -269,6 +269,18 @@
              factory="Products.Zuul.infos.zenpack.ZenPackInfo"
              />
 
+	<adapter
+		provides="Products.Zuul.interfaces.application.IApplicationInfo"
+		for="Products.Zuul.facades.application.ServiceApplication"
+		factory="Products.Zuul.infos.application.ApplicationInfo"
+		/>
+
+	<adapter
+		provides="Products.Zuul.interfaces.application.IApplicationLogInfo"
+		for="Products.Zuul.facades.application.ServiceApplicationLog"
+		factory="Products.Zuul.infos.application.ApplicationLogInfo"
+		/>
+
     <include package=".component"/>
     <include file="graphpoint.zcml"/>
 </configure>

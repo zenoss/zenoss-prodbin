@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:five="http://namespaces.zope.org/five"
+  >
+
+  <utility
+    provides=".interfaces.IControlPlaneClient"
+    factory=".client.ControlPlaneClient"
+    />
+
+</configure>

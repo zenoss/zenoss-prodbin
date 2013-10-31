@@ -244,3 +244,4 @@ from .jobsfacade import JobsFacade
 from .eventclassesfacade import EventClassesFacade
 from .manufacturersfacade import ManufacturersFacade
 from .metricfacade import MetricFacade
+from .application import ServiceApplicationManager

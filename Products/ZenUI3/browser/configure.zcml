@@ -159,6 +159,13 @@
     />
 
 <browser:page
+    template="templates/daemons.pt"
+    name="daemons"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="templates/ipservice.pt"
     name="ipservice"
     for="*"
