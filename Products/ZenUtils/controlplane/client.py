@@ -128,6 +128,15 @@ class ControlPlaneClient(object):
         response.close()
         return ServiceJsonDecoder().decode(body)
 
+    def getServiceLog(self, serviceId, start=0, end=None):
+        """
+        """
+        response = self._dorequest("/services/%s/logs" % serviceId)
+        body = ''.join(response.readlines())
+        response.close()
+        log = json.loads(body)
+        return log["Detail"]
+
     def getInstanceLog(self, instanceId, start=0, end=None):
         """
         """
@@ -140,7 +149,9 @@ class ControlPlaneClient(object):
     def killInstance(self, instanceId):
         """
         """
-        response = self._dorequest("/running/%s" % instanceId)
+        response = self._dorequest(
+            "/running/%s" % instanceId, method="DELETE"
+        )
         response.close()
 
     def getServiceConfiguration(self, uri):
