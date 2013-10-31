@@ -40,7 +40,12 @@
     Ext.define('Daemons.store.Daemons', {
         extend: 'Ext.data.TreeStore',
         model: 'Daemons.model.Daemon',
-        nodeParam: 'uid'
+        nodeParam: 'uid',
+        remoteSort: false,
+        sorters: {
+            direction: 'asc',
+            sorterFn: Zenoss.sortTreeNodes
+        }
     });
 
 })();

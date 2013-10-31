@@ -33,6 +33,10 @@ class ApplicationInfo(object):
         return self._object.name
 
     @property
+    def text(self):
+        return self._object.name
+
+    @property
     def uid(self):
         return self._object.id
 
