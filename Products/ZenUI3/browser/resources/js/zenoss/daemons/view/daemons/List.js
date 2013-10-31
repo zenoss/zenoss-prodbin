@@ -78,10 +78,10 @@
                 text: _t('Logs'),
                 flex: .25,
                 tooltip: _t('Deamon logs'),
-                dataIndex: 'uuid',
+                dataIndex: 'id',
                 sortable: true,
                 renderer: function(value, m, record) {
-                    return Ext.String.format("<a href='/zport/dmd/getDeamonLogs?uuid={0}'>{1}</a>",
+                    return Ext.String.format("<a href='/zport/dmd/getDaemonLogs?id={0}'>{1}</a>",
                                              value,
                                              _t('View Logs'));
                 }

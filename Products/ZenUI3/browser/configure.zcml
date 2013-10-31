@@ -320,6 +320,14 @@
     for="*"
     permission="zenoss.Common"
     />
+
+<browser:page
+    class=".views.GetDaemonLogs"
+    name="getDaemonLogs"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.Common"
+    />
+
 <browser:viewlet
     name="zenoss_settings"
     manager=".interfaces.IMainSnippetManager"
