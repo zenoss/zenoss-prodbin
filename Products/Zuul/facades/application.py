@@ -145,7 +145,8 @@ class ServiceApplication(object):
         """
         # temporary until proper 'reset' functionality is
         # available in controlplane.
-        if self._instance:
+        instance = self._getInstance()
+        if instance:
             self._svc.killInstance(self._instance.id)
 
 
