@@ -11,6 +11,7 @@
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products import Zuul
 from urllib import unquote
 
 
@@ -81,3 +82,27 @@ class GotoRedirect(BrowserView):
 
         path = obj.absolute_url_path()
         return response.redirect(path)
+
+class GetDaemonLogs(BrowserView):
+    """
+    Given the id of a daemon fetch the logs
+    """
+
+    def __call__(self, *args, **kwargs):
+        """
+        Takes the id and prints out logs if we can fetch them from the
+        facade.
+        """
+        id = self.request.get('id', None)
+        response = self.request.response
+        if not id:
+            response.write("id parameter is missing")
+            return
+        facade = Zuul.getFacade('applications', self.context)
+        app = facade.get(id)
+        if app is None:
+            response.write("Unable to find service with id %s" % id)
+            return        
+        self.request.response.setHeader(
+            'Content-Type', 'text/plain')        
+        response.write(str(app.log.fetch()))

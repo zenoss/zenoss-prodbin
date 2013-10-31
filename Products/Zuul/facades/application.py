@@ -40,7 +40,7 @@ class ServiceApplicationManager(object):
     def get(self, serviceId, default=None):
         """
         Returns the IApplicationInfo object of the identified application.
-        """
+        """        
         service = self._svc.getService(serviceId)
         if not service:
             return default
@@ -69,10 +69,15 @@ class ServiceApplication(object):
     def description(self):
         return self._service.description
 
+    def _getInstance(self):
+        if self._instance is None:
+            result = self._svc.queryServiceInstances(self._service.id)
+            self._instance = result[0] if result else None
+        return self._instance
+    
     @property
     def state(self):
-        result = self._svc.queryServiceInstances(self._service.id)
-        self._instance = result[0] if result else None
+        self._getInstance()
         desired = self._service.desiredState
         if desired == self._service.STATE.RUN:
             return "RUNNING" if self._instance else "STARTING"
@@ -93,8 +98,8 @@ class ServiceApplication(object):
         The log of the application.
 
         :rtype str:
-        """
-        return ServiceApplicationLog(self._instance)
+        """    
+        return ServiceApplicationLog(self._getInstance())
 
     @property
     def autostart(self):
@@ -153,12 +158,15 @@ class ServiceApplicationLog(object):
         self._instance = instance
         self._svc = getUtility(IControlPlaneClient)
 
+    def fetch(self):
+        return self._svc.getInstanceLog(self._instance.id)
+        
     def last(self, count):
         """
         Returns last count lines of the application log.
 
         :rtype str:
         """
-        result = self._svc.getInstanceLog(self._instance.id)
+        result = self.fetch()
         loglines = result.split("\n")
         return '\n'.join(loglines[:-count])

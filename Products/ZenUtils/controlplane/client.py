@@ -175,7 +175,7 @@ class ControlPlaneClient(object):
     def _dorequest(self, uri, method=None, data=None, query=None):
         request = self._makeRequest(
             uri, method=method, data=data, query=query)
-        response = None
+        response = None        
         try:
             response = self._opener.open(request)
         except urllib2.HTTPError as ex:
