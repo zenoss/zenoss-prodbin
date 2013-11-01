@@ -16,7 +16,8 @@ import logging
 from zope.interface import implementer
 
 from Products.ZenUtils.application import (
-    IApplicationManager, IApplication, IApplicationLog
+    IApplicationManager, IApplication, IApplicationLog,
+    ApplicationState
 )
 
 from .client import ControlPlaneClient
@@ -78,11 +79,15 @@ class DeployedApp(object):
         self._instance = None
 
     def _updateState(self):
+        """
+        Retrieves the current running instance of the application.
+        """
         result = self._client.queryServiceInstances(self._service.id)
         instance = result[0] if result else None
         if instance is None and self._instance:
             self._runstate.lost()
-        elif instance and self._instance is None:
+        elif instance and (self._instance is None \
+                or self._runstate.state == ApplicationState.RESTARTING):
             self._runstate.found()
         self._instance = instance
 
@@ -176,6 +181,8 @@ class DeployedApp(object):
         """
         Restarts the application.
         """
+        # Make sure the current state is known.
+        self._updateState()
         # temporary until proper 'reset' functionality is
         # available in controlplane.
         priorState = self._runstate.state
