@@ -19,11 +19,8 @@ from cookielib import CookieJar
 from fnmatch import fnmatch
 from urlparse import urlunparse
 
-from zope.interface import implementer
-
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 
-from .interfaces import IControlPlaneClient
 from .data import ServiceJsonDecoder, ServiceJsonEncoder
 
 _DEFAULT_PORT = 8787
@@ -59,7 +56,6 @@ def _getDefaults(options=None):
     return settings
 
 
-@implementer(IControlPlaneClient)
 class ControlPlaneClient(object):
     """
     """
