@@ -54,7 +54,7 @@ class ApplicationInfo(object):
 
     @property
     def isRestarting(self):
-        return self._object.state == "STARTING"
+        return self._object.state == "RESTARTING"
 
     @property
     def state(self):
