@@ -103,6 +103,5 @@ class GetDaemonLogs(BrowserView):
         if app is None:
             response.write("Unable to find service with id %s" % id)
             return        
-        self.request.response.setHeader(
-            'Content-Type', 'text/plain')        
-        response.write(str(app.log.fetch()))
+        self.request.response.setHeader('Content-Type', 'text/plain')        
+        response.write(str(app.getLog()))

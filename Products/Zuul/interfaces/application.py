@@ -21,28 +21,7 @@ class IApplicationInfo(IInfo):
     state = Attribute("Current running state of the application")
 
 
-class IApplicationLogInfo(IInfo):
-    """
-    Read-only set of attributes describing a Zenoss application's log.
-    """
-
-    lines = Attribute("Sequence containing the entire log")
-
-
-class IApplicationLog(IFacade):
-    """
-    Interface for reading an applications's log.
-    """
-
-    def last(count):
-        """
-        Returns a sequence containing the last count lines of the log.
-
-        :rtype IApplicationLogInfo: The log data.
-        """
-
-
-class IApplication(IFacade):
+class IApplicationFacade(IFacade):
     """
     Interface for controlling and inspecting Zenoss applications.
     """
@@ -50,8 +29,12 @@ class IApplication(IFacade):
     name = Attribute("Name of the application")
     description = Attribute("Brief description of the application's function")
     autostart = Attribute("True if the application will run on startup")
-    log = Attribute("The IApplicationLog facade")
     config = Attribute("The application configuration object")
+
+    def getLog(lastCount):
+        """
+        Returns the given last count of lines of the log (as a string).
+        """
 
     def start():
         """
@@ -69,7 +52,7 @@ class IApplication(IFacade):
         """
 
 
-class IApplicationManager(IFacade):
+class IApplicationManagerFacade(IFacade):
     """
     Interface for locating Zenoss applications.
     """
@@ -84,3 +67,7 @@ class IApplicationManager(IFacade):
         Retrieve the IApplication object of the identified application.
         The default argument is returned if the application doesn't exist.
         """
+
+__all__ = (
+    "IApplicationManagerFacade", "IApplicationFacade", "IApplicationInfo"
+)

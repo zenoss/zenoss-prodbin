@@ -7,17 +7,22 @@
 #
 ##############################################################################
 
+import copy
+import logging
+
 from zope.component import getUtility
 from zope.interface import implementer
 
 from Products.Zuul.interfaces import (
-    IApplicationManager, IApplication, IApplicationLog
+    IApplicationManagerFacade, IApplicationFacade
 )
-from Products.ZenUtils.controlplane.interfaces import IControlPlaneClient
+from Products.ZenUtils.application import IApplicationManager
+
+LOG = logging.getLogger("Zuul.facades")
 
 
-@implementer(IApplicationManager)
-class ServiceApplicationManager(object):
+@implementer(IApplicationManagerFacade)
+class ApplicationManagerFacade(object):
     """
     """
 
@@ -25,149 +30,95 @@ class ServiceApplicationManager(object):
         """
         """
         self._dmd = dataroot
-        self._svc = getUtility(IControlPlaneClient)
+        self._svc = getUtility(IApplicationManager)
 
     def query(self, name=None):
         """
-        Returns a sequence of IApplication objects.
+        Returns a sequence of IApplicationFacade objects.
         """
         args = {"name": name} if name else {}
-        result = self._svc.queryServices(**args)
+        result = self._svc.query(**args)
         if not result:
             return ()
-        return tuple(ServiceApplication(service) for service in result)
+        return tuple(ApplicationFacade(app) for app in result)
 
-    def get(self, serviceId, default=None):
+    def get(self, id, default=None):
         """
-        Returns the IApplicationInfo object of the identified application.
+        Returns the IApplicationFacade object of the identified application.
         """        
-        service = self._svc.getService(serviceId)
-        if not service:
+        app = self._svc.get(id, default)
+        if not app:
             return default
-        return ServiceApplication(service)
+        return ApplicationFacade(app)
 
 
-@implementer(IApplication)
-class ServiceApplication(object):
+@implementer(IApplicationFacade)
+class ApplicationFacade(object):
     """
     """
 
-    def __init__(self, service):
-        self._service = service
-        self._instance = None
-        self._svc = getUtility(IControlPlaneClient)
+    def __init__(self, app):
+        self._svc = getUtility(IApplicationManager)
+        self._app = app
 
     @property
     def id(self):
-        return self._service.id
+        return self._app.id
 
     @property
     def name(self):
-        return self._service.name
+        return self._app.name
 
     @property
     def description(self):
-        return self._service.description
+        return self._app.description
 
-    def _getInstance(self):
-        if self._instance is None:
-            result = self._svc.queryServiceInstances(self._service.id)
-            self._instance = result[0] if result else None
-        return self._instance
-    
     @property
     def state(self):
-        self._getInstance()
-        desired = self._service.desiredState
-        if desired == self._service.STATE.RUN:
-            return "RUNNING" if self._instance else "STARTING"
-        elif desired == self._service.STATE.STOP:
-            return "STOPPED" if not self._instance else "STOPPING"
-        return "UNKNOWN"
+        return str(self._app.state)
 
     @property
     def startedAt(self):
-        """
-        When the service started.  Returns None if not running.
-        """
-        return self._instance.startedAt if self._instance else None
-
-    @property
-    def log(self):
-        """
-        The log of the application.
-
-        :rtype str:
-        """    
-        return ServiceApplicationLog(self._getInstance())
+        return self._app.startedAt
 
     @property
     def autostart(self):
-        return self._service.launch == self._service.LAUNCH_MODE.AUTO
+        return self._app.autostart
 
     @autostart.setter
     def autostart(self, value):
-        value = self._service.LAUNCH_MODE.AUTO \
-            if bool(value) else self._service.LAUNCH_MODE.MANUAL
-        self._service.launch = value
-        self._svc.updateService(self._service)
+        self._app.autostart = value
+
+    def getLog(self, lastCount=None):
+        count = lastCount if lastCount else 200
+        return '\n'.join(self._app.log.last(count))
 
     def getConfig(self):
         """
-        Retrieves the IConfig object of the named application.
+        Retrieves the IConfig object of the application.
         """
-        #data = self._svc.getConfiguration(self._service.id)
-        #return Config
+        pass
 
     def setConfig(self, config):
         """
-        Sets the config of the named application.
+        Sets the config of the application.
         """
         pass
 
     def start(self):
         """
-        Starts the named application.
+        Starts the application.
         """
-        self._service.desiredState = self._service.STATE.RUN
-        self._svc.updateService(self._service)
+        self._app.start()
 
     def stop(self):
         """
-        Stops the named application.
+        Stops the application.
         """
-        self._service.desiredState = self._service.STATE.STOP
-        self._svc.updateService(self._service)
+        self._app.stop()
 
     def restart(self):
         """
-        Restarts the named application.
+        Restarts the application.
         """
-        # temporary until proper 'reset' functionality is
-        # available in controlplane.
-        instance = self._getInstance()
-        if instance:
-            self._svc.killInstance(self._instance.id)
-
-
-@implementer(IApplicationLog)
-class ServiceApplicationLog(object):
-    """
-    """
-
-    def __init__(self, instance):
-        self._instance = instance
-        self._svc = getUtility(IControlPlaneClient)
-
-    def fetch(self):
-        return self._svc.getInstanceLog(self._instance.id)
-        
-    def last(self, count):
-        """
-        Returns last count lines of the application log.
-
-        :rtype str:
-        """
-        result = self.fetch()
-        loglines = result.split("\n")
-        return '\n'.join(loglines[:-count])
+        self._app.restart()

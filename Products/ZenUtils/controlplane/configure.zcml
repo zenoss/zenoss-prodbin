@@ -5,8 +5,8 @@
   >
 
   <utility
-    provides=".interfaces.IControlPlaneClient"
-    factory=".client.ControlPlaneClient"
+    provides="Products.ZenUtils.application.IApplicationManager"
+    factory=".application.DeployedAppLookup"
     />
 
 </configure>

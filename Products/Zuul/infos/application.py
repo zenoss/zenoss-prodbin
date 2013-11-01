@@ -8,7 +8,7 @@
 ##############################################################################
 
 from zope.interface import implementer
-from Products.Zuul.interfaces import IApplicationInfo, IApplicationLogInfo
+from Products.Zuul.interfaces import IApplicationInfo
 
 
 @implementer(IApplicationInfo)
@@ -16,13 +16,13 @@ class ApplicationInfo(object):
     """
     """
 
-    def __init__(self, application):
+    def __init__(self, facade):
         """
         Initialize an instance of ApplicationInfo.
 
-        :param IApplication application: The IApplication facade.
+        :param IApplicationFacade application: The facade.
         """
-        self._object = application
+        self._object = facade
 
     @property
     def id(self):
@@ -54,11 +54,11 @@ class ApplicationInfo(object):
 
     @property
     def isRestarting(self):
-        return str(self._object.state) == "RESTARTING"
+        return self._object.state == "STARTING"
 
     @property
     def state(self):
-        return str(self._object.state)
+        return self._object.state
 
     @property
     def leaf(self):
@@ -67,24 +67,3 @@ class ApplicationInfo(object):
     @property
     def children(self):
         return []
-
-
-@implementer(IApplicationLogInfo)
-class ApplicationLogInfo(object):
-    """
-    """
-
-    def __init__(self, applicationlog):
-        """
-        Initialize an instance of ApplicationLogInfo.
-
-        :param IApplicationLog applog: The IApplicationLog facade.
-        """
-        self._applicationlog = applicationlog
-
-    @property
-    def lines(self):
-        """
-        :rtype: A sequence of strings.
-        """
-        return self._applicationlog.last(100)

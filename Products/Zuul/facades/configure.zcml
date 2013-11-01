@@ -110,7 +110,7 @@
              for="*"
              />
 
-    <adapter factory=".ServiceApplicationManager"
+    <adapter factory=".ApplicationManagerFacade"
              provides="..interfaces.IFacade"
              name="applications"
              for="*"
