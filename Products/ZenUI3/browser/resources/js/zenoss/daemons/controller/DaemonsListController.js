@@ -52,17 +52,17 @@
                 'daemonslist actioncolumn[ref="restartcolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.updateRefreshIcon([record]);
-                        this.updateSelectedDeamons([record], 'restart', 'state', Daemons.states.UP);
+                        this.updateSelectedDeamons([record], 'restart', 'state', Daemons.states.RESTARTING);
                     }, this)
                 },
                 // start/stop
                 'daemonslist actioncolumn[ref="statuscolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         // find out if we need to stop or start the record
-                        if (record.get('state')) {
-                            this.updateSelectedDeamons([record], 'stop', 'state', Daemons.states.DOWN);
+                        if (record.get('state') == 'up') {
+                            this.updateSelectedDeamons([record], 'stop', 'state', Daemons.states.STOPPED);
                         } else {
-                            this.updateSelectedDeamons([record], 'start', 'state', Daemons.states.UP);
+                            this.updateSelectedDeamons([record], 'start', 'state', Daemons.states.RUNNING);
                         }
                     }, this)
                 },
@@ -111,14 +111,14 @@
          **/
         startSelectedDeamons: function() {
             this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
-                                       'start', 'state', Daemons.states.UP);
+                                       'start', 'state', Daemons.states.RUNNING);
         },
         /**
          * Stops every daemon that is selected
          **/
         stopSelectedDeamons: function() {
             this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
-                                       'stop', 'state', Daemons.states.DOWN);
+                                       'stop', 'state', Daemons.states.STOPPED);
         },
         /**
          * restarts every daemon that is selected
@@ -126,7 +126,7 @@
         restartSelectedDeamons: function() {
             var selected = this.getTreegrid().getSelectionModel().getSelection();
             this.updateRefreshIcon(selected);
-            this.updateSelectedDeamons(selected, 'restart', 'state', Daemons.states.UP);
+            this.updateSelectedDeamons(selected, 'restart', 'state', Daemons.states.RUNNING);
         },
 
         /**
@@ -165,11 +165,13 @@
             for (var daemon in this.restartingDaemons ) {
                 function callback(response) {
                     var id = response.data.id;
+                    var record = this.restartingDaemons[id];
                     if (!response.data.isRestarting) {
-                        var record = this.restartingDaemons[id];
                         record.el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_still.png';
                         delete this.restartingDaemons[id];
                     }
+					
+                    record.row.set('state', response.data.state);
                 }
                 // check the server to see if we are still restarting
                 router.getInfo({

@@ -16,12 +16,9 @@
             {name: 'name',  type: 'string'},
             {name: 'uid',  type: 'string'},
             {name: 'uuid',  type: 'string'},
-            {name: 'state',  type: 'boolean',
+            {name: 'state',  type: 'string',
              convert: function(value, record) {
-                 if (value == Daemons.states.UP) return true;
-                 if (value == Daemons.states.DOWN) return false;
-                 if (value == Daemons.states.STARTING) return false;
-                 return null;
+                 return Daemons.states[value] || value;
              }
             },
             {name: 'autostart',  type: 'boolean'},

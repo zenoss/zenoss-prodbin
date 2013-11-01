@@ -121,7 +121,12 @@
                 tooltip: _t('Click to stop/start the deamon'),
                 dataIndex: 'state',
                 sortable: true,
-                renderer: Zenoss.render.pingStatus,
+                renderer: function(value) {
+                    if (value == 'up' || value == 'down'){
+                        return Zenoss.render.pingStatus(value);
+                    }
+                    return value + "...";
+                },
                 /**
                  * Action columns expect an image so override the
                  * defaultRenderer to just use the supplied renderer (pingStatus)
