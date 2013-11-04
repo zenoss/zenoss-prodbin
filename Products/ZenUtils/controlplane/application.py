@@ -112,8 +112,8 @@ class DeployedApp(object):
     def startedAt(self):
         """
         When the service started.  Returns None if not running.
-        """
-        return self._instance.startedAt if self._instance else None
+        """        
+        return self._instance.get('startedAt') if self._instance else None
 
     @property
     def log(self):

@@ -44,6 +44,7 @@
         multiSelect: true,
         rootVisible: true,
         useArrows: true,
+        animate: false,
         dockedItems: [{
             xtype: 'toolbar',
             dock: 'top',
@@ -74,6 +75,12 @@
                 flex: 2,
                 sortable: true,
                 dataIndex: 'name'
+            },{
+                text: _t('Uptime'),
+                flex: .25,
+                tooltip: _t('Uptime'),
+                dataIndex: 'uptime',
+                sortable: true
             }, {
                 text: _t('Logs'),
                 flex: .25,

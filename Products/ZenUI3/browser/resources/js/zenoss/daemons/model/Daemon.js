@@ -21,6 +21,7 @@
                  return Daemons.states[value] || value;
              }
             },
+            {name: 'uptime', type: 'string'},
             {name: 'autostart',  type: 'boolean'},
             {name: 'isRestarting',  type: 'boolean'},
             {name: 'qtip',  type: 'string'}
