@@ -170,7 +170,7 @@
                         record.el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_still.png';
                         delete this.restartingDaemons[id];
                     }
-					
+
                     record.row.set('state', response.data.state);
                 }
                 // check the server to see if we are still restarting
@@ -193,6 +193,38 @@
             router.setAutoStart({
                 uids: uids,
                 enabled: enabled
+            });
+        },
+        onRefresh: function() {
+            var store = this.getTreegrid().getStore(),
+                method = store.getProxy().directFn,
+                nodes = {};
+            method({
+                id: store.getRootNode().get("id")
+            }, function(result){
+                var i = 0, currentNode, nodeHash = store.tree.nodeHash;
+
+                for (i=0;i<result.length;i++) {
+                    nodes[result[i].id] = result[i];
+                    currentNode = store.getNodeById(result[i].id);
+                    if (currentNode) {
+                        currentNode.set(result[i]);
+                    } else {
+                        // it needs to be added
+                        // TODO: find the parent once the tree structure is in order
+                        store.getRootNode().appendChild(result[i]);
+                    }
+                }
+
+                // iterate through all the nodes in the store and make sure they
+                // exits in the "nodes" struct
+                for (key in nodeHash) {
+                    if (nodeHash.hasOwnProperty(key) && !Ext.isDefined(nodes[key])) {
+                        var record = nodeHash[key];
+                        // TODO: find the parent when we have a tree structure
+                        store.getRootNode().removeChild(record, true);
+                    }
+                }
             });
         }
     });

@@ -65,6 +65,13 @@
                 id: 'component_searchfield',
                 emptyText: _t('Type to filter...'),
                 enableKeyEvents: true
+            },{
+                xtype: 'refreshmenu',
+                stateId: 'devicerefresh',
+                iconCls: 'refresh',
+                ref: "refresh",
+                id: 'refreshtreegrid',
+                text: _t('Refresh')
             }]
         }],
         selectionModel: 'rowmodel',

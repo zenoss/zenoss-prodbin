@@ -26,7 +26,6 @@
             {name: 'isRestarting',  type: 'boolean'},
             {name: 'qtip',  type: 'string'}
         ]),
-
         proxy: {
             simpleSortMode: true,
             type: 'direct',
