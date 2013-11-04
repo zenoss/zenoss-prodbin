@@ -169,7 +169,7 @@ class ServiceInstance(object):
 
     @property
     def startedAt(self):
-        src = self._data.get("StartedAt")
+        src = self._data.get("StartedAt")        
         dttm = datetime.strptime(src[:-6], "%Y-%m-%dT%H:%M:%S")
         return dttm
 

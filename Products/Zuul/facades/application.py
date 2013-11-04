@@ -9,7 +9,7 @@
 
 import copy
 import logging
-
+from datetime import datetime
 from zope.component import getUtility
 from zope.interface import implementer
 
@@ -45,7 +45,7 @@ class ApplicationManagerFacade(object):
     def get(self, id, default=None):
         """
         Returns the IApplicationFacade object of the identified application.
-        """        
+        """
         app = self._svc.get(id, default)
         if not app:
             return default
@@ -80,6 +80,13 @@ class ApplicationFacade(object):
     @property
     def startedAt(self):
         return self._app.startedAt
+
+    @property
+    def uptime(self):
+        self.state
+        started = self.startedAt
+        if started:
+            return str(datetime.today() - started)
 
     @property
     def autostart(self):

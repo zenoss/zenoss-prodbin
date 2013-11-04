@@ -57,6 +57,10 @@ class ApplicationInfo(object):
         return self._object.state == "RESTARTING"
 
     @property
+    def uptime(self):
+        return self._object.uptime
+    
+    @property
     def state(self):
         return self._object.state
 
