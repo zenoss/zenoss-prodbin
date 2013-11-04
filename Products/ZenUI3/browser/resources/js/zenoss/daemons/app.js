@@ -23,10 +23,10 @@
                 layout: 'border',
                 items: [{
                     xtype: 'daemonslist',
-                    region: 'center',
                     id: 'daemonslist',
-                    store: Ext.create('Daemons.store.Daemons', {})
-                }, {
+                    store: Ext.create('Daemons.store.Daemons', {}),
+                    region: 'center'
+                },{
                     xtype: 'daemonsdetails',
                     region: 'south',
                     height: "40%",
@@ -40,6 +40,15 @@
             store.setRootNode({id: 'localhost', uuid: '12', status: '1', enabled: true, uid:'localhost', name: 'Localhost'});
             // this will trigger a router request to get the subservices of localhost
             store.getRootNode().expand();
+            this.registerRefreshHandler();
+        },
+        /**
+         * The refresh button's handler is a method, not an event. So we need explicitly
+         * wire this button to the controller instead of using the Controller->control method.
+         **/
+        registerRefreshHandler: function() {
+            var controller = this.getController('DaemonsListController');
+            Ext.getCmp('refreshtreegrid').handler = Ext.bind(controller.onRefresh, controller);
         }
     });
 })();
