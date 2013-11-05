@@ -218,7 +218,7 @@
             permission="zenoss.ManageDMD"
             layer="..navigation.interfaces.IZenossNav"
             />
-		<browser:viewlet
+        <browser:viewlet
             name="Daemons"
             url="/zport/dmd/daemons"
             weight="2"
@@ -227,6 +227,7 @@
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
             permission="zenoss.ManageDMD"
             layer="..navigation.interfaces.IZenossNav"
+            subviews="/zport/dmd/collectorTemplate"
             />
 
         <browser:viewlet
