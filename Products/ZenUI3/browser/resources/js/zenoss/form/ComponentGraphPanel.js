@@ -17,12 +17,6 @@
         constructor: function(config) {
             config = config || {};
 
-            // create the component drop down store
-            var data = [], i, comps = config.components;
-            for (i=0; i<comps.length;i++) {
-                data.push([Zenoss.component.displayName(comps[i])[0],
-                           comps[i]]);
-            }
 
             Ext.applyIf(config, {
                 style: {
@@ -40,10 +34,6 @@
                         displayField: 'name',
                         valueField:'value',
                         ref: '../component',
-                        store: Ext.create('Ext.data.Store', {
-                            model: 'Zenoss.model.NameValue',
-                            data: data
-                        }),
                         fieldLabel: _t('Component Type'),
                         listeners: {
                             scope: this,
@@ -77,37 +67,62 @@
         },
         setContext: function(uid) {
             this.uid = uid;
+            console.log(uid);
+            Zenoss.remote.DeviceRouter.getGraphDefintionsForComponents({
+                uid: this.uid
+            }, this.updateComboStores, this);
+        },
+        updateComboStores: function(response){
+            if (response.success) {
+                this.componentGraphs = response.data;
+
+                // create the component drop down store
+                var data = [], i;
+                for (componentType in this.componentGraphs) {
+                    if (this.componentGraphs.hasOwnProperty(componentType)
+                       && this.componentGraphs[componentType].length) {
+                        data.push([Zenoss.component.displayName(componentType)[0],
+                               componentType]);
+                    }
+
+                }
+                var store = Ext.create('Ext.data.Store', {
+                    model: 'Zenoss.model.NameValue',
+                    data: data
+                });
+                this.component.bindStore(store, true);
+                if (data.length) {
+                    this.component.select(data[0][0]);
+                    this.onSelectComponentType(this.component,[
+                        this.component.store.getAt(0)
+                    ]);
+                }
+            }
         },
         onSelectComponentType: function(combo, selected) {
             this.compType = selected[0].get('value');
-            Zenoss.remote.DeviceRouter.getGraphDefintionsForComponent({
-                uid: this.uid,
-                meta_type: this.compType
-            }, function(results){
-                var store, i, data=[];
-                for (i=0;i<results.data.length;i++) {
-                    data.push([
-                        results.data[i].id
-                    ]);
-                }
-
-                store = Ext.create('Ext.data.Store', {
-                    model: 'Zenoss.model.Name',
-                    data: data
-                });
-                this.graphTypes.bindStore(store, true);
-                if (!data.length) {
-                    this.graphTypes.disable();
-                } else {
-                    this.graphTypes.enable();
-                    this.graphTypes.select(data[0][0]);
-                    // go ahead and show the graphs for the first
-                    // selected option
-                    this.onSelectGraph(this.graphTypes,
-                                       [this.graphTypes.store.getAt(0)]
-                                      );
-                }
-            }, this);
+            var store, i, graphIds = this.componentGraphs[this.compType], data=[];
+            for (i=0;i<graphIds.length;i++) {
+                data.push([
+                    graphIds[i]
+                ]);
+            }
+            store = Ext.create('Ext.data.Store', {
+                model: 'Zenoss.model.Name',
+                data: data
+            });
+            this.graphTypes.bindStore(store, true);
+            if (!data.length) {
+                this.graphTypes.disable();
+            } else {
+                this.graphTypes.enable();
+                this.graphTypes.select(data[0][0]);
+                // go ahead and show the graphs for the first
+                // selected option
+                this.onSelectGraph(this.graphTypes,
+                                   [this.graphTypes.store.getAt(0)]
+                                  );
+            }
         },
         onSelectGraph: function(combo, selected) {
             // go to the server and return a list of graph configs
@@ -131,7 +146,7 @@
                     this.removeAll();
                     for(i=0;i<response.data.length;i++) {
                         graph = response.data[i];
-                        graphTitle = graph.contextTitle;
+                        graphTitle = graph.contextTitle || graph.title;
                         delete graph.title;
                         id = Ext.id();
                         graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {

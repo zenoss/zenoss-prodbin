@@ -736,16 +736,18 @@ class DeviceFacade(TreeFacade):
                 log.warn("Unable to clear the geocodecache from %s " % brain.getPath())
 
     @info
-    def getGraphDefinitionsForComponent(self, uid, meta_type):
+    def getGraphDefinitionsForComponent(self, uid):
+        graphDefs = dict()
         obj = self._getObject(uid)
-        for brain in obj.componentSearch({meta_type:meta_type}):
-            if not brain.meta_type == meta_type:
-                continue
+        for brain in obj.componentSearch():
+            if graphDefs.get(brain.meta_type):
+                continue            
             try:
                 component = brain.getObject()
             except:
-                pass            
-            return component.getDefaultGraphDefs()
+                pass
+            graphDefs[component.meta_type] = [g.id for g in component.getDefaultGraphDefs()]
+        return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
         obj = self._getObject(uid)        

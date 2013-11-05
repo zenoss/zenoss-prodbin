@@ -1796,9 +1796,9 @@ class DeviceRouter(TreeRouter):
         data = facade.getOverriddenZprops(uid, all)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    def getGraphDefintionsForComponent(self, uid, meta_type):
+    def getGraphDefintionsForComponents(self, uid):
         facade = self._getFacade()
-        data = facade.getGraphDefinitionsForComponent(uid, meta_type)
+        data = facade.getGraphDefinitionsForComponent(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
