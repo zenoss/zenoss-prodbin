@@ -38,6 +38,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectExce
 from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
+from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
@@ -750,18 +751,15 @@ class DeviceFacade(TreeFacade):
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
-        obj = self._getObject(uid)        
-        components = []
-        # get all the components we need
-        for brain in obj.componentSearch():
-            if brain.meta_type == meta_type:
-                try:
-                    component = brain.getObject()
-                except Exception:                    
-                    continue
-                components.append(component)
+        obj = self._getObject(uid)
 
-        # get the graph defs
+        # get the components we are rendering graphs for
+        query = {}
+        query['meta_type'] = meta_type
+        components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
+        
+        
+        # get the graph def
         for comp in components:
             # find the first instance
             for graph in comp.getDefaultGraphDefs():
