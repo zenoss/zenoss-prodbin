@@ -288,6 +288,9 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
         return float(value) if value else None
 
+    def titleOrId(self):
+        return self.osProcessClass().titleOrId()
+    
     def name(self):
         """
         Return a string that is the process text (process name + parameters)

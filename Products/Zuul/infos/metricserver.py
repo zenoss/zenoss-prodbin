@@ -44,7 +44,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         """
         title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
-            title =  "%s - %s" %(title, self._context.name())
+            title =  "%s - %s" %(title, self._context.titleOrId())
         return "%s - %s" % (self.title, title)
 
     @property
@@ -88,11 +88,12 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
     @property
     def legend(self):
         o = self._object
-        return o.talesEval(o.legend, self._context)
+        return self._context.titleOrId() + " " + o.talesEval(o.legend, self._context)
 
     @property
     def color(self):
-        return self._object.getColor(self._object.sequence)
+        if self._object.color:
+            return self._object.getColor(self._object.sequence)
 
 
 class MetricServiceThreshold(ColorMetricServiceGraphPoint):

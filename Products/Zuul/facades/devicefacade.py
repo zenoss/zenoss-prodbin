@@ -40,6 +40,8 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
 from Products.ZenEvents.Event import Event
 from Acquisition import aq_base
+from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
+
 
 iszprop = re.compile("z[A-Z]").match
 log = logging.getLogger('zen.DeviceFacade')
@@ -732,3 +734,47 @@ class DeviceFacade(TreeFacade):
                 brain.getObject().latlong = None
             except:
                 log.warn("Unable to clear the geocodecache from %s " % brain.getPath())
+
+    @info
+    def getGraphDefinitionsForComponent(self, uid, meta_type):
+        obj = self._getObject(uid)
+        for brain in obj.componentSearch({meta_type:meta_type}):
+            if not brain.meta_type == meta_type:
+                continue
+            try:
+                component = brain.getObject()
+            except:
+                pass            
+            return component.getDefaultGraphDefs()
+
+    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+        obj = self._getObject(uid)        
+        components = []
+        # get all the components we need
+        for brain in obj.componentSearch():
+            if brain.meta_type == meta_type:
+                try:
+                    component = brain.getObject()
+                except Exception:                    
+                    continue
+                components.append(component)
+
+        # get the graph defs
+        for comp in components:
+            # find the first instance
+            for graph in comp.getDefaultGraphDefs():
+                if graph.id == graphId:
+                    graphDef = graph
+                    break
+            if graphDef:
+                break
+
+        if allOnSame:            
+            return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
+
+        graphs = []
+        for comp in components:
+            info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
+            graphs.append(info)
+        return graphs
+    
