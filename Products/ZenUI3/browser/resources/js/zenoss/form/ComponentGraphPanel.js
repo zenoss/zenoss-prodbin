@@ -57,6 +57,26 @@
     });
 
 
+    /**
+     * An example of using a custom renderer to show pie graphs
+     * for processes if you are viewing the memory or cpu and
+     * viewing all the graphs on the same page.
+     * Notice that it uses the default renderer to actually
+     * construct the graphs.
+     **/
+    ZC.registerComponentGraphRenderer('OSProcess',
+        function(meta_type, uid, graphId, allOnSame, data) {
+            var fn = ZC.getComponentGraphRenderer('default'), graphs, i;
+            for (i=0;i<data.length;i++) {
+                if (allOnSame && (graphId == 'Memory' || graphId == 'CPU Utilization')) {
+                    data[i].type = 'area';
+                }
+            }
+
+            graphs = fn(meta_type, uid, graphId, allOnSame, data);
+            return graphs;
+    });
+
     Ext.define("Zenoss.form.ComponentGraphPanel", {
         alias:['widget.componentgraphpanel'],
         extend:"Ext.Panel",
