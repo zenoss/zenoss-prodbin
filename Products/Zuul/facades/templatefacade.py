@@ -20,7 +20,7 @@ from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNod
 from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo, DeviceClassTemplateNode
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr, UncataloguedObjectException
 from Products.Zuul.utils import ZuulMessageFactory as _t
-from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.facades import ZuulFacade, ObjectNotFoundException
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource
 from Products.ZenModel.BasicDataSource import BasicDataSource
@@ -524,3 +524,18 @@ class TemplateFacade(ZuulFacade):
         if not isinstance(obj, GraphPoint):
             raise Exception('Cannot find GraphPoint at "%s".' % uid)
         return obj
+
+    def getCollectorTemplate(self):
+        """
+        Returns the tree representation of a
+        collector template
+        """
+        templates = []
+        collectorTemplate = self._getObject('/zport/dmd/Monitors/rrdTemplates/PerformanceConf')
+        templates.append(ITemplateNode(collectorTemplate))
+        try:
+            hubTemplate = self._getObject('/zport/dmd/Monitors/Hub/rrdTemplates/HubConf')
+            templates.append(ITemplateNode(hubTemplate))
+        except ObjectNotFoundException:
+            pass
+        return templates

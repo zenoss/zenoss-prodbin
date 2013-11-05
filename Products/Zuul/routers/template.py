@@ -726,3 +726,9 @@ class TemplateRouter(TreeRouter):
         #       If so:  template=/blah/uid sequence=[one,two,three]
         audit('UI.Template.SetGraphDefinitionSequence', sequence=uids)
         return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def getCollectorTemplate(self, id):
+        facade = self._getFacade()
+        templates = facade.getCollectorTemplate()
+        return Zuul.marshal(templates)
