@@ -245,3 +245,4 @@ from .eventclassesfacade import EventClassesFacade
 from .manufacturersfacade import ManufacturersFacade
 from .metricfacade import MetricFacade
 from .application import ApplicationManagerFacade, ApplicationFacade
+from .monitor import MonitorManagerFacade, MonitorFacade

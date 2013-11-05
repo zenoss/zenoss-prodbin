@@ -19,6 +19,7 @@ from ipaddr import IPAddress
 log = logging.getLogger('zen.PerformanceConf')
 
 from zope import component
+from zope.interface import implementer
 
 from Products.ZenUtils.IpUtil import ipwrap
 
@@ -39,6 +40,8 @@ from Products.ZenModel.ZDeviceLoader import CreateDeviceJob
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
 from StatusColor import StatusColor
+
+from .interfaces import IMonitor
 
 
 SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float( getGlobalConfiguration().get('collectorRequestTimeout', 5) )
@@ -71,6 +74,7 @@ def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
 addPerformanceConf = DTMLFile('dtml/addPerformanceConf', globals())
 
 
+@implementer(IMonitor)
 class PerformanceConf(Monitor, StatusColor):
     """
     Configuration for Performance servers
