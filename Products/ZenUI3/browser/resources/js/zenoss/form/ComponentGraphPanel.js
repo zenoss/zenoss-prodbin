@@ -8,7 +8,54 @@
  ****************************************************************************/
 (function(){
     Ext.ns('Zenoss');
-    var router = Zenoss.remote.DeviceRouter;
+    var ZC = Ext.ns('Zenoss.component'),
+        router = Zenoss.remote.DeviceRouter;
+    ZC.renderMap = {};
+
+    /**
+     * Register a custom handler for displaying graphs.
+     **/
+    ZC.registerComponentGraphRenderer = function(meta_type, fn, scope) {
+        if (scope) {
+            ZC.renderMap[meta_type] = Ext.bind(fn, scope);
+        } else {
+            ZC.renderMap[meta_type] = fn;
+        }
+    };
+
+    /**
+     * Grabs the registered graph renderer based on the meta_type of the
+     * component. If a custom renderer is not found the 'default' one is
+     * returned.
+     **/
+    ZC.getComponentGraphRenderer = function(meta_type) {
+        return ZC.renderMap[meta_type] || ZC.renderMap['default'];
+    };
+
+    /**
+     * The default graph renderer. This simply displays
+     * a europa graph for each result returned.
+     **/
+    ZC.registerComponentGraphRenderer('default',
+        function(meta_type, uid, graphId, allOnSame, data) {
+            var id, graph, graphTitle, i, graphs = [];
+            for(i=0; i< data.length; i++) {
+                graph = data[i];
+                graphTitle = graph.contextTitle || graph.title;
+                delete graph.title;
+                id = Ext.id();
+                graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
+                    uid: uid,
+                    graphId: id,
+                    graphTitle: graphTitle,
+                    isLinked: false,
+                    ref: id,
+                    height: 500
+                })));
+            }
+            return graphs;
+    });
+
 
     Ext.define("Zenoss.form.ComponentGraphPanel", {
         alias:['widget.componentgraphpanel'],
@@ -28,6 +75,9 @@
                 dockedItems: [{
                     layout: 'hbox',
                     dock: 'top',
+                    style: {
+                        paddingBottom: 10
+                    },
                     items: [{
                         xtype: 'combo',
                         queryMode: 'local',
@@ -67,7 +117,6 @@
         },
         setContext: function(uid) {
             this.uid = uid;
-            console.log(uid);
             Zenoss.remote.DeviceRouter.getGraphDefintionsForComponents({
                 uid: this.uid
             }, this.updateComboStores, this);
@@ -134,30 +183,18 @@
         },
         updateGraphs: function() {
             var meta_type = this.compType, uid = this.uid,
-                graphId = this.graphId;
+                graphId = this.graphId, allOnSame = this.allOnSame.checked;
             Zenoss.remote.DeviceRouter.getComponentGraphs({
                 uid: uid,
                 meta_type: meta_type,
                 graphId: graphId,
-                allOnSame: this.allOnSame.checked
+                allOnSame: allOnSame
             }, function(response){
                 if (response.success) {
-                    var i, graphs=[], graph, graphTitle, id;
+                    var graphs=[], fn;
                     this.removeAll();
-                    for(i=0;i<response.data.length;i++) {
-                        graph = response.data[i];
-                        graphTitle = graph.contextTitle || graph.title;
-                        delete graph.title;
-                        id = Ext.id();
-                        graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
-                            uid: this.uid,
-                            graphId: id,
-                            graphTitle: graphTitle,
-                            isLinked: false,
-                            ref: id,
-                            height: 500
-                        })));
-                    }
+                    fn = ZC.getComponentGraphRenderer(meta_type);
+                    graphs = fn(meta_type, uid, graphId, allOnSame, response.data);
                     this.add(graphs);
                 }
             }, this);
