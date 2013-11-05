@@ -58,7 +58,7 @@
 
 
     /**
-     * An example of using a custom renderer to show pie graphs
+     * An example of using a custom renderer to show stacked graphs
      * for processes if you are viewing the memory or cpu and
      * viewing all the graphs on the same page.
      * Notice that it uses the default renderer to actually
