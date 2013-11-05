@@ -29,10 +29,9 @@
                 },{
                     xtype: 'daemonsdetails',
                     region: 'south',
-                    height: "40%",
+                    height: "60%",
                     split: true,
-                    resizable: true,
-                    collapsible: true
+                    resizable: true
                 }]
             });
             Ext.getCmp('center_panel').add(panel);

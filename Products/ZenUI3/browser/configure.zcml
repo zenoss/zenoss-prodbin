@@ -166,6 +166,13 @@
     />
 
 <browser:page
+    template="templates/collectortemplate.pt"
+    name="collectorTemplate"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="templates/ipservice.pt"
     name="ipservice"
     for="*"

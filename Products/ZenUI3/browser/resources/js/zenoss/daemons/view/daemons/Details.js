@@ -11,9 +11,21 @@
     Ext.define('Daemons.view.daemons.Details' ,{
         extend: 'Ext.Panel',
         alias: 'widget.daemonsdetails',
-        title: _t('Details'),
+        dockedItems:[{
+            xtype: 'toolbar',
+            dock: 'top',
+            items: [{
+                xtype: 'combo',
+                ref: 'menucombo',
+                fieldLabel: _t('Display'),
+                labelWidth: 50
+            }]
+        }],
+        layout: 'card',
         initComponent: function() {
-            this.html = 'details section';
+            this.items = [{
+
+            }];
             this.callParent(arguments);
         }
     });
