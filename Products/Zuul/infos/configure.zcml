@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
 ##############################################################################
 # 
@@ -8,7 +9,6 @@
 # 
 ##############################################################################
 -->
-
 
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
@@ -279,12 +279,16 @@
              factory="Products.Zuul.infos.zenpack.ZenPackInfo"
              />
 
-	<adapter
-		provides="Products.Zuul.interfaces.IApplicationInfo"
-		for="Products.Zuul.facades.ApplicationFacade"
-		factory=".application.ApplicationInfo"
-		/>
+   <adapter factory=".application.ApplicationInfo"
+            provides="Products.Zuul.interfaces.IApplicationInfo"
+            for="Products.Zuul.interfaces.IApplicationFacade"
+            />
 
-    <include package=".component"/>
-    <include file="graphpoint.zcml"/>
+   <adapter factory=".monitor.MonitorTreeNode"
+            provides="Products.Zuul.interfaces.IMonitorTreeNode"
+            />
+
+   <include package=".component"/>
+   <include file="graphpoint.zcml"/>
+
 </configure>

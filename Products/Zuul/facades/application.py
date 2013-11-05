@@ -10,7 +10,7 @@
 import copy
 import logging
 from datetime import datetime
-from zope.component import getUtility
+from zope.component import getUtility, getAdapter
 from zope.interface import implementer
 
 from Products.Zuul.interfaces import (
@@ -40,7 +40,9 @@ class ApplicationManagerFacade(object):
         result = self._svc.query(**args)
         if not result:
             return ()
-        return tuple(ApplicationFacade(app) for app in result)
+        return tuple(
+            getAdapter(app, IApplicationFacade) for app in result
+        )
 
     def get(self, id, default=None):
         """
@@ -49,7 +51,7 @@ class ApplicationManagerFacade(object):
         app = self._svc.get(id, default)
         if not app:
             return default
-        return ApplicationFacade(app)
+        return getAdapter(app, IApplicationFacade)
 
 
 @implementer(IApplicationFacade)

@@ -36,14 +36,27 @@
             });
             Ext.getCmp('center_panel').add(panel);
             var store = Ext.getCmp('daemonslist').getStore();
-            store.setRootNode({id: 'localhost', uuid: '12', status: '1', enabled: true, uid:'localhost', name: 'Localhost'});
-            // this will trigger a router request to get the subservices of localhost
+            store.setRootNode(
+                {
+                    id: 'monitors',
+                    uuid: '12',
+                    status: '1',
+                    enabled: true,
+                    uid: 'monitors',
+                    name: 'Monitors'
+                }
+            );
+            // TODO: Add the 'Daemons' and 'Collectors' sub nodes.
+   
+            // this will trigger a router request to get the
+            // subservices of localhost
             store.getRootNode().expand();
             this.registerRefreshHandler();
         },
         /**
-         * The refresh button's handler is a method, not an event. So we need explicitly
-         * wire this button to the controller instead of using the Controller->control method.
+         * The refresh button's handler is a method, not an event. So we
+         * need explicitly wire this button to the controller instead of
+         * using the Controller->control method.
          **/
         registerRefreshHandler: function() {
             var controller = this.getController('DaemonsListController');

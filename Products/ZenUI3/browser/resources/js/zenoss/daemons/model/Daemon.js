@@ -7,7 +7,35 @@
  *
  ****************************************************************************/
 (function(){
-    var router = Zenoss.remote.ApplicationRouter;
+    var monitorRouter = Zenoss.remote.MonitorRouter;
+    var appRouter = Zenoss.remote.ApplicationRouter;
+
+    Ext.define('Daemons.model.Collector', {
+        extend: 'Ext.data.Model',
+        fields: Zenoss.model.BASE_TREE_FIELDS.concat([
+            {name: 'id',  type: 'string'},
+            {name: 'name',  type: 'string'},
+            {name: 'uid',  type: 'string'},
+            {name: 'uuid',  type: 'string'},
+        ]),
+        proxy: {
+            simpleSortMode: true,
+            type: 'direct',
+            directFn: monitorRouter.getTree,
+            paramOrder: ['uid']
+        }
+    });
+
+    Ext.define('Daemons.store.Collectors', {
+        extend: 'Ext.data.TreeStore',
+        model: 'Daemons.model.Collector',
+        nodeParam: 'uid',
+        remoteSort: false,
+        sorters: {
+            direction: 'asc',
+            sorterFn: Zenoss.sortTreeNodes
+        }
+    });
 
     Ext.define('Daemons.model.Daemon', {
         extend: 'Ext.data.Model',
@@ -29,7 +57,7 @@
         proxy: {
             simpleSortMode: true,
             type: 'direct',
-            directFn: router.getTree,
+            directFn: appRouter.getTree,
             paramOrder: ['uid']
         }
     });
