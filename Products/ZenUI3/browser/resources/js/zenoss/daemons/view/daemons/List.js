@@ -45,6 +45,7 @@
         rootVisible: true,
         useArrows: true,
         animate: false,
+        rootVisible: false,
         dockedItems: [{
             xtype: 'toolbar',
             dock: 'top',
