@@ -434,7 +434,7 @@ var maxCountThreshold = {
     fieldLabel: _t("Maximum"),
     name: 'maxProcessCount',
     allowBlank: true
-};    
+};
 
 var zMonitor = {
     xtype: 'zprop',
@@ -524,7 +524,7 @@ var regexFieldSet = {
     style: 'padding: 5px 0 0 0',
     items: [
         regexTextField,
-        regexExcludeTextField,
+        regexExcludeTextField
         // , exampleTextField
     ]
 }; // regexFieldSet
