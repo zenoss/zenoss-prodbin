@@ -171,7 +171,7 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         """
         child = self._getOb(submon) or self
         # Use the registered factory to create monitor.
-        createObject(child.sub_class, id)
+        createObject(child.sub_class, child, id)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Monitor Created',
