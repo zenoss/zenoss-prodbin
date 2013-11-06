@@ -100,7 +100,7 @@ class MonitorFacade(object):
     def getProperties(self):
         """
         """
-        return self._monitor.propdict()
+        return dict(self._monitor.propertyItems())
 
     def updateProperties(self, **kwargs):
         """

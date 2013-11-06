@@ -72,8 +72,6 @@ class MonitorInfo(object):
         self._object = monitor
 
     eventlogCycleInterval = ProxyProperty('eventlogCycleInterval')
-
-    eventlogCycleInterval = ProxyProperty('eventlogCycleInterval')
     processCycleInterval = ProxyProperty('processCycleInterval')
     statusCycleInterval = ProxyProperty('statusCycleInterval')
     winCycleInterval = ProxyProperty('winCycleInterval')
@@ -88,10 +86,10 @@ class MonitorInfo(object):
     maxPingFailures = ProxyProperty('maxPingFailures')
     modelerCycleInterval = ProxyProperty('modelerCycleInterval')
     
-    def getDiscoveryNetworks(self):
+    @property
+    def discoveryNetworks(self):
         return ",".join(self._object.discoveryNetworks)
-        
-    def setDiscoveryNetworks(self, value):
+ 
+    @discoveryNetworks.setter
+    def discoveryNetworks(self, value):
         self._object.discoveryNetworks = value.split(",")
-
-    discoveryNetworks = property(getDiscoveryNetworks, setDiscoveryNetworks)

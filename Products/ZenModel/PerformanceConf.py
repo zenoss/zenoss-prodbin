@@ -111,7 +111,7 @@ class PerformanceConfFactory(Factory):
             sourcemon = perf.get("localhost").primaryAq()
         monitor = super(PerformanceConfFactory, self).__call__(monitorId)
         if sourcemon:
-            sourceprops = sourcemon.propdict()
+            sourceprops = dict(sourcemon.propertyItems())
             monitor.manage_changeProperties(**sourceprops)
         perf[monitorId] = monitor
         monitor = perf.get(monitorId)
