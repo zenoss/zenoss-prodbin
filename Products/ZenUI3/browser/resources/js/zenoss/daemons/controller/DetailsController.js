@@ -17,7 +17,22 @@
         extend: 'Ext.app.Controller',
         views: [
             "daemons.Details"
-        ]
-        //the rest of the Controller here
+        ],
+        refs: [{
+            ref: 'detailForm',
+            selector: 'autoformpanel'
+        }],
+        init: function() {
+            // setup controller actions
+        },
+        /**
+         * Sets the context for the detailed view.
+         * Depending on the type of the node selected this
+         * toggles which pages are available as well as populates
+         * the page information
+         **/
+        setContext: function(uid) {
+            this.getDetailForm().setContext(uid);
+        }
     });
 })();

@@ -71,6 +71,10 @@
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.setAutoStartDaemons([record], !record.get('autostart'));
                     }, this)
+                },
+                // update the details information
+                'daemonslist': {
+                    select: this.setupDetails
                 }
             });
         },
@@ -226,6 +230,16 @@
                     }
                 }
             });
+        },
+        /**
+         * Lets the details panel know that we have a selected row
+         **/
+        setupDetails: function() {
+            console.log('got here');
+            var grid = this.getTreegrid(), selected = grid.getSelectionModel().getSelection();
+            if (selected.length) {
+                this.getController('DetailsController').setContext(selected[0].get('uid'));
+            }
         }
     });
 })();
