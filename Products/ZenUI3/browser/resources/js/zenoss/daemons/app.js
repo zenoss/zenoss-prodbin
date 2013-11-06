@@ -36,18 +36,16 @@
             });
             Ext.getCmp('center_panel').add(panel);
             var store = Ext.getCmp('daemonslist').getStore();
-            store.setRootNode(
-                {
+            store.setRootNode({
                     id: 'monitors',
                     uuid: '12',
                     status: '1',
                     enabled: true,
                     uid: 'monitors',
                     name: 'Monitors'
-                }
-            );
+            });
             // TODO: Add the 'Daemons' and 'Collectors' sub nodes.
-   
+
             // this will trigger a router request to get the
             // subservices of localhost
             store.getRootNode().expand();

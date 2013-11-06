@@ -12,7 +12,7 @@ import logging
 from Products.ZenMessaging.audit import audit
 from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
-from Products.Zuul.interfaces import IInfo
+from Products.Zuul.interfaces import IInfo, ITreeNode
 from Products import Zuul
 
 
@@ -36,11 +36,36 @@ class ApplicationRouter(TreeRouter):
         @rtype:   [dictionary]
         @return:  Object representing the tree
         """
+        # this will create two "fake" nodes to organize
+        # what we are displaying for the user. 
         facade = self._getFacade()
-        applications = facade.query()
+        applications = facade.query()        
         infos = map(IInfo, applications)
         data = Zuul.marshal(infos)
-        return data
+
+        # collectors
+        monitorFacade = Zuul.getFacade('monitors', self.context)
+        collectors = monitorFacade.queryPerformanceMonitors()
+        collectorData = Zuul.marshal(map(ITreeNode, collectors))
+        daemonNode = {
+            'id': 'daemons',
+            'visible': True,
+            'leaf': False,
+            'text': 'Daemons',
+            'name': 'Daemons',
+            'children': data,
+            'expanded': True
+        }
+        collectorNode = {
+            'id': 'collectors',
+            'visible': True,
+            'leaf': False,
+            'text': 'Collectors',
+            'name': 'Collectors',
+            'children': collectorData,
+            'expanded': True
+        }
+        return [daemonNode, collectorNode]
 
     def start(self, uids):
         """
