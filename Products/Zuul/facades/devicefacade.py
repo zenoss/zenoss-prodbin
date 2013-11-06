@@ -38,8 +38,11 @@ from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectExce
 from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
+from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
 from Acquisition import aq_base
+from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
+
 
 iszprop = re.compile("z[A-Z]").match
 log = logging.getLogger('zen.DeviceFacade')
@@ -732,3 +735,46 @@ class DeviceFacade(TreeFacade):
                 brain.getObject().latlong = None
             except:
                 log.warn("Unable to clear the geocodecache from %s " % brain.getPath())
+
+    @info
+    def getGraphDefinitionsForComponent(self, uid):
+        graphDefs = dict()
+        obj = self._getObject(uid)
+        for brain in obj.componentSearch():
+            if graphDefs.get(brain.meta_type):
+                continue            
+            try:
+                component = brain.getObject()
+            except:
+                pass
+            graphDefs[component.meta_type] = [g.id for g in component.getDefaultGraphDefs()]
+        return graphDefs
+
+    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+        obj = self._getObject(uid)
+
+        # get the components we are rendering graphs for
+        query = {}
+        query['meta_type'] = meta_type
+        components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
+        
+        
+        # get the graph def
+        for comp in components:
+            # find the first instance
+            for graph in comp.getDefaultGraphDefs():
+                if graph.id == graphId:
+                    graphDef = graph
+                    break
+            if graphDef:
+                break
+
+        if allOnSame:            
+            return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
+
+        graphs = []
+        for comp in components:
+            info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
+            graphs.append(info)
+        return graphs
+    

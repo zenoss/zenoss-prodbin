@@ -133,6 +133,10 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         text: _t('Graphs')
     },{
+        id: 'device_component_graphs',
+        nodeType: 'subselect',
+        text: _t('Component Graphs')
+    },{
         id: 'device_modeler_plugins',
         nodeType: 'subselect',
         text: _t('Modeler Plugins')
@@ -515,6 +519,8 @@ var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
     columns: (center_panel_width > extra_column_threshold) ? 2 : 1,
     id: 'device_graphs'
 });
+
+
 /**
  * Show either one column of graphs or two depending on how much space is available
  * after a resize.
@@ -533,7 +539,10 @@ device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
     panel.setContext(panel.uid);
 });
 
-
+var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
+    id: 'device_component_graphs',
+    components: Ext.pluck(Zenoss.env.componentTree, 'id')
+});
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
     id: 'softwares'
 });
@@ -792,7 +801,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [overview, event_console, modeler_plugins, configuration_properties, custom_properties, dev_admin, device_graphs, softwares, componentCard]
+        items: [overview, event_console, modeler_plugins, configuration_properties, custom_properties, dev_admin, device_graphs, component_graphs, softwares, componentCard]
     }]
 });
 
