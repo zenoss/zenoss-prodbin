@@ -21,16 +21,26 @@ class IMonitorTreeNode(ITreeNode):
 class IMonitorInfo(IInfo):
     """
     Set of attributes describing a performance monitor.
-    """
-
-    eventlogCycleInterval = Int(title=_t("Event Log Cycle Interval"))
-    processCycleInterval = Int(title=_t("Process Cycle Interval"))
-    statusCycleInterval = Int(title=_t("Status Cycle Interval"))
-    winCycleInterval = Int(title=_t("Windows Cycle Interval"))
-    wmibatchSize = Int(title=_t("WMI Batch Size"))
-    wmiqueryTimeout = Int(title=_t("WMI Query Timeout"))
-    configCycleInterval = Int(title=_t("Config Cycle Interval"))
-    zenProcessParallelJobs = Int(title=_t("Zenprocess Parallel Jobs"))
+    """    
+    processCycleInterval = Int(title=_t("Process Cycle Interval (seconds)"),
+    description=_t("How often zenprocess collects performance metrics about running processes"))
+    
+    statusCycleInterval = Int(title=_t("Status Cycle Interval (seconds)"),
+    description=_t("How often zenstatus polls tests configured ports"))
+    
+    winCycleInterval = Int(title=_t("Windows Cycle Interval (seconds)"),
+    description=_t("How often zenwinperf collects performance metrics")
+    )
+    wmibatchSize = Int(title=_t("WMI Batch Size"),
+    description=_t("Size of the number of WMI queries we issue at a time"))
+    
+    wmiqueryTimeout = Int(title=_t("WMI Query Timeout (seconds)"),
+    description=_t("How long zeneventlog and zenwin will wait on a WMI response when collecting"))
+    
+    configCycleInterval = Int(title=_t("Config Cycle Interval (minutes)"),
+    description=_t("The interval, specified in minutes, that the collector&apos;s configuration will be updated from the ZenHub service")
+    )
+    
     pingTimeOut = Float(title=_t("Ping Timeout"))
     pingTries = Int(title=_t("Ping Tries"))
     pingChunk = Int(title=_t("Ping Chunk Size"))
