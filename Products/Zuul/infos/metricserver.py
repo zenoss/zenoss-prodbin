@@ -44,7 +44,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         """
         title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
-            title =  "%s - %s" %(title, self._context.name())
+            title =  "%s - %s" %(title, self._context.titleOrId())
         return "%s - %s" % (self.title, title)
 
     @property
@@ -85,14 +85,32 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
 
 class ColorMetricServiceGraphPoint(MetricServiceGraph):
+
+    def __init__(self, graph, context):
+        self._multiContext = False
+        super(ColorMetricServiceGraphPoint, self).__init__(graph, context)
+    
+    def setMultiContext(self):
+        """
+        Let this graph know that we are displaying the same
+        metric for multiple contexts. This means we have to be
+        more specific in our legend and we can not have repeating
+        colors.
+        """
+        self._multiContext = True
+        
     @property
     def legend(self):
         o = self._object
-        return o.talesEval(o.legend, self._context)
+        legend = o.talesEval(o.legend, self._context)
+        if self._multiContext:
+            legend = self._context.titleOrId() + " " + legend
+        return legend
 
     @property
     def color(self):
-        return self._object.getColor(self._object.sequence)
+        if not self._multiContext:
+            return self._object.getColor(self._object.sequence)
 
 
 class MetricServiceThreshold(ColorMetricServiceGraphPoint):
@@ -231,5 +249,7 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
         for context in self._context:
             infos.extend([getMultiAdapter((g, context), templateInterfaces.IMetricServiceGraphPoint)
                           for g in graphDefs if isinstance(g, klass) ])
+            for info in infos:
+                info.setMultiContext()
         return infos
 
