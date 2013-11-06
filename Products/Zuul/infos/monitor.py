@@ -31,12 +31,12 @@ class MonitorTreeNode(object):
     @property
     def id(self):
         # get full zodb path
-        return self._ctx.uuid
+        return self._ctx.uid
 
     @property
     def path(self):
         # Return the path relative to the organizer
-        return self._ctx.uuid
+        return self._ctx.uid
 
     uid=path
     

@@ -42,7 +42,7 @@ class MonitorManagerFacade(object):
         monitors = []
         for name in self._perf.getPerformanceMonitorNames():
             if fnmatch(name, namePattern):
-                perfmon = self._perf.get(name)
+                perfmon = self._perf.get(name).primaryAq()
                 facade = queryAdapter(perfmon, IMonitorFacade)
                 monitors.append(facade)
         return monitors
@@ -53,6 +53,14 @@ class MonitorManagerFacade(object):
         """
         perfmon = self._perf.get(id)
         return queryAdapter(perfmon, IMonitorFacade)
+
+    def createPerformanceMonitor(self, id, sourceId=None):
+        """
+        """
+
+    def deletePerformance(self, id):
+        """
+        """
 
 
 @implementer(IMonitorFacade)
@@ -71,16 +79,33 @@ class MonitorFacade(object):
         return self._monitor.id
 
     @property
-    def uuid(self):
+    def uid(self):
         """
         The full ZODB object path of the monitor.
         """
         return '/'.join(self._monitor.getPhysicalPath())
 
+    def queryDevices(self, name=None, cls=None):
+        """
+        """
+        name = name if name is not None else "*"
+        cls = cls if cls is not None else "*"
+        deviceGenerator = self._monitor.devices.objectValuesGen()
+        return iter(
+            dvc.primaryAq() for dvc in deviceGenerator
+                if fnmatch(dvc.id, name) \
+                    and fnmatch(dvc.getDeviceClassName(), cls)
+        )
+
     def getProperties(self):
         """
         """
-        return dict(self._monitor.propertyItems())
+        return self._monitor.propdict()
+
+    def updateProperties(self, **kwargs):
+        """
+        """
+        self._monitor.manage_changeProperties(**kwargs)
 
     def getProperty(self, name):
         """
@@ -92,4 +117,4 @@ class MonitorFacade(object):
         """
         Sets the value of the named property.
         """
-
+        self._monitor.manage_changeProperties(**{name: value})

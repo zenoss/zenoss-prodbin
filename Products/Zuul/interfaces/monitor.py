@@ -46,15 +46,24 @@ class IMonitorFacade(IFacade):
     """
 
     name = Attribute("The name of the monitor")
-    uuid = Attribute("The monitor's unique identifier")
+    uid = Attribute("The monitor's unique identifier")
 
     def queryDevices(name=None, cls=None):
         """
+        Returns an iterable that produces IDevice objects associated with
+        this monitor.
         """
 
     def getProperties():
         """
         Returns a dict containing the Monitor's properties.
+        """
+
+    def updateProperties(**properties):
+        """
+        Update the Monitor's properties from the given keyword arguments.
+        Unknown properties are ignored.  A BadRequest exception is raised
+        if a given property is not writable.
         """
 
     def getProperty(self, name):

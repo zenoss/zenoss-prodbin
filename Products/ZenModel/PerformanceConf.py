@@ -19,6 +19,7 @@ from ipaddr import IPAddress
 log = logging.getLogger('zen.PerformanceConf')
 
 from zope import component
+from zope.component.factory import Factory
 from zope.interface import implementer
 
 from Products.ZenUtils.IpUtil import ipwrap
@@ -39,8 +40,9 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenModel.ZDeviceLoader import CreateDeviceJob
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
-from StatusColor import StatusColor
+from Products.Zuul.utils import get_dmd
 
+from .StatusColor import StatusColor
 from .interfaces import IMonitor
 
 
@@ -63,15 +65,58 @@ def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
     @rtype:
     """
     unused(title)
-    dc = PerformanceConf(id)
-    context._setObject(id, dc)
-
+    # Use the factory to create the monitor.
+    component.createObject(PerformanceConf.meta_type, id)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                  + '/manage_main')
 
 
 addPerformanceConf = DTMLFile('dtml/addPerformanceConf', globals())
+
+
+class PerformanceConfFactory(Factory):
+    """
+    IFactory implementation for PerformanceConf objects.
+
+    The factory create the PerformanceConf instance and attaches it to
+    the dmd.Monitor.Performance folder.
+    """
+
+    def __init__(self):
+        super(PerformanceConfFactory, self).__init__(
+            PerformanceConf, PerformanceConf.meta_type, "Performance Monitor"
+        )
+
+    def __call__(self, monitorId, sourceId=None):
+        """
+        Creates a new PerformanceConf object, saves it to ZODB, and returns
+        the new object.
+
+        :param string monitorId: The ID/name of the monitor
+        :param string sourceId: The ID/name of the monitor to copy
+            properties from.
+        :rtype PerformanceConf: The new monitor.
+        """
+        perf = get_dmd().Monitors.Performance
+        sourceId = sourceId if sourceId is not None else "localhost"
+        perfmon = perf.get(monitorId)
+        if perfmon:
+            raise ValueError(
+                "Performance Monitor with ID '%s' already exitsts."
+                % (monitorId,)
+            )
+        sourcemon = perf.get(sourceId)
+        if sourcemon is None:
+            sourcemon = perf.get("localhost").primaryAq()
+        monitor = super(PerformanceConfFactory, self).__call__(monitorId)
+        if sourcemon:
+            sourceprops = sourcemon.propdict()
+            monitor.manage_changeProperties(**sourceprops)
+        perf[monitorId] = monitor
+        monitor = perf.get(monitorId)
+        monitor.buildRelations()
+        return monitor
 
 
 @implementer(IMonitor)
