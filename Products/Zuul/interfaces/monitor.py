@@ -11,33 +11,33 @@ from zope.interface import Attribute
 
 from ..form.schema import Int, Float, List
 from . import IInfo, ITreeNode, IFacade
-
+from Products.Zuul.utils import ZuulMessageFactory as _t
 
 class IMonitorTreeNode(ITreeNode):
     """
     """
 
 
-class IMonitorInfo(ITreeNode):
+class IMonitorInfo(IInfo):
     """
     Set of attributes describing a performance monitor.
     """
 
-    eventlogCycleInterval = Int()
-    processCycleInterval = Int()
-    statusCycleInterval = Int()
-    winCycleInterval = Int()
-    wmibatchSize = Int()
-    wmiqueryTimeout = Int()
-    configCycleInterval = Int()
-    zenProcessParallelJobs = Int()
-    pingTimeOut = Float()
-    pingTries = Int()
-    pingChunk = Int()
-    pingCycleInterval = Int()
-    maxPingFailures = Int()
-    modelerCycleInterval = Int()
-    discoveryNetworks = List()
+    eventlogCycleInterval = Int(title=_t("Event Log Cycle Interval"))
+    processCycleInterval = Int(title=_t("Process Cycle Interval"))
+    statusCycleInterval = Int(title=_t("Status Cycle Interval"))
+    winCycleInterval = Int(title=_t("Windows Cycle Interval"))
+    wmibatchSize = Int(title=_t("WMI Batch Size"))
+    wmiqueryTimeout = Int(title=_t("WMI Query Timeout"))
+    configCycleInterval = Int(title=_t("Config Cycle Interval"))
+    zenProcessParallelJobs = Int(title=_t("Zenprocess Parallel Jobs"))
+    pingTimeOut = Float(title=_t("Ping Timeout"))
+    pingTries = Int(title=_t("Ping Tries"))
+    pingChunk = Int(title=_t("Ping Chunk Size"))
+    pingCycleInterval = Int(title=_t("Ping Cycle Interval"))
+    maxPingFailures = Int(title=_t("Max Ping Failures"))
+    modelerCycleInterval = Int(title=_t("Modeler Cycle Interval"))
+    discoveryNetworks = List(title=_t("Discovery Networks"))
 
 
 class IMonitorFacade(IFacade):

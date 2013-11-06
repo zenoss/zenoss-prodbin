@@ -15,7 +15,7 @@ from Products.Zuul.interfaces import (
 )
 from Products.Zuul.decorators import memoize
 from Products.Zuul.tree import TreeNode
-
+from Products.Zuul.infos import ProxyProperty
 
 @adapter(IMonitorFacade)
 @implementer(IMonitorTreeNode)
@@ -38,6 +38,8 @@ class MonitorTreeNode(object):
         # Return the path relative to the organizer
         return self._ctx.uid
 
+    uid=path
+    
     @property
     def name(self):
         # get full zodb path
@@ -69,66 +71,27 @@ class MonitorInfo(object):
         """
         self._object = monitor
 
-    @property
-    def eventlogCycleInterval(self):  # = Int()
-        return self._object.getProperty("eventlogCycleInterval")
+    eventlogCycleInterval = ProxyProperty('eventlogCycleInterval')
 
-    @eventlogCycleInterval.setter
-    def eventlogCycleInterval(self, value):
-        pass
+    eventlogCycleInterval = ProxyProperty('eventlogCycleInterval')
+    processCycleInterval = ProxyProperty('processCycleInterval')
+    statusCycleInterval = ProxyProperty('statusCycleInterval')
+    winCycleInterval = ProxyProperty('winCycleInterval')
+    wmibatchSize = ProxyProperty('wmibatchSize')
+    wmiqueryTimeout = ProxyProperty('wmiqueryTimeout')
+    configCycleInterval = ProxyProperty('configCycleInterval')
+    zenProcessParallelJobs = ProxyProperty('zenProcessParallelJobs')
+    pingTimeOut = ProxyProperty('pingTimeOut')
+    pingTries = ProxyProperty('pingTries')
+    pingChunk = ProxyProperty('pingChunk')
+    pingCycleInterval = ProxyProperty('pingCycleInterval')
+    maxPingFailures = ProxyProperty('maxPingFailures')
+    modelerCycleInterval = ProxyProperty('modelerCycleInterval')
+    
+    def getDiscoveryNetworks(self):
+        return ",".join(self._object.discoveryNetworks)
+        
+    def setDiscoveryNetworks(self, value):
+        self._object.discoveryNetworks = value.split(",")
 
-    @property
-    def processCycleInterval(self):  # = Int()
-        return self._object.getProperty("processCycleInterval")
-
-    @property
-    def statusCycleInterval(self):  # = Int()
-        return self._object.getProperty("statusCycleInterval")
-
-    @property
-    def winCycleInterval(self):  # = Int()
-        return self._object.getProperty("winCycleInterval")
-
-    @property
-    def wmibatchSize(self):  # = Int()
-        return self._object.getProperty("wmibatchSize")
-
-    @property
-    def wmiqueryTimeout(self):  # = Int()
-        return self._object.getProperty("wmiqueryTimeout")
-
-    @property
-    def configCycleInterval(self):  # = Int()
-        return self._object.getProperty("configCycleInterval")
-
-    @property
-    def zenProcessParallelJobs(self):  # = Int()
-        return self._object.getProperty("zenProcessParallelJobs")
-
-    @property
-    def pingTimeOut(self):  # = Float()
-        return self._object.getProperty("pingTimeOut")
-
-    @property
-    def pingTries(self):  # = Int()
-        return self._object.getProperty("pingTries")
-
-    @property
-    def pingChunk(self):  # = Int()
-        return self._object.getProperty("pingChunk")
-
-    @property
-    def pingCycleInterval(self):  # = Int()
-        return self._object.getProperty("pingCycleInterval")
-
-    @property
-    def maxPingFailures(self):  # = Int()
-        return self._object.getProperty("maxPingFailures")
-
-    @property
-    def modelerCycleInterval(self):  # = Int()
-        return self._object.getProperty("modelerCycleInterval")
-
-    @property
-    def discoveryNetworks(self):  # = List()
-        return self._object.getProperty("discoveryNetworks")
+    discoveryNetworks = property(getDiscoveryNetworks, setDiscoveryNetworks)

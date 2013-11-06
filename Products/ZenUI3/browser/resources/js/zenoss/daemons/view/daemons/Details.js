@@ -8,6 +8,13 @@
  ****************************************************************************/
 (function(){
 
+
+    var cards = Ext.create('Ext.data.Store', {
+        fields: ['id', 'name'],
+        data : [
+            {id: 'details', name: _t('Details')}
+        ]
+    });
     Ext.define('Daemons.view.daemons.Details' ,{
         extend: 'Ext.Panel',
         alias: 'widget.daemonsdetails',
@@ -18,14 +25,15 @@
                 xtype: 'combo',
                 ref: 'menucombo',
                 fieldLabel: _t('Display'),
-                labelWidth: 50
+                labelWidth: 50,
+                valueField: 'id',
+                displayField: 'name',
+                store: cards,
+                value: 'details'
             }]
         }],
         layout: 'card',
         initComponent: function() {
-            this.items = [{
-
-            }];
             this.callParent(arguments);
         }
     });
