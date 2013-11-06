@@ -277,7 +277,12 @@
    <adapter factory=".monitor.MonitorTreeNode"
             provides="Products.Zuul.interfaces.IMonitorTreeNode"
             />
-
+   
+   <adapter factory=".monitor.MonitorInfo"
+            for="Products.ZenModel.PerformanceConf.PerformanceConf"
+            provides="Products.Zuul.interfaces.monitor.IMonitorInfo"
+            />
+   
    <include package=".component"/>
    <include file="graphpoint.zcml"/>
 

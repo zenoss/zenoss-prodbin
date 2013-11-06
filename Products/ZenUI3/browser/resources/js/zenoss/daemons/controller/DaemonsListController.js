@@ -235,7 +235,6 @@
          * Lets the details panel know that we have a selected row
          **/
         setupDetails: function() {
-            console.log('got here');
             var grid = this.getTreegrid(), selected = grid.getSelectionModel().getSelection();
             if (selected.length) {
                 this.getController('DetailsController').setContext(selected[0].get('uid'));

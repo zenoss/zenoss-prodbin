@@ -19,8 +19,8 @@
             "daemons.Details"
         ],
         refs: [{
-            ref: 'detailForm',
-            selector: 'autoformpanel'
+            ref: 'cardContainer',
+            selector: 'daemonsdetails'
         }],
         init: function() {
             // setup controller actions
@@ -32,7 +32,19 @@
          * the page information
          **/
         setContext: function(uid) {
-            this.getDetailForm().setContext(uid);
+            var container = this.getCardContainer();
+            // every time we select a node completely destroy the form and recreate it
+            // as it could be different depending on the context
+            if (Ext.getCmp('edit_panel')) {
+                container.remove(Ext.getCmp('edit_panel'), true);
+            }
+
+            Zenoss.form.getGeneratedForm(uid, function(config){
+                container.add(Ext.apply({id:'edit_panel',
+                                         autoScroll: true
+                                        }, config));
+                container.layout.setActiveItem('edit_panel');
+            });
         }
     });
 })();

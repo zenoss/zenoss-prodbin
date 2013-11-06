@@ -34,18 +34,6 @@
         }],
         layout: 'card',
         initComponent: function() {
-            this.items = [{
-                xtype:'autoformpanel',
-                layout: 'column',
-                defaults: {
-                    layout: 'anchor',
-                    bodyStyle: 'padding:10px',
-                    fieldDefaults: {
-                        labelAlign: 'top'
-                    },
-                    columnWidth: 0.5
-                }
-            }];
             this.callParent(arguments);
         }
     });
