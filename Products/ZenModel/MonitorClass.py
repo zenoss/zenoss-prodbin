@@ -1,4 +1,3 @@
-
 ##############################################################################
 # 
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
@@ -9,13 +8,13 @@
 ##############################################################################
 
 
-__doc__="""MonitorClass
+"""MonitorClass
 
 Organizes Monitors
 
-$Id: MonitorClass.py,v 1.11 2004/04/09 00:34:39 edahl Exp $"""
+"""
 
-__version__ = "$Revision$"[11:-2]
+from zope.component import createObject
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -143,13 +142,12 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
 
     security.declareProtected('Manage DMD', 'manage_addMonitor')
     def manage_addMonitor(self, id, submon=None, REQUEST=None):
-        'Remove an object from this one'
-        values = {}
+        """
+        Construct a new monitor and add it to this.
+        """
         child = self._getOb(submon) or self
-        exec('from Products.ZenModel.%s import %s' % (child.sub_class,
-                                                      child.sub_class), values)
-        ctor = values[child.sub_class]
-        if id: child._setObject(id, ctor(id))
+        # Use the registered factory to create monitor.
+        createObject(child.sub_class, id)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Monitor Created',
