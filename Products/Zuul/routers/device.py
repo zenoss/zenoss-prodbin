@@ -1795,3 +1795,17 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getOverriddenZprops(uid, all)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getGraphDefintionsForComponents(self, uid):
+        facade = self._getFacade()
+        data = facade.getGraphDefinitionsForComponent(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+        """
+        Returns the graph denoted by graphId for every component in
+        device (uid) with the meta_type meta_type
+        """
+        facade = self._getFacade()
+        data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
