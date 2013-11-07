@@ -46,6 +46,12 @@
         useArrows: true,
         animate: false,
         rootVisible: false,
+        viewConfig: {
+            plugins: {
+                ptype:'treeviewdragdrop',
+                dropGroup: 'assignCollector'
+            }
+        },
         dockedItems: [{
             xtype: 'toolbar',
             dock: 'top',

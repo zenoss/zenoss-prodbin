@@ -21,7 +21,10 @@ class IMonitorTreeNode(ITreeNode):
 class IMonitorInfo(IInfo):
     """
     Set of attributes describing a performance monitor.
-    """    
+    """
+    eventlogCycleInterval = Int(title=_t("Event Log Cycle Interval (seconds)"),
+    description=_t("How often zeneventlog collects events"))
+    
     processCycleInterval = Int(title=_t("Process Cycle Interval (seconds)"),
     description=_t("How often zenprocess collects performance metrics about running processes"))
     
@@ -38,16 +41,22 @@ class IMonitorInfo(IInfo):
     description=_t("How long zeneventlog and zenwin will wait on a WMI response when collecting"))
     
     configCycleInterval = Int(title=_t("Config Cycle Interval (minutes)"),
-    description=_t("The interval, specified in minutes, that the collector&apos;s configuration will be updated from the ZenHub service")
-    )
+    description=_t("The interval, specified in minutes, that the collector&apos;s configuration will be updated from the ZenHub service"))
     
-    pingTimeOut = Float(title=_t("Ping Timeout"))
-    pingTries = Int(title=_t("Ping Tries"))
-    pingChunk = Int(title=_t("Ping Chunk Size"))
-    pingCycleInterval = Int(title=_t("Ping Cycle Interval"))
-    maxPingFailures = Int(title=_t("Max Ping Failures"))
-    modelerCycleInterval = Int(title=_t("Modeler Cycle Interval"))
-    discoveryNetworks = List(title=_t("Discovery Networks"))
+    pingTimeOut = Float(title=_t("Ping Timeout (milliseconds)"),
+    description=_t("How long zenping will wait before timing out a ping request"))
+    
+    pingTries = Int(title=_t("Ping Tries"),
+    description=_t("Number of times zenping will attempt to ping a device"))
+    
+    pingCycleInterval = Int(title=_t("Ping Cycle Interval"),
+    description=_t("How often zenping will attempt to ping devices"))
+        
+    modelerCycleInterval = Int(title=_t("Modeler Cycle Interval (minutes)"),
+    description=_t("How often zenmodeler will remodel devices"))
+    
+    discoveryNetworks = List(title=_t("Discovery Networks"),
+    description=_t("Comma separated list of subnets that zendisc will run discovery on"))
 
 
 class IMonitorFacade(IFacade):

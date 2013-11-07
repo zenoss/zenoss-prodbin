@@ -15,7 +15,7 @@ from Products.Zuul.interfaces import (
 )
 from Products.Zuul.decorators import memoize
 from Products.Zuul.tree import TreeNode
-from Products.Zuul.infos import ProxyProperty
+from Products.Zuul.infos import ProxyProperty, InfoBase
 
 @adapter(IMonitorFacade)
 @implementer(IMonitorTreeNode)
@@ -28,6 +28,10 @@ class MonitorTreeNode(object):
         """
         self._ctx = context
 
+    @property
+    def type(self):
+        return "collector"
+    
     @property
     def id(self):
         # get full zodb path
@@ -59,18 +63,9 @@ class MonitorTreeNode(object):
 
 
 @implementer(IMonitorInfo)
-class MonitorInfo(object):
+class MonitorInfo(InfoBase):
     """
     """
-
-    def __init__(self, monitor):
-        """
-        Initialize an instance of MonitorInfo.
-
-        :param IMonitor monitor: The IMonitor object.
-        """
-        self._object = monitor
-
     eventlogCycleInterval = ProxyProperty('eventlogCycleInterval')
     processCycleInterval = ProxyProperty('processCycleInterval')
     statusCycleInterval = ProxyProperty('statusCycleInterval')
@@ -81,9 +76,7 @@ class MonitorInfo(object):
     zenProcessParallelJobs = ProxyProperty('zenProcessParallelJobs')
     pingTimeOut = ProxyProperty('pingTimeOut')
     pingTries = ProxyProperty('pingTries')
-    pingChunk = ProxyProperty('pingChunk')
     pingCycleInterval = ProxyProperty('pingCycleInterval')
-    maxPingFailures = ProxyProperty('maxPingFailures')
     modelerCycleInterval = ProxyProperty('modelerCycleInterval')
     
     @property
