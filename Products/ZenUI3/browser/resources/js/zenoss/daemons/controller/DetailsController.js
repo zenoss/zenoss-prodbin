@@ -71,7 +71,8 @@
         setCollectorDetails: function() {
             var actions = {
                 details: this.setDetails,
-                devices: this.setDevices
+                devices: this.setDevices,
+                graphs: this.setGraphs
             },
                 selectedMenuItem = this.getMenuCombo().getValue(),
                 action = actions[selectedMenuItem];
@@ -90,7 +91,7 @@
                 container.details.add(Ext.apply({id:'edit_panel',
                                          autoScroll: true
                                         }, config));
-                container.layout.setActiveItem(container.detailsPanel);
+                container.layout.setActiveItem(container.details);
             });
         },
         setDevices: function() {
@@ -103,6 +104,9 @@
             // column is visible
             grid.setFilter('collector', selected.get('name'));
             // grid.getStore().load();
+        },
+        setGraphs: function() {
+            this.getCardContainer().graphs.setContext(this.selected.get('uid'));
         },
         refreshDevices: function() {
             this.getCardContainer().devices.refresh();
