@@ -8,6 +8,11 @@
  ****************************************************************************/
 (function(){
     Ext.ns('Daemons');
+    // setup the production states and priorities
+    Zenoss.env.initProductionStates();
+    Zenoss.env.initPriorities();
+
+
     Daemons.states = {
         RUNNING: 'up',
         STARTING: 'up',
@@ -35,20 +40,6 @@
                 }]
             });
             Ext.getCmp('center_panel').add(panel);
-            var store = Ext.getCmp('daemonslist').getStore();
-            store.setRootNode({
-                    id: 'monitors',
-                    uuid: '12',
-                    status: '1',
-                    enabled: true,
-                    uid: 'monitors',
-                    name: 'Monitors'
-            });
-            // TODO: Add the 'Daemons' and 'Collectors' sub nodes.
-
-            // this will trigger a router request to get the
-            // subservices of localhost
-            store.getRootNode().expand();
             this.registerRefreshHandler();
         },
         /**

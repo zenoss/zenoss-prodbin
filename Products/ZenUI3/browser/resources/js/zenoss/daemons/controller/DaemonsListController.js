@@ -75,6 +75,9 @@
                 // update the details information
                 'daemonslist': {
                     select: this.setupDetails
+                },
+                'daemonslist treeview': {
+                    beforedrop: this.assignDevicesToCollector
                 }
             });
         },
@@ -237,8 +240,33 @@
         setupDetails: function() {
             var grid = this.getTreegrid(), selected = grid.getSelectionModel().getSelection();
             if (selected.length) {
-                this.getController('DetailsController').setContext(selected[0].get('uid'));
+                this.getController('DetailsController').setContext(selected[0]);
             }
+        },
+        assignDevicesToCollector: function(node, data, treeNode, dropPosition){
+            var records = data.records, me = this;
+            // can only assign to collectors
+            if (treeNode.get('type') == 'collector') {
+                var win = Ext.create('Daemons.dialog.AssignCollectors', {
+                    numRecords: records.length,
+                    collectorId: treeNode.get('name'),
+                    okHandler: function() {
+                        // router request
+                        var uids = Ext.Array.pluck(Ext.Array.pluck(records, 'data'), 'uid');
+                        Zenoss.remote.DeviceRouter.setCollector({
+                            uids: uids,
+                            collector: treeNode.get('name'),
+                            hashcheck: null
+                        }, function(){
+                            // will refresh the details
+                            me.getController('DetailsController').refreshDevices();
+                        });
+                        win.close();
+                    }
+                });
+                win.show();
+            }
+            return false;
         }
     });
 })();

@@ -21,9 +21,31 @@
         refs: [{
             ref: 'cardContainer',
             selector: 'daemonsdetails'
+        }, {
+            ref: 'menuCombo',
+            selector: 'combobox[ref="menucombo"]'
         }],
         init: function() {
-            // setup controller actions
+            this.control({
+                'daemonsdetails combobox[ref="menucombo"]': {
+                    select: this.changeDetailsView
+                }
+            });
+        },
+        /**
+         * This method is responsible for showing the card that
+         * corresponds to the selected menu item.
+         **/
+        changeDetailsView: function(combo, selected) {
+            var card = selected[0];
+            // in order for this to work the id of the model item in the
+            // combobox must match the id of the card we want to display
+            this.getCardContainer().layout.setActiveItem(card.get('id'));
+
+            // refresh the view
+            if (this.selected) {
+                this.setContext(this.selected);
+            }
         },
         /**
          * Sets the context for the detailed view.
@@ -31,20 +53,59 @@
          * toggles which pages are available as well as populates
          * the page information
          **/
-        setContext: function(uid) {
-            var container = this.getCardContainer();
+        setContext: function(selected) {
+            this.selected = selected;
+            if (selected.get('type') == 'collector') {
+                this.setCollectorDetails();
+            } else {
+                this.setDaemonDetails();
+            }
+        },
+        setDaemonDetails: function() {
+            // TODO: actually implement details
+        },
+        /**
+         * Figure out what we are displaying for collectors
+         * and populate that detail panel.
+         **/
+        setCollectorDetails: function() {
+            var actions = {
+                details: this.setDetails,
+                devices: this.setDevices
+            },
+                selectedMenuItem = this.getMenuCombo().getValue(),
+                action = actions[selectedMenuItem];
+            Ext.bind(action, this)();
+        },
+        setDetails:function() {
+            var container = this.getCardContainer(),
+                selected = this.selected;
             // every time we select a node completely destroy the form and recreate it
             // as it could be different depending on the context
             if (Ext.getCmp('edit_panel')) {
-                container.remove(Ext.getCmp('edit_panel'), true);
+                container.details.remove(Ext.getCmp('edit_panel'), true);
             }
 
-            Zenoss.form.getGeneratedForm(uid, function(config){
-                container.add(Ext.apply({id:'edit_panel',
+            Zenoss.form.getGeneratedForm(selected.get("uid"), function(config){
+                container.details.add(Ext.apply({id:'edit_panel',
                                          autoScroll: true
                                         }, config));
-                container.layout.setActiveItem('edit_panel');
+                container.layout.setActiveItem(container.detailsPanel);
             });
+        },
+        setDevices: function() {
+            // setup a filter to only show devices for this collector
+            var grid = this.getCardContainer().devices,
+                selected = this.selected;
+            // set the parameter in the store
+            grid.getStore().setParamsParam('collector', selected.get('name'));
+            // display that it is filtered by collector in case that
+            // column is visible
+            grid.setFilter('collector', selected.get('name'));
+            // grid.getStore().load();
+        },
+        refreshDevices: function() {
+            this.getCardContainer().devices.refresh();
         }
     });
 })();
