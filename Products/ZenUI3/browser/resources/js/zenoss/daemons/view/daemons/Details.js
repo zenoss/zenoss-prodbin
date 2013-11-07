@@ -17,6 +17,7 @@
     var cards = Ext.create('Ext.data.Store', {
         fields: ['id', 'name'],
         data : [
+            {id: 'graphs', name: _t('Graphs')},
             {id: 'details', name: _t('Details')},
             {id: 'devices', name: _t('Devices')}
         ]
@@ -35,12 +36,18 @@
                 valueField: 'id',
                 displayField: 'name',
                 store: cards,
-                value: 'details'
+                value: 'graphs'
             }]
         }],
         layout: 'card',
         initComponent: function() {
             this.items = [{
+                id: 'graphs',
+                ref: 'graphs',
+                xtype:'graphpanel',
+                newWindowButton: true,
+                columns: 2
+            },{
                 xtype: 'panel',
                 ref: 'details',
                 id: 'details'
