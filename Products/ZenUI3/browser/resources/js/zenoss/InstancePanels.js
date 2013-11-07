@@ -82,13 +82,13 @@ Ext.define("Zenoss.SimpleInstanceGridPanel", {
             header: _t('Min Threshold'),
             width: 85,
             sortable: false,
-            hidden: !config.showProcessCount,
+            hidden: !config.showProcessCount
         }, {
             dataIndex: 'maxProcessCount',
             header: _t('Max Threshold'),
             width: 85,
             sortable: false,
-            hidden: !config.showProcessCount,
+            hidden: !config.showProcessCount
         }, {
             id: 'monitored',
             dataIndex: 'monitored',
