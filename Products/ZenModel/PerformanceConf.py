@@ -88,33 +88,33 @@ class PerformanceConfFactory(Factory):
             PerformanceConf, PerformanceConf.meta_type, "Performance Monitor"
         )
 
-    def __call__(self, monitorId, sourceId=None):
+    def __call__(self, folder, monitorId, sourceId=None):
         """
         Creates a new PerformanceConf object, saves it to ZODB, and returns
         the new object.
 
+        :param Folder folder: The new monitor is attached here.
         :param string monitorId: The ID/name of the monitor
         :param string sourceId: The ID/name of the monitor to copy
             properties from.
         :rtype PerformanceConf: The new monitor.
         """
-        perf = get_dmd().Monitors.Performance
         sourceId = sourceId if sourceId is not None else "localhost"
-        perfmon = perf.get(monitorId)
-        if perfmon:
+        monitor = folder.get(monitorId)
+        if monitor:
             raise ValueError(
                 "Performance Monitor with ID '%s' already exitsts."
                 % (monitorId,)
             )
-        sourcemon = perf.get(sourceId)
-        if sourcemon is None:
-            sourcemon = perf.get("localhost").primaryAq()
+        source = folder.get(sourceId)
+        if source is None:
+            source = folder.get("localhost").primaryAq()
         monitor = super(PerformanceConfFactory, self).__call__(monitorId)
-        if sourcemon:
-            sourceprops = dict(sourcemon.propertyItems())
+        if source:
+            sourceprops = dict(source.propertyItems())
             monitor.manage_changeProperties(**sourceprops)
-        perf[monitorId] = monitor
-        monitor = perf.get(monitorId)
+        folder[monitorId] = monitor
+        monitor = folder.get(monitorId)
         monitor.buildRelations()
         return monitor
 
