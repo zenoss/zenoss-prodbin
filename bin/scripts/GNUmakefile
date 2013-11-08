@@ -10,8 +10,6 @@
 .SUFFIXES:
 MAKEFLAGS     += -r
 
-SHELL = /usr/bin/bash
-
 #============================================================================
 # Build component configuration.
 #
