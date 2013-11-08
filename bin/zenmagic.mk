@@ -6,6 +6,10 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 #============================================================================
+
+# Set the shell to bash
+SHELL := $(shell /usr/bin/which bash)
+
 pkg  := zenoss # zenoss|zenoss_analytics|zenoss_impact|..
 _pkg := $(strip $(pkg))
 
