@@ -102,6 +102,26 @@ class ApplicationFacade(object):
         count = lastCount if lastCount else 200
         return '\n'.join(self._app.log.last(count))
 
+    @property
+    def startup(self):
+        return self._app.startup
+    
+    @property
+    def imageId(self):        
+        return self._app.imageId
+
+    @property
+    def poolId(self):
+        return self._app.poolId
+
+    @property
+    def createdAt(self):
+        return self._app.createdAt
+
+    @property
+    def instances(self):
+        return self._app.instances
+    
     def getConfig(self):
         """
         Retrieves the IConfig object of the application.

@@ -128,6 +128,26 @@ class DeployedApp(object):
             return DeployedAppLog(self._instance, self._client)
 
     @property
+    def imageId(self):        
+        return self._service._data['ImageId']
+
+    @property
+    def poolId(self):
+        return self._service._data['PoolId']
+
+    @property
+    def createdAt(self):
+        return self._service._data['CreatedAt']
+
+    @property
+    def instances(self):
+        return self._service._data['Instances']
+
+    @property
+    def startup(self):
+        return self._service._data['Startup']
+    
+    @property
     def autostart(self):
         """
         Boolean property indicating whether the application automatically

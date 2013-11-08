@@ -9,28 +9,7 @@
 (function(){
 
 
-    /**
-     * The store for the combobox that acts as the details
-     * menu. The id of the record MUST match the id of the  card we
-     * want to display when selecting that option from the combo.
-     **/
-    var collectorCards = Ext.create('Ext.data.Store', {
-            fields: ['id', 'name'],
-            idProperty: 'id',
-            data : [
-                {id: 'graphs', name: _t('Graphs')},
-                {id: 'details', name: _t('Details')},
-                {id: 'collectordevices', name: _t('Devices')}
-            ]
-    }),
-        daemonCards = Ext.create('Ext.data.Store', {
-            fields: ['id', 'name'],
-            idProperty: 'id',
-            data : [
-                {id: 'graphs', name: _t('Graphs')},
-                {id: 'details', name: _t('Details')}
-            ]
-    });
+
     Ext.define('Daemons.view.daemons.Details' ,{
         extend: 'Ext.Panel',
         alias: 'widget.daemonsdetails',
@@ -44,17 +23,6 @@
                 labelWidth: 50,
                 valueField: 'id',
                 displayField: 'name',
-                store: collectorCards,
-                value: 'graphs'
-            }, {
-                xtype: 'combo',
-                hidden: true,
-                ref: 'daemonmenucombo',
-                fieldLabel: _t('Display'),
-                labelWidth: 50,
-                valueField: 'id',
-                displayField: 'name',
-                store: daemonCards,
                 value: 'graphs'
             }]
         }],
