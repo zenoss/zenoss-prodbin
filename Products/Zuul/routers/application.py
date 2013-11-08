@@ -13,6 +13,7 @@ from Products.ZenMessaging.audit import audit
 from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.interfaces import IInfo, ITreeNode
+from Products.Zuul.form.interfaces import IFormBuilder
 from Products import Zuul
 
 
@@ -37,9 +38,9 @@ class ApplicationRouter(TreeRouter):
         @return:  Object representing the tree
         """
         # this will create two "fake" nodes to organize
-        # what we are displaying for the user. 
+        # what we are displaying for the user.
         facade = self._getFacade()
-        applications = facade.query()        
+        applications = facade.query()
         infos = map(IInfo, applications)
         data = Zuul.marshal(infos)
 
@@ -66,6 +67,23 @@ class ApplicationRouter(TreeRouter):
             'expanded': True
         }
         return [daemonNode, collectorNode]
+
+    def getForm(self, uid):
+        """
+        Given an object identifier, this returns all of the editable fields
+        on that object as well as their ExtJs xtype that one would
+        use on a client side form.
+
+        @type  uid: string
+        @param uid: Unique identifier of an object
+        @rtype:   DirectResponse
+        @return:  B{Properties}
+           - form: (dictionary) form fields for the object
+        """
+        info = self._getFacade().get(uid)
+        form = IFormBuilder(IInfo(info)).render(fieldsets=False)
+        form = Zuul.marshal(form)        
+        return DirectResponse(form=form)
 
     def start(self, uids):
         """

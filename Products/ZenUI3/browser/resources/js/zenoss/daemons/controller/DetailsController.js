@@ -24,9 +24,6 @@
         }, {
             ref: 'menuCombo',
             selector: 'combobox[ref="menucombo"]'
-        }, {
-            ref: 'daemonMenuCombo',
-            selector: 'combobox[ref="daemonmenucombo"]'
         }],
         init: function() {
             this.control({
@@ -64,23 +61,25 @@
                 this.setDaemonDetails();
             }
         },
+        syncMenus: function(type){
+            var store = this.getMenuStore(type),
+                combo = this.getMenuCombo(),
+                value = combo.getValue();
+            if (!store.getById(value)) {
+                value = 'graphs';
+            }
+            combo.bindStore(store, true);
+            combo.setValue(value);
+        },
         setDaemonDetails: function() {
-            var collectorMenu =this.getMenuCombo(),
-                daemonMenu = this.getDaemonMenuCombo(), value = collectorMenu.getValue();
-            // if (daemonMenu.store.getById(collectorMenu.getValue())) {
-            //     daemonMenu.setValue(collectorMenu.getValue());
-            // }
-            collectorMenu.hide();
-            daemonMenu.show();
+            this.syncMenus('daemon');
             var actions = {
-                details: function(){
-                    console.log('details');
-                },
+                details: this.setDaemonDetailsPanel,
                 graphs: function() {
                     console.log('graphs');
                 }
             },
-                selectedMenuItem = this.getDaemonMenuCombo().getValue(),
+                selectedMenuItem = this.getMenuCombo().getValue(),
                 action = actions[selectedMenuItem];
             Ext.bind(action, this)();
         },
@@ -89,20 +88,17 @@
          * and populate that detail panel.
          **/
         setCollectorDetails: function() {
-            // this.getMenuCombo().setValue(this.getDaemonMenuCombo().getValue());
-            this.getMenuCombo().show();
-            this.getDaemonMenuCombo().hide();
-
+            this.syncMenus('collector');
             var actions = {
-                details: this.setDetails,
-                devices: this.setDevices,
+                details: this.setDetailsPanel,
+                collectordevices: this.setDevices,
                 graphs: this.setGraphs
             },
                 selectedMenuItem = this.getMenuCombo().getValue(),
                 action = actions[selectedMenuItem];
             Ext.bind(action, this)();
         },
-        setDetails:function() {
+        setDetailsPanel:function(router) {
             var container = this.getCardContainer(),
                 selected = this.selected;
             // every time we select a node completely destroy the form and recreate it
@@ -116,7 +112,10 @@
                                          autoScroll: true
                                         }, config));
                 container.layout.setActiveItem(container.details);
-            });
+            }, router);
+        },
+        setDaemonDetailsPanel: function() {
+            this.setDetailsPanel(Zenoss.remote.ApplicationRouter);
         },
         setDevices: function() {
             // setup a filter to only show devices for this collector
@@ -127,13 +126,40 @@
             // display that it is filtered by collector in case that
             // column is visible
             grid.setFilter('collector', selected.get('name'));
-            // grid.getStore().load();
         },
         setGraphs: function() {
             this.getCardContainer().graphs.setContext(this.selected.get('uid'));
         },
         refreshDevices: function() {
             this.getCardContainer().devices.refresh();
+        },
+        /**
+         * This is a factory method for fetching the appropiate menu based
+         * on the type. Type can be collector, application or hub
+         **/
+        getMenuStore: function(type) {
+            var menu;
+            if (type == 'collector') {
+                menu = Ext.create('Ext.data.Store', {
+                    fields: ['id', 'name'],
+                    idProperty: 'id',
+                    data : [
+                        {id: 'graphs', name: _t('Graphs')},
+                        {id: 'details', name: _t('Details')},
+                        {id: 'collectordevices', name: _t('Devices')}
+                    ]
+                });
+            } else {
+                menu = Ext.create('Ext.data.Store', {
+                    fields: ['id', 'name'],
+                    idProperty: 'id',
+                    data : [
+                        {id: 'graphs', name: _t('Graphs')},
+                        {id: 'details', name: _t('Details')}
+                    ]
+                });
+            }
+            return menu;
         }
     });
 })();
