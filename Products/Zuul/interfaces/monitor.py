@@ -49,7 +49,7 @@ class IMonitorInfo(IInfo):
     pingTries = Int(title=_t("Ping Tries"),
     description=_t("Number of times zenping will attempt to ping a device"))
     
-    pingCycleInterval = Int(title=_t("Ping Cycle Interval"),
+    pingCycleInterval = Int(title=_t("Ping Cycle Interval (seconds)"),
     description=_t("How often zenping will attempt to ping devices"))
         
     modelerCycleInterval = Int(title=_t("Modeler Cycle Interval (minutes)"),
