@@ -9,6 +9,9 @@
 .DEFAULT_GOAL := help # build|help
 
 PROGRAM = pyraw
+# This should change to reference the python exported within
+# the build sandbox rather than point to installed python.
+zenoss_pydeveldir ?= $(_DESTDIR)$(prefix)
 
 # Define install-related attributes.
 
@@ -64,8 +67,8 @@ ifeq "$(WITH_ZENOSS_PYTHON_DEVEL)" "yes"
     #        obj
     #---------------------------------------------------------------------------#
 
-    PYTHON_INCDIR  = $(DESTDIR)$(ZENHOME)/include/python$(PYTHON_MAJ_MIN_VER)
-    PYTHON_LIBDIR  = $(DESTDIR)$(ZENHOME)/lib
+    PYTHON_INCDIR  = $(zenoss_pydeveldir)/include/python$(PYTHON_MAJ_MIN_VER)
+    PYTHON_LIBDIR  = $(zenoss_pydeveldir)/lib
 
     # Make Zenoss more relocatable by removing hardcoded shared-libary
     # search path dependency upon /opt/zenoss/lib

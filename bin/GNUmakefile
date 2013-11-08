@@ -15,7 +15,7 @@
 # Don't let your editor turn tabs into spaces or vice versa.
 #============================================================================
 COMPONENT = bin
-programs  = pyraw zensocket
+programs  = python pyraw zensocket
 scripts   = scripts
 
 #============================================================================
@@ -60,7 +60,10 @@ help: dflt_component_help
 build: $(programs) $(scripts)
 
 .PHONY: $(programs)
-$(programs): | $@
+python: | $@
+	cd $@ && make build export bldtop=$(abspath build/$@)
+
+$(filter-out python,$(programs)): | $@
 	cd $@ && make build blddir=$(abspath build/$@)
 
 .PHONY: $(scripts)
