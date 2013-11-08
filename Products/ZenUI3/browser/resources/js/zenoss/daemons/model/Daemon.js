@@ -32,6 +32,12 @@
             type: 'direct',
             directFn: appRouter.getTree,
             paramOrder: ['uid']
+        },
+        isCollector: function() {
+            return this.get('type') == 'collector';
+        },
+        isDaemon: function() {
+            return this.get('type') == 'daemon';
         }
     });
 

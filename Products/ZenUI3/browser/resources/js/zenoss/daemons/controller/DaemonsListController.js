@@ -74,7 +74,10 @@
                 },
                 // update the details information
                 'daemonslist': {
-                    select: this.setupDetails
+                    select: this.setupDetails,
+                    beforeselect: function(sm, node, oldNode) {
+                        return node.isLeaf();
+                    }
                 },
                 'daemonslist treeview': {
                     beforedrop: this.assignDevicesToCollector

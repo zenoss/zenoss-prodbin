@@ -37,6 +37,10 @@ class ApplicationInfo(object):
         return self._object.name
 
     @property
+    def type(self):
+        return "daemon"
+    
+    @property
     def uid(self):
         return self._object.id
 
