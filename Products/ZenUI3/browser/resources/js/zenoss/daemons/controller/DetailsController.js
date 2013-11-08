@@ -24,6 +24,9 @@
         }, {
             ref: 'menuCombo',
             selector: 'combobox[ref="menucombo"]'
+        }, {
+            ref: 'daemonMenuCombo',
+            selector: 'combobox[ref="daemonmenucombo"]'
         }],
         init: function() {
             this.control({
@@ -62,13 +65,34 @@
             }
         },
         setDaemonDetails: function() {
-            // TODO: actually implement details
+            var collectorMenu =this.getMenuCombo(),
+                daemonMenu = this.getDaemonMenuCombo(), value = collectorMenu.getValue();
+            // if (daemonMenu.store.getById(collectorMenu.getValue())) {
+            //     daemonMenu.setValue(collectorMenu.getValue());
+            // }
+            collectorMenu.hide();
+            daemonMenu.show();
+            var actions = {
+                details: function(){
+                    console.log('details');
+                },
+                graphs: function() {
+                    console.log('graphs');
+                }
+            },
+                selectedMenuItem = this.getDaemonMenuCombo().getValue(),
+                action = actions[selectedMenuItem];
+            Ext.bind(action, this)();
         },
         /**
          * Figure out what we are displaying for collectors
          * and populate that detail panel.
          **/
         setCollectorDetails: function() {
+            // this.getMenuCombo().setValue(this.getDaemonMenuCombo().getValue());
+            this.getMenuCombo().show();
+            this.getDaemonMenuCombo().hide();
+
             var actions = {
                 details: this.setDetails,
                 devices: this.setDevices,
