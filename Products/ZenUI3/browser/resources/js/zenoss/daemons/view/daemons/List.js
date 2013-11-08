@@ -112,9 +112,12 @@
                 dataIndex: 'id',
                 sortable: true,
                 renderer: function(value, m, record) {
-                    return Ext.String.format("<a target='_blank' href='/zport/dmd/getDaemonLogs?id={0}'>{1}</a>",
-                                             value,
-                                             _t('View Logs'));
+                    if (record.isDaemon()) {
+                        return Ext.String.format("<a target='_blank' href='/zport/dmd/getDaemonLogs?id={0}'>{1}</a>",
+                                                 value,
+                                                 _t('View Logs'));
+                    }
+                    return "";
                 }
             },{
                 xtype: 'actioncolumn',
@@ -125,6 +128,9 @@
                 ref: 'autostart',
                 sortable: true,
                 getClass: function(v, m, record) {
+                    if (!record.isDaemon()) {
+                        return "";
+                    }
                     if (record.data.autostart) {
                         return 'grid-action checked enabled';
                     } else {
@@ -143,7 +149,20 @@
                 items: [{
                     icon: '/++resource++zenui/img/ext4/icon/circle_arrows_still.png',
                     iconCls: 'restarticon'
-                }]
+                }],
+                renderer: function(value, meta, record) {
+                    if (record.isDaemon()) {
+                        return '<img class="x-action-col-icon x-action-col-0 restarticon" src="/++resource++zenui/img/ext4/icon/circle_arrows_still.png" alt="">';
+                    }
+                    return "";
+                },
+                /**
+                 * Action columns expect an image so override the
+                 * defaultRenderer to just use the supplied renderer
+                 **/
+                defaultRenderer: function(v, meta, record, rowIdx, colIdx, store, view) {
+                    return this.origRenderer.apply(this, arguments);
+                }
             },{
                 text: _t('State'),
                 flex: .25,

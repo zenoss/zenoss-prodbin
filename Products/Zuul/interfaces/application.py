@@ -30,10 +30,6 @@ class IApplicationInfo(IInfo):
     state = TextLine(title=_t("State"),
                      description=_t("Current running state of the application"),
                      readonly=True)
-    
-    upTime = TextLine(title=_t("UpTime"),
-                      description=_t("How long this daemon has been running"),
-                      readonly=True)
 
     startup = TextLine(title=_t("Startup"),
                       description=_t("The command that this deamon runs when starting up"),
