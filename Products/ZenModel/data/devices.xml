@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-09-20 18:47:43.653564
+    Zenoss RelationshipManager export completed on 2013-11-11 13:57:18.430271
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.9.70]" export_date="2013-09-20 18:47:43.653564" zenoss_server="jcrocker-424.zenoss.loc" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-11 13:57:18.430271" zenoss_server="jhanson-desktop" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -573,8 +573,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -633,8 +639,14 @@ False
 <property type="boolean" id="base" mode="w" >
 True
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -693,8 +705,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1291,8 +1309,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1380,8 +1404,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1469,8 +1499,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2093,8 +2129,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2182,8 +2224,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2271,8 +2319,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2673,8 +2727,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2744,8 +2804,14 @@ False
 <property type="boolean" id="base" mode="w" >
 True
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3588,8 +3654,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3659,8 +3731,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3777,8 +3855,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3840,8 +3924,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3900,8 +3990,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3963,8 +4059,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -4162,8 +4264,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 100
@@ -5212,8 +5320,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -5362,8 +5476,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -5451,8 +5571,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -5589,8 +5715,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 100
@@ -6114,8 +6246,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -6185,8 +6323,14 @@ False
 <property type="boolean" id="base" mode="w" >
 True
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -6248,8 +6392,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -6441,8 +6591,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -7385,8 +7541,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -7535,8 +7697,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -7624,8 +7792,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -7762,8 +7936,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 100
@@ -8708,8 +8888,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -8858,8 +9044,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -8947,8 +9139,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -9085,8 +9283,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 100
@@ -9818,8 +10022,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -9889,8 +10099,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -10007,8 +10223,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -10125,8 +10347,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -10185,8 +10413,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -10484,8 +10718,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 100
@@ -10558,8 +10798,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -10956,8 +11202,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -11045,8 +11297,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -11134,8 +11392,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -11561,8 +11825,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -11621,8 +11891,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -11681,8 +11957,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-09-20 18:48:37.701669
+    Zenoss RelationshipManager export completed on 2013-11-11 13:57:40.140653
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.9.70]" export_date="2013-09-20 18:48:37.701669" zenoss_server="jcrocker-424.zenoss.loc" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-11 13:57:40.140653" zenoss_server="jhanson-desktop" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -693,8 +693,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -808,8 +814,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -868,8 +880,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -983,8 +1001,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1101,8 +1125,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1433,8 +1463,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1490,8 +1526,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1692,8 +1734,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2561,8 +2609,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2676,8 +2730,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2736,8 +2796,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2851,8 +2917,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2969,8 +3041,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3301,8 +3379,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3358,8 +3442,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3560,8 +3650,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3772,20 +3868,14 @@ PerformanceConf
 <property type="int" id="winCycleInterval" mode="w" >
 60
 </property>
-<property description="Number of data objects to retrieve in a single WMI query" type="int" id="wmibatchSize" mode="w" >
+<property mode="w" type="int" description="Number of data objects to retrieve in a single WMI query" id="wmibatchSize" >
 10
 </property>
-<property description="Number of milliseconds to wait for WMI query to respond" type="int" id="wmiqueryTimeout" mode="w" >
+<property mode="w" type="int" description="Number of milliseconds to wait for WMI query to respond" id="wmiqueryTimeout" >
 100
 </property>
 <property type="int" id="configCycleInterval" mode="w" >
 360
-</property>
-<property type="string" id="renderurl" mode="w" >
-/zport/RenderServer
-</property>
-<property type="lines" id="defaultRRDCreateCommand" mode="w" >
-('RRA:AVERAGE:0.5:1:600', 'RRA:AVERAGE:0.5:6:600', 'RRA:AVERAGE:0.5:24:600', 'RRA:AVERAGE:0.5:288:600', 'RRA:MAX:0.5:6:600', 'RRA:MAX:0.5:24:600', 'RRA:MAX:0.5:288:600')
 </property>
 <property type="int" id="zenProcessParallelJobs" mode="w" >
 10
@@ -3810,6 +3900,12 @@ PerformanceConf
 </property>
 <property type="lines" id="discoveryNetworks" mode="w" >
 ()
+</property>
+<property visible="True" type="string" id="renderurl" >
+/zport/RenderServer
+</property>
+<property visible="True" type="lines" id="defaultRRDCreateCommand" >
+('RRA:AVERAGE:0.5:1:600', 'RRA:AVERAGE:0.5:6:600', 'RRA:AVERAGE:0.5:24:600', 'RRA:AVERAGE:0.5:288:600', 'RRA:MAX:0.5:6:600', 'RRA:MAX:0.5:24:600', 'RRA:MAX:0.5:288:600')
 </property>
 </object>
 </object>
