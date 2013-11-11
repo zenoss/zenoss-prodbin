@@ -43,7 +43,7 @@ class IApplicationInfo(IInfo):
                       description=_t("The resource pool this daemon is running under."),
                       readonly=True)
 
-    createdAt = TextLine(title=_t("Create At"),
+    createdAt = TextLine(title=_t("Created At"),
                       description=_t("The time this deamon was created at."),
                       readonly=True)
 
