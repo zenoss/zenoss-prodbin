@@ -76,7 +76,7 @@
             var actions = {
                 details: this.setDaemonDetailsPanel,
                 graphs: function() {
-                    console.log('graphs');
+                    this.getCardContainer().graphs.removeAll();
                 }
             },
                 selectedMenuItem = this.getMenuCombo().getValue(),
