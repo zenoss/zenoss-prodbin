@@ -1270,7 +1270,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 }
 
                 function encoder(element, index, array) { array[index] = Ext.htmlEncode(element); }
-                desc.forEach(encoder);
+                Ext.Array.each(desc, encoder);
 
                 // avoid a rendering of the grid if the title
                 // hasn't changed

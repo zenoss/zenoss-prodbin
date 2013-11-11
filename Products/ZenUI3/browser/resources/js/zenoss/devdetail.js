@@ -63,6 +63,7 @@ var REMOTE = Zenoss.remote.DeviceRouter,
                     selectOnRender(child, target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel.getSelectionModel());
                 }
             }
+
         }
     };
 
@@ -471,7 +472,8 @@ var hwosInformation = {
 
 var overview = {
     xtype: 'deviceoverview',
-    id: 'device_overview'
+    id: 'device_overview',
+    hidden: true
 };
 
 Zenoss.EventActionManager.configure({
@@ -617,13 +619,19 @@ Ext.define('Zenoss.DeviceDetailNav', {
         sel = sm.getSelectedNode(),
         token = Ext.History.getToken(),
         panelid = tree.ownerCt.id;
+        // we are deeplinking to the node
         if (!sel && token && token.slice(0,panelid.length)==panelid) {
+
             var parts = token.split(Ext.History.DELIMITER),
             type = parts[1],
             rest = parts.slice(2).join(Ext.History.DELIMITER);
             if (type) {
+
                 var tosel = rootNode.findChild('id', type);
                 if (tosel) {
+                    // bug in ExtJS Card Layout deferred renderer where the
+                    // first item is not actually hidden.
+                    Ext.getCmp('device_overview').hide();
                     tree.on('afterrender', function() {
                         selectOnRender(tosel, sm);
                     }, this, {single:true});

@@ -275,7 +275,7 @@
             // means that if we collect at less than a minute the
             // values will be averaged out.
             visconfig.downsample = '1m-avg';
-            DOWNSAMPLE.forEach(function(v) {
+            Ext.Array.each(DOWNSAMPLE,function(v) {
                 if (delta >= v[0]) {
                     visconfig.downsample = v[1];
                 }
@@ -404,7 +404,7 @@
                 delta = rangeToMilliseconds(gp.start);
             }
             changes.downsample = '1m-avg';
-            DOWNSAMPLE.forEach(function(v) {
+            Ext.Array.each(DOWNSAMPLE, function(v) {
                 if (delta >= v[0]) {
                     changes.downsample = v[1];
                 }
