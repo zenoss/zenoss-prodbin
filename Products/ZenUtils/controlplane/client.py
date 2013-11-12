@@ -160,13 +160,13 @@ class ControlPlaneClient(object):
         log = json.loads(body)
         return log["Detail"]
 
-    def killInstance(self, instanceId):
+    def killInstance(self, hostId, instanceId):
         """
         """
-        #response = self._dorequest(
-        #    "/running/%s" % instanceId, method="DELETE"
-        #)
-        #response.close()
+        response = self._dorequest(
+            "/hosts/%s/%s" % (hostId, instanceId), method="DELETE"
+        )
+        response.close()
 
     def getServiceConfiguration(self, uri):
         """

@@ -173,6 +173,10 @@ class ServiceInstance(object):
         return self._data.get("ServiceId")
 
     @property
+    def hostId(self):
+        return self._data.get("HostId")
+
+    @property
     def startedAt(self):
         src = self._data.get("StartedAt")        
         trimmed = src[:19]
@@ -269,17 +273,6 @@ class ServiceDefinition(object):
     def configResourceId(self):
         return self._data.get("ConfigurationId")
 
-    #def update(self, data):
-    #    """
-    #    Update this ServiceDefinition from another ServiceDefinition.
-    #    """
-    #    self._data["Instances"] = data["Instances"]
-    #    self._data["PoolId"] = data["PoolId"]
-    #    self._data["DesiredState"] = data["DesiredState"]
-    #    self._data["Launch"] = data["Launch"]
-    #    self._data["ParentServiceId"] = data["ParentServiceId"]
-    #    self._data["UpdatedAt"] = data["UpdatedAt"]
-
 
 class ServiceDefinitionFactory(Factory):
     """
@@ -295,5 +288,7 @@ class ServiceDefinitionFactory(Factory):
 
 # Define the names to export via 'from data import *'.
 __all__ = (
-    "ServiceJsonDecoder", "ServiceJsonEncoder", "ServiceDefinition"
+    "ServiceJsonDecoder", "ServiceJsonEncoder",
+    "ServiceDefinition", "ServiceDefinitionFactory",
+    "ServiceInstance", "ServiceInstanceFactory"
 )
