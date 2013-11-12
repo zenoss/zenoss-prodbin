@@ -7,22 +7,18 @@
 #
 ##############################################################################
 
-import copy
 import logging
-from datetime import datetime
-from zope.component import getUtility, getAdapter
+from zope.component import getUtility
 from zope.interface import implementer
 
-from Products.Zuul.interfaces import (
-    IApplicationManagerFacade, IApplicationFacade
-)
 from Products.ZenUtils.application import IApplicationManager
+from Products.Zuul.interfaces import IApplicationFacade
 
 LOG = logging.getLogger("Zuul.facades")
 
 
-@implementer(IApplicationManagerFacade)
-class ApplicationManagerFacade(object):
+@implementer(IApplicationFacade)
+class ApplicationFacade(object):
     """
     """
 
@@ -36,13 +32,10 @@ class ApplicationManagerFacade(object):
         """
         Returns a sequence of IApplicationFacade objects.
         """
-        args = {"name": name} if name else {}
-        result = self._svc.query(**args)
+        result = self._svc.query(name=name, tags=["daemon"])
         if not result:
             return ()
-        return tuple(
-            getAdapter(app, IApplicationFacade) for app in result
-        )
+        return tuple(result)
 
     def get(self, id, default=None):
         """
@@ -51,103 +44,38 @@ class ApplicationManagerFacade(object):
         app = self._svc.get(id, default)
         if not app:
             return default
-        return getAdapter(app, IApplicationFacade)
+        return app
 
+    def getLog(self, id, lastCount=None):
+        app = self._svc.get(id)
+        if not app:
+            raise RuntimeError("No such application '%s'" % (id,))
+        if app.log:
+            count = lastCount if lastCount else 200
+            return '\n'.join(app.log.last(count))
+        else:
+            return ''  # not running, so no log.
 
-@implementer(IApplicationFacade)
-class ApplicationFacade(object):
-    """
-    """
-
-    def __init__(self, app):
-        self._svc = getUtility(IApplicationManager)
-        self._app = app
-
-    @property
-    def id(self):
-        return self._app.id
-
-    @property
-    def name(self):
-        return self._app.name
-
-    @property
-    def description(self):
-        return self._app.description
-
-    @property
-    def state(self):
-        return str(self._app.state)
-
-    @property
-    def startedAt(self):
-        return self._app.startedAt
-
-    @property
-    def uptime(self):
-        self.state
-        started = self.startedAt
-        if started:
-            return str(datetime.today() - started)
-
-    @property
-    def autostart(self):
-        return self._app.autostart
-
-    @autostart.setter
-    def autostart(self, value):
-        self._app.autostart = value
-
-    def getLog(self, lastCount=None):
-        count = lastCount if lastCount else 200
-        return '\n'.join(self._app.log.last(count))
-
-    @property
-    def startup(self):
-        return self._app.startup
-    
-    @property
-    def imageId(self):        
-        return self._app.imageId
-
-    @property
-    def poolId(self):
-        return self._app.poolId
-
-    @property
-    def createdAt(self):
-        return self._app.createdAt
-
-    @property
-    def instances(self):
-        return self._app.instances
-    
-    def getConfig(self):
-        """
-        Retrieves the IConfig object of the application.
-        """
-        pass
-
-    def setConfig(self, config):
-        """
-        Sets the config of the application.
-        """
-        pass
-
-    def start(self):
+    def start(self, appId):
         """
         Starts the application.
         """
-        self._app.start()
+        app = self._svc.get(appId)
+        if app:
+            app.start()
 
-    def stop(self):
+    def stop(self, appId):
         """
         Stops the application.
         """
-        self._app.stop()
+        app = self._svc.get(appId)
+        if app:
+            app.stop()
 
-    def restart(self):
+    def restart(self, appId):
         """
         Restarts the application.
         """
-        self._app.restart()
+        app = self._svc.get(appId)
+        if app:
+            app.restart()

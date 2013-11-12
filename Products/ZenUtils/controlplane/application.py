@@ -36,12 +36,11 @@ class DeployedAppLookup(object):
         self._client = ControlPlaneClient()
         self._appcache = {}
 
-    def query(self, name=None):
+    def query(self, name=None, tags=None):
         """
         Returns a sequence of IApplication objects.
         """
-        args = {"name": name} if name else {}
-        result = self._client.queryServices(**args)
+        result = self._client.queryServices(name=name, tags=tags)
         if not result:
             return ()
         return tuple(self._getApp(service) for service in result)
@@ -209,5 +208,7 @@ class DeployedAppLog(object):
 
         :rtype str:
         """
-        result = self._client.getInstanceLog(self._instance.id)
+        result = self._client.getInstanceLog(
+            self._instance.serviceId, self._instance.id
+        )
         return result.split("\n")[-count:]

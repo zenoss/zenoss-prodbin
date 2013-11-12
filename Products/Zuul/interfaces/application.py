@@ -7,8 +7,7 @@
 #
 ##############################################################################
 
-from zope.interface import Attribute
-from ..form.schema import TextLine
+from ..form.schema import TextLine, Bool
 from ..utils import ZuulMessageFactory as _t
 from . import IInfo, IFacade
 
@@ -42,41 +41,31 @@ class IApplicationInfo(IInfo):
         readonly=True
     )
 
+    text = TextLine(
+        title=_t("Text"), description=_t("Synonym for name."), readonly=True
+    )
+
+    qtip = TextLine(
+        title=_t("QTip"), description=_t("Synonym for description."),
+        readonly=True
+    )
+
+    isRestarting = Bool(
+        title=_t("Restarting"),
+        description=_t("True if the application is restarting."),
+        readonly=True
+    )
+
+    uptime = TextLine(
+        title=_t("Uptime"),
+        description=_t("How long the application been running."),
+        readonly=True
+    )
+
 
 class IApplicationFacade(IFacade):
     """
-    Interface for controlling and inspecting Zenoss applications.
-    """
-
-    name = Attribute("Name of the application")
-    description = Attribute("Brief description of the application's function")
-    autostart = Attribute("True if the application will run on startup")
-    config = Attribute("The application configuration object")
-
-    def getLog(lastCount):
-        """
-        Returns the given last count of lines of the log (as a string).
-        """
-
-    def start():
-        """
-        Starts the named application.
-        """
-
-    def stop():
-        """
-        Stops the named application.
-        """
-
-    def restart(name):
-        """
-        Restarts the named application.
-        """
-
-
-class IApplicationManagerFacade(IFacade):
-    """
-    Interface for locating Zenoss applications.
+    Interface for managing Zenoss applications.
     """
 
     def query(name=None):
@@ -90,6 +79,19 @@ class IApplicationManagerFacade(IFacade):
         The default argument is returned if the application doesn't exist.
         """
 
-__all__ = (
-    "IApplicationManagerFacade", "IApplicationFacade", "IApplicationInfo"
-)
+    def start(appId):
+        """
+        Starts the identified application.
+        """
+
+    def stop(appId):
+        """
+        Stops the identified application.
+        """
+
+    def restart(appId):
+        """
+        Restarts the identified application.
+        """
+
+__all__ = ("IApplicationFacade", "IApplicationInfo")

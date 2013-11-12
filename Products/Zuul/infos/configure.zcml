@@ -271,7 +271,7 @@
 
    <adapter factory=".application.ApplicationInfo"
             provides="Products.Zuul.interfaces.IApplicationInfo"
-            for="Products.Zuul.interfaces.IApplicationFacade"
+            for="Products.ZenUtils.application.IApplication"
             />
 
    <adapter factory=".monitor.MonitorTreeNode"

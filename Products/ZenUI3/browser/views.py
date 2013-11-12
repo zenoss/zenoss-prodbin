@@ -99,9 +99,11 @@ class GetDaemonLogs(BrowserView):
             response.write("id parameter is missing")
             return
         facade = Zuul.getFacade('applications', self.context)
-        app = facade.get(id)
-        if app is None:
-            response.write("Unable to find service with id %s" % id)
-            return        
-        self.request.response.setHeader('Content-Type', 'text/plain')        
-        response.write(str(app.getLog()))
+        try:
+            log = facade.getLog(id)
+            self.request.response.setHeader('Content-Type', 'text/plain')
+            response.write(log)
+        except Exception as ex:
+            response.write(
+                "Unable to find service with id %s: %s" % (id, ex)
+            )
