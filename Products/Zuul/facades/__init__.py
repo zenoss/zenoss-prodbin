@@ -249,5 +249,5 @@ from .jobsfacade import JobsFacade
 from .eventclassesfacade import EventClassesFacade
 from .manufacturersfacade import ManufacturersFacade
 from .metricfacade import MetricFacade
-from .application import ApplicationManagerFacade, ApplicationFacade
+from .application import ApplicationFacade
 from .monitor import MonitorFacade

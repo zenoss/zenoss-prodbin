@@ -7,6 +7,7 @@
 #
 ##############################################################################
 
+from datetime import datetime
 from zope.interface import implementer
 from Products.Zuul.interfaces import IApplicationInfo
 
@@ -16,13 +17,13 @@ class ApplicationInfo(object):
     """
     """
 
-    def __init__(self, facade):
+    def __init__(self, app):
         """
         Initialize an instance of ApplicationInfo.
 
-        :param IApplicationFacade application: The facade.
+        :param IApplication application: The application.
         """
-        self._object = facade
+        self._object = app
 
     @property
     def id(self):
@@ -62,11 +63,13 @@ class ApplicationInfo(object):
 
     @property
     def uptime(self):
-        return self._object.uptime
+        started = self._object.startedAt
+        if started:
+            return str(datetime.today() - started)
 
     @property
     def state(self):
-        return self._object.state
+        return str(self._object.state)
 
     @property
     def leaf(self):

@@ -61,7 +61,7 @@ class IApplicationManager(Interface):
     For identifying and locating Zenoss applications.
     """
 
-    def query(name=None):
+    def query(name=None, tags=None):
         """
         Returns a sequence of IApplication objects that match the
         given expression.  If no expression is provided, then all
