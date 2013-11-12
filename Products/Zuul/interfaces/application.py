@@ -8,49 +8,46 @@
 ##############################################################################
 
 from zope.interface import Attribute
-from Products.Zuul.interfaces import IFacade, IInfo
 from ..form.schema import TextLine
-from . import IInfo, ITreeNode, IFacade
-from Products.Zuul.utils import ZuulMessageFactory as _t
+from ..utils import ZuulMessageFactory as _t
+from . import IInfo, IFacade
 
 
 class IApplicationInfo(IInfo):
     """
     Read-only set of attributes describing a Zenoss application.
     """
-    id = TextLine(title=_t("ID"),
-        description=_t("Identifier of the running service"), readonly=True)
-    
-    description = TextLine(title=_t("Description"),
-                           description=_t("Brief description of the application's function"),
-                           readonly=True)
-    autostart = TextLine(title=_t("AutoStart"),
-                         description=_t("True if the application will run on startup"), readonly=True)
-    
-    state = TextLine(title=_t("State"),
-                     description=_t("Current running state of the application"),
-                     readonly=True)
 
-    startup = TextLine(title=_t("Startup"),
-                      description=_t("The command that this deamon runs when starting up"),
-                      readonly=True)
+    id = TextLine(
+        title=_t("ID"),
+        description=_t("Identifier of the running service"),
+        readonly=True
+    )
 
-    imageId = TextLine(title=_t("Image ID"),
-                      description=_t("Image ID for this daemon."),
-                      readonly=True)
+    description = TextLine(
+        title=_t("Description"),
+        description=_t("Brief description of the application's function"),
+        readonly=True
+    )
 
-    poolId = TextLine(title=_t("Pool ID"),
-                      description=_t("The resource pool this daemon is running under."),
-                      readonly=True)
+    autostart = TextLine(
+        title=_t("AutoStart"),
+        description=_t("True if the application will run on startup"),
+        readonly=True
+    )
 
-    createdAt = TextLine(title=_t("Created At"),
-                      description=_t("The time this deamon was created at."),
-                      readonly=True)
+    state = TextLine(
+        title=_t("State"),
+        description=_t("Current running state of the application"),
+        readonly=True
+    )
 
-    instances = TextLine(title=_t("Running Instances"),
-                      description=_t("How many instances of this deamon are running."),
-                      readonly=True)
-    
+    poolId = TextLine(
+        title=_t("Pool ID"),
+        description=_t("The resource pool this daemon is running under."),
+        readonly=True
+    )
+
 
 class IApplicationFacade(IFacade):
     """
