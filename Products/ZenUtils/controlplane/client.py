@@ -11,12 +11,12 @@
 ControlPlaneClient
 """
 
+import fnmatch
 import json
 import urllib
 import urllib2
 
 from cookielib import CookieJar
-from fnmatch import fnmatch
 from urlparse import urlunparse
 
 from Products.ZenUtils.GlobalConfig import globalConfToDict
@@ -56,6 +56,10 @@ def _getDefaults(options=None):
     return settings
 
 
+def _convertPattern(glob, pattern):
+    """
+    """
+
 class ControlPlaneClient(object):
     """
     """
@@ -72,17 +76,29 @@ class ControlPlaneClient(object):
         self._settings = _getDefaults()
         self._netloc = "%(host)s:%(port)s" % self._settings
 
-    def queryServices(self, name="*", **kwargs):
+    def queryServices(self, name=None, **kwargs):
         """
         Returns a sequence of ServiceDefinition objects that match
         the given requirements.
         """
-        query = {"Name": name}
+        query = {}
+        if name:
+            namepat = fnmatch.translate(name)
+            # controlplane regex accepts \z, not \Z.
+            namepat = namepat.replace("\\Z", "\\z")
+            query["name"] = namepat
+        if "tags" in kwargs:
+            tags = kwargs.pop("tags")
+            if isinstance(tags, (str, unicode)):
+                tags = [tags]
+            query["tags"] = ','.join(tags)
         response = self._dorequest("/services", query=query)
         body = ''.join(response.readlines())
         response.close()
         decoded = ServiceJsonDecoder().decode(body)
-        return [app for app in decoded if fnmatch(app.name, name)]
+        if decoded is None:
+            decoded = []
+        return decoded
 
     def getService(self, serviceId, default=None):
         """

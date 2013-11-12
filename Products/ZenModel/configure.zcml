@@ -36,7 +36,7 @@
         provides=".interfaces.IAction"
         name="command"
         />
-    
+
     <utility
         factory=".actions.SNMPTrapAction"
         provides=".interfaces.IAction"

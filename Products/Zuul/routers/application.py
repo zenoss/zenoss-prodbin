@@ -46,7 +46,7 @@ class ApplicationRouter(TreeRouter):
 
         # collectors
         monitorFacade = Zuul.getFacade('monitors', self.context)
-        collectors = monitorFacade.queryPerformanceMonitors()
+        collectors = monitorFacade.query()
         collectorData = Zuul.marshal(map(ITreeNode, collectors))
         daemonNode = {
             'id': 'daemons',

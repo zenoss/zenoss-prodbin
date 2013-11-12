@@ -58,9 +58,7 @@ class DeployedAppLookup(object):
 
     def _getApp(self, service):
         app = self._appcache.get(service.id)
-        if app:
-            app._service = service
-        else:
+        if not app:
             app = DeployedApp(service, self._client)
             self._appcache[service.id] = app
         return app
@@ -102,7 +100,7 @@ class DeployedApp(object):
     @property
     def description(self):
         return self._service.description
-    
+
     @property
     def state(self):
         self._updateState()
@@ -112,8 +110,8 @@ class DeployedApp(object):
     def startedAt(self):
         """
         When the service started.  Returns None if not running.
-        """        
-        return self._instance.get('startedAt') if self._instance else None
+        """
+        return self._instance.startedAt if self._instance else None
 
     @property
     def log(self):
@@ -127,26 +125,6 @@ class DeployedApp(object):
         if self._instance:
             return DeployedAppLog(self._instance, self._client)
 
-    @property
-    def imageId(self):        
-        return self._service._data['ImageId']
-
-    @property
-    def poolId(self):
-        return self._service._data['PoolId']
-
-    @property
-    def createdAt(self):
-        return self._service._data['CreatedAt']
-
-    @property
-    def instances(self):
-        return self._service._data['Instances']
-
-    @property
-    def startup(self):
-        return self._service._data['Startup']
-    
     @property
     def autostart(self):
         """

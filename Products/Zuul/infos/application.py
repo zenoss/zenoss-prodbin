@@ -39,7 +39,7 @@ class ApplicationInfo(object):
     @property
     def type(self):
         return "daemon"
-    
+
     @property
     def uid(self):
         return self._object.id
@@ -63,7 +63,7 @@ class ApplicationInfo(object):
     @property
     def uptime(self):
         return self._object.uptime
-    
+
     @property
     def state(self):
         return self._object.state
@@ -75,23 +75,3 @@ class ApplicationInfo(object):
     @property
     def children(self):
         return []
-
-    @property
-    def imageId(self):
-        return self._object.imageId
-
-    @property
-    def poolId(self):
-        return self._object.poolId
-
-    @property
-    def createdAt(self):
-        return self._object.createdAt
-
-    @property
-    def startup(self):
-        return self._object.startup
-    
-    @property
-    def instances(self):
-        return self._object.instances
