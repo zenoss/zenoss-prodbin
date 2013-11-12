@@ -187,7 +187,9 @@ class DeployedApp(object):
         if priorState != self._runstate.state:
             LOG.info("[%x] RESTARTING APP", id(self))
             if self._instance:
-                self._client.killInstance(self._instance.id)
+                self._client.killInstance(
+                    self._instance.hostId, self._instance.id
+                )
             else:
                 self._service.desiredState = self._service.STATE.RUN
                 self._client.updateService(self._service)
