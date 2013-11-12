@@ -289,7 +289,10 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         return float(value) if value else None
 
     def titleOrId(self):
-        return self.osProcessClass().titleOrId()
+        
+        if self.osProcessClass():
+            return self.osProcessClass().titleOrId()
+        return self.title() or self.id
     
     def name(self):
         """
