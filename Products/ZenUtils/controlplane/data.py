@@ -166,7 +166,9 @@ class ServiceInstance(object):
 
     @property
     def resourceId(self):
-        return "/running/%s" % (self._data.get("Id"),)
+        return "/services/%s/running/%s" % (
+            self._data.get("ServiceId"), self._data.get("Id")
+        )
 
     @property
     def serviceId(self):

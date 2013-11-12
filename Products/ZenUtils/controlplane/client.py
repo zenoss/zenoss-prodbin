@@ -131,11 +131,13 @@ class ControlPlaneClient(object):
         response.close()
         return ServiceJsonDecoder().decode(body)
 
-    def getInstance(self, instanceId, default=None):
+    def getInstance(self, serviceId, instanceId, default=None):
         """
         Returns the requested ServiceInstance object.
         """
-        response = self._dorequest("/running/%s" % instanceId)
+        response = self._dorequest(
+            "/services/%s/running/%s" % (serviceId, instanceId)
+        )
         body = ''.join(response.readlines())
         response.close()
         return ServiceJsonDecoder().decode(body)
