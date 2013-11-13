@@ -36,11 +36,11 @@ class DeployedAppLookup(object):
         self._client = ControlPlaneClient()
         self._appcache = {}
 
-    def query(self, name=None, tags=None):
+    def query(self, name=None):
         """
         Returns a sequence of IApplication objects.
         """
-        result = self._client.queryServices(name=name, tags=tags)
+        result = self._client.queryServices(name=name, tags=["daemon"])
         if not result:
             return ()
         return tuple(self._getApp(service) for service in result)
@@ -83,7 +83,8 @@ class DeployedApp(object):
         instance = result[0] if result else None
         if instance is None and self._instance:
             self._runstate.lost()
-        elif instance and (self._instance is None \
+        elif instance and (
+                self._instance is None
                 or self._runstate.state == ApplicationState.RESTARTING):
             self._runstate.found()
         self._instance = instance
