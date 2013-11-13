@@ -36,12 +36,11 @@ class DeployedAppLookup(object):
         self._client = ControlPlaneClient()
         self._appcache = {}
 
-    def query(self, name=None):
+    def query(self, name=None, tags=None):
         """
         Returns a sequence of IApplication objects.
         """
-        args = {"name": name} if name else {}
-        result = self._client.queryServices(**args)
+        result = self._client.queryServices(name=name, tags=tags)
         if not result:
             return ()
         return tuple(self._getApp(service) for service in result)
@@ -58,9 +57,7 @@ class DeployedAppLookup(object):
 
     def _getApp(self, service):
         app = self._appcache.get(service.id)
-        if app:
-            app._service = service
-        else:
+        if not app:
             app = DeployedApp(service, self._client)
             self._appcache[service.id] = app
         return app
@@ -102,7 +99,7 @@ class DeployedApp(object):
     @property
     def description(self):
         return self._service.description
-    
+
     @property
     def state(self):
         self._updateState()
@@ -112,8 +109,8 @@ class DeployedApp(object):
     def startedAt(self):
         """
         When the service started.  Returns None if not running.
-        """        
-        return self._instance.get('startedAt') if self._instance else None
+        """
+        return self._instance.startedAt if self._instance else None
 
     @property
     def log(self):
@@ -127,26 +124,6 @@ class DeployedApp(object):
         if self._instance:
             return DeployedAppLog(self._instance, self._client)
 
-    @property
-    def imageId(self):        
-        return self._service._data['ImageId']
-
-    @property
-    def poolId(self):
-        return self._service._data['PoolId']
-
-    @property
-    def createdAt(self):
-        return self._service._data['CreatedAt']
-
-    @property
-    def instances(self):
-        return self._service._data['Instances']
-
-    @property
-    def startup(self):
-        return self._service._data['Startup']
-    
     @property
     def autostart(self):
         """
@@ -210,7 +187,9 @@ class DeployedApp(object):
         if priorState != self._runstate.state:
             LOG.info("[%x] RESTARTING APP", id(self))
             if self._instance:
-                self._client.killInstance(self._instance.id)
+                self._client.killInstance(
+                    self._instance.hostId, self._instance.id
+                )
             else:
                 self._service.desiredState = self._service.STATE.RUN
                 self._client.updateService(self._service)
@@ -231,5 +210,7 @@ class DeployedAppLog(object):
 
         :rtype str:
         """
-        result = self._client.getInstanceLog(self._instance.id)
+        result = self._client.getInstanceLog(
+            self._instance.serviceId, self._instance.id
+        )
         return result.split("\n")[-count:]

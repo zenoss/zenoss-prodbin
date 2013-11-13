@@ -1,12 +1,11 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 """
 Zuul facades are part of the Python API.  The main functions of facades are
@@ -22,14 +21,16 @@ definition of the interface that they implement.
 
 import logging
 from itertools import imap
-from Acquisition import aq_base, aq_parent
+from Acquisition import aq_parent
 from zope.event import notify
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
 from Products.Zuul.interfaces import IFacade, ITreeNode
-from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
+from Products.Zuul.interfaces import (
+    ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
+)
 from Products.Zuul.utils import unbrain, get_dmd, UncataloguedObjectException
 from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
@@ -39,8 +40,10 @@ from Products.Zuul import getFacade
 
 log = logging.getLogger('zen.Zuul')
 
+
 class ObjectNotFoundException(Exception):
     pass
+
 
 class ZuulFacade(object):
     implements(IFacade)
@@ -99,15 +102,15 @@ class ZuulFacade(object):
         context = aq_parent(obj)
         context._delObject(obj.id)
 
+
 class TreeFacade(ZuulFacade):
     implements(ITreeFacade)
-
 
     def getTree(self, uid=None):
         obj = self._getObject(uid)
         try:
             return ITreeNode(obj)
-        except UncataloguedObjectException, e:
+        except UncataloguedObjectException:
             pass
 
     def _getObject(self, uid=None):
@@ -125,7 +128,7 @@ class TreeFacade(ZuulFacade):
     def getDeviceBrains(self, uid=None, start=0, limit=50, sort='name',
                         dir='ASC', params=None, hashcheck=None):
         cat = ICatalogTool(self._getObject(uid))
-        reverse = dir=='DESC'
+        reverse = bool(dir == 'DESC')
         qs = []
         query = None
         globFilters = {}
@@ -152,9 +155,11 @@ class TreeFacade(ZuulFacade):
                 globFilters[key] = value
         if qs:
             query = And(*qs)
-        brains = cat.search('Products.ZenModel.Device.Device', start=start,
-                           limit=limit, orderby=sort, reverse=reverse,
-                            query=query, globFilters=globFilters, hashcheck=hashcheck)
+        brains = cat.search(
+            'Products.ZenModel.Device.Device', start=start,
+            limit=limit, orderby=sort, reverse=reverse,
+            query=query, globFilters=globFilters, hashcheck=hashcheck
+        )
         return brains
 
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
@@ -178,15 +183,15 @@ class TreeFacade(ZuulFacade):
                      dir='ASC', params=None):
         # do the catalog search
         cat = ICatalogTool(self._getObject(uid))
-        reverse = dir=='DESC'
+        reverse = bool(dir == 'DESC')
         brains = cat.search(self._instanceClass, start=start, limit=limit,
                             orderby=sort, reverse=reverse)
         objs = imap(unbrain, brains)
- 
+
         # convert to info objects
         return SearchResults(imap(IInfo, objs), brains.total, brains.hash_)
 
-    def addOrganizer(self, contextUid, id, description = ''):  
+    def addOrganizer(self, contextUid, id, description=''):
         context = self._getObject(contextUid)
         context.manage_addOrganizer(id)
         if id.startswith("/"):
@@ -203,7 +208,7 @@ class TreeFacade(ZuulFacade):
         checkValidId(relationship, id)
         relationship._setObject(id, _class)
         return '%s/%s/%s' % (contextUid, self._classRelationship, id)
- 
+
     def deleteNode(self, uid):
         self.deleteObject(uid)
 
@@ -244,5 +249,5 @@ from .jobsfacade import JobsFacade
 from .eventclassesfacade import EventClassesFacade
 from .manufacturersfacade import ManufacturersFacade
 from .metricfacade import MetricFacade
-from .application import ApplicationManagerFacade, ApplicationFacade
-from .monitor import MonitorManagerFacade, MonitorFacade
+from .application import ApplicationFacade
+from .monitor import MonitorFacade

@@ -46,7 +46,7 @@ class ApplicationRouter(TreeRouter):
 
         # collectors
         monitorFacade = Zuul.getFacade('monitors', self.context)
-        collectors = monitorFacade.queryPerformanceMonitors()
+        collectors = monitorFacade.query()
         collectorData = Zuul.marshal(map(ITreeNode, collectors))
         daemonNode = {
             'id': 'daemons',
@@ -80,8 +80,8 @@ class ApplicationRouter(TreeRouter):
         @return:  B{Properties}
            - form: (dictionary) form fields for the object
         """
-        info = self._getFacade().get(uid)
-        form = IFormBuilder(IInfo(info)).render(fieldsets=False)
+        app = self._getFacade().get(uid)
+        form = IFormBuilder(IInfo(app)).render(fieldsets=False)
         form = Zuul.marshal(form)        
         return DirectResponse(form=form)
 
@@ -94,11 +94,9 @@ class ApplicationRouter(TreeRouter):
         @return: DirectReponse of success if no errors are encountered
         """
         facade = self._getFacade()
-        applications = facade.query()
-        for app in applications:
-            if app.id in uids:
-                app.start()
-                audit('UI.Applications.Start', id)
+        for uid in uids:
+            facade.start(uid)
+            audit('UI.Applications.Start', id)
         if len(uids) > 1:
             return DirectResponse.succeed("Started %s daemons" % len(uids))
         return DirectResponse.succeed()
@@ -112,11 +110,9 @@ class ApplicationRouter(TreeRouter):
         @return: DirectReponse of success if no errors are encountered
         """
         facade = self._getFacade()
-        applications = facade.query()
-        for app in applications:
-            if app.id in uids:
-                app.stop()
-                audit('UI.Applications.Stop', id)
+        for uid in uids:
+            facade.stop(uid)
+            audit('UI.Applications.Stop', id)
         if len(uids) > 1:
             return DirectResponse.succeed("Stopped %s daemons" % len(uids))
         return DirectResponse.succeed()
@@ -130,11 +126,9 @@ class ApplicationRouter(TreeRouter):
         @return: DirectReponse of success if no errors are encountered
         """
         facade = self._getFacade()
-        applications = facade.query()
-        for app in applications:
-            if app.id in uids:
-                app.restart()
-                audit('UI.Applications.Restart', id)
+        for uid in uids:
+            facade.restart(uid)
+            audit('UI.Applications.Restart', id)
         if len(uids) > 1:
             return DirectResponse.succeed("Restarted %s daemons" % len(uids))
         return DirectResponse.succeed()

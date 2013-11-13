@@ -110,24 +110,16 @@
             for="*"
             />
 
-   <adapter factory=".ApplicationManagerFacade"
+   <adapter factory=".ApplicationFacade"
             provides="..interfaces.IFacade"
             name="applications"
             for="*"
             />
 
-   <adapter factory=".ApplicationFacade"
-            for="Products.ZenUtils.application.IApplication"
-            />
-
-   <adapter factory=".MonitorManagerFacade"
+   <adapter factory=".MonitorFacade"
             provides="..interfaces.IFacade"
             name="monitors"
             for="*"
-            />
-
-   <adapter factory=".MonitorFacade"
-            for="Products.ZenModel.interfaces.IMonitor"
             />
 
 </configure>

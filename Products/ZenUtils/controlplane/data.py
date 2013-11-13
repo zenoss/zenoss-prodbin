@@ -79,8 +79,11 @@ Application JSON format:
 """
 
 import json
-
 from datetime import datetime
+from zope.component import createObject
+from zope.component.factory import Factory
+from zope.interface import implementer
+from .interfaces import IServiceDefinition, IServiceInstance
 
 
 class _Value(object):
@@ -100,7 +103,8 @@ class _Value(object):
 
 
 _definitionKeys = set([
-    "Id", "Name", "ParentServiceId", "Description", "Launch", "DesiredState",
+    "Id", "Name", "ParentServiceId", "PoolId", "Description", "Launch",
+    "DesiredState", "Tags"
 ])
 
 _instanceKeys = set([
@@ -113,12 +117,12 @@ _instanceKeys = set([
 def _decodeServiceJsonObject(obj):
     foundKeys = _definitionKeys & set(obj.keys())
     if foundKeys == _definitionKeys:
-        service = ServiceDefinition()
+        service = createObject("ServiceDefinition")
         service.__setstate__(obj)
         return service
     foundKeys = _instanceKeys & set(obj.keys())
     if foundKeys == _instanceKeys:
-        instance = ServiceInstance()
+        instance = createObject("ServiceInstance")
         instance.__setstate__(obj)
         return instance
     return obj
@@ -142,6 +146,7 @@ class ServiceJsonEncoder(json.JSONEncoder):
         return super(ServiceJsonEncoder, self).encode(data)
 
 
+@implementer(IServiceInstance)
 class ServiceInstance(object):
     """
     """
@@ -161,19 +166,39 @@ class ServiceInstance(object):
 
     @property
     def resourceId(self):
-        return "/running/%s" % (self._data.get("Id"),)
+        return "/services/%s/running/%s" % (
+            self._data.get("ServiceId"), self._data.get("Id")
+        )
 
     @property
     def serviceId(self):
         return self._data.get("ServiceId")
 
     @property
+    def hostId(self):
+        return self._data.get("HostId")
+
+    @property
     def startedAt(self):
         src = self._data.get("StartedAt")        
-        dttm = datetime.strptime(src[:-6], "%Y-%m-%dT%H:%M:%S")
-        return dttm
+        trimmed = src[:19]
+        if len(trimmed) == 19: 
+            return datetime.strptime(trimmed, "%Y-%m-%dT%H:%M:%S")
 
 
+class ServiceInstanceFactory(Factory):
+    """
+    Factory for ServiceInstance objects.
+    """
+
+    def __init__(self):
+        super(ServiceInstanceFactory, self).__init__(
+            ServiceInstance, "ServiceInstance",
+            "Control Plane Service Instance Description"
+        )
+
+
+@implementer(IServiceDefinition)
 class ServiceDefinition(object):
     """
     """
@@ -215,12 +240,12 @@ class ServiceDefinition(object):
         return self._data.get("Name")
 
     @property
-    def parentId(self):
-        return self._data.get("ParentServiceId")
-
-    @property
     def description(self):
         return self._data.get("Description")
+
+    @property
+    def tags(self):
+        return self._data.get("Tags")
 
     @property
     def launch(self):
@@ -250,19 +275,22 @@ class ServiceDefinition(object):
     def configResourceId(self):
         return self._data.get("ConfigurationId")
 
-    def update(self, data):
-        """
-        Update this ServiceDefinition from another ServiceDefinition.
-        """
-        self._data["Instances"] = data["Instances"]
-        self._data["PoolId"] = data["PoolId"]
-        self._data["DesiredState"] = data["DesiredState"]
-        self._data["Launch"] = data["Launch"]
-        self._data["ParentServiceId"] = data["ParentServiceId"]
-        self._data["UpdatedAt"] = data["UpdatedAt"]
+
+class ServiceDefinitionFactory(Factory):
+    """
+    Factory for ServiceDefinition objects.
+    """
+
+    def __init__(self):
+        super(ServiceDefinitionFactory, self).__init__(
+            ServiceDefinition, "ServiceDefinition",
+            "Control Plane Service Definition"
+        )
 
 
 # Define the names to export via 'from data import *'.
 __all__ = (
-    "ServiceJsonDecoder", "ServiceJsonEncoder", "ServiceDefinition"
+    "ServiceJsonDecoder", "ServiceJsonEncoder",
+    "ServiceDefinition", "ServiceDefinitionFactory",
+    "ServiceInstance", "ServiceInstanceFactory"
 )
