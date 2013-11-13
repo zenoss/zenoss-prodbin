@@ -68,6 +68,7 @@ class IApplicationInfo(IInfo):
         readonly=True
     )
 
+
 class IApplicationFacade(IFacade):
     """
     Interface for managing Zenoss applications.
@@ -78,10 +79,16 @@ class IApplicationFacade(IFacade):
         Returns a sequence of IApplication objects.
         """
 
-    def get(id, default=None):
+    def get(appId, default=None):
         """
         Retrieve the IApplication object of the identified application.
         The default argument is returned if the application doesn't exist.
+        """
+
+    def getLog(self, appId, lastCount=None):
+        """
+        Retrieve the log of the identified application.  Optionally,
+        a count of the last N lines to retrieve may be given.
         """
 
     def start(appId):

@@ -56,10 +56,6 @@ def _getDefaults(options=None):
     return settings
 
 
-def _convertPattern(glob, pattern):
-    """
-    """
-
 class ControlPlaneClient(object):
     """
     """
@@ -76,7 +72,7 @@ class ControlPlaneClient(object):
         self._settings = _getDefaults()
         self._netloc = "%(host)s:%(port)s" % self._settings
 
-    def queryServices(self, name=None, **kwargs):
+    def queryServices(self, name=None, tags=None):
         """
         Returns a sequence of ServiceDefinition objects that match
         the given requirements.
@@ -87,8 +83,7 @@ class ControlPlaneClient(object):
             # controlplane regex accepts \z, not \Z.
             namepat = namepat.replace("\\Z", "\\z")
             query["name"] = namepat
-        if "tags" in kwargs:
-            tags = kwargs.pop("tags")
+        if tags:
             if isinstance(tags, (str, unicode)):
                 tags = [tags]
             query["tags"] = ','.join(tags)
@@ -202,15 +197,23 @@ class ControlPlaneClient(object):
     def _dorequest(self, uri, method=None, data=None, query=None):
         request = self._makeRequest(
             uri, method=method, data=data, query=query)
-        response = None        
-        try:
-            response = self._opener.open(request)
-        except urllib2.HTTPError as ex:
-            if ex.getcode() == 401:
-                self._login()
+        response = None
+        # Try to perform the request up to five times
+        for trycount in range(5):
+            try:
                 response = self._opener.open(request)
+            except urllib2.HTTPError as ex:
+                if ex.getcode() == 401:
+                    self._login()
+                    continue
+                else:
+                    raise
             else:
-                raise
+                # break the loop so we skip the loop's else clause
+                break
+        else:
+            # raises the last exception that was raised (the 401 error)
+            raise
         return response
 
 

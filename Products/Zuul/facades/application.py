@@ -32,24 +32,28 @@ class ApplicationFacade(object):
         """
         Returns a sequence of IApplicationFacade objects.
         """
-        result = self._svc.query(name=name, tags=["daemon"])
+        result = self._svc.query(name=name)
         if not result:
             return ()
         return tuple(result)
 
-    def get(self, id, default=None):
+    def get(self, appId, default=None):
         """
         Returns the IApplicationFacade object of the identified application.
         """
-        app = self._svc.get(id, default)
+        app = self._svc.get(appId, default)
         if not app:
             return default
         return app
 
-    def getLog(self, id, lastCount=None):
-        app = self._svc.get(id)
+    def getLog(self, appId, lastCount=None):
+        """
+        Retrieve the log of the identified application.  Optionally,
+        a count of the last N lines to retrieve may be given.
+        """
+        app = self._svc.get(appId)
         if not app:
-            raise RuntimeError("No such application '%s'" % (id,))
+            raise RuntimeError("No such application '%s'" % (appId,))
         if app.log:
             count = lastCount if lastCount else 200
             return '\n'.join(app.log.last(count))
@@ -79,3 +83,5 @@ class ApplicationFacade(object):
         app = self._svc.get(appId)
         if app:
             app.restart()
+
+__all__ = ("ApplicationFacade",)
