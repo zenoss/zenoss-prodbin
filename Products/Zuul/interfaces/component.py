@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -129,7 +129,9 @@ class IOSProcessInfo(IComponentInfo):
     """
     processClass = schema.Entity(title=_t(u"Process Class"), group="Overview",
                                  order=1)
-    processName = schema.TextLine(title=_t(u"Process Name"), group="Overview",
+    getMonitoredProcesses = schema.TextLine(title=u"Process(es) identified by the most recent model", group="Details", 
+                                            readonly=True, order=-1) 
+    processName = schema.TextLine(title=_t(u"Process Set Name"), group="Overview",
                                   readonly=True, order=-1)
     description = schema.Text(title=_t(u"Description"), group="Overview",
                               readonly=True, order=2)

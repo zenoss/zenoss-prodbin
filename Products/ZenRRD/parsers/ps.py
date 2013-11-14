@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, 2010, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -20,14 +20,38 @@ log = logging.getLogger("zen.ps")
 
 import Globals
 from Products.ZenRRD.CommandParser import CommandParser
+from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_OSProcess
-from Products.ZenModel.OSProcess import OSProcess
+from Products.ZenModel.OSProcessMatcher import OSProcessDataMatcher
+from Products.ZenModel.OSProcessState import determineProcessState
 
 
 # Keep track of state between runs
-AllPids = {} # (device, cmdAndArgs)
-emptySet = set()
+# (device, cmdAndArgs)
+Globals.MostRecentMonitoredTimePids = getattr(Globals, "MostRecentMonitoredTimePids", {})
 
+def parseCpuTime(cputime):
+    """
+    Parse the cputime field of a process (output from the ps command).
+
+    @return: number of seconds
+    @rtype: int
+    """
+    days = 0
+    if cputime.find('-') > -1:
+        days, cputime = cputime.split('-')
+        days = float(days)
+    cputime = map(float, cputime.split(':'))
+    if len(cputime) == 3:
+        cputime = (days * 24 * 60 * 60 +
+           cputime[0] * 60 * 60 +
+           cputime[1] * 60 +
+           cputime[2])
+    elif len(cputime) == 2:
+        cputime = (days * 24 * 60 * 60 +
+           cputime[0] * 60 +
+           cputime[1])
+    return int(round(cputime))
 
 class ps(CommandParser):
 
@@ -45,7 +69,7 @@ class ps(CommandParser):
 
     def getProcInfo(self, line):
         """
-        Process the non-empyt ps and return back the
+        Process the non-empty ps and return back the
         standard info.
 
         @parameter line: one line of ps output
@@ -63,160 +87,148 @@ class ps(CommandParser):
 
         return pid, rss, cpu, cmdAndArgs
 
-    def groupProcs(self, points, compiledRegex, compiledSearchRegex, output, componentId):
-        """
-        Group processes per datapoint
-        """
-        dpsToProcs = {}
-
-        # for every line found found from issuing the ps statement on the remote box
-        for line in output.split('\n')[1:]:
-            if not line:
-                continue
-
+    def _extractProcessMetrics(self, line):
+        if line:
             try:
                 pid, rss, cpu, cmdAndArgs = self.getProcInfo(line)
-                log.debug("line '%s' -> pid=%s " \
-                              "rss=%s cpu=%s cmdAndArgs=%s",
-                               line, pid, rss, cpu, cmdAndArgs)
 
-            except Exception:
+                # ----------------------------------------------------------
+                # WARNING! Do not modify this debug line at all!
+                # The process class interactive testing UI depends on it!
+                # (yeah, yeah... technical debt... we know)
+                # ----------------------------------------------------------
+                log.debug("line '%s' -> pid=%s rss=%s cpu=%s cmdAndArgs=%s",
+                          line, pid, rss, cpu, cmdAndArgs)
+                # ----------------------------------------------------------
+
+                return int(pid), int(rss), parseCpuTime(cpu), cmdAndArgs
+            except:
                 log.warn("Unable to parse entry '%s'", line)
-                continue
 
-            try:
-                matches = []
-                
-                if OSProcess.matchRegex(compiledRegex, compiledSearchRegex, cmdAndArgs) and \
-                   OSProcess.matchNameCaptureGroups(compiledRegex, cmdAndArgs, componentId):
-                    matches.extend(points)
-
-                if not matches:
-                    continue
-
-                days = 0
-                if cpu.find('-') > -1:
-                    days, cpu = cpu.split('-')
-                    days = int(days)
-                cpu = map(int, cpu.split(':'))
-                if len(cpu) == 3:
-                    cpu = (days * 24 * 60 * 60 +
-                       cpu[0] * 60 * 60 +
-                       cpu[1] * 60 +
-                       cpu[2])
-                elif len(cpu) == 2:
-                    cpu = (days * 24 * 60 * 60 +
-                       cpu[0] * 60 +
-                       cpu[1])
-
-                # cpu is ticks per second per cpu, tick is a centisecond, we
-                # want seconds
-                cpu *= 100
-
-                rss = int(rss)
-                pid = int(pid)
-
-                for dp in matches:
-                    # add values
-                    procInfo = dict(cmdAndArgs=cmdAndArgs, rss=0.0, cpu=0.0, pids={})
-                    procInfo = dpsToProcs.setdefault(dp, procInfo)
-                    procInfo['rss'] += rss
-                    procInfo['cpu'] += cpu
-                    procInfo['pids'][pid] = cmdAndArgs
-            
-            except Exception:
-                log.exception("Unable to convert entry data pid=%s " \
-                              "rss=%s cpu=%s cmdAndArgs=%s",
-                               pid, rss, cpu, cmdAndArgs)
-                continue
-
-        return dpsToProcs
-
+    def _combineProcessMetrics(self, metrics):
+        combinedPids = {}
+        combinedRss = 0.0
+        combinedCpu = 0.0
+        for pid, rss, cpu, cmdAndArgs in metrics:
+            combinedPids[pid] = cmdAndArgs
+            combinedRss += rss
+            combinedCpu += cpu
+        return combinedPids, combinedRss, combinedCpu
 
     def processResults(self, cmd, results):
-        dpsToProcs = self.groupProcs(cmd.points, re.compile(cmd.regex), re.compile(cmd.excludeRegex), cmd.result.output, cmd.componentId)
+        matcher = OSProcessDataMatcher(
+            includeRegex   = cmd.includeRegex,
+            excludeRegex   = cmd.excludeRegex,
+            replaceRegex   = cmd.replaceRegex,
+            replacement    = cmd.replacement,
+            primaryUrlPath = cmd.primaryUrlPath,
+            generatedId    = cmd.generatedId)
+
+        def matches(processMetrics):
+            pid, rss, cpu, cmdAndArgs = processMetrics
+            return matcher.matches(cmdAndArgs)
+
+        lines = cmd.result.output.splitlines()[1:]
+        metrics = map(self._extractProcessMetrics, lines)
+        matchingMetrics = filter(matches, metrics)
+        pids, rss, cpu = self._combineProcessMetrics(matchingMetrics)
+
+        processSet = cmd.displayName
 
         # report any processes that are missing, and post perf data
         for dp in cmd.points:
-            failSeverity = dp.data['failSeverity']
-            procInfo = dpsToProcs.get(dp, None)
-            
-            if not procInfo:
-                self.sendEvent(results,
-                    summary='Process not running: ' + dp.data["id"],
-                    component=dp.data["id"],
-                    severity=failSeverity)
-                log.debug("device:%s, command: %s, procInfo: %r, failSeverity: %r, process: %s, dp: %r",
-                            cmd.deviceConfig.device,
-                            cmd.command,
-                            procInfo,
-                            failSeverity,
-                            dp.data["id"],
-                            dp)
-            else:
+            # cmd.points = list of tuples ... each tuple contains one of the following:
+            #    dictionary, count
+            #    dictionary, cpu
+            #    dictionary, mem        
+            if pids:
                 if 'cpu' in dp.id:
-                    results.values.append( (dp, procInfo['cpu']) )
+                    results.values.append( (dp, cpu) )
                 if 'mem' in dp.id:
-                    results.values.append( (dp, procInfo['rss']) )
-                if 'count' in dp.id:
-                    results.values.append( (dp, len(procInfo['pids'])) )
+                    results.values.append( (dp, rss) )
+                if 'count'in dp.id:
+                    results.values.append( (dp, len(pids)) )
+            else:
+                failSeverity = dp.data['failSeverity']
+                # alert on missing (the process set contains 0 processes...)
+                summary = 'Process set contains 0 running processes: %s' % processSet
+                message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
+                            % (summary, cmd.includeRegex, cmd.deviceConfig.lastmodeltime)
+                self.sendEvent(results,
+                    device=cmd.deviceConfig.device,
+                    summary=summary,
+                    message=message,
+                    component=processSet,
+                    eventKey=cmd.generatedId,
+                    severity=failSeverity)
+                log.warning("(%s) %s" % (cmd.deviceConfig.device, message))
 
         # Report process changes
         # Note that we can't tell the difference between a
         # reconfiguration from zenhub and process that goes away.
         device = cmd.deviceConfig.device
-        beforePidsAndProcesses = AllPids.get( (device, dp.data["id"]), {})
-        
+
+        # Retrieve the current processes and corresponding pids
         afterPidsProcesses = {}
-        if procInfo:
-            afterPidsProcesses = procInfo['pids']
+        if pids:
+            afterPidsProcesses = pids
+        afterPids = afterPidsProcesses.keys()
+        afterProcessSetPIDs = {}
+        afterProcessSetPIDs[processSet] = afterPids
 
-        alertOnRestart = dp.data['alertOnRestart']
+        # Globals.MostRecentMonitoredTimePids is a global that simply keeps the most recent data ... used to retrieve the "before" at monitoring time
+        beforePidsProcesses = Globals.MostRecentMonitoredTimePids.get(processSet, None)
         
-        beforeCmdAndArgs = []
-        for pidKey in beforePidsAndProcesses.keys():
-            beforeCmdAndArgs.append(beforePidsAndProcesses[pidKey])
+        # the first time this runs ... there is no "before"
+        # this occurs when beforePidsProcesses is an empty dict
+        # we need to save off the current processes and continue til the next monitoring time when "before" and "after" will be present
+        if beforePidsProcesses is None:
+            log.debug("No existing 'before' process information for process set: %s ... skipping" % processSet)
+            Globals.MostRecentMonitoredTimePids[processSet] = afterPidsProcesses
+            return
+        
+        beforePids = beforePidsProcesses.keys()
+        beforeProcessSetPIDs = {}
+        beforeProcessSetPIDs[processSet] = beforePids
 
-        restartedCmdAndArgsSet = set()
-        runningPidsSet = set()
-        for pidKey in afterPidsProcesses.keys():
-            # pid is NOT in the beforePidsAndProcesses however the CmdAndArgs IS in beforePidsAndProcesses = process restarted
-            if pidKey not in beforePidsAndProcesses.keys() and \
-               afterPidsProcesses[pidKey] in beforeCmdAndArgs and \
-               alertOnRestart:
-                restartedCmdAndArgsSet.add(afterPidsProcesses[pidKey])
-                self.sendEvent(results,
-                    summary='Pid %s restarted: %s' % (pidKey, afterPidsProcesses[pidKey]),
-                    component=afterPidsProcesses[pidKey],
-                    severity=failSeverity)
-            # same pid = process is still running
-            # different pid, different process = new process running
-            else:
-                runningPidsSet.add(pidKey)
-                self.sendEvent(results,
-                    summary='Pid %s running: %s' % (pidKey, afterPidsProcesses[pidKey]),
-                    component=afterPidsProcesses[pidKey],
-                    severity=0)
+        processState = determineProcessState(beforeProcessSetPIDs, afterProcessSetPIDs)
+        (deadPids, restartedPids, newPids) = processState
 
-        beforePidsSet = set(beforePidsAndProcesses.keys())
+        # only if configured to alert on restarts...
+        alertOnRestart = dp.data['alertOnRestart']
+        if alertOnRestart and restartedPids:
+            droppedPids = []
+            for pid in beforeProcessSetPIDs[processSet]:
+                if pid not in afterProcessSetPIDs[processSet]:
+                    droppedPids.append(pid)
+            summary = 'Process(es) restarted in process set: %s' % processSet
+            message = '%s\n Using regex \'%s\' Discarded dead pid(s) %s Using new pid(s) %s'\
+                % (summary, cmd.includeRegex, droppedPids, afterProcessSetPIDs[processSet])
+            self.sendEvent(results,
+                device=cmd.deviceConfig.device,
+                summary=summary,
+                message=message,
+                component=processSet,
+                eventKey=cmd.generatedId+"_restarted",
+                severity=cmd.severity)
+            log.info("(%s) %s" % (cmd.deviceConfig.device, message))
 
-        restartedPidsSet = set()
-        for pidKey in beforePidsAndProcesses.keys():
-            if beforePidsAndProcesses[pidKey] in restartedCmdAndArgsSet:
-                restartedPidsSet.add(pidKey)
+        # report alive processes
+        for alivePid in afterProcessSetPIDs[processSet]:
+            if alivePid in restartedPids:
+                continue
+            summary = "Process up: %s" % processSet
+            message = '%s\n Using regex \'%s\' with pid\'s %s ' % (summary, cmd.includeRegex, alivePid)
+            self.sendEvent(results,
+                device=cmd.deviceConfig.device,
+                summary=summary,
+                message=message,
+                component=processSet,
+                eventKey=cmd.generatedId,
+                severity=Event.Clear)
+            log.debug("(%s) %s" % (cmd.deviceConfig.device, message))
 
-        # stoppedPids = the pids that were running ... that are neither still running nor have been restarted
-        stoppedPidsSet = beforePidsSet - runningPidsSet - restartedPidsSet
-        for pidKey in stoppedPidsSet:
-            if alertOnRestart:
-                self.sendEvent(results,
-                    summary='Pid %s stopped: %s' % (pidKey, beforePidsAndProcesses[pidKey]),
-                    component=beforePidsAndProcesses[pidKey],
-                    severity=failSeverity)
-        '''
-        print " ##### Running  : %s" % afterPidsProcesses
-        print " ##### Restarted: %s" % beforePidsAndProcesses
-        print " ##### Stopped  : %s" % beforePidsAndProcesses
-        '''
+        for newPid in newPids:
+            log.debug("found new process: %s (pid: %d) on %s" % (afterPidsProcesses[newPid], newPid, cmd.deviceConfig.device))
 
-        AllPids[device, dp.data["id"]] = afterPidsProcesses
+        Globals.MostRecentMonitoredTimePids[processSet] = afterPidsProcesses

@@ -556,6 +556,31 @@ True
 </property>
 </object>
 </tomanycont>
+<tomanycont id='thresholds'>
+<object id='count' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Snmp
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
+['count_count']
+</property>
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="minval" mode="w" >
+here.getMinProcessCount()
+</property>
+<property type="string" id="maxval" mode="w" >
+here.getMaxProcessCount()
+</property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
+</object>
+</tomanycont>
 <tomanycont id='graphDefs'>
 <object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
 <property type="int" id="height" mode="w" >

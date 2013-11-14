@@ -25,6 +25,15 @@ status
 <property visible="True" type="int" id="zFlappingIntervalSeconds" >
 3600
 </property>
+<property visible="True" type="int" id="zFlappingSeverity" >
+4
+</property>
+<property visible="True" type="int" id="zFlappingThreshold" >
+4
+</property>
+<property visible="True" type="int" id="zFlappingIntervalSeconds" >
+3600
+</property>
 <property visible="True" type="severity" id="zFlappingSeverity" >
 4
 </property>
@@ -113,6 +122,8 @@ if component is not None and evt.eventKey == 'ifOperStatus_ifOperStatus|ifOperSt
 <object id='Update' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Flapping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Flapping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
@@ -5419,6 +5430,10 @@ history
 </object>
 <object id='Set' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 </object>

@@ -59,7 +59,8 @@
         paths="/++resource++extjs/examples/ux/form/MultiSelect.js
                /++resource++extjs/examples/ux/form/ItemSelector.js
                /++resource++extjs/examples/ux/IFrame.js
-               /++resource++extjs/examples/ux/RowExpander.js"
+               /++resource++extjs/examples/ux/RowExpander.js
+               /++resource++extjs/examples/ux/CheckColumn.js"
         />
 
 

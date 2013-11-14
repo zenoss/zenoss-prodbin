@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2011, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2011-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -11,6 +11,7 @@
 import logging
 import pprint
 import sys
+from md5 import md5
 
 log = logging.getLogger('zen.testzenprocess')
 
@@ -208,11 +209,15 @@ class TestZenprocess(BaseTestCase):
         # Return back the results in case somebody wants to dive in
         return actual
 
-    def updateProcDefs(self, procDefs, name, regex, excludeRegex):
+    def updateProcDefs(self, procDefs, name, regex, excludeRegex, replaceRegex=None, replacement=None):
         procDef = ProcessProxy()
         procDef.name = name
-        procDef.regex = re.compile(regex)
-        procDef.excludeRegex = re.compile(excludeRegex)
+        procDef.includeRegex = regex
+        procDef.excludeRegex = excludeRegex
+        procDef.replaceRegex = replaceRegex or '.*'
+        procDef.replacement = replacement or name
+        procDef.primaryUrlPath = 'url'
+        procDef.generatedId = "url_" + md5(name).hexdigest().strip()
         procDefs[procDef.name] = procDef
 
     def getProcDefsFrom(self, procDefString):
@@ -425,21 +430,21 @@ class TestZenprocess(BaseTestCase):
         mingetty = procDefs['url_mingetty']
         task = self.makeTask(procDefs)
 
-        expectedStats = self.expected(6, 1, 6, 0, 6, 0, 0, 0)
+        expectedStats = self.expected(PROCESSES=6, AFTERBYCONFIG=1, AFTERPIDTOPS=6, BEFOREBYCONFIG=0, NEW=0, RESTARTED=0, DEAD=0, MISSING=0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
         # No changes if there are no changes
         # second run of zenprocess --- keeps a history of what was previously monitored
-        expectedStats = self.expected(6, 1, 6, 1, 0, 0, 0, 0)
+        expectedStats = self.expected(PROCESSES=6, AFTERBYCONFIG=1, AFTERPIDTOPS=6, BEFOREBYCONFIG=1, NEW=0, RESTARTED=0, DEAD=0, MISSING=0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
         # Note: the restart count is only used if we want to
         #       receive notifications
-        expectedStats = self.expected(6, 1, 6, 1, 1, 0, 1, 0)
+        expectedStats = self.expected(PROCESSES=6, AFTERBYCONFIG=1, AFTERPIDTOPS=6, BEFOREBYCONFIG=1, NEW=0, RESTARTED=0, DEAD=0, MISSING=0)
         self.compareTestFile('mingetty-1', task, expectedStats)
 
         mingetty.restart = True
-        expectedStats = self.expected(6, 1, 6, 1, 1, 1, 1, 0)
+        expectedStats = self.expected(PROCESSES=6, AFTERBYCONFIG=1, AFTERPIDTOPS=6, BEFOREBYCONFIG=1, NEW=0, RESTARTED=1, DEAD=0, MISSING=0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
     def pprintProcStats(self, actual, prefix):
@@ -510,9 +515,7 @@ class TestZenprocess(BaseTestCase):
                 8470: 'url_python'
             },
             BEFOREBYCONFIG={},
-            NEW=set([
-                3736, 6948, 32073, 32075, 31948, 32209, 32076, 1004, 8447, 8450, 8470
-            ]),
+            NEW=set([]),
             RESTARTED=0,
             DEAD=set([]),
             MISSING=[]
@@ -607,7 +610,7 @@ class TestZenprocess(BaseTestCase):
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_rpciod_0', 'rpc', 'nothing')
         task = self.makeTask(procDefs)
-        self.compareTestFile('rpciod_test', task, self.expected(PROCESSES=33, AFTERBYCONFIG=1, NEW=33, MISSING=0))
+        self.compareTestFile('rpciod_test', task, self.expected(PROCESSES=33, AFTERBYCONFIG=1, NEW=0, MISSING=0))
 
     def testSpecialCharacterSuffix(self):
         self.printTestTitle("testSpecialCharacterSuffix")
@@ -736,11 +739,24 @@ class TestZenprocess(BaseTestCase):
         
         self.compareTestData(data, task, expectedStats)
     
+    # TODO: get timeouts working, to protect against catastrophic backtracking.
+    # def testEvilRegex(self):
+    #     self.printTestTitle("testEvilRegex")
+    #     n = 30
+    #     procDefs = {}
+    #     self.updateProcDefs(procDefs, "evil", "a?"*n + "a"*n, 'nothing', '.*', "evil")
+    #     task = self.makeTask(procDefs)
+
+    #     data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'a'*n},
+    #             '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/blah/blah/' + 'a'*n},
+    #             '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments'}}
+    #     self.compareTestData(data, task, self.expected(PROCESSES=0, AFTERBYCONFIG=1, MISSING=1))
+
     def testSingleNameCaptureGroupSingleProcesses(self):
         self.printTestTitle("testSingleNameCaptureGroupSingleProcesses")
 
         procDefs = {}
-        self.updateProcDefs(procDefs, 'url_myapp', '(myapp[^\/]*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'myapp', 'myapp[^\/]*\/', 'nothing', '.*(myapp[^\/]*)\/.*', "\\1")
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'myapp'},
@@ -753,8 +769,8 @@ class TestZenprocess(BaseTestCase):
         self.printTestTitle("testSingleNameCaptureGroupMultipleProcesses")
 
         procDefs = {}
-        self.updateProcDefs(procDefs, 'url_myapp', '(myapp[^\/]*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_myappiscool', '(myapp[^\/]*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'myapp', 'myapp[^\/]*\/', 'nothing', '.*(myapp[^\/]*)\/.*', "\\1")
+        self.updateProcDefs(procDefs, 'myappiscool', 'myapp[^\/]*\/', 'nothing', '.*(myapp[^\/]*)\/.*', "\\1")
         task = self.makeTask(procDefs)
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'myapp',
@@ -771,15 +787,15 @@ class TestZenprocess(BaseTestCase):
         
         procDefs = {}
         
-        self.updateProcDefs(procDefs, 'url_telecel_television_celtic',          '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_telecel_television_celery',          '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_telecel_television_cellular_phones', '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_telecel_telephone_celtic',           '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_telecel_telephone_celery',           '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_telecel_telephone_cellular_phones',  '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_telecel_telekinesis_celtic',         '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_telecel_telekinesis_celery',         '(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
-        self.updateProcDefs(procDefs, 'url_telecel_telekinesis_cellular_phones','(tele.[^\/]*\/).*(cel[^\/].*\/)', 'nothing')
+        self.updateProcDefs(procDefs, 'television_celtic',          'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
+        self.updateProcDefs(procDefs, 'television_celery',          'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
+        self.updateProcDefs(procDefs, 'television_cellular_phones', 'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
+        self.updateProcDefs(procDefs, 'telephone_celtic',           'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
+        self.updateProcDefs(procDefs, 'telephone_celery',           'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
+        self.updateProcDefs(procDefs, 'telephone_cellular_phones',  'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
+        self.updateProcDefs(procDefs, 'telekinesis_celtic',         'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
+        self.updateProcDefs(procDefs, 'telekinesis_celery',         'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
+        self.updateProcDefs(procDefs, 'telekinesis_cellular_phones','tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
         
         task = self.makeTask(procDefs)
 
@@ -838,7 +854,6 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments',
                                             '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments'}}
-        
         self.compareTestData(data, task, self.expected(PROCESSES=18, AFTERBYCONFIG=9, MISSING=0))
 
 

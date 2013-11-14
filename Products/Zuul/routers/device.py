@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -1733,12 +1733,12 @@ class DeviceRouter(TreeRouter):
         data = facade.addIpInterface(uid, newId, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    def addOSProcess(self, uid, newClassName, userCreated=True):
+    def addOSProcess(self, uid, newClassName, example, userCreated=True):
         """
         Adds an os processes
         """
         facade = self._getFacade()
-        data = facade.addOSProcess(uid, newClassName, userCreated)
+        data = facade.addOSProcess(uid, newClassName, example, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def addFileSystem(self, uid, newId, userCreated=True):

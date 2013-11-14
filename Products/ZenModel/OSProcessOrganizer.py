@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -49,37 +49,6 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         ("osProcessClasses", ToManyCont(
             ToOne,"Products.ZenModel.OSProcessClass","osProcessOrganizer")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
-        )
-
-    factory_type_information = (
-        {
-            'immediate_view' : 'osProcessOrganizerOverview',
-            'actions'        :
-            (
-                { 'id'            : 'classes'
-                , 'name'          : 'Classes'
-                , 'action'        : 'osProcessOrganizerOverview'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
-                { 'id'            : 'resequence'
-                , 'name'          : 'Sequence'
-                , 'action'        : 'osProcessResequence'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'osProcessOrganizerManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
-                { 'id'            : 'zProperties'
-                , 'name'          : 'Configuration Properties'
-                , 'action'        : 'zPropertyEdit'
-                , 'permissions'   : ("Change Device",)
-                },
-            )
-         },
         )
 
     security = ClassSecurityInfo()

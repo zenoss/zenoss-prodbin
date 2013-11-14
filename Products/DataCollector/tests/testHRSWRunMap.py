@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2012, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2012-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -18,17 +18,19 @@ log = logging.getLogger("zen.testcases")
 
 class FakeObjectMap(object):
 
-    procName = 'procName'
-    parameters = 'parameters'
+    _procName = 'procName'
+    _parameters = 'parameters'
 
 
 class FakeDevice(object):
 
     id = 'id'
-    getOSProcessMatchers = [dict(regex='foo',
-                                 getPrimaryDmdId='quux',
-                                 ignoreParametersWhenModeling=False),
-                           ]
+    osProcessClassMatchData = [dict(includeRegex='foo',
+                                    excludeRegex='nothing',
+                                    replaceRegex='.*',
+                                    replacement ='foo',
+                                    primaryUrlPath='url',
+                                    primaryDmdId='quux')]
 
 
 def createHRSWRunMap():
@@ -38,36 +40,6 @@ def createHRSWRunMap():
 
 
 class TestHRSWRunMap(TestCase):
-
-    def test_compile_matchers(self):
-        sw_run_map = createHRSWRunMap()
-        matchers = [dict(),  # matcher is missing regex
-                    dict(regex=r'?'),  # Invalid process regex '?' -- ignoring
-                    dict(regex=r'foo'),
-                   ]
-        actual = sw_run_map.compile_matchers(matchers)
-        self.assert_(actual is not None)
-        self.assertEqual(1, len(actual))
-        self.assertEqual(r'foo', actual[0]['regex'])
-
-    def test_match_and_append(self):
-        sw_run_map = createHRSWRunMap()
-        compiled_matchers = [
-            dict(regex_search_function=re.compile(r'bar').search,
-                 getPrimaryDmdId='quux',
-                 ignoreParametersWhenModeling=False),
-            dict(regex_search_function=re.compile(r'flim').search,
-                 getPrimaryDmdId='flam',
-                 ignoreParametersWhenModeling=True),
-            dict(regex_search_function=re.compile(r'.*').search,
-                 getPrimaryDmdId='floo',
-                 ignoreParametersWhenModeling=True),
-        ]
-        om = FakeObjectMap()
-        found = {}
-        rm = []
-        actual = sw_run_map.match_and_append(compiled_matchers, om, found, rm)
-        self.assert_(actual is None)
 
     def test_process(self):
         sw_run_map = createHRSWRunMap()
