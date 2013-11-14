@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -26,9 +26,9 @@ Uses the HOST-RESOURCES-MIB OIDs.
 # DataCollector/plugins/zenoss/snmp/HRSWRunMap      70      0   100%
 
 import re
-from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, \
-                                                           GetTableMap
-from Products.ZenModel.OSProcess import OSProcess
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin
+from Products.DataCollector.plugins.CollectorPlugin import GetTableMap
+from Products.ZenModel.OSProcessMatcher import buildObjectMapData
 
 HRSWRUNENTRY = '.1.3.6.1.2.1.25.4.2.1'
 
@@ -39,17 +39,28 @@ class HRSWRunMap(SnmpPlugin):
     compname = "os"
     relname = "processes"
     modname = "Products.ZenModel.OSProcess"
-    deviceProperties = SnmpPlugin.deviceProperties + ('getOSProcessMatchers',)
+    deviceProperties = SnmpPlugin.deviceProperties + ('osProcessClassMatchData',)
 
     columns = {
-         '.2': 'procName',
+         '.2': '_procName',
          '.4': '_procPath',
-         '.5': 'parameters',
+         '.5': '_parameters',
          }
 
     snmpGetTableMaps = (
         GetTableMap('hrSWRunEntry', HRSWRUNENTRY, columns),
     )
+
+    def _extractProcessText(self, proc):
+        path = proc.get('_procPath','').strip()
+        if path and path.find('\\') == -1:
+            name = path
+        else:
+            name = proc.get('_procName','').strip()
+        if name:
+            return (name + ' ' + proc.get('_parameters','').strip()).rstrip()
+        else:
+            self._log.warn("Skipping process with no name")
 
     def process(self, device, results, log):
         """
@@ -76,57 +87,9 @@ class HRSWRunMap(SnmpPlugin):
                         HRSWRUNENTRY)
             return None
 
-        os_process_class_instances_to_match = self.generateCompiledRegexs(device.getOSProcessMatchers)
-        found = []
+        cmds = map(self._extractProcessText, pidtable.values())
+        cmds = filter(lambda(cmd):cmd, cmds)
         rm = self.relMap()
-        
-        for proc in pidtable.values():
-            om = self.objectMap(proc)
-            om.processText = proc['procName'] + ' ' + proc['parameters']
-            ppath = getattr(om, '_procPath', False)
-            if ppath and ppath.find('\\') == -1:
-                om.processText = om._procPath + proc['parameters']
-            if not getattr(om, 'processText', False):
-                log.warn("Skipping process with no name")
-                continue
-            
-            # os_process_classes_to_match = list of dictionaries containing OSProcessClass info
-            # om = object map
-            # found = list of processes that have been found
-            # rm = rel map
-            for os_process_class_instance in os_process_class_instances_to_match:
-                if OSProcess.matchRegex(os_process_class_instance['compiledRegex'], os_process_class_instance['compiledExcludeRegex'], om.processText):
-                    om.setOSProcessClass = os_process_class_instance['getPrimaryDmdId']
-                    om.id = OSProcess.generateId(os_process_class_instance['compiledRegex'], os_process_class_instance['getPrimaryUrlPath'], om.processText)
-                    if om.id not in found:
-                        log.debug("om.id: %s" % om.id)
-                        found.append(om.id)
-                        rm.append(om)
-
-        # return the now populated relmap
+        matchData = device.osProcessClassMatchData
+        rm.extend(map(self.objectMap, buildObjectMapData(matchData, cmds)))
         return rm
-
-    def generateCompiledRegexs(self, matchers):
-        """
-        copy the input 'matchers' and add two keys: compiledRegex and compiledExcludeRegex
-        
-        @parameter matchers: [{'regex': '.*runzope.*zenoss.*', 'excludeRegex': '.*runzzzope.*zenoss.*', 'getPrimaryDmdId': '/Processes/Zenoss/osProcessClasses/Zope'},
-        @type name: list of dicts
-        @return: parameter matchers + additional keys (specifically compiled regexs)
-        @rtype: list of dicts
-        """
-        compiled_matchers = []
-        for matcher in matchers:
-            try:
-                c_matcher = matcher.copy()
-                c_matcher['compiledRegex'] = re.compile(matcher['regex'])
-                c_matcher['compiledExcludeRegex'] = re.compile(matcher['excludeRegex'])
-                compiled_matchers.append(c_matcher)
-            except Exception:
-                if 'regex' in matcher:
-                    msg = "Invalid process regex '{0}' -- ignoring" \
-                          .format(matcher['regex'])
-                else:
-                    msg = 'matcher is missing regex'
-                self._log.warning(msg)
-        return compiled_matchers

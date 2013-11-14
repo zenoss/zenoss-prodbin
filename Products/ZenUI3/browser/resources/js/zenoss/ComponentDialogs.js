@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (C) Zenoss, Inc. 2011, all rights reserved.
+ * Copyright (C) Zenoss, Inc. 2011-2013, all rights reserved.
  *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
@@ -161,7 +161,7 @@
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                height: 150,
+                height: 200,
                 title: _t('Add Process'),
                 submitHandler: Ext.bind(this.createOSProcess, this),
                 items: [{
@@ -189,7 +189,11 @@
                             }
                         }
                     })
-
+                }, {
+                    xtype: 'textfield',
+                    fieldLabel: _t('Example Command Line'),
+                    name: 'example',
+                    width: 300,
                 }]
             });
             this.callParent([config]);

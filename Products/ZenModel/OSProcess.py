@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -13,6 +13,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.Lockable import Lockable
+from Products.ZenModel.OSProcessMatcher import OSProcessMatcher
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
@@ -21,58 +22,65 @@ from Lockable import UNLOCKED, DELETE_LOCKED, UPDATE_LOCKED
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 from Products.ZenUtils.Utils import prepId
+from persistent.list import PersistentList
 import logging
-import re
 
 log = logging.getLogger("zen.osprocess")
 
-def manage_addOSProcess(context, newClassName, userCreated, REQUEST=None):
+def manage_addOSProcess(context, newClassName, example, userCreated, REQUEST=None):
     """
     Make an os process from the ZMI
     """
-    id = newClassName.split('/')[-1]
-    osp = OSProcess(id)
-    # Indexing is subscribed to ObjectAddedEvent, which fires
-    # on _setObject, so we want to set process class first.
-    osp.__of__(context).setOSProcessClass(newClassName)
-    context._setObject(id, osp)
-    osp = context._getOb(id)
-    osp.processText = id
-    if userCreated: osp.setUserCreateFlag()
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-    return osp
+    pc = context.unrestrictedTraverse(newClassName)
+    if pc.matches(example):
+        name = pc.generateName(example)
+        id = pc.generateIdFromName(name)
+        p = OSProcess(id)
+        p.displayName = name
+        p.__of__(context).setOSProcessClass(newClassName)
+        context._setObject(id, p)
+        p = context._getOb(id)
+        if userCreated: p.setUserCreateFlag()
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        return p
+    else:
+        msg = "Invalid example. Process Class '%s' would not capture it" % pc.name
+        raise ValueError(msg)
 
-
-def createFromObjectMap(context, objectMap):
-    # invoked from Products/DataCollector/ProcessCommandPlugin.py
-    om = objectMap
-    processes = context.device().getDmdRoot("Processes")
-    pcs = processes.getSubOSProcessClassesSorted()
-
-    for pc in pcs:
-        if OSProcess.matchRegex(re.compile(pc.regex), re.compile(pc.excludeRegex), om.processText):
-            uniqueId = OSProcess.generateId(re.compile(pc.regex), pc.getPrimaryUrlPath(), om.processText)
-            
-            result = OSProcess(uniqueId)
-            om.setOSProcessClass = pc.getPrimaryDmdId()
-            om.id = uniqueId
-
-            return result
-
-
-class OSProcess(OSComponent, Commandable, ZenPackable):
+class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
     """
     OSProcess object
     """
     portal_type = meta_type = 'OSProcess'
 
-    processText = ""
-    procName = "" 
-    parameters = "" 
+    @property
+    def includeRegex(self):
+        return self.osProcessClass().includeRegex
+
+    @property
+    def excludeRegex(self):
+        return self.osProcessClass().excludeRegex
+
+    @property
+    def replaceRegex(self):
+        return self.osProcessClass().replaceRegex
+
+    @property
+    def replacement(self):
+        return self.osProcessClass().replacement
+
+    def processClassPrimaryUrlPath(self):
+        return self.osProcessClass().getPrimaryUrlPath()
+
+    @property
+    def generatedId(self):
+        return self.id
+
+    displayName = ""
     minProcessCount = ""
     maxProcessCount = ""
-    _procKey = ""
+    monitoredProcesses = PersistentList()
 
     modelerLock = None
     sendEventWhenBlockedFlag = None
@@ -80,13 +88,15 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     collectors = ('zenprocess','zencommand')
 
     _properties = OSComponent._properties + (
-        {'id':'procName', 'type':'string', 'mode':'w'}, 
-        {'id':'parameters', 'type':'string', 'mode':'w'}, 
-        {'id':'processText', 'type':'string', 'mode':'w'},
+        {'id':'displayName', 'type':'string', 'mode':'w'},
         {'id':'zAlertOnRestarts', 'type':'boolean', 'mode':'w'},
         {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
         {'id':'minProcessCount', 'type':'int', 'mode':'w'},
         {'id':'maxProcessCount', 'type':'int', 'mode':'w'},
+        {'id':'includeRegex', 'type':'string', 'mode':'w'},
+        {'id':'excludeRegex', 'type':'string', 'mode':'w'},
+        {'id':'replaceRegex', 'type':'string', 'mode':'w'},
+        {'id':'replacement', 'type':'string', 'mode':'w'},
     )
 
     _relations = OSComponent._relations + ZenPackable._relations + (
@@ -95,135 +105,22 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
     )
 
-    factory_type_information = (
-        {
-            'immediate_view' : 'osProcessDetail',
-            'actions'        :
-            (
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : 'osProcessDetail'
-                , 'permissions'   : ( Permissions.view, )
-                },
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : 'viewEvents'
-                , 'permissions'   : (ZEN_VIEW, )
-                },
-                { 'id'            : 'perfConf'
-                , 'name'          : 'Template'
-                , 'action'        : 'objTemplates'
-                , 'permissions'   : ("Change Device", )
-                },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'osProcessManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
-            )
-         },
-        )
-
     security = ClassSecurityInfo()
 
 
-    @staticmethod
-    def extractNameCaptureGroups(groups):
-        name_captured_groups = ""
-        if isinstance(groups[0], basestring):
-            return prepId(groups[0])
-        else:
-            for group in groups[0]:
-                name_captured_groups = name_captured_groups + "_" + prepId(group)
-            
-            return name_captured_groups[1:]
-
-
-    @staticmethod
-    def generateId(searchRegex, primaryURLPath, processText):
+    def getMonitoredProcesses(self):
         """
-        Generate a unique ID based on the primaryURLPath AND any name capture groups
-        
-        @parameter searchRegex: regex to search the name_with_args for
-        @type searchRegex: regex
-        @parameter primaryURLPath: url path
-        @type primaryURLPath:: string
-        @parameter processText: name of a process to compare (includes args)
-        @type processText: string
-        @return: uniqueId based on the primaryURLPath + name capture groups (if any are present)
-        @rtype: string
+        return monitoredProcesses
         """
-        preparedId = prepId(primaryURLPath)
+        return self.monitoredProcesses
 
-        if searchRegex.groups is not 0:
-            name_captured_groups = OSProcess.extractNameCaptureGroups( searchRegex.findall(processText) )
-            log.debug("generateId's name_captured_groups: %s" % name_captured_groups)
-            preparedId = preparedId + "_" + name_captured_groups
-        
-        log.debug("Generated unique ID: %s" % preparedId)
-        return preparedId
-
-
-    @staticmethod
-    def matchRegex(searchRegex, excludeRegex, name_with_args):
+    
+    def setMonitoredProcesses(self, monitoredProcesses):
         """
-        Perform exact comparisons on the process names.
-        
-        @parameter searchRegex: regex to search the name_with_args for
-        @type searchRegex:: regex
-        @parameter excludeRegex: regex to search the name_with_args for and return False if anything is found
-        @type excludeRegex:: regex
-        @parameter name_with_args: name of a process to compare (includes args)
-        @type name_with_args:: string
-        @return: does the name match this process's info?
-        @rtype: Boolean
+        @parameter monitoredProcesses: a list that has been converted to a MultiArgs of monitored processes
+        @type monitoredProcesses:: MultiArgs
         """
-        # search for the regex we are looking for
-        if searchRegex.search(name_with_args) is not None:
-            # ensure the excluded regex does NOT apply
-            if excludeRegex.search(name_with_args) is None:
-                return True
-            else:
-                log.debug("Rejecting %s due to exclude regex" % name_with_args)
-
-        # return False if the search regex is NOT found ... or ... if the excluded regex IS found
-        return False
-
-
-    @staticmethod
-    def matchNameCaptureGroups(searchRegex, name_with_args, originalId):
-        """
-        if there are 0 name capture groups in the searchRegex, return True
-        if there is at least 1 name capture group in the searchRegex, return True ONLY if the
-            name capure group match matches with the suffix of the originalId
-        
-        @parameter searchRegex: regex to search the name_with_args for
-        @type searchRegex:: regex
-        @parameter name_with_args: name of a process to compare (includes args)
-        @type name_with_args:: string
-        @parameter originalId: componentID determined at model time
-        @type originalId:: string
-        @return: 
-        @rtype: Boolean
-        """
-        # no name capture groups!
-        if searchRegex.groups is 0:
-            log.debug("Found: %s to be a member of %s" % (name_with_args, originalId))
-            return True
-        
-        # at least one name capture groups...
-        else:
-            # Return all non-overlapping matches
-            name_captured_groups = OSProcess.extractNameCaptureGroups( searchRegex.findall(name_with_args) )
-
-            # example originalId: zport_dmd_Processes_osProcessClasses_capturing_groups_myapp
-            # search at the END of the originalId (produced during modeling)
-            name_capture_groups_regex = re.compile(name_captured_groups + "$")
-            if name_capture_groups_regex.search(str(originalId)) is not None:
-                log.debug("Found: %s to be a member of %s" % (name_with_args, originalId))
-                return True
-
-        return False
+        self.monitoredProcesses = monitoredProcesses.args[0]
 
 
     def getOSProcessConf(self):
@@ -253,7 +150,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
     def getOSProcessClassLink(self):
         """
-        Return an a link to the OSProcessClass.
+        Return a link to the OSProcessClass.
         """
         proccl = self.osProcessClass()
         if proccl:
@@ -289,16 +186,16 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         return float(value) if value else None
 
     def titleOrId(self):
-        
         if self.osProcessClass():
             return self.osProcessClass().titleOrId()
         return self.title() or self.id
     
     def name(self):
         """
-        Return a string that is the process text (process name + parameters)
+        Return a string that describes the process set
+        (Perhaps, simply the process name + parameters)
         """
-        return self.processText
+        return getattr(self,'displayName',None)
 
     title = name
 

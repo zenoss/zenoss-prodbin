@@ -1,13 +1,12 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 # 
 ##############################################################################
-
-
+import re
 import logging
 from itertools import izip, count, imap
 from zope.event import notify
@@ -23,9 +22,24 @@ from Products.Zuul.utils import unbrain
 from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.tree import SearchResults
 from zope.container.contained import ObjectMovedEvent
+from Products.ZenModel.OSProcessMatcher import OSProcessClassDataMatcher 
+from Products.ZenModel.OSProcessMatcher import applyOSProcessClassMatchers
+from Products.ZenUtils.guid.interfaces import IGUIDManager
 
 log = logging.getLogger('zen.ProcessFacade')
 
+class Response:
+    lines = []
+    
+    def __init__(self):
+        self.lines = []
+
+    def write(self, s):
+        self.lines.append(s)
+
+    def getLines(self):
+        return self.lines
+    
 
 class ProcessFacade(TreeFacade):
     implements(IProcessFacade, ITreeFacade)
@@ -84,16 +98,102 @@ class ProcessFacade(TreeFacade):
             yield {
                 'uid': '/'.join(processClass.getPrimaryPath()),
                 'folder': processClass.getPrimaryParent().getOrganizerName(),
-                'name': processClass.name,
-                'regex': processClass.regex,
+                'name': processClass.title,
+                'includeRegex': processClass.includeRegex,
                 'monitor': processClass.zMonitor,
                 'count': processClass.count()
+            }
+
+    def getSequence2(self):
+        processClasses = self._dmd.Processes.getSubOSProcessClassesSorted()
+        for processClass in processClasses:
+            yield {
+                'uid': '/'.join(processClass.getPrimaryPath()),
+                'folder': processClass.getPrimaryParent().getOrganizerName(),
+                'name': processClass.name,
+                'regex': processClass.regex,
+                'excludeRegex': processClass.excludeRegex,
+                'monitor': processClass.zMonitor,
+                'count': processClass.count(),
+                'use': processClass.count() > 0,
             }
 
     def setSequence(self, uids):
         for sequence, uid in izip(count(), uids):
             ob = self._getObject(uid)
             ob.sequence = sequence
+            
+    def applyOSProcessClassMatchers(self, uids, lines):
+        lines2 = []
+        # Remove comments and empty lines from the process list
+        for line in lines:
+            line2 = line.strip()
+            if not line2.startswith('#') and not len(line2) == 0:
+                lines2.append(line)
+        matchers = []
+        for uid in uids:
+            if isinstance(uid, str):
+                matcher = self._getObject(uid)
+            else:
+                matcher = OSProcessClassDataMatcher(**uid)
+            matchers.append(matcher)
+        i = 0
+        matched, unmatched = applyOSProcessClassMatchers(matchers, lines2)
+        for processClass, processClassMatches in matched.iteritems():
+            for processSet, matchedLines in processClassMatches.iteritems():
+                for line in matchedLines:
+                    i += 1
+                    ii = str(i)
+                    if isinstance(processClass, OSProcessClassDataMatcher):
+                        name = processClass.includeRegex
+                    else:
+                        name = processClass.name
+                    yield {
+                        'uid': ii,
+                        'matched': True,
+                        'processClass': name,
+                        'processSet': processSet,
+                        'process': line
+                    }
+
+    def getProcessList(self, deviceGuid):
+        if deviceGuid and len(deviceGuid) > 0:
+            s = ''
+            try:
+                import subprocess
+                from Products.ZenUtils.Utils import binPath
+                device = IGUIDManager(self._dmd).getObject(deviceGuid)
+                s = '# ' + device.id
+                zenmodelerOpts = ['run', '--now', '--debug', '-v10', '-d', device.id]
+                isPerfMonRemote = False
+                zenmodelerName = 'zenmodeler'
+                zenmodelerPath = binPath(zenmodelerName)
+                monitorId = device.perfServer().id
+                if monitorId != 'localhost':
+                    zenmodelerName = monitorId + '_' + zenmodelerName
+                    zenmodelerPath = binPath(zenmodelerName)
+                    if len(zenmodelerPath) == 0:
+                        isPerfMonRemote = True
+                if isPerfMonRemote:
+                    cmd = "ssh %s %s %s" % (device.perfServer().hostname, zenmodelerName, ' '.join(zenmodelerOpts))
+                else:
+                    cmd = "%s %s" % (zenmodelerPath, ' '.join(zenmodelerOpts))
+                processList = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT).splitlines()
+                filterProcessLine = re.compile('DEBUG zen\.osprocessmatcher: COMMAND LINE: (?P<process>.*)$')
+                for processListLine in processList:
+                    m = filterProcessLine.search(processListLine)
+                    if m:
+                        s += '\n' + m.group('process')
+            except Exception, e:
+                s += '\n# ' + str(e)
+            yield {
+               'uid': '0',
+               'process': s
+            }
+
+        else:
+            pass
+
 
     def _processSearch(self, limit=None, start=None, sort='name', dir='ASC',
               params=None, uid=None, criteria=()):
