@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-11-11 13:57:43.640845
+    Zenoss RelationshipManager export completed on 2013-11-13 19:16:42.969813
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-11 13:57:43.640845" zenoss_server="jhanson-desktop" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-13 19:16:42.969813" zenoss_server="localhost.localdomain" >
 <object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
@@ -36,17 +36,17 @@ Zope
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Zope is the web front end for Zenoss
 </property>
 <property type="int" id="sequence" mode="w" >
 0
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenactiond' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -62,17 +62,17 @@ zenactiond
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Sends out notifications based on triggers
 </property>
 <property type="int" id="sequence" mode="w" >
 1
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zencommand' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -88,17 +88,17 @@ zencommand
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Using protocols such as Telnet and SSH, runs a command on the remote machine and parses the results into events and performance metrics.
 </property>
 <property type="int" id="sequence" mode="w" >
 2
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zeneventd' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -111,14 +111,14 @@ zeneventd
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="int" id="sequence" mode="w" >
 3
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zeneventserver' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -134,17 +134,17 @@ zeneventserver
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 The Zenoss event processor.
 </property>
 <property type="int" id="sequence" mode="w" >
 4
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenhub' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -160,17 +160,17 @@ zenhub
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 This daemon provides a stable interface to ZODB, via services that are requested by daemons.
 </property>
 <property type="int" id="sequence" mode="w" >
 5
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenjobs' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -186,17 +186,17 @@ zenjobs
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 An 'at'-style scheduler for running long-running commands.
 </property>
 <property type="int" id="sequence" mode="w" >
 6
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenmail' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -212,17 +212,23 @@ zenmail
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+zenmail
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Listen on the SMTP port (default 25) and convert e-mails into Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
 7
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-True
 </property>
 </object>
 <object id='zenmodeler' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -238,17 +244,17 @@ zenmodeler
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Model a device using protocols such as WMI, SNMP, SSH.
 </property>
 <property type="int" id="sequence" mode="w" >
 8
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenperfsnmp' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -264,17 +270,17 @@ zenperfsnmp
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 SNMP performance metric poller daemon
 </property>
 <property type="int" id="sequence" mode="w" >
 9
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenping' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -290,17 +296,17 @@ zenping
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 IPv4 and IPv6 ICMP ECHO sending daemon
 </property>
 <property type="int" id="sequence" mode="w" >
 10
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenpop3' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -316,17 +322,17 @@ zenpop3
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Connect to a POP3 server and convert any messages into Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
 11
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenprocess' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -342,17 +348,17 @@ zenprocess
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 SNMP based daemon that gathers process information, and based on what has been modeled, reports on process metrics such as memory and CPU utilization.
 </property>
 <property type="int" id="sequence" mode="w" >
 12
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zenrender' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -368,17 +374,23 @@ zenrender
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+zenrender
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Reads from RRD files to draw graphs for the UI.
 </property>
 <property type="int" id="sequence" mode="w" >
 17
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-True
 </property>
 </object>
 <object id='zenrrdcached' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -394,17 +406,23 @@ rrdcached
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+rrdcached
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Caching daemon that improves RRD write performance
 </property>
 <property type="int" id="sequence" mode="w" >
 13
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-True
 </property>
 </object>
 <object id='zenstatus' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -420,17 +438,17 @@ zenstatus
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 A daemon that opens a TCP connection to the remote service to determine if it is available.
 </property>
 <property type="int" id="sequence" mode="w" >
 14
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-False
 </property>
 </object>
 <object id='zensyslog' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -446,17 +464,23 @@ zensyslog
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+zensyslog
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Daemon that runs on the syslog ports and converts syslog messages to Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
 15
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-True
 </property>
 </object>
 <object id='zentrap' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -472,17 +496,23 @@ zentrap
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
 </property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+zentrap
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
 <property type="text" id="description" mode="w" >
 Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
 16
-</property>
-<property visible="True" type="boolean" id="ignoreParametersWhenModeling" >
-False
-</property>
-<property visible="True" type="boolean" id="ignoreParameters" >
-True
 </property>
 </object>
 </tomanycont>

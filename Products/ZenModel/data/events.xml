@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-11-11 13:57:30.244782
+    Zenoss RelationshipManager export completed on 2013-11-13 19:16:21.076807
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-11 13:57:30.244782" zenoss_server="jhanson-desktop" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-13 19:16:21.076807" zenoss_server="localhost.localdomain" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -18,15 +18,6 @@ status
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 -1
-</property>
-<property visible="True" type="int" id="zFlappingThreshold" >
-4
-</property>
-<property visible="True" type="int" id="zFlappingIntervalSeconds" >
-3600
-</property>
-<property visible="True" type="int" id="zFlappingSeverity" >
-4
 </property>
 <property visible="True" type="int" id="zFlappingThreshold" >
 4
@@ -122,8 +113,6 @@ if component is not None and evt.eventKey == 'ifOperStatus_ifOperStatus|ifOperSt
 <object id='Update' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
-</object>
-<object id='Flapping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Flapping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>

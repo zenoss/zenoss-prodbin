@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-11-11 13:57:40.140653
+    Zenoss RelationshipManager export completed on 2013-11-13 19:16:38.096178
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-11 13:57:40.140653" zenoss_server="jhanson-desktop" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-13 19:16:38.096178" zenoss_server="localhost.localdomain" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -1540,8 +1540,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3738,8 +3744,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
