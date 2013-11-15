@@ -1,20 +1,19 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.interface import implements
 from Products.ZenMessaging.queuemessaging.adapters import EventProtobuf as Serializer
-from Products.ZenMessaging.queuemessaging.publisher import EventPublisher, getModelChangePublisher
+from Products.ZenMessaging.queuemessaging.publisher import EventPublisher, getModelChangePublisher, DummyQueuePublisher
 from zenoss.protocols.protobufs.zep_pb2 import Event
 from Products.ZenEvents.Event import buildEventFromDict
-
 
 class TestPublishEvents(BaseTestCase):
 
@@ -103,7 +102,9 @@ class TestPublishEvents(BaseTestCase):
     def testUsingPublisher(self):
         event = self._createDummyEvent()
         publisher = EventPublisher()
+        EventPublisher._publisher = DummyQueuePublisher()
         publisher.publish(event)
+        EventPublisher._publisher = None
 
 def test_suite():
     from unittest import TestSuite, makeSuite
