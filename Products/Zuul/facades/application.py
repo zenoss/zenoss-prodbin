@@ -30,7 +30,7 @@ class ApplicationFacade(object):
 
     def query(self, name=None):
         """
-        Returns a sequence of IApplicationFacade objects.
+        Returns a sequence of IApplication objects.
         """
         result = self._svc.query(name=name)
         if not result:

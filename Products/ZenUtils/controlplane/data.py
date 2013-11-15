@@ -31,6 +31,14 @@ Application JSON format:
         #      "StartedAt": "2013-10-29T17:59:13-05:00",
         #    }
         #]
+        "ConfigFiles": {
+            "S-/etc/my.cnf": {
+                "Filename": "S-/etc/my.cnf",
+                "Owner": "",
+                "Permissions": 0,
+                "Content": "\n# SAMPLE config file for mysql\n\n[mysqld]\n\ninnodb_buffer_pool_size = 16G\n\n"
+            }
+        },
         "ImageId":         "zenoss",
         "PoolId":          "default",
         "DesiredState":    1,
@@ -272,8 +280,8 @@ class ServiceDefinition(object):
         return self._data.get("LogId")
 
     @property
-    def configResourceId(self):
-        return self._data.get("ConfigurationId")
+    def configFiles(self):
+        return self._data.get("ConfigFiles")
 
 
 class ServiceDefinitionFactory(Factory):

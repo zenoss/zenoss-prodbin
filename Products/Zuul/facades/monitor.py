@@ -43,7 +43,7 @@ class MonitorFacade(object):
         """
         Returns the IMonitor object of the identified application.
         """
-        return self._perf.get(monitorId)
+        return self._perf.get(monitorId, default)
 
     def add(self, monitorId, sourceId=None):
         """

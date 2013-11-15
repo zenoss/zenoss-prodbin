@@ -16,16 +16,17 @@ Organizes Monitors
 from zope.component import createObject
 
 from Globals import DTMLFile, InitializeClass
-from AccessControl import ClassSecurityInfo
-from AccessControl import Permissions as permissions
+from AccessControl import ClassSecurityInfo, Permissions as permissions
 from Acquisition import aq_base
 from OFS.Folder import Folder
-from Products.ZenUtils.Utils import checkClass
-from ZenModelRM import ZenModelRM
-from Products.ZenWidgets import messaging
 
-from RRDTemplate import RRDTemplate
-from TemplateContainer import TemplateContainer
+from Products.ZenMessaging.audit import audit
+from Products.ZenWidgets import messaging
+from Products.ZenUtils.Utils import checkClass
+
+from .RRDTemplate import RRDTemplate
+from .TemplateContainer import TemplateContainer
+from .ZenModelRM import ZenModelRM
 
 
 def manage_addMonitorClass(context, id, title=None, REQUEST=None):
@@ -97,17 +98,21 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
 
     security.declareProtected('Manage DMD', 'manage_removeMonitor')
     def manage_removeMonitor(self, ids=None, submon="", REQUEST=None):
-        """Remove an object of sub_class, from a module of the same name"""
+        """
+        Remove an object of sub_class, from a module of the same name.
+        """
         if isinstance(ids, basestring):
             ids = (ids,)
-        child = self._getOb(submon, self)
-        if ids:
-            if len(ids) < len(child._objects):
-                num = 0
-                for id in ids:
-                    if child.hasObject(id):
-                        child._delObject(id)
-                        num += 1
+        child = self.get(submon, self)
+        monitors = child.objectValues(spec="PerformanceConf")
+        num = 0
+        for monitor in (m for m in monitor if m.id in ids):
+            if REQUEST:
+                audit("UI.Collector.Delete", m.id)
+            del child[monitor.id]
+            num += 1
+        if REQUEST:
+            if num:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Collectors Deleted',
                     'Deleted collectors: %s' % (', '.join(ids))
@@ -115,16 +120,9 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
             else:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
-                    'You must have at least one collector.',
+                    'You must select at least one collector.',
                     priority=messaging.WARNING
                 )
-        else:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Error',
-                'No collectors were selected.',
-                priority=messaging.WARNING
-            )
-        if REQUEST:
             return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage DMD', 'manage_addMonitor')
@@ -132,10 +130,11 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         """
         Construct a new monitor and add it to this.
         """
-        child = self._getOb(submon) or self
+        child = self.get(submon, self)
         # Use the registered factory to create monitor.
-        createObject(child.sub_class, child, id)
+        monitor = createObject(child.sub_class, child, id)
         if REQUEST:
+            audit("UI.Collector.Add", monitor.id)
             messaging.IMessageSender(self).sendToBrowser(
                 'Monitor Created',
                 'Monitor %s was created.' % id
