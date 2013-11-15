@@ -25,7 +25,7 @@ from twisted.spread import pb
 import sys
 
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
-from Products.ZenMessaging.queuemessaging.publisher import DummyQueuePublisher
+from Products.ZenMessaging.queuemessaging.publisher import DummyQueuePublisher, EventPublisher
 
 count = 0
 def stop(ignored=None, connector=None):
@@ -152,6 +152,7 @@ class TestZenHub(BaseTestCase):
         self.assertTrue(client.success)
 
     def testSendEvent(self):
+        EventPublisher._publisher = DummyQueuePublisher()
         client = SendEventClient(self, self.base + count)
         self.assertFalse(client.success)
         self.zenhub.main()

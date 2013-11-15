@@ -11,16 +11,9 @@
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.interface import implements
 from Products.ZenMessaging.queuemessaging.adapters import EventProtobuf as Serializer
-from Products.ZenMessaging.queuemessaging.publisher import EventPublisher, getModelChangePublisher
+from Products.ZenMessaging.queuemessaging.publisher import EventPublisher, getModelChangePublisher, DummyQueuePublisher
 from zenoss.protocols.protobufs.zep_pb2 import Event
 from Products.ZenEvents.Event import buildEventFromDict
-
-class DummyPublisher(object):
-    def __init__(self):
-        self.events = []
-
-    def publish(self, exchange, routing_key, proto, mandatory=None, createQueues=True):
-        self.events.append(proto)
 
 class TestPublishEvents(BaseTestCase):
 
@@ -109,7 +102,7 @@ class TestPublishEvents(BaseTestCase):
     def testUsingPublisher(self):
         event = self._createDummyEvent()
         publisher = EventPublisher()
-        EventPublisher._publisher = DummyPublisher()        
+        EventPublisher._publisher = DummyQueuePublisher()
         publisher.publish(event)
         EventPublisher._publisher = None
 
