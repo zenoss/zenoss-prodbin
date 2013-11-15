@@ -13,6 +13,7 @@ ControlPlaneClient
 
 import fnmatch
 import json
+import time
 import urllib
 import urllib2
 
@@ -185,6 +186,8 @@ class ControlPlaneClient(object):
         return _Request(url, **args)
 
     def _login(self):
+        # Clear the cookie jar before logging in.
+        self._cj.clear()
         body = {
             "username": self._settings["user"],
             "password": self._settings["password"]
@@ -193,15 +196,15 @@ class ControlPlaneClient(object):
         request = self._makeRequest("/login", data=encodedbody)
         response = self._opener.open(request)
         response.close()
+        self._opener.close()
 
     def _dorequest(self, uri, method=None, data=None, query=None):
         request = self._makeRequest(
             uri, method=method, data=data, query=query)
-        response = None
         # Try to perform the request up to five times
         for trycount in range(5):
             try:
-                response = self._opener.open(request)
+                return self._opener.open(request)
             except urllib2.HTTPError as ex:
                 if ex.getcode() == 401:
                     self._login()
@@ -214,7 +217,6 @@ class ControlPlaneClient(object):
         else:
             # raises the last exception that was raised (the 401 error)
             raise
-        return response
 
 
 # Define the names to export via 'from client import *'.
