@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, 2010, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -143,13 +143,13 @@ class CommandPerformanceConfig(CollectorConfigService):
                 if isinstance(comp, OSProcess):
                     # save off the regex's specified in the UI to later run
                     # against the processes running on the device
-                    cmd.regex = comp.osProcessClass().regex
-                    cmd.excludeRegex = comp.osProcessClass().excludeRegex
-                    
-                    # We need the comp.id in order to determine if a process matches
-                    # a regex that has a name capture group
-                    # see OSProcess.py ... method: generateId
-                    cmd.componentId = comp.id
+                    cmd.includeRegex = comp.includeRegex
+                    cmd.excludeRegex = comp.excludeRegex
+                    cmd.replaceRegex = comp.replaceRegex
+                    cmd.replacement  = comp.replacement
+                    cmd.primaryUrlPath = comp.processClassPrimaryUrlPath()
+                    cmd.generatedId = comp.id
+                    cmd.displayName = comp.displayName
 
                 # If the datasource supports an environment dictionary, use it
                 cmd.env = getattr(ds, 'env', None)

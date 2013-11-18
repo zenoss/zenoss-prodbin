@@ -28,17 +28,18 @@ class MetricFacadeTest(BaseTestCase):
     def testTagBuilder(self):
         dev = self.dmd.Devices.createInstance('device1')
         self.assertTrue(dev.getUUID())
-        tags = self.facade._buildTagsFromContext([dev])
-        self.assertEquals(tags.keys()[0], 'uuid')
-        self.assertEquals(tags.values()[0], [dev.getUUID()])
+        tags = self.facade._buildTagsFromContextAndMetric(dev, 'pepe')
+        self.assertEquals(tags.keys()[1], 'uuid')
+        self.assertEquals(tags.values()[1], [dev.getUUID()])
 
     def testMetricBuilder(self):
+        dev = self.dmd.Devices.createInstance('device1')
         templateFac = Zuul.getFacade('template', self.dmd)
         template = templateFac.addTemplate('test', '/zport/dmd/Devices')._object
         templateFac.addDataSource(template.getPrimaryId(), 'test', 'SNMP')
         metric = template.datasources()[0].datapoints()[0]
         cf = "avg"
-        metric = self.facade._buildMetric(metric, cf)
+        metric = self.facade._buildMetric(dev, metric, cf)
         self.assertEquals(metric['tags']['datasource'], ['test'])
         self.assertEquals(metric['aggregator'], 'avg')
 

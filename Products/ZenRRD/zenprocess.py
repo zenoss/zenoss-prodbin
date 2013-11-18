@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, 2009, 2011, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -34,7 +34,8 @@ from Products.ZenCollector.tasks import SimpleTaskFactory, SimpleTaskSplitter,\
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess,\
     Status_Perf
-from Products.ZenModel.OSProcess import OSProcess
+from Products.ZenModel.OSProcessMatcher import OSProcessMatcher
+from Products.ZenModel.OSProcessState import determineProcessState
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
@@ -178,7 +179,7 @@ class DeviceStats:
         return self._pidToProcess.itervalues()
 
 
-class ProcessStats:
+class ProcessStats(OSProcessMatcher):
     def __init__(self, processProxy):
         self._pids = {}
         self.cpu = 0
@@ -186,22 +187,15 @@ class ProcessStats:
 
     def update(self, processProxy):
         self._config = processProxy
-        self._compiled_regex = re.compile(self._config.regex)
-        self.regex = self._config.regex
-        self._compiled_exclude_regex = re.compile(self._config.excludeRegex)
+        self.includeRegex = self._config.includeRegex
         self.excludeRegex = self._config.excludeRegex
+        self.replaceRegex = self._config.replaceRegex
+        self.replacement  = self._config.replacement
+        self.primaryUrlPath = self._config.processClassPrimaryUrlPath()
+        self.generatedId  = self._config.generatedId
 
-        # Set up a regex for comparing the process name:
-        #   _config.name contains the MD5'd args appended to the process name,
-        # with the whole thing prepId'd.  We call prepId on the _name_only in
-        # order to strip trailing WS and underscores, which were not stripped
-        # originally due to the appended MD5 hash.
-        result = self._config.name.rsplit(' ', 1)
-        self._name_only = globalPrepId(result[0])
-        self._compiled_name_regex = re.compile('(.?)' + re.escape(self._name_only) + '$')
-
-        if len(result) == 2 and result[1] != '':
-            self.digest = result[1]
+    def processClassPrimaryUrlPath(self):
+        return self.primaryUrlPath
 
     def __str__(self):
         """
@@ -477,9 +471,9 @@ class ZenProcessTask(ObservableMixin):
                 if pid not in afterByConfig[procStats]:
                     droppedPids.append(pid)
             procClassName = pConfig.processClass.rsplit('/', 1)[-1]
-            summary = 'Process restarted: %s' % procClassName
+            summary = 'Process(es) restarted in process set: %s' % procClassName
             message = '%s\n Using regex \'%s\' Discarded dead pid(s) %s Using new pid(s) %s'\
-            % (summary, pConfig.regex, droppedPids, afterByConfig[procStats])
+            % (summary, pConfig.includeRegex, droppedPids, afterByConfig[procStats])
             self._eventService.sendEvent(self.statusEvent,
                                          device=self._devId,
                                          summary=summary,
@@ -496,7 +490,7 @@ class ZenProcessTask(ObservableMixin):
             procClassName = processStat._config.processClass.rsplit('/', 1)[-1]
             summary = "Process up: %s" % procClassName
             message = '%s\n Using regex \'%s\' with pid\'s %s '\
-            % (summary, processStat._config.regex, pids)
+            % (summary, processStat._config.includeRegex, pids)
             self._eventService.sendEvent(self.statusEvent,
                                          device=self._devId,
                                          summary=summary,
@@ -533,9 +527,9 @@ class ZenProcessTask(ObservableMixin):
         for procConfig in missing:
             ZenProcessTask.MISSING += 1
             procClassName = procConfig.processClass.rsplit('/', 1)[-1]
-            summary = 'Process not running: %s' % procClassName
+            summary = 'Process set contains 0 running processes: %s' % procClassName
             message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
-                        % (summary,procConfig.regex,self._device.lastmodeltime)
+                        % (summary,procConfig.includeRegex,self._device.lastmodeltime)
             self._eventService.sendEvent(self.statusEvent,
                                              device=self._devId,
                                              summary=summary,
@@ -590,40 +584,38 @@ class ZenProcessTask(ObservableMixin):
             log.debug("pid: %s --- name_with_args: %s" % (pid, name_with_args))
             for pStats in self._deviceStats.processStats:
                 if pStats._config.name is not None:
-                    if OSProcess.matchRegex(pStats._compiled_regex, pStats._compiled_exclude_regex, name_with_args) and \
-                       OSProcess.matchNameCaptureGroups(pStats._compiled_regex, name_with_args, pStats._config):
+                    if pStats.matches(name_with_args):
                         log.debug("Found process %s belonging to %s", name_with_args, pStats._config)
                         afterPidToProcessStats[pid] = pStats
                         break
 
         afterPids = set(afterPidToProcessStats)
         afterByConfig = reverseDict(afterPidToProcessStats)
-        newPids = afterPids - beforePids
-        deadPids = beforePids - afterPids
+        
+        restarted = {}
+        (deadPids, restartedPids, newPids) = determineProcessState(reverseDict(self._deviceStats._pidToProcess), afterByConfig)
 
         restarted = {}
-        for pid in deadPids:
-            procStats = self._deviceStats._pidToProcess[pid]
-            procStats.discardPid(pid)
-            if procStats in afterByConfig:
-                ZenProcessTask.RESTARTED += 1
-                pConfig = procStats._config
-                if pConfig.restart:
-                    restarted[procStats] = pConfig
+        for restartedPid in restartedPids:
+            ZenProcessTask.RESTARTED += 1
+            procStats = afterPidToProcessStats[restartedPid]
+            pConfig = procStats._config
 
-        # Now that we've found all of the stragglers, check to see
-        # what really is missing or not.
+            # only if configured to alert on restarts...
+            if pConfig.restart:
+                restarted[procStats] = pConfig
+        
+        # populate missing (the process set contains 0 processes...)
         missing = []
         for procStat in self._deviceStats.processStats:
             if procStat not in afterByConfig:
                 missing.append(procStat._config)
-
+        
         # For historical reasons, return the beforeByConfig
         beforeByConfig = reverseDict(self._deviceStats._pidToProcess)
 
         return (afterByConfig, afterPidToProcessStats,
-                beforeByConfig, newPids, restarted, deadPids,
-                missing)
+                beforeByConfig, newPids, restarted, deadPids, missing)
 
     @defer.inlineCallbacks
     def _fetchPerf(self):

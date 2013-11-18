@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -2102,20 +2102,20 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return "<a %s href='%s' class='prettylink'>%s</a>" % \
                     ('target=' + target if target else '', href, rendered)
 
-
-    def getOSProcessMatchers(self):
+    def osProcessClassMatchData(self):
         """
         Get a list of dictionaries containing everything needed to match
-        processes against the global list of process classes. Used by process
-        modeler plugins.
+        processes against the global list of process classes.
         """
         matchers = []
         for pc in self.getDmdRoot("Processes").getSubOSProcessClassesSorted():
             matchers.append({
-                'regex': pc.regex,
+                'includeRegex': pc.includeRegex,
                 'excludeRegex': pc.excludeRegex,
-                'getPrimaryDmdId': pc.getPrimaryDmdId(),
-                'getPrimaryUrlPath': pc.getPrimaryUrlPath(),
+                'replaceRegex': pc.replaceRegex,
+                'replacement': pc.replacement,
+                'primaryUrlPath': pc.getPrimaryUrlPath(),
+                'primaryDmdId': pc.getPrimaryDmdId(),
                 })
 
         return matchers

@@ -259,8 +259,9 @@ class CreateDeviceJob(Job):
         if dev.zenPropIsPassword(cProperty) and value == dev.zenPropertyString(cProperty):
             return
         return dev.setZenProperty(cProperty, value)
-
-
+    
+# alias the DeviceCreationJob so zenpacks don't break
+DeviceCreationJob = CreateDeviceJob
 
 class WeblogDeviceLoader(BaseDeviceLoader):
     def __init__(self, context, request):

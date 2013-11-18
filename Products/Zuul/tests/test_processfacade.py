@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -85,7 +85,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
     def test_getDevices(self):
         device = self.dmd.Devices.createInstance('quux')
         uid = '/zport/dmd/Processes/foo/osProcessClasses/bar'
-        device.os.addOSProcess(uid, True)
+        device.os.addOSProcess(uid, 'bar', True)
         deviceInfos = list(self.facade.getDevices(uid))
         self.assertEqual(1, len(deviceInfos))
         deviceInfo = deviceInfos[0]
@@ -95,7 +95,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
     def test_getInstances(self):
         device = self.dmd.Devices.createInstance('quux')
         uid = '/zport/dmd/Processes/foo/osProcessClasses/bar'
-        device.os.addOSProcess(uid, True)
+        device.os.addOSProcess(uid, 'bar', True)
         instanceInfos = list(self.facade.getInstances(uid))
         self.assertEqual(1, len(instanceInfos))
         instanceInfo = instanceInfos[0]
@@ -108,7 +108,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         device = self.dmd.Devices.createInstance('quux')
         uid = '/zport/dmd/Processes/foo/osProcessClasses/bar'
         self.assertEqual(0, len(device.os.processes()))
-        device.os.addOSProcess(uid, True)
+        device.os.addOSProcess(uid, 'bar', True)
         self.assertEqual(1, len(device.os.processes()))
         self.facade.deleteNode(uid)
         self.assertEqual(0, len(device.os.processes()))

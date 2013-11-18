@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2010-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -36,6 +36,14 @@ class OSProcessInfo(ComponentInfo):
                 log.error(msg)
             return None
         return klass.primaryAq()
+
+    @property
+    def processClassName(self):
+        return self._object.osProcessClass().title
+    
+    @property
+    def getMonitoredProcesses(self):
+        return "<br>".join(self._object.getMonitoredProcesses())
 
     @property
     def processName(self):

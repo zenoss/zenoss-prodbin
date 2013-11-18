@@ -17,7 +17,7 @@ from Products.ZenUtils.Utils import unused, zenPath
 unused(Globals)
 
 _PATTERN = re.compile(
-            r'<p> (?P<message>.* contains the description of this error.)')
+            r'(?P<message>.* contains the description of this error.)')
 
 _LOG_DIR = zenPath('log', 'tracebacks')
 
@@ -33,3 +33,4 @@ def log_tb(exc_info):
     output = file_.getvalue()
     match = _PATTERN.search(output)
     return match.group('message')
+    

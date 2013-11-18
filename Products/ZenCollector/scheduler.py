@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009,2013 all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -31,6 +31,7 @@ from twisted.python.failure import Failure
 from Products.ZenCollector.interfaces import IScheduler, IScheduledTask
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenUtils.Utils import dumpCallbacks
+from Products.ZenUtils.keyedset import KeyedSet
 
 #
 # creating a logging context for this module to use
@@ -237,6 +238,10 @@ class CallableTaskFactory(object):
         return CallableTask(newTask, scheduler, scheduler.executor)
 
 
+def getConfigId(task):
+    return task.configId
+
+
 class Scheduler(object):
     """
     A simple interval-based scheduler that makes use of the Twisted framework's
@@ -256,7 +261,7 @@ class Scheduler(object):
         self._shuttingDown = False
         # create a cleanup task that will periodically sweep the
         # cleanup dictionary for tasks that need to be cleaned
-        self._tasksToCleanup = set()
+        self._tasksToCleanup = KeyedSet(getConfigId)
         self._cleanupTask = task.LoopingCall(self._cleanupTasks)
         self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
 
@@ -351,16 +356,24 @@ class Scheduler(object):
             log.warn("Failure in looping call, will not reschedule %s" % task_name)
             log.error("%s" % result)
 
-    def _startTask(self, result, task_name, interval):
+    def _startTask(self, result, task_name, interval, configId, delayed):
         """start the task using a callback so that its put at the bottom of
         the Twisted event queue, to allow other processing to continue and
         to support a task start-time jitter"""
         if task_name in self._loopingCalls:
             loopingCall = self._loopingCalls[task_name]
             if not loopingCall.running:
-                log.debug("Task %s starting on %d second intervals", task_name, interval)
-                d = loopingCall.start(interval)
-                d.addBoth(self._ltCallback, task_name)
+                if self._tasksToCleanup.has_key(configId):
+                    delay = random.randint(0, int(interval/2))
+                    delayed = delayed + delay
+                    log.debug("Waiting for cleanup of %s. Task %s postponing its start %d seconds (%d so far)", configId, task_name, delay, delayed)
+                    d = defer.Deferred()
+                    d.addCallback(self._startTask, task_name, interval, configId, delayed)
+                    reactor.callLater(delay, d.callback, None)
+                else:
+                    log.debug("Task %s starting (waited %d seconds) on %d second intervals", task_name, delayed, interval)
+                    d = loopingCall.start(interval)
+                    d.addBoth(self._ltCallback, task_name)
 
     def addTask(self, newTask, callback=None, now=False):
         """
@@ -379,12 +392,11 @@ class Scheduler(object):
         self._tasks[newTask.name] = callableTask
         self._taskCallback[newTask.name] = callback
         self.taskAdded(callableTask)
-        d = defer.Deferred()
-        d.addCallback(self._startTask, newTask.name, newTask.interval)
-
         startDelay = getattr(newTask, 'startDelay', None)
         if startDelay is None:
             startDelay = 0 if now else self._getStartDelay(newTask)
+        d = defer.Deferred()
+        d.addCallback(self._startTask, newTask.name, newTask.interval, newTask.configId, startDelay)
         # explicitly set, next expected call in case task was never executed/schedule
         loopingCall._expectNextCallAt = time.time() + startDelay
         reactor.callLater(startDelay, d.callback, None)
@@ -488,9 +500,6 @@ class Scheduler(object):
 
         map(self.removeTasksForConfig, childIds)
 
-        # TODO: don't let any tasks for the same config start until
-        # these old tasks are really gone
-
     def removeTasksForConfig(self, configId):
         """
         Remove all tasks associated with the specified identifier.
@@ -536,7 +545,8 @@ class Scheduler(object):
         task = observable
         log.debug("Task %s changing run interval from %s to %s", task.name, oldValue,
                   newValue)
-
+        #TODO: should this be...
+        # loopingCall = self._loopingCalls[task.name]
         loopingCall = task._dataService._scheduler._loopingCalls[task.name]
         loopingCall.interval = newValue
 
@@ -674,7 +684,7 @@ class Scheduler(object):
         # is no issue with concurrent modifications to the _tasksToCleanup
         # dictionary when tasks are quickly cleaned up.
         if self._tasksToCleanup:
-            log.debug("tasks to clean %s" % self._tasksToCleanup)
+            log.debug("tasks to clean %s", self._tasksToCleanup)
 
         todoList = [task for task in self._tasksToCleanup
                              if self._isTaskCleanable(task)]

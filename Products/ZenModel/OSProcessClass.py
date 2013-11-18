@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -15,6 +15,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.OSProcessMatcher import OSProcessClassMatcher
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
@@ -32,14 +33,18 @@ def manage_addOSProcessClass(context, id=None, REQUEST = None):
 
 addOSProcessClass = DTMLFile('dtml/addOSProcessClass',globals())
 
-class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
+class OSProcessClass(ZenModelRM, Commandable, ZenPackable, OSProcessClassMatcher):
     meta_type = "OSProcessClass"
     dmdRootName = "Processes"
     default_catalog = "processSearch"
 
     name = ""
     regex = ""
-    excludeRegex = ".*(vim|tail|grep|tar|cat|bash).*"
+    excludeRegex = "\\b(vim|tail|grep|tar|cat|bash)\\b"
+    replaceRegex = ""
+    replacement = ""
+    ignoreParametersWhenModeling = False
+    ignoreParameters = False
     description = ""
     example = ""
     sequence = 0
@@ -48,10 +53,14 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
         {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
         {'id':'excludeRegex', 'type':'string', 'mode':'w'},
+        {'id':'replaceRegex', 'type':'string', 'mode':'w'},
+        {'id':'replacement', 'type':'string', 'mode':'w'},
+        {'id':'ignoreParametersWhenModeling', 'type':'boolean', 'mode':'w'},
+        {'id':'ignoreParameters', 'type':'boolean','mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         {'id':'sequence', 'type':'int', 'mode':'w'},
         {'id':'example', 'type':'string', 'mode':'w'},
-        ) 
+        )
 
     _relations = ZenPackable._relations + (
         ("instances", ToMany(ToOne, "Products.ZenModel.OSProcess", "osProcessClass")),
@@ -59,58 +68,19 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
             ToOne(ToManyCont,"Products.ZenModel.OSProcessOrganizer","osProcessClasses")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
-
-
-    factory_type_information = ( 
-        { 
-            'immediate_view' : 'osProcessClassStatus',
-            'actions'        :
-            ( 
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : 'osProcessClassStatus'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'osProcessClassEdit'
-                , 'permissions'   : ("Manage DMD", )
-                },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'osProcessClassManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
-                { 'id'            : 'zProperties'
-                , 'name'          : 'Configuration Properties'
-                , 'action'        : 'zPropertyEdit'
-                , 'permissions'   : ("Change Device",)
-                },
-            )
-         },
-        )
     
     security = ClassSecurityInfo()
    
 
     def __init__(self, id):
-        self.title = id
         id = self.prepId(id)
         super(OSProcessClass, self).__init__(id)
-        self.name = self.regex = id
+        self.name = self.includeRegex = id
 
     def getOSProcessClassName(self):
         """Return the full name of this process class.
         """
         return self.getPrimaryDmdId("Processes", "osProcessClasses")
-
-
-    def match(self, procKey):
-        """match procKey against our regex.
-        """
-        return re.search(self.regex, procKey)
-
         
     def count(self):
         """Return count of instances in this class.
@@ -124,28 +94,31 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
                                   zMonitor=True, 
                                   zAlertOnRestart=False,
                                   zFailSeverity=3,
-                                  regex="",
+                                  includeRegex="",
                                   excludeRegex="",
+                                  replaceRegex="",
+                                  replacement="",
                                   description="",
                                   REQUEST=None):
                                  
         """
-        Edit a ProductClass from a web page.
+        Edit a ProcessClass from a web page.
         """
         from Products.ZenUtils.Utils import unused
         unused(zAlertOnRestart, zFailSeverity, zMonitor)
         # Left in name, added title for consistency
-        self.title = name
         self.name = name
         id = self.prepId(name)
         redirect = self.rename(id)
-        self.regex = regex
+        self.includeRegex = includeRegex
         self.excludeRegex = excludeRegex
+        self.replaceRegex = replaceRegex
+        self.replacement = replacement
         self.description = description
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             messaging.IMessageSender(self).sendToBrowser(
-                'Product Class Saved',
+                'Process Class Saved',
                 SaveMessage()
             )
             return self.callZenScreen(REQUEST, redirect)
@@ -167,6 +140,24 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
         '''
         return self.getPrimaryParent().getOrganizerName()
 
+    @property
+    def includeRegex(self):
+        return self.regex
+
+    @includeRegex.setter
+    def includeRegex(self, value):
+        self.regex = value
+
+    @property
+    def title(self):
+        return self.name or self.id
+
+    @title.setter
+    def title(self, value):
+        self.name = value
+
+    def processClassPrimaryUrlPath(self):
+        return self.getPrimaryUrlPath()
 
 InitializeClass(OSProcessClass)
 
