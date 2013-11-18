@@ -1108,22 +1108,6 @@ class DeviceRouter(TreeRouter):
         data = facade.getGraphDefs(uid, drange)
         return DirectResponse(data=Zuul.marshal(data))
 
-    @serviceConnectionError
-    def getEvents(self, uid):
-        """
-        Get events for a device.
-
-        @type  uid: [string]
-        @param uid: Device to get events for
-        @rtype:   DirectResponse
-        @return:  B{Properties}:
-             - data: ([dictionary]) List of events for a device
-        """
-        facade = self._getFacade()
-        events = facade.getEvents(uid)
-        data = Zuul.marshal(events)
-        return DirectResponse(data=data)
-
     def loadRanges(self, ranges, hashcheck, uid=None, params=None,
                       sort='name', dir='ASC'):
         """
