@@ -772,6 +772,10 @@
         },
         setFilter:function (colId, value) {
             this.filterRow.setFilter(colId, value);
+        },
+        afterRender:function() {
+            this.callParent();
+            this.applyState(this.getState());
         }
     });
 
