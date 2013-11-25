@@ -69,6 +69,14 @@
                     tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
             </select>
             </span>
+            <span tal:condition="python: prop=='zFlappingSeverity'">
+                <select class="tablevalues"
+                    tal:attributes="name python:prop">
+                        <option tal:repeat="sev here/dmd/getEventSeverities"
+                        tal:content="python:sev[0]"
+                        tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
+                </select>
+            </span>
             <span tal:condition="python: prop=='zFailSeverity'">
             <select class="tablevalues" 
                 tal:attributes="name python:prop">
@@ -89,7 +97,7 @@
             <input class="tablevalues" size="40" autocomplete="off" type="password"
                 tal:attributes="value pvalue;name python:prop"/>
             </span>
-            <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction zFailSeverity'.split() and not here.zenPropIsPassword(prop)">
+            <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction zFailSeverity zFlappingSeverity'.split() and not here.zenPropIsPassword(prop)">
             <input class="tablevalues" 
                tal:condition="not:popts"
                type="text" size="40"

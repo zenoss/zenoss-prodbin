@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-11-13 19:16:21.076807
+    Zenoss RelationshipManager export completed on 2013-11-25 21:42:54.480854
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-13 19:16:21.076807" zenoss_server="localhost.localdomain" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-25 21:42:54.480854" zenoss_server="localhost.localdomain" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -25,7 +25,7 @@ status
 <property visible="True" type="int" id="zFlappingIntervalSeconds" >
 3600
 </property>
-<property visible="True" type="severity" id="zFlappingSeverity" >
+<property visible="True" type="int" id="zFlappingSeverity" >
 4
 </property>
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
