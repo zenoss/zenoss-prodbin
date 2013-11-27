@@ -73,27 +73,6 @@ ignore_LD_LIBRARY_PATH = yes
 #============================================================================
 
 #---------------------------------------------------------------------------#
-# Pull in zenmagic.mk
-#---------------------------------------------------------------------------#
-# Locate and include common build idioms tucked away in 'zenmagic.mk'
-# This holds convenience macros and default target implementations.
-#
-# Generate a list of directories starting here and going up the tree where we
-# should look for an instance of zenmagic.mk to include.
-#
-#     ./zenmagic.mk ../zenmagic.mk ../../zenmagic.mk ../../../zenmagic.mk
-#---------------------------------------------------------------------------#
-NEAREST_ZENMAGIC_MK := $(word 1,$(wildcard ./zenmagic.mk $(shell for slash in $$(echo $(abspath .) | sed -e "s|.*\(/obj/\)\(.*\)|\1\2|g" -e "s|.*\(/src/\)\(.*\)|\1\2|g" | sed -e "s|[^/]||g" -e "s|/|/ |g"); do string=$${string}../;echo $${string}zenmagic.mk; done | xargs echo)))
-
-ifeq "$(NEAREST_ZENMAGIC_MK)" ""
-    $(warning "Missing zenmagic.mk")
-    $(warning "Unable to find our file of build idioms in the current or parent directories.")
-    $(error   "A fully populated src tree usually resolves that.")
-else
-    include $(NEAREST_ZENMAGIC_MK)
-endif
-
-#---------------------------------------------------------------------------#
 # Variables for this makefile
 #---------------------------------------------------------------------------#
 bldtop = build
@@ -137,7 +116,7 @@ ifeq "$(check_md5)" "yes"
 Python-2.7.2.tgz_md5  = 076597d321e2250756f9ba9d7d5ef99f
 # That 'zd5' lurking there is for our internally patched python source archive;
 # more of a legacy play in case we backport the new bldenv to 4.x.
-Python-2.7.2.tgz_zd5  = 0ddfe265f1b3d0a8c2459f5bf66894c7
+Python-2.7.2.tgz_zd5  = bb4976199c4f7131700d4a6fc7e0df8d
 Python-2.7.3.tgz_md5  = 2cf641732ac23b18d139be077bd906cd
 Python-2.7.4.tgz_md5  = 592603cfaf4490a980e93ecb92bde44a
 Python-2.7.5.tgz_md5  = b4f01a1d0ba0b46b05c73b2ac909b1df
@@ -170,7 +149,6 @@ python_makefile  := $(externaldir)/$(python_pkg)/Makefile
 #              ..
 # >> 493       $(LN) -f $(INSTSONAME) $@; \
 #---------------------------------------------------------------------------#
-LN           = ln -s
 PKG_CONFIG   = /usr/bin/pkg-config
 
 #---------------------------------------------------------------------------#
@@ -396,7 +374,7 @@ configure:
 .PHONY: python
 python: $(built_python)
 
-$(built_python): | $(CHECKED_ENV)
+$(built_python):
 
 # Build python from source.  
 # (Makefile must already be configured into existence.)
@@ -740,7 +718,6 @@ help: dflt_component_help
 # This will give you an idea of how the build will behave as currently
 # configured.
 control_variables  = bldtop 
-control_variables += CHECKED_ENV
 control_variables += DESTDIR
 control_variables += dnstream_src_url
 control_variables += exportdir 
@@ -763,7 +740,7 @@ settings:
 .PHONY: clean
 clean:
 	@if [ -d "$(bldtop)" ];then \
-		if [ "$(abspath $(bldtop))" != "$(abspath $(srcdir))" ];then \
+		if [ "$(abspath $(bldtop))" != "$(abspath $(pkgsrcdir))" ];then \
 			($(call cmd_noat,RMDIR,$(bldtop))) ;\
 			rc=$$? ;\
 			if [ $${rc} -ne 0 ] ; then \
@@ -777,7 +754,7 @@ clean:
 			$(call echol,"       currently the same as your source directory.") ;\
 			$(call echol,$(LINE)) ;\
 			$(call echol,"       bldtop $(abspath $(bldtop))") ;\
-			$(call echol,"       srcdir $(abspath $(srcdir))") ;\
+			$(call echol,"       pkgsrcdir $(abspath $(pkgsrcdir))") ;\
 		fi ;\
 	fi
 

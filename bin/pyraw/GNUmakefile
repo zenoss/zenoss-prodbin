@@ -177,7 +177,7 @@ $(_DESTDIR)$(bindir):
 		echo ;\
 		exit $${rc} ;\
 	else \
-		$(call cmd_noat,CHOWN,$(INST_OWNER),$(INST_GROUP),$@) ;\
+		$(call cmd_noat,CHOWN,,$(INST_OWNER),$(INST_GROUP),$@) ;\
 		rc=$$? ;\
 		if [ $${rc} -ne 0 ] ; then \
 			exit $${rc} ;\

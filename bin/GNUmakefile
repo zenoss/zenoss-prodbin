@@ -33,7 +33,7 @@ scripts   = scripts
 #
 #     ./zenmagic.mk ../zenmagic.mk ../../zenmagic.mk ../../../zenmagic.mk
 #---------------------------------------------------------------------------#
-NEAREST_ZENMAGIC_MK := $(word 1,$(wildcard ./zenmagic.mk $(shell for slash in $$(echo $(abspath .) | sed -e "s|.*\(/obj/\)\(.*\)|\1\2|g" -e "s|.*\(/src/\)\(.*\)|\1\2|g" | sed -e "s|[^/]||g" -e "s|/|/ |g"); do string=$${string}../;echo $${string}zenmagic.mk; done | xargs echo)))
+NEAREST_ZENMAGIC_MK := $(word 1,$(wildcard ./zenmagic.mk $(shell for slash in $$(echo $(abspath .) | sed -e "s|.*\(/obj/\)\(.*\)|\1\2|g" | sed -e "s|[^/]||g" -e "s|/|/ |g"); do string=$${string}../;echo $${string}zenmagic.mk; done | xargs echo)))
 
 ifeq "$(NEAREST_ZENMAGIC_MK)" ""
     $(warning "Missing zenmagic.mk needed by the $(COMPONENT)-component makefile.")
@@ -73,7 +73,7 @@ $(scripts): | $@
 .PHONY: clean
 clean:
 	@if [ -d "$(blddir)" ];then \
-		if [ "$(abspath $(blddir))" != "$(abspath $(srcdir))" ];then \
+		if [ "$(abspath $(blddir))" != "$(abspath $(pkgsrcdir))" ];then \
 			($(call cmd_noat,RMDIR,$(blddir))) ;\
 			rc=$$? ;\
 			if [ $${rc} -ne 0 ] ; then \
@@ -87,7 +87,7 @@ clean:
 			$(call echol,"       currently the same as your source directory.") ;\
 			$(call echol,$(LINE)) ;\
 			$(call echol,"       blddir $(abspath $(blddir))") ;\
-			$(call echol,"       srcdir $(abspath $(srcdir))") ;\
+			$(call echol,"       pkgsrcdir $(abspath $(pkgsrcdir))") ;\
 		fi ;\
 	fi
 
@@ -120,7 +120,7 @@ $(install_programs):
 
 $(installhere_programs): program = $(patsubst installhere-%,%,$@)
 $(installhere_programs): 
-	cd $(program) && make installhere blddir=$(abspath build/$(program)) DESTDIR=$(abspath $(heredir))
+	cd $(program) && make installhere bldtop=$(abspath build/$(program)) DESTDIR=$(abspath $(heredir))
 
 .PHONY: $(install_scripts)
 $(install_scripts): script = $(patsubst install-%,%,$@)

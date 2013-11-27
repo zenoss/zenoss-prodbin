@@ -16,12 +16,14 @@ PROGRAM_PERMS   = 04750
 
 # Define build-related attributes
 
-blddir                 = obj
+blddir                ?= obj
+bldtop                ?= $(blddir)
+#bldtop                = obj
 INCLUDE_SYSINC_DEPS    = no
 INCLUDE_DEBUG_SYMS     = yes
 REQUIRES_GCC           = 1
 #IGNORE_LD_LIBRARY_PATH= no
-# Dump out a PROGRAM's link-time dependencies to $(blddir)/PROGRAM.dlibs
+# Dump out a PROGRAM's link-time dependencies to $(bldtop)/PROGRAM.dlibs
 # This does not materially affect the build, but it does provide a means
 # for understanding where certain library dependencies are creeping in.
 DUMP_LD_LIBDEPS        = yes
@@ -84,13 +86,13 @@ endif
 # Build Targets
 #============================================================================
 ifneq "$(MAKECMDGOALS)" "clean"
-    -include $(blddir)/$(PROGRAM).d
+    -include $(bldtop)/$(PROGRAM).d
 endif
 
 .PHONY: all build $(PROGRAM)
-all build $(PROGRAM): $(blddir)/$(PROGRAM)
+all build $(PROGRAM): $(bldtop)/$(PROGRAM)
 
-$(blddir):
+$(bldtop):
 	$(call cmd,MKDIR,$@)
 
 $(_DESTDIR)$(bindir):
@@ -102,27 +104,26 @@ $(_DESTDIR)$(bindir):
 		echo ;\
 		exit $${rc} ;\
 	else \
-		$(call cmd_noat,CHOWN,$(INST_OWNER),$(INST_GROUP),$@) ;\
+		$(call cmd_noat,CHOWN,,$(INST_OWNER),$(INST_GROUP),$@) ;\
 		rc=$$? ;\
 		if [ $${rc} -ne 0 ] ; then \
 			exit $${rc} ;\
 		fi ;\
 	fi
 
-$(blddir)/$(PROGRAM): $(blddir)/$(PROGRAM).o
+$(bldtop)/$(PROGRAM): $(bldtop)/$(PROGRAM).o
 ifeq "$(DUMP_LD_LIBDEPS)" "yes"
 	$(call cmd,MKDEPL,$^,$@)
 endif
 	$(call cmd,LINKC,$(LINK.c),$^,$(LOADLIBES),$(LDLIBS),$@)
 
-$(blddir)/$(PROGRAM).o: | $(CHECKED_ENV)
-$(blddir)/$(PROGRAM).o: | $(PYTHON_INCDIR)
-$(blddir)/$(PROGRAM).o: | $(blddir)
-$(blddir)/$(PROGRAM).o: $(PROGRAM).c
+$(bldtop)/$(PROGRAM).o: | $(PYTHON_INCDIR)
+$(bldtop)/$(PROGRAM).o: | $(bldtop)
+$(bldtop)/$(PROGRAM).o: $(PROGRAM).c
 	$(call cmd,MKDEPC,$<,$@,$(subst .o,.d,$@))
 	$(call cmd,CC,$(COMPILE.c),$(OUTPUT_OPTION),$<)
 
-BUILT_FILES = $(wildcard $(patsubst %,$(blddir)/%,$(PROGRAM) $(PROGRAM).o $(PROGRAM).d $(PROGRAM).dlibs))
+BUILT_FILES = $(wildcard $(patsubst %,$(bldtop)/%,$(PROGRAM) $(PROGRAM).o $(PROGRAM).d $(PROGRAM).dlibs))
 .PHONY: clean
 clean:
 	@for target_file in $(BUILT_FILES) ;\
@@ -134,10 +135,10 @@ clean:
 			exit $${rc} ;\
 		fi ;\
 	done
-	@if [ -d "$(blddir)" ];then \
-		count=`ls -a1 $(blddir) 2>/dev/null|wc -l` ;\
+	@if [ -d "$(bldtop)" ];then \
+		count=`ls -a1 $(bldtop) 2>/dev/null|wc -l` ;\
 		if ((count < 3 ));then \
-			$(call cmd_noat,RMDIR,$(blddir)) ;\
+			$(call cmd_noat,RMDIR,$(bldtop)) ;\
 		fi ;\
 	fi
 
@@ -162,8 +163,8 @@ mrclean distclean: clean dflt_component_distclean
 .PHONY: install installhere
 install installhere: | $(_DESTDIR)$(bindir)
 install installhere:
-	@if [ ! -f "$(blddir)/$(PROGRAM)" ]; then \
-		echo "Unable to install $(PROGRAM).  Missing $(blddir)/$(PROGRAM)." ;\
+	@if [ ! -f "$(bldtop)/$(PROGRAM)" ]; then \
+		echo "Unable to install $(PROGRAM).  Missing $(bldtop)/$(PROGRAM)." ;\
 		echo $(LINE) ;\
 		echo "Run 'make build' first" ;\
 		echo ;\
@@ -173,11 +174,11 @@ install installhere:
 		echo "[$@] Error: The bindir variable must be set to something before I can install $(PROGRAM) there." ;\
 		exit 1 ;\
 	fi
-	@($(call cmd_noat,INSTALL,$(blddir)/$(PROGRAM),$(_DESTDIR)$(bindir)/$(PROGRAM),$(PROGRAM_PERMS),$(PROGRAM_OWNER),$(INST_GROUP))) ;\
+	@($(call cmd_noat,INSTALL,$(bldtop)/$(PROGRAM),$(_DESTDIR)$(bindir)/$(PROGRAM),$(PROGRAM_PERMS),$(PROGRAM_OWNER),$(INST_GROUP))) ;\
 	rc=$$? ;\
 	if [ $${rc} -ne 0 ]; then \
 		echo $(LINE) ;\
-		install_woe=`$(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(blddir)/$(PROGRAM) $(_DESTDIR)$(bindir) 2>&1` ;\
+		install_woe=`$(INSTALL) -m $(PROGRAM_PERMS) -o $(PROGRAM_OWNER) $(bldtop)/$(PROGRAM) $(_DESTDIR)$(bindir) 2>&1` ;\
 		case $${install_woe} in \
 			*cannot*overwrite*directory*) \
 				echo "Whoa. You seem to have a directory where a file was expected?" ;\
@@ -241,18 +242,18 @@ help: dflt_component_help
 	@echo Using common build idioms from $(NEAREST_ZENMAGIC_MK)
 	@echo
 
-check: | $(blddir)
+check: | $(bldtop)
 check:
-	@if [ ! -f "$(blddir)/$(PROGRAM)" ]; then \
-		echo "Unable to check $(PROGRAM).  Missing $(blddir)/$(PROGRAM)." ;\
+	@if [ ! -f "$(bldtop)/$(PROGRAM)" ]; then \
+		echo "Unable to check $(PROGRAM).  Missing $(bldtop)/$(PROGRAM)." ;\
 		echo $(LINE) ;\
 		echo "Run 'make build' first" ;\
 		echo ;\
 		exit 1 ;\
 	fi
 ifeq "$(IGNORE_LD_LIBRARY_PATH)" "yes"
-	@echo -en "Checking that $(blddir)/$(PROGRAM) will ignore LD_LIBRARY_PATH: " ;\
-	if $(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1 ;then \
+	@echo -en "Checking that $(bldtop)/$(PROGRAM) will ignore LD_LIBRARY_PATH: " ;\
+	if $(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1 ;then \
 		echo "[FAIL]" ;\
 		echo $(LINE) ;\
 		echo "The presence of RUNPATH in the dynamic string table of $(PROGRAM) indicates" ;\
@@ -261,19 +262,19 @@ ifeq "$(IGNORE_LD_LIBRARY_PATH)" "yes"
 		echo ;\
 		echo "See: http://blog.tremily.us/posts/rpath/" ;\
 		echo ;\
-		echo "$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RUNPATH" ;\
-		$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RUNPATH | xargs echo ;\
+		echo "$(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep RUNPATH" ;\
+		$(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep RUNPATH | xargs echo ;\
 		echo ;\
 		exit 1 ;\
 	else \
 		echo "[PASS]" ;\
 	fi
 else
-	@echo -en "Checking that $(blddir)/$(PROGRAM) will honor LD_LIBRARY_PATH: " ;\
-	if $(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1	;then \
+	@echo -en "Checking that $(bldtop)/$(PROGRAM) will honor LD_LIBRARY_PATH: " ;\
+	if $(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep RUNPATH 1>/dev/null 2>&1	;then \
 		echo "[PASS]" ;\
 	else \
-		if $(READELF) --dynamic $(blddir)/$(PROGRAM) | grep RPATH ;then \
+		if $(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep RPATH ;then \
 			echo "[FAIL]" ;\
 			echo $(LINE) ;\
 			echo "The presence of RPATH and absence of RUNPATH in the dynamic string table of $(PROGRAM) indicates" ;\
@@ -282,8 +283,8 @@ else
 			echo ;\
 			echo "See: http://blog.tremily.us/posts/rpath/" ;\
 			echo ;\
-			echo "$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep PATH" ;\
-			$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep PATH | sed -e "s| [ ]*| |g" ;\
+			echo "$(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep PATH" ;\
+			$(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep PATH | sed -e "s| [ ]*| |g" ;\
 			echo ;\
 			exit 1 ;\
 		else \
@@ -292,24 +293,24 @@ else
 	fi
 endif
 	@echo
-	@echo -en "Checking list of shared libraries needed by $(blddir)/$(PROGRAM) at runtime: " ;\
-	if $(READELF) --dynamic $(blddir)/$(PROGRAM) | grep NEEDED 1>/dev/null 2>&1	;then \
+	@echo -en "Checking list of shared libraries needed by $(bldtop)/$(PROGRAM) at runtime: " ;\
+	if $(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep NEEDED 1>/dev/null 2>&1	;then \
 		echo ;\
 		echo $(LINE) ;\
-		$(READELF) --dynamic $(blddir)/$(PROGRAM) | grep NEEDED | sed -e "s|.*\(NEEDED.*\)|\1|g" -e "s|)||g" -e "s| [ ]*| |g" ;\
+		$(READELF) --dynamic $(bldtop)/$(PROGRAM) | grep NEEDED | sed -e "s|.*\(NEEDED.*\)|\1|g" -e "s|)||g" -e "s| [ ]*| |g" ;\
 	else \
 		echo "[FAIL]" ;\
-		echo "[$@] Error: Unable to dump the list of shared libraries required by $(blddir)/$(PROGRAM)." ;\
+		echo "[$@] Error: Unable to dump the list of shared libraries required by $(bldtop)/$(PROGRAM)." ;\
 	fi
 	@echo
-	@echo -en "Checking rpath and runpath elf attributes specified internally for $(blddir)/$(PROGRAM): " ;\
-	if $(READELF) --dynamic $(blddir)/$(PROGRAM) | egrep "RPATH|RUNPATH" 1>/dev/null 2>&1 ;then \
+	@echo -en "Checking rpath and runpath elf attributes specified internally for $(bldtop)/$(PROGRAM): " ;\
+	if $(READELF) --dynamic $(bldtop)/$(PROGRAM) | egrep "RPATH|RUNPATH" 1>/dev/null 2>&1 ;then \
 		echo ;\
 		echo $(LINE) ;\
-		$(READELF) --dynamic $(blddir)/$(PROGRAM) | egrep "RPATH|RUNPATH" ;\
+		$(READELF) --dynamic $(bldtop)/$(PROGRAM) | egrep "RPATH|RUNPATH" ;\
 	else \
 		echo "[INFO]" ;\
-		echo "Info: rpath and runpath attributes not set for $(blddir)/$(PROGRAM)." ;\
+		echo "Info: rpath and runpath attributes not set for $(bldtop)/$(PROGRAM)." ;\
 		echo "      This means standard system lib paths and LD_LIBRARY_PATH will" ;\
 		echo "      be used at runtime by the loader to resolve shared libarary dependencies." ;\
 	fi

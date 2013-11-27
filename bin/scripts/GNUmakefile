@@ -113,7 +113,7 @@ build_dirs        = $(patsubst %,$(blddir)/%,$(SCRIPT_TYPES))
 abs_build_dirs    = $(patsubst $(blddir)/%,$(ABS_blddir)/%,$(build_dirs))
 install_scripts  := $(patsubst %,install-%,$(SCRIPT_TYPES))
 
-BUILD_MKDIRS := $(shell echo $(blddir) $(ABS_blddir) $(abs_build_dirs) | sort -u)
+BUILD_MKDIRS := $(sort $(blddir) $(ABS_blddir) $(abs_build_dirs))
 
 $(BUILD_MKDIRS):
 	$(call cmd,MKDIR,$@)
@@ -128,7 +128,7 @@ $(INSTALL_MKDIRS):
 		echo ;\
 		exit $${rc} ;\
 	else \
-		$(call cmd_noat,CHOWN,$(INST_OWNER),$(INST_GROUP),$@) ;\
+		$(call cmd_noat,CHOWN,,$(INST_OWNER),$(INST_GROUP),$@) ;\
 		rc=$$? ;\
 		if [ $${rc} -ne 0 ] ; then \
 			exit $${rc} ;\
@@ -455,7 +455,7 @@ uninstall: dflt_component_uninstall
 	fi
 
 .PHONY: uninstallhere
-uninstallhere: uninstall
+uninstallhere:
 	@if [ -d "$(heredir)" ];then \
 		$(call cmd_noat,RMDIR,$(heredir)) ;\
 	fi
