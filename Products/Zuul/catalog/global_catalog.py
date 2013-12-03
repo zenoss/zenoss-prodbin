@@ -243,6 +243,11 @@ class IndexableWrapper(object):
         For searchables
         """
 
+    def macAddresses(self):
+        """
+        Mac Address. Devices and Interfaces
+        """
+
 
 class SearchableMixin(object):
 
@@ -285,6 +290,9 @@ class ComponentWrapper(SearchableMixin,IndexableWrapper):
 
 class DeviceWrapper(SearchableMixin,IndexableWrapper):
     adapts(Device)
+
+    def macAddresses(self):
+        return self._context.getMacAddresses()
 
     def productionState(self):
         return str(self._context.productionState)
@@ -332,6 +340,9 @@ class IpInterfaceWrapper(ComponentWrapper):
     Allow searching by (from remote device) user-configured description
     """
     adapts(IpInterface)
+
+    def macAddresses(self):
+        return [self._context.macaddress]
 
     def searchKeywordsForChildren(self):
         """
@@ -466,6 +477,7 @@ def initializeGlobalCatalog(catalog):
     catalog.addIndex('collectors', makeCaseSensitiveKeywordIndex('collectors'))
     catalog.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
     catalog.addIndex('searchKeywords', makeCaseInsensitiveKeywordIndex('searchKeywords'))
+    catalog.addIndex('macAddresses', makeCaseInsensitiveKeywordIndex('macAddresses'))
 
     catalog.addColumn('id')
     catalog.addColumn('uuid')

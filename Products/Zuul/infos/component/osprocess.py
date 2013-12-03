@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2010-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -38,6 +38,14 @@ class OSProcessInfo(ComponentInfo):
         return klass.primaryAq()
 
     @property
+    def processClassName(self):
+        return self._object.osProcessClass().title
+    
+    @property
+    def getMonitoredProcesses(self):
+        return "<br>".join(self._object.getMonitoredProcesses())
+
+    @property
     def processName(self):
         return self._object.name()
 
@@ -62,6 +70,22 @@ class OSProcessInfo(ComponentInfo):
         else:
             self._object.deleteZenProperty('zFailSeverity')
     failSeverity = property(getFailSeverity, setFailSeverity)
+
+    def getMinProcessCount(self):
+        return self._object.getMinProcessCount()
+
+    def setMinProcessCount(self, minProcessCount):
+        self._object.minProcessCount = minProcessCount
+
+    minProcessCount = property(getMinProcessCount, setMinProcessCount)
+
+    def getMaxProcessCount(self):
+        return self._object.getMaxProcessCount()
+
+    def setMaxProcessCount(self, maxProcessCount):
+        self._object.maxProcessCount = maxProcessCount
+
+    maxProcessCount = property(getMaxProcessCount, setMaxProcessCount)
 
     monitor = ServiceMonitor()
 

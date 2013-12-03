@@ -10,6 +10,7 @@
 
 from zope.interface import Interface
 from zope.configuration.fields import GlobalObject
+from zope.schema import TextLine
 
 class IEventPluginDirective(Interface):
     """
@@ -35,3 +36,8 @@ class IEventIdentifierPluginDirective(IEventPluginDirective):
     """
     Registers an event identifier plugin as a named utility
     """
+    name = TextLine(
+        title=u"Name",
+        description=u"The name of the event identifier plugin to register",
+        required=False,
+    )

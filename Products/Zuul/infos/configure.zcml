@@ -51,8 +51,21 @@
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides="..interfaces.IGraphInfo"/>
 
-
-
+    <adapter factory=".metricserver.CollectorMetricServiceGraphDefinition"
+             provides="..interfaces.IMetricServiceGraphDefinition"
+             />
+    <adapter factory=".metricserver.MetricServiceGraphDefinition"
+             provides="..interfaces.IMetricServiceGraphDefinition"
+             />
+    <adapter factory=".metricserver.MetricServiceGraphPoint"
+             provides="..interfaces.IMetricServiceGraphPoint"
+             />
+    <adapter factory=".metricserver.MetricServiceThreshold"
+             provides="..interfaces.IMetricServiceGraphPoint"
+             />
+    <adapter factory=".metricserver.CollectorDataPointGraphPoint"
+             provides="..interfaces.IMetricServiceGraphPoint"
+             />
     <adapter factory=".template.DataPointInfo"
              for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
              provides="..interfaces.IDataPointInfo"/>

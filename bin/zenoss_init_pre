@@ -38,6 +38,8 @@ mkdir -p ${ZENHOME}/log
 
 # start rabbit
 start_rabbitmq
+start_mysql
+start_redis
 
 # copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
 # already exist (we don't want to clobber people's configs)
@@ -58,6 +60,14 @@ create_zep_db
 # set up the zope instance
 run_mkzopeinstance
 
+# Register zproxy scripts and conf
+register_zproxy
+
 # Remediate file ownership under $ZENHOME.
 fix_zenhome_owner_and_group ${OS_USERNAME}
 run_zenbuild
+
+# this must be done before zenoss starts so that the daemons
+# have the correct credentials
+echo "Creating system account"
+${ZENHOME}/bin/zendmd --script ${ZENHOME}/bin/addSystemUser.py

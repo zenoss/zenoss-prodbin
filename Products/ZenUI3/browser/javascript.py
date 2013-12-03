@@ -139,6 +139,21 @@ class FireFoxExtCompat(JavaScriptSnippet):
         return  SCRIPT_TAG_TEMPLATE % js
 
 
+
+class VisualizationInit(JavaScriptSnippet):
+    """
+    Performs necessary initialization for the visualization library
+    """
+    def snippet(self):
+        js = """
+            if (window.zenoss !== undefined) {
+                zenoss.visualization.url = window.location.protocol + "//" + window.location.host;
+                zenoss.visualization.debug = false;
+            }
+        """
+        return  SCRIPT_TAG_TEMPLATE % js
+
+
 class ZenossSettings(JavaScriptSnippet):
     """
     Renders client side settings.

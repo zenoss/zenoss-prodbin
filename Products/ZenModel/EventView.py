@@ -16,9 +16,8 @@ from copy import deepcopy
 from AccessControl import ClassSecurityInfo, getSecurityManager
 from Globals import InitializeClass
 from zope.interface import Interface, implements
-
-from Products.Zuul import getFacade
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.Zuul import getFacade
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
 from zenoss.protocols.services.zep import ZepConnectionError
@@ -190,9 +189,6 @@ class EventView(object):
         result = zep.getEventSummaries(0, filter=event_filter, limit=0)
         return int(result['total'])
 
-    def getUUID(self):
-        return IGlobalIdentifier(self).getGUID()
-
     @zepConnectionError({})
     def getEventSeveritiesCount(self):
         """
@@ -223,4 +219,7 @@ class EventView(object):
             result = 0
         return result
 
+    def getUUID(self):
+        return IGlobalIdentifier(self).getGUID()
+    
 InitializeClass(EventView)

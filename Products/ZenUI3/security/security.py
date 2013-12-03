@@ -1,21 +1,23 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
-from zope import interface
+from zope import interface, component
 from Products.Five.viewlet.manager import ViewletManagerBase
 from Products.ZenUtils.jsonutils import json
 from Products.Five.viewlet import viewlet
 from interfaces import ISecurityManager, IPermissionsDeclarationViewlet
 from AccessControl import getSecurityManager
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.Zuul.interfaces import IAuthorizationTool
 
+ZAUTH_COOKIE = 'ZAuthToken'
 
 class SecurityManager(ViewletManagerBase):
     """The Viewlet manager class for the permissions declaration
@@ -54,6 +56,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         user in the current context.  The permissions will be in the
         form of a dictionary.
         """
+        self._setAuthorizationCookie()
         permissions = self.permissionsForCurrentContext()
         managedObjectGuids = self.getManagedObjectGuids()
         data = json(permissions)
@@ -73,6 +76,11 @@ class PermissionsDeclaration(viewlet.ViewletBase):
 </script>
         """ % (data, json(managedObjectGuids), str(self.hasGlobalRoles()).lower())
         return func
+
+    def _setAuthorizationCookie(self):
+        authorization = IAuthorizationTool(self.context)
+        token = authorization.createAuthToken(self.request)
+        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/")
 
     def hasGlobalRoles(self):
         """

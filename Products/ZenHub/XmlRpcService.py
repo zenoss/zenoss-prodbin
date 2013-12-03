@@ -19,7 +19,6 @@ import types
 
 import DateTime
 
-from Products.ZenHub.services.RRDImpl import RRDImpl
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.Zuul import getFacade
 from Products.ZenUtils.ZenTales import talesEval
@@ -34,7 +33,6 @@ class XmlRpcService(xmlrpc.XMLRPC):
         xmlrpc.XMLRPC.__init__(self)
         self.dmd = dmd
         self.zem = dmd.ZenEventManager
-        self.impl = RRDImpl(dmd)
 
 
     def xmlrpc_sendEvent(self, data):
@@ -124,10 +122,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
 
     def xmlrpc_writeRRD(self, devId, compType, compId, dpName, value):
-        self.impl.writeRRD(devId, compType, compId, dpName, value)
-
-        # return something for compliance with the XML-RPC specification
-        return ""
+        raise NotImplementedError("ZenHub can no longer write RRD values. Please use the MetricFacade")
 
 
     def xmlrpc_getPerformanceConfig(self, monitor):
@@ -136,8 +131,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
         result = {}
         fields = ['configCycleInterval', 'statusCycleInterval', 
-                  'eventlogCycleInterval', 'renderurl', 'renderpass',
-                  'renderuser', 'winCycleInterval']
+                  'eventlogCycleInterval', 'winCycleInterval']
 
         # get the performance conf (if it exists)
         conf = getattr(self.dmd.Monitors.Performance, monitor, None)

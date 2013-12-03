@@ -132,7 +132,7 @@ productNames = (
     'RRDGraph',
     'RRDTemplate',
     'RRDThreshold',
-    'RRDView',
+    'MetricMixin',
     'Report',
     'ReportClass',
     'Service',

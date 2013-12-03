@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, 2010, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -23,6 +23,7 @@ from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenRRD.zencommand import Cmd, DataPointConfig
 from Products.DataCollector.Plugins import getParserLoader
 from Products.ZenEvents.ZenEventClasses import Error, Clear, Cmd_Fail
+from Products.ZenModel.OSProcess import OSProcess
 
 _ZCOMMAND_USERNAME_NOT_SET = 'zCommandUsername is not set so SSH-based commands will not run'
 
@@ -51,12 +52,17 @@ class CommandPerformanceConfig(CollectorConfigService):
         parser = ploader.create()
         points = []          
         component_name = ds.getComponent(comp)
-        basepath = comp.rrdPath()
+        contextUUID = comp.getUUID()
+        devuuid = comp.device().getUUID()
+        componentId = comp.id
         for dp in ds.getRRDDataPoints():
             dpc = DataPointConfig()
             dpc.id = dp.id
             dpc.component = component_name
-            dpc.rrdPath = "/".join((basepath, dp.name()))
+            dpc.contextUUID = contextUUID
+            dpc.componentId = componentId
+            dpc.dpName = dp.name()
+            dpc.devuuid = devuuid
             dpc.rrdType = dp.rrdtype
             dpc.rrdCreateCommand = dp.getRRDCreateCommand(perfServer)
             dpc.rrdMin = dp.rrdmin
@@ -133,6 +139,17 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.parser = ploader
                 cmd.ds = ds.titleOrId()
                 cmd.points = self._getDsDatapoints(comp, ds, ploader, perfServer)
+
+                if isinstance(comp, OSProcess):
+                    # save off the regex's specified in the UI to later run
+                    # against the processes running on the device
+                    cmd.includeRegex = comp.includeRegex
+                    cmd.excludeRegex = comp.excludeRegex
+                    cmd.replaceRegex = comp.replaceRegex
+                    cmd.replacement  = comp.replacement
+                    cmd.primaryUrlPath = comp.processClassPrimaryUrlPath()
+                    cmd.generatedId = comp.id
+                    cmd.displayName = comp.displayName
 
                 # If the datasource supports an environment dictionary, use it
                 cmd.env = getattr(ds, 'env', None)

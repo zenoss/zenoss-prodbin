@@ -50,7 +50,6 @@ class MailPreferences(object):
 
     def __init__(self):
         self.collectorName = COLLECTOR_NAME
-        self.defaultRRDCreateCommand = None
         self.configCycleInterval = 20 # minutes
         self.cycleInterval = 5 * 60 # seconds
 

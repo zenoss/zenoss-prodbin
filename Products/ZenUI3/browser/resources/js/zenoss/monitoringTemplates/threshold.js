@@ -249,6 +249,13 @@
                         }
                     }
                 }),
+                viewConfig: {
+                    plugins: {
+                        ptype: 'gridviewdragdrop',
+                        dragText: _t('Drag to add to Graph Definition'),
+                        dragGroup: 'addtoGraph'
+                    }
+                },
                 title: _t('Thresholds'),
                 store: Ext.create('Zenoss.thresholds.Store', { }),
                 listeners: listeners,

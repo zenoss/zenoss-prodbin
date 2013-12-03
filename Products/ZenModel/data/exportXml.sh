@@ -3,21 +3,22 @@
 . $ZENHOME/bin/zenfunctions
 
 dbtype=`zenglobalconf -p zodb-db-type`
-if [ "$dbtype" = "mysql" ]; then
-    innodb_format=`$ZENHOME/Products/ZenUtils/ZenDB.py --usedb=zodb --execsql='SELECT lower(@@innodb_file_format)'`
-    if [ "$innodb_format" != "barracuda" ]; then
-        echo "Error, your mysql innodb file format is not (at least) Barracuda"
-        exit 1
-    fi
-    object_state_format=`$ZENHOME/Products/ZenUtils/ZenDB.py --useadmin --usedb=zodb --execsql='select lower(row_format) from information_schema.tables where table_schema=database() and lower(table_name) = "object_state";'`
-    if [ "$object_state_format" != "compressed" ]; then
-        echo "Error object_state table is not compressed."
-        exit 1
-    fi
-fi
+# if [ "$dbtype" = "mysql" ]; then
+#     innodb_format=`$ZENHOME/Products/ZenUtils/ZenDB.py --usedb=zodb --execsql='SELECT lower(@@innodb_file_format)'`
+#     if [ "$innodb_format" != "barracuda" ]; then
+#         echo "Error, your mysql innodb file format is not (at least) Barracuda"
+#         exit 1
+#     fi
+#     object_state_format=`$ZENHOME/Products/ZenUtils/ZenDB.py --useadmin --usedb=zodb --execsql='select lower(row_format) from information_schema.tables where table_schema=database() and lower(table_name) = "object_state";'`
+#     if [ "$object_state_format" != "compressed" ]; then
+#         echo "Error object_state table is not compressed."
+#         exit 1
+#     fi
+# fi
 
 echo 'Loading reports...'
 reportloader -f
+echo $?
 if [ $? -ne 0 ]; then
     echo "An error running reportloader."
     exit 1

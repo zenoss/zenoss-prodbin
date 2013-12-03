@@ -227,19 +227,20 @@ class TreeFacade(ZuulFacade):
         return IOrganizerInfo(target._getOb(organizer.id))
 
 
-from networkfacade import NetworkFacade, Network6Facade
-from processfacade import ProcessFacade
-from servicefacade import ServiceFacade
-from devicefacade import DeviceFacade
-from devicedumpload import DeviceDumpLoadFacade
-from propertiesfacade import PropertiesFacade
-from devicemanagementfacade import DeviceManagementFacade
-from templatefacade import TemplateFacade
-from zenpackfacade import ZenPackFacade
-from mibfacade import MibFacade
-from triggersfacade import TriggersFacade
-from zepfacade import ZepFacade
-from reportfacade import ReportFacade
-from jobsfacade import JobsFacade
-from eventclassesfacade import EventClassesFacade
-from manufacturersfacade import ManufacturersFacade
+from .networkfacade import NetworkFacade, Network6Facade
+from .processfacade import ProcessFacade
+from .servicefacade import ServiceFacade
+from .devicefacade import DeviceFacade
+from .devicedumpload import DeviceDumpLoadFacade
+from .propertiesfacade import PropertiesFacade
+from .devicemanagementfacade import DeviceManagementFacade
+from .templatefacade import TemplateFacade
+from .zenpackfacade import ZenPackFacade
+from .mibfacade import MibFacade
+from .triggersfacade import TriggersFacade
+from .zepfacade import ZepFacade
+from .reportfacade import ReportFacade
+from .jobsfacade import JobsFacade
+from .eventclassesfacade import EventClassesFacade
+from .manufacturersfacade import ManufacturersFacade
+from .metricfacade import MetricFacade

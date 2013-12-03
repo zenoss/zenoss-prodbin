@@ -51,7 +51,7 @@ Ext.define('Zenoss.GraphModel', {
     extend: 'Ext.data.Model',
     idProperty: 'uid',
     fields: [
-        'uid', 'name', 'graphPoints', 'units', 'height', 'width',
+        'uid', 'name', 'graphPoints', 'units', 'height', 'width', 
              'sequence'
     ]
 });
@@ -711,7 +711,14 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
             }],
             selModel: Ext.create('Zenoss.TreeSelectionModel', {
                 mode: 'SINGLE'
-            })
+            }),
+            viewConfig: {
+                plugins: {
+                    ptype: 'gridviewdragdrop',
+                    dragText: _t('Drag to add to Graph Definition'),
+                    dragGroup: 'addtoGraph'
+                }
+            }
         });
         this.callParent(arguments);
     },

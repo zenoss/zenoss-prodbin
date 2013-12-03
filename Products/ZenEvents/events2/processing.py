@@ -20,7 +20,7 @@ from Products.ZenUtils.IpUtil import isip, ipToDecimal
 from Products.ZenUtils.FunctionCache import FunctionCache
 from Products.Zuul.interfaces import ICatalogTool
 from Products.AdvancedQuery import Eq, Or
-from zope.component import getUtilitiesFor
+from zope.component import getUtility, getUtilitiesFor
 from Acquisition import aq_chain
 from Products.ZenEvents import ZenEventClasses
 from itertools import ifilterfalse
@@ -432,13 +432,13 @@ class IdentifierPipe(EventProcessorPipe):
         eventContext.log.debug('Identifying event')
 
         # get list of defined IEventIdentifierPlugins (add default identifier to the end)
-        evtIdentifierPlugins = list(getUtilitiesFor(IEventIdentifierPlugin))
-        evtIdentifierPlugins.append(('default',BaseEventIdentifierPlugin()))
+        evtIdentifierPlugins = [v for v in getUtilitiesFor(IEventIdentifierPlugin) if v[0] != 'default']
+        evtIdentifierPlugins.append(('default', getUtility(IEventIdentifierPlugin, name="default")))
 
         # iterate over all event identifier plugins
         for name, plugin in evtIdentifierPlugins:
             try:
-                eventContext.log.debug("running identifier plugin %s" % name)
+                eventContext.log.debug("running identifier plugin, name=%s, plugin=%s" % (name,plugin))
                 plugin.resolveIdentifiers(eventContext, self._manager)
             except EventIdentifierPluginAbort as e:
                 eventContext.log.debug(e)

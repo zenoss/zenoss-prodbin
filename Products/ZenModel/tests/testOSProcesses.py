@@ -17,7 +17,7 @@ class TestOSProcesses(ZenModelBaseTest):
         self.dmd.Processes.manage_addOSProcessClass('test')
         self.pclass = self.dmd.Processes.osProcessClasses.test
         self.device = self.dmd.Devices.createInstance('pepe')
-        self.device.os.addOSProcess("/".join(self.pclass.getPhysicalPath()), True)
+        self.device.os.addOSProcess("/".join(self.pclass.getPhysicalPath()), "test", True)
         self.process = self.device.os.processes()[0]
 
 

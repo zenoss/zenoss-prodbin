@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -13,6 +13,8 @@ Operations for Processes.
 
 Available at:  /zport/dmd/process_router
 """
+import re
+from sre_parse import parse_template
 
 from Products import Zuul
 from Products.Zuul.decorators import require
@@ -101,6 +103,29 @@ class ProcessRouter(TreeRouter):
         """
         facade = self._getFacade()
         processUid = data['uid']
+        for regexParam in ['includeRegex', 'excludeRegex', 'replaceRegex']:
+            regex = data[regexParam]
+            if regex:
+                try:
+                    re.compile(regex)
+                except re.error as e:
+                    m = "%s : %s" % (regexParam, e)
+                    return DirectResponse.fail(msg=m)
+        replaceRegex = data['replaceRegex']
+        if replaceRegex:
+            replaceRegex = re.compile(replaceRegex)
+            replacement = data['replacement']
+            if replacement:
+                try:
+                    groups, literals = parse_template(replacement,replaceRegex)
+                    for index, group in groups:
+                        if group > replaceRegex.groups:
+                            m = "Group (%s) referenced in replacement must be defined in replaceRegex" % group
+                            return DirectResponse.fail(msg=m)
+                except re.error as e:
+                    m = "replacement : %s" % (e,)
+                    return DirectResponse.fail(msg=m)
+
         process = facade.getInfo(processUid)
         audit('UI.Process.Edit', processUid, data_=data, skipFields_=('uid'))
         return DirectResponse.succeed(data=Zuul.unmarshal(data, process))
@@ -133,7 +158,8 @@ class ProcessRouter(TreeRouter):
         """
         facade = self._getFacade()
         instances = facade.getInstances(uid, start, limit, sort, dir, params)
-        keys = ['device', 'monitored', 'pingStatus', 'processName', 'name', 'uid']
+        keys = ['device', 'monitored', 'pingStatus', 'processName', 'name', 
+                'uid', 'minProcessCount', 'maxProcessCount']
         data = Zuul.marshal(instances, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total)
 
@@ -164,6 +190,44 @@ class ProcessRouter(TreeRouter):
         facade.setSequence(uids)
         audit('UI.Process.SetSequence', sequence=uids)
         return DirectResponse.succeed()
+
+    def getSequence2(self, *args, **kwargs):
+        """
+        Get the current processes sequence.
+
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - data: ([dictionary]) List of objects representing processes in
+             sequence order
+        """
+        facade = self._getFacade()
+        sequence = facade.getSequence2()
+        data = Zuul.marshal(sequence)
+        return DirectResponse.succeed(data=data)
+
+    def applyOSProcessClassMatchers(self, *args, **kwargs):
+        """
+        Get the current processes sequence.
+
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - data: ([dictionary]) List of objects representing processes in
+             sequence order
+        """
+        facade = self._getFacade()
+        sequence = facade.applyOSProcessClassMatchers(kwargs['uids'], kwargs['lines'])
+        data = Zuul.marshal(sequence)
+        return DirectResponse.succeed(data=data, total=len(data))
+        
+    def getProcessList(self, *args, **kwargs):
+        """
+        @type  deviceGuid: string
+        @param deviceGuid: Service class UUID of the device to get process list
+        """
+        facade = self._getFacade()
+        processList = facade.getProcessList(kwargs['deviceGuid'])
+        data = Zuul.marshal(processList)
+        return DirectResponse.succeed(data=data)
 
 
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,

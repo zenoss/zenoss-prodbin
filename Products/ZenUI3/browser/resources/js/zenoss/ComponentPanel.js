@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
+ * Copyright (C) Zenoss, Inc. 2010-2013, all rights reserved.
  *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
@@ -119,7 +119,7 @@ Zenoss.nav.register({
                     text: _t('Refresh'),
                     handler: function(btn) {
                         if (cardid && Ext.getCmp(cardid)) {
-                            Ext.getCmp(cardid).resetSwoopies();
+                            Ext.getCmp(cardid).refresh();
                         }
                     }
                 }
@@ -970,6 +970,7 @@ Ext.define("Zenoss.component.OSProcessPanel", {
                 {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'processClass'},
+                {name: 'processClassName'},
                 {name: 'alertOnRestart'},
                 {name: 'failSeverity'}
             ],
@@ -983,9 +984,9 @@ Ext.define("Zenoss.component.OSProcessPanel", {
                 id: 'processClass',
                 dataIndex: 'processClass',
                 header: _t('Process Class'),
-                renderer: function(cls) {
+                renderer: function(cls, meta, record) {
                     if (cls && cls.uid) {
-                        return Zenoss.render.link(cls.uid);
+                        return Zenoss.render.link(cls.uid, null, record.raw.processClassName);
                     } else {
                         return cls;
                     }
@@ -993,7 +994,7 @@ Ext.define("Zenoss.component.OSProcessPanel", {
             },{
                 id: 'processName',
                 dataIndex: 'processName',
-                header: _t('Name')
+                header: _t('Process Set')
             },{
                 id: 'alertOnRestart',
                 dataIndex: 'alertOnRestart',
