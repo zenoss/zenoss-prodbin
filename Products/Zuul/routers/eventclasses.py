@@ -31,9 +31,9 @@ class EventClassesRouter(TreeRouter):
         Add new event class mapping for the current context
         """
         facade = self._getFacade()
-        facade.addNewInstance(params)
-        audit('UI.EventClasses.AddInstance', params['uid'], data_=params)
-        return DirectResponse.succeed()
+        newInstance = facade.addNewInstance(params)
+        audit('UI.EventClasses.AddInstance', params['newName'], data_=params)
+        return DirectResponse.succeed(data=Zuul.marshal(newInstance))
         
     @require('Manage DMD')
     def removeInstance(self, instances):
@@ -52,7 +52,7 @@ class EventClassesRouter(TreeRouter):
         Edit an event class instance
         """
         oldData = self.getInstanceData(params['uid'])
-        self.testCompileTransform(params['transform'])
+        self.testCompileTransform(params.get('transform'))
         self.testRegex(params['regex'], params['example'])
         self.testRule(params['rule'])
         facade = self._getFacade()

@@ -28,7 +28,8 @@ class EventClassesFacade(TreeFacade):
         @params.instanceID = the instance ID
         """
         obj = self._getObject(params['evclass'])
-        obj.createInstance(params['instanceName'])
+        result = IInfo(obj.createInstance(params['newName']))
+        return result
 
     def editInstance(self, params=None):
         """
@@ -47,7 +48,7 @@ class EventClassesFacade(TreeFacade):
         obj.example = params['example']
         obj.explanation = params['explanation']
         obj.resolution = params['resolution']
-        obj.transform = params['transform']
+        obj.transform = params.get('transform', obj.transform)
 
         if params['instanceName'] != params['newName']:
             obj.rename(params['newName'])

@@ -864,8 +864,8 @@
                 return Math.ceil(scrollTop / this.rowHeight);
             }
 
-            // ask the scroller
-            if (this.grid.verticalScroller){
+            // ask the scroller, if the store is paginated
+            if (this.grid.verticalScroller && this.grid.verticalScroller.getFirstVisibleRowIndex){
                 var start = this.grid.verticalScroller.getFirstVisibleRowIndex();
                 if (start) {
                     return start;
