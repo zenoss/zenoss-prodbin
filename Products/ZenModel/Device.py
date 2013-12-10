@@ -1499,6 +1499,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if newPerformanceMonitor:
             performanceMonitor = newPerformanceMonitor
 
+        if self.getPerformanceServer() is not None:
+            oldPerformanceMonitor = self.getPerformanceServer().getId()
+            self.getDmdRoot("Monitors").setPreviousCollectorForDevice(self.getId(), oldPerformanceMonitor)
+
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
                                                     performanceMonitor)
         self.addRelation("perfServer", obj)
@@ -1806,6 +1810,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if REQUEST:
             audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
+        self.getDmdRoot("Monitors").deletePreviousCollectorForDevice(self.getId())
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices':

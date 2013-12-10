@@ -17,6 +17,7 @@ $Id: MonitorClass.py,v 1.11 2004/04/09 00:34:39 edahl Exp $"""
 
 __version__ = "$Revision$"[11:-2]
 
+from BTrees.OOBTree import OOBTree
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -80,11 +81,34 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
 
     def __init__(self, id, title=None, buildRelations=True):
         ZenModelRM.__init__(self, id, title, buildRelations)
+        self.prevCollectorPerDevice = OOBTree()
 
+    def setPreviousCollectorForDevice(self, device_id, collector):
+        """
+        Sets the previous collector for a device.
+        The previous collector for each device is stored in an OOBTree
+        This info is stored in order to make invalidations more efficient.
+        Now, when moving a device between collectors, invalidations will 
+        only be sent to the current collector and to the previous collector.
+        """
+        if not hasattr(self, 'prevCollectorPerDevice'):
+            self.prevCollectorPerDevice = OOBTree()
+        self.prevCollectorPerDevice[device_id] = collector
+
+    def getPreviousCollectorForDevice(self, device_id):
+        """ Returns the previous collector for a device """
+        prev_collector = None
+        if hasattr(self, 'prevCollectorPerDevice'):
+            prev_collector = self.prevCollectorPerDevice.get(device_id, None)
+        return prev_collector
+
+    def deletePreviousCollectorForDevice(self, device_id):
+        """ Deletes the previos collector info for a device """
+        if hasattr(self, 'prevCollectorPerDevice') and device_id in self.prevCollectorPerDevice:
+            del self.prevCollectorPerDevice[device_id]
 
     def getBreadCrumbName(self):
         return 'Collectors'
-
 
     def getPerformanceMonitor(self, monitorName):
         """get or create the performance monitor name"""
