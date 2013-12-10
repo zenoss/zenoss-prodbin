@@ -51,7 +51,7 @@ class EventClassesRouter(TreeRouter):
         """
         Edit an event class instance
         """
-        oldData = self.getInstanceData(params['uid'])
+        oldData = self.getInstanceData(params['uid']).data
         self.testCompileTransform(params.get('transform'))
         self.testRegex(params['regex'], params['example'])
         self.testRule(params['rule'])
