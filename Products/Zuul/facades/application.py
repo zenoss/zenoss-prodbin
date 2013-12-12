@@ -13,7 +13,8 @@ from zope.interface import implementer
 
 from Products.ZenUtils.application import IApplicationManager
 from Products.Zuul.interfaces import IApplicationFacade
-
+from Products import Zuul
+from Products.Zuul.interfaces import IInfo, ITreeNode
 LOG = logging.getLogger("Zuul.facades")
 
 
@@ -27,6 +28,44 @@ class ApplicationFacade(object):
         """
         self._dmd = dataroot
         self._svc = getUtility(IApplicationManager)
+
+    def _getDaemonNode(self):
+        # this will create two "fake" nodes to organize
+        # what we are displaying for the user.
+        applications = self.query()
+        infos = map(IInfo, applications)
+        daemonNode = {
+            'id': 'daemons',
+            'visible': True,
+            'leaf': False,
+            'text': 'Daemons',
+            'name': 'Daemons',
+            'children': infos,
+            'expanded': True
+        }
+        return daemonNode
+
+    def _getCollectorNode(self):
+        # collectors
+        monitorFacade = Zuul.getFacade('monitors', self._dmd)
+        collectors = monitorFacade.query()
+        collectorData = Zuul.marshal(map(ITreeNode, collectors))
+
+        collectorNode = {
+            'id': 'collectors',
+            'visible': True,
+            'leaf': False,
+            'text': 'Collectors',
+            'name': 'Collectors',
+            'children': collectorData,
+            'expanded': True
+        }
+        return collectorNode
+
+    def getTree(self):
+        """
+        """
+        return [self._getDaemonNode(), self._getCollectorNode()]
 
     def query(self, name=None):
         """

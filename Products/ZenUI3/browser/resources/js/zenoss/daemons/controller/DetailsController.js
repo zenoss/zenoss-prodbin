@@ -66,7 +66,7 @@
                 combo = this.getMenuCombo(),
                 value = combo.getValue();
             if (!store.getById(value)) {
-                value = 'graphs';
+                value = 'details';
             }
             combo.bindStore(store, true);
             combo.setValue(value);
@@ -74,10 +74,7 @@
         setDaemonDetails: function() {
             this.syncMenus('daemon');
             var actions = {
-                details: this.setDaemonDetailsPanel,
-                graphs: function() {
-                    this.getCardContainer().graphs.removeAll();
-                }
+                details: this.setDaemonDetailsPanel
             },
                 selectedMenuItem = this.getMenuCombo().getValue(),
                 action = actions[selectedMenuItem];
@@ -154,7 +151,6 @@
                     fields: ['id', 'name'],
                     idProperty: 'id',
                     data : [
-                        {id: 'graphs', name: _t('Graphs')},
                         {id: 'details', name: _t('Details')}
                     ]
                 });
