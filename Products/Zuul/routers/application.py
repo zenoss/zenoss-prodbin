@@ -9,13 +9,12 @@
 
 
 import logging
+from Products import Zuul
 from Products.ZenMessaging.audit import audit
 from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
-from Products.Zuul.interfaces import IInfo, ITreeNode
 from Products.Zuul.form.interfaces import IFormBuilder
-from Products import Zuul
-
+from Products.Zuul.interfaces import IInfo
 
 log = logging.getLogger('zen.ApplicationRouter')
 
@@ -37,36 +36,7 @@ class ApplicationRouter(TreeRouter):
         @rtype:   [dictionary]
         @return:  Object representing the tree
         """
-        # this will create two "fake" nodes to organize
-        # what we are displaying for the user.
-        facade = self._getFacade()
-        applications = facade.query()
-        infos = map(IInfo, applications)
-        data = Zuul.marshal(infos)
-
-        # collectors
-        monitorFacade = Zuul.getFacade('monitors', self.context)
-        collectors = monitorFacade.query()
-        collectorData = Zuul.marshal(map(ITreeNode, collectors))
-        daemonNode = {
-            'id': 'daemons',
-            'visible': True,
-            'leaf': False,
-            'text': 'Daemons',
-            'name': 'Daemons',
-            'children': data,
-            'expanded': True
-        }
-        collectorNode = {
-            'id': 'collectors',
-            'visible': True,
-            'leaf': False,
-            'text': 'Collectors',
-            'name': 'Collectors',
-            'children': collectorData,
-            'expanded': True
-        }
-        return [daemonNode, collectorNode]
+        return Zuul.marshal(self._getFacade().getTree())
 
     def getForm(self, uid):
         """

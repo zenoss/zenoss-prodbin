@@ -106,9 +106,9 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         child = self.get(submon, self)
         monitors = child.objectValues(spec="PerformanceConf")
         num = 0
-        for monitor in (m for m in monitor if m.id in ids):
+        for monitor in (m for m in monitors if m.id in ids):
             if REQUEST:
-                audit("UI.Collector.Delete", m.id)
+                audit("UI.Collector.Delete", monitor.id)
             del child[monitor.id]
             num += 1
         if REQUEST:
