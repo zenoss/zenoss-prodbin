@@ -629,11 +629,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             d2.chainDeferred(d)
 
     def connect(self):
-        pingInterval = self.options.zhPingInterval
-        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=True,
-            pingInterval=pingInterval, pingtimeout=pingInterval * 5)
-        self.log.info("Connecting to %s:%d" % (self.options.hubhost,
-            self.options.hubport))
+        factory = ReconnectingPBClientFactory(connectTimeout=60)
+        self.log.info("Connecting to %s:%d" % (self.options.hubhost, self.options.hubport))
         factory.connectTCP(self.options.hubhost, self.options.hubport)
         username = self.options.hubusername
         password = self.options.hubpassword
@@ -642,11 +639,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         factory.gotPerspective = self.gotPerspective
         factory.connecting = self.connecting
         factory.startLogin(c)
+
         def timeout(d):
             if not d.called:
                 self.connectTimeout()
         self._connectionTimeout = reactor.callLater(
-                self.options.hubtimeout, timeout, self.initialConnect)
+            self.options.hubtimeout, timeout, self.initialConnect)
         return self.initialConnect
 
     def connectTimeout(self):

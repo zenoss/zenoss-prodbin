@@ -24,6 +24,10 @@ from twisted.spread import pb
 from twisted.spread.pb import PBClientFactory
 from twisted.internet import protocol, reactor, defer, task
 from twisted.internet.error import ConnectionClosed
+import socket
+
+OPTION_STATE = 1
+CONNECT_TIMEOUT = 60
 
 class ReconnectingPBClientFactory(PBClientFactory,
                                   protocol.ReconnectingClientFactory):
@@ -65,8 +69,8 @@ class ReconnectingPBClientFactory(PBClientFactory,
         self._doingGetPerspective = False
         self._scheduledConnectTimeout = None
         self._connectTimeout = connectTimeout
-        # should the perspective be pinged. Perspective must have a ping method
-        self._shouldPingPerspective = pingPerspective
+        # should the perspective be pinged. Perspective must have a ping method. Deprecated => Always False.
+        self._shouldPingPerspective = False
         # how often to ping
         self._pingInterval = pingInterval
         # how long to wait for a ping before closing connection
@@ -81,7 +85,15 @@ class ReconnectingPBClientFactory(PBClientFactory,
     def connectTCP(self, host, port):
         factory = self
         self.connector = reactor.connectTCP(host, port, factory)
+        self.setKeepAlive(self.connector)
         return self.connector
+
+    def setKeepAlive(self, connector):
+        connector.transport.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, OPTION_STATE)
+        connector.transport.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, CONNECT_TIMEOUT)
+        interval = max(CONNECT_TIMEOUT / 4, 10)
+        connector.transport.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
+        connector.transport.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
 
     def clientConnectionFailed(self, connector, reason):
         zenlog.debug("Failed to create connection to %s:%s - %s",
