@@ -89,7 +89,7 @@ class ApplicationFacade(object):
                 parent.addChild(service)
                              
         roots = [service for service in tree.values() if not service.getParentServiceId()]
-        #roots = self._replaceNodes(roots)
+        roots = self._replaceNodes(roots)
         return roots
 
     def query(self, name=None):
