@@ -240,6 +240,10 @@ class ServiceDefinition(object):
         return self._data.get("Id")
 
     @property
+    def parentServiceId(self):
+        return self._data.get('ParentServiceId')
+        
+    @property
     def resourceId(self):
         return "/services/%s" % (self._data.get("Id"),)
 

@@ -15,6 +15,8 @@ from Products.Zuul.interfaces import IApplicationInfo
 @implementer(IApplicationInfo)
 class ApplicationInfo(object):
     """
+    Info object for the applications returned from the control
+    plane.
     """
 
     def __init__(self, app):
@@ -24,6 +26,7 @@ class ApplicationInfo(object):
         :param IApplication application: The application.
         """
         self._object = app
+        self._children = []
 
     @property
     def id(self):
@@ -45,6 +48,13 @@ class ApplicationInfo(object):
     def uid(self):
         return self._object.id
 
+    @property
+    def tags(self):
+        return self._object.tags
+    
+    def getParentServiceId(self):
+        return self._object.parentServiceId
+    
     @property
     def description(self):
         return self._object.description
@@ -73,8 +83,11 @@ class ApplicationInfo(object):
 
     @property
     def leaf(self):
-        return True
+        return len(self.children) == 0
+
+    def addChild(self, child):
+        self._children.append(child)
 
     @property
     def children(self):
-        return []
+        return self._children

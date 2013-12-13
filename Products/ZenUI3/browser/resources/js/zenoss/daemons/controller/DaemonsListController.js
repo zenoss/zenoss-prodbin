@@ -75,8 +75,8 @@
                 // update the details information
                 'daemonslist': {
                     select: this.setupDetails,
-                    beforeselect: function(sm, node, oldNode) {
-                        return node.isLeaf();
+                    load: function(store, records) {
+                        this.getTreegrid().expandAll();
                     }
                 },
                 'daemonslist treeview': {
