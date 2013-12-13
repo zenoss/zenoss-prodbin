@@ -1,7 +1,7 @@
 <!--
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -9,7 +9,7 @@
 ##############################################################################
 -->
 
-
+<!DOCTYPE html>
 <html metal:define-macro="base-new">
     <head>        
         <title>
@@ -18,6 +18,7 @@
                 <tal:block tal:content="here/titleOrId"/>
             </tal:block>
         </title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
 
@@ -31,6 +32,9 @@
         <link rel="stylesheet" type="text/css"
               tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenui3.css')"
             />
+        <link rel="stylesheet" type="text/css"
+              tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++extjs/examples/ux/css/CheckHeader.css')"
+            />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
         <script tal:define="container context/getPrimaryParent" tal:content="string:
@@ -42,11 +46,6 @@
         <script src="/++resource++zenui/js/zenoss/codemirror/codemirror.js"></script>
         <link rel="stylesheet" href="/++resource++zenui/js/zenoss/codemirror/codemirror.css" />
         <script src="/++resource++zenui/js/zenoss/codemirror/mode/python/python.js"></script>
-        <script type="text/javascript" src="/static/performance/query/visualization.js"></script>
-        <script type="text/javascript">
-            zenoss.visualization.url = window.location.protocol + "//" + window.location.host;
-            zenoss.visualization.debug = false;
-        </script>
     </head>
 
     <body>

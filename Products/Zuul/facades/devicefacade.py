@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -15,6 +15,7 @@ from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
+from zope.component import getMultiAdapter
 from Products.AdvancedQuery import Eq, Or, Generic, And
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
@@ -37,8 +38,11 @@ from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectExce
 from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
+from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
 from Acquisition import aq_base
+from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
+
 
 iszprop = re.compile("z[A-Z]").match
 log = logging.getLogger('zen.DeviceFacade')
@@ -652,8 +656,7 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         graphs = []
         for graph in obj.getDefaultGraphDefs():
-            info = IMetricServiceGraphDefinition(graph)
-            info.setContext(obj)
+            info = getMultiAdapter((graph,obj), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
 
@@ -667,9 +670,9 @@ class DeviceFacade(TreeFacade):
         device = self._getObject(uid)
         device.os.addIpInterface(newId, userCreated)
 
-    def addOSProcess(self, uid, newClassName, userCreated):
+    def addOSProcess(self, uid, newClassName, example, userCreated):
         device = self._getObject(uid)
-        device.os.addOSProcess(newClassName, userCreated)
+        device.os.addOSProcess(newClassName, example, userCreated)
 
     def addFileSystem(self, uid, newId, userCreated):
         device = self._getObject(uid)
@@ -732,3 +735,46 @@ class DeviceFacade(TreeFacade):
                 brain.getObject().latlong = None
             except:
                 log.warn("Unable to clear the geocodecache from %s " % brain.getPath())
+
+    @info
+    def getGraphDefinitionsForComponent(self, uid):
+        graphDefs = dict()
+        obj = self._getObject(uid)
+        for brain in obj.componentSearch():
+            if graphDefs.get(brain.meta_type):
+                continue            
+            try:
+                component = brain.getObject()
+            except:
+                pass
+            graphDefs[component.meta_type] = [g.id for g in component.getDefaultGraphDefs()]
+        return graphDefs
+
+    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+        obj = self._getObject(uid)
+
+        # get the components we are rendering graphs for
+        query = {}
+        query['meta_type'] = meta_type
+        components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
+        
+        
+        # get the graph def
+        for comp in components:
+            # find the first instance
+            for graph in comp.getDefaultGraphDefs():
+                if graph.id == graphId:
+                    graphDef = graph
+                    break
+            if graphDef:
+                break
+
+        if allOnSame:            
+            return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
+
+        graphs = []
+        for comp in components:
+            info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
+            graphs.append(info)
+        return graphs
+    

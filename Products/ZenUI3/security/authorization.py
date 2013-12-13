@@ -43,14 +43,14 @@ class Login(BrowserView):
 
         # no credentials to test authentication
         if login is None or password is None:
-            self.request.response.write( "Missing Authentication Credentials")
             self.request.response.setStatus(401)
+            self.request.response.write( "Missing Authentication Credentials")
             return
 
         # test authentication
         if not authorization.authenticateCredentials(login, password):
-            self.request.response.write( "Failed Authentication")
             self.request.response.setStatus(401)
+            self.request.response.write( "Failed Authentication")
             return
 
         # create the session data
@@ -73,8 +73,8 @@ class Validate(BrowserView):
 
         # missing token id
         if tokenId is None:
-            self.request.response.write( "Missing Token Id")
             self.request.response.setStatus(401)
+            self.request.response.write( "Missing Token Id")
             return
 
         authorization = IAuthorizationTool( self.context.context)
@@ -83,8 +83,8 @@ class Validate(BrowserView):
         tokenId = tokenId.strip('"')
         token = authorization.getToken(tokenId)
         if authorization.tokenExpired(tokenId):
-            self.request.response.write( "Token Expired")
             self.request.response.setStatus(401)
+            self.request.response.write( "Token Expired")
             return
 
         return json.dumps(token)

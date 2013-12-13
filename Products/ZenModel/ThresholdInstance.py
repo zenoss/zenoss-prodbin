@@ -11,7 +11,6 @@
 import os
 
 import Globals
-import rrdtool
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenUtils.Utils import unused, rrd_daemon_args, rrd_daemon_retry
@@ -108,6 +107,7 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
         @param value: value of the datapoint
         @return: sequence of Events
         """
+        self.checkRaw(dataPoint, timestamp, value)
 
     @deprecated
     def check(self, dataPoints):

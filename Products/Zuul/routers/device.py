@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -1108,22 +1108,6 @@ class DeviceRouter(TreeRouter):
         data = facade.getGraphDefs(uid, drange)
         return DirectResponse(data=Zuul.marshal(data))
 
-    @serviceConnectionError
-    def getEvents(self, uid):
-        """
-        Get events for a device.
-
-        @type  uid: [string]
-        @param uid: Device to get events for
-        @rtype:   DirectResponse
-        @return:  B{Properties}:
-             - data: ([dictionary]) List of events for a device
-        """
-        facade = self._getFacade()
-        events = facade.getEvents(uid)
-        data = Zuul.marshal(events)
-        return DirectResponse(data=data)
-
     def loadRanges(self, ranges, hashcheck, uid=None, params=None,
                       sort='name', dir='ASC'):
         """
@@ -1733,12 +1717,12 @@ class DeviceRouter(TreeRouter):
         data = facade.addIpInterface(uid, newId, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    def addOSProcess(self, uid, newClassName, userCreated=True):
+    def addOSProcess(self, uid, newClassName, example, userCreated=True):
         """
         Adds an os processes
         """
         facade = self._getFacade()
-        data = facade.addOSProcess(uid, newClassName, userCreated)
+        data = facade.addOSProcess(uid, newClassName, example, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def addFileSystem(self, uid, newId, userCreated=True):
@@ -1794,4 +1778,18 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         data = facade.getOverriddenZprops(uid, all)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getGraphDefintionsForComponents(self, uid):
+        facade = self._getFacade()
+        data = facade.getGraphDefinitionsForComponent(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+        """
+        Returns the graph denoted by graphId for every component in
+        device (uid) with the meta_type meta_type
+        """
+        facade = self._getFacade()
+        data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
         return DirectResponse.succeed(data=Zuul.marshal(data))

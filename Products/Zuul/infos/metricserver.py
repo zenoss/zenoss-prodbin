@@ -6,63 +6,55 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
+from zope.component import adapts, getMultiAdapter
 from zope.interface import implements
+from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces, IInfo
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
-from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
+from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenModel.PerformanceConf import PerformanceConf
+from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.ConfigurationError import ConfigurationError
-
-
+from Products.ZenEvents.Exceptions import rpnThresholdException
+        
 __doc__ = """
 These adapters are responsible for serializing the graph
 definitions into a form that is consumable by the metric service
 """
 
 class MetricServiceGraph(HasUuidInfoMixin):
-    implements(templateInterfaces.IMetricServiceGraphDefinition)
-
-    def __init__(self, graph):
+    def __init__(self, graph, context):
         self._object = graph
-
-    def setContext(self, context):
         self._context = context
 
 class MetricServiceGraphDefinition(MetricServiceGraph):
-    @property
-    def width(self):
-        return self._object.width * 2
-
-    @property
-    def height(self):
-        return 500
+    adapts(GraphDefinition, ZenModelRM)
+    implements(templateInterfaces.IMetricServiceGraphDefinition)
 
     @property
     def title(self):
         return self._object.titleOrId()
 
     @property
-    def type(self):
-        # previously the type was stored on the datapoint
-        # and now it is a property of the graph. Graph the first graphdef
-        # type and just use that for now.
-        datapoints = self.datapoints
-        if len(datapoints):
-            return datapoints[0].type
+    def contextTitle(self):
+        """
+        For the reports we need the context in the title.
+        """
+        title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
+        if isinstance(self._context, DeviceComponent):
+            title =  "%s - %s" %(title, self._context.titleOrId())
+        return "%s - %s" % (self.title, title)
 
     @property
-    def tags(self):
-        # TODO: possibly create a new adapter so zenpacks can register their own metric service tags
-        return { 'uuid': [self._context.getUUID()] }
+    def type(self):
+        return "line"
 
     def _getGraphPoints(self, klass):
         graphDefs = self._object.getGraphPoints(True)
-        infos = [templateInterfaces.IMetricServiceGraphDefinition(g) for g in graphDefs if isinstance(g, klass) ]
-        # pass in the context so graph points can do tales evaluation
-        for info in infos:
-            info.setContext(self._context)
+        infos = [getMultiAdapter((g, self._context), templateInterfaces.IMetricServiceGraphPoint)
+                 for g in graphDefs if isinstance(g, klass) ]
         return infos
 
     @property
@@ -73,42 +65,85 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     def thresholds(self):
         return self._getGraphPoints(ThresholdGraphPoint)
 
-    base = ProxyProperty('base')
+    @property
+    def base(self):
+        if self._object.base:
+            return 1024
+        return 1000
+
+    @property
+    def autoscale(self):
+        return self._object.shouldAutoScale()
+
+    @property
+    def ceiling(self):
+        return self._object.getCeiling()
+
     miny = ProxyProperty('miny')
     maxy = ProxyProperty('maxy')
     units = ProxyProperty('units')
 
+
 class ColorMetricServiceGraphPoint(MetricServiceGraph):
+
+    def __init__(self, graph, context):
+        self._multiContext = False
+        super(ColorMetricServiceGraphPoint, self).__init__(graph, context)
+    
+    def setMultiContext(self):
+        """
+        Let this graph know that we are displaying the same
+        metric for multiple contexts. This means we have to be
+        more specific in our legend and we can not have repeating
+        colors.
+        """
+        self._multiContext = True
+        
     @property
     def legend(self):
         o = self._object
-        return o.talesEval(o.legend, None)
+        legend = o.talesEval(o.legend, self._context)
+        if self._multiContext:
+            legend = self._context.titleOrId() + " " + legend
+        return legend
 
     @property
     def color(self):
-        return self._object.getColor(self._object.sequence)
+        if not self._multiContext:
+            return self._object.getColor(self._object.sequence)
 
 
 class MetricServiceThreshold(ColorMetricServiceGraphPoint):
-
+    adapts(ThresholdGraphPoint, ZenModelRM)
+    implements(templateInterfaces.IMetricServiceGraphPoint)
+    
     @property
     def values(self):
         """
-        Return the values we wish to display for this threshold. 
+        Return the values we wish to display for this threshold.
         """
         cls = self._object.getThreshClass(self._context)
         relatedGps = self._object.getRelatedGraphPoints(self._context)
         if cls:
             instance = cls.createThresholdInstance(self._context)
-            # filter out the None's 
-            return [x for x in instance.getGraphValues(relatedGps) if x is not None]
+            # filter out the None's
+            try:
+                return [x for x in instance.getGraphValues(relatedGps, self._context) if x is not None]
+            except rpnThresholdException:
+                # the exception is logged by the threshold instance class
+                pass
         return []
 
 class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
-
+    adapts(DataPointGraphPoint, ZenModelRM)
+    implements(templateInterfaces.IMetricServiceGraphPoint)
     @property
     def id(self):
         return self._object.id
+
+    @property
+    def name(self):
+        return "%s %s" % (self._context.id,self._object.id)
 
     @property
     def metric(self):
@@ -121,7 +156,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     def _getDataPoint(self):
         try:
             return IInfo(self._object.graphDef().rrdTemplate().getRRDDataPoint(self._object.dpName))
-        except ConfigurationError:
+        except (ConfigurationError, AttributeError):
             return None
 
     @property
@@ -129,6 +164,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         datapoint = self._getDataPoint()
         if datapoint:
             return datapoint.rate
+        return False
 
     @property
     def rateOptions(self):
@@ -139,11 +175,12 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def aggregator(self):
         agg = self._object.cFunc.lower()
+        from Products.Zuul.facades.metricfacade import AGGREGATION_MAPPING
         return AGGREGATION_MAPPING.get(agg, agg)
 
     @property
     def tags(self):
-        return {'datasource': [self._object.dpName.split("_")[0]]}
+        return {'datasource': [self._object.dpName.split("_")[0]], 'uuid': [self._context.getUUID()]}
 
     @property
     def format(self):
@@ -160,3 +197,59 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         rpn = self._object.rpn
         if rpn:
             return "rpn:" + self._object.talesEval(rpn, self._context)
+
+    @property
+    def fill(self):
+        if self.type == "area":
+            return True
+        return False
+
+# Charts adapters for collector graphs
+class CollectorMetricServiceGraphDefinition(MetricServiceGraphDefinition):
+    adapts(GraphDefinition, PerformanceConf)
+    implements(templateInterfaces.IMetricServiceGraphDefinition)
+
+    def __init__(self, graphDef, context):
+        self._object = graphDef
+        self._context = context
+
+    @property
+    def tags(self):
+        return dict(monitor=[self._context.id])
+
+    @property
+    def contextTitle(self):
+        return "%s - %s" % (self.title, self._context.titleOrId())
+
+class CollectorDataPointGraphPoint(MetricServiceGraphPoint):
+    adapts(DataPointGraphPoint, PerformanceConf)
+    implements(templateInterfaces.IMetricServiceGraphPoint)
+    @property
+    def tags(self):
+        return {'daemon': [self._object.dpName.split("_")[0]]}
+
+
+class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
+    """
+    This is a specialized adapter for multi graph reports where we have metrics for multiple
+    contexts on a single adapter. 
+    """
+    implements(templateInterfaces.IMetricServiceGraphDefinition)
+
+    @property
+    def contextTitle(self):
+        pass
+
+    def _getGraphPoints(self, klass):
+        """
+        For each context we have we need a new datapoint. 
+        """
+        graphDefs = self._object.getGraphPoints(True)
+        infos = []
+        for context in self._context:
+            infos.extend([getMultiAdapter((g, context), templateInterfaces.IMetricServiceGraphPoint)
+                          for g in graphDefs if isinstance(g, klass) ])
+            for info in infos:
+                info.setMultiContext()
+        return infos
+

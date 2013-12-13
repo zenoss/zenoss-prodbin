@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -9,7 +9,6 @@
 
 
 import re
-import sre_constants
 import logging
 log = logging.getLogger('zen.HubService.ProcessConfig')
 
@@ -34,8 +33,12 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
     name = None
     originalName = None
     restart = None
-    regex = None
+    includeRegex = None
     excludeRegex = None
+    replaceRegex = None
+    replacement = None
+    primaryUrlPath = None
+    generatedId = None
     severity = Event.Warning
     cycleTime = None
     processClass = None
@@ -49,6 +52,9 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
         """
         return str(self.name)
     __repr__ = __str__
+
+    def processClassPrimaryUrlPath(self):
+        return self.primaryUrlPath
 
 
 pb.setUnjellyableForClass(ProcessProxy, ProcessProxy)
@@ -99,26 +105,41 @@ class ProcessConfig(CollectorConfigService):
             if not p.monitored():
                 log.debug("Skipping process %r - zMonitor disabled", p)
                 continue
-            regex = getattr(p.osProcessClass(), 'regex', False)
+            includeRegex = getattr(p.osProcessClass(), 'includeRegex', False)
             excludeRegex = getattr(p.osProcessClass(), 'excludeRegex', False)
-            
-            if regex:
-                try:
-                    re.compile(regex)
-                except sre_constants.error, ex:
-                    log.warn("OS process class %s has an invalid regex (%s): %s",
-                             p.getOSProcessClass(), regex, ex)
-                    continue
-            else:
+            replaceRegex = getattr(p.osProcessClass(), 'replaceRegex', False)
+            replacement  = getattr(p.osProcessClass(), 'replacement', False)
+            generatedId  = getattr(p, 'generatedId', False)
+            primaryUrlPath = getattr(p.osProcessClass(), 'processClassPrimaryUrlPath', False)
+            if primaryUrlPath: primaryUrlPath = primaryUrlPath()
+
+            if not includeRegex:
                 log.warn("OS process class %s has no defined regex, this process not being monitored",
                          p.getOSProcessClass())
+                continue
+            bad_regex = False
+            for regex in [includeRegex, excludeRegex, replaceRegex]:
+                if regex:
+                    try:
+                        re.compile(regex)
+                    except re.error as ex:
+                        log.warn(
+                            "OS process class %s has an invalid regex (%s): %s",
+                            p.getOSProcessClass(), regex, ex)
+                        bad_regex = True
+                        break
+            if bad_regex:
                 continue
 
             proc = ProcessProxy()
             proc.contextUUID = p.getUUID()
             proc.deviceuuid = devuuid
-            proc.regex = regex
+            proc.includeRegex = includeRegex
             proc.excludeRegex = excludeRegex
+            proc.replaceRegex = replaceRegex
+            proc.replacement = replacement
+            proc.primaryUrlPath = primaryUrlPath
+            proc.generatedId = generatedId
             proc.name = p.id
             proc.originalName = p.name()
             proc.restart = p.alertOnRestart()
@@ -169,6 +190,6 @@ if __name__ == '__main__':
     tester = ServiceTester(ProcessConfig)
     def printer(config):
         for proc in config.processes.values():
-            print '\t'.join([proc.name, str(proc.regex)])
+            print '\t'.join([proc.name, str(proc.includeRegex)])
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()

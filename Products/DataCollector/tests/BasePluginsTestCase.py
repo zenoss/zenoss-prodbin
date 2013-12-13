@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -21,7 +21,7 @@ from Products.DataCollector.plugins.DataMaps \
 
 class BasePluginsTestCase(BaseTestCase):
 
-    def _testDataFiles(self, datadir, Plugins):
+    def _testDataFiles(self, datadir, Plugins, device=None):
         """
         Run tests for all of the data files in the data directory.
         """
@@ -29,7 +29,7 @@ class BasePluginsTestCase(BaseTestCase):
 
         for filename in filenames(datadir):
             try:
-                counter += self._testDataFile(filename, Plugins)
+                counter += self._testDataFile(filename, Plugins, device)
             except Exception, e:
                 format = '%s/%s caught %s: %s'
                 host, parser = filename.split(os.path.sep)[-2:]
@@ -66,7 +66,7 @@ class BasePluginsTestCase(BaseTestCase):
 
 
 
-    def _testDataFile(self, filename, Plugins):
+    def _testDataFile(self, filename, Plugins, device=None):
         """
         Test a data file.
         """
@@ -89,7 +89,7 @@ class BasePluginsTestCase(BaseTestCase):
         if not plugins:
                 self.fail("No plugins for %s" % command)
 
-        device = Object()
+        device = device or Object()
         device.id = filename.split(os.path.sep)[-2]
 
         expecteds = [expected[p.__class__.__name__] for p in plugins]

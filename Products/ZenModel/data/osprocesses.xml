@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-03-05 17:50:33.729594
+    Zenoss RelationshipManager export completed on 2013-11-13 19:16:42.969813
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.2.70]" export_date="2013-03-05 17:50:33.729594" zenoss_server="localhost.localdomain" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2013-11-13 19:16:42.969813" zenoss_server="localhost.localdomain" >
 <object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
@@ -33,6 +33,9 @@ Zope
 <property type="string" id="regex" mode="w" >
 .*runzope.*zenoss.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
@@ -55,6 +58,9 @@ zenactiond
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenactiond.py.*--daemon.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
 </property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
@@ -79,6 +85,9 @@ zencommand
 <property type="string" id="regex" mode="w" >
 .*zencommand.py.*--daemon.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
@@ -99,6 +108,9 @@ zeneventd
 <property type="string" id="regex" mode="w" >
 .*zeneventd.py.*--daemon.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
@@ -118,6 +130,9 @@ zeneventserver
 </property>
 <property type="string" id="regex" mode="w" >
 .*zeneventserver.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
 </property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
@@ -142,6 +157,9 @@ zenhub
 <property type="string" id="regex" mode="w" >
 .*zenhub.py.*--daemon.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
@@ -164,6 +182,9 @@ zenjobs
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenjobs.py.*--daemon.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
 </property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
@@ -188,11 +209,20 @@ zenmail
 <property type="string" id="regex" mode="w" >
 .*zenmail.py.*--daemon.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+zenmail
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
-True
+False
 </property>
 <property type="text" id="description" mode="w" >
 Listen on the SMTP port (default 25) and convert e-mails into Zenoss events.
@@ -210,6 +240,9 @@ zenmodeler
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenmodeler.py.*--daemon.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
 </property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
@@ -234,6 +267,9 @@ zenperfsnmp
 <property type="string" id="regex" mode="w" >
 .*zenperfsnmp.py.*--daemon.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
@@ -256,6 +292,9 @@ zenping
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenping.py.*--daemon.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
 </property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
@@ -280,6 +319,9 @@ zenpop3
 <property type="string" id="regex" mode="w" >
 .*zenpop3.py.*--daemon.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
@@ -302,6 +344,9 @@ zenprocess
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenprocess.py.*--daemon.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
 </property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
@@ -326,11 +371,20 @@ zenrender
 <property type="string" id="regex" mode="w" >
 .*zenrender.py.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+zenrender
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
-True
+False
 </property>
 <property type="text" id="description" mode="w" >
 Reads from RRD files to draw graphs for the UI.
@@ -349,11 +403,20 @@ rrdcached
 <property type="string" id="regex" mode="w" >
 .*rrdcached
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+rrdcached
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
-True
+False
 </property>
 <property type="text" id="description" mode="w" >
 Caching daemon that improves RRD write performance
@@ -371,6 +434,9 @@ zenstatus
 </property>
 <property type="string" id="regex" mode="w" >
 .*zenstatus.py.*--daemon.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
 </property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
@@ -395,11 +461,20 @@ zensyslog
 <property type="string" id="regex" mode="w" >
 .*zensyslog.py.*--daemon.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+zensyslog
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
-True
+False
 </property>
 <property type="text" id="description" mode="w" >
 Daemon that runs on the syslog ports and converts syslog messages to Zenoss events.
@@ -418,11 +493,20 @@ zentrap
 <property type="string" id="regex" mode="w" >
 .*zentrap.py.*--daemon.*
 </property>
+<property type="string" id="excludeRegex" mode="w" >
+.*(vim|tail|grep|tar|cat|bash).*
+</property>
+<property type="string" id="replaceRegex" mode="w" >
+.*
+</property>
+<property type="string" id="replacement" mode="w" >
+zentrap
+</property>
 <property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
 False
 </property>
 <property type="boolean" id="ignoreParameters" mode="w" >
-True
+False
 </property>
 <property type="text" id="description" mode="w" >
 Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss events.

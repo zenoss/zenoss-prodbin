@@ -265,7 +265,7 @@ class CollectorDaemon(RRDDaemon):
         self.parser.add_option('--writeStatistics',
                                dest='writeStatistics',
                                type='int',
-                               default=5,
+                               default=60,
                                help='How often to write internal statistics value in seconds')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)

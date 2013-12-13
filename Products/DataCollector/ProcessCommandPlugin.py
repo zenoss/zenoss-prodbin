@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -11,6 +11,7 @@
 from pprint import pformat
 
 from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
+from Products.ZenModel.OSProcessMatcher import buildObjectMapData
 
 
 class ProcessCommandPlugin(CommandPlugin):
@@ -22,7 +23,8 @@ class ProcessCommandPlugin(CommandPlugin):
     compname = "os"
     relname = "processes"
     modname = "Products.ZenModel.OSProcess"
-    classname = "createFromObjectMap"
+    maptype = "OSProcessMap"
+    deviceProperties = CommandPlugin.deviceProperties + ('osProcessClassMatchData',)
     
     def _filterLines(self, lines):
         """
@@ -30,7 +32,7 @@ class ProcessCommandPlugin(CommandPlugin):
         the lines.
         """
         return lines
-    
+
     def process(self, device, results, log):
         log.info('Processing %s for device %s', self.name(), device.id)
         if not results:
@@ -38,16 +40,11 @@ class ProcessCommandPlugin(CommandPlugin):
                       device.id)
             return None
 
-        relMap = self.relMap()
-        for line in self._filterLines(results.splitlines()):
-            # Blank lines are possible. Skip them. (ZEN-798)
-            if not line.strip():
-                continue
-            
-            om = self.objectMap({"processText": line.strip()})
-            relMap.append(om)
-            
-        log.debug("First three modeled processes:\n%s" % 
-                pformat(relMap.maps[:3]))
-                
-        return relMap
+        psOutputLines = self._filterLines(results.splitlines())
+
+        cmds = map(lambda(s):s.strip(), psOutputLines)
+        cmds = filter(lambda(s):s, cmds)
+        rm = self.relMap()
+        matchData = device.osProcessClassMatchData
+        rm.extend(map(self.objectMap, buildObjectMapData(matchData, cmds)))
+        return rm

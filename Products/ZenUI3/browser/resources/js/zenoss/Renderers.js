@@ -262,7 +262,7 @@ Ext.apply(Zenoss.render, {
             }
         }
         if (url && name) {
-            return '<a class="z-entity" href="'+url+'">'+name+'</a>';
+            return '<a class="z-entity" href="'+url+'">'+Ext.htmlEncode(name)+'</a>';
         }
     },
 
@@ -295,9 +295,9 @@ Ext.apply(Zenoss.render, {
             }else if(item.uid) {
                 return Zenoss.render.link(item.uid, null, item.text);
             }
-            return item.text;
+            return Ext.htmlEncode(item.text);
         }
-        return value;
+        return Ext.htmlEncode(value);
     },
 
     LinkFromGridGuidGroup: function(name, col, record) {

@@ -300,6 +300,19 @@
     permission="zenoss.Common"
     />
 
+<browser:view
+    class=".graphs.ExportGraph"
+    name="exportGraph"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.Common"
+    />
+
+<browser:page
+    template="templates/viewGraph.pt"
+    name="viewGraph"
+    for="*"
+    permission="zenoss.Common"
+    />
 <browser:viewlet
     name="zenoss_settings"
     manager=".interfaces.IMainSnippetManager"
