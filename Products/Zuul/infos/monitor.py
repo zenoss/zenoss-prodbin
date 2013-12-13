@@ -11,6 +11,7 @@ from zope.component import adapter
 from zope.interface import implementer
 
 from Products.ZenModel.interfaces import IMonitor
+from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.Zuul.interfaces import IMonitorInfo, IMonitorTreeNode
 from Products.Zuul.infos import ProxyProperty, InfoBase
 
@@ -29,7 +30,7 @@ class MonitorTreeNode(object):
 
     @property
     def type(self):
-        return "collector"
+        return  "collector" if isinstance(self._ctx, PerformanceConf) else "hub"
 
     @property
     def id(self):
