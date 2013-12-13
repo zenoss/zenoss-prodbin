@@ -77,6 +77,7 @@
                     select: this.setupDetails,
                     load: function(store, records) {
                         this.getTreegrid().expandAll();
+                        this.deepLinkFromHistory();
                     }
                 },
                 'daemonslist treeview': {
@@ -244,6 +245,23 @@
             var grid = this.getTreegrid(), selected = grid.getSelectionModel().getSelection();
             if (selected.length) {
                 this.getController('DetailsController').setContext(selected[0]);
+                this.addHistory(selected[0].get("id"));
+            }
+        },
+        addHistory: function(id) {
+            Ext.History.add(id);
+        },
+        deepLinkFromHistory: function() {
+            var token = Ext.History.getToken(),
+                tree = this.getTreegrid();
+            if (!token) {
+                // select the first one
+                tree.getSelectionModel().select(
+                    tree.getRootNode().childNodes[0]
+                );
+            } else {
+                var node = tree.getStore().getNodeById(token);
+                tree.getSelectionModel().select(node);
             }
         },
         assignDevicesToCollector: function(node, data, treeNode, dropPosition){

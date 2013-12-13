@@ -7,6 +7,9 @@
  *
  ****************************************************************************/
 (function(){
+    Ext.ns('Daemons');
+
+    Daemons.menuItems = Daemons.menuItems || [];
 
     /**
      * @class Daemons.view.daemons.SearchField
@@ -55,7 +58,7 @@
         dockedItems: [{
             xtype: 'toolbar',
             dock: 'top',
-            items: [{
+            items: Daemons.menuItems.concat([{
                 xtype: 'button',
                 text: _t('Start'),
                 ref: 'start'
@@ -89,7 +92,7 @@
                 ref: "refresh",
                 id: 'refreshtreegrid',
                 text: _t('Refresh')
-            }]
+            }])
         }],
         selectionModel: 'rowmodel',
         initComponent: function() {
