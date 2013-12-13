@@ -166,11 +166,11 @@ class EventProtobufDeviceGuidMapper(EventProtobufMapper):
 
 class EventProtobufComponentGuidMapper(EventProtobufMapper):
     """
-    Maps a 'device' to the corresponding location in the Event.EventActor.
+    Maps a 'component' to the corresponding location in the Event.EventActor.
     """
 
     def mapEvent(self, proto, value):
-        proto.actor.element_sub_type_id = modelConstants.COM
+        proto.actor.element_sub_type_id = modelConstants.COMPONENT
         proto.actor.element_sub_uuid = _safestr(value)
 
 class EventProtobufComponentMapper(EventProtobufMapper):
