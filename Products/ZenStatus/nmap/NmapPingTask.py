@@ -217,39 +217,6 @@ class NmapPingTask(BaseTask):
         )
         self._eventService.sendEvent(evt)
 
-    def _detectNmap(self):
-        """
-        Detect that nmap is present.
-        """
-        # if nmap has already been detected, do not detect it again
-        if self._nmapPresent:
-            return
-        self._nmapPresent = os.path.exists(_NMAP_BINARY)
-        
-        if self._nmapPresent == False:
-            raise nmap.NmapNotFound()
-        self._sendNmapMissing()
-        
-    def _sendNmapMissing(self):
-        """
-        Send/Clear event to show that nmap is present/missing.
-        """
-        if self._nmapPresent:
-            msg = "nmap was found" 
-            severity = _CLEAR
-        else:
-            msg = "nmap was NOT found at %r " % _NMAP_BINARY
-            severity = _CRITICAL
-        evt = dict(
-            device=self.collectorName,
-            eventClass=ZenEventClasses.Status_Ping,
-            eventGroup='Ping',
-            eventKey="nmap_missing",
-            severity=severity,
-            summary=msg,
-        )
-        self._eventService.sendEvent(evt)
-
     def _correlationExecution(self, ex=None):
         """
         Send/Clear event to show that correlation is executed properly.
@@ -390,11 +357,8 @@ class NmapPingTask(BaseTask):
             self.interval = self._daemon._prefs.pingCycleInterval
         
         try:
-            self._detectNmap()        # will clear nmap_missing
             yield self._batchPing()   # will clear nmap_execution
 
-        except nmap.NmapNotFound:
-            self._sendNmapMissing()
         except nmap.ShortCycleIntervalError:
             self._sendShortCycleInterval(self.interval)
         except nmap.NmapExecutionError as ex:

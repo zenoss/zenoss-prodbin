@@ -31,18 +31,6 @@ class NmapParsingError(_etree.XMLSyntaxError):
     pass
 
 
-class NmapNotFound(Exception):
-    """
-    NmapNotFound raised when nmap is not found.
-    """
-    pass
-
-class NmapNotSuid(Exception):
-    """
-    NmapNotFound raised when nmap is not found.
-    """
-    pass
-
 class ShortCycleIntervalError(Exception):
     """
     ShortCycleIntervalError raised when the Ping Cycle Interval is unreasonably
