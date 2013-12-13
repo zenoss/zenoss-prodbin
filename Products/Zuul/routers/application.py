@@ -15,7 +15,7 @@ from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.interfaces import IInfo
-
+from urllib2 import URLError
 log = logging.getLogger('zen.ApplicationRouter')
 
 
@@ -36,7 +36,12 @@ class ApplicationRouter(TreeRouter):
         @rtype:   [dictionary]
         @return:  Object representing the tree
         """
-        return Zuul.marshal(self._getFacade().getTree())
+        try:
+            results = Zuul.marshal(self._getFacade().getTree())
+            return results
+        except URLError, e:
+            log.exception(e)            
+            return DirectResponse.fail("Error fetching daemons list: " + str(e.reason))
 
     def getForm(self, uid):
         """
