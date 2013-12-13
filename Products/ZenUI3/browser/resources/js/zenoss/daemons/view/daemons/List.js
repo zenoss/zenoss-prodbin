@@ -100,6 +100,12 @@
                 sortable: true,
                 dataIndex: 'name'
             },{
+                text: _t('Type'),
+                flex: .15,
+                tooltip: _t('Type'),
+                dataIndex: 'type',
+                sortable: true
+            },{
                 text: _t('Uptime'),
                 flex: .25,
                 tooltip: _t('Uptime'),

@@ -25,6 +25,7 @@ class MonitorTreeNode(object):
         """
         """
         self._ctx = context
+        self._children = []
 
     @property
     def type(self):
@@ -53,13 +54,13 @@ class MonitorTreeNode(object):
         return self._ctx.id
 
     @property
+    def leaf(self):
+        return False
+
+    @property
     def children(self):
-        return []
-
-    # Monitor's don't have children, so they are leaf nodes.
-    leaf = True
-
-
+        return self._children
+        
 @implementer(IMonitorInfo)
 class MonitorInfo(InfoBase):
     """

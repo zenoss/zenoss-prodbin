@@ -51,11 +51,6 @@ class IApplicationInfo(IInfo):
         title=_t("Text"), description=_t("Synonym for name."), readonly=True
     )
 
-    qtip = TextLine(
-        title=_t("QTip"), description=_t("Synonym for description."),
-        readonly=True
-    )
-
     isRestarting = Bool(
         title=_t("Restarting"),
         description=_t("True if the application is restarting."),
