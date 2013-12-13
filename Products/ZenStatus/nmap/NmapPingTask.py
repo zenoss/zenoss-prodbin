@@ -47,7 +47,7 @@ from Products.ZenStatus.PingCollectionPreferences import PingCollectionPreferenc
 from Products.ZenStatus.interfaces import IPingTaskFactory, IPingTaskCorrelator
 from Products.ZenStatus import nmap
 
-_NMAP_BINARY = zenPath("bin/nmap")
+_NMAP_BINARY = "/usr/bin/nmap"
 
 
 _CLEAR = 0
@@ -217,81 +217,6 @@ class NmapPingTask(BaseTask):
         )
         self._eventService.sendEvent(evt)
 
-    def _detectNmap(self):
-        """
-        Detect that nmap is present.
-        """
-        # if nmap has already been detected, do not detect it again
-        if self._nmapPresent:
-            return
-        self._nmapPresent = os.path.exists(_NMAP_BINARY)
-        
-        if self._nmapPresent == False:
-            raise nmap.NmapNotFound()
-        self._sendNmapMissing()
-        
-    def _sendNmapMissing(self):
-        """
-        Send/Clear event to show that nmap is present/missing.
-        """
-        if self._nmapPresent:
-            msg = "nmap was found" 
-            severity = _CLEAR
-        else:
-            msg = "nmap was NOT found at %r " % _NMAP_BINARY
-            severity = _CRITICAL
-        evt = dict(
-            device=self.collectorName,
-            eventClass=ZenEventClasses.Status_Ping,
-            eventGroup='Ping',
-            eventKey="nmap_missing",
-            severity=severity,
-            summary=msg,
-        )
-        self._eventService.sendEvent(evt)
-
-    def _detectNmapIsSuid(self):
-        """
-        Detect that nmap is set SUID
-        """
-        if self._nmapPresent and self._nmapIsSuid == False:
-            # get attributes for nmap binary
-            attribs = os.stat(_NMAP_BINARY)
-            # find out if it is SUID and owned by root
-            self._nmapIsSuid = (attribs.st_uid == 0) and (attribs.st_mode & stat.S_ISUID)
-            if self._nmapIsSuid is False:
-                raise nmap.NmapNotSuid()
-        self._sendNmapNotSuid()  # send a clear
-
-    def _sendNmapNotSuid(self):
-        """
-        Send/Clear event to show that nmap is set SUID.
-        """
-        resolution = None
-        if self._nmapIsSuid:
-            msg = "nmap is set SUID" 
-            severity = _CLEAR
-        else:
-            msg = "nmap is NOT SUID: %s" % _NMAP_BINARY
-            try:
-               import socket
-               cmd = subprocess.check_output('echo "chown root.`id -gn` $ZENHOME/bin/nmap && chmod u+s $ZENHOME/bin/nmap"', shell=True).strip()
-               resolution = "Log on to %s and execute the following as root: %s" % (socket.getfqdn(), cmd)
-            except Exception as ex:
-               log.exception("There was an error generating a help message related to sudo nmap.")
-            severity = _CRITICAL
-        evt = dict(
-            device=self.collectorName,
-            eventClass=ZenEventClasses.Status_Ping,
-            eventGroup='Ping',
-            eventKey="nmap_suid",
-            severity=severity,
-            summary=msg,
-        )
-        if resolution:
-            evt['resolution'] = resolution
-        self._eventService.sendEvent(evt)
-
     def _correlationExecution(self, ex=None):
         """
         Send/Clear event to show that correlation is executed properly.
@@ -395,7 +320,7 @@ class NmapPingTask(BaseTask):
         if log.isEnabledFor(logging.DEBUG):
             log.debug("executing nmap %s", " ".join(args))
         out, err, exitCode = yield utils.getProcessOutputAndValue(
-            _NMAP_BINARY, args)
+            "/bin/sudo", ["-n", _NMAP_BINARY,] + args)
 
         if exitCode != 0:
             input = open(inputFileFilename).read()
@@ -432,14 +357,8 @@ class NmapPingTask(BaseTask):
             self.interval = self._daemon._prefs.pingCycleInterval
         
         try:
-            self._detectNmap()        # will clear nmap_missing
-            #self._detectNmapIsSuid()  # will clear nmap_suid
             yield self._batchPing()   # will clear nmap_execution
 
-        except nmap.NmapNotFound:
-            self._sendNmapMissing()
-        except nmap.NmapNotSuid:
-            self._sendNmapNotSuid()
         except nmap.ShortCycleIntervalError:
             self._sendShortCycleInterval(self.interval)
         except nmap.NmapExecutionError as ex:
