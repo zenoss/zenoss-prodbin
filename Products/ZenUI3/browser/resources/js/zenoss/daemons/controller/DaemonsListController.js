@@ -34,7 +34,7 @@
 
         init: function() {
             // toolbar button handlers
-            this.control({
+            this.control(Ext.apply(Daemons.ListControllerActions || {}, {
                 // start
                 'daemonslist button[ref="start"]': {
                     click: this.startSelectedDeamons
@@ -83,7 +83,7 @@
                 'daemonslist treeview': {
                     beforedrop: this.assignDevicesToCollector
                 }
-            });
+            }));
         },
         /**
          * Updates the model representation of the selected rows
@@ -177,7 +177,7 @@
                 function callback(response) {
                     var id = response.data.id;
                     var record = this.restartingDaemons[id];
-                    if (!response.data.isRestarting) {
+                    if (!response.data.isRestarting && record.el) {
                         record.el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_still.png';
                         delete this.restartingDaemons[id];
                     }
@@ -253,15 +253,20 @@
         },
         deepLinkFromHistory: function() {
             var token = Ext.History.getToken(),
-                tree = this.getTreegrid();
-            if (!token) {
-                // select the first one
+                tree = this.getTreegrid(), node;
+
+            if (token) {
+                node = tree.getStore().getNodeById(token);
+            }
+
+            // if we were able to find the history select it otherwise
+            // select the first visible node
+            if (node) {
+                tree.getSelectionModel().select(node);
+            } else {
                 tree.getSelectionModel().select(
                     tree.getRootNode().childNodes[0]
                 );
-            } else {
-                var node = tree.getStore().getNodeById(token);
-                tree.getSelectionModel().select(node);
             }
         },
         assignDevicesToCollector: function(node, data, treeNode, dropPosition){

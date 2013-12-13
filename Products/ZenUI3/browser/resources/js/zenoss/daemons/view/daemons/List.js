@@ -60,6 +60,17 @@
             dock: 'top',
             items: Daemons.menuItems.concat([{
                 xtype: 'button',
+                iconCls: 'customize',
+                menu: [{
+                    text: _t('View Performance Templates'),
+                    handler: function() {
+                        // redirect to the collector template page
+                        window.location = "/zport/dmd/collectorTemplate";
+                    }
+                }]
+
+            },'-', {
+                xtype: 'button',
                 text: _t('Start'),
                 ref: 'start'
             },{
@@ -70,16 +81,6 @@
                 xtype: 'button',
                 text: _t('Restart'),
                 ref: 'restart'
-            }, {
-                xtype: 'button',
-                iconCls: 'customize',
-                menu: [{
-                    text: _t('View Performance Templates'),
-                    handler: function() {
-                        // redirect to the collector template page
-                        window.location = "/zport/dmd/collectorTemplate";
-                    }
-                }]
             },'->',{
                 xtype: 'daemonsearchfield',
                 id: 'component_searchfield',
