@@ -28,7 +28,6 @@ class ApplicationFacade(object):
         self._dmd = dataroot
         self._svc = getUtility(IApplicationManager)
 
-    
     def _isCollector(self, node):
         """
         Determines if this application represents a collector by looking at the
@@ -36,7 +35,7 @@ class ApplicationFacade(object):
         """
         tags = node.tags or []
         return 'collector' in tags and not 'daemon' in tags
-    
+
     def _replaceNodeWithInfoObject(self, node):
         return ITreeNode(self._dmd.Monitors.getPerformanceMonitor(node.name))
 
@@ -52,26 +51,26 @@ class ApplicationFacade(object):
         """
         This method takes a tree structure of application info objects
         and figures out which ones should be replaced with collector nodes.
-        This is so that on the UI we can figure 
+        This is so that on the UI we can figure
         """
         toReplace = []
         for node in roots:
             if self._shouldReplaceNode(node):
                 toReplace.append(node)
-            
+
         # replace nodes
-        for node in toReplace:            
+        for node in toReplace:
             roots = [n for n in roots if n.id != node.id]
             newNode = self._replaceNodeWithInfoObject(node)
             newNode._children = node._children
             roots.append(newNode)
-            
+
         # recursively replace the child nodes
-        for node in roots:            
+        for node in roots:
             node._children = self._replaceNodes(node._children)
-            
+
         return roots
-    
+
     def getTree(self):
         """
         Returns all of the collectors and daemons in tree
@@ -82,14 +81,15 @@ class ApplicationFacade(object):
         tree = dict()
         for service in services:
             tree[service.id] = IInfo(service)
-                        
+
         # organize them into a tree
         for id, service in tree.iteritems():
-            if service.getParentServiceId():
+            if service.getParentServiceId():                
                 parent = tree[service.getParentServiceId()]
-                parent.addChild(service)        
+                parent.addChild(service)
+                             
         roots = [service for service in tree.values() if not service.getParentServiceId()]
-        roots = self._replaceNodes(roots)
+        #roots = self._replaceNodes(roots)
         return roots
 
     def query(self, name=None):
