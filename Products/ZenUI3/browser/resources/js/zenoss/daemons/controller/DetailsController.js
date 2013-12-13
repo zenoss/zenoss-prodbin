@@ -55,7 +55,9 @@
          **/
         setContext: function(selected) {
             this.selected = selected;
-            if (selected.get('type') == 'collector') {
+            if (selected.get('type') == 'hub') {
+                this.setHubDetails();
+            } else if (selected.get('type') == 'collector') {
                 this.setCollectorDetails();
             } else {
                 this.setDaemonDetails();
@@ -75,6 +77,16 @@
             this.syncMenus('daemon');
             var actions = {
                 details: this.setDaemonDetailsPanel
+            },
+                selectedMenuItem = this.getMenuCombo().getValue(),
+                action = actions[selectedMenuItem];
+            Ext.bind(action, this)();
+        },
+        setHubDetails: function(){
+            this.syncMenus('hub');
+            var actions = {
+                details: this.setDetailsPanel,
+                graphs: this.setGraphs
             },
                 selectedMenuItem = this.getMenuCombo().getValue(),
                 action = actions[selectedMenuItem];
@@ -136,7 +148,16 @@
          **/
         getMenuStore: function(type) {
             var menu;
-            if (type == 'collector') {
+            if (type == 'hub') {
+                menu = Ext.create('Ext.data.Store', {
+                    fields: ['id', 'name'],
+                    idProperty: 'id',
+                    data : [
+                        {id: 'graphs', name: _t('Graphs')},
+                        {id: 'details', name: _t('Details')}
+                    ]
+                });
+            } else if (type == 'collector') {
                 menu = Ext.create('Ext.data.Store', {
                     fields: ['id', 'name'],
                     idProperty: 'id',

@@ -10,7 +10,6 @@
 import logging
 
 from Products import Zuul
-from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.interfaces import IInfo, ITreeNode
 from Products.Zuul.routers import TreeRouter
