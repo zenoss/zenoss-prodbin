@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-__doc__="""EventClass.py
+__doc__ = """EventClass.py
 
 Event class objects
 """
@@ -35,7 +35,7 @@ from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenUtils.Utils import prepId as globalPrepId, getDisplayName
 from Products.ZenMessaging.audit import audit
 
-__pychecker__='no-argsused'
+__pychecker__ = 'no-argsused'
 
 def manage_addEventClass(context, id="Events", REQUEST=None):
     """make a event class"""
@@ -59,7 +59,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
     transform = ''
 
-    meta_type = "EventClass" #FIXME - this is wrong just temp perserving data
+    meta_type = "EventClass"  # FIXME - this is wrong just temp perserving data
     event_key = "EventClass"
 
     dmdRootName = "Events"
@@ -67,7 +67,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     default_catalog = "eventClassSearch"
 
     _relations = ZenPackable._relations + (
-        ("instances", ToManyCont(ToOne,"Products.ZenEvents.EventClassInst","eventClass")),
+        ("instances", ToManyCont(ToOne, "Products.ZenEvents.EventClassInst", "eventClass")),
         )
 
 
@@ -91,19 +91,19 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 , 'name'          : 'Classes'
                 , 'action'        : 'eventClassStatus'
                 , 'permissions'   : (
-                  Permissions.view, )
+                  Permissions.view,)
                 },
                 { 'id'            : 'eventList'
                 , 'name'          : 'Mappings'
                 , 'action'        : 'eventMappingList'
                 , 'permissions'   : (
-                  Permissions.view, )
+                  Permissions.view,)
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (
-                  Permissions.view, )
+                  Permissions.view,)
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'Configuration Properties'
@@ -254,9 +254,9 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         """
         if id:
             id = self.prepId(id)
-            c=0
-            while self.instances._getOb(id,False):
-                c+=1
+            c = 0
+            while self.instances._getOb(id, False):
+                c += 1
                 id = "%s_%02d" % (id, c)
             ecr = EventClassInst(id)
             ecr.sequence = self.nextSequenceNumber(ecr.eventClassKey)
@@ -288,7 +288,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         for id in ids:
             rec = self.instances._getOb(id, None)
             if rec is None: continue
-            rec._operation = 1 # moving object state
+            rec._operation = 1  # moving object state
             self.instances._delObject(id)
             target.instances._setObject(id, rec)
             if REQUEST:
@@ -323,7 +323,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             edict._setProperty("zFlappingIntervalSeconds", 3600, type="int")
 
         if getattr(aq_base(edict), "zFlappingSeverity", None) is None:
-            edict._setProperty("zFlappingSeverity", 4, type="severity")
+            edict._setProperty("zFlappingSeverity", 4, type="int")
 
     def testTransformStyle(self):
         """Test our transform by compiling it.
@@ -335,7 +335,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             return "color:#FF0000;"
 
     security.declareProtected(ZEN_MANAGE_EVENTS, 'manage_editEventClassTransform')
-    def manage_editEventClassTransform(self, transform = '', REQUEST=None):
+    def manage_editEventClassTransform(self, transform='', REQUEST=None):
         """Save the transform"""
         oldTransform = self.transform
         self.transform = transform
@@ -403,13 +403,13 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     security.declareProtected(ZEN_VIEW, 'getPrettyLink')
     def getPrettyLink(self, noicon=False, shortDesc=False):
         """ Gets a link to this object, plus an icon """
-        href = self.getPrimaryUrlPath().replace('%','%%')
-        linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
+        href = self.getPrimaryUrlPath().replace('%', '%%')
+        linktemplate = "<a href='" + href + "' class='prettylink'>%s</a>"
         icon = ("<div class='device-icon-container'> "
                 "<img class='device-icon' src='%s'/> "
                 "</div>") % self.getIconPath()
         name = self.getPrimaryDmdId()
-        if noicon: icon=''
+        if noicon: icon = ''
         if shortDesc: name = self.id
         rendered = icon + name
         if not self.checkRemotePerm("View", self):

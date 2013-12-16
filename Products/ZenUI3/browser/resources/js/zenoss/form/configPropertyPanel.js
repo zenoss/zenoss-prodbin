@@ -58,6 +58,12 @@
         'zFailSeverity': {
             xtype: 'severity'
         },
+        'zFlappingSeverity': {
+            xtype: 'severity'
+        },
+        'zFlappingThreshold': {
+            xtype: 'severity'
+        },
         'zWinEventlogMinSeverity': {
             xtype: 'reverseseverity'
         }
