@@ -103,7 +103,7 @@ class IMonitorFacade(IFacade):
         Return a sequence of IMonitorInfo objects.
         """
 
-    def get(monitorId):
+    def get(monitorId, default=None):
         """
         Return the IMonitorInfo object having the specified ID.
         """

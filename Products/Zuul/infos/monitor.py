@@ -25,7 +25,7 @@ class MonitorTreeNode(object):
     def __init__(self, context, root=None, parent=None):
         """
         """
-        self._ctx = context
+        self._ctx = context  # references the dmd node
         self._children = []
 
     @property
@@ -58,10 +58,14 @@ class MonitorTreeNode(object):
     def leaf(self):
         return False
 
+    def addChild(self, child):
+        self._children.append(child)
+
     @property
     def children(self):
         return self._children
-        
+
+
 @implementer(IMonitorInfo)
 class MonitorInfo(InfoBase):
     """

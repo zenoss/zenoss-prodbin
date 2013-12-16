@@ -74,6 +74,18 @@ class IApplicationFacade(IFacade):
         Returns a sequence of IApplication objects.
         """
 
+    def queryMasterDaemons():
+        """
+        Return a sequence of IApplication objects representing daemons
+        which are not associated with monitors.
+        """
+
+    def queryMonitorDaemons(monitorId):
+        """
+        Return a sequence of IApplication objects that are associated
+        with specified monitor.
+        """
+
     def get(appId, default=None):
         """
         Retrieve the IApplication object of the identified application.

@@ -32,8 +32,8 @@ Application JSON format:
         #    }
         #]
         "ConfigFiles": {
-            "S-/etc/my.cnf": {
-                "Filename": "S-/etc/my.cnf",
+            "/etc/my.cnf": {
+                "Filename": "/etc/my.cnf",
                 "Owner": "",
                 "Permissions": 0,
                 "Content": "\n# SAMPLE config file for mysql\n\n[mysqld]\n\ninnodb_buffer_pool_size = 16G\n\n"
@@ -88,13 +88,20 @@ Application JSON format:
 
 import json
 from datetime import datetime
+from functools import wraps
+
 from zope.component import createObject
 from zope.component.factory import Factory
 from zope.interface import implementer
+
 from .interfaces import IServiceDefinition, IServiceInstance
 
 
 class _Value(object):
+    """
+    Helper class for creating objects that can behave as named
+    constants that (optionally) convertable to an integer.
+    """
 
     def __init__(self, name, value=None):
         self._name = name
@@ -110,11 +117,15 @@ class _Value(object):
         return str(self._value)
 
 
+# The set of keys found in a service definition JSON object.
+# Used to identify such objects.
 _definitionKeys = set([
     "Id", "Name", "ParentServiceId", "PoolId", "Description", "Launch",
-    "DesiredState", "Tags"
+    "DesiredState", "Tags", "ConfigFiles"
 ])
 
+# The set of keys found in a service instance JSON object.
+# Used to identify such objects.
 _instanceKeys = set([
     "Id", "ServiceId", "HostId", "DockerId", "StartedAt", "Name",
     "Startup", "Description", "Instances", "ImageId",
@@ -154,6 +165,16 @@ class ServiceJsonEncoder(json.JSONEncoder):
         return super(ServiceJsonEncoder, self).encode(data)
 
 
+def _convertToDateTime(f):
+    @wraps(f)
+    def wrapper(*args, **kw):
+        src = f(*args, **kw)
+        trimmed = src[:19]
+        if len(trimmed) == 19:
+            return datetime.strptime(trimmed, "%Y-%m-%dT%H:%M:%S")
+    return wrapper
+
+
 @implementer(IServiceInstance)
 class ServiceInstance(object):
     """
@@ -187,11 +208,9 @@ class ServiceInstance(object):
         return self._data.get("HostId")
 
     @property
+    @_convertToDateTime
     def startedAt(self):
-        src = self._data.get("StartedAt")        
-        trimmed = src[:19]
-        if len(trimmed) == 19: 
-            return datetime.strptime(trimmed, "%Y-%m-%dT%H:%M:%S")
+        return self._data.get("StartedAt")
 
 
 class ServiceInstanceFactory(Factory):
@@ -240,9 +259,9 @@ class ServiceDefinition(object):
         return self._data.get("Id")
 
     @property
-    def parentServiceId(self):
+    def parentId(self):
         return self._data.get('ParentServiceId')
-        
+
     @property
     def resourceId(self):
         return "/services/%s" % (self._data.get("Id"),)
@@ -285,7 +304,31 @@ class ServiceDefinition(object):
 
     @property
     def configFiles(self):
-        return self._data.get("ConfigFiles")
+        """
+        Returns a dict with this format:
+
+           {
+               "<filename>": {
+                  "FileName": "<filename>",
+                  "Content": "<contents-of-file-as-string>"
+               },
+               ...
+           }
+
+        The top-level keys are duplicated by the "FileName" key in the
+        children dictionaries.
+        """
+        return self._data.get("ConfigFiles", {})
+
+    @property
+    @_convertToDateTime
+    def createdAt(self):
+        return self._data.get("CreatedAt")
+
+    @property
+    @_convertToDateTime
+    def updatedAt(self):
+        return self._data.get("UpdatedAt")
 
 
 class ServiceDefinitionFactory(Factory):
