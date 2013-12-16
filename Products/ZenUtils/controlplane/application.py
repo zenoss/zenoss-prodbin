@@ -13,11 +13,12 @@ IApplication* control-plane implementations.
 
 import logging
 
+from collections import Sequence, Iterator
 from zope.interface import implementer
 
 from Products.ZenUtils.application import (
     IApplicationManager, IApplication, IApplicationLog,
-    ApplicationState
+    IApplicationConfiguration, ApplicationState
 )
 
 from .client import ControlPlaneClient
@@ -32,17 +33,36 @@ class DeployedAppLookup(object):
     Query the control-plane for Zenoss application services.
     """
 
+    # The class of the Control Plane client
+    clientClass = ControlPlaneClient
+
     def __init__(self):
-        self._client = ControlPlaneClient()
+        self._client = self.clientClass()
         self._appcache = {}
 
-    def query(self, name=None, tags=None):
+    def query(self, name=None, tags=None, monitorName=None):
         """
         Returns a sequence of IApplication objects.
         """
+        # Retrieve services according to name and tags.
         result = self._client.queryServices(name=name, tags=tags)
         if not result:
             return ()
+        # If monitorName is specified, filter for services which are
+        # parented by the specified monitor.
+        if monitorName:
+            # Replace "daemon" with "-daemon" to exclude services which are
+            # applications.
+            tags = set(tags) - set(["daemon"])
+            tags.add("-daemon")
+            parents = self._client.queryServices(monitorName, list(tags))
+            # If the monitor name wasn't found, return an empty sequence.
+            if not parents:
+                return ()
+            parentId = parents[0].id  # Get control-plane service ID
+            result = (
+                svc for svc in result if svc.parentId == parentId
+            )
         return tuple(self._getApp(service) for service in result)
 
     def get(self, id, default=None):
@@ -98,14 +118,6 @@ class DeployedApp(object):
         return self._service.name
 
     @property
-    def parentServiceId(self):
-        return self._service.parentServiceId
-    
-    @property
-    def tags(self):
-        return self._service.tags
-    
-    @property
     def description(self):
         return self._service.description
 
@@ -148,18 +160,11 @@ class DeployedApp(object):
         self._service.launch = value
         self._client.updateService(self._service)
 
-    def getConfig(self):
+    @property
+    def configurations(self):
         """
-        Retrieves the IConfig object of the application.
         """
-        #data = self._client.getConfiguration(self._service.id)
-        #return Config
-
-    def setConfig(self, config):
-        """
-        Sets the config of the application.
-        """
-        pass
+        return _DeployedAppConfigList(self._service, self._client)
 
     def start(self):
         """
@@ -204,6 +209,85 @@ class DeployedApp(object):
                 self._client.updateService(self._service)
 
 
+class _DeployedAppConfigList(Sequence):
+    """
+    Helper class implementing the Sequence protocol.  Instances of
+    this class are the object returned by the IApplication's
+    'configurations' property.
+    """
+
+    def __init__(self, service, client):
+        self._service = service
+        self._client = client
+
+    def __getitem__(self, index):
+        """
+        Return the selected configuration file(s) as indicated by
+        the index.  Slice notation is supported.
+        """
+        # Note: 'index' can be a slice object, but since it's forwarded
+        # to the list's __getitem__ method, don't worry about it.
+        values = self._service.configFiles.values()
+        return values.__getitem__(index)
+
+    def __len__(self):
+        """
+        Return the number of configuration files.
+        """
+        return len(self._service.configFiles)
+
+    def __iter__(self):
+        """
+        Return an iterator that produces DeployedAppConfig objects.
+        """
+        return _ConfigIterator(self._service, self._client)
+
+
+class _ConfigIterator(Iterator):
+    """
+    Helper class to implement iteration of the list of
+    IApplicationConfiguration objects.
+    """
+
+    def __init__(self, service, client):
+        self._service = service
+        self._client = client
+        self._iter = iter(self._service.configFiles.values())
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return DeployedAppConfig(
+            self._service, self._client, self._iter.next())
+
+
+@implementer(IApplicationConfiguration)
+class DeployedAppConfig(object):
+    """
+    """
+
+    def __init__(self, service, client, config):
+        self._service = service
+        self._client = client
+        self._config = config
+
+    @property
+    def filename(self):
+        """Full path filename of configuration."""
+        return self._config.get("FileName")
+
+    @property
+    def content(self):
+        """Raw contents of the configuration file."""
+        return self._config.get("Content")
+
+    @content.setter
+    def content(self, content):
+        self._config["Content"] = content
+        self._client.updateService(self._service)
+
+
 @implementer(IApplicationLog)
 class DeployedAppLog(object):
     """
@@ -223,3 +307,8 @@ class DeployedAppLog(object):
             self._instance.serviceId, self._instance.id
         )
         return result.split("\n")[-count:]
+
+
+__all__ = (
+    "DeployedApp", "DeployedAppConfig", "DeployedAppLog", "DeployedAppLookup"
+)

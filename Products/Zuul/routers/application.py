@@ -14,7 +14,7 @@ from Products.ZenMessaging.audit import audit
 from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.form.interfaces import IFormBuilder
-from Products.Zuul.interfaces import IInfo
+from Products.Zuul.interfaces import IInfo, ITreeNode
 
 log = logging.getLogger('zen.ApplicationRouter')
 
@@ -28,15 +28,25 @@ class ApplicationRouter(TreeRouter):
 
     def getTree(self, id):
         """
-        Returns the tree structure of the application (service) hierarchy where
-        the root node is the organizer identified by the id parameter.
+        Returns the tree structure of the application and collector
+        hierarchy.
 
         @type  id: string
         @param id: Id of the root node of the tree to be returned
         @rtype:   [dictionary]
         @return:  Object representing the tree
         """
-        return Zuul.marshal(self._getFacade().getTree())
+        appfacade = self._getFacade()
+        monitorfacade = Zuul.getFacade("monitors", self.context)
+        nodes = [ITreeNode(m) for m in monitorfacade.query()]
+        for monitor in nodes:
+            apps = appfacade.queryMonitorDaemons(monitor.name)
+            for app in apps:
+                monitor.addChild(IInfo(app))
+        apps = appfacade.queryMasterDaemons()
+        for app in apps:
+            nodes.append(IInfo(app))
+        return Zuul.marshal(nodes)
 
     def getForm(self, uid):
         """
@@ -52,7 +62,7 @@ class ApplicationRouter(TreeRouter):
         """
         app = self._getFacade().get(uid)
         form = IFormBuilder(IInfo(app)).render(fieldsets=False)
-        form = Zuul.marshal(form)        
+        form = Zuul.marshal(form)
         return DirectResponse(form=form)
 
     def start(self, uids):

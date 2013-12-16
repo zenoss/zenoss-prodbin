@@ -32,36 +32,23 @@ class ApplicationInfo(object):
     def id(self):
         return self._object.id
 
+    uid = id
+
     @property
     def name(self):
         return self._object.name
 
-    @property
-    def text(self):
-        return self._object.name
+    text = name
 
     @property
     def type(self):
         return "daemon"
 
     @property
-    def uid(self):
-        return self._object.id
-
-    @property
-    def tags(self):
-        return self._object.tags
-    
-    def getParentServiceId(self):
-        return self._object.parentServiceId
-    
-    @property
     def description(self):
         return self._object.description
 
-    @property
-    def qtip(self):
-        return self._object.description
+    qtip = description
 
     @property
     def autostart(self):
