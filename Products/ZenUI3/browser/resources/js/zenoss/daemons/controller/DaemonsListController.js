@@ -235,17 +235,29 @@
             method({
                 id: store.getRootNode().get("id")
             }, function(result){
-                var i = 0, currentNode, nodeHash = store.tree.nodeHash;
+                if (!result.success) {
+                    return;
+                }
+                var getChildren = function(n) {
+                    var i=0, currentNode;
+                    for (i=0;i<n.length;i++) {
+                        currentNode = n[i];
+                        nodes[currentNode.id] = currentNode;
+                        if (currentNode.children.length) {
+                            getChildren(currentNode.children);
+                        }
+                    }
+                };
+                getChildren(result);
+                var currentNode, nodeHash = store.tree.nodeHash, i, key;
 
-                for (i=0;i<result.length;i++) {
-                    nodes[result[i].id] = result[i];
-                    currentNode = store.getNodeById(result[i].id);
-                    if (currentNode) {
-                        currentNode.set(result[i]);
+                for (key in nodes) {
+                    if (nodes.hasOwnProperty(key) && nodeHash[key]) {
+                        var record = nodeHash[key];
+                        nodeHash[key].set(nodes[key]);
                     } else {
-                        // it needs to be added
-                        // TODO: find the parent once the tree structure is in order
-                        store.getRootNode().appendChild(result[i]);
+                        // add it to root for now
+                        store.getRootNode().appendChild(nodes[key]);
                     }
                 }
 
