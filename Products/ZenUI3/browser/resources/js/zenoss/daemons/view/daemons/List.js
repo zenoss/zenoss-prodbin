@@ -7,6 +7,9 @@
  *
  ****************************************************************************/
 (function(){
+    Ext.ns('Daemons');
+
+    Daemons.menuItems = Daemons.menuItems || [];
 
     /**
      * @class Daemons.view.daemons.SearchField
@@ -55,7 +58,18 @@
         dockedItems: [{
             xtype: 'toolbar',
             dock: 'top',
-            items: [{
+            items: Daemons.menuItems.concat([{
+                xtype: 'button',
+                iconCls: 'customize',
+                menu: [{
+                    text: _t('View Performance Templates'),
+                    handler: function() {
+                        // redirect to the collector template page
+                        window.location = "/zport/dmd/collectorTemplate";
+                    }
+                }]
+
+            },'-', {
                 xtype: 'button',
                 text: _t('Start'),
                 ref: 'start'
@@ -67,16 +81,6 @@
                 xtype: 'button',
                 text: _t('Restart'),
                 ref: 'restart'
-            }, {
-                xtype: 'button',
-                iconCls: 'customize',
-                menu: [{
-                    text: _t('View Performance Templates'),
-                    handler: function() {
-                        // redirect to the collector template page
-                        window.location = "/zport/dmd/collectorTemplate";
-                    }
-                }]
             },'->',{
                 xtype: 'daemonsearchfield',
                 id: 'component_searchfield',
@@ -89,7 +93,7 @@
                 ref: "refresh",
                 id: 'refreshtreegrid',
                 text: _t('Refresh')
-            }]
+            }])
         }],
         selectionModel: 'rowmodel',
         initComponent: function() {

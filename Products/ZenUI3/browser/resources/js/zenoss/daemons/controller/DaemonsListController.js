@@ -34,7 +34,7 @@
 
         init: function() {
             // toolbar button handlers
-            this.control({
+            this.control(Ext.apply(Daemons.ListControllerActions || {}, {
                 // start
                 'daemonslist button[ref="start"]': {
                     click: this.startSelectedDeamons
@@ -77,12 +77,35 @@
                     select: this.setupDetails,
                     load: function(store, records) {
                         this.getTreegrid().expandAll();
+                        this.deepLinkFromHistory();
                     }
                 },
                 'daemonslist treeview': {
                     beforedrop: this.assignDevicesToCollector
+                },
+                'daemonslist daemonsearchfield': {
+                    keydown: Ext.bind(function(input) {
+                        if (!this.filterTask) {
+                            this.filterTask = new Ext.util.DelayedTask(this.filterDaemonslist, this, [input]);
+                        }
+                        this.filterTask.delay(250);
+                    }, this)
                 }
-            });
+            }));
+        },
+        filterDaemonslist: function(input) {
+            var store = this.getTreegrid().getStore(),
+                value = input.getValue(),
+                reg;
+            store.clearFilter(true);
+            if (value.length == 0) {
+                return;
+            }
+
+            reg = new RegExp(value, 'i');
+            store.filter([{filterFn: function(item) {
+                return (reg.test(item.get('name')) || reg.test(item.get('id')));
+            }}]);
         },
         /**
          * Updates the model representation of the selected rows
@@ -176,7 +199,7 @@
                 function callback(response) {
                     var id = response.data.id;
                     var record = this.restartingDaemons[id];
-                    if (!response.data.isRestarting) {
+                    if (!response.data.isRestarting && record.el) {
                         record.el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_still.png';
                         delete this.restartingDaemons[id];
                     }
@@ -212,17 +235,29 @@
             method({
                 id: store.getRootNode().get("id")
             }, function(result){
-                var i = 0, currentNode, nodeHash = store.tree.nodeHash;
+                if (!result.success) {
+                    return;
+                }
+                var getChildren = function(n) {
+                    var i=0, currentNode;
+                    for (i=0;i<n.length;i++) {
+                        currentNode = n[i];
+                        nodes[currentNode.id] = currentNode;
+                        if (currentNode.children.length) {
+                            getChildren(currentNode.children);
+                        }
+                    }
+                };
+                getChildren(result);
+                var currentNode, nodeHash = store.tree.nodeHash, i, key;
 
-                for (i=0;i<result.length;i++) {
-                    nodes[result[i].id] = result[i];
-                    currentNode = store.getNodeById(result[i].id);
-                    if (currentNode) {
-                        currentNode.set(result[i]);
+                for (key in nodes) {
+                    if (nodes.hasOwnProperty(key) && nodeHash[key]) {
+                        var record = nodeHash[key];
+                        nodeHash[key].set(nodes[key]);
                     } else {
-                        // it needs to be added
-                        // TODO: find the parent once the tree structure is in order
-                        store.getRootNode().appendChild(result[i]);
+                        // add it to root for now
+                        store.getRootNode().appendChild(nodes[key]);
                     }
                 }
 
@@ -244,6 +279,28 @@
             var grid = this.getTreegrid(), selected = grid.getSelectionModel().getSelection();
             if (selected.length) {
                 this.getController('DetailsController').setContext(selected[0]);
+                this.addHistory(selected[0].get("id"));
+            }
+        },
+        addHistory: function(id) {
+            Ext.History.add(id);
+        },
+        deepLinkFromHistory: function() {
+            var token = Ext.History.getToken(),
+                tree = this.getTreegrid(), node;
+
+            if (token) {
+                node = tree.getStore().getNodeById(token);
+            }
+
+            // if we were able to find the history select it otherwise
+            // select the first visible node
+            if (node) {
+                tree.getSelectionModel().select(node);
+            } else {
+                tree.getSelectionModel().select(
+                    tree.getRootNode().childNodes[0]
+                );
             }
         },
         assignDevicesToCollector: function(node, data, treeNode, dropPosition){

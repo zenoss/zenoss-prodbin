@@ -9,6 +9,8 @@
 
 
 import logging
+from urllib2 import URLError
+
 from Products import Zuul
 from Products.ZenMessaging.audit import audit
 from Products.Zuul.routers import TreeRouter
@@ -36,17 +38,23 @@ class ApplicationRouter(TreeRouter):
         @rtype:   [dictionary]
         @return:  Object representing the tree
         """
-        appfacade = self._getFacade()
-        monitorfacade = Zuul.getFacade("monitors", self.context)
-        nodes = [ITreeNode(m) for m in monitorfacade.query()]
-        for monitor in nodes:
-            apps = appfacade.queryMonitorDaemons(monitor.name)
+        try:
+            appfacade = self._getFacade()
+            monitorfacade = Zuul.getFacade("monitors", self.context)
+            nodes = [ITreeNode(m) for m in monitorfacade.query()]
+            for monitor in nodes:
+                apps = appfacade.queryMonitorDaemons(monitor.name)
+                for app in apps:
+                    monitor.addChild(IInfo(app))
+            apps = appfacade.queryMasterDaemons()
             for app in apps:
-                monitor.addChild(IInfo(app))
-        apps = appfacade.queryMasterDaemons()
-        for app in apps:
-            nodes.append(IInfo(app))
-        return Zuul.marshal(nodes)
+                nodes.append(IInfo(app))
+            return Zuul.marshal(nodes)
+        except URLError as e:
+            log.exception(e)
+            return DirectResponse.fail(
+                "Error fetching daemons list: " + str(e.reason)
+            )
 
     def getForm(self, uid):
         """
@@ -144,3 +152,13 @@ class ApplicationRouter(TreeRouter):
         app = facade.get(id)
         data = Zuul.marshal(IInfo(app))
         return DirectResponse.succeed(data=data)
+
+    def getAllResourcePools(self, query=None):
+        """
+        Returns a list of resource pool identifiers.
+        @rtype: DirectResponse
+        @return:  B{Properties}:
+             - data: ([String]) List of resource pool identifiers
+        """
+        pools = {'name': 'default'}
+        return DirectResponse.succeed(data=Zuul.marshal(pools))
