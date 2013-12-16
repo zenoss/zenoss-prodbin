@@ -115,12 +115,11 @@
                 selected = this.selected;
             // every time we select a node completely destroy the form and recreate it
             // as it could be different depending on the context
-            if (Ext.getCmp('edit_panel')) {
-                container.details.remove(Ext.getCmp('edit_panel'), true);
-            }
+
 
             Zenoss.form.getGeneratedForm(selected.get("uid"), function(config){
-                container.details.add(Ext.apply({id:'edit_panel',
+                container.details.removeAll();
+                container.details.add(Ext.apply({
                                          autoScroll: true
                                         }, config));
                 container.layout.setActiveItem(container.details);

@@ -40,7 +40,7 @@ class ApplicationRouter(TreeRouter):
             results = Zuul.marshal(self._getFacade().getTree())
             return results
         except URLError, e:
-            log.exception(e)            
+            log.exception(e)
             return DirectResponse.fail("Error fetching daemons list: " + str(e.reason))
 
     def getForm(self, uid):
@@ -57,7 +57,7 @@ class ApplicationRouter(TreeRouter):
         """
         app = self._getFacade().get(uid)
         form = IFormBuilder(IInfo(app)).render(fieldsets=False)
-        form = Zuul.marshal(form)        
+        form = Zuul.marshal(form)
         return DirectResponse(form=form)
 
     def start(self, uids):
@@ -139,3 +139,13 @@ class ApplicationRouter(TreeRouter):
         app = facade.get(id)
         data = Zuul.marshal(IInfo(app))
         return DirectResponse.succeed(data=data)
+
+    def getAllResourcePools(self, query=None):
+        """
+        Returns a list of resource pool identifiers.
+        @rtype: DirectResponse
+        @return:  B{Properties}:
+             - data: ([String]) List of resource pool identifiers
+        """
+        pools = {'name': 'default'}
+        return DirectResponse.succeed(data=Zuul.marshal(pools))
