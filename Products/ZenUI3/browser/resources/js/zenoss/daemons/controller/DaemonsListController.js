@@ -82,8 +82,30 @@
                 },
                 'daemonslist treeview': {
                     beforedrop: this.assignDevicesToCollector
+                },
+                'daemonslist daemonsearchfield': {
+                    keydown: Ext.bind(function(input) {
+                        if (!this.filterTask) {
+                            this.filterTask = new Ext.util.DelayedTask(this.filterDaemonslist, this, [input]);
+                        }
+                        this.filterTask.delay(250);
+                    }, this)
                 }
             }));
+        },
+        filterDaemonslist: function(input) {
+            var store = this.getTreegrid().getStore(),
+                value = input.getValue(),
+                reg;
+            store.clearFilter(true);
+            if (value.length == 0) {
+                return;
+            }
+
+            reg = new RegExp(value, 'i');
+            store.filter([{filterFn: function(item) {
+                return (reg.test(item.get('name')) || reg.test(item.get('id')));
+            }}]);
         },
         /**
          * Updates the model representation of the selected rows
