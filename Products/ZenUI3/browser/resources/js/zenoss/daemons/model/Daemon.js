@@ -36,6 +36,9 @@
         isCollector: function() {
             return this.get('type') == 'collector';
         },
+        isHub: function() {
+            return this.get('type') == 'hub';
+        },
         isDaemon: function() {
             return this.get('type') == 'daemon';
         }

@@ -53,3 +53,22 @@ class MonitorRouter(TreeRouter):
         monitor = facade.get(id)
         data = Zuul.marshal(ITreeNode(monitor))
         return DirectResponse.succeed(data=data)
+
+    def addCollector(self, id, sourceId, hubId, poolId):
+        """
+        Adds a collector to the hub specified by hub id.
+        @type: id: String
+        @param id: Valid id of a hub
+        @rtype: DirectResponse
+        @return: DirectResponse Upon success
+        """
+        facade = self._getFacade()
+        monitor = IInfo(facade.add(id, sourceId=sourceId, hubId=hubId, poolId=poolId))
+        return DirectResponse.succeed(data=Zuul.marshal(monitor))
+
+    def getCollectors(self, query=None):
+        facade = Zuul.getFacade('monitors', self.context)
+        collectors = [IInfo(collector) for collector in facade.query()]
+        return DirectResponse.succeed(data=Zuul.marshal(collectors))
+        
+                        
