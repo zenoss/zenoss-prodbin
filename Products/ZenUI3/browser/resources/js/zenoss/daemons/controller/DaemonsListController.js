@@ -239,8 +239,8 @@
                 if (Ext.isDefined(result.success) && result.success === false) {
                     return;
                 }
-                var getChildren = function(n, parent) {
-                    var i=0, currentNode, parentRecord, modelNode, children;
+                var getChildren = function(n, parentId) {
+                    var i=0, currentNode, modelNode, children;
                     for (i=0;i<n.length;i++) {
                         currentNode = n[i];
                         nodes[currentNode.id] = currentNode;
@@ -250,15 +250,15 @@
                         if (modelNode) {
                             modelNode.set(currentNode);
                         } else {
-                            store.getNodeById(parent.id).appendChild(currentNode);
+                            store.getNodeById(parentId).appendChild(currentNode);
                         }
 
                         if (children && children.length) {
-                            getChildren(children, currentNode);
+                            getChildren(children, currentNode.id);
                         }
                     }
                 };
-                getChildren(result, null);
+                getChildren(result, store.getRootNode().get('id'));
                 var nodeHash = store.tree.nodeHash, i, key, toRemove = [];
 
                 // iterate through all the nodes in the store and make sure they
