@@ -235,40 +235,48 @@
             method({
                 id: store.getRootNode().get("id")
             }, function(result){
-                if (!result.success) {
+                // this was an invalid resposne
+                if (Ext.isDefined(result.success) && result.success === false) {
                     return;
                 }
-                var getChildren = function(n) {
-                    var i=0, currentNode;
+                var getChildren = function(n, parent) {
+                    var i=0, currentNode, parentRecord, modelNode, children;
                     for (i=0;i<n.length;i++) {
                         currentNode = n[i];
                         nodes[currentNode.id] = currentNode;
-                        if (currentNode.children.length) {
-                            getChildren(currentNode.children);
+                        children = currentNode.children;
+                        // see if we need to add it
+                        modelNode = store.getNodeById(currentNode.id);
+                        if (modelNode) {
+                            modelNode.set(currentNode);
+                        } else {
+                            store.getNodeById(parent.id).appendChild(currentNode);
+                        }
+
+                        if (children && children.length) {
+                            getChildren(children, currentNode);
                         }
                     }
                 };
-                getChildren(result);
-                var currentNode, nodeHash = store.tree.nodeHash, i, key;
-
-                for (key in nodes) {
-                    if (nodes.hasOwnProperty(key) && nodeHash[key]) {
-                        var record = nodeHash[key];
-                        nodeHash[key].set(nodes[key]);
-                    } else {
-                        // add it to root for now
-                        store.getRootNode().appendChild(nodes[key]);
-                    }
-                }
+                getChildren(result, null);
+                var nodeHash = store.tree.nodeHash, i, key, toRemove = [];
 
                 // iterate through all the nodes in the store and make sure they
                 // exits in the "nodes" struct
                 for (key in nodeHash) {
+                    console.log(key);
+                    console.log(nodes[key]);
                     if (nodeHash.hasOwnProperty(key) && !Ext.isDefined(nodes[key])) {
-                        var record = nodeHash[key];
-                        // TODO: find the parent when we have a tree structure
-                        store.getRootNode().removeChild(record, true);
+                        if (store.getNodeById(key).get('id') != "root") {
+                            toRemove.push(store.getNodeById(key));
+                        }
                     }
+                }
+
+                // remove all the nodes that were previously in the list but were not in the latest
+                // refresh request
+                for (i=0;i<toRemove.length;i++) {
+                    toRemove[id].parentNode.remove(toRemove[id], true);
                 }
             });
         },
