@@ -63,7 +63,7 @@ class MonitorRouter(TreeRouter):
         @return: DirectResponse Upon success
         """
         facade = self._getFacade()
-        monitor = IInfo(facade.add(id, sourceId=sourceId, hubId=hubId, poolId=poolId))
+        monitor = IInfo(facade.addMonitor(id, sourceId=sourceId, hubId=hubId, poolId=poolId))
         return DirectResponse.succeed(data=Zuul.marshal(monitor))
 
     def getCollectors(self, query=None):
