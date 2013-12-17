@@ -27,18 +27,28 @@ class IApplicationLog(Interface):
         """
 
 
+class IApplicationConfiguration(Interface):
+    """
+    For reading and updating an application's configuration.
+    """
+
+    filename = Attribute("Full path filename of configuration")
+    content = Attribute("Raw contents of the configuration file")
+
+
 class IApplication(Interface):
     """
     For controlling and inspecting Zenoss applications.
     """
 
+    id = Attribute("Unique application identifier")
     name = Attribute("Name of the application")
     description = Attribute("Brief description of the application's function")
     autostart = Attribute("True if the application will run on startup")
     state = Attribute("Current running state of the application")
     startedAt = Attribute("When the application was started")
     log = Attribute("The IApplicationLog object")
-    configuration = Attribute("The application configuration object")
+    configurations = Attribute("The list of application configurations")
 
     def start():
         """
@@ -61,24 +71,31 @@ class IApplicationManager(Interface):
     For identifying and locating Zenoss applications.
     """
 
-    def query(name=None, tags=None):
+    def query(name=None, tags=None, monitorName=None):
         """
         Returns a sequence of IApplication objects that match the
         given expression.  If no expression is provided, then all
         objects are returned.
+
+        :param string name: Pattern for matching application name.
+        :param string tags: One or more tags associated with application.
+        :param string monitorName: The name of the associated monitor.
         """
 
     def get(id, default=None):
         """
         Retrieve the IApplication object of the identified application.
         The default argument is returned if the application doesn't exist.
+
+        :param string id: The application ID (not its name).
+        :param object default: Alternate return value
         """
 
 
 def _makeEnumObj(name):
     return type(
-        "_AppRunStateEnum", (object,), 
-        { "__str__": lambda self: name }
+        "_AppRunStateEnum", (object,),
+        {"__str__": lambda self: name}
     )()
 
 
@@ -92,3 +109,8 @@ class ApplicationState(object):
 
 
 del _makeEnumObj
+
+__all__ = (
+    "IApplication", "IApplicationState", "IApplicationLog",
+    "IApplicationConfiguration"
+)

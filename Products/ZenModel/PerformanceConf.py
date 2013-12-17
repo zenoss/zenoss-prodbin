@@ -102,7 +102,9 @@ class PerformanceConfFactory(Factory):
             )
         source = folder.get(sourceId)
         if source is None:
-            source = folder.get("localhost").primaryAq()
+            source = folder.get("localhost")
+            if source:
+                source = source.primaryAq()
         monitor = super(PerformanceConfFactory, self).__call__(monitorId)
         if source:
             sourceprops = dict(source.propertyItems())
