@@ -264,8 +264,6 @@
                 // iterate through all the nodes in the store and make sure they
                 // exits in the "nodes" struct
                 for (key in nodeHash) {
-                    console.log(key);
-                    console.log(nodes[key]);
                     if (nodeHash.hasOwnProperty(key) && !Ext.isDefined(nodes[key])) {
                         if (store.getNodeById(key).get('id') != "root") {
                             toRemove.push(store.getNodeById(key));
