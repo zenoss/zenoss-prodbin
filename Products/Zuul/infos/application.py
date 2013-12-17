@@ -82,8 +82,16 @@ class ApplicationInfo(object):
 
     @property
     @info
-    def configFiles(self):        
-        return self._object.configurations        
+    def configFiles(self):
+        return self._object.configurations
+
+    def getConfigFileByFilename(self, filename):
+        for configFile in self.configFiles:
+            if configFile.filename == filename:
+                return configFile
+        # unable to find a config file by that name
+        return None
+
 
 @implementer(IApplicationConfigurationInfo)
 class ApplicationConfigurationInfo(object):
@@ -92,7 +100,7 @@ class ApplicationConfigurationInfo(object):
         Initialize an instance of ApplicationInfo.
 
         :param IApplication application: The application.
-        """        
+        """
         self._object = config
 
     @property
@@ -106,4 +114,3 @@ class ApplicationConfigurationInfo(object):
     @content.setter
     def content(self, content):
         self._object.content = content
-
