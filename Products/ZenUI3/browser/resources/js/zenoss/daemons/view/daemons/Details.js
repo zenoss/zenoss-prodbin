@@ -19,6 +19,7 @@
             items: [{
                 xtype: 'combo',
                 ref: 'menucombo',
+                editable: false,
                 fieldLabel: _t('Display'),
                 labelWidth: 50,
                 valueField: 'id',
@@ -56,7 +57,7 @@
                     }
                 }
             },{
-                xtype: 'panel',
+                xtype: 'form',
                 id: 'configs',
                 ref: 'configPanel',
                 layout: 'fit',

@@ -32,6 +32,14 @@
             this.control({
                 'daemonsdetails combobox[ref="menucombo"]': {
                     select: this.changeDetailsView
+                },
+                'daemonsdetails button[ref="configSaveBtn"]': {
+                    click: this.saveDaemonConfigurationFiles
+                },
+                'daemonsdetails button[ref="configCancelBtn"]': {
+                    click: function(btn) {
+                        this.getConfigFiles().getForm().reset();
+                    }
                 }
             });
 
@@ -187,6 +195,24 @@
                                           selected.get('name')) ,
                         'x-mask-msg-noicon');
             }
+        },
+        saveDaemonConfigurationFiles: function() {
+            var configFiles = [],
+                id = this.selected.get('id');
+            this.getConfigFiles().items.each(function(item){
+                configFiles.push({
+                    filename: item.title,
+                    content: item.getValue()
+                });
+            });
+            Zenoss.remote.ApplicationRouter.updateConfigFiles({
+                id: id,
+                configFiles: configFiles
+            }, function(response){
+                if (response.success) {
+                    Zenoss.message.info(Ext.String.format(_t("Updated configuration files for {0}."), this.selected.get('name')));
+                }
+            }, this);
         }
     });
 })();
