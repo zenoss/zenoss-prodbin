@@ -114,35 +114,11 @@ class IApplicationFacade(IFacade):
         """
 
 
-class IApplicationFacade(IFacade):
-    """
-    Interface for managing Zenoss applications.
-    """
+class IApplicationConfigurationInfo(IInfo):
+    pass
 
-    def query(name=None):
-        """
-        Returns a sequence of IApplication objects.
-        """
 
-    def get(id, default=None):
-        """
-        Retrieve the IApplication object of the identified application.
-        The default argument is returned if the application doesn't exist.
-        """
-
-    def start(appId):
-        """
-        Starts the identified application.
-        """
-
-    def stop(appId):
-        """
-        Stops the identified application.
-        """
-
-    def restart(appId):
-        """
-        Restarts the identified application.
-        """
-
-__all__ = ("IApplicationFacade", "IApplicationInfo")
+__all__ = (
+    "IApplicationFacade", "IApplicationInfo",
+    "IApplicationConfigurationInfo"
+)
