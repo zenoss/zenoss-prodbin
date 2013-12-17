@@ -24,6 +24,9 @@
         }, {
             ref: 'menuCombo',
             selector: 'combobox[ref="menucombo"]'
+        },{
+            ref: 'configFiles',
+            selector: 'panel[ref="configPanel"]'
         }],
         init: function() {
             this.control({
@@ -48,7 +51,8 @@
                         {id: 'collectordevices', name: _t('Devices')}
                     ],
                     daemon: [
-                        {id: 'details', name: _t('Details')}
+                        {id: 'details', name: _t('Details')},
+                        {id: 'configs', name: _t('Configuration Files')}
                     ]
                 },
                 actions: {
@@ -62,7 +66,8 @@
                         graphs: this.setGraphs
                     },
                     daemon: {
-                        details: this.setDaemonDetailsPanel
+                        details: this.setDaemonDetailsPanel,
+                        configs: this.showDaemonConfigurationFiles
                     }
                 }
             };
@@ -155,6 +160,33 @@
                 data : this.detailActions.menu[type]
             });
             return menu;
+        },
+        showDaemonConfigurationFiles: function() {
+            var selected = this.selected,
+                configPanel = this.getConfigFiles(),
+                configFiles = selected.get('configFiles'),
+                el = configPanel.getEl(),
+                file,
+                items =[],
+                i;
+            if (el && el.isMasked()) {
+                el.unmask();
+            }
+            configPanel.removeAll();
+            if (Ext.isArray(configFiles) && configFiles.length) {
+                for (i=0;i<configFiles.length;i++) {
+                    items.push({
+                        xtype: 'minieditor',
+                        title: configFiles[i].filename,
+                        value: configFiles[i].content
+                    });
+                }
+                configPanel.add(items);
+            } else if (el) {
+                el.mask(Ext.String.format(_t('Unable to find a configuration file for {0}.'),
+                                          selected.get('name')) ,
+                        'x-mask-msg-noicon');
+            }
         }
     });
 })();

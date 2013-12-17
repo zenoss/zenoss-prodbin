@@ -617,7 +617,8 @@ Ext.onReady(function(){
                 items: [
                     {
                         xtype: 'codefield',
-                        name: me.name
+                        name: me.name,
+                        value: me.value
                     }
                 ]
             });

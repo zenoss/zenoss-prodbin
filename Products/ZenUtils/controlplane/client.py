@@ -200,7 +200,7 @@ class ControlPlaneClient(object):
 
     def _dorequest(self, uri, method=None, data=None, query=None):
         request = self._makeRequest(
-            uri, method=method, data=data, query=query)
+            uri, method=method, data=data, query=query)        
         # Try to perform the request up to five times
         for trycount in range(5):
             try:

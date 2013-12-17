@@ -98,7 +98,7 @@ class DeployedApp(object):
     def _updateState(self):
         """
         Retrieves the current running instance of the application.
-        """
+        """        
         result = self._client.queryServiceInstances(self._service.id)
         instance = result[0] if result else None
         if instance is None and self._instance:
@@ -252,7 +252,10 @@ class _ConfigIterator(Iterator):
     def __init__(self, service, client):
         self._service = service
         self._client = client
-        self._iter = iter(self._service.configFiles.values())
+        if not self._service.configFiles is None:
+            self._iter = iter(self._service.configFiles.values())
+        else:
+            self._iter = iter([])
 
     def __iter__(self):
         return self
@@ -275,7 +278,7 @@ class DeployedAppConfig(object):
     @property
     def filename(self):
         """Full path filename of configuration."""
-        return self._config.get("FileName")
+        return self._config.get("Filename")
 
     @property
     def content(self):

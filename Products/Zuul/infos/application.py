@@ -9,7 +9,8 @@
 
 from datetime import datetime
 from zope.interface import implementer
-from Products.Zuul.interfaces import IApplicationInfo
+from Products.Zuul.interfaces import IApplicationInfo, IApplicationConfigurationInfo
+from Products.Zuul.decorators import info
 
 
 @implementer(IApplicationInfo)
@@ -78,3 +79,31 @@ class ApplicationInfo(object):
     @property
     def children(self):
         return self._children
+
+    @property
+    @info
+    def configFiles(self):        
+        return self._object.configurations        
+
+@implementer(IApplicationConfigurationInfo)
+class ApplicationConfigurationInfo(object):
+    def __init__(self, config):
+        """
+        Initialize an instance of ApplicationInfo.
+
+        :param IApplication application: The application.
+        """        
+        self._object = config
+
+    @property
+    def filename(self):
+        return self._object.filename
+
+    @property
+    def content(self):
+        return self._object.content
+
+    @content.setter
+    def content(self, content):
+        self._object.content = content
+

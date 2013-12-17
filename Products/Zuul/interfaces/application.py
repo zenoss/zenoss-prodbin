@@ -108,4 +108,9 @@ class IApplicationFacade(IFacade):
         """
 
 
-__all__ = ("IApplicationFacade", "IApplicationInfo")
+class IApplicationConfigurationInfo(IInfo):
+    pass
+
+__all__ = ("IApplicationFacade", "IApplicationInfo", "IApplicationConfigurationInfo")
+
+

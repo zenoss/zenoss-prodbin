@@ -161,4 +161,5 @@ class ApplicationRouter(TreeRouter):
              - data: ([String]) List of resource pool identifiers
         """
         pools = {'name': 'default'}
-        return DirectResponse.succeed(data=Zuul.marshal(pools))
+        return DirectResponse.succeed(data=Zuul.marshal(pools))    
+        

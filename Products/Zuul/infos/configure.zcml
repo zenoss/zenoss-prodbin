@@ -284,6 +284,11 @@
             for="Products.ZenUtils.application.IApplication"
             />
 
+   <adapter factory=".application.ApplicationConfigurationInfo"
+            provides="Products.Zuul.interfaces.IApplicationConfigurationInfo"
+            for="Products.ZenUtils.application.IApplicationConfiguration"
+            />
+
    <adapter factory=".monitor.MonitorTreeNode"
             provides="Products.Zuul.interfaces.IMonitorTreeNode"
             />

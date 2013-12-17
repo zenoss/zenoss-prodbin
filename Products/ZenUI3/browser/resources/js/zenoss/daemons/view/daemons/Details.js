@@ -55,6 +55,21 @@
                         dragGroup: 'assignCollector'
                     }
                 }
+            },{
+                xtype: 'panel',
+                id: 'configs',
+                ref: 'configPanel',
+                layout: 'fit',
+                buttonAlign: 'left',
+                buttons: [{
+                    xtype: 'button',
+                    text: _t('Save'),
+                    ref: 'configSaveBtn'
+                }, {
+                    xtype: 'button',
+                    text: _t('Cancel'),
+                    ref: 'configCancelBtn'
+                }]
             }];
             this.callParent(arguments);
         }

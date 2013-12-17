@@ -25,7 +25,8 @@
             {name: 'uptime', type: 'string'},
             {name: 'autostart',  type: 'boolean'},
             {name: 'isRestarting',  type: 'boolean'},
-            {name: 'qtip',  type: 'string'}
+            {name: 'qtip',  type: 'string'},
+            {name: 'configFiles',  type: 'object'}
         ]),
         proxy: {
             simpleSortMode: true,
