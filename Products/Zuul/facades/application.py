@@ -21,13 +21,16 @@ LOG = logging.getLogger("Zuul.facades")
 class ApplicationFacade(object):
     """
     """
-
+    
     def __init__(self, dataroot):
         """
         """
         self._dmd = dataroot
         self._svc = getUtility(IApplicationManager)
 
+    def getResourcePoolIds(self):
+        return ['default']
+    
     def query(self, name=None):
         """
         Returns a sequence of application objects.
