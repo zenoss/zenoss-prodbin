@@ -160,7 +160,10 @@ class ApplicationRouter(TreeRouter):
         @return:  B{Properties}:
              - data: ([String]) List of resource pool identifiers
         """
-        pools = {'name': 'default'}
+        pools = []
+        resourcePoolIds = self._getFacade().getResourcePoolIds()
+        for p in resourcePoolIds:
+            pools.push(dict(name=p))
         return DirectResponse.succeed(data=Zuul.marshal(pools))    
 
     def updateConfigFiles(self, id, configFiles):
