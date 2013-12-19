@@ -139,4 +139,4 @@ class DetailNavRouter(DirectRouter):
         Records an error message from the client. 
         """
         user = self.context.zport.dmd.ZenUsers.getUserSettings()
-        errorlog.error("User: %s - %s %s at %s line:%s", user.id, url, msg, file, lineNumber)
+        errorlog.error("User: %s - %s '%s' at %s line:%s", user.id, url, msg, file, lineNumber)
