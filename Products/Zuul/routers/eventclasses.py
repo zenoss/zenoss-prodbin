@@ -87,8 +87,7 @@ class EventClassesRouter(TreeRouter):
         returns the sequence order of keys for a given instance
         """
         facade = self._getFacade()
-        data = facade.getSequence(uid)
-        audit('UI.EventClasses.SetSequence', uid, data_=data)
+        data = facade.getSequence(uid)        
         return DirectResponse(data=Zuul.marshal(data) )
         
     @require('Manage DMD')
