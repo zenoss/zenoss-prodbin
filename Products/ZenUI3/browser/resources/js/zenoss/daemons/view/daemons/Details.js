@@ -8,8 +8,6 @@
  ****************************************************************************/
 (function(){
 
-
-
     Ext.define('Daemons.view.daemons.Details' ,{
         extend: 'Ext.Panel',
         alias: 'widget.daemonsdetails',
@@ -77,7 +75,6 @@
     });
 
 
-
     Ext.define('Daemons.dialog.AssignCollectors',{
         extend: 'Zenoss.dialog.SimpleMessageDialog',
         alias: ['widget.daemonassigncollectordialog'],
@@ -97,6 +94,5 @@
             text: _t('Cancel')
         }]
     });
-
 
 })();

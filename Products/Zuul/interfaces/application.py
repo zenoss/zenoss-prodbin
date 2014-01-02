@@ -41,14 +41,10 @@ class IApplicationInfo(IInfo):
         readonly=True
     )
 
-    poolId = TextLine(
-        title=_t("Pool ID"),
-        description=_t("The resource pool this daemon is running under."),
-        readonly=True
-    )
-
     text = TextLine(
-        title=_t("Text"), description=_t("Synonym for name."), readonly=True
+        title=_t("Text"),
+        description=_t("Synonym for name."),
+        readonly=True
     )
 
     isRestarting = Bool(

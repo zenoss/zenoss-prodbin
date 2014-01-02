@@ -9,6 +9,8 @@
 
 
 import logging
+from urllib2 import URLError
+
 from Products import Zuul
 from Products.ZenMessaging.audit import audit
 from Products.Zuul.routers import TreeRouter
@@ -36,17 +38,23 @@ class ApplicationRouter(TreeRouter):
         @rtype:   [dictionary]
         @return:  Object representing the tree
         """
-        appfacade = self._getFacade()
-        monitorfacade = Zuul.getFacade("monitors", self.context)
-        nodes = [ITreeNode(m) for m in monitorfacade.query()]
-        for monitor in nodes:
-            apps = appfacade.queryMonitorDaemons(monitor.name)
+        try:
+            appfacade = self._getFacade()
+            monitorfacade = Zuul.getFacade("monitors", self.context)
+            nodes = [ITreeNode(m) for m in monitorfacade.query()]
+            for monitor in nodes:
+                apps = appfacade.queryMonitorDaemons(monitor.name)
+                for app in apps:
+                    monitor.addChild(IInfo(app))
+            apps = appfacade.queryMasterDaemons()
             for app in apps:
-                monitor.addChild(IInfo(app))
-        apps = appfacade.queryMasterDaemons()
-        for app in apps:
-            nodes.append(IInfo(app))
-        return Zuul.marshal(nodes)
+                nodes.append(IInfo(app))
+            return Zuul.marshal(nodes)
+        except URLError as e:
+            log.exception(e)
+            return DirectResponse.fail(
+                "Error fetching daemons list: " + str(e.reason)
+            )
 
     def getForm(self, uid):
         """
@@ -156,17 +164,18 @@ class ApplicationRouter(TreeRouter):
         resourcePoolIds = self._getFacade().getResourcePoolIds()
         for p in resourcePoolIds:
             pools.push(dict(name=p))
-        return DirectResponse.succeed(data=Zuul.marshal(pools))    
+        return DirectResponse.succeed(data=Zuul.marshal(pools))
 
     def updateConfigFiles(self, id, configFiles):
         """
-        Updates the configuration files for an application specified by id. The
-        configFiles parameters is an array of dictionaries of the form:
+        Updates the configuration files for an application specified by id.
+        The configFiles parameters is an array of dictionaries of the form:
         {
             filename: "blah",
             contents: "line 1\nline 2\n..."
         }
-        The filename parameter serves as the "id" of each configFile passed in.        
+        The filename parameter serves as the "id" of each configFile
+        passed in.
         """
         facade = self._getFacade()
         info = IInfo(facade.get(id))
