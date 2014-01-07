@@ -113,7 +113,7 @@ $(_DESTDIR)$(bindir):
 
 $(bldtop)/$(PROGRAM): $(bldtop)/$(PROGRAM).o
 ifeq "$(DUMP_LD_LIBDEPS)" "yes"
-	$(call cmd,MKDEPL,$^,$@)
+	$(call subshellcmd,MKDEPL,$^,$@)
 endif
 	$(call cmd,LINKC,$(LINK.c),$^,$(LOADLIBES),$(LDLIBS),$@)
 
