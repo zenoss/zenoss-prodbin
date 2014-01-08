@@ -390,10 +390,8 @@ class EmailAction(IActionBase, TargetableAction):
 
         log.debug('Sending this subject: %s', subject)
 
-        body = self._stripTags(body)
-        plain_body = self._encodeBody(body)
-        log.debug('Sending this body: %s', body)
-            
+        plain_body = self._encodeBody(self._stripTags(body))
+
         email_message = plain_body
 
         if notification.content['body_content_type'] == 'html':
@@ -406,6 +404,9 @@ class EmailAction(IActionBase, TargetableAction):
             email_message_alternative.attach(html_body)
 
             email_message.attach(email_message_alternative)
+            log.debug('Sending this body: %s', body)
+        else:
+            log.debug('Sending this body: %s', plain_body)
 
         host = notification.content['host']
         port = notification.content['port']
