@@ -29,7 +29,7 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenMessaging.queuemessaging.schema import removeZenPackQueuesExchanges
 from Products.ZenModel.ZenPack import (
     ZenPack, ZenPackException,
-    ZenPackNotFoundException, 
+    ZenPackNotFoundException,
     ZenPackNeedMigrateException
 )
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -511,6 +511,7 @@ class ZenPackCmd(ZenScriptBase):
                                help="Do not install the zenpack if the version is unchanged")
         self.parser.prog = "zenpack"
         ZenScriptBase.buildOptions(self)
+        self.parser.defaults['logpath'] = zenPath('log')
 
 if __name__ == '__main__':
     logging.basicConfig()
