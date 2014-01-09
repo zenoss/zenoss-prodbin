@@ -37,8 +37,6 @@ class CeleryZenJobs(ZenDaemon):
     def __init__(self, *args, **kwargs):
         ZenDaemon.__init__(self, *args, **kwargs)
         self.setup_celery()
-        signal.signal(signal.SIGTERM, self.sigTerm)
-        signal.signal(signal.SIGINT, self.sigTerm)
 
     def setup_celery(self):
         current_app.main = self.mname
@@ -57,6 +55,7 @@ class CeleryZenJobs(ZenDaemon):
         kwargs['loglevel'] = self.options.logseverity
         kwargs["pool_cls"] = concurrency.get_implementation(
                     kwargs.get("pool_cls") or current_app.conf.CELERYD_POOL)
+        CeleryZenWorker.daemon = self
         self.worker = CeleryZenWorker(**kwargs)
         self.worker.run()  # blocking call
         #very specific to zenjobs, sigTerm usually called by signal handling
