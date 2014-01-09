@@ -21,6 +21,7 @@ class CeleryZenWorker(Worker):
     # invoke them in on_consumer_ready.
     _startupinfo = Worker.startup_info
     _extrainfo = Worker.extra_info
+    daemon = None
 
     # Override to disable base classes output
     def extra_info(self):
