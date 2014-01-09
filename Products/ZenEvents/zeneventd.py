@@ -264,6 +264,11 @@ class ZenEventD(ZCmdBase):
                     action="store_true", default=False,
                     help='Force sync() before processing every event; default is to sync() no more often '
                     'than once every 1/2 second.')
+        self.parser.add_option('--messagesperworker', dest='messagesPerWorker', default=1,
+                    type="int",
+                    help='Sets the number of messages each worker gets from the queue at any given time. Default is 1. '
+                    'Change this only if event processing is deemed slow. Note that increasing the value increases the '
+                    'probability that events will be processed out of order.')
         objectEventNotify(BuildOptionsEvent(self))
 
 

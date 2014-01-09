@@ -68,6 +68,11 @@ class EventDEventletWorker(ZCmdBase):
         super(EventDEventletWorker, self).buildOptions()
         # don't comment out the workers option in zeneventd.conf (ZEN-2769)
         workersBuildOptions(self.parser)
+        self.parser.add_option('--messagesperworker', dest='messagesPerWorker', default=1,
+                    type="int",
+                    help='Sets the number of messages each worker gets from the queue at any given time. Default is 1. '
+                    'Change this only if event processing is deemed slow. Note that increasing the value increases the '
+                    'probability that events will be processed out of order.')
 
     def _sigterm(self, signum=None, frame=None):
         log.debug("worker sigterm...")
@@ -89,6 +94,7 @@ class EventDEventletWorker(ZCmdBase):
                 self._pubsub = getProtobufPubSub(self._amqpConnectionInfo, self._queueSchema, QUEUE_RAW_ZEN_EVENTS)
                 self._pubsub.registerHandler('$Event', task)
                 self._pubsub.registerExchange('$ZepZenEvents')
+                self._pubsub.messagesPerWorker = self.options.messagesPerWorker
                 #reset sleep time
                 sleep=0
                 self._pubsub.run()
