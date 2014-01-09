@@ -17,6 +17,7 @@ import sre_constants
 import logging
 import transaction
 import urllib
+import time
 from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger("zen.Events")
@@ -40,6 +41,7 @@ from Products.ZenUtils.Time import SaveMessage
 from Products import Zuul
 from Products.Zuul.interfaces import IInfo
 
+MAX_TRANSFORM_TIME = 2.0
 
 def manage_addEventClassInst(context, id, REQUEST = None):
     """make a device class"""
@@ -214,9 +216,17 @@ Transform:
         }
         for eventclass in transpath:
             if not eventclass.transform: continue
+            startTime = time.time()
             errorCallback = partial(self.sendTransformException, eventclass, evt)
             with transformsavepoint(errorCallback):
                 exec(eventclass.transform, variables_and_funcs)
+            endTime = time.time()
+
+            if endTime - startTime > MAX_TRANSFORM_TIME:
+                log.warning('Event transform took %.1f seconds (threshold %.1f seconds), event context is %s, transform is: %s', endTime - startTime, MAX_TRANSFORM_TIME, evt, eventclass.transform)
+            elif log.isEnabledFor(logging.DEBUG):
+                log.debug('Event transform took %.1f seconds (threshold %.1f seconds), event context is %s', endTime - startTime, MAX_TRANSFORM_TIME, evt)
+
         return variables_and_funcs['evt']
 
 
