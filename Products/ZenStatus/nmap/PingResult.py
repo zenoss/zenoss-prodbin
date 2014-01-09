@@ -118,7 +118,7 @@ class PingResult(object):
             raise ValueError("no times found for hostTree")
         timesNode = times[0]
         rtt = timesNode.attrib['srtt']
-        rtt = float(rtt) / 1000.0 # given in milli sec, convert to secs
+        rtt = float(rtt) / 1000.0 # given in micro sec, convert to millisecs
         rttVariance = timesNode.attrib['rttvar']
         rttVariance = float(rttVariance) / 1000.0
         return (rtt, rttVariance)

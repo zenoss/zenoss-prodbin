@@ -1825,4 +1825,22 @@ a.z-entity:hover{
 }
 #device_grid-body .x-grid-cell-inner {
   height:23px !important;
-} 
+}
+
+/* syntax highlighting classes */
+
+span.syntax-number  {
+    color: brown;
+}
+
+span.syntax-string  {
+    color: green;
+}
+
+span.syntax-boolean {
+    color: blue;
+}
+
+span.syntax-text  {
+    color: white;
+}

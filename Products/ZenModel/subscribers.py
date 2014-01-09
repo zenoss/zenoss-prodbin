@@ -7,10 +7,11 @@
 # 
 ##############################################################################
 
+from zope.component import adapter
+from zope.container.interfaces import IObjectAddedEvent, IObjectRemovedEvent
+from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 
 from Products.ZenModel.IpInterface import IpInterface, beforeDeleteIpInterface
-from OFS.interfaces import IObjectWillBeAddedEvent
-from zope.container.interfaces import IObjectRemovedEvent
 
 def unindexBeforeDelete(ob, event):
     """
@@ -28,3 +29,25 @@ def indexAfterAddOrMove(ob, event):
     """
     if not IObjectRemovedEvent.providedBy(event):
         ob.index_object()
+
+@adapter(IpInterface, IObjectWillBeMovedEvent)
+def onInterfaceRemoved(ob, event):
+    """
+    Unindex
+    """
+
+    if not IObjectWillBeAddedEvent.providedBy(event):
+        macs = ob.device().getMacAddressCache()
+        if ob.macaddress in macs:
+            macs.remove(ob.macaddress)
+
+
+@adapter(IpInterface, IObjectAddedEvent)
+def onInterfaceAdded(ob, event):
+    """
+    Simple subscriber that fires the indexing event for all indices.
+    """
+
+    if ob.macaddress:
+        ob.device().getMacAddressCache().add(ob.macaddress)
+

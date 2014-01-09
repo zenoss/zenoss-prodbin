@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from Products.ZenModel.ThresholdInstance import RRDThresholdInstance
+from Products.ZenModel.ThresholdInstance import MetricThresholdInstance
 
 __doc__= """Threshold to track when a value changes.
 """
@@ -46,13 +46,13 @@ class ValueChangeThreshold(ThresholdClass):
 InitializeClass(ValueChangeThreshold)
 ValueChangeThresholdClass = ValueChangeThreshold
 
-class ValueChangeThresholdInstance(RRDThresholdInstance):
+class ValueChangeThresholdInstance(MetricThresholdInstance):
     """
     Threshold that emits an event when a value changes from its previous value. Does not send clear events.
     """
 
     def __init__(self, id, context, dpNames, eventClass, severity):
-        RRDThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
+        MetricThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
         self._lastValues = {}
 
     def _checkImpl(self, dataPoint, value):

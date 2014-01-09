@@ -83,7 +83,6 @@ class SshPerformanceCollectionPreferences(object):
         provides default values for needed attributes.
         """
         self.collectorName = COLLECTOR_NAME
-        self.defaultRRDCreateCommand = None
         self.configCycleInterval = 20  # minutes
         self.cycleInterval = 5 * 60  # seconds
 
@@ -566,13 +565,15 @@ class SshPerformanceCollectionTask(BaseTask):
                     'eventKey': datasource.getEventKey(dp),
                     'component': dp.component,
                 }
-                self._dataService.writeRRD(dp.rrdPath,
-                                           value, dp.rrdType,
-                                           dp.rrdCreateCommand,
-                                           datasource.cycleTime,
-                                           dp.rrdMin,
-                                           dp.rrdMax,
-                                           threshData)
+                self._dataService.writeMetric(dp.contextUUID,
+                                              dp.dpName,
+                                              value,
+                                              dp.rrdType,
+                                              dp.componentId,
+                                              deviceuuid=dp.devuuid,
+                                              min=dp.rrdMin,
+                                              max=dp.rrdMax,
+                                              threshEventData=threshData)
 
             eventList = results.events
             exitCode = getattr(datasource.result, 'exitCode', -1)

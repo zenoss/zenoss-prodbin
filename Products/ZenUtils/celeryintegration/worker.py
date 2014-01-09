@@ -9,7 +9,7 @@
 
 
 from celery.apps.worker import Worker
-
+import signal
 
 class CeleryZenWorker(Worker):
     """
@@ -39,6 +39,8 @@ class CeleryZenWorker(Worker):
 
     def install_platform_tweaks(self, worker):
         # This method installs the Celery's signal handling which conflicts
-        # with Zenoss's signal handling.  Override it with an empty
-        # implementation to bypass Celery's signal configuration.
-        pass
+        # with Zenoss's signal handling.  Override it with so that the zenoss
+        # USR1 handler is used
+        #
+        super(CeleryZenWorker, self).install_platform_tweaks(worker)
+        signal.signal(signal.SIGUSR1, CeleryZenWorker.daemon.sighandler_USR1)

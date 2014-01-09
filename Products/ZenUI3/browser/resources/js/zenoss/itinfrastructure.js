@@ -387,20 +387,12 @@ Ext.apply(Zenoss.devices, {
                         listeners: {
                             change: function(chbox, isChecked) {
                                 Ext.getCmp('delete-device-events').setDisabled(!isChecked);
-                                Ext.getCmp('delete-device-perf-data').setDisabled(!isChecked);
                             }
                         }
                     }]
                 },{
                     id: 'delete-device-events',
                     boxLabel: _t('Close Events?'),
-                    style: 'margin-left: 4px;',
-                    xtype: 'checkbox',
-                    checked: true,
-                    disabled: !isclass
-                },{
-                    id: 'delete-device-perf-data',
-                    boxLabel: _t('Delete performance data?'),
                     style: 'margin-left: 4px;',
                     xtype: 'checkbox',
                     checked: true,
@@ -414,8 +406,7 @@ Ext.apply(Zenoss.devices, {
                         var opts = Ext.apply(gridOptions(), {
                             uid: Zenoss.env.PARENT_CONTEXT,
                             action: Ext.getCmp('removetype').getValue().removetype,
-                            deleteEvents: Ext.getCmp('delete-device-events').getValue(),
-                            deletePerf: Ext.getCmp('delete-device-perf-data').getValue()
+                            deleteEvents: Ext.getCmp('delete-device-events').getValue()
                         }),
                         grid = Ext.getCmp('device_grid');
                         grid.setLoading(true);
@@ -1277,6 +1268,9 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 if ( result.data.description ) {
                     desc.push(result.data.description);
                 }
+
+                function encoder(element, index, array) { array[index] = Ext.htmlEncode(element); }
+                Ext.Array.each(desc, encoder);
 
                 // avoid a rendering of the grid if the title
                 // hasn't changed

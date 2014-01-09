@@ -19,6 +19,7 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenUI3.security.security import permissionsForContext
 from Products.ZenUtils.Utils import zenPath
+# page stats logger
 log = logging.getLogger('zen.pagestats')
 # create file handler which logs even debug messages
 fh = logging.FileHandler(zenPath('log' + '/pagestats.log'))
@@ -26,6 +27,14 @@ fh = logging.FileHandler(zenPath('log' + '/pagestats.log'))
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
 log.addHandler(fh)
+
+# error log logger
+errorlog = logging.getLogger('javascripterrors')
+fh = logging.FileHandler(zenPath('log' + '/javascript_errors.log'))
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(message)s')
+fh.setFormatter(formatter)
+errorlog.addHandler(fh)
 
 
 class DetailNavRouter(DirectRouter):
@@ -124,3 +133,10 @@ class DetailNavRouter(DirectRouter):
     def recordPageLoadTime(self, page, time):
         user = self.context.zport.dmd.ZenUsers.getUserSettings()
         log.info("PAGELOADTIME: %s %s %s (seconds)", user.id, page, time)
+
+    def logErrorMessage(self, msg="", url="", file="", lineNumber=""):
+        """
+        Records an error message from the client. 
+        """
+        user = self.context.zport.dmd.ZenUsers.getUserSettings()
+        errorlog.error("User: %s - %s '%s' at %s line:%s", user.id, url, msg, file, lineNumber)

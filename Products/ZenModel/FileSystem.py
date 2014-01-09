@@ -239,14 +239,6 @@ class FileSystem(OSComponent):
         ub = self.usedBlocks()
         return ub is None and "unknown" or convToUnits(ub)
 
-
-    def getRRDNames(self):
-        """
-        Return the datapoint name of this filesystem 'usedBlocks_usedBlocks'
-        """
-        return ['usedBlocks_usedBlocks']
-
-
     def viewName(self): 
         """
         Return the mount point name of a filesystem '/boot'

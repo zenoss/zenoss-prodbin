@@ -166,23 +166,10 @@ class IExpandedLinkProvider(Interface):
         """
 
 class IRenderURLUtil(Interface):
-
-    def getSanitizedRenderURL():
-        """
-        remove any keywords/directives from renderurl.
-        example is "proxy://host:8091" is changed to "http://host:8091"
-        """
-
-    def getRemoteRenderUrl():
-        """
-        return the full render url with http protocol prepended if the renderserver is remote.
-        Return empty string otherwise
-        """
-
-    def proxiedByZenoss():
-        """
-        Should the render request be proxied by zenoss/zope
-        """
+    """
+    Deprecated
+    No longer used
+    """
 
 
 class IZenDMDStartedEvent(Interface):

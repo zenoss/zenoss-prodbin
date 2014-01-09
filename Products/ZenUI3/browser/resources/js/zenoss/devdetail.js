@@ -63,6 +63,7 @@ var REMOTE = Zenoss.remote.DeviceRouter,
                     selectOnRender(child, target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel.getSelectionModel());
                 }
             }
+
         }
     };
 
@@ -132,6 +133,10 @@ Zenoss.nav.register({
         id: 'device_graphs',
         nodeType: 'subselect',
         text: _t('Graphs')
+    },{
+        id: 'device_component_graphs',
+        nodeType: 'subselect',
+        text: _t('Component Graphs')
     },{
         id: 'device_modeler_plugins',
         nodeType: 'subselect',
@@ -467,7 +472,8 @@ var hwosInformation = {
 
 var overview = {
     xtype: 'deviceoverview',
-    id: 'device_overview'
+    id: 'device_overview',
+    hidden: true
 };
 
 Zenoss.EventActionManager.configure({
@@ -506,10 +512,39 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
     id: 'device_administration'
 });
 
+// find out how many columns the graph panel should be based on
+// on the width of the detail panel
+var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275,
+    extra_column_threshold = 1000;
+
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
+    columns: (center_panel_width > extra_column_threshold) ? 2 : 1,
     id: 'device_graphs'
 });
 
+
+/**
+ * Show either one column of graphs or two depending on how much space is available
+ * after a resize.
+ **/
+device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
+    var columns = panel.columns;
+
+    if (width >= extra_column_threshold && columns == 1) {
+        panel.columns = 2;
+    }
+    if (width < extra_column_threshold && columns == 2) {
+        panel.columns = 1;
+    }
+    // always redraw the graphs completely when we resize the page,
+    // this way the svg's are the correct size.
+    panel.setContext(panel.uid);
+});
+
+var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
+    id: 'device_component_graphs',
+    components: Ext.pluck(Zenoss.env.componentTree, 'id')
+});
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
     id: 'softwares'
 });
@@ -530,9 +565,6 @@ Ext.define('Zenoss.DeviceDetailNav', {
                 navloaded: function() {
                     if(!this.hasComponents) return;
                     this.loadComponents();
-                    Ext.History.init(function(mgr){
-                        Ext.History.selectByToken(mgr.getToken());
-                    });
                 },
                 nodeloaded: function(tree, node) {
                     if (node.id==UID) {
@@ -587,13 +619,19 @@ Ext.define('Zenoss.DeviceDetailNav', {
         sel = sm.getSelectedNode(),
         token = Ext.History.getToken(),
         panelid = tree.ownerCt.id;
+        // we are deeplinking to the node
         if (!sel && token && token.slice(0,panelid.length)==panelid) {
+
             var parts = token.split(Ext.History.DELIMITER),
             type = parts[1],
             rest = parts.slice(2).join(Ext.History.DELIMITER);
             if (type) {
+
                 var tosel = rootNode.findChild('id', type);
                 if (tosel) {
+                    // bug in ExtJS Card Layout deferred renderer where the
+                    // first item is not actually hidden.
+                    Ext.getCmp('device_overview').hide();
                     tree.on('afterrender', function() {
                         selectOnRender(tosel, sm);
                     }, this, {single:true});
@@ -771,7 +809,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [overview, event_console, modeler_plugins, configuration_properties, custom_properties, dev_admin, device_graphs, softwares, componentCard]
+        items: [overview, event_console, modeler_plugins, configuration_properties, custom_properties, dev_admin, device_graphs, component_graphs, softwares, componentCard]
     }]
 });
 

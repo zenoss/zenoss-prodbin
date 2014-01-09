@@ -59,14 +59,12 @@ class CeleryZenJobs(ZenDaemon):
                     kwargs.get("pool_cls") or current_app.conf.CELERYD_POOL)
         self.worker = CeleryZenWorker(**kwargs)
         self.worker.run()  # blocking call
+        #very specific to zenjobs, sigTerm usually called by signal handling
+        # or the twisted reactor stopping. Celery handles all signals and
+        # reactor is not running, so we explicitly call sigTerm method that
+        # cleans up after the daemon.
+        self.sigTerm()
         self.log.info('Daemon %s has shut down', type(self).__name__)
-
-    def sigTerm(self, *args, **kwargs):
-        from celery.worker import state
-        setattr(state, 'should_terminate', True)
-        super(CeleryZenJobs, self).sigTerm(*args, **kwargs)
-        # Raise SystemTerminate to shutdown without waiting...
-        raise SystemTerminate()
 
     def buildOptions(self):
         """

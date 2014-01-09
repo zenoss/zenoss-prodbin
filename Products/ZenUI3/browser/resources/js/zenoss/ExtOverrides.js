@@ -452,8 +452,9 @@ Ext.override(Ext.util.Sorter, {
         return returnEl ? Ext.get(this.target) : this.target;
     };
 
-
-
+    Ext.override(Ext.grid.column.Column, {
+        defaultRenderer: Ext.htmlEncode
+    });
 
     Ext.define('Ext.data.TreeStoreOverride',{
         override: 'Ext.data.TreeStore',
@@ -580,6 +581,4 @@ Ext.override(Ext.util.Sorter, {
             return !! snapshot && snapshot !== this.getRootNode();
         }
     });
-
-
 }());

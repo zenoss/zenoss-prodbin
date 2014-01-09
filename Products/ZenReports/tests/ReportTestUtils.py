@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from Products.ZenModel.RRDView import RRDView
+from Products.ZenModel.MetricMixin import MetricMixin
 from Products.ZenModel.Device import manage_createDevice
 
 def attributeAsRRDValue( rrdView, id, **args ):
@@ -20,12 +20,12 @@ class replaceGetRRDValue:
     
     def __call__(self, fn):
         def wrappedFunction(*args):
-            oldMethod = RRDView.getRRDValue
-            RRDView.getRRDValue = self._newMethod
+            oldMethod = MetricMixin.getRRDValue
+            MetricMixin.getRRDValue = self._newMethod
             try:
                 return fn(*args)
             finally:
-                RRDView.getRRDValue = oldMethod
+                MetricMixin.getRRDValue = oldMethod
         return wrappedFunction
 
 def createTestDevice( dmd, deviceId, propertyMap={}, deviceClass='/Devices/Server' ):

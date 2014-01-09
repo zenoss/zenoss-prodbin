@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -13,6 +13,7 @@ __doc__ = """Device
 Base device (remote computer) class
 """
 
+import cgi
 import os
 import shutil
 import time
@@ -28,8 +29,6 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
 from Products.ZenUtils.deprecated import deprecated
-
-import RRDView
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
                                      ipunwrap, getHostByName
 from Products.ZenModel.interfaces import IIndexed
@@ -43,6 +42,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
 from ZODB.POSException import POSError
+from BTrees.OOBTree import OOSet
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
@@ -222,6 +222,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     comments = ""
     sysedgeLicenseMode = ""
     priority = 3
+    macaddresses = None
 
 
     # Flag indicating whether device is in process of creation
@@ -365,11 +366,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if template:
                 result.append(template)
         return result
-
-
-    def getRRDNames(self):
-        return ['sysUpTime']
-
 
     def getDataSourceOptions(self):
         """
@@ -1501,9 +1497,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_CHANGE_DEVICE
         """
         if newPerformanceMonitor:
-            #self.dmd.RenderServer.moveRRDFiles(self.id,
-            #    newPerformanceMonitor, performanceMonitor, REQUEST)
             performanceMonitor = newPerformanceMonitor
+
+        if self.getPerformanceServer() is not None:
+            oldPerformanceMonitor = self.getPerformanceServer().getId()
+            self.getDmdRoot("Monitors").setPreviousCollectorForDevice(self.getId(), oldPerformanceMonitor)
 
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
                                                     performanceMonitor)
@@ -1809,13 +1807,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             eventFilter = { 'tag_filter': [ tagFilter ] }
             log.debug("Closing events for device: %s", self.getId())
             zep.closeEventSummaries(eventFilter=eventFilter)
-        if deletePerf:
-            perfserv = self.getPerformanceServer()
-            if perfserv:
-                perfserv.deleteRRDFiles(self.id)
         if REQUEST:
             audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
+        self.getDmdRoot("Monitors").deletePreviousCollectorForDevice(self.getId())
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices':
@@ -1866,34 +1861,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if self.title:
                 self.title = newId
             parent.manage_renameObject(oldId, newId)
-            self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
             return self.absolute_url_path()
 
         except CopyError:
             raise Exception("Device rename failed.")
-
-    def renameDeviceInPerformance(self, old, new):
-        """
-        Rename the directory that holds performance data for this device.
-
-        @param old: old performance directory name
-        @type old: string
-        @param new: new performance directory name
-        @type new: string
-        """
-        root = os.path.dirname(self.fullRRDPath())
-        oldpath = os.path.join(root, old)
-        newpath = os.path.join(root, new)
-        perfsvr = self.getPerformanceServer()
-        if hasattr(perfsvr, 'isLocalHost') and not perfsvr.isLocalHost():
-            command = 'mv "%s" "%s"' % (oldpath, newpath)
-            perfsvr.executeCommand(command, 'zenoss')
-        elif os.path.exists(oldpath):
-            if os.path.exists(newpath):
-                shutil.rmtree(newpath)
-            shutil.move(oldpath, newpath)
-
 
     def index_object(self, idxs=None, noips=False):
         """
@@ -1923,28 +1895,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         brains = cat(deviceId=self.id)
         for brain in brains:
             brain.getObject().unindex_links()
-
-
-    def cacheComponents(self):
-        """
-        Read current RRD values for all of a device's components
-        """
-        paths = self.getRRDPaths()[:]
-        #FIXME need better way to scope and need to get DataSources
-        # from RRDTemplates
-        #for c in self.os.interfaces(): paths.extend(c.getRRDPaths())
-        for c in self.os.filesystems(): paths.extend(c.getRRDPaths())
-        #for c in self.hw.harddisks(): paths.extend(c.getRRDPaths())
-        objpaq = self.primaryAq()
-        perfServer = objpaq.getPerformanceServer()
-        if perfServer:
-            try:
-                result = perfServer.currentValues(paths)
-                if result:
-                    RRDView.updateCache(zip(paths, result))
-            except Exception:
-                log.exception("Unable to cache values for %s", self.id)
-
 
     def getUserCommandTargets(self):
         """
@@ -2149,7 +2099,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         href = altHref if altHref else self.getPrimaryUrlPath()
         name = self.titleOrId()
 
-        rendered = template % (icon, name)
+        rendered = template % (icon, cgi.escape(name))
 
         if not self.checkRemotePerm(ZEN_VIEW, self):
             return rendered
@@ -2157,20 +2107,20 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return "<a %s href='%s' class='prettylink'>%s</a>" % \
                     ('target=' + target if target else '', href, rendered)
 
-
-    def getOSProcessMatchers(self):
+    def osProcessClassMatchData(self):
         """
         Get a list of dictionaries containing everything needed to match
-        processes against the global list of process classes. Used by process
-        modeler plugins.
+        processes against the global list of process classes.
         """
         matchers = []
         for pc in self.getDmdRoot("Processes").getSubOSProcessClassesSorted():
             matchers.append({
-                'regex': pc.regex,
-                'ignoreParametersWhenModeling': pc.ignoreParametersWhenModeling,
-                'ignoreParameters': pc.ignoreParameters,
-                'getPrimaryDmdId': pc.getPrimaryDmdId(),
+                'includeRegex': pc.includeRegex,
+                'excludeRegex': pc.excludeRegex,
+                'replaceRegex': pc.replaceRegex,
+                'replacement': pc.replacement,
+                'primaryUrlPath': pc.getPrimaryUrlPath(),
+                'primaryDmdId': pc.getPrimaryDmdId(),
                 })
 
         return matchers
@@ -2269,12 +2219,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if ip:
             return str(numbip(ip))
 
+    def getMacAddressCache(self):
+        if self.macaddresses is None:
+            self.macaddresses = OOSet()
+
+        return self.macaddresses
+
     def getMacAddresses(self):
-        macs = []
-        if hasattr(self, 'os') and hasattr(self.os, 'interfaces'):
-            for intf in self.os.interfaces():
-                if intf.macaddress:
-                    macs.append(intf.macaddress)
-        return macs
-    
+        return list(self.macaddresses or [])
+
 InitializeClass(Device)

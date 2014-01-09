@@ -164,6 +164,9 @@ Ext.onReady(function(){
             if(newEntry){
                 Zenoss.remote.EventClassesRouter.addNewInstance({'params':params}, function(response){
                     if (response.success) {
+                        // get the uid from the created instance so we can
+                        // save the properties
+                        params.uid = response.data.uid;
                         Zenoss.remote.EventClassesRouter.editInstance({'params':params}, function(response){
                             if (response.success) {
                                 Ext.getCmp('classes').setTransIcon(isTrans);

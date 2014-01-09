@@ -25,8 +25,11 @@
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
-        <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
-
+        <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>        
+        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
+        
+        
+        
         <script>
         (function() {
             var ua = navigator.userAgent.toLowerCase();
@@ -39,7 +42,7 @@
             }
         })();
         </script>
-        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
+        
 
         <script>
         // Fix an IE bug

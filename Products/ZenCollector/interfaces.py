@@ -84,7 +84,7 @@ class ICollector(zope.interface.Interface):
     This object acts as the overall collector controller.
     
     Assumptions on a collector's behavior are:
-    1. A collector keeps track of its own performance statistics using RRDTool.
+    1. A collector keeps track of its own performance statistics.
     2. A collector interfaces with the rest of Zenoss using the ZenHub sevice
        and remote service proxies.
     """
@@ -400,6 +400,24 @@ class IDataService(zope.interface.Interface):
     """
     A service that provides a mechanism to persist collected data.
     """
+
+    def writeMetric(self, path, metric, value, timestamp, metricType, metricId,
+            min, max, hasThresholds, threshEventData, allowStaleDatapoint):
+        """
+        Write the value provided for the specified metric to Redis
+
+        @param path: metric path
+        @param metric: name of the incoming metric
+        @param value: value to be writen to Redis
+        @param metricType: COUNTER, DERIVE, GAUGE, etc.
+        @param timestamp: when the value was received
+        @param metricId: unique identifier for the metric
+        @param min: metric minimum
+        @param max: metric maximum
+        @param hasThresholds: boolean indicating presence of thresholds for this metricId
+        @param allowStaleDatapoint: boolean indicating whether stale values are OK
+        """
+        pass
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U', threshEventData=None, timestamp='N', allowStaleDatapoint=True):

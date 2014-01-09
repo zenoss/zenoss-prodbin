@@ -19,6 +19,7 @@ from Products.ZenUtils.Utils import resequence, getDisplayType
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenWidgets import messaging
 
+
 @deprecated
 def manage_addMultiGraphReport(context, id, REQUEST = None):
     """ Create a new MultiGraphReport
@@ -241,26 +242,9 @@ class MultiGraphReport(BaseReport):
 
     def getDefaultGraphDefs(self, drange=None):
         """ Construct the list of graph dicts for this report.
-        Similar in functionality to RRDView.getDefaultGraphDefs
+        Similar in functionality to MetricMixin.getDefaultGraphDefs
         """
         graphs = []
-        def AppendToGraphs(thing, cmds, title):
-            perfServer = thing.device().getPerformanceServer()
-            url = perfServer.buildGraphUrlFromCommands(
-                                        cmds, drange or self.defaultDateRange)
-            graphs.append({
-                'title': title,
-                'url': url,
-                })
-        
-        def GetThingTitle(thing, postfix=''):
-            title = thing.device().id
-            if thing != thing.device():
-                title += ' %s' % thing.id
-            if postfix:
-                title += ' - %s' % postfix
-            return title
-        
         for gg in self.getGraphGroups():
             collection = gg.getCollection()
             things = collection and collection.getDevicesAndComponents()
@@ -268,26 +252,10 @@ class MultiGraphReport(BaseReport):
             if not things or not graphDef:
                 continue
             if gg.combineDevices:
-                cmds = []
-                idxOffset = 0
-                for thing in things:
-                    cmds = graphDef.getGraphCmds(
-                                    thing.primaryAq(), 
-                                    thing.fullRRDPath(),
-                                    includeSetup = not cmds,
-                                    includeThresholds = not cmds,
-                                    cmds = cmds,
-                                    prefix = GetThingTitle(thing, gg.id),
-                                    idxOffset=idxOffset)
-                    idxOffset += len(graphDef.graphPoints())
-                AppendToGraphs(things[0], cmds, gg.id)
+                graphs.append(dict(context=things, graphDef=graphDef, separateGraphs=False))
             else:
                 for thing in things:
-                    cmds = []
-                    cmds = graphDef.getGraphCmds(
-                                    thing.primaryAq(),
-                                    thing.fullRRDPath())
-                    AppendToGraphs(thing, cmds, GetThingTitle(thing, gg.id))
+                    graphs.append(dict(context=thing, graphDef=graphDef, separateGraphs=True))
         return graphs
 
 

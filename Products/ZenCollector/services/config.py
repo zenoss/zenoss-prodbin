@@ -187,8 +187,15 @@ class CollectorConfigService(HubService, ThresholdMixin):
     def deviceDeleted(self, object, event):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
             devid = object.id
-            for listener in self.listeners:
-                listener.callRemote('deleteDevice', devid)
+            collector = object.getPerformanceServer().getId()
+            # The invalidation is only sent to the collector where the deleted device was
+            if collector == self.instance:
+                self.log.debug('Invalidation: Performing remote call to delete device {0} from collector {1}'.format(devid, self.instance))
+                for listener in self.listeners:
+                    listener.callRemote('deleteDevice', devid)
+            else:
+                self.log.debug('Invalidation: Skipping remote call to delete device {0} from collector {1}'.format(devid, self.instance))                
+
 
     @translateError
     def remote_getConfigProperties(self):
@@ -336,9 +343,15 @@ class CollectorConfigService(HubService, ThresholdMixin):
         else:
             proxies = None
 
+        prev_collector = device.dmd.Monitors.primaryAq().getPreviousCollectorForDevice(device.id)
         for listener in self.listeners:
             if not proxies:
-                deferreds.append(listener.callRemote('deleteDevice', device.id))
+                # The invalidation is only sent to the previous and current collectors
+                if self.instance in ( prev_collector,  device.getPerformanceServer().getId() ):
+                    self.log.debug('Invalidation: Performing remote call for device {0} on collector {1}'.format(device.id, self.instance))
+                    deferreds.append(listener.callRemote('deleteDevice', device.id))
+                else:
+                    self.log.debug('Invalidation: Skipping remote call for device {0} on collector {1}'.format(device.id, self.instance))
             else:
                 for proxy in proxies:
                     deferreds.append(self._sendDeviceProxy(listener, proxy))

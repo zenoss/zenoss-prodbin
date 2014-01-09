@@ -6,96 +6,210 @@
  * License.zenoss under the directory where your Zenoss product is installed.
  *
  ****************************************************************************/
-
-
 (function(){
-    var DATE_RANGES =[
-            [129600, _t('Hourly')],
-            [864000, _t('Daily')],
-            [3628800, _t('Weekly')],
-            [41472000, _t('Monthly')],
-            [62208000, _t('Yearly')]
-    ],
-    /*
-     * If a given request is over GRAPHPAGESIZE then
-     * the results will be paginated.
-     * IE can't handle the higher number that compliant browsers can
-     * so setting lower.
-     **/
-    GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
+    Ext.ns('Zenoss');
     /**********************************************************************
      *
-     * Swoopy
+     * Graph Panel
      *
      */
-    function toISOTimestamp(d) {
-        function pad(n){
-            return n<10 ? '0'+n : n;
+    function syntaxHighlight(json) {
+        json = JSON.stringify(json, undefined, 4);
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'syntax-number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'syntax-string';
+                } else {
+                    cls = 'syntax-text';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'syntax-boolean';
+            } else if (/null/.test(match)) {
+                cls = 'syntax-null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+
+    var router = Zenoss.remote.DeviceRouter,
+        GraphPanel,
+        DRangeSelector,
+        GraphRefreshButton,
+        dateRangePanel,
+        CURRENT_TIME = "0s-ago",
+        DATE_RANGES = [
+            ["1h-ago", _t('Last Hour')],
+            ["1d-ago", _t('Yesterday')],
+            ["7d-ago", _t('Last Week')],
+            ["30d-ago", _t('Last 30 days')],
+            ["1y-ago", _t('Last Year')]
+        ],
+        RANGE_TO_MILLISECONDS = {
+            '1h-ago': 3600000,
+            '1d-ago': 86400000,
+            '7d-ago': 604800000,
+            '1m-ago': 2419200000,
+            '1y-ago': 31536000000
+        },
+        DOWNSAMPLE = [
+            [86400000, '1h-avg'],    // Day
+            [604800000, '12h-avg'],  // Week
+            [2419200000, '1d-avg'],  // Month
+            [31536000000, '30d-avg'] // Year
+        ],
+
+        /*
+         * If a given request is over GRAPHPAGESIZE then
+         * the results will be paginated.
+         * IE can't handle the higher number that compliant browsers can
+         * so setting lower.
+         **/
+        GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
+
+    Number.prototype.pad = function(count) {
+        var zero = count - this.toString().length + 1;
+        return Array(+(zero > 0 && zero)).join("0") + this;
+    };
+
+    function now() {
+        return new Date().getTime();
+    }
+
+    function rangeToMilliseconds(range){
+        if (RANGE_TO_MILLISECONDS[range]) {
+            return RANGE_TO_MILLISECONDS[range];
         }
-        return d.getUTCFullYear()+'-'
-            + pad(d.getUTCMonth()+1)+'-'
-            + pad(d.getUTCDate())+'T'
-            + pad(d.getUTCHours())+':'
-            + pad(d.getUTCMinutes())+':'
-            + pad(d.getUTCSeconds())+'Z';
+        return range;
+    }
+
+    function formatForMetricService(ms) {
+        // only format absolute times
+        if (!Ext.isNumber(ms)) {
+            return ms;
+        }
+        var d = new Date(ms);
+        return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1).pad(2) + '/' + d.getUTCDate().pad(2) + '-'
+            + d.getUTCHours().pad(2) + ':' + d.getUTCMinutes().pad(2) + ':' + d.getUTCSeconds().pad(2) + '-UTC';
     }
 
     Date.prototype.minus = function(secs) {
         return new Date(this.valueOf()-(secs*1000));
     };
 
-    Date.prototype.toPretty = function() {
-        return toISOTimestamp(this);
-    };
 
-    function fixBase64Padding(s) {
-        s = s.split('=',1)[0];
-        var a = [s];
-        for (var i = 0; i <= 4 - (s.length % 4); i++) {
-            a.push('=');
-        }
-        return a.join('');
-    }
+    Ext.define("Zenoss.EuropaGraph", {
+        alias:['widget.europagraph'],
+        extend: "Ext.Panel",
 
-    var ZenGraphs = ZenGraphs || {},
-        zoom_factor = 1.5,
-        pan_factor = 3,
-        end_re = /now-([0-9]*)s/,
-        start_re = /end-([0-9]*)s/;
 
-    Ext.ns('Zenoss');
+        zoom_factor: 1.5,
+        pan_factor: 3,
 
-    Zenoss.SWOOP_CALLBACKS = {};
+        /**
+         * @cfg {int} start
+         * The start time of the graph in unix seconds.
+         * Defaults to <code>new DateTime().getTime()</code>.
+         */
+        start: DATE_RANGES[0][0] ,
 
-    Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
+        /**
+         * @cfg {int} end
+         * The end time of the graph in unix seconds.
+         * Defaults to <code>new DateTime().getTime() - 3600 (an hour ago)</code>.
+         */
+        end: CURRENT_TIME,
+
+        /**
+         * @cfg {String}  graphId
+         * The id of the div that is used to contain the graph
+         *
+         */
+        graphId: "",
+
+        /**
+         * @cfg {String}  graphTitle
+         * The upper left hand title of the graph
+         * Defaults to an empty string.
+         */
+        graphTitle: "",
+
+        /**
+         * @cfg {Object}  tags
+         * The tags we are sending to the metric service. This is a key value pair of tagname, value.
+         * For Example: <code>{'ip_address': '191.168.4.10'}
+         * Defaults to an empty object
+         */
+        tags: {},
+
+        /**
+         * @cfg {String} type
+         * The type of chart we are asking the metric service to render. See the central-query documentation for a list of valid types.
+         * Defaults to an <code>line</code>
+         */
+        type: 'line',
+
+        /**
+         * @cfg {Array} datapoints
+         * Datapoints we are sending to the metric service. This is an
+         * array of objects. A datapoint object has the following
+         * available properties:
+         * <ul>
+         *   <li> aggregator - example: "avg". The available aggregator functions  are: ("avg", "min", "max", "sum")</li>
+         *   <li> color - example: "#0000ff99"</li>
+         *   <li> format - example: "%6.2lf"</li>
+         *   <li> id - example: "laLoadInt15"</li>
+         *   <li> legend - example: "15 Minute"</li>
+         *   <li> metric - example: "laLoadInt15"</li>
+         *   <li> rpn - example: "100,/"</li>
+         *   <li> uuid - example: "480fc36d-1ffa-4bbd-a41d-2ad0e459fb85""</li>
+         * </ul>
+         **/
+        datapoints: [],
         constructor: function(config) {
-            var cls = Ext.isGecko ? '-moz-zoom-in' :
-                Ext.isWebKit ? '-webkit-zoom-in' :
-                'crosshair';
+            var padding = "padding:45px 20px 15px 0px;";
+            if (config.height <= 400) {
+                padding = "padding:0px 0px 0px 0px;";
+            }
             config = Ext.applyIf(config||{}, {
-                html: {
-                    tag: 'img',
-                    src: config.graphUrl,
-                    id: config.graphId,
-                    style: 'cursor:' + cls
-                },
-                width: 607,
+
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 75)  + 'px;"></div>',
+                maxWidth: 800,
                 cls: 'graph-panel',
-                tbar: {
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'top',
                     items: [{
                         xtype: 'tbtext',
-                        text: config.graphTitle
+                        style: {
+                            fontWeight: 'bolder',
+                            fontSize: '1.5em'
+                        },
+                        text: config.graphTitle // + ' : ' + config.uid
                     },'->',{
+                        xtype: 'button',
+                        iconCls: 'customize',
+                        menu: [{
+                            text: _t('Definition'),
+                            handler: Ext.bind(this.displayDefinition, this)
+                        }, {
+                            text: _t('Export to CSV'),
+                            handler: Ext.bind(this.exportData, this)
+                        }, {
+                            text: _t('Link to this Graph'),
+                            handler: Ext.bind(this.displayLink, this)
+                        }]
+                    },{
                         text: '&lt;',
-                        width: 67,
+                        width: 40,
                         handler: Ext.bind(function(btn, e) {
                             this.onPanLeft(this);
                         }, this)
                     },{
                         text: _t('Zoom In'),
-                        enableToggle: true,
-                        pressed: true,
                         ref: '../zoomin',
+                        enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
                             this.fireEventsToAll("zoommodechange", this, !btn.pressed);
                         }, this)
@@ -108,164 +222,151 @@
                         }, this)
                     },{
                         text: '&gt;',
-                        width: 67,
+                        width: 40,
                         handler: Ext.bind(function(btn, e) {
                             this.onPanRight(this);
                         }, this)
                     }]
+                }],
+                graph_params: {
+                    drange: DATE_RANGES[0][0],
+                    end: config.end || CURRENT_TIME,
+                    start: config.start || DATE_RANGES[0][0]
                 }
             });
-            Zenoss.SwoopyGraph.superclass.constructor.call(this, config);
-            this.mustUseImageUri = Ext.isIE;
+
+            Zenoss.EuropaGraph.superclass.constructor.call(this, config);
         },
+        initComponent: function() {
+            // the visualization library depends on our div rendering,
+            // let's make sure that has happened
+            this.on('afterrender', this.initChart, this);
+            this.callParent(arguments);
+        },
+        initChart: function() {
+            // these assume that the graph panel has already been rendered
+            var width = this.getEl().getWidth(), height = this.getEl().getHeight();
+            var visconfig = {
+                returnset: "EXACT",
+                range : {
+                    start : formatForMetricService(this.graph_params.start),
+                    end : formatForMetricService(this.graph_params.end)
+                },
+                tags: this.tags,
+                datapoints: this.datapoints,
+                overlays: this.thresholds,
+                type: this.type,
+                // lose the footer and yaxis label as the image gets smaller
+                footer: (height >= 350) ? true : false,
+                yAxisLabel: this.units,
+                miny: (this.miny != -1) ? this.miny : null,
+                maxy: (this.maxy != -1) ? this.maxy : null,
+                // the visualization library currently only supports
+                // one format for chart, not per metric
+                format: this.datapoints[0].format
+            };
+            var delta;
+            if (Ext.isNumber(this.graph_params.start)) {
+                delta = new Date().getTime() - this.graph_params.start;
+            } else {
+                delta = rangeToMilliseconds(this.graph_params.start);
+            }
+            // always down sample to a 1m-avg for now. This
+            // means that if we collect at less than a minute the
+            // values will be averaged out.
+            visconfig.downsample = '1m-avg';
+            Ext.Array.each(DOWNSAMPLE,function(v) {
+                if (delta >= v[0]) {
+                    visconfig.downsample = v[1];
+                }
+            });
+
+            // determine scaling
+            if (this.autoscale) {
+                visconfig.autoscale = {
+                    factor: this.base,
+                    ceiling: this.ceiling
+                };
+            }
+            this.chartdefinition = visconfig;
+            zenoss.visualization.chart.create(this.graphId, visconfig);
+        },
+        displayLink: function(){
+            var config = Zenoss.util.base64.encode(Ext.JSON.encode(this.initialConfig)),
+                link = "/zport/dmd/viewGraph?data=" + config;
+            new Zenoss.dialog.ErrorDialog({
+                message: Ext.String.format(_t('<div>'
+                                              + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'), '<br/><br/><a href="'
+                                              + link
+                                              + '">Graph: ' + this.graphTitle +  ' </a>')
+                                              + '</div>')),
+                title: _t('Save Configuration')
+            });
+        },
+        displayDefinition: function(){
+            Ext.create('Zenoss.dialog.BaseWindow', {
+                closeAction: 'destroy',
+                title: _t('Graph JSON Definition'),
+                autoScroll: true,
+                minWidth: 700,
+                height: 500,
+                items: [{
+                    xtype: 'panel',
+                    autoScroll: true,
+                    html: Ext.String.format('<pre>{0}</pre>', syntaxHighlight(this.chartdefinition))
+                }]
+            }).show();
+        },
+        exportData: function() {
+            var chart = zenoss.visualization.__charts[this.graphId],
+                plots = Ext.JSON.encode(chart.plots),
+                form;
+            form = Ext.DomHelper.append(document.body, {
+                tag: 'form',
+                method: 'POST',
+                action: '/zport/dmd/exportGraph',
+                children: [{
+                    tag: 'textarea',
+                    style: {
+                        display: 'none'
+                    },
+                    name: 'plots',
+                    html: plots
+                }, {
+                    tag: 'input',
+                    type: 'hidden',
+                    name: 'title',
+                    value: this.graphTitle
+                }]
+            });
+            form.submit();
+        },
+
         initEvents: function() {
-            this.addEvents("zoommodechange", "updateimage");
-            Zenoss.SwoopyGraph.superclass.initEvents.call(this);
+            Zenoss.EuropaGraph.superclass.initEvents.call(this);
+            this.addEvents(
+                /**
+                 * @event updateimage
+                 * Fire this event to force the chart to redraw itself.
+                 * @param {object} params The parameters we are sending to the object.
+                 **/
+                'updateimage',
+                /**
+                 * @event zoommodechange
+                 * This fies when the zoom mode change (e.g. from zooming out to zooming in)
+                 **/
+                'zoommodechange'
+            );
+            this.on('updateimage', this.updateGraph, this);
             this.on("zoommodechange", this.onZoomModeChange, this);
-            this.on("updateimage", this.updateImage, this);
             this.graphEl = Ext.get(this.graphId);
             this.graphEl.on('click', this.onGraphClick, this);
-            this.graphEl.on('load', function(){
-                this.suspendLayouts();
-                var size = this.graphEl.getSize();
-                // set out panel to be the size of the graph
-                // plus a little for the padding
-                this.setWidth(size.width + 10);
-                this.setHeight(size.height + 42);
-                this.el.setHeight(size.height + 42); /* this line is for chrome */
-                if (!size.width || !size.height){
-                    this.showFailure();
-                } else {
-                    this.parseGraphParams();
-                }
-                this.resumeLayouts(true);
-            }, this, {single:true});
-        },
-        showFailure: function() {
-            this.failureMask = this.failureMask || Ext.DomHelper.insertAfter(this.graphEl, {
-                tag: 'div',
-                html: _t("There was a problem rendering this graph. Either the file does not exist or an error has occurred.  Initial graph creation can take up to 5 minutes.  If the graph still does not appear, look in the Zope log file $ZENHOME/log/event.log for errors.")
-            });
-            var el = Ext.fly(this.failureMask);
-            var size = this.graphEl.getSize();
-            if (!size.width || !size.height) {
-                size = {height:150, width:500};
-            }
-            el.setSize(size);
-            Ext.fly(this.failureMask).setDisplayed(true);
-            this.graphEl.setDisplayed(false);
-        },
-        hideFailure: function() {
-            if (this.failureMask) {
-                this.graphEl.setDisplayed(true);
-                Ext.fly(this.failureMask).setDisplayed(false);
-            }
-        },
-        parseGraphParams: function(url) {
-            url = url || this.graphEl.dom.src;
-            var href = url.split('?'),
-            gp = Ext.apply({url:href[0]}, Ext.urlDecode(href[1]));
-            // Encoding can screw with the '=' padding at the end of gopts, so
-            // strip and recreate it
-            gp.gopts = fixBase64Padding(gp.gopts);
-            gp.width = Number(gp.width);
-            gp.drange = Number(gp.drange);
-            gp.start = Ext.isDefined(gp.start) ? Number(start_re.exec(gp.start)[1]) : gp.drange;
-            gp.end = Ext.isDefined(gp.end) ? Number(end_re.exec(gp.end)[1]) : 0;
-            this.graph_params = gp;
-        },
-        getComment: function(start, end) {
-            var now = new Date(),
-                endDate = now.minus(end).toPretty(),
-                startDate = now.minus(start + end).toPretty();
-            var com_ctr = "\\t\\t to \\t\\t";
-            var comment = startDate + com_ctr + endDate;
-            comment = comment.replace(/:/g, '\\:');
-            return comment;
-        },
-        fireEventsToAll: function() {
-            if (this.linked()) {
-                var args = arguments;
-                Ext.each(this.refOwner.getGraphs(), function(g) {
-                    g.fireEvent.apply(g, args);
-                });
-            } else {
-                this.fireEvent.apply(this, arguments);
-            }
         },
         linked: function() {
             return this.isLinked;
         },
         setLinked: function(isLinked) {
             this.isLinked = isLinked;
-        },
-        updateImage: function(params) {
-            /*
-             * params should look like:
-             * {drange:n, start:n, end:n}
-             */
-            var gp = Ext.apply({}, params, this.graph_params);
-            gp.comment = this.getComment(gp.start, gp.end);
-            gp.end = 'now-' + gp.end + 's';
-            gp.start = 'end-' + gp.start + 's';
-            this.sendRequest(gp);
-        },
-        sendRequest: function(params) {
-            var url = params.url,
-                swoopie = this;
-            delete params.url;
-            params.getImage = null;
-            if (this.mustUseImageUri === true) {
-                params.getImage = true;
-            }
-            var now = new Date().getTime();
-            var graphid = now + '_' + this.graphId;
-            params.graphid = graphid;
-
-            var fullurl = Ext.urlAppend(url, Ext.urlEncode(params));
-
-            if (this.mustUseImageUri === true) {
-                // IE 6 and 7 Cannoy display data:image stuff in image
-                // src. If it's one of those browsers,
-                // skip the SWOOP stuff and just set the image src.
-                this.graphEl.dom.src = fullurl;
-                this.parseGraphParams(fullurl);
-            } else {
-                Zenoss.SWOOP_CALLBACKS[graphid] = Ext.bind(function(packet) {
-                    var ob = Ext.decode(packet);
-                    if (ob.success) {
-                        this.hideFailure();
-                        this.graphEl.dom.src = "data:image/png;base64," + ob.data;
-                        this.parseGraphParams(fullurl);
-                    } else {
-                        this.showFailure();
-                    }
-                    // Clean up callbacks and script tags
-                    delete Zenoss.SWOOP_CALLBACKS[graphid];
-                    Ext.get(graphid).remove();
-                }, this);
-                var sc = Ext.DomHelper.createDom({
-                    tag: 'script',
-                    id: graphid,
-                    type: 'text/javascript',
-                    src: fullurl
-                });
-
-                Ext.getDoc().dom.getElementsByTagName('head')[0].appendChild(sc);
-            }
-
-        },
-        onPanLeft: function(graph) {
-            var gp = this.graph_params;
-            var delta = Math.round(gp.drange/pan_factor);
-            var newend = gp.end + delta > 0 ? gp.end + delta : 0;
-            this.fireEventsToAll("updateimage", {end:newend});
-        },
-        onPanRight: function(graph) {
-            var gp = this.graph_params;
-            var delta = Math.round(gp.drange/pan_factor);
-            var newend = gp.end - delta > 0 ? gp.end - delta : 0;
-            this.fireEventsToAll("updateimage", {end:newend});
         },
         onZoomModeChange: function(graph, zoomOut) {
             this.zoomout.toggle(zoomOut);
@@ -275,17 +376,90 @@
                 (Ext.isWebKit ? '-webkit-zoom-'+dir : 'crosshair');
             this.graphEl.setStyle({'cursor': cls});
         },
-        doZoom: function(xpos, factor) {
-            var gp = this.graph_params;
-            if (xpos < 0 || xpos > gp.width) {
-                return;
+        updateGraph: function(params) {
+            var gp = Ext.apply({}, params, this.graph_params);
+            gp.start = params.start || gp.drange;
+            if (gp.start < 0) {
+                gp.start = 0;
             }
-            var drange = Math.round(gp.drange/factor),
-                delta = ((gp.width/2) - xpos) * (gp.drange/gp.width) + (gp.drange - drange)/2,
-                end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0);
+
+            // see if end is explicitly defined on the params
+            if (Ext.isDefined(params.end) && (params.end > params.start)){
+                gp.end = params.end;
+            } else {
+                // otherwise it needs to be now
+                gp.end = CURRENT_TIME;
+            }
+            var changes = {
+                range : {
+                    start: formatForMetricService(gp.start),
+                    end: formatForMetricService(gp.end)
+                }
+            };
+            // gp.start is something like "1h-ago", convert to milliseconds
+            var delta;
+            if (Ext.isNumber(gp.start)) {
+                delta = this.convertEndToAbsolute(gp.end) - gp.start;
+            } else {
+                delta = rangeToMilliseconds(gp.start);
+            }
+            changes.downsample = '1m-avg';
+            Ext.Array.each(DOWNSAMPLE, function(v) {
+                if (delta >= v[0]) {
+                    changes.downsample = v[1];
+                }
+            });
+            zenoss.visualization.chart.update(this.graphId, changes);
+
+            this.graph_params = gp;
+        },
+        convertStartToAbsoluteTime: function(start) {
+            if (Ext.isNumber(start)) {
+                return start;
+            }
+            return new Date() - rangeToMilliseconds(start);
+        },
+        convertEndToAbsolute: function(end) {
+            if (end == CURRENT_TIME) {
+                return new Date().getTime();
+            }
+            return end;
+        },
+        onPanLeft: function(graph) {
+            var gp = this.graph_params;
+            gp.start = this.convertStartToAbsoluteTime(gp.start);
+            var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
+            var newstart = (gp.start) - delta > 0 ? gp.start - delta : 0;
+            var newend = newstart + rangeToMilliseconds(gp.drange);
+            this.fireEventsToAll("updateimage", {start:newstart, end:newend});
+        },
+        onPanRight: function(graph) {
+            var gp = this.graph_params;
+            gp.start = this.convertStartToAbsoluteTime(gp.start);
+            var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
+            var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
+            var newend = newstart + rangeToMilliseconds(gp.drange);
+            var now = new Date().getTime();
+            if (newend > now) {
+                newend = now;
+                newstart = now - delta;
+            }
+            this.fireEventsToAll("updateimage", {start:newstart, end:newend});
+        },
+        doZoom: function(xpos, factor) {
+            var gp = this.graph_params,
+                el = Ext.get(this.graphId),
+                width = el.getWidth();
+            gp.end = this.convertEndToAbsolute(gp.end);
+            var drange = Math.round(rangeToMilliseconds(gp.drange)/factor),
+                // Get the new end time based on where they click on the graph
+                delta = ((width/2) - xpos) * (rangeToMilliseconds(gp.drange)/width) + (rangeToMilliseconds(gp.drange) - drange)/2,
+                end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0),
+                start = (gp.end - drange);
+
             this.fireEventsToAll("updateimage", {
                 drange: drange,
-                start: drange,
+                start: start,
                 end: end
             });
         },
@@ -296,23 +470,23 @@
             func.call(this, this, x);
         },
         onZoomIn: function(graph, xpos) {
-            this.doZoom(xpos, zoom_factor);
+            this.doZoom(xpos, this.zoom_factor);
         },
         onZoomOut: function(graph, xpos) {
-            this.doZoom(xpos, 1/zoom_factor);
+            this.doZoom(xpos, 1/this.zoom_factor);
+        },
+        fireEventsToAll: function() {
+            if (this.linked()) {
+                var args = arguments;
+                Ext.each(this.up('graphpanel').getGraphs(), function(g) {
+                    g.fireEvent.apply(g, args);
+                });
+            } else {
+                this.fireEvent.apply(this, arguments);
             }
-        });
+        }
+    });
 
-    /**********************************************************************
-     *
-     * Graph Panel
-     *
-     */
-    var router = Zenoss.remote.DeviceRouter,
-        GraphPanel,
-        DRangeSelector,
-        GraphRefreshButton,
-        tbarConfig;
 
     Ext.define("Zenoss.form.GraphRefreshButton", {
         alias:['widget.graphrefreshbutton'],
@@ -325,36 +499,36 @@
                 trigger: this,
                 items: [{
                     cls: 'refreshevery',
-                    text: 'Refresh every'
+                    text: _t('Refresh every')
                 },{
                     xtype: 'menucheckitem',
-                    text: '1 minute',
+                    text: _t('1 minute'),
                     value: 60,
                     group: 'refreshgroup'
                 },{
                     xtype: 'menucheckitem',
-                    text: '5 minutes',
+                    text: _t('5 minutes'),
                     value: 300,
                     group: 'refreshgroup'
                 },{
                     xtype: 'menucheckitem',
-                    text: '10 Minutes',
+                    text: _t('10 Minutes'),
                     value: 600,
                     group: 'refreshgroup'
                 },{
                     xtype: 'menucheckitem',
-                    text: '30 Minutes',
+                    text: _t('30 Minutes'),
                     checked: true,
                     value: 1800,
                     group: 'refreshgroup'
                 },{
                     xtype: 'menucheckitem',
-                    text: '1 Hour',
+                    text: _t('1 Hour'),
                     value: 3600,
                     group: 'refreshgroup'
                 },{
                     xtype: 'menucheckitem',
-                    text: 'Manually',
+                    text: _t('Manually'),
                     value: -1,
                     group: 'refreshgroup'
                 }]
@@ -365,7 +539,6 @@
             this.callParent(arguments);
         }
     });
-
 
 
     Ext.define("Zenoss.form.DRangeSelector", {
@@ -380,7 +553,7 @@
                     forceSelection: true,
                     autoSelect: true,
                     triggerAction: 'all',
-                    value: 129600,
+                    value: '1h-ago',
                     queryMode: 'local',
                     store: new Ext.data.ArrayStore({
                         id: 0,
@@ -394,56 +567,139 @@
         }
     });
 
+    dateRangePanel = [{
+        margin: '10, 0, 15, 0',
+        xtype: 'container',
+        layout: 'hbox',
+        defaults: {
+            margin: '0 0 0 10',
+            labelWidth: 30
+        },
+        items:[{
+            xtype: 'datefield',
+            ref: '../../start_date',
+            width: 250,
+            fieldLabel: _t('Start'),
+            format:'Y-m-d H:i:s',
+            // the default is one hour ago
+            value: Ext.Date.format(new Date((new Date().getTime() - 3600 * 1000)), "Y-m-d H:i:s")
+        },{
+            xtype: 'container',
+            width: 5
+        },{
+            xtype: 'datefield',
+            ref: '../../end_date',
+            width: 250,
+            fieldLabel: _t('End'),
+            disabled: true,
+            format:'Y-m-d H:i:s',
+            value: Ext.Date.format(new Date(), "Y-m-d H:i:s")
+        }, {
+            xtype: 'checkbox',
+            ref: '../../checkbox_now',
+            fieldLabel: _t('Now'),
+            checked: true,
+            listeners: {
+                change: function(chkbox, newValue) {
+                    chkbox.refOwner.end_date.setDisabled(newValue);
+                }
+            }
+        }, {
+            xtype: 'button',
+            text: _t('Update'),
+            ref: '../../updatebutton',
+            handler: function(b){
+                var me = b.refOwner;
+                me.start = me.start_date.getValue().getTime();
+                me.updateEndTime();
+                me.end = me.end_date.getValue().getTime();
+                Ext.each(me.getGraphs(), function(g) {
+                    g.fireEvent("updateimage", {
+                        start: me.start,
+                        end: me.end
+                    }, me);
+                });
+            }
+        }]
+    }];
 
-    tbarConfig = [{
-                    xtype: 'tbtext',
-                    text: _t('Performance Graphs')
-
-                }, '-', '->', {
-                    xtype: 'drangeselector',
-                    ref: '../drange_select',
-                    listeners: {
-                        select: function(combo, records, index){
-                            var value = records[0].data.id,
-                                panel = combo.refOwner;
-
-                            panel.setDrange(value);
-                        }
+    function getTBarConfig(title) {
+        var tbarConfig = [
+            {
+                xtype: 'tbtext',
+                text: title || _t('Performance Graphs')
+            },
+            '-',
+            '->',
+            {
+                xtype: 'drangeselector',
+                ref: '../drange_select',
+                listeners: {
+                    select: function(combo, records, index){
+                        var value = records[0].data.id,
+                        panel = combo.refOwner;
+                        panel.setDrange(value);
                     }
-                },'-', {
-                    xtype: 'button',
-                    ref: '../resetBtn',
-                    text: _t('Reset'),
-                    handler: function(btn) {
+                }
+            },'-', {
+                xtype: 'button',
+                ref: '../resetBtn',
+                text: _t('Reset'),
+                handler: function(btn) {
+                    var panel = btn.refOwner;
+                    panel.setDrange();
+                }
+            },'-',{
+                xtype: 'tbtext',
+                text: _t('Link Graphs?:')
+            },{
+                xtype: 'checkbox',
+                ref: '../linkGraphs',
+                checked: true,
+                listeners: {
+                    change: function(chkBx, checked) {
+                        var panel = chkBx.refOwner;
+                        panel.setLinked(checked);
+                    }
+                }
+            }, '-',{
+                xtype: 'graphrefreshbutton',
+                ref: '../refreshmenu',
+                iconCls: 'refresh',
+                text: _t('Refresh'),
+                handler: function(btn) {
+                    if (btn) {
                         var panel = btn.refOwner;
-                        panel.setDrange();
+                            panel.refresh();
                     }
-                },'-',{
-                    xtype: 'tbtext',
-                    text: _t('Link Graphs?:')
-                },{
-                    xtype: 'checkbox',
-                    ref: '../linkGraphs',
-                    checked: true,
-                    listeners: {
-                        change: function(chkBx, checked) {
-                            var panel = chkBx.refOwner;
-                            panel.setLinked(checked);
-                        }
-                    }
-                }, '-',{
-                    xtype: 'graphrefreshbutton',
-                    ref: '../refreshmenu',
-                    stateId: 'graphRefresh',
-                    iconCls: 'refresh',
-                    text: _t('Refresh'),
-                    handler: function(btn) {
-                        if (btn) {
-                            var panel = btn.refOwner;
-                            panel.resetSwoopies();
-                        }
-                    }
-                }];
+                }
+            }, '-', {
+                xtype: 'button',
+                ref: '../newwindow',
+                iconCls: 'newwindow',
+                hidden: true,
+                handler: function(btn) {
+                    var panel = btn.refOwner;
+                    var config = panel.initialConfig,
+                    win = Ext.create('Zenoss.dialog.BaseWindow',  {
+                        cls: 'white-background-panel',
+                        layout: 'fit',
+                        items: [Ext.apply(config,{
+                            id: 'device_graphs_window',
+                            xtype: 'graphpanel',
+                            ref: 'graphPanel',
+                            uid: panel.uid,
+                            newWindowButton: false
+                        })],
+                        maximized: true
+                    });
+                    win.show();
+                    win.graphPanel.setContext(panel.uid);
+                }
+            }];
+        return tbarConfig;
+    }
+
 
     Ext.define("Zenoss.form.GraphPanel", {
         alias:['widget.graphpanel'],
@@ -454,12 +710,12 @@
             if (!Ext.isDefined(config.showToolbar) ) {
                 config.showToolbar = true;
             }
-            if (config.showToolbar){
-                config.tbar = tbarConfig;
-            }
+
             Ext.applyIf(config, {
-                drange: 129600,
+                drange: DATE_RANGES[0][0],
                 isLinked: true,
+                newWindowButton: true,
+                columns: 1,
                 // images show up after Ext has calculated the
                 // size of the div
                 bodyStyle: {
@@ -467,13 +723,23 @@
                 },
                 directFn: router.getGraphDefs
             });
+            if (config.showToolbar){
+                config.tbar = getTBarConfig(config.tbarTitle);
+            }
             Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
         },
         setContext: function(uid) {
+            if (this.newwindow) {
+                if (this.newWindowButton) {
+                    this.newwindow.show();
+                } else {
+                    this.newwindow.hide();
+                }
+            }
+
             // remove all the graphs
             this.removeAll();
             this.lastShown = 0;
-
             var params = {
                 uid: uid,
                 drange: this.drange
@@ -492,12 +758,17 @@
             if (el.isMasked()) {
                 el.unmask();
             }
-
-            if (data.length > 0){
+            // this is defined by the visualization library, if it is missing then we can not
+            // render any charts
+            if (!Ext.isDefined(window.zenoss)) {
+                el.mask(_t('Unable to load the visualization library.') , 'x-mask-msg-noicon');
+            } else if (data.length > 0){
                 this.addGraphs(data);
             }else{
+                // no graphs were returned
                 el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
             }
+
         },
         addGraphs: function(data) {
             var graphs = [],
@@ -506,20 +777,24 @@
                 me = this,
                 start = this.lastShown,
                 end = this.lastShown + GRAPHPAGESIZE,
+                graphTitle,
                 i;
+
             // load graphs until we have either completed the page or
             // we ran out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
-                graphId = Ext.id();
                 graph = data[i];
-                graphs.push(new Zenoss.SwoopyGraph({
-                    graphUrl: graph.url,
-                    graphTitle: graph.title,
+                graphId = Ext.id();
+                graphTitle = graph.title;
+                delete graph.title;
+                graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
+                    uid: this.uid,
                     graphId: graphId,
+                    graphTitle: graphTitle,
                     isLinked: this.isLinked,
-                    height: 250,
-                    ref: graphId
-                }));
+                    ref: graphId,
+                    height: 500
+                })));
             }
 
             // set up for the next page
@@ -538,32 +813,83 @@
                     }
                 });
             }
-
             // render the graphs
-            this.add(graphs);
+            this.organizeGraphsIntoColumns(graphs, this.columns);
+        },
+        organizeGraphsIntoColumns: function(graphs, numCols) {
+            var columns = [], i, col=0;
+            // create a column container for each column specified
+            for (i=0; i < numCols; i ++) {
+                columns.push({
+                    xtype: 'container',
+                    items: [],
+                    // make them equal space
+                    columnWidth: 1 / numCols
+                });
+            }
+
+            // divide the graphs into buckets based on the order in which they were defined.
+            for (i=0; i < graphs.length; i ++) {
+                columns[col].items.push(graphs[i]);
+                col++;
+                if (col>=numCols) {
+                    col = 0;
+                }
+            }
+
+            if (!this.start_date) {
+                // add the date filters as well as the columns
+                this.add([{
+                    xtype: 'container',
+                    items: Ext.Array.clone(dateRangePanel)
+                },{
+                    layout: 'column',
+                    items: columns
+                }]);
+            } else {
+                // just add the columns
+                this.add({
+                    layout: 'column',
+                    items: columns
+                });
+            }
+        },
+        updateEndTime: function(){
+            if (this.checkbox_now && this.checkbox_now.getValue()) {
+                this.end_date.setValue(new Date());
+            }
         },
         setDrange: function(drange) {
+            this.start = null;
+            this.end = null;
             drange = drange || this.drange;
             this.drange = drange;
+            //  set the start and end dates to the selected range.
+            this.end_date.setValue(new Date());
+            this.start_date.setValue(new Date(new Date().getTime() - rangeToMilliseconds(drange)));
+
+            // tell each graph to update
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEvent("updateimage", {
-                    drange: drange,
-                    start: drange,
-                    end: 0
+                    drange: drange
                 }, this);
             });
         },
-        resetSwoopies: function() {
-            Ext.each(this.getGraphs(), function(g) {
-                g.fireEvent("updateimage", {
-                }, this);
-            });
+        refresh: function() {
+            // if we are rendered but not visible do not refresh
+            if (this.isVisible()) {
+                this.updateEndTime();
+                Ext.each(this.getGraphs(), function(g) {
+                    g.fireEvent("updateimage", {
+                        // if they selected a specific start then use that otherwise use the drange
+                        start: this.start || this.drange,
+                        end: this.end || CURRENT_TIME
+                    }, this);
+                });
+            }
         },
         getGraphs: function() {
-            var graphs = Zenoss.util.filter(this.items.items, function(item){
-                return item.graphUrl;
-            });
-            return graphs;
+            return this.query('europagraph');
         },
         setLinked: function(isLinked) {
             this.isLinked = isLinked;

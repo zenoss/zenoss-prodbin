@@ -35,6 +35,9 @@ from OFS.interfaces import IObjectWillBeRemovedEvent
 
 from ZenModelRM import ZenModelRM
 
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
+
 def manage_addServiceClass(context, id=None, REQUEST = None):
     """make a device class"""
     if id:
@@ -216,6 +219,13 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
 
     def getUrlForUserCommands(self):
         return self.getPrimaryUrlPath() + '/serviceClassManage'
+
+    def updateServicesInGlobalCatalog(self): 
+        """ 
+        Method to update global catalog entries for Services under a ServiceClass 
+        """ 
+        for service in self.instances(): 
+            notify(IndexingEvent(service))
 
 
 InitializeClass(ServiceClass)

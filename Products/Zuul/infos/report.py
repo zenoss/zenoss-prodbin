@@ -15,7 +15,8 @@ from Products.Zuul.interfaces import IReportClassNode, IReportNode
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.routers.report import essentialReportOrganizers
-
+from Products.ZenModel.GraphReport import GraphReport
+from Products.ZenModel.MultiGraphReport import MultiGraphReport
 
 class ReportClassNode(TreeNode):
     implements(IReportClassNode)
@@ -93,6 +94,19 @@ class ReportNode(TreeNode):
     def children(self):
         return ()
 
+    @property
+    def isMultiGraphReport(self):
+        return isinstance(self._object.getObject(), MultiGraphReport)
+
+    @property
+    def isGraphReport(self):
+        return isinstance(self._object.getObject(), GraphReport)
+
+    @property
+    def columns(self):
+        report = self._object.getObject()
+        return getattr(report, 'numColumns')
+    
     @property
     def edit_url(self):
         if self._object.meta_type == 'Report':
