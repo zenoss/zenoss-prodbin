@@ -159,6 +159,20 @@
     />
 
 <browser:page
+    template="templates/daemons.pt"
+    name="daemons"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="templates/collectortemplate.pt"
+    name="collectorTemplate"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="templates/ipservice.pt"
     name="ipservice"
     for="*"
@@ -313,6 +327,14 @@
     for="*"
     permission="zenoss.Common"
     />
+
+<browser:page
+    class=".views.GetDaemonLogs"
+    name="getDaemonLogs"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.Common"
+    />
+
 <browser:viewlet
     name="zenoss_settings"
     manager=".interfaces.IMainSnippetManager"

@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
@@ -35,7 +36,7 @@
         provides=".interfaces.IAction"
         name="command"
         />
-    
+
     <utility
         factory=".actions.SNMPTrapAction"
         provides=".interfaces.IAction"
@@ -47,6 +48,11 @@
         provides=".interfaces.IAction"
         name="syslog"
         />
+
+   <utility
+      factory=".PerformanceConf.PerformanceConfFactory"
+      name="PerformanceConf"
+      />
 
     <meta:provides feature="zenoss:IExpandedLinkProvider" />
     <!-- Make sure that whenever process or services classes are removed their

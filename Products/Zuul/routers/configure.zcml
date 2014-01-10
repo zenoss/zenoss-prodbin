@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <configure
     xmlns:zope="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser">
@@ -111,6 +112,20 @@
     name="report_router"
     for="*"
     class=".report.ReportRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
+    name="application_router"
+    for="*"
+    class=".application.ApplicationRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
+    name="monitor_router"
+    for="*"
+    class=".monitor.MonitorRouter"
     namespace="Zenoss.remote"
     />
 

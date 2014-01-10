@@ -94,7 +94,7 @@ def marshal(obj, keys=None, marshallerName='', objs=None):
         verify.verifyObject(IMarshaller, marshaller)
 
         if IInfo.providedBy(obj):
-            key = (obj._object._p_oid, obj.__class__)
+            key = (getattr(obj._object, '_p_oid', id(obj)), obj.__class__)
             if key in objs:
                 raise AlreadySeenException()
             else:
@@ -168,8 +168,9 @@ def info(obj, adapterName=''):
         return dict((k, infoize(obj[k])) for k in obj)
 
     # obj is a non-string iterable, so apply to its members recursively
-    elif hasattr(obj, '__iter__') and not isinstance(obj, ObjectManager):
+    elif hasattr(obj, '__iter__') and not isinstance(obj, ObjectManager):        
         return map(infoize, obj)
+        
 
     # attempt to adapt; if no adapter, return obj itself
     else:

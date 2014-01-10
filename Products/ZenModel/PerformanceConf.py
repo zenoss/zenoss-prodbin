@@ -19,6 +19,8 @@ from ipaddr import IPAddress
 log = logging.getLogger('zen.PerformanceConf')
 
 from zope import component
+from zope.component.factory import Factory
+from zope.interface import implementer
 
 from Products.ZenUtils.IpUtil import ipwrap
 
@@ -30,18 +32,17 @@ from Monitor import Monitor
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenRelations.RelSchema import ToMany, ToOne
 from Products.ZenUtils.deprecated import deprecated
-from Products.ZenUtils.Utils import binPath
-from Products.ZenUtils.Utils import unused
-from Products.ZenUtils.Utils import isXmlRpc
-from Products.ZenUtils.Utils import executeCommand
+from Products.ZenUtils.Utils import binPath, unused, isXmlRpc, executeCommand
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenModel.ZDeviceLoader import CreateDeviceJob
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
-from StatusColor import StatusColor
 
+from .StatusColor import StatusColor
+from .interfaces import IMonitor
 
-SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float( getGlobalConfiguration().get('collectorRequestTimeout', 5) )
+SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float(
+    getGlobalConfiguration().get('collectorRequestTimeout', 5))
 
 
 def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
@@ -60,17 +61,61 @@ def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
     @rtype:
     """
     unused(title)
-    dc = PerformanceConf(id)
-    context._setObject(id, dc)
-
+    # Use the factory to create the monitor.
+    component.createObject(PerformanceConf.meta_type, context, id)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                 + '/manage_main')
-
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 addPerformanceConf = DTMLFile('dtml/addPerformanceConf', globals())
 
 
+class PerformanceConfFactory(Factory):
+    """
+    IFactory implementation for PerformanceConf objects.
+
+    The factory create the PerformanceConf instance and attaches it to
+    the dmd.Monitor.Performance folder.
+    """
+
+    def __init__(self):
+        super(PerformanceConfFactory, self).__init__(
+            PerformanceConf, PerformanceConf.meta_type, "Performance Monitor"
+        )
+
+    def __call__(self, folder, monitorId, sourceId=None):
+        """
+        Creates a new PerformanceConf object, saves it to ZODB, and returns
+        the new object.
+
+        :param Folder folder: The new monitor is attached here.
+        :param string monitorId: The ID/name of the monitor
+        :param string sourceId: The ID/name of the monitor to copy
+            properties from.
+        :rtype PerformanceConf: The new monitor.
+        """
+        sourceId = sourceId if sourceId is not None else "localhost"
+        monitor = folder.get(monitorId)
+        if monitor:
+            raise ValueError(
+                "Performance Monitor with ID '%s' already exitsts."
+                % (monitorId,)
+            )
+        source = folder.get(sourceId)
+        if source is None:
+            source = folder.get("localhost")
+            if source:
+                source = source.primaryAq()
+        monitor = super(PerformanceConfFactory, self).__call__(monitorId)
+        if source:
+            sourceprops = dict(source.propertyItems())
+            monitor.manage_changeProperties(**sourceprops)
+        folder[monitorId] = monitor
+        monitor = folder.get(monitorId)
+        monitor.buildRelations()
+        return monitor
+
+
+@implementer(IMonitor)
 class PerformanceConf(Monitor, StatusColor):
     """
     Configuration for Performance servers
@@ -107,9 +152,9 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'statusCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'winCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'wmibatchSize', 'type': 'int', 'mode': 'w',
-         'description':"Number of data objects to retrieve in a single WMI query",},
+         'description': "Number of data objects to retrieve in a single WMI query"},
         {'id': 'wmiqueryTimeout', 'type': 'int', 'mode': 'w',
-         'description':"Number of milliseconds to wait for WMI query to respond",},
+         'description': "Number of milliseconds to wait for WMI query to respond"},
         {'id': 'configCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'zenProcessParallelJobs', 'type': 'int', 'mode': 'w'},
         {'id': 'pingTimeOut', 'type': 'float', 'mode': 'w'},
@@ -119,39 +164,32 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'maxPingFailures', 'type': 'int', 'mode': 'w'},
         {'id': 'modelerCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'discoveryNetworks', 'type': 'lines', 'mode': 'w'},
-        )
+    )
 
     _relations = Monitor._relations + (
-        ("devices", ToMany(ToOne,"Products.ZenModel.Device","perfServer")),
-        )
+        ("devices", ToMany(ToOne, "Products.ZenModel.Device", "perfServer")),
+    )
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = (
-        {
-            'immediate_view' : 'viewPerformanceConfOverview',
-            'actions'        :
-            (
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewPerformanceConfOverview'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editPerformanceConf'
-                , 'permissions'   : ("Manage DMD",)
-                },
-                { 'id'            : 'performance'
-                , 'name'          : 'Performance'
-                , 'action'        : 'viewDaemonPerformance'
-                , 'permissions'   : (permissions.view,)
-                },
-            )
-          },
-        )
-
-    
+    factory_type_information = ({
+        'immediate_view': 'viewPerformanceConfOverview',
+        'actions': ({
+            'id':          'overview',
+            'name':        'Overview',
+            'action':      'viewPerformanceConfOverview',
+            'permissions': (permissions.view,)
+        }, {
+            'id':          'edit',
+            'name':        'Edit',
+            'action':      'editPerformanceConf',
+            'permissions': ("Manage DMD",)
+        }, {
+            'id':          'performance',
+            'name':        'Performance',
+            'action':      'viewDaemonPerformance',
+            'permissions': (permissions.view,)
+        },)
+    },)
 
     def findDevice(self, deviceName):
         """
@@ -165,7 +203,6 @@ class PerformanceConf(Monitor, StatusColor):
         brains = self.dmd.Devices._findDevice(deviceName)
         if brains:
             return brains[0].getObject()
-
 
     def getNetworkRoot(self, version=None):
         """
@@ -194,7 +231,6 @@ class PerformanceConf(Monitor, StatusColor):
                 devlist.append(dev.getPrimaryUrlPath(full=True))
         return devlist
 
-
     security.declareProtected('View', 'performanceDataSources')
     def performanceDataSources(self):
         """
@@ -220,7 +256,8 @@ class PerformanceConf(Monitor, StatusColor):
                         ds.getName(), inst))
         return '\n'.join(dses)
 
-    def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, REQUEST=None):
+    def setPerformanceMonitor(
+            self, performanceMonitor=None, deviceNames=None, REQUEST=None):
         """
         Provide a method to set performance monitor from any organizer
 
@@ -233,31 +270,36 @@ class PerformanceConf(Monitor, StatusColor):
         """
         if not performanceMonitor:
             if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser('Error',
-                        'No monitor was selected.',
-                        priority=messaging.WARNING)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', 'No monitor was selected.',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         if deviceNames is None:
             if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser('Error',
-                        'No devices were selected.',
-                        priority=messaging.WARNING)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', 'No devices were selected.',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         for devName in deviceNames:
             dev = self.devices._getOb(devName)
             dev = dev.primaryAq()
             dev.setPerformanceMonitor(performanceMonitor)
             if REQUEST:
-                audit('UI.Device.ChangeCollector', dev, collector=performanceMonitor)
+                audit(
+                    'UI.Device.ChangeCollector',
+                    dev, collector=performanceMonitor
+                )
         if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser('Monitor Set',
-                    'Performance monitor was set to %s.'
-                     % performanceMonitor)
-            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+            messaging.IMessageSender(self).sendToBrowser(
+                'Monitor Set',
+                'Performance monitor was set to %s.' % performanceMonitor
+            )
+            if "oneKeyValueSoInstanceIsntEmptyAndEvalToFalse" in REQUEST:
                 return REQUEST['message']
             else:
                 return self.callZenScreen(REQUEST)
-
 
     security.declareProtected('View', 'getPingDevices')
     def getPingDevices(self):
@@ -274,7 +316,8 @@ class PerformanceConf(Monitor, StatusColor):
                 devices.append(dev)
         return devices
 
-    def addCreateDeviceJob(self, deviceName, devicePath, title=None,
+    def addCreateDeviceJob(
+            self, deviceName, devicePath, title=None,
             discoverProto="none", manageIp="", performanceMonitor=None,
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="", osManufacturer="",
@@ -308,36 +351,36 @@ class PerformanceConf(Monitor, StatusColor):
         # two jobs.
 
         subjobs = [
-                CreateDeviceJob.makeSubJob(
-                    args=(deviceName,),
-                    kwargs=dict(
-                        devicePath=devicePath,
-                        title=title,
-                        discoverProto=discoverProto,
-                        manageIp=manageIp,
-                        performanceMonitor=monitor,
-                        rackSlot=rackSlot,
-                        productionState=productionState,
-                        comments=comments,
-                        hwManufacturer=hwManufacturer,
-                        hwProductName=hwProductName,
-                        osManufacturer=osManufacturer,
-                        osProductName=osProductName,
-                        priority=priority,
-                        tag=tag,
-                        serialNumber=serialNumber,
-                        locationPath=locationPath,
-                        systemPaths=systemPaths,
-                        groupPaths=groupPaths,
-                        zProperties=zProperties,
-                        cProperties=cProperties,
-                    )
+            CreateDeviceJob.makeSubJob(
+                args=(deviceName,),
+                kwargs=dict(
+                    devicePath=devicePath,
+                    title=title,
+                    discoverProto=discoverProto,
+                    manageIp=manageIp,
+                    performanceMonitor=monitor,
+                    rackSlot=rackSlot,
+                    productionState=productionState,
+                    comments=comments,
+                    hwManufacturer=hwManufacturer,
+                    hwProductName=hwProductName,
+                    osManufacturer=osManufacturer,
+                    osProductName=osProductName,
+                    priority=priority,
+                    tag=tag,
+                    serialNumber=serialNumber,
+                    locationPath=locationPath,
+                    systemPaths=systemPaths,
+                    groupPaths=groupPaths,
+                    zProperties=zProperties,
+                    cProperties=cProperties,
                 )
-            ]
+            )
+        ]
         if discoverProto != 'none':
             zendiscCmd = self._getZenDiscCommand(
-                    deviceName, devicePath, monitor, productionState
-                )
+                deviceName, devicePath, monitor, productionState
+            )
             subjobs.append(
                 SubprocessJob.makeSubJob(
                     args=(zendiscCmd,),
@@ -352,34 +395,36 @@ class PerformanceConf(Monitor, StatusColor):
         return self.dmd.JobManager.addJobChain(*subjobs, immutable=True)
 
     @deprecated
-    def addDeviceCreationJob(self, deviceName, devicePath, title=None,
-                             discoverProto="none", manageIp="",
-                             performanceMonitor=None,
-                             rackSlot=0, productionState=1000, comments="",
-                             hwManufacturer="", hwProductName="",
-                             osManufacturer="", osProductName="", priority=3,
-                             locationPath="", systemPaths=[], groupPaths=[],
-                             tag="", serialNumber="", zProperties={}):
+    def addDeviceCreationJob(
+            self, deviceName, devicePath, title=None,
+            discoverProto="none", manageIp="",
+            performanceMonitor=None,
+            rackSlot=0, productionState=1000, comments="",
+            hwManufacturer="", hwProductName="",
+            osManufacturer="", osProductName="", priority=3,
+            locationPath="", systemPaths=[], groupPaths=[],
+            tag="", serialNumber="", zProperties={}):
         """
         For backward compatibility.  Please use the addCreateDeviceJob
         method instead of the addDeviceCreationJob method.
         """
         result = self.addCreateDeviceJob(
-                deviceName, devicePath, title=title,
-                discoverProto=discoverProto, manageIp=manageIp,
-                performanceMonitor=performanceMonitor, rackSlot=rackSlot,
-                productionState=productionState, comments=comments,
-                hwManufacturer=hwManufacturer, hwProductName=hwProductName,
-                osManufacturer=osManufacturer, osProductName=osProductName,
-                priority=priority, locationPath=locationPath,
-                systemPaths=systemPaths, groupPaths=groupPaths, tag=tag,
-                serialNumber=serialNumber, zProperties=zProperties
-            )
+            deviceName, devicePath, title=title,
+            discoverProto=discoverProto, manageIp=manageIp,
+            performanceMonitor=performanceMonitor, rackSlot=rackSlot,
+            productionState=productionState, comments=comments,
+            hwManufacturer=hwManufacturer, hwProductName=hwProductName,
+            osManufacturer=osManufacturer, osProductName=osProductName,
+            priority=priority, locationPath=locationPath,
+            systemPaths=systemPaths, groupPaths=groupPaths, tag=tag,
+            serialNumber=serialNumber, zProperties=zProperties
+        )
         return result[-1]
 
-    def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered",
-                               performanceMonitor="localhost", productionState=1000,
-                               background=False, REQUEST=None):
+    def _executeZenDiscCommand(
+            self, deviceName, devicePath="/Discovered",
+            performanceMonitor="localhost", productionState=1000,
+            background=False, REQUEST=None):
         """
         Execute zendisc on the new device and return result
 
@@ -400,26 +445,28 @@ class PerformanceConf(Monitor, StatusColor):
         if background:
             zendiscCmd = self._getZenDiscCommand(*args)
             result = self.dmd.JobManager.addJob(
-                    SubprocessJob, args=(zendiscCmd,),
-                    description="Discover and model device %s as %s" % (
-                        args[0], args[1]
-                    )
+                SubprocessJob, args=(zendiscCmd,),
+                description="Discover and model device %s as %s" % (
+                    args[0], args[1]
                 )
+            )
         else:
             args.append(REQUEST)
             zendiscCmd = self._getZenDiscCommand(*args)
             result = executeCommand(zendiscCmd, REQUEST)
         return result
 
-    def _getZenDiscCommand(self, deviceName, devicePath,
-                           performanceMonitor, productionState, REQUEST=None):
-
+    def _getZenDiscCommand(
+            self, deviceName, devicePath,
+            performanceMonitor, productionState, REQUEST=None):
         zm = binPath('zendisc')
         zendiscCmd = [zm]
-        zendiscOptions = ['run', '--now','-d', deviceName,
-                     '--monitor', performanceMonitor,
-                     '--deviceclass', devicePath,
-                     '--prod_state', str(productionState)]
+        zendiscOptions = [
+            'run', '--now', '-d', deviceName,
+            '--monitor', performanceMonitor,
+            '--deviceclass', devicePath,
+            '--prod_state', str(productionState)
+        ]
         if REQUEST:
             zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
@@ -448,9 +495,9 @@ class PerformanceConf(Monitor, StatusColor):
         result = executeCommand(daemonCmd, REQUEST)
         return result
 
-
-    def collectDevice(self, device=None, setlog=True, REQUEST=None,
-        generateEvents=False, background=False, write=None):
+    def collectDevice(
+            self, device=None, setlog=True, REQUEST=None,
+            generateEvents=False, background=False, write=None):
         """
         Collect the configuration of this device AKA Model Device
 
@@ -465,7 +512,9 @@ class PerformanceConf(Monitor, StatusColor):
         @type generateEvents: string
         """
         xmlrpc = isXmlRpc(REQUEST)
-        zenmodelerOpts = ['run', '--now', '--monitor', self.id, '-d', device.id]
+        zenmodelerOpts = [
+            'run', '--now', '--monitor', self.id, '-d', device.id
+        ]
         result = self._executeZenModelerCommand(zenmodelerOpts, background,
                                                 REQUEST, write)
         if result and xmlrpc:
@@ -475,8 +524,8 @@ class PerformanceConf(Monitor, StatusColor):
         if xmlrpc:
             return 0
 
-    def _executeZenModelerCommand(self, zenmodelerOpts, background=False,
-                               REQUEST=None, write=None):
+    def _executeZenModelerCommand(
+            self, zenmodelerOpts, background=False, REQUEST=None, write=None):
         """
         Execute zenmodeler and return result
 
@@ -492,12 +541,15 @@ class PerformanceConf(Monitor, StatusColor):
         zenmodelerCmd.extend(zenmodelerOpts)
         if background:
             log.info('queued job: %s', " ".join(zenmodelerCmd))
-            result = self.dmd.JobManager.addJob(SubprocessJob,
-                    description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
-                    args=(zenmodelerCmd,))
+            result = self.dmd.JobManager.addJob(
+                SubprocessJob,
+                description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
+                args=(zenmodelerCmd,)
+            )
         else:
             result = executeCommand(zenmodelerCmd, REQUEST, write)
         return result
+
 
 class RenderURLUtilContext(object):
     """
@@ -505,10 +557,13 @@ class RenderURLUtilContext(object):
     """
     pass
 
+
 class RenderURLUtil(object):
     """
     Deprecated
-    This is no longer used but the stub class so zenpacks will work on an upgrade.
+    This is no longer used but the stub class so zenpacks will
+    work on an upgrade.
     """
     pass
+
 InitializeClass(PerformanceConf)

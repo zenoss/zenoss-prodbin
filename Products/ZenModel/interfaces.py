@@ -10,6 +10,7 @@
 
 from zope.interface import Interface, Attribute
 
+
 class IDeviceLoader(Interface):
     """
     Object with ability to add devices to the database.
@@ -23,6 +24,7 @@ class IDeviceLoader(Interface):
         """
         Attempt to load multiple devices into the database.
         """
+
 
 class IIndexed(Interface):
     """
@@ -45,6 +47,7 @@ class IDataRoot(Interface):
     Marker interface for the DMD, so it can be looked up as a global utility.
     """
 
+
 class IZenDocProvider(Interface):
     """
     Adapter that does zendoc manipulation for an underlying object
@@ -63,6 +66,7 @@ class IZenDocProvider(Interface):
 
     def exportZendocXml(self):
         pass
+
 
 class IAction(Interface):
 
@@ -119,13 +123,16 @@ class IAction(Interface):
         @type kwargs: dict
         """
 
+
 class IProvidesEmailAddresses(Interface):
     def getEmailAddresses():
         pass
 
+
 class IProvidesPagerAddresses(Interface):
     def getPagerAddresses():
         pass
+
 
 class IProcessSignal(Interface):
     """
@@ -138,6 +145,7 @@ class IProcessSignal(Interface):
         @type signal: zenoss.protocols.protobufs.zep_pb2.Signal
         """
         pass
+
 
 class INotificationContextProvider(Interface):
     """
@@ -154,16 +162,19 @@ class INotificationContextProvider(Interface):
         @type context: dict
         """
 
+
 class IExpandedLinkProvider(Interface):
     """
     Subscriber interface that gives a hook for adding
     context-specific html links (for example, the
     device links on the DeviceDetails page).
     """
+
     def getExpandedLinks():
         """
         @rtype list of html elements with links
         """
+
 
 class IRenderURLUtil(Interface):
     """
@@ -185,8 +196,15 @@ class IPrivateObjectAdapter(Interface):
     Can be provided by a ZenPack to signify that a particular object should not
     be handled by other hub services.
     """
+
     def is_private():
         """
         Should configuration handling for the wrapped object be handled
         exclusively by a specific ZenPack?
         """
+
+
+class IMonitor(Interface):
+    """
+    Provided by objects that monitor a collection of devices.
+    """

@@ -73,6 +73,9 @@
         return alphcmp(o1, o2);
     }
 
+    Zenoss.sortTreeNodes = sortTreeNodes;
+
+	
     /**
      * Base Tree Selection model for zenoss. Defines
      * the getSelectedNode method that existed in 3.X trees.
@@ -342,7 +345,7 @@
                     defaultRootId:root.uid,
                     remoteSort: false,
                     sorters: {
-                        sorterFn: config.sortFn || sortTreeNodes,
+                        sorterFn: config.sortFn || Zenoss.sortTreeNodes,
                         direction: 'asc'
                     },
                     uiProviders:{

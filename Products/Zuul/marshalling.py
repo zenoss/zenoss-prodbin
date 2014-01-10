@@ -151,4 +151,7 @@ class DefaultUnmarshaller(object):
 
     def unmarshal(self, data):
         for key, value in data.iteritems():
-            setattr(self.obj, key, value)
+            try:
+                setattr(self.obj, key, value)
+            except AttributeError:                
+                raise AttributeError("Property %s doesn't exist on %s" % (key, self.obj))

@@ -88,3 +88,5 @@ from manufacturers import *
 from backup import *
 from metric import *
 from security import *
+from application import *
+from monitor import *
