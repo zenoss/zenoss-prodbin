@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from ..form.schema import TextLine, Bool
+from ..form.schema import Text, TextLine, Bool
 from ..utils import ZuulMessageFactory as _t
 from . import IInfo, IFacade
 
@@ -60,6 +60,20 @@ class IApplicationInfo(IInfo):
     )
 
 
+class IApplicationConfigurationInfo(IInfo):
+
+    filename = TextLine(
+        title=_t("Filename"),
+        description=_t("Pathname for log file."),
+        readonly=True
+    )
+
+    content = Text(
+        title=_t("Content"),
+        description=_t("The content of the configuration file."),
+    )
+
+
 class IApplicationFacade(IFacade):
     """
     Interface for managing Zenoss applications.
@@ -108,10 +122,6 @@ class IApplicationFacade(IFacade):
         """
         Restarts the identified application.
         """
-
-
-class IApplicationConfigurationInfo(IInfo):
-    pass
 
 
 __all__ = (

@@ -20,11 +20,26 @@ from Products.ZenUtils.application import (
     IApplicationManager, IApplication, IApplicationLog,
     IApplicationConfiguration, ApplicationState
 )
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from .client import ControlPlaneClient
 from .runstates import RunStates
 
 LOG = logging.getLogger("zen.controlplane")
+
+
+def getConnectionSettings(options=None):
+    if options is None:
+        o = globalConfToDict()
+    else:
+        o = options
+    settings = {
+        "host": o.get("controlplane-host"),
+        "port": o.get("controlplane-port"),
+        "user": o.get("controlplane-user", "zenoss"),
+        "password": o.get("controlplane-password", "zenoss"),
+    }
+    return settings
 
 
 @implementer(IApplicationManager)
@@ -37,7 +52,8 @@ class DeployedAppLookup(object):
     clientClass = ControlPlaneClient
 
     def __init__(self):
-        self._client = self.clientClass()
+        settings = getConnectionSettings()
+        self._client = self.clientClass(**settings)
         self._appcache = {}
 
     def query(self, name=None, tags=None, monitorName=None):
@@ -98,7 +114,7 @@ class DeployedApp(object):
     def _updateState(self):
         """
         Retrieves the current running instance of the application.
-        """        
+        """
         result = self._client.queryServiceInstances(self._service.id)
         instance = result[0] if result else None
         if instance is None and self._instance:
@@ -228,7 +244,8 @@ class _DeployedAppConfigList(Sequence):
         # Note: 'index' can be a slice object, but since it's forwarded
         # to the list's __getitem__ method, don't worry about it.
         values = self._service.configFiles.values()
-        return values.__getitem__(index)
+        data = values.__getitem__(index)
+        return DeployedAppConfig(self._service, self._client, data)
 
     def __len__(self):
         """

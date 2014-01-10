@@ -13,14 +13,11 @@ ControlPlaneClient
 
 import fnmatch
 import json
-import time
 import urllib
 import urllib2
 
 from cookielib import CookieJar
 from urlparse import urlunparse
-
-from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from .data import ServiceJsonDecoder, ServiceJsonEncoder
 
@@ -43,25 +40,11 @@ class _Request(urllib2.Request):
             if self.__method else urllib2.Request.get_method(self)
 
 
-def _getDefaults(options=None):
-    if options is None:
-        o = globalConfToDict()
-    else:
-        o = options
-    settings = {
-        "host": o.get("controlplane-host", _DEFAULT_HOST),
-        "port": o.get("controlplane-port", _DEFAULT_PORT),
-        "user": o.get("controlplane-user", "zenoss"),
-        "password": o.get("controlplane-password", "zenoss"),
-    }
-    return settings
-
-
 class ControlPlaneClient(object):
     """
     """
 
-    def __init__(self):
+    def __init__(self, user, password, host=None, port=None):
         """
         """
         self._cj = CookieJar()
@@ -70,8 +53,12 @@ class ControlPlaneClient(object):
             urllib2.HTTPSHandler(),
             urllib2.HTTPCookieProcessor(self._cj)
         )
-        self._settings = _getDefaults()
-        self._netloc = "%(host)s:%(port)s" % self._settings
+        self._server = {
+            "host": host if host else _DEFAULT_HOST,
+            "port": port if port else _DEFAULT_PORT,
+        }
+        self._creds = {"username": user, "password": password}
+        self._netloc = "%(host)s:%(port)s" % self._server
 
     def queryServices(self, name=None, tags=None):
         """
@@ -166,14 +153,6 @@ class ControlPlaneClient(object):
         )
         response.close()
 
-    def getServiceConfiguration(self, uri):
-        """
-        """
-
-    def updateServiceConfiguration(self, uri, config):
-        """
-        """
-
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
         url = urlunparse(("http", self._netloc, uri, "", query, ""))
@@ -188,11 +167,7 @@ class ControlPlaneClient(object):
     def _login(self):
         # Clear the cookie jar before logging in.
         self._cj.clear()
-        body = {
-            "username": self._settings["user"],
-            "password": self._settings["password"]
-        }
-        encodedbody = json.dumps(body)
+        encodedbody = json.dumps(self._creds)
         request = self._makeRequest("/login", data=encodedbody)
         response = self._opener.open(request)
         response.close()
@@ -200,7 +175,7 @@ class ControlPlaneClient(object):
 
     def _dorequest(self, uri, method=None, data=None, query=None):
         request = self._makeRequest(
-            uri, method=method, data=data, query=query)        
+            uri, method=method, data=data, query=query)
         # Try to perform the request up to five times
         for trycount in range(5):
             try:
