@@ -9,8 +9,9 @@
 ##############################################################################
 -->
 
-<!DOCTYPE html>
-<html metal:define-macro="base-new">
+<metal:block  metal:define-macro="base-new">
+    <!DOCTYPE html>
+<html>
     <head>        
         <title>
             <tal:block tal:content="here/dmd/instanceIdentifier"/>:
@@ -210,3 +211,4 @@ Ext.History.init(function(mgr){
 </script>
 </body>
 </html>
+</metal:block>
