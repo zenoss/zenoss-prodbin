@@ -24,6 +24,7 @@ from Products.ZenHub.interfaces import IBatchNotifier
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.PerformanceConf import PerformanceConf
+from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenModel.ThresholdClass import ThresholdClass
 from Products.ZenModel.privateobject import is_private
@@ -166,15 +167,39 @@ class CollectorConfigService(HubService, ThresholdMixin):
                 if isinstance(object, Device):
                     return
                 # something else... mark the devices as out-of-date
+                template = None
                 while object:
                     # Don't bother with privately managed objects; the ZenPack
                     # will handle them on its own
                     if is_private(object):
                         return
                     # walk up until you hit an organizer or a device
+                    if isinstance(object, RRDTemplate):
+                        template = object
                     if isinstance(object, DeviceClass):
                         uid = (self.__class__.__name__, self.instance)
-                        self._notifier.notify_subdevices(object, uid, self._notifyAll)
+                        devfilter = None
+                        if template:
+                            def hasTemplate(device):
+                                if issubclass(template.getTargetPythonClass(), Device):
+                                    result = template in device.getRRDTemplates()
+                                    if result:
+                                        self.log.debug("%s bound to template %s", device.getPrimaryId(), template.getPrimaryId())
+                                    else:
+                                        self.log.debug("%s not bound to template %s", device.getPrimaryId(), template.getPrimaryId())
+                                    return result
+                                else:
+                                    # check components, Too expensive?
+                                    for comp in device.getMonitoredComponents(type=template.getTargetPythonClass().meta_type):
+                                        result = template in comp.getRRDTemplates()
+                                        if result:
+                                            self.log.debug("%s bound to template %s", comp.getPrimaryId(), template.getPrimaryId())
+                                            return True
+                                        else:
+                                            self.log.debug("%s not bound to template %s", comp.getPrimaryId(), template.getPrimaryId())
+                                    return False
+                            devfilter = hasTemplate
+                        self._notifier.notify_subdevices(object, uid, self._notifyAll, devfilter)
                         break
 
                     if isinstance(object, Device):
