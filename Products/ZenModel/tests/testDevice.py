@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -692,8 +692,8 @@ class GetSnmpConnInfoTest(ZenModelBaseTest):
         device = devices.findChild('test')
         info = device.getSnmpConnInfo()
         for attribute in ATTRIBUTES:
-            self.assertEqual(getattr(device, attribute),
-                             getattr(info, attribute))
+            self.assertEqual(getattr(device, attribute, None),
+                             getattr(info, attribute, None))
 
 def test_suite():
     from unittest import TestSuite, makeSuite

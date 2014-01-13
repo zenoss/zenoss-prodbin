@@ -7,8 +7,9 @@
 # 
 ##############################################################################
 
+from itertools import ifilter, combinations
+from collections import defaultdict
 
-from itertools import groupby
 from Acquisition import aq_base
 
 from Globals import InitializeClass
@@ -180,22 +181,19 @@ class LinkManager(Folder):
         catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
         result = {}
         locs = organizer.children()
-        locpaths = ['/'.join(loc.getPrimaryPath()) for loc in locs]
-        locpaths.reverse() # otherwise the "startswith" call gets too eager
+        locpaths = sorted(('/'.join(loc.getPrimaryPath()) for loc in locs), reverse=True)
         path = '/'.join(organizer.getPhysicalPath())
         subdevs = catalog(path=path)
         subids = dict((x.id, x.path) for x in subdevs)
 
         def _whichorg(brain):
             for path in locpaths:
-                try:
-                    brainpath = subids[brain.deviceId]
-                except KeyError:
-                    return '__outside'
-                if filter(lambda x:'/'.join(x).startswith(path), brainpath): 
+                _matchpath = lambda x: '/'.join(x).startswith(path)
+                brainpath = subids.get(brain.deviceId, [])
+                if any(ifilter(_matchpath, brainpath)):
                     return path
             return '__outside'
-
+            
         def _whichnet(brain):
             return brain.networkId
 
@@ -205,49 +203,35 @@ class LinkManager(Folder):
         links, nets = self.getLinkedNodes('Device', subids.keys())
         links = map(aq_base, links) # For comparison, can't be ImplicitAcq
 
+        _drawMapLinks = lambda x: \
+            getattr(self.dmd.unrestrictedTraverse(x), 'zDrawMapLinks', True)
+
+        # Organize the brains by Location and Network
         byloc = {}
-        for k, g in groupby(links, _whichorg):
-            byloc.setdefault(k, []).extend(g)
-        if '__outside' in byloc: del byloc['__outside']
+        bynet = defaultdict(list)
+        for link in links:
+            dev = _whichdev(link)
+            org = _whichorg(link)
+            if dev and org != '__outside':
+                byloc[dev] = org
 
-        bynet = {}
-        for k, g in groupby(links, _whichnet):
-            if getattr(self.dmd.unrestrictedTraverse(k), 'zDrawMapLinks', True):
-                bynet.setdefault(k, []).extend(g)
+            net = _whichnet(link)
+            if _drawMapLinks(net):
+                bynet[net].append(link)
 
-        final = {}
+        # Build the links (if found)
         linkobs = []
+        for devs in bynet.itervalues():
+            results = defaultdict(list)
+            for d in devs:
+                deviceId = d.deviceId
+                loc = byloc.get(deviceId)
+                if deviceId and loc:
+                    results[loc].append(d)
+            if len(results) >= 2:
+                links = combinations(results.iteritems(), 2)
+                linkobs.extend(Layer3Link(self.dmd, dict(l)) for l in links)
 
-        inverted_loc = {}
-        for loc in byloc:
-            for dev in byloc[loc]:
-                inverted_loc[dev.deviceId] = loc
-        for net in bynet:
-            devs = bynet[net]
-            alllocs = set()
-            for dev in devs:
-                if dev.deviceId and dev.deviceId in inverted_loc:
-                    alllocs.add(inverted_loc[dev.deviceId])
-            if len(alllocs)>=2:
-                for dev in devs:
-                    if dev.deviceId:
-                        loc = inverted_loc.get(dev.deviceId, None)
-                        if loc:
-                            final.setdefault(loc, []).append(dev)
-        def haslink(locs1, locs2):
-            for l in locs1:
-                for b in locs2:
-                    if l.networkId==b.networkId: 
-                        return True
-        locs = final.keys()
-        while locs:
-            loc = locs.pop()
-            for loc2 in locs:
-                first = final[loc]
-                second = final[loc2]
-                if haslink(first, second):
-                    link = Layer3Link(self.dmd, {loc:first, loc2:second})
-                    linkobs.append(link)        
         return dumps([(x.getUids(), x.getStatus()) for x in linkobs])
 
     def getChildLinks_recursive(self, context):

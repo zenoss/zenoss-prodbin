@@ -111,7 +111,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         return list(devices)
 
     security.declareProtected(ZEN_VIEW, "getSubDevicesGen")
-    def getSubDevicesGen(self):
+    def getSubDevicesGen(self, devfilter=None):
         """get all the devices under and instance of a DeviceGroup"""
         catalog = getToolByName(self.dmd.Devices, self.dmd.Devices.default_catalog)
 
@@ -123,6 +123,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             'path': "/".join(self.getPhysicalPath())}, LOG)
         devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev),
                           devices)
+        if devfilter:
+            devices = ifilter(devfilter, devices)
         for device in devices:
             yield device
 

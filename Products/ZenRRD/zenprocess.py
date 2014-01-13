@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, 2009, 2011, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -18,7 +18,6 @@ and store process performance in RRD files.
 import logging
 import sys
 import re
-from hashlib import md5
 from pprint import pformat
 import os.path
 
@@ -35,6 +34,8 @@ from Products.ZenCollector.tasks import SimpleTaskFactory, SimpleTaskSplitter,\
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess,\
     Status_Perf
+from Products.ZenModel.OSProcessMatcher import OSProcessMatcher
+from Products.ZenModel.OSProcessState import determineProcessState
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
@@ -70,10 +71,6 @@ MEM = PERFROOT + '.1.1.2.'        # note trailing dot
 # Max size for CPU numbers
 WRAP = 0xffffffffL
 
-# Regex to see if a string is all hex digits
-IS_MD5 = re.compile('^[a-f0-9]{32}$')
-EMPTY_MD5_DIGEST = md5('').hexdigest()
-
 PROC_SCAN_ERROR = 'Unable to read processes on device %s'
 
 class HostResourceMIBException(Exception):
@@ -90,7 +87,6 @@ class ZenProcessPreferences(object):
         values for needed attributes.
         """
         self.collectorName = "zenprocess"
-        self.defaultRRDCreateCommand = None
         self.configCycleInterval = 20 # minutes
 
         #will be updated based on Performance Config property of same name
@@ -183,7 +179,7 @@ class DeviceStats:
         return self._pidToProcess.itervalues()
 
 
-class ProcessStats:
+class ProcessStats(OSProcessMatcher):
     def __init__(self, processProxy):
         self._pids = {}
         self.cpu = 0
@@ -191,24 +187,15 @@ class ProcessStats:
 
     def update(self, processProxy):
         self._config = processProxy
-        self._compiled_regex = re.compile(self._config.regex)
+        self.includeRegex = self._config.includeRegex
+        self.excludeRegex = self._config.excludeRegex
+        self.replaceRegex = self._config.replaceRegex
+        self.replacement  = self._config.replacement
+        self.primaryUrlPath = self._config.processClassPrimaryUrlPath()
+        self.generatedId  = self._config.generatedId
 
-        # Set up a regex for comparing the process name:
-        #   _config.name contains the MD5'd args appended to the process name,
-        # with the whole thing prepId'd.  We call prepId on the _name_only in
-        # order to strip trailing WS and underscores, which were not stripped
-        # originally due to the appended MD5 hash.
-        result = self._config.name.rsplit(' ', 1)
-        self._name_only = globalPrepId(result[0])
-        self._compiled_name_regex = re.compile('(.?)' + 
-                                               re.escape(self._name_only) + '$')
-
-        self.digest = EMPTY_MD5_DIGEST
-        if not self._config.ignoreParameters:
-            # The modeler plugin computes the MD5 hash of the args,
-            # and then tosses that into the name of the process
-            if len(result) == 2 and result[1] != '':
-                self.digest = result[1]
+    def processClassPrimaryUrlPath(self):
+        return self.primaryUrlPath
 
     def __str__(self):
         """
@@ -217,46 +204,6 @@ class ProcessStats:
         return str(self._config.name)
 
     __repr__ = __str__
-
-    def match(self, name, args, useName=True, useMd5Digest=True):
-        """
-        Perform exact comparisons on the process names.
-
-        @parameter name: name of a process to compare
-        @type name: string
-        @parameter args: argument list of the process
-        @type args: string
-        @parameter useMd5Digest: ignore true result if MD5 doesn't match the process name?
-        @type useMd5Digest: boolean
-        @return: does the name match this process's info?
-        @rtype: Boolean
-        """
-        if self._config.name is None:
-            return False
-
-        # SNMP agents return a 'flexible' number of characters,
-        # so exact matching isn't always reliable.
-        processName = ('%s %s' % (name, args or '')).strip()
-
-        # Make the comparison
-        result = self._compiled_regex.search(processName) is not None
-
-        # We can a match, but it might not be for us
-        if result and useMd5Digest:
-            # Compare this arg list against the digest of this proc
-            digest = md5(args).hexdigest()
-            if self.digest and digest != self.digest:
-                result = False
-
-        if result and useName:
-            cleanNameOnly = globalPrepId(name)
-            nameMatch = self._compiled_name_regex.search(cleanNameOnly)
-            if not nameMatch or nameMatch.group(1) not in ('', '_'):
-                log.debug("Discarding match based on name mismatch: %s %s", 
-                            cleanNameOnly, self._name_only)
-                result = False
-
-        return result
 
     def updateCpu(self, pid, value):
         """
@@ -411,6 +358,7 @@ class ZenProcessTask(ObservableMixin):
             self._deviceStats = DeviceStats(self._device)
             ZenProcessTask.DEVICE_STATS[self._devId] = self._deviceStats
 
+
     @defer.inlineCallbacks
     def doTask(self):
         """
@@ -435,8 +383,7 @@ class ZenProcessTask(ObservableMixin):
         Callback called after a connect or previous collection so that another
         collection can take place.
         """
-        log.debug("Scanning for processes from %s [%s]",
-                  self._devId, self._manageIp)
+        log.debug("Scanning for processes from %s [%s]", self._devId, self._manageIp)
 
         self.state = ZenProcessTask.STATE_SCANNING_PROCS
         tables = [NAMETABLE, PATHTABLE, ARGSTABLE]
@@ -446,6 +393,7 @@ class ZenProcessTask(ObservableMixin):
             self._clearSnmpError("%s - timeout cleared" % summary, 'table_scan_timeout')
             if self.snmpConnInfo.zSnmpVer == 'v3':
                 self._clearSnmpError("%s - v3 error cleared" % summary, 'table_scan_v3_error')
+            
             processes = self._parseProcessNames(tableResult)
             self._clearSnmpError(summary, 'resource_mib')
             self._deviceStats.update(self._device)
@@ -523,9 +471,9 @@ class ZenProcessTask(ObservableMixin):
                 if pid not in afterByConfig[procStats]:
                     droppedPids.append(pid)
             procClassName = pConfig.processClass.rsplit('/', 1)[-1]
-            summary = 'Process restarted: %s' % procClassName
+            summary = 'Process(es) restarted in process set: %s' % procClassName
             message = '%s\n Using regex \'%s\' Discarded dead pid(s) %s Using new pid(s) %s'\
-            % (summary, pConfig.regex, droppedPids, afterByConfig[procStats])
+            % (summary, pConfig.includeRegex, droppedPids, afterByConfig[procStats])
             self._eventService.sendEvent(self.statusEvent,
                                          device=self._devId,
                                          summary=summary,
@@ -542,7 +490,7 @@ class ZenProcessTask(ObservableMixin):
             procClassName = processStat._config.processClass.rsplit('/', 1)[-1]
             summary = "Process up: %s" % procClassName
             message = '%s\n Using regex \'%s\' with pid\'s %s '\
-            % (summary, processStat._config.regex, pids)
+            % (summary, processStat._config.includeRegex, pids)
             self._eventService.sendEvent(self.statusEvent,
                                          device=self._devId,
                                          summary=summary,
@@ -568,7 +516,8 @@ class ZenProcessTask(ObservableMixin):
             self.capturePacket(self._devId, results)
 
         showrawtables = self._preferences.options.showrawtables
-        args, procs = mapResultsToDicts(showrawtables, results)
+        procs = mapResultsToDicts(showrawtables, results)
+        
         if self._preferences.options.showprocs:
             self._showProcessList(procs)
         return procs
@@ -578,9 +527,9 @@ class ZenProcessTask(ObservableMixin):
         for procConfig in missing:
             ZenProcessTask.MISSING += 1
             procClassName = procConfig.processClass.rsplit('/', 1)[-1]
-            summary = 'Process not running: %s' % procClassName
+            summary = 'Process set contains 0 running processes: %s' % procClassName
             message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
-                        % (summary,procConfig.regex,self._device.lastmodeltime)
+                        % (summary,procConfig.includeRegex,self._device.lastmodeltime)
             self._eventService.sendEvent(self.statusEvent,
                                              device=self._devId,
                                              summary=summary,
@@ -613,8 +562,7 @@ class ZenProcessTask(ObservableMixin):
             if procStat in pidCounts:
                 pidCounts[procStat] += 1
             else:
-                log.warn('%s monitored proc %s %s not in process stats', self._devId, procStat._config.name,
-                         procStat._config.originalName)
+                log.warn('%s monitored proc %s %s not in process stats', self._devId, procStat._config.name, procStat._config.originalName)
                 log.debug("%s pidcounts is %s", self._devId, pidCounts)
         for procName, count in pidCounts.iteritems():
             self._save(procName, 'count_count', count, 'GAUGE')
@@ -624,97 +572,50 @@ class ZenProcessTask(ObservableMixin):
         """
         Determine the up/down/restarted status of processes.
 
-        @parameter procs: array of pid, (name, args) info
+        @parameter procs: array of pid, (name_with_args) info
         @type procs: list
+        @parameter deviceStats: 
+        @type procs: 
         """
         beforePids = set(self._deviceStats.pids)
         afterPidToProcessStats = {}
-        pStatsWArgsAndSums, pStatsWoArgs = self._splitPStatMatchers()
-        for pid, (name, psargs) in procs:
-            pStats = self._deviceStats._pidToProcess.get(pid)
-            if pStats:
-                # We saw the process before, so there's a good
-                # chance that it's the same.
-                if pStats.match(name, psargs):
-                    # Yep, it's the same process
-                    log.debug("Found process %d on %s, matching %s %s with MD5",
-                              pid, pStats._config.name, name, psargs)
-                    log.debug("%s found existing stat %s %s for pid %s - using MD5", self._devId, pStats._config.name,
-                              pStats._config.originalName, pid)
-                    afterPidToProcessStats[pid] = pStats
-                    continue
 
-                elif pStats.match(name, psargs, useMd5Digest=False):
-                    # In this case, our raw SNMP data from the
-                    # remote agent got futzed
-                    # It's the same process. Yay!
-                    log.debug("%s - Found process %d on %s, matching %s %s without MD5",
-                              self._devId, pid, pStats._config.name, name, psargs)
-                    afterPidToProcessStats[pid] = pStats
-                    continue
-
-            # Search for the first match in our list of regexes
-            # that have arguments AND an MD5-sum argument matching.
-            # Explicitly *IGNORE* any matchers not modeled by zenmodeler
-            for pStats in pStatsWArgsAndSums:
-                if pStats.match(name, psargs):
-                    log.debug("%s Found process %d on %s %s",
-                              self._devId, pid, pStats._config.originalName, pStats._config.name)
-                    afterPidToProcessStats[pid] = pStats
-                    break
-            else:
-                # Now look for the first match in our list of regexes
-                # that don't have arguments.
-                for pStats in pStatsWoArgs:
-                    if pStats.match(name, psargs, useMd5Digest=False):
-                        log.debug("Found process %d on %s",
-                                      pid, pStats._config.name)
+        for pid, name_with_args in procs:
+            log.debug("pid: %s --- name_with_args: %s" % (pid, name_with_args))
+            for pStats in self._deviceStats.processStats:
+                if pStats._config.name is not None:
+                    if pStats.matches(name_with_args):
+                        log.debug("Found process %s belonging to %s", name_with_args, pStats._config)
                         afterPidToProcessStats[pid] = pStats
                         break
 
         afterPids = set(afterPidToProcessStats)
         afterByConfig = reverseDict(afterPidToProcessStats)
-        newPids = afterPids - beforePids
-        deadPids = beforePids - afterPids
+        
+        restarted = {}
+        (deadPids, restartedPids, newPids) = determineProcessState(reverseDict(self._deviceStats._pidToProcess), afterByConfig)
 
         restarted = {}
-        for pid in deadPids:
-            procStats = self._deviceStats._pidToProcess[pid]
-            procStats.discardPid(pid)
-            if procStats in afterByConfig:
-                ZenProcessTask.RESTARTED += 1
-                pConfig = procStats._config
-                if pConfig.restart:
-                    restarted[procStats] = pConfig
+        for restartedPid in restartedPids:
+            ZenProcessTask.RESTARTED += 1
+            procStats = afterPidToProcessStats[restartedPid]
+            pConfig = procStats._config
 
-        # Now that we've found all of the stragglers, check to see
-        # what really is missing or not.
+            # only if configured to alert on restarts...
+            if pConfig.restart:
+                restarted[procStats] = pConfig
+        
+        # populate missing (the process set contains 0 processes...)
         missing = []
         for procStat in self._deviceStats.processStats:
             if procStat not in afterByConfig:
                 missing.append(procStat._config)
-
+        
         # For historical reasons, return the beforeByConfig
         beforeByConfig = reverseDict(self._deviceStats._pidToProcess)
 
         return (afterByConfig, afterPidToProcessStats,
-                beforeByConfig, newPids, restarted, deadPids,
-                missing)
-
-    def _splitPStatMatchers(self):
-        pStatsWArgsAndSums = []; pStatsWoArgs = []
-        for pStat in self._deviceStats.processStats:
-            if pStat._config.ignoreParameters:
-                pStatsWoArgs.append(pStat)
-            else:
-                nameList = pStat._config.name.rsplit(' ', 1)
-                if len(nameList) < 2: # (name, md5sum)
-                    nameList = (nameList[0], EMPTY_MD5_DIGEST)
-
-                possibleMd5Sum = nameList[-1].lower()
-                if IS_MD5.match(possibleMd5Sum):
-                    pStatsWArgsAndSums.append(pStat)
-        return pStatsWArgsAndSums, pStatsWoArgs
+                beforeByConfig, newPids, restarted, deadPids, missing)
 
     @defer.inlineCallbacks
     def _fetchPerf(self):
@@ -760,7 +661,7 @@ class ZenProcessTask(ObservableMixin):
             if len(pids) != 1:
                 log.debug("There are %d pids by the name %s - %s",
                           len(pids), procStat._config.name, procStat._config.originalName)
-            procName = procStat._config.name
+            procName = procStat
             for pid in pids:
                 cpu = results.get(CPU + str(pid), None)
                 mem = results.get(MEM + str(pid), None)
@@ -869,16 +770,16 @@ class ZenProcessTask(ObservableMixin):
         @type statName: string
         @param value: data to be stored
         @type value: number
-        @param rrdType: RRD data type (eg ABSOLUTE, DERIVE, COUNTER)
+        @param rrdType: Metric data type (eg ABSOLUTE, DERIVE, COUNTER)
         @type rrdType: string
         """
-        deviceName = self._devId
-        path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
+        uuid = pidName._config.contextUUID
+        devuuid = pidName._config.deviceuuid
         try:
-            self._dataService.writeRRD(path, value, rrdType, min=min)
+            self._dataService.writeMetric(uuid, statName, value, rrdType, pidName._config.name, min=min, deviceuuid=devuuid)
         except Exception, ex:
-            summary = "Unable to save data for process-monitor RRD %s" %\
-                      path
+            summary = "Unable to save data for process-monitor metric %s" %\
+                      uuid
             log.critical(summary)
 
             message = "Data was value= %s, type=%s" %\
@@ -892,14 +793,13 @@ class ZenProcessTask(ObservableMixin):
 
             self._eventService.sendEvent(dict(
                 dedupid="%s|%s" % (self._preferences.options.monitor,
-                                   'RRD write failure'),
+                                   'Metric write failure'),
                 severity=Event.Critical,
                 device=self._preferences.options.monitor,
                 eventClass=Status_Perf,
-                component="RRD",
+                component="METRIC",
                 pidName=pidName,
                 statName=statName,
-                path=path,
                 message=message,
                 traceback=trace_info,
                 summary=summary))
@@ -947,10 +847,9 @@ def mapResultsToDicts(showrawtables, results):
         if path and path.find('\\') == -1:
             name = path
         arg = args.get(pid, '')
-        procs.append((pid, (name, arg) ))
+        procs.append( (pid, ( name + " " + arg).strip() ) )
 
-    return args, procs
-
+    return procs
 
 def reverseDict(d):
     """
@@ -961,7 +860,6 @@ def reverseDict(d):
     for a, v in d.iteritems():
         result.setdefault(v, []).append(a)
     return result
-
 
 def chunk(lst, n):
     """

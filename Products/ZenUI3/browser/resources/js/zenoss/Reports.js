@@ -12,10 +12,50 @@ Ext.ns('Zenoss.ui.Reports');
 
 Ext.onReady(function () {
 
-var report_panel = new Zenoss.BackCompatPanel({}),
+var report_panel,
     treesm,
     REPORT_PERMISSION = 'Manage DMD',
     report_tree;
+
+report_panel = Ext.create('Ext.panel.Panel', {
+    layout: 'card',
+    items: [{
+        xtype: 'backcompat',
+        ref: 'backcompat',
+        id: 'report_backcompat'
+    }, {
+        xtype: 'panel',
+        ref: 'graph_reports',
+        bodyStyle: {
+            overflow: 'auto'
+        }
+    }],
+    setContext: function(uid) {
+        this.backcompat.setContext(uid);
+        // destroy the graph reports if not viewing them
+        this.graph_reports.removeAll();
+        this.getLayout().setActiveItem(0);
+    },
+    _renderReport: function(attrs, directFn) {
+        this.getLayout().setActiveItem(1);
+        this.graph_reports.removeAll();
+        var graphs = Ext.create('Zenoss.form.GraphPanel', {
+            tbarTitle: attrs.text,
+            directFn: directFn,
+            columns: attrs.columns
+        });
+        graphs.setContext(attrs.uid);
+        this.graph_reports.add(graphs);
+    },
+    renderGraphReport: function(attrs) {
+        this._renderReport(attrs,
+                           Zenoss.remote.ReportRouter.getGraphReportDefs);
+    },
+    renderMultiGraphReport: function(attrs) {
+        this._renderReport(attrs,
+                           Zenoss.remote.ReportRouter.getMultiGraphReportDefs);
+    }
+});
 
 /*
  * Delete a report class
@@ -156,9 +196,16 @@ treesm = new Zenoss.TreeSelectionModel({
                 return;
             }
             var attrs = newnode[0].data;
-            report_panel.setContext(attrs.leaf
+            if (attrs.isGraphReport) {
+                report_panel.renderGraphReport(attrs);
+            } else if (attrs.isMultiGraphReport) {
+                report_panel.renderMultiGraphReport(attrs);
+            } else {
+                report_panel.setContext(attrs.leaf
                     ? Ext.urlAppend(attrs.uid, 'adapt=false')
                     : '');
+            }
+
             if (Zenoss.Security.hasPermission(REPORT_PERMISSION)) {
                 Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
                 Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
@@ -197,6 +244,15 @@ report_tree = new Zenoss.ReportTreePanel({
     }, {
         name: 'edit_url',
         type: 'string'
+    }, {
+        name: 'isMultiGraphReport',
+        type: 'boolean'
+    }, {
+        name: 'isGraphReport',
+        type: 'boolean'
+    }, {
+        name: 'columns',
+        type: 'integer'
     }]
 });
 

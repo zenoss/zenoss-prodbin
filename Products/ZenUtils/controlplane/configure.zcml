@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<configure
+   xmlns="http://namespaces.zope.org/zope"
+   xmlns:five="http://namespaces.zope.org/five">
+
+   <utility
+      provides="Products.ZenUtils.application.IApplicationManager"
+      factory=".application.DeployedAppLookup"
+      />
+
+   <utility
+      factory=".data.ServiceDefinitionFactory"
+      name="ServiceDefinition"
+      />
+
+   <utility
+      factory=".data.ServiceInstanceFactory"
+      name="ServiceInstance"
+      />
+
+</configure>

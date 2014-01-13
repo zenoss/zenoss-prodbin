@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -26,9 +26,9 @@ Uses the HOST-RESOURCES-MIB OIDs.
 # DataCollector/plugins/zenoss/snmp/HRSWRunMap      70      0   100%
 
 import re
-from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, \
-                                                           GetTableMap
-from Products.ZenModel.OSProcess import getProcessIdentifier
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin
+from Products.DataCollector.plugins.CollectorPlugin import GetTableMap
+from Products.ZenModel.OSProcessMatcher import buildObjectMapData
 
 HRSWRUNENTRY = '.1.3.6.1.2.1.25.4.2.1'
 
@@ -39,24 +39,35 @@ class HRSWRunMap(SnmpPlugin):
     compname = "os"
     relname = "processes"
     modname = "Products.ZenModel.OSProcess"
-    deviceProperties = SnmpPlugin.deviceProperties + ('getOSProcessMatchers',)
+    deviceProperties = SnmpPlugin.deviceProperties + ('osProcessClassMatchData',)
 
     columns = {
-         '.2': 'procName',
+         '.2': '_procName',
          '.4': '_procPath',
-         '.5': 'parameters',
+         '.5': '_parameters',
          }
 
     snmpGetTableMaps = (
         GetTableMap('hrSWRunEntry', HRSWRUNENTRY, columns),
     )
 
+    def _extractProcessText(self, proc):
+        path = proc.get('_procPath','').strip()
+        if path and path.find('\\') == -1:
+            name = path
+        else:
+            name = proc.get('_procName','').strip()
+        if name:
+            return (name + ' ' + proc.get('_parameters','').strip()).rstrip()
+        else:
+            self._log.warn("Skipping process with no name")
+
     def process(self, device, results, log):
         """
         Process the SNMP information returned from a device
         """
         self._log = log
-        log.info('Processing %s for device %s', self.name(), device.id)
+        log.info('HRSWRunMap Processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         log.debug("%s tabledata = %s", device.id, tabledata)
 
@@ -76,52 +87,9 @@ class HRSWRunMap(SnmpPlugin):
                         HRSWRUNENTRY)
             return None
 
-        compiled_matchers = self.compile_matchers(device.getOSProcessMatchers)
-        found = {}
+        cmds = map(self._extractProcessText, pidtable.values())
+        cmds = filter(lambda(cmd):cmd, cmds)
         rm = self.relMap()
-        for proc in pidtable.values():
-            om = self.objectMap(proc)
-            ppath = getattr(om, '_procPath', False)
-            if ppath and ppath.find('\\') == -1:
-                om.procName = om._procPath
-            if not getattr(om, 'procName', False):
-                log.warn("Skipping process with no name")
-                continue
-            om.parameters = getattr(om, 'parameters', '')
-            self.match_and_append(compiled_matchers, om, found, rm)
+        matchData = device.osProcessClassMatchData
+        rm.extend(map(self.objectMap, buildObjectMapData(matchData, cmds)))
         return rm
-
-    def compile_matchers(self, matchers):
-        compiled_matchers = []
-        for matcher in matchers:
-            try:
-                c_matcher = matcher.copy()
-                c_matcher['regex_search_function'] = \
-                                        re.compile(matcher['regex']).search
-                compiled_matchers.append(c_matcher)
-            except Exception:
-                if 'regex' in matcher:
-                    msg = "Invalid process regex '{0}' -- ignoring" \
-                          .format(matcher['regex'])
-                else:
-                    msg = 'matcher is missing regex'
-                self._log.warning(msg)
-        return compiled_matchers
-
-    def match_and_append(self, compiled_matchers, om, found, rm):
-        for c_matcher in compiled_matchers:
-            if c_matcher['ignoreParametersWhenModeling']:
-                fullname = om.procName
-                params = None
-            else:
-                fullname = (om.procName + ' ' + om.parameters).rstrip()
-                params = om.parameters
-            if not c_matcher['regex_search_function'](fullname):
-                continue
-            om.setOSProcessClass = c_matcher['getPrimaryDmdId']
-            om.id = self.prepId(getProcessIdentifier(om.procName, params))
-            if om.id not in found:
-                found[om.id] = True
-                rm.append(om)
-            # Stop once a match is found.
-            return

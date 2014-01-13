@@ -30,8 +30,6 @@
              name="hostcpudata"/>
     <utility component="Products.ZenCallHome.HostData.MemProcFileData" provides="Products.ZenCallHome.IHostData"
              name="hostmemdata"/>
-    <utility component="Products.ZenCallHome.HostData.CollectionVolumeData" provides="Products.ZenCallHome.IHostData"
-             name="hostcollectionvolumedata"/>
     <utility component="Products.ZenCallHome.HostData.PlatformData" provides="Products.ZenCallHome.IHostData"
              name="hostplatformdata"/>
     <utility component="Products.ZenCallHome.HostData.DfData" provides="Products.ZenCallHome.IHostData"

@@ -1,14 +1,14 @@
+<?xml version="1.0"?>
 <!--
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 -->
-
 
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
@@ -51,8 +51,21 @@
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides="..interfaces.IGraphInfo"/>
 
-
-
+    <adapter factory=".metricserver.CollectorMetricServiceGraphDefinition"
+             provides="..interfaces.IMetricServiceGraphDefinition"
+             />
+    <adapter factory=".metricserver.MetricServiceGraphDefinition"
+             provides="..interfaces.IMetricServiceGraphDefinition"
+             />
+    <adapter factory=".metricserver.MetricServiceGraphPoint"
+             provides="..interfaces.IMetricServiceGraphPoint"
+             />
+    <adapter factory=".metricserver.MetricServiceThreshold"
+             provides="..interfaces.IMetricServiceGraphPoint"
+             />
+    <adapter factory=".metricserver.CollectorDataPointGraphPoint"
+             provides="..interfaces.IMetricServiceGraphPoint"
+             />
     <adapter factory=".template.DataPointInfo"
              for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
              provides="..interfaces.IDataPointInfo"/>
@@ -197,7 +210,7 @@
              for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
              factory=".triggers.NotificationSubscriptionInfo"
              />
-    
+
     <adapter provides="Products.Zuul.interfaces.INotificationWindowInfo"
              for="Products.ZenModel.NotificationSubscriptionWindow.NotificationSubscriptionWindow"
              factory="Products.Zuul.infos.triggers.NotificationWindowInfo"
@@ -232,40 +245,60 @@
              for="Products.Jobber.manager.JobRecord"
              factory="Products.Zuul.infos.jobs.JobInfo"
              />
-             
+
     <adapter factory=".software.SoftwareInfo"
              for="Products.ZenModel.Software.Software"
-             provides="..interfaces.ISoftwareInfo"/>         
-             
+             provides="..interfaces.ISoftwareInfo"/>
+
     <adapter factory=".devicemanagement.MaintenanceWindowInfo"
              for="Products.ZenModel.MaintenanceWindow.MaintenanceWindow"
-             provides="..interfaces.IMaintenanceWindowInfo"/>     
-             
+             provides="..interfaces.IMaintenanceWindowInfo"/>
+
     <adapter factory=".devicemanagement.UserCommandManagementInfo"
              for="Products.ZenModel.UserCommand.UserCommand"
-             provides="..interfaces.IUserCommandManagementInfo"/>   
-             
+             provides="..interfaces.IUserCommandManagementInfo"/>
+
     <adapter factory=".devicemanagement.AdminRoleManagementInfo"
              for="Products.ZenModel.AdministrativeRole.AdministrativeRole"
-             provides="..interfaces.IAdminRoleManagementInfo"/>    
-             
+             provides="..interfaces.IAdminRoleManagementInfo"/>
+
     <adapter factory=".eventclasses.EventClassTreeNode"
              for="Products.ZenEvents.EventClass.EventClass"
-             provides="..interfaces.IEventClassTreeNode"/>      
-             
+             provides="..interfaces.IEventClassTreeNode"/>
+
     <adapter factory=".eventclasses.EventClassInfo"
              for="Products.ZenEvents.EventClassInst.EventClassInst"
-             provides="..interfaces.IEventClassInfo"/>             
-             
+             provides="..interfaces.IEventClassInfo"/>
+
     <adapter factory=".manufacturers.ManufacturersInfo"
              for="Products.ZenModel.Manufacturer.Manufacturer"
-             provides="..interfaces.IManufacturersInfo"/>                   
+             provides="..interfaces.IManufacturersInfo"/>
 
     <adapter provides="Products.Zuul.interfaces.zenpack.IZenPackInfo"
              for="Products.ZenModel.ZenPack.ZenPack"
              factory="Products.Zuul.infos.zenpack.ZenPackInfo"
              />
 
-    <include package=".component"/>
-    <include file="graphpoint.zcml"/>
+   <adapter factory=".application.ApplicationInfo"
+            provides="Products.Zuul.interfaces.IApplicationInfo"
+            for="Products.ZenUtils.application.IApplication"
+            />
+
+   <adapter factory=".application.ApplicationConfigurationInfo"
+            provides="Products.Zuul.interfaces.IApplicationConfigurationInfo"
+            for="Products.ZenUtils.application.IApplicationConfiguration"
+            />
+
+   <adapter factory=".monitor.MonitorTreeNode"
+            provides="Products.Zuul.interfaces.IMonitorTreeNode"
+            />
+
+   <adapter factory=".monitor.MonitorInfo"
+            for="Products.ZenModel.PerformanceConf.PerformanceConf"
+            provides="Products.Zuul.interfaces.monitor.IMonitorInfo"
+            />
+
+   <include package=".component"/>
+   <include file="graphpoint.zcml"/>
+
 </configure>

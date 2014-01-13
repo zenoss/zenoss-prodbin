@@ -7,7 +7,6 @@
 # 
 ##############################################################################
 
-
 import transaction
 from copy import deepcopy
 from types import ClassType
@@ -109,7 +108,6 @@ def severityString(severityId):
     if severityId in range(0,6):
         return _sevs[severityId]
 
-
 def get_dmd():
     """
     Retrieve the DMD object.
@@ -122,7 +120,6 @@ def get_dmd():
         if db and db.database_name != 'temporary':
             app = cxn.root()['Application']
             return app.zport.dmd
-
 
 _MARKER = object()
 def safe_hasattr(object, name):
@@ -347,3 +344,5 @@ class PathIndexCache(object):
         instances = ICatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
         tree = PathIndexCache(results, instances, 'devices')
         print tree
+
+        

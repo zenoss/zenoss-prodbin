@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -37,11 +37,18 @@ class IProcessInfo(IInfo):
                              'process goes down')
     hasRegex = Attribute('OSProcessClasses have regexes, OSProcessOrganizers'
                          ' do not')
-    regex = Attribute('Regular expression used to match process to a running '
-                      'command on the managed host')
-    ignoreParameters = Attribute('Only match the regex to the command not its'
-                                 ' parameters')
-    example = Attribute('An example of the process from a process listing')
+    includeRegex = Attribute('Regular expression used to match process to a '
+                             'running command on the managed host')
+    excludeRegex = Attribute('Regular expression used to prevent process from '
+                             'matching a running command on the managed host')
+    replaceRegex = Attribute('Regular expression used to rewrite parts of '
+                             'matched running commands from the managed host')
+    replacement  = Attribute('Replacement template used to rewrite parts of '
+                             'matched running commands from the managed host')
+    minProcessCount = Attribute('Numerical value describing the minimum number'
+                                ' of this process to be running at any time.') 
+    maxProcessCount = Attribute('Numerical value describing the maximum number'
+                                ' of this process to be running at any time.')
 
 
 class IProcessFacade(IFacade):

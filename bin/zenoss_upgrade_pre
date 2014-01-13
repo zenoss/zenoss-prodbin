@@ -151,3 +151,6 @@ fix_zenhome_owner_and_group ${OS_USERNAME}
 
 # migrate the zeo database
 run_zenmigrate
+
+echo "Creating system account"
+${ZENHOME}/bin/zendmd --script ${ZENHOME}/bin/addSystemUser.py

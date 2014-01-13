@@ -229,12 +229,26 @@ YAHOO.namespace('zenoss.geomap');
                 }
                 markers.push(marker);
                 google.maps.event.addListener(marker, 'click', (function(marker, index) {
-                    return function(){
-                        infowindow.setContent(_utils.infoContent(index));
-                        infowindow.open(gmap, marker);
-                        marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
-                    };
-                })(marker, index));
+                    return function(){ 
+                        var clicklink = nodedata[index][2]; 
+                        clicklink = clicklink.replace('locationGeoMap', 'simpleLocationGeoMap'); 
+                        if (clicklink.search('ocationGeoMap')>0) { 
+                            location.href = clicklink; 
+                        } else { 
+                            currentWindow().parent.location.href = clicklink; 
+                        } 
+                    }; 
+                })(marker, index)); 
+                google.maps.event.addListener(marker, 'mouseover', (function(marker, index) { 
+                    return function(){ 
+                        infowindow.setContent(_utils.infoContent(index)); 
+                        infowindow.open(gmap, marker); 
+                        marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1); 
+                    }; 
+                })(marker, index)); 
+                google.maps.event.addListener(marker, 'mouseout', function() { 
+                    infowindow.close(); 
+                });
             }
             index++;
             if(index >= nodedata.length){
@@ -378,13 +392,10 @@ YAHOO.namespace('zenoss.geomap');
             return pinImage;
         },
         infoContent: function(i){
-            var clicklink = nodedata[i][2];
-            clicklink = clicklink.replace('locationGeoMap', '');
-            var contentString = _utils.hrefize(nodedata[i][3]) + '<a target="_top" href="'+clicklink+'">Go to the Infrastructure Location Organizer >';
-                // the template language parser chokes when I close the anchor /a
-                // it works like this so leaving it for now (even stranger is that you can have /a
-                // in a comment, and the parser still picks it up and crashes!
-            return contentString;
+            // the template language parser chokes when I close the anchor /a
+            // it works like this so leaving it for now (even stranger is that you can have /a
+            // in a comment, and the parser still picks it up and crashes!
+            return _utils.hrefize(nodedata[i][3]);
         },
         hrefize: function(h){
             return h.replace(/location.href/g, 'self.parent.location.href');

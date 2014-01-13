@@ -58,6 +58,12 @@
         'zFailSeverity': {
             xtype: 'severity'
         },
+        'zFlappingSeverity': {
+            xtype: 'severity'
+        },
+        'zFlappingThreshold': {
+            xtype: 'severity'
+        },
         'zWinEventlogMinSeverity': {
             xtype: 'reverseseverity'
         }
@@ -316,12 +322,18 @@
                     },{
                         dataIndex: 'category',
                         header: _t('Category'),
-                        sortable: true
+                        sortable: true,
+                        renderer: function(value) {
+                            return Ext.htmlEncode(value);
+                        }
                     },{
                         dataIndex: 'id',
                         header: _t('Name'),
                         width: 200,
-                        sortable: true
+                        sortable: true,
+                        renderer: function(value) {
+                            return Ext.htmlEncode(value);
+                        }
                     },{
                         dataIndex: 'valueAsString',
                         header: _t('Value'),
@@ -332,7 +344,7 @@
                                 record.data.id == 'zSnmpCommunity') {
                                 return "*******";
                             }
-                            return v;
+                            return Ext.htmlEncode(v);
                         },
                         sortable: false
                     },{
@@ -340,7 +352,10 @@
                         dataIndex: 'path',
                         header: _t('Path'),
                         width: 200,
-                        sortable: true
+                        sortable: true,
+                        renderer: function(value) {
+                            return Ext.htmlEncode(value);
+                        }
                     }]
             });
             this.callParent(arguments);

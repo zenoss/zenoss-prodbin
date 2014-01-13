@@ -43,6 +43,9 @@ class ComplexGraphPoint(GraphPoint):
         {'id':'format', 'type':'string', 'mode':'w'},
         {'id':'legend', 'type':'string', 'mode':'w'},
         )
+    
+    def shouldAutoScale(self):
+        return "%s" in self.format
 
 
 InitializeClass(ComplexGraphPoint)

@@ -20,7 +20,7 @@ from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNod
 from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo, DeviceClassTemplateNode
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr, UncataloguedObjectException
 from Products.Zuul.utils import ZuulMessageFactory as _t
-from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.facades import ZuulFacade, ObjectNotFoundException
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource
 from Products.ZenModel.BasicDataSource import BasicDataSource
@@ -368,10 +368,19 @@ class TemplateFacade(ZuulFacade):
         graphs.sort(key=lambda graph: graph.sequence)
         return graphs.__iter__()
 
+    def addDataSourceToGraph(self, dataSourceUid, graphUid, includeThresholds=False):
+        datasource = self._getObject(dataSourceUid)
+        for dp in datasource.datapoints():
+            self.addDataPointToGraph(dp.getPrimaryId(), graphUid, includeThresholds)
+            
     def addDataPointToGraph(self, dataPointUid, graphUid, includeThresholds=False):
-        dataPoint = self._getObject(dataPointUid)
+        if isinstance(dataPointUid, basestring):
+            uids = [dataPointUid]
+        else:
+            uids = dataPointUid
+        datapoints = [self._getObject(u) for u in uids]
         graph = self._getObject(graphUid)
-        return graph.manage_addDataPointGraphPoints([dataPoint.name()], includeThresholds)
+        return graph.manage_addDataPointGraphPoints([d.name() for d in datapoints], includeThresholds)
 
     def getCopyTargets(self, uid, query=''):
         catalog = ICatalogTool(self._dmd)
@@ -515,3 +524,18 @@ class TemplateFacade(ZuulFacade):
         if not isinstance(obj, GraphPoint):
             raise Exception('Cannot find GraphPoint at "%s".' % uid)
         return obj
+
+    def getCollectorTemplate(self):
+        """
+        Returns the tree representation of a
+        collector template
+        """
+        templates = []
+        collectorTemplate = self._getObject('/zport/dmd/Monitors/rrdTemplates/PerformanceConf')
+        templates.append(ITemplateNode(collectorTemplate))
+        try:
+            hubTemplate = self._getObject('/zport/dmd/Monitors/Hub/rrdTemplates/HubConf')
+            templates.append(ITemplateNode(hubTemplate))
+        except ObjectNotFoundException:
+            pass
+        return templates

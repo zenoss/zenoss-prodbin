@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -378,10 +378,10 @@ class OperatingSystem(Software):
         """
         return self.getDmdRoot('Processes').getSubOSProcessClassesGen()
         
-    def addOSProcess(self, newClassName, userCreated, REQUEST=None):
+    def addOSProcess(self, newClassName, example, userCreated, REQUEST=None):
         """Add an OSProcess.
         """
-        osp = manage_addOSProcess(self.processes, newClassName, userCreated)
+        osp = manage_addOSProcess(self.processes, newClassName, example, userCreated)
         self._p_changed = True
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(

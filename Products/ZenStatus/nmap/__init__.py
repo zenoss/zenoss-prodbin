@@ -31,14 +31,11 @@ class NmapParsingError(_etree.XMLSyntaxError):
     pass
 
 
-class NmapNotFound(Exception):
+class ShortCycleIntervalError(Exception):
     """
-    NmapNotFound raised when nmap is not found.
+    ShortCycleIntervalError raised when the Ping Cycle Interval is unreasonably
+    short.
     """
-    pass
-
-class NmapNotSuid(Exception):
-    """
-    NmapNotFound raised when nmap is not found.
-    """
-    pass
+    def __init__(self, cycle_interval):
+        msg = "Ping cycle interval (%.1f seconds) is too short"
+        super(ShortCycleIntervalError, self).__init__(msg % cycle_interval)

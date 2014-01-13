@@ -25,15 +25,27 @@
   </tooltip>
 
   <tooltip>
-    <target>regexTextField</target>
+    <target>regexIncludeTextField</target>
     <anchor>left</anchor>
-    <html>Match regular expression</html>
+    <html>Matching processes will be selected.<br/>See: <a href="http://docs.python.org/2/library/re.html" target="_new">python regular expressions</a></html>
   </tooltip>
 
   <tooltip>
-    <target>ignoreParametersSelect</target>
+    <target>regexExcludeTextField</target>
     <anchor>left</anchor>
-    <html>Ignore command parameters</html>
+    <html>Matching processes will be excluded.<br/>See: <a href="http://docs.python.org/2/library/re.html" target="_new">python regular expressions</a></html>
+  </tooltip>
+
+  <tooltip>
+    <target>regexReplaceTextField</target>
+    <anchor>left</anchor>
+    <html>Simplify the names of the matching processes. Also, combine multiple processes into one set, by giving them identical names.<br/>Example: <tt>.*--foo=(\w+)\b.*</tt><br/>See: <a href="http://docs.python.org/2/library/re.html" target="_new">python regular expressions</a></html>
+  </tooltip>
+
+  <tooltip>
+    <target>replacementTextField</target>
+    <anchor>left</anchor>
+    <html>Replacement text.<br/>Example: <tt>my_process (foo: \1)</tt><br/>Backslash escapes are processed. Unknown escapes such as \j are left alone. Backreferences, such as \1 are replaced with the substring matched by capture group 1 in the replacement regular expression. The replacement will be applied wherever the replacement regular expression matches within the command line text.<br/>See: <a href="http://docs.python.org/2/library/re.html#re.sub" target="_new">python re.sub</a></html>
   </tooltip>
 
   <tooltip>

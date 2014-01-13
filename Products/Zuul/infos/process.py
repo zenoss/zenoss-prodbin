@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -53,12 +53,6 @@ class ProcessNode(TreeNode):
 class ProcessInfo(InfoBase):
     implements(IProcessInfo)
     adapts(IProcessEntity)
-
-    def getDescription(self):
-        return self._object.description
-    def setDescription(self, description):
-        self._object.description = description
-    description = property(getDescription, setDescription)
 
     def getZMonitor(self):
         def translate(rawValue):
@@ -137,41 +131,59 @@ class ProcessInfo(InfoBase):
 
     hasRegex = property(getHasRegex, setHasRegex)
 
-    def getRegex(self):
-        return getattr(self._object, 'regex', None)
+    def getIncludeRegex(self):
+        return getattr(self._object, 'includeRegex', None) \
+            or getattr(self._object, 'regex', None)
 
-    def setRegex(self, regex):
+    def setIncludeRegex(self, includeRegex):
         if self.hasRegex:
-            self._object.regex = regex
+            self._object.includeRegex = includeRegex
 
-    regex = property(getRegex, setRegex)
+    includeRegex = property(getIncludeRegex, setIncludeRegex)
+    regex = property(getIncludeRegex, setIncludeRegex)
 
-    def getIgnoreParametersWhenModeling(self):
-        return getattr(self._object, 'ignoreParametersWhenModeling', None)
+    def getExcludeRegex(self):
+        return getattr(self._object, 'excludeRegex', None)
 
-    def setIgnoreParametersWhenModeling(self, ignoreParametersWhenModeling):
+    def setExcludeRegex(self, excludeRegex):
         if self.hasRegex:
-            self._object.ignoreParametersWhenModeling = ignoreParametersWhenModeling
+            self._object.excludeRegex = excludeRegex
 
-    ignoreParametersWhenModeling = property(getIgnoreParametersWhenModeling, setIgnoreParametersWhenModeling)
+    excludeRegex = property(getExcludeRegex, setExcludeRegex)
+    
+    def getReplaceRegex(self):
+        return getattr(self._object, 'replaceRegex', None)
 
-    def getIgnoreParameters(self):
-        return getattr(self._object, 'ignoreParameters', None)
-
-    def setIgnoreParameters(self, ignoreParameters):
+    def setReplaceRegex(self, replaceRegex):
         if self.hasRegex:
-            self._object.ignoreParameters = ignoreParameters
+            self._object.replaceRegex = replaceRegex
 
-    ignoreParameters = property(getIgnoreParameters, setIgnoreParameters)
+    replaceRegex = property(getReplaceRegex, setReplaceRegex)
 
-    def getExample(self):
-        return getattr(self._object, 'example', '')
+    def getReplacement(self):
+        return getattr(self._object, 'replacement', None)
 
-    def setExample(self, example):
+    def setReplacement(self, replacement):
         if self.hasRegex:
-            self._object.example = example
+            self._object.replacement = replacement
 
-    example = property(getExample, setExample)
+    replacement = property(getReplacement, setReplacement)
+
+    def getMinProcessCount(self):
+        return getattr(self._object, 'minProcessCount', '')
+
+    def setMinProcessCount(self, minProcessCount):
+        self._object.minProcessCount = minProcessCount
+
+    minProcessCount = property(getMinProcessCount, setMinProcessCount)
+
+    def getMaxProcessCount(self):
+        return getattr(self._object, 'maxProcessCount', '')
+
+    def setMaxProcessCount(self, maxProcessCount):
+        self._object.maxProcessCount = maxProcessCount
+
+    maxProcessCount = property(getMaxProcessCount, setMaxProcessCount)
 
     @property
     def count(self):
