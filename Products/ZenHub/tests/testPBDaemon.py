@@ -7,11 +7,13 @@
 #
 ##############################################################################
 
-import logging
+import os, logging
 
 log = logging.getLogger('zen.testPBDaemon')
 
 import Globals
+import eventlet
+
 from Products.ZenUtils.Utils import unused
 unused(Globals)
 from twisted.internet.defer import failure
@@ -24,8 +26,10 @@ from Products.ZenHub.interfaces import (
 )
 from Products.ZenHub.PBDaemon import (
     DeDupingEventQueue, DequeEventQueue, EventQueueManager,
-    DefaultFingerprintGenerator
+    DefaultFingerprintGenerator, PBDaemon
 )
+
+from zenoss.collector.publisher.redis_client import RedisClient
 
 _TEST_EVENT = dict(
     device='device1',
@@ -387,6 +391,40 @@ class TestDefaultFingerprintGenerator(BaseTestCase):
             fp2 = self.generator.generate(evt)
             self.assertEquals(fp1, fp2, "changing %s not ignored in fingerprint" % attr)
 
+class Publisher(object):
+    def __init__(self):
+        self.queue = []
+
+    def put(self, *args):
+        self.queue.append( args)
+
+class TestMetricWriter(BaseTestCase):
+    def setUp(self):
+        os.environ["CONTROLPLANE"] = "0"
+        self.daemon = PBDaemon()
+        self.daemon._publisher = Publisher()
+        self.metric_writer = self.daemon.metricWriter()
+
+    def testWriteMetric(self):
+        metric = [ "name", 0.0, "now", {}]
+        self.metric_writer.write_metric( *metric)
+        self.assertEquals( [tuple(metric)], self.daemon._publisher.queue)
+
+class TestInternalMetricWriter(BaseTestCase):
+    def setUp(self):
+        os.environ["CONTROLPLANE"] = "1"
+        self.daemon = PBDaemon()
+        self.daemon._publisher = Publisher()
+        self.daemon._internal_publisher = Publisher()
+        self.metric_writer = self.daemon.metricWriter()
+
+    def testWriteInternalMetric(self):
+        metric = ["name", 0.0, "now", {}]
+        internal_metric = ["name", 0.0, "now", {"internal":True}]
+        self.metric_writer.write_metric( *metric)
+        self.metric_writer.write_metric( *internal_metric)
+        self.assertEquals( [tuple(internal_metric)], self.daemon._internal_publisher.queue)
+        self.assertEquals( [tuple(metric), tuple(internal_metric)], self.daemon._publisher.queue)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
@@ -395,4 +433,6 @@ def test_suite():
     suite.addTest(makeSuite(TestDequeEventQueue))
     suite.addTest(makeSuite(TestEventQueueManager))
     suite.addTest(makeSuite(TestDefaultFingerprintGenerator))
+    suite.addTest(makeSuite(TestMetricWriter))
+    suite.addTest(makeSuite(TestInternalMetricWriter))
     return suite

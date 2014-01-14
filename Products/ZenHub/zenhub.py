@@ -59,7 +59,7 @@ from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEven
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
 from Products.ZenHub.WorkerSelection import WorkerSelector
-from Products.ZenUtils.metricwriter import MetricWriter
+from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from zenoss.collector.publisher.publisher import HttpPostPublisher
@@ -327,7 +327,26 @@ class _ZenHubWorklist(object):
         heapq.heappush(self[job.method], job)
     append = push
 
+def publisher(username, password, url):
+    return HttpPostPublisher( username, password, url)
+  
+def metricWriter(username, password, url):
+    metric_writer = MetricWriter( publisher(username, password, url))
+    if os.environ.get( "CONTROLPLANE", "0") == "1":
+        internal_url = os.environ.get( "CONTROLPLANE_CONSUMER_URL", None)
+        internal_username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
+        internal_password = os.environ.get( "CONTROLPLANE_CONSUMER_PASSWORD", "")
 
+        if internal_url:
+            internal_publisher = publisher( internal_username, internal_password, internal_url)
+	    internal_metric_filter = lambda metric, value, timestamp, tags:\
+	        tags and tags.get("internal", False)
+            internal_metric_writer = FilteredMetricWriter(
+                internal_publisher, internal_metric_filter)
+            return AggregateMetricWriter( [metric_writer, internal_metric_writer])
+
+    return metric_writer
+        
 class ZenHub(ZCmdBase):
     """
     Listen for changes to objects in the Zeo database and update the
@@ -494,8 +513,10 @@ class ZenHub(ZCmdBase):
         threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
         self.log.info('Will post metrics to: %s', self.options.metrics_store_url)
-        metric_writer = MetricWriter(HttpPostPublisher(
-            self.options.zauthUsername, self.options.zauthPassword, self.options.metrics_store_url))
+        metric_writer = metricWriter(
+            self.options.zauthUsername,
+            self.options.zauthPassword,
+            self.options.metrics_store_url)
         derivative_tracker = DerivativeTracker()
 
         rrdStats.config('zenhub', perfConf.id, metric_writer,

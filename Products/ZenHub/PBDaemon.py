@@ -19,6 +19,8 @@ import collections
 import sys
 import time
 import traceback
+import os
+
 from urlparse import urlparse
 from hashlib import sha1
 from itertools import chain
@@ -46,7 +48,7 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
 from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
                                         ICollectorEventTransformer,
                                         TRANSFORM_DROP, TRANSFORM_STOP)
-from Products.ZenUtils.metricwriter import MetricWriter
+from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 
@@ -571,6 +573,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self._pingedZenhub = None
         self._connectionTimeout = None
         self._publisher = None
+        self._internal_publisher = None
         self._metric_writer = None
         self._derivative_tracker = None
 
@@ -587,12 +590,40 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                    "value {port}, defaulting to {default}".
                                    format(port=port, default=publisher.defaultRedisPort))
                 port = publisher.defaultRedisPort
-            self._publisher = RedisListPublisher(host, port, self.options.metricBufferSize)
+            self._publisher = RedisListPublisher(
+                host, port, self.options.metricBufferSize,
+                channel=self.options.metricsChannel
+            )
         return self._publisher
+
+    def internalPublisher(self):
+        if not self._internal_publisher:
+            host, port = urlparse(self.options.redisUrl).netloc.split(':')
+            try:
+                port = int(port)
+            except ValueError:
+                self.log.exception("redis url contains non-integer port " +
+                                   "value {port}, defaulting to {default}".
+                                   format(port=port, default=publisher.defaultRedisPort))
+                port = publisher.defaultRedisPort
+            self._internal_publisher = RedisListPublisher(
+                host, port, self.options.metricBufferSize,
+                channel=self.options.internalMetricsChannel
+            )
+        return self._internal_publisher
 
     def metricWriter(self):
         if not self._metric_writer:
-            self._metric_writer = MetricWriter(self.publisher())
+            publisher = self.publisher()
+	    metric_writer = MetricWriter(publisher)
+            if os.environ.get( "CONTROLPLANE", "0") == "1":
+                internal_publisher = self.internalPublisher()
+                internal_metric_filter = lambda metric, value, timestamp, tags:\
+                    tags and tags.get("internal", False)
+                internal_metric_writer = FilteredMetricWriter(internal_publisher, internal_metric_filter)
+                self._metric_writer = AggregateMetricWriter( [metric_writer, internal_metric_writer])
+            else:
+                self._metric_writer = metric_writer
         return self._metric_writer
 
     def derivativeTracker(self):
@@ -1017,5 +1048,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='string',
                                default=publisher.defaultMetricsChannel,
                                help='redis channel to which metrics are published')
+        self.parser.add_option('--internalMetricsChannel',
+                               dest='internalMetricsChannel',
+                               type='string',
+                               default="internal-metrics",
+                               help='redis channel to which internal metrics are published')
 
         ZenDaemon.buildOptions(self)

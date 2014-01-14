@@ -9,7 +9,7 @@
 
 
 import Globals
-import time
+import time, os
 
 
 class DaemonStats(object):
@@ -23,6 +23,7 @@ class DaemonStats(object):
         self.metric_writer = None
         self._threshold_notifier = None
         self._derivative_tracker = None
+        self._service_id = None
 
     def config(self, name, monitor, metric_writer, threshold_notifier,
                derivative_tracker):
@@ -40,6 +41,10 @@ class DaemonStats(object):
         self._threshold_notifier = threshold_notifier
         self._derivative_tracker = derivative_tracker
 
+        # when running inside control plane pull the service id from the environment
+        if os.environ.get( 'CONTROLPLANE', "0") == "1":
+	    self._service_id = os.environ.get( 'CONTROLPLANE_SERVICE_ID')
+
     def _context_id(self):
         return self.name + "-" + self.monitor
 
@@ -47,11 +52,15 @@ class DaemonStats(object):
         return "/".join(('Daemons', self.monitor))
 
     def _tags(self, metric_type):
-        return {
+        tags = {
             'daemon': self.name,
             'monitor': self.monitor,
-            'metricType': metric_type
+            'metricType': metric_type,
+            'internal': True
         }
+        if self._service_id:
+            tags['serviceId'] = self._service_id
+        return tags
 
     def derive(self, name, value):
         """Write a DERIVE value and post any relevant events"""
