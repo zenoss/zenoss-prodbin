@@ -23,9 +23,12 @@ from twisted.internet import reactor
 from twisted.cred import credentials
 from twisted.spread import pb
 import sys
+import os
 
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
 from Products.ZenMessaging.queuemessaging.publisher import DummyQueuePublisher, EventPublisher
+
+import Products.ZenHub.zenhub
 
 count = 0
 def stop(ignored=None, connector=None):
@@ -174,7 +177,52 @@ class TestZenHub(BaseTestCase):
         self.assertIn( "an error message", str(client.exception))
         self.assertIsNotNone( client.exception.traceback)
 
+class Publisher(object):
+    def __init__(self):
+        self.queue = []
+
+    def put(self, *args):
+        self.queue.append( args)
+
+
+class TestMetricWriter(BaseTestCase):
+    def setUp(self):
+        os.environ["CONTROLPLANE"] = "0"
+        self.publisher = Publisher()
+        self.publisher_cache = Products.ZenHub.zenhub.publisher
+        Products.ZenHub.zenhub.publisher = lambda u,p,url: self.publisher
+        self.metric_writer = Products.ZenHub.zenhub.metricWriter("", "", "")
+
+    def tearDown(self):
+        Products.ZenHub.zenhub.publisher = self.publisher_cache
+        
+    def testWriteMetric(self):
+        metric = [ "name", 0.0, "now", {}]
+        self.metric_writer.write_metric( *metric)
+        self.assertEquals( [tuple(metric)], self.publisher.queue)
+
+class TestInternalMetricWriter(BaseTestCase):
+    def setUp(self):
+        os.environ["CONTROLPLANE"] = "1"
+        os.environ["CONTROLPLANE_CONSUMER_URL"] = "1"
+        self.publisher = Publisher()
+        self.internal_publisher = Publisher()
+        self.publisher_cache = Products.ZenHub.zenhub.publisher
+        Products.ZenHub.zenhub.publisher = lambda u,p,url:\
+            self.publisher if url == "url" else self.internal_publisher
+        self.metric_writer = Products.ZenHub.zenhub.metricWriter("", "", "url")
+
+    def testWriteInternalMetric(self):
+        metric = ["name", 0.0, "now", {}]
+        internal_metric = ["name", 0.0, "now", {"internal":True}]
+        self.metric_writer.write_metric( *metric)
+        self.metric_writer.write_metric( *internal_metric)
+        self.assertEquals( [tuple(internal_metric)], self.internal_publisher.queue)
+        self.assertEquals( [tuple(metric), tuple(internal_metric)], self.publisher.queue)
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestZenHub))
+    suite.addTest(unittest.makeSuite(TestMetricWriter))
+    suite.addTest(unittest.makeSuite(TestInternalMetricWriter))
     return suite

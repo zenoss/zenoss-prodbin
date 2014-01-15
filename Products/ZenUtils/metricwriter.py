@@ -43,6 +43,67 @@ class MetricWriter(object):
         """
         return self._datapoints
 
+class FilteredMetricWriter(object):
+    def __init__(self, publisher, test_filter):
+        self._datapoints = 0
+        self._test_filter = test_filter
+        self._publisher = publisher
+
+    def write_metric(self, metric, value, timestamp, tags):
+        """
+        Wraps calls to a deferred publisher when the test_filter passes
+
+        @param metric:
+        @param value:
+        @param timestamp:
+        @param tags:
+        @return:
+        """
+        try:
+            if self._test_filter( metric, value, timestamp, tags):
+                log.debug("publishing metric %s %s %s %s", metric, value, timestamp, tags)
+                self._publisher.put(metric, value, timestamp, tags)
+                self._datapoints += 1
+        except Exception as x:
+            log.exception(x)
+
+    @property
+    def dataPoints(self):
+        """
+        The number of datapoints that have been published
+        @return: int
+        """
+        return self._datapoints
+
+class AggregateMetricWriter(object):
+    def __init__(self, writers):
+        self._datapoints = 0
+        self._writers = writers
+
+    def write_metric(self, metric, value, timestamp, tags):
+        """
+        Writes metrics to multiple metric writers
+
+        @param metric:
+        @param value:
+        @param timestamp:
+        @param tags:
+        @return:
+        """
+        for writer in self._writers:
+	    try:
+                writer.write_metric( metric, value, timestamp, tags)
+            except Exception as x:
+                log.exception(x)
+	self._datapoints += 1
+
+    @property
+    def dataPoints(self):
+        """
+        The number of datapoints that have been published
+        @return: int
+        """
+        return self._datapoints
 
 class DerivativeTracker(object):
 
