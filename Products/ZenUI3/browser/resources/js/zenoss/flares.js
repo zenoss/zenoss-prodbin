@@ -256,11 +256,16 @@
         initEvents: function() {
             this.callParent(arguments);
             this.mon(this.el, 'mouseover', function(){
-                this.sticky();
+                if ( this._task ) {
+                    this._task.cancel();
+                    delete this._task;
+                }
             }, this);
             this.mon(this.el, 'mouseout', function(){
                 Ext.defer(function(){
-                    this.hide();
+                    if not ( !this.sticky ) {
+                        this.hide();    
+                    }
                 }, 1000, this);
             }, this);
             if ( this.dismissOnClick ) {
