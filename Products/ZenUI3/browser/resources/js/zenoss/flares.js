@@ -260,7 +260,9 @@
             }, this);
             this.mon(this.el, 'mouseout', function(){
                 Ext.defer(function(){
-                    this.hide();
+                    if ( !this.sticky ) {
+                        this.hide();    
+                    }
                 }, 1000, this);
             }, this);
             if ( this.dismissOnClick ) {
