@@ -7,9 +7,9 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
 # this script is meant to be ran inside of zendmd
 # e.g. zendmd --script addSystemUser.py
+import re
 import logging
 from ZODB.transact import transact
 from Products.ZenUtils.Utils import zenPath
@@ -17,6 +17,7 @@ from subprocess import call
 log = logging.getLogger("zenoss.addsystemuser")
 
 username = 'zenoss_system'
+
 @transact
 def addSystemUser(dmd, username):
     password = dmd.ZenUsers.generatePassword()
@@ -30,3 +31,14 @@ if dmd.ZenUsers._getOb(username, None) is None:
     rc = call(cmd, shell=True)
     if rc != 0:
         log.error("Unable to set the system username and password please update %s with these lines\nzauth-username=%s\nzauth-password=%s", zenPath('etc', 'global.conf'), username, password)
+
+    # Now do the shipper, which is YAML
+    shippercfg = zenPath('etc', 'metricshipper', 'metricshipper.yaml')
+    with open(shippercfg, 'r') as f:
+        cfg = f.read()
+    # Could use YAML to parse/dump this, but that would remove helpful comments.
+    # Wimp out with regex for now.
+    cfg = re.sub(r'\#?\s*username:.*', '\nusername: %s' % username, cfg)
+    cfg = re.sub(r'\#?\s*password:.*', '\npassword: %s' % password, cfg)
+    with open(shippercfg, 'w') as f:
+        f.write(cfg)
