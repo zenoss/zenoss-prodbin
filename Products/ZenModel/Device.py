@@ -2178,8 +2178,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Return the status number for this device of class statClass.
         """
         
-        # If this device is not monitored, we do not report on its status
-        if not self.monitorDevice():
+        # If this device is not monitored or has never been modeled, we do not
+        # report on its status
+        if not self._snmpLastCollection or not self.monitorDevice():
             return None
         
         from Products.ZenEvents.ZenEventClasses import Status_Ping
