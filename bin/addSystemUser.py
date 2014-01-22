@@ -38,7 +38,9 @@ if dmd.ZenUsers._getOb(username, None) is None:
         cfg = f.read()
     # Could use YAML to parse/dump this, but that would remove helpful comments.
     # Wimp out with regex for now.
-    cfg = re.sub(r'\#?\s*username:.*', '\nusername: %s' % username, cfg)
-    cfg = re.sub(r'\#?\s*password:.*', '\npassword: %s' % password, cfg)
+    cfg = re.sub(r'^\s*#?\s*username:.*', '\nusername: %s' % username, cfg,
+            flags=re.MULTILINE)
+    cfg = re.sub(r'^\s*#?\s*password:.*', '\npassword: %s' % password, cfg,
+            flags=re.MULTILINE)
     with open(shippercfg, 'w') as f:
         f.write(cfg)
