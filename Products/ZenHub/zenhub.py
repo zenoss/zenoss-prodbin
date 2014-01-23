@@ -339,10 +339,9 @@ def metricWriter(username, password, url):
 
         if internal_url:
             internal_publisher = publisher( internal_username, internal_password, internal_url)
-	    internal_metric_filter = lambda metric, value, timestamp, tags:\
-	        tags and tags.get("internal", False)
-            internal_metric_writer = FilteredMetricWriter(
-                internal_publisher, internal_metric_filter)
+            internal_metric_filter = lambda metric, value, timestamp, tags:\
+                tags and tags.get("internal", False)
+            internal_metric_writer = FilteredMetricWriter(internal_publisher, internal_metric_filter)
             return AggregateMetricWriter( [metric_writer, internal_metric_writer])
 
     return metric_writer
