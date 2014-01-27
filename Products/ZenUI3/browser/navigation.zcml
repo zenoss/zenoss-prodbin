@@ -229,18 +229,7 @@
             layer="..navigation.interfaces.IZenossNav"
             subviews="/zport/dmd/collectorTemplate"
             />
-
-        <browser:viewlet
-            name="Collectors"
-            url="/zport/dmd/Monitors"
-            weight="2"
-            parentItem="Advanced"
-            manager="..navigation.interfaces.ISecondaryNavigationMenu"
-            class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zenoss.ManageDMD"
-            layer="..navigation.interfaces.IZenossNav"
-            />
-
+        
         <browser:viewlet
             name="MIBs"
             url="/zport/dmd/mibs"
