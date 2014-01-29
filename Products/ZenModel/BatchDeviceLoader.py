@@ -44,36 +44,23 @@ from Products.ZenUtils.IpUtil import isip
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
-METHODS_TO_SETTINGS = {
-    'setManageIp': 'manageIp',
-    'setPerformanceMonitor': 'performanceMonitor',
-    'setTitle': 'title',
-    'setHWTag': 'tag',
-    'setHWSerialNumber': 'serialNumber',
-    'setProdState': 'productionState',
-    'setPriority': 'priority',
-    'setGroups': 'groupPaths',
-    'setSystems': 'systemPaths',
-    # these don't have methods but were added for completeness
-    'setRackSlot': 'rackSlot',
-    'setComments': 'comments',
-    # TODO: setHWProduct and setOSProduct (they take multiple parameters)
-}
-
 class BatchDeviceLoader(ZCmdBase):
     """
     Base class wrapping around dmd.DeviceLoader
     """
 
+# ZEN-9930 - Pulled these options from sample config
+# setHWProduct=('myproductName','manufacturer'), setOSProduct=('OS Name','manufacturer')
+
     sample_configs = """#
-# Example zenbatchloader device file
+# Example zenbatchloader file (Groups, Systems Locations, Devices, etc.)
 #
 # This file is formatted with one entry per line, like this:
 #
 #  /Devices/device_class_name Python-expression
 #  hostname Python-expression
 #
-# For organizers (ie the /Devices path), the Python-expression
+# For organizers (for example, the /Devices path), the Python-expression
 # is used to define defaults to be used for devices listed
 # after the organizer. The defaults that can be specified are:
 #
@@ -93,14 +80,18 @@ class BatchDeviceLoader(ZCmdBase):
 #  device_settings = eval( 'dict(' + python-expression + ')' )
 #
 
+# Defining groups
+/Groups/Admin
+/Groups/Support
 
-# Setting locations
+#Defining systems
+/Systems/Production
+/Systems/Staging
+
+# Defining locations
 /Locations/Canada address="Canada"
-
 /Locations/Canada/Alberta address="Alberta, Canada"
-
 /Locations/Canada/Alberta/Calgary address="Calgary, Alberta, Canada"
-
 
 # If no organizer is specified at the beginning of the file,
 # defaults to the /Devices/Discovered device class.
@@ -122,21 +113,21 @@ zTelnetEnable=True, \
 zTelnetPromptTimeout=15.3
 
 # A new organizer drops all previous settings, and allows
-# for new ones to be used.  Settings do not span files.
+# for new ones to be used.
 /Devices/Server/Windows zWinUser="administrator", zWinPassword='fred'
 # Bind templates
-windows_device1 zDeviceTemplates=[ 'Device', 'myTemplate' ]
+windows_device1 zDeviceTemplates=[ 'Device', 'myTemplate' ], rackSlot=1
 # Override the default from the organizer setting.
-windows_device2 zWinUser="administrator", zWinPassword='thomas', setProdState=500
-
-# Apply other settings to the device
-settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
+windows_device2 zWinUser="administrator", zWinPassword='thomas', setProdState=500, \
+  rackSlot=2, settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
   setSystems=['/mySystems'], setPerformanceMonitor='remoteCollector1', \
   setHWSerialNumber="abc123456789", setGroups=['/myGroup'], \
-  setHWProduct=('myproductName','manufacturer'), setOSProduct=('OS Name','manufacturer')
+# Apply custom schema properties (c-properties) to a device
+windows_device7 cDateTest='2010/02/28'
 
 # If the device or device class contains a space, then it must be quoted (either ' or ")
 "/Server/Windows/WMI/Active Directory/2008"
+windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", setPriority=2
 
 # Now, what if we have a device that isn't really a device, and requires
 # a special loader?
@@ -148,12 +139,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
 #/Devices/VMware loader='vmware', loader_arg_keys=['host', 'username', 'password', 'useSsl', 'id']
 #esxwin2 id='esxwin2', host='esxwin2.zenoss.loc', username='testuser', password='password', useSsl=True
 
-# Apply custom schema properties (c-properties) to a device
-windows_device7 cDateTest='2010/02/28'
-
-#
-# The following are wrapper methods that specifically set values on a device:
-#
+# The following are wrapper methods that specifically set properties on a device:
 #   setManageIp
 #   setPerformanceMonitor
 #   setTitle
@@ -163,9 +149,6 @@ windows_device7 cDateTest='2010/02/28'
 #   setPriority
 #   setGroups
 #   setSystems
-#   setRackSlot
-#   setComments
-#
 """
 
     def __init__(self, *args, **kwargs):
@@ -365,9 +348,8 @@ windows_device7 cDateTest='2010/02/28'
         """
         self.log.debug( "Applying other properties..." )
         internalVars = [
-           'deviceName', 'devicePath', 'comments', 'loader', 'loader_arg_keys',
+           'deviceName', 'devicePath', 'loader', 'loader_arg_keys',
         ]
-        internalVars.extend(METHODS_TO_SETTINGS.itervalues())
         @transact
         def setNamedProp(org, name, description):
             setattr(org, name, description)
@@ -377,7 +359,7 @@ windows_device7 cDateTest='2010/02/28'
                continue
 
             # Special case for organizers which can take a description
-            if functor in ('description', 'address'):
+            if functor in ('description', 'address', 'comments', 'rackSlot'):
                 if hasattr(device, functor):
                     setNamedProp(device, functor, value)
                 continue
@@ -606,7 +588,7 @@ windows_device7 cDateTest='2010/02/28'
                 specs[key] = device_specs[key]
 
         try:
-            self.log.info("Creating device %s" % name)
+            self.log.info("Creating initial device %s (customized properties are set after creation)" % name)
 
             # Do NOT model at this time
             specs['discoverProto'] = 'none'
@@ -752,10 +734,6 @@ windows_device7 cDateTest='2010/02/28'
                 # Add a newline to allow for trailing comments
                 evalString = 'dict(' + options + '\n)'
                 optionsDict = eval(evalString)
-                # ZEN-202: Set values directly rather than calling methods afterwards.
-                for method,setting in METHODS_TO_SETTINGS.iteritems():
-                    if method in optionsDict:
-                        optionsDict[setting] = optionsDict.pop(method)
                 configs.update(optionsDict)
 
                 collector = configs.get('performanceMonitor')
