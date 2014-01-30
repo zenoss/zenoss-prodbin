@@ -179,7 +179,9 @@ class EventsRouter(DirectRouter):
             eventFormat = EventCompatDetailInfo
 
         dmd = self.context.dmd
-        eventObs = [eventFormat(dmd, e) for e in events['events']]
+        # filter out the component and device UUIDs that no longer exist in our system
+        evdata = self._filterInvalidUuids(events['events'])
+        eventObs = [eventFormat(dmd, e) for e in evdata]
 
         return DirectResponse.succeed(
             events = Zuul.marshal(eventObs, keys),
