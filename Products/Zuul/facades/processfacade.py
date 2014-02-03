@@ -144,10 +144,7 @@ class ProcessFacade(TreeFacade):
                 for line in matchedLines:
                     i += 1
                     ii = str(i)
-                    if isinstance(processClass, OSProcessClassDataMatcher):
-                        name = processClass.includeRegex
-                    else:
-                        name = processClass.name
+                    name = processClass.name
                     yield {
                         'uid': ii,
                         'matched': True,

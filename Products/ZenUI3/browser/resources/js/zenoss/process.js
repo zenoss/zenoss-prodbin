@@ -942,7 +942,8 @@ Ext.define("Zenoss.MatchProcessStore", {
     		        includeRegex: Ext.getCmp('regexIncludeTextField').getValue(),
 		        	excludeRegex: Ext.getCmp('regexExcludeTextField').getValue(),
 		        	replaceRegex: Ext.getCmp('regexReplaceTextField').getValue(),
-	        		replacement: Ext.getCmp('replacementTextField').getValue()
+	        		replacement: Ext.getCmp('replacementTextField').getValue(),
+	        		name: Ext.getCmp('nameTextField2').getValue()
     			});
     		}
     		this.setBaseParam("uids", uids);
