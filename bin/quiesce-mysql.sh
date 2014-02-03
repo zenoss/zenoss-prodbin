@@ -12,11 +12,13 @@
 function help()
 {
     cat <<CAT_EOF >&2
-Usage: $0 {status|pause|resume|help}
+Usage: $0 { status | pause | resume | help }
 
-    MYSQL_LOCK_TIMEOUT env var may be overridden from default of 60 seconds
-        used in call to mysql GET_LOCK()
+    PAUSE_CHECK_TIMEOUT env var may be overridden from default of 60 seconds
+        amount of time to look for locked=true after calling pause
 
+    LOCK_HOLD_DURATION env var may be overridden from the default of 600 seconds
+        amount of time to hold the database locks
 CAT_EOF
 }
 
@@ -31,12 +33,6 @@ function die
 {
     echo "$(datetimestamp): ERROR: ${*}" >&2
     exit 1
-}
-
-
-function logError
-{
-    echo "$(datetimestamp): ERROR: ${*}" >&2
 }
 
 
@@ -62,67 +58,92 @@ function getConfValue
 }
 
 
-function run_mysql_cmd()
+function getMysqlConnectionArgs()
 {
-    local database=$1
-    shift
-    local statement="$@"
-    local cmd="mysql -A $MY_MYSQL_CONNECTION -e \"$statement\" $database"
-    eval $cmd
-    local rc=$?
+    local config="$1"
+    local dbname="$2"
 
-    return $rc
+    local arg
+    arg+=" "$(getConfValue "$config" "$dbname-admin-user" "--user=")
+    arg+=" "$(getConfValue "$config" "$dbname-admin-password" "--password=")
+    arg+=" "$(getConfValue "$config" "$dbname-host" "--host=")
+    arg+=" "$(getConfValue "$config" "$dbname-port" "--port=")
+    arg+=" "$(getConfValue "$config" "$dbname-db" "--database=")
+    [[ $arg =~ "--user=" ]] || die "required $dbname-admin-user not found in $config"
+    [[ $arg =~ "--database=" ]] || die "required $dbname-db not found in $config"
+
+    echo $arg
+}
+
+
+function getLogFile()
+{
+    local dbname="$1"
+    echo "$VARDIR/$(basename $0)-hold-lock-$dbname.txt"
 }
 
 
 function do_status()
 {
-    # $ zends -uroot -e "SELECT IS_FREE_LOCK('zodb.quiesce') \G" zodb
-    # *************************** 1. row ***************************
-    # IS_FREE_LOCK('zodb.quiesce'): 1
+    declare dbnames=("$@")
 
-    local database=$1
-    local lockname=$2
+    logInfo "status dbnames:${dbnames[@]}"
 
-    logInfo "status database:$database lockname:$lockname"
+    # output of: pgrep -fl 'mysql.*quiesce-mysql.sh.*hold-lock-zodb'
+    # 7246 /opt/zends/bin/.mysql --defaults-file=/opt/zends/etc/zends.cnf -A --unbuffered --quick --user=root --host=localhost --port=13306 --database=zodb -e FLUSH TABLES WITH READ LOCK \G; SELECT "2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb LOCKED" AS ""; SELECT SLEEP(600);
+    # output of: pgrep -fl 'mysql.*quiesce-mysql.sh.*hold-lock-zodb' | cut -f2 -d\"
+    # 2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb LOCKED
+    # output of: tail -2 /opt/zenoss/var/quiesce-mysql.sh-hold-lock-zodb.txt
+    # 2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb Retrieving read lock for zodb
+    # 2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb LOCKED
 
-    local fxn="IS_FREE_LOCK('$lockname')"
-    local cmd="SELECT $fxn"
-    local output=$(run_mysql_cmd "$database" "$cmd \G" | tail -1)
-    case "$output" in
-        "$fxn: 0")
-            echo "IS_LOCKED: $database database with $lockname lockname"
-            return 0
-            ;;
-        "$fxn: 1")
-            echo "IS_NOT_LOCKED: $database database with $lockname lockname"
-            return 0
-            ;;
-        *)
-            echo "WARNING: UNABLE to discern status of lock with mysql statement: $cmd"
-            return 1
-            ;;
-    esac
+    local allLocked=true
+    for dbname in "${dbnames[@]}"; do
+        local msg_prepend="$(datetimestamp): $$ $(basename $0) hold-lock-$dbname"
 
-    return 1   # 1: error
+        # use pgrep to check for process holding lock
+        local result=$(pgrep -fl "mysql.*$(basename $0).*hold-lock-$dbname")
+        if [[ -z $result ]]; then
+            echo "IS_NOT_LOCKED: $dbname"
+            allLocked=false
+        else
+            # verify process that is holding the lock has done so
+            local logfile=$(getLogFile $dbname)
+            local search=$(echo "$result"|cut -f2 -d\")
+            if grep "$search" "$logfile" >/dev/null; then
+                echo "IS_LOCKED: $dbname"
+            else
+                echo "IS_NOT_LOCKED: $dbname"
+                allLocked=false
+            fi
+        fi
+    done
+
+    [[ $allLocked == true ]] && return 0 || return 1   # 0: all are locked
 }
 
 
 function do_hold_lock()
 {
-    local database=$1
-    local lockname=$2
-    local timeout=$3
+    local hold_time="$1"
+    local dbname="$2"
 
-    # purposely not executing: FLUSH TABLES WITH READ LOCK
+    logInfo "hold_lock hold_time:$hold_time dbname:$dbname"
+
+    local args=$(getMysqlConnectionArgs "$GLOBAL_CONF" "$dbname")
+
+    local logfile=$(getLogFile $dbname)
+    local msg_prepend="$(datetimestamp): $$ $(basename $0) hold-lock-$dbname"
+    echo "$msg_prepend Retrieving read lock for $dbname" >>"$logfile"
+
+    # executing: FLUSH TABLES WITH READ LOCK
     #   http://www.mysqlperformanceblog.com/2012/03/23/how-flush-tables-with-read-lock-works-with-innodb-tables/
-    # despite:
     #   http://www.mysqlperformanceblog.com/2006/08/21/using-lvm-for-mysql-backup-and-replication-setup/
-    # ZEP is locked by locking ZODB since it attempts a ZODB lock before writes
-    {
-        echo "SELECT GET_LOCK('$lockname', $timeout) \G;"
-        while true; do sleep 1; done
-    } | eval mysql $MY_MYSQL_CONNECTION $database
+    # calling "lock tables for read" to lock all of mysql including
+    # zep and zodb, do not use get_lock() which is used exclusively by zodb
+    # lock the table; output that it was done; sleep for hold time
+    local statements="'FLUSH TABLES WITH READ LOCK \G; SELECT \"$msg_prepend LOCKED\" AS \"\"; SELECT SLEEP($hold_time);'"
+    eval exec mysql -A --unbuffered --quick $args -e "$statements" >>"$logfile" 2>&1
 
     return $?
 }
@@ -130,22 +151,26 @@ function do_hold_lock()
 
 function do_pause()
 {
-    local database=$1
-    local lockname=$2
-    local timeout=$3
+    local timeout="$1"
+    shift
+    local dbnames=("$@")
 
-    logInfo "pause database:$database lockname:$lockname timeout:$timeout"
+    logInfo "pause timeout:$timeout dbnames:${dbnames[@]}"
 
-    $0 hold-lock &
-    disown
+    for dbname in "${dbnames[@]}"; do
+        $0 hold-lock-$dbname &>/dev/null &
+        disown
+    done
+    sleep 2
     for numtries in $(eval echo {1..$timeout}); do
         logInfo "Checking lock status (try: $numtries/$timeout):"
-        local output=$($0 status)
-        logInfo $output
-        if [[ $output =~ "IS_LOCKED:" ]]; then
+        local output=$($0 status 2>&1)
+        echo "$output" >&2
+        if [[ $output =~ "IS_NOT_LOCKED:" ]]; then
+            sleep 1
+        else
             return 0
         fi
-        sleep 1
     done
     return 1
 }
@@ -153,48 +178,55 @@ function do_pause()
 
 function do_resume()
 {
-    local database=$1
-    local lockname=$2
+    local dbnames=("$@")
 
-    logInfo "resume database:$database lockname:$lockname"
+    logInfo "resume dbnames:${dbnames[@]}"
 
-    pkill -f "$0 hold-lock"
-    sleep 1
-    do_status $database $lockname
+    pkill -f "$(basename $0).*hold-lock"
+    sleep 2
+    for dbname in "${dbnames[@]}"; do
+        local logfile=$(getLogFile $dbname)
+        if [[ -f $logfile ]]; then
+            mv "$logfile" "$logfile.bak"
+        fi
+    done
 }
 
 
 function main()
 {
+    [[ -n "$VARDIR" ]] || die "VARDIR env var is not set"
+    [[ -d "$VARDIR" ]] || die "VARDIR=$VARDIR is not a directory"
     [[ -n "$CFGDIR" ]] || die "CFGDIR env var is not set"
     [[ -d "$CFGDIR" ]] || die "CFGDIR=$CFGDIR is not a directory"
+    export GLOBAL_CONF="$CFGDIR/global.conf"
 
-    export MY_MYSQL_CONNECTION=
-    MY_MYSQL_CONNECTION+=" "$(getConfValue "$CFGDIR/global.conf" "zodb-admin-user" "--user=")
-    MY_MYSQL_CONNECTION+=" "$(getConfValue "$CFGDIR/global.conf" "zodb-admin-password" "--password=")
-    MY_MYSQL_CONNECTION+=" "$(getConfValue "$CFGDIR/global.conf" "zodb-host" "--host=")
-    MY_MYSQL_CONNECTION+=" "$(getConfValue "$CFGDIR/global.conf" "zodb-port" "--port=")
-    [[ $MY_MYSQL_CONNECTION =~ "--user=" ]] || die "required zodb-admin-user not found in $CFGDIR/global.conf"
+    declare dbnames=('zodb' 'zep')
 
-    local database=$(getConfValue "$CFGDIR/global.conf" "zodb-db")
-    local lockname="$database.quiesce"
-    local timeout=${MYSQL_LOCK_TIMEOUT:-60}
     case "$CMD" in
         status)
-            do_status $database $lockname
+            do_status "${dbnames[@]}"
 	    ;;
 
         pause)
-            do_pause $database $lockname $timeout
+            local timeout=${PAUSE_CHECK_TIMEOUT:-60}
+            do_pause "$timeout" "${dbnames[@]}"
 	    ;;
 
         resume)
-            do_resume $database $lockname
+            do_resume "${dbnames[@]}"
 	    ;;
 
-        hold-lock)
-            # do not advertise via help that private method 'hold-lock' is a valid run command
-            do_hold_lock $database $lockname $timeout
+        hold-lock-zodb)
+            # do not advertise via help that private method 'hold-lock-*' is a valid run command
+            local hold_time=${LOCK_HOLD_DURATION:-600}
+            do_hold_lock "$hold_time" "${dbnames[0]}"
+        ;;
+
+        hold-lock-zep)
+            # do not advertise via help that private method 'hold-lock-*' is a valid run command
+            local hold_time=${LOCK_HOLD_DURATION:-600}
+            do_hold_lock "$hold_time" "${dbnames[1]}"
         ;;
 
         help)
@@ -212,6 +244,7 @@ if [[ "$(basename $0)" == "quiesce-mysql.sh" ]]; then
     [[ -n "$ZENHOME" ]] || die "ZENHOME env var is not set"
 
     # Needs these env vars provided from zenfunctions:
+    #   VARDIR=$ZENHOME/var
     #   CFGDIR=$ZENHOME/etc
     source $ZENHOME/bin/zenfunctions
 
