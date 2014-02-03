@@ -532,6 +532,8 @@ var regexFieldSet = {
     title: _t('Matching Rules (performance metrics will start over if changed)'),
     hidden: true,
     style: 'padding: 5px 0 0 0',
+    anchor: '100%',
+    defaults: {anchor:'97%'},
     items: [
         regexIncludeTextField,
         regexExcludeTextField,
