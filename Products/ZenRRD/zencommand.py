@@ -475,11 +475,11 @@ class SshPerformanceCollectionTask(BaseTask):
                 reason = datasource
                 datasource, = reason.value.args
                 msg = "Datasource %s command timed out" % datasource.name
-                event = self._makeCmdEvent(datasource, msg)
+                event = self._makeCmdEvent(datasource, msg, event_key='Timeout')
             else:
                 # clear our timeout event
                 msg = "Datasource %s command timed out" % datasource.name
-                event = self._makeCmdEvent(datasource, msg, severity=Clear)
+                event = self._makeCmdEvent(datasource, msg, severity=Clear, event_key='Timeout')
                 # Re-use our results for any similar datasources
                 cache = cacheableDS.get(datasource.command, [])
                 for ds in cache:
@@ -595,7 +595,7 @@ class SshPerformanceCollectionTask(BaseTask):
             for event in eventList:
                 self._eventService.sendEvent(event, device=self._devId)
 
-    def _makeCmdEvent(self, datasource, msg, severity=None):
+    def _makeCmdEvent(self, datasource, msg, severity=None, event_key=None):
         """
         Create an event using the info in the Cmd object.
         """
@@ -603,7 +603,7 @@ class SshPerformanceCollectionTask(BaseTask):
             device=self._devId,
             component=datasource.component,
             eventClass=datasource.eventClass,
-            eventKey=datasource.eventKey,
+            eventKey=datasource.eventKey if event_key is None else event_key,
             severity=severity if severity is not None else datasource.severity,
             summary=msg
         )
