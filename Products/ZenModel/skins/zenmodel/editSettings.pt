@@ -34,8 +34,10 @@ loader.insert();
 <input type="hidden" name="redirect" value="true"/>
 
 
-        <tal:block tal:define="noselectionbar python:True;
-            tabletitle string: ''">        
+        <tal:block tal:define="message request/message | string:State at time:;
+        noselectionbar python:True;
+            tabletitle string:${message} ${here/getCurrentUserNowString}">
+
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
           
 
@@ -50,10 +52,7 @@ loader.insert();
             ==========================================-->
 
         <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
-        <script>
-          Ext.query('.tabletitletext')[0].innerHTML = Ext.String.format(_t("State at time: {0}"), Zenoss.date.renderWithTimeZone(new Date().getTime()/1000));
-        </script>
+        <!-- BEGIN TABLE CONTENTS -->        
     <tr class="even">
         <td class="noselect tableheader" i18n:translate='' align="left">Instance Identifier</td>
         <td class="tablevalues">

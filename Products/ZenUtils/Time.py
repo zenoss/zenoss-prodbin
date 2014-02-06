@@ -20,6 +20,8 @@ __version__ = "$$"[11:-2]
 
 import time
 import os
+import pytz
+from datetime import datetime    
 from hashlib import sha224
 from math import isnan
 
@@ -72,6 +74,21 @@ def getServerTimeZone():
         SERVER_TIMEZONE = ""
         return SERVER_TIMEZONE
 
+def convertTimestampToTimeZone(timestamp, zone_name, fmt="%Y/%m/%d %H:%M:%S"):
+    """
+    This takes a integer timestamp (in seconds since epoch) and returns a
+    string that represents the time in the timezone name in the provided format.
+    """    
+    utc_tz = pytz.timezone('UTC')
+    utc_dt = utc_tz.localize(datetime.utcfromtimestamp(timestamp))
+
+    localized_tz = pytz.timezone(zone_name)
+    # if we can't find the timezone then just return the server time of it
+    if not localized_tz:
+        return isoDateTime(timestamp)
+    localized_dt = localized_tz.normalize(utc_dt.astimezone(localized_tz))
+    return localized_dt.strftime(fmt)
+    
 def isoDateTime(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))

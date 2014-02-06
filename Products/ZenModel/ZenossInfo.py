@@ -876,7 +876,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def lastVersionCheckedString(self):
         if not self.dmd.lastVersionCheck:
             return "Never"
-        return Time.LocalDateTime(self.dmd.lastVersionCheck)
+        return self.convertToUsersTimeZone(self.dmd.lastVersionCheck)
 
     def versionBehind(self):
         if not self.dmd.availableVersion:
