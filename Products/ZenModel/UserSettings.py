@@ -382,7 +382,7 @@ class UserSettingsManager(ZenModelRM):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Settings Saved',
-                Time.SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()                
             )
             audit('UI.User.Edit', username=userid, data_=updates)
             return self.callZenScreen(REQUEST)
@@ -928,7 +928,7 @@ class UserSettings(ZenModelRM):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Settings Saved',
-                Time.SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()
             )
             audit('UI.User.Edit', username=self.id, data_=updates)
             return self.callZenScreen(REQUEST)

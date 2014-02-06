@@ -578,6 +578,7 @@
             },
             items:[{
                 xtype: 'datefield',
+                id: 'graph_start_date',
                 ref: '../../start_date',
                 width: 250,
                 fieldLabel: _t('Start'),
@@ -611,9 +612,9 @@
                 ref: '../../updatebutton',
                 handler: function(b){
                     var me = b.refOwner;
-                    me.start = me.start_date.getValue().getTime();
+                    me.start = me.start_date.getUnixTimestamp() * 1000;
                     me.updateEndTime();
-                    me.end = me.end_date.getValue().getTime();
+                    me.end = me.end_date.getUnixTimestamp() * 1000;
                     Ext.each(me.getGraphs(), function(g) {
                         g.fireEvent("updateimage", {
                             start: me.start,
@@ -860,7 +861,7 @@
         },
         updateEndTime: function(){
             if (this.checkbox_now && this.checkbox_now.getValue()) {
-                this.end_date.setValue(new Date());
+                this.end_date.setValue(moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
             }
         },
         setDrange: function(drange) {

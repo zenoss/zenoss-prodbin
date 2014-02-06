@@ -380,11 +380,10 @@ class ZenModelBase(object):
         self.manage_changeProperties(**REQUEST.form)
         index_object = getattr(self, 'index_object', lambda self: None)
         index_object()
-        if REQUEST:
-            from Products.ZenUtils.Time import SaveMessage
+        if REQUEST:            
             messaging.IMessageSender(self).sendToBrowser(
                 'Properties Saved',
-                SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()
             )
 
             if audit:

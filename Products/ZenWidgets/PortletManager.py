@@ -124,11 +124,10 @@ class PortletManager(ZenModelRM):
             portname = portlet.split('_')[0]
             p = self.find(id=portname)
             p.permission = REQUEST.form[portlet]
-        if REQUEST:
-            from Products.ZenUtils.Time import SaveMessage
+        if REQUEST:            
             messaging.IMessageSender(self).sendToBrowser(
                 'Permissions Saved',
-                SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()
             )
             REQUEST['RESPONSE'].redirect('/zport/dmd/editPortletPerms')
         audit('UI.Portlet.Edit', data_=REQUEST.form)
