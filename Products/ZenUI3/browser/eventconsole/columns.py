@@ -186,8 +186,7 @@ COLUMN_CONFIG = {
             'format':'Y-m-d H:i:s'
         },
         width=120,
-        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
-        field_definition = "{name:'firstTime',type:'date', dateFormat: Zenoss.date.ISO8601Long}"
+        renderer='Zenoss.date.renderDateColumn()'        
     ),
 
     'lastTime'  : dict(
@@ -198,8 +197,7 @@ COLUMN_CONFIG = {
             'format':'Y-m-d H:i:s'
         },
         width=120,
-        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
-        field_definition="{name:'lastTime', type:'date', dateFormat: Zenoss.date.ISO8601Long}"
+        renderer='Zenoss.date.renderDateColumn()'        
     ),
 
     'count'     : dict(
@@ -236,8 +234,7 @@ COLUMN_CONFIG = {
             'format':'Y-m-d H:i:s'
         },
         width=120,
-        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
-        field_definition="{name:'stateChange', type:'date', dateFormat: Zenoss.date.ISO8601Long}"
+        renderer='Zenoss.date.renderDateColumn()'        
     ),
 
     'eventClassKey': dict(

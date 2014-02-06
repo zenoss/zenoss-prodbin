@@ -188,7 +188,7 @@ organizerTypes = {
     'Devices': 'devices',
     'Groups': 'groups',
     'Locations': 'locs',
-    'Systems': 'systems'
+    'Systems': 'systemsTree'
 }
 
 

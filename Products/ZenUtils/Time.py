@@ -19,6 +19,8 @@ $Id:$"""
 __version__ = "$$"[11:-2]
 
 import time
+import os
+from hashlib import sha224
 from math import isnan
 
 def _maybenow(gmtSecondsSince1970):
@@ -37,6 +39,38 @@ def LocalDateTimeFromMilli(milliseconds):
     """
     return LocalDateTime(milliseconds / 1000)
 
+
+SERVER_TIMEZONE = None
+def getServerTimeZone():
+    """
+    This is suprisingly harder than you would think, but we need to guess
+    the olson timezone on the current server. Most Redhaty linuxes symlink
+    /etc/localtime. For the rest we need to compare the hash of what is in
+    /usr/share/zoneinfo
+    """
+    global SERVER_TIMEZONE
+    if not SERVER_TIMEZONE is None:
+        return SERVER_TIMEZONE
+    # try reading the link
+    if os.path.islink('/etc/localtime'):
+        SERVER_TIMEZONE = '/'.join(os.readlink('/etc/localtime').split('/')[-2:])
+        return SERVER_TIMEZONE
+    tzfile_digest = None
+    with open('/etc/localtime') as tzfile:    
+        tzfile_digest = sha224(tzfile.read()).hexdigest()    
+    
+    for root, dirs, filenames in os.walk("/usr/share/zoneinfo/"):
+        for filename in filenames:
+            fullname = os.path.join(root, filename)
+            f = open(fullname)
+            digest = sha224(f.read()).hexdigest()
+            if digest == tzfile_digest:
+                SERVER_TIMEZONE = '/'.join((fullname.split('/'))[-2:])
+                return SERVER_TIMEZONE
+            f.close()
+        # if we haven't found it don't keep trying next request
+        SERVER_TIMEZONE = ""
+        return SERVER_TIMEZONE
 
 def isoDateTime(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)

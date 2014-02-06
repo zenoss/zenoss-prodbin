@@ -36,8 +36,8 @@
     var router = Zenoss.remote.DeviceRouter,
         GraphPanel,
         DRangeSelector,
+        DATEFIELD_DATE_FORMAT = "YYYY-MM-DD HH:mm:ss",
         GraphRefreshButton,
-        dateRangePanel,
         CURRENT_TIME = "0s-ago",
         DATE_RANGES = [
             ["1h-ago", _t('Last Hour')],
@@ -63,8 +63,8 @@
         /*
          * If a given request is over GRAPHPAGESIZE then
          * the results will be paginated.
-         * IE can't handle the higher number that compliant browsers can
-         * so setting lower.
+         * Lower the number of graphs that are displayed for IE
+         * since it dramatically speeds up the rendering speed.
          **/
         GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
 
@@ -263,7 +263,8 @@
                 maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
                 // one format for chart, not per metric
-                format: this.datapoints[0].format
+                format: this.datapoints[0].format,
+                timezone: Zenoss.USER_TIMEZONE
             };
             var delta;
             if (Ext.isNumber(this.graph_params.start)) {
@@ -566,62 +567,65 @@
             this.callParent(arguments);
         }
     });
-
-    dateRangePanel = [{
-        margin: '10, 0, 15, 0',
-        xtype: 'container',
-        layout: 'hbox',
-        defaults: {
-            margin: '0 0 0 10',
-            labelWidth: 30
-        },
-        items:[{
-            xtype: 'datefield',
-            ref: '../../start_date',
-            width: 250,
-            fieldLabel: _t('Start'),
-            format:'Y-m-d H:i:s',
-            // the default is one hour ago
-            value: Ext.Date.format(new Date((new Date().getTime() - 3600 * 1000)), "Y-m-d H:i:s")
-        },{
+    function getDateRangePanel() {
+        var dateRangePanel = [{
+            margin: '10, 0, 15, 0',
             xtype: 'container',
-            width: 5
-        },{
-            xtype: 'datefield',
-            ref: '../../end_date',
-            width: 250,
-            fieldLabel: _t('End'),
-            disabled: true,
-            format:'Y-m-d H:i:s',
-            value: Ext.Date.format(new Date(), "Y-m-d H:i:s")
-        }, {
-            xtype: 'checkbox',
-            ref: '../../checkbox_now',
-            fieldLabel: _t('Now'),
-            checked: true,
-            listeners: {
-                change: function(chkbox, newValue) {
-                    chkbox.refOwner.end_date.setDisabled(newValue);
+            layout: 'hbox',
+            defaults: {
+                margin: '0 0 0 10',
+                labelWidth: 30
+            },
+            items:[{
+                xtype: 'datefield',
+                ref: '../../start_date',
+                width: 250,
+                fieldLabel: _t('Start'),
+                format:'Y-m-d H:i:s',
+                // the default is one hour ago
+                value: moment().subtract("Hour", 1).tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
+            },{
+                xtype: 'container',
+                width: 5
+            },{
+                xtype: 'datefield',
+                ref: '../../end_date',
+                width: 250,
+                fieldLabel: _t('End'),
+                disabled: true,
+                format:'Y-m-d H:i:s',
+                value: moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
+            }, {
+                xtype: 'checkbox',
+                ref: '../../checkbox_now',
+                fieldLabel: _t('Now'),
+                checked: true,
+                listeners: {
+                    change: function(chkbox, newValue) {
+                        chkbox.refOwner.end_date.setDisabled(newValue);
+                    }
                 }
-            }
-        }, {
-            xtype: 'button',
-            text: _t('Update'),
-            ref: '../../updatebutton',
-            handler: function(b){
-                var me = b.refOwner;
-                me.start = me.start_date.getValue().getTime();
-                me.updateEndTime();
-                me.end = me.end_date.getValue().getTime();
-                Ext.each(me.getGraphs(), function(g) {
-                    g.fireEvent("updateimage", {
-                        start: me.start,
-                        end: me.end
-                    }, me);
-                });
-            }
-        }]
-    }];
+            }, {
+                xtype: 'button',
+                text: _t('Update'),
+                ref: '../../updatebutton',
+                handler: function(b){
+                    var me = b.refOwner;
+                    me.start = me.start_date.getValue().getTime();
+                    me.updateEndTime();
+                    me.end = me.end_date.getValue().getTime();
+                    Ext.each(me.getGraphs(), function(g) {
+                        g.fireEvent("updateimage", {
+                            start: me.start,
+                            end: me.end
+                        }, me);
+                    });
+                }
+            }]
+        }];
+        return dateRangePanel;
+    }
+
 
     function getTBarConfig(title) {
         var tbarConfig = [
@@ -841,7 +845,7 @@
                 // add the date filters as well as the columns
                 this.add([{
                     xtype: 'container',
-                    items: Ext.Array.clone(dateRangePanel)
+                    items: Ext.Array.clone(getDateRangePanel())
                 },{
                     layout: 'column',
                     items: columns
@@ -865,8 +869,9 @@
             drange = drange || this.drange;
             this.drange = drange;
             //  set the start and end dates to the selected range.
-            this.end_date.setValue(new Date());
-            this.start_date.setValue(new Date(new Date().getTime() - rangeToMilliseconds(drange)));
+            this.end_date.setValue(moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            var start_timestamp = ( new Date().getTime() - rangeToMilliseconds(drange)) / 1000;
+            this.start_date.setValue(moment.utc(start_timestamp, "X").tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
 
             // tell each graph to update
             Ext.each(this.getGraphs(), function(g) {

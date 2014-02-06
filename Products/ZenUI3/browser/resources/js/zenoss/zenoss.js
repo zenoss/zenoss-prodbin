@@ -21,24 +21,6 @@ Zenoss.logDirectRequests = false;
     });
 
 /**
- * Make sure we don't lose the javascript errors.
- **/
-window.onerror = function(msg, url, lineNumber) {
-    try{
-        Zenoss.remote.DetailNavRouter.logErrorMessage({
-            msg: msg,
-            url: window.location.href,
-            file: url,
-            lineNumber: lineNumber
-        });
-    } catch (x) {
-        // if the router isn't defined or if we have an error logging
-        // the error then do nothing. It will still display on the
-        // browser's console if it is enabled.
-    }
-    return true;
-};
-/**
  * Base namespace to contain all Zenoss-specific JavaScript.
  */
 Ext.namespace('Zenoss');
@@ -1315,6 +1297,30 @@ Ext.apply(Zenoss.date, {
     UniversalSortableDateTime: "Y-m-d H:i:sO",
     YearMonth: "F, Y"
 });
+
+
+/**
+ * This takes a unix timestamp and renders it in the
+ * logged in users's selected timezone.
+ * Format is optional, if not passed in the default will be used.
+ * NOTE: value here must be in seconds, not milliseconds
+ **/
+Zenoss.date.renderWithTimeZone = function (value, format) {
+    if (Ext.isNumeric(value)) {
+        if (!format) {
+            format = "YYYY-MM-DD HH:mm:ss a";
+        }
+        return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
+    }
+    return value;
+};
+
+Zenoss.date.renderDateColumn = function(format) {
+    return function(v) {
+        return Zenoss.date.renderWithTimeZone(v, format);
+    };
+};
+
 
 // Fix an IE bug
 Ext.override(Ext.Shadow, {

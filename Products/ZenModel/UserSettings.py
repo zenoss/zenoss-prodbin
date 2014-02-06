@@ -600,7 +600,8 @@ class UserSettings(ZenModelRM):
     eventConsoleRefresh = True
     zenossNetUser = ''
     zenossNetPassword = ''
-
+    timezone = ''
+    
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
         {'id':'pager', 'type':'string', 'mode':'w'},
@@ -615,6 +616,7 @@ class UserSettings(ZenModelRM):
         {'id':'eventConsoleRefresh', 'type':'boolean', 'mode':'w'},
         {'id':'zenossNetUser', 'type':'string', 'mode':'w'},
         {'id':'zenossNetPassword', 'type':'string', 'mode':'w'},
+        {'id':'timezone', 'type':'string', 'mode':'w'},
     )
 
 

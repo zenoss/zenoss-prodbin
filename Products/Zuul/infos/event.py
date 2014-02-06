@@ -91,11 +91,11 @@ class EventCompatInfo(object):
 
     @property
     def firstTime(self):
-        return isoDateTimeFromMilli(self._event_summary['first_seen_time'])
+        return self._event_summary['first_seen_time'] / 1000.0
 
     @property
     def lastTime(self):
-        return isoDateTimeFromMilli(self._event_summary['last_seen_time'])
+        return self._event_summary['last_seen_time'] / 1000.0
 
     @property
     def count(self):
@@ -103,7 +103,7 @@ class EventCompatInfo(object):
 
     @property
     def stateChange(self):
-        return isoDateTimeFromMilli(self._event_summary['status_change_time'])
+        return self._event_summary['status_change_time'] / 1000.0
 
     @property
     def eventClassKey(self):
