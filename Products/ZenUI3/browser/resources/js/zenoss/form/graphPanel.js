@@ -578,7 +578,6 @@
             },
             items:[{
                 xtype: 'datefield',
-                id: 'graph_start_date',
                 ref: '../../start_date',
                 width: 250,
                 fieldLabel: _t('Start'),
