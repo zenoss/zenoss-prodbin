@@ -332,7 +332,7 @@
     function getServerTimestamp() {
         return toISOTimestamp(server_now());
     }
-    function updateTime(){        
+    function updateTime(){
         server_time += 1000;
         $('system_clock').innerHTML = getServerTime();
         callLater(1, updateTime)
