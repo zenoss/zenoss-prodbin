@@ -53,7 +53,7 @@ class DeployedAppLookup(object):
 
     def __init__(self):
         settings = getConnectionSettings()
-        self._client = self.clientClass(**settings)
+        self._client = self.clientClass(**settings)        
         self._appcache = {}
 
     def query(self, name=None, tags=None, monitorName=None):
@@ -180,7 +180,7 @@ class DeployedApp(object):
     def configurations(self):
         """
         """
-        return _DeployedAppConfigList(self._service, self._client)
+        return _deployedappconfiglist(self._service, self._client)
 
     def start(self):
         """

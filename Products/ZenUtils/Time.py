@@ -81,17 +81,17 @@ def convertTimestampToTimeZone(timestamp, zone_name, fmt="%Y/%m/%d %H:%M:%S"):
     """    
     utc_tz = pytz.timezone('UTC')
     utc_dt = utc_tz.localize(datetime.utcfromtimestamp(timestamp))
-
-    localized_tz = pytz.timezone(zone_name)
-    # if we can't find the timezone then just return the server time of it
-    if not localized_tz:
-        return isoDateTime(timestamp)
+    try:
+        localized_tz = pytz.timezone(zone_name)
+    except pytz.UnknownTimeZoneError:
+        # return server time
+        return isoDateTime(timestamp, fmt)     
     localized_dt = localized_tz.normalize(utc_dt.astimezone(localized_tz))
     return localized_dt.strftime(fmt)
     
-def isoDateTime(gmtSecondsSince1970 = None):
+def isoDateTime(gmtSecondsSince1970 = None, fmt="%Y-%m-%d %H:%M:%S"):
     value = _maybenow(gmtSecondsSince1970)
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
+    return time.strftime(fmt, time.localtime(value))
 
 def isoDateTimeFromMilli(milliseconds):
     """
