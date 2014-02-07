@@ -180,7 +180,7 @@ class DeployedApp(object):
     def configurations(self):
         """
         """
-        return _deployedappconfiglist(self._service, self._client)
+        return  _DeployedAppConfigList(self._service, self._client)
 
     def start(self):
         """

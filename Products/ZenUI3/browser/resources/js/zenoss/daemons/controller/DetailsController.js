@@ -172,7 +172,6 @@
         showDaemonConfigurationFiles: function() {
             var selected = this.selected,
                 configPanel = this.getConfigFiles(),
-                configFiles = selected.get('configFiles'),
                 el = configPanel.getEl(),
                 file,
                 items =[],
@@ -181,20 +180,24 @@
                 el.unmask();
             }
             configPanel.removeAll();
-            if (Ext.isArray(configFiles) && configFiles.length) {
-                for (i=0;i<configFiles.length;i++) {
-                    items.push({
-                        xtype: 'minieditor',
-                        title: configFiles[i].filename,
-                        value: configFiles[i].content
-                    });
-                }
-                configPanel.add(items);
-            } else if (el) {
-                el.mask(Ext.String.format(_t('Unable to find a configuration file for {0}.'),
-                                          selected.get('name')) ,
-                        'x-mask-msg-noicon');
-            }
+            Zenoss.remote.ApplicationRouter.getApplicationConfigFiles({id:selected.get('id')},
+                function(response){
+                    var configFiles = response.data;
+                    if (Ext.isArray(configFiles) && configFiles.length) {
+                        for (i=0;i<configFiles.length;i++) {
+                            items.push({
+                                xtype: 'minieditor',
+                                title: configFiles[i].filename,
+                                value: configFiles[i].content
+                            });
+                        }
+                        configPanel.add(items);
+                    } else if (el) {
+                        el.mask(Ext.String.format(_t('Unable to find a configuration file for {0}.'),
+                                                  selected.get('name')) ,
+                                'x-mask-msg-noicon');
+                    }
+                });
         },
         saveDaemonConfigurationFiles: function() {
             var configFiles = [],
