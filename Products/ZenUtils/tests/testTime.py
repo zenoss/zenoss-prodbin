@@ -20,8 +20,8 @@ class TestTime(BaseTestCase):
     def testGetServerTimeZone(self):
         zone = Time.getServerTimeZone()
         # this one is kinda difficult since it is dependent on the host system
-        # so lets just make sure we got something
-        self.assertTrue(zone, "Was unable to get the timezone from the server")
+        # so lets just make sure we got something with no stack traces
+        self.assertTrue(zone is not None, "Was unable to get the timezone from the server")
     
 
     def testConvertingTime(self):
