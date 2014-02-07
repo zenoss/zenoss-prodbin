@@ -293,15 +293,17 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
 
     @property
     def firstSeen(self):
-        return self._object.getCreatedTimeString()
+        return self._object.createdTime.timeTime()
 
     @property
     def lastChanged(self):
-        return self._object.getLastChangeString()
+        return self._object._lastChange
 
     @property
     def lastCollected(self):
-        return self._object.getSnmpLastCollectionString()
+        if self._object._snmpLastCollection:
+            return self._object._snmpLastCollection
+        return "Not Modeled"
 
     def getComments(self):
         return self._object.comments

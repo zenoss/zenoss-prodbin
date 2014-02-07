@@ -668,15 +668,18 @@
                         },{
                             fieldLabel: _t('First Seen'),
                             id: 'first-seen-label',
-                            name: 'firstSeen'
+                            name: 'firstSeen',
+                            xtype: "datedisplayfield"
                         },{
                             fieldLabel: _t('Last Change'),
                             id: 'last-change-label',
-                            name: 'lastChanged'
+                            name: 'lastChanged',
+                            xtype: "datedisplayfield"
                         },{
                             fieldLabel: _t('Model Time'),
                             id: 'model-time-label',
-                            name: 'lastCollected'
+                            name: 'lastCollected',
+                            xtype: "datedisplayfield"
                         },{
                             fieldLabel: _t('Locking'),
                             id: 'locking-label',

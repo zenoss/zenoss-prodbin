@@ -382,7 +382,7 @@ class UserSettingsManager(ZenModelRM):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Settings Saved',
-                Time.SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()                
             )
             audit('UI.User.Edit', username=userid, data_=updates)
             return self.callZenScreen(REQUEST)
@@ -600,7 +600,8 @@ class UserSettings(ZenModelRM):
     eventConsoleRefresh = True
     zenossNetUser = ''
     zenossNetPassword = ''
-
+    timezone = ''
+    
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
         {'id':'pager', 'type':'string', 'mode':'w'},
@@ -615,6 +616,7 @@ class UserSettings(ZenModelRM):
         {'id':'eventConsoleRefresh', 'type':'boolean', 'mode':'w'},
         {'id':'zenossNetUser', 'type':'string', 'mode':'w'},
         {'id':'zenossNetPassword', 'type':'string', 'mode':'w'},
+        {'id':'timezone', 'type':'string', 'mode':'w'},
     )
 
 
@@ -926,7 +928,7 @@ class UserSettings(ZenModelRM):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Settings Saved',
-                Time.SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()
             )
             audit('UI.User.Edit', username=self.id, data_=updates)
             return self.callZenScreen(REQUEST)

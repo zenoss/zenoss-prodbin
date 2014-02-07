@@ -851,8 +851,7 @@
         },
         doLastUpdated: function() {
             var box = Ext.getCmp('lastupdated'),
-            dt = new Date(),
-            dtext = Ext.Date.format(dt, 'g:i:sA');
+            dtext = Zenoss.date.renderWithTimeZone(new Date()/1000);
             box.setText(_t('Last updated at ') + dtext);
         },
         setContext: function(uid) {

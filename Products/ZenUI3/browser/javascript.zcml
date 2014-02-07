@@ -60,7 +60,19 @@
                /++resource++extjs/examples/ux/form/ItemSelector.js
                /++resource++extjs/examples/ux/IFrame.js
                /++resource++extjs/examples/ux/RowExpander.js
-               /++resource++extjs/examples/ux/CheckColumn.js"
+               /++resource++extjs/examples/ux/CheckColumn.js"              
+        />
+
+<browser:viewlet
+        name="timezone-support"
+        weight="4"
+        manager=".interfaces.IJavaScriptSrcManager"
+        permission="zope2.Public"
+        class=".javascript.JavaScriptSrcBundleViewlet"
+        paths="/++resource++zenui/js/timezone/moment.min.js
+               /++resource++zenui/js/timezone/moment-timezone.js
+               /++resource++zenui/js/timezone/jstz.js
+               /++resource++zenui/js/timezone/moment-timezone-data.js"
         />
 
 

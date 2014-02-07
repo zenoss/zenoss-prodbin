@@ -19,6 +19,10 @@ $Id:$"""
 __version__ = "$$"[11:-2]
 
 import time
+import os
+import pytz
+from datetime import datetime    
+from hashlib import sha224
 from math import isnan
 
 def _maybenow(gmtSecondsSince1970):
@@ -38,9 +42,56 @@ def LocalDateTimeFromMilli(milliseconds):
     return LocalDateTime(milliseconds / 1000)
 
 
-def isoDateTime(gmtSecondsSince1970 = None):
+SERVER_TIMEZONE = None
+def getServerTimeZone():
+    """
+    This is suprisingly harder than you would think, but we need to guess
+    the olson timezone on the current server. Most Redhaty linuxes symlink
+    /etc/localtime. For the rest we need to compare the hash of what is in
+    /usr/share/zoneinfo
+    """
+    global SERVER_TIMEZONE
+    if not SERVER_TIMEZONE is None:
+        return SERVER_TIMEZONE
+    # try reading the link
+    if os.path.islink('/etc/localtime'):
+        SERVER_TIMEZONE = '/'.join(os.readlink('/etc/localtime').split('/')[-2:])
+        return SERVER_TIMEZONE
+    tzfile_digest = None
+    with open('/etc/localtime') as tzfile:    
+        tzfile_digest = sha224(tzfile.read()).hexdigest()    
+    
+    for root, dirs, filenames in os.walk("/usr/share/zoneinfo/"):
+        for filename in filenames:
+            fullname = os.path.join(root, filename)
+            f = open(fullname)
+            digest = sha224(f.read()).hexdigest()
+            if digest == tzfile_digest:
+                SERVER_TIMEZONE = '/'.join((fullname.split('/'))[-2:])
+                return SERVER_TIMEZONE
+            f.close()
+        # if we haven't found it don't keep trying next request
+        SERVER_TIMEZONE = ""
+        return SERVER_TIMEZONE
+
+def convertTimestampToTimeZone(timestamp, zone_name, fmt="%Y/%m/%d %H:%M:%S"):
+    """
+    This takes a integer timestamp (in seconds since epoch) and returns a
+    string that represents the time in the timezone name in the provided format.
+    """    
+    utc_tz = pytz.timezone('UTC')
+    utc_dt = utc_tz.localize(datetime.utcfromtimestamp(timestamp))
+    try:
+        localized_tz = pytz.timezone(zone_name)
+    except pytz.UnknownTimeZoneError:
+        # return server time
+        return isoDateTime(timestamp, fmt)     
+    localized_dt = localized_tz.normalize(utc_dt.astimezone(localized_tz))
+    return localized_dt.strftime(fmt)
+    
+def isoDateTime(gmtSecondsSince1970 = None, fmt="%Y-%m-%d %H:%M:%S"):
     value = _maybenow(gmtSecondsSince1970)
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
+    return time.strftime(fmt, time.localtime(value))
 
 def isoDateTimeFromMilli(milliseconds):
     """

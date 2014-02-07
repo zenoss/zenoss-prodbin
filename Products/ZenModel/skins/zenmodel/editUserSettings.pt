@@ -43,7 +43,7 @@ function clearBrowserState(event){
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
 
         <tal:block tal:define="message request/message | string:State at time:;
-            tabletitle string:${message} ${here/getNowString}">
+            tabletitle string:${message} ${here/getCurrentUserNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -179,6 +179,30 @@ function clearBrowserState(event){
       <td class="tablevalues">
         <input id="user_settings_networkmap_input" class="tablevalues" type="text" name="netMapStartObject"
             tal:attributes="value here/netMapStartObject" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Time Zone</td>
+      <td class="tablevalues">
+        <select id="user_settings_timezone" name="timezone"></select>
+        <script tal:content='string:
+             Zenoss.env.CURRENT_USER_TIMEZONE = "${context/timezone}" || Zenoss.USER_TIMEZONE;
+         '></script>
+        <script>
+          // build a select list with the current timezone selected.
+          // Zenoss.data.timeZones comes from moment-timezone-data.js and
+          // Zenoss.USER_TIMEZONE comes from the server
+          Ext.onReady(function() {
+              var select = Ext.get('user_settings_timezone').dom, zones = Zenoss.date.timeZones.zones, zone, i=0;
+              for (zone in zones) {
+                  select.options[i] = new Option(zone, zone);
+                  if (zone == Zenoss.env.CURRENT_USER_TIMEZONE) {
+                      select.options[i].selected = true;
+                  }
+              i++;
+              }
+         });
+        </script>
       </td>
     </tr>
 

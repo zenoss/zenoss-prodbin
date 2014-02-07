@@ -581,4 +581,31 @@ Ext.override(Ext.util.Sorter, {
             return !! snapshot && snapshot !== this.getRootNode();
         }
     });
+
+    function toMomentInTimezone(sourceMoment, timezone) {
+        var result = moment.tz(timezone);
+        result.year(sourceMoment.year());
+        result.month(sourceMoment.month());
+        result.date(sourceMoment.date());
+        result.hour(sourceMoment.hour());
+        result.minute(sourceMoment.minute());
+        result.second(sourceMoment.second());
+        result.millisecond(sourceMoment.millisecond());
+        return result;
+    }
+
+    /**
+     * Override the date selector to return dates in the current users
+     * timezone.
+     **/
+    Ext.override(Ext.form.field.Date, {
+        getUnixTimestamp: function() {
+            var date = this.getValue();
+            if (!date) {
+                return 0;
+            }
+            return toMomentInTimezone(moment(date), Zenoss.USER_TIMEZONE).unix();
+        }
+    });
+
 }());

@@ -37,6 +37,7 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
 from Products.ZenWidgets import messaging
+from Products.ZenUtils.Time import convertTimestampToTimeZone, isoDateTime
 from Products.ZenUI3.browser.interfaces import INewPath
 from Products.ZenMessaging.audit import audit as auditFn
 from ZenossSecurity import *
@@ -379,11 +380,10 @@ class ZenModelBase(object):
         self.manage_changeProperties(**REQUEST.form)
         index_object = getattr(self, 'index_object', lambda self: None)
         index_object()
-        if REQUEST:
-            from Products.ZenUtils.Time import SaveMessage
+        if REQUEST:            
             messaging.IMessageSender(self).sendToBrowser(
                 'Properties Saved',
-                SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()
             )
 
             if audit:
@@ -506,7 +506,19 @@ class ZenModelBase(object):
         """
         return self.getObjByPath(path)
 
-
+    def convertToUsersTimeZone(self, timestamp):
+        """
+        This is an instance method so that it is available to
+        tal statements, such as reports.
+        """
+        user = self.zport.dmd.ZenUsers.getUserSettings()
+        if user.timezone:
+            return convertTimestampToTimeZone(timestamp, user.timezone)
+        return isoDateTime(timestamp)
+    
+    def getCurrentUserNowString(self):        
+        return self.convertToUsersTimeZone(time.time())
+    
     def getNowString(self):
         """
         Return the current time as a string in the format '2007/09/27 14:09:53'.

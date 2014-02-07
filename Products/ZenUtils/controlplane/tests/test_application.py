@@ -18,8 +18,8 @@ from Products.ZenUtils.controlplane.application import (
 
 class _MockClient(object):
 
-    def __init__(self, data=None):
-        self._data = data if data else {}
+    def __init__(self, **kwargs):
+        self._data = kwargs if kwargs else {}
 
     def queryServices(self, name=None, tags=None):
         tags = tags if tags else ()
@@ -72,7 +72,6 @@ service1 = Service(
 class DeployedAppTest(BaseTestCase):
     """
     """
-
     def test001(self):
         DeployedAppLookup.clientClass = _MockClient
         lookup = DeployedAppLookup()
@@ -83,7 +82,7 @@ class DeployedAppTest(BaseTestCase):
         data = {
             (service1.id, tuple(service1.tags)): service1,
         }
-        DeployedAppLookup.clientClass = lambda: _MockClient(data)
+        DeployedAppLookup.clientClass =  _MockClient
         lookup = DeployedAppLookup()
         result = lookup.query()
         self.assertEqual(len(result), 1)
