@@ -652,7 +652,10 @@ Ext.onReady(function() {
         },
 
         update: function(eventData) {
-
+            // render event data
+            eventData.firstTime = Zenoss.date.renderWithTimeZone(eventData.firstTime);
+            eventData.lastTime = Zenoss.date.renderWithTimeZone(eventData.lastTime);
+            eventData.stateChange = Zenoss.date.renderWithTimeZone(eventData.stateChange);
             var renderedData = this.renderData(eventData);
 
             this.setSummary(renderedData.summary);
