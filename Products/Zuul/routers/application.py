@@ -166,6 +166,15 @@ class ApplicationRouter(TreeRouter):
             pools.push(dict(name=p))
         return DirectResponse.succeed(data=Zuul.marshal(pools))
 
+    def getApplicationConfigFiles(self, id):
+        """
+        Returns all the configuration files for an application
+        """
+        facade = self._getFacade()
+        info = IInfo(facade.get(id))
+        files = info.configFiles
+        return DirectResponse.succeed(data=Zuul.marshal(files))
+    
     def updateConfigFiles(self, id, configFiles):
         """
         Updates the configuration files for an application specified by id.
