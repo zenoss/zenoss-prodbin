@@ -1474,6 +1474,10 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
     padding-right:0 !important;
 }
 
+.x-window .x-grid-header-ct, .x-window .x-grid-cell-inner, .x-window .x-boundlist {
+  color: #444444 !important;
+}
+
 .x-window-body .x-panel-body .x-boundlist li{
   color: #000 !important;
 }
