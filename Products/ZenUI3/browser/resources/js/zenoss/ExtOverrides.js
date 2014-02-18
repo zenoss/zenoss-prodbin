@@ -611,21 +611,13 @@ Ext.override(Ext.util.Sorter, {
     /**
      * Override the default behavior of moment-timezone to
      * not translate the times if the timezone that is passed
-     * is UTC. 
+     * is UTC.
      **/
+    var oldMomentTz = moment.fn.tz;
     moment.fn.tz = function (name) {
         if (name == "UTC") {
             return this;
         }
-        if (name) {
-            this._z = getZoneSet(name);
-            if (this._z) {
-                moment.updateOffset(this);
-            }
-            return this;
-        }
-        if (this._z) {
-            return this._z.displayName;
-        }
+        return oldMomentTz.apply(this, [name]);
     };
 }());
