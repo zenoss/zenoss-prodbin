@@ -608,4 +608,16 @@ Ext.override(Ext.util.Sorter, {
         }
     });
 
+    /**
+     * Override the default behavior of moment-timezone to
+     * not translate the times if the timezone that is passed
+     * is UTC.
+     **/
+    var oldMomentTz = moment.fn.tz;
+    moment.fn.tz = function (name) {
+        if (name == "UTC") {
+            return this;
+        }
+        return oldMomentTz.apply(this, [name]);
+    };
 }());

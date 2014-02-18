@@ -55,7 +55,11 @@ def getServerTimeZone():
         return SERVER_TIMEZONE
     # try reading the link
     if os.path.islink('/etc/localtime'):
-        SERVER_TIMEZONE = '/'.join(os.readlink('/etc/localtime').split('/')[-2:])
+        tz = '/'.join(os.readlink('/etc/localtime').split('/')[-2:])
+        # some timezones like UTC are only one word so the directory will show up
+        if tz.startswith("zoneinfo/"):
+            tz = tz.replace("zoneinfo/", "")
+        SERVER_TIMEZONE = tz        
         return SERVER_TIMEZONE
     tzfile_digest = None
     with open('/etc/localtime') as tzfile:    
