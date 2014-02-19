@@ -241,6 +241,11 @@ function main()
 
 
 if [[ "$(basename $0)" == "quiesce-mysql.sh" ]]; then
+    if [[ $(whoami) == "root" ]]; then
+        FULLPATH="$(cd $(dirname $0); pwd -P)"
+        su - zenoss -c "$FULLPATH/$(basename $0) $*"
+    fi
+
     [[ -n "$ZENHOME" ]] || die "ZENHOME env var is not set"
 
     # Needs these env vars provided from zenfunctions:
