@@ -51,6 +51,7 @@ from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
+from zenoss.collector.publisher.publisher import HttpPostPublisher
 
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
@@ -598,30 +599,24 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def internalPublisher(self):
         if not self._internal_publisher:
-            host, port = urlparse(self.options.redisUrl).netloc.split(':')
-            try:
-                port = int(port)
-            except ValueError:
-                self.log.exception("redis url contains non-integer port " +
-                                   "value {port}, defaulting to {default}".
-                                   format(port=port, default=publisher.defaultRedisPort))
-                port = publisher.defaultRedisPort
-            self._internal_publisher = RedisListPublisher(
-                host, port, self.options.metricBufferSize,
-                channel=self.options.internalMetricsChannel
-            )
+            url = os.environ.get( "CONTROLPLANE_CONSUMER_URL", None)
+            username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
+            password = os.environ.get( "CONTROLPLANE_CONSUMER_PASSWORD", "")
+            if url:
+              self._internal_publisher = HttpPostPublisher( username, password, url)
         return self._internal_publisher
-
+            
     def metricWriter(self):
         if not self._metric_writer:
             publisher = self.publisher()
-	    metric_writer = MetricWriter(publisher)
+            metric_writer = MetricWriter(publisher)
             if os.environ.get( "CONTROLPLANE", "0") == "1":
                 internal_publisher = self.internalPublisher()
-                internal_metric_filter = lambda metric, value, timestamp, tags:\
-                    tags and tags.get("internal", False)
-                internal_metric_writer = FilteredMetricWriter(internal_publisher, internal_metric_filter)
-                self._metric_writer = AggregateMetricWriter( [metric_writer, internal_metric_writer])
+                if internal_publisher:
+                  internal_metric_filter = lambda metric, value, timestamp, tags:\
+                      tags and tags.get("internal", False)
+                  internal_metric_writer = FilteredMetricWriter(internal_publisher, internal_metric_filter)
+                  self._metric_writer = AggregateMetricWriter( [metric_writer, internal_metric_writer])
             else:
                 self._metric_writer = metric_writer
         return self._metric_writer
@@ -1048,10 +1043,4 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='string',
                                default=publisher.defaultMetricsChannel,
                                help='redis channel to which metrics are published')
-        self.parser.add_option('--internalMetricsChannel',
-                               dest='internalMetricsChannel',
-                               type='string',
-                               default="internal-metrics",
-                               help='redis channel to which internal metrics are published')
-
         ZenDaemon.buildOptions(self)
