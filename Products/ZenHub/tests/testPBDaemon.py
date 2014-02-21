@@ -31,6 +31,8 @@ from Products.ZenHub.PBDaemon import (
 
 from zenoss.collector.publisher.redis_client import RedisClient
 
+from zenoss.collector.publisher.publisher import HttpPostPublisher
+
 _TEST_EVENT = dict(
     device='device1',
     component='component1',
@@ -425,6 +427,17 @@ class TestInternalMetricWriter(BaseTestCase):
         self.metric_writer.write_metric( *internal_metric)
         self.assertEquals( [tuple(internal_metric)], self.daemon._internal_publisher.queue)
         self.assertEquals( [tuple(metric), tuple(internal_metric)], self.daemon._publisher.queue)
+
+    def testInternalPublisherIsNone(self):
+        self.daemon._internal_publisher = None
+        del os.environ["CONTROLPLANE_CONSUMER_URL"]
+        self.assertIsNone( self.daemon.internalPublisher())
+
+    def testInternalPublisherIsInstance(self):
+        self.daemon._internal_publisher = None
+        os.environ["CONTROLPLANE_CONSUMER_URL"] = "http://localhost"
+        publisher = self.daemon.internalPublisher()
+        self.assertIsInstance( publisher, HttpPostPublisher)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
