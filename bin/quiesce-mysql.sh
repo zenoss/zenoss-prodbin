@@ -89,6 +89,7 @@ function do_status()
 
     logInfo "status dbnames:${dbnames[@]}"
 
+    # for fedora19 pgrep version 3.3.8 - pgrep needs -a flag
     # output of: pgrep -fl 'mysql.*quiesce-mysql.sh.*hold-lock-zodb'
     # 7246 /opt/zends/bin/.mysql --defaults-file=/opt/zends/etc/zends.cnf -A --unbuffered --quick --user=root --host=localhost --port=13306 --database=zodb -e FLUSH TABLES WITH READ LOCK \G; SELECT "2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb LOCKED" AS ""; SELECT SLEEP(600);
     # output of: pgrep -fl 'mysql.*quiesce-mysql.sh.*hold-lock-zodb' | cut -f2 -d\"
@@ -102,7 +103,7 @@ function do_status()
         local msg_prepend="$(datetimestamp): $$ $(basename $0) hold-lock-$dbname"
 
         # use pgrep to check for process holding lock
-        local result=$(pgrep -fl "mysql.*$(basename $0).*hold-lock-$dbname")
+        local result=$(pgrep -fla "mysql.*$(basename $0).*hold-lock-$dbname")
         if [[ -z $result ]]; then
             echo "IS_NOT_LOCKED: $dbname"
             allLocked=false
@@ -243,7 +244,7 @@ function main()
 if [[ "$(basename $0)" == "quiesce-mysql.sh" ]]; then
     if [[ $(whoami) == "root" ]]; then
         FULLPATH="$(cd $(dirname $0); pwd -P)"
-        su - zenoss -c "$FULLPATH/$(basename $0) $*"
+        exec su - zenoss -c "$FULLPATH/$(basename $0) $*"
     fi
 
     [[ -n "$ZENHOME" ]] || die "ZENHOME env var is not set"
@@ -251,7 +252,14 @@ if [[ "$(basename $0)" == "quiesce-mysql.sh" ]]; then
     # Needs these env vars provided from zenfunctions:
     #   VARDIR=$ZENHOME/var
     #   CFGDIR=$ZENHOME/etc
-    source $ZENHOME/bin/zenfunctions
+    #source $ZENHOME/bin/zenfunctions
+
+    # START OF HACK for zenfunctions is broken in fedora19 - zenfunctions python wrapper has issues
+    export VARDIR=$ZENHOME/var
+    export CFGDIR=$ZENHOME/etc
+    CMD="$1"
+    shift
+    # END OF HACK
 
     main "$@"
     exit $?
