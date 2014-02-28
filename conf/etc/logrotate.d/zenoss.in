@@ -1,0 +1,23 @@
+@prefix@/log/event.log @prefix@/log/Z2.log @prefix@/log/zeo.log {
+    missingok
+    daily
+    rotate 14
+    copytruncate
+    compress
+    delaycompress
+    notifempty
+}
+
+@prefix@/log/nginx/*.log {
+    missingok
+    daily
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 640 zenoss zenoss
+    sharedscripts
+    postrotate
+        [ ! -f @prefix@/var/nginx.pid ] || kill -USR1 `cat @prefix@/var/nginx.pid`
+    endscript
+}
