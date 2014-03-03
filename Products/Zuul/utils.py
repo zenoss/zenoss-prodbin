@@ -86,8 +86,7 @@ def allowedRolesAndUsers(context):
             for x in r:
                 allowed.add(x)
         else:
-            allowed.add(r)
-        allowed.add(r)
+            allowed.add(r)        
     for user, roles in _mergedLocalRoles(context).iteritems():
         for role in roles:
             if role in allowed:
