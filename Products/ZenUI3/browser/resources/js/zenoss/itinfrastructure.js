@@ -1458,8 +1458,7 @@ Ext.getCmp('center_panel').add({
         cls: 'x-zenoss-master-panel',
         region: 'west',
         split: true,
-        width: 275,
-        maxWidth: 275,
+        width: 275,        
         items: [{
             id: 'master_panel_details',
             text: _t('Infrastructure'),

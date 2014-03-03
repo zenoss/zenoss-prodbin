@@ -272,8 +272,7 @@ Ext.getCmp('center_panel').add({
         id: 'master_panel',
         layout: 'fit',
         region: 'west',
-        width: 300,
-        maxWidth: 300,
+        width: 300,        
         split: true,
         items: [treepanel]
     }, {

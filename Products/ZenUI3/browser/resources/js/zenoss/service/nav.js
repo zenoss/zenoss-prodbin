@@ -172,8 +172,7 @@
                     id: 'master_panel',
                     region: 'west',
                     layout: 'fit',
-                    width: 250,
-                    maxWidth: 250,
+                    width: 250,                    
                     split: true,
                     items: [p]
                 },{
@@ -218,7 +217,7 @@
         fb.on('buttonClick', zs.dispatcher);
         var footerHelperOptions = {
             contextGetter: new ContextGetter(),
-			
+            
             onGetAddDialogItems: function () {
                 return [{
                     xtype: 'idfield',
