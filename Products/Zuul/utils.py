@@ -82,7 +82,11 @@ def _mergedLocalRoles(object):
 def allowedRolesAndUsers(context):
     allowed = set()
     for r in rolesForPermissionOn("View", context):
-        allowed.add(r)
+        if isinstance(r, (list, tuple)):
+            for x in r:
+                allowed.add(x)
+        else:
+            allowed.add(r)        
     for user, roles in _mergedLocalRoles(context).iteritems():
         for role in roles:
             if role in allowed:
