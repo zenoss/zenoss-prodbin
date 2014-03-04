@@ -20,13 +20,14 @@ definition of the interface that they implement.
 """
 
 import logging
+import re
 from itertools import imap
 from Acquisition import aq_parent
 from zope.event import notify
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 
-from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
+from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, Generic
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
     ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
@@ -40,6 +41,17 @@ from Products.Zuul import getFacade
 
 log = logging.getLogger('zen.Zuul')
 
+organizersToClass = {
+    "groups": "DeviceGroup",
+    "systems": "System",
+    "location": "Location"
+}
+organizersToPath = {
+    "groups": "Groups",
+    "systems": "Systems",
+    "location": "Locations"
+
+}
 
 class ObjectNotFoundException(Exception):
     pass
@@ -125,6 +137,22 @@ class TreeFacade(ZuulFacade):
         cat = ICatalogTool(self._getObject(uid))
         return cat.count('Products.ZenModel.Device.Device')
 
+    def validRegex(self, r):
+        try:
+            re.compile(r)
+            return True
+        except Exception:
+            return False
+
+    def findMatchingOrganizers(self, organizerClass, organizerPath, userFilter):
+        filterRegex = '(?i)^%s.*%s.*' % (organizerPath, userFilter)
+        if self.validRegex(filterRegex):
+            orgquery = (Eq('objectImplements','Products.ZenModel.%s.%s' % (organizerClass, organizerClass)) &
+                        MatchRegexp('uid', filterRegex))
+            paths = [b.getPath() for b in ICatalogTool(self._dmd).search(query=orgquery)]
+            if paths:
+                return Generic('path', {'query':paths})
+
     def getDeviceBrains(self, uid=None, start=0, limit=50, sort='name',
                         dir='ASC', params=None, hashcheck=None):
         cat = ICatalogTool(self._getObject(uid))
@@ -146,8 +174,13 @@ class TreeFacade(ZuulFacade):
                         minip, maxip = getSubnetBounds(ip)
                         qs.append(Between('ipAddress', str(minip), str(maxip)))
             elif key == 'deviceClass':
-                qs.append(MatchRegexp('uid', '(?i).*%s.*' %
-                                      value))
+                qs.append(MatchRegexp('uid', '(?i).*%s.*' % value))
+            # ZEN-10057 - move filtering on indexed groups/systems/location from post-filter to query
+            elif key in organizersToClass:
+                organizerQuery = self.findMatchingOrganizers(organizersToClass[key], organizersToPath[key], value)
+                if not organizerQuery:
+                    return []
+                qs.append(organizerQuery)
             elif key == 'productionState':
                 qs.append(Or(*[Eq('productionState', str(state))
                              for state in value]))
@@ -167,6 +200,10 @@ class TreeFacade(ZuulFacade):
 
         brains = self.getDeviceBrains(uid, start, limit, sort, dir, params,
                                       hashcheck)
+
+        # ZEN-10057 - Handle the case of empty results for a filter with no matches
+        if not brains:
+            return SearchResults([], 0, [])
 
         devices = list(imap(IInfo, imap(unbrain, brains)))
 
