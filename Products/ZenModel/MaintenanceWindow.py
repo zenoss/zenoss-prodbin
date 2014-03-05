@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007, 2009, 2014 all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -68,7 +68,7 @@ RETURN_TO_ORIG_PROD_STATE = -99
 class MaintenanceWindow(ZenModelRM):
 
     implements(IIndexed)
-    meta_type = 'Maintenance Window'
+    meta_type = 'MaintenanceWindow'
 
     default_catalog = 'maintenanceWindowSearch'
 
@@ -576,7 +576,7 @@ OrganizerMaintenanceWindow = MaintenanceWindow
 
 
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makePathIndex
 from Products.CMFCore.utils import getToolByName
 
 
@@ -590,3 +590,6 @@ def createMaintenanceWindowCatalog(dmd):
     id_index = makeCaseInsensitiveFieldIndex('getId')
     cat._catalog.addIndex('id', id_index)
     cat.addColumn('id')
+    cat._catalog.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
+    cat.addColumn('getPhysicalPath')
+
