@@ -20,16 +20,13 @@ Zenoss.logDirectRequests = false;
         })
     });
 
-
 /**
  * Base namespace to contain all Zenoss-specific JavaScript.
  */
 Ext.namespace('Zenoss');
-
 /**
  * Constants
  */
-
 Zenoss.SEVERITY_CLEAR = 0;
 Zenoss.SEVERITY_DEBUG = 1;
 Zenoss.SEVERITY_INFO = 2;
@@ -1300,6 +1297,30 @@ Ext.apply(Zenoss.date, {
     UniversalSortableDateTime: "Y-m-d H:i:sO",
     YearMonth: "F, Y"
 });
+
+
+/**
+ * This takes a unix timestamp and renders it in the
+ * logged in users's selected timezone.
+ * Format is optional, if not passed in the default will be used.
+ * NOTE: value here must be in seconds, not milliseconds
+ **/
+Zenoss.date.renderWithTimeZone = function (value, format) {
+    if (Ext.isNumeric(value)) {
+        if (!format) {
+            format = "YYYY-MM-DD hh:mm:ss a";
+        }
+        return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
+    }
+    return value;
+};
+
+Zenoss.date.renderDateColumn = function(format) {
+    return function(v) {
+        return Zenoss.date.renderWithTimeZone(v, format);
+    };
+};
+
 
 // Fix an IE bug
 Ext.override(Ext.Shadow, {

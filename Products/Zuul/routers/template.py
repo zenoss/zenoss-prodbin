@@ -114,7 +114,7 @@ class TemplateRouter(TreeRouter):
     def getObjTemplates(self, uid):
         """
         @type  uid: string
-        @param uid: Identifier for the object we want templates on, must descend from RRDView
+        @param uid: Identifier for the object we want templates on, must descend from MetricMixin
         @rtype: DirectResponse
         @return: List of templates
         """
@@ -436,6 +436,27 @@ class TemplateRouter(TreeRouter):
               includeThresholds=includeThresholds)
         return DirectResponse.succeed()
 
+    @require('Manage DMD')
+    def addDataSourcetoGraphDef(self, dataSourceUid, graphUid, includeThresholds=False):
+        """
+        Add all the datapoints in a datasource to the graph definition.
+
+        @type  dataSourceUid: string
+        @param dataSourceUid: Unique ID of the data source to add to graph
+        @type  graphUid: string
+        @param graphUid: Unique ID of the graph to add data source to
+        @type  includeThresholds: boolean
+        @param includeThresholds: (optional) True to include related thresholds
+                                  (default: False)
+        @rtype:   DirectResponse
+        @return:  Success message
+        """
+        facade = self._getFacade()
+        facade.addDataSourceToGraph(dataSourceUid, graphUid, includeThresholds)
+        audit('UI.Graph.AddDataSource', graphUid, datapoint=dataSourceUid,
+              includeThresholds=includeThresholds)
+        return DirectResponse.succeed()
+
     def getCopyTargets(self, uid, query=''):
         """
         Get a list of available device classes to copy a template to.
@@ -683,6 +704,7 @@ class TemplateRouter(TreeRouter):
             data[int_attr] = x
         obj = self._getFacade()._getObject(uid)
         oldData = self._getInfoData(obj, data)
+        self._getFacade().setInfo(uid, data)
         newData = self._getInfoData(obj, data)
         audit(['UI', getDisplayType(obj), 'Edit'], data_=newData, oldData_=oldData,
               skipFields_=('newId',))  # special case in TemplateFacade.setInfo()
@@ -702,5 +724,11 @@ class TemplateRouter(TreeRouter):
         facade._setGraphDefinitionSequence(uids)
         # TODO: Is it enforced that they're all in the same template?
         #       If so:  template=/blah/uid sequence=[one,two,three]
-        audit('UI.Template,SetGraphDefinitionSequence', sequence=uids)
+        audit('UI.Template.SetGraphDefinitionSequence', sequence=uids)
         return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def getCollectorTemplate(self, id):
+        facade = self._getFacade()
+        templates = facade.getCollectorTemplate()
+        return Zuul.marshal(templates)

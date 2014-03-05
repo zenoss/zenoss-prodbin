@@ -111,12 +111,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'name'          : 'Portlets'
                 , 'action'        : '../dmd/editPortletPerms'
                 , 'permissions'   : ( "Manage DMD", )
-                },
-                { 'id'            : 'daemons'
-                , 'name'          : 'Daemons'
-                , 'action'        : 'zenossInfo'
-                , 'permissions'   : ( "Manage DMD", )
-                },
+                },                
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : 'zenossVersions'
@@ -236,25 +231,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             if db:
                 db.close()
 
-    @versionmeta("RRD", "http://oss.oetiker.ch/rrdtool")
-    def getRRDToolVersion(self):
-        """
-        This function returns a Version-ready tuple. For use with the Version
-        object, use extended call syntax:
-
-            v = Version(*getRRDToolVersion())
-            v.full()
-        """
-        cmd = binPath('rrdtool')
-        if not os.path.exists(cmd):
-            cmd = 'rrdtool'
-        fd = os.popen(cmd)
-        output = fd.readlines()[0].strip()
-        fd.close()
-        name, version = output.split()[:2]
-        major, minor, micro = getVersionTupleFromString(version)
-        return Version(name, major, minor, micro)
-
     @versionmeta("Twisted", "http:///twistedmatrix.com/trac")
     def getTwistedVersion(self):
         """
@@ -342,7 +318,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 self.getZopeVersion,
                 self.getPythonVersion,
                 self.getMySQLVersion,
-                self.getRRDToolVersion,
                 self.getTwistedVersion,
                 self.getRabbitMQVersion,
                 self.getErlangVersion,
@@ -400,7 +375,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
       "zenrrdcached": "Controls the write cache for performance data",
       "zenmail": "Listen for e-mail and convert messages to Zenoss events",
       "zenpop3": "Connect via pop3 to an e-mail server and convert messages to Zenoss events",
-      "zredis": "Multipurpose cross-collector transient data storage in Redis"
     }
 
     def getZenossDaemonStates(self):
@@ -655,7 +629,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             )
             return []
 
-        if daemon in [ 'zeoctl', 'zopectl', 'zeneventserver', 'zredis' ]:
+        if daemon in [ 'zeoctl', 'zopectl', 'zeneventserver' ]:
             return []
 
         # sanitize the input
@@ -902,7 +876,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def lastVersionCheckedString(self):
         if not self.dmd.lastVersionCheck:
             return "Never"
-        return Time.LocalDateTime(self.dmd.lastVersionCheck)
+        return self.convertToUsersTimeZone(self.dmd.lastVersionCheck)
 
     def versionBehind(self):
         if not self.dmd.availableVersion:

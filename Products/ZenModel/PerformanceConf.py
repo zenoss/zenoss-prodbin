@@ -12,21 +12,18 @@
 The configuration object for Performance servers
 """
 
-import os
-import zlib
-import socket
-from collections import namedtuple
-from base64 import urlsafe_b64encode
-from urllib import urlencode
-from ipaddr import IPAddress
 import logging
+
+from ipaddr import IPAddress
+
 log = logging.getLogger('zen.PerformanceConf')
 
 from zope import component
+from zope.component.factory import Factory
+from zope.interface import implementer
 
 from Products.ZenUtils.IpUtil import ipwrap
 
-import xmlrpclib
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Globals import DTMLFile
@@ -35,46 +32,17 @@ from Monitor import Monitor
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenRelations.RelSchema import ToMany, ToOne
 from Products.ZenUtils.deprecated import deprecated
-from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
-from Products.ZenUtils.Utils import unused
-from Products.ZenUtils.Utils import isXmlRpc
-from Products.ZenUtils.Utils import executeCommand
-from Products.ZenUtils.Utils import addXmlServerTimeout
+from Products.ZenUtils.Utils import binPath, unused, isXmlRpc, executeCommand
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenModel.ZDeviceLoader import CreateDeviceJob
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
-from StatusColor import StatusColor
 
+from .StatusColor import StatusColor
+from .interfaces import IMonitor
 
-SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float( getGlobalConfiguration().get('collectorRequestTimeout', 5) )
-
-PERF_ROOT = None
-
-"""
-Prefix for renderurl if zenoss is running a reverse proxy on the master. Prefix will be stripped when appropriate and
-requests for data will be made to the proxy server when appropriate.  Render url should be of the form "rev_proxy:/<path>" eg:
-"rev_proxy:/mypath" where /mypath should be proxied to an appropriate zenrender/renderserver by the installed proxy server
-"""
-REVERSE_PROXY = "rev_proxy:"
-
-ProxyConfig = namedtuple('ProxyConfig', ['useSSL', 'port'])
-
-def performancePath(target):
-    """
-    Return the base directory where RRD performance files are kept.
-
-    @param target: path to performance file
-    @type target: string
-    @return: sanitized path to performance file
-    @rtype: string
-    """
-    global PERF_ROOT
-    if PERF_ROOT is None:
-        PERF_ROOT = zenPath('perf')
-    if target.startswith('/'):
-        target = target[1:]
-    return os.path.join(PERF_ROOT, target)
+SUMMARY_COLLECTOR_REQUEST_TIMEOUT = float(
+    getGlobalConfiguration().get('collectorRequestTimeout', 5))
 
 
 def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
@@ -93,23 +61,66 @@ def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
     @rtype:
     """
     unused(title)
-    dc = PerformanceConf(id)
-    context._setObject(id, dc)
-
+    # Use the factory to create the monitor.
+    component.createObject(PerformanceConf.meta_type, context, id)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                 + '/manage_main')
-
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 addPerformanceConf = DTMLFile('dtml/addPerformanceConf', globals())
 
 
+class PerformanceConfFactory(Factory):
+    """
+    IFactory implementation for PerformanceConf objects.
+
+    The factory create the PerformanceConf instance and attaches it to
+    the dmd.Monitor.Performance folder.
+    """
+
+    def __init__(self):
+        super(PerformanceConfFactory, self).__init__(
+            PerformanceConf, PerformanceConf.meta_type, "Performance Monitor"
+        )
+
+    def __call__(self, folder, monitorId, sourceId=None):
+        """
+        Creates a new PerformanceConf object, saves it to ZODB, and returns
+        the new object.
+
+        :param Folder folder: The new monitor is attached here.
+        :param string monitorId: The ID/name of the monitor
+        :param string sourceId: The ID/name of the monitor to copy
+            properties from.
+        :rtype PerformanceConf: The new monitor.
+        """
+        sourceId = sourceId if sourceId is not None else "localhost"
+        monitor = folder.get(monitorId)
+        if monitor:
+            raise ValueError(
+                "Performance Monitor with ID '%s' already exitsts."
+                % (monitorId,)
+            )
+        source = folder.get(sourceId)
+        if source is None:
+            source = folder.get("localhost")
+            if source:
+                source = source.primaryAq()
+        monitor = super(PerformanceConfFactory, self).__call__(monitorId)
+        if source:
+            sourceprops = dict(source.propertyItems())
+            monitor.manage_changeProperties(**sourceprops)
+        folder[monitorId] = monitor
+        monitor = folder.get(monitorId)
+        monitor.buildRelations()
+        return monitor
+
+
+@implementer(IMonitor)
 class PerformanceConf(Monitor, StatusColor):
     """
     Configuration for Performance servers
     """
     portal_type = meta_type = 'PerformanceConf'
-
     monitorRootName = 'Performance'
 
     security = ClassSecurityInfo()
@@ -133,24 +144,7 @@ class PerformanceConf(Monitor, StatusColor):
     maxPingFailures = 1440
 
     modelerCycleInterval = 720
-
-    renderurl = '/zport/RenderServer'
-    renderuser = ''
-    renderpass = ''
-
     discoveryNetworks = ()
-
-    # make the default rrdfile size smaller
-    # we need the space to live within the disk cache
-    defaultRRDCreateCommand = (
-        'RRA:AVERAGE:0.5:1:600',   # every 5 mins for 2 days
-        'RRA:AVERAGE:0.5:6:600',   # every 30 mins for 12 days
-        'RRA:AVERAGE:0.5:24:600',  # every 2 hours for 50 days
-        'RRA:AVERAGE:0.5:288:600', # every day for 600 days
-        'RRA:MAX:0.5:6:600',
-        'RRA:MAX:0.5:24:600',
-        'RRA:MAX:0.5:288:600',
-        )
 
     _properties = (
         {'id': 'eventlogCycleInterval', 'type': 'int', 'mode': 'w'},
@@ -158,15 +152,10 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'statusCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'winCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'wmibatchSize', 'type': 'int', 'mode': 'w',
-         'description':"Number of data objects to retrieve in a single WMI query",},
+         'description': "Number of data objects to retrieve in a single WMI query"},
         {'id': 'wmiqueryTimeout', 'type': 'int', 'mode': 'w',
-         'description':"Number of milliseconds to wait for WMI query to respond",},
+         'description': "Number of milliseconds to wait for WMI query to respond"},
         {'id': 'configCycleInterval', 'type': 'int', 'mode': 'w'},
-        {'id': 'renderurl', 'type': 'string', 'mode': 'w'},
-        {'id': 'renderuser', 'type': 'string', 'mode': 'w'},
-        {'id': 'renderpass', 'type': 'string', 'mode': 'w'},
-        {'id': 'defaultRRDCreateCommand', 'type': 'lines', 'mode': 'w'
-         },
         {'id': 'zenProcessParallelJobs', 'type': 'int', 'mode': 'w'},
         {'id': 'pingTimeOut', 'type': 'float', 'mode': 'w'},
         {'id': 'pingTries', 'type': 'int', 'mode': 'w'},
@@ -175,58 +164,32 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'maxPingFailures', 'type': 'int', 'mode': 'w'},
         {'id': 'modelerCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'discoveryNetworks', 'type': 'lines', 'mode': 'w'},
-        )
+    )
 
     _relations = Monitor._relations + (
-        ("devices", ToMany(ToOne,"Products.ZenModel.Device","perfServer")),
-        )
+        ("devices", ToMany(ToOne, "Products.ZenModel.Device", "perfServer")),
+    )
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = (
-        {
-            'immediate_view' : 'viewPerformanceConfOverview',
-            'actions'        :
-            (
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewPerformanceConfOverview'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editPerformanceConf'
-                , 'permissions'   : ("Manage DMD",)
-                },
-                { 'id'            : 'performance'
-                , 'name'          : 'Performance'
-                , 'action'        : 'viewDaemonPerformance'
-                , 'permissions'   : (permissions.view,)
-                },
-            )
-          },
-        )
-
-    def _getRenderURLUtil(self):
-        context = RenderURLUtilContext(self.renderurl)
-        return component.getAdapter(context)
-
-    security.declareProtected('View', 'getDefaultRRDCreateCommand')
-    def getDefaultRRDCreateCommand(self):
-        """
-        Get the default RRD Create Command, as a string.
-        For example:
-        '''RRA:AVERAGE:0.5:1:600
-        RRA:AVERAGE:0.5:6:600
-        RRA:AVERAGE:0.5:24:600
-        RRA:AVERAGE:0.5:288:600
-        RRA:MAX:0.5:288:600'''
-
-        @return: RRD create command
-        @rtype: string
-        """
-        return '\n'.join(self.defaultRRDCreateCommand)
-
+    factory_type_information = ({
+        'immediate_view': 'viewPerformanceConfOverview',
+        'actions': ({
+            'id':          'overview',
+            'name':        'Overview',
+            'action':      'viewPerformanceConfOverview',
+            'permissions': (permissions.view,)
+        }, {
+            'id':          'edit',
+            'name':        'Edit',
+            'action':      'editPerformanceConf',
+            'permissions': ("Manage DMD",)
+        }, {
+            'id':          'performance',
+            'name':        'Performance',
+            'action':      'viewDaemonPerformance',
+            'permissions': (permissions.view,)
+        },)
+    },)
 
     def findDevice(self, deviceName):
         """
@@ -241,7 +204,6 @@ class PerformanceConf(Monitor, StatusColor):
         if brains:
             return brains[0].getObject()
 
-
     def getNetworkRoot(self, version=None):
         """
         Get the root of the Network object in the DMD
@@ -250,193 +212,6 @@ class PerformanceConf(Monitor, StatusColor):
         @rtype: Network object
         """
         return self.dmd.Networks.getNetworkRoot(version)
-
-
-    def buildGraphUrlFromCommands(self, gopts, drange):
-        """
-        Return an URL for the given graph options and date range
-
-        @param gopts: graph options
-        @type gopts: string
-        @param drange: time range to use
-        @type drange: string
-        @return: URL to a graphic
-        @rtype: string
-        """
-        newOpts = []
-        width = 0
-        for o in gopts:
-            if o.startswith('--width'):
-                width = o.split('=')[1].strip()
-                continue
-            newOpts.append(o)
-
-        encodedOpts = urlsafe_b64encode(
-            zlib.compress('|'.join(newOpts), 9))
-        params = {
-            'gopts': encodedOpts,
-            'drange': drange,
-            'width': width,
-            }
-
-        url = self._getSanitizedRenderURL()
-        if self._getRenderURLUtil().proxiedByZenoss():
-            params['remoteHost'] = self.getRemoteRenderUrl()
-            url = '/zport/RenderServer'
-
-        url = '%s/render?%s' % (url, urlencode(params),)
-        return url
-
-    def _getSanitizedRenderURL(self):
-        """
-        remove any keywords/directives from renderurl.
-        example is "proxy://host:8091" is changed to "http://host:8091"
-        """
-        return self._getRenderURLUtil().getSanitizedRenderURL()
-
-    def performanceGraphUrl(self, context, targetpath, targettype, view, drange):
-        """
-        Set the full path of the target and send to view
-
-        @param context: Where you are in the Zope acquisition path
-        @type context: Zope context object
-        @param targetpath: device path of performance metric
-        @type targetpath: string
-        @param targettype: unused
-        @type targettype: string
-        @param view: view object
-        @type view: Zope object
-        @param drange: date range
-        @type drange: string
-        @return: URL to graph
-        @rtype: string
-        """
-        unused(targettype)
-        targetpath = performancePath(targetpath)
-        gopts = view.getGraphCmds(context, targetpath)
-        return self.buildGraphUrlFromCommands(gopts, drange)
-
-
-    def getRemoteRenderUrl(self):
-        """
-        return the full render url with http protocol prepended if the renderserver is remote.
-        Return empty string otherwise
-        """
-        return self._getRenderURLUtil().getRemoteRenderUrl()
-
-    def _get_render_server(self, allow_none=False,
-                           timeout=None):
-        if self.getRemoteRenderUrl():
-            renderurl = self.getRemoteRenderUrl()
-            # Going through the hub or directly to zenrender
-            log.info("Remote renderserver at %s", renderurl)
-            url = basicAuthUrl(str(self.renderuser),
-                               str(self.renderpass), renderurl)
-            server = xmlrpclib.Server(url, allow_none=allow_none)
-            if timeout is not None:
-                addXmlServerTimeout( server, timeout )
-        else:
-            if not self.renderurl:
-                raise KeyError("No render URL is defined")
-            server = self.getObjByPath(self.renderurl)
-        return server
-
-    def performanceCustomSummary(self, gopts,
-                                 timeout=SUMMARY_COLLECTOR_REQUEST_TIMEOUT ):
-        """
-        Fill out full path for custom gopts and call to server
-
-        @param gopts: graph options
-        @type gopts: string
-        @param timeout: the connection timeout in seconds. By default the value
-                       is 5s or the value for the global property 'collectorRequestTimeout'
-                       None translates to the global default
-                       socket timeout. 0 would translate to 'never timeout'.
-        @type timeout: float
-        @return: URL
-        @rtype: string
-        """
-        gopts = self._fullPerformancePath(gopts)
-        server = self._get_render_server(timeout=timeout)
-        try:
-            value = server.summary(gopts)
-            return value
-        except IOError, e:
-            log.error( "Error collecting performance summary from collector %s: %s",
-                       self.id, e )
-            log.debug( "Error collecting with params %s", gopts )
-
-    def fetchValues(self, paths, cf, resolution, start, end="",
-                    timeout=None):
-        """
-        Return values
-
-        NOTE: This is called for bulk metric fetch which
-              needs a more lenient timeout than performanceCustomSummary.
-
-        @param paths: paths to performance metrics
-        @type paths: list
-        @param cf: RRD CF
-        @type cf: string
-        @param resolution: resolution
-        @type resolution: string
-        @param start: start time
-        @type start: string
-        @param end: end time
-        @type end: string
-        @param timeout: the connection timeout in seconds. By default the value
-                       is None which translates to the global default
-                       socket timeout. 0 would translate to 'never timeout'.
-        @type timeout: float
-        @return: values
-        @rtype: list
-        """
-        server = self._get_render_server(allow_none=True, timeout=timeout)
-        return server.fetchValues(map(performancePath, paths), cf,
-                                  resolution, start, end)
-
-
-    def currentValues(self, paths, timeout=SUMMARY_COLLECTOR_REQUEST_TIMEOUT):
-        """
-        Fill out full path and call to server
-
-        NOTE: This call should be deprecated. The only internal clients
-              are now defunct.
-
-        @param paths: paths to performance metrics
-        @type paths: list
-        @param timeout: the connection timeout in seconds. By default the value
-                       is 5s or the value for the global property 'collectorRequestTimeout'
-                       None translates to the global default
-                       socket timeout. 0 would translate to 'never timeout'.
-        @type timeout: float
-        @return: values
-        @rtype: list
-        """
-        server = self._get_render_server(timeout=timeout)
-        return server.currentValues(map(performancePath, paths))
-
-
-    def _fullPerformancePath(self, gopts):
-        """
-        Add full path to a list of custom graph options
-
-        @param gopts: graph options
-        @type gopts: string
-        @return: full path + graph options
-        @rtype: string
-        """
-        for i in range(len(gopts)):
-            opt = gopts[i]
-            if opt.find('DEF') == 0:
-                opt = opt.split(':')
-                (var, file) = opt[1].split('=')
-                file = performancePath(file)
-                opt[1] = '%s=%s' % (var, file)
-                opt = ':'.join(opt)
-                gopts[i] = opt
-        return gopts
-
 
     security.declareProtected('View', 'performanceDeviceList')
     def performanceDeviceList(self, force=True):
@@ -455,7 +230,6 @@ class PerformanceConf(Monitor, StatusColor):
             if not dev.pastSnmpMaxFailures() and dev.monitorDevice():
                 devlist.append(dev.getPrimaryUrlPath(full=True))
         return devlist
-
 
     security.declareProtected('View', 'performanceDataSources')
     def performanceDataSources(self):
@@ -482,34 +256,8 @@ class PerformanceConf(Monitor, StatusColor):
                         ds.getName(), inst))
         return '\n'.join(dses)
 
-    def deleteRRDFiles(self, device, datasource=None, datapoint=None):
-        """
-        Remove RRD performance data files
-
-        @param device: Name of a device or entry in DMD
-        @type device: string
-        @param datasource: datasource name
-        @type datasource: string
-        @param datapoint: datapoint name
-        @type datapoint: string
-        """
-        remoteUrl = None
-        renderurl = self.getRemoteRenderUrl() or self._getSanitizedRenderURL()
-        if renderurl.startswith('http'):
-            if datapoint:
-                remoteUrl = '%s/deleteRRDFiles?device=%s&datapoint=%s' % (
-                     renderurl, device, datapoint)
-            elif datasource:
-                remoteUrl = '%s/deleteRRDFiles?device=%s&datasource=%s' % (
-                     renderurl, device, datasource)
-            else:
-                remoteUrl = '%s/deleteRRDFiles?device=%s' % (
-                     renderurl, device)
-        rs = self.getDmd().getParentNode().RenderServer
-        rs.deleteRRDFiles(device, datasource, datapoint, remoteUrl)
-
-
-    def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, REQUEST=None):
+    def setPerformanceMonitor(
+            self, performanceMonitor=None, deviceNames=None, REQUEST=None):
         """
         Provide a method to set performance monitor from any organizer
 
@@ -522,31 +270,36 @@ class PerformanceConf(Monitor, StatusColor):
         """
         if not performanceMonitor:
             if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser('Error',
-                        'No monitor was selected.',
-                        priority=messaging.WARNING)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', 'No monitor was selected.',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         if deviceNames is None:
             if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser('Error',
-                        'No devices were selected.',
-                        priority=messaging.WARNING)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', 'No devices were selected.',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         for devName in deviceNames:
             dev = self.devices._getOb(devName)
             dev = dev.primaryAq()
             dev.setPerformanceMonitor(performanceMonitor)
             if REQUEST:
-                audit('UI.Device.ChangeCollector', dev, collector=performanceMonitor)
+                audit(
+                    'UI.Device.ChangeCollector',
+                    dev, collector=performanceMonitor
+                )
         if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser('Monitor Set',
-                    'Performance monitor was set to %s.'
-                     % performanceMonitor)
-            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+            messaging.IMessageSender(self).sendToBrowser(
+                'Monitor Set',
+                'Performance monitor was set to %s.' % performanceMonitor
+            )
+            if "oneKeyValueSoInstanceIsntEmptyAndEvalToFalse" in REQUEST:
                 return REQUEST['message']
             else:
                 return self.callZenScreen(REQUEST)
-
 
     security.declareProtected('View', 'getPingDevices')
     def getPingDevices(self):
@@ -563,7 +316,8 @@ class PerformanceConf(Monitor, StatusColor):
                 devices.append(dev)
         return devices
 
-    def addCreateDeviceJob(self, deviceName, devicePath, title=None,
+    def addCreateDeviceJob(
+            self, deviceName, devicePath, title=None,
             discoverProto="none", manageIp="", performanceMonitor=None,
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="", osManufacturer="",
@@ -597,36 +351,36 @@ class PerformanceConf(Monitor, StatusColor):
         # two jobs.
 
         subjobs = [
-                CreateDeviceJob.makeSubJob(
-                    args=(deviceName,),
-                    kwargs=dict(
-                        devicePath=devicePath,
-                        title=title,
-                        discoverProto=discoverProto,
-                        manageIp=manageIp,
-                        performanceMonitor=monitor,
-                        rackSlot=rackSlot,
-                        productionState=productionState,
-                        comments=comments,
-                        hwManufacturer=hwManufacturer,
-                        hwProductName=hwProductName,
-                        osManufacturer=osManufacturer,
-                        osProductName=osProductName,
-                        priority=priority,
-                        tag=tag,
-                        serialNumber=serialNumber,
-                        locationPath=locationPath,
-                        systemPaths=systemPaths,
-                        groupPaths=groupPaths,
-                        zProperties=zProperties,
-                        cProperties=cProperties,
-                    )
+            CreateDeviceJob.makeSubJob(
+                args=(deviceName,),
+                kwargs=dict(
+                    devicePath=devicePath,
+                    title=title,
+                    discoverProto=discoverProto,
+                    manageIp=manageIp,
+                    performanceMonitor=monitor,
+                    rackSlot=rackSlot,
+                    productionState=productionState,
+                    comments=comments,
+                    hwManufacturer=hwManufacturer,
+                    hwProductName=hwProductName,
+                    osManufacturer=osManufacturer,
+                    osProductName=osProductName,
+                    priority=priority,
+                    tag=tag,
+                    serialNumber=serialNumber,
+                    locationPath=locationPath,
+                    systemPaths=systemPaths,
+                    groupPaths=groupPaths,
+                    zProperties=zProperties,
+                    cProperties=cProperties,
                 )
-            ]
+            )
+        ]
         if discoverProto != 'none':
             zendiscCmd = self._getZenDiscCommand(
-                    deviceName, devicePath, monitor, productionState
-                )
+                deviceName, devicePath, monitor, productionState
+            )
             subjobs.append(
                 SubprocessJob.makeSubJob(
                     args=(zendiscCmd,),
@@ -641,34 +395,36 @@ class PerformanceConf(Monitor, StatusColor):
         return self.dmd.JobManager.addJobChain(*subjobs, immutable=True)
 
     @deprecated
-    def addDeviceCreationJob(self, deviceName, devicePath, title=None,
-                             discoverProto="none", manageIp="",
-                             performanceMonitor=None,
-                             rackSlot=0, productionState=1000, comments="",
-                             hwManufacturer="", hwProductName="",
-                             osManufacturer="", osProductName="", priority=3,
-                             locationPath="", systemPaths=[], groupPaths=[],
-                             tag="", serialNumber="", zProperties={}):
+    def addDeviceCreationJob(
+            self, deviceName, devicePath, title=None,
+            discoverProto="none", manageIp="",
+            performanceMonitor=None,
+            rackSlot=0, productionState=1000, comments="",
+            hwManufacturer="", hwProductName="",
+            osManufacturer="", osProductName="", priority=3,
+            locationPath="", systemPaths=[], groupPaths=[],
+            tag="", serialNumber="", zProperties={}):
         """
         For backward compatibility.  Please use the addCreateDeviceJob
         method instead of the addDeviceCreationJob method.
         """
         result = self.addCreateDeviceJob(
-                deviceName, devicePath, title=title,
-                discoverProto=discoverProto, manageIp=manageIp,
-                performanceMonitor=performanceMonitor, rackSlot=rackSlot,
-                productionState=productionState, comments=comments,
-                hwManufacturer=hwManufacturer, hwProductName=hwProductName,
-                osManufacturer=osManufacturer, osProductName=osProductName,
-                priority=priority, locationPath=locationPath,
-                systemPaths=systemPaths, groupPaths=groupPaths, tag=tag,
-                serialNumber=serialNumber, zProperties=zProperties
-            )
+            deviceName, devicePath, title=title,
+            discoverProto=discoverProto, manageIp=manageIp,
+            performanceMonitor=performanceMonitor, rackSlot=rackSlot,
+            productionState=productionState, comments=comments,
+            hwManufacturer=hwManufacturer, hwProductName=hwProductName,
+            osManufacturer=osManufacturer, osProductName=osProductName,
+            priority=priority, locationPath=locationPath,
+            systemPaths=systemPaths, groupPaths=groupPaths, tag=tag,
+            serialNumber=serialNumber, zProperties=zProperties
+        )
         return result[-1]
 
-    def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered",
-                               performanceMonitor="localhost", productionState=1000,
-                               background=False, REQUEST=None):
+    def _executeZenDiscCommand(
+            self, deviceName, devicePath="/Discovered",
+            performanceMonitor="localhost", productionState=1000,
+            background=False, REQUEST=None):
         """
         Execute zendisc on the new device and return result
 
@@ -689,26 +445,28 @@ class PerformanceConf(Monitor, StatusColor):
         if background:
             zendiscCmd = self._getZenDiscCommand(*args)
             result = self.dmd.JobManager.addJob(
-                    SubprocessJob, args=(zendiscCmd,),
-                    description="Discover and model device %s as %s" % (
-                        args[0], args[1]
-                    )
+                SubprocessJob, args=(zendiscCmd,),
+                description="Discover and model device %s as %s" % (
+                    args[0], args[1]
                 )
+            )
         else:
             args.append(REQUEST)
             zendiscCmd = self._getZenDiscCommand(*args)
             result = executeCommand(zendiscCmd, REQUEST)
         return result
 
-    def _getZenDiscCommand(self, deviceName, devicePath,
-                           performanceMonitor, productionState, REQUEST=None):
-
+    def _getZenDiscCommand(
+            self, deviceName, devicePath,
+            performanceMonitor, productionState, REQUEST=None):
         zm = binPath('zendisc')
         zendiscCmd = [zm]
-        zendiscOptions = ['run', '--now','-d', deviceName,
-                     '--monitor', performanceMonitor,
-                     '--deviceclass', devicePath,
-                     '--prod_state', str(productionState)]
+        zendiscOptions = [
+            'run', '--now', '-d', deviceName,
+            '--monitor', performanceMonitor,
+            '--deviceclass', devicePath,
+            '--prod_state', str(productionState)
+        ]
         if REQUEST:
             zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
@@ -737,9 +495,9 @@ class PerformanceConf(Monitor, StatusColor):
         result = executeCommand(daemonCmd, REQUEST)
         return result
 
-
-    def collectDevice(self, device=None, setlog=True, REQUEST=None,
-        generateEvents=False, background=False, write=None):
+    def collectDevice(
+            self, device=None, setlog=True, REQUEST=None,
+            generateEvents=False, background=False, write=None):
         """
         Collect the configuration of this device AKA Model Device
 
@@ -754,7 +512,9 @@ class PerformanceConf(Monitor, StatusColor):
         @type generateEvents: string
         """
         xmlrpc = isXmlRpc(REQUEST)
-        zenmodelerOpts = ['run', '--now', '--monitor', self.id, '-d', device.id]
+        zenmodelerOpts = [
+            'run', '--now', '--monitor', self.id, '-d', device.id
+        ]
         result = self._executeZenModelerCommand(zenmodelerOpts, background,
                                                 REQUEST, write)
         if result and xmlrpc:
@@ -764,8 +524,8 @@ class PerformanceConf(Monitor, StatusColor):
         if xmlrpc:
             return 0
 
-    def _executeZenModelerCommand(self, zenmodelerOpts, background=False,
-                               REQUEST=None, write=None):
+    def _executeZenModelerCommand(
+            self, zenmodelerOpts, background=False, REQUEST=None, write=None):
         """
         Execute zenmodeler and return result
 
@@ -781,77 +541,29 @@ class PerformanceConf(Monitor, StatusColor):
         zenmodelerCmd.extend(zenmodelerOpts)
         if background:
             log.info('queued job: %s', " ".join(zenmodelerCmd))
-            result = self.dmd.JobManager.addJob(SubprocessJob,
-                    description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
-                    args=(zenmodelerCmd,))
+            result = self.dmd.JobManager.addJob(
+                SubprocessJob,
+                description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
+                args=(zenmodelerCmd,)
+            )
         else:
             result = executeCommand(zenmodelerCmd, REQUEST, write)
         return result
 
 
 class RenderURLUtilContext(object):
-    def __init__(self, renderurl):
-        self.renderurl = renderurl
-    
+    """
+    Deprecated
+    """
+    pass
+
+
 class RenderURLUtil(object):
-
-    def __init__(self, context):
-        self._renderurl = context.renderurl
-
-    def getSanitizedRenderURL(self):
-        """
-        remove any keywords/directives from renderurl.
-        example is "proxy://host:8091" is changed to "http://host:8091"
-        """
-        renderurl = self._renderurl
-        if renderurl.startswith('proxy'):
-            renderurl = renderurl.replace('proxy', 'http')
-        elif renderurl.startswith(REVERSE_PROXY):
-            renderurl = renderurl.replace(REVERSE_PROXY, '', 1)
-        return renderurl
-
-    def getRemoteRenderUrl(self):
-            """
-            return the full render url with http protocol prepended if the renderserver is remote.
-            Return empty string otherwise
-            """
-            renderurl = str(self._renderurl)
-            if renderurl.startswith('proxy'):
-                renderurl = renderurl.replace('proxy', 'http')
-            elif renderurl.startswith(REVERSE_PROXY):
-                renderurl =  self._get_reverseproxy_renderurl()
-            else:
-                # lookup utilities from zenpacks
-                if renderurl.startswith('/remote-collector/'):
-                    renderurl =  self._get_reverseproxy_renderurl(force=True)
-
-            if renderurl.lower().startswith('http'):
-                return renderurl
-            return ''
-
-    def proxiedByZenoss(self):
-        """
-        Should the render request be proxied by zenoss/zope
-        """
-        return self._renderurl.startswith('proxy')
-
-    def _get_reverseproxy_renderurl(self, force=False):
-        # DistributedCollector + WebScale scenario
-        renderurl = self._renderurl
-        if not force and not renderurl.startswith(REVERSE_PROXY):
-            raise Exception("Renderurl, %s, should start with %s to be proxied", renderurl, REVERSE_PROXY)
-        config = self._get_reverseproxy_config()
-        kwargs = dict(fqdn=socket.getfqdn(),
-                      port=config.port,
-                      protocol= 'https' if config.useSSL else 'http',
-                      path=str(self.getSanitizedRenderURL()).strip("/") + "/")
-        # take into account https
-        return '{protocol}://{fqdn}:{port}/{path}'.format(**kwargs)
-
-    def _get_reverseproxy_config(self):
-        # overridden by webscale -- see renderurlutil.py
-        http_port = 8080
-        return http_port
-
+    """
+    Deprecated
+    This is no longer used but the stub class so zenpacks will
+    work on an upgrade.
+    """
+    pass
 
 InitializeClass(PerformanceConf)

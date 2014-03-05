@@ -1474,6 +1474,10 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
     padding-right:0 !important;
 }
 
+.x-window .x-grid-header-ct, .x-window .x-grid-cell-inner, .x-window .x-boundlist {
+  color: #444444 !important;
+}
+
 .x-window-body .x-panel-body .x-boundlist li{
   color: #000 !important;
 }
@@ -1825,4 +1829,50 @@ a.z-entity:hover{
 }
 #device_grid-body .x-grid-cell-inner {
   height:23px !important;
-} 
+}
+
+/* syntax highlighting classes */
+
+span.syntax-number  {
+    color: brown;
+}
+
+span.syntax-string  {
+    color: green;
+}
+
+span.syntax-boolean {
+    color: blue;
+}
+
+span.syntax-text  {
+    color: white;
+}
+
+.grid-action.checked.enabled {
+  background-image: url("/++resource++zenui/img/xtheme-zenoss/menu/checked.gif");
+  height: 16px;
+  margin: 0 0 4px;
+  width: 16px;
+}
+
+.grid-action.unchecked.enabled {
+  background-image: url("/++resource++zenui/img/xtheme-zenoss/menu/unchecked.gif");
+  height: 16px;
+  margin: 0 0 4px;
+  width: 16px;
+}
+
+.grid-action.checked.disabled {
+  background-image: url("/++resource++zenui/img/xtheme-zenoss/menu/checked-disabled.gif");
+  height: 16px;
+  margin: 0 0 4px;
+  width: 16px;
+}
+
+.grid-action.unchecked.disabled {
+  background-image: url("/++resource++zenui/img/xtheme-zenoss/menu/unchecked-disabled.gif");
+  height: 16px;
+  margin: 0 0 4px;
+  width: 16px;
+}

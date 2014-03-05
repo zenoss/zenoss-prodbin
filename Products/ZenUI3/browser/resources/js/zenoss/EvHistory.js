@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -77,7 +77,7 @@ Ext.onReady(function(){
                             var grid = Ext.getCmp('events_grid'),
                             sm = grid.getSelectionModel();
                             sm.selectEventState('All');
-                            sm.setSelectState("All");                            
+                            sm.setSelectState("All");
                         }
                     },{
                         text: 'None',
@@ -85,7 +85,7 @@ Ext.onReady(function(){
                             var grid = Ext.getCmp('events_grid'),
                             sm = grid.getSelectionModel();
                             sm.clearSelections();
-                            sm.clearSelectState(); 
+                            sm.clearSelectState();
                         }
                     }
                     ]
@@ -234,7 +234,8 @@ Ext.onReady(function(){
     function doLastUpdated() {
         var box = Ext.getCmp('lastupdated'),
             dt = new Date(),
-            dtext = Ext.Date.format(dt, 'g:i:sA');
+            dtext = Zenoss.date.renderWithTimeZone(new Date()/1000);
+            dtext += " (" + Zenoss.USER_TIMEZONE + ")";
             box.setText(_t('Last updated at ') + dtext);
     }
 
@@ -358,7 +359,7 @@ Ext.onReady(function(){
     console_selection_model.on("select", function(){
         if(detail_panel.collapsed == false){
             toggleEventDetailContent();
-        }     
+        }
         // if more than one is selected using the ctrl key, collapse the details:
         if(this.getCount() > 1) detail_panel.collapse();
     });

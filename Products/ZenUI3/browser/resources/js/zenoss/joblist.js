@@ -80,7 +80,12 @@ Ext.getCmp('center_panel').add({
             dataIndex: 'description',
             header: _t('Description'),
             flex: 3,
-            sortable: false
+            sortable: false,
+            // Set renderer here to do nothing to kill one of the default renderers
+            // (one in ExtOverrides and one in Renderers) and avoid double-encoding
+            renderer: function(value) {
+                return value;
+            }
         },{
             id: 'scheduled',
             dataIndex: 'scheduled',
@@ -276,7 +281,7 @@ Ext.getCmp('center_panel').add({
                 for (var i=0; i < r.content.length; i++) {
                     var color = i%2 ? '#b58900' : '#657B83';
                     html += "<pre style='font-family:Monaco,monospaced;font-size:12px;color:" +
-                        color + ";'>" + r.content[i] + '</pre>';
+                        color + ";'>" + Ext.htmlEncode(r.content[i]) + '</pre>';
                 }
                 this.update(html);
                 var d = this.body.dom;

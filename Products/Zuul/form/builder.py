@@ -71,8 +71,7 @@ class FormBuilder(object):
                     c = self._dict(v)
                     c['name'] = k
                     value =  getattr(self.context, k, None)
-                    c['value'] = value() if callable(value) else value
-
+                    c['value'] = value() if callable(value) else value                    
                     if c['xtype'] in ('autoformcombo', 'itemselector'):
                         c['values'] = self.vocabulary(v)
                     d[k] = c
@@ -145,6 +144,7 @@ class FormBuilder(object):
             'xtype': xtype,
             labelProperty: item['title'],
             'labelStyle': labelStyle,
+            'inputAttrTpl': " data-qtip='" + item['description']  + "' ",            
             'anchor':'85%',
             'name': item['name'],
             'value': value,

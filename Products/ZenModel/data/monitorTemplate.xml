@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2013-05-28 14:59:25.070845
+    Zenoss RelationshipManager export completed on 2014-02-19 16:37:47.813826
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.2.70]" export_date="2013-05-28 14:59:25.070845" zenoss_server="jhanson-desktop" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2014-02-19 16:37:47.813826" zenoss_server="jhanson-desktop" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -74,6 +74,14 @@ GAUGE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -91,78 +99,6 @@ True
 </property>
 </object>
 <object id='schedule' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='zeneventlog' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='comGatewayCount' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='comInterfaceCount' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-DERIVE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -203,6 +139,14 @@ True
 </property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -274,6 +218,14 @@ GAUGE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -323,6 +275,14 @@ True
 </property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -387,6 +347,14 @@ True
 </property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -466,6 +434,14 @@ GAUGE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -522,6 +498,14 @@ DERIVE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -570,6 +554,14 @@ DERIVE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -581,54 +573,6 @@ True
 <object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='zenwin' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
 True
@@ -693,8 +637,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -706,35 +656,6 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='zeneventlog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-0
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-AREA
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-True
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zeneventlog_events
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
 <object id='zensyslog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
@@ -808,8 +729,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -868,8 +795,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -970,121 +903,6 @@ AVERAGE
 </object>
 </tomanycont>
 </object>
-<object id='Data Points' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
-<property type="int" id="height" mode="w" >
-100
-</property>
-<property type="int" id="width" mode="w" >
-500
-</property>
-<property type="boolean" id="log" mode="w" >
-False
-</property>
-<property type="boolean" id="base" mode="w" >
-False
-</property>
-<property type="int" id="miny" mode="w" >
--1
-</property>
-<property type="int" id="maxy" mode="w" >
--1
-</property>
-<property type="boolean" id="hasSummary" mode="w" >
-True
-</property>
-<property type="long" id="sequence" mode="w" >
-5
-</property>
-<tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-0
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zencommand_cyclePoints
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-1
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenperfsnmp_cyclePoints
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-2
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenprocess_cyclePoints
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-</tomanycont>
-</object>
 <object id='Event Queue' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
 <property type="int" id="height" mode="w" >
 100
@@ -1101,8 +919,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1138,64 +962,6 @@ zencommand
 </property>
 <property type="string" id="dpName" mode="w" >
 zencommand_eventQueueLength
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='eventQueueLength10' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-10
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-AREA
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-True
-</property>
-<property type="string" id="format" mode="w" >
-%6.0lf
-</property>
-<property type="string" id="legend" mode="w" >
-zenwin
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenwin_eventQueueLength
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='eventQueueLength2' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-2
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-AREA
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-True
-</property>
-<property type="string" id="format" mode="w" >
-%6.0lf
-</property>
-<property type="string" id="legend" mode="w" >
-zeneventlog
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zeneventlog_eventQueueLength
 </property>
 <property type="string" id="cFunc" mode="w" >
 AVERAGE
@@ -1417,6 +1183,185 @@ ${graphPoint/id}
 </object>
 </tomanycont>
 </object>
+<object id='Missed Runs' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<property type="int" id="height" mode="w" >
+100
+</property>
+<property type="int" id="width" mode="w" >
+500
+</property>
+<property type="boolean" id="log" mode="w" >
+False
+</property>
+<property type="boolean" id="base" mode="w" >
+False
+</property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
+<property type="int" id="miny" mode="w" >
+-1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
+</property>
+<property type="int" id="maxy" mode="w" >
+-1
+</property>
+<property type="boolean" id="hasSummary" mode="w" >
+True
+</property>
+<property type="long" id="sequence" mode="w" >
+9
+</property>
+<tomanycont id='graphPoints'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zencommand_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+1
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenperfsnmp_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+2
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenping_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+3
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenprocess_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+4
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenstatus_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='Modeled Devices' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
 <property type="int" id="height" mode="w" >
 100
@@ -1433,8 +1378,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1490,8 +1441,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1648,35 +1605,6 @@ zenstatus_queuedTasks
 AVERAGE
 </property>
 </object>
-<object id='zenwin' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-5
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenwin_queuedTasks
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='Running Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
@@ -1692,8 +1620,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1845,35 +1779,6 @@ ${graphPoint/id}
 </property>
 <property type="string" id="dpName" mode="w" >
 zenstatus_runningTasks
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='zenwin' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-5
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenwin_runningTasks
 </property>
 <property type="string" id="cFunc" mode="w" >
 AVERAGE
@@ -1942,6 +1847,14 @@ GAUGE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -1959,78 +1872,6 @@ True
 </property>
 </object>
 <object id='schedule' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='zeneventlog' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='comGatewayCount' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='comInterfaceCount' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-DERIVE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2071,6 +1912,14 @@ True
 </property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2142,6 +1991,14 @@ GAUGE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -2191,6 +2048,14 @@ True
 </property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2255,6 +2120,14 @@ True
 </property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2334,6 +2207,14 @@ GAUGE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -2390,6 +2271,14 @@ DERIVE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -2438,6 +2327,14 @@ DERIVE
 True
 </property>
 </object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
 <object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -2449,54 +2346,6 @@ True
 <object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='zenwin' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
 True
@@ -2561,8 +2410,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2574,35 +2429,6 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='zeneventlog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-0
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-AREA
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-True
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zeneventlog_events
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
 <object id='zensyslog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
@@ -2676,8 +2502,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2736,8 +2568,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -2838,121 +2676,6 @@ AVERAGE
 </object>
 </tomanycont>
 </object>
-<object id='Data Points' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
-<property type="int" id="height" mode="w" >
-100
-</property>
-<property type="int" id="width" mode="w" >
-500
-</property>
-<property type="boolean" id="log" mode="w" >
-False
-</property>
-<property type="boolean" id="base" mode="w" >
-False
-</property>
-<property type="int" id="miny" mode="w" >
--1
-</property>
-<property type="int" id="maxy" mode="w" >
--1
-</property>
-<property type="boolean" id="hasSummary" mode="w" >
-True
-</property>
-<property type="long" id="sequence" mode="w" >
-5
-</property>
-<tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-0
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zencommand_cyclePoints
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-1
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenperfsnmp_cyclePoints
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-2
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenprocess_cyclePoints
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-</tomanycont>
-</object>
 <object id='Event Queue' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
 <property type="int" id="height" mode="w" >
 100
@@ -2969,8 +2692,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3006,64 +2735,6 @@ zencommand
 </property>
 <property type="string" id="dpName" mode="w" >
 zencommand_eventQueueLength
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='eventQueueLength10' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-10
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-AREA
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-True
-</property>
-<property type="string" id="format" mode="w" >
-%6.0lf
-</property>
-<property type="string" id="legend" mode="w" >
-zenwin
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenwin_eventQueueLength
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='eventQueueLength2' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-2
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-AREA
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-True
-</property>
-<property type="string" id="format" mode="w" >
-%6.0lf
-</property>
-<property type="string" id="legend" mode="w" >
-zeneventlog
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zeneventlog_eventQueueLength
 </property>
 <property type="string" id="cFunc" mode="w" >
 AVERAGE
@@ -3285,6 +2956,185 @@ ${graphPoint/id}
 </object>
 </tomanycont>
 </object>
+<object id='Missed Runs' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<property type="int" id="height" mode="w" >
+100
+</property>
+<property type="int" id="width" mode="w" >
+500
+</property>
+<property type="boolean" id="log" mode="w" >
+False
+</property>
+<property type="boolean" id="base" mode="w" >
+False
+</property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
+<property type="int" id="miny" mode="w" >
+-1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
+</property>
+<property type="int" id="maxy" mode="w" >
+-1
+</property>
+<property type="boolean" id="hasSummary" mode="w" >
+True
+</property>
+<property type="long" id="sequence" mode="w" >
+9
+</property>
+<tomanycont id='graphPoints'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zencommand_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+1
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenperfsnmp_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+2
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenping_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+3
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenprocess_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+4
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenstatus_missedRuns
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='Modeled Devices' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
 <property type="int" id="height" mode="w" >
 100
@@ -3301,8 +3151,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 -1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3358,8 +3214,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3516,35 +3378,6 @@ zenstatus_queuedTasks
 AVERAGE
 </property>
 </object>
-<object id='zenwin' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-5
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenwin_queuedTasks
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='Running Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
@@ -3560,8 +3393,14 @@ False
 <property type="boolean" id="base" mode="w" >
 False
 </property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
 <property type="int" id="miny" mode="w" >
 0
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -3718,35 +3557,6 @@ zenstatus_runningTasks
 AVERAGE
 </property>
 </object>
-<object id='zenwin' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-5
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="dpName" mode="w" >
-zenwin_runningTasks
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
 </tomanycont>
 </object>
 </tomanycont>
@@ -3772,20 +3582,14 @@ PerformanceConf
 <property type="int" id="winCycleInterval" mode="w" >
 60
 </property>
-<property description="Number of data objects to retrieve in a single WMI query" type="int" id="wmibatchSize" mode="w" >
+<property mode="w" type="int" description="Number of data objects to retrieve in a single WMI query" id="wmibatchSize" >
 10
 </property>
-<property description="Number of milliseconds to wait for WMI query to respond" type="int" id="wmiqueryTimeout" mode="w" >
+<property mode="w" type="int" description="Number of milliseconds to wait for WMI query to respond" id="wmiqueryTimeout" >
 100
 </property>
 <property type="int" id="configCycleInterval" mode="w" >
 360
-</property>
-<property type="string" id="renderurl" mode="w" >
-/zport/RenderServer
-</property>
-<property type="lines" id="defaultRRDCreateCommand" mode="w" >
-('RRA:AVERAGE:0.5:1:600', 'RRA:AVERAGE:0.5:6:600', 'RRA:AVERAGE:0.5:24:600', 'RRA:AVERAGE:0.5:288:600', 'RRA:MAX:0.5:6:600', 'RRA:MAX:0.5:24:600', 'RRA:MAX:0.5:288:600')
 </property>
 <property type="int" id="zenProcessParallelJobs" mode="w" >
 10
@@ -3810,6 +3614,12 @@ PerformanceConf
 </property>
 <property type="lines" id="discoveryNetworks" mode="w" >
 ()
+</property>
+<property visible="True" type="string" id="renderurl" >
+/zport/RenderServer
+</property>
+<property visible="True" type="lines" id="defaultRRDCreateCommand" >
+('RRA:AVERAGE:0.5:1:600', 'RRA:AVERAGE:0.5:6:600', 'RRA:AVERAGE:0.5:24:600', 'RRA:AVERAGE:0.5:288:600', 'RRA:MAX:0.5:6:600', 'RRA:MAX:0.5:24:600', 'RRA:MAX:0.5:288:600')
 </property>
 </object>
 </object>

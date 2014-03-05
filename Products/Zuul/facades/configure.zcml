@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:five="http://namespaces.zope.org/five">
+
+   <adapter factory=".DeviceFacade"
+            provides="..interfaces.IDeviceFacade"
+            name="device"
+            for="*"
+            />
+
+   <adapter factory=".PropertiesFacade"
+            provides="..interfaces.IPropertiesFacade"
+            name="properties"
+            for="*"
+            />
+
+   <adapter factory=".DeviceManagementFacade"
+            provides="..interfaces.IDeviceManagementFacade"
+            name="devicemanagement"
+            for="*"
+            />
+
+   <adapter factory=".EventClassesFacade"
+            provides="..interfaces.IEventClassesFacade"
+            name="eventclasses"
+            for="*"
+            />
+
+   <adapter factory=".ManufacturersFacade"
+            provides="..interfaces.IManufacturersFacade"
+            name="manufacturers"
+            for="*"
+            />
+
+   <adapter factory=".ZepFacade"
+            provides="..interfaces.IZepFacade"
+            name="zep"
+            for="*"
+            />
+
+   <adapter factory=".MetricFacade"
+            provides="..interfaces.IMetricFacade"
+            name="metric"
+            for="*"
+            />
+
+   <adapter factory=".NetworkFacade"
+            provides="..interfaces.INetworkFacade"
+            name="network"
+            for="*"
+            />
+
+   <adapter factory=".Network6Facade"
+            provides="..interfaces.INetworkFacade"
+            name="network6"
+            for="*"
+            />
+
+   <adapter factory=".ProcessFacade"
+            provides="..interfaces.IProcessFacade"
+            name="process"
+            for="*"
+            />
+
+   <adapter factory=".ServiceFacade"
+            provides="..interfaces.IServiceFacade"
+            name="service"
+            for="*"
+            />
+
+   <adapter factory=".MibFacade"
+            provides="..interfaces.IFacade"
+            name="mibs"
+            for="*"
+            />
+
+   <adapter factory=".ReportFacade"
+            provides="..interfaces.IFacade"
+            name="reports"
+            for="*"
+            />
+
+   <adapter factory=".ZenPackFacade"
+            provides="..interfaces.IFacade"
+            name="zenpack"
+            for="*"
+            />
+
+   <adapter factory=".TemplateFacade"
+            provides="..interfaces.IFacade"
+            name="template"
+            for="*"
+            />
+
+   <adapter factory=".DeviceDumpLoadFacade"
+            provides="..interfaces.IDeviceDumpLoadFacade"
+            name="devicedumpload"
+            for="*"
+            />
+
+   <adapter factory=".TriggersFacade"
+            provides="..interfaces.IFacade"
+            name="triggers"
+            for="*"
+            />
+
+   <adapter factory=".JobsFacade"
+            provides="..interfaces.IFacade"
+            name="jobs"
+            for="*"
+            />
+
+   <adapter factory=".ApplicationFacade"
+            provides="..interfaces.IFacade"
+            name="applications"
+            for="*"
+            />
+
+   <adapter factory=".MonitorFacade"
+            provides="..interfaces.IFacade"
+            name="monitors"
+            for="*"
+            />
+
+</configure>

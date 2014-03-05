@@ -214,6 +214,12 @@
             "text": "graphPanel.js",
             "path": "resources/js/zenoss/form/"
         },{
+            "text": "DateDisplayField.js",
+            "path": "resources/js/zenoss/form/"
+        },{
+            "text": "ComponentGraphPanel.js",
+            "path": "resources/js/zenoss/form/"
+        },{
             "text": "componentTemplate.js",
             "path": "resources/js/zenoss/"
         },{

@@ -240,10 +240,6 @@
                 editable: false,
                 autoSelect: true,
                 triggerAction: 'all'
-            },{
-                xtype: 'checkbox',
-                name: 'moveData',
-                fieldLabel: _t('Move Data')
             }],
             buttons: [{
                 text: _t('Save'),
@@ -257,8 +253,7 @@
                         uids: [uid],
                         asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
                         collector: vals.collector,
-                        hashcheck: '',
-                        moveData: vals.moveData
+                        hashcheck: ''
                     };
                     Zenoss.remote.DeviceRouter.setCollector(submitVals, function(data) {
                         Ext.getCmp('device_overview').load();
@@ -673,15 +668,18 @@
                         },{
                             fieldLabel: _t('First Seen'),
                             id: 'first-seen-label',
-                            name: 'firstSeen'
+                            name: 'firstSeen',
+                            xtype: "datedisplayfield"
                         },{
                             fieldLabel: _t('Last Change'),
                             id: 'last-change-label',
-                            name: 'lastChanged'
+                            name: 'lastChanged',
+                            xtype: "datedisplayfield"
                         },{
                             fieldLabel: _t('Model Time'),
                             id: 'model-time-label',
-                            name: 'lastCollected'
+                            name: 'lastCollected',
+                            xtype: "datedisplayfield"
                         },{
                             fieldLabel: _t('Locking'),
                             id: 'locking-label',
@@ -975,6 +973,11 @@
                 } else {
                     D.memory = 'Unknown/Unknown';
                 }
+                D.comments = Ext.htmlDecode(D.comments);
+                D.tagNumber = Ext.htmlDecode(D.tagNumber);
+                D.serialNumber = Ext.htmlDecode(D.serialNumber);
+                D.rackSlot = Ext.htmlDecode(D.rackSlot);
+                D.name = Ext.htmlDecode(D.name);
                 this.setValues(D);
 
                 // load zLinks and uptime in a separate request since they

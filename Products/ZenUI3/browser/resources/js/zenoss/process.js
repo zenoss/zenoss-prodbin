@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+ * Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
  *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
@@ -12,6 +12,7 @@
 
 Ext.onReady(function(){
 
+Ext.Loader.setConfig({enabled:true});
 Ext.ns('Zenoss', 'Zenoss.env');
 var treeId = 'processTree';
 var router = Zenoss.remote.ProcessRouter;
@@ -254,12 +255,12 @@ Ext.define("Zenoss.process.ProcessGrid", {
             }),
             columns: [ {
                 dataIndex : 'name',
-                header : _t('Name'),
+                header : _t('Process Class Name'),
                 flex: 1,
                 id : 'name'
             },{
                 dataIndex : 'count',
-                header : _t('Count'),
+                header : _t('Set Count'),
                 filter: false,
                 id : 'count'
             }]
@@ -362,10 +363,10 @@ function actioncompleteHandler(basicForm, action) {
         }
         var isRoot = processInfo.name == 'Processes';
         Ext.getCmp('nameTextField2').setDisabled(isRoot);
-        Ext.getCmp('regexTextField').setDisabled(!processInfo.hasRegex).allowBlank = !processInfo.hasRegex;
-        Ext.getCmp('ignoreParametersSelect').setDisabled(!processInfo.hasRegex).allowBlank = !processInfo.hasRegex;
-        Ext.getCmp('ignoreParametersWhenModelingSelect').allowBlank = !processInfo.hasRegex;
-       // Ext.getCmp('exampleTextField').setDisabled(!processInfo.hasRegex);
+        Ext.getCmp('regexIncludeTextField').setDisabled(!processInfo.hasRegex).allowBlank = !processInfo.hasRegex;
+        Ext.getCmp('regexExcludeTextField').setDisabled(!processInfo.hasRegex);
+        Ext.getCmp('regexReplaceTextField').setDisabled(!processInfo.hasRegex);
+        Ext.getCmp('replacementTextField').setDisabled(!processInfo.hasRegex);
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
     } else if (action.type == 'directsubmit') {
@@ -385,7 +386,7 @@ function actioncompleteHandler(basicForm, action) {
 var nameTextField2 = {
     xtype: 'textfield',
     id: 'nameTextField2',
-    fieldLabel: _t('Name'),
+    fieldLabel: _t('Process Class Name'),
     name: 'name',
     allowBlank: false
 };
@@ -397,49 +398,52 @@ var descriptionTextField = {
     grow: true
 };
 
-var regexTextField = {
+var regexIncludeTextField = {
     xtype: 'textfield',
-    id: 'regexTextField',
-    fieldLabel: _t('Pattern'),
-    name: 'regex',
+    id: 'regexIncludeTextField',
+    fieldLabel: _t('Include processes like'),
+    name: 'includeRegex',
     allowBlank: false
 };
 
-
-var ignoreParametersWhenModelingSelect = {
-    xtype: 'select',
-    id: 'ignoreParametersWhenModelingSelect',
-    fieldLabel: _t('Ignore Parameters When Modeling'),
-    name: 'ignoreParametersWhenModeling',
-    queryMode: 'local',
-    displayField: 'name',
-    valueField: 'value',
-    store: new Ext.data.ArrayStore({
-        data: [['Yes', true], ['No', false]],
-        model: 'Zenoss.model.NameValue'
-    })
-};
-
-var ignoreParametersSelect = {
-    xtype: 'select',
-    id: 'ignoreParametersSelect',
-    fieldLabel: _t('Ignore Parameters'),
-    name: 'ignoreParameters',
-    queryMode: 'local',
-    displayField: 'name',
-    valueField: 'value',
-    store: new Ext.data.ArrayStore({
-        data: [['Yes', true], ['No', false]],
-        model: 'Zenoss.model.NameValue'
-    })
-};
-
-var exampleTextField = {
+var regexExcludeTextField = {
     xtype: 'textfield',
-    id: 'exampleTextField',
-    fieldLabel: _t('Example'),
-    name: 'example'
+    id: 'regexExcludeTextField',
+    fieldLabel: _t('Exclude processes like'),
+    name: 'excludeRegex',
+    allowBlank: true
+};
 
+var regexReplaceTextField = {
+    xtype: 'textfield',
+    id: 'regexReplaceTextField',
+    fieldLabel: _t('Replace command line text'),
+    name: 'replaceRegex',
+    allowBlank: true
+};
+
+var replacementTextField = {
+    xtype: 'textfield',
+    id: 'replacementTextField',
+    fieldLabel: _t('With'),
+    name: 'replacement',
+    allowBlank: true
+};
+
+var minCountThreshold = {
+    xtype: 'numberfield',
+    id: 'minProcessCount',
+    fieldLabel: _t("Minimum"),
+    name: 'minProcessCount',
+    allowBlank: true
+};
+
+var maxCountThreshold = {
+    xtype: 'numberfield',
+    id: 'maxProcessCount',
+    fieldLabel: _t("Maximum"),
+    name: 'maxProcessCount',
+    allowBlank: true
 };
 
 var zMonitor = {
@@ -525,16 +529,30 @@ var zSendEventWhenBlockedFlag = {
 var regexFieldSet = {
     xtype: 'fieldset',
     id: 'regexFieldSet',
-    title: _t('Regular Expression'),
+    title: _t('Matching Rules (performance metrics will start over if changed)'),
     hidden: true,
     style: 'padding: 5px 0 0 0',
+    anchor: '100%',
+    defaults: {anchor:'97%'},
     items: [
-        regexTextField,
-        ignoreParametersWhenModelingSelect,
-        ignoreParametersSelect
-        // , exampleTextField
+        regexIncludeTextField,
+        regexExcludeTextField,
+        regexReplaceTextField,
+        replacementTextField,
     ]
 }; // regexFieldSet
+
+var processCountThreshold = {
+    xtype: 'fieldset',
+    id: 'processCountFieldSet',
+    title: _t("Process Count Threshold"),
+    hidden: false,
+    style: 'padding: 5px 0 0 0',
+    items: [
+        minCountThreshold,
+        maxCountThreshold
+    ]
+}; // processCountThreshold
 
 // the items that make up the form
 var processFormItems = {
@@ -546,7 +564,7 @@ var processFormItems = {
         columnWidth: 0.5
     },
     items: [
-        {defaults:{anchor:'95%'}, items: [nameTextField2, descriptionTextField, regexFieldSet]},
+        {defaults:{anchor:'95%'}, items: [nameTextField2, descriptionTextField, regexFieldSet, processCountThreshold]},
         {defaults:{anchor:'95%'}, items: [zMonitor, zAlertOnRestart, zFailSeverity, zModelerLock, zSendEventWhenBlockedFlag]}
     ]
 }; // processFormItems
@@ -566,8 +584,7 @@ Ext.getCmp('center_panel').add(
                 id: 'master_panel',
                 region: 'west',
                 layout: 'fit',
-                width: 250,
-                maxWidth: 250,
+                width: 250,                
                 split: true,
                 items: panel
             },{
@@ -597,7 +614,8 @@ Ext.getCmp('center_panel').add(
                     router: router,
                     bufferSize: 100,
                     nearLimit: 20,
-                    instancesTitle: _t('Process Instances'),
+                    showProcessCount: true,
+                    instancesTitle: _t('Process Sets'),
                     zPropertyEditListeners: {
                         frameload: function() {
                             var formPanel = Ext.getCmp('processForm');
@@ -642,7 +660,7 @@ function dispatcher(actionName, value) {
 };
 
 var footer = Ext.getCmp('footer_bar');
-Zenoss.footerHelper('Process', footer, {contextGetter: new ContextGetter()});
+Zenoss.footerHelper('Process Class', footer, {contextGetter: new ContextGetter()});
 footer.on('buttonClick', dispatcher);
 Ext.getCmp('footer_delete_button').setDisabled(true);
 
@@ -659,7 +677,7 @@ Ext.define('Zenoss.SequenceModel',  {
         [ {name: 'uid'},
           {name: 'folder'},
           {name: 'name'},
-          {name: 'regex'},
+          {name: 'includeRegex'},
           {name: 'monitor'},
           {name: 'count'}
         ]
@@ -695,7 +713,7 @@ Ext.define("Zenoss.SequenceGrid", {
             columns: [
                 {dataIndex: 'folder', header: 'Folder', menuDisabled: true},
                 {dataIndex: 'name', header: 'Name', menuDisabled: true},
-                {dataIndex: 'regex', header: 'Regex', menuDisabled: true },
+                {dataIndex: 'includeRegex', header: 'Regex', menuDisabled: true },
                 {dataIndex: 'monitor', header: 'Monitor', menuDisabled: true},
                 {dataIndex: 'count', layout:'anchor', header: 'Count', menuDisabled: true}
             ]
@@ -741,5 +759,532 @@ Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
        Ext.getCmp('sequenceDialog').show();
     }
 });
+
+/**
+ * @class Zenoss.SequenceModel2
+ * @extends Ext.data.Model
+ * Model for sequence data grid
+ **/
+Ext.define('Zenoss.SequenceModel2',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+//    autoLoad: true,
+    fields:
+        [ {name: 'uid'},
+          {name: 'folder'},
+          {name: 'name'},
+          {name: 'regex'},
+          {name: 'excludeRegex'},
+          {name: 'monitor'},
+          {name: 'count'},
+          {name: 'use'},
+        ]
+
+});
+
+/**
+ * @class Zenoss.SequenceStore2
+ * @extend Zenoss.DirectStore
+ * Direct store for loading up the sequence grid
+ */
+Ext.define("Zenoss.SequenceStore2", {
+    extend: "Zenoss.DirectStore",
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.SequenceModel2',
+            directFn: router.getSequence2,
+            root: 'data',
+            initialSortColumn: 'uid'
+        });
+        Ext.apply(this, {
+            single: false,
+            count: 0,
+            uids: [],
+        });
+        this.callParent(arguments);
+        var regex = Ext.getCmp('regexIncludeTextField').getValue();
+        var regexExclude = Ext.getCmp('regexExcludeTextField').getValue();
+        this.single = regex.length == 0;
+    },
+    listeners: {
+        prefetch: function(eOpts) {
+            this.count = this.getCount();
+        },
+        datachanged: function(eOpts) {
+            var regex = Ext.getCmp('regexIncludeTextField').getValue();
+            this.single = regex.length == 0;
+            this.count = this.getCount();
+            this.uids = [];
+            this.each(function(rec) {
+                this.store.uids.push(rec);
+            });
+        }
+    },
+});
+
+
+Ext.define("Zenoss.SequenceGrid2", {
+    alias: ['widget.sequencegrid2'],
+    extend:"Ext.grid.GridPanel",
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            sortableColumns: false,
+            sortableRows: false,
+            forceFit: false,
+            enableDragDrop: false,
+            viewConfig: {
+                forcefit: true,
+            },
+            align : 'stretch',
+            store: Ext.create('Zenoss.SequenceStore2', {}),
+            columns: [
+                {dataIndex: 'count', layout:'anchor', header: 'Count', menuDisabled: true, flex: 1},
+                {dataIndex: 'name', header: 'Name', menuDisabled: true, flex: 2},
+                {dataIndex: 'regex', header: 'Regex', menuDisabled: true, flex: 5},
+                {dataIndex: 'excludeRegex', header: 'XRegex', menuDisabled: true,  flex: 4},
+                {dataIndex: 'monitor', header: 'Monitor', menuDisabled: true, flex: 1},
+            ]
+        });
+        this.callParent(arguments);
+    }
+});
+
+function readBlob() {
+    var files = document.getElementById("files").files;
+    if (!files.length) {
+      alert("Please select a file!");
+      return;
+    }
+
+    var file = files[0];
+    var start = 0;
+    var stop = file.size - 1;
+
+    var reader = new FileReader();
+    
+    // If we use onloadend, we need to check the readyState.
+    reader.onloadend = function(evt) {
+        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+            var newContents = Ext.getCmp("input1").getValue() + evt.target.result;
+            Ext.getCmp("input1").setValue(newContents);
+        }
+    };
+
+    var blob = file.slice(start, stop + 1);
+    reader.readAsBinaryString(blob);
+  }
+
+function errorHandler(e) {
+      var msg = '';
+
+      switch (e.code) {
+        case FileError.QUOTA_EXCEEDED_ERR:
+          msg = 'QUOTA_EXCEEDED_ERR';
+          break;
+        case FileError.NOT_FOUND_ERR:
+          msg = 'NOT_FOUND_ERR';
+          break;
+        case FileError.SECURITY_ERR:
+          msg = 'SECURITY_ERR';
+          break;
+        case FileError.INVALID_MODIFICATION_ERR:
+          msg = 'INVALID_MODIFICATION_ERR';
+          break;
+        case FileError.INVALID_STATE_ERR:
+          msg = 'INVALID_STATE_ERR';
+          break;
+        default:
+          msg = 'Unknown Error';
+          break;
+      };
+
+      console.log('Error: ' + msg);
+}
+
+Ext.define('Zenoss.MatchedProcessModel',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: [ 
+          {name: 'uid'},
+          {name: 'matched'},
+          {name: 'processClass'},
+          {name: 'processSet'},
+          {name: 'process'},
+        ]
+});
+
+Ext.define("Zenoss.MatchProcessStore", {
+    extend: "Zenoss.NonPaginatedStore", //NonPaginatedStore
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.MatchedProcessModel',
+            directFn: router.applyOSProcessClassMatchers,
+            initialSortColumn: 'uid',
+            root: 'data',
+            totalProperty: 'total'
+        });
+        this.callParent(arguments);
+        // Default empty params
+        var uids = [], lines = [];
+        this.setBaseParam("uids", uids);
+        this.setBaseParam("lines", lines);
+    },
+    listeners: {
+        beforeload: function(operation, eOpts) {
+            var uids = [];
+            if (showAllProcessClasses) {
+                Ext.getCmp('sequenceGrid2').getStore().uids.forEach(function (rec, index, theArray) {
+                    uids.push(rec.data.uid);
+                });
+            } else {
+                uids.push({
+                    includeRegex: Ext.getCmp('regexIncludeTextField').getValue(),
+                    excludeRegex: Ext.getCmp('regexExcludeTextField').getValue(),
+                    replaceRegex: Ext.getCmp('regexReplaceTextField').getValue(),
+                    replacement: Ext.getCmp('replacementTextField').getValue(),
+                    name: Ext.getCmp('nameTextField2').getValue()
+                });
+            }
+            this.setBaseParam("uids", uids);
+            var lines = Ext.getCmp('input1').getValue().split('\n');
+            this.setBaseParam("lines", lines);
+        },
+        load: function(operation, eOpts) {
+            var m = this.count();
+            var n = 0;
+            processStore.each(function(record){
+                var processList = record.get("process").split('\n');
+                processList.forEach(function(processLine) {
+                    var process = processLine.trim();
+                    if (process.length > 0) {
+                        if (process.substring(0, 0) != '#') {
+                            n++;
+                        }
+                    }
+                });
+            });
+            var x = {};
+            var y = {};
+            this.each(function(matchedProcess) {
+                var processClass = matchedProcess.get('processClass');
+                var processSet = processClass + ":" + matchedProcess.get('processSet');
+                var xx = x[processClass];
+                if (! xx) {
+                    xx = 1;
+                } else {
+                    xx++;
+                }
+                x[processClass] = xx;
+                var yy = y[processSet];
+                if (! yy) {
+                    yy = 1;
+                } else {
+                    yy++;
+                }
+                y[processSet] = yy;
+            });
+            var xxx = 0;
+            for (var i in x) {
+                xxx++;
+            }
+            var yyy = 0;
+            for (var i in y) {
+                yyy++;
+            }
+            Ext.getCmp('outputTitle').setTitle('Output: ' + m.toString() + ' of ' + n.toString() + ' matched by ' + xxx + ' classes in ' + yyy + ' sets');
+        }
+    }
+});
+
+Ext.define("Zenoss.MatchProcessGrid", {
+    alias: ['widget.matchProcessgrid'],
+    extend:"Ext.grid.GridPanel",
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            enableDragDrop: false,
+            viewConfig: {
+                forcefit: true,
+            },
+            sortableColumns: true,
+            forceFit: false,
+            store: Ext.create('Zenoss.MatchProcessStore', {}),
+            columns: [
+                {dataIndex: 'processClass', header: 'ProcessClass', sortable: true, sortType: 'asUCString', menuDisabled: true, flex: 1},
+                {dataIndex: 'processSet', header: 'ProcessSet', sortable: true, sortType: 'asUCString', menuDisabled: true, flex: 2},
+                {dataIndex: 'process', header: 'Process', sortable: true, sortType: 'asUCString', menuDisabled: false, flex: 5},
+            ]
+        })
+        var regex = Ext.getCmp('regexIncludeTextField').getValue();
+        var regexExclude = Ext.getCmp('regexExcludeTextField').getValue();
+        this.callParent(arguments);
+    }
+});
+
+Ext.define('Zenoss.ProcessModel2',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: [ 
+          {name: 'uid'},
+          {name: 'process'},
+        ]
+});
+
+Ext.define("Zenoss.ProcessStore2", {
+    extend: "Zenoss.DirectStore",
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.ProcessModel2',
+            directFn: router.getProcessList,
+            root: 'data',
+            initialSortColumn: 'uid'
+        });
+        this.callParent(arguments);
+        this.setBaseParam("deviceGuid", '');
+    },
+    listeners: {
+        beforeprefetch: function(operation, eOpts) {
+            Ext.MessageBox.wait('Fetching process list...');
+            var deviceGuid = Ext.getCmp('devicecombo1').getValue();
+            if (deviceGuid.length > 0) {
+                this.setBaseParam("deviceGuid", deviceGuid);
+            }
+        }
+    }
+});
+
+Ext.define("Zenoss.ProcessGrid2", {
+    alias: ['widget.processGrid2'],
+    extend:"Zenoss.BaseSequenceGrid",
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            sortableColumns: true,
+            forceFit: false,
+            store: Ext.create('Zenoss.ProcessStore2', {}),
+            columns: [
+                {dataIndex: 'uid', layout:'anchor', header: 'Matched', sortable: true, sortType: 'asUCString', menuDisabled: true, flex: 1},
+                {dataIndex: 'process', header: 'Process', sortable: true, sortType: 'asUCString', menuDisabled: false, flex: 5},
+            ]
+        })
+        this.callParent(arguments);
+    }
+});
+
+var demoInput1 = [
+                  '#',
+                  '# Use this dialog to test regular expressions against sample input. Process', 
+                  '# monitoring uses the output of the Linux command "ps axho args" (or its',
+                  '# equivalent) as input for regular expression matching. You may run that command',
+                  '# on a system and copy-paste the result in this field, or load sample input',
+                  '# from a local file (click the Choose File... button). Lines that begin with the hash',
+                  '# character (#) are ignored.',
+                  '#'
+].join('\n');
+
+var processGrid = Ext.create("Zenoss.ProcessGrid2", {});
+var processStore = processGrid.getStore();
+var showAllProcessClasses = true;
+
+function getProcesses (operation, eOpts) {
+    var count = processStore.getCount();
+    var newContents = Ext.getCmp('input1').getValue();
+    if (newContents.length > 0)
+        newContents += '\n';
+    processStore.each(function(record){
+        newContents += record.get("process") + '\n'
+    });
+    Ext.getCmp('input1').setValue(newContents);
+    Ext.MessageBox.hide();
+}
+
+Ext.define("Zenoss.TestRegexDialog", {
+    alias: ['widget.testRegexDialog'],
+    extend:"Zenoss.HideFitDialog",
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            closeAction: 'destroy',
+            title: _t('Test Process Class Regular Expressions'),
+            width: window.innerWidth * 80 / 100,
+            height: window.innerHeight * 80 / 100,
+            layout: {
+                type: 'vbox',
+                align : 'stretch',
+                pack  : 'start',
+            },
+            items: [
+                {layout: {
+                    type: 'hbox',
+                    pack: 'start',
+                    align: 'stretch'
+                },
+                items: [
+                    {title: 'Source', 
+                        layout: {
+                            type: 'vbox',
+                            align : 'stretch',
+                            pack  : 'start',
+                        },
+                        items: [
+                            {layout: {
+                                type: 'hbox',
+                                pack: 'start',
+                                align: 'stretch'
+                            },
+                            items: [
+                                {fieldLabel: 'Device', xtype: 'rule.devicecombo', id: "devicecombo1", flex:2},
+                                {xtype: 'button', ui: 'dialog-dark', text: _t('Add'),
+                                    handler: function(button, event) {
+                                        var deviceGuid = Ext.getCmp('devicecombo1').getValue();
+                                        deviceGuid = deviceGuid.trim();
+                                        if (deviceGuid.length == 0) {
+                                            alert("Please select device first");
+                                        } else {
+                                            processStore.on('prefetch', getProcesses);
+                                            processStore.load();
+                                        }
+                                    },
+                                    autoWidth: true
+                                }
+                            ]},
+                            {layout: {
+                                type: 'hbox',
+                                pack: 'start',
+                                align: 'stretch'
+                            },
+                            items: [
+                                    {fieldLabel: 'File', html: '<input type="file" id="files" name="file" />', ui: 'dialog-dark', flex:1},
+                                    {
+                                        xtype: 'button',
+                                        ui: 'dialog-dark',
+                                        autoWidth: true,
+                                        text: _t('Add'),
+                                        listeners: {
+                                            click: function() {
+                                                readBlob();
+                                            }   
+                                        }
+                                    },
+                            ]},
+                            {title: 'Input'},
+                            {xtype: 'textareafield', grow: 'true', name: 'input1', id: 'input1', 
+                                value: demoInput1, 
+                                flex:4},
+                            {xtype: 'button',  ui: 'dialog-dark', autoWidth: true, text: _t('Clear'),
+                                listeners: {
+                                    click: function() {
+                                        Ext.getCmp('input1').setValue('');
+                                    }   
+                                }
+                            }
+                        ], 
+                        flex:1},
+                        {
+                            layout:'card',
+                            activeItem: showAllProcessClasses ? 0 : 1,
+                            items: [{
+                                id: 'card-0',
+                                title: 'Process Classes',
+                                layout: 'fit',
+                                align : 'stretch',
+                                items: [
+                                {
+                                    xtype: 'sequencegrid2',
+                                    id: 'sequenceGrid2'
+                                }], 
+                                flex:1
+                            },{
+                                id: 'card-1',
+                                title: 'Process Class: ' + Ext.getCmp('nameTextField2').getValue(),
+                                layout: {
+                                    type: 'vbox',
+                                    align : 'stretch',
+                                    pack  : 'start',
+                                },
+                                items: [
+                                    {fieldLabel: 'Include processes like', xtype: 'textfield', value: Ext.getCmp('regexIncludeTextField').getValue(), listeners: {change: function(field){Ext.getCmp('regexIncludeTextField').setValue(this.getValue());}}},
+                                    {fieldLabel: 'Exclude processes like', xtype: 'textfield', value: Ext.getCmp('regexExcludeTextField').getValue(), listeners: {change: function(field){Ext.getCmp('regexExcludeTextField').setValue(this.getValue());}}},
+                                    {fieldLabel: 'Replace command line text', xtype: 'textfield', value: Ext.getCmp('regexReplaceTextField').getValue(), listeners: {change: function(field){Ext.getCmp('regexReplaceTextField').setValue(this.getValue());}}},
+                                    {fieldLabel: 'With', xtype: 'textfield', value: Ext.getCmp('replacementTextField').getValue(), listeners: {change: function(field){Ext.getCmp('replacementTextField').setValue(this.getValue());}}},
+                                ], flex:1
+                            }], flex:1
+                        },
+                ], flex:5},
+                {title: 'Output', id: 'outputTitle', titleAlign: 'center'},
+                {xtype: 'matchProcessgrid', id: 'output1', flex:5},
+            ],
+            buttons: [{
+                xtype: 'button',
+                ui: 'dialog-dark',
+                text: _t('Test'),
+                handler: function(button, event) {
+                    Ext.getCmp('output1').getStore().removeAll();
+                    Ext.getCmp('output1').getStore().load();
+                }
+             }, {
+                xtype: 'HideDialogButton',
+                text: _t('Done')
+            }]
+        });
+        this.callParent(arguments);
+        Ext.getCmp('sequenceGrid2').getStore().load();
+        this.show();
+    }
+});
+
+
+Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
+    id: 'regexTestButtonSingle',
+    iconCls: 'set',
+    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+    tooltip: _t('Test Process Class Regular Expressions'),
+    text: _t('Test Process Class Regular Expressions'),
+    handler: function(button, event) {
+        if (Ext.getCmp('regexTestDialog') ) {
+            Ext.getCmp('regexTestDialog').destroy();
+        }
+        showAllProcessClasses = false;
+        if ( ! Ext.getCmp('regexTestDialog') ) {
+            new Zenoss.TestRegexDialog(
+            {
+                id: 'regexTestDialog',
+            });
+        } else
+            Ext.getCmp('regexTestDialog').show();
+    }
+});
+
+Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
+    id: 'regexTestButtonAll',
+    iconCls: 'set',
+    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+    tooltip: _t('Test All Process Classes Regular Expressions'),
+    text: _t('Test All Process Classes Regular Expressions'),
+    handler: function(button, event) {
+        if (Ext.getCmp('regexTestDialog')) {
+            Ext.getCmp('regexTestDialog').destroy();
+        }
+        showAllProcessClasses = true;
+        if ( ! Ext.getCmp('regexTestDialog') ) {
+            new Zenoss.TestRegexDialog(
+            {
+                id: 'regexTestDialog',
+            });
+        } else
+            Ext.getCmp('regexTestDialog').show();
+    }
+});
+
+function handleRegexTestButtonSingle() {
+    if (Ext.getCmp('regexIncludeTextField').getValue().length == 0) {
+        Ext.getCmp('regexTestButtonSingle').setDisabled(true);
+    } else {
+        Ext.getCmp('regexTestButtonSingle').setDisabled(false);
+    }
+}
+
+Ext.getCmp('footer_bar').buttonContextMenu.on('click', handleRegexTestButtonSingle);
+
 
 }); // Ext.onReady

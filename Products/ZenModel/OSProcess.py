@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -13,6 +13,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.Lockable import Lockable
+from Products.ZenModel.OSProcessMatcher import OSProcessMatcher
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
@@ -20,56 +21,66 @@ from Acquisition import aq_chain
 from Lockable import UNLOCKED, DELETE_LOCKED, UPDATE_LOCKED
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
-from md5 import md5
+from Products.ZenUtils.Utils import prepId
+from persistent.list import PersistentList
+import logging
 
-def manage_addOSProcess(context, newClassName, userCreated, REQUEST=None):
+log = logging.getLogger("zen.osprocess")
+
+def manage_addOSProcess(context, newClassName, example, userCreated, REQUEST=None):
     """
     Make an os process from the ZMI
     """
-    id = newClassName.split('/')[-1]
-    osp = OSProcess(id)
-    # Indexing is subscribed to ObjectAddedEvent, which fires
-    # on _setObject, so we want to set process class first.
-    osp.__of__(context).setOSProcessClass(newClassName)
-    context._setObject(id, osp)
-    osp = context._getOb(id)
-    osp.procName = id
-    if userCreated: osp.setUserCreateFlag()
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-    return osp
+    pc = context.unrestrictedTraverse(newClassName)
+    if pc.matches(example):
+        name = pc.generateName(example)
+        id = pc.generateIdFromName(name)
+        p = OSProcess(id)
+        p.displayName = name
+        p.__of__(context).setOSProcessClass(newClassName)
+        context._setObject(id, p)
+        p = context._getOb(id)
+        if userCreated: p.setUserCreateFlag()
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        return p
+    else:
+        msg = "Invalid example. Process Class '%s' would not capture it" % pc.name
+        raise ValueError(msg)
 
-
-def createFromObjectMap(context, objectMap):
-    om = objectMap
-    device = context.device()
-    processes = context.device().getDmdRoot("Processes")
-    pcs = processes.getSubOSProcessClassesSorted()
-    fullname = (om.procName + ' ' + om.parameters).rstrip()
-    for pc in pcs:
-        if pc.match(fullname):
-            id = getProcessIdentifier(om.procName, None if pc.ignoreParameters else om.parameters)
-            result = OSProcess(device.prepId(id))
-            om.setOSProcessClass = pc.getPrimaryDmdId()
-            return result
-
-
-def getProcessIdentifier(name, parameters):
-    """
-    Get a process identifier string from the name and parameters of the process.
-    """
-    return ('%s %s' % (name, md5((parameters or '').strip()).hexdigest())).strip()
-
-
-class OSProcess(OSComponent, Commandable, ZenPackable):
+class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
     """
     OSProcess object
     """
     portal_type = meta_type = 'OSProcess'
 
-    procName = ""
-    parameters = ""
-    _procKey = ""
+    @property
+    def includeRegex(self):
+        return self.osProcessClass().includeRegex
+
+    @property
+    def excludeRegex(self):
+        return self.osProcessClass().excludeRegex
+
+    @property
+    def replaceRegex(self):
+        return self.osProcessClass().replaceRegex
+
+    @property
+    def replacement(self):
+        return self.osProcessClass().replacement
+
+    def processClassPrimaryUrlPath(self):
+        return self.osProcessClass().getPrimaryUrlPath()
+
+    @property
+    def generatedId(self):
+        return self.id
+
+    displayName = ""
+    minProcessCount = ""
+    maxProcessCount = ""
+    monitoredProcesses = PersistentList()
 
     modelerLock = None
     sendEventWhenBlockedFlag = None
@@ -77,10 +88,15 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     collectors = ('zenprocess','zencommand')
 
     _properties = OSComponent._properties + (
-        {'id':'procName', 'type':'string', 'mode':'w'},
-        {'id':'parameters', 'type':'string', 'mode':'w'},
+        {'id':'displayName', 'type':'string', 'mode':'w'},
         {'id':'zAlertOnRestarts', 'type':'boolean', 'mode':'w'},
         {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
+        {'id':'minProcessCount', 'type':'int', 'mode':'w'},
+        {'id':'maxProcessCount', 'type':'int', 'mode':'w'},
+        {'id':'includeRegex', 'type':'string', 'mode':'w'},
+        {'id':'excludeRegex', 'type':'string', 'mode':'w'},
+        {'id':'replaceRegex', 'type':'string', 'mode':'w'},
+        {'id':'replacement', 'type':'string', 'mode':'w'},
     )
 
     _relations = OSComponent._relations + ZenPackable._relations + (
@@ -89,45 +105,29 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
     )
 
-    factory_type_information = (
-        {
-            'immediate_view' : 'osProcessDetail',
-            'actions'        :
-            (
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : 'osProcessDetail'
-                , 'permissions'   : ( Permissions.view, )
-                },
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : 'viewEvents'
-                , 'permissions'   : (ZEN_VIEW, )
-                },
-                { 'id'            : 'perfConf'
-                , 'name'          : 'Template'
-                , 'action'        : 'objTemplates'
-                , 'permissions'   : ("Change Device", )
-                },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'osProcessManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
-            )
-         },
-        )
-
     security = ClassSecurityInfo()
+
+
+    def getMonitoredProcesses(self):
+        """
+        return monitoredProcesses
+        """
+        return self.monitoredProcesses
+
+    
+    def setMonitoredProcesses(self, monitoredProcesses):
+        """
+        @parameter monitoredProcesses: a list that has been converted to a MultiArgs of monitored processes
+        @type monitoredProcesses:: MultiArgs
+        """
+        self.monitoredProcesses = monitoredProcesses.args[0]
 
 
     def getOSProcessConf(self):
         """
         Return information used to monitor this process.
         """
-        ignoreParams = getattr(self.osProcessClass(), 'ignoreParameters', False)
-        return (self.id, self.name(), ignoreParams,
-                self.alertOnRestart(), self.getFailSeverity())
+        return (self.id, self.alertOnRestart(), self.getFailSeverity())
 
 
     def setOSProcessClass(self, procKey):
@@ -150,7 +150,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
     def getOSProcessClassLink(self):
         """
-        Return an a link to the OSProcessClass.
+        Return a link to the OSProcessClass.
         """
         proccl = self.osProcessClass()
         if proccl:
@@ -161,16 +161,41 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
                 return proccl.getOSProcessClassName()
         return ""
 
+    def getMinProcessCount(self):
+        """
+        Return the min process count threshold value
+        """
+        if not self.minProcessCount and not self.maxProcessCount and \
+           self.osProcessClass():
+            value = self.osProcessClass().minProcessCount
+        else:
+            value = self.minProcessCount
 
+        return float(value) if value else None
+
+    def getMaxProcessCount(self):
+        """
+        Return the max process count threshold value
+        """
+        if not self.minProcessCount and not self.maxProcessCount and \
+           self.osProcessClass():
+            value = self.osProcessClass().maxProcessCount
+        else:
+            value = self.maxProcessCount
+
+        return float(value) if value else None
+
+    def titleOrId(self):
+        if self.osProcessClass():
+            return self.osProcessClass().titleOrId()
+        return self.title() or self.id
+    
     def name(self):
         """
-        Return a string that is the process name and, if ignoreParamaters
-        is not True, then also the parameters.
+        Return a string that describes the process set
+        (Perhaps, simply the process name + parameters)
         """
-        ignoreParams = getattr(self.osProcessClass(), 'ignoreParameters', False)
-        if not self.parameters or ignoreParams:
-            return self.procName
-        return self.procName + " " + self.parameters
+        return getattr(self,'displayName',None)
 
     title = name
 
@@ -270,19 +295,6 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         Return the url where UserCommands are viewed for this object
         """
         return self.getPrimaryUrlPath() + '/osProcessManage'
-
-    def filterAutomaticCreation(self):
-        # get the processes defined in Zenoss
-        pcs = sorted(self.getDmdRoot("Processes").getSubOSProcessClassesGen(), key=lambda a: a.sequence)
-
-        fullname = (self.procName + ' ' + self.parameters).rstrip()
-        for pc in pcs:
-            if pc.match(fullname):
-                self.setOSProcessClass(pc.getPrimaryDmdId())
-                self.id = self.prepId(getProcessIdentifier(om.procName,
-                                      None if pc.ignoreParameters else om.parameters))
-                return True
-        return False
 
     # override the lock methods to look for the process classes'
     # lock state instead of the current object if it has not been set

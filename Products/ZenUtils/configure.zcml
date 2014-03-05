@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
@@ -7,6 +8,7 @@
 
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
+    <include package=".controlplane"/>
 
     <utility provides=".ZodbFactory.IZodbFactoryLookup"
              factory=".ZodbFactory.ZodbFactoryLookup"

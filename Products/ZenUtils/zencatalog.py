@@ -19,12 +19,14 @@ import transaction
 from twisted.internet import defer, reactor, task
 from OFS.ObjectManager import ObjectManager
 from ZODB.POSException import ConflictError
+from ZODB.transact import transact
 from ZEO.Exceptions import ClientDisconnected
 from ZEO.zrpc.error import DisconnectedError
 from zope.component import getUtility
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul.catalog.global_catalog import globalCatalogId, catalog_caching
 from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 
@@ -128,7 +130,10 @@ class ZenCatalog(ZCmdBase):
                                action="store_true",
                                default=False,
                                help="Only works with --reindex, only update the permissions catalog")
-
+        self.parser.add_option("--clean",
+                               action="store_true",
+                               default=False,
+                               help="Cleans up unresolvable paths in the catalog")
 
     def run(self):
 
@@ -141,10 +146,12 @@ class ZenCatalog(ZCmdBase):
                 d = self._createCatalog(zport)
             elif self.options.reindex:
                 d = self._reindex(zport)
+            elif self.options.clean:
+                d = self._cleanCatalog(zport)
             d.addBoth(stop)
 
-        if not self.options.createcatalog and not self.options.reindex:
-            self.parser.error("Must use one of --createcatalog, --reindex")
+        if not self.options.createcatalog and not self.options.reindex and not self.options.clean:
+            self.parser.error("Must use one of --createcatalog, --reindex, --clean")
         reactor.callWhenRunning(main)
         with catalog_caching():
             reactor.run()
@@ -156,6 +163,21 @@ class ZenCatalog(ZCmdBase):
             reindex_catalog(globalCat, self.options.permissionsOnly, not self.options.daemon)
         else:
             log.warning('Global Catalog does not exist, try --createcatalog option')
+        return defer.succeed(None)
+
+    def _cleanCatalog(self, zport):
+        global_catalog = self._getCatalog(zport)
+        uncat = transact(global_catalog.uncatalog_object)
+
+        for brain in global_catalog():
+            try:
+                obj = brain.getObject()
+            except Exception:
+                log.warn("Found unresolvable path, deleting: %s", brain.getPath())
+                uncat(brain.getPath())
+
+        log.info("Finished scanning catalog")
+
         return defer.succeed(None)
 
     def _createCatalog(self, zport):

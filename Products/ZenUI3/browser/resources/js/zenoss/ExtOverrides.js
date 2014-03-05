@@ -452,8 +452,9 @@ Ext.override(Ext.util.Sorter, {
         return returnEl ? Ext.get(this.target) : this.target;
     };
 
-
-
+    Ext.override(Ext.grid.column.Column, {
+        defaultRenderer: Ext.htmlEncode
+    });
 
     Ext.define('Ext.data.TreeStoreOverride',{
         override: 'Ext.data.TreeStore',
@@ -581,5 +582,42 @@ Ext.override(Ext.util.Sorter, {
         }
     });
 
+    function toMomentInTimezone(sourceMoment, timezone) {
+        var result = moment.tz(timezone);
+        result.year(sourceMoment.year());
+        result.month(sourceMoment.month());
+        result.date(sourceMoment.date());
+        result.hour(sourceMoment.hour());
+        result.minute(sourceMoment.minute());
+        result.second(sourceMoment.second());
+        result.millisecond(sourceMoment.millisecond());
+        return result;
+    }
 
+    /**
+     * Override the date selector to return dates in the current users
+     * timezone.
+     **/
+    Ext.override(Ext.form.field.Date, {
+        getUnixTimestamp: function() {
+            var date = this.getValue();
+            if (!date) {
+                return 0;
+            }
+            return toMomentInTimezone(moment(date), Zenoss.USER_TIMEZONE).unix();
+        }
+    });
+
+    /**
+     * Override the default behavior of moment-timezone to
+     * not translate the times if the timezone that is passed
+     * is UTC.
+     **/
+    var oldMomentTz = moment.fn.tz;
+    moment.fn.tz = function (name) {
+        if (name == "UTC") {
+            return this;
+        }
+        return oldMomentTz.apply(this, [name]);
+    };
 }());

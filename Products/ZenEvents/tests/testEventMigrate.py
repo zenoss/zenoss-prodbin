@@ -50,7 +50,7 @@ class MockPublisher(object):
         self.msgs = []
         self.channel = MockChannel()
 
-    def publish(self, exchange, routing_key, message, createQueues=None, mandatory=False, immediate=False):
+    def publish(self, exchange, routing_key, message, createQueues=None, mandatory=False):
         self.msgs.append(message)
 
 class MockCursor(object):

@@ -31,9 +31,9 @@ class EventClassesRouter(TreeRouter):
         Add new event class mapping for the current context
         """
         facade = self._getFacade()
-        facade.addNewInstance(params)
-        audit('UI.EventClasses.AddInstance', params['uid'], data_=params)
-        return DirectResponse.succeed()
+        newInstance = facade.addNewInstance(params)
+        audit('UI.EventClasses.AddInstance', params['newName'], data_=params)
+        return DirectResponse.succeed(data=Zuul.marshal(newInstance))
         
     @require('Manage DMD')
     def removeInstance(self, instances):
@@ -51,8 +51,8 @@ class EventClassesRouter(TreeRouter):
         """
         Edit an event class instance
         """
-        oldData = self.getInstanceData(params['uid'])
-        self.testCompileTransform(params['transform'])
+        oldData = self.getInstanceData(params['uid']).data
+        self.testCompileTransform(params.get('transform'))
         self.testRegex(params['regex'], params['example'])
         self.testRule(params['rule'])
         facade = self._getFacade()
@@ -87,8 +87,7 @@ class EventClassesRouter(TreeRouter):
         returns the sequence order of keys for a given instance
         """
         facade = self._getFacade()
-        data = facade.getSequence(uid)
-        audit('UI.EventClasses.SetSequence', uid, data_=data)
+        data = facade.getSequence(uid)        
         return DirectResponse(data=Zuul.marshal(data) )
         
     @require('Manage DMD')

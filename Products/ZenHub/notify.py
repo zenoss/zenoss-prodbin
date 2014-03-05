@@ -36,7 +36,8 @@ class NotifyItem(object):
                2             None                 BatchNotifier._errback
     """
 
-    def __init__(self, device_class_uid, subdevices):
+    def __init__(self, device_class_uid, subdevices, filtered=False):
+        self.filtered = filtered
         self.device_class_uid = device_class_uid
         self.subdevices = subdevices
         # keys are service_uids eg ('CommandPerformanceConfig', 'localhost')
@@ -66,24 +67,24 @@ class BatchNotifier(object):
         self._queue = collections.deque()
         self._stopping = False
 
-    def notify_subdevices(self, device_class, service_uid, notify_function):
+    def notify_subdevices(self, device_class, service_uid, notify_function, filter=None):
         if not self._stopping:
             LOG.debug("BatchNotifier.notify_subdevices: %r, %s" % (device_class, service_uid))
-            item = self._find_or_create_item(device_class)
+            item = self._find_or_create_item(device_class, filter)
             item.notify_functions[service_uid] = notify_function
         else:
             LOG.debug("notify_subdevices received a call while "
                       "stopping: %r, %s" % (device_class, service_uid))
 
-    def _find_or_create_item(self, device_class):
+    def _find_or_create_item(self, device_class, filter):
         device_class_uid = device_class.getPrimaryId()
         for item in self._queue:
-            if item.device_class_uid == device_class_uid:
+            if item.device_class_uid == device_class_uid and not item.filtered:
                 retval = item
                 break
         else:
-            subdevices = device_class.getSubDevicesGen()
-            retval = NotifyItem(device_class_uid, subdevices)
+            subdevices = device_class.getSubDevicesGen(devfilter=filter)
+            retval = NotifyItem(device_class_uid, subdevices, filter!=None)
             retval.d = self._create_deferred()
             if not self._queue and self._current_item is None:
                 self._call_later(retval.d)

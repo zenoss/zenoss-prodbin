@@ -36,8 +36,10 @@ loader.insert();
 
         <tal:block tal:define="message request/message | string:State at time:;
         noselectionbar python:True;
-            tabletitle string:${message} ${here/getNowString}">
+            tabletitle string:${message} ${here/getCurrentUserNowString}">
+
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+          
 
         <!--====Optional titlebar slots=============
 
@@ -50,8 +52,7 @@ loader.insert();
             ==========================================-->
 
         <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
-
+        <!-- BEGIN TABLE CONTENTS -->        
     <tr class="even">
         <td class="noselect tableheader" i18n:translate='' align="left">Instance Identifier</td>
         <td class="tablevalues">

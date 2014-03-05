@@ -12,6 +12,7 @@ import os
 import Globals
 import zope.interface
 import md5
+from Products.ZenUtils.Time import getServerTimeZone
 from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
@@ -42,6 +43,8 @@ def getPathModifiedTime(path):
             return os.path.getmtime(fullPath)
 
 SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
+
+
 
 
 def getVersionedPath(path):
@@ -139,6 +142,21 @@ class FireFoxExtCompat(JavaScriptSnippet):
         return  SCRIPT_TAG_TEMPLATE % js
 
 
+
+class VisualizationInit(JavaScriptSnippet):
+    """
+    Performs necessary initialization for the visualization library
+    """
+    def snippet(self):
+        js = """
+            if (window.zenoss !== undefined) {
+                zenoss.visualization.url = window.location.protocol + "//" + window.location.host;
+                zenoss.visualization.debug = false;
+            }
+        """
+        return  SCRIPT_TAG_TEMPLATE % js
+
+
 class ZenossSettings(JavaScriptSnippet):
     """
     Renders client side settings.
@@ -168,12 +186,19 @@ class ZenossData(JavaScriptSnippet):
         productionStates = [dict(name=s[0],
                                  value=int(s[1])) for s in
                             self.context.dmd.getProdStateConversions()]
-
+        # timezone
+        # to determine the timezone we look in the following order
+        # 1. What the user has saved
+        # 2. The timezone of the server
+        # 3. the timezone of the browser
+        user = self.context.dmd.ZenUsers.getUserSettings()
+        timezone = user.timezone or getServerTimeZone()
         snippet = """
             Zenoss.env.COLLECTORS = %r;
             Zenoss.env.priorities = %r;
             Zenoss.env.productionStates = %r;
-        """ % ( collectors, priorities, productionStates )
+            Zenoss.USER_TIMEZONE = "%s" || jstz.determine().name();
+        """ % ( collectors, priorities, productionStates, timezone )
         return snippet
 
 class BrowserState(JavaScriptSnippet):

@@ -22,10 +22,10 @@ from Globals import InitializeClass
 
 from ZenModelRM import ZenModelRM
 from DeviceManagerBase import DeviceManagerBase
-from RRDView import RRDView
+from MetricMixin import MetricMixin
 from Products.ZenWidgets import messaging
 
-class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
+class Monitor(ZenModelRM, DeviceManagerBase, MetricMixin):
     meta_type = 'Monitor'
 
     def snmpIgnore(self):
@@ -93,22 +93,5 @@ class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
         context['name'] = self.id
         return context
 
-    def getGraphDefUrl(self, graph, drange=None, template=None):
-        """resolve template and graph names to objects 
-        and pass to graph performance"""
-        if not drange: drange = self.defaultDateRange
-        templates = self.getRRDTemplates()
-        if template:
-            templates = [template]
-        if isinstance(graph, basestring):
-            for t in templates:
-                if hasattr(t.graphDefs, graph):
-                    template = t
-                    graph = getattr(t.graphDefs, graph)
-                    break
-        targetpath = self.rrdPath()
-        objpaq = self.primaryAq()
-        return self.performanceGraphUrl(objpaq, targetpath, template, graph, drange)
-
-
+    
 InitializeClass(Monitor)

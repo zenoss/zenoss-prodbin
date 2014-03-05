@@ -16,7 +16,7 @@ class IQueuePublisher(Interface):
     Interface for publishing to a queue
     """
     def publish(exchange, routing_key, message, createQueues=None,
-                mandatory=False, immediate=False, headers=None,
+                mandatory=False, headers=None,
                 declareExchange=True):
         """
         Publishes a message to an exchange. If twisted is running
@@ -34,10 +34,6 @@ class IQueuePublisher(Interface):
         @type  mandatory: Boolean.
         @param mandatory: If true, will raise NoRouteException if there is no
                           destination queue for the published event.
-        @type  immediate: Boolean
-        @param immediate: If true, will raise NoConsumersException if there are
-                          no active consumers for the published event (the event
-                          is still sent to the queue).
         @type  headers: dict
         @param headers: Headers to use when publishing a message (Useful for
                         headers exchanges).
@@ -47,9 +43,6 @@ class IQueuePublisher(Interface):
         @raise zenoss.protocols.exceptions.NoRouteException: If mandatory is
                True and the message cannot be sent to a queue (the message is
                lost).
-        @raise zenoss.protocols.exceptions.NoConsumersException: If immediate
-               is True and the message is successfully sent to the queue but
-               there are no active consumers to process the message.
         """
 
     channel = Attribute("Retrieves the connection to the queue")
@@ -94,7 +87,7 @@ class IEventPublisher(Interface):
     """
     Publishes events.
     """
-    def publish(event, mandatory=False, immediate=False):
+    def publish(event, mandatory=False):
         """
         Publish event to the raw event queue.
 
@@ -103,16 +96,9 @@ class IEventPublisher(Interface):
         @type  mandatory: Boolean.
         @param mandatory: If true, will raise NoRouteException if there is no
                           destination queue for the published event.
-        @type  immediate: Boolean
-        @param immediate: If true, will raise NoConsumersException if there are
-                          no active consumers for the published event (the event
-                          is still sent to the queue).
         @raise zenoss.protocols.exceptions.NoRouteException: If mandatory is
                True and the message cannot be sent to a queue (the message is
                lost).
-        @raise zenoss.protocols.exceptions.NoConsumersException: If immediate
-               is True and the message is successfully sent to the queue but
-               there are no active consumers to process the message.
         """
 
     def close():

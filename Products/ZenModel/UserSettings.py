@@ -108,12 +108,7 @@ class UserSettingsManager(ZenModelRM):
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
-                },
-                { 'id'            : 'daemons'
-                , 'name'          : 'Daemons'
-                , 'action'        : '../../About/zenossInfo'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
-                },
+                },                
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../../About/zenossVersions'
@@ -387,7 +382,7 @@ class UserSettingsManager(ZenModelRM):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Settings Saved',
-                Time.SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()                
             )
             audit('UI.User.Edit', username=userid, data_=updates)
             return self.callZenScreen(REQUEST)
@@ -404,10 +399,10 @@ class UserSettingsManager(ZenModelRM):
         #
         # XXX this needs to be reviewed when new plugins are added, such as the
         # LDAP plugin
-        if 'admin' in userids:
+        if 'admin' in userids or 'zenoss_system' in userids:
             messaging.IMessageSender(self).sendToBrowser(
                 'Error',
-                "Cannot delete admin user. No users were deleted.",
+                "Cannot delete admin or zenoss_system user. No users were deleted.",
                 messaging.WARNING
             )
             return self.callZenScreen(REQUEST)
@@ -605,7 +600,8 @@ class UserSettings(ZenModelRM):
     eventConsoleRefresh = True
     zenossNetUser = ''
     zenossNetPassword = ''
-
+    timezone = ''
+    
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
         {'id':'pager', 'type':'string', 'mode':'w'},
@@ -620,6 +616,7 @@ class UserSettings(ZenModelRM):
         {'id':'eventConsoleRefresh', 'type':'boolean', 'mode':'w'},
         {'id':'zenossNetUser', 'type':'string', 'mode':'w'},
         {'id':'zenossNetPassword', 'type':'string', 'mode':'w'},
+        {'id':'timezone', 'type':'string', 'mode':'w'},
     )
 
 
@@ -931,7 +928,7 @@ class UserSettings(ZenModelRM):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Settings Saved',
-                Time.SaveMessage()
+                "Saved At: %s" % self.getCurrentUserNowString()
             )
             audit('UI.User.Edit', username=self.id, data_=updates)
             return self.callZenScreen(REQUEST)

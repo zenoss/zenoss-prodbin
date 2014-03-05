@@ -31,9 +31,12 @@
            </span>
        </td>
        <td class="tablevalues" colspan='5'>
-          <span 
-        tal:content="structure python:here.description.replace('\n','<br/>')"/>
-          <br tal:condition="here/description"  />
+          <tal:block tal:repeat="line python:here.description.splitlines()">
+          <span tal:content="line"/><br/>
+          </tal:block>
+          <!--<span tal:content="python:here.description.replace('\n','<br/>')"/>-->
+          <br tal:condition="here/description"/>
+       </td>
     </tr>
     <tbody id="descriptioneditform" tal:condition="here/isManager" 
             visible="1" style="display:none;">

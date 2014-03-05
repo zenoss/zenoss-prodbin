@@ -60,12 +60,12 @@ class TestGraphDefinition(ZenModelBaseTest):
         graph.graphPoints.blankLegend.legend = ''
         graph.graphPoints.talesLegend.legend = '${here/id}'
 
-        graphUrl = device.getDefaultGraphDefs()[0]['url']
-        gopts = re.search('gopts=([^&]+)', graphUrl).groups()[0]
-        gopts = zlib.decompress(urlsafe_b64decode(unquote(gopts)))
-        self.assertTrue('defaultLegend' in gopts)
-        self.assertTrue('dpname greater than 10' in gopts)
-        self.assertTrue('testdevice' in gopts)
+        # graphUrl = device.getDefaultGraphDefs()[0]['url']
+        # gopts = re.search('gopts=([^&]+)', graphUrl).groups()[0]
+        # gopts = zlib.decompress(urlsafe_b64decode(unquote(gopts)))
+        # self.assertTrue('defaultLegend' in gopts)
+        # self.assertTrue('dpname greater than 10' in gopts)
+        # self.assertTrue('testdevice' in gopts)
 
 
 def test_suite():

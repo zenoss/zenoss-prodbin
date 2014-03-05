@@ -167,6 +167,21 @@ class GridColumnDefinitions(JavaScriptSnippet):
         result.append(',\n'.join(reader_fields))
         result.append('];')
 
+        result.append('Zenoss.env.ZP_DETAILS=[')
+        try:
+            zepdetails = getFacade('zep').getUnmappedDetails()
+            zpdetails = []
+            for detail in zepdetails:
+                if detail['type'] in (EventDetailItem.STRING, EventDetailItem.IP_ADDRESS, EventDetailItem.PATH):
+                    rulecmp = 'Zenoss.form.rule.STRINGCOMPARISONS'
+                else:
+                    rulecmp = 'Zenoss.form.rule.NUMBERCOMPARISONS'
+                zpdetails.append("{{ text: _t('{name}'), value: '{key}', comparisons: {cmp} }}".format(name=detail['name'], key=detail['key'], cmp=rulecmp))
+            result.append(',\n'.join(zpdetails))
+            result.append('];')
+        except ZepConnectionError, e:
+            log.error(e.message)
+
 
         result.append("Zenoss.env.EVENT_AUTO_EXPAND_COLUMN='summary';")
 

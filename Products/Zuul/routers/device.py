@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -29,7 +29,7 @@ from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, serviceConnectionError
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
 
@@ -328,16 +328,23 @@ class DeviceRouter(TreeRouter):
         audit('UI.Device.Edit', uid, data_=data)
         return DirectResponse()
 
-    def getDeviceUuidsByName(self, query="", start=0, limit=25, page=1):
+    def getDeviceUuidsByName(self, query="", start=0, limit=25, page=1, uuid=None):
         """
         Retrieves a list of device uuids. For use in combos.
+        If uuid is set, ensures that it is included in the returned list.
         """
         facade = self._getFacade()
         devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
-        result = []
-        for dev in devices:
-            result.append({'name':dev.name,
-                           'uuid':IGlobalIdentifier(dev._object).getGUID()})
+        result = [{'name':dev.name,
+                   'uuid':IGlobalIdentifier(dev._object).getGUID()}
+                  for dev in devices]
+
+        if uuid and uuid not in (device['uuid'] for device in result):
+            guidManager = IGUIDManager(self.context.dmd)
+            device = guidManager.getObject(uuid)
+            if device:
+                result.append({'name':device.name(), 'uuid':uuid})
+
         return DirectResponse.succeed(data=result)
 
     def getDeviceUids(self, uid):
@@ -821,7 +828,7 @@ class DeviceRouter(TreeRouter):
         uids = filterUidsByPermission(self.context.dmd, ZEN_ADMIN_DEVICE, uids)
         try:
             # iterate through uids so that logging works as expected
-            result = facade.setCollector(uids, collector, moveData, asynchronous)
+            result = facade.setCollector(uids, collector, asynchronous)
             for devUid in uids:
                 audit('UI.Device.ChangeCollector', devUid, collector=collector)
             if asynchronous and result:
@@ -1100,22 +1107,6 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getGraphDefs(uid, drange)
         return DirectResponse(data=Zuul.marshal(data))
-
-    @serviceConnectionError
-    def getEvents(self, uid):
-        """
-        Get events for a device.
-
-        @type  uid: [string]
-        @param uid: Device to get events for
-        @rtype:   DirectResponse
-        @return:  B{Properties}:
-             - data: ([dictionary]) List of events for a device
-        """
-        facade = self._getFacade()
-        events = facade.getEvents(uid)
-        data = Zuul.marshal(events)
-        return DirectResponse(data=data)
 
     def loadRanges(self, ranges, hashcheck, uid=None, params=None,
                       sort='name', dir='ASC'):
@@ -1726,12 +1717,12 @@ class DeviceRouter(TreeRouter):
         data = facade.addIpInterface(uid, newId, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    def addOSProcess(self, uid, newClassName, userCreated=True):
+    def addOSProcess(self, uid, newClassName, example, userCreated=True):
         """
         Adds an os processes
         """
         facade = self._getFacade()
-        data = facade.addOSProcess(uid, newClassName, userCreated)
+        data = facade.addOSProcess(uid, newClassName, example, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def addFileSystem(self, uid, newId, userCreated=True):
@@ -1787,4 +1778,18 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         data = facade.getOverriddenZprops(uid, all)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getGraphDefintionsForComponents(self, uid):
+        facade = self._getFacade()
+        data = facade.getGraphDefinitionsForComponent(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+        """
+        Returns the graph denoted by graphId for every component in
+        device (uid) with the meta_type meta_type
+        """
+        facade = self._getFacade()
+        data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
         return DirectResponse.succeed(data=Zuul.marshal(data))

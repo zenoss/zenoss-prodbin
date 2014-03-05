@@ -159,6 +159,20 @@
     />
 
 <browser:page
+    template="templates/daemons.pt"
+    name="daemons"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="templates/collectortemplate.pt"
+    name="collectorTemplate"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="templates/ipservice.pt"
     name="ipservice"
     for="*"
@@ -258,6 +272,28 @@
     />
 
 <browser:view
+    class="..security.authorization.Authorization"
+    name="authorization"
+    for="OFS.interfaces.IApplication"
+    permission="zope2.Public"
+    />
+
+<browser:view
+    class="..security.authorization.Login"
+    name="login"
+    for="zope.publisher.interfaces.browser.IBrowserView"
+    permission="zope2.Public"
+    />
+
+
+<browser:view
+    class="..security.authorization.Validate"
+    name="validate"
+    for="zope.publisher.interfaces.browser.IBrowserView"
+    permission="zope2.Public"
+    />
+
+<browser:view
     class=".views.FileUpload"
     name="uploadfile"
     for="*"
@@ -274,6 +310,27 @@
 <browser:view
     class=".views.GotoRedirect"
     name="goto"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.Common"
+    />
+
+<browser:view
+    class=".graphs.ExportGraph"
+    name="exportGraph"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.Common"
+    />
+
+<browser:page
+    template="templates/viewGraph.pt"
+    name="viewGraph"
+    for="*"
+    permission="zenoss.Common"
+    />
+
+<browser:page
+    class=".views.GetDaemonLogs"
+    name="getDaemonLogs"
     for="Products.ZenModel.interfaces.IDataRoot"
     permission="zenoss.Common"
     />

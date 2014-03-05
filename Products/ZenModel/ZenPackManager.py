@@ -81,12 +81,7 @@ class ZenPackManager(ZenModelRM):
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
                 , 'permissions'   : ( "Manage DMD", )
-                },
-                { 'id'            : 'daemons'
-                , 'name'          : 'Daemons'
-                , 'action'        : '../../About/zenossInfo'
-                , 'permissions'   : ( "Manage DMD", )
-                },
+                },                
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'

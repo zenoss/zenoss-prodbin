@@ -47,11 +47,11 @@
                 href string:${url}/viewDaemonConfig?daemon=${daemon/name}&selectedTabName=zenossInfo"
                 style="margin-right: 2em;">
                 view config</a>
-                <a tal:condition="python:daemon['name'] in [ 'zeoctl', 'zopectl', 'zenwebserver', 'zeneventserver', 'zenimpactserver', 'zredis' ]" tal:attributes="
+                <a tal:condition="python:daemon['name'] in [ 'zeoctl', 'zopectl', 'zenwebserver', 'zeneventserver', 'zenimpactserver' ]" tal:attributes="
                 href string:${url}/editDaemonConfig?daemon=${daemon/name}&selectedTabName=zenossInfo">
                 edit config</a>
 
-                <a tal:condition="python:not daemon['name'] in [ 'zeoctl', 'zopectl', 'zenwebserver', 'zeneventserver', 'zenimpactserver', 'zredis' ]" tal:attributes="
+                <a tal:condition="python:not daemon['name'] in [ 'zeoctl', 'zopectl', 'zenwebserver', 'zeneventserver', 'zenimpactserver' ]" tal:attributes="
                 href string:${url}/showDaemonXMLConfig?daemon=${daemon/name}&selectedTabName=zenossInfo">
                     edit config</a>
         </td>

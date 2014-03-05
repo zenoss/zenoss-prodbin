@@ -1,12 +1,12 @@
 <tal:block tal:define="
-	objects  python:here.getDmdRoot('Devices').getSubDevices(
+    objects  python:here.getDmdRoot('Devices').getSubDevices(
                                        lambda x: x.createdTime+7>=DateTime());
     tableName string: newdevicesreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                 sortedHeader='createdTime',sortedSence='desc');
-	exportFields python:['titleOrId', 'getDeviceClassPath', 'getCreatedTimeString',
-						'getSnmpLastCollectionString', 'getLastChangeString']
-	">
+    exportFields python:['titleOrId', 'getDeviceClassPath', 'getCreatedTimeString',
+                        'getSnmpLastCollectionString', 'getLastChangeString']
+    ">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
 
@@ -17,9 +17,9 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="POST" tal:attributes="action request/URL;"
-			tal:define="tabletitle string:New Devices;
+            tal:define="tabletitle string:New Devices;
                         showfilterbox python:True;
-						tblcolspan string:5">
+                        tblcolspan string:5">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -34,17 +34,18 @@
                 tableName,'getSnmpLastCollection','Collection','cmp')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getLastChange','Change','cmp')"/>
-	</tr>
-	<tr tal:repeat="device batch">
-		<td class="tablevalues" align="left">
+    </tr>
+    <tr tal:repeat="device batch">
+        <td class="tablevalues" align="left">
             <a class="tablevalues" tal:attributes="href device/getDeviceUrl"
                 tal:content="device/titleOrId">device</a>
         </td>
-		<td class="tablevalues" tal:content="device/getDeviceClassPath"/>
-		<td class="tablevalues" tal:content="device/getCreatedTimeString"/>
-		<td class="tablevalues" 
-            tal:content="device/getSnmpLastCollectionString"/>
-		<td class="tablevalues" tal:content="device/getLastChangeString"/>
+        <td class="tablevalues" tal:content="device/getDeviceClassPath"/>
+        <td class="tablevalues" tal:content="python: device.convertToUsersTimeZone(device.createdTime.timeTime())"/>
+        <td class="tablevalues" 
+            tal:content="python: device.convertToUsersTimeZone(device.getSnmpLastCollection().timeTime())"/>
+        <td class="tablevalues" 
+            tal:content="python: device.convertToUsersTimeZone(device.getLastChange().timeTime())"/>        
     </tr>
     <tr>
         <td colspan="5" class="tableheader">
