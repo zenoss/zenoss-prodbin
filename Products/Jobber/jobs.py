@@ -15,6 +15,7 @@ import logging
 import Queue
 import errno
 import signal
+import traceback
 import subprocess
 
 import transaction
@@ -292,7 +293,8 @@ class Job(Task):
                 cls, instance, tb = result.exc_info[0:3]
                 if not isinstance(result, JobAborted):
                     self.log.error("Job %s failed with an exception" % job_id)
-                    self.log.error(tb)
+                    message = traceback.format_exc( tb)
+                    self.log.error(message)
                 links = []
                 if self.request.callbacks:
                     for callback in self.request.callbacks:
