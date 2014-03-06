@@ -41,8 +41,8 @@ def getConnectionSettings(options=None):
     }
     # allow these to be set from the global.conf for development but
     # give preference to the environment variables
-    settings["user"] = os.getenv('CONTROLPLANE_SYSTEM_USER', settings['user'])
-    settings["password"] = os.getenv('CONTROLPLANE_SYSTEM_PASSWORD', settings['password'])    
+    settings["user"] = os.environ.get('CONTROLPLANE_SYSTEM_USER', settings['user'])
+    settings["password"] = os.environ.get('CONTROLPLANE_SYSTEM_PASSWORD', settings['password'])    
     return settings
 
 
