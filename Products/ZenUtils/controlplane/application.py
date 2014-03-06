@@ -12,7 +12,7 @@ IApplication* control-plane implementations.
 """
 
 import logging
-
+import os
 from collections import Sequence, Iterator
 from zope.interface import implementer
 
@@ -39,6 +39,10 @@ def getConnectionSettings(options=None):
         "user": o.get("controlplane-user", "zenoss"),
         "password": o.get("controlplane-password", "zenoss"),
     }
+    # allow these to be set from the global.conf for development but
+    # give preference to the environment variables
+    settings["user"] = os.getenv('CONTROLPLANE_SYSTEM_USER', settings['user'])
+    settings["password"] = os.getenv('CONTROLPLANE_SYSTEM_PASSWORD', settings['password'])    
     return settings
 
 
