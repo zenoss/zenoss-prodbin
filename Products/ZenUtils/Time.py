@@ -59,6 +59,9 @@ def getServerTimeZone():
         # some timezones like UTC are only one word so the directory will show up
         if tz.startswith("zoneinfo/"):
             tz = tz.replace("zoneinfo/", "")
+        # fedora timezones like UTC look like /etc/localtime -> /usr/share/zoneinfo/Etc/UTC
+        if tz.startswith("Etc/"):
+            tz = tz.replace("Etc/", "")
         SERVER_TIMEZONE = tz        
         return SERVER_TIMEZONE
     tzfile_digest = None
