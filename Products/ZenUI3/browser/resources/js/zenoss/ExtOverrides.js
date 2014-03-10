@@ -615,7 +615,7 @@ Ext.override(Ext.util.Sorter, {
      **/
     var oldMomentTz = moment.fn.tz;
     moment.fn.tz = function (name) {
-        if (name == "UTC") {
+        if (name == "UTC" || name == "Etc/UTC") {
             return this;
         }
         return oldMomentTz.apply(this, [name]);
