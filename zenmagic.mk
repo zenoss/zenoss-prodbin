@@ -21,6 +21,7 @@ SHELL := $(shell /usr/bin/which bash)
 #
 package := zenoss
 
+
 # ============================================================================
 # BUILD CONFIGURATION
 # ============================================================================
@@ -28,9 +29,9 @@ package := zenoss
 # Specify if this is a production or development build through a profile
 # macro.
 #
-# The profile is given meaning in the top-level and component-level makefiles 
+# The profile is given meaning in the top-level and component-level makefiles
 # and may influence the build to be manifest-driven or discovery-driven in 
-# personality.  
+# personality.
 #
 # This switch may enable development work-flows where, for example, 
 # a group of 'installed' python modules are actually symlinks back to a 
@@ -39,9 +40,9 @@ package := zenoss
 #
 profile := prod
 
-# Specify if the filesystem for the build supports hard linking.
+# Specify if the filesystem for the build supports hardlinking.
 #
-# Some components (e.g., python built from source) assume the ability to
+# Some components (e.g., python-built from source) assume the ability to
 # hard link, but we may have to work around this in cases where the
 # build is happening in a virtual machine but the source is mounted from
 # a filesystem exported by the host.
@@ -52,6 +53,7 @@ fs_supports_hardlinking = yes
 # derived from a virtualenv or built from source.
 #
 with_virtualenv = yes
+
 
 # ============================================================================
 # CANONICAL BUILD DIRECTORIES
@@ -70,10 +72,12 @@ sysconfdir   = /etc
 
 pkgsrcdir   ?= src
 
+
 # ============================================================================
 # BUILD TOOLS
 # ============================================================================
 
+AUTORECONF   = autoreconf
 AWK          = awk
 BC           = bc
 CHMOD        = chmod
@@ -106,18 +110,23 @@ PR           = pr
 PRINTF       = printf
 #PYTHON      = python
 READELF      = readelf
+READLINK     = readlink
 RM           = rm
+RSYNC        = rsync
 SED          = sed
 SORT         = sort
+STAT         = stat
 TAR          = tar
 TEE          = tee
 TOUCH        = touch
 TR           = tr
 TRUE         = true
+UNZIP        = unzip
 VIRTUALENV   = virtualenv
 SYSPYTHON    = /usr/bin/python
 XARGS        = xargs
 XPATH        = xpath
+ZIP          = zip
 
 
 DFLT_COMPONENT     := $(shell basename `pwd`)
@@ -156,7 +165,7 @@ endif
 REQD_PYTHON_MIN_VER=2.7.2
 
 # Assume the build component name is the same as the base directory name.
-# Can be overridden in calling the makefile via:
+# Can be overridden in calling makefile via:
 #
 #     COMPONENT = my-crazy-component
 #     include zenmagic.mk
@@ -212,7 +221,6 @@ ifneq "$(filter $(append-here-targets),$(MAKECMDGOALS))" ""
     ifeq "$(DESTDIR)" ""
         _DESTDIR := $(strip $(heredir))
     else
-
         # Cases where the 'here' directory is relative to some parent
         # component. Honor whatever is passed via DESTDIR.
         _DESTDIR := $(strip $(DESTDIR))
@@ -232,7 +240,7 @@ endif
 # and not end up with double slashes.
 ifneq "$(_DESTDIR)" ""
     PREFIX_HAS_LEADING_SLASH = $(patsubst /%,/,$(prefix))
-    ifneq "$(PREFIX_HAS_LEADING_SLASH)" "/"
+    ifeq "$(PREFIX_HAS_LEADING_SLASH)" "/"
         _DESTDIR := $(shell echo $(_DESTDIR) | sed -e "s|\/$$||g")
     else
         _DESTDIR := $(shell echo $(_DESTDIR) | sed -e "s|\/$$||g" -e "s|$$|\/|g")
@@ -243,6 +251,7 @@ endif
 CONF_FILE_PERMS = 600
 DATA_FILE_PERMS = 644
 EXEC_FILE_PERMS = 755
+LOG_FILE_PERMS  = 777
 INSTALL_PROGRAM = $(INSTALL) -m $(EXEC_FILE_PERMS)
 INSTALL_DATA    = $(INSTALL) -m $(DATA_FILE_PERMS)
 LINE            = `$(PRINTF) '%77s\n' | $(TR) ' ' -`
@@ -275,17 +284,13 @@ endif
 #  By default we build in 'quiet' mode so there is more emphasis on noticing
 #  and resolving warnings.
 #
-#  Use 'make V=1 <target> to see the actual commands invoked durin a build.
+#  Use 'make V=1 <target>' to see the actual commands invoked during a build.
 # ----------------------------------------------------------------------------
 
 ifdef V
     ifeq ("$(origin V)", "command line")
         ZBUILD_VERBOSE = $(V)
     endif
-endif
-
-ifneq ($(findstring s, $(MAKEFLAGS)), )
-    ZBUILD_SILENT = 1
 endif
 
 ifeq "$(ZBUILD_VERBOSE)" "1"
@@ -296,29 +301,33 @@ else
     Q = @
 endif
 
-# If the user is running in silent mode (e.g., make -s), suppress echoing of commands.
+# If the user is running in silent mode (e.g., make -s), suppress echoing of 
+# commands.
+ifneq ($(findstring s, $(MAKEFLAGS)), )
+    ZBUILD_SILENT = 1
+endif
+
 ifeq "$(ZBUILD_SILENT)" "1"
     q = silent_
 endif
 
 # ----------------------------------------------------------------------------
-#  Define the 'cmd' macro that enables terse output to the console and full
+#  Define the 'cmd' macro that enables terse output to the console and full 
 #  output to a build log.
 #
-#  Normally we're in 'quiet' mode meaning we just echo the terse version of
+#  Normally, we're in 'quiet' mode, meaning we just echo the terse version of 
 #  the command to the console before running the full command.
-#
+#  
 #  In verbose mode, we echo the full command and run it as well.
-#
+#  
 #  Requires commands to define these macros:
-#
+#  
 #      quiet_cmd_BLAH = BLAH PSA $@
 #            cmd_BLAH = actual_blah_cmd ...
 # ----------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------
-# Use the PIPESTATUS feature of bash to capture the exit status of 
-# the first command in a pipeline of commands:
+# Use the PIPESTATUS feature of bash to capture the exit status of the first 
+# command in a pipeline of commands:
 #
 #    gcc | .. | tee -a build.log
 #     ^
@@ -378,17 +387,15 @@ ifeq "$(ZBUILD_VERBOSE)" "1"
     #  PIPESTATUS places a dependency on bash.
     # --------------------------------------------------------------------
 
-    cmd = @$(and $(Q_CMD),\
-        (echo "  $(TIME_TAG) $(Q_CMD) " | tee -a $(ABS_BUILD_LOG)) &&) $(CMD) 2>&1 | $(TEE) -a $(ABS_BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
-
     cmd_noat = $(and $(Q_CMD),\
-        (echo "  $(TIME_TAG) $(Q_CMD) " | tee -a $(ABS_BUILD_LOG)) &&) $(CMD) 2>&1 | $(TEE) -a $(ABS_BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
+        (echo "  $(TIME_TAG) $(Q_CMD) " | $(TEE) -a $(ABS_BUILD_LOG)) &&) $(CMD) 2>&1 | $(TEE) -a $(ABS_BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
 
-    subshellcmd = @$(and $(Q_CMD),\
-        (echo "  $(TIME_TAG) $(Q_CMD) " | tee -a $(ABS_BUILD_LOG)) &&) $(CMD) 2>&1 | $(TEE) -a $(ABS_BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
+    cmd = @$(cmd_noat)
 
     subshellcmd_noat = $(and $(Q_CMD),\
-        (echo "  $(TIME_TAG) $(Q_CMD) " | tee -a $(ABS_BUILD_LOG)) &&) $(CMD) 2>&1 | $(TEE) -a $(ABS_BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
+        (echo "  $(TIME_TAG) $(Q_CMD) " | $(TEE) -a $(ABS_BUILD_LOG)) &&) $(CMD) 2>&1 | $(TEE) -a $(ABS_BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
+
+    subshellcmd = @$(subshellcmd_noat)
 
     define ECHOL
         echo "$1$(TIME_TAG) "$2 ; echo $2 >> $(ABS_BUILD_LOG)
@@ -421,17 +428,15 @@ else
     # career.
     # --------------------------------------------------------------------
 
-    cmd = @$(and $(Q_CMD),\
-        (echo "  $(TIME_TAG) $(Q_CMD) " | tee -a $(ABS_BUILD_LOG)) &&) echo $(CMD) 2>&1 1>> $(ABS_BUILD_LOG) ; $(CMD) 3>&1 1>>$(ABS_BUILD_LOG) 2>&3 | $(TEE) -a $(ABS_BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
-
     cmd_noat = $(and $(Q_CMD),\
         (echo "  $(TIME_TAG) $(Q_CMD) " | tee -a $(ABS_BUILD_LOG)) &&) echo $(CMD) 2>&1 1>> $(ABS_BUILD_LOG) ; $(CMD) 3>&1 1>>$(ABS_BUILD_LOG) 2>&3 | $(TEE) -a $(ABS_BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
 
-    subshellcmd = @$(and $(Q_CMD),\
-        (echo "  $(TIME_TAG) $(Q_CMD)  " | tee -a $(ABS_BUILD_LOG)) &&) echo '$(CMD)' 2>&1 1>> $(ABS_BUILD_LOG) ; $(CMD) 3>&1 1>>$(ABS_BUILD_LOG) 2>&3 | $(TEE) -a $(BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
+    cmd = @$(cmd_noat)
 
     subshellcmd_noat = $(and $(Q_CMD),\
         (echo "  $(TIME_TAG) $(Q_CMD)  " | tee -a $(ABS_BUILD_LOG)) &&) echo '$(CMD)' 2>&1 1>> $(ABS_BUILD_LOG) ; $(CMD) 3>&1 1>>$(ABS_BUILD_LOG) 2>&3 | $(TEE) -a $(BUILD_LOG) ; CMD_RC=$${PIPESTATUS[0]}; if [ $${CMD_RC} -ne 0 ];then exit $${CMD_RC}; fi
+
+    subshellcmd = @$(subshellcmd_noat)
 
     define ECHOL
         $(if $3, echo "$1$(TIME_TAG) "$3, echo "$1$(TIME_TAG) "$2) | $(TEE) -a $(ABS_BUILD_LOG)
@@ -458,11 +463,30 @@ print = $(shell echo $1 "$2" | awk '{printf("%-15s %s\n","$1","$2")}')
 # ============================================================================
 
 # ----------------------------------------------------------------------------
-#  Build an external dependency
+#  Call create a configure script from a *.ac input file.
+#  $(call cmd,AUTORECONF,<name-of-input-ac>,<name-of-target>)
+quiet_cmd_AUTORECONF = $(call print,AUTORECONF,$2 -> $3)
+      cmd_AUTORECONF = $(AUTORECONF) $2
+
+# ----------------------------------------------------------------------------
+#  Call make to perform a build on a subdir using make -C <dir> idiom.
 #  $(call cmd,BUILD,<name-or-target>,<dir-with-makefile>,<make-target>,
 #  <make-args>)
 quiet_cmd_BUILD = $(call print,BUILD,$2)
       cmd_BUILD = $(MAKE) -C $3 $4 $5
+
+# ----------------------------------------------------------------------------
+#  Call make to perform a build on a subdir using cd <dir> && make idiom.
+#  Our c-compiles (like pyraw) prefer this.
+#
+#  NB: This should be called with subshellcmd and not cmd is illustrated
+#      below.
+#
+#                     $1      $2               $3                  $4
+#  $(call subshellcmd,CDBUILD,<name-or-target>,<dir-with-makefile>,<make-target>,
+#  <make-args>)
+quiet_cmd_CDBUILD = $(call print,BUILD,$2)
+      cmd_CDBUILD = (cd $3 && $(MAKE) $4 $5)
 
 # ----------------------------------------------------------------------------
 #  Compile a file
@@ -477,9 +501,15 @@ quiet_cmd_CFGBLD = $(call print,CONFIGURE_BUILD,$(notdir $2))
       cmd_CFGBLD = ./configure $3
 
 # ----------------------------------------------------------------------------
+#  Invoke chmod on something
+#  TODO Command descriptor
+quiet_cmd_CHMOD = $(call print,CHMOD $2,$3)
+      cmd_CHMOD = $(CHMOD) $2 $3
+
+# ----------------------------------------------------------------------------
 #  Invoke chown on something
 #  TODO Command descriptor
-quiet_cmd_CHOWN = $(call print,CHOWN $2,$3:$4 $5)
+quiet_cmd_CHOWN = $(call print,CHOWN $2,$(call print,$3:$4,$5))
       cmd_CHOWN = $(CHOWN) $2 $3:$4 $5
 
 # ----------------------------------------------------------------------------
@@ -513,9 +543,17 @@ quiet_cmd_CURL = $(call print,CURL,$3 -> $(dir $2))
       cmd_CURL = $(CURL) --connect-timeout 5 -fsSL -o $2 $3
 
 # ----------------------------------------------------------------------------
-#  Diff two files
+# Diff two files
+# $(call cmd,DIFF,<opts>,<old-path>,<new-path>)
 quiet_cmd_DIFF = $(call print,DIFF,$3 $4)
       cmd_DIFF = $(DIFF) $2 $3 $4
+
+# ----------------------------------------------------------------------------
+# Call the export target of a make file to stage some tool or utility
+# needed in the build.
+# $(call cmd,EXPORT,<toolname>,<export_dir>,<makefile>,<makefile_options>)
+quiet_cmd_EXPORT = $(call print,EXPORT,$2 -> $3)
+      cmd_EXPORT = $(MAKE) -f $4 export $5
 
 # ----------------------------------------------------------------------------
 #  Install a file
@@ -542,28 +580,39 @@ quiet_cmd_MAKE_ALTINST = $(call print,$2,$3 -> $6)
       cmd_MAKE_ALTINST = $(MAKE) -C $3 $4 $5
 
 # ----------------------------------------------------------------------------
-#  TODO Command descriptor
+# Invoke Sencha's jsbuilder to minify under the control of a *.jsb2 file.
+# $(call cmd,MINIFY,<jsdir>,<minified_js>,<minifier_jar>,<jsb2file>,<jsbasedir>)
+quiet_cmd_MINIFY_w_JSBUILDER = $(call print,MINIFY,$2 -> $3)
+      cmd_MINIFY_w_JSBUILDER = $(JAVA) -jar $4 -p $5 -d $6 -v
+
+# ----------------------------------------------------------------------------
+# Make file manifest
+# TODO Command descriptor
 quiet_cmd_MK_F_MANIFEST = $(call print,MANIFEST,$4)
       cmd_MK_F_MANIFEST = $(call make-file-manifest,$2,$3,$4)
 
 define make-file-manifest
-        (cd $1 && find .$2 -type f) | sed -e "s|^\.\/|\/|g" | tee $3
+	(cd $1 && $(FIND) .$2 -type f) | $(SED) -e "s|^\.\/|\/|g" | $(TEE) $3
 endef
 
 # ----------------------------------------------------------------------------
+# Make link manifest
+# TODO Command descriptor
 quiet_cmd_MK_L_MANIFEST = $(call print,MANIFEST,$4)
       cmd_MK_L_MANIFEST = $(call make-link-manifest,$2,$3,$4)
 
 define make-link-manifest
-        (cd $1 && find .$2 -type l) | sed -e "s|^\.\/|\/|g" | tee $3
+	(cd $1 && $(FIND) .$2 -type l) | $(SED) -e "s|^\.\/|\/|g" | $(TEE) $3
 endef
 
 # ----------------------------------------------------------------------------
+# Make dir manifest
+# TODO Command descriptor
 quiet_cmd_MK_D_MANIFEST = $(call print,MANIFEST,$5)
       cmd_MK_D_MANIFEST = $(call make-dir-manifest,$2,$3,$4,$5)
 
 define make-dir-manifest
-        (cd $1 && find .$2 -depth -type d) |sed -e "s|^\.\/\/|\/|g" -e "s|^\.\/|\/|g" -e "/^\.$$/d"  -e "s|^$(3)$$||g" | tee $4
+	(cd $1 && $(FIND) .$2 -depth -type d) | $(SED) -e "s|^\.\/\/|\/|g" -e "s|^\.\/|\/|g" -e "/^\.$$/d" -e "s|^$(3)$$||g" | $(TEE) $4
 endef
 
 # ----------------------------------------------------------------------------
@@ -628,6 +677,12 @@ quiet_cmd_RM = $(call print,RM,$2)
       cmd_RM = $(RM) -f $2
 
 # ----------------------------------------------------------------------------
+#  Remove a link
+#  $(call cmd,RMLINK,<source-link>)
+quiet_cmd_RMLINK = $(call print,RMLINK,$2)
+      cmd_RMLINK = $(RM) -f $2
+
+# ----------------------------------------------------------------------------
 #  Remove a directory
 #  $(call cmd,RMDIR,<source-dir>)
 quiet_cmd_RMDIR = $(call print,RMDIR,$2)
@@ -635,9 +690,33 @@ quiet_cmd_RMDIR = $(call print,RMDIR,$2)
 
 # ----------------------------------------------------------------------------
 #  Remove a directory in a safe way
-#  $(call cmd,SAFE_RMDIR,<source-directory>)
+#  $(call cmd,SAFE_RMDIR,<source-dir>)
+#  TODO: Should specify -I if platform supports, otherwise use annoying -i.
 quiet_cmd_SAFE_RMDIR = $(call print,RMDIR,$2)
-      cmd_SAFE_RMDIR = $(RM) -ri "$2"
+      cmd_SAFE_RMDIR = $(RM) -rI "$2"
+
+# ----------------------------------------------------------------------------
+#  Rsync one directory to another.
+# ----------------------------------------------------------------------------
+rsync_PRESERVE_MODTIME  = -t
+rsync_RECURSE_DIRECTORY = -r
+rsync_FILTER            = -f '- .git*/' -f '- .gitignore' -f '- .svnignore' -f "- $(_COMPONENT).log"
+rsync_FORMAT            = --out-format='%n%L'
+dflt_rsync_OPTS         = $(rsync_PRESERVE_MODTIME) $(rsync_RECURSE_DIRECTORY) $(rsync_FILTER) $(rsync_FORMAT)
+#
+# rsync allows you to specify the mode bits you desire for files and directories
+# with the '--chmod' option:
+#
+# example: rsync_CHMOD = --chmod=Du+wx,g+x,g-w,o-rwx,Fo-w
+#          rsync_OPTS  = $(dflt_rsync_OPTS) $(rsync_CHMOD)
+#
+# This option is typically specified within the component makefile since requirements
+# may be different across components.
+#
+#  $(call cmd,RSYNC,<rsync_opts>,<source-dir>,<dest-dir>)
+# ----------------------------------------------------------------------------
+quiet_cmd_RSYNC = $(call print,RSYNC,$(call print,$3,$4))
+      cmd_RSYNC = $(RSYNC) $2 $3 $4
 
 # ----------------------------------------------------------------------------
 #  sed
@@ -685,6 +764,12 @@ quiet_cmd_UNTAR = $(call print,UNTAR,$2 -> $3)
 quiet_cmd_UNTGZ = $(call print,UNTGZ,$2 -> $3)
       cmd_UNTGZ = $(TAR) -zxvf $2 -C $3
 
+#----------------------------------------------------------------------------
+#  Unzip something into an existing directory
+#  $(call cmd,UNZIP,<src.zip>,<dest>)
+quiet_cmd_UNZIP = $(call print,UNZIP,$2 -> $3)
+      cmd_UNZIP = $(UNZIP) $2 -d $3
+
 # ----------------------------------------------------------------------------
 # Get the value of an xml path
 # $(call cmd,XPATH,<pom-file>,<xpath>)
@@ -699,6 +784,7 @@ quiet_cmd_VIRTUALENV = $(call print,VIRTUALENV,$3 -> $4/bin/python)
 
 quiet_cmd_RELOCATABLE = $(call print,RELOCATABLE,$2)
       cmd_RELOCATABLE = $(VIRTUALENV) --relocatable $2
+
 
 # ============================================================================
 # MACRO UTILITIES
@@ -738,10 +824,13 @@ define make-depend
         $(GCC_MAKE_DEP_FILENAME) $3
 endef
 
+# NB: Running this beast of a macro inside a subshell, otherwise the tersifying macro
+#     will fail when it attempts to echo the raw command to the build log.
+#
 # $(call make-lib-depend,object-file,program-file)
 LINKDEP_EXT = dlibs
 define make-lib-depend
-    if $(LINK.c) $1 $(LOADLIBES) -Wl,--trace $(LDLIBS) -o $2 2>/dev/null 1>&2 ;then \
+    (if $(LINK.c) $1 $(LOADLIBES) -Wl,--trace $(LDLIBS) -o $2 2>/dev/null 1>&2 ;then \
         libdep_file=$2.$(LINKDEP_EXT) ;\
         echo "$2: $1 \\" > $${libdep_file} ;\
         $(LINK.c) $1 $(LOADLIBES) -Wl,--trace $(LDLIBS) -o $2 |\
@@ -757,7 +846,7 @@ define make-lib-depend
                                 :;;\
                 esac ;\
         done | sed -e "s|^| |g" -e "s|$$| \\\\|g" >> $${libdep_file} ;\
-    fi
+    fi)
 endef
 
 # ---------------------------------------------------------------------------
@@ -779,31 +868,11 @@ define show-vars
         echo $(LINE60)
 endef
 
+
 # ============================================================================
 # TARGETS
 # ============================================================================
 
-# ----------------------------------------------------------------------------
-# These should probably live only at a top-level makefile so we don't clutter
-# component builds with out-of-scope targets.
-# ----------------------------------------------------------------------------
-# zenmagic.mk: zenmagic.mk.in config.status
-#	./config.status $@
-#
-# config.status: configure
-#	./config.status --recheck
-#
-# distfiles = configure.ac configure zenmagic.mk.in
-# target_distfiles = $(patsubst %,$(distdir)/%,$(distfiles))
-#
-# .PHONY: $(distdir)
-# $(distdir): $(target_distfiles)
-#
-# $(target_distfiles): $(distdir)/% : % 
-#	mkdir -p $(distdir)/src
-#	cp $< $@
-# ----------------------------------------------------------------------------
-	
 .PHONY: dflt_component_help
 dflt_component_help:
 	@echo
@@ -815,13 +884,16 @@ dflt_component_help:
 	@echo "where <target> is one or more of the following:"
 	@echo $(LINE)
 	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(GREP) -v .PHONY| $(SORT) |\
-	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|install|$(prefix)|^\/|^dflt_|clean|FORCE" | $(PR) -t -w 80 -3
+	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|install|$(prefix)|^\/|^dflt_|clean|FORCE|^%|^here\/|^build\/|$(_COMPONENT).log" | $(PR) -t -w 80 -3
 	@echo $(LINE)
 	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(GREP) -v .PHONY| $(SORT) |\
-	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|^$(prefix)\/|^\/|^dflt_" | $(EGREP) install | $(PR) -t -w 80 -3
+	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|^$(prefix)\/|^\/|^dflt_|^%|^here\/|^build\/" | $(EGREP) clean | $(PR) -t -w 80 -3
 	@echo $(LINE)
 	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(GREP) -v .PHONY| $(SORT) |\
-	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|^$(prefix)\/|^\/|^dflt_" | $(EGREP) clean | $(PR) -t -w 80 -3
+	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|^$(prefix)\/|^\/|^dflt_|^%|^here\/|^build\/|uninstall" | $(EGREP) install | $(PR) -t -w 80 -3
+	@echo $(LINE)
+	@make -rpn | $(SED) -n -e '/^$$/ { n ; /^[^ ]*:/p ; }' | $(GREP) -v .PHONY| $(SORT) |\
+	$(SED) -e "s|:.*||g" | $(EGREP) -v "^\.|^$(blddir)\/|^$(prefix)\/|^\/|^dflt_|^%|^here\/|^build\/" | $(EGREP) uninstall | $(PR) -t -w 80 -3
 	@echo $(LINE)
 	@echo "Build results logged to $(BUILD_LOG)."
 	@echo
@@ -862,3 +934,22 @@ dflt_component_mrclean dflt_component_distclean: dflt_component_clean
 	@if [ -f "$(ABS_BUILD_LOG)" ]; then \
 		$(RM) $(ABS_BUILD_LOG) ;\
 	fi
+
+# The build log is typically a file local to a component with a name that matches
+# the directory where the component's source resides:
+#
+#    e.g., src/core/Products/Products.log
+#
+# Sadly, it's possible for someone doing a 'sudo make install' to
+# end up with a root-owned log file.
+#
+# We add a simple rule here to ensure the build logs are world writable.
+#
+# NB:
+#
+# Without too much effort, it would be possible to drive these files
+# into a more global location by redefining BUILD_LOG to include a path
+# to a desired build log directory.
+$(BUILD_LOG):
+	@$(TOUCH) $@
+	@$(CHMOD) $(LOG_FILE_PERMS) $@
