@@ -12,8 +12,8 @@
 # This script runs custom commands passed in to the container from the host.
 #
 # Return codes:
-#      0 - OK           No action required by the host
-#      1 - TXCOMMIT     Host to commit container into the image
+#      0  - OK           No action required by the host
+#      42 - TXCOMMIT     Host to commit container into the image
 # Error Codes:   
 #    255 - BADPARAM     Bad params
 #    254 - NOTFOUND     Script not found
@@ -38,7 +38,7 @@
 #   savestate() {
 #       /bin/helloworld $@
 #       if test $? -eq 0; then
-#           return 1
+#           return 42
 #       fi
 #
 #       return 0
@@ -47,16 +47,22 @@
 
 # Parse the arguments
 # Usage: zenrun PROGRAM [ARGS]
-if test $# -lt 1; then
+if [[ $# -lt 1 ]]; then
     echo -e "Missing program argument" >&2
     exit 255
 fi
 
+RUNPATH=${RUNPATH:-$(dirname $0)/zenrun.d}
 PROGRAM=$1
 shift; ARGS=$@
 
 # Load the program
-if ls $PROGRAM &> /dev/null; then
+if ${NOCOMMIT:-false}; then
+    $(which $PROGRAM) $ARGS
+    exit 0
+elif [[ -r $RUNPATH/$PROGRAM ]]; then
+    source $RUNPATH/$PROGRAM
+elif [[ -r $PROGRAM ]]; then
     source $PROGRAM
 else
     echo -e "Program not found: $PROGRAM" >&2
