@@ -17,6 +17,7 @@ from zope.tal.talgenerator import TALGenerator
 from zope.tales.engine import Engine
 from zope.tal.talinterpreter import TALInterpreter
 from DateTime import DateTime
+from Products.Zuul.interfaces.info import IInfo
 
 class InvalidTalesException(Exception):
     pass
@@ -39,6 +40,12 @@ def talesEval(express, context, extra=None):
                     }
     if isinstance(extra, dict):
         contextDict.update(extra)
+
+    try:
+        contextDict['info'] = IInfo(context)
+    except TypeError:
+        pass
+
     try:
         res = compiled(getEngine().getContext(contextDict))
     except Exception, e:
