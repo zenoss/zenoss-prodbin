@@ -182,15 +182,7 @@ Ext.define("Zenoss.JobsWidget", {
         });
         this.lastchecked = 0;
         this.callParent([config]);
-        this.on('beforerender', this.on_render, this, {single:true});
-        this.on('menushow', function(e){
-            e.menu.hide();
-            /*  forcing a recalc of x y when new items are added */
-            new Ext.util.DelayedTask(function(){
-                e.menu.show();
-            }).delay(500);
-
-        }, this, {single:true});
+        this.on('beforerender', this.on_render, this, {single:true});        
         this.pollTask = new Ext.util.DelayedTask(this.poll, this);
     },
     initComponent: function() {
