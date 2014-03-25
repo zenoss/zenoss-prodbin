@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2010-2014, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -32,10 +32,9 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import zenPath
 
 
-class collectorStats:
-    def __init__(self, id, hostname):
+class PoolStats:
+    def __init__(self, id):
         self.id = id
-        self.hostname = hostname
         self.succeeded = False
         self.stdout = ''
         self.stderr = ''
@@ -47,50 +46,28 @@ class RunCommand(ZenScriptBase):
 
     def buildOptions(self):
         ZenScriptBase.buildOptions(self)
-        self.parser.add_option('--pool', dest='poolId',
+        self.parser.add_option('--pool', dest='poolId', default='default', metavar='POOL_ID',
             help="Name of specific resource pool on which to run the command")
         self.parser.add_option('--timeout', dest='timeout',
                            default=60, type="int",
                            help="Kill the process after this many seconds.")
 
     def run(self):
-        collectors = self._getCollectors()
-        if collectors is None:
-            return
-        for collector in collectors:
-            self._runCommandOnCollector(collector)
-        self.report(collectors)
+        pool = PoolStats(self.options.poolId)
+        self._runCommandOnPool(pool)
+        self.report(pool)
 
-    def _getCollectors(self):
-        #if self.options.collector:
-        #    try:
-        #        collectors = [self.dmd.Monitors.Performance._getOb(
-        #            self.options.collector)]
-        #    except AttributeError:
-        #        log.critical("No collector named %s could be found. Exiting",
-        #            self.options.collector)
-        #        return
-        #else:
-        collectors = self.dmd.Monitors.Performance.objectValues(
-                spec="PerformanceConf")
-
-        return [collectorStats(x.id, getattr(x, 'hostname', x.id)) \
-                        for x in collectors]
-
-    def report(self, collectors):
+    def report(self, pool):
         header = """
-Collector       StdOut/Stderr"""
+Pool            StdOut/Stderr"""
         delimLen = 65
         print header
         print '-' * delimLen
     
-        collectorNames = dict(zip(map(lambda x: x.id, collectors), collectors))
-        for name in sorted(collectorNames.keys()):
-            collector = collectorNames[name]
-            print "%s     %s %s" % (name, collector.stdout, collector.stderr)
-            print '-' * delimLen
+        print "%s:    %s %s" % (pool.id, pool.stdout, pool.stderr)
+        print '-' * delimLen
 
-    def _runCommandOnCollector(self, collector):
+    def _runCommandOnPool(self, pool):
         def killTimedOutProc(signum, frame):
             log.error("Killing process id %s ...", proc.pid)
             try:
@@ -98,21 +75,18 @@ Collector       StdOut/Stderr"""
             except OSError:
                 pass
 
-        remote_command = self.args[0]
+        remoteCommand = self.args[0]
 
-        if collector.hostname == 'localhost':
-            collectorCommand = [remote_command]
-        else:
-            # TODO: implement --pool
-            collectorCommand = ['servicedshell', remote_command]
+        # TODO: use pool.id
+        poolCommand = ['servicedshell', remoteCommand]
 
-        collectorCommand = ' '.join(collectorCommand)
-        log.debug("Runing command '%s' on collector %s (%s)",
-                  collectorCommand, collector.id, collector.hostname)
-        proc = Popen(collectorCommand, stdout=PIPE, stderr=PIPE, shell=True)
+        poolCommand = ' '.join(poolCommand)
+        log.debug("Running command '%s' on pool %s",
+                  poolCommand, pool.id)
+        proc = Popen(poolCommand, stdout=PIPE, stderr=PIPE, shell=True)
         signal.signal(signal.SIGALRM, killTimedOutProc)
         signal.alarm(self.options.timeout)
-        collector.stdout, collector.stderr = proc.communicate()
+        pool.stdout, pool.stderr = proc.communicate()
         proc.wait()
         signal.alarm(0) # Disable the alarm
 
