@@ -59,12 +59,12 @@ class RunCommand(ZenScriptBase):
 
     def report(self, pool):
         header = """
-Pool            StdOut/Stderr"""
+Pool=%s            StdOut/Stderr""" % pool.id
         delimLen = 65
         print header
         print '-' * delimLen
     
-        print "%s:    %s %s" % (pool.id, pool.stdout, pool.stderr)
+        print "%s %s" % (pool.stdout, pool.stderr)
         print '-' * delimLen
 
     def _runCommandOnPool(self, pool):
@@ -81,8 +81,7 @@ Pool            StdOut/Stderr"""
         poolCommand = ['servicedshell', remoteCommand]
 
         poolCommand = ' '.join(poolCommand)
-        log.debug("Running command '%s' on pool %s",
-                  poolCommand, pool.id)
+        log.debug("Running command '%s' on pool %s", poolCommand, pool.id)
         proc = Popen(poolCommand, stdout=PIPE, stderr=PIPE, shell=True)
         signal.signal(signal.SIGALRM, killTimedOutProc)
         signal.alarm(self.options.timeout)
