@@ -10,12 +10,11 @@
 
 
 __doc__ = """RunCommand
-Run an event command on the local device or on the remote collector.
-Assumes that SSH keys have been set up to all remote collectors.
+Run an event command on the serviced host server.
 
   Example usage:
 
-dcsh -collector=xxx 'zencommand run'
+dcsh --pool=POOL_ID 'zencommand run'
 
   The actual command to run *MUST* be in quotes!
 """
@@ -48,14 +47,11 @@ class RunCommand(ZenScriptBase):
 
     def buildOptions(self):
         ZenScriptBase.buildOptions(self)
-        self.parser.add_option('--collector', dest='collector',
-            help="Name of specific collector on which to run the command")
+        self.parser.add_option('--pool', dest='poolId',
+            help="Name of specific resource pool on which to run the command")
         self.parser.add_option('--timeout', dest='timeout',
                            default=60, type="int",
                            help="Kill the process after this many seconds.")
-        self.parser.add_option('-n', '--useprefix', action='store_false',
-                               dest='useprefix', default=True,
-                           help="Prefix the collector name for remote servers")
 
     def run(self):
         collectors = self._getCollectors()
@@ -66,16 +62,16 @@ class RunCommand(ZenScriptBase):
         self.report(collectors)
 
     def _getCollectors(self):
-        if self.options.collector:
-            try:
-                collectors = [self.dmd.Monitors.Performance._getOb(
-                    self.options.collector)]
-            except AttributeError:
-                log.critical("No collector named %s could be found. Exiting",
-                    self.options.collector)
-                return
-        else:
-            collectors = self.dmd.Monitors.Performance.objectValues(
+        #if self.options.collector:
+        #    try:
+        #        collectors = [self.dmd.Monitors.Performance._getOb(
+        #            self.options.collector)]
+        #    except AttributeError:
+        #        log.critical("No collector named %s could be found. Exiting",
+        #            self.options.collector)
+        #        return
+        #else:
+        collectors = self.dmd.Monitors.Performance.objectValues(
                 spec="PerformanceConf")
 
         return [collectorStats(x.id, getattr(x, 'hostname', x.id)) \
@@ -102,15 +98,13 @@ Collector       StdOut/Stderr"""
             except OSError:
                 pass
 
-        if collector.id == 'localhost' or not self.options.useprefix:
-            remote_command = self.args[0]
-        else:
-            remote_command = '%s_%s' % (collector.id, self.args[0])
+        remote_command = self.args[0]
 
         if collector.hostname == 'localhost':
             collectorCommand = [remote_command]
         else:
-            collectorCommand = ['ssh', collector.hostname, remote_command]
+            # TODO: implement --pool
+            collectorCommand = ['servicedshell', remote_command]
 
         collectorCommand = ' '.join(collectorCommand)
         log.debug("Runing command '%s' on collector %s (%s)",
