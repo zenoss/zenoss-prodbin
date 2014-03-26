@@ -77,8 +77,7 @@ Pool=%s            StdOut/Stderr""" % pool.id
 
         remoteCommand = self.args[0]
 
-        # TODO: use pool.id
-        poolCommand = ['servicedshell', remoteCommand]
+        poolCommand = ['servicedshell', '--pool', pool.id, remoteCommand]
 
         poolCommand = ' '.join(poolCommand)
         log.debug("Running command '%s' on pool %s", poolCommand, pool.id)
