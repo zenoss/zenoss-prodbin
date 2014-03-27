@@ -2,7 +2,7 @@
 
 EXE=/bin/ping
 
-if [[ -u $EXE ]]; then
+if [[ -u $EXE && -x $EXE ]]; then
     exec $EXE $@
 fi
 
