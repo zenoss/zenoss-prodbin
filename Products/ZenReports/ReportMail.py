@@ -25,6 +25,7 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils import Utils
 import md5
 import subprocess
+import logging
 
 def sibling(url, path):
     parts = list(urlparse(url))
@@ -41,26 +42,25 @@ class Page(HTMLParser):
         HTMLParser.__init__(self)
         self.user = user
         self.passwd = passwd
+        self.log = logging.getLogger("zen.reports")
 
     def generatePDF(self, url, pdfFileName):
-        command = ["/opt/zenoss/bin/phantomjs", "/home/zenoss/rasterize.js", url, self.user, self.passwd, "/tmp/" + pdfFileName]
+        command = ["/opt/zenoss/bin/phantomjs", "/opt/zenoss/Products/ZenReports/rasterize.js", url, self.user, self.passwd, "/tmp/" + pdfFileName]
         phanomjsProcess = subprocess.Popen(command, stdout=subprocess.PIPE)
         phanomjsProcessRC = phanomjsProcess.wait()
         if phanomjsProcessRC:
-            self.log.error(" ##### ERROR: phanomjsProcessRC: " % phanomjsProcessRC)
+            self.log.error(" ##### ERROR: phanomjsProcessRC: %s" % phanomjsProcessRC)
         else:
-            self.log.debug("PDF created: " + pdfFileName)
+            self.log.info("PDF created: %s" % pdfFileName)
 
     def mail(self, pdfFileName):
         msg = MIMEMultipart('related')
         msg.preamble = 'This is a multi-part message in MIME format'
 
         # Attaching PDF screenshot
-        print " ***** Attaching PDF"
         part = MIMEApplication(open("/tmp/" + pdfFileName,"rb").read())
         part.add_header('Content-Disposition', 'attachment', filename=pdfFileName)
         msg.attach(part)
-        print " ***** PDF is attached!"
         
         return msg
 
