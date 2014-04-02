@@ -132,9 +132,13 @@ class Manager(object):
                                                                 Eq('name', id)),
                                                        filterPermissions=False,
                                                        limit=1)
-
                 if results.total:
-                    return self.uuidFromBrain(results.results.next())
+                    try:
+                        result = results.results.next()
+                    except StopIteration:
+                        pass
+                    else:
+                        return self.uuidFromBrain(result)
 
     def getElementById(self, catalog, element_type_id, id):
         """
