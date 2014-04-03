@@ -1437,17 +1437,34 @@ Zenoss.Security.onPermissionsChange(function(){
     //Ext.getCmp('organizer_events').setVisible();
 });
 
+var createEventsGrid = function(re_attach_to_container) {
+    var event_console = Ext.create('Zenoss.EventGridPanel', {
+        id: 'events_grid',
+        stateId: 'infrastructure_events',
+        //columns: Zenoss.env.getColumnDefinitions(['DeviceClass']),
+        columns: Zenoss.env.getColumnDefinitionsToRender('infrastructure_events'),
+        newwindowBtn: true,
+        actionsMenu: false,
+        commandsMenu: false,
+        store: Ext.create('Zenoss.events.Store', {})
+    });
+ 
+    if (re_attach_to_container == true)
+    {
+        var container_panel = Ext.getCmp('detail_panel');
+        container_panel.items.insert(1, event_console);
+        container_panel.layout.setActiveItem(1);
+    }
 
-var event_console = Ext.create('Zenoss.EventGridPanel', {
-    id: 'events_grid',
-    stateId: 'infrastructure_events',
-    columns: Zenoss.env.getColumnDefinitions(['DeviceClass']),
-    newwindowBtn: true,
-    actionsMenu: false,
-    commandsMenu: false,
-    store: Ext.create('Zenoss.events.Store', {})
-});
+    event_console.on('recreateGrid', function (grid) {
+        var container_panel = Ext.getCmp('detail_panel');
+        container_panel.remove(grid.id, true);
+        createEventsGrid(true);
+    });
+    return event_console;
+};
 
+var event_console = createEventsGrid(false);
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
@@ -1544,7 +1561,6 @@ Ext.getCmp('center_panel').add({
         ]
     }]
 });
-
 
 var bindTemplatesDialog = Ext.create('Zenoss.BindTemplatesDialog',{
     id: 'bindTemplatesDialog'
