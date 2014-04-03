@@ -25,8 +25,7 @@ from urlparse import urlparse
 from hashlib import sha1
 from itertools import chain
 from functools import partial
-from zenoss.collector.publisher.publisher import RedisListPublisher
-from zenoss.collector.publisher import publisher
+from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
 from twisted.internet.error import ConnectionLost, ReactorNotRunning, AlreadyCalled
@@ -51,7 +50,6 @@ from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
-from zenoss.collector.publisher.publisher import HttpPostPublisher
 
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
@@ -591,7 +589,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                    "value {port}, defaulting to {default}".
                                    format(port=port, default=publisher.defaultRedisPort))
                 port = publisher.defaultRedisPort
-            self._publisher = RedisListPublisher(
+            self._publisher = publisher.RedisListPublisher(
                 host, port, self.options.metricBufferSize,
                 channel=self.options.metricsChannel
             )
@@ -603,7 +601,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
             password = os.environ.get( "CONTROLPLANE_CONSUMER_PASSWORD", "")
             if url:
-              self._internal_publisher = HttpPostPublisher( username, password, url)
+              self._internal_publisher = publisher.HttpPostPublisher( username, password, url)
         return self._internal_publisher
             
     def metricWriter(self):
