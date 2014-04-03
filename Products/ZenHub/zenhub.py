@@ -62,7 +62,7 @@ from Products.ZenHub.WorkerSelection import WorkerSelector
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.metricwriter import DerivativeTracker
-from zenoss.collector.publisher.publisher import HttpPostPublisher
+from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
