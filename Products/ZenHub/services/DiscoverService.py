@@ -27,6 +27,7 @@ from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Exceptions import DeviceExistsError
 from Products.ZenRelations.ZenPropertyManager import iszprop
 from Products.ZenHub.services.ModelerService import ModelerService
+from Products.ZenRelations.zPropertyCategory import getzPropertyCategory
 
 
 DEFAULT_PING_THRESH = 168
@@ -249,15 +250,14 @@ class DiscoverService(ModelerService):
 
 
     @translateError
-    def remote_getSnmpConfig(self, devicePath):
+    def remote_getSnmpConfig(self, devicePath, snmpCategory='SNMP'):
         "Get the snmp configuration defaults for scanning a device"
         devroot = self.dmd.Devices.createOrganizer(devicePath)
-        ports = getattr(devroot, 'zSnmpDiscoveryPorts', None) or [devroot.zSnmpPort]
-        return (devroot.zSnmpCommunities,
-                ports,
-                devroot.zSnmpVer,
-                devroot.zSnmpTimeout,
-                devroot.zSnmpTries)
+        snmpConfig = {}
+        for name, value in devroot.zenPropertyItems():
+            if getzPropertyCategory(name) == snmpCategory:
+                snmpConfig[name] = value
+        return snmpConfig
 
 
     @translateError
