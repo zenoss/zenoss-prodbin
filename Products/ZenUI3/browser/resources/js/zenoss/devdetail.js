@@ -486,15 +486,35 @@ Zenoss.EventActionManager.configure({
     }
 });
 
-var event_console = Ext.create('Zenoss.EventGridPanel', {
-    id: 'device_events',
-    stateId: 'device_events',
-    newwindowBtn: true,
-    actionsMenu: false,
-    commandsMenu: false,
-    store: Ext.create('Zenoss.events.Store', {}),
-    columns: Zenoss.env.getColumnDefinitions(['device'])
-});
+var createDevDetailEventsGrid = function(re_attach_to_container) {
+    var event_console = Ext.create('Zenoss.EventGridPanel', {
+        id: 'device_events',
+        stateId: 'device_events',
+        newwindowBtn: true,
+        actionsMenu: false,
+        commandsMenu: false,
+        store: Ext.create('Zenoss.events.Store', {}),
+        columns: Zenoss.env.getColumnDefinitionsToRender('device_events')
+        //columns: Zenoss.env.getColumnDefinitions(['device'])
+    });
+
+    if (re_attach_to_container == true)
+    {
+        var container_panel = Ext.getCmp('detail_card_panel');
+        container_panel.items.insert(1, event_console);
+        container_panel.layout.setActiveItem(1);
+    }
+
+    event_console.on('recreateGrid', function (grid) {
+        var container_panel = Ext.getCmp('detail_card_panel');
+        container_panel.remove(grid.id, true);
+        createDevDetailEventsGrid(true);
+    });
+
+    return event_console;
+};
+
+var event_console = createDevDetailEventsGrid(false);
 
 var modeler_plugins = Ext.create('Zenoss.form.ModelerPluginPanel', {
     id: 'device_modeler_plugins'
