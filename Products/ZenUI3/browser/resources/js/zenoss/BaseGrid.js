@@ -132,7 +132,6 @@
             grid.headerCt.on('columnshow', this.resetFilterRow, this);
             grid.headerCt.on('columnhide', this.resetFilterRow, this);
 
-            grid.headerCt.on('columnmove', this.resetFilterRow, this);
             grid.on('columnmove', function(col, moved, movedIndex){
                 this.gridColumnMoveWithFilter(col, moved, movedIndex);
             }, this);
@@ -176,17 +175,7 @@
                 });
 
                 me.applyTemplate();
-                // force the columns to relayout themselves (work around
-                // a bug in Chrome where this would be a blank row otherwise)
-                me.eachColumn(function(col){
-                    if (col.isVisible() && col.getEl()) {
-                        col.setWidth(col.getWidth() + 1);
-                        col.setWidth(col.getWidth() - 1);
-                        return false;
-                    }
-                });
             }
-
         },
         applyTemplate:function () {
             var searchItems = [],
