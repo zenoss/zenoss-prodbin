@@ -453,7 +453,7 @@ class PerformanceConf(Monitor, StatusColor):
         else:
             args.append(REQUEST)
             zendiscCmd = self._getZenDiscCommand(*args)
-            result = executeCommand(zendiscCmd, REQUEST)
+            result = self._executeCommand(zendiscCmd, REQUEST)
         return result
 
     def _getZenDiscCommand(
@@ -492,7 +492,7 @@ class PerformanceConf(Monitor, StatusColor):
         cmd = binPath(command)
         daemonCmd = [cmd]
         daemonCmd.extend(args)
-        result = executeCommand(daemonCmd, REQUEST)
+        result = self._executeCommand(daemonCmd, REQUEST)
         return result
 
     def collectDevice(
@@ -547,7 +547,11 @@ class PerformanceConf(Monitor, StatusColor):
                 args=(zenmodelerCmd,)
             )
         else:
-            result = executeCommand(zenmodelerCmd, REQUEST, write)
+            result = self._executeCommand(zenmodelerCmd, REQUEST, write)
+        return result
+
+    def _executeCommand(self, remoteCommand, REQUEST=None, write=None):
+        result = executeCommand(remoteCommand, REQUEST, write)
         return result
 
 
