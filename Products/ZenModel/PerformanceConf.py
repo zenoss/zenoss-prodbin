@@ -512,10 +512,7 @@ class PerformanceConf(Monitor, StatusColor):
         @type generateEvents: string
         """
         xmlrpc = isXmlRpc(REQUEST)
-        zenmodelerOpts = [
-            'run', '--now', '--monitor', self.id, '-d', device.id
-        ]
-        result = self._executeZenModelerCommand(zenmodelerOpts, background,
+        result = self._executeZenModelerCommand(device.id, self.id, background,
                                                 REQUEST, write)
         if result and xmlrpc:
             return result
@@ -525,7 +522,7 @@ class PerformanceConf(Monitor, StatusColor):
             return 0
 
     def _executeZenModelerCommand(
-            self, zenmodelerOpts, background=False, REQUEST=None, write=None):
+            self, deviceName, performanceMonitor="localhost", background=False, REQUEST=None, write=None):
         """
         Execute zenmodeler and return result
 
@@ -536,10 +533,9 @@ class PerformanceConf(Monitor, StatusColor):
         @return: results of command
         @rtype: string
         """
-        zm = binPath('zenmodeler')
-        zenmodelerCmd = [zm]
-        zenmodelerCmd.extend(zenmodelerOpts)
+        args = [deviceName, performanceMonitor]
         if background:
+            zenmodelerCmd = self._getZenModelerCommand(*args)
             log.info('queued job: %s', " ".join(zenmodelerCmd))
             result = self.dmd.JobManager.addJob(
                 SubprocessJob,
@@ -547,8 +543,21 @@ class PerformanceConf(Monitor, StatusColor):
                 args=(zenmodelerCmd,)
             )
         else:
+            args.append(REQUEST)
+            zenmodelerCmd = self._getZenModelerCommand(*args)
             result = self._executeCommand(zenmodelerCmd, REQUEST, write)
         return result
+
+    def _getZenModelerCommand(
+            self, deviceName, performanceMonitor, REQUEST=None):
+        zm = binPath('zenmodeler')
+        cmd = [zm]
+        options = [
+            'run', '--now', '-d', deviceName, '--monitor', performanceMonitor
+        ]
+        cmd.extend(options)
+        log.info('local zenmodelerCmd is "%s"' % ' '.join(cmd))
+        return cmd
 
     def _executeCommand(self, remoteCommand, REQUEST=None, write=None):
         result = executeCommand(remoteCommand, REQUEST, write)
