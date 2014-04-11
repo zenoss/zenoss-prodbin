@@ -8,6 +8,7 @@
 ##############################################################################
 
 import json
+from uuid import uuid1
 from Products.Five.browser import BrowserView
 from Products.Zuul.interfaces import IAuthorizationTool
 
@@ -55,8 +56,20 @@ class Login(BrowserView):
 
         # create the session data
         token = authorization.createAuthToken(self.request)
-
+        self.request.response.setHeader( 'X-ZAuth-TokenId', token['id'])
+        self.request.response.setHeader( 'X-ZAuth-TokenExpiration', token['expires'])
+        self.request.response.setHeader( 'X-ZAuth-TenantId', self.uuid)
         return json.dumps(token)
+
+    @property
+    def dmd(self):
+        return self.context.context.zport.dmd
+
+    @property
+    def uuid(self):
+        if self.dmd.uuid is None:
+            self.dmd.uuid = str(uuid1())
+        return self.dmd.uuid
 
 class Validate(BrowserView):
     """
@@ -87,4 +100,17 @@ class Validate(BrowserView):
             self.request.response.write( "Token Expired")
             return
 
+        self.request.response.setHeader( 'X-ZAuth-TokenId', token['id'])
+        self.request.response.setHeader( 'X-ZAuth-TokenExpiration', token['expires'])
+        self.request.response.setHeader( 'X-ZAuth-TenantId', self.uuid)
         return json.dumps(token)
+
+    @property
+    def dmd(self):
+        return self.context.context.zport.dmd
+
+    @property
+    def uuid(self):
+        if self.dmd.uuid is None:
+            self.dmd.uuid = str(uuid1())
+        return self.dmd.uuid
