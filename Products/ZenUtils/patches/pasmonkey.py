@@ -190,6 +190,7 @@ def login(self):
 
     if self.dmd.uuid is None:
         self.dmd.uuid = str(uuid1())
+
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login
