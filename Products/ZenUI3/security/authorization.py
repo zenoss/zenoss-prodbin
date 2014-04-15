@@ -35,8 +35,13 @@ class Login(BrowserView):
         Extract login/password credentials, test authentication, and create a token
         """
 
-        authorization = IAuthorizationTool( self.context.context)
+        # test for uuid
+        if self.uuid is None:
+            self.request.response.setStatus(503)
+            self.request.response.write( "System uninitialized - please execute setup wizard")
+            return
 
+        authorization = IAuthorizationTool( self.context.context)
         credentials = authorization.extractCredentials(self.request)
 
         login = credentials.get('login', None)
@@ -67,8 +72,6 @@ class Login(BrowserView):
 
     @property
     def uuid(self):
-        if self.dmd.uuid is None:
-            self.dmd.uuid = str(uuid1())
         return self.dmd.uuid
 
 class Validate(BrowserView):
@@ -80,6 +83,12 @@ class Validate(BrowserView):
         """
             extract token id, test token expiration, and return token
         """
+        # test for uuid
+        if self.uuid is None:
+            self.request.response.setStatus(503)
+            self.request.response.write( "System uninitialized - please execute setup wizard")
+            return
+
         tokenId = self.request.get('id', None)
         if tokenId is None:
             tokenId = self.request.getHeader(ZAUTH_HEADER_ID)
@@ -111,6 +120,4 @@ class Validate(BrowserView):
 
     @property
     def uuid(self):
-        if self.dmd.uuid is None:
-            self.dmd.uuid = str(uuid1())
         return self.dmd.uuid

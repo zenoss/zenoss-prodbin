@@ -25,6 +25,7 @@ Related tickets:
 
 import urllib
 import urlparse
+from uuid import uuid1
 from cgi import parse_qs
 from Acquisition import aq_base
 from AccessControl.SpecialUsers import emergency_user
@@ -187,6 +188,9 @@ def login(self):
             fragment = '#' + fragment
         url += fragment
 
+    if self.dmd.uuid is None:
+        self.dmd.uuid = str( uuid1())
+
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login
@@ -210,6 +214,7 @@ def termsCheck(self):
         url += 'terms=Decline'
     else:
         self.dmd.acceptedTerms = True
+        self.dmd.uuid = str( uuid1())
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.termsCheck = termsCheck
