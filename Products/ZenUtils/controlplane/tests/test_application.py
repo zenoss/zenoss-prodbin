@@ -8,6 +8,7 @@
 ##############################################################################
 
 from collections import namedtuple
+import functools
 import unittest
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
@@ -19,7 +20,7 @@ from Products.ZenUtils.controlplane.application import (
 class _MockClient(object):
 
     def __init__(self, **kwargs):
-        self._data = kwargs if kwargs else {}
+        self._data = kwargs.get('data', {})
 
     def queryServices(self, name=None, tags=None):
         tags = tags if tags else ()
@@ -82,7 +83,7 @@ class DeployedAppTest(BaseTestCase):
         data = {
             (service1.id, tuple(service1.tags)): service1,
         }
-        DeployedAppLookup.clientClass =  _MockClient
+        DeployedAppLookup.clientClass =  functools.partial(_MockClient, data=data)
         lookup = DeployedAppLookup()
         result = lookup.query()
         self.assertEqual(len(result), 1)
