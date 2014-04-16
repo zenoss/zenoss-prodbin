@@ -205,6 +205,14 @@ debug() {
         echo "Sending SIGUSR1 to $PID"
         kill -s USR1 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
         return $?
+    elif pgrep -fla -- '/serviced proxy' >/dev/null 2>&1; then
+        PIDS=`pgrep -f -- "--configfile $CFGFILE"`
+        if [ "$PIDS" ]; then
+                echo "Sending SIGUSR1 to PIDS: $PIDS"
+                kill -s USR1 $PIDS 2>/dev/null || ps -p $PIDS
+        else
+                echo "Unable to find process to send SIGUSR1 signal"
+        fi
     else
         echo "Unable to find process to send SIGUSR1 signal"
     fi
@@ -218,6 +226,14 @@ stats() {
         echo "Sending SIGUSR2 to $PID"
         kill -s USR2 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
         return $?
+    elif pgrep -fla -- '/serviced proxy' >/dev/null 2>&1; then
+        PIDS=`pgrep -f -- "--configfile $CFGFILE"`
+        if [ "$PIDS" ]; then
+                echo "Sending SIGUSR2 to PIDS: $PIDS"
+                kill -s USR2 $PIDS 2>/dev/null || ps -p $PIDS
+        else
+                echo "Unable to find process to send SIGUSR2 signal"
+        fi
     else
         echo "Unable to find process to send SIGUSR2 signal"
     fi
