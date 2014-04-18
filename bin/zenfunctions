@@ -208,7 +208,7 @@ debug() {
     elif pgrep -fla -- '/serviced proxy' >/dev/null 2>&1; then
         PIDS=`pgrep -f -- "py --configfile $CFGFILE"`
         if [ "$PIDS" ]; then
-                echo "Sending SIGUSR1 to PIDS: $PIDS"
+                echo "Sending SIGUSR1 to PIDS: " $PIDS
                 kill -s USR1 $PIDS 2>/dev/null || ps -p $PIDS
         else
                 echo "Unable to find process to send SIGUSR1 signal"
@@ -229,7 +229,7 @@ stats() {
     elif pgrep -fla -- '/serviced proxy' >/dev/null 2>&1; then
         PIDS=`pgrep -f -- "py --configfile $CFGFILE"`
         if [ "$PIDS" ]; then
-                echo "Sending SIGUSR2 to PIDS: $PIDS"
+                echo "Sending SIGUSR2 to PIDS: " $PIDS
                 kill -s USR2 $PIDS 2>/dev/null || ps -p $PIDS
         else
                 echo "Unable to find process to send SIGUSR2 signal"
