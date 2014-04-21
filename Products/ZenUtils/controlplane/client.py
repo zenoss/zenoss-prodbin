@@ -10,7 +10,6 @@
 """
 ControlPlaneClient
 """
-
 import fnmatch
 import json
 import urllib
@@ -103,6 +102,31 @@ class ControlPlaneClient(object):
             service.resourceId, method="PUT", data=body
         )
         body = ''.join(response.readlines())
+        response.close()
+
+    def addService(self, serviceDefinition):
+        """
+        Add a new service
+
+        :param string serviceDefinition: json encoded representation of service
+        :returns string: json encoded representation of new service's links
+        """
+        response = self._dorequest(
+            "/services/add", method="POST", data=serviceDefinition
+        )
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def deleteService(self, serviceId):
+        """
+        Delete a service
+
+        :param string serviceId: Id of the service to delete
+        """
+        response = self._dorequest(
+            "/services/%s" % serviceId, method="DELETE"
+        )
         response.close()
 
     def queryServiceInstances(self, serviceId):
