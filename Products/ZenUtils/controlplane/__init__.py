@@ -9,3 +9,4 @@
 
 from .data import *
 from .client import *
+from servicetree import ServiceTree
