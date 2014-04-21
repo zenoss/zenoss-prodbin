@@ -263,6 +263,10 @@ class ServiceDefinition(object):
         return self._data.get('ParentServiceId')
 
     @property
+    def poolId(self):
+        return self._data.get('PoolId')
+
+    @property
     def resourceId(self):
         return "/services/%s" % (self._data.get("Id"),)
 
