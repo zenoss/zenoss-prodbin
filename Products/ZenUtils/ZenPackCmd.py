@@ -224,7 +224,7 @@ class NonCriticalInstallError(Exception):
 def InstallEggAndZenPack(dmd, eggPath, link=False, 
                             filesOnly=False, sendEvent=True, 
                             previousVersion=None, forceRunExternal=False,
-                            fromUI=False):
+                            fromUI=False, serviceId=None):
     """
     Installs the given egg, instantiates the ZenPack, installs in
     dmd.ZenPackManager.packs, and runs the zenpacks's install method.
@@ -244,7 +244,8 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                                               filesOnly=filesOnly,
                                               previousVersion=previousVersion,
                                               forceRunExternal=forceRunExternal,
-                                              fromUI=fromUI)
+                                              fromUI=fromUI, 
+                                              serviceId=serviceId)
                     zenPacks.append(zp)
                 except NonCriticalInstallError, ex:
                     nonCriticalErrorEncountered = True
@@ -334,7 +335,7 @@ def InstallEgg(dmd, eggPath, link=False):
 
 def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                          previousVersion=None, forceRunExternal=False,
-                         fromUI=False):
+                         fromUI=False, serviceId=None):
     """
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
@@ -432,6 +433,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                 #so we can't change the signature of install to take the
                 #previousVerison
                 zenPack.prevZenPackVersion = previousVersion
+                zenPack.currentServiceId = serviceId
                 zenPack.install(dmd)
                 zenPack.prevZenPackVersion = None
 

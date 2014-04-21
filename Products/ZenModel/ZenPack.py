@@ -26,6 +26,8 @@ from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.PkgResources import pkg_resources
+from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree
+from Products.ZenUtils.controlplane.application import getConnectionSettings
 from Products.ZenModel import ExampleLicenses
 from Products.ZenModel.ZenPackLoader import *
 from Products.ZenWidgets import messaging
@@ -168,6 +170,9 @@ class ZenPack(ZenModelRM):
     compatZenossVers = ''
     prevZenPackName = ''
     prevZenPackVersion = None
+
+    # Control Plane service ID for container executing this installation
+    currentServiceId = ""
 
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
@@ -1088,8 +1093,71 @@ registerDirectory("skins", globals())
 
         return False
 
+
+    def installServices(self, serviceDefs, servicePaths):
+        """
+        Install a service into ControlPlane
+
+        Install a service (described by a service definition string) at a given
+             location in the service tree.  Multiple service/location pairs can
+             be specified.
+
+        :param serviceDefs: json encoded representation(s) of service to add
+        :type serviceDefs: string or iterable of strings
+        :param servicePaths: service path(s) at which to install service
+        :type servicePaths: string or iterable of strings.  See
+            ServiceTree.matchServicePath for description of service path
+        """
+        # No current service id indicates that we will not install services
+        if not self.currentServiceId:
+            return
+
+        # Handle case where input is single strings (vs parallel lists)
+        if isinstance(serviceDefs, basestring):
+            serviceDefs = [serviceDefs]
+        if isinstance(servicePaths, basestring):
+            servicePaths = [servicePaths]
+
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        services = cpClient.queryServices("*")
+        serviceTree = ServiceTree(services)
+        for path, serviceDef in zip(servicePaths, serviceDefs):
+            service = json.loads(serviceDef)
+            parentServices = serviceTree.matchServicePath(self.currentServiceId,
+                                                          path)
+            for parentService in parentServices:
+                service['ParentServiceId'] = parentService.id
+                cpClient.addService(json.dumps(service))
+
+
+    def removeServices(self, servicePaths):
+        """
+        Remove matching services from ControlPlane
+
+        :param servicePaths: service path(s) of services to remove
+        :type servicePaths: string or iterable of strings.  See
+            ServiceTree.matchServicePath for description of service path
+        """
+        # No current service id indicates that we will not install services
+        if not self.currentServiceId:
+            return
+
+        # Handle case where input is single string (vs list of strings)
+        if isinstance(servicePaths, basestring):
+            servicePaths = [servicePaths]
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        services = cpClient.queryServices("*")
+        serviceTree = ServiceTree(services)
+        for path in servicePaths:
+            services = serviceTree.matchServicePath(self.currentServiceId, path)
+            for service in services:
+                cpClient.deleteService(service.id)
+
+
     def getExampleLicenseNames(self):
         return sorted(ExampleLicenses.LICENSES.keys())
+
+
 
 
 # ZenPackBase is here for backwards compatibility with older installed

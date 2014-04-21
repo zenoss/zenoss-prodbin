@@ -184,7 +184,8 @@ class ZenPackCmd(ZenScriptBase):
                     link=self.options.link,
                     filesOnly=False,
                     previousVersion= self.options.previousVersion,
-                    fromUI=self.options.fromui)
+                    fromUI=self.options.fromui,
+                    serviceId=self.options.serviceId)
             if os.path.isfile(self.options.installPackName):
                 packName = self.extract(self.options.installPackName)
             elif os.path.isdir(self.options.installPackName):
@@ -509,6 +510,11 @@ class ZenPackCmd(ZenScriptBase):
                                dest='skipSameVersion',
                                default=False,
                                help="Do not install the zenpack if the version is unchanged")
+        self.parser.add_option('--SERVICE_ID',
+                               dest='serviceId',
+                               default='',
+                               help=optparse.SUPPRESS_HELP)
+
         self.parser.prog = "zenpack"
         ZenScriptBase.buildOptions(self)
         self.parser.defaults['logpath'] = zenPath('log')
