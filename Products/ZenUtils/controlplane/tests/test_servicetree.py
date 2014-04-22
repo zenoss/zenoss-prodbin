@@ -13,6 +13,7 @@ from Products.ZenUtils.controlplane.servicetree import ServiceTree
 
 class _MockService (object):
     def __init__(self, id, parentId, tags):
+        self.name = id.upper()
         self.id = id
         self.parentId = parentId
         self.tags = tags
@@ -62,6 +63,11 @@ class ServiceTreeTest(BaseTestCase):
             self.assertEqual(sorted(children), sorted(expectedChildren),
                              '%s != %s' %(sorted(children),sorted(expectedChildren)))
 
+    def testMatchPathBadService(self):
+        tree=ServiceTree(_services)
+        with self.assertRaises(LookupError):
+            tree.matchServicePath('BadServiceId', '/')
+
     def testMatchPathParent(self):
         tree = ServiceTree(_services)
         for i in _services:
@@ -94,6 +100,17 @@ class ServiceTreeTest(BaseTestCase):
             result = [i.id for i in tree.matchServicePath(service, '.')]
             self.assertEqual(result, [service])
 
+    def testMatchPathName(self):
+        tests = (
+            ('zope', '/=ZOPE', ('zope',)),
+            ('zenoss', '=HUB1', ('hub1',)),
+            ('zope', '=HUB1', ()),
+        )
+        tree = ServiceTree(_services)
+        for service, tag, expected in tests:
+            result = (i.id for i in tree.matchServicePath(service, tag))
+            self.assertEqual(sorted(result), sorted(expected))
+
     def testMatchPathComplex(self):
         tree = ServiceTree(_services)
         tests = (
@@ -102,6 +119,8 @@ class ServiceTreeTest(BaseTestCase):
             ('hub1', './hub', ('zenhub',)),
             ('zope', '/', ('zenoss',)),
             ('zope', '/hub/collector', ('collector1','collector2', 'collector3')),
+            ('zope', '/hub/=COLLECTOR1', ('collector1',)),
+            ('zope', '/=HUB1/collector', ('collector1','collector2')),
         )
         for service, path, expected in tests:
             result = (i.id for i in tree.matchServicePath(service, path))

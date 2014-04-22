@@ -67,12 +67,22 @@ class ServiceTree (object):
         Like a FS path it may be absolute (i.e, beginning with '/') or relative;
         absolute means that it starts with the root of the tree containing the
         given current service.  Legitimate components include '.' and '..' with
-        the same semantics as in FS paths.  Components which are identifiers are
-        matched against the tags of the candidate services; this implies that a path
-        can match multiple services at any given level.
+        the same semantics as in FS paths.  Component which start with '=' match
+        services whose name equals the remainder of the compnent; other components
+        are matched against the tags of the candidate services; this implies that
+        a path can match multiple services at any given level.  e.g.,
 
-           e.g., '/hub/collector' will match all services tagged 'collector' inside
-           all services tagged 'hub' which are children of the root service.
+           '/hub/collector' will match all services tagged 'collector' inside
+           all services tagged 'hub' which are children of the root service; i.e.,
+           all collectors in all hubs
+
+           '/=localhost/=localhost' will match the localhost service inside the
+           root localhost service; i.e., the localhost collector inside the
+           localhost hub
+
+           '/hub/=collector1' will match all services named collector1 which are
+            children of root services tagged 'hub'; i.e., collector1 no matter
+            which root hub it is on
 
         @param currentServiceId: id of service from which to do relative path matching
         @param currentServiceId: string
@@ -80,7 +90,10 @@ class ServiceTree (object):
         @param path: string
         @rtype: list of ServiceDefinition objects
         """
-        service = self._idToService[currentServiceId]
+        try:
+            service = self._idToService[currentServiceId]
+        except KeyError:
+            raise LookupError("Specified current service ('%s') not found" % currentServiceId)
         if path.startswith('/'):
             # absolute path; find the root of the current service tree
             path = path[1:]
@@ -95,10 +108,14 @@ class ServiceTree (object):
                 current = [self._idToService[i.parentId] if i.parentId else i
                             for i in current]
             else:
+                if component[0] != '=':
+                    tag,name = component, object()
+                else:
+                    tag,name = object(), component[1:]
                 next = []
                 for service in current:
                     children = self._serviceChildren[service]
-                    next.extend (i for i in children if component in i.tags)
+                    next.extend (i for i in children if tag in i.tags or i.name==name)
                 current = next
         return current
 
