@@ -127,6 +127,17 @@ class ServiceTreeTest(BaseTestCase):
             self.assertEqual (sorted(result), sorted(expected),
                               "cwd:%s path:%s"%(service, path))
 
+    def testFindMatchingServices(self):
+        tree = ServiceTree(_services)
+        tests = (
+            ('zenoss', 'collector', ('zenping', 'collector1', 'zencommand', 'collector2', 'collector3')),
+            ('hub1', 'collector', ('zenping', 'collector1', 'zencommand', 'collector2')),
+            ('zenoss', '=HUB1', ('hub1',)),
+        )
+        for service, pattern, expected in tests:
+            root = tree.getService(service)
+            result = [i.id for i in tree.findMatchingServices(root, pattern)]
+            self.assertEqual(sorted(result), sorted(expected))
 
 
 def test_suite():

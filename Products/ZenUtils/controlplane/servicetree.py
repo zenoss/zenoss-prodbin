@@ -5,6 +5,7 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+import collections
 
 class ServiceTree (object):
     """
@@ -68,7 +69,7 @@ class ServiceTree (object):
         absolute means that it starts with the root of the tree containing the
         given current service.  Legitimate components include '.' and '..' with
         the same semantics as in FS paths.  Component which start with '=' match
-        services whose name equals the remainder of the compnent; other components
+        services whose name equals the remainder of the component; other components
         are matched against the tags of the candidate services; this implies that
         a path can match multiple services at any given level.  e.g.,
 
@@ -109,9 +110,9 @@ class ServiceTree (object):
                             for i in current]
             else:
                 if component[0] != '=':
-                    tag,name = component, object()
+                    tag, name = component, object()
                 else:
-                    tag,name = object(), component[1:]
+                    tag, name = object(), component[1:]
                 next = []
                 for service in current:
                     children = self._serviceChildren[service]
@@ -119,4 +120,32 @@ class ServiceTree (object):
                 current = next
         return current
 
+
+    def findMatchingServices(self, service, pattern):
+        """
+        Find all services beneath a given service matching a given pattern
+
+        The pattern to be matched is the same as the component matching in
+        matchServicePath(): if the first character is '=' it matches the name of
+        the service; otherwise it matches a tag.
+
+        :param services: service(s) whose descendants will be searched
+        :type services: ServiceDefinition object
+        :param pattern: pattern to be matched.  See description above for format
+        :type pattern: string
+        :rtype list of ServiceDefinition objects
+        """
+        if pattern[0] != '=':
+            tag, name = pattern, object()
+        else:
+            tag, name = object(), pattern[1:]
+
+        def walktree(service):
+            for child in self._serviceChildren[service]:
+                for i in walktree(child):
+                    yield i
+            if service.name == name or tag in (service.tags or []):
+                yield service
+
+        return [i for i in walktree(service)]
 
