@@ -69,6 +69,14 @@
                     text: _t('Cancel'),
                     ref: 'configCancelBtn'
                 }]
+            },{
+                xtype: 'panel',
+                ref: 'logs',
+                id: 'logs',
+                src: "https://zenoss5x.rterrell/logview/#/dashboard/file/zenoss.json",
+                bodyStyle: {
+                    overflow: 'hidden'
+                }
             }];
             this.callParent(arguments);
         }

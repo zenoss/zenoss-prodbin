@@ -116,20 +116,6 @@
                 dataIndex: 'uptime',
                 sortable: true
             }, {
-                text: _t('Logs'),
-                flex: .25,
-                tooltip: _t('Deamon logs'),
-                dataIndex: 'id',
-                sortable: true,
-                renderer: function(value, m, record) {
-                    if (record.isDaemon()) {
-                        return Ext.String.format("<a target='_blank' href='/zport/dmd/getDaemonLogs?id={0}'>{1}</a>",
-                                                 value,
-                                                 _t('View Logs'));
-                    }
-                    return "";
-                }
-            },{
                 xtype: 'actioncolumn',
                 text: _t('AutoStart'),
                 flex: .25,
