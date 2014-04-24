@@ -12,6 +12,7 @@ ControlPlaneClient
 """
 import fnmatch
 import json
+import logging
 import urllib
 import urllib2
 
@@ -23,6 +24,7 @@ from .data import ServiceJsonDecoder, ServiceJsonEncoder
 _DEFAULT_PORT = 8787
 _DEFAULT_HOST = "localhost"
 
+LOG = logging.getLogger("zen.controlplane.client")
 
 class _Request(urllib2.Request):
     """
@@ -98,6 +100,8 @@ class ControlPlaneClient(object):
         :param ServiceDefinition service: The modified definition
         """
         body = ServiceJsonEncoder().encode(service)
+        LOG.info("Updating service '%s':%s", service.name, service.id)
+        LOG.debug("Updating service %s", body)
         response = self._dorequest(
             service.resourceId, method="PUT", data=body
         )
@@ -111,6 +115,8 @@ class ControlPlaneClient(object):
         :param string serviceDefinition: json encoded representation of service
         :returns string: json encoded representation of new service's links
         """
+        LOG.info("Adding service")
+        LOG.debug(serviceDefinition)
         response = self._dorequest(
             "/services/add", method="POST", data=serviceDefinition
         )
@@ -124,6 +130,7 @@ class ControlPlaneClient(object):
 
         :param string serviceId: Id of the service to delete
         """
+        LOG.info("Removing service %s", serviceId)
         response = self._dorequest(
             "/services/%s" % serviceId, method="DELETE"
         )
