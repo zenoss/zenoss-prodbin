@@ -1181,7 +1181,7 @@ registerDirectory("skins", globals())
         for path, serviceDef in zip(servicePaths, serviceDefs):
             service = json.loads(serviceDef)
             parentServices = serviceTree.matchServicePath(self.currentServiceId,
-                                                          path)q
+                                                          path)
             for parentService in parentServices:
                 service['ParentServiceId'] = parentService.id
                 service['PoolId'] = parentService.poolId
