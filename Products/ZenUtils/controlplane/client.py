@@ -21,9 +21,8 @@ from urlparse import urlunparse
 
 from .data import ServiceJsonDecoder, ServiceJsonEncoder
 
-_DEFAULT_PORT = 8787
+_DEFAULT_PORT = 443
 _DEFAULT_HOST = "localhost"
-
 
 class _Request(urllib2.Request):
     """
@@ -155,7 +154,7 @@ class ControlPlaneClient(object):
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
-        url = urlunparse(("http", self._netloc, uri, "", query, ""))
+        url = urlunparse(("https", self._netloc, uri, "", query, ""))
         args = {}
         if method:
             args["method"] = method
