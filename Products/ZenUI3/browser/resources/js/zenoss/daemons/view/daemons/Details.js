@@ -73,7 +73,7 @@
                 xtype: 'panel',
                 ref: 'logs',
                 id: 'logs',
-                src: "https://zenoss5x.rterrell/logview/#/dashboard/file/zenoss.json",
+                src: location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : "") + "/logview/#/dashboard/file/zenoss.json",
                 bodyStyle: {
                     overflow: 'hidden'
                 }
