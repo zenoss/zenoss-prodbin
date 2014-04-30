@@ -8,6 +8,7 @@
 ##############################################################################
 
 import json
+from uuid import uuid1
 from Products.Five.browser import BrowserView
 from Products.Zuul.interfaces import IAuthorizationTool
 
@@ -34,8 +35,13 @@ class Login(BrowserView):
         Extract login/password credentials, test authentication, and create a token
         """
 
-        authorization = IAuthorizationTool( self.context.context)
+        # test for uuid
+        if self.uuid is None:
+            self.request.response.setStatus(503)
+            self.request.response.write( "System uninitialized - please execute setup wizard")
+            return
 
+        authorization = IAuthorizationTool( self.context.context)
         credentials = authorization.extractCredentials(self.request)
 
         login = credentials.get('login', None)
@@ -55,8 +61,18 @@ class Login(BrowserView):
 
         # create the session data
         token = authorization.createAuthToken(self.request)
-
+        self.request.response.setHeader( 'X-ZAuth-TokenId', token['id'])
+        self.request.response.setHeader( 'X-ZAuth-TokenExpiration', token['expires'])
+        self.request.response.setHeader( 'X-ZAuth-TenantId', self.uuid)
         return json.dumps(token)
+
+    @property
+    def dmd(self):
+        return self.context.context.zport.dmd
+
+    @property
+    def uuid(self):
+        return self.dmd.uuid
 
 class Validate(BrowserView):
     """
@@ -67,6 +83,12 @@ class Validate(BrowserView):
         """
             extract token id, test token expiration, and return token
         """
+        # test for uuid
+        if self.uuid is None:
+            self.request.response.setStatus(503)
+            self.request.response.write( "System uninitialized - please execute setup wizard")
+            return
+
         tokenId = self.request.get('id', None)
         if tokenId is None:
             tokenId = self.request.getHeader(ZAUTH_HEADER_ID)
@@ -87,4 +109,15 @@ class Validate(BrowserView):
             self.request.response.write( "Token Expired")
             return
 
+        self.request.response.setHeader( 'X-ZAuth-TokenId', token['id'])
+        self.request.response.setHeader( 'X-ZAuth-TokenExpiration', token['expires'])
+        self.request.response.setHeader( 'X-ZAuth-TenantId', self.uuid)
         return json.dumps(token)
+
+    @property
+    def dmd(self):
+        return self.context.context.zport.dmd
+
+    @property
+    def uuid(self):
+        return self.dmd.uuid

@@ -60,7 +60,8 @@
                     ],
                     daemon: [
                         {id: 'details', name: _t('Details')},
-                        {id: 'configs', name: _t('Configuration Files')}
+                        {id: 'configs', name: _t('Configuration Files')},
+                        {id: 'logs', name: _t('Logs')}
                     ]
                 },
                 actions: {
@@ -75,7 +76,8 @@
                     },
                     daemon: {
                         details: this.setDaemonDetailsPanel,
-                        configs: this.showDaemonConfigurationFiles
+                        configs: this.showDaemonConfigurationFiles,
+                        logs: this.showDaemonLogs
                     }
                 }
             };
@@ -168,6 +170,16 @@
                 data : this.detailActions.menu[type]
             });
             return menu;
+        },
+        showDaemonLogs: function() {
+            document.getElementById("logs-body").innerHTML = [
+                "<iframe style='width:100%; height:100%;' src='",
+                location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : ""),
+                "/logview/#/dashboard/file/zenoss.json?query=*",
+                this.selected.raw.name,
+                "*&title=",
+                this.selected.raw.name, " logs",
+                "'></iframe>"].join('');
         },
         showDaemonConfigurationFiles: function() {
             var selected = this.selected,

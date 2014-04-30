@@ -151,8 +151,8 @@ class ServiceJsonDecoder(json.JSONDecoder):
     """
     """
 
-    def __init__(self):
-        kwargs = {"object_hook": _decodeServiceJsonObject}
+    def __init__(self, **kwargs):
+        kwargs.update({"object_hook": _decodeServiceJsonObject})
         super(ServiceJsonDecoder, self).__init__(**kwargs)
 
 
@@ -160,10 +160,10 @@ class ServiceJsonEncoder(json.JSONEncoder):
     """
     """
 
-    def encode(self, src):
-        data = src.__getstate__()
-        return super(ServiceJsonEncoder, self).encode(data)
-
+    def default(self, o):
+        if isinstance(o, ServiceDefinition):
+            return o.__getstate__()
+        return JSONEncoder.default(self, o)
 
 def _convertToDateTime(f):
     @wraps(f)
