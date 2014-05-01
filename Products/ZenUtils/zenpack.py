@@ -510,7 +510,7 @@ class ZenPackCmd(ZenScriptBase):
                                dest='skipSameVersion',
                                default=False,
                                help="Do not install the zenpack if the version is unchanged")
-        self.parser.add_option('--SERVICE_ID',
+        self.parser.add_option('--service-id',
                                dest='serviceId',
                                default='',
                                help=optparse.SUPPRESS_HELP)
