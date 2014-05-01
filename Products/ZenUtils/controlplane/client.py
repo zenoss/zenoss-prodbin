@@ -10,9 +10,9 @@
 """
 ControlPlaneClient
 """
-
 import fnmatch
 import json
+import logging
 import urllib
 import urllib2
 
@@ -23,6 +23,8 @@ from .data import ServiceJsonDecoder, ServiceJsonEncoder
 
 _DEFAULT_PORT = 443
 _DEFAULT_HOST = "localhost"
+
+LOG = logging.getLogger("zen.controlplane.client")
 
 class _Request(urllib2.Request):
     """
@@ -98,10 +100,40 @@ class ControlPlaneClient(object):
         :param ServiceDefinition service: The modified definition
         """
         body = ServiceJsonEncoder().encode(service)
+        LOG.info("Updating service '%s':%s", service.name, service.id)
+        LOG.debug("Updating service %s", body)
         response = self._dorequest(
             service.resourceId, method="PUT", data=body
         )
         body = ''.join(response.readlines())
+        response.close()
+
+    def addService(self, serviceDefinition):
+        """
+        Add a new service
+
+        :param string serviceDefinition: json encoded representation of service
+        :returns string: json encoded representation of new service's links
+        """
+        LOG.info("Adding service")
+        LOG.debug(serviceDefinition)
+        response = self._dorequest(
+            "/services/add", method="POST", data=serviceDefinition
+        )
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def deleteService(self, serviceId):
+        """
+        Delete a service
+
+        :param string serviceId: Id of the service to delete
+        """
+        LOG.info("Removing service %s", serviceId)
+        response = self._dorequest(
+            "/services/%s" % serviceId, method="DELETE"
+        )
         response.close()
 
     def queryServiceInstances(self, serviceId):

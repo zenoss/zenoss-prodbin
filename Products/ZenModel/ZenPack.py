@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007,2008, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007,2008,2014 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -13,9 +13,12 @@ ZenPacks base definitions
 """
 
 import datetime
+import glob
+import json
 import string
 import subprocess
 import os
+import os.path
 import sys
 import shutil
 
@@ -26,6 +29,8 @@ from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.PkgResources import pkg_resources
+from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree
+from Products.ZenUtils.controlplane.application import getConnectionSettings
 from Products.ZenModel import ExampleLicenses
 from Products.ZenModel.ZenPackLoader import *
 from Products.ZenWidgets import messaging
@@ -169,6 +174,9 @@ class ZenPack(ZenModelRM):
     prevZenPackName = ''
     prevZenPackVersion = None
 
+    # Control Plane service ID for container executing this installation
+    currentServiceId = ""
+
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
     eggPack = False
@@ -241,6 +249,9 @@ class ZenPack(ZenModelRM):
         self.createZProperties(app)
         previousVersion = self.prevZenPackVersion
         self.migrate(previousVersion)
+        self.installServicesFromFiles(self.getServiceDefinitionFiles(),
+                                      self.getServiceTag())
+
 
     def upgrade(self, app):
         """
@@ -277,6 +288,7 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
+        self.removeServices(self.getServiceTag())
 
     def backup(self, backupDir, logger):
         """
@@ -1088,8 +1100,117 @@ registerDirectory("skins", globals())
 
         return False
 
+
+    def getServiceTag(self):
+        """
+        The tag to be applied to all services associated with this ZenPack.
+        This routine can be overridden to use a custom tag.
+        :rtype string
+        """
+        return self.moduleName()
+
+
+    def getServiceDefinitionFiles(self):
+        """
+        Returns a list of files containing services to be installed.
+
+        This routine can be overridden in order to supply a non-standard list of
+         files. See installServicesFromFiles() for file format.
+        :returns: absolute file paths
+        :rtype: list of strings
+        """
+        return glob.glob(self.path('controlplane', '*.json'))
+
+
+    def installServicesFromFiles(self, serviceFileNames, tag):
+        """
+        Install a set of control plane services
+
+        Each file is expected to contain a json encoded object with two fields:
+         servicePath: a service path indicating where this service should be installed.
+            See ServiceTree.matchServicePath for description of service path
+         serviceDefinition: a service definition object which will be sent to
+            controlplane.  See ZenUtils.controlplane.ServiceDefinition
+        Each service will be tagged with the given tag in order to enable discovery
+        for ZenPack removal.
+
+        :param serviceFileNames: file paths, each containing a service
+        :type serviceFileNames: list of strings
+        :param tag: tag to be applied to all services
+        :type tag: string
+        """
+        if not self.currentServiceId:
+            return
+        paths, definitions = [],[]
+        for file in serviceFileNames:
+            service = json.load(open(file, 'r'))
+            definition = service['serviceDefinition']
+            definition.setdefault('Tags', []).append(tag)
+            definitions.append(json.dumps(definition))
+            paths.append(service['servicePath'])
+        self.installServices(definitions, paths)
+
+
+    def installServices(self, serviceDefs, servicePaths):
+        """
+        Install a service into ControlPlane
+
+        Install a service (described by a service definition string) at a given
+             location in the service tree.  Multiple service/location pairs can
+             be specified.
+
+        :param serviceDefs: json encoded representation(s) of service to add
+        :type serviceDefs: string or iterable of strings
+        :param servicePaths: service path(s) at which to install service
+        :type servicePaths: string or iterable of strings.  See
+            ServiceTree.matchServicePath for description of service path
+        """
+        # No current service id indicates that we will not install services
+        if not self.currentServiceId:
+            return
+
+        # Handle case where input is single strings (vs parallel lists)
+        if isinstance(serviceDefs, basestring):
+            serviceDefs = [serviceDefs]
+        if isinstance(servicePaths, basestring):
+            servicePaths = [servicePaths]
+
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        services = cpClient.queryServices("*")
+        serviceTree = ServiceTree(services)
+        for path, serviceDef in zip(servicePaths, serviceDefs):
+            service = json.loads(serviceDef)
+            parentServices = serviceTree.matchServicePath(self.currentServiceId,
+                                                          path)
+            for parentService in parentServices:
+                service['ParentServiceId'] = parentService.id
+                service['PoolId'] = parentService.poolId
+                cpClient.addService(json.dumps(service))
+
+
+    def removeServices(self, tag):
+        """
+        Remove all services matching tag from control plane
+
+        :param tag: tag for which all services will be removed
+        :type tag: string
+        """
+        if not self.currentServiceId:
+            return
+
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        services = cpClient.queryServices("*")
+        serviceTree = ServiceTree(services)
+        serviceRoots = serviceTree.matchServicePath(self.currentServiceId, '/')
+        for root in serviceRoots:
+            for service in serviceTree.findMatchingServices(root, tag):
+                cpClient.deleteService(service.id)
+
+
     def getExampleLicenseNames(self):
         return sorted(ExampleLicenses.LICENSES.keys())
+
+
 
 
 # ZenPackBase is here for backwards compatibility with older installed
