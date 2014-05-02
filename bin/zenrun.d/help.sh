@@ -31,9 +31,10 @@ __DEFAULT__() {
 
 testcommit() {
     echo -e "signaling host to commit the container ..."
-    exit 42
+    exit 0
 }
 
 testdiscard() {
     echo -e "signaling host to discard the container ..."
+    exit 1
 }

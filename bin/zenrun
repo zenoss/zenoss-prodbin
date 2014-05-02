@@ -12,9 +12,8 @@
 # This script runs custom commands passed in to the container from the host.
 #
 # Return codes:
-#      0  - OK           No action required by the host
-#      42 - TXCOMMIT     Host to commit container into the image
-# Error Codes:   
+#      0 - OK           Host to commit container into the image
+# Error Codes:
 #    255 - BADPARAM     Bad params
 #    254 - NOTFOUND     Script not found
 #    253 - INVALID      Invalid script
@@ -27,7 +26,7 @@
 #   # Default action for undefined program calls
 #   __DEFAULT__() {
 #       /bin/helloworld $@
-#       return 0
+#       return 1
 #   }
 #
 #   # ---
@@ -37,13 +36,8 @@
 #   # Usage: zenrun /bin/helloworld savestate
 #   savestate() {
 #       /bin/helloworld $@
-#       if test $? -eq 0; then
-#           return 42
-#       fi
-#
-#       return 0
+#       return $?
 #   }
-
 
 # Parse the arguments
 # Usage: zenrun PROGRAM [ARGS]
@@ -59,7 +53,7 @@ shift; ARGS=$@
 # Load the program
 if ${NOCOMMIT:-false}; then
     $(which $PROGRAM) $ARGS
-    exit 0
+    exit 1
 elif [[ -r $RUNPATH/$PROGRAM ]]; then
     source $RUNPATH/$PROGRAM
 elif [[ -r $PROGRAM ]]; then

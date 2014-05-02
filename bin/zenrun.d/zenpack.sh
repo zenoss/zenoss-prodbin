@@ -11,8 +11,5 @@
 # wrapper for zenpack command, allowing the command to run in zenrun
 __DEFAULT__() {
     zenpack $*
-    if test $? -eq 0; then
-        return 42
-    fi
-    return 0
+    return $?
  }
