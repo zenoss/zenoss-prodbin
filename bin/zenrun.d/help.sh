@@ -27,6 +27,7 @@ __DEFAULT__() {
         echo -e "command not defined: $1"
         exit 255
     fi
+    exit 1
 }
 
 testcommit() {
