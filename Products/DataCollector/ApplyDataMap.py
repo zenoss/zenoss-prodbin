@@ -92,13 +92,13 @@ class ApplyDataMap(object):
             self._dmd.ZenEventManager.sendEvent(eventDict)
 
 
-    def applyDataMap(self, device, datamap, relname="", compname="", modname=""):
+    def applyDataMap(self, device, datamap, relname="", compname="", modname="", parentId=""):
         """Apply a datamap passed as a list of dicts through XML-RPC.
         """
         from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
         if relname:
             datamap = RelationshipMap(relname=relname, compname=compname,
-                                modname=modname, objmaps=datamap)
+                                      modname=modname, objmaps=datamap, parentId=parentId)
         else:
             datamap = ObjectMap(datamap, compname=compname, modname=modname)
         self._applyDataMap(device, datamap)
@@ -139,8 +139,25 @@ class ApplyDataMap(object):
 
         changed = False
 
-        if hasattr(datamap, "compname"):
-            if datamap.compname:
+        if hasattr(datamap, "parentId") or hasattr(datamap, "compname"):
+            if getattr(datamap, "parentId", None):
+                if device.id == datamap.parentId:
+                    tobj = device
+                else:
+                    tobj = device.componentSearch(id=datamap.parentId)
+                    if len(tobj) == 1:
+                        tobj = tobj[0].getObject()
+                    elif len(tobj) < 1:
+                        log.warn(
+                            "Unable to find a matching parentId '%s'",
+                            datamap.parentId)
+                        return False
+                    else:
+                        log.warn(
+                            "Too many object matching parentId '%s'.  Make sure all components have a unique id.",
+                            datamap.parentId)
+                        return False
+            elif datamap.compname:
                 try:
                     tobj = device.getObjByPath(datamap.compname)
                 except NotFound:
@@ -381,8 +398,7 @@ class ApplyDataMap(object):
         rel = device._getOb(relname, None)
         if not rel:
             raise ObjectCreationError(
-                    "No relation %s found on device %s (%s)" % (relname, device.id, device.__class__ ))
-                    #"No relation %s found on device %s" % (relname, device.id))
+                    "No relation %s found on object %s (%s)" % (relname, device.id, device.__class__ ))
         changed = False
         try:
             remoteObj = rel._getOb(remoteObj.id)

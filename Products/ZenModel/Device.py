@@ -446,13 +446,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             ManagedEntity._setPropValue(self, id, value)
 
 
-    def applyDataMap(self, datamap, relname="", compname="", modname=""):
+    def applyDataMap(self, datamap, relname="", compname="", modname="", parentId=""):
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
         """
         adm = ApplyDataMap()
         adm.applyDataMap(self, datamap, relname=relname,
-                         compname=compname, modname=modname)
+                         compname=compname, modname=modname, parentId="")
 
 
     def path(self):
