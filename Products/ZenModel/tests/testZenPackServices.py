@@ -110,7 +110,7 @@ class TestZenpackServices(ZenModelBaseTest):
         self.assertEquals(len(client.added), 1)
         added = json.loads(client.added[0])
         self.assertEquals(added['Id'], 'id')
-        self.assertEquals(added['ParentServiceId'], 'hub1')
+        self.assertEquals(added['ParentServiceID'], 'hub1')
         self.assertEquals(added['PoolId'], 'default')
 
     def testAddMultipleServices(self):
@@ -123,9 +123,9 @@ class TestZenpackServices(ZenModelBaseTest):
         self.assertEquals(len(client.added), 2)
         added = [json.loads(i) for i in client.added]
         self.assertEquals(added[0]['Id'], 'id1')
-        self.assertEquals(added[0]['ParentServiceId'], 'hub1')
+        self.assertEquals(added[0]['ParentServiceID'], 'hub1')
         self.assertEquals(added[1]['Id'], 'id2')
-        self.assertEquals(added[1]['ParentServiceId'], 'zenoss')
+        self.assertEquals(added[1]['ParentServiceID'], 'zenoss')
 
     def testRemoveNoCurrentServiceId(self):
         moduleName = "Zenpacks.zenoss.Test"
@@ -164,7 +164,7 @@ class TestZenpackServices(ZenModelBaseTest):
         self.assertEquals(len(fileDict), len(client.added))
         for i in (json.loads(i) for i in client.added):
             self.assertTrue(tag in i['Tags'])
-            self.assertEquals(i['ParentServiceId'], i[E_KEY])
+            self.assertEquals(i['ParentServiceID'], i[E_KEY])
 
 
 def test_suite():

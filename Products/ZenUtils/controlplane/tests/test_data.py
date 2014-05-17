@@ -48,7 +48,7 @@ definition_json_src = """[{
         "Purpose": "import"
     }
 ],
-"ParentServiceId": "02ef8505-eebd-6493-0c6c-630287847688",
+"ParentServiceID": "02ef8505-eebd-6493-0c6c-630287847688",
 "Volumes": null,
 "CreatedAt": "2013-12-12T09:07:51.172715172-06:00",
 "UpdatedAt": "2013-12-12T09:30:12.341234232-06:00"
@@ -85,7 +85,7 @@ definition_json_obj = {
             "Purpose": "import"
         }
     ],
-    "ParentServiceId": "02ef8505-eebd-6493-0c6c-630287847688",
+    "ParentServiceID": "02ef8505-eebd-6493-0c6c-630287847688",
     "Volumes": None,
     "CreatedAt": "2013-12-12T09:07:51.172715172-06:00",
     "UpdatedAt": "2013-12-12T09:30:12.341234232-06:00"
@@ -104,7 +104,7 @@ instance_json_src = """[{
 "ImageId": "zenoss/zenoss5x",
 "PoolId": "default",
 "DesiredState": 1,
-"ParentServiceId": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
+"ParentServiceID": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
 }]"""
 
 instance_json_obj = {
@@ -120,7 +120,7 @@ instance_json_obj = {
     "ImageId": "zenoss/zenoss5x",
     "PoolId": "default",
     "DesiredState": 1,
-    "ParentServiceId": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
+    "ParentServiceID": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
 }
 
 
