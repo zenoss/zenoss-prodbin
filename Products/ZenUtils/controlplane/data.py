@@ -39,7 +39,7 @@ Application JSON format:
                 "Content": "\n# SAMPLE config file for mysql\n\n[mysqld]\n\ninnodb_buffer_pool_size = 16G\n\n"
             }
         },
-        "ImageId":         "zenoss",
+        "ImageID":         "zenoss",
         "PoolId":          "default",
         "DesiredState":    1,
         "Launch":          "auto",
@@ -67,7 +67,7 @@ Application JSON format:
         "Startup": "/usr/sbin/redis-server",
         "Description": "",
         "Instances": 1,
-        "ImageId": "zenoss/redis",
+        "ImageID": "zenoss/redis",
         "PoolId": "default",
         "DesiredState": 1,
         "ParentServiceID": ""
@@ -128,7 +128,7 @@ _definitionKeys = set([
 # Used to identify such objects.
 _instanceKeys = set([
     "Id", "ServiceID", "HostId", "DockerID", "StartedAt", "Name",
-    "Startup", "Description", "Instances", "ImageId",
+    "Startup", "Description", "Instances", "ImageID",
     "PoolId", "DesiredState", "ParentServiceID"
 ])
 
