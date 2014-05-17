@@ -40,7 +40,7 @@ Application JSON format:
             }
         },
         "ImageID":         "zenoss",
-        "PoolId":          "default",
+        "PoolID":          "default",
         "DesiredState":    1,
         "Launch":          "auto",
         "Endpoints":       {
@@ -68,7 +68,7 @@ Application JSON format:
         "Description": "",
         "Instances": 1,
         "ImageID": "zenoss/redis",
-        "PoolId": "default",
+        "PoolID": "default",
         "DesiredState": 1,
         "ParentServiceID": ""
       }
@@ -120,7 +120,7 @@ class _Value(object):
 # The set of keys found in a service definition JSON object.
 # Used to identify such objects.
 _definitionKeys = set([
-    "Id", "Name", "ParentServiceID", "PoolId", "Description", "Launch",
+    "Id", "Name", "ParentServiceID", "PoolID", "Description", "Launch",
     "DesiredState", "Tags", "ConfigFiles"
 ])
 
@@ -129,7 +129,7 @@ _definitionKeys = set([
 _instanceKeys = set([
     "Id", "ServiceID", "HostID", "DockerID", "StartedAt", "Name",
     "Startup", "Description", "Instances", "ImageID",
-    "PoolId", "DesiredState", "ParentServiceID"
+    "PoolID", "DesiredState", "ParentServiceID"
 ])
 
 
@@ -264,7 +264,7 @@ class ServiceDefinition(object):
 
     @property
     def poolId(self):
-        return self._data.get('PoolId')
+        return self._data.get('PoolID')
 
     @property
     def resourceId(self):

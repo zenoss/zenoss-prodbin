@@ -31,7 +31,7 @@ definition_json_src = """[{
 "ConfigFiles": null,
 "Instances": 1,
 "ImageID": "zenoss/zenoss5x",
-"PoolId": "default",
+"PoolID": "default",
 "DesiredState": 1,
 "Launch": "auto",
 "Endpoints": [
@@ -68,7 +68,7 @@ definition_json_obj = {
     "ConfigFiles": None,
     "Instances": 1,
     "ImageID": "zenoss/zenoss5x",
-    "PoolId": "default",
+    "PoolID": "default",
     "DesiredState": 1,
     "Launch": "auto",
     "Endpoints": [
@@ -102,7 +102,7 @@ instance_json_src = """[{
 "Description": "",
 "Instances": 1,
 "ImageID": "zenoss/zenoss5x",
-"PoolId": "default",
+"PoolID": "default",
 "DesiredState": 1,
 "ParentServiceID": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
 }]"""
@@ -118,7 +118,7 @@ instance_json_obj = {
     "Description": "",
     "Instances": 1,
     "ImageID": "zenoss/zenoss5x",
-    "PoolId": "default",
+    "PoolID": "default",
     "DesiredState": 1,
     "ParentServiceID": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
 }

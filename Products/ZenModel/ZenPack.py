@@ -1184,7 +1184,7 @@ registerDirectory("skins", globals())
                                                           path)
             for parentService in parentServices:
                 service['ParentServiceID'] = parentService.id
-                service['PoolId'] = parentService.poolId
+                service['PoolID'] = parentService.poolId
                 cpClient.addService(json.dumps(service))
 
 

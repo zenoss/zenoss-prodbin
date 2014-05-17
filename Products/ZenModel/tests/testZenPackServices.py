@@ -111,7 +111,7 @@ class TestZenpackServices(ZenModelBaseTest):
         added = json.loads(client.added[0])
         self.assertEquals(added['Id'], 'id')
         self.assertEquals(added['ParentServiceID'], 'hub1')
-        self.assertEquals(added['PoolId'], 'default')
+        self.assertEquals(added['PoolID'], 'default')
 
     def testAddMultipleServices(self):
         client = _MockControlPlaneClient(services=_services)
