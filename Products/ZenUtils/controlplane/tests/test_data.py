@@ -93,7 +93,7 @@ definition_json_obj = {
 
 instance_json_src = """[{
 "Id": "35948b18-86d5-780d-e9b7-37614e7c1755",
-"ServiceId": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
+"ServiceID": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
 "HostId": "007f0101",
 "DockerId": "9012fe5973bb3f4648ee94614123ca4da4e1612cbf428695fc555f3abbc238bc",
 "StartedAt": "2013-12-13T10:53:05.41346859-06:00",
@@ -109,7 +109,7 @@ instance_json_src = """[{
 
 instance_json_obj = {
     "Id": "35948b18-86d5-780d-e9b7-37614e7c1755",
-    "ServiceId": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
+    "ServiceID": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
     "HostId": "007f0101",
     "DockerId": "9012fe5973bb3f4648ee94614123ca4da4e1612cbf428695fc555f3abbc238bc",
     "StartedAt": "2013-12-13T10:53:05.41346859-06:00",
@@ -239,7 +239,7 @@ class ServiceInstanceTest(BaseTestCase):
 
     def testServiceId(self):
         self.assertEqual(
-            self.svcinst.serviceId, instance_json_obj["ServiceId"])
+            self.svcinst.serviceId, instance_json_obj["ServiceID"])
 
     def testHostId(self):
         self.assertEqual(self.svcinst.hostId, instance_json_obj["HostId"])
@@ -248,7 +248,7 @@ class ServiceInstanceTest(BaseTestCase):
         self.assertEqual(
             self.svcinst.resourceId,
             "/services/%s/running/%s" % (
-                instance_json_obj["ServiceId"], instance_json_obj["Id"]
+                instance_json_obj["ServiceID"], instance_json_obj["Id"]
             )
         )
 

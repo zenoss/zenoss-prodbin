@@ -25,7 +25,7 @@ Application JSON format:
         #"Running": [
         #    {
         #      "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
-        #      "ServiceId": "c412e4cf-48be-b53d-d144-867ffa596ffa",
+        #      "ServiceID": "c412e4cf-48be-b53d-d144-867ffa596ffa",
         #      "HostId": "007f0101",
         #      "DockerId": "3b52fc18767f",
         #      "StartedAt": "2013-10-29T17:59:13-05:00",
@@ -59,7 +59,7 @@ Application JSON format:
     [
       {
         "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
-        "ServiceId": "c412e4cf-48be-b53d-d144-867ffa596ffa",
+        "ServiceID": "c412e4cf-48be-b53d-d144-867ffa596ffa",
         "HostId": "007f0101",
         "DockerId": "3b52fc18767f",
         "StartedAt": "2013-10-29T17:59:13-05:00",
@@ -127,7 +127,7 @@ _definitionKeys = set([
 # The set of keys found in a service instance JSON object.
 # Used to identify such objects.
 _instanceKeys = set([
-    "Id", "ServiceId", "HostId", "DockerId", "StartedAt", "Name",
+    "Id", "ServiceID", "HostId", "DockerId", "StartedAt", "Name",
     "Startup", "Description", "Instances", "ImageId",
     "PoolId", "DesiredState", "ParentServiceID"
 ])
@@ -196,12 +196,12 @@ class ServiceInstance(object):
     @property
     def resourceId(self):
         return "/services/%s/running/%s" % (
-            self._data.get("ServiceId"), self._data.get("Id")
+            self._data.get("ServiceID"), self._data.get("Id")
         )
 
     @property
     def serviceId(self):
-        return self._data.get("ServiceId")
+        return self._data.get("ServiceID")
 
     @property
     def hostId(self):
