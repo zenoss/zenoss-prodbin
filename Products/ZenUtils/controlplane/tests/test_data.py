@@ -30,8 +30,8 @@ definition_json_src = """[{
 ],
 "ConfigFiles": null,
 "Instances": 1,
-"ImageId": "zenoss/zenoss5x",
-"PoolId": "default",
+"ImageID": "zenoss/zenoss5x",
+"PoolID": "default",
 "DesiredState": 1,
 "Launch": "auto",
 "Endpoints": [
@@ -48,7 +48,7 @@ definition_json_src = """[{
         "Purpose": "import"
     }
 ],
-"ParentServiceId": "02ef8505-eebd-6493-0c6c-630287847688",
+"ParentServiceID": "02ef8505-eebd-6493-0c6c-630287847688",
 "Volumes": null,
 "CreatedAt": "2013-12-12T09:07:51.172715172-06:00",
 "UpdatedAt": "2013-12-12T09:30:12.341234232-06:00"
@@ -67,8 +67,8 @@ definition_json_obj = {
     ],
     "ConfigFiles": None,
     "Instances": 1,
-    "ImageId": "zenoss/zenoss5x",
-    "PoolId": "default",
+    "ImageID": "zenoss/zenoss5x",
+    "PoolID": "default",
     "DesiredState": 1,
     "Launch": "auto",
     "Endpoints": [
@@ -85,7 +85,7 @@ definition_json_obj = {
             "Purpose": "import"
         }
     ],
-    "ParentServiceId": "02ef8505-eebd-6493-0c6c-630287847688",
+    "ParentServiceID": "02ef8505-eebd-6493-0c6c-630287847688",
     "Volumes": None,
     "CreatedAt": "2013-12-12T09:07:51.172715172-06:00",
     "UpdatedAt": "2013-12-12T09:30:12.341234232-06:00"
@@ -93,34 +93,34 @@ definition_json_obj = {
 
 instance_json_src = """[{
 "Id": "35948b18-86d5-780d-e9b7-37614e7c1755",
-"ServiceId": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
-"HostId": "007f0101",
-"DockerId": "9012fe5973bb3f4648ee94614123ca4da4e1612cbf428695fc555f3abbc238bc",
+"ServiceID": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
+"HostID": "007f0101",
+"DockerID": "9012fe5973bb3f4648ee94614123ca4da4e1612cbf428695fc555f3abbc238bc",
 "StartedAt": "2013-12-13T10:53:05.41346859-06:00",
 "Name": "ZenHub",
 "Startup": "su - zenoss -c \\"/opt/zenoss/bin/zenhub run -v10\\"",
 "Description": "",
 "Instances": 1,
-"ImageId": "zenoss/zenoss5x",
-"PoolId": "default",
+"ImageID": "zenoss/zenoss5x",
+"PoolID": "default",
 "DesiredState": 1,
-"ParentServiceId": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
+"ParentServiceID": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
 }]"""
 
 instance_json_obj = {
     "Id": "35948b18-86d5-780d-e9b7-37614e7c1755",
-    "ServiceId": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
-    "HostId": "007f0101",
-    "DockerId": "9012fe5973bb3f4648ee94614123ca4da4e1612cbf428695fc555f3abbc238bc",
+    "ServiceID": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
+    "HostID": "007f0101",
+    "DockerID": "9012fe5973bb3f4648ee94614123ca4da4e1612cbf428695fc555f3abbc238bc",
     "StartedAt": "2013-12-13T10:53:05.41346859-06:00",
     "Name": "ZenHub",
     "Startup": "su - zenoss -c \"/opt/zenoss/bin/zenhub run -v10\"",
     "Description": "",
     "Instances": 1,
-    "ImageId": "zenoss/zenoss5x",
-    "PoolId": "default",
+    "ImageID": "zenoss/zenoss5x",
+    "PoolID": "default",
     "DesiredState": 1,
-    "ParentServiceId": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
+    "ParentServiceID": "0bcc7571-5b3d-6044-2bf6-e783e915e5b9"
 }
 
 
@@ -239,16 +239,16 @@ class ServiceInstanceTest(BaseTestCase):
 
     def testServiceId(self):
         self.assertEqual(
-            self.svcinst.serviceId, instance_json_obj["ServiceId"])
+            self.svcinst.serviceId, instance_json_obj["ServiceID"])
 
     def testHostId(self):
-        self.assertEqual(self.svcinst.hostId, instance_json_obj["HostId"])
+        self.assertEqual(self.svcinst.hostId, instance_json_obj["HostID"])
 
     def testResourceId(self):
         self.assertEqual(
             self.svcinst.resourceId,
             "/services/%s/running/%s" % (
-                instance_json_obj["ServiceId"], instance_json_obj["Id"]
+                instance_json_obj["ServiceID"], instance_json_obj["Id"]
             )
         )
 

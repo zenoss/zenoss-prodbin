@@ -1183,8 +1183,8 @@ registerDirectory("skins", globals())
             parentServices = serviceTree.matchServicePath(self.currentServiceId,
                                                           path)
             for parentService in parentServices:
-                service['ParentServiceId'] = parentService.id
-                service['PoolId'] = parentService.poolId
+                service['ParentServiceID'] = parentService.id
+                service['PoolID'] = parentService.poolId
                 cpClient.addService(json.dumps(service))
 
 

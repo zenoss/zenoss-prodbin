@@ -25,9 +25,9 @@ Application JSON format:
         #"Running": [
         #    {
         #      "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
-        #      "ServiceId": "c412e4cf-48be-b53d-d144-867ffa596ffa",
-        #      "HostId": "007f0101",
-        #      "DockerId": "3b52fc18767f",
+        #      "ServiceID": "c412e4cf-48be-b53d-d144-867ffa596ffa",
+        #      "HostID": "007f0101",
+        #      "DockerID": "3b52fc18767f",
         #      "StartedAt": "2013-10-29T17:59:13-05:00",
         #    }
         #]
@@ -39,8 +39,8 @@ Application JSON format:
                 "Content": "\n# SAMPLE config file for mysql\n\n[mysqld]\n\ninnodb_buffer_pool_size = 16G\n\n"
             }
         },
-        "ImageId":         "zenoss",
-        "PoolId":          "default",
+        "ImageID":         "zenoss",
+        "PoolID":          "default",
         "DesiredState":    1,
         "Launch":          "auto",
         "Endpoints":       {
@@ -49,7 +49,7 @@ Application JSON format:
             "Application": "redis",
             "Purpose": "export"
         },
-        "ParentServiceId": "293482085035",
+        "ParentServiceID": "293482085035",
         "CreatedAt":       "0001-01-01T00:00:00Z",
         "UpdatedAt":       "2013-10-29T07:31:22-05:00"
     }
@@ -59,18 +59,18 @@ Application JSON format:
     [
       {
         "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
-        "ServiceId": "c412e4cf-48be-b53d-d144-867ffa596ffa",
-        "HostId": "007f0101",
-        "DockerId": "3b52fc18767f",
+        "ServiceID": "c412e4cf-48be-b53d-d144-867ffa596ffa",
+        "HostID": "007f0101",
+        "DockerID": "3b52fc18767f",
         "StartedAt": "2013-10-29T17:59:13-05:00",
         "Name": "redis",
         "Startup": "/usr/sbin/redis-server",
         "Description": "",
         "Instances": 1,
-        "ImageId": "zenoss/redis",
-        "PoolId": "default",
+        "ImageID": "zenoss/redis",
+        "PoolID": "default",
         "DesiredState": 1,
-        "ParentServiceId": ""
+        "ParentServiceID": ""
       }
     ]
 
@@ -120,16 +120,16 @@ class _Value(object):
 # The set of keys found in a service definition JSON object.
 # Used to identify such objects.
 _definitionKeys = set([
-    "Id", "Name", "ParentServiceId", "PoolId", "Description", "Launch",
+    "Id", "Name", "ParentServiceID", "PoolID", "Description", "Launch",
     "DesiredState", "Tags", "ConfigFiles"
 ])
 
 # The set of keys found in a service instance JSON object.
 # Used to identify such objects.
 _instanceKeys = set([
-    "Id", "ServiceId", "HostId", "DockerId", "StartedAt", "Name",
-    "Startup", "Description", "Instances", "ImageId",
-    "PoolId", "DesiredState", "ParentServiceId"
+    "Id", "ServiceID", "HostID", "DockerID", "StartedAt", "Name",
+    "Startup", "Description", "Instances", "ImageID",
+    "PoolID", "DesiredState", "ParentServiceID"
 ])
 
 
@@ -196,16 +196,16 @@ class ServiceInstance(object):
     @property
     def resourceId(self):
         return "/services/%s/running/%s" % (
-            self._data.get("ServiceId"), self._data.get("Id")
+            self._data.get("ServiceID"), self._data.get("Id")
         )
 
     @property
     def serviceId(self):
-        return self._data.get("ServiceId")
+        return self._data.get("ServiceID")
 
     @property
     def hostId(self):
-        return self._data.get("HostId")
+        return self._data.get("HostID")
 
     @property
     @_convertToDateTime
@@ -260,11 +260,11 @@ class ServiceDefinition(object):
 
     @property
     def parentId(self):
-        return self._data.get('ParentServiceId')
+        return self._data.get('ParentServiceID')
 
     @property
     def poolId(self):
-        return self._data.get('PoolId')
+        return self._data.get('PoolID')
 
     @property
     def resourceId(self):
