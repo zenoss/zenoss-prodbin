@@ -1130,7 +1130,8 @@ registerDirectory("skins", globals())
          servicePath: a service path indicating where this service should be installed.
             See ServiceTree.matchServicePath for description of service path
          serviceDefinition: a service definition object which will be sent to
-            controlplane.  See ZenUtils.controlplane.ServiceDefinition
+            controlplane.  Service definition examples may be be seen by running
+            $ serviced template list $TEMPLATE_ID
         Each service will be tagged with the given tag in order to enable discovery
         for ZenPack removal.
 
@@ -1159,7 +1160,7 @@ registerDirectory("skins", globals())
              location in the service tree.  Multiple service/location pairs can
              be specified.
 
-        :param serviceDefs: json encoded representation(s) of service to add
+        :param serviceDefs: json encoded representation(s) of service definition
         :type serviceDefs: string or iterable of strings
         :param servicePaths: service path(s) at which to install service
         :type servicePaths: string or iterable of strings.  See
@@ -1179,13 +1180,10 @@ registerDirectory("skins", globals())
         services = cpClient.queryServices("*")
         serviceTree = ServiceTree(services)
         for path, serviceDef in zip(servicePaths, serviceDefs):
-            service = json.loads(serviceDef)
             parentServices = serviceTree.matchServicePath(self.currentServiceId,
                                                           path)
             for parentService in parentServices:
-                service['ParentServiceID'] = parentService.id
-                service['PoolID'] = parentService.poolId
-                cpClient.addService(json.dumps(service))
+                cpClient.deployService(parentService.id, serviceDef)
 
 
     def removeServices(self, tag):

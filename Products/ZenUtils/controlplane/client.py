@@ -136,6 +136,27 @@ class ControlPlaneClient(object):
         )
         response.close()
 
+    def deployService(self, parentId, service):
+        """
+        Deploy a new service
+
+        :param string parentId: parent service id
+        :param string service: json encoded representation of service
+        :returns string: json encoded representation of new service's links
+        """
+        LOG.info("Deploying service")
+        data = {
+            'ParentID': parentId,
+            'Service': json.loads(service)
+        }
+        LOG.debug(data)
+        response = self._dorequest(
+            "/services/deploy", method="POST", data=json.dumps(data)
+        )
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
     def queryServiceInstances(self, serviceId):
         """
         Returns a sequence of ServiceInstance objects.
