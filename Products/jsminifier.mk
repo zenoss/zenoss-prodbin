@@ -259,38 +259,40 @@ $(externaldir) $(manifestdir) $(jsminifier_unpack_dir) $(exportdir):
 .PHONY: download
 download: $(jsminifier_archive_downloaded)
 
-.ONESHELL: $(externaldir)/%.tar.gz $(externaldir)/%.zip
 $(externaldir)/%.tar.gz : local_path     = $($(@F)_local_path)
 $(externaldir)/%.tar.gz : upstream_url   = $($(@F)_upstream_url)
 $(externaldir)/%.tar.gz : downstream_url = $($(@F)_downstream_url)
 $(externaldir)/%.zip    : local_path     = $($(@F)_local_path)
 $(externaldir)/%.zip    : upstream_url   = $($(@F)_upstream_url)
 $(externaldir)/%.zip    : downstream_url = $($(@F)_downstream_url)
+ifeq "$(_prefer_downstream)" "yes"
+$(externaldir)/%.tar.gz : download_url_list = $($(@F)_downstream_url) $($(@F)_upstream_url)
+$(externaldir)/%.zip    : download_url_list = $($(@F)_downstream_url) $($(@F)_upstream_url)
+else
+$(externaldir)/%.tar.gz : download_url_list = $($(@F)_upstream_url) $($(@F)_downstream_url)
+$(externaldir)/%.zip    : download_url_list = $($(@F)_upstream_url) $($(@F)_downstream_url)
+endif
 #---------------------------------------------------------------------------#
 $(externaldir)/%.tar.gz $(externaldir)/%.zip: | $(externaldir) $(jsminifier_unpack_dir)
-	@if [ -f "$(local_path)" ];then
-		$(call cmd_noat,CP,$(local_path),$@)
-		rc=$$?
-		if [ $${rc} -ne 0 ];then
-			exit $${rc}
-		fi
-	else
-ifeq "$(_prefer_downstream)" "yes"
-		for archive_url in $(downstream_url) $(upstream_url)
-else
-		for archive_url in $(upstream_url) $(downstream_url)
-endif
-		do
-			($(call cmd_noat,CURL,$@,$${archive_url}))
-			rc=$$?
-			if [ $${rc} -eq 0 ];then
-				break
-			fi
-		done
-	fi
-	if [ ! -f "$@" ];then
-		echo "Unable to stage $@"
-		exit 1
+	@if [ -f "$(local_path)" ];then \
+		$(call cmd_noat,CP,$(local_path),$@) ;\
+		rc=$$? ;\
+		if [ $${rc} -ne 0 ];then \
+			exit $${rc} ;\
+		fi ;\
+	else \
+		for archive_url in $(download_url_list) ;\
+		do \
+			($(call cmd_noat,CURL,$@,$${archive_url})) ;\
+			rc=$$? ;\
+			if [ $${rc} -eq 0 ];then \
+				break ;\
+			fi ;\
+		done ;\
+	fi ;\
+	if [ ! -f "$@" ];then \
+		echo "Unable to stage $@" ;\
+		exit 1 ;\
 	fi
 
 ifeq "$(check_md5)" "yes"
@@ -308,30 +310,30 @@ ifeq "$(check_md5)" "yes"
 %.md5chk: expected_zd5 = $($(patsubst %.md5chk,%,$(@F))_zd5)
 %.md5chk: archive      = $(patsubst %.md5chk,%,$@)
 %.md5chk: %
-	@if [ -z "$(expected_md5)" -a -z "$(expected_zd5)" ];then
-		echo "Expected md5 sum for $(archive) is unknown."
-		echo "Please make this known to the makefile if you want md5 sum checking."
-		exit 1
-	fi
-	actual_md5=$$(md5sum $(archive) | awk '{print $$1}')
-	valid_md5_list="$(expected_md5) $(expected_zd5) end_of_list"
-	for valid_md5 in $${valid_md5_list}
-	do
-		case $${valid_md5} in
-			"end_of_list")
-				echo "md5 check failed for $@"
-				exit 1
-				;;
-			[0-9,a-f,A-F]*)
-				if [ "$${actual_md5}" = "$${valid_md5}" ];then
-					echo $${actual_md5} > $@
-					break
-				fi
-				;;
-			*)
-				echo "unexpected md5 string: $${valid_md5}"
-				;;
-		esac
+	@if [ -z "$(expected_md5)" -a -z "$(expected_zd5)" ];then \
+		echo "Expected md5 sum for $(archive) is unknown." ;\
+		echo "Please make this known to the makefile if you want md5 sum checking." ;\
+		exit 1 ;\
+	fi ;\
+	actual_md5=$$(md5sum $(archive) | awk '{print $$1}') ;\
+	valid_md5_list="$(expected_md5) $(expected_zd5) end_of_list" ;\
+	for valid_md5 in $${valid_md5_list} ;\
+	do \
+		case $${valid_md5} in \
+			"end_of_list") \
+				echo "md5 check failed for $@" ;\
+				exit 1 ;\
+				;; \
+			[0-9,a-f,A-F]*) \
+				if [ "$${actual_md5}" = "$${valid_md5}" ];then \
+					echo $${actual_md5} > $@ ;\
+					break ;\
+				fi ;\
+				;; \
+			*) \
+				echo "unexpected md5 string: $${valid_md5}" ;\
+				;; \
+		esac ;\
 	done
 endif
 
@@ -388,13 +390,14 @@ export: $(jsminifier_jar_exported)
 
 $(jsminifier_jar_exported): $(built_jsminifier) | $(exportdir)
 	@if [ ! -f "$(built_jsminifier)" ]; then \
-                echo "Unable to export $(program).  Missing $(built_jsminifier)." ;\
-                echo $(LINE) ;\
-                echo "Run 'make -f ${MKFILE} build' first" ;\
-                echo ;\
-                exit 1 ;\
-        fi
-	$(call cmd,RSYNC,$(dflt_rsync_OPTS) $(jsminifier_rsync_OPTS),$(dir $(built_jsminifier)),$(abspath $(@D)))
+		echo "Unable to export $(program).  Missing $(built_jsminifier)." ;\
+		echo $(LINE) ;\
+		echo "Run 'make -f ${MKFILE} build' first" ;\
+		echo ;\
+		exit 1 ;\
+	else \
+		$(call cmd_noat,RSYNC,$(dflt_rsync_OPTS) $(jsminifier_rsync_OPTS),$(dir $(built_jsminifier)),$(abspath $(@D))) ;\
+	fi
 
 #---------------------------------------------------------------------------#
 # Create the install directory.  If the DESTDIR variable
@@ -438,7 +441,7 @@ $(_DESTDIR)$(prefix) $(_DESTDIR)$(prefix)/$(jsminifier_jar_inst_dir):
 .PHONY: install
 install: install_dir = $(_DESTDIR)$(prefix)/$(jsminifier_jar_inst_dir)
 install: $(files_manifest) $(links_manifest) $(dirs_manifest)
-install: | $(_DESTDIR)$(prefix) $(_DESTDIR)$(prefix)/$(jsminifier_jar_inst_dir) $(_COMPONENT).log
+install: | $(_DESTDIR)$(prefix) $(_DESTDIR)$(prefix)/$(jsminifier_jar_inst_dir) $(BUILD_LOG)
 	@if [ ! -f "$(built_jsminifier)" ]; then \
                 echo "Unable to install $(program).  Missing $(built_jsminifier)." ;\
                 echo $(LINE) ;\
@@ -496,7 +499,7 @@ install: | $(_DESTDIR)$(prefix) $(_DESTDIR)$(prefix)/$(jsminifier_jar_inst_dir) 
 #---------------------------------------------------------------------------#
 .PHONY: installhere
 installhere: install_dir = $(_DESTDIR)$(prefix)/$(jsminifier_jar_inst_dir)
-installhere: | $(_COMPONENT).log
+installhere: | $(BUILD_LOG)
 	@if [ ! -f "$(built_jsminifier)" ]; then \
                 echo "Unable to install $(program).  Missing $(built_jsminifier)." ;\
                 echo $(LINE) ;\
@@ -553,104 +556,103 @@ manifests: $(files_manifest) $(links_manifest) $(dirs_manifest)
 #---------------------------------------------------------------------------#
 # Manifest-based uninstall.
 #---------------------------------------------------------------------------#
-.ONESHELL: uninstall
 .PHONY: uninstall
-uninstall: | $(_COMPONENT).log
-	@if [ ! -d "$(_DESTDIR)$(prefix)" ];then
-		echo
-		echo "$(_DESTDIR)$(prefix) not found.  Nothing to uninstall."
-		echo
-	else
-		if [ ! -w "$(_DESTDIR)$(prefix)" ];then
-			echo "Unable to remove files under $(_DESTDIR)$(prefix)"
-			echo "Maybe you intended 'sudo make -f $(MKFILE) uninstall' instead?"
-			echo
-		else
-			count=`ls -a1 $(_DESTDIR)$(prefix) 2>/dev/null | wc -l`
-			if ((count<=2));then
-				echo
-				echo "Nothing to uninstall under $(_DESTDIR)$(prefix)"
-				echo
-				exit 0
-			fi
-			if [ ! -f "$(files_manifest)" -o ! -f "$(dirs_manifest)" ];then
-				echo
-				echo "Unable to uninstall without a manifest of installed files and directories."
-				echo
-				echo "Please run: 'make -f $(MKFILE) manifests uninstall'"
-				echo
-				exit 1
-			else
-				saveIFS=$(IFS)
-				IFS=$(echo -en "\n\b")
-				while read delFile
-				do
-					_delFile=$(_DESTDIR)$${delFile}
-					if [ -f "$${_delFile}" -o -L "$${_delFile}" ];then
-						($(call cmd_noat,RM,$${_delFile}))
-						rc=$$?
-						if [ $${rc} -ne 0 ];then
-							echo "Error removing $${_delFile}"
-							echo "Giving up on $@."
-							echo "Maybe you intended 'sudo make -f $(MKFILE) uninstall' instead?"
-							IFS=$${saveIFS}
-							exit $${rc} 
-						fi
-					fi
-				done < $(files_manifest)
-				while read delLink
-				do
-					_delLink=$(_DESTDIR)$${delLink}
-					if [ -L "$${_delLink}" -o -f "$${_delLink}" ];then
-						($(call cmd_noat,RMLINK,$${_delLink}))
-						rc=$$?
-						if [ $${rc} -ne 0 ];then
-							echo "Error removing $${_delLink}"
-							echo "Giving up on $@."
-							echo "Maybe you intended 'sudo make -f $(MKFILE) uninstall' instead?"
-							IFS=$${saveIFS}
-							exit $${rc}
-						fi
-					fi
-				done < $(links_manifest)
-				if find $(_DESTDIR)$(prefix) -type f -o -type l 2>/dev/null 1>&2 ;then
-					while read delDir
-					do
-						case $${delDir} in
-							/|/usr|/opt|/etc|/var|/bin|/sbin|/lib|/home|/root|/sys|/dev|/boot)	
-								:;;
-							*)
-								_delDir=$(_DESTDIR)$${delDir}
-								if [ -d "$${_delDir}" ];then
-									count=`ls -a1 $${_delDir} 2>/dev/null | wc -l`
-									if ((count<=2));then
-										($(call cmd_noat,RMDIR,$${_delDir}))
-										rc=$$?
-										if [ $${rc} -ne 0 ];then
-											echo "Error removing $${_delDir}"
-											echo "   rm -rf $${_delDir}"
-											echo "Giving up on $@."
-											echo "Maybe you intended 'sudo make -f $(MKFILE) uninstall' instead?"
-											echo "Otherwise you will need to manually remove python from $(_DESTDIR)$(prefix)"
-											IFS=$${saveIFS}
-											exit 1 
-										fi
-									else
-										$(call echol, "Skipping $${_delDir}.  Non-empty.","SKIP   $${_delDir}.  Non-empty.")
-									fi
-								fi
-								;;
-						esac
-					done < $(dirs_manifest)
-				fi
-				IFS=$${saveIFS}
-				if [ -d "$(heredir)" ];then
-					if ! $(MAKE) -f $(MKFILE) --no-print-directory uninstallhere ;then
-						exit 1
-					fi
-				fi
-			fi
-		fi
+uninstall: | $(BUILD_LOG)
+	@if [ ! -d "$(_DESTDIR)$(prefix)" ];then \
+		echo ;\
+		echo "$(_DESTDIR)$(prefix) not found.  Nothing to uninstall." ;\
+		echo ;\
+	else \
+		if [ ! -w "$(_DESTDIR)$(prefix)" ];then \
+			echo "Unable to remove files under $(_DESTDIR)$(prefix)" ;\
+			echo "Maybe you intended 'sudo make -f $(MKFILE) uninstall' instead?" ;\
+			echo ;\
+		else \
+			count=`ls -a1 $(_DESTDIR)$(prefix) 2>/dev/null | wc -l` ;\
+			if ((count<=2));then \
+				echo ;\
+				echo "Nothing to uninstall under $(_DESTDIR)$(prefix)" ;\
+				echo ;\
+				exit 0 ;\
+			fi ;\
+			if [ ! -f "$(files_manifest)" -o ! -f "$(dirs_manifest)" ];then \
+				echo ;\
+				echo "Unable to uninstall without a manifest of installed files and directories." ;\
+				echo ;\
+				echo "Please run: 'make -f $(MKFILE) manifests uninstall'" ;\
+				echo ;\
+				exit 1 ;\
+			else \
+				saveIFS=$(IFS) ;\
+				IFS=$(echo -en "\n\b") ;\
+				while read delFile ;\
+				do \
+					_delFile=$(_DESTDIR)$${delFile} ;\
+					if [ -f "$${_delFile}" -o -L "$${_delFile}" ];then \
+						($(call cmd_noat,RM,$${_delFile})) ;\
+						rc=$$? ;\
+						if [ $${rc} -ne 0 ];then \
+							echo "Error removing $${_delFile}" ;\
+							echo "Giving up on $@." ;\
+							echo "Maybe you intended 'sudo make -f $(MKFILE) uninstall' instead?" ;\
+							IFS=$${saveIFS} ;\
+							exit $${rc}  ;\
+						fi ;\
+					fi ;\
+				done < $(files_manifest) ;\
+				while read delLink ;\
+				do \
+					_delLink=$(_DESTDIR)$${delLink} ;\
+					if [ -L "$${_delLink}" -o -f "$${_delLink}" ];then \
+						($(call cmd_noat,RMLINK,$${_delLink})) ;\
+						rc=$$? ;\
+						if [ $${rc} -ne 0 ];then \
+							echo "Error removing $${_delLink}" ;\
+							echo "Giving up on $@." ;\
+							echo "Maybe you intended 'sudo make -f $(MKFILE) uninstall' instead?" ;\
+							IFS=$${saveIFS} ;\
+							exit $${rc} ;\
+						fi ;\
+					fi ;\
+				done < $(links_manifest) ;\
+				if find $(_DESTDIR)$(prefix) -type f -o -type l 2>/dev/null 1>&2 ;then \
+					while read delDir ;\
+					do \
+						case $${delDir} in \
+							/|/usr|/opt|/etc|/var|/bin|/sbin|/lib|/home|/root|/sys|/dev|/boot) \
+								:;; \
+							*) \
+								_delDir=$(_DESTDIR)$${delDir} ;\
+								if [ -d "$${_delDir}" ];then \
+									count=`ls -a1 $${_delDir} 2>/dev/null | wc -l` ;\
+									if ((count<=2));then \
+										($(call cmd_noat,RMDIR,$${_delDir})) ;\
+										rc=$$? ;\
+										if [ $${rc} -ne 0 ];then \
+											echo "Error removing $${_delDir}" ;\
+											echo "   rm -rf $${_delDir}" ;\
+											echo "Giving up on $@." ;\
+											echo "Maybe you intended 'sudo make -f $(MKFILE) uninstall' instead?" ;\
+											echo "Otherwise you will need to manually remove python from $(_DESTDIR)$(prefix)" ;\
+											IFS=$${saveIFS} ;\
+											exit 1  ;\
+										fi ;\
+									else \
+										$(call echol, "Skipping $${_delDir}.  Non-empty.","SKIP   $${_delDir}.  Non-empty.") ;\
+									fi ;\
+								fi ;\
+								;; \
+						esac ;\
+					done < $(dirs_manifest) ;\
+				fi ;\
+				IFS=$${saveIFS} ;\
+				if [ -d "$(heredir)" ];then ;\
+					if ! $(MAKE) -f $(MKFILE) --no-print-directory uninstallhere ;then \
+						exit 1 ;\
+					fi ;\
+				fi ;\
+			fi ;\
+		fi ;\
 	fi
 
 .PHONY: help
@@ -749,7 +751,7 @@ mrclean distclean: clean dflt_component_distclean
 			$(call cmd_noat,RMDIR,$${deldir}) ;\
 		fi ;\
 	done
-	@for delfile in $(_COMPONENT).log ;\
+	@for delfile in $(BUILD_LOG) ;\
 	do \
 		if [ -f "$${delfile}" ];then \
 			$(RM) $${delfile} ;\
@@ -757,11 +759,7 @@ mrclean distclean: clean dflt_component_distclean
 	done
 
 .PHONY: uninstallhere
-uninstallhere: | $(_COMPONENT).log
+uninstallhere: | $(BUILD_LOG)
 	@if [ -d "$(heredir)" ];then \
 		$(call cmd_noat,RMDIR,$(heredir)) ;\
 	fi
-
-$(_COMPONENT).log:
-	$(call cmd,TOUCH,$@)
-	$(call cmd,CHOWN,,$(INST_OWNER),$(INST_GROUP),$@)

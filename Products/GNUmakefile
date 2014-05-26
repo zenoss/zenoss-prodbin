@@ -45,6 +45,10 @@ GRANULAR_DEV      ?= no
 #
 CHOWN_LINKS       ?= no
 
+# This suppresses some gnumake chatter when it enters / leaves subdirectories.
+gnumake_suppress_EnteringDir = --no-print-directory
+gnumake_OPTS  := $(gnumake_suppress_EnteringDir)
+
 #---------------------------------------------------------------------------#
 # Pull in zenmagic.mk
 #---------------------------------------------------------------------------#
@@ -146,9 +150,18 @@ zenoss_compiled_js_name := $(shell grep file.*js $(zenoss_jsbmake) | awk '{print
 
 # Extract the output directory from the json control file:
 #
-#    e.g., resources/js/deploy
+#    ZenUI3/browser/zenoss.jsb2
+#    --------------------------
+#    ...
+#    "deployDir": "resources/js/deploy",
+#                  ---------+---------
+#                           |
+#                           +--- jsb_deploy_dir
 #
 jsb_deploy_dir := $(shell grep deployDir.*: $(zenoss_jsbmake) | awk '{print $$2}' | tr -d [\",])
+
+#
+# e.g., ZenUI3/browser/resources/js/deploy
 jsb_output_dir := $(zenoss_jsbasedir)/$(jsb_deploy_dir)
 
 zenoss_compiled_js  = $(jsb_output_dir)/$(zenoss_compiled_js_name)
@@ -188,11 +201,11 @@ $(blddir)/__init__.py: | $(blddir)
 $(blddir)/__init__.py: $(blddir)/% : %
 	$(call cmd,RSYNC,$(dflt_rsync_OPTS),$<,$(@D))
 
-$(blddir) $(built_Products_dirs) $(manifestdir) $(dir $(zenoss_blddir_js)) $(blddir)/$(jsb_output_dir):
+$(blddir) $(built_Products_dirs) $(manifestdir) $(dir $(zenoss_blddir_js)):
 	$(call cmd,MKDIR,$@)
 
-.PHONY: js javascript
-js javascript: $(zenoss_blddir_js)
+.PHONY: js 
+js: $(zenoss_blddir_js)
 
 $(sencha_jsbuilder): exportdir = $(dir $(sencha_jsbuilder))
 $(sencha_jsbuilder): | jsminifier.mk
@@ -225,10 +238,6 @@ $(_DESTDIR)$(prefix):
 		fi ;\
 	fi
 
-$(_COMPONENT).log:
-	$(call cmd,TOUCH,$@)
-	$(call cmd,CHOWN,,$(INST_OWNER),$(INST_GROUP),$@)
-	
 #---------------------------------------------------------------------------#
 # Provide a dev-friendly install target that just symlinks the installed 
 # Products directory back to your sandbox of checked out source:
@@ -239,57 +248,56 @@ $(_COMPONENT).log:
 # back to version control.
 #---------------------------------------------------------------------------#
 .PHONY: devinstall
-.ONESHELL: devinstall
-devinstall: | $(_DESTDIR)$(prefix) $(_COMPONENT).log
-	@if [ -L "$(_DESTDIR)$(instdir)" ];then
-		instdirLink=`$(READLINK) -m $(_DESTDIR)$(instdir)`
-		if [ "$${instdirLink}" != "`pwd`" ];then
-			($(call cmd_noat,RM,$(_DESTDIR)$(instdir)))
-			rc=$$?
-			if [ $${rc} -ne 0 ];then
-				echo $(LINE)
-				echo
-				ls -l $(_DESTDIR)$(instdir)
-				echo
-				echo "Maybe you intended 'sudo make $@' instead?"
-				echo
-				exit 1
-			fi
-		else
-			echo "Already devinstalled:"
-			echo $(LINE)
-			ls -l $(_DESTDIR)$(instdir)
-			echo
-			exit 0
-		fi
+devinstall: | $(_DESTDIR)$(prefix) $(BUILD_LOG)
+	@if [ -L "$(_DESTDIR)$(instdir)" ];then \
+		instdirLink=`$(READLINK) -m $(_DESTDIR)$(instdir)` ;\
+		if [ "$${instdirLink}" != "`pwd`" ];then \
+			($(call cmd_noat,RM,$(_DESTDIR)$(instdir))) ;\
+			rc=$$? ;\
+			if [ $${rc} -ne 0 ];then \
+				echo $(LINE) ;\
+				echo ;\
+				ls -l $(_DESTDIR)$(instdir) ;\
+				echo ;\
+				echo "Maybe you intended 'sudo make $@' instead?" ;\
+				echo ;\
+				exit 1 ;\
+			fi ;\
+		else \
+			echo "Already devinstalled:" ;\
+			echo $(LINE) ;\
+			ls -l $(_DESTDIR)$(instdir) ;\
+			echo ;\
+			exit 0 ;\
+		fi ;\
+	fi ;\
+	if [ -d "$(_DESTDIR)$(instdir)" ];then \
+		echo $(LINE) ;\
+		echo "Warning: I want to $@ for you:" ;\
+		echo ;\
+		echo "   $(_DESTDIR)$(instdir) -> `pwd`" ;\
+		echo ;\
+		echo "but first you need to move your existing $(_DESTDIR)$(instdir) directory" ;\
+		echo "out of the way.  I don't want to kill something you may want." ;\
+		echo ;\
+		exit 1 ;\
+	fi ;\
+	if [ ! -w "$(_DESTDIR)$(prefix)" ];then \
+		echo $(LINE) ;\
+		echo "Error. You don't have permission to write files under $(_DESTDIR)$(prefix)." ;\
+		echo "Maybe you intended 'sudo make $@' instead?" ;\
+		echo ;\
+		exit 1 ;\
+	fi ;\
+	($(call cmd_noat,SYMLINK,`pwd`,$(_DESTDIR)$(instdir))) ;\
+	rc=$$? ;\
+	if [ $${rc} -ne 0 ];then \
+		echo $(LINE) ;\
+		echo "Maybe you intended 'sudo make $@' instead?" ;\
+		echo ;\
+		exit 1 ;\
 	fi
-	if [ -d "$(_DESTDIR)$(instdir)" ];then
-		echo $(LINE)
-		echo "Warning: I want to $@ for you:"
-		echo
-		echo "   $(_DESTDIR)$(instdir) -> `pwd`"
-		echo
-		echo "but first you need to move your existing $(_DESTDIR)$(instdir) directory"
-		echo "out of the way.  I don't want to kill something you may want."
-		echo
-		exit 1
-	fi
-	if [ ! -w "$(_DESTDIR)$(prefix)" ];then
-		echo $(LINE)
-		echo "Error. You don't have permission to write files under $(_DESTDIR)$(prefix)."
-		echo "Maybe you intended 'sudo make $@' instead?"
-		echo
-		exit 1
-	fi
-	($(call cmd_noat,SYMLINK,`pwd`,$(_DESTDIR)$(instdir)))
-	rc=$$?
-	if [ $${rc} -ne 0 ];then
-		echo $(LINE)
-		echo "Maybe you intended 'sudo make $@' instead?"
-		echo
-		exit 1
-	fi
-	-$(call cmd_noat,CHOWN_LINK,$(INST_OWNER),$(INST_GROUP),$(_DESTDIR)$(instdir)) 
+	-$(call cmd,CHOWN_LINK,$(INST_OWNER),$(INST_GROUP),$(_DESTDIR)$(instdir))
 
 #---------------------------------------------------------------------------#
 # Install the complete Products component under $(DESTDIR)$(prefix) using
@@ -313,7 +321,7 @@ ifeq "$(CHOWN_LINKS)" "yes"
 install: $(links_manifest)
 endif
 install: rsync_OPTS = $(dflt_rsync_OPTS) $(rsync_CHMOD)
-install: | $(_DESTDIR)$(prefix) $(_COMPONENT).log
+install: | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 	@if [ ! -f "$(built_Products)" ]; then \
 		echo "Unable to install $(_COMPONENT)." ;\
 		echo $(LINE) ;\
@@ -338,7 +346,7 @@ install: | $(_DESTDIR)$(prefix) $(_COMPONENT).log
 		echo ;\
 		exit 1 ;\
 	fi
-	($(call cmd_noat,RSYNC,$(rsync_OPTS),$(blddir),$(_DESTDIR)$(prefix))) ;\
+	@($(call cmd_noat,RSYNC,$(rsync_OPTS),$(blddir),$(_DESTDIR)$(prefix))) ;\
 	rc=$$? ;\
 	if [ $${rc} -ne 0 ];then \
 		echo $(LINE) ;\
@@ -372,61 +380,60 @@ ifeq "$(CHOWN_LINKS)" "yes"
 endif
 
 ifeq "$(GRANULAR_DEV)" "yes"
-.ONESHELL: $(installjustthis)
 .PHONY: $(installjustthis)
 $(installjustthis): this = $(patsubst install-%,%,$@)
 $(installjustthis): rsync_OPTS = $(dflt_rsync_OPTS) $(rsync_CHMOD)
-$(installjustthis): | $(_DESTDIR)$(prefix) $(_COMPONENT).log
+$(installjustthis): | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 	@if [ ! -d "$(blddir)/$(this)" ]; then \
                 echo "Unable to install $(_COMPONENT)/$(this).  Missing $(blddir)/$(this)." ;\
                 echo $(LINE) ;\
-                echo "Run 'make $(this)' first" 
-		echo
-		exit 1
-	fi
-	if [ -L "$(_DESTDIR)$(instdir)" ];then
-		echo "You're already devinstall'ed to a sandbox directory so this seems unnecessary."
-		echo "Bad things may happen, given my limited sophistication, if I do what you ask."
-		echo $(LINE)
-		ls -l $(_DESTDIR)$(instdir)
-		echo
-		echo "You could always run 'sudo make uninstall' first to remove your devinstall link"
-		echo "but that will essentially uninstall all of Products."
-		echo
-		exit 0
-	fi
-	if [ -L "$(_DESTDIR)$(instdir)/$(this)" ];then
-		echo "You're already devinstall'ed on $(this) to a sandbox directory so this seems unnecessary."
-		echo "Bad things may happen, given my limited sophistication, if I do what you ask."
-		echo $(LINE)
-		ls -l $(_DESTDIR)$(instdir)/$(this)
-		echo
-		echo "You could always run 'sudo make uninstall-$(this)' first to remove your devinstall link."
-		echo
-		exit 0
-	fi
-	if [ ! -w "$(_DESTDIR)$(prefix)" ];then
-		echo $(LINE)
-		echo "Error. You don't have permission to write files under $(_DESTDIR)$(prefix)."
-		echo "Maybe you intended 'sudo make $@' instead?"
-		echo
-		exit 1
-	fi
-	($(call cmd_noat,RSYNC,$(rsync_OPTS),$(blddir)/$(this),$(_DESTDIR)$(instdir)))
-	rc=$$?
-	if [ $${rc} -ne 0 ];then
-		echo $(LINE)
-		echo "Error installing $(_COMPONENT)/$(this) under $(_DESTDIR)$(instdir)/$(this)"
-		echo "Maybe you intended 'sudo make $@' instead?"
-		echo
-		exit 1
-	fi
-	if ! ($(call cmd_noat,CHOWN,-R,$(INST_OWNER),$(INST_GROUP),$(_DESTDIR)$(instdir)/$(this))) ;then
-		echo $(LINE)
-		echo "Error changing ownership under $(_DESTDIR)$(instdir)/$(this)"
-		echo "Maybe you intended 'sudo make $@' instead?"
-		echo
-		exit 1
+                echo "Run 'make $(this)' first" ;\
+		echo ;\
+		exit 1 ;\
+	fi ;\
+	if [ -L "$(_DESTDIR)$(instdir)" ];then \
+		echo "You're already devinstall'ed to a sandbox directory so this seems unnecessary." ;\
+		echo "Bad things may happen, given my limited sophistication, if I do what you ask." ;\
+		echo $(LINE) ;\
+		ls -l $(_DESTDIR)$(instdir) ;\
+		echo ;\
+		echo "You could always run 'sudo make uninstall' first to remove your devinstall link" ;\
+		echo "but that will essentially uninstall all of Products." ;\
+		echo ;\
+		exit 0 ;\
+	fi ;\
+	if [ -L "$(_DESTDIR)$(instdir)/$(this)" ];then \
+		echo "You're already devinstall'ed on $(this) to a sandbox directory so this seems unnecessary." ;\
+		echo "Bad things may happen, given my limited sophistication, if I do what you ask." ;\
+		echo $(LINE) ;\
+		ls -l $(_DESTDIR)$(instdir)/$(this) ;\
+		echo ;\
+		echo "You could always run 'sudo make uninstall-$(this)' first to remove your devinstall link." ;\
+		echo ;\
+		exit 0 ;\
+	fi ;\
+	if [ ! -w "$(_DESTDIR)$(prefix)" ];then \
+		echo $(LINE) ;\
+		echo "Error. You don't have permission to write files under $(_DESTDIR)$(prefix)." ;\
+		echo "Maybe you intended 'sudo make $@' instead?" ;\
+		echo ;\
+		exit 1 ;\
+	fi ;\
+	($(call cmd_noat,RSYNC,$(rsync_OPTS),$(blddir)/$(this),$(_DESTDIR)$(instdir))) ;\
+	rc=$$? ;\
+	if [ $${rc} -ne 0 ];then \
+		echo $(LINE) ;\
+		echo "Error installing $(_COMPONENT)/$(this) under $(_DESTDIR)$(instdir)/$(this)" ;\
+		echo "Maybe you intended 'sudo make $@' instead?" ;\
+		echo ;\
+		exit 1 ;\
+	fi ;\
+	if ! ($(call cmd_noat,CHOWN,-R,$(INST_OWNER),$(INST_GROUP),$(_DESTDIR)$(instdir)/$(this))) ;then \
+		echo $(LINE) ;\
+		echo "Error changing ownership under $(_DESTDIR)$(instdir)/$(this)" ;\
+		echo "Maybe you intended 'sudo make $@' instead?" ;\
+		echo ;\
+		exit 1 ;\
 	fi
 endif
 
@@ -455,7 +462,7 @@ installhere:
 	$(call cmd,CHOWN,-R,$(INST_OWNER),$(INST_GROUP),$(abspath $(_DESTDIR)))
 
 $(heredir)$(instdir)/$(canary):
-	@$(MAKE) --no-print-directory installhere
+	@$(MAKE) $(gnumake_OPTS) installhere
 
 #---------------------------------------------------------------------------#
 # Targets to create manifests of all the associated files, links, and 
@@ -478,174 +485,174 @@ $(heredir)$(instdir)/$(canary):
 	$(call cmd,CHOWN,-R,$(INST_OWNER),$(INST_GROUP),$(manifestdir))
 
 .PHONY: manifests
-manifests: $(files_manifest) $(links_manifest) $(dirs_manifest)
+manifests =  $(files_manifest) $(links_manifest) $(dirs_manifest)
+manifests: $(manifests)
 
 #---------------------------------------------------------------------------#
 # Manifest-based uninstall.
 #---------------------------------------------------------------------------#
-.ONESHELL: uninstall
 .PHONY: uninstall
-uninstall: | $(_COMPONENT).log
-	@if [ ! -d "$(_DESTDIR)$(prefix)" ];then
-		echo
-		echo "$(_DESTDIR)$(prefix) not found.  Nothing to uninstall."
-		echo
-	else
-		if [ ! -w "$(_DESTDIR)$(prefix)" ];then
-			echo $(LINE)
-			echo "Error. You don't have permission to remove files under $(_DESTDIR)$(prefix)."
-			echo "Maybe you intended 'sudo make $@' instead?"
-			echo
-			exit 1
-		else
-			count=`ls -a1 $(_DESTDIR)$(prefix) 2>/dev/null | wc -l`
-			if ((count<=2));then
-				echo $(LINE)
-				echo "Nothing to uninstall under $(_DESTDIR)$(prefix)"
-				echo
-				exit 0
-			fi
 ifeq "$(QUICK_UNINSTALL)" "yes"
-			($(call cmd_noat,RMDIR,$(_DESTDIR)$(instdir)))
-			rc=$$?
-			if [ $${rc} -ne 0 ] ; then
-				echo $(LINE)
-				echo "Error removing $(_DESTDIR)$(instdir)."
-				echo
-				exit $${rc}
-			fi
+uninstall: | $(BUILD_LOG)
 else
-			if [ ! -f "$(files_manifest)" -o ! -f "$(dirs_manifest)" ];then
-				echo $(LINE)
-				echo "Unable to uninstall without a manifest of installed files and directories."
-				echo
-				echo "Please run: 'make manifests uninstall'"
-				echo
-				exit 1
-			else
-				saveIFS=$(IFS)
-				IFS=$(echo -en "\n\b")
-				while read delFile
-				do
-					_delFile=$(_DESTDIR)$${delFile}
-					if [ -f "$${_delFile}" -o -L "$${_delFile}" ];then
-						$(call echol,"rm -f $${_delFile}","RM     $${_delFile}")
-						rm -rf "$${_delFile}"
-						rc=$$?
-						if [ $${rc} -ne 0 ];then
-							echo $(LINE)
-							echo "Error removing $${_delFile}"
-							echo "Giving up on $@."
-							echo "Maybe you intended 'sudo make uninstall' instead?"
-							echo
-							IFS=$${saveIFS}
-							exit $${rc} 
-						fi
-					fi
-				done < $(files_manifest)
-				while read delLink
-				do
-					_delLink=$(_DESTDIR)$${delLink}
-					if [ -L "$${_delLink}" -o -f "$${_delLink}" ];then
-						$(call echol,"rm -f $${_delLink}","RMLINK $${_delLink}")
-						rm -rf "$${_delLink}"
-						rc=$$?
-						if [ $${rc} -ne 0 ];then
-							echo $(LINE)
-							echo "Error removing $${_delLink}"
-							echo "Giving up on $@."
-							echo "Maybe you intended 'sudo make uninstall' instead?"
-							echo
-							IFS=$${saveIFS}
-							exit $${rc}
-						fi
-					fi
-				done < $(links_manifest)
-				if find $(_DESTDIR)$(prefix) -type f -o -type l 2>/dev/null 1>&2 ;then
-					while read delDir
-					do
-						case $${delDir} in
-							/|/usr|/opt|/etc|/var|/bin|/sbin|/lib|/home|/root|/sys|/dev|/boot|/tmp)	
-								:;;
-							*)
-								_delDir=$(_DESTDIR)$${delDir}
-								if [ -d "$${_delDir}" ];then
-									count=`ls -a1 $${_delDir} 2>/dev/null | wc -l`
-									if ((count<=2));then
-										$(call echol,"rm -rf $${_delDir}","RMDIR  $${_delDir}")
-										rm -rf "$${_delDir}"
-										rc=$$?
-										if [ $${rc} -ne 0 ];then
-											echo $(LINE)
-											echo "Error removing $${_delDir}"
-											echo "   rm -rf $${_delDir}"
-											echo "Giving up on $@."
-											echo "Maybe you intended 'sudo make uninstall' instead?"
-											echo "Otherwise you will need to manually remove $(_COMPONENT) from $(_DESTDIR)$(prefix)"
-											echo
-											IFS=$${saveIFS}
-											exit 1 
-										fi
-									else
-										$(call echol, "Skipping $${_delDir}   Non-empty.","SKIP   $${_delDir}   Non-empty.")
-									fi
-								fi
-								;;
-						esac
-					done < $(dirs_manifest)
-				fi
-				IFS=$${saveIFS}
-			fi
+uninstall: | $(manifests) $(BUILD_LOG)
 endif
-		fi
+	@if [ ! -d "$(_DESTDIR)$(prefix)" ];then \
+		echo ;\
+		echo "$(_DESTDIR)$(prefix) not found.  Nothing to uninstall." ;\
+		echo ;\
+	else \
+		if [ ! -w "$(_DESTDIR)$(prefix)" ];then \
+			echo $(LINE) ;\
+			echo "Error. You don't have permission to remove files under $(_DESTDIR)$(prefix)." ;\
+			echo "Maybe you intended 'sudo make $@' instead?" ;\
+			echo ;\
+			exit 1 ;\
+		else \
+			count=`ls -a1 $(_DESTDIR)$(prefix) 2>/dev/null | wc -l` ;\
+			if ((count<=2));then \
+				echo $(LINE) ;\
+				echo "Nothing to uninstall under $(_DESTDIR)$(prefix)" ;\
+				echo ;\
+				exit 0 ;\
+			fi ;\
+			if [ "$(QUICK_UNINSTALL)" = "yes" ];then \
+				($(call cmd_noat,RMDIR,$(_DESTDIR)$(instdir))) ;\
+				rc=$$? ;\
+				if [ $${rc} -ne 0 ] ; then \
+					echo $(LINE) ;\
+					echo "Error removing $(_DESTDIR)$(instdir)." ;\
+					echo ;\
+					exit $${rc} ;\
+				fi ;\
+			else \
+				if [ ! -f "$(files_manifest)" -o ! -f "$(dirs_manifest)" ];then \
+					echo $(LINE) ;\
+					echo "Unable to uninstall without a manifest of installed files and directories." ;\
+					echo ;\
+					echo "Please run: 'make manifests uninstall'" ;\
+					echo ;\
+					exit 1 ;\
+				else \
+					saveIFS=$(IFS) ;\
+					IFS=$(echo -en "\n\b") ;\
+					while read delFile ;\
+					do \
+						_delFile=$(_DESTDIR)$${delFile} ;\
+						if [ -f "$${_delFile}" -o -L "$${_delFile}" ];then \
+							($(call cmd_noat,RM,$${_delFile})) ;\
+							rc=$$? ;\
+							if [ $${rc} -ne 0 ];then \
+								echo $(LINE) ;\
+								echo "Error removing $${_delFile}" ;\
+								echo "Giving up on $@." ;\
+								echo "Maybe you intended 'sudo make uninstall' instead?" ;\
+								echo ;\
+								IFS=$${saveIFS} ;\
+								exit $${rc} ;\
+							fi ;\
+						fi ;\
+					done < $(files_manifest) ;\
+					while read delLink ;\
+					do \
+						_delLink=$(_DESTDIR)$${delLink} ;\
+						if [ -L "$${_delLink}" -o -f "$${_delLink}" ];then \
+							($(call cmd_noat,RM,$${_delLink})) ;\
+							rc=$$? ;\
+							if [ $${rc} -ne 0 ];then \
+								echo $(LINE) ;\
+								echo "Error removing $${_delLink}" ;\
+								echo "Giving up on $@." ;\
+								echo "Maybe you intended 'sudo make uninstall' instead?" ;\
+								echo ;\
+								IFS=$${saveIFS} ;\
+								exit $${rc} ;\
+							fi ;\
+						fi ;\
+					done < $(links_manifest) ;\
+					if find $(_DESTDIR)$(prefix) -type f -o -type l 2>/dev/null 1>&2 ;then \
+						while read delDir ;\
+						do \
+							case $${delDir} in \
+								/|/usr|/opt|/etc|/var|/bin|/sbin|/lib|/home|/root|/sys|/dev|/boot|/tmp)	 \
+									:;; \
+								*) \
+									_delDir=$(_DESTDIR)$${delDir} ;\
+									if [ -d "$${_delDir}" ];then \
+										count=`ls -a1 $${_delDir} 2>/dev/null | wc -l` ;\
+										if ((count<=2));then \
+											($(call cmd_noat,RMDIR,$${_delDir})) ;\
+											rc=$$? ;\
+											if [ $${rc} -ne 0 ];then \
+												echo $(LINE) ;\
+												echo "Error removing $${_delDir}" ;\
+												echo "   rm -rf $${_delDir}" ;\
+												echo "Giving up on $@." ;\
+												echo "Maybe you intended 'sudo make uninstall' instead?" ;\
+												echo "Otherwise you will need to manually remove $(_COMPONENT) from $(_DESTDIR)$(prefix)" ;\
+												echo ;\
+												IFS=$${saveIFS} ;\
+												exit 1  ;\
+											fi ;\
+										else \
+											$(call echol, "Skipping $${_delDir}   Non-empty.","SKIP   $${_delDir}   Non-empty.") ;\
+										fi ;\
+									fi ;\
+									;; \
+							esac ;\
+						done < $(dirs_manifest) ;\
+					fi ;\
+					IFS=$${saveIFS} ;\
+				fi ;\
+			fi ;\
+		fi ;\
 	fi
 
 ifeq "$(GRANULAR_DEV)" "yes"
-.ONESHELL: $(uninstalljustthis)
 .PHONY: $(uninstalljustthis)
 $(uninstalljustthis): this = $(patsubst uninstall-%,%,$@)
 $(uninstalljustthis): rsync_OPTS = $(dflt_rsync_OPTS) $(rsync_CHMOD)
-$(uninstalljustthis): | $(_DESTDIR)$(prefix) $(_COMPONENT).log
-	@if [ ! -d "$(_DESTDIR)$(prefix)" ];then
-		echo
-		echo "$(_DESTDIR)$(prefix) not found.  Nothing to uninstall."
-		echo
-	else
-		if [ ! -w "$(_DESTDIR)$(prefix)" ];then
-			echo $(LINE)
-			echo "Error. You don't have permission to remove files under $(_DESTDIR)$(prefix)."
-			echo "Maybe you intended 'sudo make $@' instead?"
-			echo
-			exit 1
-		else
-			count=`ls -a1 $(_DESTDIR)$(prefix) 2>/dev/null | wc -l`
-			if ((count<=2));then
-				echo $(LINE)
-				echo "Nothing to uninstall under $(_DESTDIR)$(prefix)"
-				echo
-				exit 0
-			fi
-			@if [ -L "$(_DESTDIR)$(instdir)" ];then
-				echo "You're already devinstall'ed to a sandbox directory so this seems unnecessary."
-				echo "Bad things may happen, given my limited sophistication, if I do what you ask."
-				echo "You could end up removing $(this) from your working directory. :-("
-				echo $(LINE)
-				ls -l $(_DESTDIR)$(instdir)
-				echo
-				echo "You could always run 'sudo make uninstall' first to remove your devinstall link"
-				echo "but that will essentially uninstall all of Products."
-				echo
-				exit 0
-			fi
-			($(call cmd_noat,RMDIR,$(_DESTDIR)$(instdir)/$(this)))
-			rc=$$?
-			if [ $${rc} -ne 0 ] ; then
-				echo $(LINE)
-				echo "Error removing $(_DESTDIR)$(instdir)/$(this)."
-				echo
-				exit $${rc}
-			fi
-		fi
+$(uninstalljustthis): | $(_DESTDIR)$(prefix) $(BUILD_LOG)
+	@if [ ! -d "$(_DESTDIR)$(prefix)" ];then \
+		echo ;\
+		echo "$(_DESTDIR)$(prefix) not found.  Nothing to uninstall." ;\
+		echo ;\
+	else \
+		if [ ! -w "$(_DESTDIR)$(prefix)" ];then \
+			echo $(LINE) ;\
+			echo "Error. You don't have permission to remove files under $(_DESTDIR)$(prefix)." ;\
+			echo "Maybe you intended 'sudo make $@' instead?" ;\
+			echo ;\
+			exit 1 ;\
+		else \
+			count=`ls -a1 $(_DESTDIR)$(prefix) 2>/dev/null | wc -l` ;\
+			if ((count<=2));then \
+				echo $(LINE) ;\
+				echo "Nothing to uninstall under $(_DESTDIR)$(prefix)" ;\
+				echo ;\
+				exit 0 ;\
+			fi ;\
+			@if [ -L "$(_DESTDIR)$(instdir)" ];then \
+				echo "You're already devinstall'ed to a sandbox directory so this seems unnecessary." ;\
+				echo "Bad things may happen, given my limited sophistication, if I do what you ask." ;\
+				echo "You could end up removing $(this) from your working directory. :-(" ;\
+				echo $(LINE) ;\
+				ls -l $(_DESTDIR)$(instdir) ;\
+				echo ;\
+				echo "You could always run 'sudo make uninstall' first to remove your devinstall link" ;\
+				echo "but that will essentially uninstall all of Products." ;\
+				echo ;\
+				exit 0 ;\
+			fi ;\
+			($(call cmd_noat,RMDIR,$(_DESTDIR)$(instdir)/$(this))) ;\
+			rc=$$? ;\
+			if [ $${rc} -ne 0 ] ; then \
+				echo $(LINE) ;\
+				echo "Error removing $(_DESTDIR)$(instdir)/$(this)." ;\
+				echo ;\
+				exit $${rc} ;\
+			fi ;\
+		fi ;\
 	fi
 endif
 
@@ -706,16 +713,17 @@ endif
 # configured.
 control_variables  = bldtop
 control_variables += blddir
+control_variables += built_Products_dirs
 control_variables += $(rsync_CHMOD)
 control_variables += DESTDIR
 control_variables += GRANULAR_DEV
 control_variables += prefix
+control_variables += Products
 control_variables += QUICK_UNINSTALL
 
 .PHONY: settings
 settings:
 	$(call show-vars,"Current makefile settings:",$(control_variables))
-
 
 .PHONY: clean
 clean:
@@ -755,7 +763,7 @@ mrclean distclean: clean dflt_component_distclean
 			$(call cmd_noat,RMDIR,$${deldir}) ;\
 		fi ;\
 	done
-	@for delfile in $(_COMPONENT).log ;\
+	@for delfile in $(BUILD_LOG) jsminifier.log ;\
 	do \
 		if [ -f "$${delfile}" ];then \
 			$(RM) $${delfile} ;\
@@ -763,7 +771,7 @@ mrclean distclean: clean dflt_component_distclean
 	done
 
 .PHONY: uninstallhere
-uninstallhere: | $(_COMPONENT).log
+uninstallhere: | $(BUILD_LOG)
 	@if [ -d "$(heredir)" ];then \
 		$(call cmd_noat,RMDIR,$(heredir)) ;\
 	fi
