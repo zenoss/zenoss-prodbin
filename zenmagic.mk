@@ -665,6 +665,12 @@ quiet_cmd_PIP = $(call print,PIP,$2 $3 $4 $5)
       cmd_PIP = $(PIP) $2 $3 $4 $5
 
 # ----------------------------------------------------------------------------
+#  Write a formatted public service announcement to the console.
+#  $(call cmd,PSA,<str1>,<str2>)
+quiet_cmd_PSA = $(call print,"$2","$3")
+      cmd_PSA = echo "$2 $3"
+
+# ----------------------------------------------------------------------------
 #  Invoke python easy_install <arg>
 #  TODO Command descriptor
 quiet_cmd_EASY_INSTALL = $(call print,EASY_INSTALL,$2 $3 $4 $5)
@@ -675,6 +681,13 @@ quiet_cmd_EASY_INSTALL = $(call print,EASY_INSTALL,$2 $3 $4 $5)
 #  $(call cmd,RM,<source-file>)
 quiet_cmd_RM = $(call print,RM,$2)
       cmd_RM = $(RM) -f $2
+
+# ----------------------------------------------------------------------------
+#  Recursively remove files from a directory structure using find and a 
+#  glob pattern.
+#  $(call cmd,RMGLOB,<source-dir>,<glob-pattern>)
+quiet_cmd_RMGLOB = $(call print,RMGLOB,$2/$3)
+      cmd_RMGLOB = $(FIND) $2 -name "$3" -delete 
 
 # ----------------------------------------------------------------------------
 #  Remove a link

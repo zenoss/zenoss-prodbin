@@ -638,7 +638,7 @@ uninstall: | $(BUILD_LOG)
 											exit 1  ;\
 										fi ;\
 									else \
-										$(call echol, "Skipping $${_delDir}.  Non-empty.","SKIP   $${_delDir}.  Non-empty.") ;\
+										($(call cmd_noat,PSA,"RMDIR skipping","$${_delDir} Non-empty.")) ;\
 									fi ;\
 								fi ;\
 								;; \

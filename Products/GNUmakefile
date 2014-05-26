@@ -8,6 +8,24 @@
 #============================================================================
 # To do:  See bottom of this file.
 #============================================================================
+
+#============================================================================
+# DONT PANIC: How to debug when things go wrong ...
+#---------------------------------------------------------------------------#
+# Generally, I get the most mileage out of this idiom:
+#
+#    echo "#!/bin/bash"       > debug.sh
+#    make -n <buggy_target>  >> debug.sh
+#    chmod +x debug.sh
+#    ./debug.sh              # or possibly sh -x -v ./debug.sh
+#
+# The -n is a dry-run option that spills out the commands associated
+# with building the target.
+#
+# You can then try running these commands directly via the debug script
+# to sort out logic or syntax errors, backporting the fixes to the makefile.
+#============================================================================
+
 .DEFAULT_GOAL := help # build|clean|distclean|devinstall|install|help
 
 #============================================================================
@@ -44,6 +62,21 @@ GRANULAR_DEV      ?= no
 # Requires link manifest to be created.
 #
 CHOWN_LINKS       ?= no
+
+# When python is invoked against a *.py file, it generates 
+# byte code or optimized byte code files executed by the
+# python virtual machine:
+#
+#    *.pyc
+#    *.pyo
+#
+# Specify if you want these files to be removed with:
+#
+#    make mrclean     (for scrubbing src dir)
+#    make uninstall   (for scrubbing inst dir)
+#
+MRCLEAN_PYC_PYO   ?= yes
+UNINSTALL_PYC_PYO ?= yes
 
 # This suppresses some gnumake chatter when it enters / leaves subdirectories.
 gnumake_suppress_EnteringDir = --no-print-directory
@@ -280,6 +313,10 @@ devinstall: | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 		echo "but first you need to move your existing $(_DESTDIR)$(instdir) directory" ;\
 		echo "out of the way.  I don't want to kill something you may want." ;\
 		echo ;\
+		echo "If there is nothing of interest there, you could run:" ;\
+		echo ;\
+		echo "   sudo make uninstall" ;\
+		echo ;\
 		exit 1 ;\
 	fi ;\
 	if [ ! -w "$(_DESTDIR)$(prefix)" ];then \
@@ -296,8 +333,10 @@ devinstall: | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 		echo "Maybe you intended 'sudo make $@' instead?" ;\
 		echo ;\
 		exit 1 ;\
+	fi ;\
+	if ! $(call cmd_noat,CHOWN_LINK,$(INST_OWNER),$(INST_GROUP),$(_DESTDIR)$(instdir)) ;then \
+		exit 0 ;\
 	fi
-	-$(call cmd,CHOWN_LINK,$(INST_OWNER),$(INST_GROUP),$(_DESTDIR)$(instdir))
 
 #---------------------------------------------------------------------------#
 # Install the complete Products component under $(DESTDIR)$(prefix) using
@@ -328,8 +367,9 @@ install: | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 		echo "Run 'make build' first" ;\
 		echo ;\
 		exit 1 ;\
-	fi
-	@if [ -L "$(_DESTDIR)$(instdir)" ];then \
+	fi ;\
+	if [ -L "$(_DESTDIR)$(instdir)" ];then \
+		echo ;\
 		echo "You're already devinstall'ed to a sandbox directory so this seems unnecessary." ;\
 		echo "Bad things may happen, given my limited sophistication, if I do what you ask." ;\
 		echo $(LINE) ;\
@@ -338,46 +378,46 @@ install: | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 		echo "You could always run 'sudo make uninstall' first to remove your devinstall link." ;\
 		echo ;\
 		exit 0 ;\
-	fi
-	@if [ ! -w "$(_DESTDIR)$(prefix)" ];then \
+	fi ;\
+	if [ ! -w "$(_DESTDIR)$(prefix)" ];then \
 		echo $(LINE) ;\
 		echo "Error. You don't have permission to write files under $(_DESTDIR)$(prefix)." ;\
 		echo "Maybe you intended 'sudo make $@' instead?" ;\
 		echo ;\
 		exit 1 ;\
-	fi
-	@($(call cmd_noat,RSYNC,$(rsync_OPTS),$(blddir),$(_DESTDIR)$(prefix))) ;\
+	fi ;\
+	($(call cmd_noat,RSYNC,$(rsync_OPTS),$(blddir),$(_DESTDIR)$(prefix))) ;\
 	rc=$$? ;\
 	if [ $${rc} -ne 0 ];then \
 		echo $(LINE) ;\
 		echo "Error installing $(_COMPONENT) under $(_DESTDIR)$(prefix)." ;\
-		echo "Maybe you intended 'sudo make install' instead?" ;\
+		echo "Maybe you intended 'sudo make $@' instead?" ;\
 		echo ;\
 		exit 1 ;\
 	fi ;\
 	if ! ($(call cmd_noat,CHOWN,-R,$(INST_OWNER),$(INST_GROUP),$(_DESTDIR)$(instdir))) ;then \
 		echo $(LINE) ;\
 		echo "Error changing ownership under $(_DESTDIR)$(instdir)" ;\
-		echo "Maybe you intended 'sudo make install' instead?" ;\
+		echo "Maybe you intended 'sudo make $@' instead?" ;\
 		echo ;\
 		exit 1 ;\
-	fi
-ifeq "$(CHOWN_LINKS)" "yes"
-	@saveIFS=$(IFS) ;\
-	IFS=$(echo -en "\n\b") ;\
-	if [ -f "$(links_manifest)" ]; then \
-		while read installedLink ;\
-		do \
-			_installedLink=$(_DESTDIR)$${installedLink} ;\
-			if [ -L "$${_installedLink}" ];then \
-				if ! ($(call cmd_noat,CHOWN_LINK,$(INST_OWNER),$(INST_GROUP),$${_installedLink})) ;then \
-					IFS=$${saveIFS} ;\
-					exit 1 ;\
+	fi ;\
+	if [ "$(CHOWN_LINKS)" = "yes" ]; then \
+		saveIFS=$(IFS) ;\
+		IFS=$(echo -en "\n\b") ;\
+		if [ -f "$(links_manifest)" ]; then \
+			while read installedLink ;\
+			do \
+				_installedLink=$(_DESTDIR)$${installedLink} ;\
+				if [ -L "$${_installedLink}" ];then \
+					if ! ($(call cmd_noat,CHOWN_LINK,$(INST_OWNER),$(INST_GROUP),$${_installedLink})) ;then \
+						IFS=$${saveIFS} ;\
+						exit 1 ;\
+					fi ;\
 				fi ;\
-			fi ;\
-		done < $(links_manifest) ;\
+			done < $(links_manifest) ;\
+		fi ;\
 	fi
-endif
 
 ifeq "$(GRANULAR_DEV)" "yes"
 .PHONY: $(installjustthis)
@@ -392,6 +432,7 @@ $(installjustthis): | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 		exit 1 ;\
 	fi ;\
 	if [ -L "$(_DESTDIR)$(instdir)" ];then \
+		echo ;\
 		echo "You're already devinstall'ed to a sandbox directory so this seems unnecessary." ;\
 		echo "Bad things may happen, given my limited sophistication, if I do what you ask." ;\
 		echo $(LINE) ;\
@@ -403,6 +444,7 @@ $(installjustthis): | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 		exit 0 ;\
 	fi ;\
 	if [ -L "$(_DESTDIR)$(instdir)/$(this)" ];then \
+		echo ;\
 		echo "You're already devinstall'ed on $(this) to a sandbox directory so this seems unnecessary." ;\
 		echo "Bad things may happen, given my limited sophistication, if I do what you ask." ;\
 		echo $(LINE) ;\
@@ -546,7 +588,7 @@ endif
 								echo $(LINE) ;\
 								echo "Error removing $${_delFile}" ;\
 								echo "Giving up on $@." ;\
-								echo "Maybe you intended 'sudo make uninstall' instead?" ;\
+								echo "Maybe you intended 'sudo make $@' instead?" ;\
 								echo ;\
 								IFS=$${saveIFS} ;\
 								exit $${rc} ;\
@@ -563,13 +605,17 @@ endif
 								echo $(LINE) ;\
 								echo "Error removing $${_delLink}" ;\
 								echo "Giving up on $@." ;\
-								echo "Maybe you intended 'sudo make uninstall' instead?" ;\
+								echo "Maybe you intended 'sudo make $@' instead?" ;\
 								echo ;\
 								IFS=$${saveIFS} ;\
 								exit $${rc} ;\
 							fi ;\
 						fi ;\
 					done < $(links_manifest) ;\
+					if [ "$(UNINSTALL_PYC_PYO)" = "yes" ];then \
+						($(call cmd_noat,RMGLOB,$(_DESTDIR)$(prefix),*.pyc)) ;\
+						($(call cmd_noat,RMGLOB,$(_DESTDIR)$(prefix),*.pyo)) ;\
+					fi ;\
 					if find $(_DESTDIR)$(prefix) -type f -o -type l 2>/dev/null 1>&2 ;then \
 						while read delDir ;\
 						do \
@@ -588,14 +634,14 @@ endif
 												echo "Error removing $${_delDir}" ;\
 												echo "   rm -rf $${_delDir}" ;\
 												echo "Giving up on $@." ;\
-												echo "Maybe you intended 'sudo make uninstall' instead?" ;\
+												echo "Maybe you intended 'sudo make $@' instead?" ;\
 												echo "Otherwise you will need to manually remove $(_COMPONENT) from $(_DESTDIR)$(prefix)" ;\
 												echo ;\
 												IFS=$${saveIFS} ;\
 												exit 1  ;\
 											fi ;\
 										else \
-											$(call echol, "Skipping $${_delDir}   Non-empty.","SKIP   $${_delDir}   Non-empty.") ;\
+											($(call cmd_noat,PSA,"RMDIR skipping","$${_delDir} Non-empty.")) ;\
 										fi ;\
 									fi ;\
 									;; \
@@ -632,7 +678,8 @@ $(uninstalljustthis): | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 				echo ;\
 				exit 0 ;\
 			fi ;\
-			@if [ -L "$(_DESTDIR)$(instdir)" ];then \
+			if [ -L "$(_DESTDIR)$(instdir)" ];then \
+				echo ;\
 				echo "You're already devinstall'ed to a sandbox directory so this seems unnecessary." ;\
 				echo "Bad things may happen, given my limited sophistication, if I do what you ask." ;\
 				echo "You could end up removing $(this) from your working directory. :-(" ;\
@@ -707,6 +754,10 @@ else
 endif
 	@echo Using common build idioms from $(NEAREST_ZENMAGIC_MK)
 	@echo
+ifneq "$(GRANULAR_DEV)" "yes"
+	@echo "Try playing with make GRANULAR_DEV=yes"
+	@echo
+endif
 
 # Variables of interest that we dump out if you run 'make settings'
 # This will give you an idea of how the build will behave as currently
@@ -744,8 +795,8 @@ clean:
 			$(call echol,"       bldtop $(abspath $(bldtop))") ;\
 			$(call echol,"       srcdir `pwd`") ;\
 		fi ;\
-	fi
-	@if [ -d "$(jsb_output_dir)" ];then \
+	fi ;\
+	if [ -d "$(jsb_output_dir)" ];then \
 		($(call cmd_noat,RMDIR,$(jsb_output_dir))) ;\
 		rc=$$? ;\
 		if [ $${rc} -ne 0 ] ; then \
@@ -762,8 +813,12 @@ mrclean distclean: clean dflt_component_distclean
 		if [ -d "$${deldir}" ];then \
 			$(call cmd_noat,RMDIR,$${deldir}) ;\
 		fi ;\
-	done
-	@for delfile in $(BUILD_LOG) jsminifier.log ;\
+	done ;\
+	if [ "$(MRCLEAN_PYC_PYO)" = "yes" ];then \
+		($(call cmd_noat,RMGLOB,.,*.pyc)) ;\
+		($(call cmd_noat,RMGLOB,.,*.pyo)) ;\
+	fi ;\
+	for delfile in $(BUILD_LOG) jsminifier.log ;\
 	do \
 		if [ -f "$${delfile}" ];then \
 			$(RM) $${delfile} ;\
@@ -822,4 +877,7 @@ uninstallhere: | $(BUILD_LOG)
 # This could be fixed by changing the deployDir variable in zenoss.jsb2.
 # The more generalized fix is to configure in the deployDir prior to 
 # minifying so the component's build directory is exposed to the minifier.
+#
+# Having said that, this 'bad' behavior is happily exploited, though, 
+# during devinstalls where we symlink /opt/zenoss/Products back to the src tree.
 #============================================================================
