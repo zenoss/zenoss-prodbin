@@ -234,7 +234,9 @@ $(blddir)/__init__.py: | $(blddir)
 $(blddir)/__init__.py: $(blddir)/% : %
 	$(call cmd,RSYNC,$(dflt_rsync_OPTS),$<,$(@D))
 
-$(blddir) $(built_Products_dirs) $(manifestdir) $(dir $(zenoss_blddir_js)):
+MKDIRS = $(sort $(blddir) $(built_Products_dirs) $(manifestdir) $(dir $(zenoss_blddir_js)) $(blddir)/$(jsb_output_dir))
+
+$(MKDIRS):
 	$(call cmd,MKDIR,$@)
 
 .PHONY: js 
