@@ -568,6 +568,10 @@
                     if (grid) {
                         grid.refresh();
                     }
+                    var dpanel = Ext.getCmp('dpanelcontainer')
+                    if (dpanel) {
+                        dpanel.refresh();
+                    }
                 },
                 findParams: function() {
                     var grid = Ext.getCmp(gridId);
