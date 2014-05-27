@@ -364,7 +364,7 @@ Ext.onReady(function() {
                             sourceData.device_url,
                             sourceData.device_title);
                     }
-                    return Ext.htmlEncode(val);
+                    return val;
                 },
                 component: function(value, sourceData) {
                     var val = sourceData.component_title;
@@ -373,7 +373,7 @@ Ext.onReady(function() {
                             sourceData.component_url,
                             sourceData.component_title);
                     }
-                    return Ext.htmlEncode(val);
+                    return val;
                 },
                 eventClass: function(value, sourceData) {
                     return  Zenoss.render.EventClass(
