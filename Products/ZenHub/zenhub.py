@@ -48,6 +48,7 @@ from ZODB.POSException import POSKeyError
 from Products.DataCollector.Plugins import loadPlugins
 from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config, load_config_override, ipv6_available, atomicWrite
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
@@ -332,10 +333,11 @@ def publisher(username, password, url):
   
 def metricWriter(username, password, url):
     metric_writer = MetricWriter( publisher(username, password, url))
-    if os.environ.get( "CONTROLPLANE", "0") == "1":
-        internal_url = os.environ.get( "CONTROLPLANE_CONSUMER_URL", None)
-        internal_username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
-        internal_password = os.environ.get( "CONTROLPLANE_CONSUMER_PASSWORD", "")
+    settings = globalConfToDict()
+    if settings.get("controlplane", "0") == "1":
+        internal_url = settings.get("controlplane-consumer-url", None)
+        internal_username = settings.get("controlplane-consumer-username", "")
+        internal_password = settings.get("controlplane-consumer-password", "")
 
         if internal_url:
             internal_publisher = publisher( internal_username, internal_password, internal_url)
