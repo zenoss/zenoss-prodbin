@@ -234,8 +234,7 @@ $(blddir)/__init__.py: | $(blddir)
 $(blddir)/__init__.py: $(blddir)/% : %
 	$(call cmd,RSYNC,$(dflt_rsync_OPTS),$<,$(@D))
 
-MKDIRS = $(sort $(blddir) $(built_Products_dirs) $(manifestdir) $(dir $(zenoss_blddir_js)) $(blddir)/$(jsb_output_dir))
-
+MKDIRS = $(blddir) $(built_Products_dirs) $(manifestdir) $(dir $(zenoss_blddir_js))
 $(MKDIRS):
 	$(call cmd,MKDIR,$@)
 
@@ -246,7 +245,7 @@ $(sencha_jsbuilder): exportdir = $(dir $(sencha_jsbuilder))
 $(sencha_jsbuilder): | jsminifier.mk
 	$(call cmd,EXPORT,$(_jsminifier),$(exportdir),jsminifier.mk,jsminifier=$(_jsminifier) exportdir=$(exportdir))
 
-$(zenoss_compiled_js): $(zenoss_jsbmake) $(zenoss_src_js)| $(sencha_jsbuilder) $(blddir)/$(jsb_output_dir)
+$(zenoss_compiled_js): $(zenoss_jsbmake) $(zenoss_src_js)| $(sencha_jsbuilder) $(dir $(zenoss_blddir_js))
 	$(call cmd,MINIFY_w_JSBUILDER,$(zenoss_src_basedir),$@,$(sencha_jsbuilder),$(zenoss_jsbmake),$(dir $(zenoss_jsbmake)))
 
 $(zenoss_blddir_js): $(zenoss_compiled_js) | $(dir $(zenoss_blddir_js))
