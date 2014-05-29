@@ -415,6 +415,8 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                     cmd += ['--previousversion', upgradingFrom]
                 if fromUI:
                     cmd += ["--fromui"]
+                if serviceId:
+                    cmd += ['--service-id', serviceId]
 
                 cmdStr = " ".join(cmd)
                 log.debug("launching sub process command: %s" % cmdStr)
