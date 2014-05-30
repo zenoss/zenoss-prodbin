@@ -1119,7 +1119,7 @@ registerDirectory("skins", globals())
         :returns: absolute file paths
         :rtype: list of strings
         """
-        return glob.glob(self.path('controlplane', '*.json'))
+        return glob.glob(self.path('service_definition', '*.json'))
 
 
     def installServicesFromFiles(self, serviceFileNames, tag):
