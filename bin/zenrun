@@ -48,11 +48,11 @@ fi
 
 RUNPATH=${RUNPATH:-$(dirname $0)/zenrun.d}
 PROGRAM=$1
-shift; ARGS=$@
+shift
 
 # Load the program
 if ${NOCOMMIT:-false}; then
-    $(which $PROGRAM) $ARGS
+    $(which $PROGRAM) "$@"
     exit 1
 elif [[ -r $RUNPATH/$PROGRAM ]]; then
     source $RUNPATH/$PROGRAM
@@ -64,10 +64,10 @@ else
 fi
 
 # Look up the command and run
-if declare -f $ARGS[0] &> /dev/null; then
-    $ARGS
+if declare -f $1 &> /dev/null; then
+    "$@"
 elif declare -f __DEFAULT__ > /dev/null; then
-    __DEFAULT__ $ARGS
+    __DEFAULT__ "$@"
 else
     echo -e "Missing __DEFAULT__ declaration in $PROGRAM" >&2
     exit 253
