@@ -10,6 +10,11 @@
 
 # wrapper for zenpack command, allowing the command to run in zenrun
 __DEFAULT__() {
-    zenpack $*
+    args=$($RUNPATH/util/replaceZenpackPath.py "$@")
+    status=$?
+    if test $? -ne 0 ; then
+        return $status
+    fi
+    zenpack "$args"
     return $?
  }
