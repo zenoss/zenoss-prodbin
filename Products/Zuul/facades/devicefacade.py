@@ -42,6 +42,7 @@ from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
+from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
 
 iszprop = re.compile("z[A-Z]").match
@@ -60,6 +61,7 @@ class DeviceCollectorChangeEvent(object):
         self._movedDevices = movedDevices
         self._asynchronous = asynchronous
         self.jobs = []
+        self.adm = ApplyDataMap()
 
     @property
     def context(self):
@@ -777,4 +779,8 @@ class DeviceFacade(TreeFacade):
             info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
-    
+
+    def applyDataMaps(self, uid, maps):
+        obj = self._getObject(uid)
+        for map in maps:
+            self.adm._applyDataMap(obj, map)

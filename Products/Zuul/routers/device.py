@@ -1793,3 +1793,25 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
+
+    def applyDataMaps(self, uid, maps):
+        """
+        Model updates for a device(uid) in the form of a list of dicts.
+        RelationshipMap example.
+        [{'relname': 'interfaces',
+          'compname': 'os',
+          'modname': 'Products.ZenModel.IpInterface',
+          'objmaps': [{'id': 'eth0'},
+                      {'speed': 100}]
+        }]
+
+        ObjectMap example.
+        [{'setHWProductKey': 'Cisco',
+          'setOSProductKey': 'Cisco'}
+        ]
+        """
+
+        facade = self._getFacade()
+        facade.applyDataMaps(uid, maps)
+        return DirectResponse.succeed()
