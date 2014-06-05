@@ -1813,5 +1813,6 @@ class DeviceRouter(TreeRouter):
         """
 
         facade = self._getFacade()
+        audit('UI.Device.Model.Change', uid)
         facade.applyDataMaps(uid, maps)
         return DirectResponse.succeed()
