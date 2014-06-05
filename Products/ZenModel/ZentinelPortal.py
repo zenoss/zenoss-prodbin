@@ -195,6 +195,12 @@ class ZentinelPortal ( PortalObjectBase ):
         user = getSecurityManager().getUser()
         if user: return user.has_permission(perm, obj)
 
+    def getCurrentYear(self):
+        """
+        This is purely for copyright on the login page.
+        """
+        return Time.getYear()
+
     def getZenossVersionShort(self):
         return self.About.getZenossVersionShort()
 
