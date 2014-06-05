@@ -165,3 +165,10 @@ def isoToTimestamp(value):
     timeTuple = time.strptime(timeStr, '%Y-%m-%d %H:%M:%S')
     timestamp = time.mktime(timeTuple)
     return timestamp
+
+def getYear():
+    """
+    Return a string representing the current year.
+    """
+    return datetime.now().strftime('%Y')
+
