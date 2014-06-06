@@ -120,7 +120,7 @@ def serviceConnectionError(func, *args, **kwargs):
     try:
         return func(*args, **kwargs)
     except ZepConnectionError:
-        msg = 'Connection refused. Check zeneventserver status on <a href="/zport/About/zenossInfo">Daemons</a>'
+        msg = 'Connection refused. Check zeneventserver status on <a href="zport/dmd/daemons">Daemons</a>'
     except ServiceConnectionError:
-        msg = 'Connection refused to a required daemon. Check status on <a href="/zport/About/zenossInfo">Daemons</a>'
+        msg = 'Connection refused to a required daemon. Check status on <a href="zport/dmd/daemons">Daemons</a>'
     return DirectResponse.fail(msg, sticky=True)
