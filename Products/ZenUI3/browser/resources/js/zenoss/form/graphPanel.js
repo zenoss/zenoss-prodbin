@@ -674,7 +674,7 @@
                 handler: function(btn) {
                     if (btn) {
                         var panel = btn.refOwner;
-                            panel.refresh();
+                        panel.refresh();
                     }
                 }
             }, '-', {
@@ -885,11 +885,7 @@
             if (this.isVisible()) {
                 this.updateEndTime();
                 Ext.each(this.getGraphs(), function(g) {
-                    g.fireEvent("updateimage", {
-                        // if they selected a specific start then use that otherwise use the drange
-                        start: this.start || this.drange,
-                        end: this.end || CURRENT_TIME
-                    }, this);
+                    g.fireEvent("updateimage", {}, this);
                 });
             }
         },
