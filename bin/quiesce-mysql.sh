@@ -12,7 +12,7 @@
 function help()
 {
     cat <<CAT_EOF >&2
-Usage: $0 { status | pause | resume | help }
+Usage: $0 { status | pause | resume | help } [PAUSE_CHECK_TIMEOUT=120] [LOCK_HOLD_DURATION=600]
 
     PAUSE_CHECK_TIMEOUT env var may be overridden from default of 60 seconds
         amount of time to look for locked=true after calling pause
@@ -193,6 +193,17 @@ function do_resume()
     done
 }
 
+function parseEnvs()
+{
+    while (( $# > 0 )); do
+        case "$1" in
+            *=*)
+                eval export $1
+            ;;
+        esac
+        shift
+    done
+}
 
 function main()
 {
@@ -259,6 +270,7 @@ if [[ "$(basename $0)" == "quiesce-mysql.sh" ]]; then
     export CFGDIR=$ZENHOME/etc
     CMD="$1"
     shift
+    parseEnvs "$@"
     # END OF HACK
 
     main "$@"

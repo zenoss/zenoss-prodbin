@@ -13,7 +13,7 @@
 function help()
 {
     cat <<CAT_EOF >&2
-Usage: $0 { status | pause | resume | help }
+Usage: $0 { status | pause | resume | help } [PAUSE_CHECK_TIMEOUT=120]
 
     PAUSE_CHECK_TIMEOUT env var may be overridden from default of 60 seconds
         amount of time to look for locked=true after calling pause
@@ -175,6 +175,17 @@ function do_resume()
     rabbitmqctl set_vm_memory_high_watermark $vm_memory_high_watermark
 }
 
+function parseEnvs()
+{
+    while (( $# > 0 )); do
+        case "$1" in
+            *=*)
+                eval export $1
+            ;;
+        esac
+        shift
+    done
+}
 
 function main()
 {
@@ -186,6 +197,7 @@ function main()
 
     CMD="$1"
     shift
+    parseEnvs "$@"
     case "$CMD" in
         status)
             do_status
