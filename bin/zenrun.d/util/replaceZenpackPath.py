@@ -14,7 +14,7 @@ new arguments to stdout, separated by \x01 character.
 e.g.,
   --install relative/path/to/zenpack.egg
 becomes
-  --install;/mnt/pwd/relative/path/to/zenpack.egg
+  --install\0x1/mnt/pwd/relative/path/to/zenpack.egg
 """
 
 import sys
