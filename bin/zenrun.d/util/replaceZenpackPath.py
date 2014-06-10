@@ -9,7 +9,7 @@
 replaceZenpackPath is an argument filter for zenpack commands running in a
 serviced container.  It converts the zenpack path from a relative path (on
 the host) to the corresponding absolute path in the container and writes the
-new arguments to stdout, separated by semicolons.
+new arguments to stdout, separated by \x01 character.
 
 e.g.,
   --install relative/path/to/zenpack.egg
@@ -40,7 +40,7 @@ def replaceZenpackPath(argv):
 def main(argv):
     try:
         argv = replaceZenpackPath(sys.argv[1:])
-        print ';'.join(argv),
+        print '\x01'.join(argv),
         return 0
     except IOError as e:
         print >> sys.stderr, "Unable to open ZenPack file: '%s'" % e
