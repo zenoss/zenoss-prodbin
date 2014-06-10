@@ -15,6 +15,7 @@ __DEFAULT__() {
     if test $? -ne 0 ; then
         return $status
     fi
-    zenpack "$args"
+    IFS=$(printf "\x01") read -ra args <<< "$args"
+    zenpack "${args[@]}"
     return $?
  }
