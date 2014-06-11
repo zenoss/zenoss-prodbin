@@ -28,7 +28,7 @@ class RelationshipMap(PBSafe):
         self.compname = compname
         self.modname = modname
         self.maps = []
-        if objmaps is not None:
+        if objmaps is None:
             objmaps = []
 
         self.extend(objmaps)
