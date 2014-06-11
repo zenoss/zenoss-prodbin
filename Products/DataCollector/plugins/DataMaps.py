@@ -41,6 +41,9 @@ class RelationshipMap(PBSafe):
 
     def __iter__(self):
         return iter(self.maps)
+ 
+    def __len__(self):
+        return len(self.maps)
 
     def append(self, obj):
         self.extend((obj,))
@@ -112,6 +115,12 @@ class ObjectMap(PBSafe):
         map.update(self.__dict__)
         del map["_attrs"]
         return '<%s %s>' % (self.__class__.__name__, pformat(map))
+    
+    def __len__(self):
+        map = {}
+        map.update(self.__dict__)
+        del map["_attrs"]
+        return len(map)
 
     def items(self):
         """Return the name value pairs for this ObjectMap.
