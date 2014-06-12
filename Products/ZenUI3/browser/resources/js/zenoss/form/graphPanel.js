@@ -90,8 +90,8 @@
             return ms;
         }
         var d = new Date(ms);
-        return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1).pad(2) + '/' + d.getUTCDate().pad(2) + '-'
-            + d.getUTCHours().pad(2) + ':' + d.getUTCMinutes().pad(2) + ':' + d.getUTCSeconds().pad(2) + '-UTC';
+        return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1).pad(2) + '/' + d.getUTCDate().pad(2) + '-' +
+            d.getUTCHours().pad(2) + ':' + d.getUTCMinutes().pad(2) + ':' + d.getUTCSeconds().pad(2) + '-UTC';
     }
 
     Date.prototype.minus = function(secs) {
@@ -104,8 +104,8 @@
         extend: "Ext.Panel",
 
 
-        zoom_factor: 1.5,
-        pan_factor: 3,
+        zoom_factor: 1.25,
+        pan_factor: 2,
 
         /**
          * @cfg {int} start
@@ -209,16 +209,14 @@
                     },{
                         text: _t('Zoom In'),
                         ref: '../zoomin',
-                        enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
-                            this.fireEventsToAll("zoommodechange", this, !btn.pressed);
+                            this.doZoom.call(this, 0, this.zoom_factor);
                         }, this)
                     },{
                         text: _t('Zoom Out'),
                         ref: '../zoomout',
-                        enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
-                            this.fireEventsToAll("zoommodechange", this, btn.pressed);
+                            this.doZoom.call(this, 0, 1/this.zoom_factor);
                         }, this)
                     },{
                         text: '&gt;',
@@ -266,6 +264,7 @@
                 format: this.datapoints[0].format,
                 timezone: Zenoss.USER_TIMEZONE
             };
+
             var delta;
             if (Ext.isNumber(this.graph_params.start)) {
                 delta = new Date().getTime() - this.graph_params.start;
@@ -295,12 +294,10 @@
         displayLink: function(){
             var config = Zenoss.util.base64.encode(Ext.JSON.encode(this.initialConfig)),
                 link = "/zport/dmd/viewGraph?data=" + config;
+
             new Zenoss.dialog.ErrorDialog({
-                message: Ext.String.format(_t('<div>'
-                                              + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'), '<br/><br/><a href="'
-                                              + link
-                                              + '">Graph: ' + this.graphTitle +  ' </a>')
-                                              + '</div>')),
+                message: Ext.String.format(_t('<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
+                    '<br/><br/><a href="' + link + '">Graph: ' + this.graphTitle +  ' </a>') + '</div>')),
                 title: _t('Save Configuration')
             });
         },
@@ -351,31 +348,16 @@
                  * Fire this event to force the chart to redraw itself.
                  * @param {object} params The parameters we are sending to the object.
                  **/
-                'updateimage',
-                /**
-                 * @event zoommodechange
-                 * This fies when the zoom mode change (e.g. from zooming out to zooming in)
-                 **/
-                'zoommodechange'
+                'updateimage'
             );
             this.on('updateimage', this.updateGraph, this);
-            this.on("zoommodechange", this.onZoomModeChange, this);
             this.graphEl = Ext.get(this.graphId);
-            this.graphEl.on('click', this.onGraphClick, this);
         },
         linked: function() {
             return this.isLinked;
         },
         setLinked: function(isLinked) {
             this.isLinked = isLinked;
-        },
-        onZoomModeChange: function(graph, zoomOut) {
-            this.zoomout.toggle(zoomOut);
-            this.zoomin.toggle(!zoomOut);
-            var dir = zoomOut ? 'out' : 'in',
-                cls = Ext.isGecko ? '-moz-zoom-'+dir :
-                (Ext.isWebKit ? '-webkit-zoom-'+dir : 'crosshair');
-            this.graphEl.setStyle({'cursor': cls});
         },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
@@ -449,13 +431,12 @@
         },
         doZoom: function(xpos, factor) {
             var gp = this.graph_params,
-                el = Ext.get(this.graphId),
-                width = el.getWidth();
+                el = Ext.get(this.graphId);
+
             gp.end = this.convertEndToAbsolute(gp.end);
+
             var drange = Math.round(rangeToMilliseconds(gp.drange)/factor),
-                // Get the new end time based on where they click on the graph
-                delta = ((width/2) - xpos) * (rangeToMilliseconds(gp.drange)/width) + (rangeToMilliseconds(gp.drange) - drange)/2,
-                end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0),
+                end = gp.end,
                 start = (gp.end - drange);
 
             this.fireEventsToAll("updateimage", {
@@ -463,18 +444,6 @@
                 start: start,
                 end: end
             });
-        },
-        onGraphClick: function(e) {
-            var graph = e.getTarget(null, null, true),
-                x = e.getPageX() - graph.getX() - 67,
-            func = this.zoomin.pressed ? this.onZoomIn : this.onZoomOut;
-            func.call(this, this, x);
-        },
-        onZoomIn: function(graph, xpos) {
-            this.doZoom(xpos, this.zoom_factor);
-        },
-        onZoomOut: function(graph, xpos) {
-            this.doZoom(xpos, 1/this.zoom_factor);
         },
         fireEventsToAll: function() {
             if (this.linked()) {
