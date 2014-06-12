@@ -209,14 +209,12 @@
                     },{
                         text: _t('Zoom In'),
                         ref: '../zoomin',
-                        // enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
                             this.doZoom.call(this, 0, this.zoom_factor);
                         }, this)
                     },{
                         text: _t('Zoom Out'),
                         ref: '../zoomout',
-                        // enableToggle: true,
                         handler: Ext.bind(function(btn, e) {
                             this.doZoom.call(this, 0, 1/this.zoom_factor);
                         }, this)
@@ -386,7 +384,7 @@
             if (Ext.isNumber(gp.start)) {
                 delta = this.convertEndToAbsolute(gp.end) - gp.start;
             } else {
-                delta = rangeToMilliseconds(gp.start);
+                /*JsDbg*/debugger;delta = rangeToMilliseconds(gp.start);
             }
             changes.downsample = '1m-avg';
             Ext.Array.each(DOWNSAMPLE, function(v) {
