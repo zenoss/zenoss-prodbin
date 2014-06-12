@@ -569,7 +569,6 @@
     });
     function getDateRangePanel() {
         var dateRangePanel = [{
-            itemId: 'dateRangePanel1',
             margin: '10, 0, 15, 0',
             xtype: 'container',
             layout: 'hbox',
