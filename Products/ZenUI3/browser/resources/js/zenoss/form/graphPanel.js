@@ -268,7 +268,7 @@
             };
             var delta;
             if (Ext.isNumber(this.graph_params.start)) {
-                delta = new Date().getTime() - this.graph_params.start;
+                delta = now() - this.graph_params.start;
             } else {
                 delta = rangeToMilliseconds(this.graph_params.start);
             }
@@ -378,8 +378,10 @@
             this.graphEl.setStyle({'cursor': cls});
         },
         updateGraph: function(params) {
+            console.log("params", params);
+
             var gp = Ext.apply({}, params, this.graph_params);
-            gp.start = params.start || gp.drange;
+            gp.start = params.start || gp.start;
             if (gp.start < 0) {
                 gp.start = 0;
             }
@@ -387,10 +389,8 @@
             // see if end is explicitly defined on the params
             if (Ext.isDefined(params.end) && (params.end > params.start)){
                 gp.end = params.end;
-            } else {
-                // otherwise it needs to be now
-                gp.end = CURRENT_TIME;
             }
+
             var changes = {
                 range : {
                     start: formatForMetricService(gp.start),
@@ -422,7 +422,7 @@
         },
         convertEndToAbsolute: function(end) {
             if (end == CURRENT_TIME) {
-                return new Date().getTime();
+                return now();
             }
             return end;
         },
@@ -440,7 +440,7 @@
             var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
             var newend = newstart + rangeToMilliseconds(gp.drange);
-            var now = new Date().getTime();
+            var now = now();
             if (newend > now) {
                 newend = now;
                 newstart = now - delta;
@@ -569,6 +569,7 @@
     });
     function getDateRangePanel() {
         var dateRangePanel = [{
+            itemId: 'dateRangePanel1',
             margin: '10, 0, 15, 0',
             xtype: 'container',
             layout: 'hbox',
@@ -617,7 +618,8 @@
                     Ext.each(me.getGraphs(), function(g) {
                         g.fireEvent("updateimage", {
                             start: me.start,
-                            end: me.end
+                            end: me.end,
+                            drange: me.end - me.start
                         }, me);
                     });
                 }
@@ -650,8 +652,11 @@
                 ref: '../resetBtn',
                 text: _t('Reset'),
                 handler: function(btn) {
-                    var panel = btn.refOwner;
-                    panel.setDrange();
+                    var panel = btn.refOwner,
+                        // assume only 1 drangeselector in this panel
+                        drange = panel.query("drangeselector")[0].value;
+
+                    panel.setDrange(drange);
                 }
             },'-',{
                 xtype: 'tbtext',
@@ -864,19 +869,23 @@
             }
         },
         setDrange: function(drange) {
-            this.start = null;
-            this.end = null;
             drange = drange || this.drange;
+
             this.drange = drange;
+            this.end = "0s-ago";
+            // find difference between now and drange
+            this.start = moment().diff(rangeToMilliseconds(drange)).valueOf();
+
             //  set the start and end dates to the selected range.
-            this.end_date.setValue(moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            var start_timestamp = ( new Date().getTime() - rangeToMilliseconds(drange)) / 1000;
-            this.start_date.setValue(moment.utc(start_timestamp, "X").tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.end_date.setValue(moment().format(DATEFIELD_DATE_FORMAT));
+            this.start_date.setValue(moment(this.start).format(DATEFIELD_DATE_FORMAT));
 
             // tell each graph to update
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEvent("updateimage", {
-                    drange: drange
+                    drange: drange,
+                    start: this.start,
+                    end: this.end
                 }, this);
             });
         },
