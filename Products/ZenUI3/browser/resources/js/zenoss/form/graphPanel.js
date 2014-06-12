@@ -871,10 +871,13 @@
         setDrange: function(drange) {
             drange = drange || this.drange;
 
-            this.drange = drange;
-            this.end = "0s-ago";
             // find difference between now and drange
-            this.start = moment().diff(rangeToMilliseconds(drange)).valueOf();
+            var start = moment().diff(rangeToMilliseconds(drange)).valueOf(),
+                end = "0s-ago";
+
+            this.drange = drange;
+            this.end = end;
+            this.start = start;
 
             //  set the start and end dates to the selected range.
             this.end_date.setValue(moment().format(DATEFIELD_DATE_FORMAT));
@@ -884,8 +887,8 @@
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEvent("updateimage", {
                     drange: drange,
-                    start: this.start,
-                    end: this.end
+                    start: start,
+                    end: end
                 }, this);
             });
         },
