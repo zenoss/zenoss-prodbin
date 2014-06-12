@@ -21,6 +21,7 @@ from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 from Products.ZenHub.zodb import onUpdate, onDelete
 from Products.ZenHub.interfaces import IBatchNotifier
 
+from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.PerformanceConf import PerformanceConf
@@ -30,6 +31,7 @@ from Products.ZenModel.ThresholdClass import ThresholdClass
 from Products.ZenModel.privateobject import is_private
 from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 from Products.Zuul.utils import safe_hasattr as hasattr
+from zope.component import getUtilitiesFor
 
 
 class DeviceProxy(pb.Copyable, pb.RemoteCopy):
@@ -92,6 +94,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         # Get the collector information (eg the 'localhost' collector)
         self._prefs = self.dmd.Monitors.Performance._getOb(self.instance)
         self.config = self._prefs # TODO fix me, needed for ThresholdMixin
+        self.configFilter = None
 
         # When about to notify daemons about device changes, wait for a little
         # bit to batch up operations.
@@ -99,6 +102,15 @@ class CollectorConfigService(HubService, ThresholdMixin):
         self._reconfigProcrastinator = Procrastinate(self._pushReconfigure)
 
         self._notifier = component.getUtility(IBatchNotifier)
+
+    def _handleOptions(self, options):
+        dispatchFilterName = options.get('configDispatch', '') if options else ''
+        filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
+        filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                        filterFactories.get('', None)
+        if filterFactory:
+            self.configFilter = filterFactory.getFilter(options)
+            self.log.debug("Filter configured: %s:%s", filterFactory, self.configFilter)
 
     def _wrapFunction(self, functor, *args, **kwargs):
         """
@@ -223,7 +235,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
 
     @translateError
-    def remote_getConfigProperties(self):
+    def remote_getConfigProperties(self, options):
+        self._handleOptions(options)
         return self._prefs.propertyItems()
 
     @translateError
@@ -245,7 +258,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         return devices
 
     @translateError
-    def remote_getDeviceConfigs(self, deviceNames = None):
+    def remote_getDeviceConfigs(self, deviceNames=None):
         devices = self._getDevices(deviceNames)
         devices = self._filterDevices(devices)
 
@@ -303,7 +316,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
         @rtype: boolean
         """
         try:
-            return device.monitorDevice()
+            return device.monitorDevice() and \
+                   (not self.configFilter or self.configFilter(device))
         except AttributeError as e:
             self.log.warn("got an attribute exception on device.monitorDevice()")
             self.log.debug(e)
@@ -323,7 +337,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         for dev in filter(None, devices):
             try:
-                device = dev.primaryAq() # still black magic to me...
+                device = dev.primaryAq()
 
                 if self._perfIdFilter(device) and self._filterDevice(device):
                     filteredDevices.append(device)
@@ -336,7 +350,6 @@ class CollectorConfigService(HubService, ThresholdMixin):
                     self.log.exception("Got an exception filtering %r", dev)
                 else:
                     self.log.warn("Got an exception filtering %r", dev)
-
         return filteredDevices
 
     def _perfIdFilter(self, obj):

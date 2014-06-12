@@ -15,6 +15,7 @@ import json
 import zope.interface
 from twisted.internet import defer,  reactor, task
 from twisted.python.failure import Failure
+from optparse import SUPPRESS_HELP
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
@@ -191,6 +192,14 @@ class CollectorDaemon(RRDDaemon):
         zope.component.provideUtility(self, IEventService)
         zope.component.provideUtility(self, IDataService)
 
+        # register the collector's own preferences object so it may be easily
+        # retrieved by factories, tasks, etc.
+        zope.component.provideUtility(self.preferences,
+                                      ICollectorPreferences,
+                                      self.preferences.collectorName)
+
+        super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
+
         # setup daemon statistics
         self._statService = StatisticsService()
         self._statService.addStatistic("devices", "GAUGE")
@@ -200,14 +209,6 @@ class CollectorDaemon(RRDDaemon):
         self._statService.addStatistic("queuedTasks", "GAUGE")
         self._statService.addStatistic("missedRuns", "GAUGE")
         zope.component.provideUtility(self._statService, IStatisticsService)
-
-        # register the collector's own preferences object so it may be easily
-        # retrieved by factories, tasks, etc.
-        zope.component.provideUtility(self.preferences,
-                                      ICollectorPreferences,
-                                      self.preferences.collectorName)
-
-        super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
 
         self._deviceGuids = {}
         self._devices = set()
@@ -261,7 +262,19 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-
+        self.parser.add_option('--dispatch',
+                               dest='configDispatch',
+                               type='string',
+                               help='How to dispatch tasks to multiple instances of this daemon, if available.')
+        self.parser.add_option('--workerid',
+                               dest = 'workerid',
+                               type = 'int',
+                               default = 0,
+                               help = SUPPRESS_HELP)
+        self.parser.add_option('--workers',
+                               type="int",
+                               default=1,
+                               help="The number of total instances of this daemon running")
         self.parser.add_option('--writeStatistics',
                                dest='writeStatistics',
                                type='int',
@@ -653,7 +666,8 @@ class CollectorDaemon(RRDDaemon):
 
         interval = self.preferences.cycleInterval
         self.log.debug("Initializing maintenance Cycle")
-        maintenanceCycle = MaintenanceCycle(interval, self, self._maintenanceCycle)
+        heartbeatSender = self if self.worker_id == 0 else None
+        maintenanceCycle = MaintenanceCycle(interval, heartbeatSender, self._maintenanceCycle)
         maintenanceCycle.start()
 
     def _maintenanceCycle(self, ignored=None):
@@ -762,14 +776,29 @@ class CollectorDaemon(RRDDaemon):
     def _signalHandler(self, signum, frame):
         self._displayStatistics(True)
 
+    @property
+    def worker_count(self):
+        """
+        worker_count for this daemon
+        """
+        return getattr(self.options, 'workers', 1)
+
+    @property
+    def worker_id(self):
+        """
+        worker_id for this particular peer
+        """
+        return getattr(self.options, 'workerid', 0)
+
 
 class Statistic(object):
     zope.interface.implements(IStatistic)
 
-    def __init__(self, name, type):
+    def __init__(self, name, type, **kwargs):
         self.value = 0
         self.name = name
         self.type = type
+        self.kwargs = kwargs
 
 
 class StatisticsService(object):
@@ -778,14 +807,14 @@ class StatisticsService(object):
     def __init__(self):
         self._stats = {}
 
-    def addStatistic(self, name, type):
+    def addStatistic(self, name, type, **kwargs):
         if name in self._stats:
             raise NameError("Statistic %s already exists" % name)
 
         if type not in ('DERIVE', 'COUNTER', 'GAUGE'):
             raise TypeError("Statistic type %s not supported" % type)
 
-        stat = Statistic(name, type)
+        stat = Statistic(name, type, **kwargs)
         self._stats[name] = stat
 
     def getStatistic(self, name):
@@ -805,7 +834,7 @@ class StatisticsService(object):
 
             # These should always come back empty now because DaemonStats
             # posts the events for us
-            func(stat.name, stat.value)
+            func(stat.name, stat.value, **stat.kwargs)
 
             # counter is an ever-increasing value, but otherwise...
             if stat.type != 'COUNTER':

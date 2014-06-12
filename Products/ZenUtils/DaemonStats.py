@@ -25,6 +25,7 @@ class DaemonStats(object):
         self._derivative_tracker = None
         self._service_id = None
         self._tenant_id = None
+        self._instance_id = None
 
     def config(self, name, monitor, metric_writer, threshold_notifier,
                derivative_tracker):
@@ -44,8 +45,9 @@ class DaemonStats(object):
 
         # when running inside control plane pull the service id from the environment
         if os.environ.get( 'CONTROLPLANE', "0") == "1":
-            self._tenant_id = os.environ.get( 'CONTROLPLANE_TENANT_ID')
-            self._service_id = os.environ.get( 'CONTROLPLANE_SERVICE_ID')
+            self._tenant_id = os.environ.get('CONTROLPLANE_TENANT_ID')
+            self._service_id = os.environ.get('CONTROLPLANE_SERVICE_ID')
+            self._instance_id = os.environ.get('CONTROLPLANE_INSTANCE_ID')
 
     def _context_id(self):
         return self.name + "-" + self.monitor
@@ -65,6 +67,9 @@ class DaemonStats(object):
 
         if self._tenant_id:
             tags['tenantId'] = self._tenant_id
+
+        if self._instance_id:
+            tags['instance'] = self._instance_id
 
         return tags
 
