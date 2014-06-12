@@ -384,7 +384,7 @@
             if (Ext.isNumber(gp.start)) {
                 delta = this.convertEndToAbsolute(gp.end) - gp.start;
             } else {
-                /*JsDbg*/debugger;delta = rangeToMilliseconds(gp.start);
+                delta = rangeToMilliseconds(gp.start);
             }
             changes.downsample = '1m-avg';
             Ext.Array.each(DOWNSAMPLE, function(v) {
