@@ -104,8 +104,8 @@
         extend: "Ext.Panel",
 
 
-        zoom_factor: 1.5,
-        pan_factor: 3,
+        zoom_factor: 1.25,
+        pan_factor: 2,
 
         /**
          * @cfg {int} start
@@ -266,13 +266,6 @@
                 format: this.datapoints[0].format,
                 timezone: Zenoss.USER_TIMEZONE
             };
-            
-            console.log(
-                "graph created",
-                rangeToMilliseconds(this.graph_params.drange),
-                rangeToMilliseconds(this.graph_params.start),
-                rangeToMilliseconds(this.graph_params.end)
-            );
 
             var delta;
             if (Ext.isNumber(this.graph_params.start)) {
@@ -440,20 +433,13 @@
         },
         doZoom: function(xpos, factor) {
             var gp = this.graph_params,
-                el = Ext.get(this.graphId),
-                width = el.getWidth();
+                el = Ext.get(this.graphId);
 
             gp.end = this.convertEndToAbsolute(gp.end);
 
             var drange = Math.round(rangeToMilliseconds(gp.drange)/factor),
-                // Get the new end time based on where they click on the graph
-                delta = ((width/2) - xpos) * (rangeToMilliseconds(gp.drange)/width) + (rangeToMilliseconds(gp.drange) - drange)/2,
-                end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0),
+                end = gp.end,
                 start = (gp.end - drange);
-
-            console.log((factor<1?"zoomed out":"zoomed in"));
-            console.log("old range", gp.drange, gp.end - drange, gp.end);
-            console.log("new range", drange, start, end);
 
             this.fireEventsToAll("updateimage", {
                 drange: drange,
