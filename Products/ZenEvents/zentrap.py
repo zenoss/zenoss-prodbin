@@ -156,6 +156,10 @@ class SnmpTrapPreferences(CaptureReplay):
 
 def ipv6_is_enabled():
     "test if ipv6 is enabled"
+
+    # hack for ZEN-12088 - TODO: remove next line
+    return False
+
     try:
         socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, 0)
     except socket.error, e:
