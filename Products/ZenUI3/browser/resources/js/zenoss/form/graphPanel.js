@@ -378,8 +378,6 @@
             this.graphEl.setStyle({'cursor': cls});
         },
         updateGraph: function(params) {
-            console.log("params", params);
-
             var gp = Ext.apply({}, params, this.graph_params);
             gp.start = params.start || gp.start;
             if (gp.start < 0) {
