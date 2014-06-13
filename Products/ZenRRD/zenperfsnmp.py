@@ -575,8 +575,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
         Close down the connection to the remote device
         """
         if self._snmpProxy:
-            self._snmpProxy.close()
-        self._snmpProxy = None
+            try:
+                self._snmpProxy.close()
+            finally:
+                self._snmpProxy = None
 
 
     def displayStatistics(self):
