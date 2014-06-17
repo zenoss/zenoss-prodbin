@@ -534,16 +534,77 @@
             this.callParent(arguments);
         }
     });
-    function getDateRangePanel() {
-        var dateRangePanel = [{
-            margin: '10, 0, 15, 0',
-            xtype: 'container',
-            layout: 'hbox',
-            defaults: {
-                margin: '0 0 0 10',
-                labelWidth: 30
+    // function getDateRangePanel() {
+    //     var dateRangePanel = [{
+    //         margin: '10, 0, 15, 0',
+    //         xtype: 'container',
+    //         layout: 'hbox',
+    //         defaults: {
+    //             margin: '0 0 0 10',
+    //             labelWidth: 30
+    //         },
+    //         items:[{
+    //             xtype: 'datefield',
+    //             ref: '../../start_date',
+    //             width: 250,
+    //             fieldLabel: _t('Start'),
+    //             format:'Y-m-d H:i:s',
+    //             // the default is one hour ago
+    //             value: moment().subtract("Hour", 1).tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
+    //         },{
+    //             xtype: 'container',
+    //             width: 5
+    //         },{
+    //             xtype: 'datefield',
+    //             ref: '../../end_date',
+    //             width: 250,
+    //             fieldLabel: _t('End'),
+    //             disabled: true,
+    //             format:'Y-m-d H:i:s',
+    //             value: moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
+    //         }, {
+    //             xtype: 'checkbox',
+    //             ref: '../../checkbox_now',
+    //             fieldLabel: _t('Now'),
+    //             checked: true,
+    //             listeners: {
+    //                 change: function(chkbox, newValue) {
+    //                     chkbox.refOwner.end_date.setDisabled(newValue);
+    //                 }
+    //             }
+    //         }, {
+    //             xtype: 'button',
+    //             text: _t('Update'),
+    //             ref: '../../updatebutton',
+    //             handler: function(b){
+    //                 var me = b.refOwner;
+    //                 me.start = me.start_date.getUnixTimestamp() * 1000;
+    //                 me.updateEndTime();
+    //                 me.end = me.end_date.getUnixTimestamp() * 1000;
+    //                 Ext.each(me.getGraphs(), function(g) {
+    //                     g.fireEvent("updateimage", {
+    //                         start: me.start,
+    //                         end: me.end,
+    //                         drange: me.end - me.start
+    //                     }, me);
+    //                 });
+    //             }
+    //         }]
+    //     }];
+    //     return dateRangePanel;
+    // }
+
+
+    function getTBarConfig(title) {
+        var tbarConfig = [
+            {
+                xtype: 'tbtext',
+                text: title || _t('Performance Graphs')
             },
-            items:[{
+            '-',
+            '->',
+
+            {
                 xtype: 'datefield',
                 ref: '../../start_date',
                 width: 250,
@@ -589,20 +650,9 @@
                         }, me);
                     });
                 }
-            }]
-        }];
-        return dateRangePanel;
-    }
-
-
-    function getTBarConfig(title) {
-        var tbarConfig = [
-            {
-                xtype: 'tbtext',
-                text: title || _t('Performance Graphs')
             },
-            '-',
-            '->',
+
+
             {
                 xtype: 'drangeselector',
                 ref: '../drange_select',
@@ -812,22 +862,26 @@
                 }
             }
 
-            if (!this.start_date) {
-                // add the date filters as well as the columns
-                this.add([{
-                    xtype: 'container',
-                    items: Ext.Array.clone(getDateRangePanel())
-                },{
-                    layout: 'column',
-                    items: columns
-                }]);
-            } else {
-                // just add the columns
-                this.add({
-                    layout: 'column',
-                    items: columns
-                });
-            }
+            // if (!this.start_date) {
+            //     // add the date filters as well as the columns
+            //     this.add([{
+            //         xtype: 'container',
+            //         items: Ext.Array.clone(getDateRangePanel())
+            //     },{
+            //         layout: 'column',
+            //         items: columns
+            //     }]);
+            // } else {
+            //     // just add the columns
+            //     this.add({
+            //         layout: 'column',
+            //         items: columns
+            //     });
+            // }
+            this.add({
+                layout: 'column',
+                items: columns
+            });
         },
         updateEndTime: function(){
             if (this.checkbox_now && this.checkbox_now.getValue()) {
