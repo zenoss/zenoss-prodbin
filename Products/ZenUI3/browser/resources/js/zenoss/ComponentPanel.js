@@ -68,7 +68,7 @@ Zenoss.nav.register({
                     id: cardid,
                     xtype: 'graphpanel',
                     viewName: 'graphs',
-                    showToolbar: false,
+                    hideToolbar: true,
                     text: _t('Graphs')
                 };
             if (!Ext.get('graph_panel')) {

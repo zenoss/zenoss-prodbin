@@ -612,146 +612,143 @@
     // }
 
 
-    function getTBarConfig(title) {
-        var tbarConfig = [
-            {
-                xtype: 'tbtext',
-                text: title || _t('Performance Graphs')
-            },
-            '-',
-            '->',
+    var tbarConfig = [
+        '-',
+        '->',
 
-            {
-                xtype: 'datefield',
-                ref: '../../start_date',
-                width: 250,
-                fieldLabel: _t('Start'),
-                format:'Y-m-d H:i:s',
-                // the default is one hour ago
-                value: moment().subtract("Hour", 1).tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
-            },{
-                xtype: 'container',
-                width: 5
-            },{
-                xtype: 'datefield',
-                ref: '../../end_date',
-                width: 250,
-                fieldLabel: _t('End'),
-                disabled: true,
-                format:'Y-m-d H:i:s',
-                value: moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
-            }, {
-                xtype: 'checkbox',
-                ref: '../../checkbox_now',
-                fieldLabel: _t('Now'),
-                checked: true,
-                listeners: {
-                    change: function(chkbox, newValue) {
-                        chkbox.refOwner.end_date.setDisabled(newValue);
-                    }
+        {
+            xtype: 'drangeselector',
+            ref: '../drange_select',
+            listeners: {
+                select: function(combo, records, index){
+                    var value = records[0].data.id,
+                    panel = combo.refOwner;
+                    panel.setDrange(value);
                 }
-            }, {
-                xtype: 'button',
-                text: _t('Update'),
-                ref: '../../updatebutton',
-                handler: function(b){
-                    var me = b.refOwner;
-                    me.start = me.start_date.getUnixTimestamp() * 1000;
-                    me.updateEndTime();
-                    me.end = me.end_date.getUnixTimestamp() * 1000;
-                    Ext.each(me.getGraphs(), function(g) {
-                        g.fireEvent("updateimage", {
-                            start: me.start,
-                            end: me.end,
-                            drange: me.end - me.start
-                        }, me);
-                    });
+            }
+        },
+
+        "-",
+
+        {
+            xtype: 'datefield',
+            ref: '../../start_date',
+            width: 250,
+            fieldLabel: _t('Start'),
+            format:'Y-m-d H:i:s'
+        },{
+            xtype: 'container',
+            width: 5
+        },{
+            xtype: 'datefield',
+            ref: '../../end_date',
+            width: 250,
+            fieldLabel: _t('End'),
+            disabled: true,
+            format:'Y-m-d H:i:s'
+        }, {
+            xtype: 'checkbox',
+            ref: '../../checkbox_now',
+            fieldLabel: _t('Now'),
+            checked: true,
+            listeners: {
+                change: function(chkbox, newValue) {
+                    chkbox.refOwner.end_date.setDisabled(newValue);
                 }
-            },
+            }
+        },
+
+        "-",
+
+        {
+            xtype: 'button',
+            text: _t('Update'),
+            ref: '../../updatebutton',
+            handler: function(b){
+                var me = b.refOwner;
+                me.start = me.start_date.getUnixTimestamp() * 1000;
+                me.updateEndTime();
+                me.end = me.end_date.getUnixTimestamp() * 1000;
+                Ext.each(me.getGraphs(), function(g) {
+                    g.fireEvent("updateimage", {
+                        start: me.start,
+                        end: me.end,
+                        drange: me.end - me.start
+                    }, me);
+                });
+            }
+        },
 
 
-            {
-                xtype: 'drangeselector',
-                ref: '../drange_select',
-                listeners: {
-                    select: function(combo, records, index){
-                        var value = records[0].data.id,
-                        panel = combo.refOwner;
-                        panel.setDrange(value);
-                    }
-                }
-            },'-', {
-                xtype: 'button',
-                ref: '../resetBtn',
-                text: _t('Reset'),
-                handler: function(btn) {
-                    var panel = btn.refOwner,
-                        // assume only 1 drangeselector in this panel
-                        drange = panel.query("drangeselector")[0].value;
+        '-',
+        // {
+        //     xtype: 'button',
+        //     ref: '../resetBtn',
+        //     text: _t('Reset'),
+        //     handler: function(btn) {
+        //         var panel = btn.refOwner,
+        //             // assume only 1 drangeselector in this panel
+        //             drange = panel.query("drangeselector")[0].value;
 
-                    panel.setDrange(drange);
+        //         panel.setDrange(drange);
+        //     }
+        // },
+        {
+            xtype: 'tbtext',
+            text: _t('Link Graphs?:')
+        },{
+            xtype: 'checkbox',
+            ref: '../linkGraphs',
+            checked: true,
+            listeners: {
+                change: function(chkBx, checked) {
+                    var panel = chkBx.refOwner;
+                    panel.setLinked(checked);
                 }
-            },'-',{
-                xtype: 'tbtext',
-                text: _t('Link Graphs?:')
-            },{
-                xtype: 'checkbox',
-                ref: '../linkGraphs',
-                checked: true,
-                listeners: {
-                    change: function(chkBx, checked) {
-                        var panel = chkBx.refOwner;
-                        panel.setLinked(checked);
-                    }
-                }
-            }, '-',{
-                xtype: 'graphrefreshbutton',
-                ref: '../refreshmenu',
-                iconCls: 'refresh',
-                text: _t('Refresh'),
-                handler: function(btn) {
-                    if (btn) {
-                        var panel = btn.refOwner;
-                        panel.refresh();
-                    }
-                }
-            }, '-', {
-                xtype: 'button',
-                ref: '../newwindow',
-                iconCls: 'newwindow',
-                hidden: true,
-                handler: function(btn) {
+            }
+        }, '-',{
+            xtype: 'graphrefreshbutton',
+            ref: '../refreshmenu',
+            iconCls: 'refresh',
+            text: _t('Refresh'),
+            handler: function(btn) {
+                if (btn) {
                     var panel = btn.refOwner;
-                    var config = panel.initialConfig,
-                    win = Ext.create('Zenoss.dialog.BaseWindow',  {
-                        cls: 'white-background-panel',
-                        layout: 'fit',
-                        items: [Ext.apply(config,{
-                            id: 'device_graphs_window',
-                            xtype: 'graphpanel',
-                            ref: 'graphPanel',
-                            uid: panel.uid,
-                            newWindowButton: false
-                        })],
-                        maximized: true
-                    });
-                    win.show();
-                    win.graphPanel.setContext(panel.uid);
+                    panel.refresh();
                 }
-            }];
-        return tbarConfig;
-    }
+            }
+        }, '-', {
+            xtype: 'button',
+            ref: '../newwindow',
+            iconCls: 'newwindow',
+            hidden: true,
+            handler: function(btn) {
+                var panel = btn.refOwner;
+                var config = panel.initialConfig,
+                win = Ext.create('Zenoss.dialog.BaseWindow',  {
+                    cls: 'white-background-panel',
+                    layout: 'fit',
+                    items: [Ext.apply(config,{
+                        id: 'device_graphs_window',
+                        xtype: 'graphpanel',
+                        ref: 'graphPanel',
+                        uid: panel.uid,
+                        newWindowButton: false
+                    })],
+                    maximized: true
+                });
+                win.show();
+                win.graphPanel.setContext(panel.uid);
+            }
+        }];
 
 
     Ext.define("Zenoss.form.GraphPanel", {
         alias:['widget.graphpanel'],
         extend:"Ext.Panel",
+        tbar: tbarConfig,
         constructor: function(config) {
             config = config || {};
-            // default to showing the toolbar
-            if (!Ext.isDefined(config.showToolbar) ) {
-                config.showToolbar = true;
-            }
 
             Ext.applyIf(config, {
                 drange: DATE_RANGES[0][0],
@@ -765,10 +762,23 @@
                 },
                 directFn: router.getGraphDefs
             });
-            if (config.showToolbar){
-                config.tbar = getTBarConfig(config.tbarTitle);
-            }
+
+            // add title to toolbar
+            this.tbar.unshift({
+                xtype: 'tbtext',
+                text: config.tbarTitle || _t('Performance Graphs')
+            });
+
             Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
+
+            // set start and end dates
+            // value: moment().subtract("Hour", 1).tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
+            // value: moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
+            
+            if (config.hideToolbar){
+                // assumes just one docked item
+                this.getDockedItems()[0].hide();
+            }
         },
         setContext: function(uid) {
             if (this.newwindow) {
