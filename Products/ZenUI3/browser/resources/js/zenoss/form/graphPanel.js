@@ -173,65 +173,66 @@
                 padding = "padding:0px 0px 0px 0px;";
             }
             config = Ext.applyIf(config||{}, {
-
                 html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 75)  + 'px;"></div>',
                 maxWidth: 800,
                 cls: 'graph-panel',
-                dockedItems: [{
-                    xtype: 'toolbar',
-                    dock: 'top',
-                    items: [{
-                        xtype: 'tbtext',
-                        style: {
-                            fontWeight: 'bolder',
-                            fontSize: '1.5em'
-                        },
-                        text: config.graphTitle // + ' : ' + config.uid
-                    },'->',{
-                        xtype: 'button',
-                        iconCls: 'customize',
-                        menu: [{
-                            text: _t('Definition'),
-                            handler: Ext.bind(this.displayDefinition, this)
-                        }, {
-                            text: _t('Export to CSV'),
-                            handler: Ext.bind(this.exportData, this)
-                        }, {
-                            text: _t('Link to this Graph'),
-                            handler: Ext.bind(this.displayLink, this)
-                        }]
-                    },{
-                        text: '&lt;',
-                        width: 40,
-                        handler: Ext.bind(function(btn, e) {
-                            this.onPanLeft(this);
-                        }, this)
-                    },{
-                        text: _t('Zoom In'),
-                        ref: '../zoomin',
-                        handler: Ext.bind(function(btn, e) {
-                            this.doZoom.call(this, 0, this.zoom_factor);
-                        }, this)
-                    },{
-                        text: _t('Zoom Out'),
-                        ref: '../zoomout',
-                        handler: Ext.bind(function(btn, e) {
-                            this.doZoom.call(this, 0, 1/this.zoom_factor);
-                        }, this)
-                    },{
-                        text: '&gt;',
-                        width: 40,
-                        handler: Ext.bind(function(btn, e) {
-                            this.onPanRight(this);
-                        }, this)
-                    }]
-                }],
                 graph_params: {
                     drange: DATE_RANGES[0][0],
                     end: config.end || CURRENT_TIME,
                     start: config.start || DATE_RANGES[0][0]
                 }
             });
+
+            // setup graph controls
+            config.dockedItems = [{
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [{
+                    xtype: 'tbtext',
+                    style: {
+                        fontWeight: 'bolder',
+                        fontSize: '1.5em'
+                    },
+                    text: config.graphTitle // + ' : ' + config.uid
+                },'->',{
+                    xtype: 'button',
+                    iconCls: 'customize',
+                    menu: [{
+                        text: _t('Definition'),
+                        handler: Ext.bind(this.displayDefinition, this)
+                    }, {
+                        text: _t('Export to CSV'),
+                        handler: Ext.bind(this.exportData, this)
+                    }, {
+                        text: _t('Link to this Graph'),
+                        handler: Ext.bind(this.displayLink, this)
+                    }]
+                },{
+                    text: '&lt;',
+                    width: 40,
+                    handler: Ext.bind(function(btn, e) {
+                        this.onPanLeft(this);
+                    }, this)
+                },{
+                    text: _t('Zoom In'),
+                    ref: '../zoomin',
+                    handler: Ext.bind(function(btn, e) {
+                        this.doZoom.call(this, 0, this.zoom_factor);
+                    }, this)
+                },{
+                    text: _t('Zoom Out'),
+                    ref: '../zoomout',
+                    handler: Ext.bind(function(btn, e) {
+                        this.doZoom.call(this, 0, 1/this.zoom_factor);
+                    }, this)
+                },{
+                    text: '&gt;',
+                    width: 40,
+                    handler: Ext.bind(function(btn, e) {
+                        this.onPanRight(this);
+                    }, this)
+                }]
+            }];
 
             Zenoss.EuropaGraph.superclass.constructor.call(this, config);
         },
@@ -292,8 +293,24 @@
             zenoss.visualization.chart.create(this.graphId, visconfig);
         },
         displayLink: function(){
-            var config = Zenoss.util.base64.encode(Ext.JSON.encode(this.initialConfig)),
-                link = "/zport/dmd/viewGraph?data=" + config;
+
+            var config = {},
+                encodedConfig, link,
+                // keys to exclude when cloning config object
+                exclusions = ["dockedItems"];
+
+            // shallow clone initialConfig object as long as the 
+            // key being copied is no in the exclusions list.
+            // This is useful because the final JSON string needs
+            // to be as small as possible!
+            for(var i in this.initialConfig){
+                if(!~exclusions.indexOf(i)){
+                    config[i] = this.initialConfig[i];
+                }
+            }
+
+            encodedConfig = Zenoss.util.base64.encode(Ext.JSON.encode(config));
+            link = "/zport/dmd/viewGraph?data=" + encodedConfig;
 
             new Zenoss.dialog.ErrorDialog({
                 message: Ext.String.format(_t('<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
@@ -420,10 +437,10 @@
             var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
             var newend = newstart + rangeToMilliseconds(gp.drange);
-            var now = now();
-            if (newend > now) {
-                newend = now;
-                newstart = now - delta;
+            var currTime = now();
+            if (newend > currTime) {
+                newend = currTime;
+                newstart = currTime - delta;
             }
             this.fireEventsToAll("updateimage", {start:newstart, end:newend});
         },
