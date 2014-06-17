@@ -333,7 +333,7 @@
             }).show();
         },
         exportData: function() {
-            var chart = zenoss.visualization.__charts[this.graphId],
+            var chart = zenoss.visualization.chart.getChart(this.graphId),
                 plots = Ext.JSON.encode(chart.plots),
                 form;
             form = Ext.DomHelper.append(document.body, {
