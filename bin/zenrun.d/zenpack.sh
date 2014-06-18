@@ -12,7 +12,7 @@
 __DEFAULT__() {
     args=$($RUNPATH/util/replaceZenpackPath.py "$@")
     status=$?
-    if test $? -ne 0 ; then
+    if test $status -ne 0 ; then
         return $status
     fi
     IFS=$(printf "\x01") read -ra args <<< "$args"
