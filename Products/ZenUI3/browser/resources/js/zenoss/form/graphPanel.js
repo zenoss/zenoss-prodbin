@@ -543,7 +543,7 @@
                     store: new Ext.data.ArrayStore({
                         id: 0,
                         model: 'Zenoss.model.IdName',
-                        data: DATE_RANGES
+                        data: DATE_RANGES.concat([[0,"<hr>"],["custom", "[Custom]"]])
                     }),
                     valueField: 'id',
                     displayField: 'name'
@@ -551,66 +551,6 @@
             this.callParent(arguments);
         }
     });
-    // function getDateRangePanel() {
-    //     var dateRangePanel = [{
-    //         margin: '10, 0, 15, 0',
-    //         xtype: 'container',
-    //         layout: 'hbox',
-    //         defaults: {
-    //             margin: '0 0 0 10',
-    //             labelWidth: 30
-    //         },
-    //         items:[{
-    //             xtype: 'datefield',
-    //             ref: '../../start_date',
-    //             width: 250,
-    //             fieldLabel: _t('Start'),
-    //             format:'Y-m-d H:i:s',
-    //             // the default is one hour ago
-    //             value: moment().subtract("Hour", 1).tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
-    //         },{
-    //             xtype: 'container',
-    //             width: 5
-    //         },{
-    //             xtype: 'datefield',
-    //             ref: '../../end_date',
-    //             width: 250,
-    //             fieldLabel: _t('End'),
-    //             disabled: true,
-    //             format:'Y-m-d H:i:s',
-    //             value: moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
-    //         }, {
-    //             xtype: 'checkbox',
-    //             ref: '../../checkbox_now',
-    //             fieldLabel: _t('Now'),
-    //             checked: true,
-    //             listeners: {
-    //                 change: function(chkbox, newValue) {
-    //                     chkbox.refOwner.end_date.setDisabled(newValue);
-    //                 }
-    //             }
-    //         }, {
-    //             xtype: 'button',
-    //             text: _t('Update'),
-    //             ref: '../../updatebutton',
-    //             handler: function(b){
-    //                 var me = b.refOwner;
-    //                 me.start = me.start_date.getUnixTimestamp() * 1000;
-    //                 me.updateEndTime();
-    //                 me.end = me.end_date.getUnixTimestamp() * 1000;
-    //                 Ext.each(me.getGraphs(), function(g) {
-    //                     g.fireEvent("updateimage", {
-    //                         start: me.start,
-    //                         end: me.end,
-    //                         drange: me.end - me.start
-    //                     }, me);
-    //                 });
-    //             }
-    //         }]
-    //     }];
-    //     return dateRangePanel;
-    // }
-
 
     var tbarConfig = [
         '-',
@@ -618,12 +558,24 @@
 
         {
             xtype: 'drangeselector',
-            ref: '../drange_select',
+            cls: 'drange_select',
+            labelWidth: 40,
+            labelAlign: "right",
             listeners: {
                 select: function(combo, records, index){
                     var value = records[0].data.id,
-                    panel = combo.refOwner;
-                    panel.setDrange(value);
+                    panel = combo.up("panel");
+
+                    // if value is "custom", then reveal the date
+                    // picker container
+                    if(value === "custom"){
+                        panel.showDatePicker();
+
+                    // otherwise, update graphs with selected range
+                    } else {
+                        panel.hideDatePicker();
+                        panel.setDrange(value);
+                    }
                 }
             }
         },
@@ -631,56 +583,65 @@
         "-",
 
         {
-            xtype: 'datefield',
-            ref: '../../start_date',
-            width: 250,
-            fieldLabel: _t('Start'),
-            format:'Y-m-d H:i:s'
-        },{
-            xtype: 'container',
-            width: 5
-        },{
-            xtype: 'datefield',
-            ref: '../../end_date',
-            width: 250,
-            fieldLabel: _t('End'),
-            disabled: true,
-            format:'Y-m-d H:i:s'
-        }, {
-            xtype: 'checkbox',
-            ref: '../../checkbox_now',
-            fieldLabel: _t('Now'),
-            checked: true,
-            listeners: {
-                change: function(chkbox, newValue) {
-                    chkbox.refOwner.end_date.setDisabled(newValue);
+            xtype: "container",
+            layout: "hbox",
+            cls: "date_picker_container",
+            items: [
+                {
+                    xtype: 'datefield',
+                    cls: 'start_date',
+                    width: 250,
+                    fieldLabel: _t('Start'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    format:'Y-m-d H:i:s'
+                },{
+                    xtype: 'datefield',
+                    cls: 'end_date',
+                    width: 250,
+                    fieldLabel: _t('End'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    disabled: true,
+                    format:'Y-m-d H:i:s'
+                },{
+                    xtype: 'checkbox',
+                    cls: 'checkbox_now',
+                    fieldLabel: _t('Now'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    checked: true,
+                    listeners: {
+                        change: function(chkbox, newValue) {
+                            chkbox.refOwner.end_date.setDisabled(newValue);
+                        }
+                    }
                 }
-            }
+            ]
         },
+        
 
-        "-",
-
-        {
-            xtype: 'button',
-            text: _t('Update'),
-            ref: '../../updatebutton',
-            handler: function(b){
-                var me = b.refOwner;
-                me.start = me.start_date.getUnixTimestamp() * 1000;
-                me.updateEndTime();
-                me.end = me.end_date.getUnixTimestamp() * 1000;
-                Ext.each(me.getGraphs(), function(g) {
-                    g.fireEvent("updateimage", {
-                        start: me.start,
-                        end: me.end,
-                        drange: me.end - me.start
-                    }, me);
-                });
-            }
-        },
+        // {
+        //     xtype: 'button',
+        //     text: _t('Update'),
+        //     cls: 'updatebutton',
+        //     handler: function(b){
+        //         var me = b.refOwner;
+        //         me.start = me.start_date.getUnixTimestamp() * 1000;
+        //         me.updateEndTime();
+        //         me.end = me.end_date.getUnixTimestamp() * 1000;
+        //         Ext.each(me.getGraphs(), function(g) {
+        //             g.fireEvent("updateimage", {
+        //                 start: me.start,
+        //                 end: me.end,
+        //                 drange: me.end - me.start
+        //             }, me);
+        //         });
+        //     }
+        // },
 
 
-        '-',
+        // '-',
         // {
         //     xtype: 'button',
         //     ref: '../resetBtn',
@@ -750,6 +711,8 @@
         constructor: function(config) {
             config = config || {};
 
+            var toolbar;
+
             Ext.applyIf(config, {
                 drange: DATE_RANGES[0][0],
                 isLinked: true,
@@ -763,21 +726,36 @@
                 directFn: router.getGraphDefs
             });
 
-            // add title to toolbar
-            this.tbar.unshift({
-                xtype: 'tbtext',
-                text: config.tbarTitle || _t('Performance Graphs')
-            });
-
             Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
 
-            // set start and end dates
-            // value: moment().subtract("Hour", 1).tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
-            // value: moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
+            // assumes just one docked item
+            this.toolbar = this.getDockedItems()[0];
             
             if (config.hideToolbar){
-                // assumes just one docked item
-                this.getDockedItems()[0].hide();
+                toolbar.hide();
+
+            } else {
+                // add title to toolbar
+                this.toolbar.insert(0, {
+                    xtype: 'tbtext',
+                    text: config.tbarTitle || _t('Performance Graphs')
+                });
+
+                // default range value of 1 hour
+                // NOTE: this should be a real number, not a relative
+                // measurement like "1hr"             
+                this.drange = rangeToMilliseconds("1hr");
+
+                // default start and end values in UTC time
+                // NOTE: do not apply timezone adjustments to these values!
+                this.start = moment.utc().subtract("ms", this.drange);
+                this.end = moment.utc();
+
+                // set start and end dates
+                this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+                this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+
+                this.hideDatePicker();
             }
         },
         setContext: function(uid) {
@@ -820,7 +798,6 @@
                 // no graphs were returned
                 el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
             }
-
         },
         addGraphs: function(data) {
             var graphs = [],
@@ -889,54 +866,9 @@
                 }
             }
 
-            // if (!this.start_date) {
-            //     // add the date filters as well as the columns
-            //     this.add([{
-            //         xtype: 'container',
-            //         items: Ext.Array.clone(getDateRangePanel())
-            //     },{
-            //         layout: 'column',
-            //         items: columns
-            //     }]);
-            // } else {
-            //     // just add the columns
-            //     this.add({
-            //         layout: 'column',
-            //         items: columns
-            //     });
-            // }
             this.add({
                 layout: 'column',
                 items: columns
-            });
-        },
-        updateEndTime: function(){
-            if (this.checkbox_now && this.checkbox_now.getValue()) {
-                this.end_date.setValue(moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            }
-        },
-        setDrange: function(drange) {
-            drange = drange || this.drange;
-
-            // find difference between now and drange
-            var start = moment().diff(rangeToMilliseconds(drange)).valueOf(),
-                end = "0s-ago";
-
-            this.drange = drange;
-            this.end = end;
-            this.start = start;
-
-            //  set the start and end dates to the selected range.
-            this.end_date.setValue(moment().format(DATEFIELD_DATE_FORMAT));
-            this.start_date.setValue(moment(this.start).format(DATEFIELD_DATE_FORMAT));
-
-            // tell each graph to update
-            Ext.each(this.getGraphs(), function(g) {
-                g.fireEvent("updateimage", {
-                    drange: drange,
-                    start: start,
-                    end: end
-                }, this);
             });
         },
         refresh: function() {
@@ -956,6 +888,56 @@
             Ext.each(this.getGraphs(), function(g){
                 g.setLinked(isLinked);
             });
+        },
+
+        ///////////////////////////
+        // graph time and range type stuff
+        // 
+        updateEndTime: function(){
+            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+        },
+
+        setDrange: function(drange) {
+            this.drange = drange || this.drange;
+
+            var graphConfig;
+
+            // if drange is relative measurement, convert to ms
+            if(typeof this.drange !== "number"){
+                this.drange = rangeToMilliseconds(this.drange);
+            }
+
+            // TODO - make sure "now" is checked
+            this.updateEndTime();
+
+            // update start to reflect new range
+            this.start = this.end.clone().subtract("ms", this.drange);
+
+            //  set the start and end dates to the selected range.            
+            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+
+            graphConfig = {
+                drange: this.drange,
+                // start and end are moments so they need to be
+                // converted to millisecond values
+                start: this.start.valueOf(),
+                end: this.end.valueOf()
+            };
+
+            // tell each graph to update
+            Ext.each(this.getGraphs(), function(g) {
+                g.fireEvent("updateimage", graphConfig, this);
+            });
+        },
+
+        showDatePicker: function(){
+            // show date picker stuff
+            this.toolbar.query("container[cls='date_picker_container']")[0].show();
+        },
+        hideDatePicker: function(){
+            // hide date picker stuff
+            this.toolbar.query("container[cls='date_picker_container']")[0].hide();
         }
     });
 
