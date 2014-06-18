@@ -14,11 +14,14 @@ interface used within Zenoss Core. This implementation provides basic
 configuration retrieval services directly from a remote ZenHub service.
 """
 import logging
+
 log = logging.getLogger("zen.collector.config")
 import time
+from functools import partial
 
 import zope.component
 import zope.interface
+from zope.interface import implements
 from twisted.internet import defer
 from twisted.python.failure import Failure
 
@@ -28,7 +31,8 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IConfigurationProxy,\
                                              IScheduledTask,\
                                              IDataService,\
-                                             IEventService
+                                             IEventService,\
+                                             IConfigurationDispatchingFilter
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenHub.PBDaemon import HubDown
@@ -42,7 +46,7 @@ class ConfigurationProxy(object):
     """
     zope.interface.implements(IConfigurationProxy)
 
-    def getPropertyItems(self, prefs):
+    def getPropertyItems(self, prefs, options):
         if not ICollectorPreferences.providedBy(prefs):
             raise TypeError("config must provide ICollectorPreferences")
 
@@ -51,7 +55,7 @@ class ConfigurationProxy(object):
 
         # Load any configuration properties for this daemon
         log.debug("Fetching daemon configuration properties")
-        d = serviceProxy.callRemote('getConfigProperties')
+        d = serviceProxy.callRemote('getConfigProperties', options)
         d.addCallback(lambda result: dict(result))
         return d
 
@@ -184,7 +188,8 @@ class ConfigurationLoaderTask(ObservableMixin):
         Load the configuration that doesn't depend on loading devices.
         """
         d = defer.maybeDeferred(self._configProxy.getPropertyItems,
-                                self._prefs)
+                                self._prefs,
+                                self.options.__dict__)
         d.addCallback(self._processPropertyItems)
         d.addCallback(self._processThresholdClasses)
         d.addCallback(self._processThresholds)
