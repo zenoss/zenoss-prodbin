@@ -103,9 +103,8 @@
         alias:['widget.europagraph'],
         extend: "Ext.Panel",
 
-
         zoom_factor: 1.25,
-        pan_factor: 2,
+        pan_factor: 4,
 
         /**
          * @cfg {int} start
@@ -217,13 +216,13 @@
                     text: _t('Zoom In'),
                     ref: '../zoomin',
                     handler: Ext.bind(function(btn, e) {
-                        this.doZoom.call(this, 0, this.zoom_factor);
+                        this.doZoom.call(this, 0, 1/this.zoom_factor);
                     }, this)
                 },{
                     text: _t('Zoom Out'),
                     ref: '../zoomout',
                     handler: Ext.bind(function(btn, e) {
-                        this.doZoom.call(this, 0, 1/this.zoom_factor);
+                        this.doZoom.call(this, 0, this.zoom_factor);
                     }, this)
                 },{
                     text: '&gt;',
@@ -394,6 +393,7 @@
                     end: formatForMetricService(gp.end)
                 }
             };
+
             // gp.start is something like "1h-ago", convert to milliseconds
             var delta;
             if (Ext.isNumber(gp.start)) {
@@ -429,7 +429,18 @@
             var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = (gp.start) - delta > 0 ? gp.start - delta : 0;
             var newend = newstart + rangeToMilliseconds(gp.drange);
-            this.fireEventsToAll("updateimage", {start:newstart, end:newend});
+
+            // update start, end, and range on graphpanel, then update all
+            // graphs
+            if(this.linked){
+                var panel = Ext.ComponentQuery.query("graphpanel")[0];
+                panel.setLimits(newstart, newend);
+                panel.refresh();
+
+            // else, update just this graph
+            } else {
+                this.fireEvent("updateimage", {start:newstart, end:newend});
+            }
         },
         onPanRight: function(graph) {
             var gp = this.graph_params;
@@ -442,7 +453,18 @@
                 newend = currTime;
                 newstart = currTime - delta;
             }
-            this.fireEventsToAll("updateimage", {start:newstart, end:newend});
+
+            // update start, end, and range on graphpanel, then update all
+            // graphs
+            if(this.linked){
+                var panel = Ext.ComponentQuery.query("graphpanel")[0];
+                panel.setLimits(newstart, newend);
+                panel.refresh();
+
+            // else, update just this graph
+            } else {
+                this.fireEvent("updateimage", {start:newstart, end:newend});
+            }
         },
         doZoom: function(xpos, factor) {
             var gp = this.graph_params,
@@ -450,15 +472,20 @@
 
             gp.end = this.convertEndToAbsolute(gp.end);
 
-            var drange = Math.round(rangeToMilliseconds(gp.drange)/factor),
-                end = gp.end,
-                start = (gp.end - drange);
+            var end = gp.end,
+                start = gp.end - (rangeToMilliseconds(gp.drange) * factor);
 
-            this.fireEventsToAll("updateimage", {
-                drange: drange,
-                start: start,
-                end: end
-            });
+            // update start, end, and range on graphpanel, then update all
+            // graphs
+            if(this.linked){
+                var panel = Ext.ComponentQuery.query("graphpanel")[0];
+                panel.setLimits(start, end);
+                panel.refresh();
+
+            // else, update just this graph
+            } else {
+                this.fireEvent("updateimage", { start: start, end: end });
+            }
         },
         fireEventsToAll: function() {
             if (this.linked()) {
@@ -571,9 +598,14 @@
                     if(value === "custom"){
                         panel.showDatePicker();
 
-                    // otherwise, update graphs with selected range
+                    // otherwise, update graphs
                     } else {
+                        // all ranges are relative to now, so set
+                        // end to current time
+                        panel.setEndToNow();
                         panel.hideDatePicker();
+                        // update drange and start values based
+                        // on the new end value
                         panel.setDrange(value);
                     }
                 }
@@ -688,6 +720,7 @@
         alias:['widget.graphpanel'],
         extend:"Ext.Panel",
         tbar: tbarConfig,
+        cls: "graphpanel",
         constructor: function(config) {
             config = config || {};
 
@@ -725,11 +758,11 @@
             // default start and end values in UTC time
             // NOTE: do not apply timezone adjustments to these values!
             this.start = moment.utc().subtract("ms", this.drange);
-            this.end = moment.utc();
+            this.setEndToNow();
 
             // set start and end dates
-            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
 
             this.hideDatePicker();
 
@@ -851,24 +884,20 @@
             });
         },
         refresh: function() {
-            var graphConfig = {
+            graphConfig = {
                 drange: this.drange,
                 // start and end are moments so they need to be
                 // converted to millisecond values
                 start: this.start.valueOf(),
                 end: this.end.valueOf()
             };
-
-            // if we are rendered but not visible do not refresh
-            if (this.isVisible()) {
-                // TODO - check if `now` is checked
-                // TODO - update start time as well?
-                // TODO - check if `link graphs`
-                this.updateEndTime();
-                Ext.each(this.getGraphs(), function(g) {
+            
+            Ext.each(this.getGraphs(), function(g) {
+                // if we are rendered but not visible do not refresh
+                if(this.isVisible()){
                     g.fireEvent("updateimage", graphConfig, this);
-                });
-            }
+                }
+            });
         },
         getGraphs: function() {
             return this.query('europagraph');
@@ -897,28 +926,34 @@
                 this.drange = rangeToMilliseconds(this.drange);
             }
 
-            // TODO - make sure "now" is checked
-            this.updateEndTime();
-
             // update start to reflect new range
             this.start = this.end.clone().subtract("ms", this.drange);
 
-            //  set the start and end dates to the selected range.            
-            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            //  set the start and end dates to the selected range.
+            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
 
-            graphConfig = {
-                drange: this.drange,
-                // start and end are moments so they need to be
-                // converted to millisecond values
-                start: this.start.valueOf(),
-                end: this.end.valueOf()
-            };
+            this.refresh();
+        },
 
-            // tell each graph to update
-            Ext.each(this.getGraphs(), function(g) {
-                g.fireEvent("updateimage", graphConfig, this);
-            });
+        setLimits: function(start, end){
+            // TODO - validate end is greater than start
+            this.start = moment.utc(start);
+            this.end = moment.utc(end);
+
+            // these limits require a custom date range
+            this.drange = end - start;
+            // set the range combo to custom
+            this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue("custom");
+            this.showDatePicker();
+
+            //  set the start and end dates to the selected range.
+            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+        },
+
+        setEndToNow: function(){
+            this.end = moment.utc();
         },
 
         showDatePicker: function(){
