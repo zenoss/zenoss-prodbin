@@ -564,7 +564,7 @@
             listeners: {
                 select: function(combo, records, index){
                     var value = records[0].data.id,
-                    panel = combo.up("panel");
+                        panel = combo.up("panel");
 
                     // if value is "custom", then reveal the date
                     // picker container
@@ -594,7 +594,15 @@
                     fieldLabel: _t('Start'),
                     labelWidth: 40,
                     labelAlign: "right",
-                    format:'Y-m-d H:i:s'
+                    format:'Y-m-d H:i:s',
+                    listeners: {
+                        change: function(self, val){
+                            var panel = self.up("panel");
+                            //update graphpanel.start with *UTC time*
+                            //NOTE: panel.start should *always* be UTC!
+                            panel.start = moment.utc(val).subtract("m", moment(val).zone());
+                        }
+                    }
                 },{
                     xtype: 'datefield',
                     cls: 'end_date',
@@ -603,7 +611,15 @@
                     labelWidth: 40,
                     labelAlign: "right",
                     disabled: true,
-                    format:'Y-m-d H:i:s'
+                    format:'Y-m-d H:i:s',
+                    listeners: {
+                        change: function(self, val){
+                            var panel = self.up("panel");
+                            //update graphpanel.end with *UTC time*
+                            //NOTE: panel.end should *always* be UTC!
+                            panel.end = moment.utc(val).subtract("m", moment(val).zone());
+                        }
+                    }
                 },{
                     xtype: 'checkbox',
                     cls: 'checkbox_now',
@@ -612,49 +628,13 @@
                     labelAlign: "right",
                     checked: true,
                     listeners: {
-                        change: function(chkbox, newValue) {
-                            chkbox.refOwner.end_date.setDisabled(newValue);
+                        change: function(self, val) {
+                            // chkbox.refOwner.end_date.setDisabled(newValue);
                         }
                     }
                 }
             ]
-        },
-        
-
-        // {
-        //     xtype: 'button',
-        //     text: _t('Update'),
-        //     cls: 'updatebutton',
-        //     handler: function(b){
-        //         var me = b.refOwner;
-        //         me.start = me.start_date.getUnixTimestamp() * 1000;
-        //         me.updateEndTime();
-        //         me.end = me.end_date.getUnixTimestamp() * 1000;
-        //         Ext.each(me.getGraphs(), function(g) {
-        //             g.fireEvent("updateimage", {
-        //                 start: me.start,
-        //                 end: me.end,
-        //                 drange: me.end - me.start
-        //             }, me);
-        //         });
-        //     }
-        // },
-
-
-        // '-',
-        // {
-        //     xtype: 'button',
-        //     ref: '../resetBtn',
-        //     text: _t('Reset'),
-        //     handler: function(btn) {
-        //         var panel = btn.refOwner,
-        //             // assume only 1 drangeselector in this panel
-        //             drange = panel.query("drangeselector")[0].value;
-
-        //         panel.setDrange(drange);
-        //     }
-        // },
-        {
+        },{
             xtype: 'tbtext',
             text: _t('Link Graphs?:')
         },{
@@ -674,7 +654,7 @@
             text: _t('Refresh'),
             handler: function(btn) {
                 if (btn) {
-                    var panel = btn.refOwner;
+                    var panel = btn.up("panel");
                     panel.refresh();
                 }
             }
@@ -730,32 +710,31 @@
 
             // assumes just one docked item
             this.toolbar = this.getDockedItems()[0];
-            
+
+            // add title to toolbar
+            this.toolbar.insert(0, {
+                xtype: 'tbtext',
+                text: config.tbarTitle || _t('Performance Graphs')
+            });
+
+            // default range value of 1 hour
+            // NOTE: this should be a real number, not a relative
+            // measurement like "1h-ago"             
+            this.drange = rangeToMilliseconds("1h-ago");
+
+            // default start and end values in UTC time
+            // NOTE: do not apply timezone adjustments to these values!
+            this.start = moment.utc().subtract("ms", this.drange);
+            this.end = moment.utc();
+
+            // set start and end dates
+            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+
+            this.hideDatePicker();
+
             if (config.hideToolbar){
-                toolbar.hide();
-
-            } else {
-                // add title to toolbar
-                this.toolbar.insert(0, {
-                    xtype: 'tbtext',
-                    text: config.tbarTitle || _t('Performance Graphs')
-                });
-
-                // default range value of 1 hour
-                // NOTE: this should be a real number, not a relative
-                // measurement like "1hr"             
-                this.drange = rangeToMilliseconds("1hr");
-
-                // default start and end values in UTC time
-                // NOTE: do not apply timezone adjustments to these values!
-                this.start = moment.utc().subtract("ms", this.drange);
-                this.end = moment.utc();
-
-                // set start and end dates
-                this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-                this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-
-                this.hideDatePicker();
+                this.toolbar.hide();
             }
         },
         setContext: function(uid) {
@@ -872,11 +851,22 @@
             });
         },
         refresh: function() {
+            var graphConfig = {
+                drange: this.drange,
+                // start and end are moments so they need to be
+                // converted to millisecond values
+                start: this.start.valueOf(),
+                end: this.end.valueOf()
+            };
+
             // if we are rendered but not visible do not refresh
             if (this.isVisible()) {
+                // TODO - check if `now` is checked
+                // TODO - update start time as well?
+                // TODO - check if `link graphs`
                 this.updateEndTime();
                 Ext.each(this.getGraphs(), function(g) {
-                    g.fireEvent("updateimage", {}, this);
+                    g.fireEvent("updateimage", graphConfig, this);
                 });
             }
         },
@@ -914,8 +904,8 @@
             this.start = this.end.clone().subtract("ms", this.drange);
 
             //  set the start and end dates to the selected range.            
-            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
 
             graphConfig = {
                 drange: this.drange,
