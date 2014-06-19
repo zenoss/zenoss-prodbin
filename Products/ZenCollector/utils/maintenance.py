@@ -80,17 +80,21 @@ class MaintenanceCycle(object):
         interval = self._cycleInterval
 
         def _maintenance():
-            log.debug("calling hearbeat sender")
-            d = defer.maybeDeferred(self._heartbeatSender.heartbeat)
-            d.addCallback(self._additionalMaintenance)
-            return d
+            if self._heartbeatSender is not None:
+                log.debug("Calling heartbeat sender")
+                d = defer.maybeDeferred(self._heartbeatSender.heartbeat)
+                d.addCallback(self._additionalMaintenance)
+                return d
+            else:
+                log.debug("Skipping heartbeat: no sender configured")
+                return defer.maybeDeferred(self._additionalMaintenance)
 
         def _reschedule(result):
             if isinstance(result, Failure):
                 # The full error message is actually the entire traceback, so
                 # just get the last line with the actual message.
                 log.error("Maintenance failed. Message from hub: %s",
-                          result.getErrorMessage().splitlines()[-1])
+                          result.getErrorMessage())
 
             if interval > 0:
                 log.debug("Rescheduling maintenance in %ds", interval)
@@ -101,7 +105,7 @@ class MaintenanceCycle(object):
 
         return d
 
-    def _additionalMaintenance(self, result):
+    def _additionalMaintenance(self, result=None):
         if self._callback:
             log.debug("calling additional maintenance")
             d = defer.maybeDeferred(self._callback, result)

@@ -621,3 +621,12 @@ class IWorkerExecutor(zope.interface.Interface):
         run the provided worker
         """
         pass
+
+
+class IConfigurationDispatchingFilter(zope.interface.Interface):
+    def getFilter(options):
+        """
+        A function to get a filter function to filter the devices for which to generate
+        configs. The returned filter function must be suitable for use with the 'filter'
+        builtin. 'options' is a dictionary of potential control options for the filter.
+        """
