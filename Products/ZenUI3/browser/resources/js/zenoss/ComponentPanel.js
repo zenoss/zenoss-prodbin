@@ -68,69 +68,15 @@ Zenoss.nav.register({
                     id: cardid,
                     xtype: 'graphpanel',
                     viewName: 'graphs',
-                    hideToolbar: true,
                     text: _t('Graphs')
                 };
+
             if (!Ext.get('graph_panel')) {
                 target.add(graphs);
             }
 
             target.layout.setActiveItem(cardid);
             target.layout.activeItem.setContext(uid);
-            var tbar = target.getDockedItems()[0];
-            if (tbar._btns) {
-                Ext.each(tbar._btns, tbar.remove, tbar);
-            }
-            var btns = tbar.add([
-                '->',
-                 {
-                    xtype: 'drangeselector',
-                    listeners: {
-                        select: function(combo, records, index){
-                            var value = records[0].data.id,
-                                panel = Ext.getCmp(cardid);
-                            panel.setDrange(value);
-                        }
-                    }
-                },'-', {
-                    xtype: 'button',
-                    ref: '../resetBtn',
-                    text: _t('Reset'),
-                    handler: function(btn) {
-                        Ext.getCmp(cardid).setDrange();
-                    }
-                },'-',{
-                    xtype: 'tbtext',
-                    text: _t('Link Graphs?')
-                },{
-                    xtype: 'checkbox',
-                    ref: '../linkGraphs',
-                    checked: true,
-                    listeners: {
-                        change: function(chkBx, checked) {
-                            var panel = Ext.getCmp(cardid);
-                            panel.setLinked(checked);
-                        }
-                    }
-                }, '-', {
-                    xtype: 'graphrefreshbutton',
-                    stateId: 'ComponentGraphRefresh',
-                    iconCls: 'refresh',
-                    text: _t('Refresh'),
-                    handler: function(btn) {
-                        if (cardid && Ext.getCmp(cardid)) {
-                            Ext.getCmp(cardid).refresh();
-                        }
-                    }
-                }
-            ]);
-            tbar.doLayout();
-            tbar._btns = btns;
-            combo.on('select', function(c, selected){
-                if (c.value!="Graphs") {
-                    Ext.each(btns, tbar.remove, tbar);
-                }
-            }, this, {single:true});
         }
     },{
         nodeType: 'subselect',
