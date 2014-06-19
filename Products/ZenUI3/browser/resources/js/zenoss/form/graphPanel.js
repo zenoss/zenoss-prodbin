@@ -66,7 +66,13 @@
          * Lower the number of graphs that are displayed for IE
          * since it dramatically speeds up the rendering speed.
          **/
-        GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
+        GRAPHPAGESIZE = Ext.isIE ? 25 : 50,
+
+        // frequency that datepicker set to "now" updates
+        // NOTE: this is mostly visual. Any requests that rely
+        // on "now" should recalculate now right before the
+        // request is made
+        NOW_AUTOUPDATE_FREQ = 5000;
 
     Number.prototype.pad = function(count) {
         var zero = count - this.toString().length + 1;
@@ -661,7 +667,17 @@
                     checked: true,
                     listeners: {
                         change: function(self, val) {
-                            // chkbox.refOwner.end_date.setDisabled(newValue);
+                            var panel = self.up("panel");
+                            panel.query("datefield[cls='end_date']")[0].setDisabled(val);
+
+                            // clear any currently running now update
+                            panel.stopNowAutoupdate();
+
+                            // if it should be now, start updating periodically
+                            if(val){
+                                panel.setEndToNow();
+                                panel.startNowAutoupdate();
+                            }
                         }
                     }
                 }
@@ -763,6 +779,9 @@
             // set start and end dates
             this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
             this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+
+            // keep end value set to now
+            this.startNowAutoupdate();
 
             this.hideDatePicker();
 
@@ -912,9 +931,6 @@
         ///////////////////////////
         // graph time and range type stuff
         // 
-        updateEndTime: function(){
-            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-        },
 
         setDrange: function(drange) {
             this.drange = drange || this.drange;
@@ -954,6 +970,7 @@
 
         setEndToNow: function(){
             this.end = moment.utc();
+            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
         },
 
         showDatePicker: function(){
@@ -963,6 +980,15 @@
         hideDatePicker: function(){
             // hide date picker stuff
             this.toolbar.query("container[cls='date_picker_container']")[0].hide();
+        },
+
+        startNowAutoupdate: function(){
+            this.nowInterval = setInterval(function(){
+                this.setEndToNow();
+            }.bind(this), NOW_AUTOUPDATE_FREQ);
+        },
+        stopNowAutoupdate: function(){
+            clearInterval(this.nowInterval);
         }
     });
 
