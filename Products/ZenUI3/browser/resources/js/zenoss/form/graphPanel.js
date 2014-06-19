@@ -763,7 +763,7 @@
 
             // assumes just one docked item
             this.toolbar = this.getDockedItems()[0];
-            
+
             this.startDatePicker = this.toolbar.query("datefield[cls='start_date']")[0];
             this.endDatePicker = this.toolbar.query("datefield[cls='end_date']")[0];
             this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
@@ -796,6 +796,10 @@
             if (config.hideToolbar){
                 this.toolbar.hide();
             }
+
+            this.on("destroy", function(){
+                this.stopNowAutoupdate();
+            }.bind(this));
         },
         setContext: function(uid) {
             if (this.newwindow) {
@@ -824,18 +828,27 @@
                 panel = this,
                 el = this.getEl();
 
-            if (el.isMasked()) {
+            if (el && el.isMasked()) {
                 el.unmask();
             }
             // this is defined by the visualization library, if it is missing then we can not
             // render any charts
             if (!Ext.isDefined(window.zenoss)) {
                 el.mask(_t('Unable to load the visualization library.') , 'x-mask-msg-noicon');
+
             } else if (data.length > 0){
                 this.addGraphs(data);
+
             }else{
+
                 // no graphs were returned
-                el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
+                if(el){
+                   el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
+                }
+
+                // turn off auto-update
+                this.stopNowAutoupdate();
+                this.toolbar.query("graphrefreshbutton")[0].setInterval(-1);
             }
         },
         addGraphs: function(data) {
