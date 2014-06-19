@@ -438,8 +438,9 @@
 
             // update start, end, and range on graphpanel, then update all
             // graphs
-            if(this.linked){
-                var panel = Ext.ComponentQuery.query("graphpanel")[0];
+            if(this.linked()){
+                // assumes just one graphpanel on the page
+                var panel = this.up("graphpanel");
                 panel.setLimits(newstart, newend);
                 panel.refresh();
 
@@ -462,8 +463,8 @@
 
             // update start, end, and range on graphpanel, then update all
             // graphs
-            if(this.linked){
-                var panel = Ext.ComponentQuery.query("graphpanel")[0];
+            if(this.linked()){
+                var panel = this.up("graphpanel");
                 panel.setLimits(newstart, newend);
                 panel.refresh();
 
@@ -477,14 +478,15 @@
                 el = Ext.get(this.graphId);
 
             gp.end = this.convertEndToAbsolute(gp.end);
+            gp.drange = rangeToMilliseconds(gp.drange) * factor;
 
             var end = gp.end,
-                start = gp.end - (rangeToMilliseconds(gp.drange) * factor);
+                start = gp.end - gp.drange;
 
             // update start, end, and range on graphpanel, then update all
             // graphs
-            if(this.linked){
-                var panel = Ext.ComponentQuery.query("graphpanel")[0];
+            if(this.linked()){
+                var panel = this.up("graphpanel");
                 panel.setLimits(start, end);
                 panel.refresh();
 
@@ -494,7 +496,7 @@
             }
         },
         fireEventsToAll: function() {
-            if (this.linked()) {
+            if (this.linked()()) {
                 var args = arguments;
                 Ext.each(this.up('graphpanel').getGraphs(), function(g) {
                     g.fireEvent.apply(g, args);
@@ -576,7 +578,7 @@
                     store: new Ext.data.ArrayStore({
                         id: 0,
                         model: 'Zenoss.model.IdName',
-                        data: DATE_RANGES.concat([[0,"<hr>"],["custom", "[Custom]"]])
+                        data: DATE_RANGES.concat([[0,"<hr>"],["custom", "["+ _t("Custom") +"]"]])
                     }),
                     valueField: 'id',
                     displayField: 'name'
@@ -597,7 +599,7 @@
             listeners: {
                 select: function(combo, records, index){
                     var value = records[0].data.id,
-                        panel = combo.up("panel");
+                        panel = combo.up("graphpanel");
 
                     // if value is "custom", then reveal the date
                     // picker container
@@ -635,7 +637,7 @@
                     format:'Y-m-d H:i:s',
                     listeners: {
                         change: function(self, val){
-                            var panel = self.up("panel");
+                            var panel = self.up("graphpanel");
                             //update graphpanel.start with *UTC time*
                             //NOTE: panel.start should *always* be UTC!
                             panel.start = moment.utc(val).subtract("m", moment(val).zone());
@@ -652,7 +654,7 @@
                     format:'Y-m-d H:i:s',
                     listeners: {
                         change: function(self, val){
-                            var panel = self.up("panel");
+                            var panel = self.up("graphpanel");
                             //update graphpanel.end with *UTC time*
                             //NOTE: panel.end should *always* be UTC!
                             panel.end = moment.utc(val).subtract("m", moment(val).zone());
@@ -667,7 +669,7 @@
                     checked: true,
                     listeners: {
                         change: function(self, val) {
-                            var panel = self.up("panel");
+                            var panel = self.up("graphpanel");
                             panel.query("datefield[cls='end_date']")[0].setDisabled(val);
 
                             // clear any currently running now update
@@ -693,6 +695,8 @@
                 change: function(chkBx, checked) {
                     var panel = chkBx.refOwner;
                     panel.setLinked(checked);
+                    // update all graphs
+                    panel.refresh();
                 }
             }
         }, '-',{
@@ -702,7 +706,7 @@
             text: _t('Refresh'),
             handler: function(btn) {
                 if (btn) {
-                    var panel = btn.up("panel");
+                    var panel = btn.up("graphpanel");
                     panel.refresh();
                 }
             }
@@ -759,6 +763,10 @@
 
             // assumes just one docked item
             this.toolbar = this.getDockedItems()[0];
+            
+            this.startDatePicker = this.toolbar.query("datefield[cls='start_date']")[0];
+            this.endDatePicker = this.toolbar.query("datefield[cls='end_date']")[0];
+            this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
 
             // add title to toolbar
             this.toolbar.insert(0, {
@@ -777,8 +785,8 @@
             this.setEndToNow();
 
             // set start and end dates
-            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
 
             // keep end value set to now
             this.startNowAutoupdate();
@@ -946,8 +954,8 @@
             this.start = this.end.clone().subtract("ms", this.drange);
 
             //  set the start and end dates to the selected range.
-            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
 
             this.refresh();
         },
@@ -964,13 +972,28 @@
             this.showDatePicker();
 
             //  set the start and end dates to the selected range.
-            this.toolbar.query("datefield[cls='start_date']")[0].setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
         },
 
         setEndToNow: function(){
             this.end = moment.utc();
-            this.toolbar.query("datefield[cls='end_date']")[0].setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.updateEndDatePicker();
+
+            // if the "now" checkbox is set and range isn't custom, start time should be updated as well
+            if(this.nowCheck.getValue() && this.toolbar.query("drangeselector")[0].getValue() !== "custom"){
+                this.start = this.end.clone().subtract("ms", this.drange);
+                this.updateStartDatePicker();
+            }
+            
+        },
+
+        // updates date picker with stored date value, offset for timezone
+        updateStartDatePicker: function(){
+            this.startDatePicker.setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+        },
+        updateEndDatePicker: function(){
+            this.endDatePicker.setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
         },
 
         showDatePicker: function(){
