@@ -640,7 +640,12 @@
                             var panel = self.up("graphpanel");
                             //update graphpanel.start with *UTC time*
                             //NOTE: panel.start should *always* be UTC!
-                            panel.start = moment.utc(val).subtract("m", moment(val).zone());
+                            panel.start = moment.utc(val)
+                                // this val thinks its local time, but its really UTC,
+                                // so get rid of the silly local time offset
+                                .subtract("m", moment(val).zone())
+                                // add in the desired timezone offset
+                                .add("m", panel.timezoneOffset);
                         }
                     }
                 },{
@@ -657,7 +662,13 @@
                             var panel = self.up("graphpanel");
                             //update graphpanel.end with *UTC time*
                             //NOTE: panel.end should *always* be UTC!
-                            panel.end = moment.utc(val).subtract("m", moment(val).zone());
+                            // panel.end = moment.utc(val).subtract("m", moment(val).zone()).add("m", panel.timezoneOffset);
+                            panel.end = moment.utc(val)
+                                // this val thinks its local time, but its really UTC,
+                                // so get rid of the silly local time offset
+                                .subtract("m", moment(val).zone())
+                                // add in the desired timezone offset
+                                .add("m", panel.timezoneOffset);
                         }
                     }
                 },{
@@ -767,6 +778,7 @@
             this.startDatePicker = this.toolbar.query("datefield[cls='start_date']")[0];
             this.endDatePicker = this.toolbar.query("datefield[cls='end_date']")[0];
             this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
+            this.timezoneOffset = moment.utc().tz(Zenoss.USER_TIMEZONE).format("ZZ");
 
             // add title to toolbar
             this.toolbar.insert(0, {
@@ -1001,12 +1013,17 @@
             
         },
 
-        // updates date picker with stored date value, offset for timezone
+        // updates date picker with stored date value, offset for timezone,
+        // but forced to be treated as UTC to prevent additional timezone offset
         updateStartDatePicker: function(){
-            this.startDatePicker.setValue(this.start.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.startDatePicker.suspendEvents();
+            this.startDatePicker.setValue(this.start.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.startDatePicker.resumeEvents(false);
         },
         updateEndDatePicker: function(){
-            this.endDatePicker.setValue(this.end.tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.endDatePicker.suspendEvents();
+            this.endDatePicker.setValue(this.end.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.endDatePicker.resumeEvents(false);
         },
 
         showDatePicker: function(){
