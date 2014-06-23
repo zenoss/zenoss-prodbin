@@ -645,26 +645,7 @@
             // clear any previous offsets and return just the UTC
             // time since epoch
             return this.value.getTime() - this.TZOffsetMS - this.TZLocalMS;
-        },
-
-        // onSelect: function(self, d) {
-        //     this.setValue(d.getTime());
-        //     this.fireEvent('select', this, d.getTime());
-        //     this.collapse();
-        // },
-
-        // beforeBlur : function(){
-        //     var v = this.parseDate(this.getRawValue()),
-        //         focusTask = this.focusTask;
-
-        //     if (focusTask) {
-        //         focusTask.cancel();
-        //     }
-
-        //     if (v) {
-        //         this.setValue(v.getTime());
-        //     }
-        // }
+        }
     });
 
     var tbarConfig = [
@@ -754,13 +735,9 @@
                             var panel = self.up("graphpanel");
                             panel.query("datefield[cls='end_date']")[0].setDisabled(val);
 
-                            // clear any currently running now update
-                            panel.stopNowAutoupdate();
-
-                            // if it should be now, start updating periodically
+                            // if it should be now, update it
                             if(val){
                                 panel.setEndToNow();
-                                panel.startNowAutoupdate();
                             }
                         }
                     }
@@ -852,7 +829,6 @@
 
             this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
             this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
-            // this.timezoneOffset = moment.utc().tz(Zenoss.USER_TIMEZONE).format("ZZ");
 
             // add title to toolbar
             this.toolbar.insert(0, {
@@ -874,18 +850,11 @@
             this.updateStartDatePicker();
             this.updateEndDatePicker();
 
-            // keep end value set to now
-            this.startNowAutoupdate();
-
             this.hideDatePicker();
 
             if (config.hideToolbar){
                 this.toolbar.hide();
             }
-
-            this.on("destroy", function(){
-                this.stopNowAutoupdate();
-            }.bind(this));
         },
         setContext: function(uid) {
             if (this.newwindow) {
@@ -932,8 +901,6 @@
                    el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
                 }
 
-                // turn off auto-update
-                this.stopNowAutoupdate();
                 this.toolbar.query("graphrefreshbutton")[0].setInterval(-1);
             }
         },
@@ -1010,6 +977,12 @@
             });
         },
         refresh: function() {
+
+            // if end should be set to `now`, set it
+            if(this.nowCheck.getValue()){
+                this.setEndToNow();
+            }
+
             graphConfig = {
                 drange: this.drange,
                 // start and end are moments so they need to be
@@ -1049,6 +1022,9 @@
                 this.drange = rangeToMilliseconds(this.drange);
             }
 
+            // check `now` checkbox since drange is always set from now
+            this.nowCheck.setValue(true);
+
             // update start to reflect new range
             this.start = this.end.clone().subtract("ms", this.drange);
 
@@ -1066,8 +1042,13 @@
 
             // these limits require a custom date range
             this.drange = end - start;
+
             // set the range combo to custom
             this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue("custom");
+
+            // uncheck `now` checkbox since we're using a custom range
+            this.nowCheck.setValue(false);
+
             this.showDatePicker();
 
             //  set the start and end dates to the selected range.
@@ -1090,13 +1071,11 @@
         // but forced to be treated as UTC to prevent additional timezone offset
         updateStartDatePicker: function(){
             this.startDatePicker.suspendEvents();
-            // this.startDatePicker.setValue(this.start.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
             this.startDatePicker.setValue(this.start.valueOf());
             this.startDatePicker.resumeEvents(false);
         },
         updateEndDatePicker: function(){
             this.endDatePicker.suspendEvents();
-            // this.endDatePicker.setValue(this.end.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
             this.endDatePicker.setValue(this.end.valueOf());
             this.endDatePicker.resumeEvents(false);
         },
@@ -1109,15 +1088,6 @@
             // hide date picker stuff
             this.toolbar.query("container[cls='date_picker_container']")[0].hide();
         },
-
-        startNowAutoupdate: function(){
-            this.nowInterval = setInterval(function(){
-                this.setEndToNow();
-            }.bind(this), NOW_AUTOUPDATE_FREQ);
-        },
-        stopNowAutoupdate: function(){
-            clearInterval(this.nowInterval);
-        }
     });
 
 
