@@ -643,6 +643,7 @@
             xtype: "container",
             layout: "hbox",
             cls: "date_picker_container",
+            padding: "0 10 0 0",
             items: [
                 {
                     xtype: 'utcdatefield',
@@ -700,8 +701,6 @@
                 }
             ]
         },
-
-        '-',
 
         {
             xtype: 'graphrefreshbutton',
