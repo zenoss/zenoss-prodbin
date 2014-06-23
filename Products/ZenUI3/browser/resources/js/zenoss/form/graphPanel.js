@@ -66,13 +66,7 @@
          * Lower the number of graphs that are displayed for IE
          * since it dramatically speeds up the rendering speed.
          **/
-        GRAPHPAGESIZE = Ext.isIE ? 25 : 50,
-
-        // frequency that datepicker set to "now" updates
-        // NOTE: this is mostly visual. Any requests that rely
-        // on "now" should recalculate now right before the
-        // request is made
-        NOW_AUTOUPDATE_FREQ = 5000;
+        GRAPHPAGESIZE = Ext.isIE ? 25 : 50
 
     Number.prototype.pad = function(count) {
         var zero = count - this.toString().length + 1;
@@ -493,16 +487,6 @@
             // else, update just this graph
             } else {
                 this.fireEvent("updateimage", { start: start, end: end });
-            }
-        },
-        fireEventsToAll: function() {
-            if (this.linked()()) {
-                var args = arguments;
-                Ext.each(this.up('graphpanel').getGraphs(), function(g) {
-                    g.fireEvent.apply(g, args);
-                });
-            } else {
-                this.fireEvent.apply(this, arguments);
             }
         }
     });
