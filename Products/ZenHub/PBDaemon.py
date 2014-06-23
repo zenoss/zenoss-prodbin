@@ -591,7 +591,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 port = publisher.defaultRedisPort
             self._publisher = publisher.RedisListPublisher(
                 host, port, self.options.metricBufferSize,
-                channel=self.options.metricsChannel
+                channel=self.options.metricsChannel, maxOutstandingMetrics=self.options.maxOutstandingMetrics
             )
         return self._publisher
 
@@ -1041,4 +1041,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='string',
                                default=publisher.defaultMetricsChannel,
                                help='redis channel to which metrics are published')
+        self.parser.add_option('--maxOutstandingMetrics',
+                               dest='maxOutstandingMetrics',
+                               type='int',
+                               default=publisher.defaultMaxOutstandingMetrics,
+                               help='Max Number of metrics to allow in redis')
         ZenDaemon.buildOptions(self)
