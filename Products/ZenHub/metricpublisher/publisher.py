@@ -122,10 +122,12 @@ class RedisListPublisher(BasePublisher):
                  port=defaultRedisPort,
                  buflen=defaultMetricBufferSize,
                  pubfreq=defaultPublishFrequency,
+                 channel=defaultMetricsChannel,
                  maxOutstandingMetrics=defaultMetricBufferSize):
         super(RedisListPublisher, self).__init__(buflen, pubfreq)
         self._host = host
         self._port = port
+        self._channel = channel
         self._maxOutstandingMetrics = maxOutstandingMetrics
         self._redis = RedisClientFactory()
         self._connection = reactor.connectTCP(self._host,
