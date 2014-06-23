@@ -658,13 +658,18 @@
             labelWidth: 40,
             labelAlign: "right",
             listeners: {
-                select: function(combo, records, index){
+                select: function(self, records, index){
                     var value = records[0].data.id,
-                        panel = combo.up("graphpanel");
+                        panel = self.up("graphpanel");
 
                     // if value is "custom", then reveal the date
                     // picker container
                     if(value === "custom"){
+                        panel.showDatePicker();
+
+                    // if user selected the separator, select custom
+                    } else if(value === 0){
+                        self.setValue("custom");
                         panel.showDatePicker();
 
                     // otherwise, update graphs
