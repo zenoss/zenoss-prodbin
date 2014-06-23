@@ -66,7 +66,7 @@
          * Lower the number of graphs that are displayed for IE
          * since it dramatically speeds up the rendering speed.
          **/
-        GRAPHPAGESIZE = Ext.isIE ? 25 : 50
+        GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
 
     Number.prototype.pad = function(count) {
         var zero = count - this.toString().length + 1;
