@@ -19,6 +19,7 @@ import string
 import subprocess
 import os
 import os.path
+import posixpath
 import sys
 import shutil
 
@@ -1177,9 +1178,27 @@ registerDirectory("skins", globals())
             servicePaths = [servicePaths]
 
         cpClient = ControlPlaneClient(**getConnectionSettings())
-        services = cpClient.queryServices("*")
-        serviceTree = ServiceTree(services)
-        for path, serviceDef in zip(servicePaths, serviceDefs):
+        serviceTree = ServiceTree(cpClient.queryServices("*"))
+
+        # Determine depth in service tree of each service.
+        cwd = '/' + '/'.join(['x']*len(serviceTree.getPath(self.currentServiceId)))
+        def pathComponentCount(path):
+            components = posixpath.normpath(posixpath.join(cwd, path)).split('/')
+            return sum(bool(i) for i in components)
+        depth =  [pathComponentCount(i) for i in servicePaths]
+
+        # Sort services by number of components in absolute path, ensuring that
+        #  parent services are created before child services.
+        serviceTuples = zip(servicePaths, serviceDefs, depth)
+        serviceTuples.sort(key=lambda x:x[2])
+
+        lastDepth = serviceTuples[0][2] if serviceTuples else None
+        for path, serviceDef, depth in serviceTuples:
+            # Update service tree in case we are adding a child to a new service
+            if depth != lastDepth:
+                serviceTree = ServiceTree(cpClient.queryServices("*"))
+                lastDepth = depth
+
             parentServices = serviceTree.matchServicePath(self.currentServiceId,
                                                           path)
             for parentService in parentServices:
@@ -1201,7 +1220,10 @@ registerDirectory("skins", globals())
         serviceTree = ServiceTree(services)
         serviceRoots = serviceTree.matchServicePath(self.currentServiceId, '/')
         for root in serviceRoots:
-            for service in serviceTree.findMatchingServices(root, tag):
+            services = serviceTree.findMatchingServices(root, tag)
+            # Ensure that child services are deleted before parents
+            services.sort(key=lambda x:len(serviceTree.getPath(x)), reverse=True)
+            for service in services:
                 cpClient.deleteService(service.id)
 
 
