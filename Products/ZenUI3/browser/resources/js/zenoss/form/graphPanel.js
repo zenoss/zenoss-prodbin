@@ -585,6 +585,7 @@
         constructor: function(config) {
             config = config || {};
 
+            // "Africa/Abidjan" is moment.tz default UTC zone
             this.setDisplayTimezone(config.displayTZ || "Africa/Abidjan");
 
             // get the browser's local timezone so we can offset that as well :/
@@ -1007,7 +1008,7 @@
             var graphConfig;
 
             // if drange is relative measurement, convert to ms
-            if(typeof this.drange !== "number"){
+            if(!Ext.isNumeric(this.drange)){
                 this.drange = rangeToMilliseconds(this.drange);
             }
 
