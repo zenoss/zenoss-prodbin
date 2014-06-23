@@ -369,12 +369,6 @@
             this.on('updateimage', this.updateGraph, this);
             this.graphEl = Ext.get(this.graphId);
         },
-        linked: function() {
-            return this.isLinked;
-        },
-        setLinked: function(isLinked) {
-            this.isLinked = isLinked;
-        },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
             gp.start = params.start || gp.start;
@@ -430,18 +424,8 @@
             var newstart = (gp.start) - delta > 0 ? gp.start - delta : 0;
             var newend = newstart + rangeToMilliseconds(gp.drange);
 
-            // update start, end, and range on graphpanel, then update all
-            // graphs
-            if(this.linked()){
-                // assumes just one graphpanel on the page
-                var panel = this.up("graphpanel");
-                panel.setLimits(newstart, newend);
-                panel.refresh();
-
-            // else, update just this graph
-            } else {
-                this.fireEvent("updateimage", {start:newstart, end:newend});
-            }
+            this.fireEvent("updatelimits", {start:newstart, end:newend});
+            this.fireEvent("updateimage", {start:newstart, end:newend});
         },
         onPanRight: function(graph) {
             var gp = this.graph_params;
@@ -455,17 +439,8 @@
                 newstart = currTime - delta;
             }
 
-            // update start, end, and range on graphpanel, then update all
-            // graphs
-            if(this.linked()){
-                var panel = this.up("graphpanel");
-                panel.setLimits(newstart, newend);
-                panel.refresh();
-
-            // else, update just this graph
-            } else {
-                this.fireEvent("updateimage", {start:newstart, end:newend});
-            }
+            this.fireEvent("updatelimits", {start:newstart, end:newend});
+            this.fireEvent("updateimage", {start:newstart, end:newend});
         },
         doZoom: function(xpos, factor) {
             var gp = this.graph_params,
@@ -477,17 +452,8 @@
             var end = gp.end,
                 start = gp.end - gp.drange;
 
-            // update start, end, and range on graphpanel, then update all
-            // graphs
-            if(this.linked()){
-                var panel = this.up("graphpanel");
-                panel.setLimits(start, end);
-                panel.refresh();
-
-            // else, update just this graph
-            } else {
-                this.fireEvent("updateimage", { start: start, end: end });
-            }
+            this.fireEvent("updatelimits", { start: start, end: end });
+            this.fireEvent("updateimage", { start: start, end: end });
         }
     });
 
@@ -733,22 +699,11 @@
                     }
                 }
             ]
-        },{
-            xtype: 'tbtext',
-            text: _t('Link Graphs?:')
-        },{
-            xtype: 'checkbox',
-            ref: '../linkGraphs',
-            checked: true,
-            listeners: {
-                change: function(chkBx, checked) {
-                    var panel = chkBx.refOwner;
-                    panel.setLinked(checked);
-                    // update all graphs
-                    panel.refresh();
-                }
-            }
-        }, '-',{
+        },
+
+        '-',
+
+        {
             xtype: 'graphrefreshbutton',
             ref: '../refreshmenu',
             iconCls: 'refresh',
@@ -759,7 +714,9 @@
                     panel.refresh();
                 }
             }
-        }, '-', {
+        },
+        '-',
+        {
             xtype: 'button',
             ref: '../newwindow',
             iconCls: 'newwindow',
@@ -797,7 +754,6 @@
 
             Ext.applyIf(config, {
                 drange: DATE_RANGES[0][0],
-                isLinked: true,
                 newWindowButton: true,
                 columns: 1,
                 // images show up after Ext has calculated the
@@ -915,10 +871,16 @@
                     uid: this.uid,
                     graphId: graphId,
                     graphTitle: graphTitle,
-                    isLinked: this.isLinked,
                     ref: graphId,
                     height: 500
                 })));
+
+                // subscribe to updatelimits event
+                graphs[graphs.length-1].on("updatelimits", function(limits){
+                    console.log("updating limits", limits);
+                    this.setLimits(limits.start, limits.end);
+                    this.refresh();
+                }, this);
             }
 
             // set up for the next page
@@ -967,7 +929,6 @@
             });
         },
         refresh: function() {
-
             // if end should be set to `now`, set it
             if(this.nowCheck.getValue()){
                 this.setEndToNow();
@@ -990,12 +951,6 @@
         },
         getGraphs: function() {
             return this.query('europagraph');
-        },
-        setLinked: function(isLinked) {
-            this.isLinked = isLinked;
-            Ext.each(this.getGraphs(), function(g){
-                g.setLinked(isLinked);
-            });
         },
 
         ///////////////////////////
