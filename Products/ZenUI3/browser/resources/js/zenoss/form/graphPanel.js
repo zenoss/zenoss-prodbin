@@ -587,6 +587,86 @@
         }
     });
 
+    // datefield that uses number of ms since epoch to
+    // get and set date. Also accepts a `displayTZ` property
+    // which is used to offset the date that is displayed to
+    // the end user.
+    // NOTE: when you set the date, it should be UTC. When you
+    // get the date, it will be UTC. The `displayTZ` property is
+    // only to adjust what the user sees, not to adjust the
+    // actual date value.
+    Ext.define("Zenoss.form.UTCDateField", {
+        alias:['widget.utcdatefield'],
+        extend:"Ext.form.DateField",
+        constructor: function(config) {
+            config = config || {};
+
+            this.setDisplayTimezone(config.displayTZ || "Africa/Abidjan");
+
+            // get the browser's local timezone so we can offset that as well :/
+            // NOTE: zone returns minutes, so convert to milliseconds
+            this.TZLocalMS = moment().zone() * 60 * 1000;
+
+            this.callParent(arguments);
+        },
+
+        setDisplayTimezone: function(tz){
+            // store provided timezone
+            this.displayTZ = tz;
+
+            // get timezone offset *in hours* and convert hours to ms
+            this.TZOffsetMS = (+moment.utc().tz(this.displayTZ).format("ZZ") * 0.01) * 1000 * 60 * 60;
+        },
+
+        // accepts only ms since epoch (UTC)
+        setValue: function(ms){
+            if(!ms){
+                return;
+            }
+
+            // if someone is using a date object, get
+            // the UTC time and use that
+            if(ms instanceof Date){
+                ms = ms.getTime();
+            }
+
+            // take provided time, offset with local timezone, then
+            // offset with displayTZ
+            var adjustedTime = ms + this.TZOffsetMS + this.TZLocalMS,
+                d = new Date(adjustedTime);
+
+            this.callParent([d]);
+
+            return this;
+        },
+
+        // returns ms since epoch (UTC)
+        getValue: function(){
+            // clear any previous offsets and return just the UTC
+            // time since epoch
+            return this.value.getTime() - this.TZOffsetMS - this.TZLocalMS;
+        },
+
+        // onSelect: function(self, d) {
+        //     this.setValue(d.getTime());
+        //     this.fireEvent('select', this, d.getTime());
+        //     this.collapse();
+        // },
+
+        // beforeBlur : function(){
+        //     var v = this.parseDate(this.getRawValue()),
+        //         focusTask = this.focusTask;
+
+        //     if (focusTask) {
+        //         focusTask.cancel();
+        //     }
+
+        //     if (v) {
+        //         this.setValue(v.getTime());
+        //     }
+        // }
+    });
+
     var tbarConfig = [
         '-',
         '->',
@@ -628,28 +708,24 @@
             cls: "date_picker_container",
             items: [
                 {
-                    xtype: 'datefield',
+                    xtype: 'utcdatefield',
                     cls: 'start_date',
                     width: 250,
                     fieldLabel: _t('Start'),
                     labelWidth: 40,
                     labelAlign: "right",
                     format:'Y-m-d H:i:s',
+                    displayTZ: Zenoss.USER_TIMEZONE,
                     listeners: {
                         change: function(self, val){
                             var panel = self.up("graphpanel");
                             //update graphpanel.start with *UTC time*
                             //NOTE: panel.start should *always* be UTC!
-                            panel.start = moment.utc(val)
-                                // this val thinks its local time, but its really UTC,
-                                // so get rid of the silly local time offset
-                                .subtract("m", moment(val).zone())
-                                // add in the desired timezone offset
-                                .add("m", panel.timezoneOffset);
+                            panel.start = moment.utc(self.getValue());
                         }
                     }
                 },{
-                    xtype: 'datefield',
+                    xtype: 'utcdatefield',
                     cls: 'end_date',
                     width: 250,
                     fieldLabel: _t('End'),
@@ -657,18 +733,13 @@
                     labelAlign: "right",
                     disabled: true,
                     format:'Y-m-d H:i:s',
+                    displayTZ: Zenoss.USER_TIMEZONE,
                     listeners: {
                         change: function(self, val){
                             var panel = self.up("graphpanel");
                             //update graphpanel.end with *UTC time*
                             //NOTE: panel.end should *always* be UTC!
-                            // panel.end = moment.utc(val).subtract("m", moment(val).zone()).add("m", panel.timezoneOffset);
-                            panel.end = moment.utc(val)
-                                // this val thinks its local time, but its really UTC,
-                                // so get rid of the silly local time offset
-                                .subtract("m", moment(val).zone())
-                                // add in the desired timezone offset
-                                .add("m", panel.timezoneOffset);
+                            panel.end = moment.utc(self.getValue());
                         }
                     }
                 },{
@@ -775,10 +846,13 @@
             // assumes just one docked item
             this.toolbar = this.getDockedItems()[0];
 
-            this.startDatePicker = this.toolbar.query("datefield[cls='start_date']")[0];
-            this.endDatePicker = this.toolbar.query("datefield[cls='end_date']")[0];
+            this.startDatePicker = this.toolbar.query("utcdatefield[cls='start_date']")[0];
+            this.endDatePicker = this.toolbar.query("utcdatefield[cls='end_date']")[0];
             this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
-            this.timezoneOffset = moment.utc().tz(Zenoss.USER_TIMEZONE).format("ZZ");
+
+            this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+            this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+            // this.timezoneOffset = moment.utc().tz(Zenoss.USER_TIMEZONE).format("ZZ");
 
             // add title to toolbar
             this.toolbar.insert(0, {
@@ -1010,19 +1084,20 @@
                 this.start = this.end.clone().subtract("ms", this.drange);
                 this.updateStartDatePicker();
             }
-            
         },
 
         // updates date picker with stored date value, offset for timezone,
         // but forced to be treated as UTC to prevent additional timezone offset
         updateStartDatePicker: function(){
             this.startDatePicker.suspendEvents();
-            this.startDatePicker.setValue(this.start.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            // this.startDatePicker.setValue(this.start.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.startDatePicker.setValue(this.start.valueOf());
             this.startDatePicker.resumeEvents(false);
         },
         updateEndDatePicker: function(){
             this.endDatePicker.suspendEvents();
-            this.endDatePicker.setValue(this.end.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            // this.endDatePicker.setValue(this.end.clone().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
+            this.endDatePicker.setValue(this.end.valueOf());
             this.endDatePicker.resumeEvents(false);
         },
 
