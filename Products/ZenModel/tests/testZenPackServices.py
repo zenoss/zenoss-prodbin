@@ -25,8 +25,8 @@ class _MockControlPlaneClient(object):
         self._added, self._deleted = [], []
     def queryServices(self, query):
         return self._services
-    def addService(self, service):
-        self._added.append(service)
+    def deployService(self, parent, service):
+        self._added.append((parent, service))
     def deleteService(self, serviceId):
         self._deleted.append(serviceId)
     @property
@@ -108,24 +108,23 @@ class TestZenpackServices(ZenModelBaseTest):
         with setControlPlaneClient(client), setCurrentService('zope'):
             ZenPack("id").installServices(service, "/hub")
         self.assertEquals(len(client.added), 1)
-        added = json.loads(client.added[0])
+        parent, added = client.added[0][0], json.loads(client.added[0][1])
         self.assertEquals(added['Id'], 'id')
-        self.assertEquals(added['ParentServiceID'], 'hub1')
-        self.assertEquals(added['PoolID'], 'default')
+        self.assertEquals(parent, 'hub1')
 
     def testAddMultipleServices(self):
         client = _MockControlPlaneClient(services=_services)
         services = [json.dumps(_MockService(i), cls=_MockServiceEncoder)
                     for i in ('id1', 'id2')]
-        paths = ['/hub', '/']
+        paths = ['/', '/hub']
         with setControlPlaneClient(client), setCurrentService('zope'):
             ZenPack("id").installServices(services, paths)
         self.assertEquals(len(client.added), 2)
-        added = [json.loads(i) for i in client.added]
-        self.assertEquals(added[0]['Id'], 'id1')
-        self.assertEquals(added[0]['ParentServiceID'], 'hub1')
-        self.assertEquals(added[1]['Id'], 'id2')
-        self.assertEquals(added[1]['ParentServiceID'], 'zenoss')
+        added = [(i[0], json.loads(i[1])) for i in client.added]
+        self.assertEquals(added[0][1]['Id'], 'id1')
+        self.assertEquals(added[0][0], 'zenoss')
+        self.assertEquals(added[1][1]['Id'], 'id2')
+        self.assertEquals(added[1][0], 'hub1')
 
     def testRemoveNoCurrentServiceId(self):
         moduleName = "Zenpacks.zenoss.Test"
@@ -162,9 +161,9 @@ class TestZenpackServices(ZenModelBaseTest):
         with setControlPlaneClient(client), setCurrentService('zope'), setBuiltinOpen(fileDict):
             ZenPack('id').installServicesFromFiles(fileDict.keys(), tag)
         self.assertEquals(len(fileDict), len(client.added))
-        for i in (json.loads(i) for i in client.added):
-            self.assertTrue(tag in i['Tags'])
-            self.assertEquals(i['ParentServiceID'], i[E_KEY])
+        for i,j in ((i[0],json.loads(i[1])) for i in client.added):
+            self.assertTrue(tag in j['Tags'])
+            self.assertEquals(i, j[E_KEY])
 
 
 def test_suite():
