@@ -29,6 +29,7 @@ defaultMetricsChannel = "metrics"
 defaultMetricBufferSize = 65536
 defaultPublishFrequency = 1.0
 defaultRedisPort = 6379
+defaultMaxOutstandingMetrics = 864000000
 
 bufferHighWater = 4096
 
@@ -121,13 +122,11 @@ class RedisListPublisher(BasePublisher):
                  port=defaultRedisPort,
                  buflen=defaultMetricBufferSize,
                  pubfreq=defaultPublishFrequency,
-                 channel=defaultMetricsChannel,
-                 control_channel=None):
+                 maxOutstandingMetrics=defaultMetricBufferSize):
         super(RedisListPublisher, self).__init__(buflen, pubfreq)
         self._host = host
         self._port = port
-        self._channel = channel
-        self._control_channel = control_channel or channel + '-control'
+        self._maxOutstandingMetrics = maxOutstandingMetrics
         self._redis = RedisClientFactory()
         self._connection = reactor.connectTCP(self._host,
                                               self._port,
@@ -180,7 +179,7 @@ class RedisListPublisher(BasePublisher):
                 client = self._redis.client
                 yield client.multi()
                 yield client.lpush(self._channel, *metrics)
-                yield client.publish(self._control_channel, 1)
+                yield client.ltrim(self._channel, 0, self._maxOutstandingMetrics - 1)
                 result, _ = yield client.execute()
                 try:
                     yield self._metrics_published(result,
