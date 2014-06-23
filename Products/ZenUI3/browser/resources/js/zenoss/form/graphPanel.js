@@ -877,7 +877,6 @@
 
                 // subscribe to updatelimits event
                 graphs[graphs.length-1].on("updatelimits", function(limits){
-                    console.log("updating limits", limits);
                     this.setLimits(limits.start, limits.end);
                     this.refresh();
                 }, this);
