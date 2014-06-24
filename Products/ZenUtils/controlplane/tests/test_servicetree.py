@@ -139,6 +139,15 @@ class ServiceTreeTest(BaseTestCase):
             result = [i.id for i in tree.findMatchingServices(root, pattern)]
             self.assertEqual(sorted(result), sorted(expected))
 
+    def testGetPath(self):
+        tree = ServiceTree(_services)
+        tests = (('zenoss', '/zenoss'),
+                 ('zenping', '/zenoss/hub1/collector1/zenping'))
+        for service, expected in tests:
+            path = tree.getPath(tree.getService(service))
+            actual = '/'+'/'.join(i.id for i in path)
+            self.assertEqual(actual, expected)
+
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(ServiceTreeTest),))
