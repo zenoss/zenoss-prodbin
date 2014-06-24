@@ -569,7 +569,7 @@
                         grid.refresh();
                     }
                     var dpanel = Ext.getCmp('dpanelcontainer')
-                    if (dpanel) {
+                    if (dpanel && dpanel.isVisible()) {
                         dpanel.refresh();
                     }
                 },
