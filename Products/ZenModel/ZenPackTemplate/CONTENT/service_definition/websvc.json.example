@@ -1,0 +1,28 @@
+{
+"######": [
+"This file is an example of a Control Center service definition.",
+"To enable this file, rename it without the .example extension (i.e., websvc.json).",
+"See README.md in this directory for usage and documentation."
+],
+    "servicePath": "/",
+    "serviceDefinition": {
+        "Name": "webservice",
+        "Command": "/usr/bin/python -m SimpleHTTPServer 8000",
+        "Endpoints": [{
+                "Name": "websvc",
+                "Application": "websvc",
+                "PortNumber": 8000,
+                "Protocol": "tcp",
+                "Purpose": "export"
+            }
+        ],
+        "ImageId": "centos:6.4",
+        "Instances": {
+            "Min": 1
+        },
+        "Launch": "auto",
+        "Tags": [
+            "daemon"
+        ]
+    }
+}
