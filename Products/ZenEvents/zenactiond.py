@@ -205,9 +205,9 @@ class ZenActionD(ZCmdBase):
 
         self._callHomeCycler.start()
         self._schedule.start()  # maintenance windows
-        if self.options.daemon:
+        if self.options.daemon or self.options.cycle:
             self._maintenanceCycle.start()  # heartbeats, etc.
-        if self.options.daemon and self.options.workers > 1:
+        if (self.options.daemon or self.options.cycle) and self.options.workers > 1:
             self._workers.startWorkers()
 
         self._consumer = QueueConsumer(task, self.dmd)
