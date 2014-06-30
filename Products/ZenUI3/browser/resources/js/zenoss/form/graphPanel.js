@@ -90,8 +90,8 @@
             return ms;
         }
         var d = new Date(ms);
-        return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1).pad(2) + '/' + d.getUTCDate().pad(2) + '-'
-            + d.getUTCHours().pad(2) + ':' + d.getUTCMinutes().pad(2) + ':' + d.getUTCSeconds().pad(2) + '-UTC';
+        return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1).pad(2) + '/' + d.getUTCDate().pad(2) + '-' +
+            d.getUTCHours().pad(2) + ':' + d.getUTCMinutes().pad(2) + ':' + d.getUTCSeconds().pad(2) + '-UTC';
     }
 
     Date.prototype.minus = function(secs) {
@@ -103,9 +103,8 @@
         alias:['widget.europagraph'],
         extend: "Ext.Panel",
 
-
-        zoom_factor: 1.5,
-        pan_factor: 3,
+        zoom_factor: 1.25,
+        pan_factor: 4,
 
         /**
          * @cfg {int} start
@@ -173,67 +172,66 @@
                 padding = "padding:0px 0px 0px 0px;";
             }
             config = Ext.applyIf(config||{}, {
-
                 html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 75)  + 'px;"></div>',
                 maxWidth: 800,
                 cls: 'graph-panel',
-                dockedItems: [{
-                    xtype: 'toolbar',
-                    dock: 'top',
-                    items: [{
-                        xtype: 'tbtext',
-                        style: {
-                            fontWeight: 'bolder',
-                            fontSize: '1.5em'
-                        },
-                        text: config.graphTitle // + ' : ' + config.uid
-                    },'->',{
-                        xtype: 'button',
-                        iconCls: 'customize',
-                        menu: [{
-                            text: _t('Definition'),
-                            handler: Ext.bind(this.displayDefinition, this)
-                        }, {
-                            text: _t('Export to CSV'),
-                            handler: Ext.bind(this.exportData, this)
-                        }, {
-                            text: _t('Link to this Graph'),
-                            handler: Ext.bind(this.displayLink, this)
-                        }]
-                    },{
-                        text: '&lt;',
-                        width: 40,
-                        handler: Ext.bind(function(btn, e) {
-                            this.onPanLeft(this);
-                        }, this)
-                    },{
-                        text: _t('Zoom In'),
-                        ref: '../zoomin',
-                        enableToggle: true,
-                        handler: Ext.bind(function(btn, e) {
-                            this.fireEventsToAll("zoommodechange", this, !btn.pressed);
-                        }, this)
-                    },{
-                        text: _t('Zoom Out'),
-                        ref: '../zoomout',
-                        enableToggle: true,
-                        handler: Ext.bind(function(btn, e) {
-                            this.fireEventsToAll("zoommodechange", this, btn.pressed);
-                        }, this)
-                    },{
-                        text: '&gt;',
-                        width: 40,
-                        handler: Ext.bind(function(btn, e) {
-                            this.onPanRight(this);
-                        }, this)
-                    }]
-                }],
                 graph_params: {
                     drange: DATE_RANGES[0][0],
                     end: config.end || CURRENT_TIME,
                     start: config.start || DATE_RANGES[0][0]
                 }
             });
+
+            // setup graph controls
+            config.dockedItems = [{
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [{
+                    xtype: 'tbtext',
+                    style: {
+                        fontWeight: 'bolder',
+                        fontSize: '1.5em'
+                    },
+                    text: config.graphTitle // + ' : ' + config.uid
+                },'->',{
+                    xtype: 'button',
+                    iconCls: 'customize',
+                    menu: [{
+                        text: _t('Definition'),
+                        handler: Ext.bind(this.displayDefinition, this)
+                    }, {
+                        text: _t('Export to CSV'),
+                        handler: Ext.bind(this.exportData, this)
+                    }, {
+                        text: _t('Link to this Graph'),
+                        handler: Ext.bind(this.displayLink, this)
+                    }]
+                },{
+                    text: '&lt;',
+                    width: 40,
+                    handler: Ext.bind(function(btn, e) {
+                        this.onPanLeft(this);
+                    }, this)
+                },{
+                    text: _t('Zoom In'),
+                    ref: '../zoomin',
+                    handler: Ext.bind(function(btn, e) {
+                        this.doZoom.call(this, 0, 1/this.zoom_factor);
+                    }, this)
+                },{
+                    text: _t('Zoom Out'),
+                    ref: '../zoomout',
+                    handler: Ext.bind(function(btn, e) {
+                        this.doZoom.call(this, 0, this.zoom_factor);
+                    }, this)
+                },{
+                    text: '&gt;',
+                    width: 40,
+                    handler: Ext.bind(function(btn, e) {
+                        this.onPanRight(this);
+                    }, this)
+                }]
+            }];
 
             Zenoss.EuropaGraph.superclass.constructor.call(this, config);
         },
@@ -266,9 +264,10 @@
                 format: this.datapoints[0].format,
                 timezone: Zenoss.USER_TIMEZONE
             };
+
             var delta;
             if (Ext.isNumber(this.graph_params.start)) {
-                delta = new Date().getTime() - this.graph_params.start;
+                delta = now() - this.graph_params.start;
             } else {
                 delta = rangeToMilliseconds(this.graph_params.start);
             }
@@ -293,14 +292,28 @@
             zenoss.visualization.chart.create(this.graphId, visconfig);
         },
         displayLink: function(){
-            var config = Zenoss.util.base64.encode(Ext.JSON.encode(this.initialConfig)),
-                link = "/zport/dmd/viewGraph?data=" + config;
+
+            var config = {},
+                encodedConfig, link,
+                // keys to exclude when cloning config object
+                exclusions = ["dockedItems"];
+
+            // shallow clone initialConfig object as long as the 
+            // key being copied is no in the exclusions list.
+            // This is useful because the final JSON string needs
+            // to be as small as possible!
+            for(var i in this.initialConfig){
+                if(!~exclusions.indexOf(i)){
+                    config[i] = this.initialConfig[i];
+                }
+            }
+
+            encodedConfig = Zenoss.util.base64.encode(Ext.JSON.encode(config));
+            link = "/zport/dmd/viewGraph?data=" + encodedConfig;
+
             new Zenoss.dialog.ErrorDialog({
-                message: Ext.String.format(_t('<div>'
-                                              + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'), '<br/><br/><a href="'
-                                              + link
-                                              + '">Graph: ' + this.graphTitle +  ' </a>')
-                                              + '</div>')),
+                message: Ext.String.format(_t('<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
+                    '<br/><br/><a href="' + link + '">Graph: ' + this.graphTitle +  ' </a>') + '</div>')),
                 title: _t('Save Configuration')
             });
         },
@@ -319,7 +332,7 @@
             }).show();
         },
         exportData: function() {
-            var chart = zenoss.visualization.__charts[this.graphId],
+            var chart = zenoss.visualization.chart.getChart(this.graphId),
                 plots = Ext.JSON.encode(chart.plots),
                 form;
             form = Ext.DomHelper.append(document.body, {
@@ -351,35 +364,14 @@
                  * Fire this event to force the chart to redraw itself.
                  * @param {object} params The parameters we are sending to the object.
                  **/
-                'updateimage',
-                /**
-                 * @event zoommodechange
-                 * This fies when the zoom mode change (e.g. from zooming out to zooming in)
-                 **/
-                'zoommodechange'
+                'updateimage'
             );
             this.on('updateimage', this.updateGraph, this);
-            this.on("zoommodechange", this.onZoomModeChange, this);
             this.graphEl = Ext.get(this.graphId);
-            this.graphEl.on('click', this.onGraphClick, this);
-        },
-        linked: function() {
-            return this.isLinked;
-        },
-        setLinked: function(isLinked) {
-            this.isLinked = isLinked;
-        },
-        onZoomModeChange: function(graph, zoomOut) {
-            this.zoomout.toggle(zoomOut);
-            this.zoomin.toggle(!zoomOut);
-            var dir = zoomOut ? 'out' : 'in',
-                cls = Ext.isGecko ? '-moz-zoom-'+dir :
-                (Ext.isWebKit ? '-webkit-zoom-'+dir : 'crosshair');
-            this.graphEl.setStyle({'cursor': cls});
         },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
-            gp.start = params.start || gp.drange;
+            gp.start = params.start || gp.start;
             if (gp.start < 0) {
                 gp.start = 0;
             }
@@ -387,16 +379,15 @@
             // see if end is explicitly defined on the params
             if (Ext.isDefined(params.end) && (params.end > params.start)){
                 gp.end = params.end;
-            } else {
-                // otherwise it needs to be now
-                gp.end = CURRENT_TIME;
             }
+
             var changes = {
                 range : {
                     start: formatForMetricService(gp.start),
                     end: formatForMetricService(gp.end)
                 }
             };
+
             // gp.start is something like "1h-ago", convert to milliseconds
             var delta;
             if (Ext.isNumber(gp.start)) {
@@ -422,7 +413,7 @@
         },
         convertEndToAbsolute: function(end) {
             if (end == CURRENT_TIME) {
-                return new Date().getTime();
+                return now();
             }
             return end;
         },
@@ -432,7 +423,9 @@
             var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = (gp.start) - delta > 0 ? gp.start - delta : 0;
             var newend = newstart + rangeToMilliseconds(gp.drange);
-            this.fireEventsToAll("updateimage", {start:newstart, end:newend});
+
+            this.fireEvent("updatelimits", {start:newstart, end:newend});
+            this.fireEvent("updateimage", {start:newstart, end:newend});
         },
         onPanRight: function(graph) {
             var gp = this.graph_params;
@@ -440,51 +433,27 @@
             var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
             var newend = newstart + rangeToMilliseconds(gp.drange);
-            var now = new Date().getTime();
-            if (newend > now) {
-                newend = now;
-                newstart = now - delta;
+            var currTime = now();
+            if (newend > currTime) {
+                newend = currTime;
+                newstart = currTime - delta;
             }
-            this.fireEventsToAll("updateimage", {start:newstart, end:newend});
+
+            this.fireEvent("updatelimits", {start:newstart, end:newend});
+            this.fireEvent("updateimage", {start:newstart, end:newend});
         },
         doZoom: function(xpos, factor) {
             var gp = this.graph_params,
-                el = Ext.get(this.graphId),
-                width = el.getWidth();
-            gp.end = this.convertEndToAbsolute(gp.end);
-            var drange = Math.round(rangeToMilliseconds(gp.drange)/factor),
-                // Get the new end time based on where they click on the graph
-                delta = ((width/2) - xpos) * (rangeToMilliseconds(gp.drange)/width) + (rangeToMilliseconds(gp.drange) - drange)/2,
-                end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0),
-                start = (gp.end - drange);
+                el = Ext.get(this.graphId);
 
-            this.fireEventsToAll("updateimage", {
-                drange: drange,
-                start: start,
-                end: end
-            });
-        },
-        onGraphClick: function(e) {
-            var graph = e.getTarget(null, null, true),
-                x = e.getPageX() - graph.getX() - 67,
-            func = this.zoomin.pressed ? this.onZoomIn : this.onZoomOut;
-            func.call(this, this, x);
-        },
-        onZoomIn: function(graph, xpos) {
-            this.doZoom(xpos, this.zoom_factor);
-        },
-        onZoomOut: function(graph, xpos) {
-            this.doZoom(xpos, 1/this.zoom_factor);
-        },
-        fireEventsToAll: function() {
-            if (this.linked()) {
-                var args = arguments;
-                Ext.each(this.up('graphpanel').getGraphs(), function(g) {
-                    g.fireEvent.apply(g, args);
-                });
-            } else {
-                this.fireEvent.apply(this, arguments);
-            }
+            gp.end = this.convertEndToAbsolute(gp.end);
+            gp.drange = rangeToMilliseconds(gp.drange) * factor;
+
+            var end = gp.end,
+                start = gp.end - gp.drange;
+
+            this.fireEvent("updatelimits", { start: start, end: end });
+            this.fireEvent("updateimage", { start: start, end: end });
         }
     });
 
@@ -559,7 +528,7 @@
                     store: new Ext.data.ArrayStore({
                         id: 0,
                         model: 'Zenoss.model.IdName',
-                        data: DATE_RANGES
+                        data: DATE_RANGES.concat([[0,"<hr>"],["custom", "["+ _t("Custom") +"]"]])
                     }),
                     valueField: 'id',
                     displayField: 'name'
@@ -567,157 +536,223 @@
             this.callParent(arguments);
         }
     });
-    function getDateRangePanel() {
-        var dateRangePanel = [{
-            margin: '10, 0, 15, 0',
-            xtype: 'container',
-            layout: 'hbox',
-            defaults: {
-                margin: '0 0 0 10',
-                labelWidth: 30
-            },
-            items:[{
-                xtype: 'datefield',
-                ref: '../../start_date',
-                width: 250,
-                fieldLabel: _t('Start'),
-                format:'Y-m-d H:i:s',
-                // the default is one hour ago
-                value: moment().subtract("Hour", 1).tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
-            },{
-                xtype: 'container',
-                width: 5
-            },{
-                xtype: 'datefield',
-                ref: '../../end_date',
-                width: 250,
-                fieldLabel: _t('End'),
-                disabled: true,
-                format:'Y-m-d H:i:s',
-                value: moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT)
-            }, {
-                xtype: 'checkbox',
-                ref: '../../checkbox_now',
-                fieldLabel: _t('Now'),
-                checked: true,
-                listeners: {
-                    change: function(chkbox, newValue) {
-                        chkbox.refOwner.end_date.setDisabled(newValue);
-                    }
-                }
-            }, {
-                xtype: 'button',
-                text: _t('Update'),
-                ref: '../../updatebutton',
-                handler: function(b){
-                    var me = b.refOwner;
-                    me.start = me.start_date.getUnixTimestamp() * 1000;
-                    me.updateEndTime();
-                    me.end = me.end_date.getUnixTimestamp() * 1000;
-                    Ext.each(me.getGraphs(), function(g) {
-                        g.fireEvent("updateimage", {
-                            start: me.start,
-                            end: me.end
-                        }, me);
-                    });
-                }
-            }]
-        }];
-        return dateRangePanel;
-    }
 
+    // datefield that uses number of ms since epoch to
+    // get and set date. Also accepts a `displayTZ` property
+    // which is used to offset the date that is displayed to
+    // the end user.
+    // NOTE: when you set the date, it should be UTC. When you
+    // get the date, it will be UTC. The `displayTZ` property is
+    // only to adjust what the user sees, not to adjust the
+    // actual date value.
+    Ext.define("Zenoss.form.UTCDateField", {
+        alias:['widget.utcdatefield'],
+        extend:"Ext.form.DateField",
+        constructor: function(config) {
+            config = config || {};
 
-    function getTBarConfig(title) {
-        var tbarConfig = [
-            {
-                xtype: 'tbtext',
-                text: title || _t('Performance Graphs')
-            },
-            '-',
-            '->',
-            {
-                xtype: 'drangeselector',
-                ref: '../drange_select',
-                listeners: {
-                    select: function(combo, records, index){
-                        var value = records[0].data.id,
-                        panel = combo.refOwner;
+            // "Africa/Abidjan" is moment.tz default UTC zone
+            this.setDisplayTimezone(config.displayTZ || "Africa/Abidjan");
+
+            // get the browser's local timezone so we can offset that as well :/
+            // NOTE: zone returns minutes, so convert to milliseconds
+            this.TZLocalMS = moment().zone() * 60 * 1000;
+
+            this.callParent(arguments);
+        },
+
+        setDisplayTimezone: function(tz){
+            // store provided timezone
+            this.displayTZ = tz;
+
+            // get timezone offset *in hours* and convert hours to ms
+            this.TZOffsetMS = (+moment.utc().tz(this.displayTZ).format("ZZ") * 0.01) * 1000 * 60 * 60;
+        },
+
+        // accepts only ms since epoch (UTC)
+        setValue: function(ms){
+            if(!ms){
+                return;
+            }
+
+            // if someone is using a date object, get
+            // the UTC time and use that
+            if(ms instanceof Date){
+                ms = ms.getTime();
+            }
+
+            // take provided time, offset with local timezone, then
+            // offset with displayTZ
+            var adjustedTime = ms + this.TZOffsetMS + this.TZLocalMS,
+                d = new Date(adjustedTime);
+
+            this.callParent([d]);
+
+            return this;
+        },
+
+        // returns ms since epoch (UTC)
+        getValue: function(){
+            // clear any previous offsets and return just the UTC
+            // time since epoch
+            return this.value.getTime() - this.TZOffsetMS - this.TZLocalMS;
+        }
+    });
+
+    var tbarConfig = [
+        '-',
+        '->',
+
+        {
+            xtype: 'drangeselector',
+            cls: 'drange_select',
+            labelWidth: 40,
+            labelAlign: "right",
+            listeners: {
+                select: function(self, records, index){
+                    var value = records[0].data.id,
+                        panel = self.up("graphpanel");
+
+                    // if value is "custom", then reveal the date
+                    // picker container
+                    if(value === "custom"){
+                        panel.showDatePicker();
+
+                    // if user selected the separator, select custom
+                    } else if(value === 0){
+                        self.setValue("custom");
+                        panel.showDatePicker();
+
+                    // otherwise, update graphs
+                    } else {
+                        // all ranges are relative to now, so set
+                        // end to current time
+                        panel.setEndToNow();
+                        panel.hideDatePicker();
+                        // update drange and start values based
+                        // on the new end value
                         panel.setDrange(value);
                     }
                 }
-            },'-', {
-                xtype: 'button',
-                ref: '../resetBtn',
-                text: _t('Reset'),
-                handler: function(btn) {
-                    var panel = btn.refOwner;
-                    panel.setDrange();
-                }
-            },'-',{
-                xtype: 'tbtext',
-                text: _t('Link Graphs?:')
-            },{
-                xtype: 'checkbox',
-                ref: '../linkGraphs',
-                checked: true,
-                listeners: {
-                    change: function(chkBx, checked) {
-                        var panel = chkBx.refOwner;
-                        panel.setLinked(checked);
+            }
+        },
+
+        "-",
+
+        {
+            xtype: "container",
+            layout: "hbox",
+            cls: "date_picker_container",
+            padding: "0 10 0 0",
+            items: [
+                {
+                    xtype: 'utcdatefield',
+                    cls: 'start_date',
+                    width: 250,
+                    fieldLabel: _t('Start'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    format:'Y-m-d H:i:s',
+                    displayTZ: Zenoss.USER_TIMEZONE,
+                    listeners: {
+                        change: function(self, val){
+                            var panel = self.up("graphpanel");
+                            //update graphpanel.start with *UTC time*
+                            //NOTE: panel.start should *always* be UTC!
+                            panel.start = moment.utc(self.getValue());
+                        }
+                    }
+                },{
+                    xtype: 'utcdatefield',
+                    cls: 'end_date',
+                    width: 250,
+                    fieldLabel: _t('End'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    disabled: true,
+                    format:'Y-m-d H:i:s',
+                    displayTZ: Zenoss.USER_TIMEZONE,
+                    listeners: {
+                        change: function(self, val){
+                            var panel = self.up("graphpanel");
+                            //update graphpanel.end with *UTC time*
+                            //NOTE: panel.end should *always* be UTC!
+                            panel.end = moment.utc(self.getValue());
+                        }
+                    }
+                },{
+                    xtype: 'checkbox',
+                    cls: 'checkbox_now',
+                    fieldLabel: _t('Now'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    checked: true,
+                    listeners: {
+                        change: function(self, val) {
+                            var panel = self.up("graphpanel");
+                            panel.query("datefield[cls='end_date']")[0].setDisabled(val);
+
+                            // if it should be now, update it
+                            if(val){
+                                panel.setEndToNow();
+                            }
+                        }
                     }
                 }
-            }, '-',{
-                xtype: 'graphrefreshbutton',
-                ref: '../refreshmenu',
-                iconCls: 'refresh',
-                text: _t('Refresh'),
-                handler: function(btn) {
-                    if (btn) {
-                        var panel = btn.refOwner;
-                            panel.refresh();
-                    }
+            ]
+        },
+
+        {
+            xtype: 'graphrefreshbutton',
+            ref: '../refreshmenu',
+            iconCls: 'refresh',
+            text: _t('Refresh'),
+            handler: function(btn) {
+                if (btn) {
+                    var panel = btn.up("graphpanel");
+                    panel.refresh();
                 }
-            }, '-', {
-                xtype: 'button',
-                ref: '../newwindow',
-                iconCls: 'newwindow',
-                hidden: true,
-                handler: function(btn) {
-                    var panel = btn.refOwner;
-                    var config = panel.initialConfig,
-                    win = Ext.create('Zenoss.dialog.BaseWindow',  {
-                        cls: 'white-background-panel',
-                        layout: 'fit',
-                        items: [Ext.apply(config,{
-                            id: 'device_graphs_window',
-                            xtype: 'graphpanel',
-                            ref: 'graphPanel',
-                            uid: panel.uid,
-                            newWindowButton: false
-                        })],
-                        maximized: true
-                    });
-                    win.show();
-                    win.graphPanel.setContext(panel.uid);
-                }
-            }];
-        return tbarConfig;
-    }
+            }
+        },
+        '-',
+        {
+            xtype: 'button',
+            ref: '../newwindow',
+            iconCls: 'newwindow',
+            hidden: true,
+            handler: function(btn) {
+                var panel = btn.refOwner;
+                var config = panel.initialConfig,
+                win = Ext.create('Zenoss.dialog.BaseWindow',  {
+                    cls: 'white-background-panel',
+                    layout: 'fit',
+                    items: [Ext.apply(config,{
+                        id: 'device_graphs_window',
+                        xtype: 'graphpanel',
+                        ref: 'graphPanel',
+                        uid: panel.uid,
+                        newWindowButton: false
+                    })],
+                    maximized: true
+                });
+                win.show();
+                win.graphPanel.setContext(panel.uid);
+            }
+        }];
 
 
     Ext.define("Zenoss.form.GraphPanel", {
         alias:['widget.graphpanel'],
         extend:"Ext.Panel",
+        tbar: tbarConfig,
+        cls: "graphpanel",
         constructor: function(config) {
             config = config || {};
-            // default to showing the toolbar
-            if (!Ext.isDefined(config.showToolbar) ) {
-                config.showToolbar = true;
-            }
+
+            var toolbar;
 
             Ext.applyIf(config, {
                 drange: DATE_RANGES[0][0],
-                isLinked: true,
                 newWindowButton: true,
                 columns: 1,
                 // images show up after Ext has calculated the
@@ -727,10 +762,44 @@
                 },
                 directFn: router.getGraphDefs
             });
-            if (config.showToolbar){
-                config.tbar = getTBarConfig(config.tbarTitle);
-            }
+
             Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
+
+            // assumes just one docked item
+            this.toolbar = this.getDockedItems()[0];
+
+            this.startDatePicker = this.toolbar.query("utcdatefield[cls='start_date']")[0];
+            this.endDatePicker = this.toolbar.query("utcdatefield[cls='end_date']")[0];
+            this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
+
+            this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+            this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+
+            // add title to toolbar
+            this.toolbar.insert(0, {
+                xtype: 'tbtext',
+                text: config.tbarTitle || _t('Performance Graphs')
+            });
+
+            // default range value of 1 hour
+            // NOTE: this should be a real number, not a relative
+            // measurement like "1h-ago"             
+            this.drange = rangeToMilliseconds("1h-ago");
+
+            // default start and end values in UTC time
+            // NOTE: do not apply timezone adjustments to these values!
+            this.start = moment.utc().subtract("ms", this.drange);
+            this.setEndToNow();
+
+            // set start and end dates
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
+
+            this.hideDatePicker();
+
+            if (config.hideToolbar){
+                this.toolbar.hide();
+            }
         },
         setContext: function(uid) {
             if (this.newwindow) {
@@ -759,20 +828,26 @@
                 panel = this,
                 el = this.getEl();
 
-            if (el.isMasked()) {
+            if (el && el.isMasked()) {
                 el.unmask();
             }
             // this is defined by the visualization library, if it is missing then we can not
             // render any charts
             if (!Ext.isDefined(window.zenoss)) {
                 el.mask(_t('Unable to load the visualization library.') , 'x-mask-msg-noicon');
+
             } else if (data.length > 0){
                 this.addGraphs(data);
-            }else{
-                // no graphs were returned
-                el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
-            }
 
+            }else{
+
+                // no graphs were returned
+                if(el){
+                   el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
+                }
+
+                this.toolbar.query("graphrefreshbutton")[0].setInterval(-1);
+            }
         },
         addGraphs: function(data) {
             var graphs = [],
@@ -795,10 +870,15 @@
                     uid: this.uid,
                     graphId: graphId,
                     graphTitle: graphTitle,
-                    isLinked: this.isLinked,
                     ref: graphId,
                     height: 500
                 })));
+
+                // subscribe to updatelimits event
+                graphs[graphs.length-1].on("updatelimits", function(limits){
+                    this.setLimits(limits.start, limits.end);
+                    this.refresh();
+                }, this);
             }
 
             // set up for the next page
@@ -841,67 +921,116 @@
                 }
             }
 
-            if (!this.start_date) {
-                // add the date filters as well as the columns
-                this.add([{
-                    xtype: 'container',
-                    items: Ext.Array.clone(getDateRangePanel())
-                },{
-                    layout: 'column',
-                    items: columns
-                }]);
-            } else {
-                // just add the columns
-                this.add({
-                    layout: 'column',
-                    items: columns
-                });
-            }
-        },
-        updateEndTime: function(){
-            if (this.checkbox_now && this.checkbox_now.getValue()) {
-                this.end_date.setValue(moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            }
-        },
-        setDrange: function(drange) {
-            this.start = null;
-            this.end = null;
-            drange = drange || this.drange;
-            this.drange = drange;
-            //  set the start and end dates to the selected range.
-            this.end_date.setValue(moment().tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-            var start_timestamp = ( new Date().getTime() - rangeToMilliseconds(drange)) / 1000;
-            this.start_date.setValue(moment.utc(start_timestamp, "X").tz(Zenoss.USER_TIMEZONE).format(DATEFIELD_DATE_FORMAT));
-
-            // tell each graph to update
-            Ext.each(this.getGraphs(), function(g) {
-                g.fireEvent("updateimage", {
-                    drange: drange
-                }, this);
+            this.add({
+                layout: 'column',
+                items: columns
             });
         },
         refresh: function() {
-            // if we are rendered but not visible do not refresh
-            if (this.isVisible()) {
-                this.updateEndTime();
-                Ext.each(this.getGraphs(), function(g) {
-                    g.fireEvent("updateimage", {
-                        // if they selected a specific start then use that otherwise use the drange
-                        start: this.start || this.drange,
-                        end: this.end || CURRENT_TIME
-                    }, this);
-                });
+            // if end should be set to `now`, set it
+            if(this.nowCheck.getValue()){
+                this.setEndToNow();
             }
+
+            graphConfig = {
+                drange: this.drange,
+                // start and end are moments so they need to be
+                // converted to millisecond values
+                start: this.start.valueOf(),
+                end: this.end.valueOf()
+            };
+            
+            Ext.each(this.getGraphs(), function(g) {
+                // if we are rendered but not visible do not refresh
+                if(this.isVisible()){
+                    g.fireEvent("updateimage", graphConfig, this);
+                }
+            });
         },
         getGraphs: function() {
             return this.query('europagraph');
         },
-        setLinked: function(isLinked) {
-            this.isLinked = isLinked;
-            Ext.each(this.getGraphs(), function(g){
-                g.setLinked(isLinked);
-            });
-        }
+
+        ///////////////////////////
+        // graph time and range type stuff
+        // 
+
+        setDrange: function(drange) {
+            this.drange = drange || this.drange;
+
+            var graphConfig;
+
+            // if drange is relative measurement, convert to ms
+            if(!Ext.isNumeric(this.drange)){
+                this.drange = rangeToMilliseconds(this.drange);
+            }
+
+            // check `now` checkbox since drange is always set from now
+            this.nowCheck.setValue(true);
+
+            // update start to reflect new range
+            this.start = this.end.clone().subtract("ms", this.drange);
+
+            //  set the start and end dates to the selected range.
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
+
+            this.refresh();
+        },
+
+        setLimits: function(start, end){
+            // TODO - validate end is greater than start
+            this.start = moment.utc(start);
+            this.end = moment.utc(end);
+
+            // these limits require a custom date range
+            this.drange = end - start;
+
+            // set the range combo to custom
+            this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue("custom");
+
+            // uncheck `now` checkbox since we're using a custom range
+            this.nowCheck.setValue(false);
+
+            this.showDatePicker();
+
+            //  set the start and end dates to the selected range.
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
+        },
+
+        setEndToNow: function(){
+            this.end = moment.utc();
+            this.updateEndDatePicker();
+
+            // if the "now" checkbox is set and range isn't custom, start time should be updated as well
+            if(this.nowCheck.getValue() && this.toolbar.query("drangeselector")[0].getValue() !== "custom"){
+                this.start = this.end.clone().subtract("ms", this.drange);
+                this.updateStartDatePicker();
+            }
+        },
+
+        // updates date picker with stored date value, offset for timezone,
+        // but forced to be treated as UTC to prevent additional timezone offset
+        updateStartDatePicker: function(){
+            this.startDatePicker.suspendEvents();
+            this.startDatePicker.setValue(this.start.valueOf());
+            this.startDatePicker.resumeEvents(false);
+        },
+        updateEndDatePicker: function(){
+            this.endDatePicker.suspendEvents();
+            this.endDatePicker.setValue(this.end.valueOf());
+            this.endDatePicker.resumeEvents(false);
+        },
+
+        showDatePicker: function(){
+            // show date picker stuff
+            this.toolbar.query("container[cls='date_picker_container']")[0].show();
+        },
+        hideDatePicker: function(){
+            // hide date picker stuff
+            this.toolbar.query("container[cls='date_picker_container']")[0].hide();
+        },
     });
 
 

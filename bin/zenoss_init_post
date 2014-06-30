@@ -24,9 +24,4 @@
 . ${ZENHOME}/bin/shared-functions.sh
 . ${ZENHOME}/bin/install-functions.sh
 
-
-# add localhost as a device to zenoss
-echo "Adding localhost as a device to zenoss"
-add_localhost_device
-
-
+# Nothing happens here right now

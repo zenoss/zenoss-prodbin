@@ -48,7 +48,6 @@
                     uid: uid,
                     graphId: id,
                     graphTitle: graphTitle,
-                    isLinked: false,
                     ref: id,
                     height: 500
                 })));

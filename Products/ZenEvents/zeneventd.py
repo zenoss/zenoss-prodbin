@@ -248,7 +248,7 @@ class ZenEventD(ZCmdBase):
         super(ZenEventD, self).sigTerm(signum, frame)
 
     def run(self):
-        if self.options.daemon:
+        if self.options.daemon or self.options.cycle:
             self._maintenanceCycle.start()
         objectEventNotify(DaemonStartRunEvent(self))
 

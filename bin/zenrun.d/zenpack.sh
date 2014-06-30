@@ -10,6 +10,12 @@
 
 # wrapper for zenpack command, allowing the command to run in zenrun
 __DEFAULT__() {
-    zenpack $*
+    args=$($RUNPATH/util/replaceZenpackPath.py "$@")
+    status=$?
+    if test $status -ne 0 ; then
+        return $status
+    fi
+    IFS=$(printf "\x01") read -ra args <<< "$args"
+    zenpack "${args[@]}"
     return $?
  }

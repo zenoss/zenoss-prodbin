@@ -58,6 +58,27 @@ class ServiceTree (object):
         return self._idToService[serviceId]
 
 
+    def getPath(self, service):
+        """
+        Return the path to the given service
+        @param service: the service
+        @type service: service object or string containing service id
+        @return: list of ancestor services leading to the service
+        @rtype: [ServiceDefinition object]
+        """
+        if isinstance(service, basestring):
+            try:
+                service = self._idToService[service]
+            except KeyError:
+                raise LookupError("Specified current service ('%s') not found" % currentServiceId)
+
+        retval = [service]
+        while service.parentId:
+            service = self.getService(service.parentId)
+            retval.insert(0,service)
+        return retval
+
+
     def matchServicePath(self, currentServiceId, path):
         """
         Return a list of services which match the given service path
@@ -115,7 +136,7 @@ class ServiceTree (object):
                 next = []
                 for service in current:
                     children = self._serviceChildren[service]
-                    next.extend (i for i in children if tag in i.tags or i.name==name)
+                    next.extend (i for i in children if tag in (i.tags or []) or i.name==name)
                 current = next
         return current
 
