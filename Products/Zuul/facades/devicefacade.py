@@ -22,6 +22,7 @@ from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
+from Products.Jobber.zenmodel import DeviceApplyDataMapsJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
@@ -61,7 +62,6 @@ class DeviceCollectorChangeEvent(object):
         self._movedDevices = movedDevices
         self._asynchronous = asynchronous
         self.jobs = []
-        self.adm = ApplyDataMap()
 
     @property
     def context(self):
@@ -780,7 +780,22 @@ class DeviceFacade(TreeFacade):
             graphs.append(info)
         return graphs
 
-    def applyDataMaps(self, uid, maps):
+    def _applyDataMaps(self, uid, maps):
+        adm = ApplyDataMap()
         obj = self._getObject(uid)
         for map in maps:
-            self.adm._applyDataMap(obj, map)
+            adm._applyDataMap(obj, map)
+
+    @info
+    def applyDataMaps(self, uid, maps, asynchronous=True):
+        if asynchronous:
+            return self._dmd.JobManager.addJob(
+                DeviceApplyDataMapsJob, description="applyDataMaps to %s" % (uid),
+                kwargs=dict(
+                    facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
+                    method="_ApplyDataMaps",
+                    uid=uid,
+                    maps=maps
+                ))
+        else:
+            return self._applyDataMaps(uid, maps)
