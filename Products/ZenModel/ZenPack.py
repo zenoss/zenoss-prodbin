@@ -1134,7 +1134,9 @@ registerDirectory("skins", globals())
             controlplane.  Service definition examples may be be seen by running
             $ serviced template list $TEMPLATE_ID
         Each service will be tagged with the given tag in order to enable discovery
-        for ZenPack removal.
+        for ZenPack removal.  If a service definition has an ImageID field, but
+        the field is empty, the field will be set to the value of the
+        SERVICED_SERVICE_IMAGE environment variable.
 
         :param serviceFileNames: file paths, each containing a service
         :type serviceFileNames: list of strings
@@ -1144,10 +1146,14 @@ registerDirectory("skins", globals())
         if not self.currentServiceId:
             return
         paths, definitions = [],[]
+        def normalizeService(service):
+            service.setdefault('Tags', []).append(tag)
+            if 'ImageId' in service and service['ImageId'] == '':
+                service['ImageId'] = os.environ['SERVICED_SERVICE_IMAGE']
+            return service
         for file in serviceFileNames:
             service = json.load(open(file, 'r'))
-            definition = service['serviceDefinition']
-            definition.setdefault('Tags', []).append(tag)
+            definition = normalizeService(service['serviceDefinition'])
             definitions.append(json.dumps(definition))
             paths.append(service['servicePath'])
         self.installServices(definitions, paths)

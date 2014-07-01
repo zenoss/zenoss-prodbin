@@ -25,7 +25,12 @@ Examples of the service definition structure may be seen by executing the comman
 $ serviced service edit
 ```
 
+Note that there is a special value for the ImageId field in the service definition.
+An empty string indicates that the service should use the same zenoss image used
+by the Zope container.
+
 For more information, see this [example ZenPack][example_zenpack].
+
 
 [example_zenpack]: https://github.com/zenoss/ZenPacks.zenoss.ExampleService
 
