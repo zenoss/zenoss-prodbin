@@ -33,7 +33,7 @@ __DEFAULT__() {
 help() {
     echo "usage:"
     echo "   zenpack help"
-    echo "   zenpack install <zenpack_egg_path>"
+    echo "   zenpack install <zenpack_egg_relpath>"
     echo "   zenpack list"
     echo "   zenpack uninstall <zenpack_name>"
     return 1
@@ -51,7 +51,7 @@ install() {
     fi
 
     #Test for presence of ZenPack egg
-    if [[ ! -r $containerZenpackPath ]]; then
+    if [[ ! -r "$containerZenpackPath" ]]; then
         echo "Unable to read ZenPack file: '$hostZenpackPath'"
         echo "The ZenPack must be located in the current working directory and must be specified with a relative path."
         return 1
