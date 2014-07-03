@@ -1828,9 +1828,12 @@ def setLogLevel(level=logging.DEBUG, loggerName=None):
     @type level: integer
     """
     #set the specified logger to level
-    logging.getLogger(loggerName).setLevel(level)
+    if loggerName:
+        logging.getLogger(loggerName).setLevel(level)
+    log = logging.getLogger()
+    log.setLevel(level)
     #set root handlers to be able to log at given level
-    for handler in logging.getLogger().log.handlers:
+    for handler in log.handlers:
         if isinstance(handler, logging.StreamHandler):
             handler.setLevel(level)
 
