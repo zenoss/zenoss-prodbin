@@ -17,14 +17,14 @@ Application JSON format:
 
     /services/<service-id> 'get' result example
     {
-        "Id":              "9827-939070095",
+        "ID":              "9827-939070095",
         "Name":            "zentrap",
         "Startup":         "/bin/true",
         "Description":     "This is a collector deamon 4",
         "Instances":       0,
         #"Running": [
         #    {
-        #      "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
+        #      "ID": "28ea1c28-8491-2afc-fd9d-fe207046be05",
         #      "ServiceID": "c412e4cf-48be-b53d-d144-867ffa596ffa",
         #      "HostID": "007f0101",
         #      "DockerID": "3b52fc18767f",
@@ -58,7 +58,7 @@ Application JSON format:
     /services/<service-id>/running example
     [
       {
-        "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
+        "ID": "28ea1c28-8491-2afc-fd9d-fe207046be05",
         "ServiceID": "c412e4cf-48be-b53d-d144-867ffa596ffa",
         "HostID": "007f0101",
         "DockerID": "3b52fc18767f",
@@ -120,14 +120,14 @@ class _Value(object):
 # The set of keys found in a service definition JSON object.
 # Used to identify such objects.
 _definitionKeys = set([
-    "Id", "Name", "ParentServiceID", "PoolID", "Description", "Launch",
+    "ID", "Name", "ParentServiceID", "PoolID", "Description", "Launch",
     "DesiredState", "Tags", "ConfigFiles"
 ])
 
 # The set of keys found in a service instance JSON object.
 # Used to identify such objects.
 _instanceKeys = set([
-    "Id", "ServiceID", "HostID", "DockerID", "StartedAt", "Name",
+    "ID", "ServiceID", "HostID", "DockerID", "StartedAt", "Name",
     "Startup", "Description", "Instances", "ImageID",
     "PoolID", "DesiredState", "ParentServiceID"
 ])
@@ -191,12 +191,12 @@ class ServiceInstance(object):
 
     @property
     def id(self):
-        return self._data.get("Id")
+        return self._data.get("ID")
 
     @property
     def resourceId(self):
         return "/services/%s/running/%s" % (
-            self._data.get("ServiceID"), self._data.get("Id")
+            self._data.get("ServiceID"), self._data.get("ID")
         )
 
     @property
@@ -256,7 +256,7 @@ class ServiceDefinition(object):
 
     @property
     def id(self):
-        return self._data.get("Id")
+        return self._data.get("ID")
 
     @property
     def parentId(self):
@@ -268,7 +268,7 @@ class ServiceDefinition(object):
 
     @property
     def resourceId(self):
-        return "/services/%s" % (self._data.get("Id"),)
+        return "/services/%s" % (self._data.get("ID"),)
 
     @property
     def name(self):
