@@ -1150,6 +1150,16 @@ registerDirectory("skins", globals())
             service.setdefault('Tags', []).append(tag)
             if 'ImageId' in service and service['ImageId'] == '':
                 service['ImageId'] = os.environ['SERVICED_SERVICE_IMAGE']
+            if 'ConfigFiles' in service:
+                configFiles = service['ConfigFiles']
+                for key, value in configFiles.items():
+                    if 'Content' in value and value['Content'] != '':
+                        continue
+                    else:
+                        path = self.path('-CONFIGS-', key)
+                        with open(path, "r") as fp:
+                            content = fp.read()
+                        value['Content'] = content
             return service
         for file in serviceFileNames:
             service = json.load(open(file, 'r'))
