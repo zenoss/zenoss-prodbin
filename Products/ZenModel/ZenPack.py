@@ -1122,6 +1122,20 @@ registerDirectory("skins", globals())
         """
         return glob.glob(self.path('service_definition', '*.json'))
 
+    def getCorrespondingConfigFile(self, serviceDefinitionFiles, configFilePath):
+        """
+        Default implementation looks config files in the -CONFIG- directory
+
+        :param serviceDefinitionFiles: absolute path for service definition folder
+        :param configFilePath: relative path for config file
+        :return: content of config file
+        """
+        sdDir = os.path.dirname(serviceDefinitionFiles[0])
+        path = sdDir + '/-CONFIGS-' + configFilePath
+        with open(path, "r") as fp:
+            content = fp.read()
+        return content
+
 
     def installServicesFromFiles(self, serviceFileNames, tag):
         """
@@ -1156,9 +1170,8 @@ registerDirectory("skins", globals())
                     if 'Content' in value and value['Content'] != '':
                         continue
                     else:
-                        path = self.path('-CONFIGS-', key)
-                        with open(path, "r") as fp:
-                            content = fp.read()
+                        sdFiles = self.getServiceDefinitionFiles()
+                        content = self.getCorrespondingConfigFile(sdFiles, key)
                         value['Content'] = content
             return service
         for file in serviceFileNames:
