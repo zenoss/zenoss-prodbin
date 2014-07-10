@@ -1122,6 +1122,21 @@ registerDirectory("skins", globals())
         """
         return glob.glob(self.path('service_definition', '*.json'))
 
+    def getCorrespondingConfigFile(self, serviceDefinitionFile, configFilePath):
+        """
+        Default implementation trying to find config file in the -CONFIG-
+         folder (in the same folder as the service definition file)
+
+        :param serviceDefinitionFile: absolute path for service definition file
+        :param configFilePath: relative path for config file
+        :return: content of config file
+        """
+        sdDir = os.path.dirname(serviceDefinitionFile)
+        path = os.path.join(sdDir, '-CONFIGS-', configFilePath.lstrip('/'))
+        with open(path, "r") as fp:
+            content = fp.read()
+        return content
+
 
     def installServicesFromFiles(self, serviceFileNames, tag):
         """
@@ -1146,14 +1161,22 @@ registerDirectory("skins", globals())
         if not self.currentServiceId:
             return
         paths, definitions = [],[]
-        def normalizeService(service):
+        def normalizeService(service, fileName):
             service.setdefault('Tags', []).append(tag)
             if 'ImageId' in service and service['ImageId'] == '':
                 service['ImageId'] = os.environ['SERVICED_SERVICE_IMAGE']
+            if 'ConfigFiles' in service:
+                configFiles = service['ConfigFiles']
+                for key, value in configFiles.items():
+                    if 'Content' in value and value['Content'] != '':
+                        continue
+                    else:
+                        content = self.getCorrespondingConfigFile(fileName, key)
+                        value['Content'] = content
             return service
-        for file in serviceFileNames:
-            service = json.load(open(file, 'r'))
-            definition = normalizeService(service['serviceDefinition'])
+        for fileName in serviceFileNames:
+            service = json.load(open(fileName, 'r'))
+            definition = normalizeService(service['serviceDefinition'], fileName)
             definitions.append(json.dumps(definition))
             paths.append(service['servicePath'])
         self.installServices(definitions, paths)
