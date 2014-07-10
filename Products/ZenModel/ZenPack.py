@@ -1132,7 +1132,7 @@ registerDirectory("skins", globals())
         :return: content of config file
         """
         sdDir = os.path.dirname(serviceDefinitionFile)
-        path = sdDir + '/-CONFIGS-' + configFilePath
+        path = os.path.join(sdDir, '-CONFIGS-', configFilePath.lstrip('/'))
         with open(path, "r") as fp:
             content = fp.read()
         return content
