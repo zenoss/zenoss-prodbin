@@ -9,33 +9,6 @@
 ##############################################################################
 
 __DEFAULT__() {
-    # The first argument is the subcommand.
-    if [[ $# -eq 0 ]]; then
-        echo missing zenmib subcommand
-        help
-        return 1
-    fi
-    set -- "$@"
-
-    if declare -f $1 &> /dev/null; then
-        "$@"
-    else
-        echo unknown zenmib sub-command: \"$1\"
-        help
-    fi
-    return $?
-}
-
-
-help() {
-    echo "usage:"
-    echo "   zenmib help"
-    echo "   zenmib run <zenmib_file_url>"
-    return 1
-}
-
-
-run() {
     local nocommit=0
     if echo "$@" | egrep -- '--nocommit|--keeppythoncode'; then
         nocommit=1
@@ -48,6 +21,14 @@ run() {
     else
         return $status
     fi
+}
+
+
+help() {
+    echo "usage:"
+    echo "   zenmib help"
+    echo "   zenmib run [--nocommit] <zenmib_file_url>"
+    return 1
 }
 
 
