@@ -777,12 +777,20 @@ registerDirectory("skins", globals())
         return filenames
 
 
+    def getDaemonPath(self):
+        """
+        Returns the directory in which daemons are located
+        @return: string
+        """
+        return os.path.join(self.path(), 'daemons')
+
+
     def getDaemonNames(self):
         """
         Return a list of daemons in the daemon subdirectory that should be
         stopped/started before/after an install or an upgrade of the zenpack.
         """
-        daemonsDir = os.path.join(self.path(), 'daemons')
+        daemonsDir = self.getDaemonPath()
         if os.path.isdir(daemonsDir):
             daemons = [f for f in os.listdir(daemonsDir)
                         if os.path.isfile(os.path.join(daemonsDir,f))]
