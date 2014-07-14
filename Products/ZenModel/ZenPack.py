@@ -1187,10 +1187,10 @@ registerDirectory("skins", globals())
             definition = normalizeService(service['serviceDefinition'], configMap)
             definitions.append(json.dumps(definition))
             paths.append(service['servicePath'])
-        self.installServices(definitions, paths)
+        self.installServiceDefinitions(definitions, paths)
 
 
-    def installServices(self, serviceDefs, servicePaths):
+    def installServiceDefinitions(self, serviceDefs, servicePaths):
         """
         Install a service into ControlPlane
 

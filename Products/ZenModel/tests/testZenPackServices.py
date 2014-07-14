@@ -99,7 +99,7 @@ class TestZenpackServices(ZenModelBaseTest):
         client = _MockControlPlaneClient(services=_services)
         service = json.dumps(_MockService('id'), cls=_MockServiceEncoder)
         with setControlPlaneClient(client):
-            ZenPack("id").installServices(service, "/hub")
+            ZenPack("id").installServiceDefinitions(service, "/hub")
         self.assertEquals(client.added, [])
 
     def testAddSingleService(self):
@@ -108,7 +108,7 @@ class TestZenpackServices(ZenModelBaseTest):
         service.poolId = 'not_default'
         service = json.dumps(service, cls=_MockServiceEncoder)
         with setControlPlaneClient(client), setCurrentService('zope'):
-            ZenPack("id").installServices(service, "/hub")
+            ZenPack("id").installServiceDefinitions(service, "/hub")
         self.assertEquals(len(client.added), 1)
         parent, added = client.added[0][0], json.loads(client.added[0][1])
         self.assertEquals(added['Id'], 'id')
@@ -120,7 +120,7 @@ class TestZenpackServices(ZenModelBaseTest):
                     for i in ('id1', 'id2')]
         paths = ['/', '/hub']
         with setControlPlaneClient(client), setCurrentService('zope'):
-            ZenPack("id").installServices(services, paths)
+            ZenPack("id").installServiceDefinitions(services, paths)
         self.assertEquals(len(client.added), 2)
         added = [(i[0], json.loads(i[1])) for i in client.added]
         self.assertEquals(added[0][1]['Id'], 'id1')
@@ -212,7 +212,7 @@ class TestZenpackServices(ZenModelBaseTest):
                     for i in ('svc1', 'root', 'svc2')]
         paths = ['/=ROOT', '/', '/=ROOT']
         with setControlPlaneClient(client), setCurrentService('zope'):
-            ZenPack("id").installServices(services, paths)
+            ZenPack("id").installServiceDefinitions(services, paths)
         # Confirm that parent is installed before children
         self.assertEquals(len(client.added), len(paths))
         for i,v  in enumerate(('root', 'svc', 'svc')):
