@@ -157,6 +157,22 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
                     ds.index_object()
 
 
+class DirectoryConfigContents(object):
+    """
+    Map-like object which, given a key consisting of an absolute path, returns
+    the contents of the file at that location relative to some root.  e.g., if
+    the contents of /foo/bar/baz/qux is 'barge', then
+        DirectoryConfigContents('/foo/bar')['/baz/qux'] == 'barge'
+    """
+    def __init__(self, path):
+        self._path = path
+    def __getitem__(self, key):
+        try:
+            return open(os.path.join(self._path, key.lstrip('/'))).read()
+        except:
+            raise KeyError(key)
+
+
 class ZenPack(ZenModelRM):
     """
     The root of all ZenPacks: has no implementation,
@@ -250,7 +266,12 @@ class ZenPack(ZenModelRM):
         self.createZProperties(app)
         previousVersion = self.prevZenPackVersion
         self.migrate(previousVersion)
-        self.installServicesFromFiles(self.getServiceDefinitionFiles(),
+        sdFiles = self.getServiceDefinitionFiles()
+
+        toConfigPath = lambda x: os.path.join(os.path.dirname(x),'-CONFIGS-')
+        configFileMaps = [DirectoryConfigContents(toConfigPath(i)) for i in sdFiles]
+        self.installServicesFromFiles(sdFiles,
+                                      configFileMaps,
                                       self.getServiceTag())
 
 
@@ -1122,23 +1143,8 @@ registerDirectory("skins", globals())
         """
         return glob.glob(self.path('service_definition', '*.json'))
 
-    def getCorrespondingConfigFile(self, serviceDefinitionFile, configFilePath):
-        """
-        Default implementation trying to find config file in the -CONFIG-
-         folder (in the same folder as the service definition file)
 
-        :param serviceDefinitionFile: absolute path for service definition file
-        :param configFilePath: relative path for config file
-        :return: content of config file
-        """
-        sdDir = os.path.dirname(serviceDefinitionFile)
-        path = os.path.join(sdDir, '-CONFIGS-', configFilePath.lstrip('/'))
-        with open(path, "r") as fp:
-            content = fp.read()
-        return content
-
-
-    def installServicesFromFiles(self, serviceFileNames, tag):
+    def installServicesFromFiles(self, serviceFileNames, serviceConfigs, tag):
         """
         Install a set of control plane services
 
@@ -1155,28 +1161,30 @@ registerDirectory("skins", globals())
 
         :param serviceFileNames: file paths, each containing a service
         :type serviceFileNames: list of strings
+        :param serviceConfigs: for each service, maps config name to contents
+        :type serviceConfigs: list of dicts string->string
         :param tag: tag to be applied to all services
         :type tag: string
         """
         if not self.currentServiceId:
             return
         paths, definitions = [],[]
-        def normalizeService(service, fileName):
+        def normalizeService(service, configMap):
             service.setdefault('Tags', []).append(tag)
             if 'ImageId' in service and service['ImageId'] == '':
                 service['ImageId'] = os.environ['SERVICED_SERVICE_IMAGE']
             if 'ConfigFiles' in service:
                 configFiles = service['ConfigFiles']
                 for key, value in configFiles.items():
-                    if 'Content' in value and value['Content'] != '':
-                        continue
-                    else:
-                        content = self.getCorrespondingConfigFile(fileName, key)
-                        value['Content'] = content
+                    if value.get('Content', '') == '':
+                        try:
+                            value['Content'] = configMap[key]
+                        except KeyError:
+                            pass
             return service
-        for fileName in serviceFileNames:
+        for fileName, configMap in zip(serviceFileNames, serviceConfigs):
             service = json.load(open(fileName, 'r'))
-            definition = normalizeService(service['serviceDefinition'], fileName)
+            definition = normalizeService(service['serviceDefinition'], configMap)
             definitions.append(json.dumps(definition))
             paths.append(service['servicePath'])
         self.installServices(definitions, paths)

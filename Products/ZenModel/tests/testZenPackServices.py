@@ -13,7 +13,7 @@ from contextlib import contextmanager
 
 import Globals
 from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
-from Products.ZenModel.ZenPack import ZenPack
+from Products.ZenModel.ZenPack import ZenPack, DirectoryConfigContents
 import Products.ZenModel.ZenPack
 import __builtin__
 
@@ -84,7 +84,7 @@ def setCurrentService(id):
 def setBuiltinOpen(fileDict):
     try:
         builtin_open = __builtin__.open
-        def _open(name, mode):
+        def _open(name, mode='r'):
             if name in fileDict:
                 return cStringIO.StringIO(json.dumps(fileDict[name]))
             else:
@@ -162,11 +162,49 @@ class TestZenpackServices(ZenModelBaseTest):
         )
         client = _MockControlPlaneClient(services=_services)
         with setControlPlaneClient(client), setCurrentService('zope'), setBuiltinOpen(fileDict):
-            ZenPack('id').installServicesFromFiles(fileDict.keys(), tag)
+            ZenPack('id').installServicesFromFiles(fileDict.keys(), [{}] * len(fileDict.keys()), tag)
         self.assertEquals(len(fileDict), len(client.added))
         for i,j in ((i[0],json.loads(i[1])) for i in client.added):
             self.assertTrue(tag in j['Tags'])
             self.assertEquals(i, j[E_KEY])
+
+    def testConfigMap(self):
+        tag='myZenpack'
+        client = _MockControlPlaneClient(services=_services)
+        fileDict = {
+            "service.json":{
+                'servicePath': '/',
+                'serviceDefinition': {
+                   'Id': 'svc',
+                   'ConfigFiles': {
+                       '/opt/zenoss/etc/service.conf': {},
+                       '/opt/zenoss/etc/other.conf': {}
+                   }
+                }
+            },
+        }
+        configMap = {
+            '/opt/zenoss/etc/service.conf': "foobar",
+            '/opt/zenoss/etc/other.conf': "boofar"
+        }
+        client = _MockControlPlaneClient(services=_services)
+        with setControlPlaneClient(client), setCurrentService('zope'), setBuiltinOpen(fileDict):
+            ZenPack('id').installServicesFromFiles(fileDict.keys(),
+                                                   [configMap],
+                                                   tag)
+        self.assertEquals(len(fileDict), len(client.added))
+        for i, j in ((i[0], json.loads(i[1])) for i in client.added):
+            for key,val in configMap.iteritems():
+                self.assertEquals(j['ConfigFiles'][key]['Content'], val)
+
+
+    def testDirectoryConfigContents(self):
+        fileDict = {'/foo/bar/baz/qux': 'barge'}
+        with setBuiltinOpen(fileDict):
+            dcc = DirectoryConfigContents('/foo/bar')
+            self.assertEquals(dcc['/baz/qux'], '"barge"')
+            with self.assertRaises(KeyError): dcc['no_such_file']
+            with self.assertRaises(KeyError): dcc[1]
 
     def testNestedInstall(self):
         client = _MockControlPlaneClient(services=_services)
