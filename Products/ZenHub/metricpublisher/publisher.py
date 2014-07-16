@@ -109,7 +109,7 @@ class BasePublisher(object):
         if len(self._mq) < bufferHighWater:
             return defer.succeed(len(self._mq))
         else:
-            return self._put(self._channel, False)
+            return self._put(False)
 
 
 class RedisListPublisher(BasePublisher):
