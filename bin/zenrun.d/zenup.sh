@@ -9,7 +9,7 @@
 ##############################################################################
 
 __DEFAULT__() {
-    zenup "$@"
+    __nocommit__ "$@"
     return $?
 }
 
@@ -22,17 +22,27 @@ __nocommit__() {
     return 1
 }
 
-status() {
-    __nocommit__ status "$@"
+install() {
+    zenup install "$@"
     return $?
 }
 
-info() {
-    __nocommit__ info "$@"
+init() {
+    zenup init "$@"
     return $?
 }
 
-diff() {
-    __nocommit__ diff "$@"
+patch() {
+    zenup patch "$@"
+    return $?
+}
+
+delete() {
+    zenup delete "$@"
+    return $?
+}
+
+revert() {
+    zenup revert "$@"
     return $?
 }
