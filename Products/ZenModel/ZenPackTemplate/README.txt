@@ -60,6 +60,10 @@ and modified to change the DAEMON_NAME. No other modifications are typically
 needed. Note that this example control script does expect to launch the real
 daemon code which should be located at ../DAEMON_NAME.py.
 
+In addition a ControlCenter service will be created for each file in this
+subdirectory.  This behavior can be overridden by placing alternate service
+definitions in the service_definition subdirectory.
+
 #### datasources/
 Any new datasource types you want to add must be added as classes into the
 datasources/ subdirectory. When Zenoss is building the list of available
@@ -151,6 +155,10 @@ There should be a corresponding myplugin.py file in the plugins/ subdirectory.
 
 You can find an example report at Example Reports/Example Report.rpt.example
 that uses a plugin which can be found at plugins/example_plugin.py.
+
+#### service_definitions/
+ControlCenter services are defined in this subdirectory.  See the example file
+and documentation located there for more information.
 
 #### services/
 ZenHub services will be loaded from the services/ directory. These services
