@@ -1213,7 +1213,9 @@ registerDirectory("skins", globals())
             configPath = os.path.join(zenPath(), 'etc', daemon+'.conf')
             configContents = subprocess.check_output([daemonPath, 'genconf'])
             configMap = {configPath: configContents}
-            service = json.loads(template % dict(daemon=daemon, zenhome=zenPath()))
+            service = json.loads(template % dict(daemon = daemon,
+                                                 daemonpath = daemonPath,
+                                                 zenhome = zenPath()))
             service = ZenPack.normalizeService(service, configMap, tag)
             serviceDefinitions.append(json.dumps(service))
         servicePaths = ['/hub/collector'] * len(serviceDefinitions)

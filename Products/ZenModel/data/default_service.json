@@ -4,13 +4,14 @@
         "Before being passed to controlcenter, a python string formatting operation",
         "will be performed on it. The mapping keys for formatting are:",
         "    %(daemon)s : The name of the daemon (e.g., zenping)",
-        "    %(zenhome)s : The location of $ZENHOME (e.g., /opt/zenoss)"
+        "    %(zenhome)s : The location of $ZENHOME (e.g., /opt/zenoss)",
+        "    %(daemonpath)s : The absolute path of of the daemon executable"
     ],
     "Actions": {
         "debug": "su - zenoss -c '%(zenhome)s/bin/%(daemon)s debug'",
         "stats": "su - zenoss -c '%(zenhome)s/bin/%(daemon)s stats'"
     },
-    "Command": "su - zenoss -c \"%(zenhome)s/bin/%(daemon)s run -c --duallog --monitor {{(parent .).Name}}\"",
+    "Command": "su - zenoss -c \"%(daemonpath)s run -c --duallog --monitor {{(parent .).Name}}\"",
     "ConfigFiles": {
         "%(zenhome)s/etc/%(daemon)s.conf": {
             "Content": "",
