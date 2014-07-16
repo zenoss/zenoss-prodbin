@@ -6,6 +6,7 @@
 #
 # 
 import functools
+import os
 import json
 import cStringIO
 
@@ -158,14 +159,13 @@ class TestZenpackServices(ZenModelBaseTest):
         fileDict = dict (
             a={P_KEY: '/', D_KEY: {E_KEY:'zenoss', I_KEY:'a'}},
             b={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'b'}},
-            c={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'c', 'Tags':['whatever']}},
+            c={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'c'}},
         )
         client = _MockControlPlaneClient(services=_services)
         with setControlPlaneClient(client), setCurrentService('zope'), setBuiltinOpen(fileDict):
             ZenPack('id').installServicesFromFiles(fileDict.keys(), [{}] * len(fileDict.keys()), tag)
         self.assertEquals(len(fileDict), len(client.added))
         for i,j in ((i[0],json.loads(i[1])) for i in client.added):
-            self.assertTrue(tag in j['Tags'])
             self.assertEquals(i, j[E_KEY])
 
     def testConfigMap(self):
@@ -197,6 +197,37 @@ class TestZenpackServices(ZenModelBaseTest):
             for key,val in configMap.iteritems():
                 self.assertEquals(j['ConfigFiles'][key]['Content'], val)
 
+    def testNormalizeServiceTags(self):
+        tag = 'foobar'
+        tests = ({},{"Tags": ['some', 'tags']})
+        for service in tests:
+            tags = ZenPack.normalizeService(service, {}, tag)['Tags']
+            self.assertIn(tag, tags)
+
+    def testNormalizeServiceImage(self):
+        try:
+            image = 'foobar'
+            os.environ['SERVICED_SERVICE_IMAGE'] = image
+            tests = (({'ImageID':''}, image),
+                     ({'ImageID':'xxx'}, 'xxx'))
+            for service, expected in tests:
+                actual = ZenPack.normalizeService(service, {}, '')['ImageID']
+                self.assertEquals(actual, expected)
+        finally:
+            del os.environ['SERVICED_SERVICE_IMAGE']
+
+    def testNormalizeServiceConfig(self):
+        service = {'ConfigFiles': {
+            'missing': {},
+            'empty': {'Content':''},
+            'present': {'Content': 'present Content'}
+            }
+        }
+        configMap = {'missing': 'missing Content', 'empty': 'empty Content'}
+        expected = dict(present=service['ConfigFiles']['present']['Content'], **configMap)
+        configFiles = ZenPack.normalizeService(service, configMap, '')['ConfigFiles']
+        for key, value in configFiles.iteritems():
+            self.assertEquals(expected[key], value['Content'])
 
     def testDirectoryConfigContents(self):
         fileDict = {'/foo/bar/baz/qux': 'barge'}

@@ -1144,6 +1144,31 @@ registerDirectory("skins", globals())
         return glob.glob(self.path('service_definition', '*.json'))
 
 
+    @staticmethod
+    def normalizeService(service, configMap, tag):
+        """
+        Applies default actions to a service definition
+
+        @param service: service definition
+        @type service: dict
+        @param configMap: maps configfile name to contents
+        @type configMap:dict string->string
+        @param tag: tag to be applied to all services
+        @type tag: string
+        @return:
+        """
+        service.setdefault('Tags', []).append(tag)
+        if 'ImageID' in service and service['ImageID'] == '':
+            service['ImageID'] = os.environ['SERVICED_SERVICE_IMAGE']
+        for key, value in service.get('ConfigFiles', dict()).items():
+            if value.get('Content', '') == '':
+                try:
+                    value['Content'] = configMap[key]
+                except KeyError:
+                    pass
+        return service
+
+
     def installServicesFromFiles(self, serviceFileNames, serviceConfigs, tag):
         """
         Install a set of control plane services
@@ -1169,22 +1194,10 @@ registerDirectory("skins", globals())
         if not self.currentServiceId:
             return
         paths, definitions = [],[]
-        def normalizeService(service, configMap):
-            service.setdefault('Tags', []).append(tag)
-            if 'ImageId' in service and service['ImageId'] == '':
-                service['ImageId'] = os.environ['SERVICED_SERVICE_IMAGE']
-            if 'ConfigFiles' in service:
-                configFiles = service['ConfigFiles']
-                for key, value in configFiles.items():
-                    if value.get('Content', '') == '':
-                        try:
-                            value['Content'] = configMap[key]
-                        except KeyError:
-                            pass
-            return service
         for fileName, configMap in zip(serviceFileNames, serviceConfigs):
             service = json.load(open(fileName, 'r'))
-            definition = normalizeService(service['serviceDefinition'], configMap)
+            definition = ZenPack.normalizeService(service['serviceDefinition'],
+                                                  configMap, tag)
             definitions.append(json.dumps(definition))
             paths.append(service['servicePath'])
         self.installServiceDefinitions(definitions, paths)
