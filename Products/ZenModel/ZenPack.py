@@ -157,6 +157,22 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
                     ds.index_object()
 
 
+class DirectoryConfigContents(object):
+    """
+    Map-like object which, given a key consisting of an absolute path, returns
+    the contents of the file at that location relative to some root.  e.g., if
+    the contents of /foo/bar/baz/qux is 'barge', then
+        DirectoryConfigContents('/foo/bar')['/baz/qux'] == 'barge'
+    """
+    def __init__(self, path):
+        self._path = path
+    def __getitem__(self, key):
+        try:
+            return open(os.path.join(self._path, key.lstrip('/'))).read()
+        except:
+            raise KeyError(key)
+
+
 class ZenPack(ZenModelRM):
     """
     The root of all ZenPacks: has no implementation,
@@ -250,9 +266,7 @@ class ZenPack(ZenModelRM):
         self.createZProperties(app)
         previousVersion = self.prevZenPackVersion
         self.migrate(previousVersion)
-        self.installServicesFromFiles(self.getServiceDefinitionFiles(),
-                                      self.getServiceTag())
-
+        self.installServices()
 
     def upgrade(self, app):
         """
@@ -756,12 +770,20 @@ registerDirectory("skins", globals())
         return filenames
 
 
+    def getDaemonPath(self):
+        """
+        Returns the directory in which daemons are located
+        @return: string
+        """
+        return os.path.join(self.path(), 'daemons')
+
+
     def getDaemonNames(self):
         """
         Return a list of daemons in the daemon subdirectory that should be
         stopped/started before/after an install or an upgrade of the zenpack.
         """
-        daemonsDir = os.path.join(self.path(), 'daemons')
+        daemonsDir = self.getDaemonPath()
         if os.path.isdir(daemonsDir):
             daemons = [f for f in os.listdir(daemonsDir)
                         if os.path.isfile(os.path.join(daemonsDir,f))]
@@ -1122,23 +1144,85 @@ registerDirectory("skins", globals())
         """
         return glob.glob(self.path('service_definition', '*.json'))
 
-    def getCorrespondingConfigFile(self, serviceDefinitionFile, configFilePath):
+
+    def installServices(self):
         """
-        Default implementation trying to find config file in the -CONFIG-
-         folder (in the same folder as the service definition file)
-
-        :param serviceDefinitionFile: absolute path for service definition file
-        :param configFilePath: relative path for config file
-        :return: content of config file
+        Install ControlPlane services for this ZenPack
+        @return: None
         """
-        sdDir = os.path.dirname(serviceDefinitionFile)
-        path = os.path.join(sdDir, '-CONFIGS-', configFilePath.lstrip('/'))
-        with open(path, "r") as fp:
-            content = fp.read()
-        return content
+        if not self.currentServiceId:
+            return
+        if self.getServiceDefinitionFiles():
+            sdFiles = self.getServiceDefinitionFiles()
+            toConfigPath = lambda x: os.path.join(os.path.dirname(x),'-CONFIGS-')
+            configFileMaps = [DirectoryConfigContents(toConfigPath(i)) for i in sdFiles]
+            self.installServicesFromFiles(sdFiles, configFileMaps, self.getServiceTag())
+        elif self.getDaemonNames():
+            templateLocation = zenPath('Products/ZenModel/data/default_service.json')
+            template = open(templateLocation, 'r').read()
+            daemonPaths = glob.glob(os.path.join(self.getDaemonPath(), '*'))
+            self.installDefaultCollectorServices(daemonPaths,
+                                                 template,
+                                                 self.getServiceTag())
 
 
-    def installServicesFromFiles(self, serviceFileNames, tag):
+    @staticmethod
+    def normalizeService(service, configMap, tag):
+        """
+        Applies default actions to a service definition
+
+        @param service: service definition
+        @type service: dict
+        @param configMap: maps configfile name to contents
+        @type configMap:dict string->string
+        @param tag: tag to be applied to all services
+        @type tag: string
+        @return:
+        """
+        service.setdefault('Tags', []).append(tag)
+        if 'ImageID' in service and service['ImageID'] == '':
+            service['ImageID'] = os.environ['SERVICED_SERVICE_IMAGE']
+        for key, value in service.get('ConfigFiles', dict()).items():
+            if value.get('Content', '') == '':
+                try:
+                    value['Content'] = configMap[key]
+                except KeyError:
+                    pass
+        return service
+
+
+    def installDefaultCollectorServices(self, daemonPaths, template, tag):
+        """
+        Installs a service definition appropriate for a collector daemon for each
+        daemon in a list.  Generates a config file using the daemon's genconf.
+        Installs the service on each collector.
+
+        @param daemonPaths: paths to daemon executables
+        @type daemonPaths: list of strings
+        @param template: service definition template
+        @type template: string
+        @param tag: tag to be applied to all services
+        @type tag: string
+        @return: None
+        """
+        if not self.currentServiceId:
+            return
+        serviceDefinitions = []
+        for daemonPath in daemonPaths:
+            daemon = os.path.basename(daemonPath)
+            configPath = os.path.join(zenPath(), 'etc', daemon+'.conf')
+            configContents = subprocess.check_output([daemonPath, 'genconf'])
+            configMap = {configPath: configContents}
+            service = json.loads(template % dict(daemon = daemon,
+                                                 daemonpath = daemonPath,
+                                                 zenhome = zenPath()))
+            service = ZenPack.normalizeService(service, configMap, tag)
+            serviceDefinitions.append(json.dumps(service))
+        servicePaths = ['/hub/collector'] * len(serviceDefinitions)
+        self.installServiceDefinitions(serviceDefinitions, servicePaths)
+
+
+    def installServicesFromFiles(self, serviceFileNames, serviceConfigs, tag):
         """
         Install a set of control plane services
 
@@ -1155,34 +1239,24 @@ registerDirectory("skins", globals())
 
         :param serviceFileNames: file paths, each containing a service
         :type serviceFileNames: list of strings
+        :param serviceConfigs: for each service, maps config name to contents
+        :type serviceConfigs: list of dicts string->string
         :param tag: tag to be applied to all services
         :type tag: string
         """
         if not self.currentServiceId:
             return
         paths, definitions = [],[]
-        def normalizeService(service, fileName):
-            service.setdefault('Tags', []).append(tag)
-            if 'ImageId' in service and service['ImageId'] == '':
-                service['ImageId'] = os.environ['SERVICED_SERVICE_IMAGE']
-            if 'ConfigFiles' in service:
-                configFiles = service['ConfigFiles']
-                for key, value in configFiles.items():
-                    if 'Content' in value and value['Content'] != '':
-                        continue
-                    else:
-                        content = self.getCorrespondingConfigFile(fileName, key)
-                        value['Content'] = content
-            return service
-        for fileName in serviceFileNames:
+        for fileName, configMap in zip(serviceFileNames, serviceConfigs):
             service = json.load(open(fileName, 'r'))
-            definition = normalizeService(service['serviceDefinition'], fileName)
+            definition = ZenPack.normalizeService(service['serviceDefinition'],
+                                                  configMap, tag)
             definitions.append(json.dumps(definition))
             paths.append(service['servicePath'])
-        self.installServices(definitions, paths)
+        self.installServiceDefinitions(definitions, paths)
 
 
-    def installServices(self, serviceDefs, servicePaths):
+    def installServiceDefinitions(self, serviceDefs, servicePaths):
         """
         Install a service into ControlPlane
 
