@@ -64,9 +64,13 @@ else
 fi
 
 # Look up the command and run
-if declare -f $1 &> /dev/null; then
+declare -f __DEFAULT__ &> /dev/null
+defaultExists=$?
+if [[ $defaultExists=0 && -z "$1" ]]; then
+    __DEFAULT__
+elif declare -f $1 &> /dev/null; then
     "$@"
-elif declare -f __DEFAULT__ > /dev/null; then
+elif [[ $defaultExists=0 ]]; then
     __DEFAULT__ "$@"
 else
     echo -e "Missing __DEFAULT__ declaration in $PROGRAM" >&2
