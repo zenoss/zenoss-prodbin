@@ -266,14 +266,7 @@ class ZenPack(ZenModelRM):
         self.createZProperties(app)
         previousVersion = self.prevZenPackVersion
         self.migrate(previousVersion)
-        sdFiles = self.getServiceDefinitionFiles()
-
-        toConfigPath = lambda x: os.path.join(os.path.dirname(x),'-CONFIGS-')
-        configFileMaps = [DirectoryConfigContents(toConfigPath(i)) for i in sdFiles]
-        self.installServicesFromFiles(sdFiles,
-                                      configFileMaps,
-                                      self.getServiceTag())
-
+        self.installServices()
 
     def upgrade(self, app):
         """
@@ -1152,6 +1145,27 @@ registerDirectory("skins", globals())
         return glob.glob(self.path('service_definition', '*.json'))
 
 
+    def installServices(self):
+        """
+        Install ControlPlane services for this ZenPack
+        @return: None
+        """
+        if not self.currentServiceId:
+            return
+        if self.getServiceDefinitionFiles():
+            sdFiles = self.getServiceDefinitionFiles()
+            toConfigPath = lambda x: os.path.join(os.path.dirname(x),'-CONFIGS-')
+            configFileMaps = [DirectoryConfigContents(toConfigPath(i)) for i in sdFiles]
+            self.installServicesFromFiles(sdFiles, configFileMaps, self.getServiceTag())
+        elif self.getDaemonNames():
+            templateLocation = zenPath('Products/ZenModel/data/default_service.json')
+            template = open(templateLocation, 'r').read()
+            daemonPaths = glob.glob(os.path.join(self.getDaemonPath(), '*'))
+            self.installDefaultCollectorServices(daemonPaths,
+                                                 template,
+                                                 self.getServiceTag())
+
+
     @staticmethod
     def normalizeService(service, configMap, tag):
         """
@@ -1175,6 +1189,35 @@ registerDirectory("skins", globals())
                 except KeyError:
                     pass
         return service
+
+
+    def installDefaultCollectorServices(self, daemonPaths, template, tag):
+        """
+        Installs a service definition appropriate for a collector daemon for each
+        daemon in a list.  Generates a config file using the daemon's genconf.
+        Installs the service on each collector.
+
+        @param daemonPaths: paths to daemon executables
+        @type daemonPaths: list of strings
+        @param template: service definition template
+        @type template: string
+        @param tag: tag to be applied to all services
+        @type tag: string
+        @return: None
+        """
+        if not self.currentServiceId:
+            return
+        serviceDefinitions = []
+        for daemonPath in daemonPaths:
+            daemon = os.path.basename(daemonPath)
+            configPath = os.path.join(zenPath(), 'etc', daemon+'.conf')
+            configContents = subprocess.check_output([daemonPath, 'genconf'])
+            configMap = {configPath: configContents}
+            service = json.loads(template % dict(daemon=daemon, zenhome=zenPath()))
+            service = ZenPack.normalizeService(service, configMap, tag)
+            serviceDefinitions.append(json.dumps(service))
+        servicePaths = ['/hub/collector'] * len(serviceDefinitions)
+        self.installServiceDefinitions(serviceDefinitions, servicePaths)
 
 
     def installServicesFromFiles(self, serviceFileNames, serviceConfigs, tag):

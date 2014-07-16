@@ -1,0 +1,104 @@
+{
+    "#####": [
+        "This file is the default template for ZenPack service definitions.",
+        "Before being passed to controlcenter, a python string formatting operation",
+        "will be performed on it. The mapping keys for formatting are:",
+        "    %(daemon)s : The name of the daemon (e.g., zenping)",
+        "    %(zenhome)s : The location of $ZENHOME (e.g., /opt/zenoss)"
+    ],
+    "Actions": {
+        "debug": "su - zenoss -c '%(zenhome)s/bin/%(daemon)s debug'",
+        "stats": "su - zenoss -c '%(zenhome)s/bin/%(daemon)s stats'"
+    },
+    "Command": "su - zenoss -c \"%(zenhome)s/bin/%(daemon)s run -c --duallog --monitor {{(parent .).Name}}\"",
+    "ConfigFiles": {
+        "%(zenhome)s/etc/%(daemon)s.conf": {
+            "Content": "",
+            "FileName": "%(zenhome)s/etc/%(daemon)s.conf",
+            "Owner": "zenoss:zenoss",
+            "Permissions": "0664"
+        }
+    },
+    "Endpoints": [
+        {
+            "Name": "zenhub",
+            "Application": "{{(parent (parent .)).Name}}_zenhubPB",
+            "PortNumber": 8789,
+            "Protocol": "tcp",
+            "Purpose": "import"
+        },
+        {
+            "Name": "redis",
+            "Application": "redis",
+            "PortNumber": 6379,
+            "Protocol": "tcp",
+            "Purpose": "import"
+        },
+        {
+            "Name": "controlplane_consumer",
+            "Application": "controlplane_consumer",
+            "PortNumber": 8444,
+            "Protocol": "tcp",
+            "Purpose": "import"
+        }
+    ],
+    "ImageID": "",
+    "Instances": {
+        "min": 1
+    },
+    "RAMCommitment": 1073741824,
+    "Launch": "auto",
+    "LogConfigs": [
+        {
+            "LogTags": [
+                {
+                    "Name": "monitor",
+                    "Value": "{{(parent .).Name}}"
+                }
+            ],
+            "filters": [
+                "pythondaemon"
+            ],
+            "path": "%(zenhome)s/log/%(daemon)s.log",
+            "type": "%(daemon)s"
+        }
+    ],
+    "Name": "%(daemon)s",
+    "Tags": [
+        "daemon",
+        "collector"
+    ],
+    "MonitoringProfile": {
+        "MetricConfigs": [
+            {
+                "ID": "%(daemon)s",
+                "Name": "%(daemon)s internal metrics",
+                "Description": "%(daemon)s internal metrics",
+                "Metrics": [
+                    {"ID": "dataPoints", "Name":"Datapoints", "Description": "Number of datapoints collected.", "Counter": false},
+                    {"ID": "devices", "Name":"Devices", "Description": "Number of devices.", "Counter": false},
+                    {"ID": "eventCount", "Name":"Event Count", "Description": "Total number of events.", "Counter": true},
+                    {"ID": "eventQueueLength", "Name":"Event Queue Length", "Description":"The number of events pending to be flushed from a daemon's memory queue.", "Counter": false},
+                    {"ID": "missedRuns", "Name":"Missed Runs", "Description": "Number of missed runs of tasks running on daemon.", "Counter": true},
+                    {"ID": "queuedTasks", "Name":"Queued Tasks", "Description": "Number of tasks scheduled to be run, but are not running yet.", "Counter": false},
+                    {"ID": "runningTasks", "Name":"Running Tasks", "Description": "Number of currently running tasks.", "Counter": false},
+                    {"ID": "taskCount", "Name":"Task Count", "Description": "Total number of tasks.", "Counter": false}
+                ]
+            }
+        ]
+    },
+    "HealthChecks": {
+        "zenhub_answering": {
+            "Script": "sh -c 'echo hi && sleep 1' | nc 127.0.0.1 8789 | grep -q pb",
+            "Interval": 10.0
+        },
+        "redis_answering": {
+            "Script": "redis-cli ping | grep -q PONG",
+            "Interval": 3.0
+        },
+        "logging": {
+            "Script": "f='%(zenhome)s/log/%(daemon)s.log'; [ -f $f ] && [ $(( $(date '+%%s') - $(stat -c '%%Z' $f) )) -lt 6 ]",
+            "Interval": 3.0
+        }
+    }
+}
