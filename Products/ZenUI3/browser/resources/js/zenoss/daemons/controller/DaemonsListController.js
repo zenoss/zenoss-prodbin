@@ -116,6 +116,7 @@
             for(i=0;i<selectedRows.length;i++) {
                 selectedRows[i].set(field, value);
             }
+            this.setupDetails();
         },
         /**
          * Performs the "action" on every selected daemon.
