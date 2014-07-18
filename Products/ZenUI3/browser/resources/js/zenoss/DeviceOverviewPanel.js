@@ -582,7 +582,17 @@
             this.footer.show();
         },
         addField: function(field) {
-            this.add(field);
+            // TODO: remove this after we upgrade extjs
+            // there is a bug in extjs 4.1.3 where when we try
+            // to add a field before we are rendered there is an exception
+            // registering listners
+            if (this.rendered) {
+                this.add(field);
+            } else {
+                this.on('afterrender', function(){
+                    this.add(field);
+                }, this, {single:true});
+            }
         },
         addFieldAfter: function(field, afterFieldName) {
             var position = this._indexOfFieldName(afterFieldName) +1;
@@ -631,6 +641,9 @@
                 forms: [],
                 listeners: {
                     add: function(me, container) {
+                        if (!container.items) {
+                            return;
+                        }
                         Ext.each(container.items.items, function(item) {
                             if (item.isXType('form')) {
                                 var f = item.getForm();
