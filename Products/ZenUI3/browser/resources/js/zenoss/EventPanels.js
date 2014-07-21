@@ -244,7 +244,7 @@
     Zenoss.events.EventPanelToolbarActions = {
         acknowledge: new Zenoss.ActionButton({
             iconCls: 'acknowledge',
-            tooltip: _t('Acknowledge events'),
+            tooltip: _t('Acknowledge events (Ctrl-Shift-a)'),
             permission: 'Manage Events',
             itemId: 'acknowledge',
             handler: function() {
@@ -253,7 +253,7 @@
         }),
         close: new Zenoss.ActionButton({
             iconCls: 'close',
-            tooltip: _t('Close events'),
+            tooltip: _t('Close events (Ctrl-Shift-c)'),
             permission: 'Manage Events',
             itemId: 'close',
             handler: function() {
@@ -272,7 +272,7 @@
         }),
         reopen: new Zenoss.ActionButton({
             iconCls: 'unacknowledge',
-            tooltip: _t('Unacknowledge events'),
+            tooltip: _t('Unacknowledge events (Ctrl-Shift-u)'),
             permission: 'Manage Events',
             itemId: 'unacknowledge',
             handler: function() {
@@ -281,7 +281,7 @@
         }),
         unclose: new Zenoss.ActionButton({
             iconCls: 'reopen',
-            tooltip: _t('Reopen events'),
+            tooltip: _t('Reopen events (Ctrl-Shift-o)'),
             permission: 'Manage Events',
             itemId: 'reopen',
             handler: function() {
@@ -1091,7 +1091,6 @@
             config.viewConfig = config.viewConfig || {};
             Ext.applyIf(config.viewConfig, {
                 getRowClass: Zenoss.events.getRowClass
-
             });
 
             this.callParent(arguments);
@@ -1102,6 +1101,79 @@
         },
         initComponent: function() {
             this.getSelectionModel().grid = this;
+             // create keyboard shortcuts for the main event console
+            function nonInputHandler(func, scope){
+
+                return function(key, e) {
+                    if (e.target.tagName != "INPUT" && e.target.tagName != "TEXTAREA") {
+                        Ext.bind(func, scope)(key, e);
+                        e.preventDefault();
+                    }
+                };
+            }
+            this.map = new Ext.util.KeyMap({
+                target: document.body,
+                binding: [{
+                    key:  Ext.EventObject.A,
+                    ctrl: true,
+                    shift: false,
+                    alt: false,
+                    scope: this,
+                    fn: nonInputHandler(function(key, e) {
+                        this.getSelectionModel().selectEventState('All');
+                    }, this)
+                },{
+                    key:  Ext.EventObject.ESC,
+                    ctrl: false,
+                    shift: false,
+                    alt: false,
+                    scope:this,
+                    fn: nonInputHandler(function(key, e) {
+                        this.getSelectionModel().clearSelections();
+                        this.getSelectionModel().clearSelectState();
+                    }, this)
+                }, {
+                    // acknowledge
+                    key: Ext.EventObject.A,
+                    shift: true,
+                    ctrl: true,
+                    alt: false,
+                    fn: nonInputHandler(function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.acknowledge);
+                    }, this)
+                }, {
+                    // close
+                    key: Ext.EventObject.C,
+                    shift: true,
+                    ctrl: true,
+                    alt: false,
+                    fn: nonInputHandler(function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
+                    }, this)
+                }, {
+                    // reopen
+                    key: Ext.EventObject.O,
+                    shift: true,
+                    ctrl: true,
+                    alt: false,
+                    fn: nonInputHandler(function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
+                    }, this)
+                }, {
+                    // unack
+                    key: Ext.EventObject.U,
+                    shift: true,
+                    ctrl: true,
+                    alt: false,
+                    fn: nonInputHandler(function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
+                    }, this)
+                }]
+
+            });
+            this.on('show', function(){ this.map.enable();}, this);
+            this.on('hide', function(){ this.map.disable();}, this);
+
             this.callParent(arguments);
         },
         onItemClick: function(){
@@ -1360,6 +1432,7 @@
             xtype: 'menu',
             items: [{
                 text: _t("All"),
+                tooltip: _t('Ctrl-a'),
                 handler: function(){
                     var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                     sm = grid.getSelectionModel();
@@ -1368,6 +1441,7 @@
                 }
             },{
                 text: 'None',
+                tooltip: _t('Esc'),
                 handler: function(){
                     var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                     sm = grid.getSelectionModel();
@@ -1393,7 +1467,6 @@
             });
             Zenoss.EventGridPanel.superclass.constructor.call(this, config);
         },
-
         onRowDblClick: function(view, record, e) {
             var evid = record.get('evid'),
                 combo = Ext.getCmp('history_combo'),
@@ -1449,6 +1522,8 @@
             this.setText(Zenoss.render.events(severityCounts, this.count));
         }
     });
+
+
 
 
 

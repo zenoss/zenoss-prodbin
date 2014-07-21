@@ -33,10 +33,17 @@ Ext.onReady(function(){
 
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3');});
+    // update the document title based on the number of open events (includes filters)
+    var originalTitle = document.title;
+    function updateTitle(store) {
+        document.title = Ext.String.format("({0}) {1}", store.totalCount, originalTitle);
+    }
 
     var console_store = Ext.create('Zenoss.events.Store', {
     });
 
+    console_store.on('afterguaranteedrange', updateTitle);
+    console_store.on('load', updateTitle);
 
     // Selection model
     var console_selection_model = Ext.create('Zenoss.EventPanelSelectionModel', {
@@ -86,7 +93,7 @@ Ext.onReady(function(){
     // Add it to the layout
 
     master_panel.add(grid);
-	
+
     if (Zenoss.settings.showPageStatistics){
         var stats = Ext.create('Zenoss.stats.Events');
     }
