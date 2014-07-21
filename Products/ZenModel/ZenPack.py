@@ -1188,6 +1188,23 @@ registerDirectory("skins", globals())
                     value['Content'] = configMap[key]
                 except KeyError:
                     pass
+
+        hasAudit = False
+        logConfigs = service.setdefault( 'LogConfigs', [])
+        for logConfig in logConfigs:
+            if logConfig.get('path') == '/opt/zenoss/log/audit.log':
+                hasAudit = True
+                break
+        
+        if not hasAudit:
+            logConfigs.append({
+                "filters": [
+                    "supervisord"
+                ],
+                "path": "/opt/zenoss/log/audit.log",
+                "type": "zenossaudit"
+            })
+
         return service
 
 
