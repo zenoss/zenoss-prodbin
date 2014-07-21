@@ -308,25 +308,28 @@ class TargetableAction(object):
 
         exceptionTargets = []
         targets = self.getTargets(notification)
-        if self.shouldExecuteInBatch:
-            try:
-                log.debug("Executing batch action for targets.")
-                self.executeBatch(notification, signal, targets)
-            except Exception, e:
-                self.handleExecuteError(e, notification, targets)
-                exceptionTargets.extend(targets)
-        else:
-            log.debug("Executing action serially for targets.")
-            for target in targets:
+        if targets:
+            if self.shouldExecuteInBatch:
                 try:
-                    self.executeOnTarget(notification, signal, target)
-                    log.debug('Done executing action for target: %s' % target)
+                    log.debug("Executing batch action for targets.")
+                    self.executeBatch(notification, signal, targets)
                 except Exception, e:
-                    self.handleExecuteError(e, notification, target)
-                    exceptionTargets.append(target)
+                    self.handleExecuteError(e, notification, targets)
+                    exceptionTargets.extend(targets)
+            else:
+                log.debug("Executing action serially for targets.")
+                for target in targets:
+                    try:
+                        self.executeOnTarget(notification, signal, target)
+                        log.debug('Done executing action for target: %s' % target)
+                    except Exception, e:
+                        self.handleExecuteError(e, notification, target)
+                        exceptionTargets.append(target)
 
-        if exceptionTargets:
-            raise TargetableActionException(self, notification, exceptionTargets)
+            if exceptionTargets:
+                raise TargetableActionException(self, notification, exceptionTargets)
+        else:
+            log.debug("No action executed because no targets were found")
 
 
 class EmailAction(IActionBase, TargetableAction):
