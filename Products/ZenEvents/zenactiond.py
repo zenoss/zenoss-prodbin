@@ -69,6 +69,11 @@ class ProcessSignalTask(object):
         """
         log.debug('processing message.')
 
+        chan = self.queueConsumer.consumer.p.chan
+        if not getattr(chan, '_flag_qos', False):
+            chan.basic_qos(prefetch_count=ZenActionD.MSGS_TO_PREFETCH)
+            chan._flag_qos = True
+
         if message.content.body == self.queueConsumer.MARKER:
             log.info("Received MARKER sentinel, exiting message loop")
             self.queueConsumer.acknowledge(message)
@@ -156,6 +161,9 @@ class ProcessSignalTask(object):
 
 
 class ZenActionD(ZCmdBase):
+
+    MSGS_TO_PREFETCH = 1
+
     def __init__(self):
         super(ZenActionD, self).__init__()
         self._consumer = None
