@@ -207,6 +207,9 @@ def source_from_zport(control, outbox, resume, print_progress=None):
                             for ob in obj.objectValuesGen():
                                 for kid in find_kids(ob, tree):
                                     yield kid
+                    # invalidation allows object to be garbage collected
+                    inv = getattr(obj, '_p_invalidate', None)
+                    if inv is not None: inv()
                     call_tree[obj_id] = False
             except (AttributeError, ClientDisconnected, DisconnectedError):
                 _reconnect(zc)
@@ -222,15 +225,20 @@ def source_from_zport(control, outbox, resume, print_progress=None):
         call_tree = RecursiveDefaultDict()
     try:
         with catalog_caching():
+            tick = time.time()
             for obj in recurse(zport, call_tree):
                 put_or_die(outbox, obj.getPrimaryPath())
-                counter.increment()
+                if (counter.increment() % 100 == 0) and (time.time() - tick) > 5.0:
+                  transaction.abort() # allow garbage collection
+                  tick = time.time()
     except KeyboardInterrupt:
         if call_tree:
             with open(CALL_TREE_DUMP_FILE, 'wb') as f:
                 pickle.dump(call_tree, f)
     else:
         quietly_remove(CALL_TREE_DUMP_FILE)
+    finally:
+        transaction.abort()
 
 # A sub-process
 def source_from_catalog(control, outbox, resume, print_progress=None):
@@ -274,7 +282,6 @@ def source_from_catalog(control, outbox, resume, print_progress=None):
                 pickle.dump(previous_uid, f)
     else:
         quietly_remove(PREVIOUS_UID_DUMP_FILE)
-    log.info("Sourced: %d" % counter.count)
 
 # Used by catalog_the_things, commit_to_catalog, and remove_from_catalog.
 def commit_in_batches(zc, buffer_consumer, inbox, buffer_size, counter=None):
@@ -495,12 +502,19 @@ def convert_into_document(worker_id, inbox, outbox, buffer_size, permissions_onl
                 vals[:] = []
                 uids[:] = []
                 documentIds[:] = []
+                # Invalidation allows object to be garbage collected
+                inv = getattr(obj, '_p_invalidate', None)
+                if inv is not None: inv()
             break
 
     # Process my inbox ...
     with catalog_caching():
+        tick = time.time()
         while True:
             try:
+                if (counter.count % 100 == 0) and (time.time() - tick > 5.0):
+                  transaction.abort() # Allow garbage collection
+                  tick = time.time()
                 primary_path = inbox.get_nowait()
             except Empty:
                 check_for_dead_parent()
