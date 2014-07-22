@@ -92,7 +92,12 @@ Ext.onReady(function(){
     }
 
     Zenoss.util.callWhenReady('events_grid', function(){
-        Ext.getCmp('events_grid').setContext(Zenoss.env.PARENT_CONTEXT);
+        // Use current context if set or parent if not 
+        var currentContext = Zenoss.env.CURRENT_CONTEXT; 
+        if (currentContext != null) 
+            Ext.getCmp('events_grid').uid = currentContext; 
+        else 
+            Ext.getCmp('events_grid').uid = Zenoss.env.PARENT_CONTEXT; 
     });
 
     var pageParameters = Ext.urlDecode(window.location.search.substring(1));
