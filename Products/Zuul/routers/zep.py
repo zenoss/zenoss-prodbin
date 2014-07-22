@@ -330,7 +330,7 @@ class EventsRouter(DirectRouter):
             log.debug('Did not get parameters, using empty filter.')
             event_filter = {}
 
-        if not uids and isinstance(self.context, EventClass):
+        if not uids:
             uids = [self.context]
 
         contexts = (resolve_context(uid) for uid in uids)
