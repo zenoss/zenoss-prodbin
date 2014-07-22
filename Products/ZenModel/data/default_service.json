@@ -8,10 +8,10 @@
         "    %(daemonpath)s : The absolute path of of the daemon executable"
     ],
     "Actions": {
-        "debug": "su - zenoss -c '%(zenhome)s/bin/%(daemon)s debug'",
-        "stats": "su - zenoss -c '%(zenhome)s/bin/%(daemon)s stats'"
+        "debug": "su - zenoss -c '%(daemonpath)s debug'",
+        "stats": "su - zenoss -c '%(daemonpath)s stats'"
     },
-    "Command": "su - zenoss -c \"%(daemonpath)s run -c --duallog --monitor {{(parent .).Name}}\"",
+    "Command": "su - zenoss -c \"%(daemonpath)s run -c --duallog %(ZenPack.Default.WorkerArgs)s --monitor {{(parent .).Name}}\"",
     "ConfigFiles": {
         "%(zenhome)s/etc/%(daemon)s.conf": {
             "####": "Note: Contents defined by the output of '%(daemon)s genconf' ",
@@ -48,7 +48,9 @@
     "Instances": {
         "min": 1
     },
-    "RAMCommitment": 1073741824,
+    "ChangeOptions": [
+        "restartAllOnInstanceChanged"
+    ],
     "Launch": "auto",
     "LogConfigs": [
         {
@@ -63,6 +65,13 @@
             ],
             "path": "%(zenhome)s/log/%(daemon)s.log",
             "type": "%(daemon)s"
+        },
+        {
+            "filters": [
+                "supervisord"
+            ],
+            "path": "%(zenhome)s/log/audit.log",
+            "type": "zenossaudit"
         }
     ],
     "Name": "%(daemon)s",
@@ -87,6 +96,200 @@
                     {"ID": "taskCount", "Name":"Task Count", "Description": "Total number of tasks.", "Counter": false}
                 ]
             }
+        ],
+        "GraphConfigs": [
+            {
+                "id": "dataPoints",
+                "name": "Data Points",
+                "footer": false,
+                "format": "%%d",
+                "returnset": "EXACT",
+                "type": "line",
+                "yAxisLabel": "Data Points",
+                "description": "Number of datapoints collected.",
+                "range": {
+                    "start": "1h-ago",
+                    "end": "0s-ago"
+                },
+                "datapoints": [
+                    {
+                        "aggregator":   "avg",
+                        "fill":         false,
+                        "format":       "%%d",
+                        "id":           "dataPoints",
+                        "legend":       "Data Points",
+                        "metric":       "dataPoints",
+                        "metricSource": "dataPoints",
+                        "name":         "Data Points",
+                        "rate":         false,
+                        "type":         "line"
+                    }
+                ]
+            },
+            {
+                "id": "devices",
+                "name": "Devices",
+                "footer": false,
+                "format": "%%d",
+                "returnset": "EXACT",
+                "type": "line",
+                "yAxisLabel": "Devices",
+                "description": "Number of devices.",
+                "range": {
+                    "start": "1h-ago",
+                    "end": "0s-ago"
+                },
+                "datapoints": [
+                    {
+                        "aggregator":   "avg",
+                        "fill":         false,
+                        "format":       "%%d",
+                        "id":           "devices",
+                        "legend":       "Devices",
+                        "metric":       "devices",
+                        "metricSource": "devices",
+                        "name":         "Devices",
+                        "rate":         false,
+                        "type":         "line"
+                    }
+                ]
+            },
+            {
+                "id": "eventCount",
+                "name": "Event Count",
+                "footer": false,
+                "format": "%%d",
+                "returnset": "EXACT",
+                "type": "line",
+                "yAxisLabel": "Event Count",
+                "description": "Total number of events.",
+                "range": {
+                    "start": "1h-ago",
+                    "end": "0s-ago"
+                },
+                "datapoints": [
+                    {
+                        "aggregator":   "avg",
+                        "fill":         false,
+                        "format":       "%%d",
+                        "id":           "eventCount",
+                        "legend":       "Event Count",
+                        "metric":       "eventCount",
+                        "metricSource": "eventCount",
+                        "name":         "Event Count",
+                        "rate":         true,
+                        "type":         "line"
+                    }
+                ]
+            },
+            {
+                "id": "eventQueueLength",
+                "name": "Event Queue Length",
+                "footer": false,
+                "format": "%%d",
+                "returnset": "EXACT",
+                "type": "line",
+                "yAxisLabel": "Event Queue Length",
+                "description": "The number of events pending to be flushed from a daemon's memory queue.",
+                "range": {
+                    "start": "1h-ago",
+                    "end": "0s-ago"
+                },
+                "datapoints": [
+                    {
+                        "aggregator":   "avg",
+                        "fill":         false,
+                        "format":       "%%d",
+                        "id":           "eventQueueLength",
+                        "legend":       "Event Queue Length",
+                        "metric":       "eventQueueLength",
+                        "metricSource": "eventQueueLength",
+                        "name":         "Event Queue Length",
+                        "rate":         false,
+                        "type":         "line"
+                    }
+                ]
+            },
+            {
+                "id": "missedRuns",
+                "name": "Missed Runs",
+                "footer": false,
+                "format": "%%d",
+                "returnset": "EXACT",
+                "type": "line",
+                "yAxisLabel": "Missed Runs",
+                "description": "Number of missed runs of tasks running on daemon.",
+                "range": {
+                    "start": "1h-ago",
+                    "end": "0s-ago"
+                },
+                "datapoints": [
+                    {
+                        "aggregator":   "avg",
+                        "fill":         false,
+                        "format":       "%%d",
+                        "id":           "missedRuns",
+                        "legend":       "Missed Runs",
+                        "metric":       "missedRuns",
+                        "metricSource": "missedRuns",
+                        "name":         "Missed Runs",
+                        "rate":         true,
+                        "type":         "line"
+                    }
+                ]
+            },
+            {
+                "id": "tasks",
+                "name": "Tasks",
+                "footer": false,
+                "format": "%%d",
+                "returnset": "EXACT",
+                "type": "line",
+                "yAxisLabel": "",
+                "description": "Number of queued, running, and total tasks.",
+                "range": {
+                    "start": "1h-ago",
+                    "end": "0s-ago"
+                },
+                "datapoints": [
+                    {
+                        "aggregator":   "avg",
+                        "fill":         false,
+                        "format":       "%%d",
+                        "id":           "queuedTasks",
+                        "legend":       "Queued Tasks",
+                        "metric":       "queuedTasks",
+                        "metricSource": "queuedTasks",
+                        "name":         "Queued Tasks",
+                        "rate":         false,
+                        "type":         "line"
+                    },
+                    {
+                        "aggregator":   "avg",
+                        "fill":         false,
+                        "format":       "%%d",
+                        "id":           "runningTasks",
+                        "legend":       "Running Tasks",
+                        "metric":       "runningTasks",
+                        "metricSource": "runningTasks",
+                        "name":         "Running Tasks",
+                        "rate":         false,
+                        "type":         "line"
+                    },
+                    {
+                        "aggregator":   "avg",
+                        "fill":         false,
+                        "format":       "%%d",
+                        "id":           "taskCount",
+                        "legend":       "Task Count",
+                        "metric":       "taskCount",
+                        "metricSource": "taskCount",
+                        "name":         "Task Count",
+                        "rate":         false,
+                        "type":         "line"
+                    }
+                ]
+            }
         ]
     },
     "HealthChecks": {
@@ -102,5 +305,6 @@
             "Script": "f='%(zenhome)s/log/%(daemon)s.log'; [ -f $f ] && [ $(( $(date '+%%s') - $(stat -c '%%Z' $f) )) -lt 6 ]",
             "Interval": 3.0
         }
-    }
+    },
+    "RAMCommitment": %(ZenPack.Default.RAMCommitment)d
 }

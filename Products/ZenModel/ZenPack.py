@@ -22,6 +22,7 @@ import os.path
 import posixpath
 import sys
 import shutil
+from collections import defaultdict
 
 from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
@@ -1207,15 +1208,29 @@ registerDirectory("skins", globals())
         """
         if not self.currentServiceId:
             return
+
+        # Get 'Context' from root service
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        serviceTree = ServiceTree(cpClient.queryServices("*"))
+        tenant = serviceTree.matchServicePath(self.currentServiceId, '/')[0]
+        context = tenant._data.get('Context','null')
+        context = json.loads(context) if context != 'null' else {}
+
+        # Determine template parameters
+        templateParams = defaultdict(lambda:'')
+        templateParams.update({'zenhome':zenPath(),
+                         'ZenPack.Default.RAMCommitment':0})
+        templateParams.update((key, val) for key, val in context.items()
+            if key.startswith('ZenPack.Default'))
+
         serviceDefinitions = []
         for daemonPath in daemonPaths:
             daemon = os.path.basename(daemonPath)
             configPath = os.path.join(zenPath(), 'etc', daemon+'.conf')
             configContents = subprocess.check_output([daemonPath, 'genconf'])
             configMap = {configPath: configContents}
-            service = json.loads(template % dict(daemon = daemon,
-                                                 daemonpath = daemonPath,
-                                                 zenhome = zenPath()))
+            templateParams.update(daemon=daemon, daemonpath=daemonPath)
+            service = json.loads(template % templateParams)
             service = ZenPack.normalizeService(service, configMap, tag)
             serviceDefinitions.append(json.dumps(service))
         servicePaths = ['/hub/collector'] * len(serviceDefinitions)
