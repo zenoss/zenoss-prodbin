@@ -58,7 +58,9 @@ from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid, IHubConfProvider, IHubHeartBeatCheck
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
+from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
 from Products.ZenHub.WorkerSelection import WorkerSelector
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CRITICAL, SEVERITY_CLEAR
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.metricwriter import DerivativeTracker
@@ -406,6 +408,7 @@ class ZenHub(ZCmdBase):
         self.workerprocessmap = {}
         self.shutdown = False
         self.counters = collections.Counter()
+        self._invalidations_paused = False
 
         ZCmdBase.__init__(self)
         import Products.ZenHub
@@ -605,9 +608,21 @@ class ZenHub(ZCmdBase):
             d = processor.processQueue(tuple(set(self._filter_oids(changes_dict))))
 
             def done(n):
-                if n:
-                    self.log.debug('Processed %s oids' % n)
-
+                if n == INVALIDATIONS_PAUSED:
+                    self.sendEvent({'summary': "Invalidation processing is "
+                                               "currently paused. To resume, set "
+                                               "'dmd.pauseHubNotifications = False'",
+                                    'severity': SEVERITY_CRITICAL,
+                                    'eventkey': INVALIDATIONS_PAUSED})
+                    self._invalidations_paused = True
+                else:
+                    msg = 'Processed %s oids' % n
+                    self.log.debug(msg)
+                    if self._invalidations_paused:
+                        self.sendEvent({'summary': msg,
+                                        'severity': SEVERITY_CLEAR,
+                                        'eventkey': INVALIDATIONS_PAUSED})
+                        self._invalidations_paused = False
             d.addCallback(done)
 
     def sendEvent(self, **kw):
