@@ -197,6 +197,30 @@ class TestZenpackServices(ZenModelBaseTest):
             for key,val in configMap.iteritems():
                 self.assertEquals(j['ConfigFiles'][key]['Content'], val)
 
+
+    def testNormalizeServiceLogConfigs(self):
+        sampleLogConfig = {
+            'filters': ['supervisord'], 'path': '/opt/zenoss/log/Z2.log', 'type': 'pythondaemon'}
+        auditLogConfig = {
+            'filters': ['supervisord'], 'path': '/opt/zenoss/log/audit.log', 'type': 'zenossaudit'}
+        tests = (
+                {},
+                {'LogConfigs':[]},
+                {'LogConfigs':[auditLogConfig]},
+                {'LogConfigs':[sampleLogConfig]},
+                {'LogConfigs':[sampleLogConfig, auditLogConfig]},
+                {'LogConfigs':[auditLogConfig, sampleLogConfig]}
+        )
+        for service in tests:
+            inputLength = len(service.get('LogConfigs', []))
+            if auditLogConfig in service.get('LogConfigs', []):
+                LogConfigs = ZenPack.normalizeService(service, {}, '')['LogConfigs']
+                self.assertEquals( len(LogConfigs), inputLength)
+            else:
+                LogConfigs = ZenPack.normalizeService(service, {}, '')['LogConfigs']
+                self.assertEquals( len(LogConfigs), inputLength+1)
+            self.assertIn(auditLogConfig, LogConfigs)
+
     def testNormalizeServiceTags(self):
         tag = 'foobar'
         tests = ({},{"Tags": ['some', 'tags']})

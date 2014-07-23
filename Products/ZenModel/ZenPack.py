@@ -1166,7 +1166,6 @@ registerDirectory("skins", globals())
                                                  template,
                                                  self.getServiceTag())
 
-
     @staticmethod
     def normalizeService(service, configMap, tag):
         """
@@ -1189,8 +1188,13 @@ registerDirectory("skins", globals())
                     value['Content'] = configMap[key]
                 except KeyError:
                     pass
-        return service
 
+        defaultLogConfigsPath = zenPath('Products/ZenModel/data/default_service_logconfigs.json')
+        defaultLogConfigsTemplate = open(defaultLogConfigsPath, 'r').read()
+        defaultLogConfigs = json.loads( defaultLogConfigsTemplate % {'zenhome': zenPath()})
+        logConfigs = service.setdefault( 'LogConfigs', [])
+        logConfigs.extend([lc for lc in defaultLogConfigs if lc not in logConfigs])
+        return service
 
     def installDefaultCollectorServices(self, daemonPaths, template, tag):
         """
