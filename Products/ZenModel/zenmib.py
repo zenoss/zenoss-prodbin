@@ -808,15 +808,7 @@ class ZenMib(ZCmdBase):
         fileName = mibFileObj.fileName
         self.log.debug('Attempting to load %s' % fileName)
 
-        # Check to see if any MIB definitions in fileName have already
-        # been loaded into Zenoss. If so, warn but don't fail
         mibNamesInFile = mibFileObj.mibs
-        for mibName in mibNamesInFile:
-            if mibName in dmdMibDict:
-                dmdMibPath = dmdMibDict[mibName]
-                self.log.warn('MIB definition %s found in %s is already '
-                    'loaded at %s.' % (mibName, fileName, dmdMibPath))
-
         # Retrieve a list of all the files containing MIB definitions that are
         # required by the MIB definitions in fileName
         dependencyFileNames = self.getDependencyFileNames(mibFileObj)
@@ -829,7 +821,7 @@ class ZenMib(ZCmdBase):
         if not pythonMibs:
             return False
 
-        self.loadPythonMibs(pythonMibs)
+        self.loadPythonMibs(pythonMibs, dmdMibDict)
         return True
 
     def commit(self, message):
@@ -841,7 +833,7 @@ class ZenMib(ZCmdBase):
             trans.commit()
             self.syncdb()
 
-    def loadPythonMibs(self, pythonMibs):
+    def loadPythonMibs(self, pythonMibs, dmdMibDict=None):
         """
         Walk through the MIB dictionaries and add the MIBs to the DMD.
         """
@@ -854,12 +846,21 @@ class ZenMib(ZCmdBase):
         for pythonMib in pythonMibs:
             mibName = pythonMib['moduleName']
 
+            # Check to see if any MIB definitions in fileName have already 
+            # been loaded into Zenoss. If so, warn but don't fail 
+            dmdMibPath=self.options.path 
+            if dmdMibDict is not None and mibName in dmdMibDict: 
+                dmdMibPath = dmdMibDict[mibName] 
+                self.log.warn('MIB definition %s is already ' 
+                    'loaded at %s. Will reload it.' % (mibName, dmdMibPath)) 
+                self.dmd.Mibs.getOrganizer(dmdMibPath).removeMibModules([mibName]) 
+
             # Create the container for the MIBs and define meta-data.
             # In the DMD this creates another container class which
             # contains mibnodes.  These data types are found in
             # Products.ZenModel.MibModule and Products.ZenModel.MibNode
             mibModule = self.dmd.Mibs.createMibModule(
-                mibName, self.options.path)
+                mibName, dmdMibPath)
 
             def gen():
                 for key, val in pythonMib[mibName].iteritems():
