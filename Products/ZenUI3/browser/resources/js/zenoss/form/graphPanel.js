@@ -244,6 +244,9 @@
         initChart: function() {
             // these assume that the graph panel has already been rendered
             var width = this.getEl().getWidth(), height = this.getEl().getHeight();
+            for (var i = 0; i < this.datapoints.length; i++) {
+                this.datapoints[i].tags=undefined;
+            }
             var visconfig = {
                 returnset: "EXACT",
                 range : {
