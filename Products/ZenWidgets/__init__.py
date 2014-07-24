@@ -38,7 +38,8 @@ def update_portlets(app):
         register_default_portlets(app.zport.ZenPortletManager)
         for pack in app.zport.dmd.ZenPackManager.packs():
             for portlet in getattr(pack, 'register_portlets', lambda *x:())():
-                app.zport.ZenPortletManager.register_extjsPortlet(**portlet)
+                if app.zport.ZenPortletManager.find(portlet['id']) is None:
+                    app.zport.ZenPortletManager.register_extjsPortlet(**portlet)
 
 def initialize(registrar):
     registrar.registerClass(
