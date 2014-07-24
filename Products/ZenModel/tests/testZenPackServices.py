@@ -215,10 +215,10 @@ class TestZenpackServices(ZenModelBaseTest):
             inputLength = len(service.get('LogConfigs', []))
             if auditLogConfig in service.get('LogConfigs', []):
                 LogConfigs = ZenPack.normalizeService(service, {}, '')['LogConfigs']
-                self.assertEquals( len(LogConfigs), inputLength)
+                self.assertEquals(len(LogConfigs), inputLength)
             else:
                 LogConfigs = ZenPack.normalizeService(service, {}, '')['LogConfigs']
-                self.assertEquals( len(LogConfigs), inputLength+1)
+                self.assertEquals(len(LogConfigs), inputLength+1)
             self.assertIn(auditLogConfig, LogConfigs)
 
     def testNormalizeServiceTags(self):
