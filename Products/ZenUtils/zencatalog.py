@@ -691,6 +691,10 @@ class ZenCatalogBase(ZenDaemon):
             action="store_true",
             default=False,
             help="continue indexing after an interruption")
+        self.parser.add_option("--clearmemcached",
+            action="store_true",
+            default=False,
+            help="clears memcached after processing")
         self.parser.add_option("--workers",
             type="int",
             default=4,
@@ -717,6 +721,7 @@ class ZenCatalogBase(ZenDaemon):
                 input_queue_size=self.options.inputqueuesize,
                 processed_queue_size=self.options.processedqueuesize,
                 force=self.options.forceindex,
+                clearmemcached=self.options.clearmemcached,
                 resume=self.options.resume,
                 print_progress=print_progress)
         elif self.options.reindex:
@@ -894,7 +899,7 @@ class ZenCatalogBase(ZenDaemon):
             processor = self._process_zcatalog
         processor(source_target, worker_count, buffer_size, input_queue_size, processed_queue_size, resume, permissions_only, print_progress)
 
-    def _create_catalog(self, worker_count, buffer_size, input_queue_size, processed_queue_size, force=False, resume=True, print_progress=True):
+    def _create_catalog(self, worker_count, buffer_size, input_queue_size, processed_queue_size, force=False, clearmemcached=False, resume=True, print_progress=True):
         if force:
             if resume:
                 log.info("--forceindex is incompatible with --resume, "\
@@ -935,6 +940,16 @@ class ZenCatalogBase(ZenDaemon):
         else:
             total_time = time.time() - start_time
             log.info("Cataloging completed in %1.1f seconds.", total_time)
+            if clearmemcached:
+                import memcache
+                servers = self.options.zodb_cacheservers.split()
+                try:
+                    log.info("Flushing memcache servers: %r" % servers)
+                    mc = memcache.Client(servers)
+                    mc.flush_all()
+                    mc.disconnect_all()
+                except Exception as ex:
+                    log.error("problem flushing cache server %r: %r" % (servers, ex))
             return True
 
     def _reindex(self, worker_count, buffer_size, input_queue_size, processed_queue_size, permissions_only=False, resume=True,  print_progress=True):
