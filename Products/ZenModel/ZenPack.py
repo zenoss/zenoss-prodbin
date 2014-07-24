@@ -1191,9 +1191,9 @@ registerDirectory("skins", globals())
 
         defaultLogConfigsPath = zenPath('Products/ZenModel/data/default_service_logconfigs.json')
         defaultLogConfigsTemplate = open(defaultLogConfigsPath, 'r').read()
-        defaultLogConfigs = json.loads( defaultLogConfigsTemplate % {'zenhome': zenPath()})
-        logConfigs = service.setdefault( 'LogConfigs', [])
-        logConfigs.extend([lc for lc in defaultLogConfigs if lc not in logConfigs])
+        defaultLogConfigs = json.loads(defaultLogConfigsTemplate % {'zenhome': zenPath()})
+        logConfigs = service.setdefault('LogConfigs', [])
+        logConfigs.extend(lc for lc in defaultLogConfigs if lc not in logConfigs)
         return service
 
     def installDefaultCollectorServices(self, daemonPaths, template, tag):
