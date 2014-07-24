@@ -163,7 +163,7 @@ class ApplicationRouter(TreeRouter):
         pools = []
         resourcePoolIds = self._getFacade().getResourcePoolIds()
         for p in resourcePoolIds:
-            pools.push(dict(name=p))
+            pools.append(dict(name=p))
         return DirectResponse.succeed(data=Zuul.marshal(pools))
 
     def getApplicationConfigFiles(self, id):
