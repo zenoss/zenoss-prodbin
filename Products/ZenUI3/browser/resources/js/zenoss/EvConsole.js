@@ -36,7 +36,11 @@ Ext.onReady(function(){
     // update the document title based on the number of open events (includes filters)
     var originalTitle = document.title;
     function updateTitle(store) {
-        document.title = Ext.String.format("({0}) {1}", store.totalCount, originalTitle);
+        if (store.totalCount) {
+            document.title = Ext.String.format("({0}) {1}", store.totalCount, originalTitle);
+        } else {
+            document.title = originalTitle;
+        }
     }
 
     var console_store = Ext.create('Zenoss.events.Store', {
