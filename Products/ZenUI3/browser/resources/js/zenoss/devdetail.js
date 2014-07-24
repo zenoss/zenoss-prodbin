@@ -545,7 +545,7 @@ var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
     id: 'device_component_graphs',
     components: Ext.pluck(Zenoss.env.componentTree, 'id')
 });
-	
+    
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
     id: 'softwares'
 });
@@ -1191,7 +1191,7 @@ Ext.getCmp('footer_bar').add([{
 },'-', {
 
     xtype: 'button',
-    text: _t('Remodel'),
+    text: _t('Model Device'),
     hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
     handler: modelDevice
 
