@@ -109,7 +109,7 @@ False
 180
 </property>
 <property visible="True" type="string" id="zCollectorDecoding" >
-latin-1
+utf-8
 </property>
 <property visible="True" type="string" id="zCommandUsername" >
 </property>
