@@ -816,7 +816,7 @@ def zdecode(context, value):
     @rtype: string
     """
     if isinstance(value, str):
-        decoding = getattr(context, 'zCollectorDecoding', 'utf-8')
+        decoding = getattr(context, 'zCollectorDecoding', 'latin-1')
         value = value.decode(decoding)
     return value
 

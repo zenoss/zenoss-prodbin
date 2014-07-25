@@ -84,7 +84,7 @@ Z_PROPERTIES = [
     # DataCollector properties
     ('zCollectorPlugins', [], 'lines'),
     ('zCollectorClientTimeout', 180, 'int'),
-    ('zCollectorDecoding', 'utf-8', 'string'),
+    ('zCollectorDecoding', 'latin-1', 'string'),
     ('zCommandUsername', '', 'string'),
     ('zCommandPassword', '', 'password'),
     ('zCommandProtocol', 'ssh', 'string'),
