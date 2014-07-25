@@ -104,17 +104,17 @@ class ProcessRouter(TreeRouter):
         facade = self._getFacade()
         processUid = data['uid']
         for regexParam in ['includeRegex', 'excludeRegex', 'replaceRegex']:
-            regex = data[regexParam]
+            regex = data.get(regexParam)
             if regex:
                 try:
                     re.compile(regex)
                 except re.error as e:
                     m = "%s : %s" % (regexParam, e)
                     return DirectResponse.fail(msg=m)
-        replaceRegex = data['replaceRegex']
+        replaceRegex = data.get('replaceRegex')
         if replaceRegex:
             replaceRegex = re.compile(replaceRegex)
-            replacement = data['replacement']
+            replacement = data.get('replacement')
             if replacement:
                 try:
                     groups, literals = parse_template(replacement,replaceRegex)
