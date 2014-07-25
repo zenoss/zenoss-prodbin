@@ -30,8 +30,8 @@
             "Purpose": "import"
         },
         {
-            "Name": "redis",
-            "Application": "redis",
+            "Name": "CollectorRedis",
+            "Application": "{{(parent .).Name}}_redis",
             "PortNumber": 6379,
             "Protocol": "tcp",
             "Purpose": "import"
