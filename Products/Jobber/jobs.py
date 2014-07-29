@@ -327,6 +327,8 @@ class Job(Task):
                 del self._log.logger.manager.loggerDict[self.request.id]
             except (AttributeError, KeyError):
                 pass
+            for handler in self._log.handlers:
+                handler.close()
             self._log = None
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
