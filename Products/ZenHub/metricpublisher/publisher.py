@@ -46,8 +46,10 @@ class BasePublisher(object):
         self._mq = deque(maxlen=buflen)
 
     def build_metric(self, metric, value, timestamp, tags):
+        # guarantee value's a float
+        _value = float(value)
         return {"metric": metric,
-                "value": value,
+                "value": _value,
                 "timestamp": timestamp,
                 "tags": tags}
 
