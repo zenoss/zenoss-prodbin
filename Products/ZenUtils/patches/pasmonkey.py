@@ -179,7 +179,9 @@ def login(self):
         url = "%s/zenoss_terms/?came_from=%s" % (
                     self.absolute_url(), urllib.quote(came_from))
     else:
-        url = came_from
+        # get rid of host part of URL (prevents open redirect attacks)
+        clean_url = ['', ''] + list(urlparse.urlsplit(came_from))[2:]
+        url = urlparse.urlunsplit(clean_url)
 
     fragment = request.get('fragment', '')
     if fragment:
