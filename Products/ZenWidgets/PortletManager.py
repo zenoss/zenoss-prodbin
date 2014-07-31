@@ -94,7 +94,8 @@ class PortletManager(ZenModelRM):
         Look for a registered portlet with an id or source path.
         """
         for portlet in self.portlets():
-            if portlet.id==id or portlet.sourcepath==sourcepath: return portlet
+            # special case for ExtJs portlets which will all have the same sourcepath
+            if portlet.id==id or (portlet.sourcepath==sourcepath and not 'ExtPortlet' in sourcepath): return portlet
         return None
 
     def update_source(self, REQUEST=None):
