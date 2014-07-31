@@ -163,6 +163,7 @@ $include-missing-images: true;
  }
 .x-mask-msg-noicon div {
    background-image: none;
+     cursor: default;
 }
 
 .x-grid-row-selected, .x-grid-row-focused{
