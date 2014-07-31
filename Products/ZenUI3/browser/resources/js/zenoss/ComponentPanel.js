@@ -525,7 +525,9 @@ Ext.define("Zenoss.component.ComponentPanel", {
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
                                 token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
-                            Ext.History.add(token + delimiter + row.data.uid);
+                            Ext.util.History.suspendEvents();
+                            Ext.util.History.add(token + delimiter + row.data.uid);
+                            Ext.util.History.resumeEvents();
                             Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.usesMonitorAttribute);
                         } else {
                             this.detailcontainer.removeAll();
@@ -714,7 +716,10 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                         } else {
                             // We can't find the index, it might be an invalid UID so
                             // select the first item so the details section isn't blank.
-                            selectionModel.select(0);
+                            if (!selectionModel.getSelection()) {
+                                selectionModel.select(0);
+                            }
+
                         }
                     });
                 }
