@@ -7785,7 +7785,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 #masterDetailNav {
   position: relative;
-  top: -35px !important; }
+  top: -23px !important; }
 
 #networks .x-tree-icon-leaf, #networks .x-tree-icon-parent, #ipv6networks .x-tree-icon-leaf, #ipv6networks .x-tree-icon-parent, #processTree .x-tree-icon-leaf, #processTree .x-tree-icon-parent, #navTree .x-tree-icon-leaf, #navTree .x-tree-icon-parent, #templateTree .x-tree-icon-leaf, #templateTree .x-tree-icon-parent, #deviceDetailNav .x-tree-icon-leaf, #deviceDetailNav .x-tree-icon-parent {
   background-image: url();

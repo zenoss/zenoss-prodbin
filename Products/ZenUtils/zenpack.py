@@ -116,7 +116,7 @@ class ZenPackCmd(ZenScriptBase):
     def run(self):
         """Execute the user's request"""
         if self.args:
-            print "Require one of --install, --remove or --list flags."
+            print "Require one of --install, --remove, --export, or --list flags."
             self.parser.print_help()
             return
 
@@ -124,6 +124,8 @@ class ZenPackCmd(ZenScriptBase):
             audit('Shell.ZenPack.Install', zenpack=self.options.installPackName)
         elif self.options.fetch:
             audit('Shell.ZenPack.Fetch', zenpack=self.options.fetch)
+        elif self.options.exportPack:
+            audit('Shell.ZenPack.Export', zenpack=self.options.exportPack)
         elif self.options.removePackName:
             audit('Shell.ZenPack.Remove', zenpack=self.options.removePackName)
 
@@ -205,10 +207,13 @@ class ZenPackCmd(ZenScriptBase):
             if not os.path.exists(skinsSubdir):
                 os.makedirs(skinsSubdir, 0750)
             self.install(packName)
-
+            
         elif self.options.fetch:
-            return EggPackCmd.FetchAndInstallZenPack(
-                self.dmd, self.options.fetch)
+            return EggPackCmd.FetchAndInstallZenPack(self.dmd, self.options.fetch)
+        
+        elif self.options.exportPack:
+            return EggPackCmd.ExportZenPack(
+                self.dmd, self.options.exportPack)
         elif self.options.removePackName:
             pack = self.dmd.ZenPackManager.packs._getOb(
                                         self.options.removePackName, None)
@@ -466,8 +471,11 @@ class ZenPackCmd(ZenScriptBase):
         self.parser.add_option('--fetch',
                                dest='fetch',
                                default=None,
-                               help='Name of ZenPack to retrieve from '
-                                    'Zenoss and install.')
+                               help="Name of ZenPack to retrieve from Zenoss and install")
+        self.parser.add_option('--export',
+                               dest='exportPack',
+                               default=None,
+                               help="Name of the ZenPack to export.")
         self.parser.add_option('--remove', '--delete', '--uninstall', '--erase',
                                dest='removePackName',
                                default=None,

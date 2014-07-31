@@ -22,7 +22,7 @@ log = logging.getLogger('zen.migrateMaintWindows')
 
 
 class MaintenanceWindowHooks(Migrate.Step):
-    version = Migrate.Version(5, 0, 0)
+    version = Migrate.Version(4, 9, 70)
     
     def _createNewIndex(self, mwcat ):
         log.info("Adding new columns to the dmd.maintenanceWindowSearch catalog.")

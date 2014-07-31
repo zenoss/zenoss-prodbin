@@ -215,6 +215,110 @@
     }
 
 
+    /**
+     * Displays a dialog allowing the user to edit those zproperties
+     * which define the credentials for a server.
+     **/
+    var editConnectionInfo = function(uid) {
+        REMOTE.getConnectionInfo({
+            uid: uid
+        }, function (response) {
+            if (!response.success) {
+                return;
+            }
+            // build the form elements
+            var items = [], data = response.data, item, config, dialog, handler,i, id;
+            for (i=0;i<data.length;i++) {
+                id = data[i].id;
+                item = Zenoss.zproperties.createZPropertyField(data[i]);
+                item.name = id;
+                // try to make a friendly label
+                if (id.toLowerCase().indexOf('user') != -1) {
+                    item.fieldLabel = Ext.String.format(_t('Username ({0})'), data[i].id);
+                } else if (id.toLowerCase().indexOf('password') != -1) {
+                    item.fieldLabel = Ext.String.format(_t('Password ({0})'), data[i].id);
+                } else {
+                    item.fieldLabel = id;
+                }
+
+                // make sure we always display the correct value
+                item.value = item.value || data[i].valueAsString;
+                items.push(item);
+            }
+
+            // this is executed after we save the zproperties
+            handler = function(values, remodel) {
+                // need to save the zproperty values
+                REMOTE.setZenProperty({
+                    uid: uid,
+                    zProperty: values
+                }, function(response){
+                    if (response.success){
+                        // refresh the overview page
+                        Ext.getCmp('device_overview').setContext(uid);
+                        if (remodel) {
+                            var win = new Zenoss.CommandWindow({
+                                uids: [uid],
+                                target: 'run_model',
+                                listeners: {
+                                    close: function(){
+                                        Ext.defer(function() {
+                                            window.top.location.reload();
+                                        }, 1000);
+                                    }
+                                },
+                                title: _t('Model Device')
+                            });
+                            win.show();
+                        }
+                    }
+                });
+            };
+
+            // display the dialog
+            config = {
+                submitHandler: handler,
+                minHeight: 250,
+                autoHeight: true,
+                width: 500,
+                title: _t('Edit Connection Information'),
+                listeners: {
+                    show: function() {
+                        dialog.getForm().query("field[ref='editConfig']")[0].focus(true, 500);
+                    }
+                },
+                items: items,
+                // explicitly do not allow enter to submit the dialog
+                keys: {
+
+                },
+                buttons:[{
+                    xtype: 'DialogButton',
+                    text: _t('Submit'),
+                    disabled: true,
+                    type: 'submit',
+                    ref: 'buttonSubmit'
+                }, {
+                    xtype: 'DialogButton',
+                    ui:'dialog-dark',
+                    ref: 'btnRemodel',
+                    text: _t('Submit and Remodel'),
+                    handler: function(btn) {
+                        // traverse back up to the dialog window to get the form
+                        var values = btn.up('window').getForm().getForm().getValues();
+                        handler(values, true);
+                    }
+                },{
+                    xtype: 'DialogButton',
+                    ref: 'buttonCancel',
+                    text: _t('Cancel')
+                }]
+            };
+            dialog = new Zenoss.SmartFormDialog(config);
+            dialog.show();
+        });
+    };
+
     var editCollector = function(values, uid) {
         var win = new Zenoss.FormDialog({
             autoHeight: true,
@@ -675,6 +779,19 @@
                             id: 'device-id-label',
                             name: 'device'
                         },{
+                            xtype: 'clicktoeditnolink',
+                            permission: 'Manage Device',
+                            listeners: {
+                                labelclick: function(p){
+                                    editConnectionInfo(this.contextUid);
+                                },
+                                scope: this
+                            },
+                            fieldLabel: _t('Connection Information'),
+                            name: 'deviceConnectionInfo',
+                            id: 'device-connection-editlink',
+                            hidden: Zenoss.Security.doesNotHavePermission('Manage Device')
+                        },{
                             fieldLabel: _t('Uptime'),
                             id: 'uptime-label',
                             name: 'uptime'
@@ -744,6 +861,11 @@
                             name: 'serialNumber',
                             id: 'serialnumber-textfield',
                             xtype: 'textfield'
+                        },{
+                            fieldLabel: _t('Rack Slot'),
+                            name: 'rackSlot',
+                            id: 'rackslot-textfield',
+                            xtype: 'textfield'
                         }]
                     },{
                         id:'deviceoverviewpanel_descriptionsummary',
@@ -751,11 +873,6 @@
                         frame:false,
 
                         items: [{
-                            fieldLabel: _t('Rack Slot'),
-                            name: 'rackSlot',
-                            id: 'rackslot-textfield',
-                            xtype: 'textfield'
-                        },{
                             xtype: 'clicktoeditnolink',
                             permission: 'Manage Device',
                             listeners: {
@@ -977,6 +1094,7 @@
         load: function() {
             var o = Ext.apply({keys:this.getFieldNames()}, this.baseParams), me = this;
             var callback = function(result) {
+                this.loadedData = result.data;
                 var D = result.data;
                 if (D.locking) {
                     D.locking = Zenoss.render.locking(D.locking);
@@ -991,6 +1109,12 @@
                 D.serialNumber = Ext.htmlDecode(D.serialNumber);
                 D.rackSlot = Ext.htmlDecode(D.rackSlot);
                 D.name = Ext.htmlDecode(D.name);
+                if (D.deviceConnectionInfo === false) {
+                    Ext.getCmp('device-connection-editlink').hide();
+                } else {
+                    console.log("not hidding shit");
+                    Ext.getCmp('device-connection-editlink').show();
+                }
                 this.setValues(D);
 
                 // load zLinks and uptime in a separate request since they

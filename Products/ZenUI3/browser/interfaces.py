@@ -22,6 +22,12 @@ class IJavaScriptSrcManager(IViewletManager):
     a viewlet manager to handle java script src viewlets
     """
 
+class IXTraceSrcManager(IViewletManager):
+    """
+    a viewlet manager to handle java script src viewlets that are
+    needed for graph visualizations
+    """
+
 class IJavaScriptSrcViewlet(IViewlet):
     """
     A viewlet that will generate java a script src file includes

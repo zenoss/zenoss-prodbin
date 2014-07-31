@@ -585,8 +585,14 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
 Ext.define("Zenoss.component.BaseComponentStore", {
     extend:"Zenoss.DirectStore",
     constructor: function(config) {
+        var bufferSize = Zenoss.settings.componentGridBufferSize;
+        // work around a bug in ExtJs 4.1.3. TODO: remove this after
+        // we update the library.
+        if (bufferSize < 100) {
+            bufferSize = 100;
+        }
         Ext.applyIf(config, {
-            pageSize: Zenoss.settings.componentGridBufferSize,
+            pageSize: bufferSize,
             directFn: config.directFn
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);

@@ -17,7 +17,7 @@ from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
 from Products.ZenUI3.browser.interfaces import IJavaScriptSrcViewlet,\
-    IJavaScriptBundleViewlet, IJavaScriptSrcManager
+    IJavaScriptBundleViewlet, IJavaScriptSrcManager, IXTraceSrcManager
 from Products.Five.viewlet.viewlet import ViewletBase
 from Products.ZenUI3.navigation.manager import WeightOrderedViewletManager
 from Products.ZenUtils.extdirect.zope.metaconfigure import allDirectRouters
@@ -61,6 +61,8 @@ class MainSnippetManager(JavaScriptSnippetManager):
 class JavaScriptSrcManager(WeightOrderedViewletManager):
     zope.interface.implements(IJavaScriptSrcManager)
 
+class XTraceSrcManager(WeightOrderedViewletManager):
+    zope.interface.implements(IXTraceSrcManager)
 
 class JavaScriptSrcViewlet(ViewletBase):
     zope.interface.implements(IJavaScriptSrcViewlet)
