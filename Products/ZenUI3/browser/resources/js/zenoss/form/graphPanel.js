@@ -569,11 +569,12 @@
             this.TZOffsetMS = (+moment.utc().tz(this.displayTZ).format("ZZ") * 0.01) * 1000 * 60 * 60;
         },
 
-        // accepts only ms since epoch (UTC)
-        setValue: function(ms){
+        setValue: function(ms, isAdjusted){
             if(!ms){
                 return;
             }
+
+            var adjustedTime;
 
             // if someone is using a date object, get
             // the UTC time and use that
@@ -581,12 +582,18 @@
                 ms = ms.getTime();
             }
 
-            // take provided time, offset with local timezone, then
-            // offset with displayTZ
-            var adjustedTime = ms + this.TZOffsetMS + this.TZLocalMS,
-                d = new Date(adjustedTime);
+            // if incoming time is already adjusted, do not attempt
+            // to offset it (this is the case when the value is coming
+            // from inside the datepicker instead of outside)
+            if(!isAdjusted){
+                // take provided time, offset with local timezone, then
+                // offset with displayTZ
+                adjustedTime = ms + this.TZOffsetMS + this.TZLocalMS;
+            } else {
+                adjustedTime = ms;
+            }
 
-            this.callParent([d]);
+            this.callParent([new Date(adjustedTime)]);
 
             return this;
         },
@@ -596,7 +603,34 @@
             // clear any previous offsets and return just the UTC
             // time since epoch
             return this.value.getTime() - this.TZOffsetMS - this.TZLocalMS;
-        }
+        },
+
+        beforeBlur : function(){
+            var me = this,
+                v = me.parseDate(me.getRawValue()),
+                focusTask = me.focusTask;
+
+            if (focusTask) {
+                focusTask.cancel();
+            }
+
+            if (v) {
+                // setValue but do not adjust for timezones because
+                // it is already adjusted
+                me.setValue(v, true);
+            }
+        },
+
+        onSelect: function(m, d) {
+            var me = this;
+
+            // setValue but do not adjust for timezones because
+            // it is already adjusted
+            me.setValue(d, true);
+
+            me.fireEvent('select', me, d);
+            me.collapse();
+        },
     });
 
     var tbarConfig = [
