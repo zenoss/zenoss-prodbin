@@ -556,6 +556,12 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                     // and then select the component
                     var o = {componentUid:uid};
                     Ext.apply(o, store.getProxy().extraParams);
+                    // make sure we have the sort and the direction.
+                    // since this only happens on initia
+                    Ext.applyIf(o, {
+                        sort: me.getStore().sorters.first().property,
+                        dir: me.getStore().sorters.first().direction
+                    });
                     Zenoss.remote.DeviceRouter.findComponentIndex(o, function(r){
                         // will return a null if not found
                         if (Ext.isNumeric(r.index)) {
