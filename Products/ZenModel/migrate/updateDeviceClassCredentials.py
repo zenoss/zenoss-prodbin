@@ -21,6 +21,10 @@ class UpdateDeviceClassCredentials(Migrate.Step):
 
 
     def cutover(self, dmd):
+        # network
+        network = dmd.Devices.Network
+        network.setZenProperty('zCredentialsZProperties', ['zSnmpCommunity'])
+
         # snmp
         server = dmd.Devices.Server
         server.setZenProperty('zCredentialsZProperties', ['zSnmpCommunity'])
