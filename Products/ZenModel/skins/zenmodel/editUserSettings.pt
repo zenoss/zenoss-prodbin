@@ -36,6 +36,12 @@ function clearBrowserState(event){
         Zenoss.remote.MessagingRouter.clearBrowserState();
     }
 }
+ 
+setTimeout(function () { 
+        document.getElementById('user_settings_new_password_input').autocomplete = 'off'; 
+        document.getElementById('user_settings_confirmpassword_input').autocomplete = 'off'; 
+    }, 1); 
+	 
 </script>
 
 
@@ -102,7 +108,7 @@ function clearBrowserState(event){
     </td>
     </tr>
 
-<form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
+<form method=post tal:attributes="action string:${here/absolute_url_path}" name="user" autocomplete="off">
 
     <tr>
     <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
