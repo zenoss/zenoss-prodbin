@@ -675,6 +675,18 @@ def DoEasyInstall(eggPath):
     return zpDists
 
 
+
+def ExportZenPack(dmd, packName):
+    """
+    Export the zenpack to $ZENHOME/export
+    """
+    zp = dmd.ZenPackManager.packs._getOb(packName, None)
+    if not zp:
+        raise ZenPackException('No ZenPack named %s' % packName)
+
+    # Export the zenpack
+    return zp.manage_exportPack()
+
 ########################################
 #   Zenoss.Net
 ########################################
@@ -1051,6 +1063,10 @@ class ZenPackCmd(ZenScriptBase):
                                 filesOnly=self.options.filesOnly,
                                 previousVersion= self.options.previousVersion)
             PrintInstalled(installed)
+
+        elif self.options.exportPack:
+            return ExportZenPack(self.dmd, self.options.exportPack)
+
         elif self.options.fetch:
             installed = FetchAndInstallZenPack(self.dmd, self.options.fetch)
             PrintInstalled(installed)
@@ -1073,6 +1089,10 @@ class ZenPackCmd(ZenScriptBase):
 
 
     def buildOptions(self):
+        self.parser.add_option('--export',
+                               dest='exportPack',
+                               default=None,
+                               help="name of the pack to export")
         self.parser.add_option('--install',
                                dest='eggPath',
                                default=None,
