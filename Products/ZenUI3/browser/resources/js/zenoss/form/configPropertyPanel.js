@@ -77,12 +77,9 @@
         zpropertyConfigs[id] = config;
     };
 
-
-    function showEditConfigPropertyDialog(data, grid) {
-        var handler, uid, config, editConfig, dialog, type;
-        type = data.type;
-        editConfig = {};
-
+    Zenoss.zproperties.createZPropertyField = function(data) {
+        var editConfig = {},
+            type = data.type;
         // in case of drop down lists
         if (Ext.isArray(data.options) && data.options.length > 0 && type == 'string') {
             // make it a combo and the options is the store
@@ -107,6 +104,14 @@
         if (type == 'lines' && Ext.isArray(editConfig.value)){
             editConfig.value = editConfig.value.join('\n');
         }
+        return editConfig;
+    };
+
+    function showEditConfigPropertyDialog(data, grid) {
+        var handler, uid, config, editConfig, dialog, type;
+
+        editConfig = Zenoss.zproperties.createZPropertyField(data);
+
 
         handler = function() {
             // save the junk and reload

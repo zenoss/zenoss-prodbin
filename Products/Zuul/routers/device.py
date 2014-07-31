@@ -1690,6 +1690,22 @@ class DeviceRouter(TreeRouter):
         audit('UI.GeocodeCache.Clear')
         return DirectResponse.succeed()
 
+    def getConnectionInfo(self, uid):
+        """
+        Returns the zproperty information about those zproperties which comprise
+        the credentials
+        @rtype:   List of Dictionaries
+        @return:  B{Properties}:
+             - path: (string) where the property is defined
+             - type: (string) type of zproperty it is
+             - options: (Array) available options for the zproperty
+             - value (Array) value of the zproperty
+             - valueAsString (string)
+        """
+        facade = self._getFacade()
+        data = facade.getConnectionInfo(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+    
     @serviceConnectionError
     def getModelerPluginDocStrings(self, uid):
         """

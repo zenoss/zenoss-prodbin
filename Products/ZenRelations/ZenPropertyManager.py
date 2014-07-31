@@ -123,6 +123,7 @@ Z_PROPERTIES = [
     # how many SSH sessions to open up to one device (some SSH servers have a limit)
     ('zSshConcurrentSessions', 10, 'int'),
 
+    ('zCredentialsZProperties', [], 'lines'),
     ]
 
 class PropertyDescriptor(object):
@@ -604,22 +605,25 @@ class ZenPropertyManager(object, PropertyManager):
         for zId in self.zenPropertyIds():
             if zId in exclusionList:
                 continue
-            prop = dict(
-                    id=zId,
-                    islocal=self.hasProperty(zId),
-                    type=self.getPropertyType(zId),
-                    path=self.zenPropertyPath(zId),
-                    options=self.zenPropertyOptions(zId),
-                    category=getzPropertyCategory(zId),
-                    value=None,
-                    valueAsString=self.zenPropertyString(zId)
-                    )
+            prop = self.exportZProperty(zId)
             if not self.zenPropIsPassword(zId):
                 prop['value'] = self.getZ(zId)
             else:
                 prop['value'] = self.zenPropertyString(zId)
             props.append(prop)
         return props
+
+    def exportZProperty(self, zId):
+        return dict(
+            id=zId,
+            islocal=self.hasProperty(zId),
+            type=self.getPropertyType(zId),
+            path=self.zenPropertyPath(zId),
+            options=self.zenPropertyOptions(zId),
+            category=getzPropertyCategory(zId),
+            value=None,
+            valueAsString=self.zenPropertyString(zId)
+            )
 
 InitializeClass(ZenPropertyManager)
 
