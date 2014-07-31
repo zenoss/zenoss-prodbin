@@ -380,7 +380,7 @@
     var editGroups = function(currentGroups, uid, config) {
         var win = new Zenoss.FormDialog({
             width: 500,
-            height: 150,
+            autoHeight: true,
             title: config.title,
             items: [{
                 xtype: 'panel',
@@ -390,7 +390,7 @@
                 height: 5
             }, {
                 xtype: 'panel',
-                layout: 'hbox',
+                layout: 'vbox',
                 width: '100%',
                 items: [{
                     xtype: 'combo',

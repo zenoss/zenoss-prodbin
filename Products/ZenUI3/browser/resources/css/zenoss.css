@@ -1581,7 +1581,6 @@ pre {
 }
 .x-ie #devdetailbar .devdetail-textitem span{
     display:inline-block;
-    height: 12px !important;
     line-height: 30px !important;
 }
 .x-ie span.status-up-large {
