@@ -63,6 +63,12 @@
     permission="zope2.Public"
     />
 
+<browser:viewletManager
+    name="xtrace-js"
+    provides=".interfaces.IXTraceSrcManager"
+    class=".javascript.XTraceSrcManager"
+    permission="zope2.Public"
+    />
 
 
 <!-- Viewlet manager for javascript src includes -->
