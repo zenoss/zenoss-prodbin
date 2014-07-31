@@ -9782,6 +9782,8 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-window-body .x-panel-body {
   background-color: transparent;
   color: #fafafa; }
+.x-window-body .x-panel-body td {
+  color: black; }
 .x-window-body .x-fieldset {
   border: none; }
 .x-window-body .x-fieldset-header {
