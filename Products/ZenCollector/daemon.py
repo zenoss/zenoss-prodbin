@@ -367,7 +367,7 @@ class CollectorDaemon(RRDDaemon):
         @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
-        data_source, data_point_name = metric.split("_")
+        data_source, data_point_name = metric.split("_", 1)
         tags = {
             'datasource': data_source,
             'uuid': contextUUID
