@@ -474,7 +474,19 @@ PortletContainer.prototype = {
         }
         this.layout = layout;
         if (curstate) this.fillColumns(curstate);
+        this.relayout();
         this.save();
+    },
+    relayout: function() {
+        // relayout ext portlets
+        Ext.each(this.columns, function(col){
+            var i, portlets = col.getPortlets();
+            for(i=0;i<portlets.length;i++) {
+                if (portlets[i].extPortlet) {
+                    portlets[i].extPortlet.portlet_render();
+                }
+            }
+        });
     },
     serialize: function() {
         var cols = this.getColumnState();
@@ -488,6 +500,7 @@ PortletContainer.prototype = {
             layout: this.layout,
             columns: columns
         };
+
         var json = serializeJSON(settingsObject);
         return json;
     },
@@ -858,6 +871,9 @@ YAHOO.extend(YZP.PortletProxy, YAHOO.util.DDProxy, {
         }
         this.container.setContainerHeight();
         this.container.save();
+
+        // relayout the extjs portlets
+        this.container.relayout();
         if (this.container.doRefresh.innerHTML=='Stop Refresh')
             this.container.startRefresh();
     },
@@ -939,6 +955,9 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
     onMouseUp: function(e) {
         this.portlet.enable();
         this.portlet.PortletContainer.save();
+        if (this.portlet.extPortlet) {
+            this.portlet.extPortlet.portlet_render();
+        }
     }
 
 });
