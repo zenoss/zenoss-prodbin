@@ -60,6 +60,7 @@ from Products.ZenModel.ZenossSecurity import \
 from Products.ZenModel.NotificationSubscription import manage_addNotificationSubscriptionManager
 from Products.ZenModel.Trigger import manage_addTriggerManager
 from Products.ZenModel.UserInterfaceSettings import manage_addUserInterfaceSettings
+from Products.ZenModel.Quickstart import addQuickstartStep
 
 
 class DmdBuilder(object):
@@ -188,3 +189,4 @@ class DmdBuilder(object):
         CreateZenPackPersistenceCatalog(self.dmd)
         CreateRRDTemplatesCatalog(self.dmd)
         createMaintenanceWindowCatalog(self.dmd)
+        addQuickstartStep(self.dmd)
