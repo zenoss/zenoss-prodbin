@@ -752,7 +752,7 @@ Ext.apply(Zenoss.devices, {
         permissionContext: '/zport/dmd/Devices',
         handler: function(btn, e){
             window.open('/zport/dmd/easyAddDevice', "multi_add",
-            "menubar=0,toolbar=0,resizable=0,height=630, width=800,location=0");
+            "menubar=0,toolbar=0,resizable=1,height=630, width=875,location=0");
         }
     })
 });

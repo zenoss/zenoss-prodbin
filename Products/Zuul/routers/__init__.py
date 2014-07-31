@@ -165,6 +165,10 @@ class TreeRouter(DirectRouter):
         # explicitly marshall the children
         for child in childNodes:
             childData = Marshaller(child).marshal(keys)
+            # set children so that there is not an expanding
+            # icon next to this child
+            if len(child.children) == 0:
+                childData['children'] = []
             children.append(childData)
         children.sort(key=lambda e: (e['leaf'], e['uid'].lower()))
         obj = currentNode._object._unrestrictedGetObject()
