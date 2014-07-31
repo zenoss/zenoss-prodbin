@@ -19,8 +19,44 @@
 <script tal:content='string:
     Zenoss.env.device_uid = decodeURIComponent("${context/absolute_url_path}");
 '></script>
+  <link rel="stylesheet" type="text/css" tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/dagre/tipsy.css')" />
 
+<style>
+    .graph .node rect {
+       stroke: none;
+       stroke-width: 1px;
+       fill: white;
+    }
+	 .openslot {
+	   fill: black;
+	   opacity: .3
+	}
+    .graph, .list {
+        cursor: pointer;
+    }
+    
+    .graph .edge {
+       cursor: pointer;
+       stroke: #4C4C4C;
+    }
 
+    .graph .largeEdge {
+       cursor: pointer;
+       stroke-width: 20px;
+       fill: white;
+       stroke: white;
+    }
+    
+    
+    .modaltitle {
+        font-weight: bold;
+        font-size: 18px;
+        padding-top: 10px;
+        padding-left: 5px;
+    }
+  </style>
+  <link rel="stylesheet" type="text/css" tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/dagre/tipsy.css')" />
+<tal:block tal:content="structure provider:xtrace-js"/>
 <script tal:content="view/getComponentTree"></script>
 <script tal:content="view/fetchLeftHandMenu"></script>
 <script tal:content="view/getInfoObject"></script>

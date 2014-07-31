@@ -38,6 +38,7 @@
             />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
+        <tal:block tal:content="structure provider:all-css"/>
         <script tal:define="container context/getPrimaryParent" tal:content="string:
             Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
         " tal:on-error="string:"></script>

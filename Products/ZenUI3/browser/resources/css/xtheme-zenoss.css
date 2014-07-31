@@ -10461,7 +10461,9 @@ CORE TRIGGER PAGE STUFF
   z-index: 19080; }
 
 .x-mask-msg-noicon div {
-  background-image: none; }
+  background-image: none;
+  cursor: default;
+}
 
 .x-grid-row-selected, .x-grid-row-focused {
   background-color: #7199c6 !important; }
