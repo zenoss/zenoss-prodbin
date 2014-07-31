@@ -595,6 +595,9 @@ PortletContainer.prototype = {
         this.addPortletDialog.show();
     },
     restoreDefaults: function() {
+        if (YZP.PortletEvents.fireEvent('restoredefaults', this) === false) {
+            return;
+        }
         forEach(values(this.portlets), function(p){
             p.destroy(true);
         });
@@ -969,6 +972,7 @@ YZP.IFrameDatasource = IFrameDatasource;
 YZP.ExtDatasource = ExtDatasource;
 YZP.TableDatasource = TableDatasource;
 YZP.Portlet = Portlet;
-
+YZP.PortletEvents = Ext.create('Ext.util.Observable', {});
+YZP.PortletEvents.addEvents('restoredefaults');
 // Tell the loader we're all done!
 YAHOO.register("portlet", YZP, {});
