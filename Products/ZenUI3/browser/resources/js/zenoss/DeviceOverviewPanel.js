@@ -1109,7 +1109,6 @@
                 D.serialNumber = Ext.htmlDecode(D.serialNumber);
                 D.rackSlot = Ext.htmlDecode(D.rackSlot);
                 D.name = Ext.htmlDecode(D.name);
-                console.log(D.deviceConnectionInfo);
                 if (D.deviceConnectionInfo === false) {
                     Ext.getCmp('device-connection-editlink').hide();
                 } else {
