@@ -52,6 +52,10 @@ function initDashboardPortlets() {
     ContainerObject = new YAHOO.zenoss.portlet.PortletContainer(
         'portletContainer');
     YAHOO.zenoss.globalPortletContainer = ContainerObject;
+    // This ensures that portlets always fill up their container divs
+    Ext.EventManager.onWindowResize(function(){
+       ContainerObject.relayout();
+    });
     if (dashboardState) {
         ContainerObject.restore(dashboardState);
     } else {
