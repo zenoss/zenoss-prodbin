@@ -122,6 +122,8 @@ class ZenPackCmd(ZenScriptBase):
 
         if self.options.installPackName:
             audit('Shell.ZenPack.Install', zenpack=self.options.installPackName)
+        elif self.options.fetch:
+            audit('Shell.ZenPack.Fetch', zenpack=self.options.fetch)
         elif self.options.exportPack:
             audit('Shell.ZenPack.Export', zenpack=self.options.exportPack)
         elif self.options.removePackName:
@@ -205,7 +207,10 @@ class ZenPackCmd(ZenScriptBase):
             if not os.path.exists(skinsSubdir):
                 os.makedirs(skinsSubdir, 0750)
             self.install(packName)
-
+            
+        elif self.options.fetch:
+            return EggPackCmd.FetchAndInstallZenPack(self.dmd, self.options.fetch)
+        
         elif self.options.exportPack:
             return EggPackCmd.ExportZenPack(
                 self.dmd, self.options.exportPack)
@@ -463,6 +468,10 @@ class ZenPackCmd(ZenScriptBase):
                                dest='installPackName',
                                default=None,
                                help="Path to the ZenPack to install.")
+        self.parser.add_option('--fetch',
+                               dest='fetch',
+                               default=None,
+                               help="Name of ZenPack to retrieve from Zenoss and install")
         self.parser.add_option('--export',
                                dest='exportPack',
                                default=None,
