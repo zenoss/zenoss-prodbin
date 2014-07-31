@@ -1203,5 +1203,10 @@ Ext.getCmp('footer_bar').add([{
         viewport.setHeight(viewport.getHeight() +1 );
     }
 
+    // make sure we are always at least selecting the first item.
+    if (window.location.hash == "") {
+        Ext.History.add("deviceDetailNav:device_overview");
+    }
+
 
 });
