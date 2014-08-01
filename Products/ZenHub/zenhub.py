@@ -680,7 +680,7 @@ class ZenHub(ZCmdBase):
         if not self.dmd.Monitors.Performance._getOb(instance, False):
             raise RemoteBadMonitor("The provided performance monitor '%s'" %
                                    self.options.monitor +
-                                   " is not in the current list")
+                                   " is not in the current list", None)
 
         try:
             return self.services[name, instance]
