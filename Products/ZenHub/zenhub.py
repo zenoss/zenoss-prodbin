@@ -175,6 +175,10 @@ class HubAvitar(pb.Avatar):
         """
         try:
             service = self.hub.getService(serviceName, instance)
+        except RemoteBadMonitor:
+            # This is a valid remote exception, so let it go through
+            # to the collector daemon to handle
+            raise
         except Exception:
             self.hub.log.exception("Failed to get service '%s'", serviceName)
             return None
