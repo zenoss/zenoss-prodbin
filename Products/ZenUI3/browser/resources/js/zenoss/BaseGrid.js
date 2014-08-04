@@ -693,8 +693,8 @@
                 var start = Math.max(store.lastRequestStart, 0),
                     end = Math.min(start + store.pageSize - 1, store.totalCount),
                     page = store.pageMap.getPageFromRecordIndex(end);
-                // make sure we do not have the current view records in cache
-                store.pageMap.removeAtKey(page);
+                // make sure we do not have any records in cache
+                store.pageMap.clear();
                 // this will fetch from the server and update the view since we removed it from cache
                 if (Ext.isFunction(callback)) {
                     store.guaranteeRange(start, end, callback, scope);
