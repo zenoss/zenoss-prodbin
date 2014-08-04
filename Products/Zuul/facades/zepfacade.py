@@ -312,6 +312,11 @@ class ZepFacade(ZuulFacade):
 
         self.client.addNote(uuid, message, userUuid, userName)
 
+    def addNoteBulkAsync(self, uuids, message, userName, userUuid=None):
+        if userName and not userUuid:
+            userUuid = self._getUserUuid(userName)
+
+        self.client.addNoteBulkAsync(uuids, message, userUuid, userName)
 
     def postNote(self, uuid, note):
         self.client.postNote(uuid, from_dict(EventNote, note))
