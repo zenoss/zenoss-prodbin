@@ -971,6 +971,7 @@ var devtree = {
         children: Zenoss.env.device_tree_data
     },
     ddGroup: 'devicegriddd',
+    forceEnableDd: true,
     selectByToken: detailSelectByToken,
     selModel: Ext.create('Zenoss.TreeSelectionModel',{
         tree: 'devices',
@@ -1018,6 +1019,7 @@ var grouptree = {
         children: Zenoss.env.group_tree_data
     },
     ddGroup: 'devicegriddd',
+    forceEnableDd: true,
     nodeName: 'Group',
     selModel: Ext.create('Zenoss.TreeSelectionModel',{
         tree: 'groups',
@@ -1046,6 +1048,7 @@ var systree = {
         children: Zenoss.env.system_tree_data
     },
     ddGroup: 'devicegriddd',
+    forceEnableDd: true,
     nodeName: 'System',
     router: REMOTE,
     selectRootOnLoad: false,
@@ -1076,6 +1079,7 @@ var loctree = {
         children: Zenoss.env.location_tree_data
     },
     ddGroup: 'devicegriddd',
+    forceEnableDd: true,
     nodeName: 'Location',
     router: REMOTE,
     addNodeFn: REMOTE.addLocationNode,

@@ -245,12 +245,15 @@
 
             config.viewConfig = config.viewConfig || {};
             if (config.enableDragDrop) {
+                var dd_permission = Zenoss.Security.hasPermission('Change Device');
+                if (config.forceEnableDd)
+                    dd_permission = true;
                 Ext.applyIf(config.viewConfig, {
                     loadMask:config.loadMask,
                     plugins:{
                         ptype:'treeviewdragdrop',
-                        enableDrag:Zenoss.Security.hasPermission('Change Device'),
-                        enableDrop:Zenoss.Security.hasPermission('Change Device'),
+                        enableDrag:dd_permission,
+                        enableDrop:dd_permission,
                         ddGroup:config.ddGroup
                     }
                 });

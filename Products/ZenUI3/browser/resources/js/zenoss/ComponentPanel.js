@@ -592,15 +592,18 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 fields: config.fields
             });
         config.sortInfo = config.sortInfo || {};
-        config = Ext.applyIf(config, {
-            autoExpandColumn: 'name',
-            bbar: {},
-            store: new ZC.BaseComponentStore({
+        var store = new ZC.BaseComponentStore({
                 model: modelId,
                 initialSortColumn: config.sortInfo.field || 'name',
                 initialSortDirection: config.sortInfo.direction || 'ASC',
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
-            }),
+            });
+
+        store.buffered = Zenoss.settings.enableInfiniteGridForEvents;
+
+        config = Ext.applyIf(config, {
+            autoExpandColumn: 'name',  
+            store: store,
             columns: [{
                 id: 'component_severity',
                 dataIndex: 'severity',
@@ -637,6 +640,8 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 }
             })
         });
+        if (Zenoss.settings.enableInfiniteGridForEvents)
+             config.bbar = {};
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
         this.relayEvents(this.getSelectionModel(), ['rangeselect']);
         this.store.proxy.on('load',
@@ -735,7 +740,6 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
 });
 
 
-
 Ext.define("Zenoss.component.BaseComponentStore", {
     extend:"Zenoss.DirectStore",
     constructor: function(config) {
@@ -751,9 +755,10 @@ Ext.define("Zenoss.component.BaseComponentStore", {
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);
         this.on('guaranteedrange', function(){this.loaded = true;}, this);
+        // paginated grid fires load instead of guaranteedrange
+        this.on('load', function(){this.loaded = true; this.fireEvent('guaranteedrange', this)}, this);
     }
 });
-
 
 Ext.define("Zenoss.component.IpInterfacePanel", {
     alias:['widget.IpInterfacePanel'],
