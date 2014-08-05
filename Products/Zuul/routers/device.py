@@ -488,7 +488,11 @@ class DeviceRouter(TreeRouter):
             audit(['UI.Device', action], uid,
                   data_={targetType:target}, oldData_=oldData)
         try:
-            result = facade.moveDevices(uids, target, asynchronous=asynchronous)
+            targetObj = facade._getObject(target)
+            if Zuul.checkPermission(ZEN_ADMIN_DEVICE, targetObj):
+                result = facade.moveDevices(uids, target, asynchronous=asynchronous)
+            else:
+                return DirectResponse.fail(msg='User does not have permissions to move devices to {0}'.format(target))
         except Exception, e:
             log.exception("Failed to move devices")
             return DirectResponse.exception(e, 'Failed to move devices.')
