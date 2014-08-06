@@ -235,6 +235,14 @@ class ProcessStats(OSProcessMatcher):
         if pid in self._pids:
             del self._pids[pid]
 
+    def _sync_pids(self, pids):
+        """
+        Removes PIDs that are no longer related to current process.
+
+        @parameter pids: iterable with PIDs that are related to current process
+        """
+        self._pids = {k: v for k, v in self._pids.iteritems() if k in pids}
+
 
 class Pid:
     """
@@ -662,6 +670,7 @@ class ZenProcessTask(ObservableMixin):
                 log.debug("There are %d pids by the name %s - %s",
                           len(pids), procStat._config.name, procStat._config.originalName)
             procName = procStat
+            procStat._sync_pids(pids)
             for pid in pids:
                 cpu = results.get(CPU + str(pid), None)
                 mem = results.get(MEM + str(pid), None)
