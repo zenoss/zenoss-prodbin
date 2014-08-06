@@ -409,6 +409,7 @@ class NullWorkerExecutor(object):
 
 class TaskStates(object):
     STATE_IDLE = 'IDLE'
+    STATE_CONNECTING = 'CONNECTING'
     STATE_RUNNING = 'RUNNING'
     STATE_WAITING = 'WAITING'
     STATE_QUEUED = 'QUEUED'
