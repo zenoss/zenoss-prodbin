@@ -205,12 +205,15 @@ class IpInterface(OSComponent, Layer2Linkable):
         for ip in self.ipaddresses():
             ip.index_object()
 
-        macs = self.device().getMacAddressCache()
-        try: 
-            macs.remove(self.macaddress)
-            notify(IndexingEvent(self.device(), idxs=('macAddresses',), update_metadata=False))
-        except KeyError:
-            pass
+        device = self.device()
+
+        if device:
+            macs = device.getMacAddressCache()
+            try: 
+                macs.remove(self.macaddress)
+                notify(IndexingEvent(self.device(), idxs=('macAddresses',), update_metadata=False))
+            except KeyError:
+                pass
             
     def manage_deleteComponent(self, REQUEST=None):
         """

@@ -37,9 +37,11 @@ def onInterfaceRemoved(ob, event):
     """
 
     if not IObjectWillBeAddedEvent.providedBy(event):
-        macs = ob.device().getMacAddressCache()
-        if ob.macaddress in macs:
-            macs.remove(ob.macaddress)
+        device = ob.device()
+        if device:
+            macs = device.getMacAddressCache()
+            if ob.macaddress in macs:
+                macs.remove(ob.macaddress)
 
 
 @adapter(IpInterface, IObjectAddedEvent)
@@ -49,5 +51,7 @@ def onInterfaceAdded(ob, event):
     """
 
     if ob.macaddress:
-        ob.device().getMacAddressCache().add(ob.macaddress)
+        device = ob.device()
+        if device:
+            device.getMacAddressCache().add(ob.macaddress)
 
