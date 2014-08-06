@@ -168,7 +168,10 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         if not self.minProcessCount and not self.maxProcessCount \
             and not self.osProcessClass().minProcessCount \
             and self.osProcessClass().getPrimaryParent():
-            value = self.osProcessClass().getPrimaryParent().minProcessCount
+            try:
+                value = self.osProcessClass().getPrimaryParent().minProcessCount
+            except AttributeError:
+                value = None
         elif not self.minProcessCount and not self.maxProcessCount \
             and self.osProcessClass():
             value = self.osProcessClass().minProcessCount
@@ -184,7 +187,10 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         if not self.minProcessCount and not self.maxProcessCount \
             and not self.osProcessClass().maxProcessCount \
             and self.osProcessClass().getPrimaryParent():
-            value = self.osProcessClass().getPrimaryParent().maxProcessCount
+            try:
+                value = self.osProcessClass().getPrimaryParent().maxProcessCount
+            except AttributeError:
+                value = None
         elif not self.minProcessCount and not self.maxProcessCount \
             and self.osProcessClass():
             value = self.osProcessClass().maxProcessCount
