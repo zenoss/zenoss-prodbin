@@ -1023,6 +1023,7 @@ class DeviceRouter(TreeRouter):
                 audit('UI.Component.Delete', uid)
             return DirectResponse.succeed('Components deleted.')
         except Exception, e:
+            log.exception(e)
             return DirectResponse.exception(e, 'Failed to delete components.')
 
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
