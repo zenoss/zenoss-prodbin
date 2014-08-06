@@ -48,6 +48,12 @@ class InvalidQueryParameterException(Exception):
     Raised when a query is attempted with invalid search criteria.
     """
 
+class NoFiltersException(Exception):
+    """
+    Raised when an operation that requires filters is called without them.
+    closeEventSummaries, reopenEventSummaries or acknowledgeEventSummaries
+    raise this exception.
+    """
 
 class ZepFacade(ZuulFacade):
     implements(IZepFacade)
@@ -408,7 +414,7 @@ class ZepFacade(ZuulFacade):
         status, response = self.client.nextEventSummaryUpdate(from_dict(EventSummaryUpdateRequest, next_request))
         return status, to_dict(response)
 
-    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
+    def _processArgs(self, eventFilter, exclusionFilter, userName):
         if eventFilter:
             eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
@@ -418,36 +424,40 @@ class ZepFacade(ZuulFacade):
             userUuid, userName = self._findUserInfo()
         else:
             userUuid = self._getUserUuid(userName)
+
+        if eventFilter is None and exclusionFilter is None:
+            raise NoFiltersException("Cannot modify event summaries without at least one filter specified.")
+
+        return {'eventFilter': eventFilter, 'exclusionFilter': exclusionFilter,
+                'userName': userName, 'userUuid': userUuid}
+
+    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
+        arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+        eventFilter = arguments.get('eventFilter')
+        exclusionFilter = arguments.get('exclusionFilter')
+        userName = arguments.get('userName')
+        userUuid = arguments.get('userUuid')
         status, response = self.client.closeEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit, timeout=timeout)
         return status, to_dict(response)
 
     def acknowledgeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None,
                                   timeout=None):
-        if eventFilter:
-            eventFilter = from_dict(EventFilter, eventFilter)
-
-        if exclusionFilter:
-            exclusionFilter = from_dict(EventFilter, exclusionFilter)
-
-        if not userName:
-            userUuid, userName = self._findUserInfo()
-        else:
-            userUuid = self._getUserUuid(userName)
+        arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+        eventFilter = arguments.get('eventFilter')
+        exclusionFilter = arguments.get('exclusionFilter')
+        userName = arguments.get('userName')
+        userUuid = arguments.get('userUuid')
         status, response = self.client.acknowledgeEventSummaries(userUuid, userName, eventFilter, exclusionFilter,
                                                                  limit, timeout=timeout)
         return status, to_dict(response)
 
     def reopenEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
-        if eventFilter:
-            eventFilter = from_dict(EventFilter, eventFilter)
-        if exclusionFilter:
-            exclusionFilter = from_dict(EventFilter, exclusionFilter)
-
-        if not userName:
-            userUuid, userName = self._findUserInfo()
-        else:
-            userUuid = self._getUserUuid(userName)
+        arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+        eventFilter = arguments.get('eventFilter')
+        exclusionFilter = arguments.get('exclusionFilter')
+        userName = arguments.get('userName')
+        userUuid = arguments.get('userUuid')
         status, response = self.client.reopenEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit, timeout=timeout)
         return status, to_dict(response)
