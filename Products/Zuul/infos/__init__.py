@@ -18,6 +18,8 @@ from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SE
 from Products.Zuul import getFacade
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.utils import safe_hasattr as hasattr
+from Products import Zuul
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
 
 def ProxyProperty(propertyName):
@@ -138,8 +140,20 @@ class HasEventsInfoMixin(HasUuidInfoMixin):
     @property
     def events(self):
         severities = self.getEventSeverities()
+        events = {}
         zep = getFacade('zep')
-        return dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
+        events = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
+
+        # If the user does not have view permissions, we reset the rainbow
+        if not Zuul.checkPermission(ZEN_VIEW, self._object):
+            for sev, counts in events.iteritems():
+                counts['count'] = 0
+                counts['acknowledged_count'] = 0
+
+        return events
+
+
+
 
     def setWorstEventSeverity(self, severity):
         """

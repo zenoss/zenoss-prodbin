@@ -25,6 +25,8 @@ from Products.Zuul.infos import InfoBase
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import memoize
 from Products.ZenUtils.NaturalSort import natural_compare
+from Products import Zuul
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 import logging
 log = logging.getLogger("zen.tree")
 
@@ -116,10 +118,13 @@ class TreeNode(object):
 
     @property
     def iconCls(self):
+        icon = None
         if self._root._showSeverityIcons:
-            sev = self._loadSeverity();
-            return self.getIconCls(sev)
-        return None
+            obj = self._get_object()
+            if Zuul.checkPermission(ZEN_VIEW, obj):
+                sev = self._loadSeverity()
+                icon = self.getIconCls(sev)
+        return icon
 
     def getIconCls(self, sev):
         return 'tree-severity-icon-small-%s' % (sev or 'clear')
