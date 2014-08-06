@@ -90,7 +90,8 @@ endif
 #---------------------------------------------------------------------------#
 sencha_jsbuilder_name         = JSBuilder2
 sencha_jsbuilder_jar          = JSBuilder2.jar
-sencha_jsbuilder_upstream_url = http://dev.sencha.com/deploy
+#sencha_jsbuilder_upstream_url = http://dev.sencha.com/deploy  # zip has been removed from that url
+sencha_jsbuilder_upstream_url = http://zenpip.zendev.org/packages
 sencha_jsbuilder_version      = 2
 _sencha_jsbuilder_version    := $(strip $(sencha_jsbuilder_version))
 sencha_jsbuilder_archive     := $(sencha_jsbuilder_name).zip
