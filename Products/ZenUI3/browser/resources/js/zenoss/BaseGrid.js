@@ -679,11 +679,9 @@
                 return;
             }
             this.saveSelection();
-            var store = this.getStore(),
-                // load the entire store if we are not paginated or the entire grid fits in one buffer
-                shouldLoad =  ! store.buffered || store.getCount() >= store.getTotalCount();
+            var store = this.getStore();
 
-            if (shouldLoad) {
+            if (!store.buffered) {
                 store.load({
                     callback: callback,
                     scope: scope || this
@@ -691,11 +689,16 @@
             } else {
                 // need to refresh the current rows, without changing the scroll position
                 var start = Math.max(store.lastRequestStart, 0),
-                    end = Math.min(start + store.pageSize - 1, store.totalCount),
-                    page = store.pageMap.getPageFromRecordIndex(end);
-                // make sure we do not have any records in cache
+                    end = Math.min(start + store.pageSize - 1, store.totalCount);
+                
+		// make sure we do not have any records in cache
                 store.pageMap.clear();
-                // this will fetch from the server and update the view since we removed it from cache
+                
+		 if(store.getCount() >= store.getTotalCount() && this.verticalScroller) {
+		     start = this.verticalScroller.getFirstVisibleRowIndex();
+		 }
+
+		// this will fetch from the server and update the view since we removed it from cache
                 if (Ext.isFunction(callback)) {
                     store.guaranteeRange(start, end, callback, scope);
                 } else {
