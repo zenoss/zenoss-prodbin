@@ -512,21 +512,44 @@ class ZepFacade(ZuulFacade):
         return uuids
 
     def getEventSeveritiesByUuid(self, tagUuid, severities=(), status=()):
-        topLevelUuids = self._getTopLevelOrganizerUuids(tagUuid)
-        if topLevelUuids:
+        """ returns a dict of severities for the element tagUuid """
+        uuids = [ tagUuid ]
+        return self.getEventSeveritiesByUuids(uuids , severities=severities, status=status)[tagUuid]
+
+
+    def getEventSeveritiesByUuids(self, tagUuids, severities=(), status=()):
+        """ returns a dict whose keys are each uuid in tagUuids and values the dict of severities per uuid """
+        uuids = []
+        requested_uuids = {}
+        for uuid in tagUuids:
+            children_uuids = self._getTopLevelOrganizerUuids(uuid)
+            if children_uuids:
+                requested_uuids[uuid] = children_uuids
+                uuids.extend(children_uuids)
+            else:
+                requested_uuids[uuid] = [ uuid ]
+                uuids.append(uuid)
+
+        uuids = list(set(uuids))
+        severities = self.getEventSeverities(uuids, severities=severities, status=status)
+
+        severities_to_return = {}
+
+        for requested_uuid in requested_uuids.keys():
+            children_uuids = requested_uuids[requested_uuid]
             sevmap = {}
-            # Condense counts of child organizers into a flattened out count
-            for uuid, sevs in self.getEventSeverities(topLevelUuids, severities=severities, status=status).iteritems():
+            for uuid in children_uuids:
+                sevs = severities[uuid]
                 for sev, counts in sevs.iteritems():
                     counts_dict = sevmap.get(sev)
                     if counts_dict:
+                        # Condense counts of child organizers into a flattened out count
                         counts_dict['count'] += counts['count']
                         counts_dict['acknowledged_count'] += counts['acknowledged_count']
                     else:
                         sevmap[sev] = counts
-            return sevmap
-
-        return self.getEventSeverities(tagUuid, severities=severities, status=status)[tagUuid]
+            severities_to_return[requested_uuid] = sevmap
+        return severities_to_return
 
     def _createSeveritiesDict(self, eventTagSeverities):
         severities = {}
