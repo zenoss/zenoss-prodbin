@@ -483,6 +483,9 @@ class MaintenanceWindow(ZenModelRM):
                           device.id, self.displayName())
                 continue
 
+            if device.productionState == -1:
+                    continue
+	
             self._p_changed = 1
             # Changes the current state for a device, but *not*
             # the preMWProductionState
