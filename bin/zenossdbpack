@@ -85,17 +85,19 @@ if __name__ == "__main__":
     # Get the days option to forward to zodbpack
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "-d", "--days", dest="days", type=float, default=0.2, # About 5 hours
+        "-d", "--days", dest="days", type=float, default=0.5, # 12 hours
         help="Days to keep unreferenced objects (default: %(default)s). "
-        "Caution: setting to 0 may result in database inconsistency in "
-        "certain scenarios.")
+        "NOTE: To help prevent PKEs, zenossdbpack will not accept --days below 0.5")
     parser.add_argument(
         "-e", "--exclude-db", dest="excludeDB",
         choices=['session', 'zodb'],
         help="Specify which database to exclude")
 
     options = parser.parse_args()
-
+    if options.days < 0.5:
+        print "  --days below 0.5 is no longer supported - defaulting to 0.5"
+        otions.days = 0.5
+        
     retcode = 1
 
     if options.excludeDB != 'zodb':
