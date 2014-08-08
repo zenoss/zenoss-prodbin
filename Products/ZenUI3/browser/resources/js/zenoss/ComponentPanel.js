@@ -1037,7 +1037,9 @@ Ext.define("Zenoss.component.IpServicePanel", {
                 dataIndex: 'ipaddresses',
                 header: _t('IPs'),
                 renderer: function(ips) {
-                    return ips.join(', ');
+                    if (!Ext.isEmpty(ips)) {
+                      return ips.join(', ');
+                    }
                 }
             },{
                 id: 'description',
