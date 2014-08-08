@@ -1112,7 +1112,6 @@
                 if (D.deviceConnectionInfo === false) {
                     Ext.getCmp('device-connection-editlink').hide();
                 } else {
-                    console.log("not hidding shit");
                     Ext.getCmp('device-connection-editlink').show();
                 }
                 this.setValues(D);
