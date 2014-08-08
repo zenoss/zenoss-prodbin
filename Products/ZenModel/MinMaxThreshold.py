@@ -155,7 +155,7 @@ class MinMaxThreshold(ThresholdClass):
         for key in ('description', 'explanation', 'resolution'):
             value = getattr(self, key, None)
             if value:
-                fields[key] = value
+                fields[key] = talesEvalStr(value, context)
         return fields
 
 
