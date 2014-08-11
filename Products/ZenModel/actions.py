@@ -589,7 +589,7 @@ class CommandAction(IActionBase, TargetableAction):
 
     def executeOnTarget(self, notification, signal, target):
         log.debug('Executing command action: %s on %s', self.name, target)
-        environ ={}
+        environ = {}
         environ['user'] = getattr(self.dmd.ZenUsers, target, None)
         self._execute(notification, signal, environ)
 
@@ -614,7 +614,9 @@ class CommandAction(IActionBase, TargetableAction):
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
         user_env_format = notification.content.get('user_env_format', '') or ''
-        env = dict( envvar.split('=') for envvar in user_env_format.split(';') if '=' in envvar)
+        env = os.environ.copy()
+        user_env = dict( envvar.split('=', 1) for envvar in user_env_format.split(';') if '=' in envvar)
+        env.update(user_env)
         environ = {'dev': device, 'component': component, 'dmd': notification.dmd, 'env': env}
         data = self._signalToContextDict(signal, notification)
         environ.update(data)
