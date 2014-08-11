@@ -28,8 +28,7 @@ class JobsFacade(ZuulFacade):
             stop = None
         else:
             stop = start + limit
-        kwargs = dict(sort_on=sort, sort_limit=stop,
-            sort_order='descending' if dir=='DESC' else 'ascending')
+        kwargs = dict(sort_on=sort, sort_order='descending' if dir=='DESC' else 'ascending')
         if createdBy:
             kwargs['user'] = createdBy
         brains = self._dmd.JobManager.getCatalog()(
