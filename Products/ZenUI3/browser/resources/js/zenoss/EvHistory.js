@@ -216,16 +216,12 @@ Ext.onReady(function(){
                 cls: 'lastupdated',
                 text: 'Updating...'
             },{
-                xtype: 'refreshmenu',
+                xtype: 'button',
                 id: 'refresh-button',
                 text: _t('Refresh'),
                 handler: function() {
                     var grid = Ext.getCmp('events_grid');
-                    grid.refresh();
-                },
-                pollHandler: function() {
-                    var grid = Ext.getCmp('events_grid');
-                    grid.refresh();
+                    grid.refresh(); 
                 }
             }
             ]
