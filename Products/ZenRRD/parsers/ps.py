@@ -84,6 +84,12 @@ class ps(CommandParser):
             # '28835916 00:00:00 <defunct>'
             pid, cpu, cmdAndArgs = line.split(None, 2)
             rss = '0'
+        # Exiting and Idle processes look like this (no RSS data, TIME data == '-')
+        # '11337738                 - <exiting>'
+        # '11862166                 - <idle>'
+        # _extractProcessMetrics(self, line) method will try to parseCpuTime('-') with exception
+        if cpu == '-':
+            cpu = '00:00:00'
 
         return pid, rss, cpu, cmdAndArgs
 
