@@ -164,7 +164,7 @@ Ext.onReady(function() {
     var closeWindowIfPopup = function(form, action) {
         // opener is defined as the window that opened the popup
         // if this popup is part of quick start step 2, dont close.
-        if (!Ext.isEmpty(opener) || !~window.location.href.indexOf("qs-step2")) {
+        if (!Ext.isEmpty(opener) && !~window.location.href.indexOf("qs-step2")) {
             window.close();
         }
     };
