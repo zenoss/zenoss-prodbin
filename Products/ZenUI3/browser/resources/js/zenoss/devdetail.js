@@ -331,7 +331,7 @@ var componentCard = {
                         grid.filter(this.getValue());
                     },
                     listeners: {
-                        keypress: function(field, e) {
+                        keyup: function(field, e) {
                             if (e.getKey() === e.ENTER) {
                                 field.filterGrid();
                             } else {
