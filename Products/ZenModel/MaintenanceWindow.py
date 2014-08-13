@@ -483,7 +483,7 @@ class MaintenanceWindow(ZenModelRM):
                           device.id, self.displayName())
                 continue
 
-            if device.productionState == -1:
+            if device.productionState < 300:
                     continue
 	
             self._p_changed = 1
