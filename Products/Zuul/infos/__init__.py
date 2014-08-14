@@ -145,7 +145,7 @@ class HasEventsInfoMixin(HasUuidInfoMixin):
         events = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
 
         # If the user does not have view permissions, we reset the rainbow
-        if not Zuul.checkPermission(ZEN_VIEW, self._object):
+        if hasattr(self, "_object") and not Zuul.checkPermission(ZEN_VIEW, self._object):
             for sev, counts in events.iteritems():
                 counts['count'] = 0
                 counts['acknowledged_count'] = 0
