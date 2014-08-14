@@ -152,9 +152,11 @@ class ps(CommandParser):
                     results.values.append( (dp, cpu) )
                 if 'mem' in dp.id:
                     results.values.append( (dp, rss) )
-                if 'count'in dp.id:
+                if 'count' in dp.id:
                     results.values.append( (dp, len(pids)) )
             else:
+                if 'count' in dp.id:
+                    results.values.append((dp,0))
                 failSeverity = dp.data['failSeverity']
                 # alert on missing (the process set contains 0 processes...)
                 summary = 'Process set contains 0 running processes: %s' % processSet
