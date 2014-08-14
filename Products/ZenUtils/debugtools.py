@@ -48,3 +48,20 @@ def profile(f):
         p.print_stats()
         return result
     return inner
+
+
+def rpdb_set_trace(log=None):
+    """
+    convenience function to set_trace with rpdb in a control center container
+    """
+    import rpdb
+    import subprocess
+
+    ip=subprocess.check_output(["hostname", "-i"]).strip()
+    port=4444
+    print "connect to rpdb remotely with: nc %s %d  # Control-C to exit nc" % (ip, port)
+    if log:
+        log.warn("connect to rpdb remotely with: nc %s %d  # Control-C to exit nc" % (ip, port))
+    debugger = rpdb.Rpdb(ip, port)
+    debugger.set_trace()
+
