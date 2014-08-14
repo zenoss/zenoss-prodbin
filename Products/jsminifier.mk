@@ -452,26 +452,6 @@ install: | $(_DESTDIR)$(prefix) $(_DESTDIR)$(prefix)/$(jsminifier_jar_inst_dir) 
 	@if ($(call cmd_noat,RSYNC,$(dflt_rsync_OPTS) $(jsminifier_rsync_OPTS),$(dir $(built_jsminifier)),$(abspath $(install_dir)))) ;then \
 		saveIFS=$(IFS) ;\
 		IFS=$(echo -en "\n\b") ;\
-		#while read installedFile ;\
-		#do \
-		#	_installedFile=$(_DESTDIR)$${installedFile} ;\
-		#	if [ -f "$${_installedFile}" -o -L "$${_installedFile}" ];then \
-		#		if ! ($(call cmd_noat,CHOWN,,$(INST_OWNER),$(INST_GROUP),$${_installedFile})) ;then \
-		#			IFS=$${saveIFS} ;\
-		#			exit 1 ;\
-		#		fi ;\
-		#	fi ;\
-		#done < $(files_manifest) ;\
-		#while read installedLink ;\
-		#do \
-		#	_installedLink=$(_DESTDIR)$${installedLink} ;\
-		#	if [ -L "$${_installedLink}" ];then \
-		#		if ! ($(call cmd_noat,CHOWN_LINK,$(INST_OWNER),$(INST_GROUP),$${_installedLink})) ;then \
-		#			IFS=$${saveIFS} ;\
-		#			exit 1 ;\
-		#		fi ;\
-		#	fi ;\
-		#done < $(links_manifest)
 		while read installedDir ;\
 		do \
 			_installedDir=$(_DESTDIR)$${installedDir} ;\
@@ -527,6 +507,7 @@ installhere: | $(BUILD_LOG)
 #    /opt/zenoss/share/java/{...}
 #---------------------------------------------------------------------------#
 $(heredir)$(jsminifier_jar_installed):
+	$(call cmd,MKDIR,$@)
 	@$(MAKE) -f $(MKFILE) --no-print-directory installhere
 
 #---------------------------------------------------------------------------#
@@ -763,3 +744,4 @@ uninstallhere: | $(BUILD_LOG)
 	@if [ -d "$(heredir)" ];then \
 		$(call cmd_noat,RMDIR,$(heredir)) ;\
 	fi
+

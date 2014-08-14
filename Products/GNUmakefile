@@ -419,6 +419,7 @@ install: | $(_DESTDIR)$(prefix) $(BUILD_LOG)
 			done < $(links_manifest) ;\
 		fi ;\
 	fi
+	make install -f jsminifier.mk
 
 ifeq "$(GRANULAR_DEV)" "yes"
 .PHONY: $(installjustthis)
