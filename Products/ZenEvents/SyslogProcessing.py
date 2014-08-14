@@ -41,7 +41,7 @@ r"^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
 
 # cisco standard msg
-r"%(?P<eventClassKey>(?P<component>\S+)-\d-\S+): *(?P<summary>.*)",
+r"%(?P<eventClassKey>(?P<component>\S+)-(?P<overwriteSeverity>\d)-\S+): *(?P<summary>.*)",
 
 # Cisco ACS
 r"^(?P<ipAddress>\S+)\s+(?P<summary>(?P<eventClassKey>CisACS_\d\d_\S+)\s+(?P<eventKey>\S+)\s.*)",
@@ -150,6 +150,12 @@ class SyslogProcessor(object):
         evt, msg = self.parseHEADER(evt, msg)
         evt = self.parseTag(evt, msg) 
         if evt:
+            # Cisco standard msg includes the severity in the tag
+            if 'overwriteSeverity' in evt.keys():
+                old_severity = evt['severity']
+                new_severity = self.defaultSeverityMap(int(evt['overwriteSeverity']))
+                evt['severity'] = new_severity
+                slog.debug('Severity overwritten in message tag. Previous:{0} Current:{1}'.format(old_severity, new_severity))
             #rest of msg now in summary of event
             evt = self.buildEventClassKey(evt)
             evt['monitor'] = self.monitor
@@ -257,7 +263,7 @@ class SyslogProcessor(object):
         @type: dictionary
         """
         slog.debug(msg)
-        for parser, keepEntry in compiledParsers:        
+        for parser, keepEntry in compiledParsers:
             slog.debug("tag regex: %s", parser.pattern)
             m = parser.search(msg)
             if not m:
