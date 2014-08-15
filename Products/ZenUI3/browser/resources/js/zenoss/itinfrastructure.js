@@ -848,7 +848,16 @@ function initializeTreeDrop(tree) {
                                 }
                             }
                         }, me);
-                    }
+                        // refresh node
+                        tree.getStore().load({
+                            callback:function () {
+                                tree.getRootNode().expand();
+                                if (tree.getRootNode().childNodes.length) {
+                                    tree.getRootNode().childNodes[0].expand();
+                                }
+                            }
+                        });
+                   }
                 }, {
                     xtype: 'DialogButton',
                     text: _t('Cancel')
