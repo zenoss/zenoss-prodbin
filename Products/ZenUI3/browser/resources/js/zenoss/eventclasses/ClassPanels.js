@@ -523,7 +523,7 @@ Ext.onReady(function(){
                                         data.push({'context':selected[i].data.uid.split('/instances/')[0], 'id':selected[i].data.id});
                                     }
                                     new Zenoss.dialog.SimpleMessageDialog({
-                                        title: _t('Delete Maintenance Window'),
+                                        title: _t('Delete Instance'),
                                         message: _t("Are you sure you want to delete the selected instances?"),
                                         buttons: [{
                                             xtype: 'DialogButton',
