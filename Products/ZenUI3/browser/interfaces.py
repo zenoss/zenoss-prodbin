@@ -21,17 +21,41 @@ class IJavaScriptSrcManager(IViewletManager):
     """
     a viewlet manager to handle java script src viewlets
     """
+    
+class ICSSSrcManager(IViewletManager):
+    """
+    a viewlet manager to handle java script src viewlets
+    """
+
+    
+class IXTraceSrcManager(IViewletManager):
+    """
+    a viewlet manager to handle java script src viewlets that are
+    needed for graph visualizations
+    """
 
 class IJavaScriptSrcViewlet(IViewlet):
     """
     A viewlet that will generate java a script src file includes
     """
+    
+class ICSSSrcViewlet(IViewlet):
+    """
+    A viewlet that will generate java a script src file includes
+    """
 
+    
 class IJavaScriptBundleViewlet(IViewlet):
     """
-    A viewlet that will generate a list of java script src file includes
+    A viewlet that will generate a list of CSS link file includes
     """
 
+class ICSSBundleViewlet(IViewlet):
+    """
+    A viewlet that will generate a list of CSS link file includes
+    """
+
+    
 class IHeadExtraManager(IViewletManager):
     """
     A viewlet manager to allow ZenPacks, etc. to plug in extra stuff.

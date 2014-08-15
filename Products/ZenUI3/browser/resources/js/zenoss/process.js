@@ -695,6 +695,8 @@ Ext.define("Zenoss.SequenceStore", {
         Ext.applyIf(config, {
             model: 'Zenoss.SequenceModel',
             directFn: router.getSequence,
+            pageSize: 1000,
+            scrollToLoadBuffer: 0,
             root: 'data'
         });
         this.callParent(arguments);
@@ -708,6 +710,7 @@ Ext.define("Zenoss.SequenceGrid", {
     constructor: function(config) {
         Ext.applyIf(config, {
             sortableColumns: false,
+            multiSelect: true,
             forceFit: true,
             store: Ext.create('Zenoss.SequenceStore', {}),
             columns: [

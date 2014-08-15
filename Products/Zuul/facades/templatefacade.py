@@ -129,12 +129,14 @@ class TemplateFacade(ZuulFacade):
         if (templateName.startswith('/zport/dmd/')):
             templateName = self._getObject(templateName).id
         obj.makeLocalRRDTemplate(templateName)
+        return obj.getRRDTemplateByName(templateName).getPrimaryId()
 
     def removeLocalRRDTemplate(self, uid, templateName):
         obj = self._getObject(uid)
         if (templateName.startswith('/zport/dmd/')):
             templateName = self._getObject(templateName).id
         obj.removeLocalRRDTemplate(templateName)
+        return obj.getRRDTemplateByName(templateName).getPrimaryId()
 
     def _deleteObject(self, uid):
         """
@@ -180,11 +182,12 @@ class TemplateFacade(ZuulFacade):
 
     def getDataSources(self, uid):
         catalog = self._getCatalog(uid)
+        infos = []
         if isinstance(catalog.context, RRDTemplate):
             brains = catalog.search(types=RRDDataSource)
             dataSources = imap(unbrain, brains)
             infos = imap(IRRDDataSourceInfo, dataSources)
-        else:
+        elif isinstance(catalog.context, RRDDataSource):
             brains = catalog.search(types=RRDDataPoint)
             dataPoints = imap(unbrain, brains)
             infos = imap(IDataPointInfo, dataPoints)

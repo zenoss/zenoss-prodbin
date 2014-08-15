@@ -165,8 +165,15 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         """
         Return the min process count threshold value
         """
-        if not self.minProcessCount and not self.maxProcessCount and \
-           self.osProcessClass():
+        if not self.minProcessCount and not self.maxProcessCount \
+            and not self.osProcessClass().minProcessCount \
+            and self.osProcessClass().getPrimaryParent():
+            try:
+                value = self.osProcessClass().getPrimaryParent().minProcessCount
+            except AttributeError:
+                value = None
+        elif not self.minProcessCount and not self.maxProcessCount \
+            and self.osProcessClass():
             value = self.osProcessClass().minProcessCount
         else:
             value = self.minProcessCount
@@ -177,8 +184,15 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         """
         Return the max process count threshold value
         """
-        if not self.minProcessCount and not self.maxProcessCount and \
-           self.osProcessClass():
+        if not self.minProcessCount and not self.maxProcessCount \
+            and not self.osProcessClass().maxProcessCount \
+            and self.osProcessClass().getPrimaryParent():
+            try:
+                value = self.osProcessClass().getPrimaryParent().maxProcessCount
+            except AttributeError:
+                value = None
+        elif not self.minProcessCount and not self.maxProcessCount \
+            and self.osProcessClass():
             value = self.osProcessClass().maxProcessCount
         else:
             value = self.maxProcessCount

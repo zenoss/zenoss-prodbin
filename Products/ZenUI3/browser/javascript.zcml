@@ -101,5 +101,25 @@
         class=".javascript.JavaScriptSrcBundleViewlet"
         permission="zope2.Public"
         />
+<browser:viewlet
+    name="xtracelibraries"
+    weight="1"
+    manager=".interfaces.IXTraceSrcManager"
+    permission="zope2.Public"
+    class=".javascript.JavaScriptSrcBundleViewlet"
+    paths="
+           /++resource++zenui/js/dagre/lib/d3/d3.v3.min.js
+           /++resource++zenui/js/dagre/lib/jQuery/jquery-1.9.0.js
+           /++resource++zenui/js/dagre/lib/jQuery/jquery.tipsy.js
+           /++resource++zenui/js/dagre/lib/jQuery/jquery.contextMenu.js
+           /++resource++zenui/js/dagre/lib/dagre/dagre.js
+           /++resource++zenui/js/dagre/js/Minimap.js
+           /++resource++zenui/js/dagre/js/MinimapZoom.js
+           /++resource++zenui/js/dagre/js/DirectedAcyclicGraph.js
+           /++resource++zenui/js/dagre/js/Graph.js
+           /++resource++zenui/js/dagre/js/Tooltip.js
+           /++resource++zenui/js/dagre/js/ContextMenu.js
+           "
+    />
 
 </configure>

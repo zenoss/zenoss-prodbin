@@ -27,6 +27,8 @@ import md5
 import subprocess
 import logging
 
+gValidReportFileTypes = ['PDF','PNG','JPG','GIF']
+
 def sibling(url, path):
     parts = list(urlparse(url))
     parts[2] = '/'.join(parts[2].split('/')[:-1] + [path])
@@ -44,22 +46,24 @@ class Page(HTMLParser):
         self.passwd = passwd
         self.log = logging.getLogger("zen.reports")
 
-    def generatePDF(self, url, pdfFileName):
-        command = ["/opt/zenoss/bin/phantomjs", "/opt/zenoss/Products/ZenReports/rasterize.js", url, self.user, self.passwd, "/tmp/" + pdfFileName]
+    def generateScreenShot(self, url, reportFileName):
+        fullFileName = "/tmp/" + reportFileName
+        command = ["/opt/zenoss/bin/phantomjs", "/opt/zenoss/Products/ZenReports/rasterize.js", url, self.user, self.passwd, fullFileName]
+        self.log.debug("Running: %s" % " ".join(command))
         phanomjsProcess = subprocess.Popen(command, stdout=subprocess.PIPE)
         phanomjsProcessRC = phanomjsProcess.wait()
         if phanomjsProcessRC:
-            self.log.error(" ##### ERROR: phanomjsProcessRC: %s" % phanomjsProcessRC)
+            self.log.error(" ##### ERROR: phantomjs process return code: %s" % phanomjsProcessRC)
         else:
-            self.log.info("PDF created: %s" % pdfFileName)
+            self.log.info("file created: %s" % fullFileName)
 
-    def mail(self, pdfFileName):
+    def mail(self, reportFileName):
         msg = MIMEMultipart('related')
         msg.preamble = 'This is a multi-part message in MIME format'
 
         # Attaching PDF screenshot
-        part = MIMEApplication(open("/tmp/" + pdfFileName,"rb").read())
-        part.add_header('Content-Disposition', 'attachment', filename=pdfFileName)
+        part = MIMEApplication(open("/tmp/" + reportFileName,"rb").read())
+        part.add_header('Content-Disposition', 'attachment', filename=reportFileName)
         msg.attach(part)
         
         return msg
@@ -87,9 +91,10 @@ class ReportMail(ZenScriptBase):
         page = Page(o.user, o.passwd)
         url = self.mangleUrl(o.url)
         
-        pdfFileName = "report_screenshot.pdf"
-        page.generatePDF(url, pdfFileName)
-        msg = page.mail(pdfFileName)
+        reportFileType = self.determineFileFormat(o.reportFileType)
+        reportFileName = "report_screenshot." + reportFileType
+        page.generateScreenShot(url, reportFileName)
+        msg = page.mail(reportFileName)
         if o.subject:
             msg['Subject'] = o.subject
         elif page.title:
@@ -112,6 +117,13 @@ class ReportMail(ZenScriptBase):
             sys.exit(1)
         sys.exit(0)
 
+    def determineFileFormat(self, reportFileType):
+        if reportFileType in gValidReportFileTypes:
+            return reportFileType.lower()
+
+        self.log.warning("Invalid file type: %s (creating a %s)" % (reportFileType, gValidReportFileTypes[0]))
+        return gValidReportFileTypes[0].lower() # create a pdf
+
     def mangleUrl(self, url):
         if url.find('/zport/dmd/reports#reporttree:') != -1 :
             urlSplit = url.split('/zport/dmd/reports#reporttree:')
@@ -126,6 +138,10 @@ class ReportMail(ZenScriptBase):
                                dest='url',
                                default=None,
                                help='URL of report to send')
+        self.parser.add_option('--reportFileType', '-r',
+                               dest='reportFileType',
+                               default='PDF',
+                               help='report file type (%s)' % "|".join(gValidReportFileTypes))
         self.parser.add_option('--user', '-U',
                                dest='user',
                                default='admin',

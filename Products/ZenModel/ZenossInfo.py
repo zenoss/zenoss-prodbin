@@ -485,7 +485,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
     def isValidDaemon(self, daemon):
         # overriden by distributed collector -- see DistributedServer.py
-        return isZenBinFile(daemon)
+        return isZenBinFile(daemon) or daemon == 'event'
 
     def getDaemonName(self, daemon):
         # overridden by distributed collector -- see DistributedServer.py

@@ -13,6 +13,7 @@ import time
 import logging
 import json
 import zope.interface
+from zope.component import getUtilitiesFor
 from twisted.internet import defer,  reactor, task
 from twisted.python.failure import Failure
 from optparse import SUPPRESS_HELP
@@ -20,6 +21,7 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
                                              IEventService,\
+                                             IConfigurationDispatchingFilter,\
                                              IFrameworkFactory,\
                                              ITaskSplitter,\
                                              IConfigurationListener,\
@@ -295,6 +297,17 @@ class CollectorDaemon(RRDDaemon):
         super(CollectorDaemon, self).parseOptions()
         self.preferences.options = self.options
 
+        options = self.options.__dict__
+        dispatchFilterName = options.get('configDispatch', '') if options else ''
+        filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
+        filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                        filterFactories.get('', None)
+        if filterFactory:
+            configFilter = filterFactory.getFilter(options)
+            if configFilter:
+                self.preferences.configFilter = configFilter
+                log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
+
     def connected(self):
         """
         Method called by PBDaemon after a connection to ZenHub is established.
@@ -367,7 +380,7 @@ class CollectorDaemon(RRDDaemon):
         @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
-        data_source, data_point_name = metric.split("_")
+        data_source, data_point_name = metric.split("_", 1)
         tags = {
             'datasource': data_source,
             'uuid': contextUUID
@@ -450,10 +463,13 @@ class CollectorDaemon(RRDDaemon):
         # guard against parsing updates during a disconnect
         if config is None:
             return
-        self.log.debug("Device %s updated", config.configId)
-        if not self.options.device or self.options.device in (config.id, config.configId):
+        configFilter = getattr(self.preferences, "configFilter", None) or (lambda x: True)
+        if (not self.options.device and configFilter(config)) or self.options.device in (config.id, config.configId):
+            self.log.debug("Device %s updated", config.configId)
             self._updateConfig(config)
             self._configProxy.updateConfigProxy(self.preferences, config)
+        else:
+            self.log.debug("Device %s config filtered", config.configId)
 
     def remote_updateDeviceConfigs(self, configs):
         """

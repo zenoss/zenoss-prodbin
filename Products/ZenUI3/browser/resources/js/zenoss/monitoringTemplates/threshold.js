@@ -155,7 +155,7 @@
                 record: response.record,
                 items: response.form,
                 singleColumn: true,
-                width: 650,
+                width: 800,
                 xtype: 'datasourceeditdialog',
                 title: _t('Edit Threshold'),
                 directFn: router.setInfo,

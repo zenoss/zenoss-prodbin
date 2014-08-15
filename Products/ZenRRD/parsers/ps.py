@@ -84,6 +84,12 @@ class ps(CommandParser):
             # '28835916 00:00:00 <defunct>'
             pid, cpu, cmdAndArgs = line.split(None, 2)
             rss = '0'
+        # Exiting and Idle processes look like this (no RSS data, TIME data == '-')
+        # '11337738                 - <exiting>'
+        # '11862166                 - <idle>'
+        # _extractProcessMetrics(self, line) method will try to parseCpuTime('-') with exception
+        if cpu == '-':
+            cpu = '00:00:00'
 
         return pid, rss, cpu, cmdAndArgs
 
@@ -146,9 +152,11 @@ class ps(CommandParser):
                     results.values.append( (dp, cpu) )
                 if 'mem' in dp.id:
                     results.values.append( (dp, rss) )
-                if 'count'in dp.id:
+                if 'count' in dp.id:
                     results.values.append( (dp, len(pids)) )
             else:
+                if 'count' in dp.id:
+                    results.values.append((dp,0))
                 failSeverity = dp.data['failSeverity']
                 # alert on missing (the process set contains 0 processes...)
                 summary = 'Process set contains 0 running processes: %s' % processSet

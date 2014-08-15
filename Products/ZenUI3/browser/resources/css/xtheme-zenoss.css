@@ -7785,7 +7785,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 #masterDetailNav {
   position: relative;
-  top: -35px !important; }
+  top: -23px !important; }
 
 #networks .x-tree-icon-leaf, #networks .x-tree-icon-parent, #ipv6networks .x-tree-icon-leaf, #ipv6networks .x-tree-icon-parent, #processTree .x-tree-icon-leaf, #processTree .x-tree-icon-parent, #navTree .x-tree-icon-leaf, #navTree .x-tree-icon-parent, #templateTree .x-tree-icon-leaf, #templateTree .x-tree-icon-parent, #deviceDetailNav .x-tree-icon-leaf, #deviceDetailNav .x-tree-icon-parent {
   background-image: url();
@@ -9782,6 +9782,8 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-window-body .x-panel-body {
   background-color: transparent;
   color: #fafafa; }
+.x-window-body .x-panel-body td {
+  color: black; }
 .x-window-body .x-fieldset {
   border: none; }
 .x-window-body .x-fieldset-header {
@@ -10437,8 +10439,6 @@ CORE TRIGGER PAGE STUFF
   background: transparent; }
 #evdetail_bd-body #event_detail_properties-body .x-panel-body {
   border: 0 none;
-  color: #7199E6;
-  cursor: pointer;
   font-size: 13px;
   text-decoration: none; }
 
@@ -10461,7 +10461,9 @@ CORE TRIGGER PAGE STUFF
   z-index: 19080; }
 
 .x-mask-msg-noicon div {
-  background-image: none; }
+  background-image: none;
+  cursor: default;
+}
 
 .x-grid-row-selected, .x-grid-row-focused {
   background-color: #7199c6 !important; }

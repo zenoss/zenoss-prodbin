@@ -331,7 +331,7 @@ var componentCard = {
                         grid.filter(this.getValue());
                     },
                     listeners: {
-                        keypress: function(field, e) {
+                        keyup: function(field, e) {
                             if (e.getKey() === e.ENTER) {
                                 field.filterGrid();
                             } else {
@@ -692,12 +692,28 @@ Ext.define('Zenoss.DeviceDetailNav', {
     onGetNavConfig: function(contextId) {
         return Zenoss.nav.get('Device');
     },
+    previousToken: null,
     selectByToken: function(token) {
+        if (token == this.previousToken) {
+            return;
+        }
+        this.previousToken = token;
         var root = this.treepanel.getRootNode(),
+            componentRootNode = this.treepanel.getStore().getNodeById(UID),
             loader = this.treepanel.getStore(),
             sm = this.treepanel.getSelectionModel(),
             sel = sm.getSelectedNode(),
             findAndSelect = function() {
+                var nodeId = token;
+                // handle component deep linking
+                if (token.split(Ext.util.History.DELIMITER).length == 2) {
+                    var pieces = token.split(Ext.util.History.DELIMITER),
+                    type = pieces[0], rest = pieces[1];
+                    var tosel = componentRootNode.findChild('id', type);
+                    selectOnRender(tosel, sm);
+                    return Ext.getCmp('component_card').selectByToken(rest);
+                }
+
                 var node = root.findChildBy(function(n){
                     return n.get('id')==token;
                 });
@@ -737,7 +753,9 @@ Ext.define('Zenoss.DeviceDetailNav', {
         var token = Ext.History.getToken(),
             mytoken = this.id + Ext.History.DELIMITER + node.get('id');
         if (!token || token.slice(0, mytoken.length)!=mytoken) {
+            Ext.History.suspendEvents();
             Ext.History.add(mytoken);
+            Ext.History.resumeEvents();
         }
         action(node, target);
     }
@@ -1201,6 +1219,11 @@ Ext.getCmp('footer_bar').add([{
         // work around a rendering bug in ExtJs see ticket ZEN-3054
         var viewport = Ext.getCmp('viewport');
         viewport.setHeight(viewport.getHeight() +1 );
+    }
+
+    // make sure we are always at least selecting the first item.
+    if (window.location.hash == "") {
+        Ext.History.add("deviceDetailNav:device_overview");
     }
 
 

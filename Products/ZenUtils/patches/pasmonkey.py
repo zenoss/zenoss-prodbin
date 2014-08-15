@@ -159,7 +159,14 @@ def login(self):
     pas_instance = self._getPAS()
 
     if pas_instance is not None:
-        pas_instance.updateCredentials(request, response, login, password)
+        try:
+            pas_instance.updateCredentials(request, response, login, password)
+        except KeyError:
+            # see defect ZEN-2942 If the time changes while the server is running
+            # set the session database to a sane state.
+            ts = self.unrestrictedTraverse('/temp_folder/session_data')
+            ts._reset()
+            _originalResetCredentials(self, request, response)
 
     came_from = request.form.get('came_from') or ''
     if came_from:
@@ -179,7 +186,9 @@ def login(self):
         url = "%s/zenoss_terms/?came_from=%s" % (
                     self.absolute_url(), urllib.quote(came_from))
     else:
-        url = came_from
+        # get rid of host part of URL (prevents open redirect attacks)
+        clean_url = ['', ''] + list(urlparse.urlsplit(came_from))[2:]
+        url = urlparse.urlunsplit(clean_url)
 
     fragment = request.get('fragment', '')
     if fragment:

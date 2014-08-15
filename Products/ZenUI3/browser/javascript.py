@@ -17,7 +17,7 @@ from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
 from Products.ZenUI3.browser.interfaces import IJavaScriptSrcViewlet,\
-    IJavaScriptBundleViewlet, IJavaScriptSrcManager
+    IJavaScriptBundleViewlet, IJavaScriptSrcManager, IXTraceSrcManager, ICSSBundleViewlet, ICSSSrcManager
 from Products.Five.viewlet.viewlet import ViewletBase
 from Products.ZenUI3.navigation.manager import WeightOrderedViewletManager
 from Products.ZenUtils.extdirect.zope.metaconfigure import allDirectRouters
@@ -43,6 +43,7 @@ def getPathModifiedTime(path):
             return os.path.getmtime(fullPath)
 
 SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
+LINK_TAG_SRC_TEMPLATE = '<link rel="stylesheet" type="text/css" href="%s"></link>\n'
 
 
 
@@ -57,11 +58,32 @@ class MainSnippetManager(JavaScriptSnippetManager):
     """
     zope.interface.implements(IMainSnippetManager)
 
+class CSSSrcManager(WeightOrderedViewletManager):
+    zope.interface.implements(ICSSSrcManager)
 
 class JavaScriptSrcManager(WeightOrderedViewletManager):
     zope.interface.implements(IJavaScriptSrcManager)
 
+class XTraceSrcManager(WeightOrderedViewletManager):
+    zope.interface.implements(IXTraceSrcManager)
 
+
+class CSSSrcBundleViewlet(ViewletBase):
+    zope.interface.implements(ICSSBundleViewlet)
+    #space delimited string of src paths
+    paths = ''
+
+    def render(self):
+        vals = []
+        if self.paths:
+            for path in self.paths.split():
+                vals.append(LINK_TAG_SRC_TEMPLATE % getVersionedPath(path))
+        js = ''
+        if vals:
+            js = "".join(vals)
+        return js
+
+    
 class JavaScriptSrcViewlet(ViewletBase):
     zope.interface.implements(IJavaScriptSrcViewlet)
     path = None

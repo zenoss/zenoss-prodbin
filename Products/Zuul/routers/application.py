@@ -28,6 +28,9 @@ class ApplicationRouter(TreeRouter):
     def _getFacade(self):
         return Zuul.getFacade('applications', self.context)
 
+    def _monitorFacade(self):
+        return Zuul.getFacade('monitors', self.context)
+
     def getTree(self, id):
         """
         Returns the tree structure of the application and collector
@@ -160,11 +163,9 @@ class ApplicationRouter(TreeRouter):
         @return:  B{Properties}:
              - data: ([String]) List of resource pool identifiers
         """
-        pools = []
-        resourcePoolIds = self._getFacade().getResourcePoolIds()
-        for p in resourcePoolIds:
-            pools.append(dict(name=p))
-        return DirectResponse.succeed(data=Zuul.marshal(pools))
+        pools = self._monitorFacade().queryPools()
+        ids = (dict(name=p.id) for p in pools)
+        return DirectResponse.succeed(data=Zuul.marshal(ids))
 
     def getApplicationConfigFiles(self, id):
         """
@@ -174,7 +175,7 @@ class ApplicationRouter(TreeRouter):
         info = IInfo(facade.get(id))
         files = info.configFiles
         return DirectResponse.succeed(data=Zuul.marshal(files))
-    
+
     def updateConfigFiles(self, id, configFiles):
         """
         Updates the configuration files for an application specified by id.

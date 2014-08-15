@@ -135,6 +135,8 @@ class Tooltips(BrowserView):
         tpl = "Zenoss.registerTooltip(%s);"
         for tip in tips:
             results.append(tpl % json(tip))
+        self.request.response.setHeader('Pragma', 'no-cache')           # Bypass caching because all tooltips for all pages use the same file tooltips.js
+        self.request.response.setHeader('Cache-Control', 'no-cache')    # Bypass caching because all tooltips for all pages use the same file tooltips.js
         self.request.response.setHeader('Content-Type', 'text/javascript')
         self.request.response.enableHTTPCompression(REQUEST=self.request)
         return "Ext.onReady(function(){%s})" % '\n'.join(results)

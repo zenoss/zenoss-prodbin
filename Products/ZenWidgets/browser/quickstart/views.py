@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -72,7 +72,7 @@ class DeviceAddView(BrowserView):
         """
         Walks all device classes building a list of description/protocol pairs.
         """
-        ALLOWED_PROTOCOLS = ('SSH', 'SNMP', 'WMI')
+        ALLOWED_PROTOCOLS = ('SSH', 'SNMP', 'WMI', 'WinRM')
         devclass = self.context.dmd.Devices
         orgs = devclass.getSubOrganizers()
         types = []
@@ -90,6 +90,10 @@ class DeviceAddView(BrowserView):
                 if not ptcl or not desc:
                     continue
 
+                # special case for migrating from WMI to WinRM so we
+                # can allow the zenpack to be backwards compatible
+                if org.getOrganizerName() == '/Server/Microsoft/Windows' and ptcl == 'WMI':
+                    ptcl = "WinRM"
                 # We only care about orgs with acceptable protocols
                 if ptcl not in ALLOWED_PROTOCOLS: continue
                 types.append((org.getOrganizerName(), desc, ptcl))
@@ -110,11 +114,12 @@ class DeviceAddView(BrowserView):
         appropriate ZenPack installed?).
         """
         # Turn them into the dictionary format expected
-        types = {'win':[], 'ssh':[], 'snmp':[]}
+        types = {'win':[], 'ssh':[], 'snmp':[], 'winrm': []}
         for t in self._assemble_types_list():
             if   t[2]=='WMI':  types['win'].append(t)
             elif t[2]=='SNMP': types['snmp'].append(t)
             elif t[2]=='SSH':  types['ssh'].append(t)
+            elif t[2]=='WinRM': types['win'].append(t)
 
         def dev_class_exists(path):
             """
@@ -165,8 +170,8 @@ class DeviceAddView(BrowserView):
         zProperties = {
             'zCommandUsername': self.request.form.get('sshusername'),
             'zCommandPassword': self.request.form.get('sshpass'),
-            'zWinUser': self.request.form.get('winusername'),
-            'zWinPassword': self.request.form.get('winpass'),
+            'zWinRMUser': self.request.form.get('winusername'),
+            'zWinRMPassword': self.request.form.get('winpass'),
             'zSnmpCommunities': self.request.form.get('snmpcommunities').splitlines()
         }
         collector = self.request.form.get('autodiscovery_collector', 'localhost')
@@ -269,8 +274,8 @@ class DeviceAddView(BrowserView):
                 }
             elif type_=='win':
                 zProps = {
-                    'zWinUser': self.request.form.get('winuser_%s' % idx),
-                    'zWinPassword': self.request.form.get('winpass_%s' % idx),
+                    'zWinRMUser': self.request.form.get('winuser_%s' % idx),
+                    'zWinRMPassword': self.request.form.get('winpass_%s' % idx),
                 }
             elif type_=='snmp':
                 zProps = {

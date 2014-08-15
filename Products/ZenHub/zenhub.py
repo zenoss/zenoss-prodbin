@@ -175,6 +175,10 @@ class HubAvitar(pb.Avatar):
         """
         try:
             service = self.hub.getService(serviceName, instance)
+        except RemoteBadMonitor:
+            # This is a valid remote exception, so let it go through
+            # to the collector daemon to handle
+            raise
         except Exception:
             self.hub.log.exception("Failed to get service '%s'", serviceName)
             return None
@@ -679,8 +683,8 @@ class ZenHub(ZCmdBase):
         # Sanity check the names given to us
         if not self.dmd.Monitors.Performance._getOb(instance, False):
             raise RemoteBadMonitor("The provided performance monitor '%s'" %
-                                   self.options.monitor +
-                                   " is not in the current list")
+                                   instance +
+                                   " is not in the current list", None)
 
         try:
             return self.services[name, instance]

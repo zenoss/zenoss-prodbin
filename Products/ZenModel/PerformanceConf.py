@@ -526,8 +526,10 @@ class PerformanceConf(Monitor, StatusColor):
         """
         Execute zenmodeler and return result
 
-        @param zenmodelerOpts: zenmodeler command-line options
-        @type zenmodelerOpts: string
+        @param deviceName: The name of the device
+        @type deviceName: string
+        @param performanceMonitor: Name of the collector
+        @type performanceMonitor: string
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         @return: results of command
@@ -539,7 +541,7 @@ class PerformanceConf(Monitor, StatusColor):
             log.info('queued job: %s', " ".join(zenmodelerCmd))
             result = self.dmd.JobManager.addJob(
                 SubprocessJob,
-                description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
+                description="Run zenmodeler %s" % ' '.join(zenmodelerCmd),
                 args=(zenmodelerCmd,)
             )
         else:

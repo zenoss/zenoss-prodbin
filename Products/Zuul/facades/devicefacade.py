@@ -652,6 +652,13 @@ class DeviceFacade(TreeFacade):
             docs[plugin.pluginName] = pluginDocs
         return docs
 
+    def getConnectionInfo(self, uid):
+        obj = self._getObject(uid)
+        result = []
+        for prop in obj.deviceClass().primaryAq().getZ('zCredentialsZProperties', []):
+            result.append(obj.exportZProperty(prop))
+        return result
+    
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         graphs = []

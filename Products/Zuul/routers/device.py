@@ -488,7 +488,11 @@ class DeviceRouter(TreeRouter):
             audit(['UI.Device', action], uid,
                   data_={targetType:target}, oldData_=oldData)
         try:
-            result = facade.moveDevices(uids, target, asynchronous=asynchronous)
+            targetObj = facade._getObject(target)
+            if Zuul.checkPermission(ZEN_ADMIN_DEVICE, targetObj):
+                result = facade.moveDevices(uids, target, asynchronous=asynchronous)
+            else:
+                return DirectResponse.fail(msg='User does not have permissions to move devices to {0}'.format(target))
         except Exception, e:
             log.exception("Failed to move devices")
             return DirectResponse.exception(e, 'Failed to move devices.')
@@ -1019,6 +1023,7 @@ class DeviceRouter(TreeRouter):
                 audit('UI.Component.Delete', uid)
             return DirectResponse.succeed('Components deleted.')
         except Exception, e:
+            log.exception(e)
             return DirectResponse.exception(e, 'Failed to delete components.')
 
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
@@ -1690,6 +1695,22 @@ class DeviceRouter(TreeRouter):
         audit('UI.GeocodeCache.Clear')
         return DirectResponse.succeed()
 
+    def getConnectionInfo(self, uid):
+        """
+        Returns the zproperty information about those zproperties which comprise
+        the credentials
+        @rtype:   List of Dictionaries
+        @return:  B{Properties}:
+             - path: (string) where the property is defined
+             - type: (string) type of zproperty it is
+             - options: (Array) available options for the zproperty
+             - value (Array) value of the zproperty
+             - valueAsString (string)
+        """
+        facade = self._getFacade()
+        data = facade.getConnectionInfo(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+    
     @serviceConnectionError
     def getModelerPluginDocStrings(self, uid):
         """

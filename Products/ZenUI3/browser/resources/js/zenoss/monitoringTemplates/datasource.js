@@ -12,7 +12,7 @@
 
 var router, dataSourcesId, graphsId, resetCombo,
     addMetricToGraph, showAddToGraphDialog, editDataSourcesId, treeId,
-    dataSourceMenu, editingReSelectId;
+    editingReSelectId;
 
 Ext.ns('Zenoss');
 
@@ -41,9 +41,6 @@ resetCombo = function(combo, uid) {
 addMetricToGraph = function(dataPointUid, graphUid) {
     var params, callback;
     params = {dataPointUid: dataPointUid, graphUid: graphUid};
-    callback = function(provider, response) {
-        Ext.getCmp(graphsId).refresh();
-    };
     router.addDataPointToGraph(params, callback);
 };
 
@@ -51,7 +48,7 @@ Ext.define('Zenoss.GraphModel', {
     extend: 'Ext.data.Model',
     idProperty: 'uid',
     fields: [
-        'uid', 'name', 'graphPoints', 'units', 'height', 'width', 
+        'uid', 'name', 'graphPoints', 'units', 'height', 'width',
              'sequence'
     ]
 });
@@ -70,60 +67,56 @@ Ext.define("Zenoss.GraphStore", {
 });
 
 
-showAddToGraphDialog = function() {
-    var smTemplate, templateUid, smDataSource,
-        nodeDataSource, metricName, html, combo;
-    smTemplate = Ext.getCmp('templateTree').getSelectionModel();
-    templateUid = smTemplate.getSelectedNode().data.uid;
-    smDataSource = Ext.getCmp(dataSourcesId).getSelectionModel();
-    nodeDataSource = smDataSource.getSelectedNode();
+showAddToGraphDialog = function(node, templateUid) {
+    var nodeDataSource, metricName, html, combo;
+    nodeDataSource = node;
     if ( nodeDataSource && nodeDataSource.isLeaf() ) {
         metricName = nodeDataSource.data.name;
         html = '<div>Data Point</div>';
         html += '<div>' + metricName + '</div><br/>';
 
-    Ext.create('Zenoss.dialog.BaseWindow', {
+        Ext.create('Zenoss.dialog.BaseWindow', {
             id: 'addToGraphDialog',
             width: 400,
             height: 250,
             title: _t('Add Data Point to Graph'),
             items: [
-            {
-                xtype: 'panel',
-                id: 'addToGraphMetricPanel'
-            }, {
-                xtype: 'combo',
-                id: 'graphCombo',
-                fieldLabel: _t('Graph'),
-                displayField: 'name',
-                valueField: 'uid',
-                width:300,
-                minChars: 999, // only do an all query
-                resizeable: true,
-                editable: false,
-                emptyText: 'Select a graph...',
-                store: new Zenoss.GraphStore({}),
-                listeners: {select: function(){
-                    Ext.getCmp('addToGraphDialog').submit.enable();
-                }}
-            }],
+                {
+                    xtype: 'panel',
+                    id: 'addToGraphMetricPanel'
+                }, {
+                    xtype: 'combo',
+                    id: 'graphCombo',
+                    fieldLabel: _t('Graph'),
+                    displayField: 'name',
+                    valueField: 'uid',
+                    width:300,
+                    minChars: 999, // only do an all query
+                    resizeable: true,
+                    editable: false,
+                    emptyText: 'Select a graph...',
+                    store: new Zenoss.GraphStore({}),
+                    listeners: {select: function(){
+                        Ext.getCmp('addToGraphDialog').submit.enable();
+                    }}
+                }],
             buttons: [
-            {
-                xtype: 'DialogButton',
-                ref: '../submit',
-                text: _t('Submit'),
-                disabled: true,
-                handler: function(button, event) {
-                    var node, datapointUid, graphUid;
-                    node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
-                    datapointUid = node.data.uid;
-                    graphUid = Ext.getCmp('graphCombo').getValue();
-                    addMetricToGraph(datapointUid, graphUid);
-                }
-            }, {
-                xtype: 'DialogButton',
-                text: _t('Cancel')
-            }]
+                {
+                    xtype: 'DialogButton',
+                    ref: '../submit',
+                    text: _t('Submit'),
+                    disabled: true,
+                    handler: function(button, event) {
+                        var node, datapointUid, graphUid;
+                        node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
+                        datapointUid = node.data.uid;
+                        graphUid = Ext.getCmp('graphCombo').getValue();
+                        addMetricToGraph(datapointUid, graphUid);
+                    }
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
         }).show();
 
         Ext.getCmp('addToGraphMetricPanel').body.update(html);
@@ -162,33 +155,58 @@ function refreshDataSourceGrid(selectedId) {
     }
 }
 
-/**
- * Gets the DataPoint name from the dialog and sends it to the server
- **/
-function saveDataPoint() {
-    var grid = Ext.getCmp(dataSourcesId),
-        selectedNode = grid.getSelectionModel().getSelectedNode(),
-        parameters, selectedId;
 
-    // if we have a datapoint, find the datasource associated with it
-    if (selectedNode.data.leaf) {
-        selectedNode = selectedNode.parentNode;
+Ext.define('Zenoss.templates.AddDataPointDialog', {
+    alias: ['widget.addDpDialog'],
+    extend: 'Zenoss.dialog.BaseWindow',
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            title: _t('Add Data Point'),
+            height: 160,
+            width: 310,
+            listeners: {
+                validitychange: function(form, isValid) {
+                    this.ownerCt.query('DialogButton')[0].setDisabled(!isValid);
+                }
+            },
+            items:{
+                xtype: 'form',
+                buttonAlign: 'left',
+                items: [{
+                    xtype: 'idfield',
+                    ref: 'metricName',
+                    fieldLabel: _t('Name'),
+                    allowBlank: false,
+                    blankText: _t('Name is a required field')
+                }],
+                buttons: [{
+                    xtype: 'DialogButton',
+                    ref: '../submitNewDataPoint',
+                    text: _t('Submit'),
+                    formBind: true,
+                    handler: function() {
+                        parameters = {
+                            name: this.refOwner.metricName.getValue(),
+                            dataSourceUid: config.dataSourceUid
+                        };
+                        return router.addDataPoint(parameters, function() {
+                            if (config.selectedId) {
+                                refreshDataSourceGrid(config.dataSourceId);
+                            } else {
+                                refreshDataSourceGrid();
+                            }
+                        });
+                    }
+                },{
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            }
+        });
+        this.callParent(arguments);
     }
-
-    parameters = {
-        name: Ext.getCmp('metricName').getValue(),
-        dataSourceUid: selectedNode.data.uid
-    };
-    selectedId = selectedNode.data.id;
-    // get selected datasource, and reopen the grid to that point
-    function callback() {
-        refreshDataSourceGrid(selectedId);
-    }
-    return router.addDataPoint(parameters, callback);
-
-}
-
-
+});
 
 /**
  * Displays the Add Data Point dialog and saves the inputted infomation
@@ -200,49 +218,15 @@ function showAddDataPointDialog() {
 
     // make sure they selected a node
     if (!selectedNode) {
-        new Zenoss.dialog.ErrorDialog({message: _t('You must select data source.')});
+        new Zenoss.dialog.ErrorDialog({message: _t('You must select a data source.')});
         return;
     }
 
     // display the name dialog
-    /**
-     * Add Data Point Dialog Configuration
-     **/
-    Ext.create('Zenoss.dialog.BaseWindow', {
-        id: 'addDataPointDialog',
-        title: _t('Add Data Point'),
-        height: 160,
-        width: 310,
-        listeners: {
-            hide: function() {
-                Ext.getCmp('metricName').setValue(null);
-                Ext.getCmp('metricName').clearInvalid();
-            },
-            validitychange: function(form, isValid) {
-                Ext.getCmp('addDataPointDialog').query('DialogButton')[0].setDisabled(!isValid);
-            }
-        },
-        items:{
-            xtype: 'form',
-            buttonAlign: 'left',
-            items: [{
-                xtype: 'idfield',
-                id: 'metricName',
-                fieldLabel: _t('Name'),
-                allowBlank: false,
-                blankText: _t('Name is a required field')
-            }],
-            buttons: [{
-                xtype: 'DialogButton',
-                text: _t('Submit'),
-                formBind: true,
-                handler: saveDataPoint
-            },{
-                xtype: 'DialogButton',
-                text: _t('Cancel')
-            }]
-          }
-        }).show();
+    Ext.create('Zenoss.templates.AddDataPointDialog', {
+        dataSourceUid: selectedNode.data.uid,
+        dataSourceId: selectedNode.data.id
+    }).show();
 }
 
 /**********************************************************************
@@ -250,20 +234,6 @@ function showAddDataPointDialog() {
  * Add Data Source
  *
  */
-
-/**
- * Gets the info from the Add Datasource dialog and sends it to the server
- **/
-function saveDataSource() {
-    var grid = Ext.getCmp(treeId),
-        selectedNode = grid.getSelectionModel().getSelectedNode(),
-        parameters = {
-            name: Ext.getCmp('dataSourceName').getValue(),
-            type: Ext.getCmp('dataSourceTypeCombo').getValue(),
-            templateUid: selectedNode.data.uid
-        };
-    return router.addDataSource(parameters, refreshDataSourceGrid);
-}
 
 /**
  * @class Zenoss.templates.DataSourceTypeModel
@@ -278,59 +248,36 @@ Ext.define('Zenoss.templates.DataSourceTypeModel',  {
     ]
 });
 
-
-
-/**
- * Shows the Add Data Source dialog and saves the inputted information
- * back to the server
- **/
-function showAddDataSourceDialog() {
-    var cmp = Ext.getCmp(treeId),
-        selectedNode = cmp.getSelectionModel().getSelectedNode(),
-        context;
-
-    // make sure they selected a node
-    if (!selectedNode) {
-        new Zenoss.dialog.ErrorDialog({message: _t('You must select a template.')});
-        return;
-    }
-    context = selectedNode.get('uid')  + '/datasources';
-    // clear the entries (all of our forms are blank when you load them)
-    Ext.create('Zenoss.dialog.BaseWindow', {
-            id: 'addDataSourceDialog',
+Ext.define('Zenoss.templates.AddDataSourceDialog', {
+    alias: ['widget.addDsDialog'],
+    extend: 'Zenoss.dialog.BaseWindow',
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
             title: _t('Add Data Source'),
             height: 180,
             width: 350,
-            listeners: {
-                hide: function() {
-                    Ext.getCmp('dataSourceTypeCombo').setValue('SNMP');
-                    Ext.getCmp('dataSourceName').setValue('');
-                    Ext.getCmp('dataSourceName').clearInvalid();
-                }
-
-            },
             items:{
                 xtype:'form',
                 buttonAlign: 'left',
                 listeners: {
                     validitychange: function(form, isValid) {
                         if (isValid) {
-                            Ext.getCmp('addDataSourceDialog').query('button')[0].enable();
+                            this.ownerCt.query('button')[0].enable();
                         } else {
-                            Ext.getCmp('addDataSourceDialog').query('button')[0].disable();
+                            this.ownerCt.query('button')[0].disable();
                         }
                     }
                 },
                 items:[{
                     xtype: 'idfield',
-                    context: context,
-                    id: 'dataSourceName',
+                    ref: 'dataSourceName',
                     fieldLabel: _t('Name'),
                     allowBlank: false,
                     blankText: _t('Name is a required field')
                 }, {
                     xtype: 'combo',
-                    id: 'dataSourceTypeCombo',
+                    ref: 'dataSourceTypeCombo',
                     allowBlank: false,
                     displayField: 'type',
                     fieldLabel: _t('Type'),
@@ -346,15 +293,41 @@ function showAddDataSourceDialog() {
                 }],
                 buttons:[{
                     xtype: 'DialogButton',
+                    ref: '../submitNewDataSource',
                     disabled: true,
                     text: _t('Submit'),
                     handler: function() {
-                        saveDataSource();
+                        parameters = {
+                            name: this.refOwner.dataSourceName.getValue(),
+                            type: this.refOwner.dataSourceTypeCombo.getValue(),
+                            templateUid: config.templateUid
+                        };
+                        return router.addDataSource(parameters, refreshDataSourceGrid);
                     }
                 },Zenoss.dialog.CANCEL
                 ]
             }
-    }).show();
+        });
+        this.callParent(arguments);
+    }
+});
+
+/**
+ * Shows the Add Data Source dialog and saves the inputted information
+ * back to the server
+ **/
+function showAddDataSourceDialog() {
+    var cmp = Ext.getCmp(treeId),
+        selectedNode = cmp.getSelectionModel().getSelectedNode(),
+        templateUid;
+
+    // make sure they selected a node
+    if (!selectedNode) {
+        new Zenoss.dialog.ErrorDialog({message: _t('You must select a template.')});
+        return;
+    }
+    templateUid = selectedNode.data.uid;
+    Ext.create('Zenoss.templates.AddDataSourceDialog', {templateUid: templateUid}).show();
 }
 
 /**********************************************************************
@@ -375,28 +348,7 @@ function showDeleteDataSourceDialog() {
         html = Ext.String.format(msg, name);
 
         // show the dialog
-        dialog = new Zenoss.MessageDialog({
-            title: _t('Delete'),
-            // msg is generated dynamically
-            okHandler: function(){
-                var params, node = getSelectedDataSourceOrPoint(),
-                selectedId;
-                params = {
-                    uid: getSelectedDataSourceOrPoint().get("uid")
-                };
-
-                // data points are always leafs
-                if (getSelectedDataSourceOrPoint().data.leaf) {
-                    selectedId = node.parentNode.data.id;
-                    function callback() {
-                        refreshDataSourceGrid(selectedId);
-                    }
-                    router.deleteDataPoint(params, callback);
-                }else {
-                    router.deleteDataSource(params, refreshDataSourceGrid);
-                }
-            }
-        });
+        dialog = Ext.getCmp('deleteDataSourceDialog');
         dialog.setText(html);
         dialog.show();
     }else{
@@ -404,7 +356,29 @@ function showDeleteDataSourceDialog() {
     }
 }
 
+new Zenoss.MessageDialog({
+    id: 'deleteDataSourceDialog',
+    title: _t('Delete'),
+    // msg is generated dynamically
+    okHandler: function(){
+        var params, node = getSelectedDataSourceOrPoint(),
+        selectedId;
+        params = {
+            uid: getSelectedDataSourceOrPoint().get("uid")
+        };
 
+        // data points are always leafs
+        if (getSelectedDataSourceOrPoint().data.leaf) {
+            selectedId = node.parentNode.data.id;
+            function callback() {
+                refreshDataSourceGrid(selectedId);
+            }
+            router.deleteDataPoint(params, callback);
+        }else {
+            router.deleteDataSource(params, refreshDataSourceGrid);
+        }
+    }
+});
 
 /**********************************************************************
  *
@@ -563,8 +537,6 @@ function editDataSourceOrPoint() {
 }
 
 
-
-
 /**
  * @class Zenoss.templates.DataSourceModel
  * @extends Ext.data.Model
@@ -622,7 +594,15 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
     alias: ['widget.DataSourceTreeGrid'],
 
     constructor: function(config) {
-
+        var tbarItems = config.tbarItems || [],
+            dsAddHandler = config.dsAddHandler || showAddDataSourceDialog,
+            dsDelHandler = config.dsDelHandler || showDeleteDataSourceDialog,
+            addToGraphHandler = config.addToGraphHandler || showAddToGraphDialog,
+            dpAddHandler = config.dpAddHandler || showAddDataPointDialog,
+            editEitherHandler = config.editEitherHandler || editDataSourceOrPoint,
+            me = this;
+            //dsDelHandler = config.dsDelHandler || showDeleteDataSourceDialog,
+            //dsEditMenu = config.dsEditMenu || dataSourceMenu;
         Ext.applyIf(config, {
             useArrows: true,
             cls: 'x-tree-noicon',
@@ -635,13 +615,13 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                 beforeitemdblclick: editDataSourceOrPoint
             },
             store: Ext.create('Zenoss.templates.DataSourceStore', {}),
-            tbar: [{
+            tbar: tbarItems.concat([{
                     xtype: 'button',
                     iconCls: 'add',
                     id:'datasourceAddButton',
                     ref: '../addButton',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                    handler: showAddDataSourceDialog,
+                    handler: dsAddHandler,
                     listeners: {
                         render: function() {
                             Zenoss.registerTooltipFor('datasourceAddButton');
@@ -658,7 +638,7 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                         Zenoss.registerTooltipFor('datasourceDeleteButton');
                     }
                 },
-                handler: showDeleteDataSourceDialog
+                handler: dsDelHandler
             },{
                 xtype: 'button',
                 id: 'datasourceEditButton',
@@ -675,20 +655,23 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                         xtype: 'menuitem',
                         text: _t('Add Data Point To Graph'),
                         disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                        handler: showAddToGraphDialog
+                        handler: function() {
+                            var node = me.getSelectionModel().getSelectedNode();
+                            addToGraphHandler(node, me.uid);
+                        }
                     },{
                         xtype: 'menuitem',
                         text: _t('Add Data Point'),
                         disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                        handler: showAddDataPointDialog
+                        handler: dpAddHandler
                     },{
                         xtype: 'menuitem',
                         text: _t('View and Edit Details'),
                         disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                        handler: editDataSourceOrPoint
+                        handler: editEitherHandler
                     }]
                 })
-            }],
+            }]),
             columns: [{
                 xtype: 'treecolumn', //this is so we know which column will show the tree
                 text: 'Name',
@@ -711,14 +694,7 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
             }],
             selModel: Ext.create('Zenoss.TreeSelectionModel', {
                 mode: 'SINGLE'
-            }),
-            viewConfig: {
-                plugins: {
-                    ptype: 'gridviewdragdrop',
-                    dragText: _t('Drag to add to Graph Definition'),
-                    dragGroup: 'addtoGraph'
-                }
-            }
+            })
         });
         this.callParent(arguments);
     },
