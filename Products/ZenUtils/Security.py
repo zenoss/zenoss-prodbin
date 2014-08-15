@@ -312,5 +312,11 @@ def migratePAS(context):
 @component.adapter(ZPublisher.interfaces.IPubEnd)
 def secureSessionCookie(event):
     """Zope session cookie should only accesible from the server side"""
-    if '_ZopeId' in event.request.response.cookies and 'http_only' not in event.request.response.cookies['_ZopeId']:
-        event.request.response.cookies['_ZopeId']['http_only'] = True
+    if '_ZopeId' in event.request.response.cookies:
+        if 'http_only' not in event.request.response.cookies['_ZopeId']:
+            event.request.response.cookies['_ZopeId']['http_only'] = True
+        if 'HTTP_X_FORWARDED_PROTO' in event.request.environ \
+                and event.request.environ['HTTP_X_FORWARDED_PROTO'] == 'https' \
+                and 'secure' not in event.request.response.cookies['_ZopeId']:
+            event.request.response.cookies['_ZopeId']['secure'] = True
+
