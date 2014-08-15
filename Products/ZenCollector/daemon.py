@@ -303,8 +303,10 @@ class CollectorDaemon(RRDDaemon):
         filterFactory = filterFactories.get(dispatchFilterName, None) or \
                         filterFactories.get('', None)
         if filterFactory:
-            self.preferences.configFilter = filterFactory.getFilter(options)
-            log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
+            configFilter = filterFactory.getFilter(options)
+            if configFilter:
+                self.preferences.configFilter = configFilter
+                log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
 
     def connected(self):
         """
@@ -461,7 +463,7 @@ class CollectorDaemon(RRDDaemon):
         # guard against parsing updates during a disconnect
         if config is None:
             return
-        configFilter = getattr(self.preferences, "configFilter", lambda x: True)
+        configFilter = getattr(self.preferences, "configFilter", None) or (lambda x: True)
         if (not self.options.device and configFilter(config)) or self.options.device in (config.id, config.configId):
             self.log.debug("Device %s updated", config.configId)
             self._updateConfig(config)
