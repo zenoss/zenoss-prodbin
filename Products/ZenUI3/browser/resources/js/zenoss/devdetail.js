@@ -545,6 +545,7 @@ var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
     id: 'device_component_graphs',
     components: Ext.pluck(Zenoss.env.componentTree, 'id')
 });
+    
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
     id: 'softwares'
 });
@@ -937,6 +938,22 @@ function addComponentHandler(item) {
     });
 }
 
+function modelDevice() {
+    var win = new Zenoss.CommandWindow({
+        uids: [UID],
+        target: 'run_model',
+        listeners: {
+            close: function(){
+                Ext.defer(function() {
+                    window.top.location.reload();
+                }, 1000);
+            }
+        },
+        title: _t('Model Device')
+    });
+    win.show();
+}
+
 Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
     id: 'component-add-menu',
@@ -1083,21 +1100,7 @@ Ext.getCmp('footer_bar').add([{
         xtype: 'menuitem',
         text: _t('Model Device') + '...',
         hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
-        handler: function() {
-            var win = new Zenoss.CommandWindow({
-                uids: [UID],
-                target: 'run_model',
-                listeners: {
-                    close: function(){
-                        Ext.defer(function() {
-                            window.top.location.reload();
-                        }, 1000);
-                    }
-                },
-                title: _t('Model Device')
-            });
-            win.show();
-        }
+        handler: modelDevice
     },{
         xtype: 'menuitem',
         text: _t('Change Device Class') + '...',
@@ -1185,6 +1188,13 @@ Ext.getCmp('footer_bar').add([{
         }
     },
     menu: {}
+},'-', {
+
+    xtype: 'button',
+    text: _t('Model Device'),
+    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+    handler: modelDevice
+
 }]);
 
     if (Ext.isIE) {

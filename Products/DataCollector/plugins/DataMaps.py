@@ -22,7 +22,8 @@ class RelationshipMap(PBSafe):
     compname = ""
     modname = ""
 
-    def __init__(self, parentId="", relname="", compname="", modname="", objmaps=None):
+    def __init__(self, relname="", compname="", modname="", objmaps=[],
+            parentId=""):
         self.parentId = parentId
         self.relname = relname
         self.compname = compname

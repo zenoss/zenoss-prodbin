@@ -70,7 +70,10 @@ class DeviceDetails(BrowserView):
         info = IInfo(self.context)
         # links is very expensive so do not marshal that
         keys = [key for key in dir(info)
-                if not key.startswith('_') and not callable(getattr(info, key)) and key not in ('links', 'uptime', 'events', 'deviceClass') ]
+                if (not key.startswith('_')
+                    and key not in ('links', 'uptime', 'events', 'deviceClass')
+                    and not callable(getattr(info, key)))
+                ]
         response = dict(data=Zuul.marshal(info, keys))
         js = """
             Zenoss.env.infoObject = %s;

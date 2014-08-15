@@ -71,4 +71,5 @@ portlets = [
 
 def register_default_portlets(portletmanager):
     for portlet in portlets:
-        portletmanager.register_portlet(**portlet)
+        if portletmanager.find(portlet['id']) is None:
+            portletmanager.register_portlet(**portlet)

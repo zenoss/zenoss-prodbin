@@ -49,7 +49,7 @@ def exec_worker(worker_id=None):
 
     argv = [sys.executable]
     # Remove unwanted parameters from worker processes
-    argv.extend(remove_args(sys.argv[:], ['-D','--daemon'], ['--workerid'], ['-c' ,'--cycle']))
+    argv.extend(remove_args(sys.argv[:], ['-D','--daemon','-c','--cycle'], ['--workerid']))
     if worker_id is not None:
         argv.append('--workerid=%d'%worker_id)
     # Tell the worker process to log to the log file and not just to console

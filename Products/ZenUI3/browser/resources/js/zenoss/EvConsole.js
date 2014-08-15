@@ -33,10 +33,21 @@ Ext.onReady(function(){
 
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3');});
+    // update the document title based on the number of open events (includes filters)
+    var originalTitle = document.title;
+    function updateTitle(store) {
+        if (store.totalCount) {
+            document.title = Ext.String.format("({0}) {1}", store.totalCount, originalTitle);
+        } else {
+            document.title = originalTitle;
+        }
+    }
 
     var console_store = Ext.create('Zenoss.events.Store', {
     });
 
+    console_store.on('afterguaranteedrange', updateTitle);
+    console_store.on('load', updateTitle);
 
     // Selection model
     var console_selection_model = Ext.create('Zenoss.EventPanelSelectionModel', {
@@ -86,13 +97,18 @@ Ext.onReady(function(){
     // Add it to the layout
 
     master_panel.add(grid);
-	
+
     if (Zenoss.settings.showPageStatistics){
         var stats = Ext.create('Zenoss.stats.Events');
     }
 
     Zenoss.util.callWhenReady('events_grid', function(){
-        Ext.getCmp('events_grid').setContext(Zenoss.env.PARENT_CONTEXT);
+        // Use current context if set or parent if not 
+        var currentContext = Zenoss.env.CURRENT_CONTEXT; 
+        if (currentContext != null) 
+            Ext.getCmp('events_grid').uid = currentContext; 
+        else 
+            Ext.getCmp('events_grid').uid = Zenoss.env.PARENT_CONTEXT; 
     });
 
     var pageParameters = Ext.urlDecode(window.location.search.substring(1));

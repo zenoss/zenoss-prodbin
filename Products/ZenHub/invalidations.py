@@ -21,6 +21,7 @@ from .interfaces import IInvalidationProcessor, IHubCreatedEvent
 from .zodb import UpdateEvent, DeletionEvent
 
 log = logging.getLogger('zen.ZenHub')
+INVALIDATIONS_PAUSED = 'PAUSED'
 
 @defer.inlineCallbacks
 def betterObjectEventNotify(event):
@@ -87,7 +88,7 @@ class InvalidationProcessor(object):
         queue = self._invalidation_queue
         if self._hub.dmd.pauseHubNotifications:
             log.debug('notifications are currently paused')
-            return
+            defer.returnValue(INVALIDATIONS_PAUSED)
         for i, oid in enumerate(oids):
             ioid = u64(oid)
             # Try pushing it into the queue, which is an IITreeSet. If it inserted

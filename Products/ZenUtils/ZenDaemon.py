@@ -24,7 +24,7 @@ from twisted.python import log as twisted_log
 
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.CmdBase import CmdBase
-from Products.ZenUtils.Utils import zenPath, HtmlFormatter, binPath
+from Products.ZenUtils.Utils import zenPath, HtmlFormatter, binPath, setLogLevel
 from Products.ZenUtils.Watchdog import Reporter
 from Products.Zuul.utils import safe_hasattr as hasattr
 
@@ -214,7 +214,7 @@ class ZenDaemon(CmdBase):
         if currentLevel == logging.DEBUG:
             if self.options.logseverity == logging.DEBUG:
                 return
-            log.setLevel(self.options.logseverity)
+            setLogLevel(self.options.logseverity, "zen")
             log.info(
                 "Restoring logging level back to %s (%d)",
                 logging.getLevelName(self.options.logseverity) or "unknown",
@@ -225,7 +225,7 @@ class ZenDaemon(CmdBase):
                 log.info("Unable to remove Twisted logger -- "
                          "expect Twisted logging to continue.")
         else:
-            log.setLevel(logging.DEBUG)
+            setLogLevel(logging.DEBUG, "zen")
             log.info("Setting logging level to DEBUG")
             getTwistedLogger().start()
         self._sigUSR1_called(signum, frame)

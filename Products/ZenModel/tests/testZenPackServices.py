@@ -6,6 +6,7 @@
 #
 # 
 import functools
+import os
 import json
 import cStringIO
 
@@ -13,7 +14,7 @@ from contextlib import contextmanager
 
 import Globals
 from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
-from Products.ZenModel.ZenPack import ZenPack
+from Products.ZenModel.ZenPack import ZenPack, DirectoryConfigContents
 import Products.ZenModel.ZenPack
 import __builtin__
 
@@ -84,7 +85,7 @@ def setCurrentService(id):
 def setBuiltinOpen(fileDict):
     try:
         builtin_open = __builtin__.open
-        def _open(name, mode):
+        def _open(name, mode='r'):
             if name in fileDict:
                 return cStringIO.StringIO(json.dumps(fileDict[name]))
             else:
@@ -99,7 +100,7 @@ class TestZenpackServices(ZenModelBaseTest):
         client = _MockControlPlaneClient(services=_services)
         service = json.dumps(_MockService('id'), cls=_MockServiceEncoder)
         with setControlPlaneClient(client):
-            ZenPack("id").installServices(service, "/hub")
+            ZenPack("id").installServiceDefinitions(service, "/hub")
         self.assertEquals(client.added, [])
 
     def testAddSingleService(self):
@@ -108,7 +109,7 @@ class TestZenpackServices(ZenModelBaseTest):
         service.poolId = 'not_default'
         service = json.dumps(service, cls=_MockServiceEncoder)
         with setControlPlaneClient(client), setCurrentService('zope'):
-            ZenPack("id").installServices(service, "/hub")
+            ZenPack("id").installServiceDefinitions(service, "/hub")
         self.assertEquals(len(client.added), 1)
         parent, added = client.added[0][0], json.loads(client.added[0][1])
         self.assertEquals(added['Id'], 'id')
@@ -120,7 +121,7 @@ class TestZenpackServices(ZenModelBaseTest):
                     for i in ('id1', 'id2')]
         paths = ['/', '/hub']
         with setControlPlaneClient(client), setCurrentService('zope'):
-            ZenPack("id").installServices(services, paths)
+            ZenPack("id").installServiceDefinitions(services, paths)
         self.assertEquals(len(client.added), 2)
         added = [(i[0], json.loads(i[1])) for i in client.added]
         self.assertEquals(added[0][1]['Id'], 'id1')
@@ -158,15 +159,107 @@ class TestZenpackServices(ZenModelBaseTest):
         fileDict = dict (
             a={P_KEY: '/', D_KEY: {E_KEY:'zenoss', I_KEY:'a'}},
             b={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'b'}},
-            c={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'c', 'Tags':['whatever']}},
+            c={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'c'}},
         )
         client = _MockControlPlaneClient(services=_services)
         with setControlPlaneClient(client), setCurrentService('zope'), setBuiltinOpen(fileDict):
-            ZenPack('id').installServicesFromFiles(fileDict.keys(), tag)
+            ZenPack('id').installServicesFromFiles(fileDict.keys(), [{}] * len(fileDict.keys()), tag)
         self.assertEquals(len(fileDict), len(client.added))
         for i,j in ((i[0],json.loads(i[1])) for i in client.added):
-            self.assertTrue(tag in j['Tags'])
             self.assertEquals(i, j[E_KEY])
+
+    def testConfigMap(self):
+        tag='myZenpack'
+        client = _MockControlPlaneClient(services=_services)
+        fileDict = {
+            "service.json":{
+                'servicePath': '/',
+                'serviceDefinition': {
+                   'Id': 'svc',
+                   'ConfigFiles': {
+                       '/opt/zenoss/etc/service.conf': {},
+                       '/opt/zenoss/etc/other.conf': {}
+                   }
+                }
+            },
+        }
+        configMap = {
+            '/opt/zenoss/etc/service.conf': "foobar",
+            '/opt/zenoss/etc/other.conf': "boofar"
+        }
+        client = _MockControlPlaneClient(services=_services)
+        with setControlPlaneClient(client), setCurrentService('zope'), setBuiltinOpen(fileDict):
+            ZenPack('id').installServicesFromFiles(fileDict.keys(),
+                                                   [configMap],
+                                                   tag)
+        self.assertEquals(len(fileDict), len(client.added))
+        for i, j in ((i[0], json.loads(i[1])) for i in client.added):
+            for key,val in configMap.iteritems():
+                self.assertEquals(j['ConfigFiles'][key]['Content'], val)
+
+
+    def testNormalizeServiceLogConfigs(self):
+        sampleLogConfig = {
+            'filters': ['supervisord'], 'path': '/opt/zenoss/log/Z2.log', 'type': 'pythondaemon'}
+        auditLogConfig = {
+            'filters': ['supervisord'], 'path': '/opt/zenoss/log/audit.log', 'type': 'zenossaudit'}
+        tests = (
+                {},
+                {'LogConfigs':[]},
+                {'LogConfigs':[auditLogConfig]},
+                {'LogConfigs':[sampleLogConfig]},
+                {'LogConfigs':[sampleLogConfig, auditLogConfig]},
+                {'LogConfigs':[auditLogConfig, sampleLogConfig]}
+        )
+        for service in tests:
+            inputLength = len(service.get('LogConfigs', []))
+            if auditLogConfig in service.get('LogConfigs', []):
+                LogConfigs = ZenPack.normalizeService(service, {}, '')['LogConfigs']
+                self.assertEquals(len(LogConfigs), inputLength)
+            else:
+                LogConfigs = ZenPack.normalizeService(service, {}, '')['LogConfigs']
+                self.assertEquals(len(LogConfigs), inputLength+1)
+            self.assertIn(auditLogConfig, LogConfigs)
+
+    def testNormalizeServiceTags(self):
+        tag = 'foobar'
+        tests = ({},{"Tags": ['some', 'tags']})
+        for service in tests:
+            tags = ZenPack.normalizeService(service, {}, tag)['Tags']
+            self.assertIn(tag, tags)
+
+    def testNormalizeServiceImage(self):
+        try:
+            image = 'foobar'
+            os.environ['SERVICED_SERVICE_IMAGE'] = image
+            tests = (({'ImageID':''}, image),
+                     ({'ImageID':'xxx'}, 'xxx'))
+            for service, expected in tests:
+                actual = ZenPack.normalizeService(service, {}, '')['ImageID']
+                self.assertEquals(actual, expected)
+        finally:
+            del os.environ['SERVICED_SERVICE_IMAGE']
+
+    def testNormalizeServiceConfig(self):
+        service = {'ConfigFiles': {
+            'missing': {},
+            'empty': {'Content':''},
+            'present': {'Content': 'present Content'}
+            }
+        }
+        configMap = {'missing': 'missing Content', 'empty': 'empty Content'}
+        expected = dict(present=service['ConfigFiles']['present']['Content'], **configMap)
+        configFiles = ZenPack.normalizeService(service, configMap, '')['ConfigFiles']
+        for key, value in configFiles.iteritems():
+            self.assertEquals(expected[key], value['Content'])
+
+    def testDirectoryConfigContents(self):
+        fileDict = {'/foo/bar/baz/qux': 'barge'}
+        with setBuiltinOpen(fileDict):
+            dcc = DirectoryConfigContents('/foo/bar')
+            self.assertEquals(dcc['/baz/qux'], '"barge"')
+            with self.assertRaises(KeyError): dcc['no_such_file']
+            with self.assertRaises(KeyError): dcc[1]
 
     def testNestedInstall(self):
         client = _MockControlPlaneClient(services=_services)
@@ -174,7 +267,7 @@ class TestZenpackServices(ZenModelBaseTest):
                     for i in ('svc1', 'root', 'svc2')]
         paths = ['/=ROOT', '/', '/=ROOT']
         with setControlPlaneClient(client), setCurrentService('zope'):
-            ZenPack("id").installServices(services, paths)
+            ZenPack("id").installServiceDefinitions(services, paths)
         # Confirm that parent is installed before children
         self.assertEquals(len(client.added), len(paths))
         for i,v  in enumerate(('root', 'svc', 'svc')):

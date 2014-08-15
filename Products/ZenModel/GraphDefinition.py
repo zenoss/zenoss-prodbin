@@ -566,11 +566,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         # preserve backwards compatability for zenpacks
         for dp in self.graphPoints():
             if dp.meta_type == 'DataPointGraphPoint' and dp.format:
-                lhs = dp.format.split(".")[0][-1]
-                rhs = dp.format.split(".")[1][0]
                 try:
+                    lhs = dp.format.split(".")[0][-1]
+                    rhs = dp.format.split(".")[1][0]
                     return int(lhs) - int(rhs)
-                except (ValueError, TypeError):
+                except (IndexError, ValueError, TypeError):
                     # unable to parse the format just continue 
                     # or use the default
                     pass

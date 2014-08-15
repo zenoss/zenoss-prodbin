@@ -22,10 +22,21 @@ create a service in every collector.
 Examples of the service definition structure may be seen by executing the command
 
 ```
-$ serviced service edit
+$ serviced service list $SERVICE_ID
 ```
 
+Note that there is a special value for the ImageId field in the service definition.
+An empty string indicates that the service should use the same zenoss image used
+by the Zope container.
+
+The **ConfigFiles.\<path\>.Content** field in the service definition is
+also treated specially.  If that field is not defined or is the empty string,
+then the Content will be loaded from the file at the corresponding path in the
+-CONFIGS- directory.  If the Content field is non-empty then the config file
+will be created with that value.
+
 For more information, see this [example ZenPack][example_zenpack].
+
 
 [example_zenpack]: https://github.com/zenoss/ZenPacks.zenoss.ExampleService
 

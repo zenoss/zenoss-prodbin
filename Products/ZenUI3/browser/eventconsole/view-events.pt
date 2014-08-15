@@ -25,6 +25,9 @@
         Zenoss.env.EVENTSGRID_STATEID = 'evconsole';
     });
 "></script>
+<script tal:content="string: 
+	    Zenoss.env.CURRENT_CONTEXT = '${context/getPrimaryId}'; 
+	" tal:on-error="string:"></script>  
 <script src="/++resource++zenui/js/zenoss/EvConsole.js">
 </script>
 <script>

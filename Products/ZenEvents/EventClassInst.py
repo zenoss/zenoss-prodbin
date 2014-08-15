@@ -177,6 +177,11 @@ Transform:
 """ % (summary, badLineNo, exceptionText, badLineText,
         transformFormatted)
         log.warn(message)
+        # add the event that caused this exception to the transform event
+        # so the operator has context for debugging transforms
+        sourceEventText = str(evt._zepRawEvent._pb)
+        sourceEventDevice = evt.device
+        sourceEventComponent = evt.component
 
         # Now send an event
         zem = self.getDmd().ZenEventManager
@@ -195,6 +200,9 @@ Transform:
             # Set False if the root ('/') transform failed; avoids looping
             # infinitely on creating transform event failures.
             applyTransforms=False if (transformName == '/') else True,
+            sourceEventText=sourceEventText,
+            sourceEventDevice=sourceEventDevice,
+            sourceEventComponent=sourceEventComponent
         )
         zem.sendEvent(badEvt)
 
