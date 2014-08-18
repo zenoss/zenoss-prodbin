@@ -63,7 +63,7 @@ class CommandView(StreamingView):
                     p.kill()
                     raise
                 retcode = p.poll()
-                if retcode is not None:
+                if retcode is not None and not line:
                     # get anything else that is left
                     for line in p.stdout:
                         self.write(line)
