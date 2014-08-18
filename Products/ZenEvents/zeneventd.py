@@ -25,7 +25,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.guid import guid
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
-from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event, STATUS_DROPPED
+from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event, STATUS_DROPPED, STATUS_CLEARED
 from zenoss.protocols.jsonformat import from_dict, to_dict
 from zenoss.protocols import hydrateQueueMessage
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
@@ -108,6 +108,10 @@ class EventPipelineProcessor(object):
 
                     for pipe in self._pipes:
                         eventContext = pipe(eventContext)
+                        if eventContext.event.event_class == "/Cmd/Fail" and \
+                           (eventContext.event.message.find("<class twisted.internet.error.ConnectionLost>") >= 0 or
+                           eventContext.event.message.find("<class twisted.internet.error.ConnectionDone>") >= 0):
+                            eventContext.event.status = STATUS_CLEARED
                         if log.isEnabledFor(logging.DEBUG):
                             log.debug('After pipe %s, event context is %s' % ( pipe.name, to_dict(eventContext.zepRawEvent) ))
                         if eventContext.event.status == STATUS_DROPPED:
