@@ -10,6 +10,7 @@
 
 import re
 import logging
+import cgi
 from Acquisition import aq_base
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
@@ -294,7 +295,7 @@ class DeviceAddView(BrowserView):
         IMessageSender(self.context).sendToUser(
             'Devices Added',
             'Modeling of the following devices has been scheduled: %s' % (
-                ', '.join(filter(None, devnames))
+                cgi.escape(', '.join(filter(None, devnames)))
             )
         )
         response.redirect('/zport/dmd')
