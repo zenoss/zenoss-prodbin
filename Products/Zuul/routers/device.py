@@ -41,7 +41,7 @@ class DeviceRouter(TreeRouter):
     """
 
     @serviceConnectionError
-    @require('Manage DMD')
+    @contextRequire("Manage DMD", 'contextUid')
     def addLocationNode(self, type, contextUid, id,
                         description=None, address=None):
         """
