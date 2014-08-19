@@ -19,6 +19,7 @@ The primary object must implement device.
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
+from cgi import escape
 
 class DeviceResultInt:
     
@@ -50,7 +51,7 @@ class DeviceResultInt:
         if d:
             if self.checkRemotePerm("View", d):
                 return "<a href='%s/%s'>%s</a>" % (
-                    d.getPrimaryUrlPath(), screen, d.titleOrId())
+                    d.getPrimaryUrlPath(), screen, escape(d.titleOrId()))
             else:
                 return d.getId()
         return ""
