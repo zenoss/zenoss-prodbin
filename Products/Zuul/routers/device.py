@@ -28,7 +28,7 @@ from Products.Zuul.routers import TreeRouter
 from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
-from Products.Zuul.decorators import require, serviceConnectionError
+from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
