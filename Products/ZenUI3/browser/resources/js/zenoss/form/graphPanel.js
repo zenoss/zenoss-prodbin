@@ -973,13 +973,13 @@
                 start: this.start.valueOf(),
                 end: this.end.valueOf()
             };
-            
-            Ext.each(this.getGraphs(), function(g) {
-                // if we are rendered but not visible do not refresh
-                if(this.isVisible()){
+
+            // if we are rendered but not visible do not refresh
+            if(this.isVisible()){
+                Ext.each(this.getGraphs(), function(g) {
                     g.fireEvent("updateimage", graphConfig, this);
-                }
-            });
+                });
+            }
         },
         getGraphs: function() {
             return this.query('europagraph');
