@@ -508,7 +508,8 @@ var createDevDetailEventsGrid = function(re_attach_to_container){
     event_console.on('recreateGrid', function (grid) {
         var container_panel = Ext.getCmp('detail_card_panel');
         container_panel.remove(grid.id, true);
-        createDevDetailEventsGrid(true);
+        grid = createDevDetailEventsGrid(true);
+        grid.setContext(Zenoss.env.device_uid);
     });
 
     return event_console;
