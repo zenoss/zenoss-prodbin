@@ -1472,7 +1472,10 @@ var createEventsGrid = function(re_attach_to_container) {
     event_console.on('recreateGrid', function (grid) {
         var container_panel = Ext.getCmp('detail_panel');
         container_panel.remove(grid.id, true);
-        createEventsGrid(true);
+        new_grid = createEventsGrid(true);
+        if (Zenoss.env.contextUid) {
+            new_grid.setContext(Zenoss.env.contextUid);
+        }
     });
     return event_console;
 };
