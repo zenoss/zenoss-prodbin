@@ -493,6 +493,7 @@ var createDevDetailEventsGrid = function(re_attach_to_container){
         newwindowBtn: true,
         actionsMenu: false,
         commandsMenu: false,
+        enableColumnHide: false,
         store: Ext.create('Zenoss.events.Store', {}),
         columns: Zenoss.env.getColumnDefinitionsToRender('device_events')
         //columns: Zenoss.env.getColumnDefinitions(['device'])
