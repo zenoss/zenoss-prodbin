@@ -116,7 +116,7 @@ class ProcessSignalTask(object):
                 action = self.getAction(notification.action)
                 action.setupAction(notification.dmd)
                 if isinstance(action, TargetableAction):
-                    target = ','.join(action.getTargets(notification))
+                    target = ','.join(action.getTargets(notification, signal))
                 action.execute(notification, signal)
             except ActionMissingException, e:
                 log.error('Error finding action: {action}'.format(action = notification.action))
