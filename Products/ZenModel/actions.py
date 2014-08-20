@@ -268,7 +268,7 @@ class TargetableAction(object):
         """
         pass
 
-    def getTargets(self, notification):
+    def getTargets(self, notification, signal = None):
         targets = set()
         for recipient in notification.recipients:
             if recipient['type'] in ['group', 'user']:
@@ -307,7 +307,7 @@ class TargetableAction(object):
         self.setupAction(notification.dmd)
 
         exceptionTargets = []
-        targets = self.getTargets(notification)
+        targets = self.getTargets(notification, signal)
         if targets:
             if self.shouldExecuteInBatch:
                 try:
@@ -353,6 +353,23 @@ class EmailAction(IActionBase, TargetableAction):
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+
+    def _get_recipients_from_signal(self, notification, signal):
+        ''' Check for any recipients passed in the event details '''
+        raw_recipients = self._signalToContextDict(signal, notification)['evt'].details.get('recipients', '')
+        recipients = [ recipient.strip() for recipient in raw_recipients.split(',') if recipient.strip() ]
+        return set(recipients)
+
+    def getTargets(self, notification, signal = None):
+
+        targets = super(EmailAction, self).getTargets(notification)
+
+        if signal:
+            signal_targets = self._get_recipients_from_signal(notification, signal)
+            if signal_targets:
+                log.debug('Adding recipients found in the event details: {0}'.format(','.join(signal_targets)))
+                targets = targets.union(signal_targets)
+        return targets
 
     def _encodeBody(self, body):
         """
@@ -863,7 +880,6 @@ class SyslogAction(IActionBase):
         facility = self.getFacility(notification.content, event)
         priority = self.getPriority(notification.content, event)
         device = self.getDeviceName(event)
-        #import pdb;pdb.set_trace()
 
         packet = self._makeSyslogPacket(facility, priority, event.last_seen_time,
                                         device, event.summary)
