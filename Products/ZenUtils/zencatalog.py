@@ -211,9 +211,11 @@ def source_from_zport(control, outbox, resume, print_progress=None):
                     inv = getattr(obj, '_p_invalidate', None)
                     if inv is not None: inv()
                     call_tree[obj_id] = False
-            except (AttributeError, ClientDisconnected, DisconnectedError):
+            except (ClientDisconnected, DisconnectedError):
                 _reconnect(zc)
                 continue
+            except AttributeError:
+                log.exception('Error in cataloging %s', obj.getPrimaryId())
             break
     try:
         if resume:
