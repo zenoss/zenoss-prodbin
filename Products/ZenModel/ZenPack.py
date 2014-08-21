@@ -1230,6 +1230,8 @@ registerDirectory("skins", globals())
         serviceDefinitions = []
         for daemonPath in daemonPaths:
             daemon = os.path.basename(daemonPath)
+            if daemon == 'zenexample':
+                continue
             configPath = os.path.join(zenPath(), 'etc', daemon+'.conf')
             configContents = subprocess.check_output([daemonPath, 'genconf'])
             configMap = {configPath: configContents}
