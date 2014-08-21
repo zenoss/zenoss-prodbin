@@ -480,12 +480,16 @@ PortletContainer.prototype = {
     relayout: function() {
         // relayout ext portlets
         Ext.each(this.columns, function(col){
-            var i, portlets = col.getPortlets();
+            var i, portlets = col.getPortlets(), fly;
+            Ext.suspendLayouts();
             for(i=0;i<portlets.length;i++) {
                 if (portlets[i].extPortlet) {
-                    portlets[i].extPortlet.portlet_render();
+                    fly = Ext.fly(portlets[i].body);
+                    portlets[i].extPortlet.setHeight(fly.getHeight() - 5);
+                    portlets[i].extPortlet.setWidth(fly.getWidth() - 5);
                 }
             }
+            Ext.resumeLayouts(true);
         });
     },
     serialize: function() {
@@ -959,7 +963,8 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
         this.portlet.enable();
         this.portlet.PortletContainer.save();
         if (this.portlet.extPortlet) {
-            this.portlet.extPortlet.portlet_render();
+            var fly = Ext.fly(this.portlet.body);
+            this.portlet.extPortlet.setHeight(fly.getHeight() - 5);
         }
     }
 
