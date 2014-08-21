@@ -832,6 +832,7 @@
                                     },
                                     items: [{
                                         xtype: 'textarea',
+                                        maxHeight: Ext.getBody().getViewSize().height * 0.4,
                                         name: 'note',
                                         fieldLabel: _t('note'),
                                         allowBlank: false
