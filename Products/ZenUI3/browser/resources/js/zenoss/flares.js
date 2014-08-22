@@ -91,6 +91,29 @@
         flare: function(flare) {
             var otherFlare = Zenoss.flares.Manager._visibleFlares.last();
             Zenoss.flares.Manager._visibleFlares.add(flare._bodyHtml, flare);
+
+            flare.on('afterrender', function() {
+                /**
+                 * Checks whether a message is longer than a flare.
+                 * If so, sets new styles for a message to set it properly in a flare.
+                 * (reduces width and line-height of a message)
+                 **/
+                 var dom_message = Ext.dom.Query.select('.x-flare-message');
+                 var message = Ext.get(dom_message[dom_message.length-1]);
+                 var documentWidth = Ext.getBody().getViewSize().width;
+
+                 if (message.getWidth() >= documentWidth-15) {
+                     var dom_flare = Ext.dom.Query.select('.x-flare');
+                     var dom_close = Ext.dom.Query.select('.x-tool-close');
+                     var flare = Ext.get(dom_flare[dom_flare.length-1]);
+                     var close =  Ext.get(dom_close[dom_close.length-1]);
+
+                     flare.setStyle('line-height', '16px');
+                     message.setStyle('width', '92%');
+                     close.setStyle('border-top', '2px solid transparent');
+                 }
+             });
+
             // if we have other flares, make sure this one renders to the bottom of the
             // previous flares
             if (otherFlare) {
