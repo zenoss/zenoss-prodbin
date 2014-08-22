@@ -777,6 +777,20 @@
         afterRender:function() {
             this.callParent();
             this.applyState(this.getState());
+        },
+        refresh:function () {
+        if (!Zenoss.settings.enableLiveSearch) {
+            var values = this.getFilters(),
+                store = this.getStore();
+            if (!store.proxy.extraParams) {
+                store.proxy.extraParams = {};
+                }
+            store.proxy.extraParams.params = values;
+            if (this.filterRow.isValid()) {
+                this.saveState();
+                }
+            }
+        this.callParent();
         }
     });
 
