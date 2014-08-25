@@ -67,6 +67,8 @@ class PropertiesFacade(ZuulFacade):
         if ztype == 'date':
             value = value.replace('%20', ' ') # Ugh. Manually decode spaces
             value = DateTime(value)
+        if ztype == "lines" and isinstance(value, basestring):
+            value = value.split("\n")
         return value    
  
     def addCustomProperty(self, id, value, label, uid, type):

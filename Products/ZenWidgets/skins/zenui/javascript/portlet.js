@@ -452,18 +452,21 @@ PortletContainer.prototype = {
             var col = new PortletColumn(DIV({'class':unitclass}, null), this);
             this.columns.push(col);
         }
+        this.resetLink = A({'class':"tinylink"}, "Reset Portlets...");
         this.dialogLink = A({'class':"tinylink"}, "Configure layout...");
         this.portDialogLink = A({'class':"tinylink"}, "Add portlet...");
         this.doRefresh = A({'class':"tinylink"}, "Stop Refresh");
+
         messagebox = DIV({'class':'msgbox', 'id':'connectionmessage'},
             'Last updated ' + getServerTimestamp() + '.');
+        connect(this.resetLink, "onclick", this.promptRestoreDefaults);
         connect(this.dialogLink, "onclick", this.showLayoutDialog);
         connect(this.portDialogLink, "onclick", this.showAddPortletDialog);
         connect(this.doRefresh, "onclick", this.stopRefresh);
         var newContainer = DIV({'class':colsclass},
             [DIV({'class':'tinylink-container'}, [
                 messagebox,
-                this.doRefresh, this.portDialogLink, this.dialogLink]),
+                 this.doRefresh, this.portDialogLink, this.dialogLink, this.resetLink]),
              this.columnElements()]);
         if (!this.columnContainer) {
             this.columnContainer = newContainer;
@@ -480,12 +483,16 @@ PortletContainer.prototype = {
     relayout: function() {
         // relayout ext portlets
         Ext.each(this.columns, function(col){
-            var i, portlets = col.getPortlets();
+            var i, portlets = col.getPortlets(), fly;
+            Ext.suspendLayouts();
             for(i=0;i<portlets.length;i++) {
                 if (portlets[i].extPortlet) {
-                    portlets[i].extPortlet.portlet_render();
+                    fly = Ext.fly(portlets[i].body);
+                    portlets[i].extPortlet.setHeight(fly.getHeight() - 5);
+                    portlets[i].extPortlet.setWidth(fly.getWidth() - 5);
                 }
             }
+            Ext.resumeLayouts(true);
         });
     },
     serialize: function() {
@@ -556,43 +563,63 @@ PortletContainer.prototype = {
         connect(this.doRefresh, 'onclick', this.startRefresh);
     },
     showAddPortletDialog: function() {
-        if (!this.addPortletDialog) {
-            addPortletDialog = new YAHOO.widget.SimpleDialog("addPortletDialog",
-                { width: "176px",
-                  fixedcenter: true,
-                  modal: false,
-                  visible: false,
-                  draggable:true });
-            addPortletDialog.setHeader("Add Portlet");
-            var hidedialog = bind(function(){
-                this.addPortletDialog.destroy();
-                this.addPortletDialog = null;
-            }, this);
-            var mybuttons = [];
-            function registerButton(text, klass) {
-                var klassAddMethod = method(this, function() {
-                    this.addPortlet(klass);
-                    hidedialog();
-                });
-                log(klass, text);
-                mybuttons.push( {text:text, handler:klassAddMethod} );
-            }
-            registerButton = method(this, registerButton);
-            forEach(YZP.Registry, method(this, function(x) {
-                var klass = x[0];
-                var text = x[1];
-                registerButton(text, klass);
-            }));
-            mybuttons.push ( {
-                text: 'Restore default portlets',
-                handler: this.restoreDefaults
-            });
-            addPortletDialog.cfg.queueProperty("buttons", mybuttons);
-            addElementClass(this.container, 'yui-skin-sam');
-            addPortletDialog.render(this.container);
-            this.addPortletDialog = addPortletDialog;
+        var registry = YZP.Registry,
+        i, portletNames = [], me = this;
+        for (i=0; i<registry.length; i++) {
+            portletNames.push(registry[i][1]);
         }
-        this.addPortletDialog.show();
+        portletNames = portletNames.sort();
+        var win = Ext.create('Zenoss.dialog.BaseWindow', {
+            title: _t('Add Portlet'),
+            height: 150,
+            width: 250,
+            items: [{
+                xtype: 'combo',
+                labelAlign: 'top',
+                ref: 'portlet',
+                fieldLabel: _t('Portlet'),
+                emptyText: _t('Select One...'),
+                store: portletNames
+            }],
+            buttons: [{
+                xtype: 'DialogButton',
+                ui: 'dialog-dark',
+                text: _t('Add Portlet'),
+                handler: function(btn){
+                    var portletName = win.portlet.getValue();
+                    for (i=0; i<registry.length; i++) {
+                        if(registry[i][1] == portletName) {
+                            me.addPortlet(registry[i][0]);
+                            break;
+                        }
+                    }
+                }
+            },{
+                xtype: 'DialogButton',
+                ui: 'dialog-dark',
+                text: _t('Close')
+            }]
+        });
+        win.show();
+    },
+    promptRestoreDefaults: function() {
+        var me = this,
+            msg = _t('Are you sure you want restore the default portlets?'),
+            win = new Zenoss.dialog.SimpleMessageDialog({
+                    message: msg,
+                    title: _t('Restore Default Portlets'),
+                    buttons: [{
+                        xtype: 'DialogButton',
+                        text: _t('OK'),
+                        handler: function() {
+                            me.restoreDefaults();
+                        }
+                    }, {
+                        xtype: 'DialogButton',
+                        text: _t('Cancel')
+                    }]
+                });
+        win.show();
     },
     restoreDefaults: function() {
         if (YZP.PortletEvents.fireEvent('restoredefaults', this) === false) {
@@ -959,7 +986,8 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
         this.portlet.enable();
         this.portlet.PortletContainer.save();
         if (this.portlet.extPortlet) {
-            this.portlet.extPortlet.portlet_render();
+            var fly = Ext.fly(this.portlet.body);
+            this.portlet.extPortlet.setHeight(fly.getHeight() - 5);
         }
     }
 

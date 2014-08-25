@@ -72,6 +72,18 @@ Ext.onReady(function() {
         '</table>'];
 
     /**
+     * The template used for additional event properties.
+     * Escapes HTML to prevent XSS
+     */
+    Zenoss.eventdetail.additional_detail_data_template = ['<table class="proptable" width="100%">',
+        '<tpl for="properties">',
+        '<tr class=\'{[xindex % 2 === 0 ? "even" : "odd"]}\'>',
+        '<td class="proptable_key">{key:htmlEncode}</td>',
+        '<td class="proptable_value">{value:htmlEncode}</td></tr>',
+        '</tpl>',
+        '</table>'];
+
+    /**
      * Template for log messages.
      * WAS: Zenoss.eventdetail.log_table_template
      */
@@ -468,7 +480,7 @@ Ext.onReady(function() {
             var eventDetailsSection = new Zenoss.eventdetail.DetailsSection({
                 id: 'event_detail_details_section',
                 title: _t('Event Details'),
-                template: Zenoss.eventdetail.detail_data_template
+                template: Zenoss.eventdetail.additional_detail_data_template
             });
             this.addSection(eventDetailsSection);
 

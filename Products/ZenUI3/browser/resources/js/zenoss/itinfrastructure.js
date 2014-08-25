@@ -1447,6 +1447,8 @@ Zenoss.Security.onPermissionsChange(function(){
     Ext.getCmp('addsingledevice-item').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
     Ext.getCmp('actions-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Change Device'));
     Ext.getCmp('master_panel').details.setDisabled(Zenoss.Security.doesNotHavePermission('View'));
+    Ext.getCmp("context-configure-menu").setVisible(Zenoss.Security.hasPermission('Manage DMD'));
+    Ext.getCmp('context-configure-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
     //Ext.getCmp('organizer_events').setVisible();
 });
 
@@ -1459,6 +1461,7 @@ var createEventsGrid = function(re_attach_to_container) {
         newwindowBtn: true,
         actionsMenu: false,
         commandsMenu: false,
+        enableColumnHide: false,
         store: Ext.create('Zenoss.events.Store', {})
     });
 

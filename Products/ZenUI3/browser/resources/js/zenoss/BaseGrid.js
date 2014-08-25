@@ -681,9 +681,11 @@
             this.saveSelection();
             var store = this.getStore(),
                 // load the entire store if we are not paginated or the entire grid fits in one buffer
-                shouldLoad =  ! store.buffered || store.getCount() >= store.getTotalCount();
+                shouldLoad = ! store.buffered || store.getCount() >= store.getTotalCount(),
+                view = this.getView();
 
-            if (shouldLoad) {
+            // Only reload new grid events in case we have scrolled more than 1 row
+            if (shouldLoad && view.getEl().dom.scrollTop < 25) {                
                 store.load({
                     callback: callback,
                     scope: scope || this
@@ -775,6 +777,20 @@
         afterRender:function() {
             this.callParent();
             this.applyState(this.getState());
+        },
+        refresh:function () {
+        if (!Zenoss.settings.enableLiveSearch) {
+            var values = this.getFilters(),
+                store = this.getStore();
+            if (!store.proxy.extraParams) {
+                store.proxy.extraParams = {};
+                }
+            store.proxy.extraParams.params = values;
+            if (this.filterRow.isValid()) {
+                this.saveState();
+                }
+            }
+        this.callParent();
         }
     });
 
