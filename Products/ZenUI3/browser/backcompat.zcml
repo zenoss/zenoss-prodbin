@@ -200,13 +200,6 @@
     permission="zenoss.View"
     />
 
-<browser:page
-    template="../../ZenModel/skins/zenmodel/backupInfo.pt"
-    name="backupInfo"
-    for="*"
-    permission="zenoss.View"
-    />
-
 <adapter
     for="Products.ZenModel.MibNode.MibNode"
     provides=".interfaces.INewPath"
