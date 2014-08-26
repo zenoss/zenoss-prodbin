@@ -1209,7 +1209,8 @@
             config = config || {};
             config.viewConfig = config.viewConfig || {};
             Ext.applyIf(config.viewConfig, {
-                getRowClass: Zenoss.events.getRowClass
+                getRowClass: Zenoss.events.getRowClass,
+		enableTextSelection: true
             });
 
             this.callParent(arguments);
