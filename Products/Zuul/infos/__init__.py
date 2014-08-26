@@ -22,11 +22,14 @@ from Products import Zuul
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
 
-def ProxyProperty(propertyName):
+def ProxyProperty(propertyName, convert=None):
     """This uses a closure to make a getter and
     setter for the property (assuming it exists).
+    @param convert function applied to property before being set, default None
     """
     def setter(self, value):
+        if convert:
+            value = convert(value)
         return setattr(self._object, propertyName, value)
 
     def getter(self):
