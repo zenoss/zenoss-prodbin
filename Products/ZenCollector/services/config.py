@@ -111,7 +111,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         #dispatchFilterName = options.get('configDispatch', '') if options else ''
         #filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
         #filterFactory = filterFactories.get(dispatchFilterName, None) or \
-                        filterFactories.get('', None)
+        #                filterFactories.get('', None)
         #if filterFactory:
             #self.configFilter = filterFactory.getFilter(options)
             #self.log.debug("Filter configured: %s:%s", filterFactory, self.configFilter)
