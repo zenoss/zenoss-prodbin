@@ -303,10 +303,12 @@ Ext.define("Zenoss.JobsWidget", {
     },
     update: function() {
         REMOTE.userjobs({}, function(result){
-            var jobs = result.jobs;
-            this.update_button(result.totals);
-            this.update_menu(jobs);
-            this.check_for_recently_finished(jobs);
+            if (result && result.jobs) {
+                var jobs = result.jobs;
+                this.update_button(result.totals);
+                this.update_menu(jobs);
+                this.check_for_recently_finished(jobs);
+            }
         }, this);
     }
 });
