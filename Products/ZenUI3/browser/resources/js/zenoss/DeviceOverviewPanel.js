@@ -244,7 +244,7 @@
             // this is executed after we save the zproperties
             handler = function(values, remodel) {
                 // need to save the zproperty values
-                REMOTE.setZenProperty({
+                Zenoss.remote.PropertiesRouter.setZenProperty({
                     uid: uid,
                     zProperty: values
                 }, function(response){
