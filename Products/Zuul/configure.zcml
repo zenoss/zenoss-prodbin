@@ -68,6 +68,12 @@
         class="Products.Zuul.infos.metricserver.MetricServiceGraph"
         />
 
+    <adapter factory=".facades.UserFacade"
+             provides=".interfaces.IUserFacade"
+             name="user"
+             for="*"
+             />
+    
     <utility component=".utils.get_dmd"
              provides=".interfaces.IDataRootFactory"
              />

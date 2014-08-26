@@ -29,7 +29,15 @@
 #         ('zExampleInt', 411, 'int'),
 #         ('zExamplePassword', 'notsecure', 'password'),
 #         ]
-#
+#     # Provides information about a property such as the category, label and description
+#     packZProperties_data = {
+#         'zExampleString'= {
+#                 'category': 'Example',
+#                 'label': 'An Example String',
+#                 'description': 'A very useful description about how we use zExampleString.'
+#         }
+#     }
+
 #     def install(self, dmd):
 #         ZenPackBase.install(self, dmd)
 #

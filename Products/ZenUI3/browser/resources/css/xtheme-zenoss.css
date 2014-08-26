@@ -2907,7 +2907,7 @@ browsers will do whacky things with it.
   background-image: linear-gradient(left, #dfe8f6, #cbdaf0); }
 
 .x-grid-dirty-cell {
-  background-image: url('../img/xtheme-zenoss/grid/dirty.gif');
+  background-image: none;
   background-position: 0 0;
   background-repeat: no-repeat; }
 

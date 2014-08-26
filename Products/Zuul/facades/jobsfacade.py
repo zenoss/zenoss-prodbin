@@ -38,6 +38,10 @@ class JobsFacade(ZuulFacade):
         results = islice(brains, start, stop)
         return [b.getObject() for b in results], total
 
+    @info
+    def getInfo(self, jobid):
+        return self._dmd.JobManager.getJob(jobid)
+    
     def abortJob(self, id_):
         self._dmd.JobManager.getJob(id_).abort()
 

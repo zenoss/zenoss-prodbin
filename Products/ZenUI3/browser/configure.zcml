@@ -236,6 +236,13 @@
     />
 
 <browser:page
+    template="templates/quickstart.pt"
+    name="quickstart"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.ManageDMD"
+    />
+
+<browser:page
     template="templates/base-new.pt"
     name="users"
     for="*"

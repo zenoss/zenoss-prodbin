@@ -1,188 +1,191 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2014-02-19 16:37:26.112497
+    Zenoss RelationshipManager export completed on 2014-08-26 12:39:16.753362
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.9.70]" export_date="2014-02-19 16:37:26.112497" zenoss_server="jhanson-desktop" >
+<objects version="[Zenoss, version 4.9.70]" export_date="2014-08-26 12:39:16.753362" zenoss_server="localhost.localdomain" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
 </property>
-<property visible="True" type="string" id="zPythonClass" >
+<property visible="True" label="Python Class" type="string" description="Python module used when creating a new device instances." id="zPythonClass" >
 </property>
-<property visible="True" type="int" id="zProdStateThreshold" >
+<property visible="True" label="Production State Threshold" type="int" description="Production state threshold at which to start monitoring boxes." id="zProdStateThreshold" >
 300
 </property>
-<property visible="True" type="boolean" id="zIfDescription" >
+<property visible="True" label="If Description" type="boolean" description="Shows the interface description field in the interface list." id="zIfDescription" >
 False
 </property>
-<property visible="True" type="lines" id="zSnmpCommunities" >
+<property visible="True" label="SNMP Communities" type="lines" description='Array of SNMP community strings that ZenModeler uses when collecting SNMP information. When you set this property, communities are tried in order; the first in the list that is successful is used as zSnmpCommunity. If none is successful, then the current value of zSnmpCommunity is used. The default value for the entire system is "public."' id="zSnmpCommunities" >
 ['public', 'private']
 </property>
-<property visible="True" type="string" id="zSnmpCommunity" >
+<property visible="True" label="SNMP Community String" type="string" description="Community string to be used when collecting SNMP information. If it is different than what is found by ZenModeler, it will be set on the modeled device." id="zSnmpCommunity" >
 public
 </property>
-<property visible="True" type="int" id="zSnmpPort" >
+<property visible="True" label="SNMP Port" type="int" description="Port that the SNMP agent listens on." id="zSnmpPort" >
 161
 </property>
-<property visible="True" type="string" id="zSnmpVer" >
+<property visible="True" label="SNMP Version" type="string" description="SNMP version used. Valid values are v1, v2c, v3." id="zSnmpVer" >
 v2c
 </property>
-<property visible="True" type="int" id="zSnmpTries" >
+<property visible="True" label="SNMP Tries" type="int" description="Amount of tries to collect SNMP data" id="zSnmpTries" >
 6
 </property>
-<property visible="True" type="float" id="zSnmpTimeout" >
+<property visible="True" label="SNMP Timeout" type="float" description="Timeout time in seconds for an SNMP request" id="zSnmpTimeout" >
 1
 </property>
-<property visible="True" type="string" id="zSnmpEngineId" >
+<property visible="True" label="SNMP Engine ID" type="string" description="Engine ID is the administratively unique identifier for the SNMPv3 engine" id="zSnmpEngineId" >
 </property>
-<property visible="True" type="string" id="zSnmpSecurityName" >
+<property visible="True" label="SNMP Security Name" type="string" description="The Security Name (user) to use when making SNMPv3 requests." id="zSnmpSecurityName" >
 </property>
-<property visible="True" type="password" id="zSnmpAuthPassword" >
+<property visible="True" label="SNMP Auth Password" type="password" description="The shared private key used for authentication. Must be at least 8 characters long." id="zSnmpAuthPassword" >
 </property>
-<property visible="True" type="password" id="zSnmpPrivPassword" >
+<property visible="True" label="SNMP Private Password" type="password" description="The shared private key used for encrypting SNMP requests. Must be at least 8 characters long." id="zSnmpPrivPassword" >
 </property>
-<property visible="True" type="string" id="zSnmpAuthType" >
+<property visible="True" label="SNMP Auth Type" type="string" description='Use "MD5" or "SHA" signatures to authenticate SNMP requests' id="zSnmpAuthType" >
 </property>
-<property visible="True" type="string" id="zSnmpPrivType" >
+<property visible="True" label="SNMP Priv Type" type="string" description='"DES" or "AES" cryptographic algorithms.' id="zSnmpPrivType" >
 </property>
-<property visible="True" type="int" id="zSnmpCollectionInterval" >
+<property visible="True" label="SNMP Collection Interval" type="int" description="Defines, in seconds, how often the system collects performance information for each device." id="zSnmpCollectionInterval" >
 300
 </property>
-<property visible="True" type="boolean" id="zRouteMapCollectOnlyLocal" >
+<property visible="True" label="Router Map Collect Only (Local)" type="boolean" description="Only collect local routes. (These usually are manually configured rather than learned through a routing protocol.)" id="zRouteMapCollectOnlyLocal" >
 False
 </property>
-<property visible="True" type="boolean" id="zRouteMapCollectOnlyIndirect" >
+<property visible="True" label="Route Map Collect Only (Indirect)" type="boolean" description="Only collect routes that are directly connected to the device." id="zRouteMapCollectOnlyIndirect" >
 False
 </property>
-<property visible="True" type="int" id="zRouteMapMaxRoutes" >
+<property visible="True" label="Route Map Max Routes" type="int" description="Maximum number of routes to model." id="zRouteMapMaxRoutes" >
 500
 </property>
-<property visible="True" type="string" id="zInterfaceMapIgnoreTypes" >
+<property visible="True" label="Interface Map Ignore Types" type="string" description="Filters out interface maps that should not be discovered." id="zInterfaceMapIgnoreTypes" >
 </property>
-<property visible="True" type="string" id="zInterfaceMapIgnoreNames" >
+<property visible="True" label="Interface Map Ignore Names" type="string" description="Filters out interfaces that should not be discovered." id="zInterfaceMapIgnoreNames" >
 </property>
-<property visible="True" type="string" id="zInterfaceMapIgnoreDescriptions" >
+<property visible="True" label="Interface Map Ignore Description" type="string" description="Filters out interfaces based on description." id="zInterfaceMapIgnoreDescriptions" >
 </property>
-<property visible="True" type="lines" id="zFileSystemMapIgnoreTypes" >
+<property visible="True" label="File System Map Ignore Types" type="lines" description="Do not use." id="zFileSystemMapIgnoreTypes" >
 ['other', 'ram', 'virtualMemory', 'removableDisk', 'floppyDisk', 'compactDisk', 'ramDisk', 'flashMemory', 'networkDisk']
 </property>
-<property visible="True" type="string" id="zFileSystemMapIgnoreNames" >
+<property visible="True" label="File System Map Ignore Names" type="string" description="Sets a regular expression of file system names to ignore." id="zFileSystemMapIgnoreNames" >
 </property>
-<property visible="True" type="float" id="zFileSystemSizeOffset" >
+<property visible="True" label="File System Size Offset" type="float" description="SNMP typically reports the total space available to privileged users. Resource Manager (like the df command) reports capacity based on the space available to non-privileged users. The value of zFileSystemSizeOffset should be the fraction of the total space that is available to non-privileged users. The default reserved value is 5% of total space, so zFileSystemSizeOffset is preset to .95. If the reserved portion is different than 5%, then adjust the value of zFileSystemSizeOffset accordingly. The fraction should be set according to the value ( Used + Avail ) / Size when the df -PkH command is run at the command line." id="zFileSystemSizeOffset" >
 1.0
 </property>
-<property visible="True" type="string" id="zHardDiskMapMatch" >
+<property visible="True" label="Hard Disk Map Match" type="string" description="Regular expression that uses the disk ID in the diskstats output to filter disk activity statistics for inclusion in performance monitoring." id="zHardDiskMapMatch" >
 </property>
-<property visible="True" type="string" id="zSysedgeDiskMapIgnoreNames" >
+<property visible="True" label="Sysedge Disk Map Ignore Names" type="string" description="" id="zSysedgeDiskMapIgnoreNames" >
 </property>
-<property visible="True" type="int" id="zIpServiceMapMaxPort" >
+<property visible="True" label="IP Service Map Max Port" type="int" description="Specifies the highest port to scan. The default is 1024." id="zIpServiceMapMaxPort" >
 1024
 </property>
-<property visible="True" type="lines" id="zDeviceTemplates" >
+<property visible="True" label="Device Templates" type="lines" description="Sets the templates associated with this device. Linked by name." id="zDeviceTemplates" >
 ['Device']
 </property>
-<property visible="True" type="string" id="zLocalIpAddresses" >
+<property visible="True" label="Local IP Addresses" type="string" description="" id="zLocalIpAddresses" >
 ^127|^0\.0|^169\.254|^224
 </property>
-<property visible="True" type="string" id="zLocalInterfaceNames" >
+<property visible="True" label="Local Interface Names" type="string" description='Regular expression that uses interface name to determine whether the IP addresses on an interface should be incorporated into the network map. For instance, a loopback interface "lo" might be excluded.' id="zLocalInterfaceNames" >
 ^lo|^vmnet
 </property>
-<property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
+<property visible="True" label="Ignore SNMP Monitor?" type="boolean" description="Whether or not to ignore monitoring SNMP on a device." id="zSnmpMonitorIgnore" >
 False
 </property>
-<property visible="True" type="boolean" id="zPingMonitorIgnore" >
+<property visible="True" label="Ignore Ping Monitor?" type="boolean" description="Whether or not to ping the device." id="zPingMonitorIgnore" >
 False
 </property>
-<property visible="True" type="float" id="zStatusConnectTimeout" >
+<property visible="True" label="Status Connection Timeout (seconds)" type="float" description="The amount of time that the zenstatus daemon should wait before marking an IP service down." id="zStatusConnectTimeout" >
 15.0
 </property>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap')
 </property>
-<property visible="True" type="int" id="zCollectorClientTimeout" >
+<property visible="True" label="Collector Client Timeout (seconds)" type="int" description="Allows you to set the timeout time of the collector client in seconds" id="zCollectorClientTimeout" >
 180
 </property>
-<property visible="True" type="string" id="zCollectorDecoding" >
+<property visible="True" label="Collector Decoding" type="string" description="Converts incoming characters to Unicode." id="zCollectorDecoding" >
 latin-1
 </property>
-<property visible="True" type="string" id="zCommandUsername" >
+<property visible="True" label="Username" type="string" description="Specifies the user name to use when performing command collection and SSH." id="zCommandUsername" >
 </property>
-<property visible="True" type="password" id="zCommandPassword" >
+<property visible="True" label="Password" type="password" description="Specifies the password to use when performing command logins and SSH." id="zCommandPassword" >
 </property>
-<property visible="True" type="string" id="zCommandProtocol" >
+<property visible="True" label="Command Protocol" type="string" description="Establishes the protocol to use when performing command collection. Possible values are SSH and telnet." id="zCommandProtocol" >
 ssh
 </property>
-<property visible="True" type="int" id="zCommandPort" >
+<property visible="True" label="Command Port" type="int" description="Specifies the port to connect to when performing command collection." id="zCommandPort" >
 22
 </property>
-<property visible="True" type="int" id="zCommandLoginTries" >
+<property visible="True" label="Command Login Tries" type="int" description="Sets the number of times to attempt login." id="zCommandLoginTries" >
 1
 </property>
-<property visible="True" type="float" id="zCommandLoginTimeout" >
+<property visible="True" label="Timeout for Login (seconds)" type="float" description="Specifies the time to wait for a login prompt." id="zCommandLoginTimeout" >
 10.0
 </property>
-<property visible="True" type="float" id="zCommandCommandTimeout" >
+<property visible="True" label="Timeout for Commands (seconds)" type="float" description="Specifies the time to wait for a command to complete." id="zCommandCommandTimeout" >
 15.0
 </property>
-<property visible="True" type="lines" id="zCommandSearchPath" >
+<property visible="True" label="Command Search Path" type="lines" description="Sets the path to search for any commands." id="zCommandSearchPath" >
 []
 </property>
-<property visible="True" type="string" id="zCommandExistanceTest" >
+<property visible="True" label="Command Existance Test" type="string" description="" id="zCommandExistanceTest" >
 test -f %s
 </property>
-<property visible="True" type="string" id="zCommandPath" >
+<property visible="True" label="Command Path" type="string" description="Sets the default path where ZenCommand plug-ins are installed on the local Resource Manager box (or on a remote box where SSH is used to run the command)." id="zCommandPath" >
 $ZENHOME/libexec
 </property>
-<property visible="True" type="string" id="zTelnetLoginRegex" >
+<property visible="True" label="Telnet Login" type="string" description="Regular expression to match the login prompt." id="zTelnetLoginRegex" >
 ogin:.$
 </property>
-<property visible="True" type="string" id="zTelnetPasswordRegex" >
+<property visible="True" label="Telnet Password Regex" type="string" description="Regular expression to match the password prompt." id="zTelnetPasswordRegex" >
 assword:
 </property>
-<property visible="True" type="lines" id="zTelnetSuccessRegexList" >
+<property visible="True" label="Telnet Success Regex" type="lines" description="List of regular expressions to match the command prompt." id="zTelnetSuccessRegexList" >
 ['\\$.$', '\\#.$']
 </property>
-<property visible="True" type="boolean" id="zTelnetEnable" >
+<property visible="True" label="Enable Telnet?" type="boolean" description="When logging into a Cisco device issue the enable command to enable access during command collection." id="zTelnetEnable" >
 False
 </property>
-<property visible="True" type="string" id="zTelnetEnableRegex" >
+<property visible="True" label="Telnet Enable Regex" type="string" description="Regular expression to match the enable prompt." id="zTelnetEnableRegex" >
 assword:
 </property>
-<property visible="True" type="boolean" id="zTelnetTermLength" >
+<property visible="True" label="Telnet Term Length" type="boolean" description="On a Cisco device, set term length to Zero." id="zTelnetTermLength" >
 True
 </property>
-<property visible="True" type="float" id="zTelnetPromptTimeout" >
+<property visible="True" label="Telnet Prompt Timeout (seconds)" type="float" description="Time to wait for the telnet prompt to return." id="zTelnetPromptTimeout" >
 10.0
 </property>
-<property visible="True" type="string" id="zKeyPath" >
+<property visible="True" label="Key Path" type="string" description="Sets the path to the SSH key for device access." id="zKeyPath" >
 ~/.ssh/id_dsa
 </property>
-<property visible="True" type="int" id="zMaxOIDPerRequest" >
+<property visible="True" label="Max OID Per Request" type="int" description="Sets the maximum number of OIDs to be sent by the SNMP collection daemons when querying information. Some devices have small buffers for handling this information so the number should be lowered." id="zMaxOIDPerRequest" >
 40
 </property>
-<property visible="True" type="string" id="zLinks" >
+<property visible="True" label="Links" type="string" description="Specifies a place to enter any links associated with the device." id="zLinks" >
 </property>
-<property visible="True" type="string" id="zIcon" >
+<property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
 /zport/dmd/img/icons/noicon.png
 </property>
-<property visible="True" type="boolean" id="zCollectorLogChanges" >
+<property visible="True" label="Log Collector Changes?" type="boolean" description="Indicates whether to log changes." id="zCollectorLogChanges" >
 False
 </property>
-<property visible="True" type="password" id="zEnablePassword" >
+<property visible="True" label="Enable Password" type="password" description="Enable password for Cisco routers" id="zEnablePassword" >
 </property>
-<property visible="True" type="string" id="zNmapPortscanOptions" >
+<property visible="True" label="Nmap Port Scan Options" type="string" description="Options used on nmap when scanning ports. Used in IpServiceMap" id="zNmapPortscanOptions" >
 -p 1-1024;-sT;--open;-oG -
 </property>
-<property visible="True" type="int" id="zSshConcurrentSessions" >
+<property visible="True" label="SSH Concurrent Sessions" type="int" description="How many SSH sessions to open up to one device (some SSH servers have a limit)" id="zSshConcurrentSessions" >
 10
 </property>
-<property visible="True" type="lines" id="zSnmpDiscoveryPorts" >
+<property visible="True" label="Connection Information" type="lines" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." id="zCredentialsZProperties" >
+[]
+</property>
+<property visible="True" description="" type="lines" id="zSnmpDiscoveryPorts" label="" >
 []
 </property>
 <property visible="True" type="date" id="cDateTest" >
@@ -2436,13 +2439,13 @@ AVERAGE
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
-<property visible="True" type="string" id="zLinks" >
+<property visible="True" label="Links" type="string" description="Specifies a place to enter any links associated with the device." id="zLinks" >
 http://www.zenoss.com
 </property>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.wmi.WinServiceMap', 'zenoss.cmd.lin ux.ifconfig', 'zenoss.cmd.linux.netstat_rn', 'zenoss.cmd.df', 'zenoss.cmd.uname', 'zenoss.cmd.uname_a')
 </property>
-<property visible="True" type="int" id="zMaxOIDPerRequest" >
+<property visible="True" label="Max OID Per Request" type="int" description="Sets the maximum number of OIDs to be sent by the SNMP collection daemons when querying information. Some devices have small buffers for handling this information so the number should be lowered." id="zMaxOIDPerRequest" >
 10
 </property>
 </object>
@@ -2453,17 +2456,20 @@ http://www.zenoss.com
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
 InterfaceMap|RouteMap|DeviceMap|IpServceMap
 </property>
-<property visible="True" type="boolean" id="zIfDescription" >
+<property id="zIfDescription" visible="True" type="boolean" description="Shows the interface description field in the interface list." label="If Description" >
 True
+</property>
+<property visible="True" label="Connection Information" type="lines" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." id="zCredentialsZProperties" >
+['zSnmpCommunity']
 </property>
 <object id='Router' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
-<property visible="True" type="string" id="zLinks" >
+<property visible="True" label="Links" type="string" description="Specifies a place to enter any links associated with the device." id="zLinks" >
 &lt;a href='http://${here/manageIp}' target='_'&gt;Console: ${here/id}&lt;/a&gt;
 </property>
-<property visible="True" type="string" id="zIcon" >
+<property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
 /zport/dmd/img/icons/router.png
 </property>
 <object id='Firewall' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
@@ -2473,7 +2479,7 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 <object id='TerminalServer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 </object>
 <object id='Cisco' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.CiscoMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap')
 </property>
 <tomanycont id='rrdTemplates'>
@@ -2888,11 +2894,14 @@ AVERAGE
 </object>
 </object>
 <object id='Server' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property id="zCollectorPlugins" visible="True" type="lines" description="" label="Collector Plugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap')
 </property>
-<property visible="True" type="string" id="zIcon" >
+<property id="zIcon" visible="True" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." label="Icon Path" >
 /zport/dmd/img/icons/server.png
+</property>
+<property visible="True" label="Connection Information" type="lines" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." id="zCredentialsZProperties" >
+['zSnmpCommunity']
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -4363,16 +4372,16 @@ AVERAGE
 <property visible="True" type="string" id="zCollectorIgnorePlugins" >
 HRSWInstalledMap
 </property>
-<property visible="True" type="int" id="zIpServiceMapMaxPort" >
+<property visible="True" label="IP Service Map Max Port" type="int" description="Specifies the highest port to scan. The default is 1024." id="zIpServiceMapMaxPort" >
 8090
 </property>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap')
 </property>
-<property visible="True" type="string" id="zIcon" >
+<property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
 /zport/dmd/img/icons/server-linux.png
 </property>
-<property visible="True" type="string" id="zHardDiskMapMatch" >
+<property visible="True" label="Hard Disk Map Match" type="string" description="Regular expression that uses the disk ID in the diskstats output to filter disk activity statistics for inclusion in performance monitoring." id="zHardDiskMapMatch" >
 ^[hs]d[a-z]\d+$|c\d+t\d+d\d+s\d+$|^cciss\/c\dd\dp\d$|^dm\-\d$
 </property>
 <tomanycont id='rrdTemplates'>
@@ -5897,13 +5906,13 @@ AVERAGE
 <property type="lines" id="devtypes" mode="w" >
 [('Windows Server', 'SNMP')]
 </property>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.InformantHardDiskMap', 'zenoss.wmi.WinServiceMap')
 </property>
-<property visible="True" type="string" id="zIcon" >
+<property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
 /zport/dmd/img/icons/server-windows.png
 </property>
-<property visible="True" type="string" id="zHardDiskMapMatch" >
+<property visible="True" label="Hard Disk Map Match" type="string" description="Regular expression that uses the disk ID in the diskstats output to filter disk activity statistics for inclusion in performance monitoring." id="zHardDiskMapMatch" >
 .*
 </property>
 <tomanycont id='rrdTemplates'>
@@ -8051,7 +8060,7 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='Darwin' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="string" id="zFileSystemMapIgnoreNames" >
+<property visible="True" label="File System Map Ignore Names" type="string" description="Sets a regular expression of file system names to ignore." id="zFileSystemMapIgnoreNames" >
 ^\/dev
 </property>
 <tomanycont id='rrdTemplates'>
@@ -9400,10 +9409,10 @@ AVERAGE
 <object id='Remote' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 </object>
 <object id='Scan' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.portscan.IpServiceMap',)
 </property>
-<property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
+<property visible="True" label="Ignore SNMP Monitor?" type="boolean" description="Whether or not to ignore monitoring SNMP on a device." id="zSnmpMonitorIgnore" >
 True
 </property>
 <tomanycont id='rrdTemplates'>
@@ -9421,10 +9430,10 @@ Products.ZenModel.Device
 </tomanycont>
 </object>
 <object id='Cmd' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.cmd.uname', 'zenoss.cmd.df', 'zenoss.cmd.linux.ifconfig', 'zenoss.cmd.linux.memory', 'zenoss.cmd.linux.netstat_an', 'zenoss.cmd.linux.netstat_rn', 'zenoss.cmd.linux.process', 'zenoss.cmd.darwin.cpu', 'zenoss.cmd.darwin.ifconfig', 'zenoss.cmd.darwin.memory', 'zenoss.cmd.darwin.netstat_an', 'zenoss.cmd.darwin.process', 'zenoss.cmd.darwin.swap')
 </property>
-<property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
+<property visible="True" label="Ignore SNMP Monitor?" type="boolean" description="Whether or not to ignore monitoring SNMP on a device." id="zSnmpMonitorIgnore" >
 True
 </property>
 <tomanycont id='rrdTemplates'>
@@ -11507,8 +11516,11 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='SSH' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
+<property id="zSnmpMonitorIgnore" visible="True" type="boolean" description="Whether or not to ignore monitoring SNMP on a device." label="Ignore SNMP Monitor?" >
 True
+</property>
+<property visible="True" label="Connection Information" type="lines" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." id="zCredentialsZProperties" >
+['zCommandUsername', 'zCommandPassword']
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -11518,7 +11530,7 @@ Products.ZenModel.Device
 </object>
 </tomanycont>
 <object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="string" id="zHardDiskMapMatch" >
+<property visible="True" label="Hard Disk Map Match" type="string" description="Regular expression that uses the disk ID in the diskstats output to filter disk activity statistics for inclusion in performance monitoring." id="zHardDiskMapMatch" >
 ^[hs]d[a-z]\d+$|c\d+t\d+d\d+s\d+$|^cciss\/c\dd\dp\d$|^dm\-\d$
 </property>
 </object>
@@ -11531,7 +11543,7 @@ Products.ZenModel.Device
 </object>
 </object>
 <object id='Power' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="lines" id="zCollectorPlugins" >
+<property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.APCDeviceMap', 'zenoss.snmp.PowerwareDeviceMap')
 </property>
 <object id='UPS' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
@@ -12041,7 +12053,7 @@ AVERAGE
 <object id='KVM' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 </object>
 <object id='Ping' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
+<property visible="True" label="Ignore SNMP Monitor?" type="boolean" description="Whether or not to ignore monitoring SNMP on a device." id="zSnmpMonitorIgnore" >
 True
 </property>
 <tomanycont id='rrdTemplates'>
