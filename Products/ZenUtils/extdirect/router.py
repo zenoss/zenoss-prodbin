@@ -8,6 +8,7 @@
 ##############################################################################
 import cgi
 import inspect
+import os
 import logging
 import time
 from Products.ZenUtils.jsonutils import json, unjson
@@ -249,6 +250,15 @@ class DirectProviderDefinition(object):
                 self.routercls.__name__: list(method_infos)
             }
         }
+        env_vars = {'ZENOSS_EXTDIRECT_ENABLEBUFFER': 'enableBuffer',
+                    'ZENOSS_EXTDIRECT_MAXRETRIES': 'maxRetries',
+                    'ZENOSS_EXTDIRECT_TIMEOUT': 'timeout'
+        }
+        for env_var, cfg_var in env_vars.iteritems():
+            value = os.environ.get(env_var)
+            if value:
+                config[cfg_var] = int(value)
+                log.info('Setting extdirect config variable from environment. {0} = {1}'.format(cfg_var, value))
         if self.ns:
             config['namespace'] = self.ns
         return config
