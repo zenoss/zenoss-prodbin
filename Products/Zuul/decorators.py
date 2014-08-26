@@ -16,6 +16,9 @@ from Products.ZenUtils.Ext import DirectResponse
 from zenoss.protocols.services import ServiceConnectionError
 from zenoss.protocols.services.zep import ZepConnectionError
 
+import logging
+log = logging.getLogger("zeneventserver") 
+
 @decorator
 def marshal(f, *args, **kwargs):
     result = f(*args, **kwargs)
@@ -120,6 +123,7 @@ def serviceConnectionError(func, *args, **kwargs):
     try:
         return func(*args, **kwargs)
     except ZepConnectionError:
+        log.warn('Connection refused. Check zeneventserver status on Daemons.')
         msg = 'Connection refused. Check zeneventserver status on <a href="zport/dmd/daemons">Daemons</a>'
     except ServiceConnectionError:
         msg = 'Connection refused to a required daemon. Check status on <a href="zport/dmd/daemons">Daemons</a>'
