@@ -751,8 +751,8 @@ Ext.apply(Zenoss.devices, {
         // only global roles can do this action
         permissionContext: '/zport/dmd/Devices',
         handler: function(btn, e){
-            window.open('/zport/dmd/easyAddDevice', "multi_add",
-            "menubar=0,toolbar=0,resizable=1,height=630, width=875,location=0");
+            var loc = window.location.pathname;
+            window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#add-device', loc);
         }
     })
 });
@@ -1611,9 +1611,32 @@ function getOrganizerFields(mode) {
         anchor: '80%',
         allowBlank: true
     });
-    var rootId = devtree.root.id;// sometimes the page loads with nothing selected and throws error. Need a default.
-    if(getSelectionModel().getSelectedNode()) rootId = getSelectionModel().getSelectedNode().getOwnerTree().root.id;
-    if ( rootId === loctree.root.id ) {
+
+
+    var uid = "";
+    if (getSelectionModel().getSelectedNode()) {
+        uid = getSelectionModel().getSelectedNode().get('uid');
+    }
+    if (uid.startswith('/zport/dmd/Devices')) {
+        var store = Ext.create('Zenoss.ConfigProperty.Store', {
+            autoLoad: true
+        });
+        store.setBaseParam('uid', uid);
+        items.push({
+            xtype: 'combo',
+            id: 'connectionInfo',
+            queryMode: 'local',
+            displayField: 'id',
+            valueField: 'id',
+            multiSelect: true,
+            anchor: "80%",
+            name: 'connectionInfo',
+            fieldLabel: _t('Connection Information Properties'),
+            store: store
+        });
+    }
+	
+    if ( uid.startswith('/zport/dmd/Locations') ) {
         items.push({
             xtype: 'textarea',
             id: 'address',
@@ -1739,7 +1762,7 @@ var footerBar = Ext.getCmp('footer_bar');
                             REMOTE.setInfo(values);
                         });
                         dialog.getForm().load({
-                            params: { uid: node.data.uid, keys: ['id', 'description', 'address'] },
+                            params: { uid: node.data.uid, keys: ['id', 'description', 'address', 'connectionInfo'] },
                             success: function(form, action) {
                                 dialog.show();
                             },

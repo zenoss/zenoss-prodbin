@@ -232,15 +232,7 @@
                 id = data[i].id;
                 item = Zenoss.zproperties.createZPropertyField(data[i]);
                 item.name = id;
-                // try to make a friendly label
-                if (id.toLowerCase().indexOf('user') != -1) {
-                    item.fieldLabel = Ext.String.format(_t('Username ({0})'), data[i].id);
-                } else if (id.toLowerCase().indexOf('password') != -1) {
-                    item.fieldLabel = Ext.String.format(_t('Password ({0})'), data[i].id);
-                } else {
-                    item.fieldLabel = id;
-                }
-
+				
                 // make sure we always display the correct value
                 item.value = item.value || data[i].valueAsString;
                 items.push(item);

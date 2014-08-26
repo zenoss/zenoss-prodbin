@@ -1,0 +1,65 @@
+<tal:block>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
+"http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <title>
+            <tal:block tal:content="here/dmd/instanceIdentifier"/>:
+            Install Wizard
+        </title>
+        <link rel="shortcut icon"
+              href="/zport/dmd/favicon.ico"
+              type="image/x-icon"/>
+        <link rel="stylesheet" type="text/css"
+            href="++resource++extjs/resources/css/ext-all.css"/>
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/xtheme-zenoss.css" />
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zenoss.css" />
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/quickstart.css"/>
+        <style tal:condition="python:here.dmd.getProductName()!='core'">
+            html {background-color:#eae9dc}
+        </style>
+
+        
+        <tal:block tal:content="structure provider:js-security"/>
+        <tal:block tal:content="structure provider:all-js"/>
+
+        <tal:block tal:content="structure provider:jssnippets"/>
+
+
+    </head>
+    <body><div class="yui-skin-sam">
+
+        <div id="header">
+            <div class="logo"></div>
+            <div id="header-extra">
+
+            </div>
+        </div>
+        <form id="loginform" method="POST"
+              action="/zport/acl_users/cookieAuthHelper/login">
+          <input type="hidden" name="came_from" id="came_from"
+                 tal:attributes="value here/absolute_url_path"/>
+          <input id="login_username" type="hidden" name="__ac_name" />
+          <input type="hidden" id="login_password" name="__ac_password"/>
+        </form>
+
+        <div id="content-wrapper">
+          <script
+              tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/quickstart/app.js')"
+              >
+          </script>
+           <div id="center_panel">
+           </div>
+        </div>
+        <div id="footer">&copy; 2005-2014 Zenoss, Inc.</div>
+
+
+    </div>
+    
+    </body>
+</html>
+</tal:block>
