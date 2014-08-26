@@ -59,7 +59,10 @@
                                 value = '<a title="Go to the grid for this Manufacturer" href="/zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.'+value.name+'" >'+value.name+'</a>';
                             }
                         }else{
-                            value = Zenoss.render.link(value);
+                            // if it is a UID then render as a link to that item
+                            if (value.startswith('/zport/dmd/')) {
+                                value = Zenoss.render.link(value);
+                            }
                         }
                     }
                 }
@@ -232,7 +235,7 @@
                 id = data[i].id;
                 item = Zenoss.zproperties.createZPropertyField(data[i]);
                 item.name = id;
-				
+               
                 // make sure we always display the correct value
                 item.value = item.value || data[i].valueAsString;
                 items.push(item);
@@ -241,7 +244,7 @@
             // this is executed after we save the zproperties
             handler = function(values, remodel) {
                 // need to save the zproperty values
-                REMOTE.setZenProperty({
+                Zenoss.remote.PropertiesRouter.setZenProperty({
                     uid: uid,
                     zProperty: values
                 }, function(response){
