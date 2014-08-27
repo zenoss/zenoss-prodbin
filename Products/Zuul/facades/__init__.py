@@ -289,4 +289,4 @@ from .metricfacade import MetricFacade
 from .application import ApplicationFacade
 from .monitor import MonitorFacade
 from userfacade import UserFacade
-from .host import HostFacade
+from .hostfacade import HostFacade

@@ -13,6 +13,7 @@ from zope.interface import implementer
 
 from Products.ZenUtils.host import IHostManager
 from Products.Zuul.interfaces.host import IHostFacade
+from Products.Zuul.decorators import info
 
 LOG = logging.getLogger("Zuul.facades")
 
@@ -27,7 +28,8 @@ class HostFacade(object):
         """
         self._dmd = dataroot
         self._svc = getUtility(IHostManager)
-    
+
+    @info
     def query(self):
         """
         Returns a sequence of application objects.
@@ -36,4 +38,5 @@ class HostFacade(object):
 
         if not result:
             return ()
+
         return tuple(result)

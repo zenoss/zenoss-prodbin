@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2014, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -43,17 +43,6 @@ class HostLookup(object):
             return ()
 
         return tuple(result.values())
-
-    def get(self, id, default=None):
-        """
-        Retrieve the IApplication object of the identified application.
-        The default argument is returned if the application doesn't exist.
-        """
-        host = self._client.getHost(id)
-        if not host:
-            return default
-
-        return host
 
 __all__ = (
     "HostLookup"

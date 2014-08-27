@@ -25,7 +25,6 @@ class HostInfo(object):
         :param IHost host: The host.
         """
         self._object = host
-        self._children = []
 
     @property
     def id(self):

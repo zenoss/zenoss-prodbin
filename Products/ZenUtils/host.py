@@ -15,10 +15,10 @@ from zope.interface import Interface, Attribute
 
 class IHost(Interface):
     """
-    For inspecting Zenoss hosts.
+    For inspecting Control Center hosts.
     """
 
-    id = Attribute("Unique host identifier")
+    id = Attribute("Globally unique host identifier")
     name = Attribute("Name of the host")
     poolId = Attribute("Name of the pool on which the host is running")
     ipAddr = Attribute("IP Address of the host")

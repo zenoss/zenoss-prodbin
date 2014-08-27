@@ -33,5 +33,5 @@ class HostRouter(DirectRouter):
              - data: ([String]) List of hosts identifiers
         """
         hosts = self._getFacade().query()
-        nodes = dict((host.id, IInfo(host)) for host in hosts)
+        nodes = dict((host.id, host) for host in hosts)
         return DirectResponse.succeed(data=Zuul.marshal(nodes))

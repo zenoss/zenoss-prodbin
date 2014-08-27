@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2014, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -14,12 +14,12 @@ from . import IFacade, IInfo
 
 class IHostInfo(IInfo):
     """
-    Read-only set of attributes describing a Zenoss application.
+    Read-only set of attributes describing a Control Center host.
     """
 
     id = TextLine(
         title=_t("ID"),
-        description=_t("Unique host identifier"),
+        description=_t("Globally unique host identifier"),
         readonly=True
     )
 
