@@ -19,7 +19,7 @@ import urllib2
 from cookielib import CookieJar
 from urlparse import urlunparse
 
-from .data import ServiceJsonDecoder, ServiceJsonEncoder
+from .data import ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder
 
 _DEFAULT_PORT = 443
 _DEFAULT_HOST = "localhost"
@@ -165,6 +165,24 @@ class ControlPlaneClient(object):
         body = ''.join(response.readlines())
         response.close()
         return ServiceJsonDecoder().decode(body)
+
+    def queryHosts(self):
+        """
+        Returns a sequence of Host objects.
+        """
+        response = self._dorequest("/hosts")
+        body = ''.join(response.readlines())
+        response.close()
+        return HostJsonDecoder().decode(body)
+
+    def getHost(self, hostId):
+        """
+        Returns a sequence of Host objects.
+        """
+        response = self._dorequest("/hosts/%" % hostId)
+        body = ''.join(response.readlines())
+        response.close()
+        return HostJsonDecoder().decode(body)
 
     def getInstance(self, serviceId, instanceId, default=None):
         """

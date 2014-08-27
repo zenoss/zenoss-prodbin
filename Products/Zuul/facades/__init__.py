@@ -288,3 +288,4 @@ from .manufacturersfacade import ManufacturersFacade
 from .metricfacade import MetricFacade
 from .application import ApplicationFacade
 from .monitor import MonitorFacade
+from .host import HostFacade

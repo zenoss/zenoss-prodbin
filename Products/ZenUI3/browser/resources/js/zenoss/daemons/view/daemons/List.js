@@ -45,7 +45,6 @@
         title: _t('All Daemons'),
         stores: ['Daemons'],
         multiSelect: true,
-        rootVisible: true,
         useArrows: true,
         animate: false,
         rootVisible: false,
@@ -180,6 +179,12 @@
                 defaultRenderer: function(v, meta, record, rowIdx, colIdx, store, view) {
                     return this.origRenderer.apply(this, arguments);
                 }
+            },{
+                text: _t('Host'),
+                flex: 0,
+                sortable: true,
+                dataIndex: 'hostId',
+                renderer: Zenoss.render.hostIdtoHostname
             }];
 
             this.callParent(arguments);

@@ -8,6 +8,16 @@
  ****************************************************************************/
 (function(){
     var router = Zenoss.remote.ApplicationRouter;
+    var HOSTS = {};
+    Zenoss.remote.HostRouter.getAllHosts({}, function(response){
+        if(response.success){
+            HOSTS = response.data;
+        }
+    });
+
+    Zenoss.render.hostIdtoHostname = function(value){
+        return value !== "" ? HOSTS[value].name : "";
+    }
 
     /**
      * @class Daemons.controller.DaemonsListController
@@ -104,7 +114,7 @@
 
             reg = new RegExp(value, 'i');
             store.filter([{filterFn: function(item) {
-                return (reg.test(item.get('name')) || reg.test(item.get('id')));
+                return (reg.test(item.get('name')) || reg.test(item.get('hostId')) || reg.test(item.get('id')));
             }}]);
         },
         /**

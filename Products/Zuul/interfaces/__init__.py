@@ -90,3 +90,4 @@ from metric import *
 from security import *
 from application import *
 from monitor import *
+from host import *
