@@ -16,7 +16,7 @@
     });
 
     Zenoss.render.hostIdtoHostname = function(value){
-        return value !== "" ? HOSTS[value].name : "";
+        return Ext.isDefined(HOSTS[value]) ? HOSTS[value].name : "";
     }
 
     /**
