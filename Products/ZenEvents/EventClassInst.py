@@ -18,6 +18,8 @@ import logging
 import transaction
 import urllib
 import time
+import pickle
+import os.path
 from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger("zen.Events")
@@ -40,6 +42,9 @@ from Products.ZenUtils.Utils import convToUnits, zdecode, getDisplayName
 from Products.ZenUtils.Time import SaveMessage
 from Products import Zuul
 from Products.Zuul.interfaces import IInfo
+from Products.ZenUtils.Utils import zenPath
+
+from zenoss.protocols.jsonformat import to_dict
 
 MAX_TRANSFORM_TIME = 2.0
 
@@ -135,6 +140,8 @@ class EventClassPropertyMixin(object):
         is hard to understand into something actionable by the user.
         """
         transformName = '/%s'% '/'.join(eventclass.getPhysicalPath()[4:])
+        evt.eventClass = transformName
+        self.pickleFailedEvent(evt)
         summary = "Error processing transform/mapping on Event Class %s" % \
             transformName
 
@@ -206,7 +213,20 @@ Transform:
         )
         zem.sendEvent(badEvt)
 
-
+    def pickleFailedEvent(self, evt):
+        pickleDir = zenPath('var/pickles/events')
+        if not os.path.exists(pickleDir):
+            log.warn("Create the %s dir to enable pickle capture of events, i.e. serviced service attach zeneventd su zenoss -c 'mkdir -p  %s'", pickleDir, pickleDir)
+            return
+        date = time.localtime(time.time())
+        tstamp = time.strftime("%Y-%m-%d-%H%M%S", date)
+        filename = pickleDir + '/%s_%s.pickle' % (evt.device, tstamp)
+        try:
+            with open(filename, 'w') as f:
+                evtDict = to_dict(evt._event)
+                pickle.dump(evtDict, f)
+        except Exception as ex:
+            log.exception("Unable to store evt pickle data to %s: %s", filename, ex)
 
     def applyTransform(self, evt, device, component=None):
         """
