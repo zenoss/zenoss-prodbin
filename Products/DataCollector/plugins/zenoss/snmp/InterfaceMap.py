@@ -219,7 +219,7 @@ class InterfaceMap(SnmpPlugin):
 
             # handle 10GB interfaces using IF-MIB::ifHighSpeed
             speed = iftable[ifidx].get('speed',0)
-            if speed == 4294967295L or speed < 0:
+            if speed == 4294967295L or speed == 1410065408 or speed < 0:
                 try:
                     iftable[ifidx]['speed'] = data['highSpeed']*1e6
                 except KeyError:
