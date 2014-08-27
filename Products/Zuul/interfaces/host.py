@@ -19,67 +19,67 @@ class IHostInfo(IInfo):
 
     id = TextLine(
         title=_t("ID"),
-        description=_t("Identifier of the running service"),
+        description=_t("Unique host identifier"),
         readonly=True
     )
 
     name = TextLine(
         title=_t("Name"),
-        description=_t("Brief description of the application's function"),
+        description=_t("Name of the host"),
         readonly=True
     )
 
     poolId = TextLine(
         title=_t("PoolID"),
-        description=_t("True if the application will run on startup"),
+        description=_t("Name of the pool on which the host is running"),
         readonly=True
     )
 
     ipAddr = TextLine(
         title=_t("IPAddr"),
-        description=_t("Current running state of the application"),
+        description=_t("IP Address of the host"),
         readonly=True
     )
 
     cores = Int(
         title=_t("Cores"),
-        description=_t("Synonym for name."),
+        description=_t("Number of processor cores"),
         readonly=True
     )
 
     memory = Int(
         title=_t("Memory"),
-        description=_t("True if the application is restarting."),
+        description=_t("Memory (bytes) available on the host"),
         readonly=True
     )
 
     privateNetwork = TextLine(
         title=_t("Private Network"),
-        description=_t("How long the application been running."),
+        description=_t("Private network of the host"),
         readonly=True
     )
 
     createdAt = TextLine(
         title=_t("Created At"),
-        description=_t("How long the application been running."),
+        description=_t("Time host was added"),
         readonly=True
     )
 
     updatedAt = TextLine(
         title=_t("Updated At"),
-        description=_t("How long the application been running."),
+        description=_t("Time the host was updated"),
         readonly=True
     )
 
     kernelVersion = TextLine(
         title=_t("Kernel Version"),
-        description=_t("How long the application been running."),
+        description=_t("Kernel version of the host OS"),
         readonly=True
     )
 
     kernelRelease = TextLine(
         title=_t("Kernel Release"),
-        description=_t("How long the application been running."),
+        description=_t("Kernel release number of the host OS"),
         readonly=True
     )
 

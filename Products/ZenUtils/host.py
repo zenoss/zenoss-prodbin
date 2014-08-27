@@ -18,17 +18,17 @@ class IHost(Interface):
     For inspecting Zenoss hosts.
     """
 
-    id = Attribute("Unique application identifier")
-    name = Attribute("Name of the application")
-    poolId = Attribute("Name of the host on which the instance is running")
-    ipAddr = Attribute("Brief description of the application's function")
-    cores = Attribute("True if the application will run on startup")
-    memory = Attribute("Current running state of the application")
-    privateNetwork = Attribute("When the application was started")
-    createdAt = Attribute("The IApplicationLog object")
-    updatedAt = Attribute("The list of application configurations")
-    kernelVersion = Attribute("The list of application configurations")
-    kernelRelease = Attribute("The list of application configurations")
+    id = Attribute("Unique host identifier")
+    name = Attribute("Name of the host")
+    poolId = Attribute("Name of the pool on which the host is running")
+    ipAddr = Attribute("IP Address of the host")
+    cores = Attribute("Number of processor cores")
+    memory = Attribute("Memory (bytes) available on the host")
+    privateNetwork = Attribute("Private network of the host")
+    createdAt = Attribute("Time host was added")
+    updatedAt = Attribute("Time the host was updated")
+    kernelVersion = Attribute("Kernel version of the host OS")
+    kernelRelease = Attribute("Kernel release number of the host OS")
 
 
 
