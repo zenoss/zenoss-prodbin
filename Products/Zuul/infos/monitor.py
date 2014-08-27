@@ -70,18 +70,18 @@ class MonitorTreeNode(object):
 class MonitorInfo(InfoBase):
     """
     """
-    eventlogCycleInterval = ProxyProperty('eventlogCycleInterval')
-    processCycleInterval = ProxyProperty('processCycleInterval')
-    statusCycleInterval = ProxyProperty('statusCycleInterval')
-    winCycleInterval = ProxyProperty('winCycleInterval')
-    wmibatchSize = ProxyProperty('wmibatchSize')
-    wmiqueryTimeout = ProxyProperty('wmiqueryTimeout')
-    configCycleInterval = ProxyProperty('configCycleInterval')
-    zenProcessParallelJobs = ProxyProperty('zenProcessParallelJobs')
-    pingTimeOut = ProxyProperty('pingTimeOut')
-    pingTries = ProxyProperty('pingTries')
-    pingCycleInterval = ProxyProperty('pingCycleInterval')
-    modelerCycleInterval = ProxyProperty('modelerCycleInterval')
+    eventlogCycleInterval = ProxyProperty('eventlogCycleInterval', convert=int)
+    processCycleInterval = ProxyProperty('processCycleInterval', convert=int)
+    statusCycleInterval = ProxyProperty('statusCycleInterval', convert=int)
+    winCycleInterval = ProxyProperty('winCycleInterval', convert=int)
+    wmibatchSize = ProxyProperty('wmibatchSize', convert=int)
+    wmiqueryTimeout = ProxyProperty('wmiqueryTimeout', convert=int)
+    configCycleInterval = ProxyProperty('configCycleInterval', convert=int)
+    zenProcessParallelJobs = ProxyProperty('zenProcessParallelJobs', convert=int)
+    pingTimeOut = ProxyProperty('pingTimeOut', convert=float)
+    pingTries = ProxyProperty('pingTries', convert=int)
+    pingCycleInterval = ProxyProperty('pingCycleInterval', convert=int)
+    modelerCycleInterval = ProxyProperty('modelerCycleInterval', convert=int)
 
     @property
     def discoveryNetworks(self):

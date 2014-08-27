@@ -1814,3 +1814,12 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getDevTypes(self, uid, filter=None):
+        """
+        Returns a list of devtypes for the wizard
+        """
+        facade = self._getFacade()
+        data = facade.getDevTypes(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+

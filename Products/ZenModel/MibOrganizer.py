@@ -22,7 +22,7 @@ from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenWidgets import messaging
-from Products.ZenUtils.Utils import binPath
+from Products.ZenUtils.Utils import atomicWrite, binPath, zenPath
 from Organizer import Organizer
 from MibModule import MibModule
 from ZenPackable import ZenPackable
@@ -227,16 +227,14 @@ class MibOrganizer(Organizer, ZenPackable):
         """
         filename = REQUEST.upload.filename
         mibs = REQUEST.upload.read()
-        # write it to a temp file
-        path = '/tmp/%s' % filename
-        with open(path, 'w') as f:
-            f.write(mibs)
+        savedMIBPath = zenPath('/var/ext/uploadedMIBs/%s' % filename)
+        atomicWrite(savedMIBPath, mibs, raiseException=True, createDir=True)
 
         # create the job
         mypath = self.absolute_url_path().replace('/zport/dmd/Mibs', '')
         if not mypath:
             mypath = '/'
-        commandArgs = [binPath('zenmib'), 'run', path,
+        commandArgs = [binPath('zenmib'), 'run', savedMIBPath,
                 '--path=%s' % mypath]
         return self.dmd.JobManager.addJob(SubprocessJob,
                    description="Load MIB at %s" % mypath,

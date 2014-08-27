@@ -22,13 +22,13 @@ from Products.ZenModel.ZenossSecurity import *
 from AccessControl import ClassSecurityInfo
 from Exceptions import zenmarker
 from Products.ZenWidgets.interfaces import IMessageSender
-from Products.ZenRelations.zPropertyCategory import getzPropertyCategory
+from Products.ZenRelations.zPropertyCategory import getzPropertyCategory, setzPropertyCategory
 from Products.ZenUtils.Utils import unused, getDisplayType
 
 iszprop = re.compile("z[A-Z]").match
 
 log = logging.getLogger('zen.PropertyManager')
-
+Z_PROPERTY_META_DATA = dict()
 # Z_PROPERTIES is a list of (id, type, value) pairs that define all the
 # zProperties.  The values are set on dmd.Devices in the
 # buildDeviceTreeProperties of DeviceClass
@@ -36,94 +36,94 @@ Z_PROPERTIES = [
 
     # zPythonClass maps device class to python classs (separate from device
     # class name)
-    ('zPythonClass', '', 'string'),
+    ('zPythonClass', '', 'string', 'Python Class', 'Python module used when creating a new device instances.'),
 
     # zProdStateThreshold is the production state threshold at which to start
     # monitoring boxes
-    ('zProdStateThreshold', 300, 'int'),
+    ('zProdStateThreshold', 300, 'int', 'Production State Threshold', 'Production state threshold at which to start monitoring boxes.'),
 
     # zIfDescription determines whether or not the ifdescripion field is
     # displayed
-    ('zIfDescription', False, 'boolean'),
+    ('zIfDescription', False, 'boolean', 'If Description', 'Shows the interface description field in the interface list.'),
 
     # Snmp collection properties
-    ('zSnmpCommunities', ['public', 'private'], 'lines'),
-    ('zSnmpCommunity', 'public', 'string'),
-    ('zSnmpPort', 161, 'int'),
-    ('zSnmpVer', 'v2c', 'string'),
-    ('zSnmpTries', 6, 'int'),
-    ('zSnmpTimeout', 1, 'float'),
-    ('zSnmpEngineId', '', 'string'),
-    ('zSnmpSecurityName', '', 'string'),
-    ('zSnmpAuthPassword', '', 'password'),
-    ('zSnmpPrivPassword', '', 'password'),
-    ('zSnmpAuthType', '', 'string'),
-    ('zSnmpPrivType', '', 'string'),
-    ('zSnmpCollectionInterval', 300, 'int'),
-    ('zRouteMapCollectOnlyLocal', False, 'boolean'),
-    ('zRouteMapCollectOnlyIndirect', False, 'boolean'),
-    ('zRouteMapMaxRoutes', 500, 'int'),
-    ('zInterfaceMapIgnoreTypes', '', 'string'),
-    ('zInterfaceMapIgnoreNames', '', 'string'),
-    ('zInterfaceMapIgnoreDescriptions', '', 'string'),
-    ('zFileSystemMapIgnoreTypes', [], 'lines'),
-    ('zFileSystemMapIgnoreNames', '', 'string'),
-    ('zFileSystemSizeOffset', 1.0, 'float'),
-    ('zHardDiskMapMatch', '', 'string'),
-    ('zSysedgeDiskMapIgnoreNames', '', 'string'),
-    ('zIpServiceMapMaxPort', 1024, 'int'),
-    ('zDeviceTemplates', ['Device'], 'lines'),
-    ('zLocalIpAddresses', '^127|^0\\.0|^169\\.254|^224|^fe80::', 'string'),
-    ('zLocalInterfaceNames', '^lo|^vmnet', 'string'),
+    ('zSnmpCommunities', ['public', 'private'], 'lines', 'SNMP Communities', 'Array of SNMP community strings that ZenModeler uses when collecting SNMP information. When you set this property, communities are tried in order; the first in the list that is successful is used as zSnmpCommunity. If none is successful, then the current value of zSnmpCommunity is used. The default value for the entire system is "public."'),
+    ('zSnmpCommunity', 'public', 'string', 'SNMP Community String', 'Community string to be used when collecting SNMP information. If it is different than what is found by ZenModeler, it will be set on the modeled device.'),
+    ('zSnmpPort', 161, 'int', 'SNMP Port', 'Port that the SNMP agent listens on.'),
+    ('zSnmpVer', 'v2c', 'string', 'SNMP Version', 'SNMP version used. Valid values are v1, v2c, v3.'),
+    ('zSnmpTries', 6, 'int', 'SNMP Tries', 'Amount of tries to collect SNMP data'),
+    ('zSnmpTimeout', 1, 'float', 'SNMP Timeout', 'Timeout time in seconds for an SNMP request'),
+    ('zSnmpEngineId', '', 'string', 'SNMP Engine ID', 'Engine ID is the administratively unique identifier for the SNMPv3 engine'),
+    ('zSnmpSecurityName', '', 'string', 'SNMP Security Name', 'The Security Name (user) to use when making SNMPv3 requests.'),
+    ('zSnmpAuthPassword', '', 'password', 'SNMP Auth Password', 'The shared private key used for authentication. Must be at least 8 characters long.'),
+    ('zSnmpPrivPassword', '', 'password', 'SNMP Private Password', 'The shared private key used for encrypting SNMP requests. Must be at least 8 characters long.'),
+    ('zSnmpAuthType', '', 'string', 'SNMP Auth Type', 'Use "MD5" or "SHA" signatures to authenticate SNMP requests'),
+    ('zSnmpPrivType', '', 'string', 'SNMP Priv Type', '"DES" or "AES" cryptographic algorithms.'),
+    ('zSnmpCollectionInterval', 300, 'int', 'SNMP Collection Interval', 'Defines, in seconds, how often the system collects performance information for each device.'),
+    ('zRouteMapCollectOnlyLocal', False, 'boolean', 'Router Map Collect Only (Local)', 'Only collect local routes. (These usually are manually configured rather than learned through a routing protocol.)'),
+    ('zRouteMapCollectOnlyIndirect', False, 'boolean', 'Route Map Collect Only (Indirect)', 'Only collect routes that are directly connected to the device.'),
+    ('zRouteMapMaxRoutes', 500, 'int', 'Route Map Max Routes', 'Maximum number of routes to model.'),
+    ('zInterfaceMapIgnoreTypes', '', 'string', 'Interface Map Ignore Types', 'Filters out interface maps that should not be discovered.'),
+    ('zInterfaceMapIgnoreNames', '', 'string', 'Interface Map Ignore Names', 'Filters out interfaces that should not be discovered.'),
+    ('zInterfaceMapIgnoreDescriptions', '', 'string', 'Interface Map Ignore Description', 'Filters out interfaces based on description.'),
+    ('zFileSystemMapIgnoreTypes', [], 'lines', 'File System Map Ignore Types', 'Do not use.'),
+    ('zFileSystemMapIgnoreNames', '', 'string', 'File System Map Ignore Names', 'Sets a regular expression of file system names to ignore.'),
+    ('zFileSystemSizeOffset', 1.0, 'float', 'File System Size Offset', 'SNMP typically reports the total space available to privileged users. Resource Manager (like the df command) reports capacity based on the space available to non-privileged users. The value of zFileSystemSizeOffset should be the fraction of the total space that is available to non-privileged users. The default reserved value is 5% of total space, so zFileSystemSizeOffset is preset to .95. If the reserved portion is different than 5%, then adjust the value of zFileSystemSizeOffset accordingly. The fraction should be set according to the value ( Used + Avail ) / Size when the df -PkH command is run at the command line.'),
+    ('zHardDiskMapMatch', '', 'string', 'Hard Disk Map Match', 'Regular expression that uses the disk ID in the diskstats output to filter disk activity statistics for inclusion in performance monitoring.'),
+    ('zSysedgeDiskMapIgnoreNames', '', 'string', 'Sysedge Disk Map Ignore Names', ''),
+    ('zIpServiceMapMaxPort', 1024, 'int', 'IP Service Map Max Port', 'Specifies the highest port to scan. The default is 1024.'),
+    ('zDeviceTemplates', ['Device'], 'lines', 'Device Templates', 'Sets the templates associated with this device. Linked by name.'),
+    ('zLocalIpAddresses', '^127|^0\\.0|^169\\.254|^224|^fe80::', 'string', 'Local IP Addresses', ''),
+    ('zLocalInterfaceNames', '^lo|^vmnet', 'string', 'Local Interface Names', 'Regular expression that uses interface name to determine whether the IP addresses on an interface should be incorporated into the network map. For instance, a loopback interface "lo" might be excluded.'),
 
     # Status monitor properties
-    ('zSnmpMonitorIgnore', False, 'boolean'),
-    ('zPingMonitorIgnore', False, 'boolean'),
-    ('zStatusConnectTimeout', 15.0, 'float'),
+    ('zSnmpMonitorIgnore', False, 'boolean', 'Ignore SNMP Monitor?', 'Whether or not to ignore monitoring SNMP on a device.'),
+    ('zPingMonitorIgnore', False, 'boolean', 'Ignore Ping Monitor?', 'Whether or not to ping the device.'),
+    ('zStatusConnectTimeout', 15.0, 'float', 'Status Connection Timeout (seconds)', 'The amount of time that the zenstatus daemon should wait before marking an IP service down.'),
 
     # DataCollector properties
-    ('zCollectorPlugins', [], 'lines'),
-    ('zCollectorClientTimeout', 180, 'int'),
-    ('zCollectorDecoding', 'latin-1', 'string'),
-    ('zCommandUsername', '', 'string'),
-    ('zCommandPassword', '', 'password'),
-    ('zCommandProtocol', 'ssh', 'string'),
-    ('zCommandPort', 22, 'int'),
-    ('zCommandLoginTries', 1, 'int'),
-    ('zCommandLoginTimeout', 10.0, 'float'),
-    ('zCommandCommandTimeout', 10.0, 'float'),
-    ('zCommandSearchPath', [], 'lines'),
-    ('zCommandExistanceTest', 'test -f %s', 'string'),
-    ('zCommandPath', '/usr/local/zenoss/libexec', 'string'),
-    ('zTelnetLoginRegex', 'ogin:.$', 'string'),
-    ('zTelnetPasswordRegex', 'assword:', 'string'),
-    ('zTelnetSuccessRegexList', ['\\$.$', '\\#.$'], 'lines'),
-    ('zTelnetEnable', False, 'boolean'),
-    ('zTelnetEnableRegex', 'assword:', 'string'),
-    ('zTelnetTermLength', True, 'boolean'),
-    ('zTelnetPromptTimeout', 10.0, 'float'),
-    ('zKeyPath', '~/.ssh/id_dsa', 'string'),
-    ('zMaxOIDPerRequest', 40, 'int'),
+    ('zCollectorPlugins', [], 'lines', 'Collector Plugins', ''),
+    ('zCollectorClientTimeout', 180, 'int', 'Collector Client Timeout (seconds)', 'Allows you to set the timeout time of the collector client in seconds'),
+    ('zCollectorDecoding', 'latin-1', 'string', 'Collector Decoding', 'Converts incoming characters to Unicode.'),
+    ('zCommandUsername', '', 'string', 'Username', 'Specifies the user name to use when performing command collection and SSH.'),
+    ('zCommandPassword', '', 'password', 'Password', 'Specifies the password to use when performing command logins and SSH.'),
+    ('zCommandProtocol', 'ssh', 'string', 'Command Protocol', 'Establishes the protocol to use when performing command collection. Possible values are SSH and telnet.'),
+    ('zCommandPort', 22, 'int', 'Command Port', 'Specifies the port to connect to when performing command collection.'),
+    ('zCommandLoginTries', 1, 'int', 'Command Login Tries', 'Sets the number of times to attempt login.'),
+    ('zCommandLoginTimeout', 10.0, 'float', 'Timeout for Login (seconds)', 'Specifies the time to wait for a login prompt.'),
+    ('zCommandCommandTimeout', 10.0, 'float', 'Timeout for Commands (seconds)', 'Specifies the time to wait for a command to complete.'),
+    ('zCommandSearchPath', [], 'lines', 'Command Search Path', 'Sets the path to search for any commands.'),
+    ('zCommandExistanceTest', 'test -f %s', 'string', 'Command Existance Test', ''),
+    ('zCommandPath', '/usr/local/zenoss/libexec', 'string', 'Command Path', 'Sets the default path where ZenCommand plug-ins are installed on the local Resource Manager box (or on a remote box where SSH is used to run the command).'),
+    ('zTelnetLoginRegex', 'ogin:.$', 'string', 'Telnet Login', 'Regular expression to match the login prompt.'),
+    ('zTelnetPasswordRegex', 'assword:', 'string', 'Telnet Password Regex', 'Regular expression to match the password prompt.'),
+    ('zTelnetSuccessRegexList', ['\\$.$', '\\#.$'], 'lines', 'Telnet Success Regex', 'List of regular expressions to match the command prompt.'),
+    ('zTelnetEnable', False, 'boolean', 'Enable Telnet?', 'When logging into a Cisco device issue the enable command to enable access during command collection.'),
+    ('zTelnetEnableRegex', 'assword:', 'string', 'Telnet Enable Regex', 'Regular expression to match the enable prompt.'),
+    ('zTelnetTermLength', True, 'boolean', 'Telnet Term Length', 'On a Cisco device, set term length to Zero.'),
+    ('zTelnetPromptTimeout', 10.0, 'float', 'Telnet Prompt Timeout (seconds)', 'Time to wait for the telnet prompt to return.'),
+    ('zKeyPath', '~/.ssh/id_dsa', 'string', 'Key Path', 'Sets the path to the SSH key for device access.'),
+    ('zMaxOIDPerRequest', 40, 'int', 'Max OID Per Request', 'Sets the maximum number of OIDs to be sent by the SNMP collection daemons when querying information. Some devices have small buffers for handling this information so the number should be lowered.'),
 
     # Extra stuff for users
-    ('zLinks', '', 'string'),
+    ('zLinks', '', 'string', 'Links', 'Specifies a place to enter any links associated with the device.'),
 
     # zIcon is the icon path
-    ('zIcon', '/zport/dmd/img/icons/noicon.png', 'string'),
+    ('zIcon', '/zport/dmd/img/icons/noicon.png', 'string', 'Icon Path', 'Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page.'),
 
     # used in ApplyDataMap
-    ('zCollectorLogChanges', True, 'boolean'),
+    ('zCollectorLogChanges', True, 'boolean', 'Log Collector Changes?', 'Indicates whether to log changes.'),
 
     # enable password for Cisco routers
-    ('zEnablePassword', '', 'password'),
+    ('zEnablePassword', '', 'password', 'Enable Password', 'Enable password for Cisco routers'),
 
     # used in zenoss.nmap.IpServiceMap
-    ('zNmapPortscanOptions', '-p 1-1024 -sT -oG -', 'string'),
+    ('zNmapPortscanOptions', '-p 1-1024 -sT -oG -', 'string', 'Nmap Port Scan Options', 'Options used on nmap when scanning ports. Used in IpServiceMap'),
 
     # how many SSH sessions to open up to one device (some SSH servers have a limit)
-    ('zSshConcurrentSessions', 10, 'int'),
+    ('zSshConcurrentSessions', 10, 'int', 'SSH Concurrent Sessions', 'How many SSH sessions to open up to one device (some SSH servers have a limit)'),
 
-    ('zCredentialsZProperties', [], 'lines'),
+    ('zCredentialsZProperties', [], 'lines', 'Connection Information', 'Used by ZenPack authors to denote which zProperties comprise the credentials for this device class.'),
     ]
 
 class PropertyDescriptor(object):
@@ -138,6 +138,12 @@ class PropertyDescriptor(object):
         self.id = id
         self.type = type
         self.transformer = transformer
+        # look up the label and description
+        self.label = ""
+        self.description = ""
+        if Z_PROPERTY_META_DATA.get(id):
+            self.label = Z_PROPERTY_META_DATA[id].get('label')
+            self.description = Z_PROPERTY_META_DATA[id].get('description')
 
     def __get__(self, instance, owner):
         """
@@ -182,9 +188,15 @@ class PropertyDescriptor(object):
             del instance.__dict__[self.id]
             instance._p_changed = True
         for dct in instance._properties:
-            if dct['id'] == self.id:
+            if dct['id'] == self.id:                
                 if dct['type'] != self.type:
                     dct['type'] = self.type
+                    instance._p_changed = True                
+                if dct.get('label') != self.label:
+                    dct['label'] = self.label
+                    instance._p_changed = True
+                if dct.get('description') != self.description:
+                    dct['description'] = self.description
                     instance._p_changed = True
                 break
 
@@ -602,18 +614,24 @@ class ZenPropertyManager(object, PropertyManager):
         - options - acceptable values of this zProperty
         """
         props = []
+        root = self.getDmdRoot(self.dmdRootName)
         for zId in self.zenPropertyIds():
             if zId in exclusionList:
                 continue
-            prop = self.exportZProperty(zId)
+            prop = self.exportZProperty(zId, root)
             if not self.zenPropIsPassword(zId):
                 prop['value'] = self.getZ(zId)
             else:
                 prop['value'] = self.zenPropertyString(zId)
+
+            # look up the description and label from the root            
             props.append(prop)
+            
         return props
 
-    def exportZProperty(self, zId):
+    def exportZProperty(self, zId, root=None):
+        if not root:
+            root = self.getDmdRoot(self.dmdRootName)
         return dict(
             id=zId,
             islocal=self.hasProperty(zId),
@@ -622,7 +640,9 @@ class ZenPropertyManager(object, PropertyManager):
             options=self.zenPropertyOptions(zId),
             category=getzPropertyCategory(zId),
             value=None,
-            valueAsString=self.zenPropertyString(zId)
+            valueAsString=self.zenPropertyString(zId),
+            label=root.propertyLabel(zId),
+            description= root.propertyDescription(zId)
             )
 
 InitializeClass(ZenPropertyManager)
@@ -656,9 +676,19 @@ def setDescriptors(dmd):
     zprops = set()
     
     # copy the core zProps
-    for prop_id, propt_default_value, prop_type in Z_PROPERTIES:
-        zprops.add((prop_id, prop_type))
-
+    # Z_PROPERTIES = id, defaultValue, type , label, description
+    for item in Z_PROPERTIES:
+        id = item[0]
+        type = item[2]
+        zprops.add((id, type))
+        Z_PROPERTY_META_DATA[id] = dict()
+        Z_PROPERTY_META_DATA[id]['type'] = type
+        Z_PROPERTY_META_DATA[id]['defaultValue'] = item[1]
+        if len(item) >= 4:
+            Z_PROPERTY_META_DATA[id]['label'] = item[3]
+        if len(item) >= 5:
+            Z_PROPERTY_META_DATA[id]['description'] = item[4]
+    
     # add zProps from zenpacks
     from Products.ZenUtils.PkgResources import pkg_resources
     for zpkg in pkg_resources.iter_entry_points('zenoss.zenpacks'):
@@ -668,7 +698,15 @@ def setDescriptors(dmd):
         if hasattr(module, 'ZenPack'):
             for prop_id, propt_default_value, prop_type in module.ZenPack.packZProperties:
                 zprops.add((prop_id, prop_type))
-
+            if hasattr(module.ZenPack, 'packZProperties_data'):
+                Z_PROPERTY_META_DATA.update(module.ZenPack.packZProperties_data)
+                # check for category to update
+                for key, value in module.ZenPack.packZProperties_data.iteritems():
+                    # if zproperties are only defined in data
+                    zprops.add((key, value.get('type')))
+                    if value.get('category'):
+                        setzPropertyCategory(key, value.get('category'))
+                        
     # add zProps from dmd.Devices to catch any that are undefined elsewhere
     for prop_id in dmd.Devices.zenPropertyIds():
         prop_type = dmd.Devices.getPropertyType(prop_id)

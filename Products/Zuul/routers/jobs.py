@@ -63,6 +63,10 @@ class JobsRouter(DirectRouter):
             except NoSuchJobException:
                 log.debug("Unable to delete job: %s No such job found.", id_)
 
+    def getInfo(self, jobid):
+        job = self.api.getInfo(jobid)
+        return DirectResponse.succeed(data=Zuul.marshal(job))
+    
     def detail(self, jobid):
         try:
             logfile, content, maxLimit = self.api.getJobDetail(jobid)

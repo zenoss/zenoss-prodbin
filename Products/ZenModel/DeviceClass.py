@@ -841,9 +841,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Create a new device tree with a default configuration
         """
         devs = self.getDmdRoot("Devices")
-        for id, value, type in Z_PROPERTIES:
+        for item in Z_PROPERTIES:
+            id = item[0]
+            defaultValue = item[1]            
+            type = item[2]
             if not devs.hasProperty(id):
-                devs._setProperty(id, value, type)
+                devs._setProperty(id, defaultValue, type)
 
     def zenPropertyOptions(self, propname):
         """

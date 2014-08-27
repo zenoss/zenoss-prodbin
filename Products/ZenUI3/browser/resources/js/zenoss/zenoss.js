@@ -213,7 +213,7 @@ function setCursorStyle(style) {
     if (document.body) {
         document.body.style.cursor = style;
     }
-}
+};
 
 Ext.Ajax.on('beforerequest', function(){
     setCursorStyle("wait");

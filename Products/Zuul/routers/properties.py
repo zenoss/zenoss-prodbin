@@ -114,7 +114,7 @@ class PropertiesRouter(DirectRouter):
 
     @serviceConnectionError
     @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid') 
-    def setZenProperty(self, uid, zProperty, value):
+    def setZenProperty(self, uid, zProperty, value=None):
         """
         Sets the zProperty value.
         @type  uid: string

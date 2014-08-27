@@ -80,7 +80,8 @@ Ext.onReady(function(){
                 key: Ext.EventObject.ENTER,
                 fn: toggleEventDetailContent
             }],
-            selModel: console_selection_model // defined above
+            selModel: console_selection_model, // defined above
+            enableTextSelection: true
         });
         console_selection_model.grid = grid;
 
