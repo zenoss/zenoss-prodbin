@@ -95,6 +95,7 @@ from zope.component.factory import Factory
 from zope.interface import implementer
 
 from .interfaces import IServiceDefinition, IServiceInstance
+from ..host import IHost
 
 
 class _Value(object):
@@ -132,6 +133,9 @@ _instanceKeys = set([
     "PoolID", "DesiredState", "ParentServiceID"
 ])
 
+_hostKeys = set([
+    "ID", "Name", "PoolID", "Cores", "Memory"
+])
 
 def _decodeServiceJsonObject(obj):
     foundKeys = _definitionKeys & set(obj.keys())
@@ -146,6 +150,14 @@ def _decodeServiceJsonObject(obj):
         return instance
     return obj
 
+def _decodeHostJsonObject(obj):
+    foundKeys = _hostKeys & set(obj.keys())
+    if foundKeys == _hostKeys:
+        instance = createObject("Host")
+        instance.__setstate__(obj)
+        return instance
+    return obj
+
 
 class ServiceJsonDecoder(json.JSONDecoder):
     """
@@ -154,6 +166,12 @@ class ServiceJsonDecoder(json.JSONDecoder):
     def __init__(self, **kwargs):
         kwargs.update({"object_hook": _decodeServiceJsonObject})
         super(ServiceJsonDecoder, self).__init__(**kwargs)
+
+
+class HostJsonDecoder(json.JSONDecoder):
+    def __init__(self, **kwargs):
+        kwargs.update({"object_hook": _decodeHostJsonObject})
+        super(HostJsonDecoder, self).__init__(**kwargs)
 
 
 class ServiceJsonEncoder(json.JSONEncoder):
@@ -347,9 +365,77 @@ class ServiceDefinitionFactory(Factory):
         )
 
 
+@implementer(IHost)
+class Host(object):
+    """
+    """
+    def __getstate__(self):
+        return self._data
+
+    def __setstate__(self, data):
+        self._data = data
+
+    def __init__(self):
+        self._data = {}
+
+    @property
+    def id(self):
+        return self._data.get("ID")
+
+    @property
+    def name(self):
+        return self._data.get("Name")
+
+    @property
+    def poolId(self):
+        return self._data.get("PoolID")
+
+    @property
+    def ipAddr(self):
+        return self._data.get("IPAddr")
+
+    @property
+    def cores(self):
+        return self._data.get("Cores")
+
+    @property
+    def memory(self):
+        return self._data.get("Memory")
+
+    @property
+    def privateNetwork(self):
+        return self._data.get("PrivateNetwork")
+
+    @property
+    @_convertToDateTime
+    def createdAt(self):
+        return self._data.get("CreatedAt")
+
+    @property
+    @_convertToDateTime
+    def updatedAt(self):
+        return self._data.get("UpdatedAt")
+
+    @property
+    def kernelVersion(self):
+        return self._data.get("KernelVersion")
+
+    @property
+    def kernelRelease(self):
+        return self._data.get("KernelRelease")
+
+class HostFactory(Factory):
+    """
+    Factory for Host objects.
+    """
+
+    def __init__(self):
+        super(HostFactory, self).__init__(Host, "Host", "Control Plane Host Definition")
+
 # Define the names to export via 'from data import *'.
 __all__ = (
     "ServiceJsonDecoder", "ServiceJsonEncoder",
     "ServiceDefinition", "ServiceDefinitionFactory",
-    "ServiceInstance", "ServiceInstanceFactory"
+    "ServiceInstance", "ServiceInstanceFactory",
+    "Host", "HostFactory"
 )

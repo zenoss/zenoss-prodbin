@@ -91,3 +91,4 @@ from security import *
 from application import *
 from monitor import *
 from user import *
+from host import *

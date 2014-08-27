@@ -22,6 +22,7 @@
                  return Daemons.states[value] || value;
              }
             },
+            {name: 'hostId', type: 'string'},
             {name: 'uptime', type: 'string'},
             {name: 'autostart',  type: 'boolean'},
             {name: 'isRestarting',  type: 'boolean'},

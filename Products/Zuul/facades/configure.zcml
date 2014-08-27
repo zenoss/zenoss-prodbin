@@ -122,4 +122,9 @@
             for="*"
             />
 
+    <adapter factory=".HostFacade"
+            provides="..interfaces.IFacade"
+            name="hosts"
+            for="*"
+            />
 </configure>

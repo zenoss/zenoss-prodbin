@@ -42,6 +42,10 @@ class ApplicationInfo(object):
     text = name
 
     @property
+    def hostId(self):
+        return self._object.hostId
+
+    @property
     def type(self):
         return "daemon"
 
