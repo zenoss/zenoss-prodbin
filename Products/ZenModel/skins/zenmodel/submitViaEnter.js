@@ -1,4 +1,4 @@
-function submitViaEnter(evt) {    
+function submitViaEnter(evt) {
     evt = (evt) ? evt : event;
     var target = (evt.target) ? evt.target : evt.srcElement;
     var form = target.form;
