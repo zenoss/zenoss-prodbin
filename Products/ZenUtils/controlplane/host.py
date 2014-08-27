@@ -12,33 +12,12 @@ IHost* control-plane implementations.
 """
 
 import logging
-import os
 from zope.interface import implementer
-
-from Products.ZenUtils.GlobalConfig import globalConfToDict
-
 from .client import ControlPlaneClient
 from Products.ZenUtils.host import IHostManager
+from Products.ZenUtils.controlplane import getConnectionSettings
+
 LOG = logging.getLogger("zen.controlplane")
-
-
-def getConnectionSettings(options=None):
-    if options is None:
-        o = globalConfToDict()
-    else:
-        o = options
-    settings = {
-        "host": o.get("controlplane-host"),
-        "port": o.get("controlplane-port"),
-        "user": o.get("controlplane-user", "zenoss"),
-        "password": o.get("controlplane-password", "zenoss"),
-    }
-    # allow these to be set from the global.conf for development but
-    # give preference to the environment variables
-    settings["user"] = os.environ.get('CONTROLPLANE_SYSTEM_USER', settings['user'])
-    settings["password"] = os.environ.get('CONTROLPLANE_SYSTEM_PASSWORD', settings['password'])    
-    return settings
-
 
 @implementer(IHostManager)
 class HostLookup(object):
