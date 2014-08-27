@@ -104,6 +104,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         self._notifier = component.getUtility(IBatchNotifier)
 
     def _handleOptions(self, options):
+        pass
         #removing state since config services do not work well with state because of 
         #hub workers and invalidation workers.
         #TODO: figure out a way to do filtering on zenhub side to reduce traffic to daemons
