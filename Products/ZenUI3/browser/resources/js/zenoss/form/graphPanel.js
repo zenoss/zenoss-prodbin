@@ -277,8 +277,7 @@
             };
 
 
-            visconfig.downsample = this._getDownSample(this.graph_params);
-            console.log(visconfig.downsample);
+            visconfig.downsample = this._getDownSample(this.graph_params);            
 
             // determine scaling
             if (this.autoscale) {
@@ -405,8 +404,7 @@
                     end: formatForMetricService(gp.end)
                 }
             };
-            changes.downsample = this._getDownSample(gp);
-            console.log(changes.downsample);
+            changes.downsample = this._getDownSample(gp);            
             zenoss.visualization.chart.update(this.graphId, changes);
 
             this.graph_params = gp;
