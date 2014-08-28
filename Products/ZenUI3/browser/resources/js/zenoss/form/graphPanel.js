@@ -54,10 +54,20 @@
             '1y-ago': 31536000000
         },
         DOWNSAMPLE = [
-            [86400000, '1h-avg'],    // Day
-            [604800000, '12h-avg'],  // Week
+            [3600000, '10s-avg'],    // 1 hour
+            [7200000, '30s-avg'],    // 2 hours
+            [14400000, '45s-avg'],    // 4 hours
+            [18000000, '1m-avg'],    // 5 hours
+            [28800000, '2m-avg'],    // 8 hours
+            [43200000, '3m-avg'],    // 12 hours
+            [64800000, '4m-avg'],    // 18 hours            
+            [86400000, '5m-avg'],    // Day
+            [172800000, '10m-avg'],    // 2 days
+            [259200000, '15m-avg'],    // 3 days
+            [604800000, '1h-avg'],  // Week
+            [1209600000, '2h-avg'],  // 2 Weeks
             [2419200000, '1d-avg'],  // Month
-            [31536000000, '30d-avg'] // Year
+            [31536000000, '10d-avg'] // Year
         ],
 
         /*
@@ -265,21 +275,9 @@
                 timezone: Zenoss.USER_TIMEZONE
             };
 
-            var delta;
-            if (Ext.isNumber(this.graph_params.start)) {
-                delta = now() - this.graph_params.start;
-            } else {
-                delta = rangeToMilliseconds(this.graph_params.start);
-            }
-            // always down sample to a 1m-avg for now. This
-            // means that if we collect at less than a minute the
-            // values will be averaged out.
-            visconfig.downsample = '1m-avg';
-            Ext.Array.each(DOWNSAMPLE,function(v) {
-                if (delta >= v[0]) {
-                    visconfig.downsample = v[1];
-                }
-            });
+
+            visconfig.downsample = this._getDownSample(this.graph_params);
+            console.log(visconfig.downsample);
 
             // determine scaling
             if (this.autoscale) {
@@ -298,7 +296,7 @@
                 // keys to exclude when cloning config object
                 exclusions = ["dockedItems"];
 
-            // shallow clone initialConfig object as long as the 
+            // shallow clone initialConfig object as long as the
             // key being copied is no in the exclusions list.
             // This is useful because the final JSON string needs
             // to be as small as possible!
@@ -369,6 +367,25 @@
             this.on('updateimage', this.updateGraph, this);
             this.graphEl = Ext.get(this.graphId);
         },
+        _getDownSample: function(gp) {
+            var delta, downsample = null;
+            if (Ext.isNumber(gp.start)) {
+                delta = this.convertEndToAbsolute(gp.end) - gp.start;
+            } else {
+                delta = rangeToMilliseconds(gp.start);
+            }
+            
+            // no downsampling for less than one hour.    
+            if (delta <  3600) {
+                return null;
+            }
+            Ext.Array.each(DOWNSAMPLE, function(v) {
+                if (delta >= v[0]) {
+                    downsample = v[1];
+                }
+            });
+            return downsample;
+        },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
             gp.start = params.start || gp.start;
@@ -387,20 +404,8 @@
                     end: formatForMetricService(gp.end)
                 }
             };
-
-            // gp.start is something like "1h-ago", convert to milliseconds
-            var delta;
-            if (Ext.isNumber(gp.start)) {
-                delta = this.convertEndToAbsolute(gp.end) - gp.start;
-            } else {
-                delta = rangeToMilliseconds(gp.start);
-            }
-            changes.downsample = '1m-avg';
-            Ext.Array.each(DOWNSAMPLE, function(v) {
-                if (delta >= v[0]) {
-                    changes.downsample = v[1];
-                }
-            });
+            changes.downsample = this._getDownSample(gp);
+            console.log(changes.downsample);
             zenoss.visualization.chart.update(this.graphId, changes);
 
             this.graph_params = gp;
@@ -817,7 +822,7 @@
 
             // default range value of 1 hour
             // NOTE: this should be a real number, not a relative
-            // measurement like "1h-ago"             
+            // measurement like "1h-ago"
             this.drange = rangeToMilliseconds("1h-ago");
 
             // default start and end values in UTC time
@@ -987,7 +992,7 @@
 
         ///////////////////////////
         // graph time and range type stuff
-        // 
+        //
 
         setDrange: function(drange) {
             this.drange = drange || this.drange;
