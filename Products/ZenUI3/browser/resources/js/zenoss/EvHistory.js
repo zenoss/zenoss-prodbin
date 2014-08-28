@@ -256,6 +256,11 @@ Ext.onReady(function(){
     {
         var master_panel = Ext.getCmp('master_panel');
         var tbar = createBar();
+
+        var archive_store = Ext.create('Zenoss.events.Store', {directFn: Zenoss.remote.EventsRouter.queryArchive} );
+        if (!Zenoss.settings.enableInfiniteGridForEvents)
+            archive_store.buffered = false;
+
         var grid = Ext.create('Zenoss.events.Grid', {
             region: 'center',
             tbar: tbar,
@@ -271,9 +276,7 @@ Ext.onReady(function(){
             },
             stateful: true,
             rowSelectorDepth: 5,
-            store: Ext.create('Zenoss.events.Store', {
-                directFn: Zenoss.remote.EventsRouter.queryArchive
-            }),
+            store: archive_store,
             // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
             // the resultFields associated with the context.
             columns: Zenoss.env.getColumnDefinitionsToRender(Zenoss.env.EVENTSGRID_STATEID),

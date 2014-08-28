@@ -634,14 +634,11 @@
                 verticalScroller: {
                     scrollToLoadBuffer: 100
                 },
-                bbar: {
-                    cls: 'commonlivegridinfopanel',
-                    items: [
-                        '->',
-                    {
-                        xtype:'livegridinfopanel',
-                        grid:this
-                    }]
+                bbar: { cls: 'commonlivegridinfopanel',
+                        items: [ {xtype:'pagingtoolbar', cls: 'commonlivegridinfopanel'},
+                                 '->',
+                                 {xtype:'livegridinfopanel', grid:this}
+                        ]
                 }
             });
             this.callParent([config]);
@@ -650,6 +647,18 @@
             this.callParent(arguments);
             this.headerCt.on('columnhide', this.onColumnChange, this);
             this.headerCt.on('columnshow', this.onColumnChange, this);
+
+            var paging_tb = this.down('pagingtoolbar');
+            if (paging_tb) {
+                // If we have an infinite grid we hide the paging toolbar
+                if (this.getStore().buffered)
+                    paging_tb.hide();
+                else {
+                    paging_tb.on('beforechange', this.scrollToTop, this)
+                    paging_tb.bindStore(this.getStore());
+                    paging_tb.down('#refresh').hide();
+                }
+            }
         },
         /**
          * Listeners for when you hide/show a column, the data isn't fetched yet so
@@ -704,7 +713,6 @@
                     store.guaranteeRange(start, end);
                 }
             }
-
         },
         scrollToTop:function () {
             var view = this.getView();
@@ -826,7 +834,11 @@
                 /*  added this guaranteedrange hack to make up for the ext bug where-by
                     updating store doesn't fire the datachanged except on load.
                 */
-                this.grid.getStore().on('guaranteedrange', this.onDataChanged, this);
+                var store = this.grid.getStore();
+                if(store.buffered)
+                    store.on('guaranteedrange', this.onDataChanged, this);
+                else
+                    store.on('load', this.onDataChanged, this);
                 this.view.on('bodyscroll', this.onScroll, this);
                 this.view.on('resize', this.onResize, this);
             }
@@ -874,13 +886,11 @@
         },
         getStartCount: function() {
             var scrollTop = this.view.el.dom.scrollTop;
-
             if (this.rowHeight && scrollTop) {
                 return Math.ceil(scrollTop / this.rowHeight);
             }
-
             // ask the scroller, if the store is paginated
-            if (this.grid.verticalScroller && this.grid.verticalScroller.getFirstVisibleRowIndex){
+            if (this.grid.verticalScroller && this.grid.verticalScroller.getFirstVisibleRowIndex && this.grid.getStore().buffered){
                 var start = this.grid.verticalScroller.getFirstVisibleRowIndex();
                 if (start) {
                     return start;
@@ -921,15 +931,30 @@
                     end = Math.min(this.getEndCount(start), this.totalCount),
                     msg;
 
-                msg = Ext.String.format(this.displayMsg, start + 1, end, this.totalCount);
+                var store = this.grid.getStore();
+                if (!store.buffered) {
+                    var current_page = store.currentPage;
+                    if (current_page > 0) {
+                        var page_size = store.pageSize;
+                        var offset = (current_page - 1) * page_size
+                        start = offset + start
+                        end = offset + end
+                        var real_page_end = current_page * page_size;
+                        if (real_page_end > store.totalCount)
+                            real_page_end = store.totalCount;
+                        if ( end > real_page_end)
+                            end = real_page_end;
+                    }
+                }
+                msg = Ext.String.format(this.displayMsg, start + 1, end, store.totalCount);
                 this.setText(msg);
+
             } else {
                 // Drat, we didn't have the paging scroller, so assume we are showing all
                 var showingAllMsg = _t('Found {0} records');
                 var msg = Ext.String.format(showingAllMsg, this.totalCount);
                 this.setText(msg);
             }
-
         }
     });
 

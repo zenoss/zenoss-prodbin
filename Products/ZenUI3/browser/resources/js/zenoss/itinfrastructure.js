@@ -1453,6 +1453,10 @@ Zenoss.Security.onPermissionsChange(function(){
 });
 
 var createEventsGrid = function(re_attach_to_container) {
+    var events_store = Ext.create('Zenoss.events.Store', {})
+    if (!Zenoss.settings.enableInfiniteGridForEvents)
+        events_store.buffered = false;
+
     var event_console = Ext.create('Zenoss.EventGridPanel', {
         id: 'events_grid',
         stateId: 'infrastructure_events',
@@ -1462,7 +1466,7 @@ var createEventsGrid = function(re_attach_to_container) {
         actionsMenu: false,
         commandsMenu: false,
         enableColumnHide: false,
-        store: Ext.create('Zenoss.events.Store', {})
+        store: events_store
     });
 
     if (re_attach_to_container == true)
