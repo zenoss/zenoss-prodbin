@@ -1,4 +1,4 @@
-#!/opt/zenoss/bin/python
+#! /usr/bin/env python
 
 import pickle
 import logging

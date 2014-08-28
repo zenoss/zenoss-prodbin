@@ -220,7 +220,7 @@ Transform:
             return
         date = time.localtime(time.time())
         tstamp = time.strftime("%Y-%m-%d-%H%M%S", date)
-        filename = pickleDir + '/%s_%s.pickle' % (evt.device, tstamp)
+        filename = pickleDir + '/%s_%s_%s.pickle' % (evt.device, evt.evid, tstamp) 
         try:
             with open(filename, 'w') as f:
                 evtDict = to_dict(evt._event)
