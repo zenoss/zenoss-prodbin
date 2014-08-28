@@ -665,7 +665,7 @@ class DeviceFacade(TreeFacade):
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         graphs = []
-        for graph in obj.getDefaultGraphDefs():
+        for graph in obj.getGraphObjects():
             info = getMultiAdapter((graph,obj), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
@@ -757,7 +757,7 @@ class DeviceFacade(TreeFacade):
                 component = brain.getObject()
             except:
                 pass
-            graphDefs[component.meta_type] = [g.id for g in component.getDefaultGraphDefs()]
+            graphDefs[component.meta_type] = [g.id for g in component.getGraphObjects()]
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
@@ -772,7 +772,7 @@ class DeviceFacade(TreeFacade):
         # get the graph def
         for comp in components:
             # find the first instance
-            for graph in comp.getDefaultGraphDefs():
+            for graph in comp.getGraphObjects():
                 if graph.id == graphId:
                     graphDef = graph
                     break
