@@ -273,7 +273,7 @@
                 maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
                 // one format for chart, not per metric
-                format: this.datapoints[0].format,
+                format: (this.datapoints.length > 0) ? this.datapoints[0].format: "",
                 timezone: Zenoss.USER_TIMEZONE
             };
 
