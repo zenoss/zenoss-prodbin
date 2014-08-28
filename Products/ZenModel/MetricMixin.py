@@ -103,7 +103,7 @@ class MetricMixin(object):
     
     def getDefaultGraphDefs(self, drange=None):
         """Backwards compatible layer for zenpacks. """
-        log.warn('As of zenoss 5.x and above getDefaultGraphDefs is not supported')
+        log.warn('As of zenoss 5.x and above getDefaultGraphDefs is not supported, use getGraphObjects instead.')
         return []
 
     def getGraphDef(self, graphId):
