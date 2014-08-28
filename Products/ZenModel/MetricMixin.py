@@ -90,13 +90,21 @@ class MetricMixin(object):
         # couldn't get any metrics return an empty dictionary
         return {}
 
-    def getDefaultGraphDefs(self, drange=None):
-        """get the default graph list for this object"""
+    def getGraphObjects(self):
+        """
+        Returns GraphDefinition objects for all the templates bound
+        to this object.
+        """
         graphs = []
         for template in self.getRRDTemplates():
             for g in template.getGraphDefs():
                 graphs.append(g)
         return graphs
+    
+    def getDefaultGraphDefs(self, drange=None):
+        """Backwards compatible layer for zenpacks. """
+        log.warn('As of zenoss 5.x and above getDefaultGraphDefs is not supported')
+        return []
 
     def getGraphDef(self, graphId):
         ''' Fetch a graph by id.  if not found return None
