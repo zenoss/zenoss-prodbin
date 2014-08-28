@@ -44,6 +44,9 @@ Ext.onReady(function(){
 
     var createEventConsoleGrid = function() {
         var console_store = Ext.create('Zenoss.events.Store', {});
+        if (!Zenoss.settings.enableInfiniteGridForEvents)
+        console_store.buffered = false;
+
         console_store.on('afterguaranteedrange', updateTitle);
         console_store.on('load', updateTitle);
 

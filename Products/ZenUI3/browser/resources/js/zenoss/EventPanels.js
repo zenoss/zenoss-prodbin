@@ -727,7 +727,10 @@
                         store = grid.getStore(),
                         tbar = this,
                         view = grid.getView();
-                        store.on('guaranteedrange', this.doLastUpdated);
+                        if(store.buffered)
+                            store.on('guaranteedrange', this.doLastUpdated);
+                        else
+                            store.on('load', this.doLastUpdated);
                         view.on('buffer', this.doLastUpdated);
 
                         view.on('filterchange', function(){
