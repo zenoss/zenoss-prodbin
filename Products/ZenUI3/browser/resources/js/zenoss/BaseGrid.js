@@ -524,24 +524,28 @@
                 }
             }, this);
 
-            // once a uid is set always send that uid
-            this.getStore().on('beforeprefetch', function (store, operation) {
+            var before_request = function (store, operation) {
                 if (!operation) {
                     return true;
                 }
-
                 this.start = operation.start;
                 this.limit = operation.limit;
                 if (!Ext.isDefined(operation.params)) {
                     operation.params = {};
                 }
+                // once a uid is set always send that uid
                 if (this.uid) {
                     operation.params.uid = this.uid;
                 }
                 this.applyOptions(operation);
                 return true;
+            };
 
-            }, this);
+            if (this.getStore().buffered)
+                this.getStore().on('beforeprefetch', before_request, this);
+            else
+                this.getStore().on('beforeload', before_request, this);
+
             this.addEvents(
                 /**
                  * @event beforeactivate
