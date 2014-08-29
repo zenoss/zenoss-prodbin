@@ -608,6 +608,15 @@ Ext.define('Zenoss.DeviceDetailNav', {
         }
     },
     doLoadComponentTree: function(data) {
+        data.sort(function (a,b){
+            var first = Zenoss.component.displayName(a.text.text);
+            var second = Zenoss.component.displayName(b.text.text);
+            if (first<second)
+                return -1
+            if (first>second)
+                return 1
+            return 0
+        });
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         if (data.length) {
             rootNode.appendChild(Ext.Array.map(data, function(d) {
