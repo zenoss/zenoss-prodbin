@@ -518,11 +518,11 @@
                 viewConfig:viewConfig
             });
             this.callParent([config]);
-            this.getStore().on("afterguaranteedrange", function () {
+            var after_request = function () {
                 if (!this._disableSavedSelection) {
                     this.applySavedSelection();
                 }
-            }, this);
+            };
 
             var before_request = function (store, operation) {
                 if (!operation) {
@@ -541,10 +541,14 @@
                 return true;
             };
 
-            if (this.getStore().buffered)
+            if (this.getStore().buffered) {
                 this.getStore().on('beforeprefetch', before_request, this);
-            else
+                this.getStore().on("afterguaranteedrange", after_request, this);
+            }
+            else {
                 this.getStore().on('beforeload', before_request, this);
+                this.getStore().on("load", after_request, this);
+            }
 
             this.addEvents(
                 /**
