@@ -912,10 +912,7 @@
         },
         _doOnScroll: function() {
             var pagingScroller = this.grid.verticalScroller;
-            // ext will fire the scroll event sometimes before the data is even set
-            if (!this.totalCount) {
-                return this.setText(this.emptyMsg);
-            }
+
             if (pagingScroller) {
                 var start = Math.max(this.getStartCount(), 0),
                     end = Math.min(this.getEndCount(start), this.totalCount),
