@@ -1007,7 +1007,8 @@
                 this.on('selectionchange', function(selectionmodel) {
                     // Disable buttons if nothing selected (and vice-versa)
                     var actionsToChange = ['acknowledge', 'close', 'reopen',
-                                           'unacknowledge', 'classify', 'addNote'],
+                                           'unacknowledge', 'classify',
+                                           'addNote', 'event-actions-menu'],
                         newDisabledValue = !selectionmodel.hasSelection() && selectionmodel.selectState !== 'All',
                         tbar = this.getGrid().tbar,
                         history_combo = Ext.getCmp('history_combo'),
