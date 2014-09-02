@@ -522,6 +522,15 @@
                 if (!this._disableSavedSelection) {
                     this.applySavedSelection();
                 }
+                // In case the new request returns less results that the previous
+                // to avoid displaying a page that does not exist
+                if(!this.getStore().buffered) {
+                    var store = this.getStore();
+                    var last_page = Math.floor(store.getTotalCount() / store.pageSize) + 1;
+                    if (store.currentPage > last_page) {
+                        store.loadPage(last_page);
+                    }
+                }
             };
 
             var before_request = function (store, operation) {
