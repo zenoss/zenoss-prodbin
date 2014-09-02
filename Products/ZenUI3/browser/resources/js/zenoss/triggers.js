@@ -150,11 +150,13 @@ Ext.onReady(function () {
      **/
 
     notificationPanelConfig = {
-        id: 'notification_panel'
+        id: 'notification_panel',
+        invalidateScrollerOnRefresh: false
     };
 
     schedulesPanelConfig = {
-        id: 'schedules_panel'
+        id: 'schedules_panel',
+        invalidateScrollerOnRefresh: false
     };
 
 
@@ -1535,7 +1537,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
 
     triggersPanelConfig = {
         id: 'triggers_grid_panel',
-        xtype: 'TriggersGridPanel'
+        xtype: 'TriggersGridPanel',
+        invalidateScrollerOnRefresh: false
     };
 
     detailPanelConfig = {
