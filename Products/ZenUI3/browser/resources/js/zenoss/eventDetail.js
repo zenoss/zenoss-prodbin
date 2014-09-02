@@ -516,7 +516,7 @@ Ext.onReady(function() {
             if (section.hasOwnProperty('title')) {
                 var section_title_config = {
                     id: section.id + '_title',
-                    html: section.title + '...',
+                    html: "<a href='#'>" + section.title + '...' + "</a>",
                     cls: 'show_details',
                     height: 30,
                     toggleFn: Ext.bind(this.toggleSection, this, [section.id])
@@ -563,21 +563,13 @@ Ext.onReady(function() {
         },
 
         toggleSection: function(section_id) {
-            var cmp = Ext.getCmp(section_id);
-            if (cmp.hidden) {
-                cmp.show();
+            var cmp = Ext.getCmp(section_id), el = cmp.getEl();
+            // workaround IE not hiding/showing sections by explicitly setting the style on the dom nodes
+            if (el.dom.style.display == "none") {
+                el.dom.style.display = "block";                
             }
             else {
-                /*
-                 *  ZEN-2267: IE specific hack for event details sections. Event
-                 *  details disappear when hide() is called.
-                 */
-                var innerHTML = cmp.getEl().dom.innerHTML;
-                cmp.hide();
-                //Repopulate this field
-                if (Ext.isIE) {
-                    cmp.getEl().dom.innerHTML = innerHTML;
-                }
+                el.dom.style.display = "none";                
             }
         },
 
