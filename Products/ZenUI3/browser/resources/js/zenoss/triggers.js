@@ -647,10 +647,15 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             ]
         });
 
+        var reloadNotificationGridFn = function() {
+            reloadNotificationGrid.apply(this, arguments);
+            schedules_panel.getStore().removeAll();
+        };
+
         var dialogue =  Ext.create('Zenoss.triggers.EditNotificationDialogue', {
             title: _t('Edit Notification'),
             directFn: router.updateNotification,
-            reloadFn: reloadNotificationGrid,
+            reloadFn: reloadNotificationGridFn,
             tabPanel: tab_panel
         });
 
