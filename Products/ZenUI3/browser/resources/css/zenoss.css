@@ -1690,6 +1690,44 @@ a.z-entity:hover{
     top:40px;
 }
 /* adjust the footer to make up for the title */
+.zenerror {
+  display: block;
+  position: relative;
+  margin: auto;
+  top: 40px;
+  color: red;
+  text-align: center;
+  font-size: 18pt;
+  font-style: italic;
+}
+
+.nodata:before {
+  content: "No Data Available";
+}
+
+.nodata {
+  display: block;
+  position: relative;
+  margin: auto;
+  top: 40px;
+  color: blue;
+  text-align: center;
+  font-size: 18pt;
+  font-style: italic;
+}
+
+/* customize graph appearance */
+
+/* make graph points visible */
+.nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+  fill-opacity: .5 !important;
+  stroke-opacity: .5 !important;
+}
+
+.nv-legend-text.threshold {
+  fill: #888;
+  font-style: italic;
+}
 .zenfooter {
 	position: relative;
 	top: -15px;
