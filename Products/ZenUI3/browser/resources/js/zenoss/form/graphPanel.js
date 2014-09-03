@@ -61,7 +61,7 @@
             [18000000, '1m-avg'],     // 5 Hours
             [28800000, '2m-avg'],     // 8 Hours
             [43200000, '3m-avg'],     // 12 Hours
-            [64800000, '4m-avg'],     // 18 Hours            
+            [64800000, '4m-avg'],     // 18 Hours
             [86400000, '5m-avg'],     // 1 Day
             [172800000, '10m-avg'],   // 2 Days
             [259200000, '15m-avg'],   // 3 Days
@@ -179,12 +179,14 @@
          **/
         datapoints: [],
         constructor: function(config) {
-            var padding = "padding:45px 20px 15px 0px;";
+            var padding = "padding:25px 10px 5px 0px;";
             if (config.height <= 400) {
                 padding = "padding:0px 0px 0px 0px;";
             }
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 75)  + 'px;"></div>',
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 100)  + 'px;"> ' +
+					'<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
+					'</div></div></div>',
                 maxWidth: 800,
                 cls: 'graph-panel',
                 graph_params: {
@@ -193,19 +195,11 @@
                     start: config.start || DATE_RANGES[0][0]
                 }
             });
-
             // setup graph controls
             config.dockedItems = [{
                 xtype: 'toolbar',
                 dock: 'top',
-                items: [{
-                    xtype: 'tbtext',
-                    style: {
-                        fontWeight: 'bolder',
-                        fontSize: '1.5em'
-                    },
-                    text: config.graphTitle // + ' : ' + config.uid
-                },'->',{
+                items: ['->',{
                     xtype: 'button',
                     iconCls: 'customize',
                     menu: [{
@@ -278,7 +272,7 @@
             };
 
 
-            visconfig.downsample = this._getDownSample(this.graph_params);            
+            visconfig.downsample = this._getDownSample(this.graph_params);
 
             // determine scaling
             if (this.autoscale) {
@@ -375,8 +369,8 @@
             } else {
                 delta = rangeToMilliseconds(gp.start);
             }
-            
-            // no downsampling for less than one hour.    
+
+            // no downsampling for less than one hour.
             if (delta <  3600) {
                 return null;
             }
@@ -405,7 +399,7 @@
                     end: formatForMetricService(gp.end)
                 }
             };
-            changes.downsample = this._getDownSample(gp);            
+            changes.downsample = this._getDownSample(gp);
             zenoss.visualization.chart.update(this.graphId, changes);
 
             this.graph_params = gp;

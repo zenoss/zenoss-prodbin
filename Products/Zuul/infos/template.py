@@ -603,6 +603,14 @@ class GraphInfo(InfoBase):
     ceiling = ProxyProperty('ceiling')
 
     @property
+    def description(self):
+        return self._object.getDescription()
+    
+    @description.setter
+    def description(self, value):
+        self._object.description = value
+        
+    @property
     def rrdVariables(self):
         """
         Returns a list of RRD variables

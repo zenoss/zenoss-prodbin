@@ -48,93 +48,6 @@ Ext.define('Zenoss.InstructionTypeModel', {
     fields: ['pythonClassName', 'label']
 });
 
-
-
-
-
-/**********************************************************************
- *
- * Graph Custom Definition
- *
- */
-Ext.create('Zenoss.dialog.BaseWindow', {
-    title: _t('Graph Custom Definition'),
-    id: 'graphCustomDefinitionDialog',
-    closeAction: 'hide',
-    buttonAlign: 'left',
-    autoScroll: true,
-    height: 500,
-    width: 400,
-    modal: true,
-    plain: true,
-    padding: 10,
-    items: [{
-        xtype:'form',
-        ref: 'formPanel',
-        paramsAsHash: true,
-        api: {
-            load: router.getGraphDefinition,
-            submit: router.setInfo
-        },
-        items:[{
-            xtype: 'label',
-            fieldLabel: _t('Name'),
-            name:'id',
-            ref: 'nameLabel'
-        },{
-            xtype: 'textarea',
-            fieldLabel: _t('Custom'),
-            width: 300,
-            height: 300,
-            name: 'custom',
-            ref: 'custom'
-        },{
-            xtype: 'label',
-            fieldLabel: _t('Available RRD Variables'),
-            ref: 'rrdVariables'
-        }]
-    }],
-    buttons: [{
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Submit'),
-        handler: function(button, event) {
-            var cmp = Ext.getCmp('graphCustomDefinitionDialog'),
-                routerCallback,
-                data = cmp.record,
-                params = {};
-
-            // we just need to update custom
-            params.uid = data.uid;
-            params.custom = cmp.formPanel.custom.getValue();
-
-            router.setInfo(params);
-        }
-    }, {
-        xtype: 'HideDialogButton',
-        ui: 'dialog-dark',
-        text: _t('Cancel')
-    }],
-    loadAndShow: function(uid) {
-        this.uid = uid;
-        this.formPanel.getForm().load({
-            params: {uid:uid},
-            success: function(btn, response) {
-                var data = response.result.data;
-                this.record = data;
-                // populate the form
-                this.formPanel.nameLabel.setText(data.id);
-                this.formPanel.custom.setValue(data.custom);
-                this.formPanel.rrdVariables.setText(data.rrdVariables.join('<br />'), false);
-
-                this.show();
-            },
-            scope: this
-        });
-    }
-
-});
-
 /**
  * @class Zenoss.graph.GraphPointModel
  * @extends Ext.data.Model
@@ -677,6 +590,10 @@ Ext.create('Zenoss.dialog.BaseWindow', {
             fieldLabel: _t('Max Y'),
             name: 'maxy'
         },{
+            xtype: 'textarea',
+            fieldLabel: _t('Description'),
+            name: 'description'
+        },{
             xtype: 'checkbox',
             fieldLabel: _t('Has Summary'),
             name: 'hasSummary'
@@ -897,31 +814,6 @@ Ext.define("Zenoss.templates.GraphGrid", {
                             dialogWindow = Ext.getCmp('viewGraphDefinitionDialog');
                             uid = me.getSelectedGraphDefinition().get("uid");
                             dialogWindow.loadAndShow(uid);
-                        }
-                    },{
-                        xtype: 'menuitem',
-                        text: _t('Custom Graph Definition'),
-                        handler: function () {
-                            var win = Ext.getCmp('graphCustomDefinitionDialog'),
-                                uid = me.getSelectedGraphDefinition().get("uid");
-                            win.loadAndShow(uid);
-                        }
-                    },{
-                        xtype: 'menuitem',
-                        text: _t('Graph Commands'),
-                        handler: function () {
-                            var params = {
-                                uid: me.getSelectedGraphDefinition().get("uid")
-                            };
-
-                            router.getGraphDefinition(params, function (response) {
-                                Ext.MessageBox.show({
-                                    title: _t('Graph Commands'),
-                                    minWidth: 700,
-                                    msg: Ext.String.format('<pre>{0}</pre>', response.data.fakeGraphCommands),
-                                    buttons: Ext.MessageBox.OK
-                                });
-                            });
                         }
                     }]
                 }),

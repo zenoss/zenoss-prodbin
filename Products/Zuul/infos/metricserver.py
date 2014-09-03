@@ -80,6 +80,10 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     def ceiling(self):
         return self._object.getCeiling()
 
+    @property
+    def description(self):
+        return self._object.getDescription()
+            
     miny = ProxyProperty('miny')
     maxy = ProxyProperty('maxy')
     units = ProxyProperty('units')
