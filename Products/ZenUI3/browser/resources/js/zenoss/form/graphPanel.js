@@ -178,13 +178,15 @@
          * </ul>
          **/
         datapoints: [],
-        constructor: function(config) {
-            var padding = "padding:45px 20px 15px 0px;";
+        constructor: function(config) {			
+            var padding = "padding:25px 10px 5px 0px;";
             if (config.height <= 400) {
                 padding = "padding:0px 0px 0px 0px;";
-            }
+            }			
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 75)  + 'px;"></div>',
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 100)  + 'px;"> ' +
+					'<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
+					'</div></div></div>',
                 maxWidth: 800,
                 cls: 'graph-panel',
                 graph_params: {
@@ -192,20 +194,12 @@
                     end: config.end || CURRENT_TIME,
                     start: config.start || DATE_RANGES[0][0]
                 }
-            });
-
+            });			
             // setup graph controls
             config.dockedItems = [{
                 xtype: 'toolbar',
                 dock: 'top',
-                items: [{
-                    xtype: 'tbtext',
-                    style: {
-                        fontWeight: 'bolder',
-                        fontSize: '1.5em'
-                    },
-                    text: config.graphTitle // + ' : ' + config.uid
-                },'->',{
+                items: ['->',{
                     xtype: 'button',
                     iconCls: 'customize',
                     menu: [{
@@ -273,7 +267,7 @@
                 maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
                 // one format for chart, not per metric
-                format: (this.datapoints.length > 0) ? this.datapoints[0].format: "",
+                format: (this.datapoints.length > 0) ? this.datapoints[0].format: "",				
                 timezone: Zenoss.USER_TIMEZONE
             };
 
@@ -869,7 +863,7 @@
 
             if (el && el.isMasked()) {
                 el.unmask();
-            }
+            }			
             // this is defined by the visualization library, if it is missing then we can not
             // render any charts
             if (!Ext.isDefined(window.zenoss)) {
@@ -901,7 +895,7 @@
             // load graphs until we have either completed the page or
             // we ran out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
-                graph = data[i];
+                graph = data[i];				
                 graphId = Ext.id();
                 graphTitle = graph.title;
                 delete graph.title;
@@ -910,7 +904,7 @@
                     graphId: graphId,
                     graphTitle: graphTitle,
                     ref: graphId,
-                    height: 500
+                    height: 500					
                 })));
 
                 // subscribe to updatelimits event

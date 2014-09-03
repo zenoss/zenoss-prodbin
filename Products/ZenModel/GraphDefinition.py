@@ -88,7 +88,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     sequence = 0
     autoscale = None
     ceiling = None
-    
+    description = ""
+        
     _properties = (
         {'id':'height', 'type':'int', 'mode':'w'},
         {'id':'width', 'type':'int', 'mode':'w'},
@@ -103,7 +104,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         {'id':'custom', 'type':'text', 'mode':'w'},
         {'id':'hasSummary', 'type':'boolean', 'mode':'w'},
         {'id':'sequence', 'type':'long', 'mode':'w'},
-        
+        {'id':'description', 'type':'string', 'mode':'w'},
         )
 
     _relations =  (
@@ -160,7 +161,20 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 return sys.maxint
         return sorted(gps, key=graphPointKey)
         
-        
+    def getDescription(self):
+        description = self.description
+        descriptionLines = description.split("\n")
+        # for zenpacks parse the comments out of the custom         
+        if self.custom:
+            lines = self.custom.split("\n")
+            for line in lines:
+                if line.startswith("COMMENT:"):
+                    comment = line.replace("COMMENT:", "")
+                    # make sure we don't add it twice
+                    if not comment in descriptionLines:
+                        description = description + "\n" + comment
+        return description
+    
     def getThresholdGraphPoints(self):
         """ Get ordered list of threshold graph points
         """
