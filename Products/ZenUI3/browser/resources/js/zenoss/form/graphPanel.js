@@ -61,7 +61,7 @@
             [18000000, '1m-avg'],     // 5 Hours
             [28800000, '2m-avg'],     // 8 Hours
             [43200000, '3m-avg'],     // 12 Hours
-            [64800000, '4m-avg'],     // 18 Hours            
+            [64800000, '4m-avg'],     // 18 Hours
             [86400000, '5m-avg'],     // 1 Day
             [172800000, '10m-avg'],   // 2 Days
             [259200000, '15m-avg'],   // 3 Days
@@ -178,11 +178,11 @@
          * </ul>
          **/
         datapoints: [],
-        constructor: function(config) {			
+        constructor: function(config) {
             var padding = "padding:25px 10px 5px 0px;";
             if (config.height <= 400) {
                 padding = "padding:0px 0px 0px 0px;";
-            }			
+            }
             config = Ext.applyIf(config||{}, {
                 html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 100)  + 'px;"> ' +
 					'<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
@@ -194,7 +194,7 @@
                     end: config.end || CURRENT_TIME,
                     start: config.start || DATE_RANGES[0][0]
                 }
-            });			
+            });
             // setup graph controls
             config.dockedItems = [{
                 xtype: 'toolbar',
@@ -267,12 +267,12 @@
                 maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
                 // one format for chart, not per metric
-                format: (this.datapoints.length > 0) ? this.datapoints[0].format: "",				
+                format: (this.datapoints.length > 0) ? this.datapoints[0].format: "",
                 timezone: Zenoss.USER_TIMEZONE
             };
 
 
-            visconfig.downsample = this._getDownSample(this.graph_params);            
+            visconfig.downsample = this._getDownSample(this.graph_params);
 
             // determine scaling
             if (this.autoscale) {
@@ -369,8 +369,8 @@
             } else {
                 delta = rangeToMilliseconds(gp.start);
             }
-            
-            // no downsampling for less than one hour.    
+
+            // no downsampling for less than one hour.
             if (delta <  3600) {
                 return null;
             }
@@ -399,7 +399,7 @@
                     end: formatForMetricService(gp.end)
                 }
             };
-            changes.downsample = this._getDownSample(gp);            
+            changes.downsample = this._getDownSample(gp);
             zenoss.visualization.chart.update(this.graphId, changes);
 
             this.graph_params = gp;
@@ -863,7 +863,7 @@
 
             if (el && el.isMasked()) {
                 el.unmask();
-            }			
+            }
             // this is defined by the visualization library, if it is missing then we can not
             // render any charts
             if (!Ext.isDefined(window.zenoss)) {
@@ -895,7 +895,7 @@
             // load graphs until we have either completed the page or
             // we ran out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
-                graph = data[i];				
+                graph = data[i];
                 graphId = Ext.id();
                 graphTitle = graph.title;
                 delete graph.title;
@@ -904,7 +904,7 @@
                     graphId: graphId,
                     graphTitle: graphTitle,
                     ref: graphId,
-                    height: 500					
+                    height: 500
                 })));
 
                 // subscribe to updatelimits event
