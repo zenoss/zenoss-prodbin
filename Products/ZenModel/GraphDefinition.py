@@ -172,7 +172,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                     comment = line.replace("COMMENT:", "")
                     # make sure we don't add it twice
                     if not comment in descriptionLines:
-                        description = description + "\n" + comment
+                        description = description + ", " + comment
         return description
     
     def getThresholdGraphPoints(self):
