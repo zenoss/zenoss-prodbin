@@ -36,6 +36,10 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def title(self):
+        obj = self._object
+        # allow zenpacks to set a temporary title on the graph definition
+        if hasattr(obj, "_v_title"):
+            return obj._v_title
         return self._object.titleOrId()
 
     @property
