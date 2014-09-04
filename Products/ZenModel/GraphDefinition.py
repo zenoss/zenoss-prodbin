@@ -165,7 +165,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         description = self.description
         descriptionLines = description.split("\n")
         # for zenpacks parse the comments out of the custom         
-        if self.custom:
+        if self.custom and not description:
             lines = self.custom.split("\n")
             for line in lines:
                 if line.startswith("COMMENT:"):
