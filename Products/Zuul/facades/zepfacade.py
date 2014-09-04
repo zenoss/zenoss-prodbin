@@ -98,6 +98,8 @@ class ZepFacade(ZuulFacade):
     }
     ZENOSS_DETAIL_NEW_TO_OLD_MAPPING = dict((new, old) for old, new in ZENOSS_DETAIL_OLD_TO_NEW_MAPPING.iteritems())
 
+    SEVERITIES_BATCH_SIZE = 400
+
     COUNT_REGEX = re.compile(r'^(?P<from>\d+)?:?(?P<to>\d+)?$')
 
     def __init__(self, context):
@@ -577,8 +579,30 @@ class ZepFacade(ZuulFacade):
         @rtype: dict
         @return: A dictionary of UUID -> { C{EventSeverity} -> { count, acknowledged_count } }
         """
-        eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=tagUuids, eventClass=eventClass)
-        return self._createSeveritiesDict(eventTagSeverities)
+        objects_severities = {}
+        number_of_uuids = len(tagUuids)
+        batch_size = ZepFacade.SEVERITIES_BATCH_SIZE
+
+        number_of_batches = number_of_uuids / batch_size
+        if (number_of_uuids % batch_size) > 0:
+            number_of_batches = number_of_batches + 1
+
+        if number_of_batches > 1:
+            log.info("Retrieving severities for {0} uuids.".format(number_of_uuids))
+
+        for batch in range(0, number_of_batches):
+            start = batch*batch_size
+            end = (start + batch_size)
+            if end > number_of_uuids:
+                end = number_of_uuids
+
+	    tagUuids = list(tagUuids)   # dirty hack :)
+            uuids = tagUuids[start:end]
+
+            eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=uuids, eventClass=eventClass)
+            objects_severities.update(self._createSeveritiesDict(eventTagSeverities))
+
+        return objects_severities
 
     def getWorstSeverityByUuid(self, tagUuid, default=SEVERITY_CLEAR, ignore=()):
         return self.getWorstSeverity([tagUuid], default=default, ignore=ignore)[tagUuid]
