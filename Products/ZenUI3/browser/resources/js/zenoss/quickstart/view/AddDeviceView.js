@@ -75,16 +75,16 @@
                     }
                 },{
                     dataIndex: 'zProperties',
-                    header: _t('Details'),
+                    header: _t('Credentials'),
                     renderer: function(props, metadata, record) {
                         addErrorToolTip(metadata, record);
-                        var values = [], msg, link, hash = window.location.hash;
+                        var values = [], msg, link, hash = window.location.hash, key;
                         for (key in props) {
                             if (key.indexOf('Password') == -1) {
                                 values.push(props[key]);
                             }
                         }
-                        msg = values.join(",") + "...";
+                        msg = values.join(",");
                         return Ext.String.format("<a href=\"{2}\" onClick='{0}'> {1}</a>",
                                                  'Zenoss.quickstart.Wizard.editZProperties(\"' + record.get('uuid') + "\",\"" +  record.get('deviceName')  +"\")",
                                                  msg,
@@ -157,8 +157,8 @@
                     xtype: 'actioncolumn',
                     width: 75,
                     id: 'resubmit_job',
-                    tooltip: _t('Resubmit'),
-                    text: _t('Resubmit'),
+                    tooltip: _t('Retry'),
+                    text: _t('Retry'),
                     icon: '/++resource++extjs//examples/shared/icons/fam/table_refresh.png'
 
                 }],
@@ -191,16 +191,18 @@
                     height: 400,
                     layout: 'hbox',
                     items: [{
-                        width: 125,
+                        width: 175,
                         xtype: 'fieldset',
                         height: 275,
+						autoScroll: true,
                         style: {
-                            borderRight: '1px solid #CACACA !important'
+                            borderRight: '1px solid #CACACA !important'							
                         },
                         title: _t('Category'),
                         items:[{
                             xtype: 'radiogroup',
                             itemId: 'category',
+							autoScroll: true,
                             columns: 1,
                             vertical: true,
                             items: []

@@ -54,7 +54,14 @@
                     ui: 'dialog-dark',
                     text: _t('Close'),
                     handler: Ext.bind(this.cancelUpdateTask, this)
-                }]
+                }, {
+					xtype: 'button',
+					ui: 'dialog-dark',
+					text: _t('Download Log File'),
+					handler: Ext.bind(function(){
+						window.location = "joblog?job=" + this.jobid;
+					}, this)
+				}]
             });
             this.jobid = config.job.uuid;
             this.callParent([config]);
