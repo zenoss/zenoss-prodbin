@@ -194,15 +194,15 @@
                         width: 175,
                         xtype: 'fieldset',
                         height: 275,
-						autoScroll: true,
+                        autoScroll: true,
                         style: {
-                            borderRight: '1px solid #CACACA !important'							
+                            borderRight: '1px solid #CACACA !important'                         
                         },
                         title: _t('Category'),
                         items:[{
                             xtype: 'radiogroup',
                             itemId: 'category',
-							autoScroll: true,
+                            autoScroll: true,
                             columns: 1,
                             vertical: true,
                             items: []
