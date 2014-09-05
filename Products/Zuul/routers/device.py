@@ -28,7 +28,7 @@ from Products.Zuul.routers import TreeRouter
 from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
-from Products.Zuul.decorators import require, serviceConnectionError
+from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
@@ -41,7 +41,7 @@ class DeviceRouter(TreeRouter):
     """
 
     @serviceConnectionError
-    @require('Manage DMD')
+    @contextRequire("Manage DMD", 'contextUid')
     def addLocationNode(self, type, contextUid, id,
                         description=None, address=None):
         """
@@ -1814,3 +1814,12 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getDevTypes(self, uid, filter=None):
+        """
+        Returns a list of devtypes for the wizard
+        """
+        facade = self._getFacade()
+        data = facade.getDevTypes(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+

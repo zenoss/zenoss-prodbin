@@ -16,6 +16,7 @@ from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.GraphDefinition import GraphDefinition
+from Products.ZenModel.ComplexGraphPoint import ComplexGraphPoint
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from Products.ZenEvents.Exceptions import rpnThresholdException
         
@@ -35,6 +36,10 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def title(self):
+        obj = self._object
+        # allow zenpacks to set a temporary title on the graph definition
+        if hasattr(obj, "_v_title"):
+            return obj._v_title
         return self._object.titleOrId()
 
     @property
@@ -79,6 +84,10 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     def ceiling(self):
         return self._object.getCeiling()
 
+    @property
+    def description(self):
+        return self._object.getDescription()
+            
     miny = ProxyProperty('miny')
     maxy = ProxyProperty('maxy')
     units = ProxyProperty('units')
@@ -192,6 +201,12 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
             # also sometimes we had a %% which means to display a literal percent.
             return fmt.replace("l", "").replace("%s", "").rstrip("%")
 
+    @property
+    def emit(self):
+        if self._object.lineType == ComplexGraphPoint.LINETYPE_DONTDRAW:
+            return False
+        return True
+        
     @property
     def expression(self):
         rpn = self._object.rpn

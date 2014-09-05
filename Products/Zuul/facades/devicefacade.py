@@ -655,14 +655,17 @@ class DeviceFacade(TreeFacade):
     def getConnectionInfo(self, uid):
         obj = self._getObject(uid)
         result = []
-        for prop in obj.deviceClass().primaryAq().getZ('zCredentialsZProperties', []):
+        deviceClass = obj
+        if not isinstance(obj, DeviceClass):
+            deviceClass = obj.deviceClass()
+        for prop in deviceClass.primaryAq().getZ('zCredentialsZProperties', []):
             result.append(obj.exportZProperty(prop))
         return result
     
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         graphs = []
-        for graph in obj.getDefaultGraphDefs():
+        for graph in obj.getGraphObjects():
             info = getMultiAdapter((graph,obj), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
@@ -754,7 +757,7 @@ class DeviceFacade(TreeFacade):
                 component = brain.getObject()
             except:
                 pass
-            graphDefs[component.meta_type] = [g.id for g in component.getDefaultGraphDefs()]
+            graphDefs[component.meta_type] = [g.id for g in component.getGraphObjects()]
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
@@ -769,7 +772,7 @@ class DeviceFacade(TreeFacade):
         # get the graph def
         for comp in components:
             # find the first instance
-            for graph in comp.getDefaultGraphDefs():
+            for graph in comp.getGraphObjects():
                 if graph.id == graphId:
                     graphDef = graph
                     break
@@ -785,3 +788,40 @@ class DeviceFacade(TreeFacade):
             graphs.append(info)
         return graphs
     
+    def getDevTypes(self, uid):
+        """
+        Returns a list of devtypes for use for the wizard
+        """
+        devtypes = []
+        org = self._getObject(uid)
+        subOrgs = org.getSubOrganizers()
+        # include the top level organizers in the list of device types
+        organizers = [org] + subOrgs
+        for org in organizers:
+            if not hasattr(aq_base(org), 'devtypes') or not org.devtypes:
+                devtypes.append({
+                    'value': org.getPrimaryId(),
+                    'description': org.getOrganizerName(),
+                    'protocol': "",
+                })
+                continue
+            for t in org.devtypes:
+                try:
+                    desc, ptcl = t
+                except ValueError:
+                    continue
+
+                # Both must be defined
+                if not ptcl or not desc:
+                    continue
+
+                # special case for migrating from WMI to WinRM so we
+                # can allow the zenpack to be backwards compatible
+                if org.getOrganizerName() == '/Server/Microsoft/Windows' and ptcl == 'WMI':
+                    ptcl = "WinRM"
+                devtypes.append({
+                    'value': org.getPrimaryId(),
+                    'description': desc,
+                    'protocol': ptcl,
+                })
+        return sorted(devtypes, key=lambda x: x.get('description'))

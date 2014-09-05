@@ -16,7 +16,7 @@ import re
 
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
 
-speedPattern = re.compile(r'(\d+)\s*mbps', re.I)
+speedPattern = re.compile(r'(\d+)\s*[gm]bps', re.I)
 
 def parseDmesg(dmesg, relMap):
     """
@@ -27,7 +27,10 @@ def parseDmesg(dmesg, relMap):
         if speedMatch:
             for objMap in relMap.maps:
                 if objMap.interfaceName in line:
-                    objMap.speed = int(speedMatch.group(1)) * 1000000
+                    if 'Gbps' in speedMatch.group(0): 
+                        objMap.speed = int(speedMatch.group(1)) * 1e9 
+                    else: 
+                        objMap.speed = int(speedMatch.group(1)) * 1e6
                     break
     return relMap
 

@@ -12,7 +12,7 @@ IApplication* control-plane implementations.
 """
 
 import logging
-import os
+from Products.ZenUtils.controlplane import getConnectionSettings
 from collections import Sequence, Iterator
 from zope.interface import implementer
 
@@ -20,30 +20,11 @@ from Products.ZenUtils.application import (
     IApplicationManager, IApplication, IApplicationLog,
     IApplicationConfiguration, ApplicationState
 )
-from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from .client import ControlPlaneClient
 from .runstates import RunStates
 
 LOG = logging.getLogger("zen.controlplane")
-
-
-def getConnectionSettings(options=None):
-    if options is None:
-        o = globalConfToDict()
-    else:
-        o = options
-    settings = {
-        "host": o.get("controlplane-host"),
-        "port": o.get("controlplane-port"),
-        "user": o.get("controlplane-user", "zenoss"),
-        "password": o.get("controlplane-password", "zenoss"),
-    }
-    # allow these to be set from the global.conf for development but
-    # give preference to the environment variables
-    settings["user"] = os.environ.get('CONTROLPLANE_SYSTEM_USER', settings['user'])
-    settings["password"] = os.environ.get('CONTROLPLANE_SYSTEM_PASSWORD', settings['password'])    
-    return settings
 
 
 @implementer(IApplicationManager)
@@ -64,10 +45,12 @@ class DeployedAppLookup(object):
         """
         Returns a sequence of IApplication objects.
         """
+
         # Retrieve services according to name and tags.
         result = self._client.queryServices(name=name, tags=tags)
         if not result:
             return ()
+
         # If monitorName is specified, filter for services which are
         # parented by the specified monitor.
         if monitorName:
@@ -83,6 +66,7 @@ class DeployedAppLookup(object):
             result = (
                 svc for svc in result if svc.parentId == parentId
             )
+
         return tuple(self._getApp(service) for service in result)
 
     def get(self, id, default=None):
@@ -93,6 +77,7 @@ class DeployedAppLookup(object):
         service = self._client.getService(id)
         if not service:
             return default
+
         return self._getApp(service)
 
     def _getApp(self, service):
@@ -106,7 +91,7 @@ class DeployedAppLookup(object):
 @implementer(IApplication)
 class DeployedApp(object):
     """
-    Control and iteract with the deployed app via the control plane.
+    Control and interact with the deployed app via the control plane.
     """
 
     def __init__(self, service, client):
@@ -115,7 +100,7 @@ class DeployedApp(object):
         self._service = service
         self._instance = None
 
-    def _updateState(self):
+    def updateInstance(self):
         """
         Retrieves the current running instance of the application.
         """
@@ -138,12 +123,16 @@ class DeployedApp(object):
         return self._service.name
 
     @property
+    def hostId(self):
+        return self._instance.hostId if self._instance else None
+
+    @property
     def description(self):
         return self._service.description
 
     @property
     def state(self):
-        self._updateState()
+        self.updateInstance()
         return self._runstate.state
 
     @property

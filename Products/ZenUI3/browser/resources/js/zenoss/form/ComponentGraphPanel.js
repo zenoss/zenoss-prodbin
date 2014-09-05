@@ -86,7 +86,8 @@
 
             Ext.applyIf(config, {
                 style: {
-                    paddingTop: 10
+                    paddingTop: "10px",
+                    paddingLeft: "10px"
                 },
                 bodyStyle: {
                     overflow: 'auto'
@@ -95,7 +96,7 @@
                     layout: 'hbox',
                     dock: 'top',
                     style: {
-                        paddingBottom: 10
+                        paddingBottom: "10px"
                     },
                     items: [{
                         xtype: 'combo',
@@ -109,17 +110,24 @@
                             select: this.onSelectComponentType
                         }
                     }, {
+                        xtype: 'container',
+                        width: 10
+                    },{
                         xtype: 'combo',
                         disabled: true,
                         queryMode: 'local',
+                        labelWidth: 50,
                         ref: '../graphTypes',
-                        fieldLabel: _t('Graphs'),
+                        fieldLabel: _t('Graph'),
                         displayField: 'name',
                         valueField: 'name',
                         listeners: {
                             scope: this,
                             select: this.onSelectGraph
                         }
+                    }, {
+                        xtype: 'container',
+                        width: 10
                     }, {
                         xtype: 'checkbox',
                         fieldLabel: _t('All on Same Graph?'),

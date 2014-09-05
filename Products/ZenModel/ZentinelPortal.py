@@ -15,10 +15,10 @@ $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 
 import urllib, urlparse
 import re
+import time
 import textwrap
 
 import Globals
-
 from zExceptions import Redirect
 from AccessControl import getSecurityManager, ClassSecurityInfo
 
@@ -58,7 +58,7 @@ class ZentinelPortal ( PortalObjectBase ):
         PortalObjectBase.__init__( self, id, title )
 
     def server_time(self):
-        return Time.isoDateTime()
+        return time.time()
 
     def _additionalQuery(self):
         return None

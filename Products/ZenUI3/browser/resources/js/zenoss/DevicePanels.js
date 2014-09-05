@@ -693,4 +693,14 @@ function showComponentLockingDialog(msg, locking, funcs) {
     });
 
 
+
+    // Extension point for adding new devices for zenpacks
+    Zenoss.customDeviceAdder = {};
+    Zenoss.registerAddDeviceMethod = function(uid, fn ) {
+        Zenoss.customDeviceAdder[uid] = fn;
+    };
+    Zenoss.getCustomDeviceAdder = function(uid) {
+        return Zenoss.customDeviceAdder[uid];
+    };
+
 })(); // end of function namespace scoping

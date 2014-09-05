@@ -158,7 +158,7 @@ class RedisListPublisher(BasePublisher):
         @param llen: number of metrics in Redis after publishing
         @return: the number of metrics still in the queue
         """
-        log.info('published %d metrics to redis', metricCount)
+        log.debug('published %d metrics to redis', metricCount)
         return 0
 
     def _put(self, scheduled, reschedule=True):

@@ -57,6 +57,8 @@ def manage_addJobManager(context, id="JobManager"):
 
 class JobRecord(ObjectManager):
 
+    errors = ""
+    
     def __init__(self, *args, **kwargs):
         ObjectManager.__init__(self, *args)
         self.user = None
@@ -100,6 +102,19 @@ class JobRecord(ObjectManager):
     def update(self, d):
         for k, v in d.iteritems():
             setattr(self, k, v)
+        if self.isFinished():
+            self.errors = self._parseErrors()
+
+    def _parseErrors(self):
+        if not hasattr(self, "logfile"):
+            return ""
+        try:
+            with open(self.logfile, 'r') as f:
+                buffer = f.readlines()
+                # look for error level log lines
+                return "\n".join([ line for line in buffer if "ERROR zen." in line])
+        except (IOError, AttributeError, TypeError):
+            return ""
 
     def isFinished(self):
         return getattr(self, 'status', None) in states.READY_STATES

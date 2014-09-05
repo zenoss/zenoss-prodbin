@@ -43,6 +43,7 @@ class IApplication(Interface):
 
     id = Attribute("Unique application identifier")
     name = Attribute("Name of the application")
+    host = Attribute("Name of the host on which the instance is running")
     description = Attribute("Brief description of the application's function")
     autostart = Attribute("True if the application will run on startup")
     state = Attribute("Current running state of the application")
@@ -90,7 +91,6 @@ class IApplicationManager(Interface):
         :param string id: The application ID (not its name).
         :param object default: Alternate return value
         """
-
 
 def _makeEnumObj(name):
     return type(

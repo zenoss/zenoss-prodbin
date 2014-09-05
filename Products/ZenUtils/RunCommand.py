@@ -14,7 +14,7 @@ Run an event command on the serviced host server.
 
   Example usage:
 
-dcsh --pool=POOL_ID 'zencommand run'
+dcsh --collector=COLLECTOR_ID 'zencommand run'
 
   The actual command to run *MUST* be in quotes!
 """
@@ -32,7 +32,7 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import zenPath
 
 
-class PoolStats:
+class CollectorStats:
     def __init__(self, id):
         self.id = id
         self.succeeded = False
@@ -46,28 +46,28 @@ class RunCommand(ZenScriptBase):
 
     def buildOptions(self):
         ZenScriptBase.buildOptions(self)
-        self.parser.add_option('--pool', dest='poolId', default='default', metavar='POOL_ID',
-            help="Name of specific resource pool on which to run the command")
+        self.parser.add_option('--collector', dest='collectorId', default='localhost', metavar='COLLECTOR_ID',
+            help="Name of specific collector on which to run the command")
         self.parser.add_option('--timeout', dest='timeout',
                            default=60, type="int",
                            help="Kill the process after this many seconds.")
 
     def run(self):
-        pool = PoolStats(self.options.poolId)
-        self._runCommandOnPool(pool)
-        self.report(pool)
+        collector = CollectorStats(self.options.collectorId)
+        self._runCommandOnCollector(collector)
+        self.report(collector)
 
-    def report(self, pool):
+    def report(self, collector):
         header = """
-Pool=%s            StdOut/Stderr""" % pool.id
+Collector=%s       StdOut/Stderr""" % collector.id
         delimLen = 65
         print header
         print '-' * delimLen
-    
-        print "%s %s" % (pool.stdout, pool.stderr)
+
+        print "%s %s" % (collector.stdout, collector.stderr)
         print '-' * delimLen
 
-    def _runCommandOnPool(self, pool):
+    def _runCommandOnCollector(self, collector):
         def killTimedOutProc(signum, frame):
             log.error("Killing process id %s ...", proc.pid)
             try:
@@ -76,15 +76,14 @@ Pool=%s            StdOut/Stderr""" % pool.id
                 pass
 
         remoteCommand = self.args[0]
+        collectorCommand = ['zminion', '--minion-name', 'zminion_' + collector.id, 'run', '--', "'%s'" % remoteCommand]
+        collectorCommand = ' '.join(collectorCommand)
 
-        poolCommand = ['servicedshell', '--pool', pool.id, remoteCommand]
-
-        poolCommand = ' '.join(poolCommand)
-        log.debug("Running command '%s' on pool %s", poolCommand, pool.id)
-        proc = Popen(poolCommand, stdout=PIPE, stderr=PIPE, shell=True)
+        log.debug("Running command '%s' on collector %s", collectorCommand, collector.id)
+        proc = Popen(collectorCommand, stdout=PIPE, stderr=PIPE, shell=True)
         signal.signal(signal.SIGALRM, killTimedOutProc)
         signal.alarm(self.options.timeout)
-        pool.stdout, pool.stderr = proc.communicate()
+        collector.stdout, collector.stderr = proc.communicate()
         proc.wait()
         signal.alarm(0) # Disable the alarm
 

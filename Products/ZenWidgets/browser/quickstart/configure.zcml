@@ -13,12 +13,7 @@
         permission="zope2.Public"
         />
 
-    <browser:page
-        for="*"
-        name="quickstart"
-        class=".views.OutlineView"
-        permission="zenoss.ManageDMD"
-        />
+    
 
     <browser:page
         for="*"

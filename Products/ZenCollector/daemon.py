@@ -463,10 +463,8 @@ class CollectorDaemon(RRDDaemon):
         # guard against parsing updates during a disconnect
         if config is None:
             return
-        configFilter = getattr(self.preferences, "configFilter", None) or (lambda x: True)
-        if (not self.options.device and configFilter(config)) or self.options.device in (config.id, config.configId):
-            self.log.debug("Device %s updated", config.configId)
-            self._updateConfig(config)
+        self.log.debug("Device %s updated", config.configId)
+        if self._updateConfig(config):
             self._configProxy.updateConfigProxy(self.preferences, config)
         else:
             self.log.debug("Device %s config filtered", config.configId)
@@ -528,6 +526,18 @@ class CollectorDaemon(RRDDaemon):
                 self.stop()
 
     def _updateConfig(self, cfg):
+        """
+        Update device configuration. Returns true if config is updated, false if config is skipped
+        """
+
+        # guard against parsing updates during a disconnect
+        if cfg is None:
+            return False
+        configFilter = getattr(self.preferences, "configFilter", None) or (lambda x: True)
+        if not((not self.options.device and configFilter(cfg)) or self.options.device in (cfg.id, cfg.configId)):
+            self.log.info("Device %s config filtered", cfg.configId)
+            return False
+
         configId = cfg.configId
         self.log.debug("Processing configuration for %s", configId)
 
@@ -570,6 +580,8 @@ class CollectorDaemon(RRDDaemon):
             # all pending tasks have completed
             if not self.options.cycle:
                 self._pendingTasks.append(taskName)
+
+        return True
 
     @defer.inlineCallbacks
     def _updateDeviceConfigs(self, updatedConfigs, purgeOmitted):

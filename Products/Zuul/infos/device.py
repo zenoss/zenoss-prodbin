@@ -433,7 +433,8 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         if not zprops:
             return False
         for prop in zprops:
-            connectionInfo.append(str(self._object.zenPropertyString(prop)))
+            if not self._object.zenPropIsPassword(prop):
+                connectionInfo.append(str(self._object.zenPropertyString(prop)))
         return " ".join(connectionInfo)
 
 class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):

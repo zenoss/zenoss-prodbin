@@ -72,6 +72,18 @@ Ext.onReady(function() {
         '</table>'];
 
     /**
+     * The template used for additional event properties.
+     * Escapes HTML to prevent XSS
+     */
+    Zenoss.eventdetail.additional_detail_data_template = ['<table class="proptable" width="100%">',
+        '<tpl for="properties">',
+        '<tr class=\'{[xindex % 2 === 0 ? "even" : "odd"]}\'>',
+        '<td class="proptable_key">{key:htmlEncode}</td>',
+        '<td class="proptable_value">{value:htmlEncode}</td></tr>',
+        '</tpl>',
+        '</table>'];
+
+    /**
      * Template for log messages.
      * WAS: Zenoss.eventdetail.log_table_template
      */
@@ -468,7 +480,7 @@ Ext.onReady(function() {
             var eventDetailsSection = new Zenoss.eventdetail.DetailsSection({
                 id: 'event_detail_details_section',
                 title: _t('Event Details'),
-                template: Zenoss.eventdetail.detail_data_template
+                template: Zenoss.eventdetail.additional_detail_data_template
             });
             this.addSection(eventDetailsSection);
 
@@ -504,7 +516,7 @@ Ext.onReady(function() {
             if (section.hasOwnProperty('title')) {
                 var section_title_config = {
                     id: section.id + '_title',
-                    html: section.title + '...',
+                    html: "<a href='#'>" + section.title + '...' + "</a>",
                     cls: 'show_details',
                     height: 30,
                     toggleFn: Ext.bind(this.toggleSection, this, [section.id])
@@ -551,21 +563,13 @@ Ext.onReady(function() {
         },
 
         toggleSection: function(section_id) {
-            var cmp = Ext.getCmp(section_id);
-            if (cmp.hidden) {
-                cmp.show();
+            var cmp = Ext.getCmp(section_id), el = cmp.getEl();
+            // workaround IE not hiding/showing sections by explicitly setting the style on the dom nodes
+            if (el.dom.style.display == "none") {
+                el.dom.style.display = "block";                
             }
             else {
-                /*
-                 *  ZEN-2267: IE specific hack for event details sections. Event
-                 *  details disappear when hide() is called.
-                 */
-                var innerHTML = cmp.getEl().dom.innerHTML;
-                cmp.hide();
-                //Repopulate this field
-                if (Ext.isIE) {
-                    cmp.getEl().dom.innerHTML = innerHTML;
-                }
+                el.dom.style.display = "none";                
             }
         },
 

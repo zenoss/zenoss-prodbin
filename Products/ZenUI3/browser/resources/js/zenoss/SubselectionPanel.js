@@ -710,6 +710,10 @@
             this.fireEvent('select', this, [this.lastSelItem]);
         },
         setContext:function (uid) {
+            // make sure the context actually changed.
+            if (uid == this.contextUid) {
+                return;
+            }
             this.contextUid = uid;
             var args = {uid:uid};
             if (!Ext.isEmpty(this.menuIds)) {

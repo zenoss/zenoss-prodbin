@@ -87,11 +87,6 @@ class ZenPackManager(ZenModelRM):
                 , 'action'        : '../About/zenossVersions'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'backups'
-                , 'name'          : 'Backups'
-                , 'action'        : '../backupInfo'
-                , 'permissions'   : ( "Manage DMD", )
-                },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'

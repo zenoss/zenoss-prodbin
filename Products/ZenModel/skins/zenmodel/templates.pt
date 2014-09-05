@@ -322,15 +322,16 @@
     var x;
     </script>
     <script>
-    var server_time = isoTimestamp(start_time).getTime();
+    var server_time = start_time;
     function server_now() {
-        return new Date(server_time);
+        return server_time;
     }
     function getServerTime() {
-        return toISOTime(server_now());
+        return getServerTimestamp()
     }
     function getServerTimestamp() {
-        return toISOTimestamp(server_now());
+        var server_now = Zenoss.date.renderWithTimeZone(server_time);
+        return server_now;        
     }
     function updateTime(){
         server_time += 1000;

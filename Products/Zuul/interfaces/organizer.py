@@ -21,3 +21,6 @@ class ILocationOrganizerInfo(IOrganizerInfo):
     Location info
     """
     address = Attribute('The address of the organizer')
+
+class IDeviceClassInfo(IOrganizerInfo):
+    pass

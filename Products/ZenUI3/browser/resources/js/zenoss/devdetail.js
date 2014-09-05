@@ -486,15 +486,41 @@ Zenoss.EventActionManager.configure({
     }
 });
 
-var event_console = Ext.create('Zenoss.EventGridPanel', {
-    id: 'device_events',
-    stateId: 'device_events',
-    newwindowBtn: true,
-    actionsMenu: false,
-    commandsMenu: false,
-    store: Ext.create('Zenoss.events.Store', {}),
-    columns: Zenoss.env.getColumnDefinitions(['device'])
-});
+var createDevDetailEventsGrid = function(re_attach_to_container){
+        var dev_detail_store = Ext.create('Zenoss.events.Store', {});
+        if (!Zenoss.settings.enableInfiniteGridForEvents)
+            dev_detail_store.buffered = false;
+
+    var event_console = Ext.create('Zenoss.EventGridPanel', {
+        id: 'device_events',
+        stateId: 'device_events',
+        newwindowBtn: true,
+        actionsMenu: false,
+        commandsMenu: false,
+        enableColumnHide: false,
+        store: dev_detail_store,
+        columns: Zenoss.env.getColumnDefinitionsToRender('device_events')
+        //columns: Zenoss.env.getColumnDefinitions(['device'])
+    });
+
+    if (re_attach_to_container == true)
+    {
+        var container_panel = Ext.getCmp('detail_card_panel');
+        container_panel.items.insert(1, event_console);
+        container_panel.layout.setActiveItem(1);
+    }
+
+    event_console.on('recreateGrid', function (grid) {
+        var container_panel = Ext.getCmp('detail_card_panel');
+        container_panel.remove(grid.id, true);
+        grid = createDevDetailEventsGrid(true);
+        grid.setContext(Zenoss.env.device_uid);
+    });
+
+    return event_console;
+};
+
+    var event_console = createDevDetailEventsGrid(false);
 
 var modeler_plugins = Ext.create('Zenoss.form.ModelerPluginPanel', {
     id: 'device_modeler_plugins'
@@ -582,6 +608,15 @@ Ext.define('Zenoss.DeviceDetailNav', {
         }
     },
     doLoadComponentTree: function(data) {
+        data.sort(function (a,b){
+            var first = Zenoss.component.displayName(a.text.text);
+            var second = Zenoss.component.displayName(b.text.text);
+            if (first<second)
+                return -1
+            if (first>second)
+                return 1
+            return 0
+        });
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         if (data.length) {
             rootNode.appendChild(Ext.Array.map(data, function(d) {

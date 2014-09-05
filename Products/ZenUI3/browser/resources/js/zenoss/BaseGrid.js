@@ -518,30 +518,47 @@
                 viewConfig:viewConfig
             });
             this.callParent([config]);
-            this.getStore().on("afterguaranteedrange", function () {
+            var after_request = function () {
                 if (!this._disableSavedSelection) {
                     this.applySavedSelection();
                 }
-            }, this);
+                // In case the new request returns less results that the previous
+                // to avoid displaying a page that does not exist
+                if(!this.getStore().buffered) {
+                    var store = this.getStore();
+                    var last_page = Math.floor(store.getTotalCount() / store.pageSize) + 1;
+                    if (store.currentPage > last_page) {
+                        store.loadPage(last_page);
+                    }
+                }
+            };
 
-            // once a uid is set always send that uid
-            this.getStore().on('beforeprefetch', function (store, operation) {
+            var before_request = function (store, operation) {
                 if (!operation) {
                     return true;
                 }
-
                 this.start = operation.start;
                 this.limit = operation.limit;
                 if (!Ext.isDefined(operation.params)) {
                     operation.params = {};
                 }
+                // once a uid is set always send that uid
                 if (this.uid) {
                     operation.params.uid = this.uid;
                 }
                 this.applyOptions(operation);
                 return true;
+            };
 
-            }, this);
+            if (this.getStore().buffered) {
+                this.getStore().on('beforeprefetch', before_request, this);
+                this.getStore().on("afterguaranteedrange", after_request, this);
+            }
+            else {
+                this.getStore().on('beforeload', before_request, this);
+                this.getStore().on("load", after_request, this);
+            }
+
             this.addEvents(
                 /**
                  * @event beforeactivate
@@ -634,14 +651,11 @@
                 verticalScroller: {
                     scrollToLoadBuffer: 100
                 },
-                bbar: {
-                    cls: 'commonlivegridinfopanel',
-                    items: [
-                        '->',
-                    {
-                        xtype:'livegridinfopanel',
-                        grid:this
-                    }]
+                bbar: { cls: 'commonlivegridinfopanel',
+                        items: [ {xtype:'pagingtoolbar', cls: 'commonlivegridinfopanel'},
+                                 '->',
+                                 {xtype:'livegridinfopanel', grid:this}
+                        ]
                 }
             });
             this.callParent([config]);
@@ -650,6 +664,18 @@
             this.callParent(arguments);
             this.headerCt.on('columnhide', this.onColumnChange, this);
             this.headerCt.on('columnshow', this.onColumnChange, this);
+
+            var paging_tb = this.down('pagingtoolbar');
+            if (paging_tb) {
+                // If we have an infinite grid we hide the paging toolbar
+                if (this.getStore().buffered)
+                    paging_tb.hide();
+                else {
+                    paging_tb.on('beforechange', this.scrollToTop, this)
+                    paging_tb.bindStore(this.getStore());
+                    paging_tb.down('#refresh').hide();
+                }
+            }
         },
         /**
          * Listeners for when you hide/show a column, the data isn't fetched yet so
@@ -681,9 +707,11 @@
             this.saveSelection();
             var store = this.getStore(),
                 // load the entire store if we are not paginated or the entire grid fits in one buffer
-                shouldLoad =  ! store.buffered || store.getCount() >= store.getTotalCount();
+                shouldLoad = ! store.buffered || store.getCount() >= store.getTotalCount(),
+                view = this.getView();
 
-            if (shouldLoad) {
+            // Only reload new grid events in case we have scrolled more than 1 row
+            if (shouldLoad && view.getEl().dom.scrollTop < 25) {                
                 store.load({
                     callback: callback,
                     scope: scope || this
@@ -702,7 +730,6 @@
                     store.guaranteeRange(start, end);
                 }
             }
-
         },
         scrollToTop:function () {
             var view = this.getView();
@@ -775,6 +802,20 @@
         afterRender:function() {
             this.callParent();
             this.applyState(this.getState());
+        },
+        refresh:function () {
+        if (!Zenoss.settings.enableLiveSearch) {
+            var values = this.getFilters(),
+                store = this.getStore();
+            if (!store.proxy.extraParams) {
+                store.proxy.extraParams = {};
+                }
+            store.proxy.extraParams.params = values;
+            if (this.filterRow.isValid()) {
+                this.saveState();
+                }
+            }
+        this.callParent();
         }
     });
 
@@ -810,7 +851,11 @@
                 /*  added this guaranteedrange hack to make up for the ext bug where-by
                     updating store doesn't fire the datachanged except on load.
                 */
-                this.grid.getStore().on('guaranteedrange', this.onDataChanged, this);
+                var store = this.grid.getStore();
+                if(store.buffered)
+                    store.on('guaranteedrange', this.onDataChanged, this);
+                else
+                    store.on('load', this.onDataChanged, this);
                 this.view.on('bodyscroll', this.onScroll, this);
                 this.view.on('resize', this.onResize, this);
             }
@@ -858,13 +903,11 @@
         },
         getStartCount: function() {
             var scrollTop = this.view.el.dom.scrollTop;
-
             if (this.rowHeight && scrollTop) {
                 return Math.ceil(scrollTop / this.rowHeight);
             }
-
             // ask the scroller, if the store is paginated
-            if (this.grid.verticalScroller && this.grid.verticalScroller.getFirstVisibleRowIndex){
+            if (this.grid.verticalScroller && this.grid.verticalScroller.getFirstVisibleRowIndex && this.grid.getStore().buffered){
                 var start = this.grid.verticalScroller.getFirstVisibleRowIndex();
                 if (start) {
                     return start;
@@ -905,15 +948,30 @@
                     end = Math.min(this.getEndCount(start), this.totalCount),
                     msg;
 
-                msg = Ext.String.format(this.displayMsg, start + 1, end, this.totalCount);
+                var store = this.grid.getStore();
+                if (!store.buffered) {
+                    var current_page = store.currentPage;
+                    if (current_page > 0) {
+                        var page_size = store.pageSize;
+                        var offset = (current_page - 1) * page_size
+                        start = offset + start
+                        end = offset + end
+                        var real_page_end = current_page * page_size;
+                        if (real_page_end > store.totalCount)
+                            real_page_end = store.totalCount;
+                        if ( end > real_page_end)
+                            end = real_page_end;
+                    }
+                }
+                msg = Ext.String.format(this.displayMsg, start + 1, end, store.totalCount);
                 this.setText(msg);
+
             } else {
                 // Drat, we didn't have the paging scroller, so assume we are showing all
                 var showingAllMsg = _t('Found {0} records');
                 var msg = Ext.String.format(showingAllMsg, this.totalCount);
                 this.setText(msg);
             }
-
         }
     });
 

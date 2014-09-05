@@ -54,10 +54,22 @@
             '1y-ago': 31536000000
         },
         DOWNSAMPLE = [
-            [86400000, '1h-avg'],    // Day
-            [604800000, '12h-avg'],  // Week
-            [2419200000, '1d-avg'],  // Month
-            [31536000000, '30d-avg'] // Year
+            // for now when the delta is < 1 hour we do NOT do downsampling
+            [3600000, '10s-avg'],     // 1 Hour
+            [7200000, '30s-avg'],     // 2 Hours
+            [14400000, '45s-avg'],    // 4 Hours
+            [18000000, '1m-avg'],     // 5 Hours
+            [28800000, '2m-avg'],     // 8 Hours
+            [43200000, '3m-avg'],     // 12 Hours
+            [64800000, '4m-avg'],     // 18 Hours
+            [86400000, '5m-avg'],     // 1 Day
+            [172800000, '10m-avg'],   // 2 Days
+            [259200000, '15m-avg'],   // 3 Days
+            [604800000, '1h-avg'],    // 1 Week
+            [1209600000, '2h-avg'],   // 2 Weeks
+            [2419200000, '6h-avg'],   // 1 Month
+            [9676800000, '1d-avg'],   // 4 Months
+            [31536000000, '10d-avg']  // 1 Year
         ],
 
         /*
@@ -167,12 +179,14 @@
          **/
         datapoints: [],
         constructor: function(config) {
-            var padding = "padding:45px 20px 15px 0px;";
+            var padding = "padding:25px 10px 5px 0px;";
             if (config.height <= 400) {
                 padding = "padding:0px 0px 0px 0px;";
             }
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 75)  + 'px;"></div>',
+                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 100)  + 'px;"> ' +
+					'<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
+					'</div></div></div>',
                 maxWidth: 800,
                 cls: 'graph-panel',
                 graph_params: {
@@ -181,19 +195,11 @@
                     start: config.start || DATE_RANGES[0][0]
                 }
             });
-
             // setup graph controls
             config.dockedItems = [{
                 xtype: 'toolbar',
                 dock: 'top',
-                items: [{
-                    xtype: 'tbtext',
-                    style: {
-                        fontWeight: 'bolder',
-                        fontSize: '1.5em'
-                    },
-                    text: config.graphTitle // + ' : ' + config.uid
-                },'->',{
+                items: ['->',{
                     xtype: 'button',
                     iconCls: 'customize',
                     menu: [{
@@ -261,25 +267,12 @@
                 maxy: (this.maxy != -1) ? this.maxy : null,
                 // the visualization library currently only supports
                 // one format for chart, not per metric
-                format: this.datapoints[0].format,
+                format: (this.datapoints.length > 0) ? this.datapoints[0].format: "",
                 timezone: Zenoss.USER_TIMEZONE
             };
 
-            var delta;
-            if (Ext.isNumber(this.graph_params.start)) {
-                delta = now() - this.graph_params.start;
-            } else {
-                delta = rangeToMilliseconds(this.graph_params.start);
-            }
-            // always down sample to a 1m-avg for now. This
-            // means that if we collect at less than a minute the
-            // values will be averaged out.
-            visconfig.downsample = '1m-avg';
-            Ext.Array.each(DOWNSAMPLE,function(v) {
-                if (delta >= v[0]) {
-                    visconfig.downsample = v[1];
-                }
-            });
+
+            visconfig.downsample = this._getDownSample(this.graph_params);
 
             // determine scaling
             if (this.autoscale) {
@@ -298,7 +291,7 @@
                 // keys to exclude when cloning config object
                 exclusions = ["dockedItems"];
 
-            // shallow clone initialConfig object as long as the 
+            // shallow clone initialConfig object as long as the
             // key being copied is no in the exclusions list.
             // This is useful because the final JSON string needs
             // to be as small as possible!
@@ -369,6 +362,25 @@
             this.on('updateimage', this.updateGraph, this);
             this.graphEl = Ext.get(this.graphId);
         },
+        _getDownSample: function(gp) {
+            var delta, downsample = null;
+            if (Ext.isNumber(gp.start)) {
+                delta = this.convertEndToAbsolute(gp.end) - gp.start;
+            } else {
+                delta = rangeToMilliseconds(gp.start);
+            }
+
+            // no downsampling for less than one hour.
+            if (delta <  3600) {
+                return null;
+            }
+            Ext.Array.each(DOWNSAMPLE, function(v) {
+                if (delta >= v[0]) {
+                    downsample = v[1];
+                }
+            });
+            return downsample;
+        },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
             gp.start = params.start || gp.start;
@@ -387,20 +399,7 @@
                     end: formatForMetricService(gp.end)
                 }
             };
-
-            // gp.start is something like "1h-ago", convert to milliseconds
-            var delta;
-            if (Ext.isNumber(gp.start)) {
-                delta = this.convertEndToAbsolute(gp.end) - gp.start;
-            } else {
-                delta = rangeToMilliseconds(gp.start);
-            }
-            changes.downsample = '1m-avg';
-            Ext.Array.each(DOWNSAMPLE, function(v) {
-                if (delta >= v[0]) {
-                    changes.downsample = v[1];
-                }
-            });
+            changes.downsample = this._getDownSample(gp);
             zenoss.visualization.chart.update(this.graphId, changes);
 
             this.graph_params = gp;
@@ -817,7 +816,7 @@
 
             // default range value of 1 hour
             // NOTE: this should be a real number, not a relative
-            // measurement like "1h-ago"             
+            // measurement like "1h-ago"
             this.drange = rangeToMilliseconds("1h-ago");
 
             // default start and end values in UTC time
@@ -973,13 +972,13 @@
                 start: this.start.valueOf(),
                 end: this.end.valueOf()
             };
-            
-            Ext.each(this.getGraphs(), function(g) {
-                // if we are rendered but not visible do not refresh
-                if(this.isVisible()){
+
+            // if we are rendered but not visible do not refresh
+            if(this.isVisible()){
+                Ext.each(this.getGraphs(), function(g) {
                     g.fireEvent("updateimage", graphConfig, this);
-                }
-            });
+                });
+            }
         },
         getGraphs: function() {
             return this.query('europagraph');
@@ -987,7 +986,7 @@
 
         ///////////////////////////
         // graph time and range type stuff
-        // 
+        //
 
         setDrange: function(drange) {
             this.drange = drange || this.drange;
