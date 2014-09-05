@@ -63,7 +63,7 @@ class BasePublisher(object):
         @return: the number of metrics still in the queue. Note, this
         will stop the errback chain
         """
-        log.info('publishing failed: %s', reason.getErrorMessage())
+        log.info('publishing failed: %s', getattr(reason, 'getErrorMessage', reason.__str__)())
 
         open_slots = self._mq.maxlen - len(self._mq)
         self._mq.extendleft(reversed(metrics[-open_slots:]))
@@ -181,15 +181,20 @@ class RedisListPublisher(BasePublisher):
             @defer.inlineCallbacks
             def _flush():
                 client = self._redis.client
-                yield client.multi()
-                yield client.lpush(self._channel, *metrics)
-                yield client.ltrim(self._channel, 0, self._maxOutstandingMetrics - 1)
-                result, _ = yield client.execute()
                 try:
+                    yield client.multi()
+                    yield client.lpush(self._channel, *metrics)
+                    yield client.ltrim(self._channel, 0, self._maxOutstandingMetrics - 1)
+                    result, _ = yield client.execute()
                     yield self._metrics_published(result,
                                                   metricCount=len(metrics))
-                except Exception:
-                    yield self._publish_failed(metrics=metrics)
+                except Exception as e:
+                    # since we may be in a mutli redis command state, attempt to discard it
+                    try:
+                        yield client.discard()
+                    except Exception:
+                        pass
+                    self._publish_failed(e, metrics=metrics)
 
             return _flush()
 
