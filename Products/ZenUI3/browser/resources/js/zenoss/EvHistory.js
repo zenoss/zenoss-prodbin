@@ -240,7 +240,7 @@ Ext.onReady(function(){
                 text: _t('Refresh'),
                 handler: function() {
                     var grid = Ext.getCmp('events_grid');
-                    grid.refresh(); 
+                    grid.refresh();
                 }
             }
             ]
@@ -303,6 +303,10 @@ Ext.onReady(function(){
         // Hook up the "Last Updated" text
         var store = grid.getStore();
         store.on('beforeprefetch', doLastUpdated);
+        if (store.buffered)
+            store.on('guaranteedrange', doLastUpdated);
+        else
+            store.on('load', doLastUpdated);
         doLastUpdated();
 
         // Detail pane should pop open when double-click on event
