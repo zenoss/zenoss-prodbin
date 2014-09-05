@@ -196,7 +196,7 @@
                         height: 275,
                         autoScroll: true,
                         style: {
-                            borderRight: '1px solid #CACACA !important'                         
+                            borderRight: '1px solid #CACACA !important'
                         },
                         title: _t('Category'),
                         items:[{
