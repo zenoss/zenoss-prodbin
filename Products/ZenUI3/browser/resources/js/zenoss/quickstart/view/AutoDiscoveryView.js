@@ -107,16 +107,16 @@
                     }
                 },{
                     dataIndex: 'zProperties',
-                    header: _t('Details'),
+                    header: _t('Credentials'),
                     renderer: function(props, metadata, record) {
                         addErrorToolTip(metadata, record);
-                        var values = [];
+                        var values = [], key;
                         for (key in props) {
                             if (key.indexOf('Password') == -1) {
                                 values.push(props[key]);
                             }
                         }
-                        return values.join(",") + "...";
+                        return values.join(",");
                     }
                 }, {
                     dataIndex: 'collector',
@@ -142,7 +142,7 @@
                         }
                         return Ext.String.format("<a href=\"{2}\"onClick='{0}'> {1}</a>",
                                                  'Zenoss.quickstart.Wizard.openJobLogFile(\"' + record.get('uuid') + "\", \"" + record.get('networks')  +"\")",
-                                                 val.replace("/opt/zenoss/log/jobs", ""),
+                                                 val.replace("/opt/zenoss/log/jobs/", ""),
                                                  window.location.hash
                                                 );
                     }
@@ -238,7 +238,7 @@
                         }, {
                             xtype: 'container',
                             // spacing
-                            height: 75
+                            height: 70
                         },{
                             xtype: 'button',
                             itemId: 'discoverButton',
@@ -331,10 +331,10 @@
                     region: 'south',
                     xtype: 'fieldset',
                     title: _t('Discoveries'),
-                    height: 200,
+                    height: 240,
                     items: [{
                         xtype: 'discoverygrid',
-                        height: 200,
+                        height: 180,
                         autoScroll: true,
                         emptyText: _t('Add network  discoveries using the above form'),
                         // the width is so that the right edge of the
