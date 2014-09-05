@@ -64,7 +64,7 @@ class RelationshipMap(PBSafe):
 
     def to_dict(self):
         results = {}
-        for key,val in self.__dict__.items():
+        for key,val in self.__dict__.iteritems():
             if key == 'maps':
                 key = 'objmaps'
                 maps = []
@@ -118,30 +118,26 @@ class ObjectMap(PBSafe):
         return '<%s %s>' % (self.__class__.__name__, pformat(map))
     
     def __len__(self):
-        map = {}
-        map.update(self.__dict__)
-        del map["_attrs"]
-        return len(map)
+        return len(self.__dict__) - 1
 
     def items(self):
         """Return the name value pairs for this ObjectMap.
         """
-        return [ (n, v) for n, v in self.__dict__.items() \
+        return [ (n, v) for n, v in self.__dict__.iteritems() \
                 if n not in self._blockattrs and n in self._attrs ]
 
     def values(self):
-        return [ v for n, v in self.__dict__.items() \
+        return [ v for n, v in self.__dict__.iteritems() \
                 if n not in self._blockattrs and n in self._attrs ]
 
     def __iter__(self):
-        map = {}
-        map.update(self.__dict__)
-        del map["_attrs"]
-        return iter(map)
+        return iter(x for x in self.__dict__ if x != "_attrs")
 
     def __getitem__(self, key):
-        if hasattr(self, key):
+        try:
             return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key)
 
     def __setitem__(self, name, value):
         if name not in self._attrs and not name.startswith("_"):
@@ -200,28 +196,25 @@ class MultiArgs(PBSafe):
 pb.setUnjellyableForClass(MultiArgs, MultiArgs)
 
 def datamaps_to_dicts(datamaps):
-    if not isinstance(datamaps, list):
+    # Can't use the test hasattr(datamaps, '__iter__')
+    # because the datamap object has an __iter__ attribute
+    if not isinstance(datamaps, (list, set, tuple)):
         datamaps = [datamaps]
+
     results = []
     for map in datamaps:
-        if isinstance(map, RelationshipMap):
-           data = map.to_dict()
-        else:
+        if isinstance(map, (RelationshipMap, ObjectMap)):
            data = map.to_dict()
         results.append(data)
-    return data
+    return results
 
 def dicts_to_datamaps(data):
+    if not isinstance(data, (tuple, set, list)):
+        data = [data]
+
     results = []
-    if isinstance(data, dict):
-        data = [data.copy()]
     for item in data:
-        item = item.copy()
-        if 'objmaps' in item:
-            datamap = RelationshipMap()
-            datamap.from_dict(item)
-        else:
-            datamap = ObjectMap()
-            datamap.from_dict(item)
+        datamap = RelationshipMap() if 'objmaps' in item else ObjectMap()
+        datamap.from_dict(item)
         results.append(datamap)
     return results
