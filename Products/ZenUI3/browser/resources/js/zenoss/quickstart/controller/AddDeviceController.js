@@ -263,19 +263,19 @@
         refreshGrid: function() {
             var store = this.getGrid().getStore();
             store.data.each(function(record){
-				var status = record.get('status');
-				// make sure we aren't in the middle of deleting
+                var status = record.get('status');
+                // make sure we aren't in the middle of deleting
                 if (record.get('pendingDelete')) {
                     return;
                 }
-				// make sure we are updatable
-				if (status === "STARTED" || status === "PENDING") {
-					Zenoss.remote.JobsRouter.getInfo({
-						jobid: record.get('uuid')
-					}, function(response) {
-						record.set(response.data);
-					});
-				}
+                // make sure we are updatable
+                if (status === "STARTED" || status === "PENDING") {
+                    Zenoss.remote.JobsRouter.getInfo({
+                        jobid: record.get('uuid')
+                    }, function(response) {
+                        record.set(response.data);
+                    });
+                }
             });
         },
         setResubmitHandler: function() {
