@@ -108,7 +108,7 @@
             switch (status) {
               case "STARTED":
               case "PENDING":
-                this.updateTask.delay(1000);
+                this.updateTask.delay(3000);
                 break;
               case "ABORTED":
                 // Might have updates but only a couple, so let's not
