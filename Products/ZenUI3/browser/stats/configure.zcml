@@ -46,6 +46,7 @@
     
     <!-- register request start/end handlers to compute request statistics -->
     <subscriber handler=".stats.logRequestStart" />
+    <subscriber handler=".stats.logRequestStartAfterTraversal" />
     <subscriber handler=".stats.logRequestEnd" />
         
 
