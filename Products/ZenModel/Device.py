@@ -2057,6 +2057,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         templates = filter(lambda t: isinstance(self, t.getTargetPythonClass()), templates)
         return sorted(templates, key=lambda x: x.id.lower())
 
+    def getSnmpV3EngineId(self): 
+        return self.getProperty('zSnmpEngineId') 
+ 
+    def setSnmpV3EngineId(self, value): 
+        self.setZenProperty('zSnmpEngineId', value) 
 
     security.declareProtected(ZEN_VIEW, 'getLinks')
     def getLinks(self, OSI_layer='3'):
