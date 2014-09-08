@@ -103,7 +103,7 @@ False
 15.0
 </property>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
 <property visible="True" label="Collector Client Timeout (seconds)" type="int" description="Allows you to set the timeout time of the collector client in seconds" id="zCollectorClientTimeout" >
 180
@@ -2443,7 +2443,7 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 http://www.zenoss.com
 </property>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.wmi.WinServiceMap', 'zenoss.cmd.lin ux.ifconfig', 'zenoss.cmd.linux.netstat_rn', 'zenoss.cmd.df', 'zenoss.cmd.uname', 'zenoss.cmd.uname_a')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.wmi.WinServiceMap', 'zenoss.cmd.lin ux.ifconfig', 'zenoss.cmd.linux.netstat_rn', 'zenoss.cmd.df', 'zenoss.cmd.uname', 'zenoss.cmd.uname_a', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
 <property visible="True" label="Max OID Per Request" type="int" description="Sets the maximum number of OIDs to be sent by the SNMP collection daemons when querying information. Some devices have small buffers for handling this information so the number should be lowered." id="zMaxOIDPerRequest" >
 10
@@ -2480,7 +2480,7 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </object>
 <object id='Cisco' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.CiscoMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.CiscoMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -2895,7 +2895,7 @@ AVERAGE
 </object>
 <object id='Server' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property id="zCollectorPlugins" visible="True" type="lines" description="" label="Collector Plugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
 <property id="zIcon" visible="True" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." label="Icon Path" >
 /zport/dmd/img/icons/server.png
@@ -4376,7 +4376,7 @@ HRSWInstalledMap
 8090
 </property>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
 <property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
 /zport/dmd/img/icons/server-linux.png
@@ -5907,7 +5907,7 @@ AVERAGE
 [('Windows Server', 'SNMP')]
 </property>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.InformantHardDiskMap', 'zenoss.wmi.WinServiceMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.InformantHardDiskMap', 'zenoss.wmi.WinServiceMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
 <property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
 /zport/dmd/img/icons/server-windows.png
@@ -11544,7 +11544,7 @@ Products.ZenModel.Device
 </object>
 <object id='Power' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.APCDeviceMap', 'zenoss.snmp.PowerwareDeviceMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.APCDeviceMap', 'zenoss.snmp.PowerwareDeviceMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
 <object id='UPS' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <object id='APC' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
