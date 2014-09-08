@@ -104,15 +104,16 @@ class DeployedApp(object):
         """
         Retrieves the current running instance of the application.
         """
-        result = self._client.queryServiceInstances(self._service.id)
-        instance = result[0] if result else None
-        if instance is None and self._instance:
-            self._runstate.lost()
-        elif instance and (
-                self._instance is None
-                or self._runstate.state == ApplicationState.RESTARTING):
-            self._runstate.found()
-        self._instance = instance
+        if not self._instance:
+            result = self._client.queryServiceInstances(self._service.id)
+            instance = result[0] if result else None
+            if instance is None and self._instance:
+                self._runstate.lost()
+            elif instance and (
+                    self._instance is None
+                    or self._runstate.state == ApplicationState.RESTARTING):
+                self._runstate.found()
+            self._instance = instance
 
     @property
     def id(self):
