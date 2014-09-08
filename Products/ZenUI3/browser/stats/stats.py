@@ -27,12 +27,24 @@ from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenUtils.cstat import CStat
 _LOG = logging.getLogger('zen.stats')
 
+from Products.ZenUtils.ZopeRequestLogger import ZopeRequestLogger
+_request_logger = ZopeRequestLogger()
 
 # hook in to Web Server's Request Events so that
 # fine grained monitoring can be done
 @component.adapter(ZPublisher.interfaces.IPubStart)
 def logRequestStart(event):
     event.request._start = time.time()
+
+@component.adapter(ZPublisher.interfaces.IPubAfterTraversal)
+def logRequestStartAfterTraversal(event):
+    # When IPubAfterTraversal is triggered the request body is available
+    # in event.request
+    try:
+        event.request._data_to_log = _request_logger.get_data_to_log(event.request, event.request._start)
+        _request_logger.log_request(event.request._data_to_log)
+    except:
+        pass
 
 @component.adapter(ZPublisher.interfaces.IPubEnd)
 def logRequestEnd(event):
@@ -43,6 +55,12 @@ def logRequestEnd(event):
     _REQUEST_COUNT.save(1, ts)
     _REQUEST_TIME.save(elapsed, ts)
 
+    try:
+        if not hasattr(event.request, '_data_to_log'):
+            event.request._data_to_log = _request_logger.get_data_to_log(event.request, event.request._start)
+        _request_logger.log_request(event.request._data_to_log, finished=True)
+    except:
+        pass
 
 _STATS_PERIOD = 60 * 15   # keep in-memory stats for 15 minutes
 _REQUEST_TOTAL = 0        # running total of http requests
