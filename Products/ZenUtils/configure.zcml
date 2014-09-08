@@ -35,6 +35,11 @@
             handler=".events.notifyZopeApplicationOpenedSubscribers"
             />
 
+    <subscriber
+            for=".events.IZopeApplicationOpenedEvent"
+            handler=".events.registerUUID"
+            />
+
     <!-- advertize that Zenoss provides pre/post backup events -->
     <meta:provides feature="PrePostBackupEvents" /> 
 
