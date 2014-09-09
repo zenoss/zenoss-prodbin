@@ -62,17 +62,6 @@
         markWizardAsFinished: function() {
             router.markWizardAsFinished({}, function(response){
                 if (response.success) {
-                    this.saveAdminPassword();
-                }
-            }, this);
-        },
-        saveAdminPassword: function() {
-            var values = this.getUserForm().getForm().getFieldValues(),
-                newPassword = values['admin-password1'];
-            router.setAdminPassword({
-                newPassword: newPassword
-            }, function(response){
-                if (response.success){
                     this.createAdminUser();
                 }
             }, this);
@@ -85,16 +74,21 @@
                     email: values.emailAddress,
                     roles: ['ZenManager', 'Manager']
                 };
-            router.addUser(params, this.loginAsUser, this);
+            router.addUser(params, function(response) {
+                this.saveAdminPassword();
+                this.loginAsUser();
+            }, this);
         },
-
-        loginAsUser: function(response) {
+        saveAdminPassword: function() {
+            var values = this.getUserForm().getForm().getFieldValues(),
+                newPassword = values['admin-password1'];
+            router.setAdminPassword({
+                newPassword: newPassword
+            });
+        },
+        loginAsUser: function() {
             // this effectively ends the wizard
             var values = this.getUserForm().getForm().getFieldValues();
-            if (!response.success) {
-                // TODO: Handle this error better somehow
-                return;
-            }
 
             // these are defined in a hidden form on quickstart.pt
             Ext.get('login_username').dom.value = values.username;
