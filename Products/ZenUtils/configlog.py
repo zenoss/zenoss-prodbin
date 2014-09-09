@@ -59,7 +59,17 @@ class ZenRotatingFileHandler(RotatingFileHandler):
     def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=0):
         filename = _relativeToLogPath(filename)
         RotatingFileHandler.__init__(self, filename, mode, maxBytes, backupCount, encoding, delay)
-
+try:
+    from cloghandler import ConcurrentRotatingFileHandler as ParentHandler
+except ImportError:
+    from warnings import warn
+    warn("ConcurrentLogHandler package not installed. Using RotatingFileLogHandler. While everything will still work fine, there is a potential for log files overlapping each other.")
+    from logging.handlers import RotatingFileHandler as ParentHandler
+class ZenConcurrentRotatingFileHandler(ParentHandler):
+    """Like python's RotatingFileHandler but relative to ZENHOME/log/"""
+    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=0):
+        filename = _relativeToLogPath(filename)
+        ParentHandler.__init__(self, filename, mode, maxBytes, backupCount, encoding, delay)
 
 class ZenTimedRotatingFileHandler(TimedRotatingFileHandler):
     """Like python's TimedFileHandler but relative to ZENHOME/log/"""
