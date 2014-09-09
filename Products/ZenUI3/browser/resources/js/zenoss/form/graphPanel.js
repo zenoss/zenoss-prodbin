@@ -185,8 +185,8 @@
             }
             config = Ext.applyIf(config||{}, {
                 html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 100)  + 'px;"> ' +
-					'<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
-					'</div></div></div>',
+                    '<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
+                    '</div></div></div>',
                 maxWidth: 800,
                 cls: 'graph-panel',
                 graph_params: {
@@ -629,7 +629,7 @@
 
             me.fireEvent('select', me, d);
             me.collapse();
-        },
+        }
     });
 
     var tbarConfig = [
@@ -1063,7 +1063,7 @@
         hideDatePicker: function(){
             // hide date picker stuff
             this.toolbar.query("container[cls='date_picker_container']")[0].hide();
-        },
+        }
     });
 
 
