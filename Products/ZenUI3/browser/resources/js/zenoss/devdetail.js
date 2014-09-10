@@ -571,7 +571,7 @@ var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
     id: 'device_component_graphs',
     components: Ext.pluck(Zenoss.env.componentTree, 'id')
 });
-    
+
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
     id: 'softwares'
 });
@@ -1012,6 +1012,7 @@ Ext.getCmp('footer_bar').add([{
     id: 'component-add-menu',
     hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
     iconCls: 'add',
+    text: Ext.isIE9 ? _t('Add'): null,
     menuIds: [],
     listeners: {
         render: function(){
@@ -1046,6 +1047,7 @@ Ext.getCmp('footer_bar').add([{
 },{
     xtype: 'ContextConfigureMenu',
     id: 'device_configure_menu',
+    text: Ext.isIE9 ? _t('Configure'): null,
     listeners: {
         render: function(){
             this.setContext(UID);
