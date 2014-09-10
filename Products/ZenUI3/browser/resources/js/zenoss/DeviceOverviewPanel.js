@@ -60,7 +60,7 @@
                             }
                         }else{
                             // if it is a UID then render as a link to that item
-                            if (value.startswith('/zport/dmd/')) {
+                            if (Ext.isString(value) && value.startswith('/zport/dmd/')) {
                                 value = Zenoss.render.link(value);
                             }
                         }
@@ -235,7 +235,7 @@
                 id = data[i].id;
                 item = Zenoss.zproperties.createZPropertyField(data[i]);
                 item.name = id;
-               
+
                 // make sure we always display the correct value
                 item.value = item.value || data[i].valueAsString;
                 items.push(item);
