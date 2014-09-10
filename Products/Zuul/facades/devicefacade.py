@@ -208,7 +208,7 @@ class DeviceFacade(TreeFacade):
         # Do one big lookup of component events and merge back in to type later
         if not uuidMap:
             return []
-        
+
         zep = getFacade('zep')
         showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
         if showSeverityIcon:
@@ -661,7 +661,7 @@ class DeviceFacade(TreeFacade):
         for prop in deviceClass.primaryAq().getZ('zCredentialsZProperties', []):
             result.append(obj.exportZProperty(prop))
         return result
-    
+
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         graphs = []
@@ -752,7 +752,7 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         for brain in obj.componentSearch():
             if graphDefs.get(brain.meta_type):
-                continue            
+                continue
             try:
                 component = brain.getObject()
             except:
@@ -767,8 +767,8 @@ class DeviceFacade(TreeFacade):
         query = {}
         query['meta_type'] = meta_type
         components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
-        
-        
+        graphDef = None
+
         # get the graph def
         for comp in components:
             # find the first instance
@@ -778,8 +778,10 @@ class DeviceFacade(TreeFacade):
                     break
             if graphDef:
                 break
+        if not graphDef:
+            return []
 
-        if allOnSame:            
+        if allOnSame:
             return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
 
         graphs = []
@@ -787,7 +789,7 @@ class DeviceFacade(TreeFacade):
             info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
-    
+
     def getDevTypes(self, uid):
         """
         Returns a list of devtypes for use for the wizard
