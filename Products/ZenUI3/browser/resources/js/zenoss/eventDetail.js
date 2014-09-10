@@ -566,10 +566,10 @@ Ext.onReady(function() {
             var cmp = Ext.getCmp(section_id), el = cmp.getEl();
             // workaround IE not hiding/showing sections by explicitly setting the style on the dom nodes
             if (el.dom.style.display == "none") {
-                el.dom.style.display = "block";                
+                el.dom.style.display = "block";
             }
             else {
-                el.dom.style.display = "none";                
+                el.dom.style.display = "none";
             }
         },
 
@@ -767,9 +767,18 @@ Ext.onReady(function() {
         wipe: function() {
             // hook to perform clean up actions when the panel is closed
         },
+        expandAll: function() {
+            Ext.each(this.sections, function(section) {
+                var cmp = Ext.getCmp(section.id), el = cmp.getEl();
+                if (el) {
+                    el.dom.style.display = "block";
+                }
+            }, this);
+        },
         load: function(event_id) {
             if (event_id !== this.event_id) {
                 this.event_id = event_id;
+                this.expandAll();
                 this.refresh();
             }
         },
