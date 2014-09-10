@@ -13,7 +13,7 @@ Zenoss JSON API
 """
 
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
-from Products.Zuul.decorators import require
+from Products.Zuul.decorators import contextRequire
 from Products.Zuul.interfaces.tree import ICatalogTool
 from Products.Zuul.marshalling import Marshaller
 from Products.ZenModel.DeviceClass import DeviceClass
@@ -29,7 +29,7 @@ class TreeRouter(DirectRouter):
     A common base class for routers that have a hierarchical tree structure.
     """
 
-    @require('Manage DMD')
+    @contextRequire("Manage DMD", 'contextUid')
     def addNode(self, type, contextUid, id, description=None):
         """
         Add a node to the existing tree underneath the node specified
@@ -68,7 +68,7 @@ class TreeRouter(DirectRouter):
             result['success'] = False
         return result
 
-    @require('Manage DMD')
+    @contextRequire("Manage DMD", 'uid')
     def deleteNode(self, uid):
         """
         Deletes a node from the tree.
