@@ -239,6 +239,9 @@ Ext.onReady(function(){
                 id: 'refresh-button',
                 text: _t('Refresh'),
                 handler: function() {
+                    // Indicating grid updating progress
+                    var box = Ext.getCmp('lastupdated');
+                    box.setText(_t('<span>Updating... </span><img src="/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif" width=12 height=12>'));
                     var grid = Ext.getCmp('events_grid');
                     grid.refresh();
                 }
@@ -302,7 +305,7 @@ Ext.onReady(function(){
 
         // Hook up the "Last Updated" text
         var store = grid.getStore();
-        store.on('beforeprefetch', doLastUpdated);
+        //store.on('beforeprefetch', doLastUpdated);
         if (store.buffered)
             store.on('guaranteedrange', doLastUpdated);
         else
