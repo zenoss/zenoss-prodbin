@@ -167,7 +167,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
         if self.color:
             color = self.color
             try:
-                _ = long(color, 16)
+                _ = long(color.replace("#", ""), 16)
             except ValueError:
                 color = None
         if not color:
