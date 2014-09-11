@@ -968,6 +968,9 @@
                         handler: function() {
                             var grid = Ext.getCmp(gridId);
                             if (grid.isVisible(true)) {
+                                // Indicating grid updating progress
+                                var box = Ext.getCmp('lastupdated');
+                                box.setText(_t('<span>Updating... </span><img src="/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif" width=12 height=12>'));
                                 grid.refresh();
                             }
                         }
