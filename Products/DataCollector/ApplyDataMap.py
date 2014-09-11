@@ -139,6 +139,10 @@ class ApplyDataMap(object):
 
         changed = False
 
+        from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, dicts_to_datamaps
+        if not isinstance(datamap, (RelationshipMap, ObjectMap)):
+             datamap = dicts_to_datamaps(datamap)[0]
+
         if hasattr(datamap, "parentId") or hasattr(datamap, "compname"):
             if getattr(datamap, "parentId", None):
                 if device.id == datamap.parentId:
