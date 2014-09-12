@@ -53,8 +53,8 @@
                             if(value.uid.match(/products/)){
                                 Zenoss.manufacturers.launchProductDialog = function(){
                                     Zenoss.manufacturers.productsDialog(grid, data);
-                                }
-                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.id+'</a>';
+                                };
+                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.name+'</a>';
                             }else{
                                 value = '<a title="Go to the grid for this Manufacturer" href="/zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.'+value.name+'" >'+value.name+'</a>';
                             }
