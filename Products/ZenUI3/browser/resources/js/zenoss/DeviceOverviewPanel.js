@@ -53,8 +53,8 @@
                             if(value.uid.match(/products/)){
                                 Zenoss.manufacturers.launchProductDialog = function(){
                                     Zenoss.manufacturers.productsDialog(grid, data);
-                                }
-                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.id+'</a>';
+                                };
+                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.name+'</a>';
                             }else{
                                 value = '<a title="Go to the grid for this Manufacturer" href="/zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.'+value.name+'" >'+value.name+'</a>';
                             }
@@ -104,7 +104,7 @@
             width: FIELDWIDTH,
             name: 'hwManufacturer',
             id: 'hwmanufacturercombo',
-            fieldLabel: _t('HW Manufacturer'),
+            fieldLabel: _t('Hardware Manufacturer'),
             listConfig: {
                 resizable: true, resizeHandles: 'e'
             },
@@ -123,7 +123,7 @@
                 resizable: true, resizeHandles: 'e'
             },
             name: 'hwProductName',
-            fieldLabel: _t('HW Product'),
+            fieldLabel: _t('Hardware Model'),
             id: 'hwproductcombo',
             manufacturer: name(vals.hwManufacturer)
         };
@@ -153,7 +153,7 @@
             },
             name: 'osProductName',
             id: 'osproductcombo',
-            fieldLabel: _t('OS Product'),
+            fieldLabel: _t('OS Model'),
             manufacturer: name(vals.osManufacturer)
         };
 
