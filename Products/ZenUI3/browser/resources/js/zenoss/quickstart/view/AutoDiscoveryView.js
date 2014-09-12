@@ -184,6 +184,7 @@
         extend: 'Ext.form.Panel',
         alias: 'widget.wizardautodiscoveryview',
         stepTitle: _t('Network Discovery'),
+        stepId: 'discover-network',
         stepHeight: 600,
         constructor: function(config) {
             config = config || {};
