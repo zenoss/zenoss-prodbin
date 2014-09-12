@@ -316,7 +316,7 @@
                 },
                 callback = function(response){
                     if (response.success){
-                        // So on core the second entry is the modeling job and for some zenpacks the first is the modeling job
+                        // On core the second entry is the modeling job and for some zenpacks the first is the modeling job
                         // so always grab the last one
                         var jobRecord = response.new_jobs.pop();
                         // set some properties we need
