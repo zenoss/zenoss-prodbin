@@ -754,6 +754,17 @@ Ext.apply(Zenoss.devices, {
             var loc = window.location.pathname;
             window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#add-device', loc);
         }
+    }),
+    addDeviceDiscovery: new Zenoss.Action({
+        text: _t('Discover Networks') + '...',
+        id: 'adddevice-discovery',
+        permission: 'Manage Device',
+        // only global roles can do this action
+        permissionContext: '/zport/dmd/Devices',
+        handler: function(btn, e){
+            var loc = window.location.pathname;
+            window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#discover-network', loc);
+        }
     })
 });
 
@@ -1342,7 +1353,8 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 menu:{
                     items: [
                         Zenoss.devices.addDevice,
-                        Zenoss.devices.addMultiDevicePopUP
+                        Zenoss.devices.addMultiDevicePopUP,
+                        Zenoss.devices.addDeviceDiscovery
                     ].concat(EXTENSIONS_adddevice)
                 }
             },
@@ -1500,7 +1512,7 @@ Ext.getCmp('center_panel').add({
         cls: 'x-zenoss-master-panel',
         region: 'west',
         split: true,
-        width: 275,        
+        width: 275,
         items: [{
             id: 'master_panel_details',
             text: _t('Infrastructure'),
@@ -1641,7 +1653,7 @@ function getOrganizerFields(mode) {
             store: store
         });
     }
-	
+
     if ( uid.startswith('/zport/dmd/Locations') ) {
         items.push({
             xtype: 'textarea',
