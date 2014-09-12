@@ -316,8 +316,9 @@
                 },
                 callback = function(response){
                     if (response.success){
-                        // we only submit one at a time
-                        var jobRecord = response.new_jobs[0];
+                        // On core the second entry is the modeling job and for some zenpacks the first is the modeling job
+                        // so always grab the last one
+                        var jobRecord = response.new_jobs.pop();
                         // set some properties we need
                         record.set(jobRecord);
                         record.set('status', 'PENDING');
