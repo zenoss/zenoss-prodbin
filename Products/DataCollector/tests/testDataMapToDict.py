@@ -165,6 +165,33 @@ class TestDataMapToDict(BaseTestCase):
         # Test dicts_to_datamap
         self.assertEquals(dicts_to_datamaps(datamap_list)[0].to_dict(), relmap.to_dict())
 
+    def testRelMapToDictCoerceObjMaps(self):
+        # Apply a RelMap with dict as an objmap
+
+        interface_dict = {'modname': 'Products.ZenModel.IpInterface',
+                          'compname': 'os',
+                          'speed': 1000,
+                          'id': prepId('eth0')
+                          }
+
+        relmap = RelationshipMap("interfaces", "os", "Products.ZenModel.IpInterface", objmaps=[interface_dict])
+
+        results = relmap.to_dict()
+        self.assertDictEqual(results,
+                             {'modname': 'Products.ZenModel.IpInterface',
+                              'relname': 'interfaces',
+                              'compname': 'os',
+                              'objmaps': [{'compname': 'os',
+                                           'id': 'eth0',
+                                           'modname': 'Products.ZenModel.IpInterface',
+                                           'speed': 1000}],
+                              'parentId': ''})
+
+        # Verify that the data made it into the model properly.
+        self.adm._applyDataMap(self.device, relmap.to_dict())
+        self.assertEquals(self.device.os.interfaces()[0].id, 'eth0')
+        self.assertEquals(self.device.os.interfaces()[0].speed, 1000)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

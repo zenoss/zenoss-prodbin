@@ -51,10 +51,12 @@ class RelationshipMap(PBSafe):
 
     def extend(self, objmaps):
         for dm in objmaps:
-           if self.modname and dm and not dm.modname:
-               dm.modname = self.modname
-           self.maps.append(dm)
- 
+            if not isinstance(dm, ObjectMap):
+                dm = ObjectMap(dm)
+            if self.modname and dm and not dm.modname:
+                dm.modname = self.modname
+            self.maps.append(dm)
+
     def asUnitTest(self):
         """
         Return the results of the relationship map as something that can
