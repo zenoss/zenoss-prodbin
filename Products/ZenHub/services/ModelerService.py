@@ -17,7 +17,7 @@ from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
 from Products.DataCollector.Plugins import loadPlugins
-
+import time
 import logging
 log = logging.getLogger('zen.ModelerService')
 
@@ -121,7 +121,16 @@ class ModelerService(PerformanceConfig):
         adm.setDeviceClass(device, devclass)
         def inner(map):
             def action():
-                return bool(adm._applyDataMap(device, map))
+                start_time = time.time()
+                completed= bool(adm._applyDataMap(device, map))
+                end_time=time.time()-start_time
+                if hasattr(map, "relname"):
+                    log.debug("Time in _applyDataMap for Device %s with relmap %s objects: %.2f", device.getId(),map.relname,end_time)
+                elif hasattr(map,"modname"):
+                    log.debug("Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f",device.getId(),len(map.items()),end_time)
+                else:
+                    log.debug("Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap",device.getId(),end_time)
+                return completed
             return self._do_with_retries(action)
 
         changed = False
