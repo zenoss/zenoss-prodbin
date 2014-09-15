@@ -484,7 +484,7 @@ Ext.onReady(function(){
         extend:"Zenoss.FilterGridPanel",
         constructor: function(config) {
             config = config || {};
-
+            var me = this;
             Ext.applyIf(config, {
                 stateId: 'classes_mapping_grid',
                 id: 'classes_mapping_grid',
@@ -575,6 +575,20 @@ Ext.onReady(function(){
                                     data = selected[0].data;
                                     data['whichPanel'] = 'sequence';
                                     Zenoss.eventclasses.mappingDialog(grid, data);
+                                }
+                            }, {
+                                iconCls: 'adddevice',
+                                xtype: 'button',
+                                tooptip: _t('Add To ZenPack'),
+                                hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                                handler: function() {
+                                    var addtozenpack = new Zenoss.AddToZenPackWindow(),
+                                        records = me.getSelectionModel().getSelection();
+                                    if (records.length) {
+                                        var targets = Ext.Array.pluck(Ext.Array.pluck(records, "data"), "uid");
+                                        addtozenpack.setTarget(targets);
+                                        addtozenpack.show();
+                                    }
                                 }
                             }]
                         }
