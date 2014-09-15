@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -31,7 +31,7 @@ class MyCollector(object):
 
         def remote_getCollectorThresholds(self):
             return defer.succeed(['yabba dabba do', 'ho ho hum'])
-        
+
         def remote_getDeviceConfigs(self, devices=[]):
             return defer.succeed(['hmm', 'foo', 'bar'])
 
@@ -47,7 +47,7 @@ class MyCollector(object):
 
     def getRemoteConfigServiceProxy(self):
         return MyCollector.MyConfigServiceProxy()
-    
+
     def configureRRD(self, rrdCreateCommand, thresholds):
         pass
 
@@ -74,8 +74,7 @@ class TestConfig(BaseTestCase):
 
         cfgService = ConfigurationProxy()
         prefs = MyPrefs()
-
-        d = cfgService.getPropertyItems(prefs)
+        d = cfgService.getPropertyItems(prefs, None)
         d.addBoth(validate)
         return d
 

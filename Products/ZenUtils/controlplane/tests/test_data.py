@@ -19,7 +19,7 @@ from Products.ZenUtils.controlplane.data import (
 
 
 definition_json_src = """[{
-"Id": "b6b04c70-707d-293f-f78b-88c496656938",
+"ID": "b6b04c70-707d-293f-f78b-88c496656938",
 "Name": "zenperfsnmp",
 "Context": "null",
 "Startup": "su - zenoss -c \\"/opt/zenoss/bin/zenperfsnmp run -c -v10\\"",
@@ -56,7 +56,7 @@ definition_json_src = """[{
 """
 
 definition_json_obj = {
-    "Id": "b6b04c70-707d-293f-f78b-88c496656938",
+    "ID": "b6b04c70-707d-293f-f78b-88c496656938",
     "Name": "zenperfsnmp",
     "Context": "null",
     "Startup": "su - zenoss -c \"/opt/zenoss/bin/zenperfsnmp run -c -v10\"",
@@ -92,7 +92,7 @@ definition_json_obj = {
 }
 
 instance_json_src = """[{
-"Id": "35948b18-86d5-780d-e9b7-37614e7c1755",
+"ID": "35948b18-86d5-780d-e9b7-37614e7c1755",
 "ServiceID": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
 "HostID": "007f0101",
 "DockerID": "9012fe5973bb3f4648ee94614123ca4da4e1612cbf428695fc555f3abbc238bc",
@@ -108,7 +108,7 @@ instance_json_src = """[{
 }]"""
 
 instance_json_obj = {
-    "Id": "35948b18-86d5-780d-e9b7-37614e7c1755",
+    "ID": "35948b18-86d5-780d-e9b7-37614e7c1755",
     "ServiceID": "0ee72a73-9883-739b-0c92-9d1fd1c55fd2",
     "HostID": "007f0101",
     "DockerID": "9012fe5973bb3f4648ee94614123ca4da4e1612cbf428695fc555f3abbc238bc",
@@ -235,7 +235,7 @@ class ServiceInstanceTest(BaseTestCase):
         self.svcinst = svcinst
 
     def testId(self):
-        self.assertEqual(self.svcinst.id, instance_json_obj["Id"])
+        self.assertEqual(self.svcinst.id, instance_json_obj["ID"])
 
     def testServiceId(self):
         self.assertEqual(
@@ -248,7 +248,7 @@ class ServiceInstanceTest(BaseTestCase):
         self.assertEqual(
             self.svcinst.resourceId,
             "/services/%s/running/%s" % (
-                instance_json_obj["ServiceID"], instance_json_obj["Id"]
+                instance_json_obj["ServiceID"], instance_json_obj["ID"]
             )
         )
 
