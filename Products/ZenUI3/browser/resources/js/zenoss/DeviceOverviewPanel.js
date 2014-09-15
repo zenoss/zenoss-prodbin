@@ -35,6 +35,11 @@
                 obj.superclass.constructor.call(this, config);
                 this.addEvents('labelclick');
             },
+            /**
+             * Sets the display value for the "edit link" fields.
+             * Special case if there it is a manufacturer to edit the manufacturer object in place.
+             * TODO: Refactor this method so separate types for the different link fields as this method has gotten too complicated.
+             **/
             setValue: function(value) {
                 var origValue = value;
                 if (Ext.isEmpty(value)) {
@@ -58,7 +63,9 @@
                             }else{
                                 value = '<a title="Go to the grid for this Manufacturer" href="/zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.'+value.name+'" >'+value.name+'</a>';
                             }
-                        }else{
+                        } else if (Ext.isObject(value)) {
+                            value = Zenoss.render.link(value);
+                        } else{
                             // if it is a UID then render as a link to that item
                             if (Ext.isString(value) && value.startswith('/zport/dmd/')) {
                                 value = Zenoss.render.link(value);
