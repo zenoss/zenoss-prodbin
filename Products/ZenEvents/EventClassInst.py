@@ -218,6 +218,23 @@ Transform:
         if not os.path.exists(pickleDir):
             log.warn("Create the %s dir to enable pickle capture of events, i.e. serviced service attach zeneventd su zenoss -c 'mkdir -p  %s'", pickleDir, pickleDir)
             return
+        #delete files older than 1 hour
+        age = 3600
+        pickles_count = 0
+        for file in os.listdir(pickleDir):
+            now = time.time()
+            filepath = os.path.join(pickleDir, file)
+            modified = os.stat(filepath).st_mtime
+            if modified < now - age:
+                if os.path.isfile(filepath):
+                    if pickles_count == 0:
+                        log.info("Deleting old pickle files ...")
+                    try:
+                        os.remove(filepath)
+                        pickles_count += 1
+                    except Exception as e:
+                        log.exception("Unable to delete %s: %s", filepath, e)
+        log.info("Deleted %s old pickle files." % pickles_count)
         date = time.localtime(time.time())
         tstamp = time.strftime("%Y-%m-%d-%H%M%S", date)
         filename = pickleDir + '/%s_%s_%s.pickle' % (evt.device, evt.evid, tstamp) 
