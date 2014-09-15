@@ -19,7 +19,7 @@ import transaction
 import urllib
 import time
 import pickle
-import os.path
+import os
 from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger("zen.Events")
