@@ -57,10 +57,10 @@ class ApplyDataMap(object):
 
     def __init__(self, datacollector=None):
         self.datacollector = datacollector
+        self.num_obj_changed=0
         self._dmd = None
         if datacollector:
             self._dmd = getattr(datacollector, 'dmd', None)
-
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
@@ -117,6 +117,9 @@ class ApplyDataMap(object):
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
         """
+        self.num_obj_changed=0;
+        log.debug("Started _applyDataMap for device %s",device.getId())
+        logname=""
         # This can cause breakage in unit testing when the device is persisted.
         if not hasattr(device.dmd, 'zport'):
             transaction.abort()
@@ -170,8 +173,10 @@ class ApplyDataMap(object):
             # so we index the minimum amount
             with pausedAndOptimizedIndexing():
                 if hasattr(datamap, "relname"):
+                    logname=datamap.relname
                     changed = self._updateRelationship(tobj, datamap)
                 elif hasattr(datamap, 'modname'):
+                    logname=datamap.compname
                     changed = self._updateObject(tobj, datamap)
                 else:
                     log.warn("plugin returned unknown map skipping")
@@ -183,6 +188,7 @@ class ApplyDataMap(object):
             trans = transaction.get()
             trans.setUser("datacoll")
             trans.note("data applied from automated collection")
+        log.debug("_applyDataMap for Device %s will modify %d objects for %s", device.getId(), self.num_obj_changed,logname)
         return changed
 
 
@@ -364,6 +370,7 @@ class ApplyDataMap(object):
             notify(IndexingEvent(obj))
         else:
             obj._p_deactivate()
+        self.num_obj_changed += 1 if changed else 0
         return changed
 
 
@@ -411,8 +418,9 @@ class ApplyDataMap(object):
             changed = True
             if not isinstance(rel, ToManyContRelationship):
                 notify(ObjectMovedEvent(remoteObj, rel, remoteObj.id, rel, remoteObj.id))
-        return self._updateObject(remoteObj, objmap) or changed, remoteObj
-
+        up_changed = self._updateObject(remoteObj, objmap)
+        self.num_obj_changed += 1 if not up_changed and changed else 0
+        return up_changed or changed, remoteObj
 
     def stop(self):
         pass

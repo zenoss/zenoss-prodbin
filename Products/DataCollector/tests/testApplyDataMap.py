@@ -82,6 +82,8 @@ class ApplyDataMapTest(BaseTestCase):
 
             def getObjByPath(self, path):
                 return reduce(getattr, path.split("/"), self)
+            def getId(self):
+                return "testDevice"
 
             class a:
                 class b:
