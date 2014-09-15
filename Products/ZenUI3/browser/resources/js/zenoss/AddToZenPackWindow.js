@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -75,18 +75,21 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     xtype: 'DialogButton',
                     disabled: true,
                     handler: function () {
-                        var form;
-                        form = Ext.getCmp('addzenpackform');
-                        var chosenzenpack =
-                            form.getForm().findField('zpname').getValue();
+                        var form = Ext.getCmp('addzenpackform'),
+                            chosenzenpack = form.getForm().findField('zpname').getValue(), i, targets = [];
+                        if (!Ext.isArray(me.target)) {
+                            targets.push(me.target);
+                        } else {
+                            targets = me.target;
+                        }
+                        for (i=0; i<targets.length; i++ ) {
                             Zenoss.remote.ZenPackRouter.addToZenPack({
-                                topack: me.target,
+                                topack: targets[i],
                                 zenpack: chosenzenpack
-                            },
-                            function (data) {
+                            }, function (data) {
                                 Zenoss.message.info(_t("The item was added to {0}"), chosenzenpack);
-                            }
-                        );
+                            });
+                        }
                     }
                 },{
                     text: _t('Cancel'),

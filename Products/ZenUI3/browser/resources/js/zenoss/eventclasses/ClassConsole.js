@@ -417,7 +417,7 @@ Ext.onReady(function(){
                                         tree.getStore().on('load', function(s){
                                             var path = tree.getRootNode().findChild("uid", nodeId, true);
                                             tree.expandToChild(node);
-											
+
                                         }, this, {single:true});
                                     }
                                 });
@@ -426,6 +426,19 @@ Ext.onReady(function(){
                                 Ext.getCmp('description_id').setValue(node.data.text.description);
                             });
                             dialog.show();
+                        }
+                    });
+                    menuItems.push({
+                        xtype: 'menuitem',
+                        text: _t('Add to ZenPack'),
+                        hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                        handler: function() {
+                            var addToZenPackDialog = new Zenoss.AddToZenPackWindow({}),
+                                node = getSelectionModel().getSelectedNode();
+                            if (!Ext.isEmpty(node)) {
+                                addToZenPackDialog.setTarget(node.get('uid'));
+                                addToZenPackDialog.show();
+                            }
                         }
                     });
                     return menuItems;
