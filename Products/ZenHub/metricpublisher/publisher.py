@@ -132,6 +132,7 @@ class RedisListPublisher(BasePublisher):
         self._channel = channel
         self._maxOutstandingMetrics = maxOutstandingMetrics
         self._redis = RedisClientFactory()
+        self._flushing = False
         self._connection = reactor.connectTCP(self._host,
                                               self._port,
                                               self._redis)
@@ -180,8 +181,12 @@ class RedisListPublisher(BasePublisher):
 
             @defer.inlineCallbacks
             def _flush():
+                if self._flushing:
+                    defer.returnValue(None)
+
                 client = self._redis.client
                 try:
+                    self._flushing = True
                     yield client.multi()
                     yield client.lpush(self._channel, *metrics)
                     yield client.ltrim(self._channel, 0, self._maxOutstandingMetrics - 1)
@@ -195,6 +200,8 @@ class RedisListPublisher(BasePublisher):
                     except Exception:
                         pass
                     self._publish_failed(e, metrics=metrics)
+                finally:
+                    self._flushing = False
 
             return _flush()
 
