@@ -89,7 +89,8 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching configurations")
-        d = serviceProxy.callRemote('getDeviceConfigs', ids)
+        #get options from prefs.options and send to remote
+        d = serviceProxy.callRemote('getDeviceConfigs', ids, options=prefs.options.__dict__)
         return d
 
     def deleteConfigProxy(self, prefs, id):
@@ -114,7 +115,7 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching device names")
-        d = serviceProxy.callRemote('getDeviceNames')
+        d = serviceProxy.callRemote('getDeviceNames', options=prefs.options.__dict__)
         return d
 
 

@@ -715,7 +715,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         d = self.perspective.callRemote('getService',
                                         serviceName,
                                         self.options.monitor,
-                                        serviceListeningInterface or self)
+                                        serviceListeningInterface or self,
+                                        self.options.__dict__)
         d.addCallback(callback, serviceName)
         d.addErrback(errback, serviceName)
         return d

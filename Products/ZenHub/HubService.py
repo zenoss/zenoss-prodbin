@@ -24,6 +24,7 @@ class HubService(pb.Referenceable):
         self.zem = dmd.ZenEventManager
         self.instance = instance
         self.listeners = []
+        self.listenerOptions = {}
         self.callTime = 0
         self.methodPriorityMap = {}
 
@@ -53,10 +54,12 @@ class HubService(pb.Referenceable):
     def name(self):
         return self.__class__.__name__
 
-    def addListener(self, remote):
+    def addListener(self, remote, options=None):
         remote.notifyOnDisconnect(self.removeListener)
         self.log.debug("adding listener for %s:%s", self.instance, self.name())
         self.listeners.append(remote)
+        if options:
+            self.listenerOptions[remote]= options
 
     def removeListener(self, listener):
         self.log.debug("removing listener for %s:%s", self.instance, self.name())
@@ -64,6 +67,9 @@ class HubService(pb.Referenceable):
             self.listeners.remove(listener)
         except ValueError:
             self.warning("Unable to remove listener... ignoring")
+
+        self.listenerOptions.pop(listener, None)
+
 
     def getMethodPriority(self, methodName):
         """

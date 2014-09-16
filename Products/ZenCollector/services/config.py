@@ -30,8 +30,8 @@ from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenModel.ThresholdClass import ThresholdClass
 from Products.ZenModel.privateobject import is_private
 from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
+from Products.ZenUtils.picklezipper import Zipper
 from Products.Zuul.utils import safe_hasattr as hasattr
-from zope.component import getUtilitiesFor
 
 
 class DeviceProxy(pb.Copyable, pb.RemoteCopy):
@@ -102,20 +102,6 @@ class CollectorConfigService(HubService, ThresholdMixin):
         self._reconfigProcrastinator = Procrastinate(self._pushReconfigure)
 
         self._notifier = component.getUtility(IBatchNotifier)
-
-    def _handleOptions(self, options):
-        pass
-        #removing state since config services do not work well with state because of 
-        #hub workers and invalidation workers.
-        #TODO: figure out a way to do filtering on zenhub side to reduce traffic to daemons
-
-        #dispatchFilterName = options.get('configDispatch', '') if options else ''
-        #filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
-        #filterFactory = filterFactories.get(dispatchFilterName, None) or \
-        #                filterFactories.get('', None)
-        #if filterFactory:
-            #self.configFilter = filterFactory.getFilter(options)
-            #self.log.debug("Filter configured: %s:%s", filterFactory, self.configFilter)
 
     def _wrapFunction(self, functor, *args, **kwargs):
         """
@@ -236,22 +222,22 @@ class CollectorConfigService(HubService, ThresholdMixin):
                 for listener in self.listeners:
                     listener.callRemote('deleteDevice', devid)
             else:
-                self.log.debug('Invalidation: Skipping remote call to delete device {0} from collector {1}'.format(devid, self.instance))                
+                self.log.debug('Invalidation: Skipping remote call to delete device {0} from collector {1}'.format(devid, self.instance))
 
 
     @translateError
-    def remote_getConfigProperties(self, options):
-        self._handleOptions(options)
+    def remote_getConfigProperties(self):
         return self._prefs.propertyItems()
 
     @translateError
-    def remote_getDeviceNames(self):
-        devices = self._getDevices()
+    def remote_getDeviceNames(self, options=None):
+        devices = self._getDevices(deviceFilter=self._getOptionsFilter(options))
         return [x.id for x in self._filterDevices(devices)]
 
-    def _getDevices(self, deviceNames=None):
+    def _getDevices(self, deviceNames=None, deviceFilter=None):
+
         if not deviceNames:
-            devices = self._prefs.devices()
+            devices = filter(deviceFilter, self._prefs.devices())
         else:
             devices = []
             for name in deviceNames:
@@ -259,12 +245,14 @@ class CollectorConfigService(HubService, ThresholdMixin):
                 if not device:
                     continue
                 else:
-                    devices.append(device)
+                    if deviceFilter(device):
+                        devices.append(device)
         return devices
 
     @translateError
-    def remote_getDeviceConfigs(self, deviceNames=None):
-        devices = self._getDevices(deviceNames)
+    def remote_getDeviceConfigs(self, deviceNames=None, options=None):
+        deviceFilter = self._getOptionsFilter(options)
+        devices = self._getDevices(deviceNames, deviceFilter)
         devices = self._filterDevices(devices)
 
         deviceConfigs = []
@@ -327,6 +315,18 @@ class CollectorConfigService(HubService, ThresholdMixin):
             self.log.warn("got an attribute exception on device.monitorDevice()")
             self.log.debug(e)
         return False
+
+    def _getOptionsFilter(self, options):
+        deviceFilter = lambda x: True
+        if options:
+            dispatchFilterName = options.get('configDispatch', '') if options else ''
+            filterFactories = dict(component.getUtilitiesFor(IConfigurationDispatchingFilter))
+            filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                            filterFactories.get('', None)
+            if filterFactory:
+                deviceFilter = filterFactory.getFilter(options)
+        return deviceFilter
+
 
     def _filterDevices(self, devices):
         """
@@ -396,8 +396,11 @@ class CollectorConfigService(HubService, ThresholdMixin):
                 else:
                     self.log.debug('Invalidation: Skipping remote call for device {0} on collector {1}'.format(device.id, self.instance))
             else:
+                options = self.listenerOptions.get(listener, None)
+                deviceFilter = self._getOptionsFilter(options)
                 for proxy in proxies:
-                    deferreds.append(self._sendDeviceProxy(listener, proxy))
+                    if deviceFilter(proxy):
+                        deferreds.append(self._sendDeviceProxy(listener, proxy))
 
         return defer.DeferredList(deferreds)
 
@@ -406,6 +409,23 @@ class CollectorConfigService(HubService, ThresholdMixin):
         TODO
         """
         return listener.callRemote('updateDeviceConfig', proxy)
+
+    def sendDeviceConfigs(self, configs):
+        deferreds = []
+
+        def errback(failure):
+            self.log.critical("Unable to update configs for service instance %s: %s"
+                              % (self.__class__.__name__, failure))
+
+        for listener in self.listeners:
+            options = self.listenerOptions.get(listener, None)
+            deviceFilter = self._getOptionsFilter(options)
+            filteredConfigs = filter(deviceFilter, configs)
+            args = Zipper.dump(filteredConfigs)
+            d = listener.callRemote('updateDeviceConfigs', args).addErrback(errback)
+            deferreds.append(d)
+        return deferreds
+
 
     # FIXME: Don't use _getNotifiableClasses, use @onUpdate(myclasses)
     def _getNotifiableClasses(self):

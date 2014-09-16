@@ -159,7 +159,8 @@ class HubAvitar(pb.Avatar):
     def perspective_getService(self,
                                serviceName,
                                instance = None,
-                               listener = None):
+                               listener = None,
+                               options = None):
         """
         Allow a collector to find a Hub service by name.  It also
         associates the service with a collector so that changes can be
@@ -184,7 +185,7 @@ class HubAvitar(pb.Avatar):
             return None
         else:
             if service is not None and listener:
-                service.addListener(listener)
+                service.addListener(listener, options)
             return service
 
     def perspective_reportingForWork(self, worker):
