@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2009, 2014 all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -165,7 +165,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStartMinute(self):
         return time.localtime(self.start)[4]
-        
+
     security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,
@@ -294,7 +294,7 @@ class MaintenanceWindow(ZenModelRM):
         This adjusts for DST changes.
         """
         return self.adjustDST(self._next(now))
-        
+
     def _next(self, now):
         if not self.enabled:
             return None
@@ -485,7 +485,7 @@ class MaintenanceWindow(ZenModelRM):
 
             if device.productionState < 300:
                     continue
-	
+
             self._p_changed = 1
             # Changes the current state for a device, but *not*
             # the preMWProductionState
@@ -495,7 +495,7 @@ class MaintenanceWindow(ZenModelRM):
                      self.displayName(), device.id, oldProductionState,
                      newProductionState)
             audit('System.Device.Edit', device, starting=str(not ending),
-                maintenanceWindow=self.displayName(), 
+                maintenanceWindow=self.displayName(),
                 productionState=newProductionState,
                 oldData_={'productionState':oldProductionState})
             device.setProdState(minProdState, maintWindowChange=True)
@@ -595,4 +595,3 @@ def createMaintenanceWindowCatalog(dmd):
     cat.addColumn('id')
     cat._catalog.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
     cat.addColumn('getPhysicalPath')
-

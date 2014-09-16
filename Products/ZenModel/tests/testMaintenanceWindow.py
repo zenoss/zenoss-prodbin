@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -126,7 +126,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(m.next(t + 1) == c)
 
         m.set(t, P, m.MONTHLY)
-        c = mktime( (2006, 3, 29, 10, 45, 12, 6, 36, 0) )
+        c = mktime( (2006, 3, 29, 9, 45, 12, 6, 36, 0) )
         self.assert_(m.next(t + 1) == c)
 
         m.set(t - DAY_SECONDS * 2, P, m.EVERY_WEEKDAY)
@@ -227,7 +227,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
     def testSingleWindow(self):
         windowDefs = [
            [0, 2, state_Pre_Production],
-           [3, 2, state_Decommissioned],
+           [3, 2, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)
@@ -252,7 +252,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 4, state_Pre_Production],
-           [1, 2, state_Decommissioned],
+           [1, 2, state_Test],
         ]
         mws = self.setupWindows(windowDefs)
         dev_orig_state = mws.dev.productionState
@@ -279,7 +279,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 3, state_Pre_Production],
-           [1, 5, state_Decommissioned],
+           [1, 5, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)
@@ -310,7 +310,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 3, state_Pre_Production],
-           [1, 2, state_Decommissioned],
+           [1, 2, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)
@@ -338,7 +338,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 3, state_Pre_Production],
-           [1, 5, state_Decommissioned],
+           [1, 5, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)
@@ -371,7 +371,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 3, state_Pre_Production],
-           [1, 5, state_Decommissioned],
+           [1, 5, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)

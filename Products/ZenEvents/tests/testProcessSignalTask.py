@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -138,7 +138,7 @@ class MockAction(TargetableAction):
     def getInfo(self, notification):
         return repr(notification)
 
-    def getTargets(self, notification):
+    def getTargets(self, notification, signal):
         return [notification.recipients[0]['value']]
 
     def executeOnTarget(self, notification, signal, target):
@@ -160,7 +160,7 @@ class ProcessSignalTaskTest(BaseTestCase):
 
     def afterSetUp(self):
         super(ProcessSignalTaskTest, self).afterSetUp()
-        
+
         from zope.component import getGlobalSiteManager
         # register the component
         gsm = getGlobalSiteManager()
@@ -172,6 +172,7 @@ class ProcessSignalTaskTest(BaseTestCase):
 
         self.mockDao = MockNotificationDao()
         self.taskProcessor = ProcessSignalTask(self.mockDao)
+        self.taskProcessor.dmd = self.dmd
 
     def testEnabledNotification(self):
         """
