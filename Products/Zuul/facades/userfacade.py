@@ -25,13 +25,8 @@ class UserFacade(ZuulFacade):
         return self._dmd.ZenUsers
 
     def setAdminPassword(self, newPassword):
-        # TODO: refactor manage_editUserSettings to allow
-        # setting the password without knowing the old one
-        admin = self._root.getUserSettings('admin')
-        admin.manage_editUserSettings(password=newPassword,
-                                      sndpassword=newPassword,
-                                      roles=('ZenManager', 'Manager'),
-                                      oldpassword='zenoss')
+        userManager = self._dmd.getPhysicalRoot().acl_users.userManager
+        userManager.updateUserPassword('admin', newPassword)
 
     def removeUsers(self, userIds):
         ids = userIds
@@ -55,4 +50,3 @@ class UserFacade(ZuulFacade):
     def markWizardAsFinished(self):
         # Don't run the quickstart next time
         self._dmd._rq = True
-        
