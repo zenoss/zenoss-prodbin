@@ -46,7 +46,7 @@ class ConfigurationProxy(object):
     """
     zope.interface.implements(IConfigurationProxy)
 
-    def getPropertyItems(self, prefs, options):
+    def getPropertyItems(self, prefs):
         if not ICollectorPreferences.providedBy(prefs):
             raise TypeError("config must provide ICollectorPreferences")
 
@@ -55,7 +55,7 @@ class ConfigurationProxy(object):
 
         # Load any configuration properties for this daemon
         log.debug("Fetching daemon configuration properties")
-        d = serviceProxy.callRemote('getConfigProperties', options)
+        d = serviceProxy.callRemote('getConfigProperties')
         d.addCallback(lambda result: dict(result))
         return d
 
@@ -189,8 +189,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         Load the configuration that doesn't depend on loading devices.
         """
         d = defer.maybeDeferred(self._configProxy.getPropertyItems,
-                                self._prefs,
-                                self.options.__dict__)
+                                self._prefs)
         d.addCallback(self._processPropertyItems)
         d.addCallback(self._processThresholdClasses)
         d.addCallback(self._processThresholds)
