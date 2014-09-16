@@ -182,8 +182,7 @@ class RedisListPublisher(BasePublisher):
             @defer.inlineCallbacks
             def _flush():
                 if self._flushing:
-                    yield defer.succeed(0)
-                    raise StopIteration
+                    defer.returnValue(None)
 
                 client = self._redis.client
                 try:
