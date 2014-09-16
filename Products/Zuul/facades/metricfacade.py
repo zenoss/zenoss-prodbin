@@ -200,9 +200,9 @@ class MetricFacade(ZuulFacade):
            #   u'sysUpTime'}}]
            #
            results = defaultdict(dict)
-           for r in content['results']:
-               uuid, metric = r['metric'].split('_', 1)
-               results[uuid][metric] = r['value']
+           for item in content['results']:
+               uuid, metric = item['metric'].split('_', 1)
+               results[uuid][metric] = item['datapoints'][0]['value']
            return results
         else:
            return content.get('results')
