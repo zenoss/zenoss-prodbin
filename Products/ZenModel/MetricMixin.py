@@ -178,12 +178,17 @@ class MetricMixin(object):
         Overriding this method to return the uuid since that
         is what we want to store in the metric DB.
         """
-        return json.dumps({
-            'type': 'METRIC_DATA',
-            'context_key': get_resource_key(self),
-            'deviceId': self.device().id,
-            'contextId': self.id
-        }, sort_keys=True)
+        return json.dumps(self.getMetricMetadata(), sort_keys=True)
+
+    def getMetricMetadata(self):
+        return {
+                'type': 'METRIC_DATA',
+                'contextKey': get_resource_key(self),
+                'deviceId': self.device().id,
+                'contextId': self.id,
+                'deviceUUID': self.device().getUUID(),
+                'contextUUID': self.getUUID()
+                }
 
     def getRRDContextData(self, context):
         return context

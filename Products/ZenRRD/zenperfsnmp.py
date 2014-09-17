@@ -340,14 +340,15 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     self._collectedOids.add(oid)
                     # An OID's data can be stored multiple times
                     for rrdMeta in self._oids[oid]:
+                        contextId, metric, rrdType, rrdCommand, rrdMin, rrdMax, metadata = rrdMeta
+                        path = metadata.get('contextKey')
                         try:
                             # see SnmpPerformanceConfig line _getComponentConfig
-                            contextId, metric, contextUUID, devuuid, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
-                            self._dataService.writeMetric(
-                                contextUUID, metric, value, rrdType, contextId,
-                                min=rrdMin, max=rrdMax, deviceuuid=devuuid)
+                            self._dataService.writeMetricWithMetadata(metric,
+                                    value, rrdType, min=rrdMin, max=rrdMax,
+                                    metadata=metadata)
                         except Exception, e:
-                            log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(contextUUID, e))
+                            log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(path, e))
                             continue
             finally:
                 self.state = TaskStates.STATE_RUNNING

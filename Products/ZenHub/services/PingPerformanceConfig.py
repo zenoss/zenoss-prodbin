@@ -33,7 +33,7 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
     DeviceProxy config will have multiple IP address proxy components
     (for each IP address on each IP interface zenping should monitor)
     """
-    def __init__(self, ip, ipVersion=4, iface='', context_key='', ds=None,
+    def __init__(self, ip, ipVersion=4, iface='', contextKey='', ds=None,
                  perfServer='localhost', deviceId='', contextId=''):
         self.ip = ipunwrap(ip)
         self.ipVersion = ipVersion
@@ -53,7 +53,7 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
         for dp in ds.getRRDDataPoints():
             ipdData = (dp.id,
                        dp.name(),
-                       context_key,
+                       contextKey,
                        deviceId,
                        dp.rrdtype,
                        dp.getRRDCreateCommand(perfServer).strip(),
@@ -97,7 +97,7 @@ class PingPerformanceConfig(CollectorConfigService):
         All IP addresses on all IP interfaces can be pingable.
         """
         metricinfo = iface.rrdPath()
-        context_key = metricinfo.get('context_key')
+        contextKey = metricinfo.get('contextKey')
         deviceId = metricinfo.get('deviceId')
         title = iface.titleOrId()
         for templ in iface.getRRDTemplates():
@@ -114,7 +114,7 @@ class PingPerformanceConfig(CollectorConfigService):
                     ipVersion = getattr(ipAddress, 'version', 4)
                     ipProxy = IpAddressProxy(ip, ipVersion=ipVersion,
                                              iface=title, ds=dsList[0],
-                                             context_key=context_key,
+                                             contextKey=contextKey,
                                              perfServer=perfServer,
                                              contextId=iface.id,
                                              deviceId=deviceId)
@@ -126,7 +126,7 @@ class PingPerformanceConfig(CollectorConfigService):
         monitor.
         """
         metricinfo = device.rrdPath()
-        context_key = metricinfo.get('context_key')
+        contextKey = metricinfo.get('contextKey')
         deviceId = metricinfo.get('deviceId')
         title = ''
         ip = device.manageIp
@@ -142,7 +142,7 @@ class PingPerformanceConfig(CollectorConfigService):
             if dsList:
                 ipProxy = IpAddressProxy(ip, ipVersion=ipObj.version,
                                          iface=title, ds=dsList[0],
-                                         context_key=context_key,
+                                         contextKey=contextKey,
                                          perfServer=perfServer,
                                          deviceId=deviceId,
                                          contextId=deviceId)
@@ -156,7 +156,7 @@ class PingPerformanceConfig(CollectorConfigService):
         # Add without datapoints if nothing's defined....
         if not addedIp:
             ipProxy = IpAddressProxy(ip, ipVersion=ipObj.version, iface=title,
-                                     context_key=context_key,
+                                     contextKey=contextKey,
                                      perfServer=perfServer, deviceId=deviceId,
                                      contextId=deviceId)
             proxy.monitoredIps.append(ipProxy)
