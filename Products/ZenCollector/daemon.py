@@ -359,49 +359,47 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
-    def writeMetric(self, contextUUID, metric, value, metricType, contextId,
+    def writeMetric(self, context_key, metric, value, metricType, contextId,
                     timestamp='N', min='U', max='U',
-                    threshEventData={}, deviceuuid=None):
+                    threshEventData={}, device=None):
 
         """
         Writes the metric to the metric publisher.
-        @param contextUUID: This is who the metric applies to. This is usually a component or a device.
+        @param context_key: This is who the metric applies to. This is usually
+                            the return value of getRRDPath() for a component or
+                            device.
         @param metric: the name of the metric, we expect it to be of the form datasource_datapoint
         @param value: the value of the metric
-        @param metricType: type of the metric (e.g. 'COUNTER', 'GUAGE', 'DERIVE' etc)
+        @param metricType: type of the metric (e.g. 'COUNTER', 'GAUGE', 'DERIVE' etc)
         @param contextId: used for the threshold events, the id of who this metric is for
         @param timestamp: defaults to time.time() if not specified, the time the metric occurred
         @param min: used in the derive the min value for the metric
         @param max: used in the derive the max value for the metric
         @param threshEventData: extra data put into threshold events
-        @param deviceuuid: the unique identifier of the device for
-        this metric, maybe the same as contextUUID if the context is a
-        device
+        @param device: the id of the device for this metric
         @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
         data_source, data_point_name = metric.split("_", 1)
         tags = {
             'datasource': data_source,
-            'uuid': contextUUID
+            'key': context_key
         }
-        if deviceuuid:
-            tags['device'] = deviceuuid
+        if device:
+            tags['device'] = device
 
         # write the raw metric to Redis
-        self._metric_writer.write_metric(
-            data_point_name, value, timestamp, tags)
-
+        self._metric_writer.write_metric(data_point_name, value, timestamp, tags)
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
             value = self._derivative_tracker.derivative(
-                contextUUID, (int(value), timestamp), min, max)
+                context_key, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
         if value is not None:
-            self._threshold_notifier.notify(contextUUID, contextId, metric, timestamp,
-                                            value, threshEventData)
+            self._threshold_notifier.notify(context_key, contextId, metric,
+                    timestamp, value, threshEventData)
 
     @deprecated
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,

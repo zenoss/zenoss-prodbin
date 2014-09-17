@@ -284,7 +284,6 @@ Ext.apply(Zenoss.render, {
     },
 
     linkFromGrid: function(value, metaData, record) {
-
         var item;
         if (typeof(value == 'object')) {
             item = value;
