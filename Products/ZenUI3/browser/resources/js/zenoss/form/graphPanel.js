@@ -358,9 +358,9 @@
 			height = height || 500;
 			// not necessary until we get above 5 datapoints
 			if (datapoints.length <= 5) {
-				return height;
+                return height;
 			}
-			
+
 			var adjustment = height * .05;
 			return height + (adjustment * datapoints.length);
 		},
