@@ -183,8 +183,8 @@
             if (config.height <= 400) {
                 padding = "padding:0px 0px 0px 0px;";
             }
-			// dynamically adjust the height;
-			config.height = this.adjustHeightBasedOnMetrics(config.height, config.datapoints);
+            // dynamically adjust the height;
+            config.height = this.adjustHeightBasedOnMetrics(config.height, config.datapoints);
             config = Ext.applyIf(config||{}, {
                 html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 100)  + 'px;"> ' +
                     '<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
@@ -350,20 +350,20 @@
             });
             form.submit();
         },
-		/**
-		 * In response to ZEN-14295 if we have a lot of series we are trying to plot
-		 * ignore the set height and make the graph larger so the graph shows up.
-		 **/
-		adjustHeightBasedOnMetrics: function(height, datapoints) {
-			height = height || 500;
-			// not necessary until we get above 5 datapoints
-			if (datapoints.length <= 5) {
+        /**
+         * In response to ZEN-14295 if we have a lot of series we are trying to plot
+         * ignore the set height and make the graph larger so the graph shows up.
+         **/
+        adjustHeightBasedOnMetrics: function(height, datapoints) {
+            height = height || 500;
+            // not necessary until we get above 5 datapoints
+            if (datapoints.length <= 5) {
                 return height;
-			}
+            }
 
-			var adjustment = height * .05;
-			return height + (adjustment * datapoints.length);
-		},
+            var adjustment = height * .05;
+            return height + (adjustment * datapoints.length);
+        },
         initEvents: function() {
             Zenoss.EuropaGraph.superclass.initEvents.call(this);
             this.addEvents(
