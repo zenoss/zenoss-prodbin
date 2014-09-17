@@ -22,6 +22,18 @@ CACHE_TIME = 60.
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
 
 
+def get_resource_key(deviceOrComponent):
+    """
+    Formerly RRDView.GetRRDPath, this value is still used as the key for the
+    device or component in OpenTSDB.
+    """
+    d = deviceOrComponent.device()
+    if not d:
+        return "Devices/" + deviceOrComponent.id
+    skip = len(d.getPrimaryPath()) - 1
+    return 'Devices/' + '/'.join(deviceOrComponent.getPrimaryPath()[skip:])
+
+
 class MetricMixin(object):
     """
     Mixin to provide hooks to metric service management functions
@@ -168,8 +180,8 @@ class MetricMixin(object):
         """
         return json.dumps({
             'type': 'METRIC_DATA',
-            'contextUUID': self.getUUID(),
-            'deviceUUID': self.device().getUUID(),
+            'context_key': get_resource_key(self),
+            'deviceId': self.device().id,
             'contextId': self.id
         }, sort_keys=True)
 
