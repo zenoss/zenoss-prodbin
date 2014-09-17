@@ -102,7 +102,7 @@ class PropertiesFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         # make sure it is the correct type
-        value = self._checkType(obj, id, type, value)            
+        value = self._checkType(obj, zProperty, type, value)
         # do not save * as passwords
         if obj.zenPropIsPassword(zProperty) and value == obj.zenPropertyString(zProperty):
             return
