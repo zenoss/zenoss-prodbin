@@ -42,6 +42,7 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
     severity = Event.Warning
     cycleTime = None
     processClass = None
+    metadata = None
 
     def __init__(self):
         pass
@@ -132,8 +133,7 @@ class ProcessConfig(CollectorConfigService):
                 continue
 
             proc = ProcessProxy()
-            proc.contextUUID = p.getUUID()
-            proc.deviceuuid = devuuid
+            proc.metadata = p.getMetricMetadata()
             proc.includeRegex = includeRegex
             proc.excludeRegex = excludeRegex
             proc.replaceRegex = replaceRegex
