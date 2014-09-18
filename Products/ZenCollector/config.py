@@ -46,7 +46,7 @@ class ConfigurationProxy(object):
     """
     zope.interface.implements(IConfigurationProxy)
 
-    def getPropertyItems(self, prefs, options):
+    def getPropertyItems(self, prefs):
         if not ICollectorPreferences.providedBy(prefs):
             raise TypeError("config must provide ICollectorPreferences")
 
@@ -55,7 +55,7 @@ class ConfigurationProxy(object):
 
         # Load any configuration properties for this daemon
         log.debug("Fetching daemon configuration properties")
-        d = serviceProxy.callRemote('getConfigProperties', options)
+        d = serviceProxy.callRemote('getConfigProperties')
         d.addCallback(lambda result: dict(result))
         return d
 
@@ -89,7 +89,8 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching configurations")
-        d = serviceProxy.callRemote('getDeviceConfigs', ids)
+        #get options from prefs.options and send to remote
+        d = serviceProxy.callRemote('getDeviceConfigs', ids, options=prefs.options.__dict__)
         return d
 
     def deleteConfigProxy(self, prefs, id):
@@ -114,7 +115,11 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching device names")
-        d = serviceProxy.callRemote('getDeviceNames')
+        d = serviceProxy.callRemote('getDeviceNames', options=prefs.options.__dict__)
+        def printNames (names):
+            log.debug("workerid %s Fetched Names %s %s", prefs.options.workerid, len(names), names)  
+            return names
+        d.addCallback(printNames)
         return d
 
 
@@ -188,8 +193,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         Load the configuration that doesn't depend on loading devices.
         """
         d = defer.maybeDeferred(self._configProxy.getPropertyItems,
-                                self._prefs,
-                                self.options.__dict__)
+                                self._prefs)
         d.addCallback(self._processPropertyItems)
         d.addCallback(self._processThresholdClasses)
         d.addCallback(self._processThresholds)
