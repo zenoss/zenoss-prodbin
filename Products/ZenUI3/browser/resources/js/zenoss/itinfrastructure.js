@@ -1407,6 +1407,12 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         grid.refresh();
                         Ext.getCmp('organizer_events').refresh();
                     }
+                },
+                pollHandler: function(btn) {
+                    var grid = Ext.getCmp('device_grid');
+                    if (grid.refresh_in_progress == 0) {
+                        this.handler(btn);
+                    }
                 }
             },
             {

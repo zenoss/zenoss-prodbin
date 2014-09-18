@@ -665,6 +665,16 @@
             this.headerCt.on('columnhide', this.onColumnChange, this);
             this.headerCt.on('columnshow', this.onColumnChange, this);
 
+            this.refresh_in_progress = 0;
+
+            if (this.getStore().buffered) {
+                this.getStore().on('beforeprefetch', this.before_request, this);
+                this.getStore().on("afterguaranteedrange", this.after_request, this);
+            } else {
+                this.getStore().on('beforeload', this.before_request, this);
+                this.getStore().on("load", this.after_request, this);
+            }
+
             var paging_tb = this.down('pagingtoolbar');
             if (paging_tb) {
                 // If we have an infinite grid we hide the paging toolbar
@@ -676,6 +686,16 @@
                     paging_tb.down('#refresh').hide();
                 }
             }
+        },
+        before_request: function() {
+            if (this.getStore().buffered)
+                this.refresh_in_progress = 1;
+            else
+                this.refresh_in_progress += 1;
+        },
+        after_request: function() {
+            if (this.refresh_in_progress > 0)
+                this.refresh_in_progress -= 1;
         },
         /**
          * Listeners for when you hide/show a column, the data isn't fetched yet so
@@ -723,6 +743,11 @@
                     page = store.pageMap.getPageFromRecordIndex(end);
                 // make sure we do not have any records in cache
                 store.pageMap.clear();
+
+                // If a refresh kicks off before the initial store load store.totalCount is NaN
+                if (isNaN(store.totalCount))
+                    end = start + store.pageSize - 1;
+
                 // this will fetch from the server and update the view since we removed it from cache
                 if (Ext.isFunction(callback)) {
                     store.guaranteeRange(start, end, callback, scope);
@@ -803,7 +828,7 @@
             this.callParent();
             this.applyState(this.getState());
         },
-        refresh:function () {
+        refresh:function (callback) {
         if (!Zenoss.settings.enableLiveSearch) {
             var values = this.getFilters(),
                 store = this.getStore();
@@ -815,7 +840,7 @@
                 this.saveState();
                 }
             }
-        this.callParent();
+        this.callParent([callback]);
         }
     });
 
