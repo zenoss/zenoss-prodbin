@@ -411,9 +411,9 @@ class CollectorDaemon(RRDDaemon):
             contextId = metadata['contextId']
             deviceId = metadata['deviceId']
             contextUUID = metadata['contextUUID']
-            deviceUUID = metadata['deviceUUID']
         except KeyError as e:
             raise Exception("Missing necessary metadata: %s" % e.message)
+        deviceUUID = metadata.get('deviceUUID')
         return self.writeMetric(key, metric, value, metricType, contextId,
                 timestamp, min, max, threshEventData, deviceId, contextUUID,
                 deviceUUID)
