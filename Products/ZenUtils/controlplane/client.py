@@ -61,7 +61,7 @@ class ControlPlaneClient(object):
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
 
-    def queryServices(self, name=None, tags=None):
+    def queryServices(self, name=None, tags=None, tenantID=None):
         """
         Returns a sequence of ServiceDefinition objects that match
         the given requirements.
@@ -76,6 +76,8 @@ class ControlPlaneClient(object):
             if isinstance(tags, (str, unicode)):
                 tags = [tags]
             query["tags"] = ','.join(tags)
+        if tenantID:
+            query["tenantID"] = tenantID
         response = self._dorequest("/services", query=query)
         body = ''.join(response.readlines())
         response.close()

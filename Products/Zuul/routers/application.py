@@ -193,4 +193,5 @@ class ApplicationRouter(TreeRouter):
             configFile = info.getConfigFileByFilename(f['filename'])
             if configFile:
                 configFile.content = f['content']
+        facade.updateService(id) # save the updated config files to elastic
         return DirectResponse.succeed()
