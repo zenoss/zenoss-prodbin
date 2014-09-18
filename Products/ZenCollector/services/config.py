@@ -324,7 +324,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
             filterFactory = filterFactories.get(dispatchFilterName, None) or \
                             filterFactories.get('', None)
             if filterFactory:
-                deviceFilter = filterFactory.getFilter(options)
+                deviceFilter = filterFactory.getFilter(options) or deviceFilter
         return deviceFilter
 
 

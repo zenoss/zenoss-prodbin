@@ -116,6 +116,10 @@ class ConfigurationProxy(object):
 
         log.debug("Fetching device names")
         d = serviceProxy.callRemote('getDeviceNames', options=prefs.options.__dict__)
+        def printNames (names):
+            log.debug("workerid %s Fetched Names %s %s", prefs.options.workerid, len(names), names)  
+            return names
+        d.addCallback(printNames)
         return d
 
 

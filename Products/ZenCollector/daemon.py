@@ -475,7 +475,9 @@ class CollectorDaemon(RRDDaemon):
         """
         if configs is None:
             return
-        for config in Zipper.load(configs):
+        configs = Zipper.load(configs)
+        self.log.debug("remote_updateDeviceConfigs: workerid %s processing %s device configs", self.options.workerid, len(configs))
+        for config in configs:
             self.remote_updateDeviceConfig(config)
             
     def remote_notifyConfigChanged(self):
