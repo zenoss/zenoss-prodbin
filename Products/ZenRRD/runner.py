@@ -158,7 +158,7 @@ class ProcessRunner(ProcessProtocol):
             self.stderr = ''.join(self.stderr)
 
             msg = "Datasource: %s Received exit code: %s Output: \n%r"
-            data = self.command.ds, self.exitCode, self.output
+            data = [self.command.ds, self.exitCode, self.output]
             if self.stderr:
                 msg += "\nStandard Error:\n%r"
                 data.append(self.stderr)
