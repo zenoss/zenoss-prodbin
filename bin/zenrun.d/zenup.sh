@@ -8,12 +8,15 @@
 #                                                                              
 ##############################################################################
 
+ZENUP_PWDPATH=/mnt/pwd
+
 __DEFAULT__() {
     __nocommit__ "$@"
     return $?
 }
 
 __nocommit__() {
+    cd "$ZENUP_PWDPATH"
     zenup "$@"
     status=$?
     if [[ $status != 0 ]]; then 
@@ -22,53 +25,32 @@ __nocommit__() {
     return 1
 }
 
-mapPath() {
-    local hostArtifactPath=$1
-    local __resultvar=$2
-
-    if [[ "${hostArtifactPath:0:1}" = "/" ]]; then
-        local containerArtifactPath=$hostArtifactath
-    else
-        local containerArtifactPath="/mnt/pwd/"$hostArtifactPath
-    fi
-
-    #Test for presence of artifact
-    if [[ ! -r "$containerArtifactPath" ]]; then
-        echo "Unable to read file: '$hostArtifactPath'"
-        echo "The specified file must be located in the current working directory and must be specified with a relative path."
-        exit 1
-    fi
-
-    eval $__resultvar="$containerArtifactPath"
-}
-
 install() {
-    mapPath ${!#} artifactPath
-    set -- "${@:1:$(($#-1))}" "$artifactPath"
+    cd "$ZENUP_PWDPATH"
     zenup install "$@"
     return $?
 }
 
 init() {
-    mapPath ${!#} artifactPath
-    set -- "${@:1:$(($#-1))}" "$artifactPath"
+    cd "$ZENUP_PWDPATH"
     zenup init "$@"
     return $?
 }
 
 patch() {
-    mapPath ${!#} artifactPath
-    set -- "${@:1:$(($#-1))}" "$artifactPath"
+    cd "$ZENUP_PWDPATH"
     zenup patch "$@"
     return $?
 }
 
 delete() {
+    cd "$ZENUP_PWDPATH"
     zenup delete "$@"
     return $?
 }
 
 revert() {
+    cd "$ZENUP_PWDPATH"
     zenup revert "$@"
     return $?
 }
