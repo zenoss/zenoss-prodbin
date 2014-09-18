@@ -359,39 +359,38 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
-    def writeMetric(self, contextUUID, metric, value, metricType, contextId,
+    def writeMetric(self, contextKey, metric, value, metricType, contextId,
                     timestamp='N', min='U', max='U',
-                    threshEventData={}, deviceuuid=None):
+                    threshEventData={}, deviceId=None, contextUUID=None,
+                    deviceUUID=None):
 
         """
         Writes the metric to the metric publisher.
-        @param contextUUID: This is who the metric applies to. This is usually a component or a device.
+        @param contextKey: This is who the metric applies to. This is usually
+                            the return value of rrdPath() for a component or
+                            device.
         @param metric: the name of the metric, we expect it to be of the form datasource_datapoint
         @param value: the value of the metric
-        @param metricType: type of the metric (e.g. 'COUNTER', 'GUAGE', 'DERIVE' etc)
+        @param metricType: type of the metric (e.g. 'COUNTER', 'GAUGE', 'DERIVE' etc)
         @param contextId: used for the threshold events, the id of who this metric is for
         @param timestamp: defaults to time.time() if not specified, the time the metric occurred
         @param min: used in the derive the min value for the metric
         @param max: used in the derive the max value for the metric
         @param threshEventData: extra data put into threshold events
-        @param deviceuuid: the unique identifier of the device for
-        this metric, maybe the same as contextUUID if the context is a
-        device
+        @param deviceId: the id of the device for this metric
         @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
         data_source, data_point_name = metric.split("_", 1)
         tags = {
             'datasource': data_source,
-            'uuid': contextUUID
+            'key': contextKey
         }
-        if deviceuuid:
-            tags['device'] = deviceuuid
+        if deviceId:
+            tags['device'] = deviceId
 
         # write the raw metric to Redis
-        self._metric_writer.write_metric(
-            data_point_name, value, timestamp, tags)
-
+        self._metric_writer.write_metric(data_point_name, value, timestamp, tags)
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
@@ -400,8 +399,24 @@ class CollectorDaemon(RRDDaemon):
 
         # check for threshold breaches and send events when needed
         if value is not None:
-            self._threshold_notifier.notify(contextUUID, contextId, metric, timestamp,
-                                            value, threshEventData)
+            self._threshold_notifier.notify(contextUUID, contextId, metric,
+                    timestamp, value, threshEventData)
+
+    def writeMetricWithMetadata(self, metric, value, metricType, timestamp='N',
+            min='U', max='U', threshEventData={}, metadata=None):
+
+        metadata = metadata or {}
+        try:
+            key = metadata['contextKey']
+            contextId = metadata['contextId']
+            deviceId = metadata['deviceId']
+            contextUUID = metadata['contextUUID']
+        except KeyError as e:
+            raise Exception("Missing necessary metadata: %s" % e.message)
+        deviceUUID = metadata.get('deviceUUID')
+        return self.writeMetric(key, metric, value, metricType, contextId,
+                timestamp, min, max, threshEventData, deviceId, contextUUID,
+                deviceUUID)
 
     @deprecated
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
@@ -409,24 +424,22 @@ class CollectorDaemon(RRDDaemon):
         """
         Use writeMetric
         """
+        # we rely on the fact that rrdPath now returns more information than just the path
+        metricinfo, metric = path.rsplit('/', 1)
+        if 'METRIC_DATA' not in str(metricinfo):
+            raise Exception("Unable to write Metric with given path { %s } please see the rrdpath method" % str(metricinfo))
 
-        # we rely on the fact that rrdPath now returns the guid for an object
-        uuidInfo, metric = path.rsplit('/', 1)
-        if not 'METRIC_DATA'  in str(uuidInfo):
-            raise Exception("Unable to write Metric with given path { %s } please see the rrdpath method" % str(uuidInfo))
-
-        uuidInfo = json.loads(uuidInfo)
+        metadata = json.loads(metricinfo)
         # reroute to new writeMetric method
-        self.writeMetric(uuidInfo['contextUUID'],
+        self.writeMetricWithMetadata(
                 metric,
                 value,
                 rrdType,
-                uuidInfo['contextId'],
                 timestamp,
                 min,
                 max,
                 threshEventData,
-                uuidInfo.get('deviceUUID', None)
+                metadata
             )
 
     def stop(self, ignored=""):

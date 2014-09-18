@@ -225,6 +225,7 @@ class DataPointConfig(pb.Copyable, pb.RemoteCopy):
     rrdCreateCommand = ''
     rrdMin = None
     rrdMax = None
+    metadata = None
 
     def __init__(self):
         self.data = {}
@@ -565,15 +566,14 @@ class SshPerformanceCollectionTask(BaseTask):
                     'eventKey': datasource.getEventKey(dp),
                     'component': dp.component,
                 }
-                self._dataService.writeMetric(dp.contextUUID,
-                                              dp.dpName,
-                                              value,
-                                              dp.rrdType,
-                                              dp.componentId,
-                                              deviceuuid=dp.devuuid,
-                                              min=dp.rrdMin,
-                                              max=dp.rrdMax,
-                                              threshEventData=threshData)
+                self._dataService.writeMetricWithMetadata(
+                    dp.dpName,
+                    value,
+                    dp.rrdType,
+                    min=dp.rrdMin,
+                    max=dp.rrdMax,
+                    threshEventData=threshData,
+                    metadata=dp.metadata)
 
             eventList = results.events
             exitCode = getattr(datasource.result, 'exitCode', -1)

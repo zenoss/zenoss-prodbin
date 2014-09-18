@@ -782,17 +782,16 @@ class ZenProcessTask(ObservableMixin):
         @param rrdType: Metric data type (eg ABSOLUTE, DERIVE, COUNTER)
         @type rrdType: string
         """
-        uuid = pidName._config.contextUUID
-        devuuid = pidName._config.deviceuuid
+        metadata = pidName._config.metadata
         try:
-            self._dataService.writeMetric(uuid, statName, value, rrdType, pidName._config.name, min=min, deviceuuid=devuuid)
+            self._dataService.writeMetricWithMetadata(statName, value, rrdType,
+                    min=min, metadata=metadata)
         except Exception, ex:
-            summary = "Unable to save data for process-monitor metric %s" %\
-                      uuid
+            summary = "Unable to save data for process-monitor metric %s" % (
+                      metadata.get('contextKey'))
             log.critical(summary)
 
-            message = "Data was value= %s, type=%s" %\
-                      ( value, rrdType )
+            message = "Data was value= %s, type=%s" % (value, rrdType)
             log.critical(message)
             log.exception(ex)
 

@@ -102,10 +102,10 @@ class MetricFacade(ZuulFacade):
             return data
         # if the returnSet is exact or all then organize the results into something more digestable
         for row in data:
-            uuid, metric = row['metric'].split('_', 1)
-            if not results.get(uuid):
-                results[uuid] = defaultdict(list)
-            results[uuid][metric].append(dict(timestamp=row['timestamp'], value=row['value']))
+            key, metric = row['metric'].split('_', 1)
+            if not results.get(key):
+                results[key] = defaultdict(list)
+            results[key][metric].append(dict(timestamp=row['timestamp'], value=row['value']))
         return results
 
     def getValues(self, context, metrics, start=None, end=None,
@@ -201,8 +201,8 @@ class MetricFacade(ZuulFacade):
            #
            results = defaultdict(dict)
            for item in content['results']:
-               uuid, metric = item['metric'].split('_', 1)
-               results[uuid][metric] = item['datapoints'][0]['value']
+               key, metric = item['metric'].split('_', 1)
+               results[key][metric] = item['datapoints'][0]['value']
            return results
         else:
            return content.get('results')
@@ -217,7 +217,7 @@ class MetricFacade(ZuulFacade):
         return request
 
     def _buildTagsFromContextAndMetric(self, context, dsId):
-        return dict(uuid=[context.getUUID()], datasource=[dsId])
+        return dict(key=[context.getResourceKey()], datasource=[dsId])
 
     def _buildMetric(self, context, dp, cf, extraRpn="", format=""):
         datasource = dp.datasource()
@@ -235,7 +235,7 @@ class MetricFacade(ZuulFacade):
             format=format,
             tags=tags,
             rate=info.rate,
-            name=context.getUUID() + "_" + dp.id
+            name=context.getResourceKey() + "_" + dp.id
         )
         if rateOptions:
             metric['rateOptions'] = rateOptions

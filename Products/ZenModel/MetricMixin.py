@@ -166,12 +166,28 @@ class MetricMixin(object):
         Overriding this method to return the uuid since that
         is what we want to store in the metric DB.
         """
-        return json.dumps({
-            'type': 'METRIC_DATA',
-            'contextUUID': self.getUUID(),
-            'deviceUUID': self.device().getUUID(),
-            'contextId': self.id
-        }, sort_keys=True)
+        return json.dumps(self.getMetricMetadata(), sort_keys=True)
+
+    def getResourceKey(self):
+        """
+        Formerly RRDView.GetRRDPath, this value is still used as the key for the
+        device or component in OpenTSDB.
+        """
+        d = self.device()
+        if not d:
+            return "Devices/" + self.id
+        skip = len(d.getPrimaryPath()) - 1
+        return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
+
+    def getMetricMetadata(self):
+        return {
+                'type': 'METRIC_DATA',
+                'contextKey': self.getResourceKey(),
+                'deviceId': self.device().id,
+                'contextId': self.id,
+                'deviceUUID': self.device().getUUID(),
+                'contextUUID': self.getUUID()
+                }
 
     def getRRDContextData(self, context):
         return context

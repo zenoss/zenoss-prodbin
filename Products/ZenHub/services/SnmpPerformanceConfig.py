@@ -100,8 +100,7 @@ class SnmpPerformanceConfig(CollectorConfigService):
             return None
 
         validOID = re.compile(r'(?:\.?\d+)+$')
-        contextUUID  = comp.getUUID()
-        devuuid = comp.device().getUUID()
+        metadata = comp.getMetricMetadata()
         for templ in comp.getRRDTemplates():
             for ds in templ.getRRDDataSources("SNMP"):
                 if not ds.enabled or not ds.oid:
@@ -126,11 +125,9 @@ class SnmpPerformanceConfig(CollectorConfigService):
                     cname = comp.id
                     oidData = (cname,
                                  dp.name(),
-                                 contextUUID,
-                                 devuuid,
                                  dp.rrdtype,
                                  dp.getRRDCreateCommand(perfServer).strip(),
-                                 dp.rrdmin, dp.rrdmax)
+                                 dp.rrdmin, dp.rrdmax, metadata)
 
                     # An OID can appear in multiple data sources/data points
                     oids.setdefault(oid, []).append(oidData)
