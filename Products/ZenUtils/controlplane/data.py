@@ -181,7 +181,7 @@ class ServiceJsonEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, ServiceDefinition):
             return o.__getstate__()
-        return JSONEncoder.default(self, o)
+        return json.JSONEncoder.default(self, o)
 
 def _convertToDateTime(f):
     @wraps(f)

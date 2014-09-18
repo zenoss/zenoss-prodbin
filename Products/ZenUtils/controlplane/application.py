@@ -12,6 +12,7 @@ IApplication* control-plane implementations.
 """
 
 import logging
+import os
 from Products.ZenUtils.controlplane import getConnectionSettings
 from collections import Sequence, Iterator
 from zope.interface import implementer
@@ -45,9 +46,14 @@ class DeployedAppLookup(object):
         """
         Returns a sequence of IApplication objects.
         """
+        tenantID_env = "CONTROLPLANE_TENANT_ID"
+        tenant_id = os.environ.get(tenantID_env)
+        if tenant_id is None:
+            LOG.error("ERROR: Could not determine the tenantID from the environment variable: %s" % tenantID_env)
+            return ()
 
         # Retrieve services according to name and tags.
-        result = self._client.queryServices(name=name, tags=tags)
+        result = self._client.queryServices(name=name, tags=tags, tenantID=tenant_id)
         if not result:
             return ()
 
@@ -58,7 +64,7 @@ class DeployedAppLookup(object):
             # applications.
             tags = set(tags) - set(["daemon"])
             tags.add("-daemon")
-            parents = self._client.queryServices(monitorName, list(tags))
+            parents = self._client.queryServices(name=monitorName, tags=list(tags), tenantID=tenant_id)
             # If the monitor name wasn't found, return an empty sequence.
             if not parents:
                 return ()
@@ -168,6 +174,7 @@ class DeployedApp(object):
         value = self._service.LAUNCH_MODE.AUTO \
             if bool(value) else self._service.LAUNCH_MODE.MANUAL
         self._service.launch = value
+        # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
         self._client.updateService(self._service)
 
     @property
@@ -185,6 +192,7 @@ class DeployedApp(object):
         if priorState != self._runstate.state:
             LOG.info("[%x] STARTING APP", id(self))
             self._service.desiredState = self._service.STATE.RUN
+            # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
             self._client.updateService(self._service)
 
     def stop(self):
@@ -196,6 +204,7 @@ class DeployedApp(object):
         if priorState != self._runstate.state:
             LOG.info("[%x] STOPPING APP", id(self))
             self._service.desiredState = self._service.STATE.STOP
+            # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
             self._client.updateService(self._service)
 
     def restart(self):
@@ -216,7 +225,13 @@ class DeployedApp(object):
                 )
             else:
                 self._service.desiredState = self._service.STATE.RUN
+                # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
                 self._client.updateService(self._service)
+
+    def update(self):
+        """
+        """
+        self._client.updateService(self._service)
 
 
 class _DeployedAppConfigList(Sequence):
@@ -299,7 +314,6 @@ class DeployedAppConfig(object):
     @content.setter
     def content(self, content):
         self._config["Content"] = content
-        self._client.updateService(self._service)
 
 
 @implementer(IApplicationLog)

@@ -110,5 +110,12 @@ class ApplicationFacade(object):
         if app:
             app.restart()
 
+    def updateService(self, appId):
+        """
+        """
+        app = self._svc.get(appId)
+        if app:
+            app.update()
+
 
 __all__ = ("ApplicationFacade",)
