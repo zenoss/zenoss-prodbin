@@ -973,6 +973,11 @@
                                 box.setText(_t('<span>Updating... </span><img src="/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif" width=12 height=12>'));
                                 grid.refresh();
                             }
+                        },
+                        pollHandler: function(btn) {
+                            var grid = Ext.getCmp(gridId);
+                            if (grid.refresh_in_progress == 0)
+                                this.handler(btn);
                         }
                     }
                 ], tbarItems)
