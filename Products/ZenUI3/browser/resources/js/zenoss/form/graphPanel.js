@@ -258,6 +258,7 @@
                     start : formatForMetricService(this.graph_params.start),
                     end : formatForMetricService(this.graph_params.end)
                 },
+                base: this.base,
                 tags: this.tags,
                 datapoints: this.datapoints,
                 overlays: this.thresholds,
