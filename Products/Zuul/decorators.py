@@ -134,10 +134,10 @@ def serviceConnectionError(func, *args, **kwargs):
         setattr(attempts, 'value', count)
         log.warn('Connection refused. Check zeneventserver status on Daemons. Exception on thread: %s' % threading.current_thread().ident)
         if count >= 10:
-            msg = 'Connection refused. Check zeneventserver status on <a href="/zport/About/zenossInfo">Daemons</a>'
+            msg = 'Connection refused. Check zeneventserver status on <a href="zport/dmd/daemons">Daemons</a>'
             setattr(attempts, 'value', 0)
         else:
             return
     except ServiceConnectionError, e:
-        msg = 'Connection refused to a required daemon. Check status on <a href="/zport/About/zenossInfo">Daemons</a>'
+        msg = 'Connection refused. Check zeneventserver status on <a href="zport/dmd/daemons">Daemons</a>'
     return DirectResponse.fail(msg, sticky=True)
