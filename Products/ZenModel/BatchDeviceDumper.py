@@ -262,6 +262,9 @@ class BatchDeviceDumper(ZCmdBase):
             result.append("moveDevices=('%s', '%s')" % (
                           '/'.join(dev.getPrimaryPath()[:-2]), dev.id))
 
+        if dev.comments:
+            result.append('comments=%r' % (dev.comments,))
+
         return (repr(dev.getId()), sorted(result))
 
     def _normalizePaths(self, objList):
