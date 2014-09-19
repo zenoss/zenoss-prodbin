@@ -139,5 +139,5 @@ def serviceConnectionError(func, *args, **kwargs):
         else:
             return
     except ServiceConnectionError, e:
-        msg = 'Connection refused. Check zeneventserver status on <a href="zport/dmd/daemons">Daemons</a>'
+        msg = 'Connection refused to a required daemon. Check status on <a href="zport/dmd/daemons">Daemons</a>'
     return DirectResponse.fail(msg, sticky=True)
