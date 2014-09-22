@@ -13,7 +13,7 @@ __doc__ = """ZenCommand
 Run Command plugins periodically.
 
 """
-
+from datetime import datetime, timedelta
 import time
 from pprint import pformat
 import logging
@@ -381,6 +381,7 @@ class SshPerformanceCollectionTask(BaseTask):
         @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
+        self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
             yield self._connector.connect(self)
@@ -594,6 +595,14 @@ class SshPerformanceCollectionTask(BaseTask):
             # Send accumulated events
             for event in eventList:
                 self._eventService.sendEvent(event, device=self._devId)
+        doTask_end = datetime.now()
+        duration = doTask_end - self._doTask_start
+        if duration > timedelta(seconds=self.interval):
+            log.warn("Collection for %s took %s seconds; cycle interval is %s seconds." % (
+                self.configId, duration.total_seconds(), self.interval))
+        else:
+            log.debug("Collection time for %s was %s seconds; cycle interval is %s seconds." % ( 
+                self.configId, duration.total_seconds(), self.interval))
 
     def _makeCmdEvent(self, datasource, msg, severity=None, event_key=None):
         """
