@@ -14,6 +14,7 @@ import os
 import sys
 import ctypes
 from ctypes.util import find_library
+import optparse
 
 from time import sleep
 from twisted.internet import reactor
@@ -31,8 +32,7 @@ def workersBuildOptions(parser, default=1):
     parser.add_option('--workers',
                       type="int",
                       default=default,
-                      help="The number of processing workers to run "
-                           "(ignored when running in the foreground)")
+                      help=optparse.SUPPRESS_HELP)
 
 def exec_worker(worker_id=None):
     """
