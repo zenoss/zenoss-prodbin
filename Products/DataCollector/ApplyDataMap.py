@@ -282,6 +282,17 @@ class ApplyDataMap(object):
         changed = False
         device = obj.device()
 
+        # Modeling should never change the id of a device. (ZEN-14518)
+        from Products.ZenModel.Device import Device
+        if isinstance(obj, Device) and 'id' in (x[0] for x in objmap.items()):
+            log.error(
+                "blocked changing %r property of %s: %r",
+                'id',
+                device.id,
+                objmap)
+
+            return False
+
         if isinstance(obj, Lockable) and obj.isLockedFromUpdates():
             if device.id == obj.id:
                 msg = 'Update Blocked: %s' % device.id
