@@ -267,7 +267,7 @@ class CollectorDaemon(RRDDaemon):
         self.parser.add_option('--dispatch',
                                dest='configDispatch',
                                type='string',
-                               help='How to dispatch tasks to multiple instances of this daemon, if available.')
+                               help = SUPPRESS_HELP)
         self.parser.add_option('--workerid',
                                dest = 'workerid',
                                type = 'int',
@@ -276,7 +276,7 @@ class CollectorDaemon(RRDDaemon):
         self.parser.add_option('--workers',
                                type="int",
                                default=1,
-                               help="The number of total instances of this daemon running")
+                               help = SUPPRESS_HELP)
         self.parser.add_option('--writeStatistics',
                                dest='writeStatistics',
                                type='int',
