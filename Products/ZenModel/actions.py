@@ -48,7 +48,7 @@ from Products.ZenUtils import Utils
 from Products.ZenUtils.IpUtil import getHostByName, isip
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
-from Products.ZenUtils.ZenTales import talesEvalStr, InvalidTalesException
+from Products.ZenUtils.ZenTales import talesEval, InvalidTalesException
 from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG,
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
@@ -99,9 +99,8 @@ def processTalSource(source, **kwargs):
             raise TalesMissingZenossDevice(message)
 
     try:
-        sourceStr = source
         context = kwargs.get('here')
-        return talesEvalStr(sourceStr, context, kwargs)
+        return talesEval(sourceStr, context, kwargs)
     except CompilerError as ex:
         message = "%s: %s" % (ex, source)
         log.error("%s context = %s data = %s", message, context, kwargs)
