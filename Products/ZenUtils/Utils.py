@@ -737,31 +737,6 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     return result
 
 
-from twisted.internet.protocol import ProcessProtocol
-class SendPageProtocol(ProcessProtocol):
-    out = ''
-    err = ''
-    code = None
-
-    def __init__(self, msg):
-        self.msg = msg
-        self.out = ''
-        self.err = ''
-
-    def connectionMade(self):
-        self.transport.write(self.msg)
-        self.transport.closeStdin()
-
-    def outReceived(self, data):
-        self.out += data
-
-    def errReceived(self, data):
-        self.err += data
-
-    def processEnded(self, reason):
-        self.code = reason.value.exitCode
-
-
 def sendPage(recipient, msg, pageCommand, deferred=False):
     """
     Send a page.  Return a tuple: (success, message) where
@@ -780,27 +755,14 @@ def sendPage(recipient, msg, pageCommand, deferred=False):
     env = dict(os.environ)
     env["RECIPIENT"] = recipient
     msg = str(msg)
-    if deferred:
-        from twisted.internet import reactor
-        protocol = SendPageProtocol(msg)
-        reactor.spawnProcess(
-            protocol, '/bin/sh', ('/bin/sh', '-c', pageCommand), env)
-
-        # Bad practice to block on a deferred. This is done because our call
-        # chain is not asynchronous and we need to behave like a blocking call.
-        while protocol.code is None:
-            reactor.iterate(0.1)
-
-        return (not protocol.code, protocol.out)
-    else:
-        p = subprocess.Popen(pageCommand,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             shell=True,
-                             env=env)
-        p.stdin.write(msg)
-        p.stdin.close()
-        response = p.stdout.read()
+    p = subprocess.Popen(pageCommand,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         shell=True,
+                         env=env)
+    p.stdin.write(msg)
+    p.stdin.close()
+    response = p.stdout.read()
     return (not p.wait(), response)
 
 
