@@ -1691,7 +1691,7 @@ def getDefaultZopeUrl():
     """
     Returns the default Zope URL.
     """
-    return 'http://%s:%d' % (socket.getfqdn(), 8080)
+    return 'http://localhost:8080'
 
 
 def swallowExceptions(log, msg=None, showTraceback=True, returnValue=None):
