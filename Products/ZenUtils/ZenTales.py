@@ -84,6 +84,14 @@ def talEval(expression, context, extra=None):
     if isTales:
         return talesEvalStr(expression, context, extra)
 
+    contextDict = { 'context':context,
+                    'here':context,
+                    'nothing':None,
+                    'now': DateTime(),
+                    }
+    if isinstance(extra, dict):
+        contextDict.update(extra)
+
     # Next, as a convenience, replace all ${} blocks that aren't inside a <tal>
     # with <tal:block content="..."/> equivalent
     chunks = TAG.split(expression)
@@ -101,6 +109,6 @@ def talEval(expression, context, extra=None):
     parser.parseString(expression)
     program, macros = parser.getCode()
     output = cStringIO.StringIO()
-    context = Engine.getContext(context)
+    context = Engine.getContext(contextDict)
     TALInterpreter(program, macros, context, output, tal=True)()
     return output.getvalue()
