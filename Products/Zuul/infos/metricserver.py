@@ -156,7 +156,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
     @property
     def metric(self):
-        return self._object.dataPointId()
+        return self._object.dpName
 
     @property
     def type(self):
@@ -190,8 +190,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def tags(self):
         metadata = self._context.getMetricMetadata()
-        return {'datasource': [self._object.dpName.split("_")[0]],
-                'key': [metadata.get('contextKey')]}
+        return {'key': [metadata.get('contextKey')]}
 
     @property
     def format(self):
