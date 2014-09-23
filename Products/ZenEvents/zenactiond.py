@@ -190,6 +190,14 @@ class ZenActionD(ZCmdBase):
         self.parser.add_option('--maxcommands', dest="maxCommands", type="int", default=default_max_commands,
                                help='Max number of action commands to perform concurrently (default: %d)' % \
                                     default_max_commands)
+        default_max_pagingworkers = 1
+        self.parser.add_option('--maxpagingworkers', dest="maxPagingWorkers", type="int", default=default_max_pagingworkers,
+                               help='max number of paging workers to perform concurrently (default: %d)' % \
+                                       default_max_pagingworkers)
+        default_pagingworkers_timeout = 30
+        self.parser.add_option('--pagingworkerstimeout', dest="pagingWorkersTimeout", type="int", default=default_pagingworkers_timeout,
+                               help='Timeout, in seconds, for paging workers (default: %d)' % \
+                                       default_pagingworkers_timeout)
         default_url = getDefaultZopeUrl()
         self.parser.add_option('--zopeurl', dest='zopeurl', default=default_url,
                                help="http path to the root of the zope server (default: %s)" % default_url)

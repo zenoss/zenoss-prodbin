@@ -225,7 +225,13 @@ class _ProcessQueueProtocolDecorator(_ProcessQueueProtocol):
                                       gid, usePTY, childFDs, timeout, 
                                       timeout_callback)
         self._protocol = protocol
-        
+
+    def connectionMade(self):
+        self._protocol.connectionMade()
+
+    def makeConnection(self, transport):
+        self._protocol.transport = transport
+        _ProcessQueueProtocol.makeConnection(self, transport)
 
     def outReceived(self, data):
         """

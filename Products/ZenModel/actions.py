@@ -486,20 +486,28 @@ class PageAction(IActionBase, TargetableAction):
     id = 'page'
     name = 'Page'
     actionContentInfo = IPageActionContentInfo
+    shouldExecuteInBatch = False
 
-    def __init__(self):
-        super(PageAction, self).__init__()
+    def configure(self, options):
+        super(PageAction, self).configure(options)
+        self.pagingWorkersTimeout = options.get('pagingWorkersTimeout', 30)
+        self.processQueue = ProcessQueue(options.get('maxPagingWorkers', 1))
+        self.processQueue.start()
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.dmd = dmd
         self.page_command = dmd.pageCommand
 
     def executeOnTarget(self, notification, signal, target):
-        """
-        @TODO: handle the deferred parameter on the sendPage call.
-        """
-        log.debug('Executing action: Page')
+        log.debug('Executing Page %s action on %s', self.name, target)
+        environ = dict(os.environ)
+        environ["RECIPIENT"] = target
+        self._execute(notification, signal, environ)
 
+    def _execute(self, notification, signal, env={}):
+        self.setupAction(notification.dmd)
+        log.debug('Executing page action: %s', self.name)
         data = self._signalToContextDict(signal, notification)
         if signal.clear:
             log.debug('This is a clearing signal.')
@@ -507,16 +515,18 @@ class PageAction(IActionBase, TargetableAction):
         else:
             subject = processTalSource(notification.content['subject_format'], **data)
 
-        success, errorMsg = Utils.sendPage(
-            target, subject, self.page_command,
-            #deferred=self.options.cycle)
-            deferred=False)
+        msg = str(subject)
 
-        if success:
-            log.debug("Notification '%s' sent page to %s." % (notification, target))
-        else:
-            raise ActionExecutionException(
-                "Notification '%s' failed to send page to %s. (%s)" % (notification, target, errorMsg))
+        log.debug('Sending page message: "%s"', msg)
+        _protocol = SendPageProtocol(msg, notification)
+        log.debug('Queueing up page action process. Page command is %s', self.page_command)
+        self.processQueue.queueProcess(
+            '/bin/sh', ('/bin/sh', '-c', self.page_command),
+            env=env,
+            processProtocol=_protocol,
+            timeout=self.pagingWorkersTimeout,
+            timeout_callback=_protocol.timedOut
+        )
 
     def getActionableTargets(self, target):
         """
@@ -578,6 +588,58 @@ class EventCommandProtocol(ProcessProtocol):
                       component="zenactiond")
         self.notification.dmd.ZenEventManager.sendEvent(event)
 
+class SendPageProtocol(ProcessProtocol):
+    def __init__(self, msg, notification):
+        self.notification = notification
+        self.msg = msg
+        self.out = ''
+        self.err = ''
+
+    def connectionMade(self):
+        log.debug("Writing to subproccess stdin")
+        self.transport.write(self.msg)
+        self.transport.closeStdin()
+
+    def outReceived(self, data):
+        self.out += data
+
+    def errReceived(self, data):
+        self.err += data
+
+    def timedOut(self, reason):
+        message = "Paging command %s timed out -- %s: stdout: %s\nstderr: %s" % (
+                  self.notification.titleOrId(), self.out, self.err)
+        log.error(message)
+        self.sendEvent(reason, "Paging command timed out", message, SEVERITY_ERROR)
+        return reason
+
+    def processEnded(self, reason):
+        code = reason.value.exitCode
+        if code == 0:
+            message = "Paging message sent successfully (exit code 0) with the following output: %s %s" % (
+                     self.out, self.err)
+            log.info(message)
+            self.sendEvent(reason, "Paging failed", message, SEVERITY_CLEAR)
+        else:
+            message = "Failed to send paging message \"%s\" (exit code %s) -- %s: stdout: %s\nstderr: %s" % (
+                      self.msg, reason.getErrorMessage(), code, self.out, self.err)
+            log.error(message)
+            self.sendEvent(reason, "Paging command failed", message, SEVERITY_ERROR)
+
+    def sendEvent(self, reason, summary, message, severity):
+        eventKey = '_'.join([self.notification.action, self.notification.id])
+        event = Event(device="localhost",
+                      eventClass="/Cmd/Failed",
+                      summary="%s %s" % (self.notification.id, summary),
+                      message=message,
+                      eventKey=eventKey,
+                      notification=self.notification.titleOrId(),
+                      stdout=self.out,
+                      stderr=self.err,
+                      severity=severity,
+                      component="zenactiond")
+        self.notification.dmd.ZenEventManager.sendEvent(event)
+
 
 class CommandAction(IActionBase, TargetableAction):
     implements(IAction)
@@ -620,7 +682,7 @@ class CommandAction(IActionBase, TargetableAction):
             command = notification.content['body_format']
 
         log.debug('Executing this command: %s', command)
-        
+
         actor = signal.event.occurrence[0].actor
         device = None
         if actor.element_uuid:
