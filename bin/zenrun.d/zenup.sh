@@ -9,6 +9,22 @@
 ##############################################################################
 
 ZENUP_PWDPATH=/mnt/pwd
+ZENUP_COMMITFILE=/tmp/zenup-successful-$(date +%Y-%m-%d.%H:%M:%S)
+
+_setUp() {
+    export ZENUPCOMMITFILELOC="$ZENUP_COMMITFILE"
+}
+
+_handleExit() {
+    if [[ $1 != 0 ]]; then
+        # This is to preserve the status code should it be non-0
+        return $1
+    elif [[ $1 == 0 && ! -f "$ZENUP_COMMITFILE" ]]; then
+        return 1
+    else
+        return $1
+    fi
+}
 
 __DEFAULT__() {
     __nocommit__ "$@"
@@ -26,32 +42,37 @@ __nocommit__() {
 }
 
 install() {
+    _setUp
     cd "$ZENUP_PWDPATH"
     zenup install "$@"
-    return $?
+    return $(_handleExit "$?")
 }
 
 init() {
+    _setUp
     cd "$ZENUP_PWDPATH"
     zenup init "$@"
-    return $?
+    return $(_handleExit "$?")
 }
 
 patch() {
+    _setUp
     cd "$ZENUP_PWDPATH"
     zenup patch "$@"
-    return $?
+    return $(_handleExit "$?")
 }
 
 delete() {
+    _setUp
     cd "$ZENUP_PWDPATH"
     zenup delete "$@"
-    return $?
+    return $(_handleExit "$?")
 }
 
 revert() {
+    _setUp
     cd "$ZENUP_PWDPATH"
     zenup revert "$@"
-    return $?
+    return $(_handleExit "$?")
 }
 
