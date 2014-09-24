@@ -142,6 +142,7 @@ class ps(CommandParser):
         processSet = cmd.displayName
 
         # report any processes that are missing, and post perf data
+        missingeventSent = False
         for dp in cmd.points:
             # cmd.points = list of tuples ... each tuple contains one of the following:
             #    dictionary, count
@@ -162,14 +163,18 @@ class ps(CommandParser):
                 summary = 'Process set contains 0 running processes: %s' % processSet
                 message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
                             % (summary, cmd.includeRegex, cmd.deviceConfig.lastmodeltime)
-                self.sendEvent(results,
-                    device=cmd.deviceConfig.device,
-                    summary=summary,
-                    message=message,
-                    component=processSet,
-                    eventKey=cmd.generatedId,
-                    severity=failSeverity)
-                log.warning("(%s) %s" % (cmd.deviceConfig.device, message))
+                if missingeventSent != summary:
+                    self.sendEvent(results,
+                        device=cmd.deviceConfig.device,
+                        summary=summary,
+                        message=message,
+                        component=processSet,
+                        eventKey=cmd.generatedId,
+                        severity=failSeverity)
+                    log.warning("(%s) %s" % (cmd.deviceConfig.device, message))
+                    missingeventSent = summary
+        # When not instantiated for each call fixes missing messages
+        missingeventSent = False
 
         # Report process changes
         # Note that we can't tell the difference between a
