@@ -456,7 +456,7 @@ class BatchDeviceDumper(ZCmdBase):
             return result
 
         # ... or in Cisco UCS land....
-        if branch.getPrimaryUrlPath() == '/zport/dmd/Devices/CiscoUCS':
+        if branch.getPrimaryUrlPath() == '/zport/dmd/Devices/CiscoUCS' and isinstance(branch, Device):
             found = self.listCiscoUCS(outFile, branch)
             result['Devices'] += found['Devices']
             return result
