@@ -200,18 +200,18 @@ class FileSystem(OSComponent):
         Return the number of used blocks stored in the filesystem's rrd file
         """
 
-        dskPercent = self.cacheRRDValue("dskPercent")
+        dskPercent = self.cacheRRDValue("usedBlocks_dskPercent", default)
         if dskPercent is not None and dskPercent != "Unknown" and not isnan(dskPercent):
             return self.getTotalBlocks() * dskPercent / 100.0
 
-        blocks = self.cacheRRDValue('usedBlocks', default)
+        blocks = self.cacheRRDValue('usedBlocks_usedBlocks', default)
         if blocks is not None and not isnan(blocks):
             return long(blocks)
         elif self.blockSize:
             # no usedBlocks datapoint, so this is probably a Windows device
             # using perfmon for data collection and therefore we'll look for
             # the freeMegabytes datapoint
-            freeMB = self.cacheRRDValue('FreeMegabytes', default)
+            freeMB = self.cacheRRDValue('FreeMegabytes_FreeMegabytes', default)
             if freeMB is not None and not isnan(freeMB):
                 usedBytes = self.totalBytes() - long(freeMB) * 1024 * 1024
                 return usedBytes / self.blockSize
@@ -222,7 +222,7 @@ class FileSystem(OSComponent):
         """
         Return the number of available blocks stored in the filesystem's rrd file
         """
-        blocks = self.cacheRRDValue('availBlocks', default)
+        blocks = self.cacheRRDValue('disk_availBlocks', default)
         if blocks is not None and not isnan(blocks):
             return long(blocks)
         usedBlocks = self.usedBlocks()
