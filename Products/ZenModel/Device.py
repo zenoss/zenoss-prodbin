@@ -395,7 +395,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: int
         """
         try:
-            return self.cacheRRDValue('sysUpTime_sysUpTime', -1)
+            return self.cacheRRDValue('sysUpTime', -1)
         except Exception:
             log.exception("failed getting sysUpTime")
             return -1

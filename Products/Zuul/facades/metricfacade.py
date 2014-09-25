@@ -235,7 +235,7 @@ class MetricFacade(ZuulFacade):
             format=format,
             tags=tags,
             rate=info.rate,
-            name=context.getResourceKey() + "_" + dp.name()
+            name=context.getResourceKey() + "_" + dp.id
         )
         if rateOptions:
             metric['rateOptions'] = rateOptions
