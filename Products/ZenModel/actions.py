@@ -100,7 +100,7 @@ def processTalSource(source, **kwargs):
 
     try:
         context = kwargs.get('here')
-        return talesEval(sourceStr, context, kwargs)
+        return talesEval(source, context, kwargs)
     except CompilerError as ex:
         message = "%s: %s" % (ex, source)
         log.error("%s context = %s data = %s", message, context, kwargs)
