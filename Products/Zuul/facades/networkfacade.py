@@ -229,7 +229,7 @@ class NetworkFacade(TreeFacade):
             for net in nets:
                 # Make the network if it doesn't exist, so zendisc has
                 # something to discover
-                self._.dmd.Networks.createNet(net)
+                self._dmd.Networks.createNet(net)
 
             netdesc = ("network %s" % nets[0] if len(nets)==1
                     else "%s networks" % len(nets))
