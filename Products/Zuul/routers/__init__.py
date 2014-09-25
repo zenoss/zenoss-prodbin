@@ -17,6 +17,7 @@ from Products.Zuul.decorators import contextRequire
 from Products.Zuul.interfaces.tree import ICatalogTool
 from Products.Zuul.marshalling import Marshaller
 from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.System import System
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
@@ -97,6 +98,12 @@ class TreeRouter(DirectRouter):
             ))
             for child in childBrains:
                 audit(['UI', getDisplayType(child), 'Delete'], child.getPath())
+        elif isinstance(node, System):
+            # update devices systems if the parent system is being removed
+            for dev in facade.getDevices(uid):
+                newSystems = facade._removeOrganizer(node, dev._object.getSystemNames())
+                dev._object.setSystems(newSystems)
+            audit(['UI', getDisplayType(node), 'Delete'], node)
         else:
             audit(['UI', getDisplayType(node), 'Delete'], node)
 
