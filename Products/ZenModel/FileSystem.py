@@ -200,7 +200,7 @@ class FileSystem(OSComponent):
         Return the number of used blocks stored in the filesystem's rrd file
         """
 
-        dskPercent = self.cacheRRDValue("dskPercent")
+        dskPercent = self.cacheRRDValue("dskPercent", default)
         if dskPercent is not None and dskPercent != "Unknown" and not isnan(dskPercent):
             return self.getTotalBlocks() * dskPercent / 100.0
 

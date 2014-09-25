@@ -217,7 +217,7 @@ class MetricFacade(ZuulFacade):
         return request
 
     def _buildTagsFromContextAndMetric(self, context, dsId):
-        return dict(key=[context.getResourceKey()], datasource=[dsId])
+        return dict(key=[context.getResourceKey()])
 
     def _buildMetric(self, context, dp, cf, extraRpn="", format=""):
         datasource = dp.datasource()
@@ -229,7 +229,7 @@ class MetricFacade(ZuulFacade):
         rateOptions = info.getRateOptions()
         tags = self._buildTagsFromContextAndMetric(context, dsId)
         metric = dict(
-            metric=dp.id,
+            metric=dp.name(),
             aggregator=agg,
             rpn=extraRpn,
             format=format,

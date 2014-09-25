@@ -381,16 +381,15 @@ class CollectorDaemon(RRDDaemon):
         @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
-        data_source, data_point_name = metric.split("_", 1)
         tags = {
-            'datasource': data_source,
+            'contextUUID': contextUUID,
             'key': contextKey
         }
         if deviceId:
             tags['device'] = deviceId
 
         # write the raw metric to Redis
-        self._metric_writer.write_metric(data_point_name, value, timestamp, tags)
+        self._metric_writer.write_metric(metric, value, timestamp, tags)
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
