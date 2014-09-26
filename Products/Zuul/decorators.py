@@ -129,6 +129,9 @@ def serviceConnectionError(func, *args, **kwargs):
         if f:
             setattr(attempts, 'value', 0)
             return f
+        else:
+            # NOTE: is this a bad state?
+            return
     except ZepConnectionError, e:
         count += 1
         setattr(attempts, 'value', count)
