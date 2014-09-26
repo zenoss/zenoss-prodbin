@@ -677,7 +677,7 @@ class AutoDiscoveryJob(SubprocessJob):
             '', '/Discovered', collector, 1000
             )
         # strip out the device option since we are discovering for a network
-        cmd = [c for c in cmd if c != '-d']
+        cmd = [c.replace(" -d ", "") for c in cmd if c != '-d']
         cmd.extend([
                 '--parallel', '8',
                 '--job', self.request.id

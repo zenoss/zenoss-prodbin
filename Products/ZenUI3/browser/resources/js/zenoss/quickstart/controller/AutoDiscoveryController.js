@@ -92,6 +92,9 @@
                     zProperties[key] = values[key];
                 }
             }
+            if ('zSnmpCommunities' in zProperties) {
+                zProperties['zSnmpCommunities'] = zProperties['zSnmpCommunities'].split("\n");
+            }
             params = {
                 networks: ranges,
                 zProperties: zProperties,
