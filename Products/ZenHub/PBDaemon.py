@@ -128,7 +128,7 @@ class HubDown(Exception): pass
 
 
 class FakeRemote:
-    def callRemote(self, *unused):
+    def callRemote(self, *args, **kwargs):
         ex = HubDown("ZenHub is down")
         return defer.fail(ex)
 
