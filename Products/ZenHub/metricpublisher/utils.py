@@ -1,7 +1,17 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2014, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
 from functools import wraps
 
 import eventlet
 import base64
+import string
 
 
 def exponential_backoff(exception, delay=0.1, maxdelay=5,
@@ -66,3 +76,27 @@ class DelayedMeter(object):
         if self._pushThread:
             self._pushThread.cancel()
             self._pushThread = None
+
+
+NON_NUMERIC_CHARS = ''.join(
+    set(string.punctuation + string.ascii_letters) - set(['.', '-', '+', 'e']))
+
+
+def sanitized_float(unsanitized):
+    """Return a float given an unsantized input.
+
+    Behaves exactly like float() with the following differences:
+
+    # Stripping of non-numeric characters.
+    >>> sanitized_float('99.9%')
+    99.9
+    >>> sanitized_float('123 V')
+    123.0
+
+    """
+    if isinstance(unsanitized, basestring):
+        return float(unsanitized.translate(None, NON_NUMERIC_CHARS))
+    elif isinstance(unsanitized, float):
+        return unsanitized
+    else:
+        return float(unsanitized)

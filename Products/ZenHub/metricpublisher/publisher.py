@@ -11,7 +11,7 @@ import logging
 
 log = logging.getLogger("zen.publisher")
 
-from .utils import basic_auth_string_content
+from .utils import basic_auth_string_content, sanitized_float
 from cookielib import CookieJar
 from collections import deque
 from twisted.internet import defer, protocol, reactor
@@ -47,7 +47,7 @@ class BasePublisher(object):
 
     def build_metric(self, metric, value, timestamp, tags):
         # guarantee value's a float
-        _value = float(value)
+        _value = sanitized_float(value)
         return {"metric": metric,
                 "value": _value,
                 "timestamp": timestamp,
