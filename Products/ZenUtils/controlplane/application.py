@@ -13,6 +13,7 @@ IApplication* control-plane implementations.
 
 import logging
 import os
+from functools import wraps
 from Products.ZenUtils.controlplane import getConnectionSettings
 from collections import Sequence, Iterator
 from zope.interface import implementer
@@ -106,11 +107,21 @@ class DeployedApp(object):
         self._service = service
         self._instance = None
 
-    def updateInstance(self):
+    def _initStatus(fn):
+        """
+        Decorator which calls updateStatus if status is uninitialized
+        """
+        @wraps(fn)
+        def wrapper(self, *args, **kwargs):
+            if not self._instance:
+                self.updateStatus(*args, **kwargs)
+            return fn(self)
+        return wrapper
+
+    def updateStatus(self):
         """
         Retrieves the current running instance of the application.
         """
-        if not self._instance:
             result = self._client.queryServiceInstances(self._service.id)
             instance = result[0] if result else None
             if instance is None and self._instance:
@@ -130,6 +141,7 @@ class DeployedApp(object):
         return self._service.name
 
     @property
+    @_initStatus
     def hostId(self):
         return self._instance.hostId if self._instance else None
 
@@ -138,11 +150,12 @@ class DeployedApp(object):
         return self._service.description
 
     @property
+    @_initStatus
     def state(self):
-        self.updateInstance()
         return self._runstate.state
 
     @property
+    @_initStatus
     def startedAt(self):
         """
         When the service started.  Returns None if not running.
@@ -150,14 +163,13 @@ class DeployedApp(object):
         return self._instance.startedAt if self._instance else None
 
     @property
+    @_initStatus
     def log(self):
         """
         The log of the application.
 
         :rtype str:
         """
-        if not self._instance:
-            self._updateState()
         if self._instance:
             return DeployedAppLog(self._instance, self._client)
 
@@ -183,6 +195,7 @@ class DeployedApp(object):
         """
         return  _DeployedAppConfigList(self._service, self._client)
 
+    @_initStatus
     def start(self):
         """
         Starts the application.
@@ -194,6 +207,7 @@ class DeployedApp(object):
             self._service.desiredState = self._service.STATE.RUN
             self._client.startService(self._service.id)
 
+    @_initStatus
     def stop(self):
         """
         Stops the application.
@@ -210,7 +224,7 @@ class DeployedApp(object):
         Restarts the application.
         """
         # Make sure the current state is known.
-        self._updateState()
+        self.updateStatus()
         # temporary until proper 'reset' functionality is
         # available in controlplane.
         priorState = self._runstate.state
