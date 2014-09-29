@@ -41,7 +41,7 @@
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                stepTitle: _t('Zenoss Resource Manager'),
+                stepTitle: _t('Zenoss Installation Wizard'),
                 items:[{
                     layout: 'vbox',
                     items:[{
