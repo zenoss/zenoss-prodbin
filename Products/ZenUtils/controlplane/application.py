@@ -38,10 +38,16 @@ class DeployedAppLookup(object):
     # The class of the Control Plane client
     clientClass = ControlPlaneClient
 
+    @staticmethod
+    def _applicationClass():
+        return DeployedApp
+
     def __init__(self):
         settings = getConnectionSettings()
-        self._client = self.clientClass(**settings)        
-        self._appcache = {}
+        self._client = self.clientClass(**settings)
+        # Cache RunState objects in order to persist state between requests
+        #  to support RESTARTING state.
+        self._statecache = {}
 
     def query(self, name=None, tags=None, monitorName=None):
         """
@@ -88,11 +94,11 @@ class DeployedAppLookup(object):
         return self._getApp(service)
 
     def _getApp(self, service):
-        app = self._appcache.get(service.id)
-        if not app:
-            app = DeployedApp(service, self._client)
-            self._appcache[service.id] = app
-        return app
+        runstate = self._statecache.get(service.id)
+        if not runstate:
+            runstate = RunStates()
+            self._statecache[service.id] = runstate
+        return self._applicationClass()(service, self._client, runstate)
 
 
 @implementer(IApplication)
@@ -102,9 +108,9 @@ class DeployedApp(object):
     """
     UNKNOWN_STATUS = type('SENTINEL', (object,), {'__nonzero__': lambda x: False})()
 
-    def __init__(self, service, client):
+    def __init__(self, service, client, runstate):
         self._client = client
-        self._runstate = RunStates()
+        self._runstate = runstate
         self._service = service
         self._status = DeployedApp.UNKNOWN_STATUS
 
