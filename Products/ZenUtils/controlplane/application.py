@@ -192,8 +192,7 @@ class DeployedApp(object):
         if priorState != self._runstate.state:
             LOG.info("[%x] STARTING APP", id(self))
             self._service.desiredState = self._service.STATE.RUN
-            # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
-            self._client.updateService(self._service)
+            self._client.startService(self._service.id)
 
     def stop(self):
         """
@@ -204,8 +203,7 @@ class DeployedApp(object):
         if priorState != self._runstate.state:
             LOG.info("[%x] STOPPING APP", id(self))
             self._service.desiredState = self._service.STATE.STOP
-            # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
-            self._client.updateService(self._service)
+            self._client.stopService(self._service.id)
 
     def restart(self):
         """
@@ -225,8 +223,7 @@ class DeployedApp(object):
                 )
             else:
                 self._service.desiredState = self._service.STATE.RUN
-                # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
-                self._client.updateService(self._service)
+                self._client.startService(self._service.id)
 
     def update(self):
         """
