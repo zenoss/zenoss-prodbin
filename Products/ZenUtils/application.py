@@ -106,7 +106,7 @@ class ApplicationState(object):
     RUNNING = _makeEnumObj("RUNNING")
     STOPPING = _makeEnumObj("STOPPING")
     RESTARTING = _makeEnumObj("RESTARTING")
-
+    UNKNOWN = _makeEnumObj("UNKNOWN")
 
 del _makeEnumObj
 

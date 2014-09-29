@@ -17,12 +17,14 @@ _graph = {
     (_states.STOPPING,   'stop'): _states.STOPPING,
     (_states.RESTARTING, 'stop'): _states.STOPPING,
     (_states.STARTING,   'stop'): _states.STOPPING,
+    (_states.UNKNOWN,    'stop'): _states.STOPPING,
 
     (_states.STARTING,   'start'): _states.STARTING,
     (_states.RUNNING,    'start'): _states.RUNNING,
     (_states.STOPPED,    'start'): _states.STARTING,
     (_states.STOPPING,   'start'): _states.STARTING,
     (_states.RESTARTING, 'start'): _states.RESTARTING,
+    (_states.UNKNOWN,    'start'): _states.STARTING,
 
     (_states.STOPPED,    'restart'): _states.RESTARTING,
     (_states.RUNNING,    'restart'): _states.RESTARTING,
@@ -35,19 +37,21 @@ _graph = {
     (_states.STOPPED,    'found'): _states.RUNNING,
     (_states.STOPPING,   'found'): _states.STOPPING,
     (_states.RUNNING,    'found'): _states.RUNNING,
+    (_states.UNKNOWN,    'restart'): _states.RESTARTING,
 
     (_states.RUNNING,    'lost'): _states.STOPPED,
     (_states.RESTARTING, 'lost'): _states.RESTARTING,
     (_states.STOPPING,   'lost'): _states.STOPPED,
     (_states.STOPPED,    'lost'): _states.STOPPED,
     (_states.STARTING,   'lost'): _states.STARTING,
+    (_states.UNKNOWN,    'lost'): _states.STOPPED,
 }
 
 
 class RunStates(ApplicationState):
 
     def __init__(self):
-        self._state = self.STOPPED
+        self._state = self.UNKNOWN
 
     @property
     def state(self):
