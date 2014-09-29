@@ -7,6 +7,9 @@
 #
 ##############################################################################
 
+import logging
+log = logging.getLogger("zen.publisher")
+
 from functools import wraps
 
 import eventlet
@@ -92,11 +95,22 @@ def sanitized_float(unsanitized):
     99.9
     >>> sanitized_float('123 V')
     123.0
+    >>> sanitized_float('not-applicable') is None
+    True
 
     """
-    if isinstance(unsanitized, basestring):
-        return float(unsanitized.translate(None, NON_NUMERIC_CHARS))
-    elif isinstance(unsanitized, float):
-        return unsanitized
-    else:
-        return float(unsanitized)
+    try:
+        if isinstance(unsanitized, float):
+            return unsanitized
+
+        if isinstance(unsanitized, (int, long)):
+            return float(unsanitized)
+
+        if isinstance(unsanitized, str):
+            return float(unsanitized.translate(None, NON_NUMERIC_CHARS))
+
+        if isinstance(unsanitized, unicode):
+            return float(str(unsanitized).translate(None, NON_NUMERIC_CHARS))
+
+    except Exception:
+        log.warn("failed converting %r to float", unsanitized)
