@@ -23,6 +23,11 @@
      name="ServiceInstance"
      />
 
+   <utility
+     factory=".data.ServiceStatusFactory"
+     name="ServiceStatus"
+     />
+
     <utility
       factory=".data.HostFactory"
       name="Host"

@@ -22,7 +22,7 @@ class _MockClient(object):
     def __init__(self, **kwargs):
         self._data = kwargs.get('data', {})
 
-    def queryServices(self, name=None, tags=None):
+    def queryServices(self, name=None, tags=None, tenantID=None):
         tags = tags if tags else ()
         keys = self._data.keys()
         for tag in tags:

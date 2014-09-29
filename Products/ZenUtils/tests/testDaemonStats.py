@@ -21,9 +21,13 @@ class DaemonStatsTest(BaseTestCase):
     def testDaemonsTagsServiceId(self):
         os.environ["CONTROLPLANE"] = "1"
         os.environ["CONTROLPLANE_SERVICE_ID"] = "ID"
+        os.environ["CONTROLPLANE_TENANT_ID"] = "foo"
+        os.environ["CONTROLPLANE_INSTANCE_ID"] = "bar"
         self.daemon_stats.config( "name", "monitor", None, None, None)
         self.assertEqual(
-             {'daemon': 'name', 'internal': True, 'monitor': 'monitor', 'metricType': 'type', 'serviceId': 'ID'},
+             {'daemon': 'name', 'instance': 'bar', 'internal': True,
+              'monitor': 'monitor', 'metricType': 'type', 'serviceId': 'ID',
+              'tenantId': 'foo'},
             self.daemon_stats._tags("type")
         )
 

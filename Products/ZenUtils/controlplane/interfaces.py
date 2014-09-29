@@ -20,3 +20,8 @@ class IServiceInstance(Interface):
     """
     Marks a ServiceInstance class.
     """
+
+class IServiceStatus(Interface):
+    """
+    Marks a ServiceStatus class.
+    """
