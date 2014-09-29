@@ -93,8 +93,8 @@ from functools import wraps
 from zope.component import createObject
 from zope.component.factory import Factory
 from zope.interface import implementer
-
-from .interfaces import IServiceDefinition, IServiceInstance
+from Products.ZenUtils.application import ApplicationState
+from .interfaces import IServiceDefinition, IServiceInstance, IServiceStatus
 from ..host import IHost
 
 
@@ -192,6 +192,21 @@ def _convertToDateTime(f):
             return datetime.strptime(trimmed, "%Y-%m-%dT%H:%M:%S")
     return wrapper
 
+def _convertToApplicationState(f):
+    @wraps(f)
+    def wrapper(*args, **kw):
+        src = f(*args, **kw)
+        return {
+            "Scheduled": ApplicationState.STARTING,
+            "Starting":  ApplicationState.STARTING,
+            "Pausing":   ApplicationState.STOPPING,
+            "Paused":    ApplicationState.STOPPED,
+            "Resuming":  ApplicationState.STARTING,
+            "Running":   ApplicationState.RUNNING,
+            "Stopping":  ApplicationState.STOPPING,
+            "Stopped":   ApplicationState.STOPPED
+        }.get(src['Value'], ApplicationState.UNKNOWN)
+    return wrapper
 
 @implementer(IServiceInstance)
 class ServiceInstance(object):
@@ -241,6 +256,72 @@ class ServiceInstanceFactory(Factory):
             ServiceInstance, "ServiceInstance",
             "Control Plane Service Instance Description"
         )
+
+
+@implementer(IServiceStatus)
+class ServiceStatus(object):
+    """
+    """
+
+    def __getstate__(self):
+        return self._data
+
+    def __setstate__(self, data):
+        self._data = data
+
+    def __init__(self):
+        self._data = {}
+
+    @property
+    def id(self):
+        return self._data.get("State", {}).get("ID")
+
+    @property
+    def serviceId(self):
+        return self._data.get("State", {}).get("ServiceID")
+
+    @property
+    def instanceId(self):
+        return self._data.get("State", {}).get("InstanceID")
+
+    @property
+    def hostId(self):
+        return self._data.get("State", {}).get("HostID")
+
+    @property
+    @_convertToDateTime
+    def startedAt(self):
+        return self._data.get("State", {}).get("Started")
+
+    @property
+    @_convertToApplicationState
+    def status(self):
+        return self._data.get("Status")
+
+
+class ServiceStatusFactory(Factory):
+    """
+    Factory for ServiceStatus objects.
+    """
+
+    def __init__(self):
+        super(ServiceStatusFactory, self).__init__(
+            ServiceStatus, "ServiceStatus",
+            "Control Plane Service Status Description"
+        )
+
+
+class ServiceStatusJsonDecoder(json.JSONDecoder):
+    @staticmethod
+    def _decodeObject(obj):
+        if sorted(obj.keys()) == sorted(('State', 'Status')):
+            service = createObject("ServiceStatus")
+            service.__setstate__(obj)
+            return service
+        return obj
+    def __init__(self, **kwargs):
+        kwargs.update({"object_hook": ServiceStatusJsonDecoder._decodeObject})
+        super(ServiceStatusJsonDecoder, self).__init__(**kwargs)
 
 
 @implementer(IServiceDefinition)
