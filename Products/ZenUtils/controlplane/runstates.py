@@ -31,12 +31,6 @@ _graph = {
     (_states.STOPPING,   'restart'): _states.RESTARTING,
     (_states.STARTING,   'restart'): _states.STARTING,
     (_states.RESTARTING, 'restart'): _states.RESTARTING,
-
-    (_states.STARTING,   'found'): _states.RUNNING,
-    (_states.RESTARTING, 'found'): _states.RUNNING,
-    (_states.STOPPED,    'found'): _states.RUNNING,
-    (_states.STOPPING,   'found'): _states.STOPPING,
-    (_states.RUNNING,    'found'): _states.RUNNING,
     (_states.UNKNOWN,    'restart'): _states.RESTARTING,
 
     (_states.RUNNING,    'lost'): _states.STOPPED,
@@ -52,6 +46,7 @@ class RunStates(ApplicationState):
 
     def __init__(self):
         self._state = self.UNKNOWN
+        self._instanceId = None
 
     @property
     def state(self):
@@ -66,8 +61,15 @@ class RunStates(ApplicationState):
     def restart(self):
         self._state = _graph[(self._state, "restart")]
 
-    def found(self):
-        self._state = _graph[(self._state, "found")]
+    def found(self, status):
+        if (self._state == _states.RESTARTING and
+            self._instanceId == status.id and
+            status.status not in (_states.RUNNING,)):
+            pass
+        else:
+            self._state = status.status
+            self._instanceId = status.id
 
     def lost(self):
         self._state = _graph[(self._state, "lost")]
+        self._instanceId = None

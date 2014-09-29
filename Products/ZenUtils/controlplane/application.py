@@ -135,7 +135,7 @@ class DeployedApp(object):
         if self._status is None:
             self._runstate.lost()
         else:
-            self._runstate.found()
+            self._runstate.found(self._status)
 
     @property
     def id(self):
