@@ -100,12 +100,13 @@ class DeployedApp(object):
     """
     Control and interact with the deployed app via the control plane.
     """
+    UNKNOWN_STATUS = type('SENTINEL', (object,), {'__nonzero__': lambda x: False})()
 
     def __init__(self, service, client):
         self._client = client
         self._runstate = RunStates()
         self._service = service
-        self._instance = None
+        self._status = DeployedApp.UNKNOWN_STATUS
 
     def _initStatus(fn):
         """
@@ -113,7 +114,7 @@ class DeployedApp(object):
         """
         @wraps(fn)
         def wrapper(self, *args, **kwargs):
-            if not self._instance:
+            if self._status == DeployedApp.UNKNOWN_STATUS:
                 self.updateStatus(*args, **kwargs)
             return fn(self)
         return wrapper
@@ -122,15 +123,13 @@ class DeployedApp(object):
         """
         Retrieves the current running instance of the application.
         """
-            result = self._client.queryServiceInstances(self._service.id)
-            instance = result[0] if result else None
-            if instance is None and self._instance:
-                self._runstate.lost()
-            elif instance and (
-                    self._instance is None
-                    or self._runstate.state == ApplicationState.RESTARTING):
-                self._runstate.found()
-            self._instance = instance
+        result = self._client.queryServiceStatus(self._service.id)
+        instanceId_0 = [i for i in result.itervalues() if i.instanceId == 0]
+        self._status = instanceId_0[0] if instanceId_0 else None
+        if self._status is None:
+            self._runstate.lost()
+        else:
+            self._runstate.found()
 
     @property
     def id(self):
@@ -143,7 +142,7 @@ class DeployedApp(object):
     @property
     @_initStatus
     def hostId(self):
-        return self._instance.hostId if self._instance else None
+        return self._status.hostId if self._status else None
 
     @property
     def description(self):
@@ -160,7 +159,7 @@ class DeployedApp(object):
         """
         When the service started.  Returns None if not running.
         """
-        return self._instance.startedAt if self._instance else None
+        return self._status.startedAt if self._status else None
 
     @property
     @_initStatus
@@ -170,8 +169,8 @@ class DeployedApp(object):
 
         :rtype str:
         """
-        if self._instance:
-            return DeployedAppLog(self._instance, self._client)
+        if self._status:
+            return DeployedAppLog(self._status, self._client)
 
     @property
     def autostart(self):
@@ -231,9 +230,9 @@ class DeployedApp(object):
         self._runstate.restart()
         if priorState != self._runstate.state:
             LOG.info("[%x] RESTARTING APP", id(self))
-            if self._instance:
+            if self._status:
                 self._client.killInstance(
-                    self._instance.hostId, self._instance.id
+                    self._status.hostId, self._status.id
                 )
             else:
                 self._service.desiredState = self._service.STATE.RUN
@@ -333,7 +332,7 @@ class DeployedAppLog(object):
     """
 
     def __init__(self, instance, client):
-        self._instance = instance
+        self._status = instance
         self._client = client
 
     def last(self, count):
@@ -343,7 +342,7 @@ class DeployedAppLog(object):
         :rtype str:
         """
         result = self._client.getInstanceLog(
-            self._instance.serviceId, self._instance.id
+            self._status.serviceId, self._status.id
         )
         return result.split("\n")[-count:]
 
