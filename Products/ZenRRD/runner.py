@@ -326,5 +326,6 @@ class SshRunner(object):
                 self.connection.description)
             self.connection.is_expired = True
             self.cleanUpPool()
+            self._connection.transport.loseConnection()
 
         return self
