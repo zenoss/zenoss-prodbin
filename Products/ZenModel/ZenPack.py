@@ -1217,8 +1217,7 @@ registerDirectory("skins", globals())
         cpClient = ControlPlaneClient(**getConnectionSettings())
         serviceTree = ServiceTree(cpClient.queryServices("*"))
         tenant = serviceTree.matchServicePath(self.currentServiceId, '/')[0]
-        context = tenant._data.get('Context','null')
-        context = json.loads(context) if context != 'null' else {}
+        context = tenant._data.get('Context', {})
 
         # Determine template parameters
         templateParams = defaultdict(lambda:'')

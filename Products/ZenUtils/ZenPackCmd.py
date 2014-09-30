@@ -56,7 +56,7 @@ ZENPACK_ENTRY_POINT = 'zenoss.zenpacks'
 #   ZenPack Creation
 ########################################
 
-def CreateZenPack(zpId, prevZenPackName=''):
+def CreateZenPack(zpId, prevZenPackName='', devDir=None):
     """
     Create the zenpack in the filesystem.
     The zenpack is not installed in Zenoss, it is simply created in
@@ -69,7 +69,8 @@ def CreateZenPack(zpId, prevZenPackName=''):
     
     # Copy template to $ZENHOME/ZenPacks
     srcDir = zenPath('Products', 'ZenModel', 'ZenPackTemplate')
-    devDir = zenPath('ZenPacks')
+    if not devDir:
+        devDir = zenPath('ZenPacks')
     if not os.path.exists(devDir):
         os.mkdir(devDir, 0750)
     destDir = os.path.join(devDir, zpId)
