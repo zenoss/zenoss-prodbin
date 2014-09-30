@@ -116,7 +116,7 @@ class ZenPackCmd(ZenScriptBase):
     def run(self):
         """Execute the user's request"""
         if self.args:
-            print "Require one of --install, --remove, --export, or --list flags."
+            print "Require one of --install, --remove, --export, --create, or --list flags."
             self.parser.print_help()
             return
 
@@ -128,6 +128,19 @@ class ZenPackCmd(ZenScriptBase):
             audit('Shell.ZenPack.Export', zenpack=self.options.exportPack)
         elif self.options.removePackName:
             audit('Shell.ZenPack.Remove', zenpack=self.options.removePackName)
+        elif self.options.createPackName:
+            audit('Shell.ZenPack.Create', zenpack=self.options.createPackName)
+
+
+        if self.options.createPackName:
+            devDir, packName = os.path.split(self.options.createPackName)
+            try:
+                self.connect()
+                self.dmd.ZenPackManager.manage_addZenPack(packName, devDir=devDir)
+            except Exception as ex:
+                self.log.fatal("could not create zenpack: %s", ex)
+                sys.exit(1)
+            sys.exit(0)
 
         if self.options.installPackName:
             eggInstall = (self.options.installPackName.lower().endswith('.egg')
@@ -464,6 +477,10 @@ class ZenPackCmd(ZenScriptBase):
 
 
     def buildOptions(self):
+        self.parser.add_option('--create',
+                               dest='createPackName',
+                               default=None,
+                               help="Zenpack name or path to full destination path, eg /home/zenoss/src/ZenPacks.example.TestPack")
         self.parser.add_option('--install',
                                dest='installPackName',
                                default=None,

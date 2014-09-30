@@ -29,6 +29,6 @@ else
         echo "INFO: Bypassing normal processing while in upgrade mode." 1>&2
     else
         . $ZENHOME/bin/zenfunctions
-        $PYTHON $ZENHOME/Products/ZenUtils/zenpack.py "$CMD" $*
+        exec $PYTHON $ZENHOME/Products/ZenUtils/zenpack.py "$CMD" $*
     fi
 fi

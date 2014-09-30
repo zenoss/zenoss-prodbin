@@ -105,7 +105,7 @@ class ZenPackManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addZenPack')
-    def manage_addZenPack(self, packId, REQUEST=None):
+    def manage_addZenPack(self, packId, REQUEST=None, devDir=''):
         """
         Create a new zenpack on the filesystem with the given info.
         Install the pack.  If REQUEST then render the REQUEST otherwise
@@ -136,7 +136,7 @@ class ZenPackManager(ZenModelRM):
             raise ZenPackException(msgOrId)
 
         # Create it
-        zpDir = ZenPackCmd.CreateZenPack(packId)
+        zpDir = ZenPackCmd.CreateZenPack(packId, devDir=devDir)
 
         # Install it
         zenPacks = ZenPackCmd.InstallEggAndZenPack(self.dmd, zpDir, link=True,

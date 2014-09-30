@@ -34,11 +34,24 @@ help() {
     echo "usage:"
     echo "   zenpack help"
     echo "   zenpack install <zenpack_egg_relpath>"
+    echo "   zenpack link <zenpack_egg_relpath>"
+    echo "   zenpack create <zenpack_name>"
     echo "   zenpack list"
     echo "   zenpack uninstall <zenpack_name>"
     return 1
 }
 
+
+create() {
+    zenpack --create "$@"
+    return $?
+}
+
+
+link() {
+  zenpack --link --install "$@"
+  return $?
+}
 
 install() {
     # Map host path to container path
