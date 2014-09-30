@@ -624,6 +624,10 @@ class CommandChannel(channel.SSHChannel):
                  message)
         sendEvent(self, message=message)
         self.stderr += data
+        data = data.lower()
+        if 'password' in data and 'expired' in data:
+            if self.conn:
+                self.conn.transport.transport.loseConnection()
 
 
     @defer.inlineCallbacks
