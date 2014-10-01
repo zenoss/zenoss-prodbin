@@ -7,16 +7,22 @@
 # 
 ##############################################################################
 
-
+import signal
 from Products.CMFCore.DirectoryView import registerDirectory
 registerDirectory('js', globals())
 
 # import any monkey patches that may be necessary
 from patches import pasmonkey
 from patches import dirviewmonkey
+from patches import mysqladaptermonkey
+from patches import signalsmonkey
 from patches import advancedquerymonkey
 from Products.ZenUtils.Utils import unused
-unused(pasmonkey, dirviewmonkey, advancedquerymonkey)
+unused(pasmonkey, dirviewmonkey, advancedquerymonkey, mysqladaptermonkey, signalsmonkey)
+
+from Products.ZenUtils.dumpthreads import dump_threads
+from Signals.SignalHandler import SignalHandler
+SignalHandler.registerHandler(signal.SIGUSR1, dump_threads)
 
 from Products.ZenUtils.MultiPathIndex import MultiPathIndex , \
                                              manage_addMultiPathIndex, \
