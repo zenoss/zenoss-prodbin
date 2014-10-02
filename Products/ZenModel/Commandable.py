@@ -197,7 +197,7 @@ class Commandable:
             collector = target.getPerformanceServer()
             # if there isn't a collector just run it locally
             if collector and hasattr(collector, 'isLocalHost') and not collector.isLocalHost():
-                command = 'dcsh --collector=${device/getPerformanceServerName} -n "%s"' % (command)
+                command = 'dcsh --collector=${device/getPerformanceServerName} -n "%s"' % (command.replace('\n', ' '))
         exp = "string:"+ command
         compiled = talesCompile(exp)
         environ = target.getUserCommandEnvironment()
