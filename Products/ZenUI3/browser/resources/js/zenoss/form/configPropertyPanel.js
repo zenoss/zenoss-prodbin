@@ -392,6 +392,13 @@
                                 record.data.id == 'zSnmpCommunity') {
                                 return "*******";
                             }
+
+                            // if v is an object or array, it must be
+                            // stringified via JSON
+                            if(typeof v === "object"){
+                                v = JSON.stringify(v);
+                            }
+                            
                             return Ext.htmlEncode(v);
                         },
                         sortable: false
