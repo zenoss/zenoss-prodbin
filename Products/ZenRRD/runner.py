@@ -82,8 +82,12 @@ class ProcessRunner(ProcessProtocol):
     client = None
     proxy = None
     exitCode = None
-    output = []
-    stderr = []
+    output = None
+    stderr = None
+
+    def __init__(self):
+        self.output = []
+        self.stderr = []
 
     def connect(self, task=None):
         """
