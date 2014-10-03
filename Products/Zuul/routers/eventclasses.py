@@ -15,6 +15,7 @@ from Products import Zuul
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.Zuul.routers import TreeRouter
 from Products.ZenMessaging.audit import audit
+from collections import Mapping
 
 
 class EventClassesRouter(TreeRouter):
@@ -107,7 +108,11 @@ class EventClassesRouter(TreeRouter):
         self.testCompileTransform(transform)
         facade = self._getFacade()
         facade.setTransform(uid, transform)
-        audit('UI.EventClasses.SetTransform', uid, data_=transform)
+        if isinstance(transform, Mapping):
+            auditTransform = transform
+        else:
+            auditTransform = {'transform': transform}
+        audit('UI.EventClasses.SetTransform', uid, data_=auditTransform)
         return DirectResponse.succeed()
 
     def getTransform(self, uid):
