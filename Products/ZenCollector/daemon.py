@@ -387,6 +387,7 @@ class CollectorDaemon(RRDDaemon):
         }
         if deviceId:
             tags['device'] = deviceId
+            data_point_name = "%s_%s" % (deviceId, data_point_name)
 
         # write the raw metric to Redis
         self._metric_writer.write_metric(metric, value, timestamp, tags)

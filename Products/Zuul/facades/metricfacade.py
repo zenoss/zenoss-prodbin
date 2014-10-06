@@ -10,6 +10,7 @@ import logging
 import base64
 import requests
 import json
+import re
 import cookielib
 
 from collections import defaultdict
@@ -228,8 +229,12 @@ class MetricFacade(ZuulFacade):
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
         rateOptions = info.getRateOptions()
         tags = self._buildTagsFromContextAndMetric(context, dsId)
+        metricname = dp.name()
+        search = re.match('Devices/([^/]+)', tags['key'])
+        if search:
+            metricname = "%s_%s" % (search.groups()[0], metricname)
         metric = dict(
-            metric=dp.name(),
+            metric=metricname,
             aggregator=agg,
             rpn=extraRpn,
             format=format,

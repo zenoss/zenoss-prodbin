@@ -156,7 +156,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
     @property
     def metric(self):
-        return self._object.dpName
+        return "%s_%s" % (self._context.device().id, self._object.dpName)
 
     @property
     def type(self):
