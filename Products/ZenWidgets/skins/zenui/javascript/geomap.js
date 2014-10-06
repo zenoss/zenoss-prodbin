@@ -79,6 +79,8 @@ YAHOO.namespace('zenoss.geomap');
         var lineMap = {};
         var polling = 400;
         var refreshing = false;
+        var refreshing_ChildLinks = false;
+        var refreshing_ChildGeomapData = false;
 
     /* PUBLICIZE */
     ZenGeoMapPortlet.prototype = {
@@ -112,6 +114,11 @@ YAHOO.namespace('zenoss.geomap');
             _engine.refresh();
         },
         refresh: function() {
+            if (refreshing_ChildGeomapData || refreshing_ChildLinks) return;
+            refreshing_ChildLinks = refreshing_ChildGeomapData = true;
+            this._refresh();
+        },
+        _refresh: function() {
             // this is called when the page loads, and when it refreshes.
             var results = {
                 'nodedata':[],
@@ -121,11 +128,13 @@ YAHOO.namespace('zenoss.geomap');
             myd.addCallback(function(x){
                 results['nodedata']=x;
                 nodedata = results.nodedata;
+                refreshing_ChildGeomapData = false;
             });
             var myd2 = loadJSONDoc('getChildLinks');
             myd2.addCallback(function(x){
                 results['linkdata']=x;
                 linkdata = results.linkdata;
+                refreshing_ChildLinks = false;
             });
             var bigd = new DeferredList([myd, myd2], false, false, true);
             bigd.addCallback(method(this, function(){
