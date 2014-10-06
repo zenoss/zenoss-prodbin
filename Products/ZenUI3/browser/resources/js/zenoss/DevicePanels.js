@@ -99,11 +99,13 @@ var deviceColumns = [
         hidden: true,
         header: _t('Collector')
     },{
-        id: 'priorityString',
+        id: 'priority',
         dataIndex: 'priority',
         width: 100,
         hidden: true,
-        filter: false,
+        filter: {
+            xtype: 'multiselect-devicepriority'
+        },
         header: _t('Priority'),
         renderer: function(value) {
             return Zenoss.env.PRIORITIES_MAP[value];
