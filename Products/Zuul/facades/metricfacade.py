@@ -10,6 +10,7 @@ import logging
 import base64
 import requests
 import json
+import re
 import cookielib
 
 from collections import defaultdict
@@ -22,6 +23,7 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Five.browser import BrowserView
 from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
+from Products.ZenUtils import metrics
 
 log = logging.getLogger("zen.MetricFacade")
 
@@ -38,6 +40,8 @@ AGGREGATION_MAPPING = {
     #TODO: get last agg function working
     'last': None
 }
+
+_devname_pattern = re.compile('Devices/([^/]+)')
 
 def _isRunningFromUI( context):
     if not safe_hasattr( context, 'REQUEST'):
@@ -219,6 +223,12 @@ class MetricFacade(ZuulFacade):
     def _buildTagsFromContextAndMetric(self, context, dsId):
         return dict(key=[context.getResourceKey()])
 
+    def _get_key_from_tags(self, tags):
+        key = tags.get('key', '')
+        if isinstance(key, (list, set, tuple)):
+            key = key[0]
+        return key
+
     def _buildMetric(self, context, dp, cf, extraRpn="", format=""):
         datasource = dp.datasource()
         dsId = datasource.id
@@ -228,8 +238,14 @@ class MetricFacade(ZuulFacade):
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
         rateOptions = info.getRateOptions()
         tags = self._buildTagsFromContextAndMetric(context, dsId)
+        metricname = dp.name()
+        key = self._get_key_from_tags(tags)
+        search = _devname_pattern.match(key)
+        if search:
+            prefix = search.groups()[0]
+            metricname = metrics.ensure_prefix(prefix, metricname)
         metric = dict(
-            metric=dp.name(),
+            metric=metricname,
             aggregator=agg,
             rpn=extraRpn,
             format=format,
