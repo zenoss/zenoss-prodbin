@@ -19,6 +19,7 @@ from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.ComplexGraphPoint import ComplexGraphPoint
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from Products.ZenEvents.Exceptions import rpnThresholdException
+from Products.ZenUtils import metrics
         
 __doc__ = """
 These adapters are responsible for serializing the graph
@@ -156,7 +157,8 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
     @property
     def metric(self):
-        return "%s_%s" % (self._context.device().id, self._object.dpName)
+        return metrics.ensure_prefix(self._context.device().id,
+                self._object.dpName)
 
     @property
     def type(self):
