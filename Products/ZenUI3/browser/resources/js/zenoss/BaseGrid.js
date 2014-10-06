@@ -182,9 +182,10 @@
                     if (col.isVisible() && col.getEl()) {
                         col.setWidth(col.getWidth() + 1);
                         col.setWidth(col.getWidth() - 1);
-                        return false;
+                       
                     }
                 });
+                this.view.el.dom.scrollLeft -= 1;
             }
 
         },
@@ -254,6 +255,7 @@
                 }
                 col.filterField.on('keydown', this.onKeyDown, this);
                 col.filterField.on('validitychange', this.onInvalidFilter, this);
+                col.filterField.on('focus', this.onFocus, this);
 
                 searchItems.push(col.filterField);
             });
@@ -343,6 +345,31 @@
 
             this.onChangeTask.delay(1000);
 
+        },
+        onFocus: function(field) {
+            /**
+             * When search field is in focus, we check its right x coordinate.
+             * If this coordinate is bigger than width of a document,
+             * we perform horizontal scroll on delta pixels.
+             * delta is a difference between right x
+             * coordinate of a search field and a document width.
+             */
+        
+            var documentWidth = Ext.getBody().getViewSize().width;
+            var searchFieldRightXPosition = field.getEl().getX() + field.width;
+            var delta = searchFieldRightXPosition - documentWidth;
+            var shift = 20;
+
+            if (delta > 0) {
+                this.view.el.dom.scrollLeft += delta + shift;
+            } 
+            /**
+             * check the case when search field right x coordinate is on the
+             * edge or very close (20px) to the right side of the window.
+             */
+            else if (delta > -shift && delta <= 0) {
+                this.view.el.dom.scrollLeft += shift;
+            }
         },
         onKeyDown:function (field, e) {
             // if they explicitly pressed enter then search now
@@ -454,6 +481,7 @@
             if (editor) {
                 editor.setWidth(newColumnWidth - 2);
             }
+             this.view.el.dom.scrollLeft -= 1;
         },
 
         scrollFilterField:function (e, target) {
@@ -802,9 +830,7 @@
                 defaultFilters:this.defaultFilters || {}
             });
 
-            if (this.displayFilters) {
-                filters.init(this);
-            }
+       
             this.filterRow = filters;
         },
         getState:function () {
@@ -815,6 +841,11 @@
         applyState:function (state) {
             this.callParent([state]);
             if (this.displayFilters) {
+                 // defer rendering the filter rows until after the column state has been applied so
+                 // the filters have the correct column widths
+                 if (this.displayFilters) {
+                     this.filterRow.init(this);
+                 }
                 this.filterRow.applyState(state.filters);
             }
         },
@@ -884,6 +915,7 @@
                 this.view.on('bodyscroll', this.onScroll, this);
                 this.view.on('resize', this.onResize, this);
             }
+            this.lastScrollLeft = 0;
             this.rowHeight = null;
             this.visibleRows = null;
             this.displayMsg = _t('DISPLAYING {0} - {1} of {2} ROWS');
@@ -892,6 +924,7 @@
         onResize: function() {
             this.visibleRows = null;
             this.onScroll();
+            Zenoss.util.refreshScrollPosition(this);
         },
         getNumberOfVisibleRows: function() {
             if (this.visibleRows) {
@@ -971,6 +1004,7 @@
             if (pagingScroller) {
                 var start = Math.max(this.getStartCount(), 0),
                     end = Math.min(this.getEndCount(start), this.totalCount),
+                     currentScrollLeft = this.view.el.dom.scrollLeft,
                     msg;
 
                 var store = this.grid.getStore();
@@ -989,8 +1023,16 @@
                     }
                 }
                 msg = Ext.String.format(this.displayMsg, start + 1, end, store.totalCount);
-                this.setText(msg);
-
+                
+                 if (this.scrollLeft != currentScrollLeft) {
+                     this.scrollLeft = currentScrollLeft;
+                 } else {
+                     // only redraw the text if we're scrolling vertically; the DOM scrollLeft increment/decrement is a HACK
+                     // to work around a (suspected) ExtJS bug that causes the headers to become misaligned
+                     this.view.el.dom.scrollLeft += 1;
+                     this.setText(msg);
+                     this.view.el.dom.scrollLeft -= 1;
+                 }
             } else {
                 // Drat, we didn't have the paging scroller, so assume we are showing all
                 var showingAllMsg = _t('Found {0} records');
