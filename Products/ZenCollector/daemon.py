@@ -385,12 +385,13 @@ class CollectorDaemon(RRDDaemon):
             'contextUUID': contextUUID,
             'key': contextKey
         }
+        metric_name = metric
         if deviceId:
             tags['device'] = deviceId
-            data_point_name = "%s_%s" % (deviceId, data_point_name)
+            metric_name = "%s_%s" % (deviceId, metric_name)
 
         # write the raw metric to Redis
-        self._metric_writer.write_metric(metric, value, timestamp, tags)
+        self._metric_writer.write_metric(metric_name, value, timestamp, tags)
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:

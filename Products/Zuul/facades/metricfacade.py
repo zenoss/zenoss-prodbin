@@ -40,6 +40,8 @@ AGGREGATION_MAPPING = {
     'last': None
 }
 
+_devname_pattern = re.compile('Devices/([^/]+)')
+
 def _isRunningFromUI( context):
     if not safe_hasattr( context, 'REQUEST'):
         return False
@@ -230,9 +232,14 @@ class MetricFacade(ZuulFacade):
         rateOptions = info.getRateOptions()
         tags = self._buildTagsFromContextAndMetric(context, dsId)
         metricname = dp.name()
-        search = re.match('Devices/([^/]+)', tags['key'])
+        key = tags.get('key', '')
+        if key and isinstance(key, (list, set, tuple)):
+            key = key[0]
+        search = _devname_pattern.match(key)
         if search:
-            metricname = "%s_%s" % (search.groups()[0], metricname)
+            prefix = search.groups()[0] + "_"
+            if not metricname.startswith(prefix):
+                metricname = prefix + metricname
         metric = dict(
             metric=metricname,
             aggregator=agg,

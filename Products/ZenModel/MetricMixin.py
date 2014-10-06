@@ -65,6 +65,18 @@ class MetricMixin(object):
         return next((dp for dp in self._getRRDDataPointsGen()
                                     if dp.name() == dpName), None)
 
+    def _ensure_prefixed(self, metrics):
+        """
+        Ensure that metric names are prefixed with the device id.
+        """
+        massaged = []
+        prefix = self.device().id + "_"
+        for metric in metrics:
+            if not metric.startswith(prefix):
+                massaged.append(prefix + metric)
+            massaged.append(metric)
+        return massaged
+
     def getRRDValue(self, dsname, start=None, end=None, function="LAST",
                     format="%.2lf", extraRpn="", cf="AVERAGE"):
         """
@@ -81,6 +93,7 @@ class MetricMixin(object):
         """
         Return a dict of key value pairs where dsnames are the keys.
         """
+        dsnames = self._ensure_prefixed(dsnames)
         try:
             fac = getFacade('metric', self.dmd)
             return fac.getValues(self, dsnames, start=start, end=end, format=format,
