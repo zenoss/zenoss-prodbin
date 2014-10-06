@@ -23,6 +23,7 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Five.browser import BrowserView
 from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
+from Products.ZenUtils import metrics
 
 log = logging.getLogger("zen.MetricFacade")
 
@@ -222,6 +223,12 @@ class MetricFacade(ZuulFacade):
     def _buildTagsFromContextAndMetric(self, context, dsId):
         return dict(key=[context.getResourceKey()])
 
+    def _get_key_from_tags(self, tags):
+        key = tags.get('key', '')
+        if isinstance(key, (list, set, tuple)):
+            key = key[0]
+        return key
+
     def _buildMetric(self, context, dp, cf, extraRpn="", format=""):
         datasource = dp.datasource()
         dsId = datasource.id
@@ -232,14 +239,11 @@ class MetricFacade(ZuulFacade):
         rateOptions = info.getRateOptions()
         tags = self._buildTagsFromContextAndMetric(context, dsId)
         metricname = dp.name()
-        key = tags.get('key', '')
-        if key and isinstance(key, (list, set, tuple)):
-            key = key[0]
+        key = self._get_key_from_tags(tags)
         search = _devname_pattern.match(key)
         if search:
-            prefix = search.groups()[0] + "_"
-            if not metricname.startswith(prefix):
-                metricname = prefix + metricname
+            prefix = search.groups()[0]
+            metricname = metrics.ensure_prefix(prefix, metricname)
         metric = dict(
             metric=metricname,
             aggregator=agg,

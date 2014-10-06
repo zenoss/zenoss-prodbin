@@ -34,6 +34,7 @@ from Products.ZenUtils.Utils import importClass, unused
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.picklezipper import Zipper
 from Products.ZenUtils.observable import ObservableProxy
+from Products.ZenUtils import metrics
 
 log = logging.getLogger("zen.daemon")
 
@@ -388,7 +389,7 @@ class CollectorDaemon(RRDDaemon):
         metric_name = metric
         if deviceId:
             tags['device'] = deviceId
-            metric_name = "%s_%s" % (deviceId, metric_name)
+            metric_name = metrics.ensure_prefix(deviceId, metric_name)
 
         # write the raw metric to Redis
         self._metric_writer.write_metric(metric_name, value, timestamp, tags)

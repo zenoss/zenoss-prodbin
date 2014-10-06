@@ -16,6 +16,7 @@ from Acquisition import aq_chain
 from Products.ZenUtils import Map
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils import metrics
 from Products.Zuul import getFacade
 CACHE_TIME = 60.
 
@@ -93,7 +94,10 @@ class MetricMixin(object):
         """
         Return a dict of key value pairs where dsnames are the keys.
         """
-        dsnames = self._ensure_prefixed(dsnames)
+        if callable(getattr(self, 'device', None)):
+            prefix = self.device().id
+            dsnames = map(lambda name: metrics.ensure_prefix(prefix, name),
+                          dsnames)
         try:
             fac = getFacade('metric', self.dmd)
             return fac.getValues(self, dsnames, start=start, end=end, format=format,
