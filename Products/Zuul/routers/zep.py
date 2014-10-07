@@ -36,6 +36,7 @@ from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 from zenoss.protocols.services import ServiceResponseError
+from lxml.html.clean import clean_html
 
 
 log = logging.getLogger('zen.%s' % __name__)
@@ -412,7 +413,7 @@ class EventsRouter(DirectRouter):
 
         userName = getSecurityManager().getUser().getId()
 
-        self.zep.addNote(uuid=evid, message=message, userName=userName)
+        self.zep.addNote(uuid=evid, message=clean_html(message), userName=userName)
 
         return DirectResponse.succeed()
 
