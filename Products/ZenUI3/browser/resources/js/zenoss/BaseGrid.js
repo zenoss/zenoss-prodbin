@@ -255,6 +255,7 @@
                 }
                 col.filterField.on('keydown', this.onKeyDown, this);
                 col.filterField.on('validitychange', this.onInvalidFilter, this);
+                col.filterField.on('focus', this.onFocus, this);
 
                 searchItems.push(col.filterField);
             });
@@ -344,6 +345,31 @@
 
             this.onChangeTask.delay(1000);
 
+        },
+        onFocus: function(field) {
+            /**
+             * When search field is in focus, we check its right x coordinate.
+             * If this coordinate is bigger than width of a document,
+             * we perform horizontal scroll on delta pixels.
+             * delta is a difference between right x
+             * coordinate of a search field and a document width.
+             */
+        
+            var documentWidth = Ext.getBody().getViewSize().width;
+            var searchFieldRightXPosition = field.getEl().getX() + field.width;
+            var delta = searchFieldRightXPosition - documentWidth;
+            var shift = 20;
+
+            if (delta > 0) {
+                this.view.el.dom.scrollLeft += delta + shift;
+            } 
+            /**
+             * check the case when search field right x coordinate is on the
+             * edge or very close (20px) to the right side of the window.
+             */
+            else if (delta > -shift && delta <= 0) {
+                this.view.el.dom.scrollLeft += shift;
+            }
         },
         onKeyDown:function (field, e) {
             // if they explicitly pressed enter then search now
@@ -898,6 +924,7 @@
         onResize: function() {
             this.visibleRows = null;
             this.onScroll();
+            Zenoss.util.refreshScrollPosition(this);
         },
         getNumberOfVisibleRows: function() {
             if (this.visibleRows) {

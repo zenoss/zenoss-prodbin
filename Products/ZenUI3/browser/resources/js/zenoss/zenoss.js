@@ -1230,6 +1230,24 @@ Zenoss.util.getExtControlType = function(fieldId, type) {
 };
 
 /**
+* Used in BaseGrid.js by onFocus() and onResize() events.
+ * Fixes misalignment between filter and header of a column in IE9.
+ */
+Zenoss.util.refreshScrollPosition = function(me) {
+    if (me.grid.view.getEl().dom.children[1]) {
+        if (me.grid.view.getHeight() < parseFloat(me.grid.view.getEl().dom.children[1].scrollHeight)){
+            me.view.el.dom.scrollTop += 1;
+            me.view.el.dom.scrollTop -= 1;
+        } else if (me.grid.view.getWidth() < parseFloat(me.grid.view.getEl().dom.children[1].style.width)){
+            me.view.el.dom.scrollLeft += 1;            
+            me.view.el.dom.scrollLeft -= 1;
+        } else if (me.grid.columns[0].filterField) {
+            me.grid.columns[0].filterField.focus();
+        }
+    }
+};
+
+/**
  * Used by classes to validate config options that
  * are required.
  * Called like this:
