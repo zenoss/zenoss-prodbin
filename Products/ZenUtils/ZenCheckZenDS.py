@@ -21,13 +21,14 @@ LOG = logging.getLogger("zen.zencheckzendb")
 
 class Main(object):
 
-    def install(self, databases=[]):
+    def install(self, databases=[], silent=False):
         if not databases: databases = ['zodb', 'zodb_session']
         script = zenPath("Products", "ZenUtils", "relstorage", "mysql", "003.sql")
         with open(script, 'r') as f: sql = f.read()
         for database in databases:
             stdout, stderr = self._zendb(database, sql)
-            LOG.warn("Installed into '%s' database. PLEASE RESTART ALL DEPENDENT SERVICES." % (database,))
+            if not silent:
+                LOG.warn("Installed into '%s' database. PLEASE RESTART ALL DEPENDENT SERVICES." % (database,))
 
         tables = ["%s.connection_info" % db for db in databases]
         pid = "coalesce(%s)" % ', '.join(["%s.pid" % t for t in tables])
@@ -130,7 +131,8 @@ class Main(object):
         DROP EVENT IF EXISTS kill_long_running_txns;
         """
         stdout, stderr = self._zendb('mysql', sql)
-        LOG.info("Installed mysql.KillTransactions stored procedure.")
+        if not silent:
+            LOG.info("Installed mysql.KillTransactions stored procedure.")
 
 
     def check(self, minutes=360):
@@ -168,7 +170,7 @@ class Main(object):
 
 if __name__=="__main__":
     
-    usage = "Usage: %prog [install|check|kill]"
+    usage = "Usage: %prog [install|nstall-silent|check|kill]"
     epilog = "Checks for (or kills) long-running database transactions."
     parser = OptionParser(usage=usage, epilog=epilog)
     parser.add_option("-m", "--minutes",
@@ -187,6 +189,9 @@ if __name__=="__main__":
     if action == 'install':
         main = Main()
         main.install(databases=options.databases)
+    elif action == 'install-silent':
+        main = Main()
+        main.install(databases=options.databases, silent=True)
     elif action == 'check':
         main = Main()
         main.check(minutes=options.minutes)
