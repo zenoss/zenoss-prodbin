@@ -396,7 +396,7 @@ class CatalogTool(object):
         #Optimizing!
         results = { brain: [True, IInfo(brain.getObject())] for brain in queryResults }
         for key, value in infoFilters.iteritems():
-            valRe = re.compile(".*" + value + ".*", re.IGNORECASE)
+            valRe = re.compile(".*" + unicode(value) + ".*", re.IGNORECASE)
             for result in results:
                 match, info = results[result]
                 if not match:
