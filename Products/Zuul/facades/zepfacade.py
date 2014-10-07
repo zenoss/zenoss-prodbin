@@ -907,11 +907,15 @@ class ZepFacade(ZuulFacade):
         """
         Given an evid, update the detail key/value pairs in ZEP.
         """
+
+        if len(detailInfo) == 1 and isinstance(detailInfo.values()[0],EventDetailSet):
+            return self.client.updateDetails(evid,detailInfo.values()[0])
+
         detailSet = EventDetailSet()
         for key, value in detailInfo.items():
             detailSet.details.add(name=key, value=(value,))
 
-        return self.zep.client.updateDetails(evid, detailSet)
+        return self.client.updateDetails(evid, detailSet)
 
 
 class ZepDetailsInfo:
