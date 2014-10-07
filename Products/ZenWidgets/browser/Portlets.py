@@ -187,8 +187,27 @@ class DeviceIssuesPortletView(BrowserView):
         deviceSeverities = zep.getDeviceIssuesDict()
         zem = self.context.dmd.ZenEventManager
 
-        devdata = []
+        bulk_data = []
+
         for uuid in deviceSeverities.keys():
+            uuid_data = {}
+            uuid_data['uuid'] = uuid
+            severities = deviceSeverities[uuid]
+            try:
+                uuid_data['severities'] = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
+            except ServiceException:
+                continue
+            bulk_data.append(uuid_data)
+
+        bulk_data.sort(key=lambda x:(x['severities']['critical'], x['severities']['error'], x['severities']['warning']), reverse=True)
+
+        devices_found = 0
+        MAX_DEVICES = 100
+
+        devdata = []
+        for data in bulk_data:
+            uuid = data['uuid']
+            severities = data['severities']
             dev = manager.getObject(uuid)
             if dev and isinstance(dev, Device):
                 if (not zem.checkRemotePerm(ZEN_VIEW, dev)
@@ -196,17 +215,13 @@ class DeviceIssuesPortletView(BrowserView):
                     or dev.priority < zem.priorityDashboardThresh):
                     continue
                 alink = dev.getPrettyLink()
-                try:
-                    severities = deviceSeverities[uuid]
-                    severities = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
-                    pill = getEventPillME(dev, severities=severities)
-                except ServiceException:
-                    continue
+                pill = getEventPillME(dev, severities=severities)
                 evts = [alink,pill]
-                devdata.append((evts, severities))
-        devdata.sort(key=lambda x:(x[1]['critical'], x[1]['error'], x[1]['warning']), reverse=True)
-        return [x[0] for x in devdata[:100]]
-
+                devdata.append(evts)
+                devices_found = devices_found + 1
+                if devices_found >= MAX_DEVICES:
+                    break
+        return devdata
 
 heartbeat_columns = ['Host', 'Daemon Process', 'Seconds Down']
 
