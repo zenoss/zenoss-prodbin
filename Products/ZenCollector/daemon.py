@@ -396,8 +396,9 @@ class CollectorDaemon(RRDDaemon):
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
+            dkey = "%s:%s" % (contextUUID, metric)
             value = self._derivative_tracker.derivative(
-                contextUUID, (int(value), timestamp), min, max)
+                dkey, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
         if value is not None:
