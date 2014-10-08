@@ -27,6 +27,7 @@ from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.Utils import zenPath, HtmlFormatter, binPath, setLogLevel
 from Products.ZenUtils.Watchdog import Reporter
 from Products.Zuul.utils import safe_hasattr as hasattr
+from Products.ZenUtils.dumpthreads import dump_threads
 
 # Daemon creation code below based on Recipe by Chad J. Schroeder
 # File mode creation mask of the daemon.
@@ -228,6 +229,7 @@ class ZenDaemon(CmdBase):
             setLogLevel(logging.DEBUG, "zen")
             log.info("Setting logging level to DEBUG")
             getTwistedLogger().start()
+        dump_threads(signum, frame)
         self._sigUSR1_called(signum, frame)
         self.audit('Debug')
 
