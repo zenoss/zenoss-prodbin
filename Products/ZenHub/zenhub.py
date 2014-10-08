@@ -601,7 +601,7 @@ class ZenHub(ZCmdBase):
         # Next check for an old-style (regular adapter) transform
         try:
             adapters = itertools.chain(adapters, (IInvalidationOid(obj),))
-        except ValueError:
+        except TypeError:
             # No old-style adapter is registered
             pass
         transformed = set()
