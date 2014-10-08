@@ -106,7 +106,7 @@ class MetricFacade(ZuulFacade):
             return data
         # if the returnSet is exact or all then organize the results into something more digestable
         for row in data:
-            key, metric = row['metric'].split('_', 1)
+            key, metric = row['metric'].split('|', 1)
             if not results.get(key):
                 results[key] = defaultdict(list)
             results[key][metric].append(dict(timestamp=row['timestamp'], value=row['value']))
@@ -205,7 +205,7 @@ class MetricFacade(ZuulFacade):
            #
            results = defaultdict(dict)
            for item in content['results']:
-               key, metric = item['metric'].split('_', 1)
+               key, metric = item['metric'].split('|', 1)
                results[key][metric] = item['datapoints'][0]['value']
            return results
         else:
@@ -251,7 +251,7 @@ class MetricFacade(ZuulFacade):
             format=format,
             tags=tags,
             rate=info.rate,
-            name=context.getResourceKey() + "_" + dp.id
+            name=context.getResourceKey() + "|" + dp.id
         )
         if rateOptions:
             metric['rateOptions'] = rateOptions
