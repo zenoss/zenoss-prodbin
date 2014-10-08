@@ -30,8 +30,9 @@ import signal
 import cPickle as pickle
 import os
 import subprocess
+import itertools
 from random import choice
-from zope.component import getAdapters
+from zope.component import getAdapters, subscribers
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
@@ -595,18 +596,29 @@ class ZenHub(ZCmdBase):
                                     yield oid
 
     def _transformOid(self, oid, obj):
-        # getAdapters() returns a generator of tuples ('adapterName', adaptedObject)
-        adapters = getAdapters((obj,), IInvalidationOid)
-        newOids = set()
-        for oidItem in (adapter[1].transformOid(oid) for adapter in adapters):
-            if isinstance(oidItem, basestring):
-                newOids.add(oidItem)
-            else:
-                # If the transform id nto give back a string, it should have
+        # First, get any subscription adapters registered as transforms
+        adapters = subscribers((obj,), IInvalidationOid)
+        # Next check for an old-style (regular adapter) transform
+        try:
+            adapters = itertools.chain(adapters, (IInvalidationOid(obj),))
+        except TypeError:
+            # No old-style adapter is registered
+            pass
+        transformed = set()
+        for adapter in adapters:
+            o = adapter.transformOid(oid)
+            if isinstance(o, basestring):
+                transformed.add(o)
+            elif hasattr(o, '__iter__'):
+                # If the transform didn't give back a string, it should have
                 # given back an iterable
-                [ newOids.add(x) for x in oidItem ]
-        filtered = filter(lambda x: x not in (None, oid), newOids)
-        return set(filtered) or (oid,)
+                transformed.update(o)
+        # Get rid of any useless Nones
+        transformed.discard(None)
+        # Get rid of the original oid, if returned. We don't want to use it IF
+        # any transformed oid came back.
+        transformed.discard(oid)
+        return transformed or (oid,)
 
     def doProcessQueue(self):
         """
