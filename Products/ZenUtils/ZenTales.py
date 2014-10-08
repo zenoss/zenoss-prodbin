@@ -32,7 +32,11 @@ def talesEvalStr(expression, context, extra=None):
 def talesEval(express, context, extra=None):
     """Perform a TALES eval on the express using context.
     """
-    compiled = talesCompile(express)
+    try:
+        compiled = talesCompile(express)
+    except Exception as e:
+        compiled = talesCompile("string:%s" % express)
+
     contextDict = { 'context':context,
                     'here':context,
                     'nothing':None,
