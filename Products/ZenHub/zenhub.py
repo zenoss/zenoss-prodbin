@@ -594,12 +594,18 @@ class ZenHub(ZCmdBase):
                                     yield oid
 
     def _transformOid(self, oid, obj):
-        oidTransform = IInvalidationOid(obj)
-        newOids = oidTransform.transformOid(oid)
-        if isinstance(newOids, str):
-            newOids = [newOids]
-        for newOid in newOids:
-            yield newOid
+        # getAdapters() returns a generator of tuples ('adapterName', adaptedObject)
+        adapters = getAdapters((obj,), IInvalidationOid)
+        newOids = set()
+        for oidItem in (adapter[1].transformOid(oid) for adapter in adapters):
+            if isinstance(oidItem, basestring):
+                newOids.add(oidItem)
+            else:
+                # If the transform id nto give back a string, it should have
+                # given back an iterable
+                [ newOids.add(x) for x in oidItem ]
+        filtered = filter(lambda x: x not in (None, oid), newOids)
+        return set(filtered) or (oid,)
 
     def doProcessQueue(self):
         """
