@@ -170,7 +170,7 @@ class Main(object):
 
 if __name__=="__main__":
     
-    usage = "Usage: %prog [install|nstall-silent|check|kill]"
+    usage = "Usage: %prog [install|install-silent|check|kill]"
     epilog = "Checks for (or kills) long-running database transactions."
     parser = OptionParser(usage=usage, epilog=epilog)
     parser.add_option("-m", "--minutes",
