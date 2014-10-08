@@ -164,7 +164,7 @@ class _ProcessQueueProtocol(ProcessProtocol):
 
     def __str__(self):
         if self._args:
-            return"process %s" % " ".join(self._args)
+            return "process %s" % " ".join([x or 'None' for x in self._args])
         else:
             return "process %s" % self._executable 
 
