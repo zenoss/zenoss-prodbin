@@ -17,4 +17,4 @@ def ensure_prefix(prefix, metric):
     """
     if metric.startswith(prefix + SEPARATOR_CHAR):
         return metric
-        return "%s%s%s" % (prefix, SEPARATOR_CHAR, metric)
+    return "%s%s%s" % (prefix, SEPARATOR_CHAR, metric)
