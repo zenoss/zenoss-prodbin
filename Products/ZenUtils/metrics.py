@@ -12,8 +12,8 @@ SEPARATOR_CHAR = "/"
 
 def ensure_prefix(prefix, metric):
     """
-    Make sure that a metric name starts with a given prefix, joined by an
-    underscore. Returns the prefixed metric name.
+    Make sure that a metric name starts with a given prefix, joined by
+    a separator. Returns the prefixed metric name.
     """
     if metric.startswith(prefix + SEPARATOR_CHAR):
         return metric
