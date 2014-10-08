@@ -31,6 +31,7 @@ import cPickle as pickle
 import os
 import subprocess
 from random import choice
+from zope.component import getAdapters
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
