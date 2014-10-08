@@ -558,13 +558,14 @@ device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
 
     if (width >= extra_column_threshold && columns == 1) {
         panel.columns = 2;
-        panel.setContext(panel.uid);
     }
 
     if (width < extra_column_threshold && columns == 2) {
         panel.columns = 1;
-        panel.setContext(panel.uid);
     }
+    // always redraw the graphs completely when we resize the page,
+    // this way the svg's are the correct size.
+    panel.setContext(panel.uid);
 });
 
 var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
