@@ -898,17 +898,6 @@
                 this.toolbar.query("graphrefreshbutton")[0].setInterval(-1);
             }
         },
-        persistGraphParams: function() {
-            var graphs = this.getGraphs();
-            // since we are linked we are going to assume that the
-            // first graphs graph params is correct
-            if (!graphs.length) {
-                return;
-            }
-            this.drange = graphs[0].graph_params.drange;
-            this.start = graphs[0].graph_params.start;
-            this.end = graphs[0].graph_params.end;
-        },
         addGraphs: function(data) {
             var graphs = [],
                 graph,

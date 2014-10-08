@@ -558,13 +558,11 @@ device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
 
     if (width >= extra_column_threshold && columns == 1) {
         panel.columns = 2;
-        panel.persistGraphParams();
         panel.setContext(panel.uid);
     }
 
     if (width < extra_column_threshold && columns == 2) {
         panel.columns = 1;
-        panel.persistGraphParams();
         panel.setContext(panel.uid);
     }
 });
