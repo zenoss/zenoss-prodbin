@@ -559,6 +559,7 @@ device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
     if (width >= extra_column_threshold && columns == 1) {
         panel.columns = 2;
     }
+
     if (width < extra_column_threshold && columns == 2) {
         panel.columns = 1;
     }

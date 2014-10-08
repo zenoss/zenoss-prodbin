@@ -533,20 +533,20 @@
             config = config || {};
             Ext.apply(config, {
                 fieldLabel: _t('Range'),
-                    name: 'ranges',
-                    editable: false,
-                    forceSelection: true,
-                    autoSelect: true,
-                    triggerAction: 'all',
-                    value: '1h-ago',
-                    queryMode: 'local',
-                    store: new Ext.data.ArrayStore({
-                        id: 0,
-                        model: 'Zenoss.model.IdName',
-                        data: DATE_RANGES.concat([[0,"<hr>"],["custom", "["+ _t("Custom") +"]"]])
-                    }),
-                    valueField: 'id',
-                    displayField: 'name'
+                name: 'ranges',
+                editable: false,
+                forceSelection: true,
+                autoSelect: true,
+                triggerAction: 'all',
+                value: '1h-ago',
+                queryMode: 'local',
+                store: new Ext.data.ArrayStore({
+                    id: 0,
+                    model: 'Zenoss.model.IdName',
+                    data: DATE_RANGES.concat([[0,"<hr>"],["custom", "["+ _t("Custom") +"]"]])
+                }),
+                valueField: 'id',
+                displayField: 'name'
             });
             this.callParent(arguments);
         }
@@ -920,9 +920,15 @@
                     graphId: graphId,
                     graphTitle: graphTitle,
                     ref: graphId,
-                    height: 500
+                    height: 500,
+                    // set the date range incase we are refreshing after a resize or
+                    // tab change
+                    graph_params: {
+                        drange: this.drange,
+                        start: this.start.valueOf(),
+                        end: this.end.valueOf()
+                    }
                 })));
-
                 // subscribe to updatelimits event
                 graphs[graphs.length-1].on("updatelimits", function(limits){
                     this.setLimits(limits.start, limits.end);
@@ -981,7 +987,7 @@
                 this.setEndToNow();
             }
 
-            graphConfig = {
+            var graphConfig = {
                 drange: this.drange,
                 // start and end are moments so they need to be
                 // converted to millisecond values
