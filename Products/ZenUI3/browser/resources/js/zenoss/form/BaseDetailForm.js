@@ -134,7 +134,12 @@ Ext.define("Zenoss.form.BaseDetailForm", {
         form.on('dirtychange', function(form, dirty, options ) {
             if (dirty && form.isValid()) {
                 this.setButtonsDisabled(false);
+            } else {
+                this.setButtonsDisabled(true);
             }
+        }, this);
+        form.on('validityChange', function(f, valid, eOpts) {
+            this.doButtons();
         }, this);
     },
     hasPermission: function() {
