@@ -524,9 +524,9 @@ Ext.define("Zenoss.component.ComponentPanel", {
                             Zenoss.env.compUUID = row.data.uuid;
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
-                                token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
-                            Ext.util.History.suspendEvents();
-                            Ext.util.History.add(token + delimiter + row.data.uid);
+                                token = Ext.History.getToken().split(delimiter, 1);
+                            Ext.util.History.suspendEvents(false);
+                            Ext.util.History.add(token + delimiter + this.componentType + delimiter + row.data.uid);
                             Ext.util.History.resumeEvents();
                             Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.usesMonitorAttribute);
                         } else {
@@ -592,15 +592,15 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 fields: config.fields
             });
         config.sortInfo = config.sortInfo || {};
-	config = Ext.applyIf(config, {
-	    autoExpandColumn: 'name',
-	    bbar: {},
-	    store: new ZC.BaseComponentStore({
+    config = Ext.applyIf(config, {
+        autoExpandColumn: 'name',
+        bbar: {},
+        store: new ZC.BaseComponentStore({
                 model: modelId,
                 initialSortColumn: config.sortInfo.field || 'name',
                 initialSortDirection: config.sortInfo.direction || 'ASC',
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
-	    }),
+        }),
             columns: [{
                 id: 'component_severity',
                 dataIndex: 'severity',

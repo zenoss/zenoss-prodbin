@@ -894,8 +894,11 @@
                 if(el){
                    el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
                 }
-
-                this.toolbar.query("graphrefreshbutton")[0].setInterval(-1);
+                // disable the refresh since there are no graphs
+                var buttons = this.toolbar.query("graphrefreshbutton");
+                if (buttons.length > 0){
+                    buttons[0].setInterval(-1);
+                }
             }
         },
         addGraphs: function(data) {
