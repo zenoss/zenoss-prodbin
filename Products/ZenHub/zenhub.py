@@ -819,9 +819,7 @@ class ZenHub(ZCmdBase):
                 break
 
             job = self.workList.pop()
-            self.log.debug("get candidate workers for %s...", job.method)
             candidateWorkers = list(self.workerselector.getCandidateWorkerIds(job.method, self.workers))
-            self.log.debug("candidate workers are %r", candidateWorkers)
             for i in candidateWorkers:
                 worker = self.workers[i]
                 worker.busy = True
@@ -836,7 +834,6 @@ class ZenHub(ZCmdBase):
                     yield self.finished(job, result, worker, i)
                 break
             else:
-                self.log.debug("no worker available for %s" % job.method)
                 #could not complete this job, put it back in the queue once
                 #we're finished saturating the workers
                 incompleteJobs.append(job)
@@ -846,6 +843,7 @@ class ZenHub(ZCmdBase):
             self.workList.push(job)
 
         if incompleteJobs:
+            self.log.debug("No workers available for %d jobs." % len(incompleteJobs))
             reactor.callLater(0, self.giveWorkToWorkers)
 
         if requeue and not self.shutdown:
