@@ -182,7 +182,7 @@
                     if (col.isVisible() && col.getEl()) {
                         col.setWidth(col.getWidth() + 1);
                         col.setWidth(col.getWidth() - 1);
-                       
+
                     }
                 });
                 this.view.el.dom.scrollLeft -= 1;
@@ -354,7 +354,7 @@
              * delta is a difference between right x
              * coordinate of a search field and a document width.
              */
-        
+
             var documentWidth = Ext.getBody().getViewSize().width;
             var searchFieldRightXPosition = field.getEl().getX() + field.width;
             var delta = searchFieldRightXPosition - documentWidth;
@@ -362,7 +362,7 @@
 
             if (delta > 0) {
                 this.view.el.dom.scrollLeft += delta + shift;
-            } 
+            }
             /**
              * check the case when search field right x coordinate is on the
              * edge or very close (20px) to the right side of the window.
@@ -759,7 +759,7 @@
                 view = this.getView();
 
             // Only reload new grid events in case we have scrolled more than 1 row
-            if (shouldLoad && view.getEl().dom.scrollTop < 25) {                
+            if (shouldLoad && view.getEl().dom.scrollTop < 25) {
                 store.load({
                     callback: callback,
                     scope: scope || this
@@ -770,11 +770,12 @@
                     end = Math.min(start + store.pageSize - 1, store.totalCount),
                     page = store.pageMap.getPageFromRecordIndex(end);
                 // make sure we do not have any records in cache
-                store.pageMap.clear();
+                store.pageMap.removeAtKey(page);
 
                 // If a refresh kicks off before the initial store load store.totalCount is NaN
-                if (isNaN(store.totalCount))
+                if (isNaN(store.totalCount)) {
                     end = start + store.pageSize - 1;
+                }
 
                 // this will fetch from the server and update the view since we removed it from cache
                 if (Ext.isFunction(callback)) {
@@ -830,7 +831,7 @@
                 defaultFilters:this.defaultFilters || {}
             });
 
-       
+
             this.filterRow = filters;
         },
         getState:function () {
@@ -1023,7 +1024,7 @@
                     }
                 }
                 msg = Ext.String.format(this.displayMsg, start + 1, end, store.totalCount);
-                
+
                  if (this.scrollLeft != currentScrollLeft) {
                      this.scrollLeft = currentScrollLeft;
                  } else {
