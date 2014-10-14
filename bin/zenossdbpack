@@ -20,6 +20,7 @@ import Globals
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
+from relstorage import zodbpack
 
 def get_config(database=None):
     _global_conf = getGlobalConfiguration()
@@ -58,7 +59,10 @@ def pack_database(config):
         configfile.write(config)
         configfile.flush()
         cmd = [_zodbpack, configfile.name, '-d', str(options.days)]
-        return subprocess.call(cmd)
+        if not options.legacy:
+            from Products.ZenUtils.patches import zodbpackmonkey
+
+        return zodbpack.main(cmd)
 
 
 def get_session_database():
@@ -92,12 +96,16 @@ if __name__ == "__main__":
         "-e", "--exclude-db", dest="excludeDB",
         choices=['session', 'zodb'],
         help="Specify which database to exclude")
+    parser.add_argument(
+        "-l", "--legacy", dest="legacy",
+        action="store_true", default=False,
+        help="Executes unpatched version of zodbpack. No checks are performed to prevent POSKeyErrors.")
 
     options = parser.parse_args()
     if options.days < 0.5:
         print "  --days below 0.5 is no longer supported - defaulting to 0.5"
-        otions.days = 0.5
-        
+        options.days = 0.5
+
     retcode = 1
 
     if options.excludeDB != 'zodb':
@@ -115,3 +123,4 @@ if __name__ == "__main__":
         print "Skipping zodb session"
 
     sys.exit(retcode)
+
