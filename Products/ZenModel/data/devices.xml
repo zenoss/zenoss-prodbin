@@ -109,7 +109,7 @@ False
 180
 </property>
 <property visible="True" label="Collector Decoding" type="string" description="Converts incoming characters to Unicode." id="zCollectorDecoding" >
-latin-1
+utf-8
 </property>
 <property visible="True" label="Username" type="string" description="Specifies the user name to use when performing command collection and SSH." id="zCommandUsername" >
 </property>

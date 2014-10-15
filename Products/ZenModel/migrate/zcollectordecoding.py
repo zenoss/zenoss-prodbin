@@ -17,10 +17,13 @@ $Id:$
 import Migrate
 
 class ZCollectorDecoding(Migrate.Step):
-    version = Migrate.Version(0, 23, 0)
+    version = Migrate.Version(4, 9, 70)
 
     def cutover(self, dmd):
         if not dmd.Devices.hasProperty("zCollectorDecoding"):
-            dmd.Devices._setProperty("zCollectorDecoding", 'latin-1')
+            dmd.Devices._setProperty("zCollectorDecoding", 'utf-8')
+        elif dmd.Devices.hasProperty("zCollectorDecoding"):
+            dmd.Devices._delProperty("zCollectorDecoding")
+            dmd.Devices._setProperty("zCollectorDecoding", 'utf-8')
 
 ZCollectorDecoding()
