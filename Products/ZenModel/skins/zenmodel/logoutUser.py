@@ -16,6 +16,7 @@
 
 req = context.REQUEST
 context.acl_users.resetCredentials(req, req.RESPONSE)
+req.SESSION.getBrowserIdManager().flushBrowserIdCookie()
 # we want to display logged_out when user is logged in with basic auth
 # need to figureout how to do this.
 #dest = '/zport/dmd/logged_out'
