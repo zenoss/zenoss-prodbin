@@ -305,9 +305,16 @@ var componentCard = {
             text: _t('All'),
             handler: function(){
                 var grid = Ext.getCmp('component_card').componentgrid;
-                grid.getSelectionModel().selectRange(0, grid.store.getCount()-1);
-            }
-        },{
+                if(this.text === 'All'){
+                    grid.getSelectionModel().selectRange(0, grid.store.totalCount-1);
+                }else{
+                    if(grid.store.buffered){
+                        grid.store.guaranteeRange(0, grid.store.pageSize-1);
+                    }
+                    grid.getSelectionModel().selectRange(0, grid.store.pageSize-1);
+                }
+        }
+	},{
             text: _t('None'),
             handler: function(){
                 var grid = Ext.getCmp('component_card').componentgrid;
