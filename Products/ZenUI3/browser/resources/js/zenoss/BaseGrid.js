@@ -753,13 +753,9 @@
                 return;
             }
             this.saveSelection();
-            var store = this.getStore(),
-                // load the entire store if we are not paginated or the entire grid fits in one buffer
-                shouldLoad = ! store.buffered || store.getCount() >= store.getTotalCount(),
-                view = this.getView();
+            var store = this.getStore();
 
-            // Only reload new grid events in case we have scrolled more than 1 row
-            if (shouldLoad && view.getEl().dom.scrollTop < 25) {
+            if (! store.buffered) {
                 store.load({
                     callback: callback,
                     scope: scope || this
@@ -767,14 +763,17 @@
             } else {
                 // need to refresh the current rows, without changing the scroll position
                 var start = Math.max(store.lastRequestStart, 0),
-                    end = Math.min(start + store.pageSize - 1, store.totalCount),
-                    page = store.pageMap.getPageFromRecordIndex(end);
+                    end = Math.min(start + store.pageSize - 1, store.totalCount);
                 // make sure we do not have any records in cache
                 store.pageMap.removeAtKey(page);
 
                 // If a refresh kicks off before the initial store load store.totalCount is NaN
                 if (isNaN(store.totalCount)) {
                     end = start + store.pageSize - 1;
+                }
+
+                if (store.getCount() >= store.getTotalCount() && this.verticalScroller) {
+                    start = this.verticalScroller.getFirstVisibleRowIndex();
                 }
 
                 // this will fetch from the server and update the view since we removed it from cache
