@@ -84,7 +84,7 @@ Z_PROPERTIES = [
     # DataCollector properties
     ('zCollectorPlugins', [], 'lines', 'Collector Plugins', ''),
     ('zCollectorClientTimeout', 180, 'int', 'Collector Client Timeout (seconds)', 'Allows you to set the timeout time of the collector client in seconds'),
-    ('zCollectorDecoding', 'latin-1', 'string', 'Collector Decoding', 'Converts incoming characters to Unicode.'),
+    ('zCollectorDecoding', 'utf-8', 'string', 'Collector Decoding', 'Converts incoming characters to Unicode.'),
     ('zCommandUsername', '', 'string', 'Username', 'Specifies the user name to use when performing command collection and SSH.'),
     ('zCommandPassword', '', 'password', 'Password', 'Specifies the password to use when performing command logins and SSH.'),
     ('zCommandProtocol', 'ssh', 'string', 'Command Protocol', 'Establishes the protocol to use when performing command collection. Possible values are SSH and telnet.'),
