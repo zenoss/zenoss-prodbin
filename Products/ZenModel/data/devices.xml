@@ -54,6 +54,8 @@ v2c
 <property visible="True" label="SNMP Collection Interval" type="int" description="Defines, in seconds, how often the system collects performance information for each device." id="zSnmpCollectionInterval" >
 300
 </property>
+<property visible="True" type="string" id="zSnmpContext" >
+</property>
 <property visible="True" label="Router Map Collect Only (Local)" type="boolean" description="Only collect local routes. (These usually are manually configured rather than learned through a routing protocol.)" id="zRouteMapCollectOnlyLocal" >
 False
 </property>

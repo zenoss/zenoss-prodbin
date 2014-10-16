@@ -37,6 +37,7 @@ ATTRIBUTES = (
     'zSnmpAuthType',
     'zSnmpCommunity',
     'zSnmpCommunities',
+    'zSnmpContext',
     'zSnmpDiscoveryPorts',
     'zSnmpPort',
     'zSnmpPrivPassword',
@@ -100,6 +101,9 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
             if self.zSnmpEngineId:
                 cmdLineArgs += ['-e', self.zSnmpEngineId]
             cmdLineArgs += ['-u', self.zSnmpSecurityName]
+            if hasattr(self, 'zSnmpContext') and self.zSnmpContext:
+                cmdLineArgs += ['-n', self.zSnmpContext]
+
         #the parameter tries seems to really be retries so take one off
         retries = max(self.zSnmpTries - 1, 0)
         p = AgentProxy(ip=self.manageIp,
