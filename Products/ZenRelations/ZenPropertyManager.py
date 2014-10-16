@@ -59,6 +59,7 @@ Z_PROPERTIES = [
     ('zSnmpPrivPassword', '', 'password', 'SNMP Private Password', 'The shared private key used for encrypting SNMP requests. Must be at least 8 characters long.'),
     ('zSnmpAuthType', '', 'string', 'SNMP Auth Type', 'Use "MD5" or "SHA" signatures to authenticate SNMP requests'),
     ('zSnmpPrivType', '', 'string', 'SNMP Priv Type', '"DES" or "AES" cryptographic algorithms.'),
+    ('zSnmpContext', '', 'string', 'SNMP Context', 'Defines the SNMPv3 CONTEXT specified by the -n flag'),
     ('zSnmpCollectionInterval', 300, 'int', 'SNMP Collection Interval', 'Defines, in seconds, how often the system collects performance information for each device.'),
     ('zRouteMapCollectOnlyLocal', False, 'boolean', 'Router Map Collect Only (Local)', 'Only collect local routes. (These usually are manually configured rather than learned through a routing protocol.)'),
     ('zRouteMapCollectOnlyIndirect', False, 'boolean', 'Route Map Collect Only (Indirect)', 'Only collect routes that are directly connected to the device.'),

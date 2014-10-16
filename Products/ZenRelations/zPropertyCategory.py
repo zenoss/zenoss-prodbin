@@ -76,6 +76,7 @@ MAPPINGS = {
 'zSnmpTimeout': 'SNMP',
 'zSnmpTries': 'SNMP',
 'zSnmpVer': 'SNMP',
+'zSnmpContext': 'SNMP',
 
 
 # ZenPacks
