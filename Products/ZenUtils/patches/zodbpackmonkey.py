@@ -27,6 +27,11 @@ import time
 
 log = logging.getLogger("zenoss.zodbpack.monkey")
 
+GLOBAL_OPTIONS = []
+
+def set_build_tables_only_option():
+    GLOBAL_OPTIONS.append("BUILD_TABLES_ONLY")
+
 class ObjectRelations(object):
     def __init__(self, oid, tid):
         self.oid = oid
@@ -535,6 +540,11 @@ try:
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
     def pack(self, pack_tid, sleep=None, packed_func=None):
         """ Run garbage collection. Requires the information provided by pre_pack. """
+
+        if "BUILD_TABLES_ONLY" in GLOBAL_OPTIONS:
+            log.info("pack: Skipping pack phase.")
+            return
+
         # Read committed mode is sufficient.
         conn, cursor = self.connmanager.open()
         try:
@@ -626,4 +636,3 @@ try:
 
 except ImportError:
     pass
-

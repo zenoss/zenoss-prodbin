@@ -61,7 +61,9 @@ def pack_database(config):
         cmd = [_zodbpack, configfile.name, '-d', str(options.days)]
         if not options.legacy:
             from Products.ZenUtils.patches import zodbpackmonkey
-
+            if options.buildTablesOnly:
+                print("zenossdbpack will only build internal tables. Pack phase will be skipped.")
+                zodbpackmonkey.set_build_tables_only_option()
         return zodbpack.main(cmd)
 
 
@@ -100,6 +102,10 @@ if __name__ == "__main__":
         "-l", "--legacy", dest="legacy",
         action="store_true", default=False,
         help="Executes unpatched version of zodbpack. No checks are performed to prevent POSKeyErrors.")
+    parser.add_argument(
+        "-t", "--build-tables", dest="buildTablesOnly",
+        action="store_true", default=False,
+        help="Builds internal tables only and does not do the pack.")
 
     options = parser.parse_args()
     if options.days < 0.5:
