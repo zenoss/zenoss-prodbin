@@ -8,4 +8,4 @@
 #
 ##############################################################################
 
-curl -s -u guest:guest http://localhost:15672/api/vhosts | grep -q /zenoss
+curl -s -u $1:$2 http://localhost:15672/api/vhosts | grep -q /zenoss
