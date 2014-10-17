@@ -9,6 +9,7 @@
 
 
 import logging
+import os
 import signal
 import socket
 import time
@@ -55,6 +56,8 @@ class EventDEventletWorker(ZCmdBase):
     def run(self):
         self._shutdown = False
         signal.signal(signal.SIGTERM, self._sigterm)
+        mypid = str(os.getpid())
+        log.info("in worker, current pid: %s" % mypid)
         task = EventletQueueConsumerTask(EventPipelineProcessor(self.dmd))
         self._listen(task)
 
