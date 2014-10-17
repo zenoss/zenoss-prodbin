@@ -1583,4 +1583,17 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
     ];
 
 
+// Create a portlets object
+//
+Ext.define('PortletManager', {
+    mixins: {
+        observable: 'Ext.util.Observable'
+    },
+    constructor: function (config) {
+        this.mixins.observable.constructor.call(this, config);
+        this.addEvents('ready', 'beforeregister');
+    }
+});
+Zenoss.PortletManager = new PortletManager();
+
 })(); // End local scope
