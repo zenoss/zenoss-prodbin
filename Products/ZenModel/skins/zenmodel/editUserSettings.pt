@@ -67,15 +67,15 @@ setTimeout(function () {
     <tr>
     <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
       <form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
-        <div style="background:#ddd;width:372px;height:40px;">
-            <div style="float:left;width:230px;height:40px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+        <div style="background:#ddd;width:374px;height:40px;">
+            <div style="float:left;width:226px;height:40px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
                 Automatically generate a new password and send it to the email listed below.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
               <input type="submit" name="manage_resetPassword:method" id="resetInitiator" style="display:none;" />
               <input type="button" value="Reset Password"
                      tabindex="-1"
-                     style="height:30px;width:132px;text-align:center;"
+                     style="height:30px;width:136px;text-align:center;"
                      onclick="resetPassword()"
                      class="tableheader"
                      id="passwordResetButton" />
@@ -93,12 +93,12 @@ setTimeout(function () {
     </tr>
     <tr tal:condition="here/isLoggedInUser">
     <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
-        <div style="background:#ddd;width:372px;height:50px;">
-            <div style="float:left;width:230px;height:50px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+        <div style="background:#ddd;width:374px;height:50px;">
+            <div style="float:left;width:226px;height:50px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
                 Reset all preferences such as grid columns and filters to their default values.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
-            <button id="user_settings_reset_prefs_submit" style="height:30px;width:132px;text-align:center;"
+            <button id="user_settings_reset_prefs_submit" style="height:30px;width:136px;text-align:center;"
                    onclick="clearBrowserState(event)"
                    class="tableheader">
                Reset Preferences
