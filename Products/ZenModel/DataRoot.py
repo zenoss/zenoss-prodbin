@@ -755,6 +755,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return getattr(self, 'productName', 'core')
 
 
+    def getProductHelpLink(self):
+        """
+        Return a URL to docs for the Zenoss product that is installed.
+        """
+        return "http://www.zenoss.com/resources/documentation"
+
+
     def error_handler(self, error=None):
         """
         Returns pretty messages when errors are raised in templates.
