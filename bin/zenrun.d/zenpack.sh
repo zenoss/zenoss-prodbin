@@ -54,23 +54,25 @@ link() {
 }
 
 install() {
-    # Map host path to container path
-    hostZenpackPath=$1
-    shift
-    if [[ "${hostZenpackPath:0:1}" = "/" ]]; then
-        containerZenpackPath=$hostZenpackPath
-    else
-        containerZenpackPath="/mnt/pwd/"$hostZenpackPath
+    zenpackPath=$1
+    if [[ "${zenpackPath:0:1}" != "/" ]]; then
+        # Test for readability of /mnt/pwd
+        PWDPATH=/mnt/pwd
+        if [[ ! ( -r "$PWDPATH" && -x "$PWDPATH" ) ]] ; then
+            echo "Error: The current working directory must be world readable+executable"
+            return 1
+        fi
+        cd "$PWDPATH"
     fi
 
     #Test for presence of ZenPack egg
-    if [[ ! -r "$containerZenpackPath" ]]; then
-        echo "Unable to read ZenPack file: '$hostZenpackPath'"
+    if [[ ! -r "$zenpackPath" ]]; then
+        echo "Unable to read ZenPack file: '$zenpackPath'"
         echo "The ZenPack must be located in the current working directory and must be specified with a relative path."
         return 1
     fi
 
-    zenpack --install "$containerZenpackPath" "$@"
+    zenpack --install "$@"
     return $?
 }
 
