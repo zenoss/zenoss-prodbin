@@ -9,7 +9,9 @@ YZP.Registry = [];
 function register_portlet(klass, name) {
     if (klass in YZP) {
         var constructor = YZP[klass];
-        YZP.Registry.push([constructor, name]);
+        if (Zenoss.PortletManager.fireEvent('beforeregister', name)) {
+            YZP.Registry.push([constructor, name]);
+        }
     }
 }
 YZP.register_portlet = register_portlet;
@@ -1004,3 +1006,5 @@ YZP.PortletEvents = Ext.create('Ext.util.Observable', {});
 YZP.PortletEvents.addEvents('restoredefaults');
 // Tell the loader we're all done!
 YAHOO.register("portlet", YZP, {});
+
+Zenoss.PortletManager.fireEvent('ready', YZP);
