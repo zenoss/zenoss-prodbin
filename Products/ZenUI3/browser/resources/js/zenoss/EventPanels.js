@@ -1593,7 +1593,9 @@
                         "status=1,width=600,height=500,resizable=1");
         },
         setContext: function(uid){
-            Zenoss.EventGridPanel.superclass.setContext.call(this, uid);
+            if (uid) {
+                this.uid = uid
+            }
 
             var toolbar = this.getDockedItems('toolbar')[0];
             if (toolbar && Ext.isDefined(toolbar.setContext)) {
