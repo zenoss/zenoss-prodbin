@@ -1312,6 +1312,34 @@
         onItemClick: function(){
             this.getSelectionModel().clearSelectState();
         },
+        setGetFilterParameters: function() {
+            var params = Ext.Object.fromQueryString(location.search), 
+                cleared = false;
+            Ext.each(["severity", "eventState", "device", "component", "eventClass"], function(param) {
+                var v = params[param];
+                if (Ext.isDefined(v)) {
+                    if (!cleared) {
+                        // Clear filters first if anything is set, so we don't merge with existing state
+                        this.clearFilters();
+                        cleared = true;
+                    }
+                    // Do any modification of the values
+                    switch (param) {
+                        case "eventState":
+                        case "severity":
+                            v = v.split(',').map(function(item) {
+                              return parseInt(item, 10);
+                            });
+                            break;
+                        default:
+                            // Let it go through
+                            break;
+                    }
+                    // Set the filter value
+                    this.setFilter(param, v);
+                }
+            }, this);
+        },
         listeners: {
             beforerender: function(){
                 this.rowcolors = Ext.state.Manager.get('rowcolor');
@@ -1325,6 +1353,8 @@
                 var excludeNonActionablesCheckItem = Ext.getCmp('excludenonactionables_checkitem');
                 if (excludeNonActionablesCheckItem)
                     excludeNonActionablesCheckItem.setChecked(this.excludeNonActionables);
+
+                this.setGetFilterParameters();
             }
         },
         applyOptions: function() {
