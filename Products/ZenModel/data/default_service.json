@@ -307,11 +307,13 @@
         }
     },
     "RAMCommitment": %(ZenPack.Default.RAMCommitment)d,
-    "Volumes": {
-        "Owner": "zenoss:zenoss",
-        "Permission": "0755",
-        "ResourcePath": ".ssh",
-        "ContainerPath": "/home/zenoss/.ssh",
-        "Type":""
-    }
+    "Volumes": [
+        {
+            "Owner": "zenoss:zenoss",
+            "Permission": "0755",
+            "ResourcePath": ".ssh",
+            "ContainerPath": "/home/zenoss/.ssh",
+            "Type":""
+        }
+    ]
 }
