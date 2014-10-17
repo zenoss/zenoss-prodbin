@@ -31,7 +31,7 @@ ipInterfaceStatusTemplate.compile();
 
 function convertToUnits(num, divby, unitstr, places){
     unitstr = unitstr || "B";
-    places = places || 2;
+    places = Ext.isDefined(places) ? places : 2;
     divby = divby || 1024.0;
     var units = [];
     Ext.each(['', 'K', 'M', 'G', 'T', 'P'], function(p){
@@ -53,23 +53,23 @@ function convertToUnits(num, divby, unitstr, places){
 }
 
 function pingStatusBase(bool) {
-	/*
-	 * The "bool" variable can be null, undefined, a string, or a boolean.
-	 * We need to handle all cases and also make sure they are
-	 * handled in proper order.
-	 */
-	if (bool == null || !Ext.isDefined(bool)) {
+    /*
+     * The "bool" variable can be null, undefined, a string, or a boolean.
+     * We need to handle all cases and also make sure they are
+     * handled in proper order.
+     */
+    if (bool == null || !Ext.isDefined(bool)) {
         return 'Unknown';
     }
-    
+
     if(Ext.isString(bool)){
-    	if(bool.toLowerCase() == "none"){
-    		return 'Unknown';
-    	}else{
-    		bool = bool.toLowerCase() == 'up';
-    	}
+        if(bool.toLowerCase() == "none"){
+            return 'Unknown';
+        }else{
+            bool = bool.toLowerCase() == 'up';
+        }
     }
-    
+
     var str = bool ? 'Up' : 'Down';
     return str;
 }
@@ -84,13 +84,17 @@ Ext.apply(Zenoss.render, {
         return (mb === 0) ? '0' : convertToUnits(mb, 1024.0, 'B', 2);
     },
 
+    link_speed: function(bps) {
+      return (bps===0) ? '0': convertToUnits(bps, 1000.0, 'bps', 0);
+    },
+
     cpu_speed: function(speed) {
         if (speed) {
             var n = parseFloat(speed);
             if (isNaN(n)) {
                 return speed;
             } else {
-                return convertToUnits(n, 1000, 'Hz', 2)
+                return convertToUnits(n, 1000, 'Hz', 2);
             }
         } else {
             return speed;
