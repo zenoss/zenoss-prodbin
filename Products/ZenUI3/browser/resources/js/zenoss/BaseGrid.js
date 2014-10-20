@@ -537,7 +537,7 @@
             Ext.applyIf(viewConfig, {
                 autoScroll:false,
                 stripeRows:true,
-                loadMask:true,
+                loadMask:false,
                 preserveScrollOnRefresh: true
             });
 
@@ -709,7 +709,7 @@
                 if (this.getStore().buffered)
                     paging_tb.hide();
                 else {
-                    paging_tb.on('beforechange', this.scrollToTop, this)
+                    paging_tb.on('beforechange', this.scrollToTop, this);
                     paging_tb.bindStore(this.getStore());
                     paging_tb.down('#refresh').hide();
                 }
@@ -763,7 +763,8 @@
             } else {
                 // need to refresh the current rows, without changing the scroll position
                 var start = Math.max(store.lastRequestStart, 0),
-                    end = Math.min(start + store.pageSize - 1, store.totalCount);
+                    end = Math.min(start + store.pageSize - 1, store.totalCount),
+                    page = store.pageMap.getPageFromRecordIndex(end);
                 // make sure we do not have any records in cache
                 store.pageMap.removeAtKey(page);
 
