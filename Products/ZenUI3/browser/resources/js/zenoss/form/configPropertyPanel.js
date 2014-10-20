@@ -76,7 +76,7 @@
             xtype: Zenoss.Security.doesNotHavePermission('zProperties Edit') ? 'password' : 'textfield'
         },
         'zEventSeverity': {
-            xtype: 'severity'
+            xtype: 'defaultseverity'
         },
         'zFailSeverity': {
             xtype: 'severity'
