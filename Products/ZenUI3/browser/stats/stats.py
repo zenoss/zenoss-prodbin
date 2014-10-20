@@ -27,7 +27,7 @@ from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenUtils.cstat import CStat
 _LOG = logging.getLogger('zen.stats')
 
-from Products.ZenUtils.ZopeRequestLogger import ZopeRequestLogger
+from Products.ZenUtils.requestlogging.ZopeRequestLogger import ZopeRequestLogger
 _request_logger = ZopeRequestLogger()
 
 # hook in to Web Server's Request Events so that
@@ -41,8 +41,7 @@ def logRequestStartAfterTraversal(event):
     # When IPubAfterTraversal is triggered the request body is available
     # in event.request
     try:
-        event.request._data_to_log = _request_logger.get_data_to_log(event.request, event.request._start)
-        _request_logger.log_request(event.request._data_to_log)
+        _request_logger.log_request(event.request)
     except:
         pass
 
@@ -56,9 +55,7 @@ def logRequestEnd(event):
     _REQUEST_TIME.save(elapsed, ts)
 
     try:
-        if not hasattr(event.request, '_data_to_log'):
-            event.request._data_to_log = _request_logger.get_data_to_log(event.request, event.request._start)
-        _request_logger.log_request(event.request._data_to_log, finished=True)
+        _request_logger.log_request(event.request, finished=True)
     except:
         pass
 

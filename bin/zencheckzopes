@@ -17,9 +17,9 @@ different user.
 else
     . $ZENHOME/bin/zenfunctions
 	if [ -z "$CMD" ]; then
-    	$PYTHON $ZENHOME/Products/ZenUtils/ZenCheckZopesAssignments.py 
+    	$PYTHON $ZENHOME/Products/ZenUtils/requestlogging/ZenCheckZopesAssignments.py 
     else
-    	$PYTHON $ZENHOME/Products/ZenUtils/ZenCheckZopesAssignments.py "$CMD" $*
+    	$PYTHON $ZENHOME/Products/ZenUtils/requestlogging/ZenCheckZopesAssignments.py "$CMD" $*
 	fi
     
 fi
