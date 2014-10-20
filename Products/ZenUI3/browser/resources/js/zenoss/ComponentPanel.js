@@ -798,7 +798,7 @@ Ext.define("Zenoss.component.IpInterfacePanel", {
                 id: 'name',
                 dataIndex: 'name',
                 header: _t('IP Interface'),
-                width: 150
+                width: 250
             },{
                 id: 'ipAddresses',
                 dataIndex: 'ipAddressObjs',
