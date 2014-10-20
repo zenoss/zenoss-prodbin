@@ -1,14 +1,16 @@
 // A zoom behaviour that works on two elements simultaneously, providing multiple zoom behaviours
 
 function MinimapZoom() {
-    
+
     var cb = null;
-     
+
     var mainZoom = d3.behavior.zoom().on("zoom", function() {
         zoom.scale(d3.event.scale).translate(d3.event.translate);
         if (cb) cb();
+    }).on("zoomstart", function() {
+        d3.event.sourceEvent.preventDefault();
     });
-    
+
     var minimapZoom = d3.behavior.zoom().on("zoom", function() {
         var mouse = d3.mouse(d3.select(this).select(".minimap").node());
         var viewport = d3.select(this).select(".viewfinder").node().getBBox();

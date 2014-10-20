@@ -230,13 +230,16 @@
             });
 
             edges.on("click", function(d){
+                if (d3.event.defaultPrevented) return;
                 me.fireEvent('edgeclicked', me.graph.edges[d.id]);
             });
             largeEdges.on("click", function(d){
+                if (d3.event.defaultPrevented) return;
                 me.fireEvent('edgeclicked', me.graph.edges[d.id]);
             });
 
             nodes.on("click", function(d){
+                if (d3.event.defaultPrevented) return;
                 me.fireEvent('nodeclicked', d);
             });
 
