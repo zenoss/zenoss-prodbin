@@ -19,7 +19,7 @@ Ext.onReady(function(){
                 xtype: 'fieldset',
                 margin: '0 15px 20px 0',
                 items:[
-                    {                 
+                    {
                         xtype: 'panel',
                         layout: 'hbox',
                         items: [
@@ -71,7 +71,7 @@ Ext.onReady(function(){
                 xtype: 'fieldset',
                 margin: '0 15px 20px 0',
                 items:[
-                    { 
+                    {
                         xtype: 'panel',
                         layout: 'hbox',
                         items: [
@@ -261,12 +261,28 @@ Ext.onReady(function(){
         stateId: 'man_tree',
         ddAppendOnly: true,
         selectByToken: function(nodeId){
-            var me = this;
-            this.store.on('load', function(){
-                var node = me.getRootNode().findChild("id", nodeId, true);
-                me.getView().select(node);              
-            }, this, {single:true})
-            
+            var pieces = nodeId.split(":"),
+                me = this, mId;
+            if (pieces.length > 0) {
+                mId = Ext.Object.fromQueryString("uid=" + pieces[0]).uid;
+                this.store.on('load', function(){
+                    var node = me.getRootNode().findChild("id", mId, true);
+                    me.getView().select(node);
+                }, this, {single:true});
+
+                // see if we are deeplinking to a product class
+                if (pieces.length === 2) {
+                    var productClassId = pieces[1];
+                    // when the product class grid is ready attach a load
+                    // listener so we can select the product class
+                    Zenoss.util.callWhenReady('productsgrid_id', function() {
+                        var grid = Ext.getCmp('productsgrid_id');
+                        grid.getStore().on('load', function() {
+                            grid.selectByToken(productClassId);
+                        }, grid, {single: true});
+                    });
+                }
+            }
         },
         root: {
             id: '.zport.dmd.Manufacturers',
