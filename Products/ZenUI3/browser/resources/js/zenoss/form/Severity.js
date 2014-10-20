@@ -47,5 +47,17 @@
         }
     });
 
+    Ext.define("DefaultSeverity", {
+        alias:['widget.defaultseverity'],
+        extend:"Severity",
+        constructor: function(config) {
+            var severities = [[-1, "Default"], [0, "Critical"], [1, "Error"], [2, "Warning"], [3, "Info"], [4, "Debug"], [5, "Clear"]];
+            config = config || {};
+            Ext.applyIf(config, {
+                store: severities
+            });
+            this.callParent(arguments);
+        }
+    });
 
 }());
