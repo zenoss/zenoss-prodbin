@@ -516,6 +516,8 @@ Ext.define("Zenoss.component.ComponentPanel", {
                     },
                     selectionchange: function(sm, selected) {
                         var row = selected[0];
+
+                        // top grid selection change
                         if (row) {
                             // When infinite grids are resized the "selectionchange" event can be fired
                             // even though the selected row hasn't changed.. This can be very expensive and cause rendering
