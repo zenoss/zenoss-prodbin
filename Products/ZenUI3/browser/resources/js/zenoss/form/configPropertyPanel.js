@@ -118,7 +118,7 @@
             fieldLabel: data.label || Zenoss.zproperties.inferZPropertyLabel(data.id),
             value: data.value,
             ref: 'editConfig',
-            checked: data.value,
+            checked: data.value || data.valueAsString,
             name: data.id,
             width: 250
         });
@@ -398,7 +398,7 @@
                             if(typeof v === "object"){
                                 v = JSON.stringify(v);
                             }
-                            
+
                             return Ext.htmlEncode(v);
                         },
                         sortable: false
