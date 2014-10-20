@@ -141,7 +141,7 @@ def _getPill(summary, url=None, number=3):
     iconTemplate = """
         <td class="severity-icon-small
             %(severity)s %(cssclass)s"
-            title="%(upper_severity)s: %(acked)s out of %(total)s events awknowledged">
+            title="%(upper_severity)s: %(acked)s out of %(total)s events acknowledged">
             %(total)s
         </td>
     """
