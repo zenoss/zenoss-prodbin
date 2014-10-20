@@ -14,7 +14,7 @@ Ext.ns('Zenoss.render');
 
 // templates for the events renderer
 var iconTemplate = new Ext.Template(
-    '<td class="severity-icon-small {severity} {cssclass}" title="{acked} out of {total} acknowledged">{total}</td>');
+    '<td class="severity-icon-small {severity} {cssclass}" title="{severity:uppercase()}: {acked} out of {total} events acknowledged">{total}</td>');
 iconTemplate.compile();
 
 var rainbowTemplate = new Ext.Template(
