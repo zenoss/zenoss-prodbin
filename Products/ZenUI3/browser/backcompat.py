@@ -32,10 +32,14 @@ def EventClass(ob):
 def DeviceClass(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/itinfrastructure#devices:' + id
-    
+
 def Manufacturer(ob):
-    id = '.'.join(ob.getPhysicalPath())
-    return 'zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers' + id    
+    return 'zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.' + ob.id
+
+def ProductClass(ob):
+    mId = ob.manufacturer().id
+    id = '/'.join(ob.getPhysicalPath())
+    return 'zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.' + mId + ':' + id
 
 
 def Location(ob):

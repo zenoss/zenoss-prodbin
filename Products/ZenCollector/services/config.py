@@ -389,12 +389,16 @@ class CollectorConfigService(HubService, ThresholdMixin):
         prev_collector = device.dmd.Monitors.primaryAq().getPreviousCollectorForDevice(device.id)
         for listener in self.listeners:
             if not proxies:
-                # The invalidation is only sent to the previous and current collectors
-                if self.instance in ( prev_collector,  device.getPerformanceServer().getId() ):
-                    self.log.debug('Invalidation: Performing remote call for device {0} on collector {1}'.format(device.id, self.instance))
-                    deferreds.append(listener.callRemote('deleteDevice', device.id))
+                if hasattr(device, 'getPerformanceServer'):
+                    # The invalidation is only sent to the previous and current collectors
+                    if self.instance in ( prev_collector, device.getPerformanceServer().getId() ):
+                        self.log.debug('Invalidation: Performing remote call for device {0} on collector {1}'.format(device.id, self.instance))
+                        deferreds.append(listener.callRemote('deleteDevice', device.id))
+                    else:
+                        self.log.debug('Invalidation: Skipping remote call for device {0} on collector {1}'.format(device.id, self.instance))
                 else:
-                    self.log.debug('Invalidation: Skipping remote call for device {0} on collector {1}'.format(device.id, self.instance))
+                    deferreds.append(listener.callRemote('deleteDevice', device.id))
+                    self.log.debug('Invalidation: Performing remote call for device {0} on collector {1}'.format(device.id, self.instance))
             else:
                 options = self.listenerOptions.get(listener, None)
                 deviceFilter = self._getOptionsFilter(options)
