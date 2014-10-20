@@ -97,7 +97,6 @@ Zenoss.nav.register({
             if (!Ext.get('graph_panel')) {
                 target.add(graphs);
             }
-
             target.layout.setActiveItem(cardid);
             target.layout.activeItem.setContext(uid);
         }
@@ -516,9 +515,18 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         this.componentnavcombo.reset();
                     },
                     selectionchange: function(sm, selected) {
-                        // top grid selection change
                         var row = selected[0];
+
+                        // top grid selection change
                         if (row) {
+                            // When infinite grids are resized the "selectionchange" event can be fired
+                            // even though the selected row hasn't changed.. This can be very expensive and cause rendering
+                            // errors when the layout manager tries to render the layouts of things that have already
+                            // been removed.
+                            if (this.previousRow && this.previousRow.id === row.id) {
+                                return;
+                            }
+                            this.previousRow = row;
                             this.detailcontainer.removeAll();
                             this.componentnavcombo.reset();
                             Zenoss.env.compUUID = row.data.uuid;
