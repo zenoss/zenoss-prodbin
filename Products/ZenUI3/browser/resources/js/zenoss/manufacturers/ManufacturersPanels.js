@@ -407,13 +407,20 @@ Ext.onReady(function(){
                             Ext.getCmp('products_toolbar').setDisabled(false);
                         });
                     },
-                    select: function(e){
-                            var bar = Ext.getCmp('products_toolbar');
+                    select: function(e, record){
+                        var bar = Ext.getCmp('products_toolbar');
                         if(e.getCount() > 1){
                             bar.items.items[2].setDisabled(true);
                         }else{
                             bar.items.items[2].setDisabled(false);
                         }
+                        var token = Ext.History.getToken().split(":");
+                        var newToken = Ext.String.format("{0}:{1}:{2}",
+                                                         token[0],
+                                                         token[1],
+                                                         record.get('uid')
+                                                         );
+                        Ext.History.add(newToken);
                     }
                 },
                 columns: [
@@ -455,6 +462,17 @@ Ext.onReady(function(){
             });
             this.callParent(arguments);
             this.on('itemdblclick', this.onRowDblClick, this);
+        },
+        selectByToken: function(id) {
+            // decode the id
+            var uid = Ext.Object.fromQueryString("uid=" + id).uid;
+            var idx = this.getStore().findExact('uid', uid), record, view = this.getView();
+
+            if (idx != -1) {
+                record = this.getStore().getAt(idx);
+                this.getSelectionModel().select(record);
+                view.focusRow(idx);
+            }
         },
         setContext: function(uid) {
             this.uid = uid;
