@@ -904,5 +904,5 @@ class EventsRouter(DirectRouter):
             return DirectResponse.fail(msg=str(ex))
         audit('UI.Event.UpdateEventDetails', self.context, evid=evid,
               details=detailInfo)
-        return DirectResponse.succeed(status=resp['status'])
+        return DirectResponse.succeed(status=resp[0]['status'])
 
