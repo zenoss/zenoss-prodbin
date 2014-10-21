@@ -80,13 +80,13 @@ class SearchRouter(DirectRouter):
         securityManager = getSecurityManager()
         return securityManager.getUser()._login
 
-    def getLiveResults(self, query):
+    def getLiveResults(self, query, maxResults=100):
         """
         Returns IQuickSearchResultSnippets for the results of the query.
         """
         facade = self._getFacade()
         results = facade.getQuickSearchResults(query,
-                                               _RESULT_SORTER)
+                                               _RESULT_SORTER, maxResults=maxResults)
         snippets = []
 
         for result in results['results']:
