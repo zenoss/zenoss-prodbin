@@ -173,9 +173,9 @@ class MySshClient(SshClient):
         # member variable for zenmodeler
         d = self.command_defers.pop(command, None)
         if d is None:
-            log.error("Internal error where deferred object not in dictionary." \
+            log.error("Internal error where deferred object not in dictionary for %s." \
                       " Command = '%s' Data = '%s' Code = '%s' Stderr = '%s'",
-                      command.split()[0], data, code, stderr)
+                      self.description, command.split()[0], data, code, stderr)
         elif not d.called:
             d.callback((data, code, stderr))
 
