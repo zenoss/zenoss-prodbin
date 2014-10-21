@@ -62,6 +62,7 @@
                                }
                                });
             "></script>
+
         <input type="hidden" name="startDate" id="startDate"
            readonly="true"
            tal:attributes="
@@ -107,12 +108,40 @@
         <td class="tablevalues" tal:condition="not:editable"
                 tal:content="here/repeat"/>
         <td tal:condition="editable" class="tablevalues">
-      <select class="tablevalues" name="repeat">
+        <div id="repeatOptions">
+      <select class="tablevalues" name="repeat" id="repeat" onChange="showDaysChoice()">
         <option class="tablevalues"
             tal:repeat="e here/repeatOptions"
             tal:content="e"
             tal:attributes="value e; selected python:e==here.repeat"/>
       </select>
+      <span id="daysChoice">
+          <select class="tablevalues" name="occurrence">
+            <option class="tablevalues"
+                tal:repeat="e here/occurrenceOptions"
+                tal:content="e"
+                tal:attributes="value e; selected python:e==here.occurrence"/>
+          </select>
+          <select class="tablevalues" name="days">
+            <option class="tablevalues"
+                tal:repeat="e here/daysOptions"
+                tal:content="e"
+                tal:attributes="value e; selected python:e==here.days"/>
+          </select>
+      </span>
+                <script tal:content="string:
+                function showDaysChoice() {
+                    var myselect = document.getElementById('repeat');
+                    var myDaysChoice = document.getElementById('daysChoice');
+                    if (myselect.options[myselect.selectedIndex].index == 5) {
+                        myDaysChoice.style.display = 'inline';
+                    } else {
+                        myDaysChoice.style.display = 'none';
+                    }
+                }
+                showDaysChoice();
+            "></script>
+        </div>
         </td>
     </tr>
     <tr>
