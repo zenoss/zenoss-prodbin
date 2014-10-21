@@ -176,6 +176,7 @@ fresh_install_post() {
 
     # run the first time initialization post-run script
     ${ZENHOME}/bin/zenoss_init_post
+    set_perms
 
     echo "Zenoss installation completed."
 }
