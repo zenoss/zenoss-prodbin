@@ -178,8 +178,16 @@ class DeviceFacade(TreeFacade):
         total = len(comps)
         hash_ = str(total)
 
+        def componentSortKey(parent):
+            val = getattr(parent, sort)
+            if callable(val):
+                val = val()
+            if IInfo.providedBy(val):
+                val = val.name
+            return val
+
         # sort the components
-        sortedResults = list(sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse))
+        sortedResults = list(sorted(comps, key=componentSortKey, reverse=reverse))
 
         # limit the search results to the specified range
         if limit is None:
