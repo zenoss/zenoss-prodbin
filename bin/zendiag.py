@@ -82,10 +82,6 @@ commands = [
                     '-e', 'show status')),
     ('heartbeats', ('mysql', '--defaults-file=%s' % mysqlcreds,
                     '-e', 'select * from heartbeat')),
-    ('eventCount', ('mysql', '--defaults-file=%s' % mysqlcreds,
-                    '-e', 'select count(*) from status')),
-    ('historyCount', ('mysql', '--defaults-file=%s' % mysqlcreds,
-                      '-e', 'select count(*) from history')),
     ('mysqlstatus', ('mysql', '--defaults-file=%s' % mysqlcreds,
                     '-e', 'select * from status')),
     ('mysqladmin status', ('mysqladmin', '-uroot', 'status')),
@@ -127,6 +123,21 @@ def mysqlfiles():
         except OSError, ex:             # permission denied
             pass
     return ''
+
+
+def eventStats():
+    try:
+        import Globals
+        from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+        from Products.Zuul import getFacade
+        zsb = ZenScriptBase(noopts=True, connect=True)
+        zsb.getDataRoot()
+        zepfacade = getFacade('zep')
+        statsList = zepfacade.getStats()
+        return '\n\n'.join([str(item) for item in statsList])
+    except Exception, ex:
+        log = logging.getLogger('zendiag')
+        log.exception(ex)
 
 
 def zenossInfo():
@@ -240,6 +251,7 @@ def zenossInfo():
         return '\n'.join(return_data)
 
     except Exception, ex:
+        log = logging.getLogger('zendiag')
         log.exception(ex)
 
 def md5s():
@@ -293,6 +305,7 @@ functions = [
     ('hubConn', zenhubConnections, (), {}),
     ('mysqlfiles', mysqlfiles, (), {}),
     ('zenossInfo', zenossInfo, (), {}),
+    ('eventStats', eventStats, (), {}),
     ('md5s', md5s, (), {}),
     ]
 
@@ -326,7 +339,7 @@ def getmysqlcreds():
         mysqlport = dmd.ZenEventManager.port
         mysqlhost = dmd.ZenEventManager.host
     except Exception, ex:
-        log.exception("Unable to open the object database for "
+        log.exception("Unable to open global.conf for "
                       "mysql credentials")
         pass
     os.write(fd, '''[client]
