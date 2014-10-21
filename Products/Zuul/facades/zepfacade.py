@@ -18,11 +18,13 @@ from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
 
 from zenoss.protocols.interfaces import IQueueSchema
-from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
+from zenoss.protocols.services.zep import ZepStatsClient, ZepServiceClient, \
+                                        EventSeverity, ZepConfigClient, \
+                                        ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import (
     EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig, EventNote,
-    EventSummaryUpdate, EventDetailSet,
+    EventSummaryUpdate, EventDetailSet, ZepStatistics
 )
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils import safeTuple
@@ -111,6 +113,7 @@ class ZepFacade(ZuulFacade):
         self.configClient = ZepConfigClient(zep_url, schema)
         self.heartbeatClient = ZepHeartbeatClient(zep_url, schema)
         self._guidManager = IGUIDManager(context.dmd)
+        self.statsClient = ZepStatsClient(zep_url, schema)
 
     def _create_identifier_filter(self, value):
         if not isinstance(value, (tuple, list, set)):
@@ -908,14 +911,26 @@ class ZepFacade(ZuulFacade):
         Given an evid, update the detail key/value pairs in ZEP.
         """
 
-        if len(detailInfo) == 1 and isinstance(detailInfo.values()[0],EventDetailSet):
-            return self.client.updateDetails(evid,detailInfo.values()[0])
+        if len(detailInfo) == 1 and isinstance(detailInfo.values()[0], EventDetailSet):
+            return self.client.updateDetails(evid, detailInfo.values()[0])
 
         detailSet = EventDetailSet()
         for key, value in detailInfo.items():
             detailSet.details.add(name=key, value=(value,))
 
         return self.client.updateDetails(evid, detailSet)
+
+    def getStats(self):
+        response, stats = self.statsClient.get()
+        statsList = []
+        for stat in stats.stats:
+            myst = {}
+            myst['name'] = stat.name
+            myst['description'] = stat.description
+            myst['value'] = stat.value
+            statsList.append(myst)
+        return statsList
+
 
 
 class ZepDetailsInfo:
