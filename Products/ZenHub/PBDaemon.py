@@ -52,6 +52,14 @@ from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 
 
+#field size limits for events
+DEFAULT_LIMIT=524288  #512k
+LIMITS={
+    'summary':256,
+    'message':4096
+}
+
+
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
     """Exception that can cross the PB barrier"""
 
@@ -830,13 +838,21 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """ Add event to queue of events to be sent.  If we have an event
         service then process the queue.
         """
-        if not reactor.running: return
-        event = event.copy()
-        event['agent'] = self.name
-        event['monitor'] = self.options.monitor
-        event['manager'] = self.fqdn
-        event.update(kw)
-        return event
+        if not reactor.running:
+            return
+        eventCopy = {}
+        for k, v in chain(event.items(), kw.items()):
+            if isinstance(v, basestring):
+                #default max size is 512k
+                size = LIMITS.get(k, DEFAULT_LIMIT)
+                eventCopy[k] = v[0:size] if len(v)>size else v
+            else:
+                eventCopy[k] = v
+
+        eventCopy['agent'] = self.name
+        eventCopy['monitor'] = self.options.monitor
+        eventCopy['manager'] = self.fqdn
+        return eventCopy
 
     @defer.inlineCallbacks
     def pushEventsLoop(self):
