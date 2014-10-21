@@ -755,7 +755,7 @@
             this.saveSelection();
             var store = this.getStore();
 
-            if (! store.buffered) {
+            if (! store.buffered || store.totalCount < store.pageSize) {
                 store.load({
                     callback: callback,
                     scope: scope || this
