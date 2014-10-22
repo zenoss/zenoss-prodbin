@@ -336,8 +336,8 @@ class SearchFacade(ZuulFacade):
         @param query query string
         @return list of ISearchResult-implementing objects
         """
-        return self._getSearchResults(query,
-                                      resultSorter=resultSorter, maxResults=maxResults)
+        return self._getSearchResults(query, resultSorter=resultSorter,
+                maxResults=maxResults)
 
     def getSavedSearchesByUser(self):
         """
