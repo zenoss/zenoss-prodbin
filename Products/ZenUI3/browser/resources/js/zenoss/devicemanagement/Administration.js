@@ -375,7 +375,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                     model: 'Zenoss.model.Name',
                                     data: [
                                         ['Never'],['Daily'],['Every Weekday'],['Weekly'],
-                                        ['Monthly'],['First Sunday of the Month']
+                                        ['Monthly: day of month'],['Monthly: day of week']
                                     ]
                                 })                
                             },{
