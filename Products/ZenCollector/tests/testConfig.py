@@ -35,7 +35,7 @@ class MyCollector(object):
         def remote_getDeviceConfigs(self, devices=[]):
             return defer.succeed(['hmm', 'foo', 'bar'])
 
-        def callRemote(self, methodName, *args):
+        def callRemote(self, methodName, *args, **kwargs):
             if methodName is 'getConfigProperties':
                 return self.remote_propertyItems()
             elif methodName is 'getThresholdClasses':
@@ -74,7 +74,7 @@ class TestConfig(BaseTestCase):
 
         cfgService = ConfigurationProxy()
         prefs = MyPrefs()
-        d = cfgService.getPropertyItems(prefs, None)
+        d = cfgService.getPropertyItems(prefs)
         d.addBoth(validate)
         return d
 
