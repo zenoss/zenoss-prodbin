@@ -17,6 +17,11 @@ from Products.ZenUtils.controlplane.application import (
 )
 
 
+class _TestDeployedAppLookup(DeployedAppLookup):
+    def getTenantId(self):
+        return "abc123"
+
+
 class _MockClient(object):
 
     def __init__(self, **kwargs):
@@ -74,8 +79,8 @@ class DeployedAppTest(BaseTestCase):
     """
     """
     def test001(self):
-        DeployedAppLookup.clientClass = _MockClient
-        lookup = DeployedAppLookup()
+        _TestDeployedAppLookup.clientClass = _MockClient
+        lookup = _TestDeployedAppLookup()
         result = lookup.query()
         self.assertEqual(result, ())
 
@@ -83,8 +88,8 @@ class DeployedAppTest(BaseTestCase):
         data = {
             (service1.id, tuple(service1.tags)): service1,
         }
-        DeployedAppLookup.clientClass =  functools.partial(_MockClient, data=data)
-        lookup = DeployedAppLookup()
+        _TestDeployedAppLookup.clientClass = functools.partial(_MockClient, data=data)
+        lookup = _TestDeployedAppLookup()
         result = lookup.query()
         self.assertEqual(len(result), 1)
         app = result[0]
