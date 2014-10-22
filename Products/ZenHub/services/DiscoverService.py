@@ -152,7 +152,7 @@ class DiscoverService(ModelerService):
         deviceName = kw['deviceName']
         if deviceName:
             device = self.dmd.Devices.findDeviceByIdExact(deviceName)
-            if all((device, device.manageIp, not device._temp_device,
+            if device and all((device.manageIp, not device._temp_device,
                     ip != device.manageIp)):
                 kw['deviceName'] = ip
                 kw['title'] = deviceName
