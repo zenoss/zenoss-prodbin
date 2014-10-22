@@ -733,13 +733,13 @@ class DeviceRouter(TreeRouter):
                 if isinstance(device, Device):
                     oldStates[uid] = self.context.convertProdState(device.productionState)
 
-            facade.setProductionState(uids, prodState)
             prodStateName = self.context.convertProdState(prodState)
 
             auditData = {'productionState': prodStateName}
             for uid in uids:
                 oldAuditData = {'productionState': oldStates[uid]}
                 audit('UI.Device.Edit', uid, oldData_=oldAuditData, data_=auditData)
+            facade.setProductionState(uids, prodState, asynchronous=True)
             return DirectResponse('Set %s devices to %s.' % (
                 len(uids), prodStateName))
         except Exception, e:
