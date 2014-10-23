@@ -341,16 +341,19 @@ class DeviceFacade(TreeFacade):
                               osManufacturer=osManufacturer,
                               osProductName=osProductName)
 
-    def setProductionState(self, uids, state):
-        devids = []
-        if isinstance(uids, basestring):
-            uids = (uids,)
-        for uid in uids:
-            dev = self._getObject(uid)
-            if isinstance(dev, Device):
-                dev.setProdState(int(state))
-                devids.append(dev.id)
-        return devids
+    def setProductionState(self, uids, state, asynchronous=False):
+        if asynchronous:
+            self._dmd.JobManager.addJob(
+                FacadeMethodJob,
+                description="Set state %s for %s" % (state, ','.join(uids)),
+                kwargs=dict(
+                    facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
+                    method="_setProductionState",
+                    uids=uids,
+                    state=state
+                ))
+        else:
+            self._setProductionState(uids, state)
 
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):
@@ -422,6 +425,14 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
         return exports
+
+    def _setProductionState(self, uids, state):
+        if isinstance(uids, basestring):
+            uids = (uids,)
+        for uid in uids:
+            dev = self._getObject(uid)
+            if isinstance(dev, Device):
+                dev.setProdState(int(state))
 
     @info
     def moveDevices(self, uids, target, asynchronous=True):
