@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,13 +12,13 @@ from zope.interface import implements
 from zope.component import adapts
 
 from Products.Zuul.interfaces import IComponentInfo, IComponent
-from Products.Zuul.infos import InfoBase, ProxyProperty, HasEventsInfoMixin, LockableMixin
+from Products.Zuul.infos import InfoBase, ProxyProperty, HasEventsInfoMixin, LockableMixin, BulkLoadMixin
 from Products.Zuul.form.builder import FormBuilder
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 
-class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
+class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin, BulkLoadMixin):
     implements(IComponentInfo)
     adapts(IComponent)
 
