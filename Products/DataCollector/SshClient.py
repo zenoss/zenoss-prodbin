@@ -566,13 +566,9 @@ class CommandChannel(channel.SSHChannel):
     """
     name = 'session'
     conn = None
-    # Set default environment variables to not be locale-specific
-    DEFAULT_ENV = {
-        'LC_ALL': 'C',
-        'LANG': 'C',
-    }
 
-    def __init__(self, command, conn=None, env=None):
+
+    def __init__(self, command, conn=None):
         """
         Initializer
 
@@ -580,13 +576,10 @@ class CommandChannel(channel.SSHChannel):
         @type command: string
         @param conn: connection to create the channel on
         @type conn: Twisted connection object
-        @param env: Environment variables to set before executing command.
-        @type env: dict
         """
         channel.SSHChannel.__init__(self, conn=conn)
         self.command = command
         self.exitCode = None
-        self.env = env if env is not None else CommandChannel.DEFAULT_ENV
 
     @property
     def targetIp(self):
@@ -645,16 +638,6 @@ class CommandChannel(channel.SSHChannel):
                   self.targetIp, self.conn.localChannelID, self.command)
         self.data = ''
         self.stderr = ''
-
-        # Send environment variables
-        for name, value in self.env.iteritems():
-            log.debug("Setting environment variable: %s=%s", name, value)
-            try:
-                data = common.NS(name) + common.NS(value)
-                yield self.conn.sendRequest(self, 'env', data, wantReply=1)
-            except Exception as e:
-                log.warn("Failed to set %s environment variable: %s", name, e)
-
 
         #  Notes for sendRequest:
         # 'exec'      - execute the following command and exit
