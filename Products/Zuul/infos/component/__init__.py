@@ -12,13 +12,13 @@ from zope.interface import implements
 from zope.component import adapts
 
 from Products.Zuul.interfaces import IComponentInfo, IComponent
-from Products.Zuul.infos import InfoBase, ProxyProperty, HasEventsInfoMixin, LockableMixin, BulkLoadMixin
+from Products.Zuul.infos import InfoBase, ProxyProperty, HasEventsInfoMixin, LockableMixin, BulkMetricLoadMixin
 from Products.Zuul.form.builder import FormBuilder
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 
-class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin, BulkLoadMixin):
+class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin, BulkMetricLoadMixin):
     implements(IComponentInfo)
     adapts(IComponent)
 

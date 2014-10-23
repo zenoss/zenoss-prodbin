@@ -196,7 +196,7 @@ class DeviceFacade(TreeFacade):
             pagedResult = sortedResults[start:start + limit]
 
         # fetch any rrd data necessary
-        self._bulkLoadRRDData(pagedResult)
+        self.bulkLoadMetricData(pagedResult)
 
         return SearchResults(iter(pagedResult), total, hash_, False)
 
@@ -205,7 +205,7 @@ class DeviceFacade(TreeFacade):
         return self._componentSearch(uid, types, meta_type, start, limit,
                                        sort, dir, name=name, keys=keys)
 
-    def _bulkLoadRRDData(self, infos):
+    def bulkLoadMetricData(self, infos):
         """
         If the info objects have the attribute dataPointsToFetch we
         will load all the datapoints in one metric service query
