@@ -2,7 +2,7 @@
 	tableName string: memoryutilreport;
     tm here/ZenTableManager;
     tableState python:tm.getTableState(tableName, sortedHeader='availableReal',
-                                           sortedSence='desc');
+                                       sortedSence='desc', sortRule='zencmp');
 
     sts python:here.ZenTableManager.setReqTableState;
     zem python:here.dmd.ZenEventManager;
@@ -22,8 +22,9 @@
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
 	batch python:here.ZenTableManager.getBatch(tableName,
 	                                           objects,
-	                                           sortedHeader='availableReal', 
-	                                           sortedSence='desc');
+	                                           sortedHeader='availableReal',
+	                                           sortedSence='desc',
+	                                           sortRule='zencmp');
     exportFields python:['deviceName', 'totalReal', 'availableReal', 'cached',
  						'buffered', 'percentUsed'];
 ">
@@ -47,17 +48,17 @@
 
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'deviceName','Device')"/>
+                            tableName,'deviceName','Device', sortRule='zencmp')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'totalReal','Total')"/>
+                            tableName,'totalReal','Total', sortRule='zencmp')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'availableReal','Available')"/>
+                            tableName,'availableReal','Available', sortRule='zencmp')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'cached','Cache Memory')"/>
+                            tableName,'cached','Cache Memory', sortRule='zencmp')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'buffered','Buffered Memory')"/>
+                            tableName,'buffered','Buffered Memory', sortRule='zencmp')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'percentUsed','% Util')"/>
+                            tableName,'percentUsed','% Util', sortRule='zencmp')"/>
     </tr>
     <tal:block tal:repeat="r batch">
         <tr tal:define="odd repeat/r/odd"
