@@ -195,12 +195,45 @@ class DeviceFacade(TreeFacade):
         else:
             pagedResult = sortedResults[start:start + limit]
 
+        # fetch any rrd data necessary
+        self.bulkLoadMetricData(pagedResult)
+
         return SearchResults(iter(pagedResult), total, hash_, False)
 
     def getComponents(self, uid=None, types=(), meta_type=(), start=0,
                       limit=None, sort='name', dir='ASC', name=None, keys=()):
         return self._componentSearch(uid, types, meta_type, start, limit,
                                        sort, dir, name=name, keys=keys)
+
+    def bulkLoadMetricData(self, infos):
+        """
+        If the info objects have the attribute dataPointsToFetch we
+        will load all the datapoints in one metric service query
+        instead of one per info object
+        """
+        if len(infos) == 0:
+            return
+        datapoints = set()
+        indexedInfos = dict()
+        for info in infos:
+            indexedInfos[info._object.getResourceKey()] = info
+            if hasattr(info, "dataPointsToFetch"):
+                [datapoints.add(dp) for dp in info.dataPointsToFetch]
+
+        # in case no metrics were asked for
+        if len(datapoints) == 0:
+            return
+        # get the metric facade
+        mfacade = getFacade('metric', self._dmd)
+        # metric facade expects zenmodel objects or uids
+        results = mfacade.getMultiValues([i._object for i in infos], datapoints, returnSet="LAST")
+
+        # assign the metrics to the info objects
+        for resourceKey, record in results.iteritems():
+            if indexedInfos.get(resourceKey) is not None:
+                info = indexedInfos[resourceKey]
+                for key, val in record.iteritems():
+                    info.setBulkLoadProperty(key, val)
 
     def getComponentTree(self, uid):
         from Products.ZenEvents.EventManagerBase import EventManagerBase

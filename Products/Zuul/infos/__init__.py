@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -197,3 +197,19 @@ class BulkLoadMixin(object):
         if not hasattr(self, '_props'):
             return None
         return self._props.get(name)
+
+class BulkMetricLoadMixin(BulkLoadMixin):
+
+    def getFetchedDataPoint(self, name):
+        result = super(BulkMetricLoadMixin, self).getBulkLoadProperty(name)
+        if result is not None:
+            return result
+
+        # if we load the data and it turns out to be missing or None don't try to fetch again
+        if hasattr(self, "_metricsloaded") and self._metricsloaded:
+            return result
+
+        self._metricsloaded = True
+        facade = Zuul.getFacade('device', self._object.dmd)
+        facade.bulkLoadMetricData([self])
+        return super(BulkMetricLoadMixin, self).getBulkLoadProperty(name)
