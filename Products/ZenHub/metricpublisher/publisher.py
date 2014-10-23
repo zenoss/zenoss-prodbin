@@ -250,7 +250,7 @@ class HttpPostPublisher(BasePublisher):
 
     def _metrics_published(self, response, llen, remaining=0):
         if response.code != 200:
-            raise IOError("Expected HTTP 200, but received %d" % response.code)
+            raise IOError("Expected HTTP 200, but received %d from %s" % (response.code, self._url))
         log.debug("published %d metrics and received response: %s",
                   llen, response.code)
         finished = defer.Deferred()
