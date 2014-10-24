@@ -1,4 +1,12 @@
 (function(){ // Local scope
+/**
+ * Check compatibilty mode turned on
+ */
+Ext.onReady(function(){
+    if(navigator.userAgent.indexOf("Trident") > -1 && navigator.userAgent.indexOf("MSIE 7.0") > -1){i
+        Ext.Msg.alert(_t("Compatibility Mode Unsupported"), _t("Zenoss does not support running in IE Compatibility Mode."));
+    }
+});
 
 /**
  * Global Ext settings.
