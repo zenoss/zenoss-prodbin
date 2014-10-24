@@ -195,12 +195,45 @@ class DeviceFacade(TreeFacade):
         else:
             pagedResult = sortedResults[start:start + limit]
 
+        # fetch any rrd data necessary
+        self.bulkLoadMetricData(pagedResult)
+
         return SearchResults(iter(pagedResult), total, hash_, False)
 
     def getComponents(self, uid=None, types=(), meta_type=(), start=0,
                       limit=None, sort='name', dir='ASC', name=None, keys=()):
         return self._componentSearch(uid, types, meta_type, start, limit,
                                        sort, dir, name=name, keys=keys)
+
+    def bulkLoadMetricData(self, infos):
+        """
+        If the info objects have the attribute dataPointsToFetch we
+        will load all the datapoints in one metric service query
+        instead of one per info object
+        """
+        if len(infos) == 0:
+            return
+        datapoints = set()
+        indexedInfos = dict()
+        for info in infos:
+            indexedInfos[info._object.getResourceKey()] = info
+            if hasattr(info, "dataPointsToFetch"):
+                [datapoints.add(dp) for dp in info.dataPointsToFetch]
+
+        # in case no metrics were asked for
+        if len(datapoints) == 0:
+            return
+        # get the metric facade
+        mfacade = getFacade('metric', self._dmd)
+        # metric facade expects zenmodel objects or uids
+        results = mfacade.getMultiValues([i._object for i in infos], datapoints, returnSet="LAST")
+
+        # assign the metrics to the info objects
+        for resourceKey, record in results.iteritems():
+            if indexedInfos.get(resourceKey) is not None:
+                info = indexedInfos[resourceKey]
+                for key, val in record.iteritems():
+                    info.setBulkLoadProperty(key, val)
 
     def getComponentTree(self, uid):
         from Products.ZenEvents.EventManagerBase import EventManagerBase
@@ -341,16 +374,19 @@ class DeviceFacade(TreeFacade):
                               osManufacturer=osManufacturer,
                               osProductName=osProductName)
 
-    def setProductionState(self, uids, state):
-        devids = []
-        if isinstance(uids, basestring):
-            uids = (uids,)
-        for uid in uids:
-            dev = self._getObject(uid)
-            if isinstance(dev, Device):
-                dev.setProdState(int(state))
-                devids.append(dev.id)
-        return devids
+    def setProductionState(self, uids, state, asynchronous=False):
+        if asynchronous:
+            self._dmd.JobManager.addJob(
+                FacadeMethodJob,
+                description="Set state %s for %s" % (state, ','.join(uids)),
+                kwargs=dict(
+                    facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
+                    method="_setProductionState",
+                    uids=uids,
+                    state=state
+                ))
+        else:
+            self._setProductionState(uids, state)
 
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):
@@ -423,6 +459,14 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
         return exports
+
+    def _setProductionState(self, uids, state):
+        if isinstance(uids, basestring):
+            uids = (uids,)
+        for uid in uids:
+            dev = self._getObject(uid)
+            if isinstance(dev, Device):
+                dev.setProdState(int(state))
 
     @info
     def moveDevices(self, uids, target, asynchronous=True):

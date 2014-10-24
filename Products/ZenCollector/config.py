@@ -90,7 +90,8 @@ class ConfigurationProxy(object):
 
         log.debug("Fetching configurations")
         #get options from prefs.options and send to remote
-        d = serviceProxy.callRemote('getDeviceConfigs', ids, options=prefs.options.__dict__)
+        d = serviceProxy.callRemote('getDeviceConfigs', ids,
+                options=prefs.options.__dict__)
         return d
 
     def deleteConfigProxy(self, prefs, id):

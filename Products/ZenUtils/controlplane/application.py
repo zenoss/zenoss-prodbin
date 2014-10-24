@@ -49,14 +49,21 @@ class DeployedAppLookup(object):
         #  to support RESTARTING state.
         self._statecache = {}
 
+    def getTenantId(self):
+        """
+        Returns the tenant ID from the environment.
+        """
+        tenantID_env = "CONTROLPLANE_TENANT_ID"
+        return os.environ.get(tenantID_env)
+
     def query(self, name=None, tags=None, monitorName=None):
         """
         Returns a sequence of IApplication objects.
         """
-        tenantID_env = "CONTROLPLANE_TENANT_ID"
-        tenant_id = os.environ.get(tenantID_env)
+        tenant_id = self.getTenantId()
         if tenant_id is None:
-            LOG.error("ERROR: Could not determine the tenantID from the environment variable: %s" % tenantID_env)
+            LOG.error("ERROR: Could not determine the tenantID from the "
+                      "environment")
             return ()
 
         # Retrieve services according to name and tags.
