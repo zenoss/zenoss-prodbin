@@ -354,6 +354,7 @@ class DeviceFacade(TreeFacade):
 
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):
+        log.warn("SET LOCK STATE");
         devs = imap(self._getObject, uids)
         for dev in devs:
             if deletion or updates:
