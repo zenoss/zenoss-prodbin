@@ -9,7 +9,7 @@ import time
 import threading
 
 from AccessControl import getSecurityManager
-from Products.ZenUtils.redis import parseRedisUrl
+from Products.ZenUtils.RedisUtils import parseRedisUrl
 from Products.ZenUtils.config import ConfigFile
 
 class ZopeRequestLogger(object):
