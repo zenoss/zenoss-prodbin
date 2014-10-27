@@ -514,9 +514,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         this.detailcontainer.removeAll();
                         this.componentnavcombo.reset();
                     },
-                    selectionchange: function(sm, selected) {
-                        var row = selected[0];
-
+                    select: function(sm, row) {
                         // top grid selection change
                         if (row) {
                             // When infinite grids are resized the "selectionchange" event can be fired
