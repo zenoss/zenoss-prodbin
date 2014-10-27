@@ -18,7 +18,7 @@ function ConfirmPagerTest() {
 
 function resetPassword(){
     if (confirm("Are you sure you want to reset this user's password?")) {
-        /*  added a hidden input to act as the 'real' submit button 
+        /*  added a hidden input to act as the 'real' submit button
             next to the visible submit button. This 'real' submit button
             gets us around the use of the popup confirm submit button conflict.
             We simulate a click on this hidden 'real' submit button below
@@ -36,12 +36,12 @@ function clearBrowserState(event){
         Zenoss.remote.MessagingRouter.clearBrowserState();
     }
 }
- 
-setTimeout(function () { 
-        document.getElementById('user_settings_new_password_input').autocomplete = 'off'; 
-        document.getElementById('user_settings_confirmpassword_input').autocomplete = 'off'; 
-    }, 1); 
-	 
+
+setTimeout(function () {
+        document.getElementById('user_settings_new_password_input').autocomplete = 'off';
+        document.getElementById('user_settings_confirmpassword_input').autocomplete = 'off';
+    }, 1);
+
 </script>
 
 
@@ -237,7 +237,7 @@ setTimeout(function () {
 
     <tr>
         <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
-            <strong>Enter current password to confirm changes</strong>
+            <strong>Current Password for  <tal:block tal:content="request/AUTHENTICATED_USER"/></strong>
         </td>
         <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan=3>
             <div style="float:left;">
