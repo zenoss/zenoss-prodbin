@@ -2,12 +2,16 @@
 /**
  * Check compatibilty mode turned on
  */
-Ext.onReady(function(){
-    if(navigator.userAgent.indexOf("Trident") > -1 && navigator.userAgent.indexOf("MSIE 7.0") > -1){i
-        Ext.Msg.alert(_t("Compatibility Mode Unsupported"), _t("Zenoss does not support running in IE Compatibility Mode."));
-    }
-});
-
+if(navigator.userAgent.indexOf("Trident") > -1 && navigator.userAgent.indexOf("MSIE 7.0") > -1){
+    Ext.onReady(function(){
+        Ext.Msg.show({
+		title: _t("Compatibility Mode Unsupported"), 
+		msg: _t("Zenoss does not support running in IE Compatibility Mode."),
+		buttons: Ext.Msg.OK,
+		cls: "compatibilityModeAlert"
+	});
+    });
+}
 /**
  * Global Ext settings.
  */

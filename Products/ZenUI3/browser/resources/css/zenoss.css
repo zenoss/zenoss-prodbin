@@ -2020,3 +2020,11 @@ span.syntax-text  {
   margin: 0 0 4px;
   width: 16px;
 }
+
+.compatibilityModeAlert .x-window-body{
+  background: transparent;
+}
+
+.compatibilityModeAlert .x-window-header-body{
+  background: #000000;
+}
