@@ -192,6 +192,11 @@
                 layout: 'border',
                 width: 600,
                 items:[{
+                    region: 'north',
+                    height: 30,
+                    cls: 'wizard_subtitle',
+                    html: '<h2><em>' + _t('Devices found via Discovery will be placed in the /Discovered Device Class') + '</em></h2>'
+                },{
                     xtype: 'form',
                     region: 'center',
                     layout: 'hbox',

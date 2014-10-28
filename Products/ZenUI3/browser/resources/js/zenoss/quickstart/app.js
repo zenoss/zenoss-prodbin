@@ -47,7 +47,8 @@
         });
         controller.doInit(app);
         app.controllers.add(controller);
-    }
+    };
+
     Ext.application({
         name: 'Zenoss.quickstart.Wizard',
         appFolder: "/++resource++zenui/js/zenoss/quickstart",
@@ -60,7 +61,9 @@
                 renderTo: 'center_panel',
                 height: 400,
                 style: {
-                    padding: "40px 0px 0px 200px"
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                    width: "60%"
                 },
                 items: [{
                     region: 'north',
