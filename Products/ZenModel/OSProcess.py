@@ -315,7 +315,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
 
     def _getSendEventWhenBlockedFlag(self):
         if self.sendEventWhenBlockedFlag is None and self.osProcessClass():
-            return self.osProcessClass().getZ("zSendEventWhenBlockedFlag")
+            return self.osProcessClass().primaryAq().getZ("zSendEventWhenBlockedFlag")
         return self.sendEventWhenBlockedFlag
 
     def sendEventWhenBlocked(self):
@@ -323,7 +323,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
 
     def _getModelerLock(self):
         if self.modelerLock is None and self.osProcessClass():
-            return self.osProcessClass().getZ("zModelerLock")
+            return self.osProcessClass().primaryAq().getZ("zModelerLock")
         return self.modelerLock
 
     def isUnlocked(self):
@@ -347,7 +347,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         mind and reset it to the parents it will update with the parents.
         """
         if self.osProcessClass():
-            pclass = self.osProcessClass()
+            pclass = self.osProcessClass().primaryAq()
             if pclass.getZ("zModelerLock") == self.modelerLock:
                 self.modelerLock = None
                 # if they reset the modeler lock see if we can reset the
