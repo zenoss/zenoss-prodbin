@@ -32,6 +32,7 @@ defaultRedisPort = 6379
 defaultMaxOutstandingMetrics = 864000000
 
 bufferHighWater = 4096
+HTTP_BATCH = 100
 
 
 class BasePublisher(object):
@@ -247,13 +248,15 @@ class HttpPostPublisher(BasePublisher):
         self._url = url
         reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
 
-    def _metrics_published(self, response, llen):
+    def _metrics_published(self, response, llen, remaining=0):
         if response.code != 200:
-            raise IOError("Expected HTTP 200, but received %d" % response.code)
+            raise IOError("Expected HTTP 200, but received %d from %s" % (response.code, self._url))
         log.debug("published %d metrics and received response: %s",
                   llen, response.code)
         finished = defer.Deferred()
         response.deliverBody(ResponseReceiver(finished))
+        if remaining:
+            reactor.callLater(0, self._put, False)
         return finished
 
     def _response_finished(self, result):
@@ -274,8 +277,13 @@ class HttpPostPublisher(BasePublisher):
             self._make_request()
 
     def _make_request(self):
-        metrics = list(self._mq)
-        self._mq.clear()
+        metrics = []
+        for x in range(HTTP_BATCH):
+            if not self._mq:
+                break
+            metrics.append(self._mq.popleft())
+        if not metrics:
+            return defer.succeed(None)
 
         serialized_metrics = json.dumps({"metrics": metrics})
         body_writer = StringProducer(serialized_metrics)
@@ -289,7 +297,7 @@ class HttpPostPublisher(BasePublisher):
             body_writer)
 
         d.addCallbacks(self._metrics_published, errback=self._publish_failed,
-                       callbackArgs=[len(metrics)], errbackArgs=[metrics])
+                       callbackArgs=[len(metrics), len(self._mq)], errbackArgs=[metrics])
         d.addCallbacks(self._response_finished, errback=self._publish_failed,
                        errbackArgs=[metrics])
         return d
@@ -299,7 +307,8 @@ class HttpPostPublisher(BasePublisher):
         Push the buffer of metrics to the specified Redis channel
         @param scheduled: scheduled invocation?
         """
-        self._reschedule_pubtask(scheduled)
+        if scheduled:
+            self._reschedule_pubtask(scheduled)
 
         if len(self._mq) == 0:
             return defer.succeed(0)
