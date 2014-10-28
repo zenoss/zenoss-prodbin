@@ -105,7 +105,11 @@ class ProcessInfo(InfoBase):
     zFailSeverity = property(getZFailSeverity, setZFailSeverity)
 
     def getZModelerLock(self):
-        return getZPropertyInfo(self._object, 'zModelerLock', 0)
+        def translate(rawValue):
+            return {0: "Unlocked",
+                    1: "Lock from Deletes",
+                    2: "Lock from Updates"}[rawValue]
+        return getZPropertyInfo(self._object, 'zModelerLock', 0, translate)
 
     def setZModelerLock(self, data):
         setZPropertyInfo(self._object, 'zModelerLock', **data)
