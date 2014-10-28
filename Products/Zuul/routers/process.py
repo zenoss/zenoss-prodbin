@@ -23,7 +23,6 @@ from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
 from Products.ZenMessaging.audit import audit
 
-
 class ProcessRouter(TreeRouter):
     """
     A JSON/ExtDirect interface to operations on processes
