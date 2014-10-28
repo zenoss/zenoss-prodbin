@@ -9,7 +9,7 @@ strong { font-weight: bold; }
 #header {
     padding-top: 5px;
     padding-left: 5px;
-    background: transparent url('/zport/img/metalbg.gif') top left; 
+    background: transparent url('/zport/img/metalbg.gif') top left;
     height: 50px;
     border-bottom: 1px solid black;
 }
@@ -24,7 +24,7 @@ strong { font-weight: bold; }
     background: #dfe8f6 url('/zport/img/ext_rowindicator.gif') right center no-repeat;
 }
 #center_panel {
-    
+
 }
 #header-extra {
     float: right;
@@ -35,7 +35,7 @@ strong { font-weight: bold; }
 }
 
 h1, h2 {
-    color: #222;
+    color: #444;
 }
 
 h1 {
@@ -56,7 +56,7 @@ h2 {
     padding: 1em;
     border: 1px solid black;
     background-color: white;
-    margin: 1em 1em 0 1em;    
+    margin: 1em 1em 0 1em;
 }
 
 #content {
@@ -86,7 +86,7 @@ div.logo {
     width: 516px;
     height: 40px;
     background: transparent url('/zport/logo.png') 2px 0px no-repeat;
-}      
+}
 
 div#errors {
     margin: 2em;
