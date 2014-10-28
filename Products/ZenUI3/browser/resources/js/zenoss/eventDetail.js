@@ -79,7 +79,14 @@ Ext.onReady(function() {
         '<tpl for="properties">',
         '<tr class=\'{[xindex % 2 === 0 ? "even" : "odd"]}\'>',
         '<td class="proptable_key">{key:htmlEncode}</td>',
-        '<td class="proptable_value">{value:htmlEncode}</td></tr>',
+        '<td class="proptable_value">',
+        '<tpl switch="key">',
+            '<tpl case="eventClassMapping">',
+                '{value}',
+            '<tpl default>',
+                '{value:htmlEncode}',
+        '</tpl>',
+        '</td></tr>',
         '</tpl>',
         '</table>'];
 
