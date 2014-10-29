@@ -109,7 +109,9 @@ class MetricFacade(ZuulFacade):
             key, metric = row['metric'].split('|', 1)
             if not results.get(key):
                 results[key] = defaultdict(list)
-            results[key][metric].append(dict(timestamp=row['timestamp'], value=row['value']))
+            for dp in row['datapoints']:
+                if not dp['value'] is None and dp['value'] != u'NaN':
+                    results[key][metric].append(dict(timestamp=dp['timestamp'], value=dp['value']))
         return results
 
     def getValues(self, context, metrics, start=None, end=None,
@@ -194,7 +196,7 @@ class MetricFacade(ZuulFacade):
             # there was an error returned by the metric service, log it here
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
             return {}
-        
+
         if content and content.get('results') is not None and returnSet=="LAST":
            # Output of this request should be something like this:
            # [{u'timestamp': 1376477481, u'metric': u'sysUpTime',
