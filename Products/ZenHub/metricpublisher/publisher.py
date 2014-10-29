@@ -33,6 +33,7 @@ defaultMaxOutstandingMetrics = 864000000
 
 bufferHighWater = 4096
 HTTP_BATCH = 100
+INITIAL_REDIS_BATCH = 2
 
 
 class BasePublisher(object):
@@ -128,6 +129,7 @@ class RedisListPublisher(BasePublisher):
                  channel=defaultMetricsChannel,
                  maxOutstandingMetrics=defaultMetricBufferSize):
         super(RedisListPublisher, self).__init__(buflen, pubfreq)
+        self._batch_size = INITIAL_REDIS_BATCH
         self._host = host
         self._port = port
         self._channel = channel
@@ -152,7 +154,7 @@ class RedisListPublisher(BasePublisher):
             # Fall back to stdlib json, which does not have this limitation.
             return _stdlib_json.dumps(m)
 
-    def _metrics_published(self, llen, metricCount):
+    def _metrics_published(self, llen, metricCount, remaining=0):
         """
         Callback that logs successful publishing of metrics and
         clears the metrics buffer
@@ -161,7 +163,19 @@ class RedisListPublisher(BasePublisher):
         @return: the number of metrics still in the queue
         """
         log.debug('published %d metrics to redis', metricCount)
+        if remaining:
+            reactor.callLater(0, self._put, False, False)
         return 0
+
+    def _get_batch_size(self):
+        """
+        Batch size starts at 2, and doubles on every success, up to 2**16.
+        On failure, it drops to 2 again to allow redis to recover.
+        """
+        bs = self._batch_size
+        self._batch_size = min(2 * self._batch_size,
+                               defaultMetricBufferSize)
+        return bs
 
     def _put(self, scheduled, reschedule=True):
         """
@@ -177,8 +191,13 @@ class RedisListPublisher(BasePublisher):
         if self._connection.state == 'connected':
             log.debug('trying to publish %d metrics', len(self._mq))
 
-            metrics = list(self._mq)
-            self._mq.clear()
+            metrics = []
+            for x in xrange(self._get_batch_size()):
+                if not self._mq:
+                    break
+                metrics.append(self._mq.popleft())
+            if not metrics:
+                return defer.succeed(None)
 
             @defer.inlineCallbacks
             def _flush():
@@ -192,14 +211,17 @@ class RedisListPublisher(BasePublisher):
                     yield client.lpush(self._channel, *metrics)
                     yield client.ltrim(self._channel, 0, self._maxOutstandingMetrics - 1)
                     result, _ = yield client.execute()
-                    yield self._metrics_published(result,
-                                                  metricCount=len(metrics))
+                    yield self._metrics_published(
+                            result, metricCount=len(metrics),
+                            remaining=len(self._mq))
                 except Exception as e:
                     # since we may be in a mutli redis command state, attempt to discard it
                     try:
                         yield client.discard()
                     except Exception:
                         pass
+                    # Drop the batch size so it will ramp itself up again
+                    self._batch_size = INITIAL_REDIS_BATCH
                     self._publish_failed(e, metrics=metrics)
                 finally:
                     self._flushing = False
@@ -278,7 +300,7 @@ class HttpPostPublisher(BasePublisher):
 
     def _make_request(self):
         metrics = []
-        for x in range(HTTP_BATCH):
+        for x in xrange(HTTP_BATCH):
             if not self._mq:
                 break
             metrics.append(self._mq.popleft())
