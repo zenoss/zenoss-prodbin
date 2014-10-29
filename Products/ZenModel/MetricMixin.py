@@ -42,7 +42,9 @@ class MetricMixin(object):
                 log.error('Unable to get RRD value for %s: %s', dsname, ex)
             _cache[cacheKey] = value
 
-        return value if value is not None else default
+        if value is None or value == {}:
+            return default
+        return value
 
     # alias the method for back compat
     cacheRRDValue = cacheValue
