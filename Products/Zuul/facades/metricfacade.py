@@ -201,6 +201,7 @@ class MetricFacade(ZuulFacade):
             log.error("Error connecting with request: %s \n%s", request, e )
             return {}
 
+
         if content and content.get('results') is not None and returnSet=="LAST":
            # Output of this request should be something like this:
            # [{u'timestamp': 1376477481, u'metric': u'sysUpTime',
