@@ -61,9 +61,7 @@
                 renderTo: 'center_panel',
                 height: 400,
                 style: {
-                    marginLeft: "auto",
-                    marginRight: "auto",
-                    width: "60%"
+                    padding: "40px 0px 0px 200px"
                 },
                 items: [{
                     region: 'north',
