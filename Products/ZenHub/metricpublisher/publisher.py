@@ -172,11 +172,10 @@ class RedisListPublisher(BasePublisher):
         Batch size starts at 2, and doubles on every success, up to 2**16.
         On failure, it drops to 2 again to allow redis to recover.
         """
-        if not self._batch_size:
-            self._batch_size = INITIAL_REDIS_BATCH
-        else:
-            self._batch_size = min(2 * self._batch_size,
-                                   defaultMetricBufferSize)
+        bs = self._batch_size
+        self._batch_size = min(2 * self._batch_size,
+                               defaultMetricBufferSize)
+        return bs
 
     def _put(self, scheduled, reschedule=True):
         """
@@ -193,7 +192,7 @@ class RedisListPublisher(BasePublisher):
             log.debug('trying to publish %d metrics', len(self._mq))
 
             metrics = []
-            for x in xrange(INITIAL_REDIS_BATCH):
+            for x in xrange(self._get_batch_size()):
                 if not self._mq:
                     break
                 metrics.append(self._mq.popleft())
@@ -222,7 +221,7 @@ class RedisListPublisher(BasePublisher):
                     except Exception:
                         pass
                     # Drop the batch size so it will ramp itself up again
-                    self._batch_size = 0
+                    self._batch_size = INITIAL_REDIS_BATCH
                     self._publish_failed(e, metrics=metrics)
                 finally:
                     self._flushing = False
