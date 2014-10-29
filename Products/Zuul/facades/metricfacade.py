@@ -16,7 +16,7 @@ import cookielib
 from collections import defaultdict
 from datetime import datetime, timedelta
 from zope import component
-from zenoss.protocols.services import ServiceResponseError
+from zenoss.protocols.services import ServiceResponseError, ServiceConnectionError
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -183,9 +183,10 @@ class MetricFacade(ZuulFacade):
         # defaultDateRange (which is acquired from the dmd)
         if end is None:
             end = self._formatTime(datetime.today())
-        if start is None:
+        if start is None and returnSet != "LAST":
             start = self._formatTime(datetime.today() - timedelta(seconds = self._dmd.defaultDateRange))
-
+        elif start is None and returnSet == "LAST":
+            start = self._formatTime(datetime.today() - timedelta(seconds = 3600))
         request = self._buildRequest(subjects, datapoints, start, end, returnSet)
 
         # submit it to the client
@@ -195,6 +196,9 @@ class MetricFacade(ZuulFacade):
         except ServiceResponseError, e:
             # there was an error returned by the metric service, log it here
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
+            return {}
+        except ServiceConnectionError, e:
+            log.error("Error connecting with request: %s \n%s", request, e )
             return {}
 
         if content and content.get('results') is not None and returnSet=="LAST":
@@ -269,16 +273,20 @@ class MetricFacade(ZuulFacade):
     def _uri(self, path):
         return "%s/%s" %( self._metric_url, path)
 
-    def _post_request(self, path, request):
+    def _post_request(self, path, request, timeout=10):
         uri = self._uri(METRIC_URL_PATH)
         login = self._credentials['login']
         password = self._credentials['password']
-        auth = base64.b64encode('%s:%s' %(login, password))
+        auth = base64.b64encode('%s:%s' % (login, password))
         headers = {
             'Authorization': 'basic %s' % auth,
             'content-type': 'application/json'
         }
-        response = requests.post( uri, json.dumps(request), headers=headers, cookies=self._cookies)
+        try:
+            response = requests.post(uri, json.dumps(request), headers=headers,
+                                     timeout=timeout, cookies=self._cookies)
+        except requests.exceptions.Timeout, e:
+            raise ServiceConnectionError('Timed out waiting for response from metric service: %s' % e, e)
         status_code = response.status_code
         if not (status_code >= 200 and status_code <= 299):
             raise ServiceResponseError(response.reason, status_code, request, response, response.content)
