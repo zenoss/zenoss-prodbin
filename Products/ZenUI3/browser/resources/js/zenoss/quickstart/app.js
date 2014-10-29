@@ -61,7 +61,7 @@
                 renderTo: 'center_panel',
                 height: 400,
                 style: {
-                    padding: "40px 0px 0px 200px"
+                    padding: "40px 0px 0px 100px"
                 },
                 items: [{
                     region: 'north',
