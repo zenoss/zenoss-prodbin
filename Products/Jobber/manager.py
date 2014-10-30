@@ -23,6 +23,7 @@ from Products.Five.browser import BrowserView
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.celeryintegration import current_app, states, chain
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
+from ZODB.POSException import ConflictError
 
 from .exceptions import NoSuchJobException
 from .jobs import Job
@@ -379,9 +380,14 @@ class JobManager(ZenModelRM):
         Delete all jobs older than untiltime.
         """
         for b in self.getCatalog()()[:]:
-            ob = b.getObject()
+            try:
+                ob = b.getObject()
+            except ConflictError:
+                pass
             if ob.finished != None and ob.finished < untiltime:
                 self.deleteJob(ob.getId())
+            elif ob.status == states.ABORTED and ob.started < untiltime:
+                self.deleteJob(ob.getID())
 
     def clearJobs(self):
         """
