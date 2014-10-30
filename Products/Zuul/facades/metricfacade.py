@@ -213,7 +213,8 @@ class MetricFacade(ZuulFacade):
            results = defaultdict(dict)
            for item in content['results']:
                key, metric = item['metric'].split('|', 1)
-               results[key][metric] = item['datapoints'][0]['value']
+               if item.get('datapoints'):
+                   results[key][metric] = item['datapoints'][0]['value']
            return results
         else:
            return content.get('results')
