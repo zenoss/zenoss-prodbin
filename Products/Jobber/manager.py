@@ -10,7 +10,7 @@
 
 import os
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 import transaction
@@ -203,6 +203,9 @@ class JobManager(ZenModelRM):
         # Dispatch job to zenjobs queue
         _dispatchTask(task)
 
+        # Clear out old jobs
+        self.deleteUntil(datetime.now() - timedelta(hours=24))
+
         return records
 
     def addJob(self, jobclass,
@@ -233,6 +236,9 @@ class JobManager(ZenModelRM):
 
         # Dispatch job to zenjobs queue
         _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
+
+        # Clear out old jobs
+        self.deleteUntil(datetime.now() - timedelta(hours=24))
 
         return jobrecord
 
@@ -372,6 +378,10 @@ class JobManager(ZenModelRM):
         """
         Delete all jobs older than untiltime.
         """
+        for b in self.getCatalog()()[:]:
+            ob = b.getObject()
+            if ob.finished != None and ob.finished < untiltime:
+                self.deleteJob(ob.getId())
 
     def clearJobs(self):
         """
