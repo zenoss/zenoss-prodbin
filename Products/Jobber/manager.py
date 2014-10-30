@@ -382,12 +382,12 @@ class JobManager(ZenModelRM):
         for b in self.getCatalog()()[:]:
             try:
                 ob = b.getObject()
+                if ob.finished != None and ob.finished < untiltime:
+                    self.deleteJob(ob.getId())
+                elif ob.status == states.ABORTED and ob.started < untiltime:
+                    self.deleteJob(ob.getID())
             except ConflictError:
                 pass
-            if ob.finished != None and ob.finished < untiltime:
-                self.deleteJob(ob.getId())
-            elif ob.status == states.ABORTED and ob.started < untiltime:
-                self.deleteJob(ob.getID())
 
     def clearJobs(self):
         """
