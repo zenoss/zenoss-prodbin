@@ -185,7 +185,7 @@
         alias: 'widget.wizardautodiscoveryview',
         stepTitle: _t('Network Discovery'),
         stepId: 'discover-network',
-        stepHeight: 600,
+        stepHeight: 630,
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
