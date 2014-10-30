@@ -103,7 +103,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'priorityConversions','type':'lines','mode':'w'},
         {'id':'priorityDashboardThresh','type':'int','mode':'w'},
         {'id':'statusConversions','type':'lines','mode':'w'},
-        {'id':'interfaceStateConversions','type':'lines','mode':'w'},        
+        {'id':'interfaceStateConversions','type':'lines','mode':'w'},
         {'id':'uuid', 'type': 'string', 'mode':'w'},
         {'id':'availableVersion', 'type': 'string', 'mode':'w'},
         {'id':'lastVersionCheck', 'type': 'long', 'mode':'w'},
@@ -169,7 +169,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'name'          : 'Portlets'
                 , 'action'        : 'editPortletPerms'
                 , 'permissions'   : ( "Manage DMD", )
-                },                
+                },
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'
@@ -326,7 +326,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         map'''
         if numbValue is None:
             return 'Unknown'
-        
+
         numbValue = int(numbValue)
         for line in conversions:
             line = line.rstrip()
@@ -595,6 +595,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             obj = self.Devices.findDevice(devid)
         if not obj:
             return '<graph><Start name="%s"/></graph>' % objid
+        # for modpagespeed and others do not transform these results
+        if hasattr(self, "REQUEST"):
+            self.REQUEST.response.setHeader('Cache-Control', 'no-transform')
         return obj.getXMLEdges(int(depth), filter,
             start=(obj.id,obj.getPrimaryUrlPath()))
 
