@@ -30,6 +30,7 @@ from cgi import parse_qs
 from Acquisition import aq_base
 from AccessControl.SpecialUsers import emergency_user
 from zope.event import notify
+from ZODB.POSException import POSKeyError
 from Products.PluggableAuthService import PluggableAuthService
 from Products.PluggableAuthService.plugins import CookieAuthHelper
 from Products.PluggableAuthService.interfaces.authservice import _noroles
@@ -52,7 +53,7 @@ def _resetCredentials(self, request, response=None):
     notify(UserLoggedOutEvent(self.zport.dmd.ZenUsers.getUserSettings()))
     try:
         _originalResetCredentials(self, request, response)
-    except KeyError:
+    except (KeyError, POSKeyError):
         # see defect ZEN-2942 If the time changes while the server is running
         # set the session database to a sane state.
         ts = self.unrestrictedTraverse('/temp_folder/session_data')
@@ -161,7 +162,7 @@ def login(self):
     if pas_instance is not None:
         try:
             pas_instance.updateCredentials(request, response, login, password)
-        except KeyError:
+        except (KeyError, POSKeyError):
             # see defect ZEN-2942 If the time changes while the server is running
             # set the session database to a sane state.
             ts = self.unrestrictedTraverse('/temp_folder/session_data')
