@@ -12,6 +12,7 @@ import logging
 from Acquisition import aq_parent
 from zope.interface import implements
 from Products.ZenModel.IpNetwork import AutoDiscoveryJob
+from Products.ZenWidgets.messaging import IMessageSender
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenUtils.Utils import binPath
 from Products.Zuul import getFacade
@@ -243,6 +244,11 @@ class NetworkFacade(TreeFacade):
                 )
                 )
             jobs.append(job)
+            IMessageSender(self._dmd).sendToUser(
+                    'Autodiscovery Task Created',
+                    'Discovery of the following networks is in progress: %s' % (
+                        ', '.join(nets))
+                )
         if ranges:
             # Ranges can just be sent to zendisc, as they are merely sets of
             # IPs
@@ -260,6 +266,11 @@ class NetworkFacade(TreeFacade):
                 )
                 )
             jobs.append(job)
+            IMessageSender(self._dmd).sendToUser(
+                    'Autodiscovery Task Created',
+                    'Discovery of the following IP ranges is in progress: %s' % (
+                        ', '.join(ranges))
+                )
         return jobs
 
 
