@@ -109,6 +109,7 @@
                         this.addJobRecord(data[i]);
                     }
 
+                    Zenoss.remote.MessagingRouter.getUserMessages();
                 }
             }, this);
 
