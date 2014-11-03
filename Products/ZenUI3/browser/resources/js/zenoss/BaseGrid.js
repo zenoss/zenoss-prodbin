@@ -504,7 +504,7 @@
             });
         },
         setFilter:function (colId, value) {
-            this.eachColumn(function (col) {
+            this.eachFilterColumn(function (col) {
                 if (col.filterKey == colId) {
                     col.filterField.setValue(value);
                 }
