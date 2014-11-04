@@ -20,7 +20,7 @@ from Products.ZenModel.ComplexGraphPoint import ComplexGraphPoint
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from Products.ZenEvents.Exceptions import rpnThresholdException
 from Products.ZenUtils import metrics
-        
+
 __doc__ = """
 These adapters are responsible for serializing the graph
 definitions into a form that is consumable by the metric service
@@ -88,7 +88,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     @property
     def description(self):
         return self._object.getDescription()
-            
+
     miny = ProxyProperty('miny')
     maxy = ProxyProperty('maxy')
     units = ProxyProperty('units')
@@ -99,7 +99,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
     def __init__(self, graph, context):
         self._multiContext = False
         super(ColorMetricServiceGraphPoint, self).__init__(graph, context)
-    
+
     def setMultiContext(self):
         """
         Let this graph know that we are displaying the same
@@ -108,7 +108,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         colors.
         """
         self._multiContext = True
-        
+
     @property
     def legend(self):
         o = self._object
@@ -126,7 +126,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
 class MetricServiceThreshold(ColorMetricServiceGraphPoint):
     adapts(ThresholdGraphPoint, ZenModelRM)
     implements(templateInterfaces.IMetricServiceGraphPoint)
-    
+
     @property
     def values(self):
         """
@@ -209,7 +209,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         if self._object.lineType == ComplexGraphPoint.LINETYPE_DONTDRAW:
             return False
         return True
-        
+
     @property
     def expression(self):
         rpn = self._object.rpn
@@ -242,6 +242,11 @@ class CollectorMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 class CollectorDataPointGraphPoint(MetricServiceGraphPoint):
     adapts(DataPointGraphPoint, PerformanceConf)
     implements(templateInterfaces.IMetricServiceGraphPoint)
+
+    @property
+    def metric(self):
+        return self._object.dpName.split("_")[1]
+
     @property
     def tags(self):
         return {'daemon': [self._object.dpName.split("_")[0]]}
@@ -250,7 +255,7 @@ class CollectorDataPointGraphPoint(MetricServiceGraphPoint):
 class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
     """
     This is a specialized adapter for multi graph reports where we have metrics for multiple
-    contexts on a single adapter. 
+    contexts on a single adapter.
     """
     implements(templateInterfaces.IMetricServiceGraphDefinition)
 
@@ -260,7 +265,7 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
     def _getGraphPoints(self, klass):
         """
-        For each context we have we need a new datapoint. 
+        For each context we have we need a new datapoint.
         """
         graphDefs = self._object.getGraphPoints(True)
         infos = []
@@ -270,4 +275,3 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
             for info in infos:
                 info.setMultiContext()
         return infos
-
