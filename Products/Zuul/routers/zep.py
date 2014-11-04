@@ -52,25 +52,25 @@ class _FilterParser(object):
     OR_SEPARATOR = "||"
     NULL_CHAR='""'
 
-    def __init__(self, detail_list, param_to_detail_mapping, null_detail_value):
+    def __init__(self, detail_list, param_to_detail_mapping, null_detail_value, numeric_fields):
         """ """
-        # External bodies (zenpacks) should add an entry to this dictionary if they want zenpack-specific
-        # event console item to be searchable for Nones (ex. to look for items with no GOM source), or you
-        # can modify it here.
-        # TODO: Externalize this to have dependencies properly injected instead of declaring them here
-        EXTERNAL_PARAM_TO_DETAIL_MAPPING = {'zenoss.gom.source_uuid': 'zenoss.gom.source_uuid'}
-
-        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary' ]
-        self.PARAM_TO_FIELD_TRANSLATOR = { 'device': 'element_title',
+        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message' ]
+        self.PARAM_TO_FIELD_MAPPING = { 'device': 'element_title',
                                             'component': 'element_sub_title',
                                             'eventClass': 'event_class',
                                             'ownerid': 'current_user_name',
-                                            'summary': 'event_summary' }
+                                            'summary': 'event_summary',
+                                            'message' :'message'}
         self.PARSEABLE_DETAILS = detail_list
-        self.PARAM_TO_DETAIL_TRANSLATOR = dict(EXTERNAL_PARAM_TO_DETAIL_MAPPING.items() + param_to_detail_mapping.items())
-        self.TRANSLATE_NULL = self.PARAM_TO_DETAIL_TRANSLATOR.values()
-        self.EXCLUDABLE = self.PARSEABLE_PARAMS + self.PARAM_TO_DETAIL_TRANSLATOR.keys()
+        self.PARAM_TO_DETAIL_MAPPING = param_to_detail_mapping
+        for detail in self.PARSEABLE_DETAILS:
+            if detail not in self.PARAM_TO_DETAIL_MAPPING.values():
+                self.PARAM_TO_DETAIL_MAPPING[detail] = detail
+        self.TRANSLATE_NULL = self.PARAM_TO_DETAIL_MAPPING.values()
+        self.EXCLUDABLE = self.PARSEABLE_PARAMS + self.PARAM_TO_DETAIL_MAPPING.keys()
         self.NULL_INDEX = null_detail_value
+        self.NO_FRONT_WILDCARD = [ 'device', 'component' ]
+        self.NO_WILDCARD = numeric_fields
 
     def findExclusionParams(self, params):
         """
@@ -83,15 +83,34 @@ class _FilterParser(object):
         if params is not None and isinstance(params, dict) and len(params) > 0:
             for param in self.EXCLUDABLE:
                 value = params.get(param)
-                if value is not None and isinstance(value, basestring) and value.startswith(self.NOT_SEPARATOR):
-                    if value[-1] == "*":
-                        value = value[2:-1].strip()
-                        value = value + '*'
+                if value is not None and isinstance(value, basestring) and self.NOT_SEPARATOR in value:
+                    value = self._cleanText(value)
+                    clauses = value.split(self.NOT_SEPARATOR)
+                    inclusion_clause = clauses[0].strip()
+                    exclusion_clause = clauses[1].strip()
+                    if len(exclusion_clause) > 0:
+                        exclude_params[param] = exclusion_clause
+                    if len(inclusion_clause) == 0:
+                        del params[param]
                     else:
-                        value = value[2:].strip()
-                    exclude_params[param] = value
-                    del params[param]
+                        params[param] = inclusion_clause
         return exclude_params
+
+    def _cleanText(self, clause):
+        """ """
+        clause = re.sub('\s+', ' ', clause)
+        clause = clause.strip(' *')
+        return clause
+
+    def _addWildcardsToFilter(self, field, value):
+        """ """
+        filter = value.strip()
+        if filter != self.NULL_CHAR and field not in self.NO_WILDCARD:
+            if field in self.NO_FRONT_WILDCARD:
+                filter = '{0}*'.format(filter.strip())
+            else:
+                filter = '*{0}*'.format(filter.strip())
+        return filter
 
     def _getOrClauses(self, field, value):
         """
@@ -105,16 +124,14 @@ class _FilterParser(object):
         or_clauses = []
 
         if isinstance(value, basestring):
+            value = self._cleanText(value)
             if self.OR_SEPARATOR in value:
-                value = re.sub('\s+', ' ', value).strip()
-                if len(value) >=1 and value[-1] == "*":
-                    value = value[:-1]
-                    value.strip()
                 temp_or_clauses = value.split(self.OR_SEPARATOR)
-                if len(temp_or_clauses) > 1:
-                    or_clauses = [ '{0}*'.format(clause.strip()) for clause in temp_or_clauses if len(clause)>0 ]
+                or_clauses = [ self._addWildcardsToFilter(field, clause) for clause in temp_or_clauses if len(clause)>0 and clause != ' ']
             elif field in self.TRANSLATE_NULL and self.NULL_CHAR in value:
                 or_clauses.append(self.NULL_CHAR)
+            else:
+                or_clauses.append(self._addWildcardsToFilter(field, value))
         elif isinstance(value, list) and self.NULL_CHAR in value:
             or_clauses = value
 
@@ -135,10 +152,10 @@ class _FilterParser(object):
         parsed_params = {}
         for par in self.PARSEABLE_PARAMS:
             if params.get(par) is not None:
-                or_clauses = self._getOrClauses(field=par, value=params.get(par))
-                if len(or_clauses) > 0:
-                    filter_param = self.PARAM_TO_FIELD_TRANSLATOR[par]
-                    parsed_params[filter_param] = or_clauses
+                value = params.get(par)
+                or_clauses = self._getOrClauses(field=par, value=value)
+                filter_param = self.PARAM_TO_FIELD_MAPPING[par]
+                parsed_params[filter_param] = or_clauses
         return parsed_params
 
     def parseDetails(self, details):
@@ -154,8 +171,7 @@ class _FilterParser(object):
             if details.get(detail) is not None:
                 detail_value = details.get(detail)
                 or_clauses = self._getOrClauses(field=detail, value=detail_value)
-                if len(or_clauses) > 0:
-                    parsed_details[detail] = or_clauses
+                parsed_details[detail] = or_clauses
         return parsed_details
 
 
@@ -172,8 +188,9 @@ class EventsRouter(DirectRouter):
         detail_list =  self.zep.getDetailsMap().keys()
         param_to_detail_mapping = self.zep.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
         null_detail_index_value = self.zep.ZENOSS_NULL_DETAIL_INDEX_VALUE
-        self._filterParser = _FilterParser(detail_list=detail_list, param_to_detail_mapping=param_to_detail_mapping, null_detail_value=null_detail_index_value)
-
+        numeric_fields = [ d['key'] for d in self.zep.getDetails() if d['type'] == 2 ]
+        self._filterParser = _FilterParser(detail_list=detail_list, param_to_detail_mapping=param_to_detail_mapping, \
+            null_detail_value=null_detail_index_value, numeric_fields=numeric_fields)
 
     def _canViewEvents(self):
         """
