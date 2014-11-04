@@ -615,16 +615,21 @@ Ext.define('Zenoss.DeviceDetailNav', {
             var stats = Ext.create('Zenoss.stats.DeviceDetail');
         }
     },
-    doLoadComponentTree: function(data) {
-        data.sort(function (a,b){
-            var first = Zenoss.component.displayName(a.text.text);
-            var second = Zenoss.component.displayName(b.text.text);
-            if (first<second)
-                return -1
-            if (first>second)
-                return 1
-            return 0
-        });
+    doLoadComponentTree: function(response) {
+        // Accepts core and zenpack specific component tree data. (Core is sorted)
+        var data = response.result || response,
+            sorting = response.sorting || false;
+        if (sorting) {
+            data.sort(function (a,b){
+                var first = Zenoss.component.displayName(a.text.text);
+                var second = Zenoss.component.displayName(b.text.text);
+                if (first<second)
+                    return -1
+                if (first>second)
+                    return 1
+                return 0
+            });
+        }
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         if (data.length) {
             rootNode.appendChild(Ext.Array.map(data, function(d) {
