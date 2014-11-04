@@ -69,7 +69,7 @@ class _FilterParser(object):
         self.TRANSLATE_NULL = self.PARAM_TO_DETAIL_MAPPING.values()
         self.EXCLUDABLE = self.PARSEABLE_PARAMS + self.PARAM_TO_DETAIL_MAPPING.keys()
         self.NULL_INDEX = null_detail_value
-        self.NO_FRONT_WILDCARD = [ 'device', 'component' ]
+        self.NO_FRONT_WILDCARD = [ 'device', 'component', 'eventClass' ]
         self.NO_WILDCARD = numeric_fields
 
     def findExclusionParams(self, params):
