@@ -180,10 +180,13 @@ class DeviceFacade(TreeFacade):
 
         def componentSortKey(parent):
             val = getattr(parent, sort)
-            if callable(val):
-                val = val()
-            if IInfo.providedBy(val):
-                val = val.name
+            if val:
+                if isinstance(val, list):
+                    val = val[0]
+                if callable(val):
+                    val = val()
+                if IInfo.providedBy(val):
+                    val = val.name
             return val
 
         # sort the components
