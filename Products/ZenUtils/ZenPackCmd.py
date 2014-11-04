@@ -13,7 +13,7 @@ __doc__ = "Manage ZenPacks"
 import Globals
 from ZODB.transact import transact
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath
+from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath, atomicWrite
 
 from Products.ZenModel import ZVersion
 from Products.ZenModel.ZenPack import ZenPackException, \
@@ -37,11 +37,14 @@ import subprocess
 import socket
 import logging
 import zExceptions
+import json
 
 from urlparse import urlparse
 
 
 log = logging.getLogger('zen.ZenPackCMD')
+
+PACKS_DUMP = zenPath(".ZenPacks/packs.json")
 
 #import zenpacksupport
 
@@ -341,6 +344,13 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
     """
+    # make sure that the backup dir exists
+    backupDir = zenPath(".ZenPacks", dist.project_name, dist.version)
+    if os.path.isdir(backupDir):
+       shutil.rmtree(backupDir)
+
+    shutil.copytree(dist.location, backupDir)
+
     @transact
     def transactional_actions():
         # Instantiate ZenPack
@@ -479,6 +489,25 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             return zenPack, deferFileDeletion, existing
 
     zenPack, deferFileDeletion, existing = transactional_actions()
+    packInfos = {}
+    oldPacksDump = getPacksDump()
+    for pack in dmd.ZenPackManager.packs():
+        try:
+            eggPath = ""
+            eggPath = pack.eggPath()
+        except Exception:
+            if pack.id in oldPacksDump:
+                eggPath = oldPacksDump[pack.id]
+        packInfos[pack.id] = {
+            "id": pack.id,
+            "version": pack.version,
+            "dependencies": pack.dependencies,
+            "eggPack": pack.eggPack,
+            "eggPath": eggPath,
+            "compatZenossVers": pack.compatZenossVers,
+            "createdTime": pack.createdTime.ISO8601(),
+        }
+    atomicWrite(PACKS_DUMP, json.dumps(packInfos))
 
     if not filesOnly and deferFileDeletion:
         # We skipped deleting the existing files from filesystem
@@ -492,6 +521,12 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
 
     return zenPack
 
+def getPacksDump():
+    packs = {}
+    if os.path.isfile(PACKS_DUMP):
+        with open(PACKS_DUMP, "r") as f:
+            return json.load(f)
+    return packs
 
 def DiscoverEggs(dmd, zenPackId):
     """

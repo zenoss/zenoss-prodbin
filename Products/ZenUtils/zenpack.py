@@ -11,14 +11,16 @@
 """Script to manage ZenPacks."""
 
 import os
-import  sys
+import sys
 import logging
 import ConfigParser
 import optparse
 import subprocess
+import shutil
+import tempfile
 from zipfile import ZipFile
 from StringIO import StringIO
-from pkg_resources import parse_requirements
+from pkg_resources import parse_requirements, DistributionNotFound
 
 import Globals
 import transaction
@@ -252,13 +254,51 @@ class ZenPackCmd(ZenScriptBase):
                 if not zp:
                     desc = 'broken'
                 elif zp.isEggPack():
-                    desc = zp.eggPath()
+                    try:
+                        desc = zp.eggPath()
+                    except DistributionNotFound:
+                        desc = "zenpack missing"
                 else:
                     desc = zp.path()
                 print('%s (%s)' % (zpId,  desc))
 
+        elif self.options.sync:
+            print "Syncing zenpacks"
+            self.sync()
+
         transaction.commit()
 
+    def sync(self):
+        packsDump = EggPackCmd.getPacksDump()
+        for zpId in self.dmd.ZenPackManager.packs.objectIds():
+            try:
+                zp = self.dmd.ZenPackManager.packs._getOb(zpId, None)
+            except AttributeError:
+                log.info("Skipping broken zenpack %s", zpId)
+                continue
+            if zp.isEggPack():
+                try:
+                    desc = zp.eggPath()
+                except DistributionNotFound:
+                    if zpId not in packsDump:
+                        print "zenpack %s is missing but dump doesn't find it"
+                        continue
+
+                    backupPack = packsDump[zpId]
+                    backupDir = zenPath(".ZenPacks", zpId, zp.version)
+                    if not os.path.isdir(backupDir):
+                        log.info("could not find backup of currently installed zenpack: %s, %s", zpId, backupDir)
+                        continue
+                    tempDir = None
+                    try:
+                        tempDir = tempfile.mkdtemp(suffix="stagedZenpackBackup")
+                        tempPackDir = os.path.join(tempDir, os.path.basename(backupPack["eggPath"]))
+                        shutil.copytree(backupDir, tempPackDir)
+                        log.info("reinstalling %s from %s", zpId, tempPackDir)
+                        subprocess.check_call(["zenpack", "--install", tempPackDir])
+                    finally:
+                        if tempDir:
+                            shutil.rmtree(tempDir)
 
     def preInstallCheck(self, eggInstall=True):
         """Check that prerequisite zenpacks are installed.
@@ -497,6 +537,11 @@ class ZenPackCmd(ZenScriptBase):
                                dest='removePackName',
                                default=None,
                                help="Name of the ZenPack to remove.")
+        self.parser.add_option('--sync',
+                               dest='sync',
+                               action="store_true",
+                               default=False,
+                               help='sync installed zenpacks')
         self.parser.add_option('--list',
                                dest='list',
                                action="store_true",
