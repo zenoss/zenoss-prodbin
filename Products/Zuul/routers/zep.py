@@ -52,15 +52,31 @@ class _FilterParser(object):
     OR_SEPARATOR = "||"
     NULL_CHAR='""'
 
-    def __init__(self, detail_list, param_to_detail_mapping, null_detail_value, numeric_fields):
+    def __init__(self, zep_facade):
         """ """
-        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message' ]
+        # Gets some config params from the zep facade
+        detail_list =  zep_facade.getDetailsMap().keys()
+        param_to_detail_mapping = zep_facade.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
+        null_numeric_detail_value = zep_facade.ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE
+        null_text_detail_value = zep_facade.ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE
+        numeric_details = [ d['key'] for d in zep_facade.getDetails() if d['type'] == 2 ]
+
+        # Gets some config params from the zep facade
+        detail_list =  zep_facade.getDetailsMap().keys()
+        param_to_detail_mapping = zep_facade.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
+        null_numeric_detail_value = zep_facade.ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE
+        null_text_detail_value = zep_facade.ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE
+        numeric_details = [ d['key'] for d in zep_facade.getDetails() if d['type'] == 2 ]
+
+        # Sets config variables
+        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message', 'monitor' ]
         self.PARAM_TO_FIELD_MAPPING = { 'device': 'element_title',
-                                            'component': 'element_sub_title',
-                                            'eventClass': 'event_class',
-                                            'ownerid': 'current_user_name',
-                                            'summary': 'event_summary',
-                                            'message' :'message'}
+                                        'component': 'element_sub_title',
+                                        'eventClass': 'event_class',
+                                        'ownerid': 'current_user_name',
+                                        'summary': 'event_summary',
+                                        'message' :'message',
+                                        'monitor': 'monitor' }
         self.PARSEABLE_DETAILS = detail_list
         self.PARAM_TO_DETAIL_MAPPING = param_to_detail_mapping
         for detail in self.PARSEABLE_DETAILS:
@@ -68,9 +84,10 @@ class _FilterParser(object):
                 self.PARAM_TO_DETAIL_MAPPING[detail] = detail
         self.TRANSLATE_NULL = self.PARAM_TO_DETAIL_MAPPING.values()
         self.EXCLUDABLE = self.PARSEABLE_PARAMS + self.PARAM_TO_DETAIL_MAPPING.keys()
-        self.NULL_INDEX = null_detail_value
+        self.NULL_NUMERIC_INDEX = null_numeric_detail_value
         self.NO_FRONT_WILDCARD = [ 'device', 'component', 'eventClass' ]
-        self.NO_WILDCARD = numeric_fields
+        self.NUMERIC_DETAILS = numeric_details
+        self.NO_WILDCARD = self.NUMERIC_DETAILS[:]
 
     def findExclusionParams(self, params):
         """
@@ -135,9 +152,13 @@ class _FilterParser(object):
         elif isinstance(value, list) and self.NULL_CHAR in value:
             or_clauses = value
 
-        # For some fields/details we need to translate the NULL_CHAR to NULL_INDEX
+        # For details we need to translate the NULL_CHAR to the value used to index null
+        # details in lucene.
+        # The value used to index null details is different depending on if the detail
+        # is numeric or text
         if len(or_clauses) > 0 and field in self.TRANSLATE_NULL:
-            or_clauses = [ self.NULL_INDEX if self.NULL_CHAR in str(c) else c for c in or_clauses ]
+            null_index = self.NULL_NUMERIC_INDEX if field in self.NUMERIC_DETAILS else self.NULL_TEXT_INDEX
+            or_clauses = [ null_index if self.NULL_CHAR in str(c) else c for c in or_clauses ]
 
         return or_clauses
 
@@ -185,12 +206,7 @@ class EventsRouter(DirectRouter):
         self.zep = Zuul.getFacade('zep', context)
         self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
-        detail_list =  self.zep.getDetailsMap().keys()
-        param_to_detail_mapping = self.zep.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
-        null_detail_index_value = self.zep.ZENOSS_NULL_DETAIL_INDEX_VALUE
-        numeric_fields = [ d['key'] for d in self.zep.getDetails() if d['type'] == 2 ]
-        self._filterParser = _FilterParser(detail_list=detail_list, param_to_detail_mapping=param_to_detail_mapping, \
-            null_detail_value=null_detail_index_value, numeric_fields=numeric_fields)
+        self._filterParser = _FilterParser(self.zep)
 
     def _canViewEvents(self):
         """
