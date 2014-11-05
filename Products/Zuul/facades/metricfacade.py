@@ -165,7 +165,6 @@ class MetricFacade(ZuulFacade):
                     continue
                 else:
                     # we have found a definition for a datapoint, use it and continue onp
-                    print "Matched dp with name %s, id %s" % (dp.name(), dp.id)
                     metricnames[dp.name()] = ds
                     for subject in subjects:
                         datapoints.append(self._buildMetric(subject, dp, cf, extraRpn, format))
