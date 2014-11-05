@@ -154,16 +154,18 @@ class MetricFacade(ZuulFacade):
 
         # build the metrics section of the query
         datapoints = []
+        metricnames = {}
         for ds in metrics:
             # find the first occurrence of a datapoint on a context.
             # in theory it is possible that a passed in metric exists on one context
             # but not another.
             for subject in subjects:
-                dp = next((d for d in subject._getRRDDataPointsGen() if ds in d.name()), None)
+                dp = next((d for d in subject._getRRDDataPointsGen() if ds == d.name() or ds == d.id), None)
                 if dp is None:
                     continue
                 else:
                     # we have found a definition for a datapoint, use it and continue onp
+                    metricnames[dp.name()] = ds
                     for subject in subjects:
                         datapoints.append(self._buildMetric(subject, dp, cf, extraRpn, format))
                     break
@@ -214,7 +216,7 @@ class MetricFacade(ZuulFacade):
            for item in content['results']:
                key, metric = item['metric'].split('|', 1)
                if item.get('datapoints'):
-                   results[key][metric] = item['datapoints'][0]['value']
+                   results[key][metricnames[metric]] = format % item['datapoints'][0]['value']
            return results
         else:
            return content.get('results')
@@ -259,7 +261,7 @@ class MetricFacade(ZuulFacade):
             format=format,
             tags=tags,
             rate=info.rate,
-            name=context.getResourceKey() + "|" + dp.id
+            name=context.getResourceKey() + "|" + dp.name()
         )
         if rateOptions:
             metric['rateOptions'] = rateOptions
