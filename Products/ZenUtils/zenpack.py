@@ -262,13 +262,13 @@ class ZenPackCmd(ZenScriptBase):
                     desc = zp.path()
                 print('%s (%s)' % (zpId,  desc))
 
-        elif self.options.sync:
-            print "Syncing zenpacks"
-            self.sync()
+        elif self.options.restore:
+            self.log.info("restoring zenpacks")
+            self.restore()
 
         transaction.commit()
 
-    def sync(self):
+    def restore(self):
         packsDump = EggPackCmd.getPacksDump()
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             try:
@@ -537,11 +537,11 @@ class ZenPackCmd(ZenScriptBase):
                                dest='removePackName',
                                default=None,
                                help="Name of the ZenPack to remove.")
-        self.parser.add_option('--sync',
-                               dest='sync',
+        self.parser.add_option('--restore',
+                               dest='restore',
                                action="store_true",
                                default=False,
-                               help='sync installed zenpacks')
+                               help='restore missing zenpacks')
         self.parser.add_option('--list',
                                dest='list',
                                action="store_true",

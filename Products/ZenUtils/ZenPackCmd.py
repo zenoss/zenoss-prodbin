@@ -344,12 +344,6 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
     """
-    # make sure that the backup dir exists
-    backupDir = zenPath(".ZenPacks", dist.project_name, dist.version)
-    if os.path.isdir(backupDir):
-       shutil.rmtree(backupDir)
-
-    shutil.copytree(dist.location, backupDir)
 
     @transact
     def transactional_actions():
