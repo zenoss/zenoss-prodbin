@@ -18,6 +18,7 @@ from Products.ZenEvents.events2.proxy import EventProxy
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.Zuul.interfaces import IMarshallable
+from lxml.html.clean import clean_html
 
 
 _status_name = ProtobufEnum(EventSummary,'status').getPrettyName
@@ -358,7 +359,7 @@ class EventCompatDetailInfo(EventCompatInfo):
                     values = list(values)
                 for value in (v for v in values if v):
                     if not detail['name'].startswith('__meta__'):
-                        d.append(dict(key=detail['name'], value=value))
+                        d.append(dict(key=clean_html(detail['name']), value=clean_html(value)))
         return d
 
     @property
