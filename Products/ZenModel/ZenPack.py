@@ -266,8 +266,19 @@ class ZenPack(ZenModelRM):
             loader.load(self, app)
         self.createZProperties(app)
         previousVersion = self.prevZenPackVersion
+        self.storeBackup()
         self.migrate(previousVersion)
         self.installServices()
+
+    def storeBackup(self):
+        """
+        makes a backup of the zenpack src to allow restoring broken zenpacks
+        """
+        backupDir = zenPath(".ZenPacks", self.id, self.version)
+        if os.path.isdir(backupDir):
+            shutil.rmtree(backupDir)
+
+        shutil.copytree(self.eggPath(), backupDir)
 
     def upgrade(self, app):
         """
