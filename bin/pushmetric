@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+if [[ -z "$2" ]] ; then
+    echo '2 arguments are needed, a metric name and a value'
+    exit
+fi
+
+METRIC_NAME=$1
+METRIC_VALUE=$2
+
+while true; do
+curl -X POST -H 'Content-Type: application/json' http://localhost:8443/api/metrics/store -d '{"metrics":[{"metric":"'$METRIC_NAME'", "timestamp":"'$(date +%s)'", "value":'$METRIC_VALUE', "tags":{"controlplane_host_id":"6f0a3b17"}}]}'
+sleep 10
+done
