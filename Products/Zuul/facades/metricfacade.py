@@ -109,7 +109,7 @@ class MetricFacade(ZuulFacade):
             key, metric = row['metric'].split('|', 1)
             if not results.get(key):
                 results[key] = defaultdict(list)
-            for dp in row['datapoints']:
+            for dp in row.get('datapoints', []):
                 if not dp['value'] is None and dp['value'] != u'NaN':
                     results[key][metric].append(dict(timestamp=dp['timestamp'], value=dp['value']))
         return results
@@ -160,7 +160,7 @@ class MetricFacade(ZuulFacade):
             # in theory it is possible that a passed in metric exists on one context
             # but not another.
             for subject in subjects:
-                dp = next((d for d in subject._getRRDDataPointsGen() if ds == d.name() or ds == d.id), None)
+                dp = next((d for d in subject._getRRDDataPointsGen() if ds in d.name() ), None)
                 if dp is None:
                     continue
                 else:
@@ -216,7 +216,7 @@ class MetricFacade(ZuulFacade):
            for item in content['results']:
                key, metric = item['metric'].split('|', 1)
                if item.get('datapoints'):
-                   results[key][metricnames[metric]] = format % item['datapoints'][0]['value']
+                   results[key][metricnames[metric]] = float(format % item['datapoints'][0]['value'])
            return results
         else:
            return content.get('results')
