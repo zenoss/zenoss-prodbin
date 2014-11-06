@@ -582,7 +582,7 @@ class ZenPackCmd(ZenScriptBase):
                                help="Do not install the zenpack if the version is unchanged")
         self.parser.add_option('--service-id',
                                dest='serviceId',
-                               default='',
+                               default=os.getenv('CONTROLPLANE_SERVICED_ID', ''),
                                help=optparse.SUPPRESS_HELP)
 
         self.parser.prog = "zenpack"
