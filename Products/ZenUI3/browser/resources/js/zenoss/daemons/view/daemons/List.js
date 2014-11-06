@@ -42,7 +42,7 @@
     Ext.define('Daemons.view.daemons.List' ,{
         extend: 'Ext.tree.Panel',
         alias: 'widget.daemonslist',
-        title: _t('All Daemons'),
+        title: _t('All Services'),
         stores: ['Daemons'],
         multiSelect: true,
         useArrows: true,

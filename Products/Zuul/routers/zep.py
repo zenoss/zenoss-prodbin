@@ -673,7 +673,7 @@ class EventsRouter(DirectRouter):
         except NoConsumersException:
             # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not
             # currently running.
-            msg = 'Queued event. Check zeneventd status on <a href="/zport/dmd/daemons">Daemons</a>'
+            msg = 'Queued event. Check zeneventd status on <a href="/zport/dmd/daemons">Services</a>'
             return DirectResponse.succeed(msg, sticky=True)
         except PublishException, e:
             # This occurs if there is a failure publishing the event to the queue.
