@@ -219,7 +219,7 @@
             layer="..navigation.interfaces.IZenossNav"
             />
         <browser:viewlet
-            name="Daemons"
+            name="Services"
             url="/zport/dmd/daemons"
             weight="2"
             parentItem="Advanced"
