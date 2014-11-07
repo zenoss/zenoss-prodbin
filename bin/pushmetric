@@ -9,6 +9,6 @@ METRIC_NAME=$1
 METRIC_VALUE=$2
 
 while true; do
-curl -X POST -H 'Content-Type: application/json' http://localhost:8443/api/metrics/store -d '{"metrics":[{"metric":"'$METRIC_NAME'", "timestamp":"'$(date +%s)'", "value":'$METRIC_VALUE', "tags":{"controlplane_host_id":"6f0a3b17"}}]}'
+curl -X POST -H 'Content-Type: application/json' http://localhost:8443/api/metrics/store -d '{"metrics":[{"metric":"'$METRIC_NAME'", "timestamp":"'$(date +%s)'", "value":'$METRIC_VALUE', "tags":{"controlplane_host_id":"'$CONTROLPLANE_HOST_ID'"}}]}'
 sleep 10
 done
