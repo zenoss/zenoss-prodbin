@@ -29,7 +29,7 @@ def onSigUsr1(daemon, event):
 
 @adapter(ZenEventD, BuildOptionsEvent)
 def onBuildOptions(daemon, event):
-    workersBuildOptions(daemon.parser, default=2)
+    workersBuildOptions(daemon.parser, default=1)
 
 @adapter(ZenEventD, DaemonCreatedEvent)
 def onDaemonCreated(daemon, event):
