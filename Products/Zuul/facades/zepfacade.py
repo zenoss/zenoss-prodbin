@@ -18,13 +18,11 @@ from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
 
 from zenoss.protocols.interfaces import IQueueSchema
-from zenoss.protocols.services.zep import ZepStatsClient, ZepServiceClient, \
-                                        EventSeverity, ZepConfigClient, \
-                                        ZepHeartbeatClient
+from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import (
     EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig, EventNote,
-    EventSummaryUpdate, EventDetailSet, ZepStatistics
+    EventSummaryUpdate, EventDetailSet,
 )
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils import safeTuple
@@ -100,6 +98,11 @@ class ZepFacade(ZuulFacade):
     }
     ZENOSS_DETAIL_NEW_TO_OLD_MAPPING = dict((new, old) for old, new in ZENOSS_DETAIL_OLD_TO_NEW_MAPPING.iteritems())
 
+    JAVA_MIN_INTEGER = -2147483648
+    # Values that zep uses to index details with no value
+    ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE = JAVA_MIN_INTEGER
+    ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE = '\x07'
+
     SEVERITIES_BATCH_SIZE = 400
 
     COUNT_REGEX = re.compile(r'^(?P<from>\d+)?:?(?P<to>\d+)?$')
@@ -113,7 +116,6 @@ class ZepFacade(ZuulFacade):
         self.configClient = ZepConfigClient(zep_url, schema)
         self.heartbeatClient = ZepHeartbeatClient(zep_url, schema)
         self._guidManager = IGUIDManager(context.dmd)
-        self.statsClient = ZepStatsClient(zep_url, schema)
 
     def _create_identifier_filter(self, value):
         if not isinstance(value, (tuple, list, set)):
@@ -252,7 +254,7 @@ class ZepFacade(ZuulFacade):
             filter['message'] = self._createFullTextSearch(message)
 
         # Everything's repeated on the protobuf, so listify
-        result = dict((k, listify(v)) for k,v in filter.iteritems())
+        result = dict((k, listify(v)) for k, v in filter.iteritems())
 
         if operator:
             result['operator'] = operator
@@ -323,11 +325,13 @@ class ZepFacade(ZuulFacade):
 
         self.client.addNote(uuid, message, userUuid, userName)
 
+
     def addNoteBulkAsync(self, uuids, message, userName, userUuid=None):
         if userName and not userUuid:
             userUuid = self._getUserUuid(userName)
 
         self.client.addNoteBulkAsync(uuids, message, userUuid, userName)
+
 
     def postNote(self, uuid, note):
         self.client.postNote(uuid, from_dict(EventNote, note))
@@ -350,9 +354,10 @@ class ZepFacade(ZuulFacade):
                           use_permissions=False):
         if client_fn is None:
             client_fn = self.client.getEventSummaries
-        if filter is not None and isinstance(filter,dict):
+        if filter is not None and isinstance(filter, dict):
             filter = from_dict(EventFilter, filter)
         if exclusion_filter is not None and isinstance(exclusion_filter, dict):
+            exclusion_filter['operator'] = 1 # Set operator to OR
             exclusion_filter = from_dict(EventFilter, exclusion_filter)
         if sort is not None:
             sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
@@ -375,7 +380,7 @@ class ZepFacade(ZuulFacade):
                     tf.tag_uuids.extend(ids)
                 else:
                     # no permission to see events, return 0
-                    result =  {
+                    result = {
                         'total' : 0,
                         'events' : [],
                     }
@@ -443,31 +448,38 @@ class ZepFacade(ZuulFacade):
 
     def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
         arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+
         eventFilter = arguments.get('eventFilter')
         exclusionFilter = arguments.get('exclusionFilter')
         userName = arguments.get('userName')
         userUuid = arguments.get('userUuid')
+
         status, response = self.client.closeEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit, timeout=timeout)
+
         return status, to_dict(response)
 
     def acknowledgeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None,
                                   timeout=None):
         arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+
         eventFilter = arguments.get('eventFilter')
         exclusionFilter = arguments.get('exclusionFilter')
         userName = arguments.get('userName')
         userUuid = arguments.get('userUuid')
+
         status, response = self.client.acknowledgeEventSummaries(userUuid, userName, eventFilter, exclusionFilter,
-                                                                 limit, timeout=timeout)
+                                                                     limit, timeout=timeout)
         return status, to_dict(response)
 
     def reopenEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
         arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+
         eventFilter = arguments.get('eventFilter')
         exclusionFilter = arguments.get('exclusionFilter')
         userName = arguments.get('userName')
         userUuid = arguments.get('userUuid')
+
         status, response = self.client.reopenEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit, timeout=timeout)
         return status, to_dict(response)
@@ -582,6 +594,9 @@ class ZepFacade(ZuulFacade):
         @rtype: dict
         @return: A dictionary of UUID -> { C{EventSeverity} -> { count, acknowledged_count } }
         """
+        if isinstance(tagUuids, set):
+            tagUuids = list(tagUuids)
+
         objects_severities = {}
         number_of_uuids = len(tagUuids)
         batch_size = ZepFacade.SEVERITIES_BATCH_SIZE
@@ -598,8 +613,6 @@ class ZepFacade(ZuulFacade):
             end = (start + batch_size)
             if end > number_of_uuids:
                 end = number_of_uuids
-
-	    tagUuids = list(tagUuids)   # dirty hack :)
             uuids = tagUuids[start:end]
 
             eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=uuids, eventClass=eventClass)
@@ -685,9 +698,9 @@ class ZepFacade(ZuulFacade):
         # redirect
         url = None
         if len(evdata) == 1 and evmap:
-            url = evmap.getPrimaryId()
+            url = evmap.absolute_url()
         elif evclass and evmap:
-            url = evclass.getPrimaryId()
+            url = evclass.absolute_url()
         return msg, url
 
     def _getEventTagSeverities(self, eventClass=(), severity=(), status=(), tags=()):
@@ -707,13 +720,13 @@ class ZepFacade(ZuulFacade):
 
     def getDevicePingIssues(self):
         return self.getDeviceIssues(eventClass=[Status_Ping],
-                                    severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
-                                    status=[STATUS_NEW,STATUS_ACKNOWLEDGED,STATUS_SUPPRESSED])
+                                    severity=[SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL],
+                                    status=[STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED])
 
     def getDeviceStatusIssues(self):
         return self.getDeviceIssues(eventClass=["/Status/"],
-                                    severity=[SEVERITY_ERROR,SEVERITY_CRITICAL],
-                                    status=[STATUS_NEW,STATUS_ACKNOWLEDGED])
+                                    severity=[SEVERITY_ERROR, SEVERITY_CRITICAL],
+                                    status=[STATUS_NEW, STATUS_ACKNOWLEDGED])
 
     def getDeviceIssues(self, eventClass=(),
                         severity=(SEVERITY_DEBUG, SEVERITY_INFO, SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL),
@@ -796,22 +809,18 @@ class ZepFacade(ZuulFacade):
         """
         @type detailItemSet: zenoss.protocols.protobufs.zep_pb2.EventDetailItemSet
         """
-        _ZEP_DETAILS_INFO = []
         return self.configClient.addIndexedDetails(detailItemSet)
 
     def updateIndexedDetail(self, item):
         """
         @type item: zenoss.protocols.protobufs.zep_pb2.EventDetailItem
         """
-        _ZEP_DETAILS_INFO = []
         return self.configClient.updateIndexedDetail(item)
 
     def removeIndexedDetail(self, key):
         """
         @type key: string
         """
-        # Gather the new details information
-        _ZEP_DETAILS_INFO = []
         return self.configClient.removeIndexedDetail(key)
 
     def countEventsSince(self, since):
@@ -839,63 +848,7 @@ class ZepFacade(ZuulFacade):
     def deleteHeartbeats(self, monitor=None):
         self.heartbeatClient.deleteHeartbeats(monitor=monitor)
 
-    def deleteHeartbeat(self, monitor, daemon):
-        """
-        Removes the heartbeat record for the specified monitor and daemon.
-
-        @param monitor: The heartbeat monitor (i.e. 'localhost').
-        @type monitor: basestring
-        @param daemon: The heartbeat daemon (i.e. 'zenhub').
-        @type daemon: basestring
-        """
-        self.heartbeatClient.deleteHeartbeat(monitor, daemon)
-
-    def create(self, summary, severity, device, component=None, mandatory=True, 
-               **kwargs):
-        """
-        Create an event.
-
-        @param summary: Summary message of the event. This variable gets mapped to an
-            C{Event} protobuf field of the same name.
-        @type summary: string
-
-        @param severity: Severity name of the event. This variable gets mapped to the
-            C{Event} protobuf using an C{EventProtobufSeverityMapper}
-            (C{Products.ZenMessaging.queuemessaging.adapters.EventProtobufSeverityMapper}).
-            This value can be an integer-like string value 0-5 or the string of the
-            severity (clear, debug, info, warning, error, critical). The casing of the
-            string does not matter. An empty severity value will be mapped to CLEAR.
-        @type severity: string
-
-        @param device: Device string. This variable gets set as the element on the
-            C{Event} protobuf using an C{EventProtobufDeviceMapper}
-            (C{Products.ZenMessaging.queuemessaging.adapters.EventProtobufDeviceMapper}).
-            The value for this variable will always be set as a DEVICE element type.
-            This value is later interpreted by zeneventd during the C{IdentifierPipe}
-            (C{Products.ZenEvents.events2.processing.IdentifierPipe}) segment of the
-            event processing pipeline. If an ipAddress is also provided in kwargs,
-            the ipAddress is also used to help identify the device. If the ipAddress
-            is provided, it is used first. If the ipAddress is not provided, the IP
-            for a device is attempted to be discerned from the value of this variable.
-            If the IP cannot be inferred, identification falls back to the value of
-            this variable as either the ID of the device, or the title of the device
-            as stored in the device catalog (as the NAME field).
-        @type device: string
-
-        @param component: ID of the component. This variable is used to lookup components
-            by their ID or the title of the component (also stored as the NAME field in
-            the catalog). See more info on how these objects are cataloged here:
-            C{Products.Zuul.catalog.global_catalog.IndexableWrapper}.
-        @type component: string
-
-        @param mandatory:  If True, message will be returned unless it can be routed to
-            a queue.
-        @type mandatory: boolean
-        @param eventClass: Name of the event class to fall under.
-        @type eventClass: string
-
-        For other parameters see class Event.
-        """
+    def create(self, summary, severity, device, component=None, mandatory=True, **kwargs):
         occurrence_uuid = str(uuid4())
         rcvtime = time()
         args = dict(evid=occurrence_uuid, summary=summary, severity=severity, device=device)
@@ -910,27 +863,10 @@ class ZepFacade(ZuulFacade):
         """
         Given an evid, update the detail key/value pairs in ZEP.
         """
-
-        if len(detailInfo) == 1 and isinstance(detailInfo.values()[0], EventDetailSet):
-            return self.client.updateDetails(evid, detailInfo.values()[0])
-
         detailSet = EventDetailSet()
         for key, value in detailInfo.items():
             detailSet.details.add(name=key, value=(value,))
-
         return self.client.updateDetails(evid, detailSet)
-
-    def getStats(self):
-        response, stats = self.statsClient.get()
-        statsList = []
-        for stat in stats.stats:
-            myst = {}
-            myst['name'] = stat.name
-            myst['description'] = stat.description
-            myst['value'] = stat.value
-            statsList.append(myst)
-        return statsList
-
 
 
 class ZepDetailsInfo:
