@@ -100,6 +100,11 @@ class ZepFacade(ZuulFacade):
     }
     ZENOSS_DETAIL_NEW_TO_OLD_MAPPING = dict((new, old) for old, new in ZENOSS_DETAIL_OLD_TO_NEW_MAPPING.iteritems())
 
+    JAVA_MIN_INTEGER = -2147483648
+    # Values that zep uses to index details with no value     
+    ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE = JAVA_MIN_INTEGER
+    ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE = '\x07'
+
     SEVERITIES_BATCH_SIZE = 400
 
     COUNT_REGEX = re.compile(r'^(?P<from>\d+)?:?(?P<to>\d+)?$')
@@ -353,6 +358,7 @@ class ZepFacade(ZuulFacade):
         if filter is not None and isinstance(filter,dict):
             filter = from_dict(EventFilter, filter)
         if exclusion_filter is not None and isinstance(exclusion_filter, dict):
+            exclusion_filter['operator'] = 1 # Set operator to OR
             exclusion_filter = from_dict(EventFilter, exclusion_filter)
         if sort is not None:
             sort = tuple(self._getEventSort(s) for s in safeTuple(sort))

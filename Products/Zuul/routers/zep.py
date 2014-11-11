@@ -16,6 +16,7 @@ Available at:  /zport/dmd/evconsole_router
 
 import time
 import logging
+import re
 from json import loads
 from AccessControl import getSecurityManager
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
@@ -41,6 +42,159 @@ from lxml.html.clean import clean_html
 
 log = logging.getLogger('zen.%s' % __name__)
 
+class _FilterParser(object):
+    """
+    Parses the filter related params received from the ui to search
+    for "or clauses", "NULLs" and "NOTs"
+    """
+
+    NOT_SEPARATOR = "!!"
+    OR_SEPARATOR = "||"
+    NULL_CHAR='""'
+
+    def __init__(self, zep_facade):
+        """ """
+        # Gets some config params from the zep facade
+        detail_list =  zep_facade.getDetailsMap().keys()
+        param_to_detail_mapping = zep_facade.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
+        null_numeric_detail_value = zep_facade.ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE
+        null_text_detail_value = zep_facade.ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE
+        numeric_details = [ d['key'] for d in zep_facade.getDetails() if d['type'] == 2 ]
+
+        # Gets some config params from the zep facade
+        detail_list =  zep_facade.getDetailsMap().keys()
+        param_to_detail_mapping = zep_facade.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
+        null_numeric_detail_value = zep_facade.ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE
+        null_text_detail_value = zep_facade.ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE
+        numeric_details = [ d['key'] for d in zep_facade.getDetails() if d['type'] == 2 ]
+
+        # Sets config variables
+        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message', 'monitor' ]
+        self.PARAM_TO_FIELD_MAPPING = { 'device': 'element_title',
+                                        'component': 'element_sub_title',
+                                        'eventClass': 'event_class',
+                                        'ownerid': 'current_user_name',
+                                        'summary': 'event_summary',
+                                        'message' :'message',
+                                        'monitor': 'monitor' }
+        self.PARSEABLE_DETAILS = detail_list
+        self.PARAM_TO_DETAIL_MAPPING = param_to_detail_mapping
+        for detail in self.PARSEABLE_DETAILS:
+            if detail not in self.PARAM_TO_DETAIL_MAPPING.values():
+                self.PARAM_TO_DETAIL_MAPPING[detail] = detail
+        self.TRANSLATE_NULL = self.PARAM_TO_DETAIL_MAPPING.values()
+        self.EXCLUDABLE = self.PARSEABLE_PARAMS + self.PARAM_TO_DETAIL_MAPPING.keys()
+        self.NULL_NUMERIC_INDEX = null_numeric_detail_value
+        self.NO_FRONT_WILDCARD = [ 'device', 'component', 'eventClass' ]
+        self.NUMERIC_DETAILS = numeric_details
+        self.NO_WILDCARD = self.NUMERIC_DETAILS[:]
+
+    def findExclusionParams(self, params):
+        """
+        Look for filter params that contain the NOT_SEPARATOR
+        @type  params: dictionary
+        @param params: dictionary containing filter parameters from the ui
+        @return: dictionary with the params that must be NOT filtered
+        """
+        exclude_params = {}
+        if params is not None and isinstance(params, dict) and len(params) > 0:
+            for param in self.EXCLUDABLE:
+                value = params.get(param)
+                if value is not None and isinstance(value, basestring) and self.NOT_SEPARATOR in value:
+                    value = self._cleanText(value)
+                    clauses = value.split(self.NOT_SEPARATOR)
+                    inclusion_clause = clauses[0].strip()
+                    exclusion_clause = clauses[1].strip()
+                    if len(exclusion_clause) > 0:
+                        exclude_params[param] = exclusion_clause
+                    if len(inclusion_clause) == 0:
+                        del params[param]
+                    else:
+                        params[param] = inclusion_clause
+        return exclude_params
+
+    def _cleanText(self, clause):
+        """ """
+        clause = re.sub('\s+', ' ', clause)
+        clause = clause.strip(' *')
+        return clause
+
+    def _addWildcardsToFilter(self, field, value):
+        """ """
+        filter = value.strip()
+        if filter != self.NULL_CHAR and field not in self.NO_WILDCARD:
+            if field in self.NO_FRONT_WILDCARD:
+                filter = '{0}*'.format(filter.strip())
+            else:
+                filter = '*{0}*'.format(filter.strip())
+        return filter
+
+    def _getOrClauses(self, field, value):
+        """
+        Given a filter field value, check if it contains the OR_SEPARATOR.
+        @type  field: string
+        @param field: name of the field
+        @type  value: string
+        @param value: field value received from the UI
+        @return: list of OR clauses
+        """
+        or_clauses = []
+
+        if isinstance(value, basestring):
+            value = self._cleanText(value)
+            if self.OR_SEPARATOR in value:
+                temp_or_clauses = value.split(self.OR_SEPARATOR)
+                or_clauses = [ self._addWildcardsToFilter(field, clause) for clause in temp_or_clauses if len(clause)>0 and clause != ' ']
+            elif field in self.TRANSLATE_NULL and self.NULL_CHAR in value:
+                or_clauses.append(self.NULL_CHAR)
+            else:
+                or_clauses.append(self._addWildcardsToFilter(field, value))
+        elif isinstance(value, list) and self.NULL_CHAR in value:
+            or_clauses = value
+
+        # For details we need to translate the NULL_CHAR to the value used to index null
+        # details in lucene.
+        # The value used to index null details is different depending on if the detail
+        # is numeric or text
+        if len(or_clauses) > 0 and field in self.TRANSLATE_NULL:
+            null_index = self.NULL_NUMERIC_INDEX if field in self.NUMERIC_DETAILS else self.NULL_TEXT_INDEX
+            or_clauses = [ null_index if self.NULL_CHAR in str(c) else c for c in or_clauses ]
+
+        return or_clauses
+
+    def parseParams(self, params):
+        """
+        Parses the filter params passed from the UI looking
+        for OR clauses or NULL values
+        @type  params: dictionary
+        @param params: dict of filter params passed from the UI
+        @return
+        """
+        parsed_params = {}
+        for par in self.PARSEABLE_PARAMS:
+            if params.get(par) is not None:
+                value = params.get(par)
+                or_clauses = self._getOrClauses(field=par, value=value)
+                filter_param = self.PARAM_TO_FIELD_MAPPING[par]
+                parsed_params[filter_param] = or_clauses
+        return parsed_params
+
+    def parseDetails(self, details):
+        """
+        Parses the filter details passed from the UI looking
+        for OR clauses or NULL values
+        @type  details: dictionary
+        @param details: dict of filter details passed from the UI
+        @return
+        """
+        parsed_details = {}
+        for detail in self.PARSEABLE_DETAILS:
+            if details.get(detail) is not None:
+                detail_value = details.get(detail)
+                or_clauses = self._getOrClauses(field=detail, value=detail_value)
+                parsed_details[detail] = or_clauses
+        return parsed_details
+
 
 class EventsRouter(DirectRouter):
     """
@@ -52,6 +206,7 @@ class EventsRouter(DirectRouter):
         self.zep = Zuul.getFacade('zep', context)
         self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
+        self._filterParser = _FilterParser(self.zep)
 
     def _canViewEvents(self):
         """
@@ -67,7 +222,8 @@ class EventsRouter(DirectRouter):
     def _timeRange(self, value):
         try:
             values = []
-            for t in value.split('/'):
+            splitter = ' TO ' if ' TO ' in value else '/'
+            for t in value.split(splitter):
                 values.append(int(isoToTimestamp(t)) * 1000)
             return values
         except ValueError:
@@ -171,6 +327,14 @@ class EventsRouter(DirectRouter):
             uids = [x.getPrimaryId() for x in self.context.dmd.Devices.children()]
         else:
             uids = [uid]
+
+        exclude_params = self._filterParser.findExclusionParams(params)
+        if len(exclude_params) > 0:
+            if exclusion_filter is None:
+                exclusion_filter = exclude_params
+            else:
+                exclusion_filter.update(exclude_params)
+
         filter = self._buildFilter(uids, params)
         if exclusion_filter is not None:
             exclusion_filter = self._buildFilter(uids, exclusion_filter)
@@ -297,29 +461,39 @@ class EventsRouter(DirectRouter):
                     param_tags = [tag for tag in param_tags if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.manager.getObject(tag))]
                 if not param_tags:
                     param_tags = ['dne'] # Filter everything (except "does not exist'). An empty tag list would be ignored.
-            event_filter = self.zep.createEventFilter(
-                severity = params.get('severity'),
-                status = [i for i in params.get('eventState', [])],
-                event_class = filter(None, [params.get('eventClass')]),
-                first_seen = params.get('firstTime') and self._timeRange(params.get('firstTime')),
-                last_seen = params.get('lastTime') and self._timeRange(params.get('lastTime')),
-                status_change = params.get('stateChange') and self._timeRange(params.get('stateChange')),
-                uuid = filterEventUuids,
-                count_range = params.get('count'),
-                element_title = params.get('device'),
-                element_sub_title = params.get('component'),
-                event_summary = params.get('summary'),
-                current_user_name = params.get('ownerid'),
-                agent = params.get('agent'),
-                monitor = params.get('monitor'),
-                fingerprint = params.get('dedupid'),
-                tags = param_tags,
-                details = details,
-                event_key = params.get('eventKey'),
-                event_class_key = params.get('eventClassKey'),
-                event_group = params.get('eventGroup'),
-                message = params.get('message'),
-            )
+
+            filter_params = {
+                'severity': params.get('severity'),
+                'status': [i for i in params.get('eventState', [])],
+                'event_class': filter(None, [params.get('eventClass')]),
+                'first_seen': params.get('firstTime') and self._timeRange(params.get('firstTime')),
+                'last_seen': params.get('lastTime') and self._timeRange(params.get('lastTime')),
+                'status_change': params.get('stateChange') and self._timeRange(params.get('stateChange')),
+                'uuid': filterEventUuids,
+                'count_range': params.get('count'),
+                'element_title': params.get('device'),
+                'element_sub_title': params.get('component'),
+                'event_summary': params.get('summary'),
+                'current_user_name': params.get('ownerid'),
+                'agent': params.get('agent'),
+                'monitor': params.get('monitor'),
+                'fingerprint': params.get('dedupid'),
+                'tags': param_tags,
+                'details': details,
+                'event_key': params.get('eventKey'),
+                'event_class_key': params.get('eventClassKey'),
+                'event_group': params.get('eventGroup'),
+                'message': params.get('message'),
+            }
+            parsed_params = self._filterParser.parseParams(params)
+            filter_params.update(parsed_params)
+
+            parsed_details = self._filterParser.parseDetails(details)
+            if len(parsed_details) > 0:
+                filter_params['details'].update(parsed_details)
+
+            event_filter = self.zep.createEventFilter(**filter_params)
+
             log.debug('Found params for building filter, ended up building  the following:')
             log.debug(event_filter)
         elif specificEventUuids:
