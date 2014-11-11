@@ -44,7 +44,7 @@ log = logging.getLogger('zen.%s' % __name__)
 
 class _FilterParser(object):
     """
-    Parses the filter related params received from the ui to search
+    Parses the filter related params received from the ui to search 
     for "or clauses", "NULLs" and "NOTs"
     """
 
@@ -54,13 +54,6 @@ class _FilterParser(object):
 
     def __init__(self, zep_facade):
         """ """
-        # Gets some config params from the zep facade
-        detail_list =  zep_facade.getDetailsMap().keys()
-        param_to_detail_mapping = zep_facade.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
-        null_numeric_detail_value = zep_facade.ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE
-        null_text_detail_value = zep_facade.ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE
-        numeric_details = [ d['key'] for d in zep_facade.getDetails() if d['type'] == 2 ]
-
         # Gets some config params from the zep facade
         detail_list =  zep_facade.getDetailsMap().keys()
         param_to_detail_mapping = zep_facade.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
@@ -85,6 +78,7 @@ class _FilterParser(object):
         self.TRANSLATE_NULL = self.PARAM_TO_DETAIL_MAPPING.values()
         self.EXCLUDABLE = self.PARSEABLE_PARAMS + self.PARAM_TO_DETAIL_MAPPING.keys()
         self.NULL_NUMERIC_INDEX = null_numeric_detail_value
+        self.NULL_TEXT_INDEX = null_text_detail_value
         self.NO_FRONT_WILDCARD = [ 'device', 'component', 'eventClass' ]
         self.NUMERIC_DETAILS = numeric_details
         self.NO_WILDCARD = self.NUMERIC_DETAILS[:]
@@ -105,14 +99,16 @@ class _FilterParser(object):
                     clauses = value.split(self.NOT_SEPARATOR)
                     inclusion_clause = clauses[0].strip()
                     exclusion_clause = clauses[1].strip()
+                    
                     if len(exclusion_clause) > 0:
                         exclude_params[param] = exclusion_clause
                     if len(inclusion_clause) == 0:
                         del params[param]
                     else:
                         params[param] = inclusion_clause
-        return exclude_params
 
+        return exclude_params
+    
     def _cleanText(self, clause):
         """ """
         clause = re.sub('\s+', ' ', clause)
@@ -127,6 +123,7 @@ class _FilterParser(object):
                 filter = '{0}*'.format(filter.strip())
             else:
                 filter = '*{0}*'.format(filter.strip())
+
         return filter
 
     def _getOrClauses(self, field, value):
@@ -149,7 +146,7 @@ class _FilterParser(object):
                 or_clauses.append(self.NULL_CHAR)
             else:
                 or_clauses.append(self._addWildcardsToFilter(field, value))
-        elif isinstance(value, list) and self.NULL_CHAR in value:
+        elif isinstance(value, list):
             or_clauses = value
 
         # For details we need to translate the NULL_CHAR to the value used to index null
@@ -164,7 +161,7 @@ class _FilterParser(object):
 
     def parseParams(self, params):
         """
-        Parses the filter params passed from the UI looking
+        Parses the filter params passed from the UI looking 
         for OR clauses or NULL values
         @type  params: dictionary
         @param params: dict of filter params passed from the UI
@@ -181,7 +178,7 @@ class _FilterParser(object):
 
     def parseDetails(self, details):
         """
-        Parses the filter details passed from the UI looking
+        Parses the filter details passed from the UI looking 
         for OR clauses or NULL values
         @type  details: dictionary
         @param details: dict of filter details passed from the UI
