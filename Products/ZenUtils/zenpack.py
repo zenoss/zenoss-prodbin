@@ -14,6 +14,7 @@ import os
 import sys
 import logging
 import ConfigParser
+import glob
 import optparse
 import subprocess
 import shutil
@@ -156,16 +157,6 @@ class ZenPackCmd(ZenScriptBase):
                 self.id = zpId
             def path(self, *parts):
                 return zenPath('Products', self.id, *parts)
-        if self.options.installPackName and self.options.filesOnly:
-            if eggInstall:
-                return  EggPackCmd.InstallZenPack(None,
-                            self.options.installPackName,
-                                filesOnly=True)
-            packName = self.extract(self.options.installPackName)
-            proxy = ZPProxy(packName)
-            for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
-                loader.load(proxy, None)
-            return
         if self.options.removePackName and self.options.filesOnly:
             # Remove files-only is not yet supported for egg zenpacks
             # todo
@@ -199,7 +190,7 @@ class ZenPackCmd(ZenScriptBase):
                     self.dmd,
                     self.options.installPackName,
                     link=self.options.link,
-                    filesOnly=False,
+                    filesOnly=self.options.filesOnly,
                     previousVersion= self.options.previousVersion,
                     fromUI=self.options.fromui,
                     serviceId=self.options.serviceId)
@@ -262,43 +253,52 @@ class ZenPackCmd(ZenScriptBase):
                     desc = zp.path()
                 print('%s (%s)' % (zpId,  desc))
 
-        elif self.options.sync:
-            print "Syncing zenpacks"
-            self.sync()
+        elif self.options.restore:
+            self.log.info("restoring zenpacks")
+            self.restore()
 
         transaction.commit()
 
-    def sync(self):
+    def restore(self):
         packsDump = EggPackCmd.getPacksDump()
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             try:
                 zp = self.dmd.ZenPackManager.packs._getOb(zpId, None)
-            except AttributeError:
-                log.info("Skipping broken zenpack %s", zpId)
-                continue
-            if zp.isEggPack():
-                try:
+                if zp.isEggPack():
                     desc = zp.eggPath()
-                except DistributionNotFound:
-                    if zpId not in packsDump:
-                        print "zenpack %s is missing but dump doesn't find it"
-                        continue
+            except (AttributeError, DistributionNotFound):
+                self._restore(zpId, zp.version)
 
-                    backupPack = packsDump[zpId]
-                    backupDir = zenPath(".ZenPacks", zpId, zp.version)
-                    if not os.path.isdir(backupDir):
-                        log.info("could not find backup of currently installed zenpack: %s, %s", zpId, backupDir)
-                        continue
-                    tempDir = None
-                    try:
-                        tempDir = tempfile.mkdtemp(suffix="stagedZenpackBackup")
-                        tempPackDir = os.path.join(tempDir, os.path.basename(backupPack["eggPath"]))
-                        shutil.copytree(backupDir, tempPackDir)
-                        log.info("reinstalling %s from %s", zpId, tempPackDir)
-                        subprocess.check_call(["zenpack", "--install", tempPackDir])
-                    finally:
-                        if tempDir:
-                            shutil.rmtree(tempDir)
+
+    def _restore(self, zpId, version):
+        # glob for backup
+        backupDir = zenPath(".ZenPacks")
+        pattern = backupDir + "/%s-%s*" % (zpId, version)
+        self.log.info("looking for %s", pattern)
+        candidates = glob.glob(pattern)
+        if len(candidates) == 0:
+            self.log.info("could not find install candidate for %s %s", zpId, version)
+            return
+        for candidate in candidates:
+            if candidate.lower().endswith(".egg"):
+                try:
+                     shutil.copy(os.path.join(backupDir, candidate), tempfile.gettempdir())
+                     try:
+                         with open(os.devnull, 'w') as fnull:
+                             # the first time fixes the easy-install path
+                             subprocess.check_call(["zenpack", "--files-only", "--install", os.path.join(tempfile.gettempdir(), candidate)], stdout=fnull, stderr=fnull)
+                     except Exception:
+                         pass
+                     # the second time runs the loaders
+                     subprocess.check_call(["zenpack", "--files-only", "--install", os.path.join(tempfile.gettempdir(), candidate)])
+                finally:
+                     try:
+                         os.remove(os.path.join(tempfile.gettempdir(), candidate))
+                     except Exception:
+                         pass
+                     return
+            else:
+                self.log.warning("non-egg zenpacks can not currently be restored automatically: %s", candidate)
 
     def preInstallCheck(self, eggInstall=True):
         """Check that prerequisite zenpacks are installed.
@@ -537,11 +537,11 @@ class ZenPackCmd(ZenScriptBase):
                                dest='removePackName',
                                default=None,
                                help="Name of the ZenPack to remove.")
-        self.parser.add_option('--sync',
-                               dest='sync',
+        self.parser.add_option('--restore',
+                               dest='restore',
                                action="store_true",
                                default=False,
-                               help='sync installed zenpacks')
+                               help='restore missing zenpacks')
         self.parser.add_option('--list',
                                dest='list',
                                action="store_true",

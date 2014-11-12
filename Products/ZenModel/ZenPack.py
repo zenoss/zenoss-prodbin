@@ -22,6 +22,7 @@ import os.path
 import posixpath
 import sys
 import shutil
+import zipfile
 from collections import defaultdict
 
 from Globals import InitializeClass
@@ -266,8 +267,44 @@ class ZenPack(ZenModelRM):
             loader.load(self, app)
         self.createZProperties(app)
         previousVersion = self.prevZenPackVersion
+        self.storeBackup()
         self.migrate(previousVersion)
         self.installServices()
+
+    def storeBackup(self):
+        """
+        makes a backup of the zenpack src to allow restoring broken zenpacks
+        """
+        backupDir = zenPath(".ZenPacks")
+        if not os.path.isdir(backupDir):
+            os.mkdirs(backupDir, 0750)
+
+        src = self.eggPath()
+        filename = ""
+        zip = None
+        try:
+            if src.lower().endswith(".egg"):
+                filename = os.path.join(backupDir, os.path.basename(src))
+                zip = zipfile.ZipFile(filename+".tmp", "w")
+                prefix = ""
+            else:
+                filename = os.path.join(backupDir, "%s-%s.zip" % (self.id, self.version))
+                zip = zipfile.ZipFile(filename+".tmp", "w")
+                prefix = self.id
+            ignore = len(src) + 1
+            for root, dirs, files in os.walk(src):
+                for file in files:
+                    f = os.path.join(root, file)
+                    archivename = os.path.join(prefix, f[ignore:])
+                    zip.write(f, archivename)
+            zip.close()
+            zip = None
+            os.rename(filename+".tmp", filename)
+        finally:
+            if zip:
+                zip.close()
+            if filename and os.path.exists(filename+".tmp"):
+                os.remove(filename+".tmp")
 
     def upgrade(self, app):
         """

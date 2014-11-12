@@ -344,12 +344,6 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
     """
-    # make sure that the backup dir exists
-    backupDir = zenPath(".ZenPacks", dist.project_name, dist.version)
-    if os.path.isdir(backupDir):
-       shutil.rmtree(backupDir)
-
-    shutil.copytree(dist.location, backupDir)
 
     @transact
     def transactional_actions():
@@ -382,7 +376,6 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                     loader.load(zenPack, None)
             if fromUI and not zenPack.installableFromUI:
                 raise ZenPackException("This ZenPack cannot be installed through the UI.")
-
 
         if not filesOnly:
             # Look for an installed ZenPack to be upgraded.  In this case
@@ -487,6 +480,8 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
 
             cleanupSkins(dmd)
             return zenPack, deferFileDeletion, existing
+        else:
+            return zenPack, False, True
 
     zenPack, deferFileDeletion, existing = transactional_actions()
     packInfos = {}
