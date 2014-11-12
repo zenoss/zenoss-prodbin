@@ -184,6 +184,11 @@
                     item.name.toLowerCase().indexOf('community') != -1) {
                     item.allowBlank = false;
                 }
+
+                if (property.description) {
+                    item.inputAttrTpl = property.description;
+                }
+
                 fields.push(item);
             }
             // finally add the collector field if they have more than one collector
