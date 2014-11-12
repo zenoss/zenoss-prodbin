@@ -209,6 +209,9 @@ class ZenActionD(ZCmdBase):
             dest='maintenceWindowCycletime', default=60, type="int",
             help="How often to check to see if there are any maintenance windows to execute")
 
+        self.parser.add_option("--workerid", dest='workerid', type='int', default=None,
+                               help="ID of the worker instance.")
+
     def run(self):
         # Configure all actions with the command-line options
         self.abortIfWaiting()
@@ -219,10 +222,13 @@ class ZenActionD(ZCmdBase):
         dao = NotificationDao(self.dmd)
         task = ISignalProcessorTask(dao)
 
-        self._callHomeCycler.start()
-        self._schedule.start()  # maintenance windows
+        if self.options.workerid == 0 and (self.options.daemon or self.options.cycle):
+            self._callHomeCycler.start()
+            self._schedule.start()  # maintenance windows
+
         if self.options.daemon or self.options.cycle:
             self._maintenanceCycle.start()  # heartbeats, etc.
+
         if (self.options.daemon or self.options.cycle) and self.options.workers > 1:
             self._workers.startWorkers()
 
