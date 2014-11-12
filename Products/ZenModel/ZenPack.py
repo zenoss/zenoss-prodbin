@@ -281,6 +281,7 @@ class ZenPack(ZenModelRM):
 
         src = self.eggPath()
         filename = ""
+        zip = None
         try:
             if src.lower().endswith(".egg"):
                 filename = os.path.join(backupDir, os.path.basename(src))
@@ -297,8 +298,11 @@ class ZenPack(ZenModelRM):
                     archivename = os.path.join(prefix, f[ignore:])
                     zip.write(f, archivename)
             zip.close()
+            zip = None
             os.rename(filename+".tmp", filename)
         finally:
+            if zip:
+                zip.close()
             if filename and os.path.exists(filename+".tmp"):
                 os.remove(filename+".tmp")
 
