@@ -43,6 +43,7 @@ import transaction
 
 DEFAULT_MONITOR = "localhost"
 
+
 class ProcessSignalTask(object):
     implements(IQueueConsumerTask, ISignalProcessorTask)
 
