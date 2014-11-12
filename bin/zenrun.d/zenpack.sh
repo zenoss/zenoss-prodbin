@@ -37,6 +37,7 @@ help() {
     echo "   zenpack link <zenpack_egg_relpath>"
     echo "   zenpack create <zenpack_name>"
     echo "   zenpack list"
+    echo "   zenpack restore"
     echo "   zenpack uninstall <zenpack_name>"
     return 1
 }
@@ -47,6 +48,10 @@ create() {
     return $?
 }
 
+restore() {
+    zenpack --restore "$@"
+    return $?
+}
 
 link() {
   zenpack --link --install "$@"
