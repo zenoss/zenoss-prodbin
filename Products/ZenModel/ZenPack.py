@@ -277,7 +277,7 @@ class ZenPack(ZenModelRM):
         """
         backupDir = zenPath(".ZenPacks")
         if not os.path.isdir(backupDir):
-            os.mkdirs(backupDir, 0750)
+            os.makedirs(backupDir, 0750)
 
         src = self.eggPath()
         filename = ""
