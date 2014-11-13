@@ -260,14 +260,26 @@ class ZenPackCmd(ZenScriptBase):
         transaction.commit()
 
     def restore(self):
+        import pkg_resources
         packsDump = EggPackCmd.getPacksDump()
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
+            restoreZenPack = False
+            version = None
             try:
-                zp = self.dmd.ZenPackManager.packs._getOb(zpId, None)
+                zp = self.dmd.ZenPackManager.packs._getOb(zpId)
+                version = getattr(zp, "version", zp.__Broken_state__["version"]) 
                 if zp.isEggPack():
-                    desc = zp.eggPath()
+                    zp.eggPath() # attempt to raise DistributionNotFound
+                # if the installed version is not the version we have in zodb
+                if pkg_resources.get_distribution(zpId).version != version:
+                    restoreZenPack = True
             except (AttributeError, DistributionNotFound):
-                self._restore(zpId, zp.version)
+                restoreZenPack = True
+            if version is None:
+                self.log.error("Could not determine version of %s, skipping.", zpId)
+                continue
+            if restoreZenPack:
+                self._restore(zpId, version)
 
 
     def _restore(self, zpId, version):
