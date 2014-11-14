@@ -630,15 +630,23 @@ Ext.getCmp('center_panel').add(
 
 var ContextGetter = Ext.extend(Object, {
     getUid: function() {
-        var selected = Ext.getCmp('processTree').getSelectionModel().getSelectedNode();
-        if ( ! selected ) {
+        var processes = Ext.getCmp('navGrid').getSelectionModel().getSelection()
+        if (processes.length != 1) {
             Ext.Msg.alert(_t('Error'), _t('You must select a process.'));
             return null;
         }
+        return processes[0].data.uid;
+    },
+    getOrganizerUid: function() {
+        var selected = Ext.getCmp('processTree').getSelectionModel().getSelectedNode();
+        if ( ! selected ) {
+                Ext.Msg.alert(_t('Error'), _t('You must select a process.'));
+                return null;
+            }
         return selected.data.uid;
     },
     hasTwoControls: function() {
-        return false;
+        return true;
     }
 });
 
