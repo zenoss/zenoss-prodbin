@@ -178,11 +178,7 @@ class DeviceRouter(TreeRouter):
                     'description': 'components'},
                 iconCls='tree-severity-icon-small-' + datum['severity'],
                 leaf=True))
-        response = {
-            'result': result,
-            'sorting': True,
-        }
-        return response
+        return result
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None, **kwargs):
