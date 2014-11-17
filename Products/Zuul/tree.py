@@ -235,7 +235,6 @@ class CatalogTool(object):
         self.catalog = context.getPhysicalRoot().zport.global_catalog
         self.catalog._v_caches = getattr(self.catalog, "_v_caches", OOBTree())
 
-
     def getBrain(self, path):
         # Make sure it's actually a path
         if not isinstance(path, (tuple, basestring)):
@@ -243,6 +242,20 @@ class CatalogTool(object):
         elif isinstance(path, tuple):
             path = '/'.join(path)
         cat = self.catalog._catalog
+        try:
+            rid = cat.uids[path]
+            if rid:
+                return cat.__getitem__(rid)
+        except (KeyError, UncataloguedObjectException), e:
+            log.error("Unable to get brain. Trying to reindex: %s", path)
+            try:
+                dmd = self.context.dmd
+                obj = dmd.unrestrictedTraverse(path)
+                obj.index_object()
+                cat.catalogObject(obj, path)
+                log.info("Successfully reindexed: %s", path)
+            except Exception, e:
+                log.exception("Unable to reindex %s: %s", path, e)
         rid = cat.uids[path]
         if rid:
             return cat.__getitem__(rid)
