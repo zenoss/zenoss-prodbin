@@ -11538,6 +11538,9 @@ Products.ZenModel.Device
 <property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
 /zport/dmd/img/icons/server-linux.png
 </property>
+<property type="lines" id="devtypes" mode="w" >
+[('Linux Server', 'SSH')]
+</property>
 </object>
 </object>
 </object>
