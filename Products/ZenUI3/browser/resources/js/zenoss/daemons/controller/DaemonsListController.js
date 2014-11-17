@@ -285,7 +285,7 @@
                 // remove all the nodes that were previously in the list but were not in the latest
                 // refresh request
                 for (i=0;i<toRemove.length;i++) {
-                    toRemove[id].parentNode.remove(toRemove[id], true);
+                    toRemove[i].remove();
                 }
             });
         },
