@@ -11535,6 +11535,9 @@ Products.ZenModel.Device
 <property visible="True" label="Hard Disk Map Match" type="string" description="Regular expression that uses the disk ID in the diskstats output to filter disk activity statistics for inclusion in performance monitoring." id="zHardDiskMapMatch" >
 ^[hs]d[a-z]\d+$|c\d+t\d+d\d+s\d+$|^cciss\/c\dd\dp\d$|^dm\-\d$
 </property>
+<property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
+/zport/dmd/img/icons/server-linux.png
+</property>
 </object>
 </object>
 </object>
