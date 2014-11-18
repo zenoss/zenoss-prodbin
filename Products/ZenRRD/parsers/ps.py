@@ -222,7 +222,7 @@ class ps(CommandParser):
                 summary=summary,
                 message=message,
                 component=processSet,
-                eventKey=cmd.generatedId+"_restarted",
+                eventKey=cmd.generatedId,
                 severity=cmd.severity)
             log.info("(%s) %s" % (cmd.deviceConfig.device, message))
 
