@@ -74,10 +74,15 @@
                     email: values.emailAddress,
                     roles: ['ZenManager', 'Manager']
                 };
-            router.addUser(params, function(response) {
-                this.saveAdminPassword();
-                this.loginAsUser();
-            }, this);
+            if (params.id) {
+                router.addUser(params, function(response) {
+                    this.saveAdminPassword();
+                    this.loginAsUser();
+                }, this);
+            } else {
+                // will redirect to step 0
+                window.location = '';
+            }
         },
         saveAdminPassword: function() {
             var values = this.getUserForm().getForm().getFieldValues(),
