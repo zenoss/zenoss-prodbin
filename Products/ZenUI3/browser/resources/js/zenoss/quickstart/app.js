@@ -179,6 +179,12 @@
                                           cardTitle);
             }
             this.titlePanel.update(Ext.String.format("<h1>{0}</h1>", cardTitle));
+
+            // update the window title to reflect the page the user is on
+            if (this.params.came_from) {
+                var title = document.title.split(":")[0];
+                document.title = title + ": " + cardTitle;
+            }
         },
         /**
          * Hide the toolbar for the initial page.
