@@ -21,7 +21,7 @@ from Products.ZenCallHome.transport import CallHome
 from Products.ZenCallHome.transport.methods.directpost import direct_post
 from Products.ZenUtils.Utils import zenPath
 
-GATHER_METRICS_INTERVAL = 60*60*24 # number of seconds between metrics updates
+GATHER_METRICS_INTERVAL = 60*60*24*30  # number of seconds between metrics updates
 
 logger = logging.getLogger('zen.callhome')
 
@@ -32,7 +32,7 @@ class CallHomeCycler(object):
         self.gatherProtocol = None
     
     def start(self):
-        LoopingCall(self.run).start(5)
+        LoopingCall(self.run).start(300, now=False)
     
     def run(self):
         try:
