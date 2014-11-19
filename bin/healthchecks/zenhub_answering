@@ -8,4 +8,4 @@
 #
 ##############################################################################
 
-sh -c 'echo hi && sleep 5' | nc 127.0.0.1 8789 | grep -q pb
+su - zenoss -c '/opt/zenoss/bin/healthchecks/pbcheck.py'

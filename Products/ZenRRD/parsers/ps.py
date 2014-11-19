@@ -190,14 +190,17 @@ class ps(CommandParser):
         afterProcessSetPIDs[processSet] = afterPids
 
         # Globals.MostRecentMonitoredTimePids is a global that simply keeps the most recent data ... used to retrieve the "before" at monitoring time
-        beforePidsProcesses = Globals.MostRecentMonitoredTimePids.get(processSet, None)
+        if Globals.MostRecentMonitoredTimePids.get(device, None):
+            beforePidsProcesses = Globals.MostRecentMonitoredTimePids[device].get(processSet, None)
+        else:
+            beforePidsProcesses = Globals.MostRecentMonitoredTimePids[device] = {}
         
         # the first time this runs ... there is no "before"
         # this occurs when beforePidsProcesses is an empty dict
         # we need to save off the current processes and continue til the next monitoring time when "before" and "after" will be present
         if beforePidsProcesses is None:
             log.debug("No existing 'before' process information for process set: %s ... skipping" % processSet)
-            Globals.MostRecentMonitoredTimePids[processSet] = afterPidsProcesses
+            Globals.MostRecentMonitoredTimePids[device][processSet] = afterPidsProcesses
             return
         
         beforePids = beforePidsProcesses.keys()
@@ -222,7 +225,7 @@ class ps(CommandParser):
                 summary=summary,
                 message=message,
                 component=processSet,
-                eventKey=cmd.generatedId+"_restarted",
+                eventKey=cmd.generatedId,
                 severity=cmd.severity)
             log.info("(%s) %s" % (cmd.deviceConfig.device, message))
 
@@ -244,4 +247,4 @@ class ps(CommandParser):
         for newPid in newPids:
             log.debug("found new process: %s (pid: %d) on %s" % (afterPidsProcesses[newPid], newPid, cmd.deviceConfig.device))
 
-        Globals.MostRecentMonitoredTimePids[processSet] = afterPidsProcesses
+        Globals.MostRecentMonitoredTimePids[device][processSet] = afterPidsProcesses
