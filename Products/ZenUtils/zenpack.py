@@ -19,6 +19,8 @@ import optparse
 import subprocess
 import shutil
 import tempfile
+import re
+from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
 from pkg_resources import parse_requirements, DistributionNotFound
@@ -262,12 +264,16 @@ class ZenPackCmd(ZenScriptBase):
     def restore(self):
         import pkg_resources
         packsDump = EggPackCmd.getPacksDump()
+        zpsToRestore = {}
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             restoreZenPack = False
             version = None
             try:
                 zp = self.dmd.ZenPackManager.packs._getOb(zpId)
-                version = getattr(zp, "version", zp.__Broken_state__["version"]) 
+                version = getattr(zp, "version", None)
+                if version is None:
+                    version = zp.__Broken_state__["version"] 
+                print "Version = %s" % version
                 if zp.isEggPack():
                     zp.eggPath() # attempt to raise DistributionNotFound
                 # if the installed version is not the version we have in zodb
@@ -279,7 +285,31 @@ class ZenPackCmd(ZenScriptBase):
                 self.log.error("Could not determine version of %s, skipping.", zpId)
                 continue
             if restoreZenPack:
-                self._restore(zpId, version)
+                # Add to list of packs to restore
+                zpsToRestore[zpId] = version
+        
+        # Figure out which packs have dependencies, and sort them accordingly
+        zpsToSort = {}
+        pattern = '(ZenPacks\.zenoss\.[a-zA-Z\.]*)'
+        for zpId in zpsToRestore.iterkeys():
+            zp = self.dmd.ZenPackManager.packs._getOb(zpId)
+            deps = zp.dependencies
+            # Look to see if any packs have any other zenpack deps
+            matches = filter(
+                    lambda x: x,
+                    [re.search(pattern, key) for key in deps.keys()]
+                )
+            
+            depsSet = set()
+            # There are ZP deps - get + add them.  If no deps, add empty set
+            if len(deps) != 0 and any(matches):
+                for match in matches:
+                    depsSet.add(match.group(0))
+            zpsToSort[zpId] = depsSet
+        
+        sortedPacks = toposort_flatten(zpsToSort)
+        for pack in sortedPacks:
+            self._restore(pack, zpsToRestore[pack])
 
 
     def _restore(self, zpId, version):
