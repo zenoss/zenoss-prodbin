@@ -285,26 +285,48 @@ class Report(object):
         # must also get events from archive
         closed_events_from_archive = zep.getEventSummariesGenerator(event_filter, archive=True)
 
-        for evtsumm in chain(open_events, closed_events, closed_events_from_archive):
-            first = evtsumm['first_seen_time']
+        def eventDowntime(evt):
+            first = evt['first_seen_time']
             # if event is still open, downtime persists til end of report window
-            if evtsumm['status'] not in CLOSED_EVENT_STATUSES:
+            if evt['status'] not in CLOSED_EVENT_STATUSES:
                 last = endDate
             else:
-                last = evtsumm['status_change_time']
+                last = evt['status_change_time']
 
             # discard any events that have no elapsed time
             if first == last:
-                continue
+                return 0
 
             # clip first and last within report time window
             first = max(first, startDate)
             last = min(last, endDate)
 
-            evt = evtsumm['occurrence'][0]
-            evt_actor = evt['actor']
-            device = evt_actor.get('element_identifier')
-            accumulator[device] += (last - first)
+            return (last - first)
+
+        def eventElementIdentifier(evt):
+            return evt['occurrence'][0]['actor'].get('element_identifier')
+
+        for evt in open_events:
+            dt = eventDowntime(evt)
+            if dt == 0:
+                continue
+            accumulator[eventElementIdentifier(evt)] += dt
+
+        summary_closed_event_uuids = {}
+        for evt in closed_events:
+            summary_closed_event_uuids[evt['uuid']] = True
+            dt = eventDowntime(evt)
+            if dt == 0:
+                continue
+            accumulator[eventElementIdentifier(evt)] += dt
+
+        for evt in closed_events_from_archive:
+            if evt['uuid'] in summary_closed_event_uuids:
+                continue
+            dt = eventDowntime(evt)
+            if dt == 0:
+                continue
+            accumulator[eventElementIdentifier(evt)] += dt
 
         availabilityReport = []
         for deviceId, downtime in sorted(accumulator.items()):
