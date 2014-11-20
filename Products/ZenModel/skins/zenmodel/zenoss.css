@@ -476,11 +476,6 @@ tbody.zentablecontents tr {
 .navcontrol {
     font-size: 9pt;
     border-color: #5b5b5b;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -o-border-radius: 3px;
-    -ms-border-radius: 3px;
-    -khtml-border-radius: 3px;
     border-radius: 3px;
     padding: 2px 2px 2px 2px;
     border-width: 1px;
