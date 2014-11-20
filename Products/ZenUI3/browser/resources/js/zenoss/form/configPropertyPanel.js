@@ -21,6 +21,8 @@
             fieldLabel = _t("vSphere Endpoint Host");
         }else if (id.toLowerCase().indexOf('winkdc') != -1) {
             fieldLabel = _t('AD Domain Controller');
+        }else if (id.toLowerCase().indexOf('winscheme') != -1) {
+            fieldLabel = _t('Protocol (http/https)');
         }else if (id.toLowerCase().indexOf('user') != -1) {
             fieldLabel = _t('Username');
         } else if (id.toLowerCase().indexOf('password') != -1) {
