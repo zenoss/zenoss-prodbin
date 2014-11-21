@@ -23,7 +23,7 @@ import re
 from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
-from pkg_resources import parse_requirements, DistributionNotFound
+from pkg_resources import parse_requirements, DistributionNotFound, get_distribution, parse_version
 
 import Globals
 import transaction
@@ -256,29 +256,31 @@ class ZenPackCmd(ZenScriptBase):
                 print('%s (%s)' % (zpId,  desc))
 
         elif self.options.restore:
-            self.log.info("restoring zenpacks")
+            self.log.info("Restoring zenpacks")
             self.restore()
 
         transaction.commit()
 
     def restore(self):
-        import pkg_resources
         packsDump = EggPackCmd.getPacksDump()
         zpsToRestore = {}
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             restoreZenPack = False
             version = None
+            filesOnly = True
             try:
-                zp = self.dmd.ZenPackManager.packs._getOb(zpId)
+                zp = self.dmd.ZenPackManager.packs._objects[zpId]
+                #zp = self.dmd.ZenPackManager.packs._getOb(zpId)
                 version = getattr(zp, "version", None)
                 if version is None:
                     version = zp.__Broken_state__["version"] 
-                print "Version = %s" % version
                 if zp.isEggPack():
                     zp.eggPath() # attempt to raise DistributionNotFound
-                # if the installed version is not the version we have in zodb
-                if pkg_resources.get_distribution(zpId).version != version:
+                if parse_version(get_distribution(zpId).version) > parse_version(version):
                     restoreZenPack = True
+                    version = get_distribution(zpId).version
+                    filesOnly = False
+
             except (AttributeError, DistributionNotFound):
                 restoreZenPack = True
             if version is None:
@@ -286,14 +288,16 @@ class ZenPackCmd(ZenScriptBase):
                 continue
             if restoreZenPack:
                 # Add to list of packs to restore
-                zpsToRestore[zpId] = version
+                zpsToRestore[zpId] = (version, filesOnly)
         
         # Figure out which packs have dependencies, and sort them accordingly
         zpsToSort = {}
         pattern = '(ZenPacks\.zenoss\.[a-zA-Z\.]*)'
         for zpId in zpsToRestore.iterkeys():
-            zp = self.dmd.ZenPackManager.packs._getOb(zpId)
-            deps = zp.dependencies
+            zp = self.dmd.ZenPackManager.packs._objects[zpId]
+            deps = getattr(zp, 'dependencies', None)
+            if deps is None:
+                deps = zp.__Broken_state__['dependencies']
             # Look to see if any packs have any other zenpack deps
             matches = filter(
                     lambda x: x,
@@ -304,15 +308,19 @@ class ZenPackCmd(ZenScriptBase):
             # There are ZP deps - get + add them.  If no deps, add empty set
             if len(deps) != 0 and any(matches):
                 for match in matches:
-                    depsSet.add(match.group(0))
+                    if match in zpsToRestore.keys():
+                        depsSet.add(match.group(0))
             zpsToSort[zpId] = depsSet
         
         sortedPacks = toposort_flatten(zpsToSort)
-        for pack in sortedPacks:
-            self._restore(pack, zpsToRestore[pack])
+        if len(sortedPacks) != 0:
+            for pack in sortedPacks:
+                self._restore(pack, zpsToRestore[pack][0], zpsToRestore[pack][1])
+        else:
+            self.log.info("No broken zenpacks found")
 
 
-    def _restore(self, zpId, version):
+    def _restore(self, zpId, version, filesOnly):
         # glob for backup
         backupDir = zenPath(".ZenPacks")
         pattern = backupDir + "/%s-%s*" % (zpId, version)
@@ -324,18 +332,22 @@ class ZenPackCmd(ZenScriptBase):
         for candidate in candidates:
             if candidate.lower().endswith(".egg"):
                 try:
-                     shutil.copy(os.path.join(backupDir, candidate), tempfile.gettempdir())
+                     shutil.copy(candidate, tempfile.gettempdir())
                      try:
                          with open(os.devnull, 'w') as fnull:
                              # the first time fixes the easy-install path
-                             subprocess.check_call(["zenpack", "--files-only", "--install", os.path.join(tempfile.gettempdir(), candidate)], stdout=fnull, stderr=fnull)
+                             subprocess.check_call(["zenpack", "--files-only", "--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))], stdout=fnull, stderr=fnull)
                      except Exception:
                          pass
                      # the second time runs the loaders
-                     subprocess.check_call(["zenpack", "--files-only", "--install", os.path.join(tempfile.gettempdir(), candidate)])
+                     cmd = ["zenpack"]
+                     if filesOnly:
+                         cmd.append("--files-only")
+                     cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
+                     subprocess.check_call(cmd)
                 finally:
                      try:
-                         os.remove(os.path.join(tempfile.gettempdir(), candidate))
+                         os.remove(os.path.join(tempfile.gettempdir(), os.path.basename(candidate)))
                      except Exception:
                          pass
                      return
