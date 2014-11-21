@@ -291,6 +291,7 @@
 
             var config = {},
                 encodedConfig, link,
+                drange="null",
                 // keys to exclude when cloning config object
                 exclusions = ["dockedItems"];
 
@@ -303,9 +304,13 @@
                     config[i] = this.initialConfig[i];
                 }
             }
-
+            // see if we can find the date range selected
+            var graphPanel = this.up('graphpanel');
+            if (graphPanel && Ext.isNumber(graphPanel.drange)) {
+                drange = graphPanel.drange;
+            }
             encodedConfig = Zenoss.util.base64.encode(Ext.JSON.encode(config));
-            link = "/zport/dmd/viewGraph?data=" + encodedConfig;
+            link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, encodedConfig);
 
             new Zenoss.dialog.ErrorDialog({
                 message: Ext.String.format(_t('<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
