@@ -306,7 +306,7 @@
             "Interval": 3.0
         }
     },
-    "RAMCommitment": %(ZenPack.Default.RAMCommitment)d,
+    "RAMCommitment": "%(ZenPack.Default.RAMCommitment)s",
     "Volumes": [
         {
             "Owner": "zenoss:zenoss",
