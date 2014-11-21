@@ -1259,7 +1259,7 @@ registerDirectory("skins", globals())
         # Determine template parameters
         templateParams = defaultdict(lambda:'')
         templateParams.update({'zenhome':zenPath(),
-                         'ZenPack.Default.RAMCommitment':0})
+                         'ZenPack.Default.RAMCommitment':""})
         templateParams.update((key, val) for key, val in context.items()
             if key.startswith('ZenPack.Default'))
 
