@@ -107,7 +107,8 @@ class ps(CommandParser):
                           line, pid, rss, cpu, cmdAndArgs)
                 # ----------------------------------------------------------
 
-                return int(pid), int(rss), parseCpuTime(cpu), cmdAndArgs
+                # ps returns RSS value in KB, multiply it by 1024 for proper graph rendering (ZEN-15514)
+                return int(pid), int(rss) * 1024, parseCpuTime(cpu), cmdAndArgs
             except:
                 log.warn("Unable to parse entry '%s'", line)
 
