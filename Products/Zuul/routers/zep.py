@@ -394,7 +394,7 @@ class EventsRouter(DirectRouter):
         return sort_list
 
 
-    def _buildFilter(self, uids, params, specificEventUuids=None):
+    def _buildFilter(self, uids, params, specificEventUuids=None, includeContextInUid=True):
         """
         Construct a dictionary that can be converted into an EventFilter protobuf.
 
@@ -499,7 +499,7 @@ class EventsRouter(DirectRouter):
             log.debug('Did not get parameters, using empty filter.')
             event_filter = {}
 
-        if not uids:
+        if not uids and includeContextInUid:
             uids = [self.context]
 
         contexts = (resolve_context(uid) for uid in uids)
@@ -619,7 +619,10 @@ class EventsRouter(DirectRouter):
         if excludeIds or len(exclude_params) > 0:
             if excludeIds is None:
                 excludeIds = {}
-        excludeFilter = self._buildFilter(uid, exclude_params, specificEventUuids=excludeIds.keys())
+
+        # make sure the exclude filter doesn't include the context otherwise all
+        # event actions wont have an effect.
+        excludeFilter = self._buildFilter(None, exclude_params, specificEventUuids=excludeIds.keys(), includeContextInUid=False)
 
         log.debug('The exclude filter:' + str(excludeFilter))
         log.debug('Finished building request filters.')
@@ -753,7 +756,6 @@ class EventsRouter(DirectRouter):
             limit=limit,
             timeout=timeout,
         )
-
         log.debug('Done issuing acknowledge request.')
         log.debug(summaryUpdateResponse)
 
@@ -1076,4 +1078,3 @@ class EventsRouter(DirectRouter):
         audit('UI.Event.UpdateEventDetails', self.context, evid=evid,
               details=detailInfo)
         return DirectResponse.succeed(status=resp[0]['status'])
-
