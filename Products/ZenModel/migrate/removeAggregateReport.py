@@ -21,6 +21,6 @@ class RemoveAggregateReport(Migrate.Step):
 
     def cutover(self, dmd):
         performanceReports = dmd.Reports._getOb('Performance Reports', None)
-        if performanceReports and performanceReports._getOb('Aggregate Reports'):
+        if performanceReports and performanceReports._getOb('Aggregate Reports', None):
             performanceReports._delObject('Aggregate Reports')
 RemoveAggregateReport()
