@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -20,9 +20,8 @@ def ipAddressVocab(context):
 class IpInterfaceInfo(ComponentInfo):
     implements(IIpInterfaceInfo)
 
-    @info
     def getIpAddresses(self):
-        return [str(i) for i in self._object.getIpAddresses()]
+        return ",".join([str(i) for i in self._object.getIpAddresses()])
 
     def setIpAddresses(self, ips):
         ips = ips.split(',')
