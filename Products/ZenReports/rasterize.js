@@ -1,8 +1,8 @@
 var page = require('webpage').create(),
     system = require('system'),
-    address, output, size;
+    address, output, size, username, password, outputFile;
 
-//phantomjs rasterize.js USERNAME PASSWORD URL PDF
+//phantomjs rasterize.js URL USERNAME PASSWORD PDF
 if (system.args.length < 5 || system.args.length > 7) {
     console.log('Usage: rasterize.js URL username password output_filename [paperwidth*paperheight|paperformat] [zoom]');
     console.log('  paper (pdf output) examples: "5in*7.5in", "10cm*20cm", "A4", "Letter"');
@@ -12,10 +12,10 @@ if (system.args.length < 5 || system.args.length > 7) {
     username = system.args[2];
     password = system.args[3];
     outputFile = system.args[4];
-    
+
     page.settings.localToRemoteUrlAccessEnabled = true;
-    page.settings.resourceTimeout = 10000
-    
+    page.settings.resourceTimeout = 10000;
+
     // use the provided username and password if they were provided
     if (username != "nil" && password != "nil") {
         page.customHeaders={'Authorization': 'Basic '+btoa(username + ':' + password)};
@@ -25,25 +25,25 @@ if (system.args.length < 5 || system.args.length > 7) {
 
     page.viewportSize = { width: 800, height: 800 };
     if (system.args.length > 5 && system.args[2].substr(-4) === ".pdf") {
-        pageFormat = system.args[5]
+        var pageFormat = system.args[5];
         size = system.args[3].split('*');
         page.paperSize = size.length === 2 ? { width: size[0], height: size[1], margin: '0px' }
                                            : { format: pageFormat, orientation: 'portrait', margin: '1cm' };
     }
 
     if (system.args.length > 6) {
-        pageZoomFactor = system.args[6];
+        var pageZoomFactor = system.args[6];
         page.zoomFactor = pageZoomFactor;
     }
 
     page.open(address, function (status) {
         if (status !== 'success') {
             console.log('Unable to load the address!');
-            phantom.exit();
+            phantom.exit(1);
         } else {
             window.setTimeout(function () {
                 page.render(outputFile);
-                phantom.exit();
+                phantom.exit(0);
             }, 200);
         }
     });
