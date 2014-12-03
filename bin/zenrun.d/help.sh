@@ -39,3 +39,8 @@ testdiscard() {
     echo -e "signaling host to discard the container ..."
     exit 1
 }
+
+testid() {
+    id
+    exit 1
+}

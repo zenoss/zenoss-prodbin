@@ -46,6 +46,11 @@ if [[ $# -lt 1 ]]; then
     exit 255
 fi
 
+DESIRED_USER=${DESIRED_USER:-"zenoss"}
+if [[ "$(whoami)" != "$DESIRED_USER" ]]; then
+    exec su - "$DESIRED_USER" -c "DESIRED_USER=$DESIRED_USER $0 $*"
+fi
+
 RUNPATH=${RUNPATH:-$(dirname $0)/zenrun.d}
 PROGRAM=$1
 shift
