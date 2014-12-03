@@ -102,7 +102,7 @@ class MetricMixin(object):
             for g in template.getGraphDefs():
                 graphs.append(g)
         return graphs
-    
+
     def getDefaultGraphDefs(self, drange=None):
         """Backwards compatible layer for zenpacks. """
         log.warn('As of zenoss 5.x and above getDefaultGraphDefs is not supported, use getGraphObjects instead.')
@@ -259,3 +259,65 @@ class MetricMixin(object):
 
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()
+
+    def fetchRRDValues(self, dpnames, cf, resolution, start, end="now", includeTimestamps=False):
+        """
+        Compat method for RRD. This returns a list of metrics.
+        The output looks something like this
+        >>> pprint(obj.fetchRRDValues('dsname_dpname', 'AVERAGE', 300, 'end-1d', 'now'))
+           ((1417452900, 1417539600, 300),
+            ('ds0',),
+          [(83.69137058,),
+            (83.69137058,),
+            (83.69137058,),
+            ... would be more here ...
+            (None,),
+            (None,)])
+        That maps to..
+            ((start, end, resolution),
+             ('ds0',),
+            [(v1,),
+             (v2,),
+             (v3,)])
+        To ensure backwards compatibility with RRD the following should be taken into account:
+        The number of values has to be == (end-start) / resolution. None's will be filled in for the missing slots
+        The expectation is that each value correspond to its time slot.
+        There's no expectation that the passed resolution is the returned resolution.
+
+        The start and end parameters can be specified as UNIX
+        timestamps or RRDtool AT-STYLE time specification. See http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
+        """
+        results = []
+        if isinstance(dpnames, basestring):
+            dpnames = [dpnames]
+        facade = getFacade('metric', self.dmd)
+
+        # parse start and end into unix timestamps
+        start, end = self._rrdAtTimeToUnix(start, end)
+        for dpname in dpnames:
+            response = facade.queryServer(self, dpnames, cf=cf, start=start, end=end, downsample=resolution, returnSet="ALL")
+            values = response.get('results', [])
+            firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
+            secondRow = ('ds0',)
+            thirdRow = self._createRRDFetchResults(start, end, resolution, values[0])
+            results.append((firstRow, secondRow, thirdRow))
+        return results
+
+
+    def _createRRDFetchResults(self, start, end, resolution, values):
+        """
+
+        """
+        return values
+
+    def _rrdAtTimeToUnix(self, start, end):
+        return None, None
+
+    def fetchRRDValue(self, dpname, cf, resolution, start, end="now", includeTimestamps=False):
+        """
+        Calls fetcdh RRDValue but returns the first result.
+        """
+        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end, includeTimestamps=includeTimestamps)
+        if r:
+            return r[0]
+        return None
