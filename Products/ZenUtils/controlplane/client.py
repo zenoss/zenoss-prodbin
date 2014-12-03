@@ -26,7 +26,12 @@ from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
 _DEFAULT_PORT = 443
 _DEFAULT_HOST = "localhost"
 
+
 LOG = logging.getLogger("zen.controlplane.client")
+
+
+class ControlCenterError(Exception): pass
+
 
 class _Request(urllib2.Request):
     """
@@ -294,8 +299,18 @@ class ControlPlaneClient(object):
                 if ex.getcode() == 401:
                     self._login()
                     continue
-                else:
-                    raise
+                elif ex.getcode() == 500:
+                    # Make the exception prettier and reraise it
+                    try:
+                        msg = json.load(ex)
+                    except ValueError:
+                        raise ex  # This stinks because we lose the stack
+                    detail = msg.get('Detail')
+                    if not detail:
+                        raise
+                    detail = detail.replace("Internal Server Error: ", "")
+                    raise ControlCenterError(detail)
+                raise
             else:
                 # break the loop so we skip the loop's else clause
                 break
