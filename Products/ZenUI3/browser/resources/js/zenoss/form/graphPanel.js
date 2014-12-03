@@ -53,24 +53,6 @@
             '30d-ago': 2419200000,
             '1y-ago': 31536000000
         },
-        DOWNSAMPLE = [
-            // for now when the delta is < 1 hour we do NOT do downsampling
-            [3600000, '10s-avg'],     // 1 Hour
-            [7200000, '30s-avg'],     // 2 Hours
-            [14400000, '45s-avg'],    // 4 Hours
-            [18000000, '1m-avg'],     // 5 Hours
-            [28800000, '2m-avg'],     // 8 Hours
-            [43200000, '3m-avg'],     // 12 Hours
-            [64800000, '4m-avg'],     // 18 Hours
-            [86400000, '5m-avg'],     // 1 Day
-            [172800000, '10m-avg'],   // 2 Days
-            [259200000, '15m-avg'],   // 3 Days
-            [604800000, '1h-avg'],    // 1 Week
-            [1209600000, '2h-avg'],   // 2 Weeks
-            [2419200000, '6h-avg'],   // 1 Month
-            [9676800000, '1d-avg'],   // 4 Months
-            [31536000000, '10d-avg']  // 1 Year
-        ],
 
         /*
          * If a given request is over GRAPHPAGESIZE then
