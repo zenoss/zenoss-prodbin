@@ -274,9 +274,6 @@
                 timezone: Zenoss.USER_TIMEZONE
             };
 
-
-            visconfig.downsample = this._getDownSample(this.graph_params);
-
             // determine scaling
             if (this.autoscale) {
                 visconfig.autoscale = {
@@ -383,25 +380,6 @@
             this.on('updateimage', this.updateGraph, this);
             this.graphEl = Ext.get(this.graphId);
         },
-        _getDownSample: function(gp) {
-            var delta, downsample = null;
-            if (Ext.isNumber(gp.start)) {
-                delta = this.convertEndToAbsolute(gp.end) - gp.start;
-            } else {
-                delta = rangeToMilliseconds(gp.start);
-            }
-
-            // no downsampling for less than one hour.
-            if (delta <  3600) {
-                return null;
-            }
-            Ext.Array.each(DOWNSAMPLE, function(v) {
-                if (delta >= v[0]) {
-                    downsample = v[1];
-                }
-            });
-            return downsample;
-        },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
             gp.start = params.start || gp.start;
@@ -420,7 +398,6 @@
                     end: formatForMetricService(gp.end)
                 }
             };
-            changes.downsample = this._getDownSample(gp);
             zenoss.visualization.chart.update(this.graphId, changes);
 
             this.graph_params = gp;
