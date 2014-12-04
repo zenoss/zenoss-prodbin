@@ -619,10 +619,11 @@ class EventsRouter(DirectRouter):
         if excludeIds or len(exclude_params) > 0:
             if excludeIds is None:
                 excludeIds = {}
-
-        # make sure the exclude filter doesn't include the context otherwise all
-        # event actions wont have an effect.
-        excludeFilter = self._buildFilter(None, exclude_params, specificEventUuids=excludeIds.keys(), includeContextInUid=False)
+            # make sure the exclude filter doesn't include the context
+            # otherwise all event actions wont have an effect.
+            excludeFilter = self._buildFilter(None, exclude_params,
+                                              specificEventUuids=excludeIds.keys(),
+                                              includeContextInUid=False)
 
         log.debug('The exclude filter:' + str(excludeFilter))
         log.debug('Finished building request filters.')
