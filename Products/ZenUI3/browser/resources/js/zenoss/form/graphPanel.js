@@ -53,24 +53,6 @@
             '30d-ago': 2419200000,
             '1y-ago': 31536000000
         },
-        DOWNSAMPLE = [
-            // for now when the delta is < 1 hour we do NOT do downsampling
-            [3600000, '10s-avg'],     // 1 Hour
-            [7200000, '30s-avg'],     // 2 Hours
-            [14400000, '45s-avg'],    // 4 Hours
-            [18000000, '1m-avg'],     // 5 Hours
-            [28800000, '2m-avg'],     // 8 Hours
-            [43200000, '3m-avg'],     // 12 Hours
-            [64800000, '4m-avg'],     // 18 Hours
-            [86400000, '5m-avg'],     // 1 Day
-            [172800000, '10m-avg'],   // 2 Days
-            [259200000, '15m-avg'],   // 3 Days
-            [604800000, '1h-avg'],    // 1 Week
-            [1209600000, '2h-avg'],   // 2 Weeks
-            [2419200000, '6h-avg'],   // 1 Month
-            [9676800000, '1d-avg'],   // 4 Months
-            [31536000000, '10d-avg']  // 1 Year
-        ],
 
         /*
          * If a given request is over GRAPHPAGESIZE then
@@ -274,9 +256,6 @@
                 timezone: Zenoss.USER_TIMEZONE
             };
 
-
-            visconfig.downsample = this._getDownSample(this.graph_params);
-
             // determine scaling
             if (this.autoscale) {
                 visconfig.autoscale = {
@@ -383,25 +362,6 @@
             this.on('updateimage', this.updateGraph, this);
             this.graphEl = Ext.get(this.graphId);
         },
-        _getDownSample: function(gp) {
-            var delta, downsample = null;
-            if (Ext.isNumber(gp.start)) {
-                delta = this.convertEndToAbsolute(gp.end) - gp.start;
-            } else {
-                delta = rangeToMilliseconds(gp.start);
-            }
-
-            // no downsampling for less than one hour.
-            if (delta <  3600) {
-                return null;
-            }
-            Ext.Array.each(DOWNSAMPLE, function(v) {
-                if (delta >= v[0]) {
-                    downsample = v[1];
-                }
-            });
-            return downsample;
-        },
         updateGraph: function(params) {
             var gp = Ext.apply({}, params, this.graph_params);
             gp.start = params.start || gp.start;
@@ -420,7 +380,6 @@
                     end: formatForMetricService(gp.end)
                 }
             };
-            changes.downsample = this._getDownSample(gp);
             zenoss.visualization.chart.update(this.graphId, changes);
 
             this.graph_params = gp;
