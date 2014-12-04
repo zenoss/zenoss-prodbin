@@ -303,7 +303,7 @@ class MetricMixin(object):
             values = response.get('results', [])
             firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
             secondRow = ('ds0',)
-            thirdRow = self._createRRDFetchResults(response.get('startTimeActual'), end, resolution, values)
+            thirdRow = self._createRRDFetchResults(response.get('startTimeActual'), response.get('endTimeActual'), resolution, values)
             results.append((firstRow, secondRow, thirdRow))
         return results
 
