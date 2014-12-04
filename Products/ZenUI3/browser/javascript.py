@@ -214,7 +214,7 @@ class ZenossData(JavaScriptSnippet):
         # 2. The timezone of the server
         # 3. the timezone of the browser
         user = self.context.dmd.ZenUsers.getUserSettings()
-        timezone = user.timezone or getServerTimeZone()
+        timezone = user.timezone
         snippet = """
             Zenoss.env.COLLECTORS = %r;
             Zenoss.env.priorities = %r;
