@@ -993,6 +993,7 @@ var devtree = {
     ddGroup: 'devicegriddd',
     forceEnableDd: true,
     selectByToken: detailSelectByToken,
+    addNodeFn: REMOTE.addDeviceClassNode,
     selModel: Ext.create('Zenoss.TreeSelectionModel',{
         tree: 'devices',
         listeners: {
