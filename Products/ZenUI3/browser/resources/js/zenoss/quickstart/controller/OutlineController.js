@@ -30,6 +30,10 @@
                     }
                 }
             });
+
+            //grab the hostname and save it
+            alert(window.location.origin);
+            Zenoss.remote.SettingsRouter.setDmdSettings({"zenossHostname":window.location.origin});
         },
         onClickGetStarted: function() {
             this.getApplication().fireEvent('nextstep');
