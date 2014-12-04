@@ -8,15 +8,9 @@
 #
 ##############################################################################
 
-checkRC() {
-    [[ $1 != 0 ]] && return "$1"
-}
-
 doUpgrade() {
-    zenpack --restore
-    checkRC "$?"
-    zenmigrate
-    checkRC "$?"
+    zenpack --restore || return "$?"
+    zenmigrate || return "$?"
     return 0
 }
 
