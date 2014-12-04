@@ -71,7 +71,7 @@ class MetricFacade(ZuulFacade):
             return result[metric]
         return -1
 
-    def getMultiValues(self, contexts, metrics, start=None, end=None, returnSet="LAST"):
+    def getMultiValues(self, contexts, metrics, start=None, end=None, returnSet="LAST", downsample=None):
         """
         Use this method when you need one or more metrics on multiple contexts.
 
@@ -81,6 +81,7 @@ class MetricFacade(ZuulFacade):
         @param start: defaults to now - dmd.defaultDateRange can be either a timestamp or a string in DATE_FORMAT format
         @param end: defaults to now, can be either a timestamp or a string in DATE_FORMAT format
         @param returnSet: default "LAST" (which returns the last value) the other options are ALL which returns everthing, and EXACT which returns what is in the date range
+        @param downsample: can be either the string of the form 1m-avg or a number which will be assumed to be seconds averaged
         If the returnSet is EXACT or ALL, then you are returned metrics in this form:
         {
             # context UUID
@@ -101,7 +102,7 @@ class MetricFacade(ZuulFacade):
         }
         """
         results = {}
-        data = self._queryServer(contexts, metrics, start=start, end=end, returnSet=returnSet)
+        data = self.queryServer(contexts, metrics, start=start, end=end, returnSet=returnSet, downsample=downsample)
         if returnSet == "LAST":
             return data
         # if the returnSet is exact or all then organize the results into something more digestable
@@ -115,7 +116,7 @@ class MetricFacade(ZuulFacade):
         return results
 
     def getValues(self, context, metrics, start=None, end=None,
-                     format="%.2lf", extraRpn="", cf="avg", returnSet="LAST"):
+                     format="%.2lf", extraRpn="", cf="avg", returnSet="LAST", downsample=None):
         """
         Return a dict of key value pairs where metric names are the keys and
         the most recent value in the given time range is the value.
@@ -132,15 +133,16 @@ class MetricFacade(ZuulFacade):
         @param extraRpn: an extra rpn expression appended to the datapoint RPN expression
         @param cf: Consolidation functions, valid consolidation functions are avg, min, max, and sum
         @param returnSet: default "LAST" (which returns the last value) the other options are ALL which returns everthing, and EXACT which returns what is in the date range
+        @param downsample: can be either the string of the form 1m-avg or a number which will be assumed to be seconds averaged
         @return: Dictionary of [dataPointId: value]
         """
-        results = self._queryServer(context, metrics, start=start, end=end, format=format, extraRpn=extraRpn, cf=cf, returnSet=returnSet)
+        results = self.queryServer(context, metrics, start=start, end=end, format=format, extraRpn=extraRpn, cf=cf, returnSet=returnSet, downsample=downsample)
         if len(results.values()):
             return results.values()[0]
         return {}
 
-    def _queryServer(self, contexts, metrics, start=None, end=None,
-                     format="%.2lf", extraRpn="", cf="avg", returnSet="LAST"):
+    def queryServer(self, contexts, metrics, start=None, end=None,
+                     format="%.2lf", extraRpn="", cf="avg", returnSet="LAST", downsample=None):
         subjects = []
         # make sure we are always dealing with a list
         if not isinstance(contexts, (list, tuple)):
@@ -189,7 +191,7 @@ class MetricFacade(ZuulFacade):
             start = self._formatTime(datetime.today() - timedelta(seconds = self._dmd.defaultDateRange))
         elif start is None and returnSet == "LAST":
             start = self._formatTime(datetime.today() - timedelta(seconds = 3600))
-        request = self._buildRequest(subjects, datapoints, start, end, returnSet)
+        request = self._buildRequest(subjects, datapoints, start, end, returnSet, downsample)
 
         # submit it to the client
         try:
@@ -219,15 +221,22 @@ class MetricFacade(ZuulFacade):
                    results[key][metricnames[metric]] = float(format % item['datapoints'][0]['value'])
            return results
         else:
+           if returnSet == "ALL":
+               return content
            return content.get('results')
 
-    def _buildRequest(self, contexts, metrics, start, end, returnSet):
+    def _buildRequest(self, contexts, metrics, start, end, returnSet, downsample):
         request = {
             'returnset': returnSet,
             'start': start,
             'end': end,
             'metrics': metrics
-            }
+        }
+        if not downsample is None:
+            if isinstance(downsample, int):
+                request['downsample'] = "%s-avg" % downsample
+            else:
+                request['downsample'] = downsample
         return request
 
     def _buildTagsFromContextAndMetric(self, context, dsId):
