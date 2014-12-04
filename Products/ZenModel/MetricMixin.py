@@ -7,7 +7,8 @@
 #
 ##############################################################################
 
-
+import time
+import re
 import json
 import logging
 log = logging.getLogger("zen.MetricMixin")
@@ -17,6 +18,7 @@ from Products.ZenUtils import Map
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
+
 CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
@@ -260,7 +262,7 @@ class MetricMixin(object):
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()
 
-    def fetchRRDValues(self, dpnames, cf, resolution, start, end="now", includeTimestamps=False):
+    def fetchRRDValues(self, dpnames, cf, resolution, start, end="now"):
         """
         Compat method for RRD. This returns a list of metrics.
         The output looks something like this
@@ -299,25 +301,98 @@ class MetricMixin(object):
             values = response.get('results', [])
             firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
             secondRow = ('ds0',)
-            thirdRow = self._createRRDFetchResults(start, end, resolution, values[0])
+            thirdRow = self._createRRDFetchResults(response.get('startTimeActual'), end, resolution, values)
             results.append((firstRow, secondRow, thirdRow))
         return results
 
-
-    def _createRRDFetchResults(self, start, end, resolution, values):
-        """
-
-        """
-        return values
-
-    def _rrdAtTimeToUnix(self, start, end):
-        return None, None
-
-    def fetchRRDValue(self, dpname, cf, resolution, start, end="now", includeTimestamps=False):
+    def fetchRRDValue(self, dpname, cf, resolution, start, end="now"):
         """
         Calls fetcdh RRDValue but returns the first result.
         """
-        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end, includeTimestamps=includeTimestamps)
+        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end)
         if r:
             return r[0]
         return None
+
+    def _createRRDFetchResults(self, start, end, resolution, values):
+        """
+        Given a set of metrics returned from the metric server and the start, end and resolution
+        this method returns a metric for each "step" or a None if one can't be found.
+
+        Each entry in the buckets is a tuple of one item.
+        """
+        size = int((end - start) / resolution)
+
+        # create a list of None's for the return value
+        buckets = [(None,) for x in range(size)]
+        currentTime = start
+        if not values:
+            return buckets
+
+        # we are making the assumption we are only working with one datapoint
+        # also that the return set is sorted sequentially
+        values = values[0]['datapoints']
+        for idx, _ in enumerate(buckets):
+            if len(values) == 0 or currentTime > end:
+                break
+            # if we only have one left and are at a higher time then include the value
+            # otherwise make sure our current time is somewhere between the next two steps to
+            # include it.
+            # This way the None's aren't pushed all the way to the end of the buckets
+            if (len(values) == 1 and currentTime > values[0]['timestamp'] or \
+                (len(values) > 1 and currentTime >= values[0]['timestamp'] and currentTime < values[1]['timestamp'])):
+                buckets[idx] = (values[0]['value'],)
+                values.pop(0)
+
+            # move to the next bucket
+            currentTime += resolution
+        return buckets
+
+    def _rrdAtTimeToUnix(self, start, end):
+        """
+        This is my best effort at parsing a sub-set of the "at" time of rrd to
+        unix timestamps.
+        This method will accept something of the following:
+           now == current time
+           -X['d' | 'm' | 's' | 'h'] // X is the number and d = day, m = minute etc
+           The start time can be relative to the end by passing in end like
+           end-1d // end minus one day
+        """
+        newEnd = newStart = None
+        # find out end first
+        if end == "now":
+            newEnd = time.time()
+        else:
+            # if it is an int or an OpenTSDB style string then we can just
+            # pass it to the metric facade
+            if not isinstance(end, basestring) or 'ago' in end:
+                newEnd = end
+            else:
+                newEnd = self._parseTime(end, time.time())
+        if "end-" in start:
+            fromTime = newEnd
+        else:
+            fromTime = time.time()
+        if not isinstance(start, basestring) or 'ago' in start:
+            newStart = start
+        else:
+            newStart = self._parseTime(start.replace("end-", ""), fromTime)
+        return newStart, newEnd
+
+    def _parseTime(self, token, fromTime):
+        dateMap = {
+            'd': 86400,
+            'm': 60,
+            's': 1,
+            'h': 3600
+        }
+        numbers = re.findall(r'\d+', token)
+        if len(numbers):
+            numberPart = int(numbers[0])
+        else:
+            numberPart = 1
+        characters = [x for x in token.replace("-", "") if x.isalpha()]
+        timePart = characters[0]
+        if not dateMap.get(timePart):
+            raise ValueError("Unable to parse the time from input %s" % token)
+        return fromTime - (numberPart * dateMap[timePart])
