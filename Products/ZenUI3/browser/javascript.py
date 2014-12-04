@@ -12,7 +12,6 @@ import os
 import Globals
 import zope.interface
 import md5
-from Products.ZenUtils.Time import getServerTimeZone
 from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
