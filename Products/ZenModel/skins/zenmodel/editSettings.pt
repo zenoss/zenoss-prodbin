@@ -65,6 +65,13 @@ loader.insert();
         </td>
     </tr>
     <tr class="odd">
+      <td class="tableheader noselect" i18n:attributes="title" title="Zenoss Hostname"  i18n:translate='' align="left">Zenoss Hostname</td>
+      <td class="tablevalues">
+        <input class="tablevalues" i18n:attributes="title" title="Zenoss Hostname" type="text" name="zenossHostname"
+            tal:attributes="value here/zenossHostname" />
+      </td>
+    </tr>
+    <tr class="odd">
       <td class="tableheader noselect" i18n:attributes="title" title="Simple Mail Transport Protocol (aka E-mail server)"  i18n:translate='' align="left">SMTP Host</td>
       <td class="tablevalues">
         <input class="tablevalues" i18n:attributes="title" title="Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpHost"

@@ -250,7 +250,12 @@ class IActionBase(object):
         """
         Parse the event data out from the signal
         """
-        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+        # use zopeurl in the zenactiond.conf file if it is defined else use the value from DMD
+        zopeurl = self.options.get('zopeurl')
+        if zopeurl == Utils.getDefaultZopeUrl():
+            zopeurl = self.zenossHostname
+
+        data = _signalToContextDict(signal, zopeurl, notification, self.guidManager)
         return data
 
 
@@ -353,6 +358,7 @@ class EmailAction(IActionBase, TargetableAction):
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.zenossHostname = dmd.zenossHostname
 
     def _get_recipients_from_signal(self, notification, signal):
         ''' Check for any recipients passed in the event details '''

@@ -80,6 +80,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     reportMetricsOptIn = True
     acceptedTerms = True
     instanceIdentifier = 'Zenoss'
+    zenossHostname = 'localhost:8080'
     smtpHost = 'localhost'
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
     smtpPort = 25
@@ -111,6 +112,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'versionCheckOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'reportMetricsOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'instanceIdentifier', 'type': 'string', 'mode':'w'},
+        {'id':'zenossHostname', 'type': 'string', 'mode':'w'},
         {'id':'smtpHost', 'type': 'string', 'mode':'w'},
         {'id':'smtpPort', 'type': 'int', 'mode':'w'},
         {'id':'pageCommand', 'type': 'string', 'mode':'w'},
