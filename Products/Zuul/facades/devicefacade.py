@@ -682,6 +682,12 @@ class DeviceFacade(TreeFacade):
         org.address = address
         return org
 
+    def addDeviceClass(self, contextUid, id, description = '', connectionInfo=None):
+        org = super(DeviceFacade, self).addOrganizer(contextUid, id, description)
+        if connectionInfo:
+            org.connectionInfo = connectionInfo
+        return org
+
     def getModelerPluginDocStrings(self, uid):
         """
         Returns a dictionary of documentation for modeler plugins, indexed

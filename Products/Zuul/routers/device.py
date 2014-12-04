@@ -42,6 +42,43 @@ class DeviceRouter(TreeRouter):
 
     @serviceConnectionError
     @contextRequire("Manage DMD", 'contextUid')
+    def addDeviceClassNode(self, type, contextUid, id, description=None, connectionInfo=None):
+        """
+        Adds a new device class organizer specified by the parameter id to
+        the parent organizer specified by contextUid.
+
+        contextUid must be a path to a DeviceClass.
+
+        @type  type: string
+        @param type: Node type (always 'organizer' in this case)
+        @type  contextUid: string
+        @param contextUid: Path to the location organizer that will
+               be the new node's parent (ex. /zport/dmd/Devices/)
+        @type  id: string
+        @param id: The identifier of the new node
+        @type  description: string
+        @param description: (optional) Describes the new device class
+        @type  connectionInfo: list
+        @param connectionInfo: (optional) List of zproperties that constitute credentials for this device classs
+        @rtype:   dictionary
+        @return:  B{Properties}:
+           - success: (bool) Success of node creation
+           - nodeConfig: (dictionary) The new device class's properties
+        """
+        facade = self._getFacade()
+        organizer = facade.addDeviceClass(contextUid,
+                                                id,
+                                                description,
+                                                connectionInfo)
+        uid = organizer.uid
+
+        treeNode = facade.getTree(uid)
+        audit('UI.DeviceClass.Add', uid, description=description, connectionInfo=connectionInfo)
+        return DirectResponse.succeed("Device Class Added", nodeConfig=Zuul.marshal(treeNode))
+
+
+    @serviceConnectionError
+    @contextRequire("Manage DMD", 'contextUid')
     def addLocationNode(self, type, contextUid, id,
                         description=None, address=None):
         """
@@ -1710,7 +1747,7 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getConnectionInfo(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
-    
+
     @serviceConnectionError
     def getModelerPluginDocStrings(self, uid):
         """
@@ -1822,4 +1859,3 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getDevTypes(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
-
