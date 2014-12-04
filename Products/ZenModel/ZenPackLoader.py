@@ -141,7 +141,8 @@ class ZPLObject(ZenPackLoader):
 
     def objectFiles(self, pack):
         def isXml(f): return f.endswith('.xml')
-        return findFiles(pack, 'objects', isXml)
+        return sorted(findFiles(pack, 'objects', isXml),
+              key = lambda f: -1 if f.endswith('objects.xml') else 0)
 
 
 class ZPLReport(ZPLObject):
