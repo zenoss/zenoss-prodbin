@@ -9,13 +9,14 @@
 ##############################################################################
 
 checkRC() {
-    [[ $1 != 0 ]] && exit "$1"
+    [[ $1 != 0 ]] && return "$1"
 }
 
 doUpgrade() {
     zenpack --restore
-    checkRC $?
+    checkRC "$?"
     zenmigrate
-    checkRC $?
+    checkRC "$?"
+    return 0
 }
 
