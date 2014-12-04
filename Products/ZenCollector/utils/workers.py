@@ -12,6 +12,7 @@ import logging
 import signal
 import os
 import sys
+import time
 import ctypes
 from ctypes.util import find_library
 import optparse
@@ -128,16 +129,18 @@ class ProcessWorkers(object):
         Ask workers to quit via SIGTERM and give them time to finish.
         Returns true if we think all the workers quit nicely.
         """
+        execution_start_time = time.time()
+        foundLivingWorker = True
         no_problem_children = True
         for worker in self._workers.values():
-            log.info("Stopping worker %s..." % worker)
+            log.info("Stopping worker %s (%s)" % (worker.pid, worker.name))
             if not worker.is_alive():
                 no_problem_children = False  # Worker may be starting up.
             worker.terminate()
 
         # Give them some time to quit.
         # (This logic is built into Python 3.3 via Process.sentinel)
-        for i in range(MAX_SECONDS_TO_NICELY_SHUTDOWN_WORKERS):
+        while foundLivingWorker and (time.time() - execution_start_time) < 1.0*MAX_SECONDS_TO_NICELY_SHUTDOWN_WORKERS:
             foundLivingWorker = False
             for p in self._workers.values():
                 if p.is_alive():
@@ -147,9 +150,6 @@ class ProcessWorkers(object):
                 # All workers either quit or haven't fully started yet.
                 return no_problem_children
 
-            if i < MAX_SECONDS_TO_NICELY_SHUTDOWN_WORKERS - 1:
-                sleep(1)  # Give them another second to finish up.
-        
         return False  # Out of time.
 
     def _shutdownWorkersForcefully(self):
@@ -213,5 +213,5 @@ class ProcessWorkers(object):
             )
         p.daemon = True
         p.start()
-        log.info("Started worker {0}: current pid={0.pid}".format(p))
+        log.info("Started worker %s (%s)" % (p.pid, p.name))
         return p
