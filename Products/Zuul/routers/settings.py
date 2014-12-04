@@ -57,6 +57,7 @@ class SettingsRouter(DirectRouter):
         """
         dmd = self.context.zport.dmd
         for key, value in kwargs.iteritems():
-            setattr(dmd, key, value)
+            if hasattr(dmd, key):
+                setattr(dmd, key, value)
 
         return DirectResponse.succeed()

@@ -53,7 +53,6 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG,
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
 )
-from Products.ZenUtils.controlplane import application
 
 
 log = logging.getLogger("zen.actions")
