@@ -34,19 +34,24 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     )
 
 import logging
+import time
+import os
 
-log = logging.getLogger("zen.eventd")
+log = logging.getLogger("zen.eventd.processing")
+
 
 class ProcessingException(Exception):
     def __init__(self, message, event=None):
         super(ProcessingException, self).__init__(message)
         self.event = event
 
+
 class DropEvent(ProcessingException):
     """
     Raised when an event should be dropped from the queue.
     """
     pass
+
 
 class EventLoggerAdapter(logging.LoggerAdapter):
     """
@@ -58,6 +63,34 @@ class EventLoggerAdapter(logging.LoggerAdapter):
                                             msg=msg)
         return msg, kwargs
 
+
+class _Measure(object):
+    """Measures the duration of code run in the context and writes to log
+    if the duration exceeds a specified threshold.
+    """
+
+    def __init__(self, threshold, log, name, plugin):
+        self._threshold = threshold
+        self._log = log
+        self._name = name
+        self._plugin = plugin
+
+    def __enter__(self):
+        self.begin = time.time()
+
+    def __exit__(self, *exc_info):
+        # propagate the exception if any value in exc_info
+        # by returning False
+        if any(exc_info):
+            return False
+        duration = time.time() - self.begin
+        if duration >= self._threshold:
+            self._log("[pid %s] %s plugin %s took %.2fs (exceeded %.1fs threshold)",
+                      os.getpid(), self._name,
+                      self._plugin.__module__ + "." + type(self._plugin).__name__,
+                      duration, self._threshold)
+
+
 class Manager(object):
     """
     Provides lookup access to processing pipes and performs caching.
@@ -68,9 +101,11 @@ class Manager(object):
         COMPONENT: DeviceComponent,
     }
 
-    def __init__(self, dmd):
+    def __init__(self, dmd, logPerfAsInfo=False, slowSegmentThreshold=1.0):
         self.dmd = dmd
         self._initCatalogs()
+        self._threshold = slowSegmentThreshold
+        self._perfLog = log.info if logPerfAsInfo else log.debug
 
     def _initCatalogs(self):
         self._guidManager = IGUIDManager(self.dmd)
@@ -82,6 +117,11 @@ class Manager(object):
         self._catalogs = {
             DEVICE: self._devices,
         }
+
+    def measure(self, pipe, plugin):
+        return _Measure(
+            self._threshold, self._perfLog, type(pipe).__name__, plugin
+        )
 
     def reset(self):
         self._initCatalogs()
@@ -152,8 +192,7 @@ class Manager(object):
             if not element:
                 # Lookup cache must be invalid, try looking up again
                 self.getElementUuidById.clear()
-                log.warning(
-                        'Clearing ElementUuidById cache becase we could not find %s' % uuid)
+                log.warning('Clearing ElementUuidById cache becase we could not find %s' % uuid)
                 uuid = self.getElementUuidById(catalog, element_type_id, id)
                 element = self.getElementByUuid(uuid)
             return element
@@ -297,6 +336,7 @@ class EventContext(object):
         """
         return self._eventProxy
 
+
 class EventProcessorPipe(object):
     """
     An event context handler that is called in a chain.
@@ -316,15 +356,14 @@ class EventProcessorPipe(object):
         """
         raise NotImplementedError()
 
+
 class CheckInputPipe(EventProcessorPipe):
     """
     Validates that the event has required fields.
     """
-    REQUIRED_EVENT_FIELDS = (
-    EventField.ACTOR, EventField.SUMMARY, EventField.SEVERITY)
+    REQUIRED_EVENT_FIELDS = (EventField.ACTOR, EventField.SUMMARY, EventField.SEVERITY)
 
     def __call__(self, eventContext):
-
         # Make sure summary and message are populated
         if not eventContext.event.HasField(
                 'message') and eventContext.event.HasField('summary'):
@@ -334,20 +373,28 @@ class CheckInputPipe(EventProcessorPipe):
             eventContext.event.summary = eventContext.event.message[:255]
 
         missingFields = ','.join(ifilterfalse(eventContext.event.HasField, self.REQUIRED_EVENT_FIELDS))
+
         if missingFields:
             raise DropEvent('Required event fields %s not found' % missingFields,
                             eventContext.event)
 
         return eventContext
 
+
 class EventIdentifierPluginException(ProcessingException):
     pass
+
+
 class EventIdentifierPluginFailure(EventIdentifierPluginException):
     pass
+
+
 class EventIdentifierPluginAbort(EventIdentifierPluginException):
     pass
 
+
 class BaseEventIdentifierPlugin(object):
+
     def _resolveElement(self, evtProcessorManager, catalog, eventContext, type_id_field,
                         identifier_field, uuid_field):
         """
@@ -365,8 +412,7 @@ class BaseEventIdentifierPlugin(object):
                                                element, uuid)
                         setattr(actor, identifier_field, element.id)
                     else:
-                        eventContext.log.warning('Could not find element by uuid %s'
-                                                 , uuid)
+                        eventContext.log.warning('Could not find element by uuid %s', uuid)
 
                 elif actor.HasField(identifier_field):
                     type_id = getattr(actor, type_id_field, None)
@@ -384,9 +430,7 @@ class BaseEventIdentifierPlugin(object):
                                                element_uuid, identifier)
                         setattr(actor, uuid_field, element_uuid)
                     else:
-                        eventContext.log.debug(
-                                'Could not find element type %s with id %s', type_id
-                                , identifier)
+                        eventContext.log.debug('Could not find element type %s with id %s', type_id, identifier)
             else:
                 if log.isEnabledFor(logging.DEBUG):
                     type_id = getattr(actor, type_id_field, None)
@@ -425,6 +469,7 @@ class BaseEventIdentifierPlugin(object):
                 EventField.Actor.ELEMENT_SUB_UUID
                 )
 
+
 class IdentifierPipe(EventProcessorPipe):
     """
     Resolves element uuids and identifiers to make sure both are populated.
@@ -442,8 +487,10 @@ class IdentifierPipe(EventProcessorPipe):
         # iterate over all event identifier plugins
         for name, plugin in evtIdentifierPlugins:
             try:
-                eventContext.log.debug("running identifier plugin, name=%s, plugin=%s" % (name,plugin))
-                plugin.resolveIdentifiers(eventContext, self._manager)
+                eventContext.log.debug("running identifier plugin, name=%s, plugin=%s" % (name, plugin))
+                with self._manager.measure(self, plugin):
+                    plugin.resolveIdentifiers(eventContext, self._manager)
+
             except EventIdentifierPluginAbort as e:
                 eventContext.log.debug(e)
                 raise
@@ -451,6 +498,7 @@ class IdentifierPipe(EventProcessorPipe):
                 eventContext.log.debug(e)
 
         return eventContext
+
 
 class AddDeviceContextAndTagsPipe(EventProcessorPipe):
     """
@@ -562,7 +610,7 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
                 # the appropriate event tags
                 deviceOrgs = {}
                 for tagType, orgProcessValues in self.DEVICE_TAGGERS.iteritems():
-                    getOrgFunc,orgTypeName = orgProcessValues
+                    getOrgFunc, orgTypeName = orgProcessValues
                     objList = getOrgFunc(device)
                     if objList:
                         if not isinstance(objList, list):
@@ -590,6 +638,7 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
 
         return eventContext
 
+
 class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
 
     def __call__(self, eventContext):
@@ -604,7 +653,7 @@ class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
             actor.ClearField(EventField.Actor.ELEMENT_SUB_UUID)
             eventContext.log.debug("device was cleared, must purge references in current event: %s" % to_dict(eventContext._zepRawEvent))
             # clear out device-specific tags and details
-            deviceOrganizerTypeNames = list(type for function,type in self.DEVICE_TAGGERS.values())
+            deviceOrganizerTypeNames = list(type for function, type in self.DEVICE_TAGGERS.values())
             deviceDetailNames = set(deviceOrganizerTypeNames +
                                     self.DEVICE_TAGGERS.keys() +
                                     [
@@ -625,6 +674,7 @@ class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
 
         return eventContext
 
+
 class SerializeContextPipe(EventProcessorPipe):
     """
     Takes fields added to the eventProxy that couldn't directly be mapped out of the
@@ -635,6 +685,7 @@ class SerializeContextPipe(EventProcessorPipe):
     def __call__(self, eventContext):
         eventContext.log.debug('Saving context back to event')
         return eventContext
+
 
 class AssignDefaultEventClassAndTagPipe(EventProcessorPipe):
     """
@@ -659,6 +710,7 @@ class AssignDefaultEventClassAndTagPipe(EventProcessorPipe):
 
         if eventClass:
             self._setEventFlappingSettings(eventContext, eventClass)
+
         return eventContext
 
     def _setEventFlappingSettings(self, eventContext, eventClass):
@@ -670,7 +722,10 @@ class AssignDefaultEventClassAndTagPipe(EventProcessorPipe):
         if getattr(eventClass, 'zFlappingIntervalSeconds', None):
             eventContext.eventProxy.flappingInterval = eventClass.zFlappingIntervalSeconds
             eventContext.eventProxy.flappingThreshold = eventClass.zFlappingThreshold
-            eventContext.eventProxy.flappingSeverity = eventClass.zFlappingSeverity
+            try:
+                eventContext.eventProxy.flappingSeverity = int(eventClass.zFlappingSeverity)
+            except (ValueError, TypeError):
+                pass
 
 
 class FingerprintPipe(EventProcessorPipe):
@@ -708,6 +763,7 @@ class FingerprintPipe(EventProcessorPipe):
 
         return eventContext
 
+
 class TransformAndReidentPipe(EventProcessorPipe):
     dependencies = [AddDeviceContextAndTagsPipe]
 
@@ -738,9 +794,11 @@ class TransformAndReidentPipe(EventProcessorPipe):
 
             # rerun any pipes necessary to reidentify event
             for pipe in self.reidentpipes:
-                eventContext = pipe(eventContext)
+                with self._manager.measure(self, repr(pipe)):
+                    eventContext = pipe(eventContext)
 
         return eventContext
+
 
 class TransformPipe(EventProcessorPipe):
 
@@ -794,6 +852,7 @@ class TransformPipe(EventProcessorPipe):
                                         eventContext.componentObject)
         return eventContext
 
+
 class EventPluginPipe(EventProcessorPipe):
     def __init__(self, manager, pluginInterface, name=''):
         super(EventPluginPipe, self).__init__(manager, name)
@@ -801,9 +860,12 @@ class EventPluginPipe(EventProcessorPipe):
         self._eventPlugins = tuple(getUtilitiesFor(pluginInterface))
 
     def __call__(self, eventContext):
+
         for name, plugin in self._eventPlugins:
             try:
-                plugin.apply(eventContext._eventProxy, self._manager.dmd)
+                with self._manager.measure(self, plugin):
+                    plugin.apply(eventContext._eventProxy, self._manager.dmd)
+
             except Exception as e:
                 eventContext.log.error(
                         'Event plugin %s encountered an error -- skipping.' % name)
@@ -812,10 +874,12 @@ class EventPluginPipe(EventProcessorPipe):
 
         return eventContext
 
+
 class ClearClassRefreshPipe(EventProcessorPipe):
     def __call__(self, eventContext):
         eventContext.refreshClearClasses()
         return eventContext
+
 
 class TestPipeExceptionPipe(EventProcessorPipe):
     # pipe used for testing exception handling in event processor
@@ -825,12 +889,14 @@ class TestPipeExceptionPipe(EventProcessorPipe):
     def __call__(self, eventContext):
         raise self.exceptionClass('Testing pipe processing failure')
 
+
 class CheckHeartBeatPipe(EventProcessorPipe):
     """
     After the mappings and transforms have been applied, we
     need to recheck to see if it is a HeartBeat event as those are
     treated differently.
     """
+
     def __call__(self, eventContext):
         proxy = eventContext.eventProxy
         if proxy.eventClass == ZenEventClasses.Heartbeat:
