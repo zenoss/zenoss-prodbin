@@ -286,8 +286,10 @@ class MetricMixin(object):
         The expectation is that each value correspond to its time slot.
         There's no expectation that the passed resolution is the returned resolution.
 
-        The start and end parameters can be specified as UNIX
-        timestamps or RRDtool AT-STYLE time specification. See http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
+        The start and end parameters can be specified as a UNIX
+        timestamps or a subset of RRDtool AT-STYLE time specification. See http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
+
+        You can also pass in OpenTSDB relative times, such as '1d-ago'.
         """
         results = []
         if isinstance(dpnames, basestring):
