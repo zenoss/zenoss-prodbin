@@ -1720,6 +1720,10 @@ a.z-entity:hover{
 }
 
 /* customize graph appearance */
+div .europagraph {
+    border: 1px solid #eee;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
 
 /* make graph points visible */
 .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
