@@ -309,7 +309,7 @@
             new Zenoss.dialog.ErrorDialog({
                 message: Ext.String.format(_t('<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
                     '<br/><br/><a href="' + link + '">Graph: ' + this.graphTitle +  ' </a>') + '</div>')),
-                title: _t('Save Configuration')
+                title: _t('Link to this Graph')
             });
         },
         displayDefinition: function(){
