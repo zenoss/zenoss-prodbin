@@ -19,9 +19,11 @@ import optparse
 import subprocess
 import shutil
 import tempfile
+import re
+from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
-from pkg_resources import parse_requirements, DistributionNotFound
+from pkg_resources import parse_requirements, Distribution, DistributionNotFound, get_distribution, parse_version, iter_entry_points
 
 import Globals
 import transaction
@@ -150,24 +152,31 @@ class ZenPackCmd(ZenScriptBase):
                 or os.path.exists(os.path.join(self.options.installPackName,
                                                 'setup.py')))
 
-        # files-only just lays the files down and doesn't "install"
-        # them into zeo
-        class ZPProxy:
-            def __init__(self, zpId):
-                self.id = zpId
-            def path(self, *parts):
-                return zenPath('Products', self.id, *parts)
         if self.options.removePackName and self.options.filesOnly:
-            # Remove files-only is not yet supported for egg zenpacks
-            # todo
-            proxy = ZPProxy(self.options.removePackName)
+            # A files-only remove implies a files-only install.  Egg packs are only supported here.
+            installedEggs = [ p for p in iter_entry_points('zenoss.zenpacks') ]
+            theOne = filter(lambda x: x.name == self.options.removePackName, installedEggs)
+            if not theOne:
+                raise ZenPackNotFoundExeption("Specified zenpack not installed")
+            if len(theOne) > 1:
+                raise ZenPackException("Multipe matching distributions for {} found - aborting.".format(self.options.removePackName))
+            actualZPDir = theOne[0].dist.location
+            class ZPProxy:
+                def __init__(self, zpId, actualPath):
+                    self.id = zpId
+                    self.actualPath = actualPath
+                def path(self, *parts):
+                    return self.actualPath
+            proxy = ZPProxy(self.options.removePackName, actualZPDir)
             for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
                 loader.unload(proxy, None)
-            os.system('rm -rf %s' % zenPath('Products',
-                                            self.options.removePackName))
+            EggPackCmd.DoEasyUninstall(self.options.removePackName)
+            if proxy.path().endswith(".egg") and os.path.exists(proxy.path()):
+                self.log.info("Deleting zenpack %s", proxy.path())
+                os.system('rm -rf "%s"' % proxy.path())
+            else:
+                self.log.error("Could not delete %s, skipping", proxy.path())
             return
-
-
 
         self.connect()
 
@@ -230,10 +239,11 @@ class ZenPackCmd(ZenScriptBase):
                                             self.options.removePackName)
                     return False
             else:
-                removeZenPackQueuesExchanges(pack.path())
-                if pack.isEggPack():
-                    return EggPackCmd.RemoveZenPack(
-                            self.dmd, self.options.removePackName)
+                if pack:
+                    removeZenPackQueuesExchanges(pack.path())
+                    if pack.isEggPack():
+                        return EggPackCmd.RemoveZenPack(
+                                self.dmd, self.options.removePackName)
                 RemoveZenPack(self.dmd, self.options.removePackName, self.log)
 
         elif self.options.list:
@@ -254,58 +264,143 @@ class ZenPackCmd(ZenScriptBase):
                 print('%s (%s)' % (zpId,  desc))
 
         elif self.options.restore:
-            self.log.info("restoring zenpacks")
+            self.log.info("Restoring zenpacks")
             self.restore()
 
         transaction.commit()
 
+    def getPacksPacks(self):
+        '''
+        Helper method to get a list of the zenpacks in 
+        /opt/zenoss/packs.  This is representative of what 'shipped' with 
+        the image being used, and can be used to determine, for example, which
+        zenpacks are in the image, but are NOT in the database.
+        '''
+        packsPath = zenPath('packs')
+        if os.path.isdir(packsPath):
+            return [ f for f in os.listdir(packsPath) \
+                    if os.path.isfile(os.path.join(packsPath, f)) and f.endswith(".egg") ]
+        else:
+            return []
+
+    def onlyInImage(self):
+        '''
+        Returns a set of packs to fix (in the image , but not in the database).
+        ex. {'ZenPacks.zenoss.ApacheMonitor', 'ZenPacks.zenoss.ZenJMX'}
+        '''
+        shippedPacks = self.getPacksPacks()
+        genericShippedPacks = [ Distribution.from_filename(pack).project_name for pack in shippedPacks ]
+        databasePacks = self.dmd.ZenPackManager.packs.objectIds()
+        installedPacks = [ p.name for p in iter_entry_points('zenoss.zenpacks') ]
+        inPacksNotInDB = set(genericShippedPacks) - set(databasePacks)
+        packsToFix = inPacksNotInDB & set(installedPacks)
+        return packsToFix
+    
     def restore(self):
-        import pkg_resources
+        # First take care of packs in the new image that aren't in the database
+        fixedSomething = False
+        for pack in self.onlyInImage():
+             with open(os.devnull, 'w') as fnull:
+                 log.info('Erasing zenpack from disk %s', pack)
+                 cmd = ['zenpack', '--erase', pack, '--files-only']
+                 subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
+                 fixedSomething = True
+
         packsDump = EggPackCmd.getPacksDump()
+        zpsToRestore = {}
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             restoreZenPack = False
             version = None
+            filesOnly = True
             try:
-                zp = self.dmd.ZenPackManager.packs._getOb(zpId)
-                version = getattr(zp, "version", zp.__Broken_state__["version"]) 
+                zp = self.dmd.ZenPackManager.packs._objects[zpId]
+                version = getattr(zp, "version", None)
+                if version is None:
+                    version = zp.__Broken_state__["version"] 
                 if zp.isEggPack():
                     zp.eggPath() # attempt to raise DistributionNotFound
-                # if the installed version is not the version we have in zodb
-                if pkg_resources.get_distribution(zpId).version != version:
+                versionCmp = cmp(parse_version(get_distribution(zpId).version), parse_version(version))
+                if versionCmp != 0:
                     restoreZenPack = True
+                    # The distribution package version is higher than what's in zodb
+                    if versionCmp > 0:
+                        version = get_distribution(zpId).version
+                        filesOnly = False
+                    # Zodb has a higher version that what's in the distirbution's package
+                    elif versionCmp < 0:
+                        filesOnly = False
+
             except (AttributeError, DistributionNotFound):
                 restoreZenPack = True
             if version is None:
                 self.log.error("Could not determine version of %s, skipping.", zpId)
                 continue
             if restoreZenPack:
-                self._restore(zpId, version)
+                # Add to list of packs to restore
+                zpsToRestore[zpId] = (version, filesOnly)
+        
+        # Figure out which packs have dependencies, and sort them accordingly
+        zpsToSort = {}
+        pattern = '(ZenPacks\.zenoss\.[a-zA-Z\.]*)'
+        for zpId in zpsToRestore.iterkeys():
+            zp = self.dmd.ZenPackManager.packs._objects[zpId]
+            deps = getattr(zp, 'dependencies', None)
+            if deps is None:
+                deps = zp.__Broken_state__['dependencies']
+            # Look to see if any packs have any other zenpack deps
+            matches = filter(
+                    lambda x: x,
+                    [re.search(pattern, key) for key in deps.keys()]
+                )
+            
+            depsSet = set()
+            # There are ZP deps - get + add them.  If no deps, add empty set
+            if len(deps) != 0 and any(matches):
+                for match in matches:
+                    if match in zpsToRestore.keys():
+                        depsSet.add(match.group(0))
+            zpsToSort[zpId] = depsSet
+        
+        sortedPacks = toposort_flatten(zpsToSort)
+        if len(sortedPacks) != 0:
+            for pack in sortedPacks:
+                self._restore(pack, zpsToRestore[pack][0], zpsToRestore[pack][1])
+        else:
+            if not fixedSomething:
+                self.log.info("No broken zenpacks found")
 
 
-    def _restore(self, zpId, version):
+    def _restore(self, zpId, version, filesOnly):
         # glob for backup
-        backupDir = zenPath(".ZenPacks")
-        pattern = backupDir + "/%s-%s*" % (zpId, version)
-        self.log.info("looking for %s", pattern)
-        candidates = glob.glob(pattern)
+        backupDirs = (zenPath(".ZenPacks"),  zenPath("packs"))
+        patterns = [backupDir + "/%s-%s*" % (zpId, version) for backupDir in backupDirs]
+        for pattern in patterns:
+            self.log.info("looking for %s", pattern)
+            candidates = glob.glob(pattern)
+            if len(candidates) > 0:
+                break
         if len(candidates) == 0:
             self.log.info("could not find install candidate for %s %s", zpId, version)
             return
         for candidate in candidates:
             if candidate.lower().endswith(".egg"):
                 try:
-                     shutil.copy(os.path.join(backupDir, candidate), tempfile.gettempdir())
+                     shutil.copy(candidate, tempfile.gettempdir())
+                     cmd = ["zenpack"]
+                     if filesOnly:
+                         cmd.append("--files-only")
+                     cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
                      try:
                          with open(os.devnull, 'w') as fnull:
                              # the first time fixes the easy-install path
-                             subprocess.check_call(["zenpack", "--files-only", "--install", os.path.join(tempfile.gettempdir(), candidate)], stdout=fnull, stderr=fnull)
+                             subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
                      except Exception:
                          pass
                      # the second time runs the loaders
-                     subprocess.check_call(["zenpack", "--files-only", "--install", os.path.join(tempfile.gettempdir(), candidate)])
+                     subprocess.check_call(cmd)
                 finally:
                      try:
-                         os.remove(os.path.join(tempfile.gettempdir(), candidate))
+                         os.remove(os.path.join(tempfile.gettempdir(), os.path.basename(candidate)))
                      except Exception:
                          pass
                      return
