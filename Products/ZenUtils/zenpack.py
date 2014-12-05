@@ -171,7 +171,15 @@ class ZenPackCmd(ZenScriptBase):
             for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
                 loader.unload(proxy, None)
             EggPackCmd.DoEasyUninstall(self.options.removePackName)
-            os.system('rm -rf %s' % proxy.path() + '*')
+            zpPathRegex = "/opt/zenoss/ZenPacks/.+"
+            matches = re.search(zpPathRegex, proxy.path())
+            if matches:
+                match = matches.group(0)
+                if os.path.exists(match):
+                    self.log.info("Deleting zenpack %s", proxy.path())
+                    os.system('rm -rf "%s"' % proxy.path())
+            else:
+                self.log.error("Could not delete %s, skipping", proxy.path())
             return
 
         self.connect()
@@ -274,7 +282,8 @@ class ZenPackCmd(ZenScriptBase):
         '''
         packsPath = zenPath('packs')
         if os.path.isdir(packsPath):
-            return [ f for f in os.listdir(packsPath) if os.path.isfile(os.path.join(packsPath, f)) ]
+            return [ f for f in os.listdir(packsPath) \
+                    if os.path.isfile(os.path.join(packsPath, f)) and f.endswith(".egg") ]
         else:
             return []
 
