@@ -1720,9 +1720,17 @@ a.z-entity:hover{
 }
 
 /* customize graph appearance */
-div .europagraph {
+div.europagraph {
     border: 1px solid #eee;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+img.europaGraphGear {
+    float:right;
+    position:relative;
+    top:-15px;
+    opacity:.5;
+    cursor:pointer
 }
 
 /* make graph points visible */
