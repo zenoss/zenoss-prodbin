@@ -1,35 +1,41 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2014, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-import os
+
+import Globals
 import logging
+import os
+import time
+
+from Products.ZenUtils.Utils import zenPath
+
+
 def monkey_patch_rotatingfilehandler():
-  try:
-    from cloghandler import ConcurrentRotatingFileHandler
-    logging.handlers.RotatingFileHandler = ConcurrentRotatingFileHandler
-  except ImportError:
-    from warnings import warn
-    warn("ConcurrentLogHandler package not installed. Using RotatingFileLogHandler. While everything will still work fine, there is a potential for log files overlapping each other.")
+    try:
+        from cloghandler import ConcurrentRotatingFileHandler
+        ConcurrentRotatingFileHandler._lockdir_path = zenPath('var')
+        logging.handlers.RotatingFileHandler = ConcurrentRotatingFileHandler
+    except ImportError:
+        from warnings import warn
+        warn("ConcurrentLogHandler package not installed. Using RotatingFileLogHandler. While everything will \
+              still work fine, there is a potential for log files overlapping each other.")
+
 monkey_patch_rotatingfilehandler()
 
 from twisted.internet import reactor
 from twisted.internet import defer
-
-import time
 from datetime import datetime, timedelta
-
-import Globals
 from zope.component import getUtility, adapter
-
 from zope.interface import implements
 from zope.component.event import objectEventNotify
 
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
+from Products.ZenCollector.utils.workers import workersBuildOptions
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.guid import guid
@@ -51,13 +57,49 @@ log = logging.getLogger("zen.eventd")
 EXCHANGE_ZEP_ZEN_EVENTS = '$ZepZenEvents'
 QUEUE_RAW_ZEN_EVENTS = '$RawZenEvents'
 
-class EventPipelineProcessor(object):
 
-    SYNC_EVERY_EVENT = False
+class _Measure(object):
+    """
+    """
+
+    def __init__(self, write):
+        self._write = write
+
+    def __enter__(self):
+        self.begin = time.time()
+
+    def __exit__(self, *exc_info):
+        # propagate the execption if any value in exc_info is not falsey
+        # by returning False
+        if any(exc_info):
+            return False
+        duration = time.time() - self.begin
+        self._write(duration)
+
+
+class _Measurements(object):
+    """Use to track the runtimes of the event pipes.
+    """
+
+    def __init__(self):
+        self.times = {}
+
+    @property
+    def total(self):
+        return sum(self.times.itervalues())
+
+    def measure(self, name):
+        return _Measure(lambda d: self._saveMeasure(name, d))
+
+    def _saveMeasure(self, name, duration):
+        self.times[name] = duration
+
+
+class EventPipelineProcessor(object):
 
     def __init__(self, dmd):
         self.dmd = dmd
-        self._manager = Manager(self.dmd)
+        self._manager = Manager(self.dmd, self.logPerfAsInfo, self.slowSegmentThreshold)
         self._pipes = (
             EventPluginPipe(self._manager, IPreEventPlugin, 'PreEventPluginPipe'),
             CheckInputPipe(self._manager),
@@ -82,7 +124,25 @@ class EventPipelineProcessor(object):
             # don't call sync() more often than 1 every 0.5 sec - helps throughput
             # when receiving events in bursts
             self.nextSync = datetime.now()
-            self.syncInterval = timedelta(0,0,500000)
+            self.syncInterval = timedelta(0, 0, 500000)
+
+        if self.useMetrology:
+            from metrology import Metrology
+            from metrology.reporter.logger import LoggerReporter
+            self._messageMeter = Metrology.meter("events-processed")
+            if self.logPerfAsInfo:
+                self._meterLogger = LoggerReporter(
+                    logger=log, level=logging.INFO,
+                    interval=self.metricReportInterval,
+                    prefix=str("[pid %s] " % os.getpid())
+                )
+            else:
+                self._meterLogger = LoggerReporter(
+                    logger=log, level=logging.DEBUG,
+                    interval=self.metricReportInterval,
+                    prefix=str("[pid %s] " % os.getpid())
+                )
+            self._meterLogger.start()
 
     def processMessage(self, message):
         """
@@ -90,83 +150,140 @@ class EventPipelineProcessor(object):
         class when it is done with the message
         """
 
-        if self.SYNC_EVERY_EVENT:
-            doSync = True
-        else:
-            # sync() db if it has been longer than self.syncInterval since the last time
-            currentTime = datetime.now()
-            doSync = currentTime > self.nextSync
-            self.nextSync = currentTime + self.syncInterval
+        if self.useMetrology:
+            self._messageMeter.mark()
 
-        if doSync:
-            self.dmd._p_jar.sync()
+        pid = os.getpid()
 
-        try:
-            retry = True
-            processed = False
-            while not processed:
-                try:
-                    # extract event from message body
-                    zepevent = ZepRawEvent()
-                    zepevent.event.CopyFrom(message)
-                    if log.isEnabledFor(logging.DEBUG):
-                        log.debug("Received event: %s", to_dict(zepevent.event))
+        other_measure = _Measurements()
+        pipe_measure = _Measurements()
 
-                    eventContext = EventContext(log, zepevent)
+        with other_measure.measure("overall"):
+            with other_measure.measure("sync"):
+                if self.SYNC_EVERY_EVENT:
+                    doSync = True
+                else:
+                    # sync() db if it has been longer than
+                    # self.syncInterval since the last time
+                    currentTime = datetime.now()
+                    doSync = currentTime > self.nextSync
+                    self.nextSync = currentTime + self.syncInterval
 
-                    for pipe in self._pipes:
-                        eventContext = pipe(eventContext)
+                if doSync:
+                    self.dmd._p_jar.sync()
+
+            try:
+                retry = True
+                processed = False
+                while not processed:
+                    try:
+                        # extract event from message body
+                        zepevent = ZepRawEvent()
+                        zepevent.event.CopyFrom(message)
                         if log.isEnabledFor(logging.DEBUG):
-                            log.debug('After pipe %s, event context is %s' % ( pipe.name, to_dict(eventContext.zepRawEvent) ))
-                        if eventContext.event.status == STATUS_DROPPED:
-                            raise DropEvent('Dropped by %s' % pipe, eventContext.event)
+                            log.debug("[pid %s] Received event: %s",  pid, to_dict(zepevent.event))
 
-                    processed = True
+                        eventContext = EventContext(log, zepevent)
 
-                except AttributeError:
-                    # _manager throws Attribute errors if connection to zope is lost - reset
-                    # and retry ONE time
-                    if retry:
-                        retry=False
-                        log.debug("Resetting connection to catalogs")
-                        self._manager.reset()
-                    else:
-                        raise
+                        with other_measure.measure("pipes"):
+                            for pipe in self._pipes:
+                                with pipe_measure.measure(pipe.name):
+                                    eventContext = pipe(eventContext)
+                                if log.isEnabledFor(logging.DEBUG):
+                                    log.debug(
+                                        "[pid %s] After pipe %s, event context is %s",
+                                        pid, pipe.name, to_dict(eventContext.zepRawEvent)
+                                    )
+                                if eventContext.event.status == STATUS_DROPPED:
+                                    raise DropEvent('Dropped by %s' % pipe, eventContext.event)
 
-        except DropEvent:
-            # we want these to propagate out
-            raise
-        except Exception as e:
-            log.info("Failed to process event, forward original raw event: %s", to_dict(zepevent.event))
-            # Pipes and plugins may raise ProcessingException's for their own reasons - only log unexpected
-            # exceptions of other type (will insert stack trace in log)
-            if not isinstance(e, ProcessingException):
-                log.exception(e)
+                        processed = True
 
-            # construct wrapper event to report this event processing failure (including content of the
-            # original event)
-            origzepevent = ZepRawEvent()
-            origzepevent.event.CopyFrom(message)
-            failReportEvent = dict(
-                uuid = guid.generate(),
-                created_time = int(time.time()*1000),
-                fingerprint='|'.join(['zeneventd', 'processMessage', repr(e)]),
-                # Don't send the *same* event class or we trash and and crash endlessly
-                eventClass='/',
-                summary='Internal exception processing event: %r' % e,
-                message='Internal exception processing event: %r/%s' % (e, to_dict(origzepevent.event)),
-                severity=4,
-            )
-            zepevent = ZepRawEvent()
-            zepevent.event.CopyFrom(from_dict(Event, failReportEvent))
-            eventContext = EventContext(log, zepevent)
-            eventContext.eventProxy.device = 'zeneventd'
-            eventContext.eventProxy.component = 'processMessage'
+                    except AttributeError:
+                        # _manager throws Attribute errors if connection to zope is lost - reset and retry ONE time
+                        if retry:
+                            retry = False
+                            log.debug("[pid %s] Resetting connection to catalogs", pid)
+                            self._manager.reset()
+                        else:
+                            raise
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
+            except DropEvent:
+                # we want these to propagate out
+                raise
+            except Exception as e:
+                log.info("[pid %s] Failed to process event, forward original raw event: %s",
+                         pid, to_dict(zepevent.event))
+                # Pipes and plugins may raise ProcessingException's for their own reasons - only log unexpected
+                # exceptions of other type (will insert stack trace in log)
+                if not isinstance(e, ProcessingException):
+                    log.exception(e)
 
+                # construct wrapper event to report event processing failure (including content of the # original event)
+                origzepevent = ZepRawEvent()
+                origzepevent.event.CopyFrom(message)
+                failReportEvent = dict(
+                    uuid=guid.generate(),
+                    created_time=int(time.time()*1000),
+                    fingerprint='|'.join(['zeneventd', 'processMessage', repr(e)]),
+                    # Don't send the *same* event class or we trash and and crash endlessly
+                    eventClass='/',
+                    summary='Internal exception processing event: %r' % e,
+                    message='Internal exception processing event: %r/%s' % (e, to_dict(origzepevent.event)),
+                    severity=4,
+                )
+                zepevent = ZepRawEvent()
+                zepevent.event.CopyFrom(from_dict(Event, failReportEvent))
+                eventContext = EventContext(log, zepevent)
+                eventContext.eventProxy.device = 'zeneventd'
+                eventContext.eventProxy.component = 'processMessage'
+
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug("[pid %s] Publishing event: %s", pid, to_dict(eventContext.zepRawEvent))
+
+        self._reportMeasurements(
+            pid, other_measure, pipe_measure, to_dict(zepevent.event).get('uuid'), to_dict(zepevent.event).get('summary')
+        )
         return eventContext.zepRawEvent
+
+    def _reportMeasurements(self, pid, other_measure, pipe_measure, uuid, summary):
+        overall_time = other_measure.times["overall"]
+        if overall_time > self.slowEventThreshold:
+            durations = {
+                "pipes": other_measure.times["pipes"],
+                "processing_minus_pipes":
+                    overall_time - other_measure.times["sync"] - other_measure.times["pipes"],
+                "sync": other_measure.times["sync"]
+            }
+            # Build a list of the slow segments
+            slow_durations = []
+            for key, duration in durations.iteritems():
+                if duration > self.slowSegmentThreshold:
+                    slow_durations.append("%s took %.2fs" % (key, duration))
+            # Build a list of the slow pipes
+            slow_pipes = []
+            for key, duration in pipe_measure.times.iteritems():
+                if duration > self.slowSegmentThreshold:
+                    slow_pipes.append("%s took %.2fs" % (key, duration))
+
+            # Build the perf_message string combining all wanted elements
+            perf_message = (
+                "[pid %s] processMessage() took %.2fs (exceeded %.1fs threshold)"
+                "  ##  Event uuid '%s'  ##  Event summary '%s'"
+            ) % (
+                pid, overall_time, self.slowEventThreshold, uuid, summary
+            )
+            if slow_durations:
+                perf_message += "  ##  Slow segments: %s" % ', '.join(slow_durations)
+            if slow_pipes:
+                perf_message += "  ##  Slow pipes: %s" % ', '.join(slow_pipes)
+            perf_message += "  ##"
+
+            if self.logPerfAsInfo:
+                log.info(perf_message)
+            else:
+                log.debug(perf_message)
+
 
 class BaseQueueConsumerTask(object):
 
@@ -175,12 +292,13 @@ class BaseQueueConsumerTask(object):
     def __init__(self, processor):
         self.processor = processor
         self._queueSchema = getUtility(IQueueSchema)
-        self.dest_routing_key_prefix = 'zenoss.zenevent'
+        self.dest_routing_key_prefix = 'zenoss.zeneventd'
         self._dest_exchange = self._queueSchema.getExchange(EXCHANGE_ZEP_ZEN_EVENTS)
 
     def _routing_key(self, event):
         return (self.dest_routing_key_prefix +
                 event.event.event_class.replace('/', '.').lower())
+
 
 class TwistedQueueConsumerTask(BaseQueueConsumerTask):
 
@@ -237,14 +355,20 @@ class EventDTwistedWorker(object):
         if self._consumer:
             yield self._consumer.shutdown()
 
+
 class ZenEventD(ZCmdBase):
 
     def __init__(self, *args, **kwargs):
         super(ZenEventD, self).__init__(*args, **kwargs)
-        EventPipelineProcessor.SYNC_EVERY_EVENT = self.options.syncEveryEvent
+        EventPipelineProcessor.SYNC_EVERY_EVENT = self.options.SYNC_EVERY_EVENT
+        EventPipelineProcessor.logPerfAsInfo = self.options.logPerfAsInfo
+        EventPipelineProcessor.useMetrology = self.options.useMetrology
+        EventPipelineProcessor.metricReportInterval = self.options.metricReportInterval
+        EventPipelineProcessor.slowEventThreshold = self.options.slowEventThreshold
+        EventPipelineProcessor.slowSegmentThreshold = self.options.slowSegmentThreshold
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                      'zeneventd',
-                                                     self.options.maintenancecycle *3)
+                                                     self.options.maintenancecycle * 3)
         self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
                                   self._heartbeatSender)
         objectEventNotify(DaemonCreatedEvent(self))
@@ -266,20 +390,14 @@ class ZenEventD(ZCmdBase):
         objectEventNotify(SigUsr1Event(self, signum))
 
     def buildOptions(self):
+        # ZEN-15338: Move parser options into zeneventdEvents.py
+        #  * Add all future parser options to zeneventdEvents.py
         super(ZenEventD, self).buildOptions()
-        maintenanceBuildOptions(self.parser)
-        self.parser.add_option('--synceveryevent', dest='syncEveryEvent',
-                    action="store_true", default=False,
-                    help='Force sync() before processing every event; default is to sync() no more often '
-                    'than once every 1/2 second.')
-        self.parser.add_option('--messagesperworker', dest='messagesPerWorker', default=1,
-                    type="int",
-                    help='Sets the number of messages each worker gets from the queue at any given time. Default is 1. '
-                    'Change this only if event processing is deemed slow. Note that increasing the value increases the '
-                    'probability that events will be processed out of order.')
         objectEventNotify(BuildOptionsEvent(self))
 
 
+class onDaemonStartRun(object):
+    pass
 
 if __name__ == '__main__':
     # explicit import of ZenEventD to activate enterprise extensions
