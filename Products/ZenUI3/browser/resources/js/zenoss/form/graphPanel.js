@@ -150,18 +150,24 @@
          * </ul>
          **/
         datapoints: [],
+        graphTemplate: new  Ext.Template('<div id="{graphId}" class="europagraph" style="{graphPadding}height:{graphHeight}px;"> ' +
+                                         '     <div class="graph_title">{graphTitle}' +
+                                         '        <div class="graph_description">{description}</div>'+
+                                         '     </div> ' +
+                                         '    <img id="{buttonId}" class="europaGraphGear" src="/++resource++zenui/img/gear.png"  />' +
+                                         '</div>'),
         constructor: function(config) {
             var padding = "padding:25px 10px 5px 0px;";
             if (config.height <= 400) {
                 padding = "padding:0px 0px 0px 0px;";
             }
             // dynamically adjust the height;
+            config.graphPadding = padding;
             config.height = this.adjustHeightBasedOnMetrics(config.height, config.datapoints);
-            this.buttonId = Ext.id();
+            config.graphHeight = config.height - 50;
+            config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border: 1px solid #eee;box-shadow:0 1px 3px rgba(0, 0, 0, 0.3);' + padding +  'height:' + String(config.height - 50)  + 'px;"> ' +
-                    '<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
-                    '</div></div><img id="' + this.buttonId  +'" src="/++resource++zenui/img/gear.png" style="float:right;position:relative;top:-15px;opacity:.5;cursor:pointer" /></div>',
+                html: this.graphTemplate.apply(config),
                 maxWidth: 800,
                 cls: 'graph-panel',
                 bodyStyle: {
