@@ -157,61 +157,51 @@
             }
             // dynamically adjust the height;
             config.height = this.adjustHeightBasedOnMetrics(config.height, config.datapoints);
+            this.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
-                html: '<div id="' + config.graphId + '" style="border-style: solid; border-width:1px;' + padding +  'height:' + String(config.height - 100)  + 'px;"> ' +
+                html: '<div id="' + config.graphId + '" style="border: 1px solid #eee;box-shadow:0 1px 3px rgba(0, 0, 0, 0.3);' + padding +  'height:' + String(config.height - 50)  + 'px;"> ' +
                     '<div class="graph_title">'+ config.graphTitle  + ' <div class="graph_description">' + config.description  +
-                    '</div></div></div>',
+                    '</div></div><img id="' + this.buttonId  +'" src="/++resource++zenui/img/gear.png" style="float:right;position:relative;top:-15px;opacity:.5;cursor:pointer" /></div>',
                 maxWidth: 800,
                 cls: 'graph-panel',
+                bodyStyle: {
+                    padding: "5px"
+                },
                 graph_params: {
                     drange: DATE_RANGES[0][0],
                     end: config.end || CURRENT_TIME,
                     start: config.start || DATE_RANGES[0][0]
-                }
-            });
-            // setup graph controls
-            config.dockedItems = [{
-                xtype: 'toolbar',
-                dock: 'top',
-                items: ['->',{
-                    xtype: 'button',
-                    iconCls: 'customize',
-                    menu: [{
-                        text: _t('Definition'),
-                        handler: Ext.bind(this.displayDefinition, this)
-                    }, {
-                        text: _t('Export to CSV'),
-                        handler: Ext.bind(this.exportData, this)
-                    }, {
-                        text: _t('Link to this Graph'),
-                        handler: Ext.bind(this.displayLink, this)
+                },
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'top',
+                    items: ['->',{
+                        text: '&lt;',
+                        width: 40,
+                        handler: Ext.bind(function(btn, e) {
+                                this.onPanLeft(this);
+                        }, this)
+                    },{
+                        text: _t('Zoom In'),
+                        ref: '../zoomin',
+                        handler: Ext.bind(function(btn, e) {
+                            this.doZoom.call(this, 0, 1/this.zoom_factor);
+                        }, this)
+                    },{
+                        text: _t('Zoom Out'),
+                        ref: '../zoomout',
+                        handler: Ext.bind(function(btn, e) {
+                            this.doZoom.call(this, 0, this.zoom_factor);
+                        }, this)
+                    },{
+                        text: '&gt;',
+                        width: 40,
+                        handler: Ext.bind(function(btn, e) {
+                            this.onPanRight(this);
+                        }, this)
                     }]
-                },{
-                    text: '&lt;',
-                    width: 40,
-                    handler: Ext.bind(function(btn, e) {
-                        this.onPanLeft(this);
-                    }, this)
-                },{
-                    text: _t('Zoom In'),
-                    ref: '../zoomin',
-                    handler: Ext.bind(function(btn, e) {
-                        this.doZoom.call(this, 0, 1/this.zoom_factor);
-                    }, this)
-                },{
-                    text: _t('Zoom Out'),
-                    ref: '../zoomout',
-                    handler: Ext.bind(function(btn, e) {
-                        this.doZoom.call(this, 0, this.zoom_factor);
-                    }, this)
-                },{
-                    text: '&gt;',
-                    width: 40,
-                    handler: Ext.bind(function(btn, e) {
-                        this.onPanRight(this);
-                    }, this)
                 }]
-            }];
+            });
 
             Zenoss.EuropaGraph.superclass.constructor.call(this, config);
         },
@@ -219,7 +209,36 @@
             // the visualization library depends on our div rendering,
             // let's make sure that has happened
             this.on('afterrender', this.initChart, this);
+            this.on('afterrender', this.buildMenu, this, {single: true});
             this.callParent(arguments);
+        },
+        beforeDestroy: function() {
+            if (this.menu) {
+                this.menu.destroy();
+            }
+        },
+        buildMenu: function() {
+            var item = Ext.get(this.buttonId);
+            this.menu = Ext.create('Ext.menu.Menu', {
+                items: [{
+                    text: _t('Definition'),
+                    handler: Ext.bind(this.displayDefinition, this)
+                }, {
+                    text: _t('Export to CSV'),
+                    handler: Ext.bind(this.exportData, this)
+                }, {
+                    text: _t('Link to this Graph'),
+                    handler: Ext.bind(this.displayLink, this)
+                }]
+            });
+            item.on('click', function(event, t) {
+                event.preventDefault();
+                var rect = event.target.getBoundingClientRect(),
+                    x = rect.left,
+                    y = rect.top + rect.height;
+                this.menu.showAt(x, y);
+            }, this);
+
         },
         initChart: function() {
             // these assume that the graph panel has already been rendered
@@ -603,7 +622,6 @@
     });
 
     var tbarConfig = [
-        '-',
         '->',
 
         {
@@ -761,7 +779,8 @@
                 // images show up after Ext has calculated the
                 // size of the div
                 bodyStyle: {
-                    overflow: 'auto'
+                    overflow: 'auto',
+                    paddingTop: "15px"
                 },
                 directFn: router.getGraphDefs
             });
@@ -779,10 +798,43 @@
             this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
 
             // add title to toolbar
-            this.toolbar.insert(0, {
+            this.toolbar.insert(0, [{
                 xtype: 'tbtext',
                 text: config.tbarTitle || _t('Performance Graphs')
-            });
+            },, '-', {
+                text: '&lt;',
+                width: 40,
+                handler: Ext.bind(function(btn, e) {
+                    Ext.Array.each(this.getGraphs(), function(graph) {
+                        graph.onPanLeft(graph);
+                    });
+                }, this)
+            },{
+                text: _t('Zoom In'),
+                ref: '../zoomin',
+                handler: Ext.bind(function(btn, e) {
+                    Ext.Array.each(this.getGraphs(), function(graph) {
+                        graph.doZoom.call(this, 0, 1/graph.zoom_factor);
+                    });
+                }, this)
+
+            },{
+                text: _t('Zoom Out'),
+                ref: '../zoomout',
+                handler: Ext.bind(function(btn, e) {
+                    Ext.Array.each(this.getGraphs(), function(graph) {
+                        graph.doZoom.call(this, 0, graph.zoom_factor);
+                    });
+                }, this)
+            },{
+                text: '&gt;',
+                width: 40,
+                handler: Ext.bind(function(btn, e) {
+                    Ext.Array.each(this.getGraphs(), function(graph) {
+                        graph.onPanRight(graph);
+                    });
+                }, this)
+            }]);
 
             // default range value of 1 hour
             // NOTE: this should be a real number, not a relative
@@ -878,6 +930,8 @@
                     graphTitle: graphTitle,
                     ref: graphId,
                     height: 500,
+                    // when a europa graph appears in a graph panel then don't show controls
+                    dockedItems: [],
                     // set the date range incase we are refreshing after a resize or
                     // tab change
                     graph_params: {
@@ -886,11 +940,6 @@
                         end: this.end.valueOf()
                     }
                 })));
-                // subscribe to updatelimits event
-                graphs[graphs.length-1].on("updatelimits", function(limits){
-                    this.setLimits(limits.start, limits.end);
-                    this.refresh();
-                }, this);
             }
 
             // set up for the next page
