@@ -16,6 +16,7 @@ name space.
 """
 
 import re
+from persistent.list import PersistentList
 from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
@@ -96,6 +97,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
     pauseHubNotifications = False
+    zendmdStartupCommands = []
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -123,6 +125,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
+        {'id':'zendmdStartupCommands', 'type': 'lines', 'mode':'w'},
         )
 
     _relations =  (
@@ -866,5 +869,15 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             self._updateEmailNotifications(REQUEST)
         return super(DataRoot, self).zmanage_editProperties(REQUEST, redirect)
 
+    def addZendmdStartupCommand(self, command):
+        if not self.zendmdStartupCommands:
+            self.zendmdStartupCommands = PersistentList()
+        self.zendmdStartupCommands.append(command)
+
+    def getZenDMDStartupCommands(self):
+        return self.zendmdStartupCommands
+
+    def removeZendmdStartupCommand(self, command):
+        self.zendmdStartupCommands = PersistentList([x for x in self.zendmdStartupCommands if x != command])
 
 InitializeClass(DataRoot)
