@@ -78,16 +78,6 @@
         return range;
     }
 
-    function formatForMetricService(ms) {
-        // only format absolute times
-        if (!Ext.isNumber(ms)) {
-            return ms;
-        }
-        var d = new Date(ms);
-        return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1).pad(2) + '/' + d.getUTCDate().pad(2) + '-' +
-            d.getUTCHours().pad(2) + ':' + d.getUTCMinutes().pad(2) + ':' + d.getUTCSeconds().pad(2) + '-UTC';
-    }
-
     Date.prototype.minus = function(secs) {
         return new Date(this.valueOf()-(secs*1000));
     };
@@ -237,8 +227,8 @@
             var visconfig = {
                 returnset: "EXACT",
                 range : {
-                    start : formatForMetricService(this.graph_params.start),
-                    end : formatForMetricService(this.graph_params.end)
+                    start : this.graph_params.start,
+                    end : this.graph_params.end
                 },
                 base: this.base,
                 tags: this.tags,
@@ -376,8 +366,8 @@
 
             var changes = {
                 range : {
-                    start: formatForMetricService(gp.start),
-                    end: formatForMetricService(gp.end)
+                    start: gp.start,
+                    end: gp.end
                 }
             };
             zenoss.visualization.chart.update(this.graphId, changes);
