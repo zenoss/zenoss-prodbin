@@ -6,11 +6,13 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
+import calendar
 import time
 import re
 import json
 import logging
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 log = logging.getLogger("zen.MetricMixin")
 
 from Acquisition import aq_chain
@@ -335,7 +337,11 @@ class MetricMixin(object):
 
         # we are making the assumption we are only working with one datapoint
         # also that the return set is sorted sequentially
-        values = values[0]['datapoints']
+        try:
+            values = values[0]['datapoints']
+        except KeyError:
+            raise Exception("Unable to find datapoints from metric query results %s" % values)
+
         for idx, _ in enumerate(buckets):
             if len(values) == 0 or currentTime > end:
                 break
@@ -385,10 +391,13 @@ class MetricMixin(object):
 
     def _parseTime(self, token, fromTime):
         dateMap = {
-            'd': 86400,
-            'm': 60,
-            's': 1,
-            'h': 3600
+            'd': 'days',
+            'm': 'minutes',
+            's': 'seconds',
+            'h': 'hours',
+            'w': 'weeks',
+            'y': 'years',
+            'month': 'months'
         }
         numbers = re.findall(r'\d+', token)
         if len(numbers):
@@ -397,6 +406,17 @@ class MetricMixin(object):
             numberPart = 1
         characters = [x for x in token.replace("-", "") if x.isalpha()]
         timePart = characters[0]
+        if numberPart < 25 and timePart == 'm':
+            timePart = 'month'
+
         if not dateMap.get(timePart):
             raise ValueError("Unable to parse the time from input %s" % token)
-        return fromTime - (numberPart * dateMap[timePart])
+
+        timePart = dateMap[timePart]
+        args = {
+            timePart: numberPart
+        }
+        delta = relativedelta(**args)
+        fromDateTime = datetime.fromtimestamp(fromTime)
+        newDate = fromDateTime - delta
+        return calendar.timegm(newDate.utctimetuple())
