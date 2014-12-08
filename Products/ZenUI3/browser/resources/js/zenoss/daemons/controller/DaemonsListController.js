@@ -17,7 +17,7 @@
 
     Zenoss.render.hostIdtoHostname = function(value){
         return Ext.isDefined(HOSTS[value]) ? HOSTS[value].name : "";
-    }
+    };
 
     /**
      * @class Daemons.controller.DaemonsListController
@@ -133,22 +133,53 @@
          **/
         updateSelectedDeamons: function(selectedRows, action, field, value) {
             var grid = this.getTreegrid(),
-                uids = [], i=0;
+                record,
+                recordsToUpdate = [],
+                uids = [],
+                i=0;
             if (selectedRows.length) {
-                // get a list of ids from the server
+
+                // if it is an collector or hub then
+                // perform the action on the child daemons
                 for(i=0;i<selectedRows.length;i++) {
-                    uids.push(selectedRows[i].get('uid'));
+                    record = selectedRows[i];
+                    if (record.isCollector() || record.isHub()) {
+                        uids = uids.concat(this.getSubDaemonUids(record));
+                        recordsToUpdate = recordsToUpdate.concat(this.getSubDaemons(record));
+                    } else {
+                        uids.push(record.get('uid'));
+                        recordsToUpdate.push(record);
+                    }
+
                 }
+                uids = Ext.Array.unique(uids);
+
                 // call the server
                 router[action]({
                     uids: uids
                 }, function(response) {
                     if (response.success) {
                         // this will update the grid without refreshing it
-                        this.updateRows(selectedRows, field, value);
+                        this.updateRows(recordsToUpdate, field, value);
                     }
                 }, this);
             }
+        },
+        getSubDaemonUids: function(record) {
+            var records = this.getSubDaemons(record);
+            return Ext.Array.pluck(Ext.Array.pluck(records, 'data'), 'uid');
+        },
+        getSubDaemons: function(record) {
+            var daemons = [], children = record.childNodes || [];
+            Ext.each(children, function(child) {
+                if (child.isDaemon()) {
+                    daemons.push(child);
+                }
+                if (child.isHub() || child.isCollector()) {
+                    daemons = daemons.concat(this.getSubDaemons(child));
+                }
+            }, this);
+            return daemons;
         },
         /**
          * Starts every daemon that is selected
