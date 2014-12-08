@@ -8,4 +8,10 @@
 #
 ##############################################################################
 
-su - zenoss -c '/opt/zenoss/bin/healthchecks/pbcheck.py'
+#su - zenoss -c '/opt/zenoss/bin/healthchecks/pbcheck.py'
+if [ -e ${ZENHOME}/var/zenhub_connected ] 
+then
+	exit 0
+else 
+	exit 1
+fi
