@@ -27,7 +27,7 @@ from itertools import chain
 from functools import partial
 from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, task
 from twisted.internet.error import ConnectionLost, ReactorNotRunning, AlreadyCalled
 from twisted.spread import pb
 from twisted.python.failure import Failure
@@ -545,7 +545,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     heartbeatTimeout = 60*3
     _customexitcode = 0
     _pushEventsDeferred = None
-    
+    _healthMonitorInterval = 30
+
     def __init__(self, noopts=0, keeproot=False, name=None):
         # if we were provided our collector name via the constructor instead of
         # via code, be sure to store it correctly.
@@ -586,6 +587,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         # Add a shutdown trigger to send a stop event and flush the event queue
         reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
+
+        # Set up a looping call to support the health check.
+        self.healthMonitor = task.LoopingCall(self._checkZenHub)
+        self.healthMonitor.start(self._healthMonitorInterval)
 
     def publisher(self):
         if not self._publisher:
@@ -960,6 +965,63 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 importClass(c)
             except ImportError:
                 self.log.error("Unable to import class %s", c)
+
+    def _checkZenHub(self):
+        """
+        Check status of ZenHub (using ping method of service).
+        @return: if ping occurs, return deferred with result of ping attempt.
+        """
+        self.log.debug('_checkZenHub: entry')
+
+        def callback(result):
+            self.log.debug('ZenHub health check: Got result %s' % result)
+            if result == 'pong':
+                self.log.debug('ZenHub health check: Success - received pong from ZenHub ping service.')
+                self._signalZenHubAnswering(True)
+            else:
+                self.log.error('ZenHub health check did not respond as expected.')
+                self._signalZenHubAnswering(False)
+
+        def errback(error):
+            self.log.error('Error pinging ZenHub: %s (%s).' % (error, error.message))
+            self._signalZenHubAnswering(False)
+
+        try:
+            if self.perspective:
+                self.log.debug('ZenHub health check: perspective found. attempting remote ping call.')
+                d = self.perspective.callRemote('ping')
+                d.addCallback(callback)
+                d.addErrback(errback)
+                return d
+            else:
+                self.log.error('ZenHub health check: ZenHub may be down.')
+                self._signalZenHubAnswering(False)
+        except pb.DeadReferenceError:
+            self.log.warning("ZenHub health check: DeadReferenceError - lost connection to ZenHub.")
+            self._signalZenHubAnswering(False)
+        except Exception as e:
+            self.log.error('ZenHub health check: caught %s exception: %s' % (e.__class__, e.message))
+            self._signalZenHubAnswering(False)
+
+
+    def _signalZenHubAnswering(self, answering):
+        """
+        Write or remove file that the ZenHub_answering health check uses to report status.
+        @param answering: true if ZenHub is answering, False, otherwise.
+        """
+        self.log.debug('_signalZenHubAnswering(%s)' % answering)
+        filename = 'zenhub_connected'
+        signalFilePath = zenPath('var', filename)
+        if answering:
+            self.log.debug('writing file at %s' % signalFilePath)
+            atomicWrite(signalFilePath, '')
+        else:
+            try:
+                self.log.debug('removing file at %s' % signalFilePath)
+                os.remove(signalFilePath)
+            except Exception as e:
+                self.log.debug('ignoring %s exception (%s) removing file %s' % (e.__class__, e.message, signalFilePath))
+
 
     def buildOptions(self):
         self.parser.add_option('--hubhost',
