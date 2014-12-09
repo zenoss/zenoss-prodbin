@@ -48,7 +48,7 @@ fi
 
 DESIRED_USER=${DESIRED_USER:-"zenoss"}
 if [[ "$(whoami)" != "$DESIRED_USER" ]]; then
-    exec su - "$DESIRED_USER" -c "DESIRED_USER=$DESIRED_USER $0 $*"
+    exec su - "$DESIRED_USER" -c "DESIRED_USER=$DESIRED_USER NOCOMMIT=${NOCOMMIT:-false} $0 $*"
 fi
 
 RUNPATH=${RUNPATH:-$(dirname $0)/zenrun.d}
