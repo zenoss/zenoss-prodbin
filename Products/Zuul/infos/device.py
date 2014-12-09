@@ -427,6 +427,21 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         return self._object.__class__.__module__
 
     @property
+    def sshLink(self):
+        """
+        Returns the "href" for connecting to this device. Assumes most
+        devices can be connected to by ssh.
+        """
+        ipAddress = self.ipAddressString
+        userName = self._object.getZ('zCommandUsername', 'root')
+        if not ipAddress:
+            return None
+        # for empty strings
+        if not userName:
+            userName = "root"
+        return "ssh://%s@%s" % (userName, ipAddress)
+
+    @property
     def deviceConnectionInfo(self):
         connectionInfo = []
         zprops = self._object.deviceClass().primaryAq().getZ('zCredentialsZProperties', [])
