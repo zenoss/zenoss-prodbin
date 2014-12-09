@@ -821,6 +821,18 @@
                             id: 'memory-displayfield',
                             name: 'memory',
                             fieldLabel: _t('Memory/Swap')
+                        }, {
+                            xtype: 'displayfield',
+                            id: 'ssh-link',
+                            name: 'sshLink',
+                            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                            //fieldLabel: _t('Connect'),
+                            setValue: function(val) {
+                                if (val) {
+                                    val = Ext.String.format("<a href='{0}'>{1}</a>", val, _t('Connect to this device'));
+                                    Ext.form.field.Display.prototype.setValue.apply(this, [val]);
+                                }
+                            }
                         }]
                     },{
                         id:'deviceoverviewpanel_idsummary',
