@@ -826,7 +826,6 @@
                             id: 'ssh-link',
                             name: 'sshLink',
                             hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
-                            //fieldLabel: _t('Connect'),
                             setValue: function(val) {
                                 if (val) {
                                     val = Ext.String.format("<a href='{0}'>{1}</a>", val, _t('Connect to this device'));
