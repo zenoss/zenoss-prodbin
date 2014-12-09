@@ -434,6 +434,8 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         """
         ipAddress = self.ipAddressString
         userName = self._object.getZ('zCommandUsername', 'root')
+        if not ipAddress:
+            return None
         # for empty strings
         if not userName:
             userName = "root"
