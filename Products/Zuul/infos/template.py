@@ -483,6 +483,7 @@ class DataPointInfo(InfoBase):
         if self._object.isRate():
             if self._object.isCounter():
                 rateOptions['counter'] = True
+                rateOptions["resetThreshold"] = 1
             if self._object.rrdmax is not None:
                 rateOptions['counterMax'] = self._object.rrdmax
         return rateOptions

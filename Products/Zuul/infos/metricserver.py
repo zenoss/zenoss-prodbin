@@ -181,7 +181,10 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     def rateOptions(self):
         datapoint = self._getDataPoint()
         if datapoint:
-            return datapoint.getRateOptions()
+            options = datapoint.getRateOptions()
+            if datapoint._object.isCounter() and int(self._object.limit) > 0:
+                options['resetThreshold'] = self._object.limit
+            return options
 
     @property
     def aggregator(self):
