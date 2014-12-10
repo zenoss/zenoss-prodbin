@@ -45,6 +45,7 @@ class UserFacade(ZuulFacade):
     def addUser(self, id, password, email, roles):
         propertiedUser = self._root.manage_addUser(id, password, roles)
         user = self._root.getUserSettings(propertiedUser.getId())
+        user.email = email
         return IInfo(user)
 
     def markWizardAsFinished(self):
