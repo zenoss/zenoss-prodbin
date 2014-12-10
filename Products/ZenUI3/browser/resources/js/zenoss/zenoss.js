@@ -5,11 +5,11 @@
 if(navigator.userAgent.indexOf("Trident") > -1 && navigator.userAgent.indexOf("MSIE 7.0") > -1){
     Ext.onReady(function(){
         Ext.Msg.show({
-		title: _t("Compatibility Mode Unsupported"), 
-		msg: _t("Zenoss does not support running in IE Compatibility Mode."),
-		buttons: Ext.Msg.OK,
-		cls: "compatibilityModeAlert"
-	});
+        title: _t("Compatibility Mode Unsupported"),
+        msg: _t("Zenoss does not support running in IE Compatibility Mode."),
+        buttons: Ext.Msg.OK,
+        cls: "compatibilityModeAlert"
+    });
     });
 }
 /**
@@ -683,6 +683,13 @@ Ext.define("Zenoss.RefreshMenuButton", {
         }, this);
         // 60 is the default interval; it matches the checked item above
         this.setInterval(60);
+        this.on('beforedestroy', this.removeRefreshTask, this, {single: true});
+    },
+    removeRefreshTask: function() {
+        if (this.refreshTask) {
+            this.refreshTask.cancel();
+            delete this.refreshTask;
+        }
     },
     setInterval: function(interval) {
         var isValid = false;
