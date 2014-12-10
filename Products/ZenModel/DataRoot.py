@@ -767,8 +767,23 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "http://www.zenoss.com/resources/documentation"
+        return "/zport/dmd/localDocumentation"
+        # return "http://www.zenoss.com/resources/documentation"
 
+
+    def getDocFilesInfo(self):
+        docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
+        product = self.getProductName()
+        docCategories = ['admin', 'install', 'notes', 'zenpacks']
+        downloadable = []
+
+        for category in docCategories:
+            for root, dirs, files in os.walk(os.path.join(docDir, category, product)):
+                for file in files:
+                    if file.endswith(".pdf"):
+                        downloadable.append({"title": file, "filename": category + "/" + product + "/pdf/latest/" + file})
+
+        return downloadable
 
     def error_handler(self, error=None):
         """
