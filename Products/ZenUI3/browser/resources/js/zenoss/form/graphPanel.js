@@ -675,7 +675,7 @@
                 {
                     xtype: 'utcdatefield',
                     cls: 'start_date',
-                    width: 250,
+                    width: 175,
                     fieldLabel: _t('Start'),
                     labelWidth: 40,
                     labelAlign: "right",
@@ -692,7 +692,7 @@
                 },{
                     xtype: 'utcdatefield',
                     cls: 'end_date',
-                    width: 250,
+                    width: 175,
                     fieldLabel: _t('End'),
                     labelWidth: 40,
                     labelAlign: "right",
@@ -946,6 +946,9 @@
                         end: this.end.valueOf()
                     }
                 })));
+                graphs[graphs.length-1].on("updatelimits", function(limits){
+                    this.setLimits(limits.start, limits.end);
+                }, this);
             }
 
             // set up for the next page
