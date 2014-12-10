@@ -355,6 +355,20 @@
     permission="zenoss.Common"
     />
 
+<browser:page
+    template="templates/localDocumentation.pt"
+    name="localDocumentation"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:view
+    class=".views.GetDoc"
+    name="getDoc"
+    for="*"
+    permission="zope2.Public"
+    />
+
 <browser:viewlet
     name="zenoss_settings"
     manager=".interfaces.IMainSnippetManager"

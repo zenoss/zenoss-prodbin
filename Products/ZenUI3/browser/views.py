@@ -7,10 +7,11 @@
 # 
 ##############################################################################
 
-
+import os
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products.ZenUtils.Utils import zenPath
 from Products import Zuul
 from urllib import unquote
 
@@ -107,3 +108,11 @@ class GetDaemonLogs(BrowserView):
             response.write(
                 "Unable to find service with id %s: %s" % (id, ex)
             )
+
+class GetDoc(BrowserView):
+    def __call__(self, bundle):
+        filename = os.path.join(zenPath("Products"), 'ZenUI3', 'docs', bundle)
+        self.request.RESPONSE.setHeader('Content-Type', 'application/x-gzip')
+        self.request.RESPONSE.setHeader('Content-Disposition', 'attachment;filename=' + os.path.basename(filename))
+        with open(filename) as f:
+            return f.read()

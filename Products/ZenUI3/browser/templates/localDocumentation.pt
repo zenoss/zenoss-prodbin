@@ -1,0 +1,65 @@
+
+<!--
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2014, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+-->
+
+<tal:block metal:use-macro="here/page_macros/old-new-no-tabs">
+
+    <tal:block metal:fill-slot="title">Documentation</tal:block>
+
+    <tal:block metal:fill-slot="contentPane">
+
+        <div tal:define="
+                    tabletitle string: Local Documentation;
+                    tableName string:supportTable;
+                    menu_id string:DocFiles_list;
+                    objects here/getDocFilesInfo;
+                    batch python:container.dmd.ZenTableManager.getBatch(tableName,objects);
+                    "
+                >
+
+            <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+            <tal:block metal:fill-slot="zentablecontents">
+
+                <!-- BEGIN TABLE CONTENTS -->
+
+                <tr>
+                    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'fileName','Name')"/>
+                </tr>
+                <tal:block tal:repeat="file batch">
+                    <tr tal:define="odd repeat/file/odd"
+                        tal:attributes="class python:odd and 'odd' or 'even'">
+                        <td class="tablevalues" align="left">
+                            <a tal:attributes="href string:${here/absolute_url_path}/getDoc?bundle=${file/filename}">
+                                <tal:block tal:replace="file/title"/>
+                            </a>
+                        </td>
+                    </tr>
+                </tal:block>
+                <tr>
+                    <td colspan="3" class="tableheader">
+                        <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+                    </td>
+                </tr>
+
+                <!-- END TABLE CONTENTS -->
+
+            </tal:block>
+            </tal:block>
+        </div>
+        <br/>
+        <div style="margin-left:1em">
+        <a href="http://www.zenoss.com/resources/documentation" target="_blank">Documentation on Zenoss.com</a>
+        </div>
+
+
+    </tal:block>
+</tal:block>
