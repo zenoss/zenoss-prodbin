@@ -12,12 +12,21 @@ applyPatches() {
     
     # No need to subshell here for 'cd' because this whole process needs to 
     # happen in $ZENHOME
+
     cd $ZENHOME
     if ! which quilt > /dev/null 2>&1; then
        echo "Unable to apply custom patches - quilt is not installed" 
        return 1
     fi
     
+    # Run 'quilt upgrade' to make sure things are up to date
+    quilt upgrade > /dev/null 2>&1
+    RC=$?
+    if [[ $RC != 0 ]]; then
+        echo "Failed to run 'quilt upgrade', exiting"
+        return "$RC"
+    fi
+
     # First pop everything off (the image may or may not actually have the
     # patches applied, so need to pop them first)
     quilt pop -a
