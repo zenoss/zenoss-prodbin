@@ -33,7 +33,7 @@ applyPatches() {
     RC=$?
     if [[ $RC != 0 ]]; then
         echo "Error popping off patches!"
-        return "$?"
+        return "$RC"
     fi
     
     quilt push -a
