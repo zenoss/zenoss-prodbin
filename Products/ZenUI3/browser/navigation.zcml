@@ -173,7 +173,7 @@
             permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
-            
+
         <browser:viewlet
             name="Manufacturers"
             url="/zport/dmd/manufacturers"
@@ -183,8 +183,8 @@
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
             permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
-            />  
-          
+            />
+
 
 
     <browser:viewlet
@@ -219,7 +219,7 @@
             layer="..navigation.interfaces.IZenossNav"
             />
         <browser:viewlet
-            name="Services"
+            name="Control Center"
             url="/zport/dmd/daemons"
             weight="2"
             parentItem="Advanced"
@@ -229,7 +229,7 @@
             layer="..navigation.interfaces.IZenossNav"
             subviews="/zport/dmd/collectorTemplate"
             />
-        
+
         <browser:viewlet
             name="MIBs"
             url="/zport/dmd/mibs"
