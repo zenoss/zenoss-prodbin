@@ -372,7 +372,14 @@ class ZenPackCmd(ZenScriptBase):
 
     def _restore(self, zpId, version, filesOnly):
         # glob for backup
+        # This is meant to hand standard zenpack naming convention - for exmaple,
+        #    ZenPacks.zenoss.OpenStack-1.2.4dev19_5159496-py2.7.egg
         backupDirs = (zenPath(".ZenPacks"),  zenPath("packs"))
+        dashIndex = version.find('-')
+        if dashIndex != -1:
+            version = list(version)
+            version[dashIndex] = '_'
+            version = ''.join(version)
         patterns = [backupDir + "/%s-%s*" % (zpId, version) for backupDir in backupDirs]
         for pattern in patterns:
             self.log.info("looking for %s", pattern)
