@@ -404,7 +404,38 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 })                
                             }
                        ] 
-                } 
+                },  {
+                        xtype: 'panel',
+                        layout: 'hbox',
+                        margin: '0 0 30px 0',
+                        items: [
+                            {
+                                xtype: 'combo', 
+                                name: 'start_state',
+                                ref: 'start_state',
+                                id: 'start_state',
+                                valueField: 'value',
+                                displayField: 'name',
+                                queryMode: 'local',                            
+                                typeAhead: false,
+                                forceSelection: true,
+                                triggerAction: 'all',
+                                fieldLabel: _t('Window Production State'),
+                                listConfig: {
+                                    maxWidth:185
+                                },
+                                listeners: {
+                                    'afterrender': function(combo){
+                                        combo.setValue(combo.store.getAt(3));
+                                    }
+                                },
+                                store: Ext.create('Ext.data.Store', {
+                                    fields: ['value', 'name'],
+                                    data : Zenoss.devicemanagement.productionStates
+                                })                
+                            }
+                       ] 
+                }  
             ],
             // explicitly do not allow enter to submit the dialog
             keys: {}
