@@ -378,30 +378,6 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                         ['Monthly: day of month'],['Monthly: day of week']
                                     ]
                                 })                
-                            },{
-                                xtype: 'combo', 
-                                name: 'start_state',
-                                ref: 'start_state',
-                                id: 'start_state',
-                                valueField: 'value',
-                                displayField: 'name',
-                                queryMode: 'local',                            
-                                typeAhead: false,
-                                forceSelection: true,
-                                triggerAction: 'all',
-                                fieldLabel: _t('Window Production State'),
-                                listConfig: {
-                                    maxWidth:185
-                                },
-                                listeners: {
-                                    'afterrender': function(combo){
-                                        combo.setValue(combo.store.getAt(3));
-                                    }
-                                },
-                                store: Ext.create('Ext.data.Store', {
-                                    fields: ['value', 'name'],
-                                    data : Zenoss.devicemanagement.productionStates
-                                })                
                             }
                        ] 
                 },  {
