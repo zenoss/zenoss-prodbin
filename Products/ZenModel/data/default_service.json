@@ -318,7 +318,7 @@
         {
             "Owner": "zenoss:zenoss",
             "ResourcePath": "var-zenpacks",
-            "ContainerPath": "/var/zenoss",
+            "ContainerPath": "%(varpath)s",
             "Permission": "0775"
         }
     ]
