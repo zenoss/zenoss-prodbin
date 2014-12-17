@@ -955,6 +955,14 @@ def sane_pathjoin(base_path, *args ):
     return path.rstrip('/')
 
 
+def varPath(*args):
+    """
+    Return a path relative to /var/zenoss specified by joining args.  As with
+    zenPath(), the path is not guaranteed to exist on the filesystem.
+    """
+    return sane_pathjoin('/var/zenoss', *args)
+
+
 def zenPath(*args):
     """
     Return a path relative to $ZENHOME specified by joining args.  The path

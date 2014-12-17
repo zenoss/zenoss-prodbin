@@ -30,7 +30,7 @@ from Acquisition import aq_base
 from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Utils import importClass, zenPath
+from Products.ZenUtils.Utils import importClass, zenPath, varPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.PkgResources import pkg_resources
@@ -1282,7 +1282,8 @@ registerDirectory("skins", globals())
         # Determine template parameters
         templateParams = defaultdict(lambda:'')
         templateParams.update({'zenhome':zenPath(),
-                         'ZenPack.Default.RAMCommitment':""})
+                               'ZenPack.Default.RAMCommitment':"",
+                               'varpath':varPath()})
         templateParams.update((key, val) for key, val in context.items()
             if key.startswith('ZenPack.Default'))
 

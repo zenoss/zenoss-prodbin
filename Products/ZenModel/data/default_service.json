@@ -314,6 +314,12 @@
             "ResourcePath": ".ssh",
             "ContainerPath": "/home/zenoss/.ssh",
             "Type":""
+        },
+        {
+            "Owner": "zenoss:zenoss",
+            "ResourcePath": "var-zenpacks",
+            "ContainerPath": "%(varpath)s",
+            "Permission": "0775"
         }
     ]
 }
