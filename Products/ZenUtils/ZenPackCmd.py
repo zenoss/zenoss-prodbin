@@ -13,7 +13,7 @@ __doc__ = "Manage ZenPacks"
 import Globals
 from ZODB.transact import transact
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath, atomicWrite
+from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath,atomicWrite, varPath
 
 from Products.ZenModel import ZVersion
 from Products.ZenModel.ZenPack import ZenPackException, \
@@ -290,6 +290,7 @@ def InstallEgg(dmd, eggPath, link=False):
 
     # Install the egg
     if link:
+        zenPackDir = varPath('ZenPacks')
         cmd = ('%s setup.py develop ' % binPath('python') +
                 '--site-dirs=%s ' % zenPackDir +
                 '-d %s' % zenPackDir)
