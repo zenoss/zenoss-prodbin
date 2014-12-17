@@ -378,6 +378,50 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                         ['Monthly: day of month'],['Monthly: day of week']
                                     ]
                                 })                
+                            },{
+                                xtype: 'combo',
+                                name: 'occurrence',
+                                ref: 'occurrence',
+                                margin: '0 20px 0 0',
+                                valueField: 'name',
+                                value:'1st',
+                                displayField: 'name',
+                                typeAhead: false,
+                                forceSelection: true,
+                                triggerAction: 'all',
+                                fieldLabel: _t('Occurrence'),
+                                listConfig: {
+                                    maxWidth:185
+                                },
+                                store: new Ext.data.ArrayStore({
+                                    model: 'Zenoss.model.Name',
+                                    data: [
+                                        ['1st'], ['2nd'], ['3rd'], ['4th'], ['5th'], ['Last']
+                                    ]
+                                })                
+                            },{
+                                xtype: 'combo',
+                                name: 'days',
+                                ref: 'days',
+                                margin: '0 20px 0 0',
+                                valueField: 'name',
+                                value:'Sunday',
+                                displayField: 'name',
+                                typeAhead: false,
+                                forceSelection: true,
+                                triggerAction: 'all',
+                                fieldLabel: _t('Days'),
+                                listConfig: {
+                                    maxWidth:185
+                                },
+                                store: new Ext.data.ArrayStore({
+                                    model: 'Zenoss.model.Name',
+                                    data: [
+                                        ['Monday'], ['Tuesday'], ['Wednesday'],
+                                        ['Thursday'], ['Friday'], ['Saturday'],
+                                        ['Sunday']
+                                    ]
+                                })                
                             }
                        ] 
                 },  {
