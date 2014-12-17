@@ -379,6 +379,7 @@ class JobManager(ZenModelRM):
         """
         Delete all jobs older than untiltime.
         """
+        return
         for b in self.getCatalog()()[:]:
             try:
                 ob = b.getObject()
