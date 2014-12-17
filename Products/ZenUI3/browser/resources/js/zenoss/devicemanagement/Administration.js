@@ -125,7 +125,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                 durationMinutes:        padZero(c.duration_mins),
                 repeat:                 c.repeat,
                 startProductionState:   c.start_state,
-                enabled:                c.enabled
+                enabled:                c.enabled,
+                days:                   c.days,
+                occurrence:             c.occurrence
             }; 
           if(newEntry){ 
                 Zenoss.remote.DeviceManagementRouter.addMaintWindow({params:params}, function(response){
@@ -175,6 +177,8 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                     case "duration_hrs"   : record.setValue(duration.hrs);  break;
                                     case "duration_mins"  : record.setValue(duration.mins);  break;
                                     case "repeat"         : record.setValue(data.repeat);  break;
+                                    case "days"           : record.setValue(data.days);  break;
+                                    case "occurrence"     : record.setValue(data.occurrence);  break;
                                     case "enabled"        : record.setValue(data.enabled);  break;                        
                                 }
                             }      
@@ -369,7 +373,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 triggerAction: 'all',
                                 fieldLabel: _t('Repeat'),
                                 listConfig: {
-                                    maxWidth:185
+                                    maxWidth:180
                                 },
                                 store: new Ext.data.ArrayStore({
                                     model: 'Zenoss.model.Name',
@@ -391,7 +395,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 triggerAction: 'all',
                                 fieldLabel: _t('Occurrence'),
                                 listConfig: {
-                                    maxWidth:185
+                                    maxWidth:60
                                 },
                                 store: new Ext.data.ArrayStore({
                                     model: 'Zenoss.model.Name',
@@ -412,7 +416,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 triggerAction: 'all',
                                 fieldLabel: _t('Days'),
                                 listConfig: {
-                                    maxWidth:185
+                                    maxWidth:170
                                 },
                                 store: new Ext.data.ArrayStore({
                                     model: 'Zenoss.model.Name',
@@ -732,7 +736,9 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             {name: 'duration'}, 
             {name: 'duration_data', mapping:'duration'},
             {name: 'repeat'},         
-            {name: 'startProdState'} 
+            {name: 'startProdState'},
+            {name: 'days'},
+            {name: 'occurrence'} 
         ]
     });
 
@@ -863,6 +869,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                                     durationHours:          duration.hrs,
                                     durationMinutes:        duration.mins,
                                     repeat:                 data.repeat,
+                                    days:                   data.days,
+                                    occurrence:             data.occurrence,
                                     startProductionState:   prodState,
                                     enabled:                enabled
                                 };                            
@@ -937,6 +945,20 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         id: 'maint_repeat',
                         dataIndex: 'repeat',
                         header: _t('Repeat'),
+                        width: 150,
+                        filter: false,                        
+                        sortable: true
+                    },{
+                        id: 'maint_occurrence',
+                        dataIndex: 'occurrence',
+                        header: _t('Occurrence'),
+                        width: 60,
+                        filter: false,                        
+                        sortable: true
+                    },{
+                        id: 'maint_days',
+                        dataIndex: 'days',
+                        header: _t('Day of Week'),
                         width: 150,
                         filter: false,                        
                         sortable: true
