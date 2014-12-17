@@ -1,5 +1,8 @@
 Products/README.txt
 Products/ZenUI3/browser/resources/js/deploy/
+Products/LDAPMultiPlugins/
+Products/LDAPUserFolder/
+
 
 #daemons
 bin/runzope
