@@ -363,6 +363,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                             {
                                 xtype: 'combo',
                                 name: 'repeat',
+                                id: 'repeat-combo',
                                 ref: 'repeat',
                                 margin: '0 20px 0 0',
                                 valueField: 'name',
@@ -373,6 +374,17 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 forceSelection: true,
                                 triggerAction: 'all',
                                 fieldLabel: _t('Repeat'),
+                                listeners: {
+                                                'select': function(field, value){
+                                                    if (value && value[0].index == 5) {
+                                                        Ext.getCmp('occurrence-combo').enable();
+                                                        Ext.getCmp('days-combo').enable();
+                                                    } else {
+                                                        Ext.getCmp('occurrence-combo').disable();
+                                                        Ext.getCmp('days-combo').disable();                                                        
+                                                    }
+                                                }
+                                            },
                                 listConfig: {
                                     maxWidth:160
                                 },
@@ -385,7 +397,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 })                
                             },{
                                 xtype: 'combo',
+                                disabled: true,
                                 name: 'occurrence',
+                                id: 'occurrence-combo',
                                 ref: 'occurrence',
                                 margin: '0 20px 0 0',
                                 valueField: 'name',
@@ -407,7 +421,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 })                
                             },{
                                 xtype: 'combo',
+                                disabled: true,
                                 name: 'days',
+                                id: 'days-combo',
                                 ref: 'days',
                                 margin: '0 20px 0 0',
                                 valueField: 'name',
