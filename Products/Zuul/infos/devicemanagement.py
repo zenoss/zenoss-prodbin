@@ -43,6 +43,8 @@ class MaintenanceWindowInfo(InfoBase):
                                      durationHours=p['durationHours'],
                                      durationMinutes=p['durationMinutes'],
                                      repeat=p['repeat'],
+                                     days=p['days'],
+                                     occurrence=p['occurrence'],
                                      startProductionState=p['startProductionState'],
                                      enabled=p['enabled']
                                 )      
