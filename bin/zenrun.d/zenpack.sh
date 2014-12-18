@@ -80,7 +80,10 @@ link() {
     fi
 
     TARGET="$VARPATH_SOURCE"/$(basename "$zenpackPath")
-    [[ -f $TARGET ]] && echo "Location $TARGET already exists, cannot copy zenpack" && return 1
+    if [[ -e $TARGET ]]; then
+        echo "Location $TARGET already exists, cannot copy zenpack"
+        return 1
+    fi
 
     rsync -a "$zenpackPath"/ "$TARGET"/
     # Get var path (/var/zenoss) to strip off of TARGET
