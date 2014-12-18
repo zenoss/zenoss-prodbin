@@ -17,7 +17,9 @@ class MaintenanceWindowInfo(InfoBase):
     enabled = ProxyProperty('enabled')
     #duration = ProxyProperty('duration')
     repeat = ProxyProperty('repeat')
-    skip = ProxyProperty('skip') 
+    skip = ProxyProperty('skip')
+    days = ProxyProperty('days')
+    occurrence = ProxyProperty('occurrence')
     startState = ProxyProperty('startProductionState')
     
     @property
