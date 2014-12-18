@@ -82,7 +82,7 @@ link() {
     TARGET="$VARPATH_SOURCE"/$(basename "$zenpackPath")
     [[ -f $TARGET ]] && echo "Location $TARGET already exists, cannot copy zenpack" && return 1
 
-    cp -R "$zenpackPath" "$TARGET"
+    rsync -a "$zenpackPath"/ "$TARGET"/
     # Get var path (/var/zenoss) to strip off of TARGET
     VARPATH=$(unset TERM; echo "from Products.ZenUtils.Utils import varPath;print varPath()" | zendmd --script /dev/stdin)
     sudo /opt/zenoss/bin/var_chown "${TARGET#$VARPATH}"
