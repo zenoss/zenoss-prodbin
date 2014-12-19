@@ -59,8 +59,6 @@ shift
 if ${NOCOMMIT:-false}; then
   if [[ -r $RUNPATH/$PROGRAM ]]; then
     source $RUNPATH/$PROGRAM
-  elif [[ -r $PROGRAM ]]; then
-    source $PROGRAM
   else
     $(which $PROGRAM) "$@"
     exit 1

@@ -13,15 +13,17 @@ install(){
     ZVAR="/var/zenoss"
     PERCONADIR="${ZVAR}/percona"
     URL="http://www.percona.com/downloads/percona-toolkit/2.2.12/tarball/percona-toolkit-2.2.12.tar.gz"
-    if [ ! -d ${ZVAR} ]; then
+    if [[ ! -d ${ZVAR} ]]; then
       echo "No such directory: ${ZVAR}"
       return 1
     fi
 
+    echo "Installing percona to  ${PERCONADIR}"
+
     mkdir -p "${PERCONADIR}" || return "$?"
 
     echo "Downloading percona toolkit: ${URL}"
-    curl -L ${URL} |tar -xzv  --strip-components=1 -C ${PERCONADIR}
+    curl -L "${URL}" |tar -xzv  --strip-components=1 -C "${PERCONADIR}"
     RC=$?
     if [[ $RC != 0 ]]; then
         echo "Error downloading percona!"
