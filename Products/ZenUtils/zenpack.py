@@ -352,15 +352,16 @@ class ZenPackCmd(ZenScriptBase):
                     lambda x: x,
                     [re.search(pattern, key) for key in deps.keys()]
                 )
-            
+
             depsSet = set()
             # There are ZP deps - get + add them.  If no deps, add empty set
             if len(deps) != 0 and any(matches):
                 for match in matches:
-                    if match in zpsToRestore.keys():
-                        depsSet.add(match.group(0))
+                    depName = match.group(0)
+                    if depName in zpsToRestore.keys():
+                        depsSet.add(depName)
             zpsToSort[zpId] = depsSet
-        
+
         sortedPacks = toposort_flatten(zpsToSort)
         if len(sortedPacks) != 0:
             for pack in sortedPacks:
