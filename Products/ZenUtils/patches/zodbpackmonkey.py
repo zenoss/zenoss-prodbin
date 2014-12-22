@@ -12,17 +12,15 @@ This module patches relstorage.adapters.packundo.HistoryFreePackUndo to prevent
 the creation of POSKey errors during the execution of zodbpack.
 Patched methods:
     def _pre_pack_main(self, conn, cursor, pack_tid, get_references)
-    def _add_refs_for_oids(self, cursor, oids, get_references):
     def pack(self, pack_tid, sleep=None, packed_func=None)
-    def _pack_cleanup(self, conn, cursor)
 """
 
-import logging
 from Products.ZenUtils.Utils import monkeypatch
+from collections import defaultdict
 
+import logging
 import os
 import pickle
-
 import time
 
 log = logging.getLogger("zenoss.zodbpack.monkey")
@@ -32,123 +30,114 @@ GLOBAL_OPTIONS = []
 def set_build_tables_only_option():
     GLOBAL_OPTIONS.append("BUILD_TABLES_ONLY")
 
-class ObjectRelations(object):
-    def __init__(self, oid, tid):
-        self.oid = oid
-        self.tid = tid
-        self.refs_to = []
-        self.refs_from = []
-
 class ZodbPackMonkeyHelper(object):
 
-    TABLE_NAME = 'object_reverse_ref'
+    REF_TABLE_NAME = 'object_ref'
+    REVERSE_REF_INDEX = 'reverse_ref_index'
     PICKLE_FILENAME = 'zodbpack_skipped_oids.pickle'
     ROLLBACK_OIDS_FILENAME = 'zodbpack_rollback_oids.txt'
 
-    def create_table(self, cursor):
-        """ as of transaction tid, zoid_from x had a reference to zoid y """
-        sql = """CREATE TABLE IF NOT EXISTS {0}(
-                    zoid        BIGINT NOT NULL,
-                    zoid_from   BIGINT NOT NULL,
-                    tid         BIGINT,
-                    PRIMARY KEY(zoid, zoid_from)
-                ) ENGINE = MyISAM;""".format(self.TABLE_NAME)
+    class ReferencesMap(object):
+        def __init__(self):
+            self.refs_to = defaultdict(set) # list of objects a specific oid references to
+            self.refs_from = defaultdict(set) # list of objects that reference a specific oid
+
+        def add_reference(self, ref, log=False):
+            """
+            @param ref: tuple (zoid, to_zoid)
+            """
+            oid, to_oid = ref
+            self.refs_to[oid].add(to_oid)
+            self.refs_from[to_oid].add(oid)
+
+        def get_references(self, oid):
+            """ returns objects that are at distance 1 from oid  """
+            return self.refs_to[oid] | self.refs_from[oid]
+
+    def create_reverse_ref_index(self, cursor):
+        """
+        Checks if the reverser reference index exists on the 
+        reference table and creates the index if it does not exist
+        """
+        sql = """ SHOW INDEX FROM {0} WHERE key_name="{1}"; """.format(self.REF_TABLE_NAME, self.REVERSE_REF_INDEX)
         cursor.execute(sql)
+        if cursor.rowcount == 0:
+            log.info("Creating reverse reference index on {0}".format(self.REF_TABLE_NAME))
+            start = time.time()
+            index_sql = """ CREATE INDEX {0} ON {1} (to_zoid); """.format(self.REVERSE_REF_INDEX, self.REF_TABLE_NAME)
+            cursor.execute(index_sql)
+            log.info("Reverse reference index creation took {0} seconds.".format(time.time()-start))
 
     def get_current_database(self, cursor):
         sql = """SELECT DATABASE();"""
         cursor.execute(sql)
         return cursor.fetchall()[0][0]
 
-    def table_exists(self, cursor):
-        """ Checks if the reverse reference table exists """
-    	exists = False
-    	current_db = self.get_current_database(cursor)
-    	sql = """SELECT table_name FROM information_schema.tables WHERE table_schema = '{0}' AND table_name = '{1}';""".format(current_db, self.TABLE_NAME)
-    	cursor.execute(sql)
-    	if cursor.rowcount == 1:
-    		exists = True
-    	return exists
-
     def delete_batch(self, cursor, batch):
-        values = ", ".join([ "({0},{1})".format(oid, tid) for oid, tid in batch ])
-        sql = """DELETE FROM object_state WHERE (zoid, tid) IN ({0})""".format(values)
-        cursor.execute(sql)
-        return cursor.rowcount
-
-    def force_ref_tables_initialization(self, cursor):
-		""" 
-		Removes all data from tables 'object_refs_added' and 'object_ref'
-		that will cause the initialization of the references table during the 
-        pre-pack process
-		"""
-		sql = "TRUNCATE object_refs_added;"
-		cursor.execute(sql)
-		sql = "TRUNCATE object_ref;"
-		cursor.execute(sql)
-
-    def update_reverse_references(self, cursor, oids, add_refs):
-        """
-        updates the reverse references for objects referenced by objects in 'oids'
-        """
-        # removes the previous reverse references for the passed oids
-        values = ','.join(str(oid) for oid in oids)
-        sql = """DELETE FROM {0} WHERE zoid_from IN ({1});""".format(self.TABLE_NAME, values)
-        cursor.execute(sql)
-
-        # adds new reverse references from the passed oids
-        if len(add_refs) > 0:
-            values = ','.join([ "({0}, {1}, {2})".format(str(to_zoid), str(zoid_from), str(tid)) for (zoid_from, tid, to_zoid) in add_refs ])
-            sql = """INSERT INTO {0} (zoid, zoid_from, tid) VALUES {1}""".format(self.TABLE_NAME, values)
-            cursor.execute(sql)
+        sql = """ DELETE FROM object_state WHERE zoid = %s AND tid = %s """
+        count = cursor.executemany(sql, batch)
+        return count
 
     def log_exception(self, e, info=''):
         log.error("Monkey patch for zodbpack raised and exception: {0}: {1}".format(info, e))
 
-    def get_refs_to(self, cursor, zoid_from):
-    	""" returns the oids 'zoid_from' references to """
-        sql = """SELECT zoid, to_zoid FROM {0} WHERE zoid = {1};""".format("object_ref", zoid_from)
+    def unmark_rolledback_oids(self, conn, cursor, oids):
+        """
+        Unmark the oids from pack_object so _pack_cleanup wont remove them from object_refs_added and object_ref
+        """
+        batch_size=10000
+        to_remove = oids[:]
+        while to_remove:
+            batch = to_remove[:batch_size]
+            del to_remove[:batch_size]
+            values = ', '.join([ str(zoid) for zoid, tid in batch ])
+            sql = """UPDATE pack_object SET keep = TRUE WHERE zoid IN ({0});""".format(values)
+            cursor.execute(sql)
+        conn.commit()
+
+    def _get_references(self, cursor, batch):
+        """
+        @param batch: list of oids
+        Returns all references where oid is in zoid or to_zoid
+        """
+        values = ','.join(str(zoid) for zoid, tid in batch)
+        sql = """ SELECT zoid, to_zoid FROM {0} WHERE zoid!=to_zoid AND (zoid IN ({1}) OR to_zoid IN ({1}))""".format(self.REF_TABLE_NAME, values)
         cursor.execute(sql)
         result = cursor.fetchall()
-        return set([ oid_to for oid_from, oid_to in result if oid_to!=oid_from ])
+        return result
 
-    def get_refs_from(self, cursor, zoid):
-    	""" returns the oids that reference zoid """
-        sql = """SELECT zoid, zoid_from FROM {0} WHERE zoid = {1};""".format(self.TABLE_NAME, zoid)
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        return set([ oid_from for oid, oid_from in result if oid!=oid_from ])
-
-    def _build_relations_dict(self, cursor, oids):
+    def _get_oid_references(self, cursor, oids):
         """
-        Builds an 'ObjectRelations' object for each oid in 'oids'
-        oids : tuple(oid, tid)
-        return dict: keys   => oids
-        			 values => ObjectRelations for the oid
+        Builds a 'ReferencesMap' containing all references from and to each oid in oids
         """
-        relations_map = {}
-        for zoid, tid in oids:
-            relations = ObjectRelations(zoid, tid)
-            relations.refs_to = self.get_refs_to(cursor, zoid)
-            relations.refs_from  = self.get_refs_from(cursor, zoid)
-            relations_map[zoid] = relations
-        return relations_map
+        references_map = ZodbPackMonkeyHelper.ReferencesMap()
+        zoids = oids[:]
+        batch_size = 10000
+        n_batch = 1
+        while zoids:
+            start = time.time()
+            batch = zoids[:batch_size]
+            del zoids[:batch_size]
+            references = self._get_references(cursor, batch)
+            for r in references:
+                references_map.add_reference(r)
+            n_batch = n_batch + 1
+        return references_map
 
-    def _get_connected_oids_to(self, oid, relations, visited):
+    def _get_connected_oids_to(self, oid, references, visited):
         """ returns objects that are at distance 1 from oid and have not been already visited """
-        objects = relations[oid].refs_to.union(relations[oid].refs_from)
-        assert(len(objects) == len(set(objects)))
-        return [ oid for oid in objects if oid in relations and not visited[oid] ]
+        objects = references.get_references(oid)
+        return [ oid for oid in objects if visited.get(oid) is not None ]
 
-    def _get_connected_oids(self, initial_oid, relations, visited):
-        """ breadth-first search to find all reachable oids from 'oid' """
+    def _get_connected_oids(self, initial_oid, references, visited):
+        """ breadth-first search to find all reachable oids from 'initial_oid' """
         connected_oids = []
-        queue = set([ initial_oid ])
+        queue = {initial_oid}
         while queue:
             current_oid = queue.pop()
-            visited[current_oid] = True
-            connected_oids.append((current_oid, relations[current_oid].tid))
-            queue.update(self._get_connected_oids_to(current_oid, relations, visited))
+            del visited[current_oid]
+            connected_oids.append(current_oid)
+            queue.update(self._get_connected_oids_to(current_oid, references, visited))
         return connected_oids
 
     def group_oids(self, cursor, to_remove):
@@ -157,35 +146,47 @@ class ZodbPackMonkeyHelper(object):
     	of the same 'zenoss object'. All oids in a group have to be deleted in a
     	transactional way to avoid PKE (todos o ninguno)
     	"""
-    	relations_dict = MONKEY_HELPER._build_relations_dict(cursor, to_remove)
-
+        references = self._get_oid_references(cursor, to_remove)
     	oids_to_remove = [ oid for (oid, tid) in to_remove ]
-
-        assert(len(oids_to_remove) == len(set(oids_to_remove)) == len(to_remove))
-
     	visited = { oid:False for oid in oids_to_remove }
 
         grouped_oids = []
-        while oids_to_remove:
-            oid = oids_to_remove[0]
-            connected_oids = MONKEY_HELPER._get_connected_oids(oid, relations_dict, visited)
+        while visited:
+            oid, vis = visited.popitem()
+            visited[oid] = vis
+            connected_oids = self._get_connected_oids(oid, references, visited)
             grouped_oids.append(connected_oids)
-            oids_to_remove = [ oid for oid in visited if not visited[oid] ]
+        oid_tid_mapping = dict(to_remove)
+        oid_count = 0
+        grouped_oids_with_tid = []
+        for group in grouped_oids:
+            oid_count = oid_count + len(group)
+            group_with_tid = []
+            for oid in group:
+                group_with_tid.append((oid, oid_tid_mapping[oid]))
+            grouped_oids_with_tid.append(group_with_tid)
 
-        return grouped_oids
+        assert(oid_count==len(to_remove))
 
-    def _get_count_in_table(self, cursor, oids, table_name, select_fields, where_fields):
+        return grouped_oids_with_tid
+
+    def _get_count_in_table(self, cursor, oids_to_check, table_name, select_fields, where_fields):
         """ method to perform queries needed for tests """
-        if not oids:
-            return 0
+        oids = list(oids_to_check)
+        count = 0
+        batch_size = 10000
         if isinstance(select_fields, list):
             select_fields = ", ".join(select_fields)
         if isinstance(where_fields, list):
             where_fields =  ", ".join(where_fields)
-        values = ", ".join(oids)
-        sql = """ SELECT {0} FROM {1} WHERE {2} IN ({3});""".format(select_fields, table_name, where_fields, values)
-        cursor.execute(sql)
-        return cursor.rowcount
+        while oids:
+            batch = oids[:batch_size]
+            del oids[:batch_size]
+            values = ", ".join(batch)
+            sql = """ SELECT COUNT({0}) FROM {1} WHERE {2} IN ({3});""".format(select_fields, table_name, where_fields, values)
+            cursor.execute(sql)
+            count = count + cursor.fetchall()[0][0]
+        return count
 
     def _print_test_result(self, text, passed):
         text = text.ljust(50, '.')
@@ -207,7 +208,7 @@ class ZodbPackMonkeyHelper(object):
         removed = to_remove - to_remove.intersection(not_removed)
         log.info("Validating results: {0} oids marked for removal / {1} oids removed / {2} oids skipped to avoid pke.".format(len(to_remove), len(removed), len(not_removed)))
 
-        # Check tables state, deleted oids must no be in any of the tables and 
+        # Check tables state, deleted oids must not be in any of the tables and 
         # not deleted oids must be in all tables
         # 
         tables = [ "object_state", "object_refs_added" ]
@@ -220,15 +221,8 @@ class ZodbPackMonkeyHelper(object):
         # removed objects must not have any references from or to in the references tables
         # for references tables check that removed oids are not in the tables
         table = 'object_ref'
-
         r_from = self._get_count_in_table(cursor, removed, table, "zoid", "zoid")
         r_to = self._get_count_in_table(cursor, removed, table, "zoid", "to_zoid")
-        passed = ( r_from==0 and r_to==0 )
-        self._print_test_result("Validating {0}".format(table), passed)
-
-        table = self.TABLE_NAME
-        r_from = self._get_count_in_table(cursor, removed, table, "zoid", "zoid_from")
-        r_to = self._get_count_in_table(cursor, removed, table, "zoid", "zoid")
         passed = ( r_from==0 and r_to==0 )
         self._print_test_result("Validating {0}".format(table), passed)
 
@@ -249,10 +243,18 @@ class ZodbPackMonkeyHelper(object):
 
     def _get_rolledback_oids(self, cursor, skipped_oids):
         if skipped_oids:
-            values = ','.join([ str(oid) for oid, tid in skipped_oids])
-            sql = """SELECT zoid, tid FROM object_state WHERE zoid IN ({0})""".format(values)
-            cursor.execute(sql)
-            data = set(cursor.fetchall()) - set(skipped_oids)
+            batch_size=10000
+            skipped = skipped_oids[:]
+            object_state_data = []
+            while skipped:
+                batch = skipped[:batch_size]
+                del skipped[:batch_size]
+                values = ','.join( str(oid) for oid, tid in batch )
+                sql = """SELECT zoid, tid FROM object_state WHERE zoid IN ({0})""".format(values)
+                cursor.execute(sql)
+                object_state_data.extend(cursor.fetchall())
+
+            data = set(object_state_data) - set(skipped_oids)
             return [ str(oid) for oid, tid in data ]
             
     def export_rolledback_oids_to_file(self, cursor, skipped_oids, filename):
@@ -298,110 +300,8 @@ try:
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
     def _pre_pack_main(self, conn, cursor, pack_tid, get_references):
     	"""Determine what to garbage collect."""
-
-        if not MONKEY_HELPER.table_exists(cursor):
-        	log.info("All reference tables will be created from scratch (this may take a while).")
-        	MONKEY_HELPER.create_table(cursor)
-        	MONKEY_HELPER.force_ref_tables_initialization(cursor)
-
-        stmt = self._script_create_temp_pack_visit
-        if stmt:
-            self.runner.run_script(cursor, stmt)
-
-        self.fill_object_refs(conn, cursor, get_references)
-
-        log.info("pre_pack: filling the pack_object table")
-        # Fill the pack_object table with all known OIDs.
-        stmt = """
-        %(TRUNCATE)s pack_object;
-
-        INSERT INTO pack_object (zoid, keep, keep_tid)
-        SELECT zoid, %(FALSE)s, tid
-        FROM object_state;
-
-        -- Keep the root object.
-        UPDATE pack_object SET keep = %(TRUE)s
-        WHERE zoid = 0;
-
-        -- Keep objects that have been revised since pack_tid.
-        UPDATE pack_object SET keep = %(TRUE)s
-        WHERE keep_tid > %(pack_tid)s;
-        """
-        self.runner.run_script(cursor, stmt, {'pack_tid': pack_tid})
-
-        # Traverse the graph, setting the 'keep' flags in pack_object
-        self._traverse_graph(cursor)
-
-    from relstorage.adapters.packundo import HistoryFreePackUndo
-    @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def _add_refs_for_oids(self, cursor, oids, get_references):
-        """Fill object_refs with the states for some objects.
-
-        Returns the number of references added.
-        """
-        oid_list = ','.join(str(oid) for oid in oids)
-        use_base64 = (self.database_name == 'postgresql')
-
-        if use_base64:
-            stmt = """
-            SELECT zoid, tid, encode(state, 'base64')
-            FROM object_state
-            WHERE zoid IN (%s)
-            """ % oid_list
-        else:
-            stmt = """
-            SELECT zoid, tid, state
-            FROM object_state
-            WHERE zoid IN (%s)
-            """ % oid_list
-        self.runner.run_script_stmt(cursor, stmt)
-
-        add_objects = []
-        add_refs = []
-        for from_oid, tid, state in cursor:
-            if hasattr(state, 'read'):
-                # Oracle
-                state = state.read()
-            add_objects.append((from_oid, tid))
-            if state:
-                state = str(state)
-                if use_base64:
-                    state = decodestring(state)
-                try:
-                    to_oids = get_references(state)
-                except:
-                    log.error("pre_pack: can't unpickle "
-                        "object %d in transaction %d; state length = %d" % (
-                        from_oid, tid, len(state)))
-                    raise
-                for to_oid in to_oids:
-                    add_refs.append((from_oid, tid, to_oid))
-
-        if not add_objects:
-            return 0
-
-        stmt = "DELETE FROM object_refs_added WHERE zoid IN (%s)" % oid_list
-        self.runner.run_script_stmt(cursor, stmt)
-        stmt = "DELETE FROM object_ref WHERE zoid IN (%s)" % oid_list
-        self.runner.run_script_stmt(cursor, stmt)
-
-        stmt = """
-        INSERT INTO object_ref (zoid, tid, to_zoid) VALUES (%s, %s, %s)
-        """
-        self.runner.run_many(cursor, stmt, add_refs)
-
-        stmt = """
-        INSERT INTO object_refs_added (zoid, tid) VALUES (%s, %s)
-        """
-        self.runner.run_many(cursor, stmt, add_objects)
-
-        try:
-            MONKEY_HELPER.update_reverse_references(cursor, oids, add_refs)
-        except Exception as e:
-            MONKEY_HELPER.log_exception(e, "Exception adding oids to reverse reference table")
-            raise e
-
-        return len(add_refs)
+        MONKEY_HELPER.create_reverse_ref_index(cursor)
+        original(self, conn, cursor, pack_tid, get_references)
 
     #------------------ Functions related to pack method ---------------------
 
@@ -415,10 +315,10 @@ try:
             MONKEY_HELPER.log_exception(e, "Exception while grouping oids")
             raise e
 
-        explore_relations_time = time.time() - group_start
-        if explore_relations_time > 1:
-            explore_relations_time = str(explore_relations_time).split('.')[0]
-            log.info("Exploring oid relations took {0} seconds.".format(explore_relations_time))
+        explore_references_time = time.time() - group_start
+        if explore_references_time > 1:
+            explore_references_time = str(explore_references_time).split('.')[0]
+            log.info("Exploring oid connections took {0} seconds.".format(explore_references_time))
 
         return grouped_oids
 
@@ -430,7 +330,10 @@ try:
         """
         # We'll report on progress in at most .1% step increments
         reportstep = max(total / 1000, 1)
-        lastreport = (total - oids_processed) / reportstep * reportstep
+        if oids_processed == 0:
+            lastreport = 0
+        else:
+            lastreport = oids_processed / reportstep * reportstep
 
         isolated_oids = []
         for oids_group in grouped_oids:
@@ -455,7 +358,7 @@ try:
                     for oid, tid in packed_list:
                         packed_func(oid, tid)
                     del packed_list[:]
-                counter = total - oids_processed
+                counter = oids_processed
                 if counter >= lastreport + reportstep:
                     log.info("pack: processed %d (%.1f%%) state(s)",
                         counter, counter/float(total)*100)
@@ -481,7 +384,10 @@ try:
         """
         # We'll report on progress in at most .1% step increments
         reportstep = max(total / 1000, 1)
-        lastreport = (total - oids_processed) / reportstep * reportstep
+        if oids_processed == 0:
+            lastreport = 0
+        else:
+            lastreport = oids_processed / reportstep * reportstep
 
         batch_size = 1000 # some batches can be huge and we are holding the commit lock
         prevent_pke_oids = [] # oids that have not been deleted to prevent pkes
@@ -490,7 +396,7 @@ try:
         start = time.time()
         for oids_group in grouped_oids:
             if len (oids_group) == 1:
-                # isolated oids were processed before 
+                # isolated oids are processed by other method
                 continue
             rollback = False
             oid_batches = oids_group[:]
@@ -514,7 +420,7 @@ try:
 
             oids_processed = oids_processed + len(oids_group)
             if time.time() >= start + self.options.pack_batch_timeout:
-                counter = total - oids_processed
+                counter = oids_processed
                 if counter >= lastreport + reportstep:
                     log.info("pack: processed %d (%.1f%%) state(s)",
                         counter, counter/float(total)*100)
@@ -528,11 +434,11 @@ try:
         if prevent_pke_oids:
             log.info("{0} oid groups were not deleted to prevent POSKey Errors. ({1} oids)".format(rollbacks, len(prevent_pke_oids)))
             # unmark the oids from pack_object so _pack_cleanup wont remove them from object_refs_added and object_ref
-            for oid, tid in prevent_pke_oids:
-                sql = """UPDATE pack_object SET keep = TRUE WHERE zoid={0};""".format(oid)
-                cursor.execute(sql)
-            conn.commit()
-            MONKEY_HELPER.export_rolledback_oids(cursor, prevent_pke_oids)
+            MONKEY_HELPER.unmark_rolledback_oids(conn, cursor, prevent_pke_oids)
+            try:
+                MONKEY_HELPER.export_rolledback_oids(cursor, prevent_pke_oids)
+            except Exception as e:
+                MONKEY_HELPER.log_exception(e, "Exception while exporting skipped oids.")
 
         return prevent_pke_oids
             
@@ -561,7 +467,7 @@ try:
                 log.info("pack: will remove %d object(s)", total)
 
                 if total > 0:
-                    log.info("Exploring oid relations... (may take a while)")
+                    log.info("Grouping connected oids... (may take a while)")
                     grouped_oids = get_grouped_oids(cursor, to_remove)
 
                     # Hold the commit lock while packing to prevent deadlocks.
@@ -569,6 +475,7 @@ try:
                     # to obtain a commit lock in order to minimize the
                     # interruption of concurrent write operations.
                     log.info("Removing objects...")
+
                     oids_processed = self.remove_isolated_oids(conn, cursor, grouped_oids, sleep, packed_func, total, 0)
 
                     prevent_pke_oids = self.remove_connected_oids(conn, cursor, grouped_oids, sleep, packed_func, total, oids_processed)
@@ -589,50 +496,6 @@ try:
                 conn.commit()
         finally:
             self.connmanager.close(conn, cursor)
-
-    from relstorage.adapters.packundo import HistoryFreePackUndo
-    @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def _pack_cleanup(self, conn, cursor):
-        # commit the work done so far
-        conn.commit()
-        self.locker.release_commit_lock(cursor)
-        log.info("pack: cleaning up")
-
-        # This section does not need to hold the commit lock, as it only
-        # touches pack-specific tables. We already hold a pack lock for that.
-        stmt = """
-        DELETE FROM object_refs_added
-        WHERE zoid IN (
-            SELECT zoid
-            FROM pack_object
-            WHERE keep = %(FALSE)s
-        );
-
-        DELETE FROM object_ref
-        WHERE zoid IN (
-            SELECT zoid
-            FROM pack_object
-            WHERE keep = %(FALSE)s
-        );
-
-        DELETE FROM {0}
-        WHERE zoid IN (
-            SELECT zoid
-            FROM pack_object
-            WHERE keep = %(FALSE)s
-        );
-
-        DELETE FROM {0}
-        WHERE zoid_from IN (
-            SELECT zoid
-            FROM pack_object
-            WHERE keep = %(FALSE)s
-        );
-
-        %(TRUNCATE)s pack_object
-        """.format(MONKEY_HELPER.TABLE_NAME)
-
-        self.runner.run_script(cursor, stmt)
 
 except ImportError:
     pass
