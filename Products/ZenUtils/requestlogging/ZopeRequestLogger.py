@@ -103,10 +103,8 @@ class ZopeRequestLogger(object):
         self._redis_client = None
         self._redis_last_connection_attemp = time.time()
         self.redis_url = ZopeRequestLogger.get_redis_url()
-        self._redis_client = ZopeRequestLogger.create_redis_client(self.redis_url)
-        if not self._redis_client:
-            ZopeRequestLogger.LOG.warn('ERROR connecting to redis. redis URL: {0}'.format(self.redis_url))
-            ZopeRequestLogger.LOG.warn("Please check the redis-url value in global.conf")
+        # connect to redis when we need to log a request
+        self._redis_client = None
         self._log = logging.getLogger('zope_request_logger')
         self._log.propagate = False
         handler = logging.handlers.RotatingFileHandler(filename, mode='a', maxBytes=50*1024*1024, backupCount=5)
