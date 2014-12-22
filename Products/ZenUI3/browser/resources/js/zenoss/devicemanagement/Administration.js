@@ -377,7 +377,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 listeners: {
                                                 'select': function(field, value){
                                                     var cmb_occ = Ext.getCmp('occurrence-combo');
-                                                    var cmb_days = Ext.getCmp('days-combo')
+                                                    var cmb_days = Ext.getCmp('days-combo');
                                                     if (value && value[0].index == 5) {
                                                         cmb_occ.enable();
                                                         cmb_days.enable();
@@ -480,7 +480,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 })                
                             }
                        ] 
-                }  
+                }
             ],
             // explicitly do not allow enter to submit the dialog
             keys: {}
