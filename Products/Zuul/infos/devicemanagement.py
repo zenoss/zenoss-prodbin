@@ -21,10 +21,14 @@ class MaintenanceWindowInfo(InfoBase):
     days = ProxyProperty('days')
     occurrence = ProxyProperty('occurrence')
     startState = ProxyProperty('startProductionState')
-    
+
     @property
     def startProdState(self):    
-        return self._object.niceStartProductionState() 
+        return self._object.niceStartProductionState()
+
+    @property
+    def niceRepeat(self):    
+        return self._object.niceRepeat()
         
     @property
     def duration(self):    

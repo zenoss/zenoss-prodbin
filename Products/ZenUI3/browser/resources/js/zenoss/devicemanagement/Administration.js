@@ -376,12 +376,14 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 fieldLabel: _t('Repeat'),
                                 listeners: {
                                                 'select': function(field, value){
+                                                    var cmb_occ = Ext.getCmp('occurrence-combo');
+                                                    var cmb_days = Ext.getCmp('days-combo')
                                                     if (value && value[0].index == 5) {
-                                                        Ext.getCmp('occurrence-combo').enable();
-                                                        Ext.getCmp('days-combo').enable();
+                                                        cmb_occ.enable();
+                                                        cmb_days.enable();
                                                     } else {
-                                                        Ext.getCmp('occurrence-combo').disable();
-                                                        Ext.getCmp('days-combo').disable();                                                        
+                                                        cmb_occ.disable();
+                                                        cmb_days.disable();                                                        
                                                     }
                                                 }
                                             },
@@ -754,7 +756,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             {name: 'startTime_data', mapping:'startTime'},            
             {name: 'duration'}, 
             {name: 'duration_data', mapping:'duration'},
-            {name: 'repeat'},         
+            {name: 'repeat'},
+            {name: 'niceRepeat'},           
             {name: 'startProdState'},
             {name: 'days'},
             {name: 'occurrence'} 
@@ -962,23 +965,9 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         }
                     },{
                         id: 'maint_repeat',
-                        dataIndex: 'repeat',
+                        dataIndex: 'niceRepeat',
                         header: _t('Repeat'),
-                        width: 140,
-                        filter: false,                        
-                        sortable: true
-                    },{
-                        id: 'maint_occurrence',
-                        dataIndex: 'occurrence',
-                        header: _t('Occurrence'),
-                        width: 70,
-                        filter: false,                        
-                        sortable: true
-                    },{
-                        id: 'maint_days',
-                        dataIndex: 'days',
-                        header: _t('Day of Week'),
-                        width: 140,
+                        width: 170,
                         filter: false,                        
                         sortable: true
                     },{
