@@ -222,10 +222,10 @@ class ZenPackCmd(ZenScriptBase):
             if not os.path.exists(skinsSubdir):
                 os.makedirs(skinsSubdir, 0750)
             self.install(packName)
-            
+
         elif self.options.fetch:
             return EggPackCmd.FetchAndInstallZenPack(self.dmd, self.options.fetch)
-        
+
         elif self.options.exportPack:
             return EggPackCmd.ExportZenPack(
                 self.dmd, self.options.exportPack)
@@ -271,8 +271,8 @@ class ZenPackCmd(ZenScriptBase):
 
     def getPacksPacks(self):
         '''
-        Helper method to get a list of the zenpacks in 
-        /opt/zenoss/packs.  This is representative of what 'shipped' with 
+        Helper method to get a list of the zenpacks in
+        /opt/zenoss/packs.  This is representative of what 'shipped' with
         the image being used, and can be used to determine, for example, which
         zenpacks are in the image, but are NOT in the database.
         '''
@@ -295,7 +295,7 @@ class ZenPackCmd(ZenScriptBase):
         inPacksNotInDB = set(genericShippedPacks) - set(databasePacks)
         packsToFix = inPacksNotInDB & set(installedPacks)
         return packsToFix
-    
+
     def restore(self):
         # First take care of packs in the new image that aren't in the database
         fixedSomething = False
@@ -306,17 +306,27 @@ class ZenPackCmd(ZenScriptBase):
                  subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
                  fixedSomething = True
 
-        packsDump = EggPackCmd.getPacksDump()
         zpsToRestore = {}
+        linkedPacks = []
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             restoreZenPack = False
             version = None
             filesOnly = True
             try:
                 zp = self.dmd.ZenPackManager.packs._objects[zpId]
+                # First see if the pack is linked, and add to a separate list
+                # if so and move on
+                try:
+                    if zp.isDevelopment():
+                        self.log.info("Found linked zenpack %s", zp)
+                        linkedPacks.append(zp)
+                        continue
+                except (AttributeError, DistributionNotFound):
+                    pass
+                # If pack is not linked, keep going
                 version = getattr(zp, "version", None)
                 if version is None:
-                    version = zp.__Broken_state__["version"] 
+                    version = zp.__Broken_state__["version"]
                 if zp.isEggPack():
                     zp.eggPath() # attempt to raise DistributionNotFound
                 versionCmp = cmp(parse_version(get_distribution(zpId).version), parse_version(version))
@@ -338,7 +348,11 @@ class ZenPackCmd(ZenScriptBase):
             if restoreZenPack:
                 # Add to list of packs to restore
                 zpsToRestore[zpId] = (version, filesOnly)
-        
+
+        # Restore linekd packs first, separately
+        for pack in linkedPacks:
+            self._linkedRestore(pack)
+
         # Figure out which packs have dependencies, and sort them accordingly
         zpsToSort = {}
         pattern = '(ZenPacks\.zenoss\.[a-zA-Z\.]*)'
@@ -370,12 +384,23 @@ class ZenPackCmd(ZenScriptBase):
             if not fixedSomething:
                 self.log.info("No broken zenpacks found")
 
+    def _linkedRestore(self, zp):
+        """
+        Restore a linked zenpack.  The database, easy-install, .pth files, and
+        actual linked code should all be intact at this point.
+        Parameters:
+            zp - ZenPack object to restore (should be linked)
+        """
+        self.log.info("Restoring linked zenpack %s", zp)
+        cmd= ["zenpack", "--link", "--files-only", "--install", zp.eggPath()]
+        with open(os.devnull, 'w') as fnull:
+            subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
 
     def _restore(self, zpId, version, filesOnly):
         # glob for backup
         # This is meant to hand standard zenpack naming convention - for exmaple,
         #    ZenPacks.zenoss.OpenStack-1.2.4dev19_5159496-py2.7.egg
-        backupDirs = (zenPath(".ZenPacks"),  zenPath("packs"))
+        backupDirs = (zenPath(".ZenPacks"), zenPath("packs"))
         dashIndex = version.find('-')
         if dashIndex != -1:
             version = list(version)
