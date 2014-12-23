@@ -258,6 +258,26 @@ function disableSendEvent() {
     sendEvent.setDisabled(Ext.isEmpty(cbs));
 }
 
+
+function refreshTreePanel() {
+    var treeNames = ['devices', 'groups', 'systemsTree', 'loc_tree'];
+    Ext.each(treeNames, function(treeName) {
+        var tree = Ext.getCmp(treeName);
+        if (tree) {
+            tree.refresh();
+        }
+    });
+    var selModel = getSelectionModel();
+    if (selModel.tree) {
+        var tree = Ext.getCmp(selModel.tree);
+        var selectedNode = selModel.getSelectedNode();
+        if (tree && selectedNode) {
+            tree.selectByToken(selectedNode.internalId);
+        }
+    }
+};
+
+
 function deleteDevicesWithProgressBar(grid, uids, opts, callback){
     grid.setLoading(false);
     var cancelled = false,
@@ -430,6 +450,7 @@ Ext.apply(Zenoss.devices, {
                                 deleteDevicesWithProgressBar(grid, uids, opts);
                             }
                         }
+                        setTimeout(refreshTreePanel, 1000);
                     }
                 },
                 Zenoss.dialog.CANCEL
@@ -857,17 +878,9 @@ function initializeTreeDrop(tree) {
                                                                       "is required. Performance templates have been reset to the defaults for the device class."))
                                     });
                                 }
+                                setTimeout(refreshTreePanel, 500);
                             }
                         }, me);
-                        // refresh node
-                        tree.getStore().load({
-                            callback:function () {
-                                tree.getRootNode().expand();
-                                if (tree.getRootNode().childNodes.length) {
-                                    tree.getRootNode().childNodes[0].expand();
-                                }
-                            }
-                        });
                    }
                 }, {
                     xtype: 'DialogButton',
@@ -1004,11 +1017,12 @@ var devtree = {
     nodeName: 'Device',
     deleteNodeFn: function(args, callback) {
         REMOTE.getDeviceUids(args, function(response) {
-                deleteDevicesWithProgressBar(Ext.getCmp('device_grid'),
-                    response.devices, {uid:args.uid, action: 'delete'}, function() {
-                        REMOTE.deleteNode({uid:args.uid}, callback);
-                    });
-                });
+            deleteDevicesWithProgressBar(Ext.getCmp('device_grid'),
+                response.devices, {uid:args.uid, action: 'delete'}, function() {
+                    REMOTE.deleteNode({uid:args.uid}, callback);
+            });
+            setTimeout(refreshTreePanel, 1000);
+        });
     },
     listeners: {
         render: initializeTreeDrop,
@@ -1407,6 +1421,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     if (grid.isVisible(true)) {
                         grid.refresh();
                         Ext.getCmp('organizer_events').refresh();
+                        refreshTreePanel();
                     }
                 },
                 pollHandler: function(btn) {
