@@ -1360,7 +1360,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 }
             },
             Zenoss.devices.deleteDevices,
-             {
+            {
                 text: _t('Select'),
                 listeners: {
                     afterrender: function(e){
@@ -1394,6 +1394,20 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         }
                     }
                 ]
+            },
+            {
+                text: _t('Configure'),
+                menu:[
+                    {
+                        id: 'nfrastructure_clearfilters',
+                        text: _t('Clear filters'),
+                        listeners: {
+                            click: function() {
+                                Ext.getCmp('device_grid').filterRow.clearFilters();
+                            }
+                        }
+                    }
+                    ]
             },'->',{
                 id: 'refreshdevice-button',
                 xtype: 'refreshmenu',
