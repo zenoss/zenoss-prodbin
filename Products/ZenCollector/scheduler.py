@@ -356,7 +356,7 @@ class Scheduler(object):
             log.warn("Failure in looping call, will not reschedule %s" % task_name)
             log.error("%s" % result)
 
-    def _startTask(self, result, task_name, interval, configId, delayed):
+    def _startTask(self, result, task_name, interval, configId, delayed, attempts=0):
         """start the task using a callback so that its put at the bottom of
         the Twisted event queue, to allow other processing to continue and
         to support a task start-time jitter"""
@@ -366,10 +366,18 @@ class Scheduler(object):
                 if self._tasksToCleanup.has_key(configId):
                     delay = random.randint(0, int(interval/2))
                     delayed = delayed + delay
-                    log.debug("Waiting for cleanup of %s. Task %s postponing its start %d seconds (%d so far)", configId, task_name, delay, delayed)
-                    d = defer.Deferred()
-                    d.addCallback(self._startTask, task_name, interval, configId, delayed)
-                    reactor.callLater(delay, d.callback, None)
+                    task = self._tasks[task_name].task
+                    if attempts < 7:
+                        attempts += 1                      
+                        log.debug("Waiting for cleanup of %s. Task %s postponing its start %d seconds (%d so far). Attempt: %s", configId, task_name, delay, delayed, attempts)
+                        d = defer.Deferred()
+                        d.addCallback(self._startTask, task_name, interval, configId, delayed, attempts)
+                        reactor.callLater(delay, d.callback, None)
+                    else:
+                        log.debug("Forced cleanup of task postponement loop...")
+                        self._tasksToCleanup = KeyedSet(getConfigId)
+                        self._cleanupTask = task.LoopingCall(self._cleanupTasks)
+                        self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
                 else:
                     log.debug("Task %s starting (waited %d seconds) on %d second intervals", task_name, delayed, interval)
                     d = loopingCall.start(interval)
