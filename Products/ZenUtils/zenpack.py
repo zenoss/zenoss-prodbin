@@ -436,7 +436,6 @@ class ZenPackCmd(ZenScriptBase):
                          os.remove(os.path.join(tempfile.gettempdir(), os.path.basename(candidate)))
                      except Exception:
                          pass
-                     return
             else:
                 self.log.warning("non-egg zenpacks can not currently be restored automatically: %s", candidate)
 

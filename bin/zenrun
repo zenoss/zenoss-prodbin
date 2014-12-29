@@ -77,10 +77,13 @@ declare -f __DEFAULT__ &> /dev/null
 defaultExists=$?
 if [[ $defaultExists=0 && -z "$1" ]]; then
     __DEFAULT__
+    RC="$?"
 elif declare -f $1 &> /dev/null; then
     "$@"
+    RC="$?"
 elif [[ $defaultExists=0 ]]; then
     __DEFAULT__ "$@"
+    RC="$?"
 else
     echo -e "Missing __DEFAULT__ declaration in $PROGRAM" >&2
     exit 253
@@ -89,5 +92,5 @@ fi
 if ${NOCOMMIT:-false}; then
     exit 1
 fi
-exit $?
+exit "$RC"
 
