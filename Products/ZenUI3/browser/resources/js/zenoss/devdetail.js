@@ -314,7 +314,7 @@ var componentCard = {
                     grid.getSelectionModel().selectRange(0, grid.store.pageSize-1);
                 }
         }
-	},{
+    },{
             text: _t('None'),
             handler: function(){
                 var grid = Ext.getCmp('component_card').componentgrid;
@@ -576,8 +576,7 @@ device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
 });
 
 var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
-    id: 'device_component_graphs',
-    components: Ext.pluck(Zenoss.env.componentTree, 'id')
+    id: 'device_component_graphs'
 });
 
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
