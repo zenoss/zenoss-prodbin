@@ -14,7 +14,7 @@ from datetime import datetime
 from zope.component import getUtility
 
 import Globals
-from Products.ZenUtils.Utils import zenPath, monkeypatch
+from Products.ZenUtils.Utils import zenPath, monkeypatch, varPath
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from Products.ZenUtils.celeryintegration import constants, states, current_app
@@ -71,7 +71,7 @@ class CeleryZenJobs(ZenDaemon):
         """
         ZenDaemon.buildOptions(self)
         self.parser.add_option('--job-log-path', dest='job_log_path',
-            default=zenPath("log", "jobs"),
+            default=varPath("log", "jobs"),
             help='Directory in which to store individual job log files')
         self.parser.add_option('--max-jobs-per-worker',
             dest='max_jobs_per_worker', type='int', default=1,
