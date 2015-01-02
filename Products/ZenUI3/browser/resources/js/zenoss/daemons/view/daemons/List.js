@@ -117,6 +117,7 @@
             }, {
                 xtype: 'actioncolumn',
                 text: _t('AutoStart'),
+                menuText: _t('AutoStart'),
                 flex: .25,
                 dataIndex: 'autostart',
                 tooltip: _t('Automatically or manually start this deamon'),
@@ -134,6 +135,7 @@
                 }
             },{
                 text: _t('Restart'),
+                menuText: _t('Restart'),
                 flex: .1,
                 menuDisabled: true,
                 xtype: 'actioncolumn',
@@ -160,6 +162,7 @@
                 }
             },{
                 text: _t('State'),
+                menuText: _t('State'),
                 flex: .25,
                 xtype: 'actioncolumn',
                 ref: 'statuscolumn',
