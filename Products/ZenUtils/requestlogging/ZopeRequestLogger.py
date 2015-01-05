@@ -15,7 +15,7 @@ from Products.ZenUtils.config import ConfigFile
 class ZopeRequestLogger(object):
     """
     Logs information about the requests proccessed by Zopes.
-    Disabled by default. It is enabled only when the file /opt/zenoss/etc/LOG_ZOPE_REQUESTS exists.
+    Disabled by default. It is enabled only when the file /opt/zenoss/etc/LOG-ZOPE-REQUESTS exists.
     """
 
     # SEPARATOR and FIELDS are used by a external tool
@@ -173,7 +173,6 @@ class ZopeRequestLogger(object):
             else:
                 ZopeRequestLogger.LOG.info("Could not connect to redis")
 
-
     def log_request(self, request, finished=False):
         ''' '''
         if self._redis_client is None:
@@ -188,7 +187,8 @@ class ZopeRequestLogger(object):
                 self._redis_client = None
             else:
                 if self._next_config_check <= time.time():
-                    self._log_zope_requests = self._redis_client.get(ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS) in ("1", "true", "True", "t")
+                    # self._log_zope_requests = self._redis_client.get(ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS) in ("1", "true", "True", "t")
+                    self._log_zope_requests = os.path.isfile(os.path.join(ZopeRequestLogger.ZENHOME, 'etc', ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS))
                     self._next_config_check = time.time() + 10 # set next time to check in 10 seconds
                 if not self._log_zope_requests:
                     return
@@ -200,7 +200,6 @@ class ZopeRequestLogger(object):
                     redis_value = json.dumps(request._data_to_log)
                     self._redis_client.set(redis_key, redis_value)
                     self._redis_client.expire(redis_key, 24*60*60) # Keys expires after 24 hours
-
         if self._log and finished:
             self._load_data_to_log(request)
             ts = time.time()
