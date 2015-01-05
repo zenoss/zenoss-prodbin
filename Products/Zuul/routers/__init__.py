@@ -179,7 +179,7 @@ class TreeRouter(DirectRouter):
             # Note that this is a performance optimization see ZEN-15857
             organizer = child._get_object()
             # this looks at the children's type without waking them up
-            hasChildren = any([o['meta_type'] for o in organizer._objects if o['meta_type'] == organizer.meta_type])
+            hasChildren = any((o['meta_type'] for o in organizer._objects if o['meta_type'] == organizer.meta_type))
             # reports have a different meta_type for the child organizers
             if "report" not in organizer.meta_type.lower() and not hasChildren:
                 childData['children'] = []
