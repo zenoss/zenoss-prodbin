@@ -103,10 +103,6 @@ class ZopeRequestLogger(object):
         self._redis_client = None
         self._redis_last_connection_attemp = time.time()
         self.redis_url = ZopeRequestLogger.get_redis_url()
-        self._redis_client = ZopeRequestLogger.create_redis_client(self.redis_url)
-        if not self._redis_client:
-            ZopeRequestLogger.LOG.warn('ERROR connecting to redis. redis URL: {0}'.format(self.redis_url))
-            ZopeRequestLogger.LOG.warn("Please check the redis-url value in global.conf")
         self._log = logging.getLogger('zope_request_logger')
         self._log.propagate = False
         handler = logging.handlers.RotatingFileHandler(filename, mode='a', maxBytes=50*1024*1024, backupCount=5)
@@ -175,6 +171,14 @@ class ZopeRequestLogger(object):
 
     def log_request(self, request, finished=False):
         ''' '''
+        if self._next_config_check <= time.time():
+            # self._log_zope_requests = self._redis_client.get(ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS) in ("1", "true", "True", "t")
+            self._log_zope_requests = os.path.isfile(os.path.join(ZopeRequestLogger.ZENHOME, 'etc', ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS))
+            self._next_config_check = time.time() + 10 # set next time to check in 10 seconds
+        
+        if not self._log_zope_requests:
+            return
+        
         if self._redis_client is None:
             # Tries to reconnect to redis if we dont have a connection
             self._reconnect_to_redis()
@@ -186,12 +190,6 @@ class ZopeRequestLogger(object):
                 ZopeRequestLogger.LOG.error("Connection to redis lost: %s", ex)
                 self._redis_client = None
             else:
-                if self._next_config_check <= time.time():
-                    # self._log_zope_requests = self._redis_client.get(ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS) in ("1", "true", "True", "t")
-                    self._log_zope_requests = os.path.isfile(os.path.join(ZopeRequestLogger.ZENHOME, 'etc', ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS))
-                    self._next_config_check = time.time() + 10 # set next time to check in 10 seconds
-                if not self._log_zope_requests:
-                    return
                 self._load_data_to_log(request)
                 redis_key = request._store_fingerprint
                 if finished and self._redis_client.exists(redis_key): #delete request from redis
