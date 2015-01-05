@@ -33,7 +33,7 @@
                     text: _t('Change the ID of this device.')
                 },{
                     xtype: 'displayfield',
-                    value:  _t('WARNING: All graph data this device will be lost!'),
+                    value:  _t('WARNING: All graph data for this device will be lost!'),
                     style: {
                         fontWeight: "bold"
                     }
