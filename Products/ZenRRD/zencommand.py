@@ -457,6 +457,30 @@ class SshPerformanceCollectionTask(BaseTask):
         parsedResults = self._parseResults(resultList, cacheableDS)
         self._storeResults(parsedResults)
 
+    def _process_os_processes_results_in_sequence(self, process_datasources, collection_result):
+        """
+        Process OSProcesses in sequence order to avoid more than one OSProcess
+        match the same process
+        """
+        process_parseable_results = []
+
+        # Sort process_datasources by sequence
+        process_datasources.sort(key=lambda x: x.sequence)
+
+        already_matched = []
+
+        # Now we process datasources in sequence order
+        for datasource in process_datasources:
+            results = ParsedResults()
+            datasource.result = copy(collection_result)
+            datasource.already_matched_cmdAndArgs = already_matched
+            self._processDatasourceResults(datasource, results)
+            already_matched = datasource.already_matched_cmdAndArgs[:]
+            del datasource.already_matched_cmdAndArgs
+            process_parseable_results.append( (datasource, results) )
+
+        return process_parseable_results
+
     def _parseResults(self, resultList, cacheableDS):
         """
         Interpret the results retrieved from the commands and pass on
@@ -484,6 +508,14 @@ class SshPerformanceCollectionTask(BaseTask):
                 event = self._makeCmdEvent(datasource, msg, severity=Clear, event_key='Timeout')
                 # Re-use our results for any similar datasources
                 cache = cacheableDS.get(datasource.command, [])
+                if datasource.name == "OSProcess/ps":
+                    # We need to process all OSProcess in a special way to
+                    # avoid more than one OSProcess matching the same process
+                    process_datasources = [datasource]
+                    process_datasources.extend(cachedDsList)
+                    process_parseable_results = self._process_os_processes_results_in_sequence(process_datasources, datasource.result)
+                    parseableResults.extend(process_parseable_results)
+                    continue
                 for ds in cache:
                     ds.result = copy(datasource.result)
                     self._processDatasourceResults(ds, parsedResults)

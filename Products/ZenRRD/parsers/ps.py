@@ -138,6 +138,16 @@ class ps(CommandParser):
         lines = cmd.result.output.splitlines()[1:]
         metrics = map(self._extractProcessMetrics, lines)
         matchingMetrics = filter(matches, metrics)
+        
+        # We can not take into account processes that have already been
+        # matched by other process class
+        if hasattr(cmd, 'already_matched_cmdAndArgs'):
+            if cmd.already_matched_cmdAndArgs:
+                matchingMetrics = [ m for m in matchingMetrics if m[3] not in cmd.already_matched_cmdAndArgs ]
+                cmd.already_matched_cmdAndArgs.extend([ m[3] for m in matchingMetrics ])
+            else:
+                cmd.already_matched_cmdAndArgs = [ m[3] for m in matchingMetrics ]
+
         pids, rss, cpu = self._combineProcessMetrics(matchingMetrics)
 
         processSet = cmd.displayName
