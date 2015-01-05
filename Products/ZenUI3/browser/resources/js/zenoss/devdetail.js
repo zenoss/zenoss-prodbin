@@ -1170,7 +1170,7 @@ Ext.getCmp('footer_bar').add([{
         }
     }, {
         xtype: 'menuitem',
-        text: _t('Rename Device') + '...',
+        text: _t('Reidentify Device') + '...',
         hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
             Ext.create('Zenoss.form.RenameDevice', {
