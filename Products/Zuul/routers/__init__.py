@@ -180,7 +180,8 @@ class TreeRouter(DirectRouter):
             organizer = child._get_object()
             # this looks at the children's type without waking them up
             hasChildren = organizer.meta_type in [o['meta_type'] for o in organizer._objects]
-            if not hasChildren:
+            # reports have a different meta_type for the child organizers
+            if "report" not in organizer.meta_type.lower() and not hasChildren:
                 childData['children'] = []
             children.append(childData)
         children.sort(key=lambda e: (e['leaf'], e['uid'].lower()))
