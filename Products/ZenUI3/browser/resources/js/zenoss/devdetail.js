@@ -743,8 +743,13 @@ Ext.define('Zenoss.DeviceDetailNav', {
                     var pieces = token.split(Ext.util.History.DELIMITER),
                     type = pieces[0], rest = pieces[1];
                     var tosel = componentRootNode.findChild('id', type);
-                    selectOnRender(tosel, sm);
-                    return Ext.getCmp('component_card').selectByToken(rest);
+                    if (!tosel) {
+                        // the component nav hasn't loaded yet so wait until it does until we deeplink
+                        componentRootNode.on('append', findAndSelect, this, {single: true});
+                    } else {
+                        selectOnRender(tosel, sm);
+                        return Ext.getCmp('component_card').selectByToken(rest);
+                    }
                 }
 
                 var node = root.findChildBy(function(n){
