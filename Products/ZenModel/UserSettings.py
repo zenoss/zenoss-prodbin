@@ -103,12 +103,12 @@ class UserSettingsManager(ZenModelRM):
                 , 'name'          : 'ZenPacks'
                 , 'action'        : '../ZenPackManager/viewZenPacks'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
-                },                
+                },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
-                },                
+                },
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../../About/zenossVersions'
@@ -272,7 +272,7 @@ class UserSettingsManager(ZenModelRM):
         if password is None:
             password = self.generatePassword()
 
-        self.acl_users._doAddUser(userid,password,roles,"")        
+        self.acl_users._doAddUser(userid,password,roles,"")
         user = self.acl_users.getUser(userid)
         ufolder = self.getUserSettings(userid)
         if REQUEST: kw = REQUEST.form
@@ -371,13 +371,13 @@ class UserSettingsManager(ZenModelRM):
         if password is None: password = user._getPassword()
         if roles is None: roles = user.roles
         if domains is None: domains = user.domains
-        self.acl_users._doChangeUser(userid,password,roles,domains)        
+        self.acl_users._doChangeUser(userid,password,roles,domains)
         ufolder = self.getUserSettings(userid)
         ufolder.updatePropsFromDict(kw)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Settings Saved',
-                "Saved At: %s" % self.getCurrentUserNowString()                
+                "Saved At: %s" % self.getCurrentUserNowString()
             )
             audit('UI.User.Edit', username=userid, data_=updates)
             return self.callZenScreen(REQUEST)
@@ -420,7 +420,7 @@ class UserSettingsManager(ZenModelRM):
                         pass
             try:
                 for plugin in plugins:
-                    plugin.removeUser(userid)                
+                    plugin.removeUser(userid)
             except KeyError:
                 # this means that there's no user in the acl_users, but that
                 # Zenoss still sees the user; we want to pass on this exception
@@ -452,7 +452,7 @@ class UserSettingsManager(ZenModelRM):
         if not groupid: return
         groupid = prepId(groupid)
         try:
-            self.acl_users.groupManager.addGroup(groupid)            
+            self.acl_users.groupManager.addGroup(groupid)
         except KeyError: pass
         self.getGroupSettings(groupid)
         if REQUEST:
@@ -596,7 +596,7 @@ class UserSettings(ZenModelRM):
     zenossNetUser = ''
     zenossNetPassword = ''
     timezone = ''
-    
+
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
         {'id':'pager', 'type':'string', 'mode':'w'},
@@ -1104,7 +1104,7 @@ class UserSettings(ZenModelRM):
         destAddresses = destSettings.getEmailAddresses()
         msg = None
         if destAddresses:
-            fqdn = socket.getfqdn()
+            fqdn = self.dmd.zenossHostname
             thisUser = self.getUser()
             srcId = thisUser.getId()
             self.getUserSettings(srcId)
