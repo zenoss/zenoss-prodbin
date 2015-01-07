@@ -1117,7 +1117,6 @@ class UserSettings(ZenModelRM):
             emsg['From'] = srcAddress
             emsg['To'] = ', '.join(destAddresses)
             emsg['Date'] = DateTime().rfc822()
-            log.info("Test email %s", emsg)
             result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost,
                                 self.dmd.smtpPort,
                                 self.dmd.smtpUseTLS, self.dmd.smtpUser,
