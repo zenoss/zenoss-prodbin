@@ -47,6 +47,9 @@ parser.add_option('--commit',
 parser.add_option('-n', '--no-ipython',
             dest="use_ipython", default=True, action="store_false",
             help="Do not embed IPython shell if IPython is found")
+parser.add_option('-i', '--interactive',
+            dest="interactive", default=False, action="store_true",
+            help="Inspect interactively after running script")
 
 opts, args = parser.parse_args()
 
@@ -571,9 +574,10 @@ if __name__=="__main__":
             print "Unable to open script file '%s' -- exiting" % opts.script
             sys.exit(1)
         # copy globals() to temporary dict
-        allVars = dict(globals().iteritems())
-        allVars.update(vars_)
-        execfile(opts.script, allVars)
+        # allVars = dict(globals().iteritems())
+        # allVars.update(vars_)
+        # execfile(opts.script, allVars)
+        execfile(opts.script, globals(), vars_)
         if opts.commit:
             from transaction import commit
             commit()
@@ -582,7 +586,8 @@ if __name__=="__main__":
                 transaction.abort()
             except:
                 pass
-        sys.exit(0)
+        if not opts.interactive:
+            sys.exit(0)
 
     audit.audit('Shell.Script.Run')
     _banner = ("Welcome to the Zenoss dmd command shell!\n"
