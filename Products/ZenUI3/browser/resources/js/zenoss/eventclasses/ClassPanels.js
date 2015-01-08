@@ -69,7 +69,7 @@ Ext.onReady(function(){
                             Zenoss.remote.EventClassesRouter.resequence({'uids':uids}, function(response){
                                 if (response.success) {
                                     // redraw the sequences cells with the new numbers:
-                                    Zenoss.message.info(_t('Saved new sequence (TEMP MESSAGE. REPLACE THIS FEEDBACK WITH SOMETHING BETTER)'));
+                                    Zenoss.message.info(_t('Saved new sequence.'));
                                     me.getSelectionModel().deselectAll();
                                     for (var i = 0; records.length > i; i++){
                                         records[i].set("sequence", i);
