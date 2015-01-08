@@ -214,8 +214,18 @@ Ext.Direct.on('event', function(e){
  * actions had an effect.
  */
 function openAjaxRequests() {
-    var i = 0, request;
-    for (request in Ext.Ajax.requests) {
+    var i = 0, idx, request, currentTime = new Date().getTime();
+    for (idx in Ext.Ajax.requests) {
+        request = Ext.Ajax.requests[idx];
+        // mark the first time we are checking on this request
+        if (!request.firstCheckTime) {
+            request.firstCheckTime = new Date().getTime();
+        }
+        // do not count requests that have been open for a long time (longer than 3 minutes)
+        // those are most likely failures that ExtJs hasn't cleaned up.
+        if ((currentTime - request.firstCheckTime > 180000)) {
+            continue;
+        }
         i++;
     }
     return i;
