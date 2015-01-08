@@ -292,7 +292,7 @@ class ZenModeler(PBDaemon):
         Collect data from a single device.
 
         @param device: device to collect against
-        @type device: string
+        @type device: .DeviceProxy.DeviceProxy
         """
         clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
         ip = device.manageIp
@@ -345,7 +345,7 @@ class ZenModeler(PBDaemon):
         Start local Python collection client.
 
         @param device: device to collect against
-        @type device: string
+        @type device: .DeviceProxy.DeviceProxy
         @param ip: IP address of device to collect against
         @type ip: string
         @param timeout: timeout before failing the connection
