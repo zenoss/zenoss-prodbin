@@ -51,7 +51,7 @@
         alias:['widget.defaultseverity'],
         extend:"Severity",
         constructor: function(config) {
-            var severities = [[-1, "Default"], [5, "Critical"], [4, "Error"], [3, "Warning"], [2, "Info"], [1, "Debug"], [0, "Clear"]];
+            var severities = [[-1, "Default"]].concat(Zenoss.env.SEVERITIES);
             config = config || {};
             Ext.applyIf(config, {
                 store: severities
