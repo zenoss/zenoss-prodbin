@@ -988,7 +988,9 @@ Zenoss.env.location_tree_data[0].expanded = true;
 
 var devtree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: true,
+    viewConfig: { 
+        loadMask: true
+    },
     id: 'devices',
     searchField: true,
     directFn: treeLoaderFn,
@@ -1040,7 +1042,9 @@ var devtree = {
 
 var grouptree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: false,
+    viewConfig: { 
+        loadMask: false
+    },
     id: 'groups',
     searchField: false,
     directFn: treeLoaderFn,
@@ -1069,7 +1073,9 @@ var grouptree = {
 
 var systree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: false,
+    viewConfig: { 
+        loadMask: false
+    },
     id: 'systemsTree',
     stateful: treeStateful,
     stateId: 'systems_tree',
@@ -1100,7 +1106,9 @@ var systree = {
 
 var loctree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: false,
+    viewConfig: { 
+        loadMask: false
+    },
     stateful: treeStateful,
     stateId: 'loc_tree',
     id: 'locs',
