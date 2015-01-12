@@ -1211,7 +1211,7 @@ registerDirectory("skins", globals())
         Install ControlPlane services for this ZenPack
         @return: None
         """
-        if not self.currentServiceId:
+        if not ZenPack.currentServiceId:
             return
         if self.getServiceDefinitionFiles():
             sdFiles = self.getServiceDefinitionFiles()
@@ -1270,13 +1270,13 @@ registerDirectory("skins", globals())
         @type tag: string
         @return: None
         """
-        if not self.currentServiceId:
+        if not ZenPack.currentServiceId:
             return
 
         # Get 'Context' from root service
         cpClient = ControlPlaneClient(**getConnectionSettings())
         serviceTree = ServiceTree(cpClient.queryServices("*"))
-        tenant = serviceTree.matchServicePath(self.currentServiceId, '/')[0]
+        tenant = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')[0]
         context = tenant._data.get('Context', {})
 
         # Determine template parameters
@@ -1325,7 +1325,7 @@ registerDirectory("skins", globals())
         :param tag: tag to be applied to all services
         :type tag: string
         """
-        if not self.currentServiceId:
+        if not ZenPack.currentServiceId:
             return
         paths, definitions = [],[]
         for fileName, configMap in zip(serviceFileNames, serviceConfigs):
@@ -1352,7 +1352,7 @@ registerDirectory("skins", globals())
             ServiceTree.matchServicePath for description of service path
         """
         # No current service id indicates that we will not install services
-        if not self.currentServiceId:
+        if not ZenPack.currentServiceId:
             return
 
         # Handle case where input is single strings (vs parallel lists)
@@ -1365,7 +1365,7 @@ registerDirectory("skins", globals())
         serviceTree = ServiceTree(cpClient.queryServices("*"))
 
         # Determine depth in service tree of each service.
-        cwd = '/' + '/'.join(['x']*len(serviceTree.getPath(self.currentServiceId)))
+        cwd = '/' + '/'.join(['x']*len(serviceTree.getPath(ZenPack.currentServiceId)))
         def pathComponentCount(path):
             components = posixpath.normpath(posixpath.join(cwd, path)).split('/')
             return sum(bool(i) for i in components)
@@ -1383,7 +1383,7 @@ registerDirectory("skins", globals())
                 serviceTree = ServiceTree(cpClient.queryServices("*"))
                 lastDepth = depth
 
-            parentServices = serviceTree.matchServicePath(self.currentServiceId,
+            parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId,
                                                           path)
             for parentService in parentServices:
                 cpClient.deployService(parentService.id, serviceDef)
@@ -1396,13 +1396,13 @@ registerDirectory("skins", globals())
         :param tag: tag for which all services will be removed
         :type tag: string
         """
-        if not self.currentServiceId:
+        if not ZenPack.currentServiceId:
             return
 
         cpClient = ControlPlaneClient(**getConnectionSettings())
         services = cpClient.queryServices("*")
         serviceTree = ServiceTree(services)
-        serviceRoots = serviceTree.matchServicePath(self.currentServiceId, '/')
+        serviceRoots = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')
         for root in serviceRoots:
             services = serviceTree.findMatchingServices(root, tag)
             # Ensure that child services are deleted before parents
