@@ -162,13 +162,13 @@ Ext.onReady(function() {
                 generateHtml: function(renderedData, eventData) {
                     var template = new Ext.XTemplate(this.template),
                         props = {
-                            properties: renderedData['details']
+                            properties: renderedData.details
                         },
                         details = [];
 
                     if (this.hasOwnProperty('keys')) {
                         Ext.each(this.keys, function(key) {
-                            Ext.each(renderedData['details'], function(detail) {
+                            Ext.each(renderedData.details, function(detail) {
                                 if (detail.key == key) {
                                     details.push(detail);
                                 }
@@ -681,7 +681,7 @@ Ext.onReady(function() {
 
                 findParams: function() {
                     var params = {
-                            evids: [eventData['evid']]
+                            evids: [eventData.evid]
                         };
                     return params;
                 }
@@ -691,7 +691,7 @@ Ext.onReady(function() {
                 closeButton = actiontoolbar.query("button[iconCls='close']")[0],
                 unAckButton = actiontoolbar.query("button[iconCls='unacknowledge']")[0],
                 reopenButton = actiontoolbar.query("button[iconCls='reopen']")[0],
-                state = eventData['eventState'].toLowerCase();
+                state = eventData.eventState.toLowerCase();
 
             // disable all buttons
             ackButton.disable();

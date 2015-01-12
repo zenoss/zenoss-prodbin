@@ -434,10 +434,11 @@
                 ref: '../grouplist',
                 addGroup: function(group, displayOnly) {
                     if (group in this.groups) {
-                        if (this.groups[group] == 'del')
+                        if (this.groups[group] == 'del') {
                             this.groups[group] = '';
-                        else
+                        } else {
                             return;
+                        }
                     }
                     else {
                         this.groups[group] = displayOnly ? '' : 'add';
