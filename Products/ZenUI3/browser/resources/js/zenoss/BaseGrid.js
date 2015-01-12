@@ -43,7 +43,7 @@
         alias:'store.zendirectstore',
         constructor:function (config) {
             config = config || {};
-            var sorters = undefined;
+            var sorters;
             if (config.initialSortColumn) {
                 sorters =[
                     {
@@ -209,7 +209,7 @@
                         col.filter = {};
                         col.filter.xtype = 'hidden';
                     }
-                    if (col.nofilter || col.isCheckerHd != undefined) {
+                    if (col.nofilter || Ext.isDefined(col.isCheckerHd)) {
                         col.filter = { };
                     } else if (!col.filter) {
                         col.filter = { };
@@ -307,7 +307,7 @@
                                 dirty = true;
                             }
                         });
-                        if (dirty == true){
+                        if (dirty === true){
                             this.onChange();
                         }
                     }else{
@@ -1005,7 +1005,7 @@
             if (pagingScroller) {
                 var start = Math.max(this.getStartCount(), 0),
                     end = Math.min(this.getEndCount(start), this.totalCount),
-                     currentScrollLeft = this.view.el.dom.scrollLeft,
+                    currentScrollLeft = this.view.el.dom.scrollLeft,
                     msg;
 
                 var store = this.grid.getStore();
@@ -1013,9 +1013,9 @@
                     var current_page = store.currentPage;
                     if (current_page > 0) {
                         var page_size = store.pageSize;
-                        var offset = (current_page - 1) * page_size
-                        start = offset + start
-                        end = offset + end
+                        var offset = (current_page - 1) * page_size;
+                        start = offset + start;
+                        end = offset + end;
                         var real_page_end = current_page * page_size;
                         if (real_page_end > store.totalCount)
                             real_page_end = store.totalCount;
@@ -1037,7 +1037,7 @@
             } else {
                 // Drat, we didn't have the paging scroller, so assume we are showing all
                 var showingAllMsg = _t('Found {0} records');
-                var msg = Ext.String.format(showingAllMsg, this.totalCount);
+                msg = Ext.String.format(showingAllMsg, this.totalCount);
                 this.setText(msg);
             }
         }

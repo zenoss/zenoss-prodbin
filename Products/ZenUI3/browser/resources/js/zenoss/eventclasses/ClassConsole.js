@@ -65,7 +65,7 @@ Ext.onReady(function(){
                             if(refreshGrid){
                                 grid.refresh();
                             }
-                        }
+                        };
                         var params = {
                             UidsToMove: movedids,
                             targetUid: targetuid
@@ -132,7 +132,7 @@ Ext.onReady(function(){
                         var xfdesc  = value.hasTransform ? 'Has Transform' : 'Has no Transform';
 
                         var xform = Ext.String.format(" <span class='{0}' title='{1}'></span>", xfclass,xfdesc);
-                        if(parentNode.data.root == true){
+                        if(parentNode.data.root === true){
                             return Ext.String.format("{2}<span title='{0}' class='rootNode'>{1}</span>", value.description, value.text, xform);
                         }else{
                             return Ext.String.format("{2}<span title='{0}' class='subNode'>{1}</span>", value.description, value.text, xform);

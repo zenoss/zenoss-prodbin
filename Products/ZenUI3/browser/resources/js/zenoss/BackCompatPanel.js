@@ -62,17 +62,15 @@ Ext.define("Zenoss.IFramePanel", {
                 return;
             }
             body = this.getBody();
-            if (currentUrl == 'about:blank' || currentUrl == '') {
+            if (currentUrl === 'about:blank' || currentUrl === '') {
                 // if an iframe is reused, it could have a body and
                 // className immediately, but not the desired ones.
                 // in that case, poll until the ready test fails,
                 // then again until it succeeds.
                 if (readyTooEarly) {
-                    readyTooEarly = !!body
-                            && (this.ignoreClassName || !!body.className);
+                    readyTooEarly = !!body && (this.ignoreClassName || !!body.className);
                 } else {
-                    ready = !!body
-                            && (this.ignoreClassName || !!body.className);
+                    ready = !!body && (this.ignoreClassName || !!body.className);
 
                     // Allow subclasses and clients defined when the panel is ready
                     ready = ready && this.fireEvent('isReady', this.getWindow());
@@ -102,7 +100,7 @@ Ext.define("Zenoss.IFramePanel", {
     },
     setSrc: function(url) {
         this.frameLoaded = false;
-        if (url == 'about:blank' || url == '') {
+        if (url === 'about:blank' || url === '') {
             this.load('about:blank');
         } else {
             this.load(Ext.urlAppend(url,

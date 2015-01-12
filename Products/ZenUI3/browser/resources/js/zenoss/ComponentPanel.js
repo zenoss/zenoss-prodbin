@@ -224,11 +224,11 @@ Zenoss.nav.register({
                                 operation.params.uid = contextUid;
                             } else {
                                 operation.params.uid = contextUid;
-                                delete operation.params['query'];
+                                delete operation.params.query;
                             }
                         },
                         load: function(store, records, success, eOpts) {
-                            if (records.length == 0) {
+                            if (records.length === 0) {
                                 return;
                             }
                             if (!target.componentTemplatePanel) {
@@ -1471,7 +1471,7 @@ Ext.define("Zenoss.component.TemperatureSensorPanel", {
                 dataIndex: 'temperature',
                 header: _t('Temperature'),
                 renderer: function(x) {
-                    if (x == null) {
+                    if (x === null) {
                         return "";
                     } else {
                         return x + " F";

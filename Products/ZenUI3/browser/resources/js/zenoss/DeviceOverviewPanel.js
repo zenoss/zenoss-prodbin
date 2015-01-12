@@ -509,14 +509,14 @@
                         };
 
                         if (op == 'del') {
-                            submitVals['uid'] = config.dmdPrefix + group;
+                            submitVals.uid = config.dmdPrefix + group;
                             Zenoss.remote.DeviceRouter.removeDevices(submitVals, function(data) {
                                 Ext.getCmp('device_overview').load();
                             });
                         }
                         if (op == 'add') {
-                            submitVals['target'] = config.dmdPrefix + group;
-                            submitVals['asynchronous'] = Zenoss.settings.deviceMoveIsAsync(submitVals.uids);
+                            submitVals.target = config.dmdPrefix + group;
+                            submitVals.asynchronous = Zenoss.settings.deviceMoveIsAsync(submitVals.uids);
                             Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
                                 Ext.getCmp('device_overview').load();
                             });

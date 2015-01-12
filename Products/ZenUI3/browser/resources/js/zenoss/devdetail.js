@@ -314,7 +314,7 @@ var componentCard = {
                     grid.getSelectionModel().selectRange(0, grid.store.pageSize-1);
                 }
         }
-	},{
+    },{
             text: _t('None'),
             handler: function(){
                 var grid = Ext.getCmp('component_card').componentgrid;
@@ -510,7 +510,7 @@ var createDevDetailEventsGrid = function(re_attach_to_container){
         //columns: Zenoss.env.getColumnDefinitions(['device'])
     });
 
-    if (re_attach_to_container == true)
+    if (re_attach_to_container === true)
     {
         var container_panel = Ext.getCmp('detail_card_panel');
         container_panel.items.insert(1, event_console);
@@ -620,10 +620,10 @@ Ext.define('Zenoss.DeviceDetailNav', {
             var first = Zenoss.component.displayName(a.text.text);
             var second = Zenoss.component.displayName(b.text.text);
             if (first<second)
-                return -1
+                return -1;
             if (first>second)
-                return 1
-            return 0
+                return 1;
+            return 0;
         });
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         if (data.length) {
@@ -680,7 +680,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
                         selectOnRender(tosel, sm);
                     }, this, {single:true});
                 }
-                var card = Ext.getCmp('component_card');
+                card = Ext.getCmp('component_card');
                 if (rest) {
                     card.selectByToken(unescape(rest));
                 }
@@ -772,7 +772,8 @@ Ext.define('Zenoss.DeviceDetailNav', {
     },
     onSelectionChange: function(node) {
 
-        var target, action, node = node[0];
+        var target, action;
+        node = node[0];
         target = Ext.getCmp('detail_card_panel');
         if (!node) {
             return;
@@ -1267,7 +1268,7 @@ Ext.getCmp('footer_bar').add([{
     }
 
     // make sure we are always at least selecting the first item.
-    if (window.location.hash == "") {
+    if (window.location.hash === "") {
         Ext.History.add("deviceDetailNav:device_overview");
     }
 

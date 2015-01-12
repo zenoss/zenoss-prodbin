@@ -142,7 +142,7 @@ Ext.onReady(function(){
         if(typeof(data) == "undefined")data = "";
         var addhandler, uid, config, dialog, newEntry;
         var labelmargin = '5px 5px 0 0';
-        newEntry = (data == "");
+        newEntry = (data === "");
         var xtraData = {};
         addhandler = function() {
             var c = dialog.getForm().getForm().getValues(), value;
@@ -160,7 +160,7 @@ Ext.onReady(function(){
                 resolution:             Ext.getCmp('resolution_panel').getValue(),
                 transform:              save_xform
             };
-            var isTrans = (save_xform != "");
+            var isTrans = (save_xform !== "");
             if(newEntry){
                 Zenoss.remote.EventClassesRouter.addNewInstance({'params':params}, function(response){
                     if (response.success) {
@@ -183,7 +183,7 @@ Ext.onReady(function(){
                     }
                 });
             }
-        }
+        };
 
         // form config
         config = {
@@ -222,12 +222,12 @@ Ext.onReady(function(){
                                             case "rule_panel"       :
                                                 record.setValue(xtraData.rule);
                                                 // collapse or expand this panel depending on "" content
-                                                if(xtraData.rule != "") record.ownerCt.toggleCollapse();
+                                                if(xtraData.rule !== "") record.ownerCt.toggleCollapse();
                                                 break;
                                             case "regex_panel"      :
                                                 record.setValue(xtraData.regex);
                                                 // collapse or expand this panel depending on "" content
-                                                if(xtraData.regex != "") record.ownerCt.toggleCollapse();
+                                                if(xtraData.regex !== "") record.ownerCt.toggleCollapse();
                                                 break;
                                             case "example_panel"    : record.setValue(xtraData.example); break;
                                             //case "transform_panel"  : record.setValue(xtraData.transform); break;
@@ -254,7 +254,7 @@ Ext.onReady(function(){
                     id: 'blackTabs',
                     listeners: {
                         'afterrender': function(p){
-                            if(data['whichPanel'] == 'sequence'){
+                            if(data.whichPanel == 'sequence'){
                                 p.setActiveTab(3);
                             }
                         }
@@ -325,7 +325,7 @@ Ext.onReady(function(){
                                             listeners:{
                                                 expand: function(r){
                                                     var regex_panel = Ext.getCmp('regex_panel');
-                                                    if(regex_panel.getValue() != ""){
+                                                    if(regex_panel.getValue() !== ""){
                                                         Ext.getCmp('rule_panel').collapse();
                                                         new Zenoss.dialog.SimpleMessageDialog({
                                                             title: _t('Regex panel is not empty'),
@@ -364,7 +364,7 @@ Ext.onReady(function(){
                                             listeners:{
                                                 expand: function(r){
                                                     var rule_panel = Ext.getCmp('rule_panel');
-                                                    if(rule_panel.getValue() != ""){
+                                                    if(rule_panel.getValue() !== ""){
                                                         Ext.getCmp('regex_panel').collapse();
                                                         new Zenoss.dialog.SimpleMessageDialog({
                                                             title: _t('Rule panel is not empty'),
@@ -558,7 +558,7 @@ Ext.onReady(function(){
                                     }
                                     // single selection
                                     data = selected[0].data;
-                                    data['whichPanel'] = 'default';
+                                    data.whichPanel = 'default';
                                     Zenoss.eventclasses.mappingDialog(grid, data);
                                 }
                             },{
@@ -573,7 +573,7 @@ Ext.onReady(function(){
                                         return;
                                     }
                                     data = selected[0].data;
-                                    data['whichPanel'] = 'sequence';
+                                    data.whichPanel = 'sequence';
                                     Zenoss.eventclasses.mappingDialog(grid, data);
                                 }
                             }, {
@@ -668,7 +668,7 @@ Ext.onReady(function(){
                 return;
             }
             data = selected[0].data;
-            data['whichPanel'] = 'default';
+            data.whichPanel = 'default';
             Zenoss.eventclasses.mappingDialog(this, data);
         }
     });
@@ -735,7 +735,6 @@ Ext.onReady(function(){
         },
         collapsible: true,
         titleCollapse: true,
-        resizable: true,
         resizable: {
             handles: 's',
             pinned: true
@@ -797,6 +796,7 @@ Ext.onReady(function(){
                             text: 'Inherited Transforms: (All Transforms are multi-line Python code)'
                         });
                     }
+
                     for(var i=0; data.length-1 > i; i++){
                         // add the inheritance chain:
                         me.add({

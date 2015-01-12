@@ -167,7 +167,7 @@ Ext.onReady(function(){
         wipeEventDetail();
         grid.on('itemdblclick', toggleEventDetailContent);
         esckeymap.disable();
-    };
+    }
     // Finally, add the detail panel (have to do it after function defs to hook
     // up the hide callback)
     detail_panel.add({

@@ -108,7 +108,7 @@
                 value = input.getValue(),
                 reg;
             store.clearFilter(true);
-            if (value.length == 0) {
+            if (value.length === 0) {
                 return;
             }
 
@@ -228,7 +228,7 @@
          * restarting.
          **/
         pollForChanges: function() {
-            if (Ext.Object.getKeys(this.restartingDaemons).length == 0) {
+            if (Ext.Object.getKeys(this.restartingDaemons).length === 0) {
                 return;
             }
             if (!this.restartingTask) {
@@ -237,17 +237,18 @@
             this.restartingTask.delay(1000);
         },
         doCheckForRestarting: function() {
-            for (var daemon in this.restartingDaemons ) {
-                function callback(response) {
-                    var id = response.data.id;
-                    var record = this.restartingDaemons[id];
-                    if (!response.data.isRestarting && record.el) {
-                        record.el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_still.png';
-                        delete this.restartingDaemons[id];
-                    }
-
-                    record.row.set('state', response.data.state);
+            function callback(response) {
+                var id = response.data.id;
+                var record = this.restartingDaemons[id];
+                if (!response.data.isRestarting && record.el) {
+                    record.el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_still.png';
+                    delete this.restartingDaemons[id];
                 }
+
+                record.row.set('state', response.data.state);
+            }
+
+            for (var daemon in this.restartingDaemons ) {
                 // check the server to see if we are still restarting
                 router.getInfo({
                     id: this.restartingDaemons[daemon].row.get('id')
