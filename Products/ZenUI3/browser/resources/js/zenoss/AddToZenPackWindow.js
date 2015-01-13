@@ -82,7 +82,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                         } else {
                             targets = me.target;
                         }
-                        callback = function(data) {
+                        callback = function() {
                             Zenoss.message.info(_t("The item was added to {0}"), chosenzenpack);
                         };
                         for (i=0; i<targets.length; i++ ) {
