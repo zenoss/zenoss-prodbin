@@ -353,7 +353,7 @@ Ext.define("Zenoss.BindTemplatesDialog", {
                 ui: 'dialog-dark',
                 text: _t('Save'),
                 handler: function(){
-                    var records, data, templateIds;
+                    var templateIds;
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
                         templateIds = Ext.getCmp(itemId).getValue();
                         REMOTE.setBoundTemplates({
@@ -468,7 +468,6 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
                 disabled: true,
                 text: _t('Submit'),
                 handler: function(){
-                    var records, data, templateIds;
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
                         var templateUid = me.comboBox.getValue();
                         Zenoss.remote.TemplateRouter.copyTemplate({
@@ -544,7 +543,6 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
                 disabled: true,
                 text: _t('Submit'),
                 handler: function(){
-                    var records, data, templateIds;
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
                         var templateUid = me.comboBox.getValue();
                         REMOTE.removeLocalTemplate({

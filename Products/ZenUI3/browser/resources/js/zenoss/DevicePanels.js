@@ -212,7 +212,7 @@ Ext.define("Zenoss.DeviceGridSelectionModel", {
      * @param record {Zenoss.device.DeviceModel}
      * @param index {Integer}
      */
-    _includeRecord: function(sm, record, index) {
+    _includeRecord: function(sm, record) {
         if (record && this._selectAll) {
             delete this._excludedRecords[record.getId()];
         }
@@ -228,7 +228,7 @@ Ext.define("Zenoss.DeviceGridSelectionModel", {
      * @param record {Zenoss.device.DeviceModel}
      * @param index {Integer}
      */
-    _excludeRecord: function(sm, record, index) {
+    _excludeRecord: function(sm, record) {
         if (record && this._selectAll) {
             this._excludedRecords[record.getId()] = true;
         }

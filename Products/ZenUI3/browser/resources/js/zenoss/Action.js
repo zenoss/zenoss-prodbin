@@ -19,15 +19,21 @@
             this.setDisabled(this.checkDisabled());
         },
         checkDisabled: function() {
-            if (this.permitted) return false;
-            if (this.externallyDisabled) return true;
-            if (!this.permitted && !this.filtered) return true;
+            if (this.permitted) {
+                return false;
+            }
+            if (this.externallyDisabled) {
+                return true;
+            }
+            if (!this.permitted && !this.filtered) {
+                return true;
+            }
             return false;
         },
         checkPermitted: function() {
             if (this.permission) {
                 if (this.permissionContext) {
-                    if (Zenoss.env.PARENT_CONTEXT == this.permissionContext) {
+                    if (Zenoss.env.PARENT_CONTEXT === this.permissionContext) {
                         return Zenoss.Security.hasPermission(this.permission);
                     } else {
                         return Zenoss.Security.hasGlobalPermission(this.permission);

@@ -106,7 +106,7 @@ showAddToGraphDialog = function(node, templateUid) {
                     ref: '../submit',
                     text: _t('Submit'),
                     disabled: true,
-                    handler: function(button, event) {
+                    handler: function() {
                         var node, datapointUid, graphUid;
                         node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
                         datapointUid = node.data.uid;
@@ -144,7 +144,7 @@ function refreshDataSourceGrid(selectedId) {
     if (selectedId) {
         grid.refresh(function(){
             grid.getRootNode().cascade(function(node){
-                if (node.data.id == selectedId) {
+                if (node.data.id === selectedId) {
                     node.expand();
                     node.select();
                 }
@@ -186,7 +186,7 @@ Ext.define('Zenoss.templates.AddDataPointDialog', {
                     text: _t('Submit'),
                     formBind: true,
                     handler: function() {
-                        parameters = {
+                        var parameters = {
                             name: this.refOwner.metricName.getValue(),
                             dataSourceUid: config.dataSourceUid
                         };
@@ -297,7 +297,7 @@ Ext.define('Zenoss.templates.AddDataSourceDialog', {
                     disabled: true,
                     text: _t('Submit'),
                     handler: function() {
-                        parameters = {
+                        var parameters = {
                             name: this.refOwner.dataSourceName.getValue(),
                             type: this.refOwner.dataSourceTypeCombo.getValue(),
                             templateUid: config.templateUid
@@ -362,17 +362,17 @@ new Zenoss.MessageDialog({
     // msg is generated dynamically
     okHandler: function(){
         var params, node = getSelectedDataSourceOrPoint(),
-        selectedId;
+        selectedId, callback;
         params = {
             uid: getSelectedDataSourceOrPoint().get("uid")
         };
-
+        callback = function() {
+            refreshDataSourceGrid(selectedId);
+        };
         // data points are always leafs
         if (getSelectedDataSourceOrPoint().data.leaf) {
             selectedId = node.parentNode.data.id;
-            function callback() {
-                refreshDataSourceGrid(selectedId);
-            }
+
             router.deleteDataPoint(params, callback);
         }else {
             router.deleteDataSource(params, refreshDataSourceGrid);
@@ -391,6 +391,9 @@ new Zenoss.MessageDialog({
  * This is called after the router request to save the edit dialog
  **/
 function closeEditDialog(response) {
+    if (!response.success) {
+        return;
+    }
     var dialog = Ext.getCmp(editDataSourcesId);
     refreshDataSourceGrid(editingReSelectId);
 
@@ -407,7 +410,7 @@ function closeEditDialog(response) {
 function testDataSource() {
     var cmp = Ext.getCmp(editDataSourcesId),
         values = cmp.editForm.form.getValues(),
-        win, testDevice, data;
+        win, testDevice;
 
     testDevice = values.testDevice;
 
@@ -449,7 +452,7 @@ function editDataSourceOrPoint() {
         selectedNode = cmp.getSelectionModel().getSelectedNode(),
         data,
         isDataPoint = false,
-        params, reselectId;
+        params;
 
     // make sure they selected something
     if (!selectedNode) {
@@ -518,8 +521,8 @@ function editDataSourceOrPoint() {
         config.saveHandler = closeEditDialog;
         win = new Zenoss.form.DataSourceEditDialog(config);
         var cmdField = win.editForm.form.findField('commandTemplate');
-        if (cmdField != null) {
-            cmdField.addListener('dirtychange', function(form, isValid) {
+        if (cmdField !== null) {
+            cmdField.addListener('dirtychange', function() {
                 Ext.getCmp('testDeviceButton').disable();
                 var devField = Ext.getCmp('testDevice');
                 devField.setValue(_t("Save and reopen this dialog to test."));

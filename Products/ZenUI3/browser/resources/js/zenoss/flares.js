@@ -20,7 +20,7 @@
 
             this.callParent([config]);
         },
-        onRender: function(ct, position) {
+        onRender: function(ct) {
             this.el = ct.createChild({
                 cls: this.baseCls + '-layer',
                 children: [{
@@ -56,7 +56,7 @@
         onLayout: function() {
             Ext.each(this.items.items, function(item, index, items) {
                 if ( item.canLayout() ) {
-                    if ( index == 0 ) {
+                    if ( index === 0 ) {
                         item.anchorTo(this.el, this.alignment);
                     }
                     else {
@@ -170,7 +170,7 @@
          * @param args array Optional orguments to fill in the message template
          */
         _formatFlare: function(message, type, args) {
-            message = Ext.htmlDecode(message);        
+            message = Ext.htmlDecode(message);
             args = Array.prototype.slice.call(args, 1);
             var flare = new Zenoss.flares.Flare(message, args, {
                 iconCls: type,
@@ -178,7 +178,7 @@
             });
 
             var existingFlare = Zenoss.flares.Manager._visibleFlares.get(flare._bodyHtml);
-            if (existingFlare == undefined) {
+            if (!Ext.isDefined(existingFlare)) {
                 Zenoss.flares.Manager.flare(flare);
                 return flare;
             }
@@ -191,22 +191,22 @@
          * @param message string A message template
          * @param args mixed Optional orguments to fill in the message template
          */
-        info: function(message, args) {
+        info: function(message) {
             return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.INFO, arguments);
         },
-        error: function(message, args) {
+        error: function(message) {
             return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.ERROR, arguments);
         },
-        warning: function(message, args) {
+        warning: function(message) {
             return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.WARNING, arguments);
         },
-        debug: function(message, args) {
+        debug: function(message) {
             return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.DEBUG, arguments);
         },
-        critical: function(message, args) {
+        critical: function(message) {
             return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.CRITICAL, arguments);
         },
-        success: function(message, args) {
+        success: function(message) {
             return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.SUCCESS, arguments);
         }
     };
@@ -284,7 +284,7 @@
             this.mon(this.el, 'mouseout', function(){
                 Ext.defer(function(){
                     if ( !this.sticky ) {
-                        this.hide();    
+                        this.hide();
                     }
                 }, 1000, this);
             }, this);
@@ -375,7 +375,7 @@
                 this.checkMessages();
             }, this);
             this._task.delay(this.interval);
-            this.checkMessages()
+            this.checkMessages();
         },
         checkMessages: function() {
             Zenoss.remote.MessagingRouter.getUserMessages({}, function(results) {
@@ -423,27 +423,27 @@
          * @param message string A message template
          * @param args mixed Optional orguments to fill in the message template
          */
-        info: function(message, args) {
+        info: function() {
             return Zenoss.flares.Manager.info.apply(null, arguments);
         },
-        error: function(message, args) {
+        error: function() {
             return Zenoss.flares.Manager.error.apply(null, arguments);
         },
-        warning: function(message, args) {
+        warning: function() {
             return Zenoss.flares.Manager.warning.apply(null, arguments);
         },
-        debug: function(message, args) {
+        debug: function() {
             return Zenoss.flares.Manager.debug.apply(null, arguments);
         },
         /**
          * These messages have a critical error icon and stay until dismissed by the user.
          */
-        critical: function(message, args) {
+        critical: function() {
             var flare = Zenoss.flares.Manager.critical.apply(null, arguments);
             flare.sticky();
             return flare;
         },
-        success: function(message, args) {
+        success: function() {
             return Zenoss.flares.Manager.success.apply(null, arguments);
         }
     };

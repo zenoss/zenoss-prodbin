@@ -1,3 +1,4 @@
+/* global moment: true, swfobject:true */
 (function(){
 
 
@@ -19,7 +20,7 @@ Ext.override(Ext.util.Sorter, {
             ore = /^0/,
             //force case insensitivity - Joseph and Seth
             //i = function(s) { return naturalSort.insensitive && (''+s).toLowerCase() || ''+s },
-            i = function(s) { return (''+s).toLowerCase() || ''+s },
+            i = function(s) { return (''+s).toLowerCase() || ''+s; },
 
             // convert all to strings strip whitespace
             x = i(a).replace(sre, '') || '',
@@ -28,16 +29,18 @@ Ext.override(Ext.util.Sorter, {
             xN = x.replace(re, '\0$1\0').replace(/\0$/,'').replace(/^\0/,'').split('\0'),
             yN = y.replace(re, '\0$1\0').replace(/\0$/,'').replace(/^\0/,'').split('\0'),
             // numeric, hex or date detection
-            xD = parseInt(x.match(hre)) || (xN.length != 1 && x.match(dre) && Date.parse(x)),
+            xD = parseInt(x.match(hre)) || (xN.length !== 1 && x.match(dre) && Date.parse(x)),
             yD = parseInt(y.match(hre)) || xD && y.match(dre) && Date.parse(y) || null,
             oFxNcL,
             oFyNcL;
         // first try and sort Hex codes or Dates
-        if (yD)
-            if ( xD < yD )
+        if (yD) {
+            if ( xD < yD ) {
                 return -1;
-            else if ( xD > yD )
+            } else if ( xD > yD ) {
                 return 1;
+            }
+        }
         // natural sorting through split numeric strings and default strings
         for(var cLoc=0, numS=Math.max(xN.length, yN.length); cLoc < numS; cLoc++) {
             // find floats not starting with '0', string or 0 if not defined (Clint Priest)
@@ -50,8 +53,12 @@ Ext.override(Ext.util.Sorter, {
                 oFxNcL += '';
                 oFyNcL += '';
             }
-            if (oFxNcL < oFyNcL) return -1;
-            if (oFxNcL > oFyNcL) return 1;
+            if (oFxNcL < oFyNcL) {
+                return -1;
+            }
+            if (oFxNcL > oFyNcL) {
+                return 1;
+            }
         }
         return 0;
     }
@@ -142,13 +149,13 @@ Ext.override(Ext.util.Sorter, {
             me.fireEvent('removed', me, me.ownerCt);
             delete me.ownerCt;
         },
-        removeCls : function(cls) {
+        removeCls : function() {
           try{
             var me = this,
             el = me.rendered ? me.el : me.protoEl;
             el.removeCls.apply(el, arguments);
             return me;
-            }catch(e){};
+            }catch(e){}
         }
     });
 
@@ -247,12 +254,12 @@ Ext.override(Ext.util.Sorter, {
             if (!dir) {
                 dontDeselect = -1;
             } else {
-                dontDeselect = (dir == 'up') ? startRow : endRow;
+                dontDeselect = (dir === 'up') ? startRow : endRow;
             }
 
             for (i = startRow; i <= endRow; i++){
-                if (selectedCount == (endRow - startRow + 1)) {
-                    if (i != dontDeselect) {
+                if (selectedCount === (endRow - startRow + 1)) {
+                    if (i !== dontDeselect) {
                         me.doDeselect(i, true);
                     }
                 } else {
@@ -283,12 +290,16 @@ Ext.override(Ext.util.Sorter, {
         // invoked by the selection model to maintain visual UI cues
         onItemDeselect: function(record) {
             var node = this.getNode(record);
-            if(node) Ext.fly(node).removeCls(this.selectedItemCls);
+            if(node) {
+                Ext.fly(node).removeCls(this.selectedItemCls);
+            }
         },
         // invoked by the selection model to maintain visual UI cues
         onItemSelect: function(record) {
             var node = this.getNode(record);
-            if(node) Ext.fly(node).addCls(this.selectedItemCls);
+            if(node) {
+                Ext.fly(node).addCls(this.selectedItemCls);
+            }
         }
     });
 
@@ -305,7 +316,7 @@ Ext.override(Ext.util.Sorter, {
                 var child = Ext.DomQuery.selectNode('#'+picker.id+' .x-boundlist-list-ct');
                 Ext.defer(function(){ // defer a bit so the grandpaw will have a height
                     try{
-                        var grandpaw = Ext.DomQuery.selectNode('#'+picker.id);
+                        Ext.DomQuery.selectNode('#'+picker.id);
                         child.style.cssText = 'width: 100%; height: 100%; overflow: auto;';
                     }catch(e){
                         // couldn't traverse, so just swallow it.
@@ -445,7 +456,9 @@ Ext.override(Ext.util.Sorter, {
          == null should only happen happen in IE anyway.
     */
     Ext.EventObjectImpl.prototype.getTarget = function (selector, maxDepth, returnEl) {
-        if (this.target == null) return null;
+        if (this.target === null) {
+            return null;
+        }
         if (selector) {
             return Ext.fly(this.target).findParent(selector, maxDepth, returnEl);
         }
@@ -495,7 +508,7 @@ Ext.override(Ext.util.Sorter, {
             length = items.length;
             for (i = 0; i < length; i++){
                 item = items[i];
-                fn = item.filterFn || function(item){ return item.get(item.property) == item.value; };
+                fn = item.filterFn || function(item){ return item.get(item.property) === item.value; };
                 visibleNodes = Ext.Array.merge(visibleNodes, Ext.Array.filter(flattened, fn));
             }
 
@@ -567,7 +580,7 @@ Ext.override(Ext.util.Sorter, {
                 }
             }
         },
-        clearFilter: function(suppressEvent) {
+        clearFilter: function() {
 
             this.filters.clear();
 
@@ -615,7 +628,7 @@ Ext.override(Ext.util.Sorter, {
      **/
     var oldMomentTz = moment.fn.tz;
     moment.fn.tz = function (name) {
-        if (name == "UTC") {
+        if (name === "UTC") {
             return this;
         }
         return oldMomentTz.apply(this, [name]);

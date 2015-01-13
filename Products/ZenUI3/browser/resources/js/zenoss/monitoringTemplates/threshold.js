@@ -54,7 +54,7 @@
             thresholdId: data.thresholdIdField,
             dataPoints: dataPoints
         };
-        callback = function(provider, response) {
+        callback = function() {
             grid.refresh();
         };
         Zenoss.remote.TemplateRouter.addThreshold(params, callback);
@@ -147,8 +147,8 @@
      *          selected threshold type
      **/
     function thresholdEdit(grid) {
-        var record = grid.getSelectionModel().getSelected(),
-            config = {};
+        var record = grid.getSelectionModel().getSelected();
+
 
         function displayEditDialog(response) {
             var win = Ext.create( 'Zenoss.form.DataSourceEditDialog', {
@@ -160,7 +160,7 @@
                 title: _t('Edit Threshold'),
                 directFn: router.setInfo,
                 id: 'editThresholdDialog',
-                saveHandler: function(response) {
+                saveHandler: function() {
                     grid.refresh();
                     if (win) {
                         win.hide();
@@ -240,7 +240,7 @@
                          * If they have permission and they select a row, show the
                          * edit and delete buttons
                          **/
-                        select: function (selectionModel, rowIndex, record ) {
+                        select: function () {
                             // enable the "Delete Threshold" button
                             if (Zenoss.Security.hasPermission('Manage DMD')) {
                                 me.deleteButton.enable();
@@ -279,7 +279,7 @@
                     xtype: 'button',
                     iconCls: 'delete',
                     disabled: true,
-                    handler: function(btn) {
+                    handler: function() {
                         var row = me.getSelectionModel().getSelected(),
                             uid,
                             params;
