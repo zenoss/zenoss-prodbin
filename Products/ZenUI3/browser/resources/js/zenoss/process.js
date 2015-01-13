@@ -970,11 +970,11 @@ Ext.define("Zenoss.MatchProcessStore", {
                 y[processSet] = yy;
             });
             var xxx = 0;
-            Ext.each(x.keys(), function(){
+            Ext.each(Object.keys(x), function(){
                 xxx++;
             });
             var yyy = 0;
-            Ext.each(y.keys(), function(){
+            Ext.each(Object.keys(y), function(){
                 yyy++;
             });
             Ext.getCmp('outputTitle').setTitle('Output: ' + m.toString() + ' of ' + n.toString() + ' matched by ' + xxx + ' classes in ' + yyy + ' sets');
