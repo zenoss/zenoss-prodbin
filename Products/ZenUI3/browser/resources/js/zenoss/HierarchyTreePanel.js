@@ -54,7 +54,7 @@
             text2 = getText(obj2);
 
             // sort by text
-            if (text1 == text2) {
+            if (text1 === text2) {
                 return 0;
             }
             return text1 < text2 ? -1 : 1;
@@ -62,10 +62,10 @@
 
 
         // always show folders first
-        if (o1.get('iconCls') == 'folder' &&  o2.get('iconCls') != 'folder'){
+        if (o1.get('iconCls') === 'folder' &&  o2.get('iconCls') !== 'folder'){
             return -1;
         }
-        if (o2.get('iconCls') == 'folder' && o1.get('iconCls') != 'folder') {
+        if (o2.get('iconCls') === 'folder' && o1.get('iconCls') !== 'folder') {
             return 1;
         }
 
@@ -75,7 +75,7 @@
 
     Zenoss.sortTreeNodes = sortTreeNodes;
 
-	
+
     /**
      * Base Tree Selection model for zenoss. Defines
      * the getSelectedNode method that existed in 3.X trees.
@@ -152,7 +152,6 @@
                         ref:'refreshtree',
                         text:_t('Refresh Tree'),
                         handler:function (item, e) {
-                            var node = item.parentMenu.contextNode;
                             var tree = item.parentMenu.tree;
                             tree.getStore().load({
                                 callback:function () {
@@ -168,8 +167,7 @@
                         ref:'expandall',
                         text:_t('Expand All'),
                         handler:function (item, e) {
-                            var node = item.parentMenu.contextNode,
-                                tree = item.parentMenu.tree;
+                            var tree = item.parentMenu.tree;
                             tree.expandAll();
                         }
                     },
@@ -177,8 +175,7 @@
                         ref:'collapsall',
                         text:_t('Collapse All'),
                         handler:function (item, e) {
-                            var node = item.parentMenu.contextNode,
-                                tree = item.parentMenu.tree;
+                            var tree = item.parentMenu.tree;
                             tree.collapseAll();
                             // by default we usually expand the first child
                             tree.getRootNode().expand();
@@ -246,8 +243,9 @@
             config.viewConfig = config.viewConfig || {};
             if (config.enableDragDrop) {
                 var dd_permission = Zenoss.Security.hasPermission('Change Device');
-                if (config.forceEnableDd)
+                if (config.forceEnableDd) {
                     dd_permission = true;
+                }
                 Ext.applyIf(config.viewConfig, {
                     loadMask:config.loadMask,
                     plugins:{
@@ -293,7 +291,7 @@
                             } else {
                                 count = Ext.String.format(" <span title='{0}'>({1})</span>", value.description, value.count);
                             }
-                            if (parentNode.data.root == true) {
+                            if (parentNode.data.root === true) {
                                 return Ext.String.format("<span class='rootNode'>{0}{1}</span>", value.text, count);
                             } else {
                                 return Ext.String.format("<span class='subNode'>{0}</span>{1}", value.text, count);
@@ -320,7 +318,7 @@
             if (config.directFn && !config.loader) {
                 var modelId = Ext.String.format('Zenoss.tree.{0}Model', config.id);
 
-                var model = Ext.define(modelId, {
+                Ext.define(modelId, {
                     extend:'Ext.data.Model',
                     treeId:config.id,
                     idProperty:config.idProperty || 'id',
@@ -463,8 +461,8 @@
             nodeId = unescape(nodeId);
             var root = this.getRootNode(),
                 selNode = Ext.bind(function () {
-                    var sel = this.getSelectionModel().getSelectedNode(),
-                        uid, child;
+                    var sel = this.getSelectionModel().getSelectedNode();
+
                     if (!(sel && nodeId === sel.id)) {
                         var path = this.getNodePathById(nodeId);
                         this.selectPath(path);
@@ -506,7 +504,7 @@
                 // We do still need to add it to the segment that is reused for
                 // each piece of the overall path.
                 segment = segment + this.nodeIdSeparator + piece;
-                if (piece != this.relationshipIdentifier) {
+                if (piece !== this.relationshipIdentifier) {
                     path.push(segment);
                 }
                 else {
@@ -632,8 +630,6 @@
         },
         doFilter:function (e) {
             var text = e.getValue(),
-                me = this,
-                root = this.getRootNode(),
                 store = this.getStore();
             store.clearFilter(true);
 

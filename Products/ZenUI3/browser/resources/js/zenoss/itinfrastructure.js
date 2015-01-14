@@ -19,9 +19,7 @@ var EXTENSIONS_adddevice = Zenoss.extensions.adddevice instanceof Array ?
                            Zenoss.extensions.adddevice : [];
 Zenoss.env.treesm = null;
 // page level variables
-var REMOTE = Zenoss.remote.DeviceRouter,
-    treeId = 'groups',
-    nodeType = 'Organizer';
+var REMOTE = Zenoss.remote.DeviceRouter;
 
 Zenoss.env.initProductionStates();
 Zenoss.env.initPriorities();
@@ -38,8 +36,8 @@ var hwManufacturers = {
     xtype: 'manufacturercombo',
     name: 'hwManufacturer',
     fieldLabel: _t('HW Manufacturer'),
-    listeners: {'select': function(combo, record, index){
-        var record = record[0];
+    listeners: {'select': function(combo, record){
+        record = record[0];
         var productCombo = Ext.getCmp('hwproductcombo');
         resetCombo(productCombo, record.data.name);
     }}
@@ -61,7 +59,7 @@ var osManufacturers = {
     xtype: 'manufacturercombo',
     name: 'osManufacturer',
     fieldLabel: _t('OS Manufacturer'),
-    listeners: {'select': function(combo, record, index){
+    listeners: {'select': function(combo, record){
         var record = record[0];
         var productCombo = Ext.getCmp('osproductcombo');
         resetCombo(productCombo, record.data.name);
@@ -124,7 +122,7 @@ var deviceClassCombo = {
         }
     },
     toggleAdditionalFields: function(){
-        if(this.getValue() != null && this.getValue().toLowerCase().indexOf("ssh") >= 0){
+        if(this.getValue() !== null && this.getValue().toLowerCase().indexOf("ssh") >= 0){
             Ext.getCmp('zCommandUsername').show();
             Ext.getCmp('zCommandPassword').show();
         }else{
@@ -132,7 +130,7 @@ var deviceClassCombo = {
             Ext.getCmp('zCommandPassword').hide();
         }
 
-        if(this.getValue() != null && this.getValue().toLowerCase().toLowerCase().indexOf("wmi") >= 0){
+        if(this.getValue() !== null && this.getValue().toLowerCase().toLowerCase().indexOf("wmi") >= 0){
             Ext.getCmp('zWinUser').show();
             Ext.getCmp('zWinPassword').show();
         }else{
@@ -182,7 +180,7 @@ function getSelectionModel(){
 function deselectOtherTrees(treeid) {
     var treeids = Zenoss.util.filter(['devices', 'groups', 'systemsTree', 'locs'],
                                      function (t) {
-                                         return t != treeid;
+                                         return t !== treeid;
                                      });
     Ext.each(treeids, function(t) {
         var tree = Ext.getCmp(t), sm = tree.getSelectionModel();
@@ -196,7 +194,7 @@ function deselectOtherTrees(treeid) {
 /**
  * Anytime a node is clicked on one of the organizer trees this method is called.
  **/
-function treeselectionchange(sm, newnodes, oldnode) {
+function treeselectionchange(sm, newnodes) {
     if (newnodes.length) {
         deselectOtherTrees(sm.tree);
         // update the treesm
@@ -251,14 +249,6 @@ function gridOptions() {
     return opts;
 }
 
-function disableSendEvent() {
-    var cbs = Ext.getCmp('lockingchecks').getValue(),
-        sendEvent = Ext.getCmp('send-event-checkbox');
-    cbs.remove(sendEvent);
-    sendEvent.setDisabled(Ext.isEmpty(cbs));
-}
-
-
 function refreshTreePanel() {
     var treeNames = ['devices', 'groups', 'systemsTree', 'loc_tree'];
     Ext.each(treeNames, function(treeName) {
@@ -275,7 +265,7 @@ function refreshTreePanel() {
             tree.selectByToken(selectedNode.internalId);
         }
     }
-};
+}
 
 
 function deleteDevicesWithProgressBar(grid, uids, opts, callback){
@@ -298,7 +288,7 @@ function deleteDevicesWithProgressBar(grid, uids, opts, callback){
         }
 
         var msg;
-        if (cancelled || remaining.length == 0){
+        if (cancelled || remaining.length === 0){
             grid.getSelectionModel().selectNone();
             grid.getStore().load({
                 callback: win.close,
@@ -353,7 +343,7 @@ function deleteDevicesWithProgressBar(grid, uids, opts, callback){
             ui: 'dialog-dark',
             text: _t('Cancel'),
             ref: '../cancelButton',
-            handler: function(btn, evt) {
+            handler: function() {
                 cancelled = true;
                 win.setTitle(_t('Cancelling...'));
             }
@@ -370,10 +360,9 @@ Ext.apply(Zenoss.devices, {
         iconCls: 'delete',
         id: 'delete-button',
         permission: 'Delete Device',
-        handler: function(btn, e) {
-            var grid = Ext.getCmp('device_grid'),
-                selnode = getSelectionModel().getSelectedNode(),
-                isclass = Zenoss.types.type(selnode.data.uid)=='DeviceClass',
+        handler: function() {
+            var selnode = getSelectionModel().getSelectedNode(),
+                isclass = Zenoss.types.type(selnode.data.uid)==='DeviceClass',
                 grpText = selnode.data.text.text;
             var win = new Zenoss.FormDialog({
                 title: _t('Remove Devices'),
@@ -422,7 +411,7 @@ Ext.apply(Zenoss.devices, {
                     xtype: 'DialogButton',
                     text: _t('Remove'),
                     id: 'delete_device_remove_btn',
-                    handler: function(b) {
+                    handler: function() {
                         var opts = Ext.apply(gridOptions(), {
                             uid: Zenoss.env.PARENT_CONTEXT,
                             action: Ext.getCmp('removetype').getValue().removetype,
@@ -464,9 +453,6 @@ Ext.apply(Zenoss.devices, {
         id: 'addsingledevice-item',
         permission: 'Manage Device',
         handler: function() {
-            var selnode = getSelectionModel().getSelectedNode();
-            var isclass = Zenoss.types.type(selnode.data.uid) == 'DeviceClass';
-            var grpText = selnode.data.text.text;
             var win = new Zenoss.dialog.CloseDialog({
                 width: 850,
                 height: 500,
@@ -475,7 +461,7 @@ Ext.apply(Zenoss.devices, {
                         xtype: 'DialogButton',
                         id: 'addsingledevice-submit',
                         text: _t('Add'),
-                        handler: function(b) {
+                        handler: function() {
                             var form = win.childPanel.getForm();
                             var opts = form.getValues();
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
@@ -715,7 +701,6 @@ Ext.apply(Zenoss.devices, {
                             items: [{
                                 xtype: 'textarea',
                                 name: 'comments',
-                                width: '200',
                                 fieldLabel: _t('Comments'),
                                 emptyText: _t('None...'),
                                 width: 200
@@ -771,7 +756,7 @@ Ext.apply(Zenoss.devices, {
         permission: 'Manage Device',
         // only global roles can do this action
         permissionContext: '/zport/dmd/Devices',
-        handler: function(btn, e){
+        handler: function(){
             var loc = window.location.pathname;
             window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#add-device', loc);
         }
@@ -782,7 +767,7 @@ Ext.apply(Zenoss.devices, {
         permission: 'Manage Device',
         // only global roles can do this action
         permissionContext: '/zport/dmd/Devices',
-        handler: function(btn, e){
+        handler: function(){
             var loc = window.location.pathname;
             window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#discover-network', loc);
         }
@@ -823,10 +808,10 @@ function getTreeDropWarnings(dropTargetNode, droppedRecords) {
     // about the potentially destructive operation.
     var additionalWarnings = [""];
     if (dropTargetNode && droppedRecords && dropTargetNode.data && dropTargetNode.data.path &&
-        dropTargetNode.data.path.indexOf('Devices') == 0) {
+        dropTargetNode.data.path.indexOf('Devices') === 0) {
         var dropTargetClass = dropTargetNode.data.zPythonClass || "Products.ZenModel.Device";
         var droppedClasses = Ext.Array.map(droppedRecords, function(r){return r.data.pythonClass;});
-        if(Ext.Array.some(droppedClasses, function(droppedClass) { return dropTargetClass!=droppedClass;})) {
+        if(Ext.Array.some(droppedClasses, function(droppedClass) { return dropTargetClass!==droppedClass;})) {
             additionalWarnings = additionalWarnings.concat(_t("WARNING: This may result in the loss of all components and configuration under these devices."));
         }
     }
@@ -838,17 +823,14 @@ function initializeTreeDrop(tree) {
 
     // fired when the user actually drops a node
     tree.getView().on('beforedrop', function(element, e, targetnode) {
-        var grid = Ext.getCmp('device_grid'),
-            targetuid = targetnode.data.uid,
-            ranges = grid.getSelectionModel().getSelection(),
+        var targetuid = targetnode.data.uid,
             devids,
             me = this,
-            isOrganizer = true,
-            success = true;
+            isOrganizer = true;
         if (e.records) {
             // the tree drag and drop wraps the model in a node interface so we
             // need to look at the uid to figure out what they are dropping
-            isOrganizer = e.records[0].get("uid").indexOf('/devices/') == -1;
+            isOrganizer = e.records[0].get("uid").indexOf('/devices/') === -1;
         }
 
         if (!isOrganizer ) {
@@ -961,8 +943,8 @@ function detailSelectByToken(nodeId) {
         }, item, {single: true});
     }
     if (parts[1]) {
-        if (Ext.Array.indexOf(master.items.items, container.activeItem)==1 ||
-            (node && node.id==parts[0])) {
+        if (Ext.Array.indexOf(master.items.items, container.activeItem)===1 ||
+            (node && node.id===parts[0])) {
             Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
             changeDetail();
         } else {
@@ -1247,12 +1229,12 @@ Ext.define("Zenoss.InfraDetailNav", {
         };
         var uid = Zenoss.env.PARENT_CONTEXT;
         if (config.contextRegex) {
-            var re = RegExp(config.contextRegex);
+            var re = new RegExp(config.contextRegex);
             return re.test(uid);
         }
         return !excluded[config.id];
     },
-    onGetNavConfig: function(contextId) {
+    onGetNavConfig: function() {
         return Zenoss.nav.get('DeviceGroup');
     },
     onSelectionChange: function(nodes) {
@@ -1303,11 +1285,10 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
         },
         contextchange: function(grid, uid) {
             REMOTE.getInfo({uid: uid, keys: ['name', 'description', 'address']}, function(result) {
-                if (Zenoss.env.contextUid && Zenoss.env.contextUid != uid) {
+                if (Zenoss.env.contextUid && Zenoss.env.contextUid !== uid) {
                     return;
                 }
                 var title = result.data.name,
-                qtip,
                 desc = [''];
                 if ( result.data.address ) {
                     desc.push(result.data.address);
@@ -1321,7 +1302,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
 
                 // avoid a rendering of the grid if the title
                 // hasn't changed
-                if (this.title != title) {
+                if (this.title !== title) {
                     if ( desc.length ) {
                         Ext.QuickTips.register({target: this.headerCt, text: Ext.util.Format.nl2br(desc.join('<hr>')), title: result.data.name});
                         this.setTitle(Ext.String.format("{0} {1}", title, desc.join(' - ')));
@@ -1438,7 +1419,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 iconCls: 'refresh',
                 text: _t('Refresh'),
                 tooltip: _t('Refresh Device List'),
-                handler: function(btn) {
+                handler: function() {
                     var grid = Ext.getCmp('device_grid');
                     if (grid.isVisible(true)) {
                         grid.refresh();
@@ -1448,7 +1429,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 },
                 pollHandler: function(btn) {
                     var grid = Ext.getCmp('device_grid');
-                    if (grid.refresh_in_progress == 0) {
+                    if (grid.refresh_in_progress === 0) {
                         this.handler(btn);
                     }
                 }
@@ -1471,7 +1452,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     var me = Ext.getCmp('commands-menu'),
                         menu = me.menu;
                     REMOTE.getUserCommands({uid:uid}, function(data) {
-                        if (Zenoss.env.contextUid && Zenoss.env.contextUid != uid) {
+                        if (Zenoss.env.contextUid && Zenoss.env.contextUid !== uid) {
                             return;
                         }
                         menu.removeAll();
@@ -1511,10 +1492,10 @@ Zenoss.Security.onPermissionsChange(function(){
 });
 
 var createEventsGrid = function(re_attach_to_container) {
-    var events_store = Ext.create('Zenoss.events.Store', {})
-    if (!Zenoss.settings.enableInfiniteGridForEvents)
+    var events_store = Ext.create('Zenoss.events.Store', {});
+    if (!Zenoss.settings.enableInfiniteGridForEvents) {
         events_store.buffered = false;
-
+    }
     var event_console = Ext.create('Zenoss.EventGridPanel', {
         id: 'events_grid',
         stateId: 'infrastructure_events',
@@ -1527,7 +1508,7 @@ var createEventsGrid = function(re_attach_to_container) {
         store: events_store
     });
 
-    if (re_attach_to_container == true)
+    if (re_attach_to_container === true)
     {
         var container_panel = Ext.getCmp('detail_panel');
         container_panel.items.insert(1, event_console);
@@ -1537,7 +1518,7 @@ var createEventsGrid = function(re_attach_to_container) {
     event_console.on('recreateGrid', function (grid) {
         var container_panel = Ext.getCmp('detail_panel');
         container_panel.remove(grid.id, true);
-        new_grid = createEventsGrid(true);
+        var new_grid = createEventsGrid(true);
         if (Zenoss.env.contextUid) {
             new_grid.setContext(Zenoss.env.contextUid);
         }
@@ -1581,9 +1562,9 @@ Ext.getCmp('center_panel').add({
             }]
         }],
         listeners: {
-            beforecardchange: function(me, card, index, from, fromidx) {
+            beforecardchange: function(me, card, index) {
                 var node, selectedNode, tree;
-                if (index==1) {
+                if (index===1) {
                     node = getSelectionModel().getSelectedNode().data;
                     card.setHeaderText(node.text.text, node.path);
                 } else if (index===0) {
@@ -1597,9 +1578,8 @@ Ext.getCmp('center_panel').add({
                     Ext.getCmp('detail_panel').layout.setActiveItem(0);
                 }
             },
-            cardchange: function(me, card, index, from , fromidx) {
-                var node = getSelectionModel().getSelectedNode(),
-                    footer = Ext.getCmp('footer_bar');
+            cardchange: function(me, card, index) {
+                var node = getSelectionModel().getSelectedNode();
                 if (index===1) {
                     card.card.setContext(node.data.uid);
                     Ext.getCmp('footer_add_button').disable();
@@ -1654,7 +1634,7 @@ var resetTemplatesDialog = Ext.create('Zenoss.ResetTemplatesDialog', {
 function getOrganizerFields(mode) {
     var items = [];
 
-    if ( mode == 'add' ) {
+    if ( mode === 'add' ) {
         items.push({
             xtype: 'textfield',
             id: 'add_id',
@@ -1731,7 +1711,7 @@ var footerBar = Ext.getCmp('footer_bar');
                 tree = node.getOwnerTree(),
                 rootId = tree.getRootNode().data.id,
                 msg = _t('Are you sure you want to delete the {0} {1}? <br/>There is <strong>no</strong> undo.');
-            if (rootId==devtree.root.id) {
+            if (rootId===devtree.root.id) {
                 msg = [msg, '<br/><br/><strong>',
                        _t('WARNING'), '</strong>:',
                        _t(' This will also delete all devices in this {0}.'),
@@ -1744,7 +1724,7 @@ var footerBar = Ext.getCmp('footer_bar');
             var node = getSelectionModel().getSelectedNode();
             if ( node ) {
                 var tree = node.getOwnerTree();
-                return tree.nodeName=='Device'?'Device Class':tree.nodeName;
+                return tree.nodeName==='Device'?'Device Class':tree.nodeName;
             }
         },
         customAddDialog: {
@@ -1825,7 +1805,7 @@ var footerBar = Ext.getCmp('footer_bar');
                         });
                         dialog.getForm().load({
                             params: { uid: node.data.uid, keys: ['id', 'description', 'address', 'connectionInfo'] },
-                            success: function(form, action) {
+                            success: function() {
                                 dialog.show();
                             },
                             failure: function(form, action) {
@@ -1853,7 +1833,7 @@ footerBar.on('buttonClick', function(actionName, id, values) {
     }
 });
     if (Zenoss.settings.showPageStatistics){
-        var stats = Ext.create('Zenoss.stats.Infrastructure');
+        Ext.create('Zenoss.stats.Infrastructure');
     }
 
     // if there is no history, select the top node

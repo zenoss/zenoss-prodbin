@@ -14,9 +14,6 @@ Ext.ns("Zenoss.jobs");
 
 var REMOTE = Zenoss.remote.JobsRouter;
 
-
-var dateRenderer = Ext.util.Format.dateRenderer('m/d/Y h:i:s A');
-
 function renderDate(utcseconds) {
     if (utcseconds) {
         var d = new Date(0);
@@ -70,6 +67,7 @@ Ext.getCmp('center_panel').add({
                         break;
                     case "Aborted":
                         iconCls = "tree-severity-icon-small-warning";
+                        break;
                     default:
                         break;
                 }
@@ -118,9 +116,8 @@ Ext.getCmp('center_panel').add({
             var grid = this,
                 store = this.getStore(),
                 selectToken = function() {
-                    var index = store.indexOfId(token),
-                        sm = grid.getSelectionModel(),
-                        selected = sm.getSelection();
+                    var index = store.indexOfId(token);
+
                     // if we have a job token selected always expand the panel
                     if (index >= 0) {
                         grid.getSelectionModel().select(index);
@@ -141,7 +138,7 @@ Ext.getCmp('center_panel').add({
                 iconCls: 'delete',
                 text: _t('Delete'),
                 tooltip: _t('Delete Jobs'),
-                handler: function(btn) {
+                handler: function() {
                     var grid = Ext.getCmp('jobs'),
                     jobids = [];
                     Ext.each(grid.getSelectionModel().getSelection(), function(row) {
@@ -159,7 +156,7 @@ Ext.getCmp('center_panel').add({
                 text: _t('Abort'),
                 tooltip: _t("Abort Jobs"),
                 disabled: true,
-                handler: function(btn) {
+                handler: function() {
                     var grid = Ext.getCmp('jobs'),
                     jobids = [];
                     Ext.each(grid.getSelectionModel().getSelection(), function(row) {
@@ -183,7 +180,7 @@ Ext.getCmp('center_panel').add({
                 iconCls: 'refresh',
                 text: _t('Refresh'),
                 tooltip: _t('Refresh Job List'),
-                handler: function(btn) {
+                handler: function() {
                     var grid = Ext.getCmp('jobs');
                     grid.refresh();
                 }
@@ -206,9 +203,13 @@ Ext.getCmp('center_panel').add({
                         break;
                     }
                 }
-                enableAbort?abort_button.enable():abort_button.disable();
+                if (enableAbort) {
+                    abort_button.enable();
+                } else {
+                    abort_button.disable();
+                }
 
-                if (selected.length==1) {
+                if (selected.length===1) {
                     detail_panel.setJob.call(detail_panel, selected[0]);
                     Ext.History.add('jobs:' + selected[0].data.uuid);
                 } else {
@@ -218,13 +219,10 @@ Ext.getCmp('center_panel').add({
                     }
                 }
             },
-            itemdblclick: function(grid, item) {
+            itemdblclick: function() {
                 var detail_panel = Ext.getCmp('job_detail_panel');
                 detail_panel.expand();
             }
-        },
-        showGridPanel: function() {
-            var grid = Ext.getCmp('jobs');
         }
     },{
         id: 'job_detail_panel',
@@ -244,7 +242,7 @@ Ext.getCmp('center_panel').add({
                 var grid = Ext.getCmp('jobs'),
                     view = grid.getView(),
                     selected = grid.getSelectionModel().getSelection();
-                if (selected.length == 0){ // nothing is selected, do something about it.
+                if (selected.length === 0){ // nothing is selected, do something about it.
                     try{
                         grid.getSelectionModel().select(0);
                     }catch(e){// couldn't select anything means there's nothing to select, abort
@@ -271,7 +269,9 @@ Ext.getCmp('center_panel').add({
             }
         },
         refresh: function() {
-            if (this.job == null) return;
+            if (this.job === null) {
+                return;
+            }
             REMOTE.detail({jobid:this.jobid}, function(r){
                 var msg = _t("[!] Log file too large for job log screen (viewing last 100 lines). To view full log use link above.");
                 var html = "<b>Log file: <a href='joblog?job=" + this.jobid + "'>" + r.logfile + "</a></b><br/><br/>";

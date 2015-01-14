@@ -8,8 +8,8 @@
  ****************************************************************************/
 (function(){
     Ext.ns('Zenoss');
-    var ZC = Ext.ns('Zenoss.component'),
-        router = Zenoss.remote.DeviceRouter;
+    var ZC = Ext.ns('Zenoss.component');
+
     ZC.renderMap = {};
 
     /**
@@ -67,7 +67,7 @@
         function(meta_type, uid, graphId, allOnSame, data) {
             var fn = ZC.getComponentGraphRenderer('default'), graphs, i;
             for (i=0;i<data.length;i++) {
-                if (allOnSame && (graphId == 'Memory' || graphId == 'CPU Utilization')) {
+                if (allOnSame && (graphId === 'Memory' || graphId === 'CPU Utilization')) {
                     data[i].type = 'area';
                 }
             }
@@ -153,10 +153,9 @@
                 this.componentGraphs = response.data;
 
                 // create the component drop down store
-                var data = [], i;
+                var data = [], componentType;
                 for (componentType in this.componentGraphs) {
-                    if (this.componentGraphs.hasOwnProperty(componentType)
-                       && this.componentGraphs[componentType].length) {
+                    if (this.componentGraphs.hasOwnProperty(componentType) && this.componentGraphs[componentType].length) {
                         data.push([Zenoss.component.displayName(componentType)[0],
                                componentType]);
                     }

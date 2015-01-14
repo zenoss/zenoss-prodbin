@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -40,7 +40,7 @@ Ext.onReady(function() {
         // if they wish to age all events update the inclusive flag
         var values = results.values;
         values.event_age_severity_inclusive = false;
-        if (values.event_age_disable_severity == AGE_ALL_EVENTS) {
+        if (values.event_age_disable_severity === AGE_ALL_EVENTS) {
             values.event_age_disable_severity = 5; // critical
             values.event_age_severity_inclusive = true;
         }
@@ -53,11 +53,11 @@ Ext.onReady(function() {
             data;
         data = response.data;
         severityField = Zenoss.util.filter(data, function(field) {
-            return field.id == 'event_age_disable_severity';
+            return field.id === 'event_age_disable_severity';
         })[0];
 
         inclusiveField = Zenoss.util.filter(data, function(field) {
-            return field.id == 'event_age_severity_inclusive';
+            return field.id === 'event_age_severity_inclusive';
         })[0];
 
         if (inclusiveField.value) {
@@ -84,7 +84,7 @@ Ext.onReady(function() {
 
     loadProperties();
 
-    var clearHeartbeatPanel = new Ext.Panel({
+    new Ext.Panel({
         renderTo: 'clearHeartbeat',
         layout: 'anchor',
         layoutConfig: {

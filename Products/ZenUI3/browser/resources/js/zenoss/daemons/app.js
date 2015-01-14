@@ -7,7 +7,7 @@
  *
  ****************************************************************************/
 (function(){
-    Ext.ns('Daemons');
+    var Daemons = Ext.ns('Daemons');
     // setup the production states and priorities
     Zenoss.env.initProductionStates();
     Zenoss.env.initPriorities();

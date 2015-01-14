@@ -57,7 +57,7 @@
                     }
                 },
                 'deviceaddgrid': {
-                    afterrender: function(grid) {
+                    afterrender: function() {
                         this.startGridRefresh();
                     }
                 }
@@ -67,7 +67,7 @@
         setCategories: function() {
             // hack to get the empty text to show up
             Ext.Function.defer( function() {
-                if (this.getGrid().getStore().data.length == 0) {
+                if (this.getGrid().getStore().data.length === 0) {
                     this.getGrid().getStore().load();
                 }
             }, 500, this);
@@ -115,7 +115,7 @@
             var results = [], i, pieces = hosts.split("\n"), piece, key;
             for (i=0;i<pieces.length;i++) {
                 piece = pieces[i];
-                if (piece.indexOf(",") != -1) {
+                if (piece.indexOf(",") !== -1) {
                     for (key in piece.split(",")){
                         results.push(piece.split(",")[key].trim());
                     }
@@ -145,9 +145,9 @@
                 xtype: 'combo',
                 width: 300,
                 // only show if we have multiple collectors
-                hidden: Zenoss.env.COLLECTORS.length == 1,
+                hidden: Zenoss.env.COLLECTORS.length === 1,
                 // if visible give it a good tabindex
-                tabIndex: (Zenoss.env.COLLECTORS.length == 1) ? 100: 2,
+                tabIndex: (Zenoss.env.COLLECTORS.length === 1) ? 100: 2,
                 labelAlign: 'top',
                 fieldLabel: 'Collector',
                 queryMode: 'local',
@@ -175,13 +175,13 @@
                 if (!property.label) {
                     item.fieldLabel = Zenoss.zproperties.inferZPropertyLabel(id);
                 }
-                if (item.type != "password") {
+                if (item.type !== "password") {
                     item.value = property.value || property.valueAsString;
                 }
                 // if it seems like credentials make it required
-                if (item.name.toLowerCase().indexOf('username') != -1 ||
-                    item.name.toLowerCase().indexOf('password') != -1 ||
-                    item.name.toLowerCase().indexOf('community') != -1) {
+                if (item.name.toLowerCase().indexOf('username') !== -1 ||
+                    item.name.toLowerCase().indexOf('password') !== -1 ||
+                    item.name.toLowerCase().indexOf('community') !== -1) {
                     item.allowBlank = false;
                 }
 
@@ -221,12 +221,12 @@
          * This method gathers what we need from a device
          * submits it and adds a job record.
          **/
-        onClickAddButton: function(btn) {
+        onClickAddButton: function() {
             var values = this.getForm().getForm().getFieldValues(),
                 hosts = values.hosts,
                 deviceClass = values.deviceclass,
-                collector = values.collector, i,
-                zProperties = {},
+                collector = values.collector,
+                zProperties = {}, key,
                 combo = this.getForm().query('combo[itemId="deviceType"]')[0],
                 grid = this.getGrid();
             // allow either commas to separate or new lines or both
@@ -300,6 +300,9 @@
             Zenoss.remote.JobsRouter.deleteJobs({
                 jobids: [record.get('uuid')]
             }, function(response) {
+                if (!response.success) {
+                    return;
+                }
                 if (record.get('status') !== "PENDING") {
                     Zenoss.remote.DeviceRouter.removeDevices({
                         uids: [record.get('deviceUid')],

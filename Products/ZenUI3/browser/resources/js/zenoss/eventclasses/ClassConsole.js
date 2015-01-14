@@ -36,13 +36,11 @@ Ext.onReady(function(){
 
             // if instances is in the path, then its NOT an organizer. Hope no-one ever
             // calls an event class 'instances'
-            isOrganizer = e.records[0].get("uid").indexOf('/instances/') == -1;
+            isOrganizer = e.records[0].get("uid").indexOf('/instances/') === -1;
 
             for(var i=0; e.records.length > i; i++){
                 movedids.push(e.records[i].get("uid"));
             }
-
-            var type = isOrganizer ? "Event Class" : "Mapped Instance";
 
             message = _t("Are you sure you want to move these items?");
 
@@ -56,7 +54,7 @@ Ext.onReady(function(){
                         var refresh = function(refreshGrid){
                             var tree = getSelectionModel().getSelectedNode().getOwnerTree();
                             tree.refresh();
-                            tree.getStore().on('load', function(s){
+                            tree.getStore().on('load', function(){
                                 var nodeId = targetnode.data.uid;
                                 var node = tree.getRootNode().findChild("uid", nodeId, true);
                                 tree.expandToChild(node);
@@ -65,7 +63,7 @@ Ext.onReady(function(){
                             if(refreshGrid){
                                 grid.refresh();
                             }
-                        }
+                        };
                         var params = {
                             UidsToMove: movedids,
                             targetUid: targetuid
@@ -115,7 +113,9 @@ Ext.onReady(function(){
             return Ext.getCmp('class_center_panel').items.items[Ext.getCmp('nav_combo').getSelectedIndex()];
         },
         setTransIcon: function(isTrans){
-            if(isTrans == this.getSelectionModel().getSelectedNode().data.text.hasTransform) return false;
+            if(isTrans === this.getSelectionModel().getSelectedNode().data.text.hasTransform) {
+                return false;
+            }
             this.refresh();
         },
         columns:[
@@ -132,7 +132,7 @@ Ext.onReady(function(){
                         var xfdesc  = value.hasTransform ? 'Has Transform' : 'Has no Transform';
 
                         var xform = Ext.String.format(" <span class='{0}' title='{1}'></span>", xfclass,xfdesc);
-                        if(parentNode.data.root == true){
+                        if(parentNode.data.root === true){
                             return Ext.String.format("{2}<span title='{0}' class='rootNode'>{1}</span>", value.description, value.text, xform);
                         }else{
                             return Ext.String.format("{2}<span title='{0}' class='subNode'>{1}</span>", value.description, value.text, xform);
@@ -143,7 +143,7 @@ Ext.onReady(function(){
         selModel: Ext.create('Zenoss.TreeSelectionModel',{
             tree: 'classes',
             listeners: {
-                selectionchange: function(sm, newnodes, oldnode){
+                selectionchange: function(sm, newnodes){
                     if (newnodes.length) {
                         var newnode = newnodes[0];
                         var uid = newnode.data.uid;
@@ -160,7 +160,7 @@ Ext.onReady(function(){
         }),
         router: REMOTE,
         nodeName: 'EventClass',
-        deleteNodeFn: function(args, callback) {
+        deleteNodeFn: function(args) {
             var parentNodeProcess = args.uid.split("/");
             parentNodeProcess.pop();
             var parentNode = parentNodeProcess.join("/");
@@ -168,7 +168,7 @@ Ext.onReady(function(){
                 if(response.success){
                     var tree = getSelectionModel().getSelectedNode().getOwnerTree();
                     tree.refresh();
-                    tree.getStore().on('load', function(s){
+                    tree.getStore().on('load', function(){
                         var node = tree.getRootNode().findChild("uid", parentNode, true);
                         tree.expandToChild(node);
                         tree.getView().select(node);
@@ -316,7 +316,7 @@ Ext.onReady(function(){
     function getOrganizerFields(mode) {
         var items = [];
 
-        if ( mode == 'add' ) {
+        if ( mode === 'add' ) {
             items.push({
                 xtype: 'textfield',
                 id: 'add_id',
@@ -341,7 +341,9 @@ Ext.onReady(function(){
         });
 
         var rootId = classtree.root.id;// sometimes the page loads with nothing selected and throws error. Need a default.
-        if(getSelectionModel().getSelectedNode()) rootId = getSelectionModel().getSelectedNode().getOwnerTree().root.id;
+        if(getSelectionModel().getSelectedNode()) {
+            rootId = getSelectionModel().getSelectedNode().getOwnerTree().root.id;
+        }
         return items;
     }
 
@@ -366,7 +368,7 @@ Ext.onReady(function(){
                     rootId = tree.getRootNode().data.id,
 
                     msg = _t('Are you sure you want to delete the {0} {1}? <br/>There is <strong>no</strong> undo.');
-                if (rootId==classtree.root.id) {
+                if (rootId===classtree.root.id) {
                     msg = [msg, '<br/><br/><strong>',
                            _t('WARNING'), '</strong>:',
                            _t(' This will also delete all classes in this {0}.'),
@@ -395,7 +397,7 @@ Ext.onReady(function(){
                 onSetContext: function(uid) {
                     Zenoss.env.PARENT_CONTEXT = uid;
                 },
-                onGetMenuItems: function(uid) {
+                onGetMenuItems: function() {
                     var menuItems = [];
                     menuItems.push({
                         xtype: 'menuitem',
@@ -412,17 +414,14 @@ Ext.onReady(function(){
                                 REMOTE.editEventClassDescription({'uid':node.get("uid"),'description':values.description}, function(response){
                                     if(response.success){
                                         var tree = getSelectionModel().getSelectedNode().getOwnerTree();
-                                        var nodeId = node.getId();
                                         tree.refresh();
-                                        tree.getStore().on('load', function(s){
-                                            var path = tree.getRootNode().findChild("uid", nodeId, true);
+                                        tree.getStore().on('load', function(){
                                             tree.expandToChild(node);
-
                                         }, this, {single:true});
                                     }
                                 });
                             });
-                            dialog.on('beforerender', function(d){
+                            dialog.on('beforerender', function(){
                                 Ext.getCmp('description_id').setValue(node.data.text.description);
                             });
                             dialog.show();

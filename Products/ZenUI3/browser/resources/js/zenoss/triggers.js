@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 Ext.ns('Zenoss.ui.Triggers');
@@ -15,40 +15,27 @@ Ext.onReady(function () {
         ZFR = Zenoss.form.rule,
         STRINGCMPS = ZFR.STRINGCOMPARISONS,
         NUMCMPS = ZFR.NUMBERCOMPARISONS,
-        addNotificationDialogue,
-        addNotificationDialogueConfig,
         addScheduleDialogue,
         addScheduleDialogueConfig,
         addTriggerDialogue,
-        colModel,
-        colModelConfig,
         detailPanelConfig,
         displayEditTriggerDialogue,
         displayNotificationEditDialogue,
         displayScheduleEditDialogue,
-        EditNotificationDialogue,
-        editNotificationDialogue,
-        editNotificationDialogueConfig,
         editScheduleDialogue,
         editScheduleDialogueConfig,
         editTriggerDialogue,
-        EditTriggerDialogue,
         masterPanelConfig,
         masterPanelTreeStore,
         navSelectionModel,
-        NotificationPageLayout,
         notificationPanelConfig,
         notificationsPanelConfig,
-        NotificationSubscriptions,
         notification_panel,
-        PageLayout,
         reloadNotificationGrid,
         reloadScheduleGrid,
         reloadTriggersGrid,
-        SchedulesPanel,
         schedulesPanelConfig,
         schedules_panel,
-        TriggersGridPanel,
         triggersPanelConfig,
         disableTabContents;
 
@@ -89,7 +76,6 @@ Ext.onReady(function () {
                         labelWidth: 40
                     },
                     items:[{
-                        xtype: 'textfield',
                         xtype: 'idfield',
                         name: 'newId',
                         context: '/zport/dmd/Triggers',
@@ -114,7 +100,6 @@ Ext.onReady(function () {
                          * context.
                          */
                         handler: function(button) {
-                            var form = button.refOwner.addForm;
                             // prevent further clicking
                             button.setDisabled(true);
                             if (config.submitHandler) {
@@ -134,7 +119,7 @@ Ext.onReady(function () {
                         ui: 'dialog-dark',
                         ref: '../../cancelButton',
                         text: _t('Cancel'),
-                        handler: function(button) {
+                        handler: function() {
                             me.hide();
                         }
                     }]}
@@ -273,7 +258,6 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 tbar: [{
                         xtype: 'combo',
                         ref: 'usersCombo',
-                        id: 'userprem_user_combo',
                         typeAhead: true,
                         triggerAction: 'all',
                         lazyRender:true,
@@ -292,7 +276,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         text: 'Add',
                         ref: 'add_button',
                         id: 'userperm_add_user_button',
-                        handler: function(btn, event) {
+                        handler: function() {
                             me.addValueFromCombo();
                         }
                     },{
@@ -300,7 +284,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         ref: 'delete_button',
                         id: 'userperm_delete_user_button',
                         iconCls: 'delete',
-                        handler: function(btn, event) {
+                        handler: function() {
                             var rows = me.getSelectionModel().getSelection();
                             if (rows.length){
                                 var row = rows[0];
@@ -372,7 +356,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 row,
                 type = 'manual',
                 label;
-            if (idx != -1) {
+            if (idx !== -1) {
                 row = cb.store.getAt(idx);
             }
 
@@ -386,13 +370,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             }
 
 
-            if (!this.allowManualEntry && type == 'manual') {
+            if (!this.allowManualEntry && type === 'manual') {
                 Zenoss.message.error(_t('Manual entry not permitted.'));
             }
             else {
                 var existingIndex = this.getStore().findExact('value', val);
 
-                if (!Ext.isEmpty(val) && existingIndex == -1) {
+                if (!Ext.isEmpty(val) && existingIndex === -1) {
                     var record = new Zenoss.triggers.PermissionGridModel({
                         type:type,
                         value:val,
@@ -400,13 +384,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         write:false,
                         manage: false
                     });
-                    this.getStore().add(record); 
+                    this.getStore().add(record);
                     cb.clearValue();
                 }
-                else if (existingIndex != -1) {
+                else if (existingIndex !== -1) {
                     Zenoss.message.error(_t('Duplicate items not permitted.'));
                 }
-                           
+
             }
 
         },
@@ -443,7 +427,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 frame: false,
                 style:{'left':'2px'},
                 loadData: function(data) {
-                    Ext.each(this.items.items, function(item, index, allitems) {
+                    Ext.each(this.items.items, function(item) {
                         item.loadData(data);
                     });
                 }
@@ -453,8 +437,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
     });
 
     displayNotificationEditDialogue = function(data) {
-        var tab_notification, tab_content, tab_subscriptions;
-        var _width, _height;
+        var tab_notification, tab_content;
 
         tab_content = new NotificationTabContent({
             layout: 'anchor',
@@ -482,13 +465,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             ref: 'notification_tab',
         listeners: {
             render: function(){
-                if(Zenoss.SELENIUM){            
+                if(Zenoss.SELENIUM){
                     Ext.getDom(this.tab.btnEl.id).id = "notifications_notification_tab_button";
                     Ext.getDom(this.tab.tabBar.items.items[1].btnEl.id).id = "notifications_content_tab_button";
                     Ext.getDom(this.tab.tabBar.items.items[2].btnEl.id).id = "notifications_subscribers_tab_button";
-                 }   
+                 }
             }
-        },            
+        },
             items: [
                 {
                     xtype: 'panel',
@@ -787,13 +770,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             params.subscriptions = [];
                             Ext.each(
                                 button.refOwner.tabPanel.notification_tab.subscriptions.getStore().getRange(),
-                                function(item, index, allItems) {
+                                function(item) {
                                     params.subscriptions.push(item.data.uuid);
                                 }
                             );
                             Ext.each(
                                 button.refOwner.tabPanel.recipients_tab.recipients_grid.getStore().getRange(),
-                                function(item, index, allItems){
+                                function(item){
                                     params.recipients.push(item.data);
                                 }
                             );
@@ -940,8 +923,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             Zenoss.trigger.EditScheduleDialogue.superclass.constructor.apply(this, arguments);
         },
         loadData: function(data) {
-            Ext.each(this.editForm.items.items, function(item, index, allitems) {
-                item.setValue(eval('data.'+item.name));
+            Ext.each(this.editForm.items.items, function(item) {
+                item.setValue(data[item.name]);
             });
         }
     });
@@ -1014,7 +997,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     forceFit: true
                 },
                 listeners: {
-                    itemdblclick: function(grid, rowIndex, event){
+                    itemdblclick: function(grid){
                         var row = grid.getSelectionModel().getSelected();
                         if (row) {
                             displayNotificationEditDialogue(row.data);
@@ -1023,7 +1006,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 },
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        select: function(sm, record, rowIndex) {
+                        select: function(sm) {
                             var rows = sm.getSelection(),
                                 row,
                                 panel = Ext.getCmp(schedulesPanelConfig.id);
@@ -1035,7 +1018,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             panel.disableButtons(false);
                             me.customizeButton.setDisabled(false);
                         },
-                        deselect: function(sm, record, rowIndex) {
+                        deselect: function() {
                             Ext.getCmp(schedulesPanelConfig.id).disableButtons(true);
                             me.customizeButton.setDisabled(true);
                         }
@@ -1061,11 +1044,11 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     sortable: true,
                     // use a fancy renderer that get's it's display value
                     // from the store that already has the triggers.
-                    renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                    renderer: function(value) {
                         var triggerList = [];
                         Ext.each(
                             value,
-                            function(item, index, allItems) {
+                            function(item) {
                                 if (item) {
                                     triggerList.push(item.name);
                                 }
@@ -1081,7 +1064,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     dataIndex: 'recipients',
                     header: _t('Subscribers'),
                     sortable: true,
-                    renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                    renderer: function(value, metaData, record) {
                         return record.data.recipients.length || 0;
                     }
                 }],
@@ -1091,7 +1074,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     ref: '../addButton',
                     id: 'notifications_panel_add_button',
                     disabled: Zenoss.Security.doesNotHavePermission("Update Notification"),
-                    handler: function(button) {
+                    handler: function() {
                         displayNotificationAddDialogue();
                     }
                 },{
@@ -1107,7 +1090,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             params,
                             callback;
                         if (rows.length) {
-                            row = rows[0]; 
+                            row = rows[0];
                         }
                         if (row){
                             uid = row.data.uid;
@@ -1122,7 +1105,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                         params = {
                                             uid:uid
                                         };
-                                        callback = function(response){
+                                        callback = function(){
                                             var panel = Ext.getCmp(schedulesPanelConfig.id);
                                             panel.getStore().removeAll();
                                             panel.disableButtons(true);
@@ -1213,13 +1196,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 store: Ext.create('Zenoss.triggers.TriggersStore', {}),
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        select: function(sm, record, rowIndex) {
+                        select: function() {
                             // enable/disabled the edit button
-                            var disable = Zenoss.Security.doesNotHavePermission("Update Trigger"); 
+                            var disable = Zenoss.Security.doesNotHavePermission("Update Trigger");
                             me.deleteButton.setDisabled(disable);
                             me.customizeButton.setDisabled(false);
                         },
-                        deselect: function(sm, record, rowIndex) {
+                        deselect: function() {
                             me.deleteButton.setDisabled(true);
                             me.customizeButton.setDisabled(true);
                         }
@@ -1227,14 +1210,14 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 }),
                 listeners: {
                     afterrender: function(t){
-                        if(Zenoss.SELENIUM){ 
+                        if(Zenoss.SELENIUM){
                             Ext.defer(function(){
                                var table = Ext.get(t.getView().el.id).query('table');
                                table[0].id = "trigger_grid_table";
-                            }, 1000);    
+                            }, 1000);
                          }
                     },
-                    itemdblclick: function(grid, rowIndex, event) {
+                    itemdblclick: function(grid) {
                         var rows = grid.getSelectionModel().getSelection();
                         if (rows.length) {
                             displayEditTriggerDialogue(rows[0].data);
@@ -1248,7 +1231,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         id: 'add__new_trigger_button',
                         disabled: Zenoss.Security.doesNotHavePermission('Manage Trigger'),
                         ref: '../addButton',
-                        handler: function(button) {
+                        handler: function() {
                             addTriggerDialogue.show();
                         }
                     },{
@@ -1257,7 +1240,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         id: 'delete_old_trigger_button',
                         disabled: Zenoss.Security.doesNotHavePermission('Manage Trigger'),
                         ref: '../deleteButton',
-                        handler: function(button) {
+                        handler: function() {
                             var rows = me.getSelectionModel().getSelection(),
                                 row,
                                 uuid, params, callback;
@@ -1276,7 +1259,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                                 params= {
                                                     uuid:uuid
                                                 };
-                                                callback = function(response){
+                                                callback = function(){
                                                     // item removed, reload grid.
                                                     me.deleteButton.setDisabled(true);
                                                     me.customizeButton.setDisabled(true);
@@ -1299,7 +1282,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         id: 'trigger_gear_btn',
                         disabled:true,
                         ref: '../customizeButton',
-                        handler: function(button){
+                        handler: function(){
                             var rows = me.getSelectionModel().getSelection();
                             if (rows.length) {
                                 displayEditTriggerDialogue(rows[0].data);
@@ -1310,7 +1293,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             });
             this.callParent(arguments);
         },
-        setContext: function(uid) {
+        setContext: function() {
             // triggers are not context aware.
             this.getStore().load();
         }
@@ -1371,14 +1354,14 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     forceFit: true
                 },
                 listeners: {
-                    itemdblclick: function(grid, rowIndex, event){
+                    itemdblclick: function(grid){
                         var row = grid.getSelectionModel().getSelected();
                         if (row) {
                             displayScheduleEditDialogue(row.data);
                         }
                     },
                     viewready: function(t){
-                        if(Zenoss.SELENIUM){ 
+                        if(Zenoss.SELENIUM){
                             Ext.defer(function(){
                                var table = Ext.get(t.getView().el.id).query('table');
                                table[0].id = "schedules_panel_grid_table";
@@ -1388,18 +1371,17 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                     var table = Ext.get(t.getView().el.id).query('table');
                                     table[0].id = "schedules_panel_grid_table";
                                 }, 1000);
-                            });  
-                        }    
+                            });
+                        }
                     }
                 },
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        select: function(sm, record, rowIndex) {
-                            var row = sm.getSelected();
+                        select: function() {
                             var disable = Zenoss.Security.doesNotHavePermission("Update Notification");
                             me.customizeButton.setDisabled(disable);
                         },
-                        deselect: function(sm, record, rowIndex) {
+                        deselect: function() {
                             me.customizeButton.setDisabled(true);
                         }
                     }
@@ -1432,7 +1414,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     ref: '../addButton',
                     id: 'schedules_panel_add_button',
                     disabled: true,
-                    handler: function(button) {
+                    handler: function() {
                         addScheduleDialogue.show();
                     }
                 },{
@@ -1627,8 +1609,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         if(Zenoss.SELENIUM){
                             Ext.defer(function(){
                                 var nodes = f.getView().getNodes();
-                                Ext.each(nodes, function(item, index, allNodes) {
-                                    item.id = "trigger_tree_tr_"+index; 
+                                Ext.each(nodes, function(item, index) {
+                                    item.id = "trigger_tree_tr_"+index;
                                     Ext.get(item.id).query('div')[0].id = 'trigger_tree_tr_div_'+index;
                                 });
                             }, 1000);
@@ -1910,7 +1892,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 if(Zenoss.SELENIUM){
                     Ext.getDom(this.tab.btnEl.id).id = "trigger_tab_button";
                     Ext.getDom(this.tab.tabBar.items.items[1].btnEl.id).id = "users_tab_button";
-                }    
+                }
             }
         },
         padding: 10,
@@ -2076,7 +2058,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
 
                                     Ext.each(
                                         tab_users.users_grid.getStore().getRange(),
-                                        function(item, index, allItems){
+                                        function(item){
                                             params.users.push(item.data);
                                         }
                                     );

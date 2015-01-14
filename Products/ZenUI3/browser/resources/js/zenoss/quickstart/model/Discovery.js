@@ -7,7 +7,6 @@
  *
  ****************************************************************************/
 (function(){
-    var router = Zenoss.remote.JobsRouter;
 
     Ext.define('Zenoss.quickstart.Wizard.model.JobRecord', {
         extend: 'Ext.data.Model',

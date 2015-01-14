@@ -76,8 +76,10 @@
                 };
             if (params.id) {
                 router.addUser(params, function(response) {
-                    this.saveAdminPassword();
-                    this.loginAsUser();
+                    if (response.success) {
+                        this.saveAdminPassword();
+                        this.loginAsUser();
+                    }
                 }, this);
             } else {
                 // will redirect to step 0

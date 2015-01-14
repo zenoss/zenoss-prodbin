@@ -21,12 +21,11 @@ Ext.onReady(function(){
         }else{
             baseid = data.uid.split("/products/")[0];
         }
-        var addhandler, uid, config, dialog, newEntry;
-        var labelmargin = '5px 5px 0 0';
-        newEntry = (data == "");
+        var addhandler, config, dialog, newEntry;
+        newEntry = (data === "");
         var xtraData = {};
         addhandler = function() {
-            var c = dialog.getForm().getForm().getValues(), value;
+            var c = dialog.getForm().getForm().getValues();
             var params = {
                 uid:                    baseid,
                 prodname:               c.name,
@@ -49,30 +48,30 @@ Ext.onReady(function(){
                 Zenoss.remote.ManufacturersRouter.editProduct({'params':params}, function(response){
                     if (response.success) {
                         if (grid) {
-                            if(originalManufacturer == mancombo.getValue()){
+                            if(originalManufacturer === mancombo.getValue()){
                                 grid.refresh();
                             }
                         }
                     }
                 });
                 var moveTarget = "/zport/dmd/Manufacturers/"+mancombo.getValue();
-                if(originalManufacturer != mancombo.getValue()){
-                        var params = {
-                            'moveFrom': "/zport/dmd/Manufacturers/"+oldMan,
-                            'moveTarget': moveTarget,
-                            'ids': [c.name]
-                        };
-                        Zenoss.remote.ManufacturersRouter.moveProduct(params, function(response){
-                            if(response.success) {
-                                var tree = Ext.getCmp('manufacturers_tree');
-                                tree.refresh();
-                                tree.getStore().on('load', function(s){
-                                    var nodeId = moveTarget;
+                if(originalManufacturer !== mancombo.getValue()){
+                    params = {
+                        'moveFrom': "/zport/dmd/Manufacturers/"+originalManufacturer,
+                        'moveTarget': moveTarget,
+                        'ids': [c.name]
+                    };
+                    Zenoss.remote.ManufacturersRouter.moveProduct(params, function(response){
+                        if(response.success) {
+                            var tree = Ext.getCmp('manufacturers_tree');
+                            tree.refresh();
+                            tree.getStore().on('load', function(){
+                                var nodeId = moveTarget;
                                     var node = tree.getRootNode().findChild("uid", nodeId, true);
-                                    tree.getView().select(node);
-                                }, this, {single:true});
-                            }
-                        });
+                                tree.getView().select(node);
+                            }, this, {single:true});
+                        }
+                    });
                 }
 
             }
@@ -98,7 +97,7 @@ Ext.onReady(function(){
                                 instancegrid.store.setBaseParam('id', data.id);
                                 instancegrid.setContext(baseid);
                                 var combo = Ext.getCmp('prodtype');
-                                if(data.type == "Hardware"){
+                                if(data.type === "Hardware"){
                                     combo.store.filter([{
                                         filterFn: function(record) {
                                             return record.get('name') === 'Hardware';
@@ -115,7 +114,7 @@ Ext.onReady(function(){
                                 e.setTitle(Ext.String.format(_t("Edit Product Info for: {0}"), data.id));
                                 var fields = e.getForm().getForm().getFields();
                                 fields.findBy(
-                                    function(record, id){
+                                    function(record){
                                         switch(record.getName()){
                                             case "name"             : record.setValue(xtraData.name);  break;
                                             case "productname"      : record.setValue(xtraData.name);  break;
@@ -163,7 +162,7 @@ Ext.onReady(function(){
                     id: 'blackTabs',
                     listeners: {
                         'afterrender': function(p){
-                            if(data['whichPanel'] == 'configprops'){
+                            if(data.whichPanel === 'configprops'){
                                 p.setActiveTab(1);
                             }
                         }
@@ -340,7 +339,7 @@ Ext.onReady(function(){
                                 iconCls: 'add',
                                 hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                                 tooltip: _t('Add a new product to this manufacturer'),
-                                handler: function(button) {
+                                handler: function() {
                                     var grid = Ext.getCmp("productsgrid_id");
                                     Zenoss.manufacturers.productsDialog(grid);
                                 }
@@ -349,7 +348,7 @@ Ext.onReady(function(){
                                 iconCls: 'delete',
                                 hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                                 tooltip: _t('Delete selected items'),
-                                handler: function(button) {
+                                handler: function() {
                                     var grid = Ext.getCmp("productsgrid_id"),
                                         data = [],
                                         selected = grid.getSelectionModel().getSelection();
@@ -367,10 +366,8 @@ Ext.onReady(function(){
                                             text: _t('OK'),
                                             handler: function() {
                                                 Zenoss.remote.ManufacturersRouter.removeProducts({'products':data}, function(response){
-                                                    if (response.success) {
+                                                    if (response.succesws) {
                                                         grid.refresh();
-                                                        var bar = Ext.getCmp('products_toolbar');
-                                                        //bar.items.items[2].setDisabled(false);
                                                     }
                                                 });
                                             }
@@ -384,7 +381,7 @@ Ext.onReady(function(){
                                 xtype: 'button',
                                 iconCls: 'customize',
                                 tooltip: _t('View and/or Edit selected'),
-                                handler: function(button) {
+                                handler: function() {
                                     var grid = Ext.getCmp("productsgrid_id"),
                                         data,
                                         selected = grid.getSelectionModel().getSelection();
@@ -403,7 +400,7 @@ Ext.onReady(function(){
                 store: Ext.create('Zenoss.productsgrid.Store', {}),
                 listeners: {
                     afterrender: function(e){
-                        e.getStore().on('load', function(f){
+                        e.getStore().on('load', function(){
                             Ext.getCmp('products_toolbar').setDisabled(false);
                         });
                     },
@@ -468,7 +465,7 @@ Ext.onReady(function(){
             var uid = Ext.Object.fromQueryString("uid=" + id).uid;
             var idx = this.getStore().findExact('uid', uid), record, view = this.getView();
 
-            if (idx != -1) {
+            if (idx !== -1) {
                 record = this.getStore().getAt(idx);
                 this.getSelectionModel().select(record);
                 view.focusRow(idx);
@@ -479,7 +476,7 @@ Ext.onReady(function(){
             // load the grid's store
             this.callParent(arguments);
         },
-        onRowDblClick: function(grid, rowIndex, e) {
+        onRowDblClick: function() {
             var data,
                 selected = this.getSelectionModel().getSelection();
             if (!selected) {
@@ -579,12 +576,12 @@ Ext.onReady(function(){
             });
             this.callParent(arguments);
         },
-        onCodeeditorfieldRender: function(abstractcomponent, options) {
+        onCodeeditorfieldRender: function(abstractcomponent) {
             var me = this;
             var element = document.getElementById(abstractcomponent.getInputId());
             this.editor = CodeMirror.fromTextArea(element, {'lineNumbers':true});
-            this.editor.on('cursorActivity', function(ce){
-                if (me.getValue() != me.originalValue){
+            this.editor.on('cursorActivity', function(){
+                if (me.getValue() !== me.originalValue){
                     me.ownerCt.getDockedItems()[0].addCls('edited_feedback');
                 }else{
                     me.ownerCt.getDockedItems()[0].removeCls('edited_feedback');

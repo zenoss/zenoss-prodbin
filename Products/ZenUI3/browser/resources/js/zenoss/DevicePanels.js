@@ -212,7 +212,7 @@ Ext.define("Zenoss.DeviceGridSelectionModel", {
      * @param record {Zenoss.device.DeviceModel}
      * @param index {Integer}
      */
-    _includeRecord: function(sm, record, index) {
+    _includeRecord: function(sm, record) {
         if (record && this._selectAll) {
             delete this._excludedRecords[record.getId()];
         }
@@ -228,7 +228,7 @@ Ext.define("Zenoss.DeviceGridSelectionModel", {
      * @param record {Zenoss.device.DeviceModel}
      * @param index {Integer}
      */
-    _excludeRecord: function(sm, record, index) {
+    _excludeRecord: function(sm, record) {
         if (record && this._selectAll) {
             this._excludedRecords[record.getId()] = true;
         }
@@ -446,7 +446,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
             applyOptions: function(values) {
                 Ext.applyIf(values, funcs.fetcher());
             },
-            title: msg == "" ? _t("Lock Device") : _t("Lock Devices"),
+            title: msg === "" ? _t("Lock Device") : _t("Lock Devices"),
             message: msg,
             updatesChecked: locking.updates,
             deletionChecked: locking.deletion,
@@ -498,7 +498,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                             var sel = fetcher().uids,
                                 funcs = {'fetcher': fetcher, 'saveHandler': saveHandler, 'REMOTE': REMOTE};
 
-                                if(sel.length == 0){
+                                if(sel.length === 0){
                                     Zenoss.message.warning(_t("Please select 1 or more devices to lock"));
                                     return;
                                 }
@@ -679,7 +679,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                             var opts = Ext.apply(fetcher(), {
                                                 collector: Ext.getCmp('collector').getValue()
                                             });
-                                            opts['asynchronous'] = Zenoss.settings.deviceMoveIsAsync(opts.uids);
+                                            opts.asynchronous = Zenoss.settings.deviceMoveIsAsync(opts.uids);
                                             REMOTE.setCollector(opts, saveHandler);
                                         }
                                     }, Zenoss.dialog.CANCEL

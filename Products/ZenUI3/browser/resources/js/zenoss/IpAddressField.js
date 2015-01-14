@@ -4,16 +4,21 @@ Ext.ns('Zenoss');
 
 function makeIpAddress(val) {
     var octets = val.split('.');
-    if(octets.length>4)
+    if(octets.length>4) {
         return false;
+    }
     while(octets.length < 4) {
         octets.push('0');
     }
     for(var i=0;i<octets.length;i++) {
         var octet=parseInt(octets[i], 10);
-        if (!octet && octet!==0) return false;
+        if (!octet && octet!==0) {
+            return false;
+        }
         try {
-            if (octet>255) return false;
+            if (octet>255) {
+                return false;
+            }
         } catch(e) {
             return false;
         }
@@ -22,9 +27,6 @@ function makeIpAddress(val) {
     return octets.join('.');
 }
 
-function count(of, s) {
-    return of.split(s).length-1;
-}
 
 /**
  * @class Zenoss.IpAddressField
@@ -43,20 +45,22 @@ Ext.define("Zenoss.IpAddressField", {
             return;
         }
         e.stopEvent();
-        var full, result, newoctet,
+        var result, newoctet,
             cursor = dom.selectionStart,
             selend = dom.selectionEnd,
             beg = dom.value.substring(0, cursor),
             end = dom.value.substring(selend),
             s = String.fromCharCode(e.getCharCode());
-        if (s=='.') {
+        if (s==='.') {
             result = beg + end;
             cursor += end.indexOf('.');
             newoctet = end.split('.')[1];
-            if (selend==cursor+1)
+            if (selend===cursor+1) {
                 cursor++;
-            if(newoctet)
+            }
+            if(newoctet) {
                 dom.setSelectionRange(cursor+1, cursor+newoctet.length+1);
+            }
         } else {
             result = makeIpAddress(beg + s + end);
             if (result) {

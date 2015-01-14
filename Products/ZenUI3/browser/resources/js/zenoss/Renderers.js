@@ -58,15 +58,15 @@ function pingStatusBase(bool) {
      * We need to handle all cases and also make sure they are
      * handled in proper order.
      */
-    if (bool == null || !Ext.isDefined(bool)) {
+    if (bool === null || !Ext.isDefined(bool)) {
         return 'Unknown';
     }
 
     if(Ext.isString(bool)){
-        if(bool.toLowerCase() == "none"){
+        if(bool.toLowerCase() === "none"){
             return 'Unknown';
         }else{
-            bool = bool.toLowerCase() == 'up';
+            bool = bool.toLowerCase() === 'up';
         }
     }
 
@@ -135,7 +135,7 @@ Ext.apply(Zenoss.render, {
         if (Ext.isObject(ip)) {
             ip = ip.name;
         }
-        if (!ip||ip=='0.0.0.0') {
+        if (!ip||ip==='0.0.0.0') {
             return '';
         }
         return Ext.isString(ip) ? ip : Zenoss.util.num2dot(ip);
@@ -287,13 +287,13 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.link(null, uid, name);
     },
 
-    linkFromGrid: function(value, metaData, record) {
+    linkFromGrid: function(value) {
         var item;
-        if (typeof(value == 'object')) {
+        if (typeof(value === 'object')) {
             item = value;
-            if(item == null){
+            if(item === null){
                 return value;
-            }else if(item.url != null) {
+            }else if(item.url !== null) {
                 return Zenoss.render.link(null, item.url, item.text);
             }else if(item.uid) {
                 return Zenoss.render.link(item.uid, null, item.text);
@@ -303,7 +303,7 @@ Ext.apply(Zenoss.render, {
         return Ext.htmlEncode(value);
     },
 
-    LinkFromGridGuidGroup: function(name, col, record) {
+    LinkFromGridGuidGroup: function(name) {
         if (!name) {
             return name;
         }
@@ -317,12 +317,12 @@ Ext.apply(Zenoss.render, {
         return results.join(" | ");
     },
 
-    LinkFromGridUidGroup: function(name, col, record) {
+    LinkFromGridUidGroup: function(name) {
         if (!name) {
             return name;
         }
 
-        var url, results = [];
+        var results = [];
         Ext.each(name, function(item) {
             results.push(Zenoss.render.default_uid_renderer(item.uid, item.name));
         });
@@ -331,18 +331,21 @@ Ext.apply(Zenoss.render, {
     },
 
     componentLinkFromGrid: function(obj, col, record) {
-        if (!obj)
+        if (!obj) {
             return;
+        }
 
-        if (typeof(obj) == 'string')
+        if (typeof(obj) === 'string') {
             obj = record.data;
+        }
 
-        if (!obj.title && obj.name)
+        if (!obj.title && obj.name) {
             obj.title = obj.name;
+        }
 
-        if (this.subComponentGridPanel || this.componentType != obj.meta_type)
+        if (this.subComponentGridPanel || this.componentType !== obj.meta_type) {
             return '<a href="javascript:Ext.getCmp(\'component_card\').componentgrid.jumpToEntity(\''+obj.uid+'\', \''+obj.meta_type+'\');">'+obj.title+'</a>';
-
+        }
         return obj.title;
     },
 
@@ -355,7 +358,9 @@ Ext.apply(Zenoss.render, {
         var value = uid.replace(/^\/zport\/dmd\/Devices/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#devices:.zport.dmd.Devices' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
+        if (!Ext.isString(name)) {
+            name = value;
+        }
         return Zenoss.render.link(null, url, name);
     },
 
@@ -363,7 +368,9 @@ Ext.apply(Zenoss.render, {
         var value = uid.replace(/^\/zport\/dmd\/Locations/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#locs:.zport.dmd.Locations' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
+        if (!Ext.isString(name)) {
+            name = value;
+        }
         return Zenoss.render.link(null, url, name);
     },
 
@@ -371,14 +378,18 @@ Ext.apply(Zenoss.render, {
         var value = uid.replace(/^\/zport\/dmd\/Groups/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#groups:.zport.dmd.Groups' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
+        if (!Ext.isString(name)) {
+            name = value;
+        }
         return Zenoss.render.link(null, url, name);
     },
     DeviceSystem: function(uid, name) {
         var value = uid.replace(/^\/zport\/dmd\/Systems/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#systems:.zport.dmd.Systems' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
+        if (!Ext.isString(name)) {
+            name = value;
+        }
         return Zenoss.render.link(null, url, name);
     },
 
@@ -395,7 +406,7 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.default_uid_renderer(uid, name);
     },
 
-    IpServiceClass: function(value, metadata, record, rowIndex, colIndex, store) {
+    IpServiceClass: function(value, metadata, record) {
         // this is intended to set directly as a column renderer instead of
         // using Types.js. See the Ext.grid.ColumnModel.setRenderer
         // documentation
@@ -403,7 +414,7 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.serviceClass('ipservice', uid, value);
     },
 
-    WinServiceClass: function(value, metadata, record, rowIndex, colIndex, store) {
+    WinServiceClass: function(value, metadata, record) {
         // this is intended to set directly as a column renderer instead of
         // using Types.js. See the Ext.grid.ColumnModel.setRenderer
         // documentation
@@ -416,7 +427,7 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.link(null, url, name);
     },
 
-    nextHop: function(value, metadata, record, rowIndex, colIndex, store) {
+    nextHop: function(value){
         var link = "";
         if (value && value.uid && value.id) {
             link += Zenoss.render.IpAddress(value.uid, value.id);
@@ -456,9 +467,9 @@ Ext.apply(Zenoss.render, {
         }
         return Zenoss.render.link(null, url, name);
     },
-    eventSummaryRow:function (data, metadata, record, rowIndex, columnIndex, store){
+    eventSummaryRow:function (data, metadata, record){
         var msg = record.data.message;
-        if (!msg || msg == "None" ) {
+        if (!msg || msg === "None" ) {
             msg = record.data.summary;
         }
         msg = Ext.htmlEncode(msg);

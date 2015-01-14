@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -30,7 +30,7 @@ Ext.define("Zenoss.DisplayField", {
 Ext.define("Zenoss.EditorWithButtons", {
     extend: "Ext.Editor",
     alias: ['widget.btneditor'],
-    onRender: function(ct, position) {
+    onRender: function() {
         Zenoss.EditorWithButtons.superclass.onRender.apply(this, arguments);
         this.editorpanel = new Ext.Panel({
             frame: true,
@@ -90,7 +90,7 @@ Ext.define("Zenoss.EditableField", {
         if (Ext.isIE) {
             ed.field.origSetValue = ed.field.setValue;
             ed.field.setValue = Ext.bind(function(v){
-                v = v.replace(/\<BR\>/g, '\n');
+                v = v.replace(/<BR\>/g, '\n');
                 return this.origSetValue(v);
             }, ed.field);
         }

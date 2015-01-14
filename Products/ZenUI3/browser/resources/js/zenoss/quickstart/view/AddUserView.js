@@ -15,7 +15,7 @@
         password: function(val, field) {
             if (field.initialPassField) {
                 var pwd = Ext.getCmp(field.initialPassField);
-                return (val == pwd.getValue());
+                return (val === pwd.getValue());
             }
         },
         passwordText: _t("The passwords you've typed don't match.")

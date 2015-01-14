@@ -37,7 +37,7 @@
                     click: this.saveDaemonConfigurationFiles
                 },
                 'daemonsdetails button[ref="configCancelBtn"]': {
-                    click: function(btn) {
+                    click: function() {
                         this.getConfigFiles().getForm().reset();
                     }
                 }
@@ -185,7 +185,6 @@
             var selected = this.selected,
                 configPanel = this.getConfigFiles(),
                 el = configPanel.getEl(),
-                file,
                 items =[],
                 i;
             if (el && el.isMasked()) {

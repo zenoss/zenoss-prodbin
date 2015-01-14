@@ -15,7 +15,7 @@ Ext.ns('Zenoss');
 var REMOTE = Zenoss.remote.JobsRouter;
 
 function lengthOrZero(o) {
-    return o==null ? 0 : o;
+    return o===null ? 0 : o;
 }
 
 function isObjectEmpty(o) {
@@ -182,7 +182,7 @@ Ext.define("Zenoss.JobsWidget", {
         });
         this.lastchecked = 0;
         this.callParent([config]);
-        this.on('beforerender', this.on_render, this, {single:true});        
+        this.on('beforerender', this.on_render, this, {single:true});
         this.pollTask = new Ext.util.DelayedTask(this.poll, this);
     },
     initComponent: function() {
@@ -264,7 +264,11 @@ Ext.define("Zenoss.JobsWidget", {
             text = _t("0 Jobs");
             cl = 'circle_arrows_still';
         } else {
-            running > 1 ? jobText = " Jobs" : jobText = " Job";
+            if (running > 1 ) {
+                jobText = " Jobs";
+            }else {
+                jobText = " Job";
+            }
             text = running + jobText + " ("+pending+" Pending)";
             cl = 'circle_arrows_ani';
         }

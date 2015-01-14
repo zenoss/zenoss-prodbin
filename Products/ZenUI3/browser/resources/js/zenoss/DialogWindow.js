@@ -54,7 +54,7 @@ Ext.define("Zenoss.dialog.BaseWindow", {
             // make sure we are not focused on text areas
             if (document.activeElement) {
                 el = document.activeElement;
-                if (el.type == "textarea" || el.type == 'button') {
+                if (el.type === "textarea" || el.type === 'button') {
                     return;
                 }
             }
@@ -580,7 +580,7 @@ Ext.define("Zenoss.dialog.DialogFormPanel", {
                 read: function(xhr) {
                     var success = true;
                     //TODO scan result for exceptions/errors
-                    if (xhr.status != 200) {
+                    if (xhr.status !== 200) {
                         success = false;
                     }
                     return {

@@ -76,19 +76,20 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     disabled: true,
                     handler: function () {
                         var form = Ext.getCmp('addzenpackform'),
-                            chosenzenpack = form.getForm().findField('zpname').getValue(), i, targets = [];
+                            chosenzenpack = form.getForm().findField('zpname').getValue(), i, targets = [], callback;
                         if (!Ext.isArray(me.target)) {
                             targets.push(me.target);
                         } else {
                             targets = me.target;
                         }
+                        callback = function() {
+                            Zenoss.message.info(_t("The item was added to {0}"), chosenzenpack);
+                        };
                         for (i=0; i<targets.length; i++ ) {
                             Zenoss.remote.ZenPackRouter.addToZenPack({
                                 topack: targets[i],
                                 zenpack: chosenzenpack
-                            }, function (data) {
-                                Zenoss.message.info(_t("The item was added to {0}"), chosenzenpack);
-                            });
+                            }, callback);
                         }
                     }
                 },{

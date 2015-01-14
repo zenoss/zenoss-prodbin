@@ -29,18 +29,18 @@ Ext.define("Zenoss.IFramePanel", {
     initComponent: function(){
         this.callParent(arguments);
         this.addEvents('frameload', 'framefailed', 'isReady');
-        this.on('frameload', function(win) {
+        this.on('frameload', function() {
             // Load any messages that may have been created by the frame
             Zenoss.messenger.checkMessages();
         }, this);
     },
-    onRender: function(ct, position) {
+    onRender: function() {
         Zenoss.IFramePanel.superclass.onRender.apply(this, arguments);
         // Hook up load events
         this.frame = this.getEl();
         this.waitForLoad();
     },
-    afterRender: function(container) {
+    afterRender: function() {
         Zenoss.IFramePanel.superclass.afterRender.apply(this, arguments);
         if (!this.ownerCt) {
             var pos = this.getPosition(),
@@ -62,17 +62,15 @@ Ext.define("Zenoss.IFramePanel", {
                 return;
             }
             body = this.getBody();
-            if (currentUrl == 'about:blank' || currentUrl == '') {
+            if (currentUrl === 'about:blank' || currentUrl === '') {
                 // if an iframe is reused, it could have a body and
                 // className immediately, but not the desired ones.
                 // in that case, poll until the ready test fails,
                 // then again until it succeeds.
                 if (readyTooEarly) {
-                    readyTooEarly = !!body
-                            && (this.ignoreClassName || !!body.className);
+                    readyTooEarly = !!body && (this.ignoreClassName || !!body.className);
                 } else {
-                    ready = !!body
-                            && (this.ignoreClassName || !!body.className);
+                    ready = !!body && (this.ignoreClassName || !!body.className);
 
                     // Allow subclasses and clients defined when the panel is ready
                     ready = ready && this.fireEvent('isReady', this.getWindow());
@@ -80,7 +78,7 @@ Ext.define("Zenoss.IFramePanel", {
             } else {
                 dom = body ? body.dom : null;
                 href = this.getDocument().location.href;
-                ready = href != currentUrl || (dom && dom.innerHTML);
+                ready = href !== currentUrl || (dom && dom.innerHTML);
 
                 // Allow subclasses and clients defined when the panel is ready
                 ready = ready && this.fireEvent('isReady', this.getWindow());
@@ -102,7 +100,7 @@ Ext.define("Zenoss.IFramePanel", {
     },
     setSrc: function(url) {
         this.frameLoaded = false;
-        if (url == 'about:blank' || url == '') {
+        if (url === 'about:blank' || url === '') {
             this.load('about:blank');
         } else {
             this.load(Ext.urlAppend(url,
@@ -181,7 +179,7 @@ Zenoss.util.registerBackCompatMenu = function(menu, btn, align, offsets){
         contentEl: menu,
         border: false,
         shadow: !Ext.isIE,
-        bodyCls: menu.id=='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
+        bodyCls: menu.id==='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
     });
 
     layer.render(Ext.getBody());

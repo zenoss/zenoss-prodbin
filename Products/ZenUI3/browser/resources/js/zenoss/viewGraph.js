@@ -11,8 +11,8 @@
 Ext.onReady(function(){
 
     function buildGraph(data, drange){
-        var config = Ext.JSON.decode(Zenoss.util.base64.decode(data)),
-            body = Ext.get(document.body);
+        var config = Ext.JSON.decode(Zenoss.util.base64.decode(data));
+
         if (Ext.isDefined(drange)) {
             config.graph_params = {
                 drange: parseInt(drange),

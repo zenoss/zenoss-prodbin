@@ -35,10 +35,14 @@ Ext.apply(T, {
             if (T.TYPES[type]) {
                 _f = true;
                 Ext.each(T.TYPES[type], function(test) {
-                    if (!_f) return;
+                    if (!_f) {
+                        return;
+                    }
                     _f = test.test(uid);
                 });
-                if (_f) return type;
+                if (_f) {
+                    return type;
+                }
             }
         }
         return null;
@@ -50,7 +54,9 @@ Ext.apply(T, {
             if (!(t instanceof RegExp)) {
                 t = new RegExp(t);
             }
-            if (!(t in types)) types.push(t);
+            if (!(t in types)) {
+                types.push(t);
+            }
         }
         for (var k in config) {
             var t = config[k];

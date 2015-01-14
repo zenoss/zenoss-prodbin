@@ -64,7 +64,7 @@
                     flex: 1,
                     renderer: function(val, metadata, record) {
                         addErrorToolTip(metadata, record);
-                        if (record.get('status') != "PENDING") {
+                        if (record.get('status') !== "PENDING") {
                             var link = Zenoss.render.default_uid_renderer(record.get('deviceUid'), val);
                             return link.replace("<a ", "<a target='_blank' ");
                         }
@@ -78,9 +78,9 @@
                     header: _t('Credentials'),
                     renderer: function(props, metadata, record) {
                         addErrorToolTip(metadata, record);
-                        var values = [], msg, link, hash = window.location.hash, key;
+                        var values = [], msg, key;
                         for (key in props) {
-                            if (key.indexOf('Password') == -1) {
+                            if (key.indexOf('Password') === -1) {
                                 values.push(props[key]);
                             }
                         }
@@ -94,7 +94,7 @@
                 }, {
                     dataIndex: 'collector',
                     header: _t('Collector'),
-                    hidden: Zenoss.env.COLLECTORS.length == 1 ? true:  false
+                    hidden: Zenoss.env.COLLECTORS.length === 1 ? true:  false
                 }, {
                     dataIndex: 'displayDeviceClass',
                     header: _t('Type'),
@@ -136,7 +136,9 @@
                         Zenoss.remote.JobsRouter.deleteJobs({
                             jobids: [record.get('uuid')]
                         }, function(response) {
-                            store.remove(record);
+                            if (response.success) {
+                                store.remove(record);
+                            }
                         });
 
                         var uid = record.get('deviceUid');
@@ -182,7 +184,6 @@
         stepId: 'add-device',
         stepHeight: 630,
         constructor: function(config) {
-            var me = this;
             config = config || {};
             Ext.applyIf(config, {
                 layout: 'border',

@@ -1,3 +1,4 @@
+/* globals Daemons */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2013, all rights reserved.
@@ -104,13 +105,13 @@
                 dataIndex: 'name'
             },{
                 text: _t('Type'),
-                flex: .15,
+                flex: 0.15,
                 tooltip: _t('Type'),
                 dataIndex: 'type',
                 sortable: true
             },{
                 text: _t('Uptime'),
-                flex: .25,
+                flex: 0.25,
                 tooltip: _t('Uptime'),
                 dataIndex: 'uptime',
                 sortable: true
@@ -118,7 +119,7 @@
                 xtype: 'actioncolumn',
                 text: _t('AutoStart'),
                 menuText: _t('AutoStart'),
-                flex: .25,
+                flex: 0.25,
                 dataIndex: 'autostart',
                 tooltip: _t('Automatically or manually start this deamon'),
                 ref: 'autostart',
@@ -136,7 +137,7 @@
             },{
                 text: _t('Restart'),
                 menuText: _t('Restart'),
-                flex: .1,
+                flex: 0.1,
                 menuDisabled: true,
                 xtype: 'actioncolumn',
                 tooltip: _t('restart deamon'),
@@ -163,14 +164,14 @@
             },{
                 text: _t('State'),
                 menuText: _t('State'),
-                flex: .25,
+                flex: 0.25,
                 xtype: 'actioncolumn',
                 ref: 'statuscolumn',
                 tooltip: _t('Click to stop/start the deamon'),
                 dataIndex: 'state',
                 sortable: true,
                 renderer: function(value) {
-                    if (value == 'up' || value == 'down'){
+                    if (value === 'up' || value === 'down'){
                         return Zenoss.render.pingStatus(value);
                     }
                     return value + "...";

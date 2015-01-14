@@ -219,7 +219,7 @@
                 } else {
                     // look it up by step id
                     cardPanel.items.each(function(item) {
-                        if (item.stepId == token) {
+                        if (item.stepId === token) {
                             cardPanel.layout.setActiveItem(item);
                             me.currentStep = i;
                             return false;
@@ -261,7 +261,7 @@
                 this.next.hide();
                 this.previous.hide();
                 this.finish.hide();
-            }else if (this.currentStep == stepCount) {
+            }else if (this.currentStep === stepCount) {
                 // they are on the last step
                 this.next.hide();
                 this.finish.show();

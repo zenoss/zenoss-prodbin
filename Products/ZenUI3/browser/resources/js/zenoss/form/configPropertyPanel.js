@@ -10,28 +10,27 @@
 
 (function(){
     var router = Zenoss.remote.PropertiesRouter,
-        ConfigPropertyPanel,
         zpropertyConfigs = {};
 
     Ext.ns('Zenoss.zproperties');
     Zenoss.zproperties.inferZPropertyLabel= function(id) {
         var fieldLabel = id;
         // special case for vsphere end point.
-        if (id.toLowerCase().indexOf('endpointhost') != -1) {
+        if (id.toLowerCase().indexOf('endpointhost')!== -1) {
             fieldLabel = _t("vSphere Endpoint Host");
-        }else if (id.toLowerCase().indexOf('winkdc') != -1) {
+        }else if (id.toLowerCase().indexOf('winkdc')!== -1) {
             fieldLabel = _t('AD Domain Controller');
-        }else if (id.toLowerCase().indexOf('winscheme') != -1) {
+        }else if (id.toLowerCase().indexOf('winscheme')!== -1) {
             fieldLabel = _t('Protocol (http/https)');
-        }else if (id.toLowerCase().indexOf('user') != -1) {
+        }else if (id.toLowerCase().indexOf('user')!== -1) {
             fieldLabel = _t('Username');
-        } else if (id.toLowerCase().indexOf('password') != -1) {
+        } else if (id.toLowerCase().indexOf('password')!== -1) {
             fieldLabel = _t('Password');
-        } else if (id.toLowerCase().indexOf('snmpcomm') != -1) {
+        } else if (id.toLowerCase().indexOf('snmpcomm')!== -1) {
             fieldLabel = _t('SNMP Community String');
-        } else if (id.toLowerCase().indexOf('port') != -1) {
+        } else if (id.toLowerCase().indexOf('port')!== -1) {
             fieldLabel = _t('Port');
-        } else if (id.toLowerCase().indexOf('ssl') != -1) {
+        } else if (id.toLowerCase().indexOf('ssl')!== -1) {
             fieldLabel = _t('Use SSL?');
         } else {
             fieldLabel = id;
@@ -106,7 +105,7 @@
         var editConfig = {},
             type = data.type;
         // in case of drop down lists
-        if (Ext.isArray(data.options) && data.options.length > 0 && type == 'string') {
+        if (Ext.isArray(data.options) && data.options.length > 0 && type === 'string') {
             // make it a combo and the options is the store
             editConfig.store = data.options;
             Ext.apply( editConfig, zpropertyConfigs['options']);
@@ -126,14 +125,14 @@
         });
 
         // lines come in as comma separated and should be saved as such
-        if (type == 'lines' && Ext.isArray(editConfig.value)){
+        if (type === 'lines' && Ext.isArray(editConfig.value)){
             editConfig.value = editConfig.value.join('\n');
         }
         return editConfig;
     };
 
     function showEditConfigPropertyDialog(data, grid) {
-        var handler, uid, config, editConfig, dialog, type;
+        var handler, config, editConfig, dialog, type;
 
         editConfig = Zenoss.zproperties.createZPropertyField(data);
 
@@ -142,7 +141,7 @@
             // save the junk and reload
             var values = dialog.getForm().getForm().getValues(),
                 value = values[data.id];
-            if (type == 'lines') {
+            if (type === 'lines') {
                 if (value) {
                     // send back as an array separated by a new line
                     value = Ext.Array.map(value.split('\n'), function(s) {return Ext.String.trim(s);});
@@ -315,7 +314,7 @@
                             }
 
                             data = selected[0].data;
-                            if (data.islocal && data.path == '/') {
+                            if (data.islocal && data.path === '/') {
                                 Zenoss.message.info(_t('{0} can not be deleted from the root definition.'), data.id);
                                 return;
                             }
@@ -391,7 +390,7 @@
                         width: 180,
                         renderer: function(v, row, record) {
                             if (Zenoss.Security.doesNotHavePermission("zProperties Edit") &&
-                                record.data.id == 'zSnmpCommunity') {
+                                record.data.id === 'zSnmpCommunity') {
                                 return "*******";
                             }
 
@@ -419,7 +418,7 @@
             this.on('itemdblclick', this.onRowDblClick, this);
         },
         setContext: function(uid) {
-            if (uid == '/zport/dmd/Devices'){
+            if (uid === '/zport/dmd/Devices'){
                 this.deleteButton.setDisabled(true);
             } else {
                 this.deleteButton.setDisabled(Zenoss.Security.doesNotHavePermission('zProperties Edit'));
@@ -481,9 +480,13 @@
         };
         Zenoss.remote.PropertiesRouter.getZenProperty(params, function(response){
             if (response.success) {
-                if (response.data.type == "lines"){
+                if (response.data.type === "lines"){
                     var lines = response.data.value, context = Zenoss.zproperties.configPropertyConfigs.state.context, formID;
-                    context == "add" ? formID = "addCustomDialog" : formID = "editCustomDialog";
+                    if (context === "add") {
+                        formID = "addCustomDialog";
+                    } else {
+                        formID = "editCustomDialog";
+                    }
                     var c = Ext.getCmp(formID).getForm().getForm().getValues();
 
                     // we got a 'lines' item back. Lets save this so we can complete the users goal
@@ -507,7 +510,7 @@
                         // fire off a selection of the first item so it's obvious something happened
                         combo.setValue(combo.store.getAt('0'));
                     };
-                    if (context == "add"){
+                    if (context === "add"){
                         Zenoss.remote.PropertiesRouter.addCustomProperty(params, function(response){
                             if (response.success) {
                                 addToCombo();
@@ -597,7 +600,7 @@
                             listeners: {
                                 afterrender: function(button){
                                     button.setTooltip(_t("Retrieve lines from property for selection"));
-                                    if (Zenoss.zproperties.configPropertyConfigs.state.context == "add"){
+                                    if (Zenoss.zproperties.configPropertyConfigs.state.context === "add"){
                                         button.setTooltip(_t("Save new property and retrieve lines for selection"));
                                     }
                                 }
@@ -605,12 +608,12 @@
                             margin: '17px 0 0 7px',
                             handler: function(button) {
                                 var txt = Ext.getCmp('linesSearchBox').getValue(), uid;
-                                if(Zenoss.zproperties.configPropertyConfigs.state.context == "add"){
+                                if(Zenoss.zproperties.configPropertyConfigs.state.context === "add"){
                                     uid = Ext.getCmp('addCustomDialog').uid;
                                 }else{
                                     uid = Ext.getCmp('editCustomDialog').uid;
                                 }
-                                if(txt != ""){
+                                if(txt!== ""){
                                     checkText(txt, uid);
                                 }else{
                                     Zenoss.message.info(_t('The "Lines" property type cannot be empty. Please enter a "Lines" custom property.'));
@@ -638,7 +641,7 @@
         editConfig = Zenoss.zproperties.configPropertyConfigs[pkg.name] || Zenoss.zproperties.configPropertyConfigs[pkg.type] || Zenoss.zproperties.configPropertyConfigs['string'];
 
         // in case of drop down lists
-        if (Ext.isArray(pkg.options) && pkg.options.length > 0 && pkg.type == 'string') {
+        if (Ext.isArray(pkg.options) && pkg.options.length > 0 && pkg.type === 'string') {
             // make it a combo and the options is the store
             editConfig = Zenoss.zproperties.configPropertyConfigs['options'];
             editConfig.store = pkg.options;
@@ -653,7 +656,7 @@
         });
 
         // lines come in as comma separated and should be saved as such
-        if (pkg.type == 'lines' && Ext.isArray(editConfig.value)){
+        if (pkg.type === 'lines' && Ext.isArray(editConfig.value)){
             editConfig.value = editConfig.value.join('\n');
         }
 
@@ -661,10 +664,10 @@
             // save the junk and reload
             var values = dialog.getForm().getForm().getValues(),
                 value = values[pkg.name];
-            if ((typeof values.applylocal) == "undefined"){
+            if ((typeof values.applylocal) === "undefined"){
                 values.applylocal = false;
             }
-            if (pkg.type == 'lines') {
+            if (pkg.type === 'lines') {
                 if (value) {
                     // send back as an array separated by a new line
                     value = Ext.Array.map(value.split('\n'), function(s) {return Ext.String.trim(s);});
@@ -674,7 +677,7 @@
                 }
             }
             // if this is a selection type, then the value is form.selection and not form.value
-            if (pkg.type == 'selection'){
+            if (pkg.type === 'selection'){
                 value = values.selection;
             }
             var params = {

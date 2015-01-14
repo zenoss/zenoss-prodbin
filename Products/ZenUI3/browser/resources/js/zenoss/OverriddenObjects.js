@@ -26,7 +26,7 @@
         var record = combo.findRecord(combo.valueField || combo.displayField, v);
         var index = combo.store.indexOf(record);
         // disable the edit box if the index is -1
-        if(index == -1){
+        if(index === -1){
             Ext.getCmp('overriddenobjbase_grid1').disableButtons(true);
         }else{
             Ext.getCmp('overriddenobjbase_grid1').disableButtons(false);
@@ -41,33 +41,37 @@
                 Ext.getCmp('overriddenobjbase_grid1').getStore().loadData(response.data);
             }
         });
-    }
+    };
     var loadOverriddenGrid = function(uid){
         var combo = Ext.getCmp('propsCombo'), relName = 'devices';
         // switch this based on where the grid is located or embeded
 
         var refreshit = function(data){
             Ext.getCmp('overriddenobjover_grid2').getStore().loadData(data);
-        }
+        };
 
         /* If it finds /dmd/Events in the UID, then this is being used on the
          * Events Classes page and needs to get its overridden objects from
          * a different router method. Otherwise, we use the default devices method
          */
-        if(uid.indexOf('/dmd/Events') != -1) {
+        if(uid.indexOf('/dmd/Events') !== -1) {
             relName = 'instances';
         }
         // default method for devices:
         Zenoss.remote.DeviceRouter.getOverriddenObjectsList({uid:uid, propname:combo.value, relName: relName}, function(response){
-            if (response.success) refreshit(response.data);
+            if (response.success) {
+                refreshit(response.data);
+            }
         });
 
-    }
+    };
     var onComboChange = function(uid){
-        if(checkComboIndex() == -1) return;
+        if(checkComboIndex() === -1) {
+            return;
+        }
         loadOverriddenGrid(uid);
         loadBaseGrid(uid);
-    }
+    };
 
     function showEditCustPropertyDialog(data, grid){
         var path = data.devicelink;
@@ -77,7 +81,7 @@
         pathMsg += '<div class="x-grid-cell-inner" style="color:#fff;background:#111;margin:2px 7px 2px 0;padding:5px;"> '+path+' </div>';
         pathMsg += '</div></div>';
 
-        var lbltemplate = '<div style="margin:5px 0 15px 0;"><b>{0}</b> <span style="display:inline-block;padding-left:5px;color:#aaccaa">{1}</span></div>'
+        var lbltemplate = '<div style="margin:5px 0 15px 0;"><b>{0}</b> <span style="display:inline-block;padding-left:5px;color:#aaccaa">{1}</span></div>';
         var items = [
                 {
                     xtype: 'label',
@@ -97,7 +101,7 @@
                 }
             ];
 
-        pkg = {
+        var pkg = {
             'items': items,
             'uid': path,
             'type': data.proptype,
@@ -108,7 +112,7 @@
             'minHeight': 200,
             'width': 500,
             'options': 0
-        }
+        };
         Zenoss.zproperties.showEditPropertyDialog(pkg);
     }
 
@@ -136,7 +140,7 @@
                     tooltip: _t('Edit selected Configuration Property value'),
                     disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
                     ref: 'customizeButton',
-                        handler: function(button) {
+                        handler: function() {
                             var grid1 = Ext.getCmp('overriddenobjbase_grid1');
                             var grid2 = Ext.getCmp('overriddenobjover_grid2');
                             var data, grid, selected;
@@ -213,7 +217,7 @@
             Zenoss.remote.DeviceRouter.getOverriddenZprops({uid:uid}, function(response){
                 if (response.success) {
                     setComboFromData(response, combo);
-                    combo.on('change', function(e){
+                    combo.on('change', function(){
                         onComboChange(uid);
                     });
                 }
@@ -229,14 +233,16 @@
             var uid = Ext.getCmp('overriddenobjbase_grid1').uid;
             loadBaseGrid(uid);
         },
-        onSelectRow: function(grid, rowIndex, e){
+        onSelectRow: function(){
             var otherGrid = Ext.getCmp('overriddenobjover_grid2');
             otherGrid.getSelectionModel().deselectAll();
         },
-        onRowDblClick: function(grid, rowIndex, e) {
+        onRowDblClick: function() {
             var data,
                 selected = this.getSelectionModel().getSelection();
-            if(!selected)return;
+            if(!selected){
+                return;
+            }
             data = selected[0].data;
             showEditCustPropertyDialog(data, this);
         },
@@ -303,14 +309,16 @@
             var uid = Ext.getCmp('overriddenobjbase_grid1').uid;
             loadOverriddenGrid(uid);
         },
-        onSelectRow: function(trid, rowIndex, e){
+        onSelectRow: function(){
             var otherGrid = Ext.getCmp('overriddenobjbase_grid1');
             otherGrid.getSelectionModel().deselectAll();
         },
-        onRowDblClick: function(grid, rowIndex, e) {
+        onRowDblClick: function() {
             var data,
                 selected = this.getSelectionModel().getSelection();
-            if(!selected)return;
+            if(!selected){
+                return;
+            }
             data = selected[0].data;
             showEditCustPropertyDialog(data, this);
         }

@@ -1,3 +1,4 @@
+/* global _managed_objects:true */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
@@ -44,8 +45,9 @@ Ext.onReady(function(){
 
     var createEventConsoleGrid = function() {
         var console_store = Ext.create('Zenoss.events.Store', {});
-        if (!Zenoss.settings.enableInfiniteGridForEvents)
-        console_store.buffered = false;
+        if (!Zenoss.settings.enableInfiniteGridForEvents) {
+            console_store.buffered = false;
+        }
 
         console_store.on('afterguaranteedrange', updateTitle);
         console_store.on('load', updateTitle);
@@ -94,7 +96,8 @@ Ext.onReady(function(){
 
         // stats is not used -- REMOVE??
         if (Zenoss.settings.showPageStatistics){
-            var stats = Ext.create('Zenoss.stats.Events');
+            // this will render the page loading time button
+            Ext.create('Zenoss.stats.Events');
         }
 
         Zenoss.util.callWhenReady('events_grid', function(){
@@ -167,7 +170,7 @@ Ext.onReady(function(){
         wipeEventDetail();
         grid.on('itemdblclick', toggleEventDetailContent);
         esckeymap.disable();
-    };
+    }
     // Finally, add the detail panel (have to do it after function defs to hook
     // up the hide callback)
     detail_panel.add({
@@ -181,7 +184,7 @@ Ext.onReady(function(){
     // render so that the detail panel has html elements
 
 
-    detail_panel.on('collapse', function(ob, state) {
+    detail_panel.on('collapse', function() {
         eventDetailCollapsed();
     });
 

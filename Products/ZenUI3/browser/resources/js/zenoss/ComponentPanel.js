@@ -44,7 +44,7 @@ function getComponentEventPanelColumnDefinitions() {
                   'count'],
         cols;
     cols = Zenoss.util.filter(Zenoss.env.COLUMN_DEFINITIONS, function(col){
-        return Ext.Array.indexOf(fields, col.dataIndex) != -1;
+        return Ext.Array.indexOf(fields, col.dataIndex) !== -1;
     });
 
     // delete the ids to make sure we do not have duplicates,
@@ -66,8 +66,8 @@ function tbarButtoner(target, buttonDefs, combo, cardId, that) {
     var btns = tbar.add(buttonDefs);
     tbar.doLayout();
     tbar._btns = btns;
-    combo.on('select', function(c, selected){
-        if (c.value!=cardId) {
+    combo.on('select', function(c){
+        if (c.value!==cardId) {
             Ext.each(btns, tbar.remove, tbar);
         }
     }, that, {single:true});
@@ -112,7 +112,7 @@ Zenoss.nav.register({
                     target.layout.activeItem.setContext(uid);
                 };
             if (!Ext.get('event_panel')) {
-                var panel = target.add({
+                target.add({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
                     displayFilters: false,
@@ -144,7 +144,9 @@ Zenoss.nav.register({
                     tooltip: _t('Refresh events'),
                     handler: function(btn) {
                         var grid = btn.grid || this.ownerCt.ownerCt;
-                        if(grid.getComponent("event_panel")) grid = grid.getComponent("event_panel");
+                        if(grid.getComponent("event_panel")) {
+                            grid = grid.getComponent("event_panel");
+                        }
                         grid.refresh();
                     }
                 }),
@@ -153,7 +155,7 @@ Zenoss.nav.register({
                     iconCls: 'newwindow',
                     permission: 'View',
                     tooltip: _t('Go to event console'),
-                    handler: function(btn) {
+                    handler: function() {
                         var curState = Ext.state.Manager.get('evconsole') || {},
                         filters = curState.filters || {},
                         pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
@@ -224,11 +226,11 @@ Zenoss.nav.register({
                                 operation.params.uid = contextUid;
                             } else {
                                 operation.params.uid = contextUid;
-                                delete operation.params['query'];
+                                delete operation.params.query;
                             }
                         },
-                        load: function(store, records, success, eOpts) {
-                            if (records.length == 0) {
+                        load: function(store, records) {
+                            if (records.length === 0) {
                                 return;
                             }
                             if (!target.componentTemplatePanel) {
@@ -252,7 +254,7 @@ Zenoss.nav.register({
                     }
                 }),
                 listeners: {
-                    select: function(combo, records, eOpts){
+                    select: function(combo, records){
                         var tplUid = records[0].data.uid;
                         target.componentTemplatePanel.setContext(tplUid);
                         if (tplUid.startswith(contextUid)) {
@@ -279,7 +281,7 @@ Zenoss.nav.register({
                     xtype: 'button',
                     disabled: true,
                     text: _t('Create Local Copy'),
-                    handler: function(btn) {
+                    handler: function() {
                         var tplTbar = this.refOwner,
                             templateName = tplTbar.templateCombo.getValue(),
                             createLocalArgs;
@@ -301,7 +303,7 @@ Zenoss.nav.register({
                     text: _t('Delete Local Copy'),
                     disabled: true,
                     tooltip: _t('Delete the local copy of this template'),
-                    handler: function(btn) {
+                    handler: function() {
                         var tplTbar = this.refOwner,
                             templateName = tplTbar.templateCombo.getValue(),
                             removeLocalArgs;
@@ -353,7 +355,7 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
         this.relayEvents(this.getSelectionModel(), ['selectionchange']);
         this.on('selectionchange', this.onSelectionChange);
     },
-    onGetNavConfig: function(contextId) {
+    onGetNavConfig: function() {
         var grid = this.ownerCt.ownerCt.ownerCt.componentgrid,
             items = [],
             monitor = false;
@@ -362,7 +364,7 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
             if (record.data.monitor) { monitor = true; }
         });
         Zenoss.util.each(Zenoss.nav.get('Component'), function(item){
-            if (!(item.id=='Graphs' && !monitor)) {
+            if (!(item.id==='Graphs' && !monitor)) {
                 items.push(item);
             }
         });
@@ -379,7 +381,7 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
             'modeldevice',
             'historyevents'
         ];
-        return (Ext.Array.indexOf(excluded, config.id)==-1);
+        return (Ext.Array.indexOf(excluded, config.id)===-1);
     },
     onSelectionChange: function(sm, node) {
         var target = this.target || Ext.getCmp('component_detail_panel'),
@@ -448,7 +450,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 items = [],
                                 monitor = false;
                             Ext.each(grid.store.data.items, function(record){
-                                if (record.data.uid==uid && record.data.monitor) {
+                                if (record.data.uid===uid && record.data.monitor) {
                                     monitor = true;
                                 }
                             });
@@ -468,7 +470,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 'modeldevice',
                                 'historyevents'
                             ];
-                            return (Ext.Array.indexOf(excluded, cfg.id)==-1);
+                            return (Ext.Array.indexOf(excluded, cfg.id)===-1);
                         },
                         ref: '../../componentnavcombo',
                         getTarget: Ext.bind(function() {
@@ -496,7 +498,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
     },
     setContext: function(uid, type) {
         this.contextUid = uid;
-        if (type!=this.componentType) {
+        if (type!==this.componentType) {
             this.componentType = type;
 
             var compType = this.componentType + 'Panel',
@@ -510,7 +512,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                     render: function(grid) {
                         grid.setContext(uid);
                     },
-                    rangeselect: function(sm) {
+                    rangeselect: function() {
                         this.detailcontainer.removeAll();
                         this.componentnavcombo.reset();
                     },
@@ -582,7 +584,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         var expandColumn = config.autoExpandColumn;
         if (expandColumn && config.columns) {
             Ext.each(config.columns, function(col){
-                if (expandColumn == col.id) {
+                if (expandColumn === col.id) {
                     col.flex = 1;
                 }
             });
@@ -591,12 +593,12 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         Ext.each(config.columns, function(col){
             delete col.id;
         });
-        var modelId = Ext.id(),
-            model = Ext.define(modelId, {
-                extend: 'Ext.data.Model',
-                idProperty: 'uuid',
-                fields: config.fields
-            });
+        var modelId = Ext.id();
+        Ext.define(modelId, {
+            extend: 'Ext.data.Model',
+            idProperty: 'uuid',
+            fields: config.fields
+        });
         config.sortInfo = config.sortInfo || {};
     config = Ext.applyIf(config, {
         autoExpandColumn: 'name',
@@ -646,13 +648,13 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
         this.relayEvents(this.getSelectionModel(), ['rangeselect']);
         this.store.proxy.on('load',
-            function(proxy, o, options) {
+            function(proxy, o) {
                 this.lastHash = o.result.hash || this.lastHash;
             },
             this);
         Zenoss.util.addLoadingMaskToGrid(this);
     },
-    applyOptions: function(options){
+    applyOptions: function(){
         // apply options to all future parameters, not just this operation.
         var params = this.getStore().getProxy().extraParams;
 
@@ -671,7 +673,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         this.contextUid = uid;
         this.getStore().on('guaranteedrange', function(){
             var token = Ext.History.getToken();
-            if (token.split(Ext.History.DELIMITER).length!=3) {
+            if (token.split(Ext.History.DELIMITER).length!==3) {
                 this.getSelectionModel().selectRange(0, 0);
             }
         }, this, {single:true});
@@ -686,7 +688,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 function gridSelect() {
                     var found = false, i=0;
                     store.each(function(r){
-                        if (r.get('uid') == uid) {
+                        if (r.get('uid') === uid) {
                             selectionModel.select(r);
                             view.focusRow(r.index);
                             found = true;
@@ -804,7 +806,9 @@ Ext.define("Zenoss.component.IpInterfacePanel", {
                 renderer: function(ipaddresses) {
                     var returnString = '';
                     Ext.each(ipaddresses, function(ipaddress, index) {
-                        if (index > 0) returnString += ', ';
+                        if (index > 0) {
+                            returnString += ', ';
+                        }
                         if (ipaddress && Ext.isObject(ipaddress) && ipaddress.netmask) {
                             var name = ipaddress.name + '/' + ipaddress.netmask;
                             returnString += Zenoss.render.link(ipaddress.uid, undefined, name);
@@ -1205,7 +1209,7 @@ Ext.define("Zenoss.component.FileSystemPanel", {
                 dataIndex: 'capacityBytes',
                 header: _t('% Util'),
                 renderer: function(n) {
-                    if (n=='unknown' || n<0) {
+                    if (n==='unknown' || n<0) {
                         return _t('Unknown');
                     } else {
                         return n + '%';
@@ -1471,7 +1475,7 @@ Ext.define("Zenoss.component.TemperatureSensorPanel", {
                 dataIndex: 'temperature',
                 header: _t('Temperature'),
                 renderer: function(x) {
-                    if (x == null) {
+                    if (x === null) {
                         return "";
                     } else {
                         return x + " F";

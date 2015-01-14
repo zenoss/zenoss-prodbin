@@ -1,3 +1,4 @@
+/* jshint boss:true */
 (function() {
 
     var directStoreWorkaroundListeners = {
@@ -248,7 +249,7 @@
                                     scope: this
                                 }
                             }, field));
-                            if (typeof oldvalue != 'undefined' && this.predicate.xtype == oldxtype) {
+                            if (typeof oldvalue !== 'undefined' && this.predicate.xtype === oldxtype) {
                                 this.predicate.setValue(oldvalue);
                             }
                             this.doComponentLayout();
@@ -340,7 +341,7 @@
                      item.buttonDelete;
 
         // Disable the delete button if only one at this level
-        if (items.length==1) {
+        if (items.length===1) {
             delbtn.disable();
         } else if (items.length > 1){
             delbtn.enable();
@@ -348,6 +349,7 @@
 
         // Disable the nested button if it would mean more than 4 deep
         var i = 0, btn;
+
         while (item = item.findParentByType('nestedrule')) {
             i++;
             if (i>=4) {
@@ -357,6 +359,7 @@
                 break;
             }
         }
+
     };
 
     Ext.define("Zenoss.form.rule.NestedRule", {
@@ -393,7 +396,7 @@
                             scope: this
                         }
                     },{
-                        xtype: 'label',  
+                        xtype: 'label',
                         html: _t('of the following rules:'),
                         style: 'margin-left: 7px; font-size: 12px; color: #444'
                     }]
@@ -456,7 +459,7 @@
             while (c) {
                 //token.push(c);
                 // Don't deal with contents of string literals
-                if (c=='"'||c=='\'') {
+                if (c==='"'||c==='\'') {
                     q = c;
                     token.push(c);
                     for (;;) {
@@ -473,19 +476,19 @@
                             token.push(expression.charAt(i));
                         }
                     }
-                } else if (c=="("||c==")"){
+                } else if (c==="("||c===")"){
                     if (p===0) {
                         savetoken();
                     }
                     token.push(c);
-                    if (c=='(') {
+                    if (c==='(') {
                         var prev = expression.charAt(i-1);
-                        if (i>0 && prev!=' ' && prev!='(') {
+                        if (i>0 && prev!==' ' && prev!=='(') {
                             funcflag = true;
                         } else {
                             p++;
                         }
-                    } else if (c==')') {
+                    } else if (c===')') {
                         if (funcflag) {
                             funcflag = false;
                         } else {
@@ -532,7 +535,7 @@
 
 
 
-    Ext.define("Zenoss.form.rule.RuleBuilder", { 
+    Ext.define("Zenoss.form.rule.RuleBuilder", {
         alias:['widget.rulebuilder'],
         extend:"Ext.form.FieldContainer",
         constructor: function(config) {
@@ -604,8 +607,8 @@
                     triggerAction: 'all',
                     editable: true,
                     autoLoad: false
-                })
-                this.callParent([config])
+                });
+                this.callParent([config]);
             },
 
             setValue: function() {
@@ -622,7 +625,7 @@
                 return this.callParent(arguments);
             }
         }
-    )
+    );
 
 
     ZF.STRINGCOMPARISONS = [

@@ -10,8 +10,6 @@
 
 /* package level */
 (function() {
-    var ReverseSeverity,
-        Severity;
     Ext.define("Severity", {
         alias:['widget.severity'],
         extend:"Ext.form.ComboBox",

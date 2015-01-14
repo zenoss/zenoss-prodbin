@@ -7,8 +7,7 @@
       **/
      function addAliasRow() {
          var cmp = that,
-             button = Ext.getCmp('add_alias_button'),
-             row = {};
+             button = Ext.getCmp('add_alias_button');
 
          cmp.remove(button);
          cmp.add(getRowTemplate());
@@ -45,7 +44,7 @@
                  aliasType: 'formula',
                  xtype: 'textfield',
                  width:'150',
-                 style: {'margin-left':'10px;'},                 
+                 style: {'margin-left':'10px;'},
                  value: formula
              },{
                  xtype: 'button',

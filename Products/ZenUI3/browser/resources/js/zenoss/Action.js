@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -19,15 +19,21 @@
             this.setDisabled(this.checkDisabled());
         },
         checkDisabled: function() {
-            if (this.permitted) return false;
-            if (this.externallyDisabled) return true;
-            if (!this.permitted && !this.filtered) return true;
+            if (this.permitted) {
+                return false;
+            }
+            if (this.externallyDisabled) {
+                return true;
+            }
+            if (!this.permitted && !this.filtered) {
+                return true;
+            }
             return false;
         },
         checkPermitted: function() {
             if (this.permission) {
                 if (this.permissionContext) {
-                    if (Zenoss.env.PARENT_CONTEXT == this.permissionContext) {
+                    if (Zenoss.env.PARENT_CONTEXT === this.permissionContext) {
                         return Zenoss.Security.hasPermission(this.permission);
                     } else {
                         return Zenoss.Security.hasGlobalPermission(this.permission);
@@ -44,7 +50,7 @@
             var recheck = function() {
                 me.permitted = me.checkPermitted();
                 me.updateDisabled();
-            }
+            };
             // if they set the permissions config property
             // and the logged in user does not have permission, disable this element
             if (config.permission) {

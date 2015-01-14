@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -23,8 +23,8 @@ var MibBrowser,
     footerBar,
     currentAddNodeTitle = _t('Add OID Mapping'),
     currentAddFn = router.addOidMapping,
-    currentDeleteFn = router.deleteOidMapping,
-    zs = Ext.ns('Zenoss.ui.Mibs');
+    currentDeleteFn = router.deleteOidMapping;
+    Ext.ns('Zenoss.ui.Mibs');
 
 node_type_maps = [{
     detailsTitle: _t('OID Mapping Overview'),
@@ -131,7 +131,7 @@ function rowSelect(sm, rec, ri) {
     node.name.setValue(rec.data.name);
     node.oid.setValue(rec.data.oid);
     node.accessOrObjects.setValue(rec.data.access);
-    if (rec.data.access == undefined) {
+    if (rec.data.access === undefined) {
         node.accessOrObjects.setValue(rec.data.objects);
     } else {
         node.accessOrObjects.setValue(rec.data.access);
@@ -379,7 +379,7 @@ MibBrowser = Ext.extend(Ext.Container, {
                             var grid = Ext.getCmp('gridCardPanel').layout.activeItem;
                             var sm = grid.getSelectionModel(),
                                 sel = sm.getSelected();
-                            if (sel == undefined) {
+                            if (sel === undefined) {
                                 return;
                             }
                             currentDeleteFn({uid: sel.get("uid")}, function() {
@@ -476,7 +476,7 @@ Ext.define("Zenoss.MibTreePanel", {
                         drop: this.onNodeDrop,
                         scope:this
                     }
-                
+
                 }
             });
             this.callParent(arguments);
@@ -485,7 +485,7 @@ Ext.define("Zenoss.MibTreePanel", {
             router.moveNode({
                     uids: [nodedata.records[0].data.uid],
                     target: nodedata.records[0].parentNode.data.uid
-                }, 
+                },
                 function () {
                     this.moveMibsCallback(nodedata.records[0].parentNode.data.uid);
                 }, this);
@@ -538,16 +538,14 @@ treesm = new Zenoss.TreeSelectionModel({
             var isRoot = false;
 
             if (newnode && newnode.data.leaf) {
-                var uid = newnode.data.uid,
-                    meta_type = newnode.data.meta_type;
-                    mib_browser.setContext(newnode);
+                mib_browser.setContext(newnode);
                 Ext.getCmp('gridCardPanel').setDisabled(false);
             }
 
             if (newnode) {
                 // set the context for the new nodes
                 Zenoss.env.PARENT_CONTEXT = newnode.data.uid;
-                if (newnode.data.uid == '/zport/dmd/Mibs') {
+                if (newnode.data.uid === '/zport/dmd/Mibs') {
                     isRoot = true;
                 }
                 Ext.getCmp('add-organizer-button').setDisabled(newnode.data.leaf);
@@ -582,7 +580,7 @@ mib_tree = new Zenoss.MibTreePanel({
             }
         }
     },
-    dropConfig: { appendOnly: true }    
+    dropConfig: { appendOnly: true }
 });
 
 

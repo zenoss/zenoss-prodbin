@@ -124,7 +124,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
      * Overwrite to add any properties dynamically from the data. Must
      * return true if added any.
      */
-    addNewDataItems: function(data) {
+    addNewDataItems: function() {
         return false;
     },
     update: function(data) {
@@ -136,7 +136,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
         // update all the children that have templates
         var self = this;
         this.cascade(function(item) {
-            if (item != self && item.tpl) {
+            if (item !== self && item.tpl) {
                 item.data = data;
                 item.update(data);
             }

@@ -1,3 +1,4 @@
+/* globals unescape:true */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
@@ -37,7 +38,7 @@ initTreeDialogs = function(tree) {
             allowBlank: false
         },
         listeners: {
-            'hide': function(treeDialog) {
+            'hide': function() {
                 Ext.getCmp('idTextfield').setValue('');
             }
         },
@@ -45,7 +46,7 @@ initTreeDialogs = function(tree) {
             {
                 xtype: 'HideDialogButton',
                 text: _t('Submit'),
-                handler: function(button, event) {
+                handler: function() {
                     var id = Ext.getCmp('idTextfield').getValue();
                     tree.addTemplate(id);
                 }
@@ -81,7 +82,7 @@ Ext.define("Zenoss.TemplateTreePanel", {
     constructor: function(config) {
         var currentView = config.currentView,
             directFn = router.getTemplates;
-        if (currentView == Zenoss.templates.deviceClassView) {
+        if (currentView === Zenoss.templates.deviceClassView) {
             directFn = router.getDeviceClassTemplates;
         }
         this.currentView = currentView;
@@ -124,7 +125,7 @@ Ext.define("Zenoss.TemplateTreePanel", {
     },
 
     addTemplate: function(id) {
-        var rootNode, contextUid, params, tree, type;
+        var rootNode, contextUid, params, tree;
         rootNode = this.getRootNode();
         contextUid = rootNode.data.uid;
         params = {contextUid: contextUid, id: id};
@@ -151,7 +152,7 @@ Ext.define("Zenoss.TemplateTreePanel", {
         node = this.getSelectionModel().getSelectedNode();
         params = {uid: node.data.uid};
         me = this;
-        function callback(provider, response) {
+        function callback() {
             me.getRootNode().reload();
         }
         router.deleteTemplate(params, callback);
@@ -159,7 +160,7 @@ Ext.define("Zenoss.TemplateTreePanel", {
 
     createDeepLinkPath: function(node) {
         var path;
-        if (this.currentView != Zenoss.templates.deviceClassView) {
+        if (this.currentView !== Zenoss.templates.deviceClassView) {
             path = this.id + Ext.History.DELIMITER + node.data.uid;
         }else {
             path = this.id + Ext.History.DELIMITER + node.get("id");
@@ -179,14 +180,14 @@ Ext.define("Zenoss.TemplateTreePanel", {
         }
     },
     selectByToken: function(id) {
-        if (this.currentView == Zenoss.templates.deviceClassView){
+        if (this.currentView === Zenoss.templates.deviceClassView){
             this.callParent([unescape(id.replace(/\//g, '.'))]);
         }else{
             this.templateViewSelectByToken(id);
         }
     },
     getFilterFn: function(text) {
-        if (this.currentView != Zenoss.templates.deviceClassView){
+        if (this.currentView !== Zenoss.templates.deviceClassView){
             var regex = new RegExp(Ext.String.escapeRegex(text),'i');
             var fn = function(item){
                 return regex.test(item.get('id'));
@@ -209,9 +210,9 @@ Ext.define("Zenoss.TemplateTreePanel", {
                 // turns into:
                 //     "/root/ethernetCsmacd/ethernetCsmacd..Devices"
                 var templateSplit, pathParts, nameParts,
-                templateName, dmdPath, path, deviceName;
+                templateName, dmdPath, path;
 
-                if (uid.search('/rrdTemplates/') != -1) {
+                if (uid.search('/rrdTemplates/') !== -1) {
                     templateSplit = unescape(uid).split('/rrdTemplates/');
                     pathParts = templateSplit[0].split('/');
                     nameParts = templateSplit[1].split('/');
@@ -244,12 +245,12 @@ Ext.define("Zenoss.TemplateTreePanel", {
 
     manualSelect: function(uid, templateName) {
         var theTree = this;
-        var callback = function(success, foundNode) {
+        var callback = function(success) {
             if (!success) {
                 theTree.getRootNode().eachChild(function(node) {
-                    if (templateName == node.data.id){
+                    if (templateName === node.data.id){
                         node.eachChild(function(node){
-                            if (uid == node.data.uid) {
+                            if (uid === node.data.uid) {
                                 node.select();
                                 return false;
                             }

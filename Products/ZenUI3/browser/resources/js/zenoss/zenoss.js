@@ -1,3 +1,6 @@
+/* global EventActionManager:true, moment:true */
+/* jshint freeze: false */
+/*TODO: move overriding the prototype to a util funciton */
 (function(){ // Local scope
 /**
  * Check compatibilty mode turned on
@@ -76,7 +79,7 @@ Zenoss.env.getColumnDefinitions = function(except) {
     });
     if (except) {
         return Zenoss.util.filter(Zenoss.env.COLUMN_DEFINITIONS, function(d){
-            return Ext.Array.indexOf(except, d.id)==-1;
+            return Ext.Array.indexOf(except, d.id)===-1;
         });
     }
     else {
@@ -162,7 +165,7 @@ Ext.state.Manager.setProvider(Ext.create('Zenoss.state.PersistentProvider'));
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
  */
-Ext.Direct.on('event', function(e, provider){
+Ext.Direct.on('event', function(e){
     if ( Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.asof) ) {
         Zenoss.env.asof = e.result.asof || null;
     }
@@ -235,7 +238,7 @@ function setCursorStyle(style) {
     if (document.body) {
         document.body.style.cursor = style;
     }
-};
+}
 
 Ext.Ajax.on('beforerequest', function(){
     setCursorStyle("wait");
@@ -322,10 +325,10 @@ Ext.Direct.on('event', function(e){
 Ext.Element.prototype.setOverflow = function(v, axis) {
     axis = axis ? axis.toString().toUpperCase() : '';
     var overflowProp = 'overflow';
-    if (axis == 'X' || axis == 'Y') {
+    if (axis === 'X' || axis === 'Y') {
         overflowProp += axis;
     }
-    if(v=='auto' && Ext.isMac && Ext.isGecko2){ // work around stupid FF 2.0/Mac scroll bar bug
+    if(v==='auto' && Ext.isMac && Ext.isGecko2){ // work around stupid FF 2.0/Mac scroll bar bug
         this.dom.style[overflowProp] = 'hidden';
         (function(){this.dom.style[overflowProp] = 'auto';}).defer(1, this);
     }else{
@@ -351,7 +354,7 @@ Ext.override(Ext.dd.DragZone, {
         // If it's a link, set the target to the ancestor cell so the browser
         // doesn't do the default anchor-drag behavior. Otherwise everything
         // works fine, so proceed as normal.
-        if (t.tagName=='A') {
+        if (t.tagName==='A') {
             e.target = e.getTarget('div.x-grid3-cell-inner');
         }
         return origGetDragData.call(this, e);
@@ -452,7 +455,7 @@ Ext.define("Zenoss.ExtraHooksSelectionModel", {
             this.selectingRow = false;
         }
     },
-    selectRange: function (startRow, endRow, keepExisting) {
+    selectRange: function () {
         this.suspendEvents();
         Zenoss.ExtraHooksSelectionModel.superclass.selectRange.apply(
             this, arguments);
@@ -469,7 +472,7 @@ Ext.define("Zenoss.ExtraHooksSelectionModel", {
  * @constructor
  */
 Zenoss.PostRefreshHookableDataView = Ext.extend(Ext.DataView, {
-    constructor: function(config) {
+    constructor: function() {
         Zenoss.PostRefreshHookableDataView.superclass.constructor.apply(
             this, arguments);
         this.addEvents(
@@ -566,21 +569,23 @@ Ext.define("Zenoss.MultiselectMenu", {
         }
         var result = [];
         Ext.each(this.menu.items.items, function(item){
-            if (item.checked) result[result.length] = item.value;
+            if (item.checked)  {
+                result[result.length] = item.value;
+            }
         });
         return result;
     },
     setValue: function(val) {
+        var check = function(item) {
+            var shouldCheck = false;
+            try{
+                shouldCheck = val.indexOf(item.value)!==-1;
+            } catch(e) {}
+            item.setChecked(shouldCheck);
+        };
         if (!val) {
             this.initialSetValue(this.initialConfig);
         } else {
-            function check(item) {
-                var shouldCheck = false;
-                try{
-                    shouldCheck = val.indexOf(item.value)!=-1;
-                } catch(e) {var _x;}
-                item.setChecked(shouldCheck);
-            }
             if (!this.hasLoaded) {
                 this._initialValue = val;
                 this.menu.on('add', function(menu, item) {
@@ -619,15 +624,16 @@ Ext.define("Zenoss.StatefulRefreshMenu", {
         var savedInterval = interval[0] || 60;
         // removing one second as an option
         // for performance reasons
-        if (savedInterval == 1) {
+        if (savedInterval === 1) {
             savedInterval = 5;
         }
 
         var items = this.items.items;
         Ext.each(items, function(item) {
-            if (item.value == savedInterval)
+            if (item.value === savedInterval) {
                 item.checked = true;
                 return;
+            }
         }, this);
         this.trigger.on('afterrender', function() {
             this.trigger.setInterval(savedInterval);
@@ -705,7 +711,7 @@ Ext.define("Zenoss.RefreshMenuButton", {
         var isValid = false;
         // make sure what they are setting is a valid option
         this.menu.items.each(function(item){
-            if (item.value == interval) {
+            if (item.value === interval) {
                 isValid = true;
             }
         });
@@ -805,7 +811,7 @@ Ext.define("EventActionManager", {
                     xtype: 'DialogButton',
                     text: _t('Cancel'),
                     ref: '../cancelButton',
-                    handler: function(btn, evt) {
+                    handler: function() {
                         me.cancelled = true;
                         me.finishAction();
                     }
@@ -816,12 +822,12 @@ Ext.define("EventActionManager", {
                 'updateRequestComplete': true
             },
             listeners: {
-                updateRequestIncomplete: function(data) {
+                updateRequestIncomplete: function() {
                     if (!me.cancelled) {
                         me.run();
                     }
                 },
-                updateRequestComplete: function(data) {
+                updateRequestComplete: function() {
                     me.finishAction();
                 }
             },
@@ -832,9 +838,9 @@ Ext.define("EventActionManager", {
                 // are just executing on a filter, we don't have any idea
                 // how many will be updated, so show a progress bar just
                 // in case.
-                return me.params.evids.length > 100 || me.params.evids.length == 0;
+                return me.params.evids.length > 100 || me.params.evids.length === 0;
             },
-            action: function(params, callback) {
+            action: function() {
                 throw('The EventActionManager action must be implemented before use.');
             },
             startAction: function() {
@@ -1020,7 +1026,9 @@ Zenoss.env.SEVERITIES = [
 ];
 
 Zenoss.util.convertSeverity = function(severity){
-    if (Ext.isString(severity)) return severity;
+    if (Ext.isString(severity)) {
+        return severity;
+    }
     var sevs = ['clear', 'debug', 'info', 'warning', 'error', 'critical'];
     return sevs[severity];
 };
@@ -1052,7 +1060,7 @@ Zenoss.util.render_linkable = function(name, col, record) {
 Zenoss.util.render_device_group_link = function(name, col, record) {
     var links = record.data.DeviceGroups.split('|'),
         returnString = "",
-        link = undefined;
+        link;
     // return a pipe-deliminated set of links to the ITInfrastructure page
     for (var i = 0; i < links.length; i++) {
         link = links[i];
@@ -1064,7 +1072,7 @@ Zenoss.util.render_device_group_link = function(name, col, record) {
     return returnString;
 };
 
-
+/* jshint bitwise: false */
 Zenoss.util.base64 = {
     base64s : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
     encode: function(decStr){
@@ -1116,10 +1124,10 @@ Zenoss.util.base64 = {
             decOut += String.fromCharCode((bits & 0xff0000) >>16,
                                           (bits & 0xff00) >>8, bits & 0xff);
         }
-        if(encStr.charCodeAt(i -2) == 61){
+        if(encStr.charCodeAt(i -2) === 61){
             return(decOut.substring(0, decOut.length -2));
         }
-        else if(encStr.charCodeAt(i -1) == 61){
+        else if(encStr.charCodeAt(i -1) === 61){
             return(decOut.substring(0, decOut.length -1));
         }
         else {
@@ -1127,7 +1135,7 @@ Zenoss.util.base64 = {
         }
     }
 };
-
+/* jshint bitwise: true */
 // two functions for converting IP addresses
 Zenoss.util.dot2num = function(dot) {
     var d = dot.split('.');
@@ -1267,7 +1275,7 @@ Zenoss.util.getExtControlType = function(fieldId, type) {
 Zenoss.util.getColumnIndex = function(columns, id) {
    var colIndex = -1;
    Ext.each(columns, function(col, index) {
-       if (col.id == id) {
+       if (col.id === id) {
            colIndex = index;
            return false;
        }
@@ -1308,7 +1316,7 @@ Zenoss.util.validateConfig = function() {
                 // will show a stacktrace in firebug
                 console.error(error);
             }
-        };
+        }
     });
 };
 
@@ -1317,21 +1325,21 @@ Zenoss.util.validateConfig = function() {
  * made while the proxy is already loading a previous requests will be discarded
  */
 Zenoss.ThrottlingProxy = Ext.extend(Ext.data.DirectProxy, {
-    constructor: function(config){
+    constructor: function(){
         Zenoss.ThrottlingProxy.superclass.constructor.apply(this, arguments);
         this.loading = false;
         //add event listeners for throttling
-        this.addListener('beforeload', function(proxy, options){
+        this.addListener('beforeload', function(proxy){
             if (!proxy.loading){
                 proxy.loading = true;
                 return true;
             }
             return false;
         });
-        this.addListener('load', function(proxy, options){
+        this.addListener('load', function(proxy){
             proxy.loading = false;
         });
-        this.addListener('exception', function(proxy, options){
+        this.addListener('exception', function(proxy){
             proxy.loading = false;
         });
 
@@ -1389,7 +1397,7 @@ Zenoss.date.renderDateColumn = function(format) {
 // Fix an IE bug
 Ext.override(Ext.Shadow, {
     realign: Ext.Function.createInterceptor(Ext.Shadow.prototype.realign,
-        function(l, t, w, h) {
+        function() {
             if (Ext.isIE) {
                 var a = this.adjusts;
                 a.h = Math.max(a.h, 0);
@@ -1409,13 +1417,12 @@ Ext.override(Ext.form.Checkbox, {
 });
 
 String.prototype.startswith = function(str){
-    return (this.match('^'+str)==str);
+    return (this.match('^'+str)===str);
 };
 
 String.prototype.endswith = function(str){
-    return (this.match(str+'$')==str);
+    return (this.match(str+'$')===str);
 };
-
 
 /* Readable dates */
 
@@ -1432,7 +1439,7 @@ var _time_units = [
 Date.prototype.readable = function(precision) {
     var diff = (new Date().getTime() - this.getTime())/1000,
         remaining = Math.abs(diff),
-        result = [];
+        result = [], i;
     for (i=0;i<_time_units.length;i++) {
         var unit = _time_units[i],
             unit_name = unit[0],
@@ -1442,7 +1449,7 @@ Date.prototype.readable = function(precision) {
         if (num) {
             result.push(num + " " + unit_name + (num>1 ? 's' : ''));
         }
-        if (result.length == precision) {
+        if (result.length === precision) {
             break;
         }
     }
@@ -1473,12 +1480,12 @@ cbSplit = function (str, separator, limit) {
         flags = (separator.ignoreCase ? "i" : "") +
                 (separator.multiline  ? "m" : "") +
                 (separator.sticky     ? "y" : ""),
-        separator = RegExp(separator.source, flags + "g"), // make `global` and avoid `lastIndex` issues by working with a copy
+        separator = new RegExp(separator.source, flags + "g"), // make `global` and avoid `lastIndex` issues by working with a copy
         separator2, match, lastIndex, lastLength;
 
     str = str + ""; // type conversion
     if (!cbSplit._compliantExecNpcg) {
-        separator2 = RegExp("^" + separator.source + "$(?!\\s)", flags); // doesn't need /g or /y, but they don't hurt
+        separator2 = new RegExp("^" + separator.source + "$(?!\\s)", flags); // doesn't need /g or /y, but they don't hurt
     }
 
     /* behavior for `limit`: if it's...
@@ -1495,7 +1502,7 @@ cbSplit = function (str, separator, limit) {
             return [];
         }
     }
-
+    /* jshint boss: true */
     while (match = separator.exec(str)) {
         lastIndex = match.index + match[0].length; // `separator.lastIndex` is not reliable cross-browser
 
@@ -1561,7 +1568,7 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
             return false;
         default:
             var len, threshold = Zenoss.settings.deviceMoveJobThreshold || 5;
-            if (devices == null) {
+            if (devices === null) {
                 len = 0;
             } else if (!Ext.isArray(devices)) {
                 len = 1;
@@ -1640,6 +1647,6 @@ Ext.define('PortletManager', {
         this.addEvents('ready', 'beforeregister');
     }
 });
-Zenoss.PortletManager = new PortletManager();
+Zenoss.PortletManager = Ext.create('PortletManager', {});
 
 })(); // End local scope
