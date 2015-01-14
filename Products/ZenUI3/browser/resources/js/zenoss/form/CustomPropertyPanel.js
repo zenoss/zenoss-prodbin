@@ -1,19 +1,19 @@
+/* jshint boss:true */
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2012, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
 (function(){
-    var router = Zenoss.remote.PropertiesRouter,
-        customPropertyPanel;
+    var router = Zenoss.remote.PropertiesRouter;
 
     Ext.ns('Zenoss.cproperties');
-    
+
 
     /**
      * Allow zenpack authors to register custom cproperty
@@ -22,23 +22,23 @@
     Zenoss.cproperties.registerCPropertyType = function(id, config){
         Zenoss.zproperties.configPropertyConfigs[id] = config;
     };
-    
+
     Zenoss.cproperties.hideApplyCheckbox = function(grid){
-        if(grid.uid != "/zport/dmd/Devices"){ 
+        if(grid.uid !== "/zport/dmd/Devices"){
             return false;
         }else{
             return true;
         }
-    }
-    
+    };
+
     function showAddNewPropertyDialog(grid) {
-        var addhandler, uid, config, dialog, pathMsg, msg,
+        var addhandler, uid, config, dialog, msg,
         clearPanel = function(panel){
             var f;
             while(f = panel.items.first()){
               panel.remove(f, true);// can do false to reuse the elements
             }
-        }
+        };
         Zenoss.zproperties.configPropertyConfigs.state.context = "add";
         msg = '<span style="color:#aaa;">';
         msg += _t('Names must start with a lower case c')+' <br>';
@@ -50,9 +50,9 @@
         addhandler = function() {
             var c = dialog.getForm().getForm().getValues(), value;
             uid = "/zport/dmd/Devices"; // to force it to apply to the root on every newly created prop
-            
+
             // if it's type 'lines' then it was already saved. the submit should be 'updating' it instead
-            if (c.type == 'lines') {
+            if (c.type === 'lines') {
                 if (c.value) {
                     // send back as an array separated by a new line
                     value = Ext.Array.map(c.value.split('\n'), function(s) {return Ext.String.trim(s);});
@@ -63,36 +63,36 @@
             }else{
                 value = c.value;
             }
-            
-            if (c.type == 'selection'){ 
+
+            if (c.type === 'selection'){
             // this is a submit on a selection, which was already added as new with the selection action on dialog
             // so here we're just updating the newly created item with the line item
                 var params = {
                     uid: uid,
                     zProperty: c.name,
                     value: c.selection
-                };              
+                };
                 Zenoss.remote.PropertiesRouter.setZenProperty(params, function(response){
                     if (response.success) {
                         grid.refresh();
                     }
                 });
-            }else{        
+            }else{
                 var params = {
                     uid: uid,
                     id: c.name,
                     type: c.type,
                     label: c.description,
                     value: value
-                };                      
-                
+                };
+
                 Zenoss.remote.PropertiesRouter.addCustomProperty(params, function(response){
                     if (response.success) {
-                        grid.refresh();    
+                        grid.refresh();
                     }
                 });
-            }    
-        }
+            }
+        };
 
         // form config
         config = {
@@ -103,7 +103,7 @@
             id: 'addCustomDialog',
             defaults:{
                 applyLocalHidden: true
-            },            
+            },
             title: _t('Add Custom Config Property'),
             items: [{
                     xtype: 'panel',
@@ -111,13 +111,13 @@
                     margin: '0 0 1px 0',
                     items: [
                         {
-                            xtype: 'textfield', 
+                            xtype: 'textfield',
                             name: 'name',
-                            fieldLabel: _t('Property Name'), 
+                            fieldLabel: _t('Property Name'),
                             width:220,
                             regex: /^c[A-Z]/,
                             regexText: _t("Custom Properties must start with a lower case c"),
-                            value: "" 
+                            value: ""
                         },{
                             xtype: 'panel',
                             padding: '0 0 0 10px',
@@ -159,7 +159,7 @@
                             listeners:{
                                 change: function(e){
                                     var panel = Ext.getCmp('typeSelectionPanel');
-                                    clearPanel(panel);                            
+                                    clearPanel(panel);
                                     panel.add(Zenoss.zproperties.configPropertyConfigs[e.value]);
                                 }
                             },
@@ -172,13 +172,13 @@
                                 ['boolean'],['date'],['float'],['int'],['lines'],
                                 ['long'],['password'],['string' ],['selection']
                                 ]
-                            }) 
+                            })
                         },{
                             xtype: 'panel',
                             padding: '0 0 0 10px',
                             id:'typeSelectionPanel',
                             items:[Zenoss.zproperties.configPropertyConfigs.string]
-        
+
                         }
                 ]
                 }
@@ -194,42 +194,42 @@
         if (Zenoss.Security.hasPermission('zProperties Edit')) {
             dialog.show();
         }
-            
 
-    };    
+
+    }
 
     function showEditCustPropertyDialog(data, grid){
         var path;
-        if (grid.uid == "/zport/dmd/Devices"){
+        if (grid.uid === "/zport/dmd/Devices"){
             path = "/";
         }else{
             path = grid.uid.split("Devices")[1];
         }
         var pathMsg = '<div style="padding-top:10px;">';
         pathMsg += _t(" This value will be changed to apply to the current location:");
-        pathMsg += '<div style="color:#aaa;padding-top:3px;">'; 
+        pathMsg += '<div style="color:#aaa;padding-top:3px;">';
         pathMsg += '<div style="color:#fff;background:#111;margin:2px 7px 2px 0;padding:5px;"> '+path+' </div>';
         pathMsg += '</div></div>';
-        
-        var lbltemplate = '<div style="margin:5px 0 15px 0;"><b>{0}</b> <span style="display:inline-block;padding-left:5px;color:#aaccaa">{1}</span></div>'        
-    
+
+        var lbltemplate = '<div style="margin:5px 0 15px 0;"><b>{0}</b> <span style="display:inline-block;padding-left:5px;color:#aaccaa">{1}</span></div>';
+
         var items = [
                 {
                     xtype: 'label',
                     width: 500,
                     height: 50,
                     html: Ext.String.format(lbltemplate, _t("Name:"), data.id)
-                },{                
+                },{
                     xtype: 'label',
                     width: 500,
                     height: 50,
                     html: Ext.String.format(lbltemplate, _t("Description:"),data.label)
-                },{                
+                },{
                     xtype: 'label',
                     width: 500,
                     height: 50,
                     html: Ext.String.format(lbltemplate, _t("Path:"),data.path)
-                },{                
+                },{
                     xtype: 'label',
                     width: 500,
                     height: 50,
@@ -239,10 +239,10 @@
                     width: 300,
                     height: 90,
                     html: pathMsg
-                }   
+                }
         ];
-        
-        pkg = {
+
+        var pkg = {
             'items': items,
             'uid': grid.uid,
             'type': data.type,
@@ -253,9 +253,9 @@
             'minHeight': 300,
             'width': 500,
             'options': data.options
-        }        
-        Zenoss.zproperties.showEditPropertyDialog(pkg);    
-    
+        };
+        Zenoss.zproperties.showEditPropertyDialog(pkg);
+
     }
     /**
      * @class Zenoss.CustomProperty.Model
@@ -269,8 +269,8 @@
             {name: 'id'},
             {name: 'label'},
             {name: 'valueAsString'},
-            {name: 'path'},            
-            {name: 'type'},            
+            {name: 'path'},
+            {name: 'type'},
             {name: 'islocal'}
         ]
     });
@@ -307,7 +307,7 @@
             Ext.applyIf(config, {
                 stateId: config.id || 'custom_property_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
-                stateful: true, 
+                stateful: true,
                 tbar:[
                     {
                     xtype: 'button',
@@ -319,7 +319,7 @@
                             var grid = button.up("custompropertygrid");
                             showAddNewPropertyDialog(grid);
                         }
-                    }, 
+                    },
                     {
                     xtype: 'button',
                     iconCls: 'customize',
@@ -330,7 +330,7 @@
                             var grid = button.up("custompropertygrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
-    
+
                             if (Ext.isEmpty(selected)) {
                                 return;
                             }
@@ -356,7 +356,7 @@
                             var grid = button.up("custompropertygrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
-                            if (Ext.isEmpty(selected)) {  
+                            if (Ext.isEmpty(selected)) {
                                 return;
                             }
 
@@ -428,7 +428,7 @@
                                 return 'Yes';
                             }
                             return '';
-                        }                        
+                        }
                     }]
             });
             this.callParent(arguments);

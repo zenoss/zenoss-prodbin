@@ -64,16 +64,16 @@ Ext.define("Zenoss.SimpleInstanceGridPanel", {
             id: 'instanceName',
             dataIndex: config.nameDataIndex || 'name',
             header: _t('Name'),
-            flex: .25,
+            flex: 0.25,
             width: 400
         },{
             id: 'device',
             dataIndex: 'device',
-            flex: .75,
+            flex: 0.75,
             header: _t('Device'),
             width: 200,
             sortable: false,
-            renderer: function(device, row, record){
+            renderer: function(device){
                 return Zenoss.render.link(device.uid, undefined,
                                           device.name);
             }
@@ -125,7 +125,6 @@ Ext.define("Zenoss.SimpleCardPanel", {
 
     constructor: function(config) {
         this.contextUid = null;
-        var me = this;
         Ext.applyIf(config, {
             layout: 'card',
             activeItem: 0,

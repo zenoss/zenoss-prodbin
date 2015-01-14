@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -47,7 +47,7 @@
                 title: _t('Unsaved Data'),
                 msg: _t('The changes made in the form will be lost.'),
                 fn: function(buttonid){
-                    if (buttonid=='ok') {
+                    if (buttonid==='ok') {
                         form.reset();
                         node.select();
                     }
@@ -92,7 +92,7 @@
                 }
             }
 
-            isRoot = node == Ext.getCmp('navTree').getRootNode();
+            isRoot = node === Ext.getCmp('navTree').getRootNode();
             Ext.getCmp('footer_bar').buttonDelete.setDisabled(isRoot);
         }
     };
@@ -173,7 +173,7 @@
         },
 
         selectByToken: function(token) {
-            var tokenParts, node, serviceClassName;
+            var tokenParts;
             token = unescape(token);
             tokenParts = token.split('.serviceclasses.');
             this.callParent([tokenParts[0]]);

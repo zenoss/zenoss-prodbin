@@ -17,7 +17,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
         },
         getProdStateValue: function(prodStateName){
             for (var i in this.productionStates){
-                if (this.productionStates[i].name == prodStateName){
+                if (this.productionStates[i].name === prodStateName){
                     return this.productionStates[i].value;
                 }
             }
@@ -43,7 +43,10 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             return _duration;
         },
         setUsersCombo: function(grid, combo, index){
-            if(typeof(index) == "undefined")index = -1;
+            if(!Ext.isDefined(index)) {
+                index = -1;
+            }
+
             // create an object of users and return it - format like productionStates
             Zenoss.remote.DeviceManagementRouter.getUserList({uid:grid.uid}, function(response){
                 if (response.success) {
@@ -52,7 +55,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             });
         },
         setRolesCombo: function(grid, uid, combo, index){
-            if(typeof(index) == "undefined")index = -1;
+            if(!Ext.isDefined(index)) {
+                index = -1;
+            }
             Zenoss.remote.DeviceManagementRouter.getRolesList({uid:uid}, function(response){
                 if (response.success) {
                     Zenoss.devicemanagement.setComboFromData(response, combo, grid, 'role', index);
@@ -62,7 +67,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
         setComboFromData: function(response, combo, grid, type, index){
             var data = [], gdata = grid.getView().getStore().data;
             for(var i=0;i < response.data.length; i++){
-                if(type == "user"){
+                if(type === "user"){
                     if( !this.alreadyInCombo(response.data[i], gdata, type)  ){
                         data.push([response.data[i]]);
                     }
@@ -71,12 +76,16 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                 }
             }
             combo.store.loadData(data);
-            if(index == -1) return;
+            if(index === -1) {
+                return;
+            }
             combo.setValue(combo.store.getAt(index));
         },
         alreadyInCombo: function(data, gdata){
             for(var i=0;i < gdata.items.length; i++){
-                if(data == gdata.items[i].data.id) return true;
+                if(data === gdata.items[i].data.id) {
+                    return true;
+                }
             }
             return false;
         },
@@ -95,16 +104,20 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
 
 // ----------------------------------------------------------------- DIALOGS
     function maintDialog(grid, data) {
-        if(typeof(data) == "undefined")data = "";
-        var addhandler, uid, config, dialog, newEntry;
+        if (!Ext.isDefined(data)) {
+            data = "";
+        }
+        var addhandler, config, dialog, newEntry;
         var labelmargin = '5px 5px 0 0';
         newEntry = (data === "");
 
         addhandler = function() {
-            var c = dialog.getForm().getForm().getValues(), value;
+            var c = dialog.getForm().getForm().getValues();
             var padZero = function(num){
-                if(num === "") return 0;
-                if(num.length == 1){
+                if(num === "") {
+                    return 0;
+                }
+                if(num.length === 1){
                     return "0"+num;
                 }
                 return num;
@@ -163,7 +176,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                         var startTime = Zenoss.devicemanagement.getStartTime(data.startTime_data);
                         var duration = Zenoss.devicemanagement.getDuration(data.duration_data); // returns object with days,hrs,mins
                         fields.findBy(
-                            function(record, id){
+                            function(record){
                                 switch(record.getName()){
                                     case "start_state"    : record.setValue(prodState);  break;
                                     case "start_date"     : record.setValue(startTime.date);  break;
@@ -419,14 +432,15 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
 
 
     function commandsDialog(grid, data) {
-        if(typeof(data) == "undefined")data = "";
-        var addhandler, uid, config, dialog, newEntry;
+        if (!Ext.isDefined(data)) {
+            data = "";
+        }
+        var addhandler, config, dialog, newEntry;
         var wintitle = _t("Add New User Command");
-        var labelmargin = '5px 5px 0 0';
         newEntry = data === "";
 
         addhandler = function() {
-            var c = dialog.getForm().getForm().getValues(), value;
+            var c = dialog.getForm().getForm().getValues();
 
             var params = {
                 uid:          grid.uid,
@@ -466,7 +480,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                         e.setTitle(wintitle);
                         var fields = e.getForm().getForm().getFields();
                         fields.findBy(
-                            function(record, id){
+                            function(record){
                                 switch(record.getName()){
                                     case "name"         : record.setValue(data.id);  break;
                                     case "id"           : record.setValue(data.id);  break;
@@ -534,7 +548,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
 
 
     function adminsDialog(grid) {
-        var addhandler, uid, config, dialog;
+        var addhandler, config, dialog;
 
         addhandler = function() {
             var c = dialog.getForm().getForm().getValues();
@@ -722,7 +736,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     tooltip: _t('Set up a new Maintenance Window'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'addButton',
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid");
                             maintDialog(grid);
                         }
@@ -730,7 +744,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         xtype: 'button',
                         iconCls: 'delete',
                         tooltip: _t('Delete selected Maintenance Window'),
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
@@ -767,7 +781,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     tooltip: _t('Edit selected Maintenance Window'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'customizeButton',
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
@@ -786,7 +800,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     tooltip: _t('Toggle Enable/Disable on selected Maintenance Window'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'disableMaintButton',
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
@@ -858,7 +872,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         width: 150,
                         filter: false,
                         sortable: true,
-                        renderer: function(val, o, fields){
+                        renderer: function(val){
                             var chunk = val.split(".");
                             return chunk[0];
                         }
@@ -873,10 +887,10 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         width: 150,
                         filter: false,
                         sortable: true,
-                        renderer: function(val, o, fields){
-                            if(val.length == 5){ // it's only minutes
+                        renderer: function(val){
+                            if(val.length === 5){ // it's only minutes
                                 return val+" mins";
-                            }else if(val.length == 8){
+                            }else if(val.length === 8){
                                 return val+" hrs";
                             }
 
@@ -906,7 +920,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             // load the grid's store
             this.callParent(arguments);
         },
-        onRowDblClick: function(grid, rowIndex, e) {
+        onRowDblClick: function() {
             var data,
                 selected = this.getSelectionModel().getSelection();
             if (!selected) {
@@ -975,7 +989,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     tooltip: _t('Add a User Command'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'addButton',
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("deviceCommandsGrid");
                             commandsDialog(grid);
                         }
@@ -983,7 +997,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         xtype: 'button',
                         iconCls: 'delete',
                         tooltip: _t('Delete selected User Command'),
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("deviceCommandsGrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
@@ -1020,7 +1034,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     tooltip: _t('Edit selected User Command'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'customizeButton',
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("deviceCommandsGrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
@@ -1038,7 +1052,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     tooltip: _t('Add selected User Command to ZenPack'),
                     ref: '../refreshButton',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
-                    handler: function(button) {
+                    handler: function() {
                         var grid = Ext.getCmp("deviceCommandsGrid");
                         var zp_dialog = Ext.create('Zenoss.AddToZenPackWindow', {});
                         zp_dialog.setTarget(grid.uid);
@@ -1054,7 +1068,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                                 b.setVisible(contextIsDevice(Ext.getCmp("deviceCommandsGrid").uid));
                             }
                         },
-                        handler: function(button){
+                        handler: function(){
                                 var grid = Ext.getCmp("deviceCommandsGrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
@@ -1104,14 +1118,16 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             // load the grid's store
             this.callParent(arguments);
         },
-        onRowDblClick: function(grid, rowIndex, e) {
+        onRowDblClick: function() {
             var data,
                 selected = this.getSelectionModel().getSelection();
             if (!selected) {
                 return;
             }
             data = selected[0].data;
-            if(!data) return;
+            if(!data) {
+                return;
+            }
             commandsDialog(this, data);
         }
     });
@@ -1171,7 +1187,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     tooltip: _t('Add a User'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'addButton',
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("adminsGrid");
                             adminsDialog(grid);
                         }
@@ -1179,7 +1195,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         xtype: 'button',
                         iconCls: 'delete',
                         tooltip: _t('Remove selected User from the Device Administrators panel'),
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp("adminsGrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
@@ -1216,7 +1232,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     tooltip: _t('Edit users on the advanced user account edit page'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'editAdminButton',
-                        handler: function(button) {
+                        handler: function() {
                             Ext.getCmp("adminsGrid").editpage();
                         }
                     },{
@@ -1298,7 +1314,6 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     }]
             });
             this.callParent(arguments);
-            this.on('itemdblclick', this.onRowDblClick, this);
             this.on('select', this.onRowSelect, this);
         },
         setContext: function(uid) {
@@ -1306,9 +1321,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             this.callParent(arguments);
             Zenoss.devicemanagement.setRolesCombo(this, uid, Ext.getCmp('changeroleCombo'));
         },
-        onRowSelect: function(model, selectedRow, rowIndex){
+        onRowSelect: function(model, selectedRow){
             if (Zenoss.Security.hasPermission('Manage Device')) {
-                var grid = model.view.ownerCt;
                 var combo = Ext.getCmp('changeroleCombo');
                 combo.setDisabled(false);
                 var index = combo.getStore().find('field1', selectedRow.data.role);
@@ -1318,9 +1332,6 @@ Ext.define("Zenoss.devicemanagement.Administration", {
         reset: function(){
             this.refresh();
             Zenoss.devicemanagement.setComboSleep(Ext.getCmp('changeroleCombo'));
-        },
-        onRowDblClick: function(grid, rowIndex, e) {
-
         },
         editpage: function(){
             var location,

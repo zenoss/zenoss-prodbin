@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -21,7 +21,7 @@
         extend:"Ext.form.DisplayField",
         constructor: function(config) {
             // if a string was passed in then defer to the parents behavior
-            if ((typeof config.value) != 'string') {
+            if ((typeof config.value) !== 'string') {
                 config.value = config.value.join('<br />');
             }
 

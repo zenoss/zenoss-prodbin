@@ -1,3 +1,4 @@
+/* globals _managed_objects: true */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
@@ -26,30 +27,6 @@ Ext.onReady(function(){
     detail_panel.animCollapse = false;
     detail_panel.collapsible = true;
 
-
-    /*
-     * Select all events with a given state.
-     * This requires a call to the back end, since we don't know anything about
-     * records that are outside the current buffer. So we let the server
-     * perform a query to determine ranges, then we select the ranges.
-     */
-    function selectByState(state) {
-        var params = {'state':state, 'history':true, 'asof':Zenoss.env.asof},
-            grid = Ext.getCmp('events_grid');
-        Ext.apply(params, getQueryParameters());
-        Zenoss.remote.EventsRouter.state_ranges(
-            params,
-            function(result) {
-                var sm = grid.getSelectionModel();
-                sm.clearSelections();
-                Ext.each(result, function(range){
-                    if (range.length==1)
-                        range[1] = grid.getStore().totalLength + 1;
-                   sm.selectRange(range[0]-1, range[1]-1, true);
-                });
-            }
-        );
-    }
 
     // Get the container surrounding master/detail, for adding the toolbar
     var container = Ext.getCmp('center_panel_container');
@@ -186,12 +163,12 @@ Ext.onReady(function(){
                             var grid = Ext.getCmp('events_grid'),
                                 link = grid.getPermalink();
                         new Zenoss.dialog.ErrorDialog({
-                            message: Ext.String.format(_t('<div class="dialog-link">'
-                                + 'Drag this link to your bookmark bar '
-                                + '<br/>to return to this configuration later.'
-                                + '<br/><br/><a href="'
-                                + link
-                                + '">Resource Manager: Event Archive</a></div>')),
+                            message: Ext.String.format(_t('<div class="dialog-link">' +
+                                 'Drag this link to your bookmark bar ' +
+                                 '<br/>to return to this configuration later.' +
+                                 '<br/><br/><a href="' +
+                                 link +
+                                 '">Resource Manager: Event Archive</a></div>')),
                             title: _t('Save Configuration')
                             });
                         }
@@ -208,10 +185,10 @@ Ext.onReady(function(){
                         text: "Restore defaults",
                         handler: function(){
                             new Zenoss.dialog.SimpleMessageDialog({
-                                message: Ext.String.format(_t('Are you sure you want to restore '
-                                    + 'the default configuration? All'
-                                    + ' filters, column sizing, and column order '
-                                    + 'will be lost.')),
+                                message: Ext.String.format(_t('Are you sure you want to restore ' +
+                                     'the default configuration? All' +
+                                     ' filters, column sizing, and column order ' +
+                                     'will be lost.')),
                                 title: _t('Confirm Restore'),
                                 buttons: [{
                                     xtype: 'DialogButton',
@@ -249,7 +226,7 @@ Ext.onReady(function(){
             ]
         });
         return tbar;
-    }
+    };
 
     // Selection model
     var console_selection_model = new Zenoss.EventPanelSelectionModel({
@@ -261,9 +238,9 @@ Ext.onReady(function(){
         var tbar = createBar();
 
         var archive_store = Ext.create('Zenoss.events.Store', {directFn: Zenoss.remote.EventsRouter.queryArchive} );
-        if (!Zenoss.settings.enableInfiniteGridForEvents)
+        if (!Zenoss.settings.enableInfiniteGridForEvents) {
             archive_store.buffered = false;
-
+        }
         var grid = Ext.create('Zenoss.events.Grid', {
             region: 'center',
             tbar: tbar,
@@ -306,10 +283,11 @@ Ext.onReady(function(){
         // Hook up the "Last Updated" text
         var store = grid.getStore();
         //store.on('beforeprefetch', doLastUpdated);
-        if (store.buffered)
+        if (store.buffered) {
             store.on('guaranteedrange', doLastUpdated);
-        else
+        } else {
             store.on('load', doLastUpdated);
+        }
         doLastUpdated();
 
         // Detail pane should pop open when double-click on event
@@ -324,7 +302,7 @@ Ext.onReady(function(){
         hideEventDetail();
 
         return grid;
-    }
+    };
 
     /*
      * THE GRID ITSELF!
@@ -394,11 +372,13 @@ Ext.onReady(function(){
     });
 
     console_selection_model.on("select", function(){
-        if(detail_panel.collapsed == false){
+        if(detail_panel.collapsed === false){
             toggleEventDetailContent();
         }
         // if more than one is selected using the ctrl key, collapse the details:
-        if(this.getCount() > 1) detail_panel.collapse();
+        if(this.getCount() > 1) {
+            detail_panel.collapse();
+        }
     });
     // When multiple events are selected, detail pane should blank
     console_selection_model.on('rangeselect', function(){

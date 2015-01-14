@@ -206,7 +206,7 @@
             var manufacturer = config.manufacturer || "",
                 prodType = config.prodType || 'OS',
                 store = (config||{}).store ||
-                    prodType=='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
+                    prodType==='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
             store.setBaseParam('manufacturer', manufacturer);
             config = Ext.applyIf(config||{}, {
                 store: store,

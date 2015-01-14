@@ -22,8 +22,9 @@
             this.proxy.extraParams[key] = value;
         },
         setParamsParam:function (key, value) {
-            if (! this.proxy.extraParams.params)
+            if (! this.proxy.extraParams.params) {
                 this.proxy.extraParams.params = {};
+            }
             this.proxy.extraParams.params[key] = value;
         },
         onGuaranteedRange: function(range, start, end, options) {
@@ -149,7 +150,7 @@
                     // need to scroll the inner container for the changes to be noticed
                     innerEl = this.dockedFilter.el.dom.childNodes[0],
                     scrollLeft = innerEl.scrollLeft;
-                if (viewScrollLeft != scrollLeft) {
+                if (viewScrollLeft !== scrollLeft) {
                     innerEl.scrollLeft = viewScrollLeft;
                 }
             }
@@ -170,7 +171,7 @@
                 filterBar.removeAll(true);
 
                 Ext.each(grid.getDockedItems(), function (item) {
-                    if (item.id == grid.id + 'docked-filter') {
+                    if (item.id === grid.id + 'docked-filter') {
                         grid.removeDocked(item, true);
                     }
                 });
@@ -190,8 +191,7 @@
 
         },
         applyTemplate:function () {
-            var searchItems = [],
-                defaultFilters = this.defaultFilters;
+            var searchItems = [];
             // set the default params
             this.eachColumn(function (col) {
                 // this is the value we are going to send to the server
@@ -232,7 +232,7 @@
                     col.filterField = Ext.ComponentManager.create(col.filter);
 
                 } else {
-                    if (col.hidden != col.filterField.hidden) {
+                    if (col.hidden !== col.filterField.hidden) {
                         col.filterField.setVisible(!col.hidden);
                     }
                 }
@@ -291,7 +291,7 @@
             }, this, {single: true});
         },
         clearFilters:function () {
-          var me = this;
+
           /* when using .reset(), it applies setValue(), which in turn applies the
             previous value. In the case of multiselect, it adds duplicates to the list instead of resetting it.
             Hardwiring a reset for each of the changed multiselections here to disallow dupes and firing the onChange manually.
@@ -302,7 +302,7 @@
                     if(col.filterField.isXType("multiselectmenu") ){
                         var dirty = false;
                         col.filterField.menu.items.each(function(f){
-                            if(f.checked != f.initialConfig.checked){
+                            if(f.checked !== f.initialConfig.checked){
                                 f.setChecked(f.initialConfig.checked);
                                 dirty = true;
                             }
@@ -373,7 +373,7 @@
         },
         onKeyDown:function (field, e) {
             // if they explicitly pressed enter then search now
-            if (e.getKey() == e.ENTER) {
+            if (e.getKey() === e.ENTER) {
                 this.onChange();
             }
         },
@@ -407,11 +407,11 @@
                 globbing = (this.appendGlob && (Ext.isDefined(globbing) ? globbing : true));
             this.eachColumn(function (col) {
                 var filter = col.filterField, excludeGlobChars = ['*', '"', '?'], query;
-                if (filter && filter.xtype != 'component') {
+                if (filter && filter.xtype !== 'component') {
                     if (!Ext.isEmpty(filter.getValue())) {
                         query = filter.getValue();
-                        if (globbing && filter.xtype == 'textfield' && filter.vtype != 'numcmp' &&
-                            filter.vtype != 'numrange' && filter.vtype != 'floatrange' &&
+                        if (globbing && filter.xtype === 'textfield' && filter.vtype !== 'numcmp' &&
+                            filter.vtype !== 'numrange' && filter.vtype !== 'floatrange' &&
                             Ext.Array.indexOf(excludeGlobChars,query.charAt(query.length - 1)) === -1) {
                             query += '*';
                         }
@@ -472,7 +472,7 @@
                 this.resetFilterRow();
                 editor = this.grid.headerCt.items.findBy(
                     function (item) {
-                        return item.dataIndex == column.dataIndex;
+                        return item.dataIndex === column.dataIndex;
                     }).filterField;
             } else {
                 editor = column.filterField;
@@ -505,7 +505,7 @@
         },
         setFilter:function (colId, value) {
             this.eachFilterColumn(function (col) {
-                if (col.filterKey == colId) {
+                if (col.filterKey === colId) {
                     col.filterField.setValue(value);
                 }
             });
@@ -706,8 +706,9 @@
             var paging_tb = this.down('pagingtoolbar');
             if (paging_tb) {
                 // If we have an infinite grid we hide the paging toolbar
-                if (this.getStore().buffered)
+                if (this.getStore().buffered) {
                     paging_tb.hide();
+                }
                 else {
                     paging_tb.on('beforechange', this.scrollToTop, this);
                     paging_tb.bindStore(this.getStore());
@@ -716,14 +717,17 @@
             }
         },
         before_request: function() {
-            if (this.getStore().buffered)
+            if (this.getStore().buffered) {
                 this.refresh_in_progress = 1;
-            else
+            }
+            else {
                 this.refresh_in_progress += 1;
+            }
         },
         after_request: function() {
-            if (this.refresh_in_progress > 0)
+            if (this.refresh_in_progress > 0) {
                 this.refresh_in_progress -= 1;
+            }
         },
         /**
          * Listeners for when you hide/show a column, the data isn't fetched yet so
@@ -909,10 +913,12 @@
                     updating store doesn't fire the datachanged except on load.
                 */
                 var store = this.grid.getStore();
-                if(store.buffered)
+                if(store.buffered) {
                     store.on('guaranteedrange', this.onDataChanged, this);
-                else
+                }
+                else {
                     store.on('load', this.onDataChanged, this);
+                }
                 this.view.on('bodyscroll', this.onScroll, this);
                 this.view.on('resize', this.onResize, this);
             }
@@ -932,7 +938,7 @@
                 return this.visibleRows;
             }
 
-            var gridHeight, rowHeight;
+            var gridHeight;
 
             gridHeight = this.view.el.getHeight();
 
@@ -992,12 +998,12 @@
             this.onScrollTask.delay(250);
         },
         setText: function(text) {
-            if (text != this.text) {
+            if (text !== this.text) {
                 this.callParent(arguments);
             }
         },
         _doOnScroll: function() {
-            var pagingScroller = this.grid.verticalScroller;
+            var pagingScroller = this.grid.verticalScroller, msg;
             // ext will fire the scroll event sometimes before the data is even set
             if (!this.totalCount) {
                 return this.setText(this.emptyMsg);
@@ -1005,8 +1011,8 @@
             if (pagingScroller) {
                 var start = Math.max(this.getStartCount(), 0),
                     end = Math.min(this.getEndCount(start), this.totalCount),
-                    currentScrollLeft = this.view.el.dom.scrollLeft,
-                    msg;
+                    currentScrollLeft = this.view.el.dom.scrollLeft;
+
 
                 var store = this.grid.getStore();
                 if (!store.buffered) {
@@ -1017,15 +1023,17 @@
                         start = offset + start;
                         end = offset + end;
                         var real_page_end = current_page * page_size;
-                        if (real_page_end > store.totalCount)
+                        if (real_page_end > store.totalCount) {
                             real_page_end = store.totalCount;
-                        if ( end > real_page_end)
+                        }
+                        if ( end > real_page_end) {
                             end = real_page_end;
+                        }
                     }
                 }
                 msg = Ext.String.format(this.displayMsg, start + 1, end, store.totalCount);
 
-                 if (this.scrollLeft != currentScrollLeft) {
+                 if (this.scrollLeft !== currentScrollLeft) {
                      this.scrollLeft = currentScrollLeft;
                  } else {
                      // only redraw the text if we're scrolling vertically; the DOM scrollLeft increment/decrement is a HACK

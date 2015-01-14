@@ -82,7 +82,7 @@ function initializeTreeDrop(tree) {
         // should always only be one selection
         var uid = event.records[0].get("uid"),
             targetUid = target.get("uid");
-        if (target.get("leaf") || uid == targetUid) {
+        if (target.get("leaf") || uid === targetUid) {
             return false;
         }
 
@@ -100,8 +100,7 @@ function initializeTreeDrop(tree) {
 }
 
 function insertNewNode(tree, data, organizerNode) {
-    var newNode = organizerNode.appendChild(data.newNode),
-        firstLeafNode = organizerNode.findChild('leaf', true);
+    var newNode = organizerNode.appendChild(data.newNode);
     organizerNode.expand();
     report_tree.getSelectionModel().select(newNode);
     return newNode;
@@ -155,7 +154,7 @@ Ext.define('Zenoss.ReportTreePanel', {
             title: title,
             msg: message,
             fn: function(buttonid) {
-                if (buttonid=='ok') {
+                if (buttonid==='ok') {
                     report_tree._deleteSelectedNode();
                 }
             },
@@ -167,8 +166,8 @@ Ext.define('Zenoss.ReportTreePanel', {
             sm = this.getSelectionModel(),
             parentNode = node.parentNode,
             uid = node.data.uid,
-            params = {uid: uid},
-            tree = this;
+            params = {uid: uid};
+
         function callback(data) {
             if (data.success) {
                 sm.select(parentNode);
@@ -192,7 +191,7 @@ Ext.define('Zenoss.ReportTreePanel', {
 treesm = new Zenoss.TreeSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
-            if (newnode == null) {
+            if (newnode === null) {
                 return;
             }
             var attrs = newnode[0].data;
@@ -201,9 +200,7 @@ treesm = new Zenoss.TreeSelectionModel({
             } else if (attrs.isMultiGraphReport) {
                 report_panel.renderMultiGraphReport(attrs);
             } else {
-                report_panel.setContext(attrs.leaf
-                    ? Ext.urlAppend(attrs.uid, 'adapt=false')
-                    : '');
+                report_panel.setContext(attrs.leaf ? Ext.urlAppend(attrs.uid, 'adapt=false') : '');
             }
 
             if (Zenoss.Security.hasPermission(REPORT_PERMISSION)) {
@@ -222,7 +219,6 @@ report_tree = new Zenoss.ReportTreePanel({
     ddGroup: 'reporttreedd',
     searchField: true,
     rootVisible: false,
-    ddGroup: 'reporttreedd',
     bodyStyle: 'background-color:transparent;',
     directFn: Zenoss.remote.ReportRouter.asyncGetTree,
     router: Zenoss.remote.ReportRouter,
@@ -272,7 +268,7 @@ Ext.getCmp('center_panel').add({
         id: 'master_panel',
         layout: 'fit',
         region: 'west',
-        width: 300,        
+        width: 300,
         split: true,
         items: [treepanel]
     }, {

@@ -1,11 +1,11 @@
 
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -160,7 +160,7 @@
             function selectrow() {
                 var found = false;
                 me.getStore().each(function(record){
-                    if (record.get("name") == serviceClassName) {
+                    if (record.get("name") === serviceClassName) {
                         me.getSelectionModel().select(record);
                         found = true;
                     }

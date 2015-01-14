@@ -169,7 +169,7 @@ Ext.onReady(function() {
                     if (this.hasOwnProperty('keys')) {
                         Ext.each(this.keys, function(key) {
                             Ext.each(renderedData.details, function(detail) {
-                                if (detail.key == key) {
+                                if (detail.key === key) {
                                     details.push(detail);
                                 }
                             }, this);
@@ -532,7 +532,7 @@ Ext.onReady(function() {
         removeSection: function(section_id) {
             var remove_idx;
             Ext.each(this.sections, function(item, idx, sections) {
-                if (item.id == section_id) {
+                if (item.id === section_id) {
                     remove_idx = idx;
                 }
             });
@@ -553,7 +553,7 @@ Ext.onReady(function() {
         toggleSection: function(section_id) {
             var cmp = Ext.getCmp(section_id), el = cmp.getEl();
             // workaround IE not hiding/showing sections by explicitly setting the style on the dom nodes
-            if (el.dom.style.display == "none") {
+            if (el.dom.style.display === "none") {
                 el.dom.style.display = "block";
             }
             else {
@@ -564,7 +564,7 @@ Ext.onReady(function() {
         findSection: function(section_id) {
             var section;
             Ext.each(this.sections, function(item) {
-                if (item.id == section_id) {
+                if (item.id === section_id) {
                     section = item;
                 }
             });
@@ -580,7 +580,7 @@ Ext.onReady(function() {
         renderData: function(eventData) {
             var renderedData = {};
             Ext.iterate(eventData, function(key) {
-                if (key == 'details') {
+                if (key === 'details') {
                     var detailsData = [];
                     Ext.each(eventData[key], function(item) {
                         var val = this.extractData(item.key, item.value, eventData);
@@ -701,13 +701,13 @@ Ext.onReady(function() {
 
             // enable based on state (i.e. Which state can I go to from my current?)
             if (Zenoss.Security.hasPermission('Manage Events')) {
-                if (state == "new") {
+                if (state === "new") {
                     ackButton.enable();
                     closeButton.enable();
-                } else if (state == "acknowledged") {
+                } else if (state === "acknowledged") {
                     unAckButton.enable();
                     closeButton.enable();
-                } else if ((state == "closed") || (state == "cleared"))  {
+                } else if ((state === "closed") || (state === "cleared"))  {
                     reopenButton.enable();
                 }
             }

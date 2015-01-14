@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -13,8 +13,8 @@ Ext.onReady(function(){
 var router, treeId, dataSourcesId, thresholdsId, graphsId,
     beforeselectHandler, updateDataSources, updateThresholds, updateGraphs,
     selectionchangeHandler, selModel, footerBar, override, overrideHtml1,
-    overrideHtml2, showOverrideDialog, resetCombo, addTemplateDialogConfig,
-    currentView;
+    overrideHtml2, showOverrideDialog, resetCombo, addTemplateDialogConfig;
+
 
 Ext.ns('Zenoss', 'Zenoss.templates');
 router = Zenoss.remote.TemplateRouter;
@@ -37,7 +37,7 @@ resetCombo = function(combo, uid) {
 function getCurrentView(){
     var currentView = Ext.state.Manager.get('template_view');
 
-    if (Ext.History.getToken() && Ext.History.getToken().search('/devices/') != -1) {
+    if (Ext.History.getToken() && Ext.History.getToken().search('/devices/') !== -1) {
         return 'template';
     }
     if (currentView) {
@@ -53,7 +53,7 @@ function getCurrentView(){
  **/
 function setDefaultView(view) {
     var currentView = getCurrentView();
-    if (currentView != view){
+    if (currentView !== view){
         Ext.state.Manager.set('template_view', view);
         // make sure the state is saved before reloading
         Ext.state.Manager.provider.saveStateNow(function() {
@@ -82,12 +82,12 @@ function reloadTree(selectedId) {
     }
 }
 
-beforeselectHandler = function(sm, node, oldNode) {
+beforeselectHandler = function(sm, node) {
     return node.isLeaf();
 };
 
 updateDataSources = function(uid) {
-    var panel, treeGrid, root;
+    var panel, treeGrid;
     if ( ! Ext.getCmp(dataSourcesId) ) {
         panel = Ext.getCmp('center_detail_panel');
         panel.add({
@@ -107,7 +107,7 @@ updateDataSources = function(uid) {
 };
 
 updateThresholds = function(uid) {
-    var panel, root, grid;
+    var panel;
     panel = Ext.getCmp('top_detail_panel');
 
     if ( ! Ext.getCmp(thresholdsId) ) {
@@ -118,7 +118,7 @@ updateThresholds = function(uid) {
 };
 
 updateGraphs = function(uid) {
-    var panel, root;
+    var panel;
     panel = Ext.getCmp('bottom_detail_panel');
     if ( ! Ext.getCmp(graphsId) ) {
         panel.add({
@@ -132,9 +132,10 @@ updateGraphs = function(uid) {
 
 
 selectionchangeHandler = function(sm, nodes) {
+    var node;
     if (nodes){
         // only single select
-        var node = nodes[0];
+        node = nodes[0];
         updateDataSources(node.data.uid);
         updateThresholds(node.data.uid);
         updateGraphs(node.data.uid);
@@ -142,7 +143,7 @@ selectionchangeHandler = function(sm, nodes) {
         Zenoss.env.PARENT_CONTEXT = node.data.uid;
         // unfortunately because multiple templates exist on device class view we
         // have to track the history differently
-        if (getCurrentView() == Zenoss.templates.templateView){
+        if (getCurrentView() === Zenoss.templates.templateView){
             Ext.History.add(treeId + Ext.History.DELIMITER + node.get("uid"));
         }else {
             Ext.History.add(treeId + Ext.History.DELIMITER + node.get("id"));
@@ -351,7 +352,7 @@ new Zenoss.HideFormDialog({
         xtype: 'HideDialogButton',
         ref: '../submit',
         text: _t('Submit'),
-        handler: function(button, event) {
+        handler: function() {
             override();
         }
     }, {
@@ -376,7 +377,7 @@ function bindSelectedTemplateHere() {
     callback, path,
     params, uid;
 
-    if (getCurrentView() == Zenoss.templates.deviceClassView) {
+    if (getCurrentView() === Zenoss.templates.deviceClassView) {
         uid = node.parentNode.data.uid;
     }else {
         // template view
@@ -384,7 +385,9 @@ function bindSelectedTemplateHere() {
     }
     path = node.data.id;
     callback = function(response){
-        reloadTree(path);
+        if (response.success) {
+            reloadTree(path);
+        }
     };
     params = {
         uid: uid,
@@ -523,7 +526,7 @@ footerBar.add([{
     xtype: 'button',
     enableToggle: true,
     toggleGroup: 'templateView',
-    pressed: getCurrentView() == Zenoss.templates.templateView,
+    pressed: getCurrentView() === Zenoss.templates.templateView,
     text: _t('Template'),
     toggleHandler: function(button, state) {
         if (state) {
@@ -537,7 +540,7 @@ footerBar.add([{
 },{
     xtype: 'button',
     enableToggle: true,
-    pressed: getCurrentView() == Zenoss.templates.deviceClassView,
+    pressed: getCurrentView() === Zenoss.templates.deviceClassView,
     toggleGroup: 'templateView',
     text: _t('Device Class'),
     toggleHandler: function(button, state) {

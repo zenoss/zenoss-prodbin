@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -132,7 +132,7 @@ Ext.define("Zenoss.ContextConfigureMenu", {
                 }
 
                 // do now show as enabled if we only have hidden items (or spacers)
-                if (!item.hidden && item != '-') {
+                if (!item.hidden && item !== '-') {
                     visibleMenuCount += 1;
                 }
                 this.menu.add(item);

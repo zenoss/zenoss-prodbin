@@ -1,3 +1,4 @@
+/* globals Daemons:true */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2013, all rights reserved.
@@ -36,13 +37,13 @@
             paramOrder: ['uid']
         },
         isCollector: function() {
-            return this.get('type') == 'collector';
+            return this.get('type') === 'collector';
         },
         isHub: function() {
-            return this.get('type') == 'hub';
+            return this.get('type') === 'hub';
         },
         isDaemon: function() {
-            return this.get('type') == 'daemon';
+            return this.get('type') === 'daemon';
         }
     });
 

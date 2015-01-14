@@ -1,3 +1,5 @@
+/* global zenoss:true, moment: true */
+/* jshint freeze: false */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
@@ -34,10 +36,7 @@
     }
 
     var router = Zenoss.remote.DeviceRouter,
-        GraphPanel,
-        DRangeSelector,
-        DATEFIELD_DATE_FORMAT = "YYYY-MM-DD HH:mm:ss",
-        GraphRefreshButton,
+
         CURRENT_TIME = "0s-ago",
         DATE_RANGES = [
             ["1h-ago", _t('Last Hour')],
@@ -64,7 +63,7 @@
 
     Number.prototype.pad = function(count) {
         var zero = count - this.toString().length + 1;
-        return Array(+(zero > 0 && zero)).join("0") + this;
+        return new Array(+(zero > 0 && zero)).join("0") + this;
     };
 
     function now() {
@@ -248,7 +247,7 @@
         },
         initChart: function() {
             // these assume that the graph panel has already been rendered
-            var width = this.getEl().getWidth(), height = this.getEl().getHeight();
+            var height = this.getEl().getHeight();
             var visconfig = {
                 returnset: "EXACT",
                 range : {
@@ -263,8 +262,8 @@
                 // lose the footer and yaxis label as the image gets smaller
                 footer: (height >= 350) ? true : false,
                 yAxisLabel: this.units,
-                miny: (this.miny != -1) ? this.miny : null,
-                maxy: (this.maxy != -1) ? this.maxy : null,
+                miny: (this.miny !== -1) ? this.miny : null,
+                maxy: (this.maxy !== -1) ? this.maxy : null,
                 // the visualization library currently only supports
                 // one format for chart, not per metric
                 format: (this.datapoints.length > 0) ? this.datapoints[0].format: "",
@@ -294,7 +293,7 @@
             // This is useful because the final JSON string needs
             // to be as small as possible!
             for(var i in this.initialConfig){
-                if(!~exclusions.indexOf(i)){
+                if(exclusions.indexOf(i) === -1){
                     config[i] = this.initialConfig[i];
                 }
             }
@@ -361,7 +360,7 @@
                 return height;
             }
 
-            var adjustment = height * .05;
+            var adjustment = height * 0.05;
             return height + (adjustment * datapoints.length);
         },
         initEvents: function() {
@@ -406,7 +405,7 @@
             return new Date() - rangeToMilliseconds(start);
         },
         convertEndToAbsolute: function(end) {
-            if (end == CURRENT_TIME) {
+            if (end === CURRENT_TIME) {
                 return now();
             }
             return end;
@@ -437,8 +436,7 @@
             this.fireEvent("updateimage", {start:newstart, end:newend});
         },
         doZoom: function(xpos, factor) {
-            var gp = this.graph_params,
-                el = Ext.get(this.graphId);
+            var gp = this.graph_params;
 
             gp.end = this.convertEndToAbsolute(gp.end);
             gp.drange = rangeToMilliseconds(gp.drange) * factor;
@@ -776,8 +774,6 @@
         constructor: function(config) {
             config = config || {};
 
-            var toolbar;
-
             Ext.applyIf(config, {
                 drange: DATE_RANGES[0][0],
                 newWindowButton: true,
@@ -886,7 +882,6 @@
                 return;
             }
             var data = result.data,
-                panel = this,
                 el = this.getEl();
 
             if (el && el.isMasked()) {
@@ -1027,8 +1022,6 @@
 
         setDrange: function(drange) {
             this.drange = drange || this.drange;
-
-            var graphConfig;
 
             // if drange is relative measurement, convert to ms
             if(!Ext.isNumeric(this.drange)){

@@ -19,8 +19,8 @@
                 B = C.body,
                 card = C.getComponent(index),
                 active = this.activeItem,
-                activeIndex = Ext.Array.indexOf(C.items.items, active);
-            if (card != active) {
+                activeIndex = Ext.Array.indexOf(C.items.items, active), shiftsCallback;
+            if (card !== active) {
                 if (active) {
                     if (card) {
                         C.fireEvent('beforecardchange', C, card, index, active, activeIndex);
@@ -34,12 +34,13 @@
                         }
                         var _done = 0;
 
-                        function shiftsCallback() {
+                        shiftsCallback = function() {
                             _done++;
-                            if (_done == 2)
+                            if (_done === 2) {
                                 C.fireEvent('cardchange', C, card, index, active,
                                     activeIndex);
-                        }
+                            }
+                        };
 
                         var x = B.getX(),
                             w = B.getWidth(),
@@ -261,7 +262,7 @@
          */
         onAvailable:function (navId, callback, scope) {
             function onAdd(item) {
-                if (item.id == navId) {
+                if (item.id === navId) {
                     callback.call(scope || item, item);
                     this.all.un('navready', onAdd, scope);
                 }
@@ -417,7 +418,6 @@
                 rootVisible:false,
                 iconCls:'x-tree-noicon',
                 header: false,
-                hideHeaders: true,
                 root:{nodeType:'node'}
             });
             this.callParent([config]);
@@ -449,7 +449,7 @@
          * @cfg {function} onGetNavConfig abstract function; hook to provide more nav items
          * @param {string} uid; item to get nav items for
          */
-        onGetNavConfig:function (uid) {
+        onGetNavConfig:function () {
             return [];
         },
         /**
@@ -464,7 +464,7 @@
          * @param {DetailNavPanel}
             * @param {Object} config
          */
-        filterNav:function (detailNav, config) {
+        filterNav:function () {
             return true;
         },
         /**
@@ -597,7 +597,7 @@
                 token = Ext.History.getToken(),
                 firstToken = me.id + Ext.History.DELIMITER + root.firstChild.id;
             if (!sel) {
-                if (!token || (token && token == firstToken)) {
+                if (!token || (token && token === firstToken)) {
                     me.getSelectionModel().select(root.firstChild);
                 }
             }
@@ -655,12 +655,12 @@
         forceSelection:true,
         typeAhead:false,
         triggerAction:'all',
-        filterNav:function (config) {
+        filterNav:function () {
             return true;
         },
         menuIds:['More', 'Manage', 'Edit', 'Actions', 'Add', 'TopLevel'],
         onSelectionChange:Ext.emptyFn,
-        onGetNavConfig:function (uid) {
+        onGetNavConfig:function () {
             return [];
         },
         constructor:function (config) {
@@ -704,14 +704,13 @@
             this.selectByItem(record);
         },
         selectByItem:function (item) {
-            var lastItem = this.lastSelItem;
             this.lastSelItem = item || this.store.getAt(0);
             this.select(this.lastSelItem);
             this.fireEvent('select', this, [this.lastSelItem]);
         },
         setContext:function (uid) {
             // make sure the context actually changed.
-            if (uid == this.contextUid) {
+            if (uid === this.contextUid) {
                 return;
             }
             this.contextUid = uid;
@@ -748,7 +747,7 @@
                     panelMap[cfg.id] = cfg;
                     // when switching component types we need to make sure
                     // that they share a common menu item
-                    if (lastSelItem && cfg.id == lastSelItem.getId()) {
+                    if (lastSelItem && cfg.id === lastSelItem.getId()) {
                         hasItem = true;
                     }
                 });

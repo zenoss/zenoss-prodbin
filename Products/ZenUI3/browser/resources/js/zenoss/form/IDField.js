@@ -10,7 +10,7 @@
 
 (function() {
 
-var ZF = Ext.ns('Zenoss.form');
+Ext.ns('Zenoss.form');
 
 Ext.define("Zenoss.form.IDField", {
     alias: ['widget.idfield'],
@@ -38,8 +38,8 @@ Ext.define("Zenoss.form.IDField", {
             return true;
         }
         // if the value has not changed do not send an ajax request
-        if(typeof this._previousValue != 'undefined'){
-            if (value == this._previousValue) {
+        if(typeof this._previousValue !== 'undefined'){
+            if (value === this._previousValue) {
                 return this.reportResponse(this._previousResponseText);
             }
         }

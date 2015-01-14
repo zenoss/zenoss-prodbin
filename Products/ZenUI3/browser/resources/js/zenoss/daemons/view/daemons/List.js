@@ -1,3 +1,4 @@
+/* globals Daemons */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2013, all rights reserved.
@@ -170,7 +171,7 @@
                 dataIndex: 'state',
                 sortable: true,
                 renderer: function(value) {
-                    if (value == 'up' || value == 'down'){
+                    if (value === 'up' || value === 'down'){
                         return Zenoss.render.pingStatus(value);
                     }
                     return value + "...";

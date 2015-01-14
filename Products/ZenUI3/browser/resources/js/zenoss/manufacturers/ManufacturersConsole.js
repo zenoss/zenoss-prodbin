@@ -13,7 +13,7 @@ Ext.onReady(function(){
     // page level variables
     var REMOTE = Zenoss.remote.ManufacturersRouter;
 
-    function getOrganizerFields(mode) {
+    function getOrganizerFields() {
         var items = [
             {
                 xtype: 'fieldset',
@@ -132,7 +132,9 @@ Ext.onReady(function(){
         ];
 
         var rootId = mantree.root.id;// sometimes the page loads with nothing selected and throws error. Need a default.
-        if(getSelectedManufacturer()) rootId = getSelectedManufacturer().getOwnerTree().root.id;
+        if(getSelectedManufacturer()) {
+            rootId = getSelectedManufacturer().getOwnerTree().root.id;
+        }
         return items;
     }
 
@@ -170,7 +172,7 @@ Ext.onReady(function(){
                         case "state"    : record.setValue(data.state);  break;
                         case "zip"      : record.setValue(data.zip);  break;
                         case "country"  : record.setValue(data.country);  break;
-                        case "regexes_panel"  : try{record.setValue(data.regexes);}catch(e){/*swallow codemirror split bug */}; break;
+                        case "regexes_panel"  : try{record.setValue(data.regexes);}catch(e){/*swallow codemirror split bug */} break;
                     }
                 }
             }
@@ -203,9 +205,8 @@ Ext.onReady(function(){
 
     function initializeTreeDrop(tree) {
         // fired when the user actually drops a node
-        tree.getView().on('beforedrop', function(element, e, targetnode, location, dropfunc, empty) {
-            var grid = Ext.getCmp('productsgrid_id'),
-                moveFrom = e.records[0].data.uid.split('/products/')[0],
+        tree.getView().on('beforedrop', function(element, e, targetnode) {
+            var moveFrom = e.records[0].data.uid.split('/products/')[0],
                 moveTarget = targetnode.data.uid,
                 ids =[],
                 me = this,
@@ -232,7 +233,7 @@ Ext.onReady(function(){
                             if(response.success) {
                                 var tree = Ext.getCmp('manufacturers_tree');
                                 tree.refresh();
-                                tree.getStore().on('load', function(s){
+                                tree.getStore().on('load', function(){
                                     var nodeId = targetnode.data.uid;
                                     var node = tree.getRootNode().findChild("uid", nodeId, true);
                                     tree.getView().select(node);
@@ -298,7 +299,7 @@ Ext.onReady(function(){
                     xtype:'treecolumn',
                     flex:1,
                     dataIndex:'text',
-                    renderer:function (value, l, n) {
+                    renderer:function (value) {
                         if(Ext.isString(value)){
                             return value;
                         }
@@ -309,7 +310,7 @@ Ext.onReady(function(){
         selModel: Ext.create('Zenoss.TreeSelectionModel',{
             tree: 'manufacturers_tree',
             listeners: {
-                selectionchange: function(sm, newnodes, oldnode){
+                selectionchange: function(sm, newnodes){
                     if (newnodes.length) {
                         var newnode = newnodes[0];
                         var uid = newnode.data.uid;
@@ -318,11 +319,14 @@ Ext.onReady(function(){
                         var phone = "", url = "";
                         contentPanel.setContext(uid);
 
-                        if (data.description != "") phone = " - "+data.description;
-                        if (data.url != "") url = " - <a href='"+data.url+"'>"+data.url+"</a>";
+                        if (data.description !== "") {
+                            phone = " - "+data.description;
+                        }
+                        if (data.url !== "") {
+                            url = " - <a href='"+data.url+"'>"+data.url+"</a>";
+                        }
                         Ext.getCmp("manufacturer_info").setText(
-                        data.text + phone + url
-                        , false);
+                            data.text + phone + url, false);
                         Ext.getCmp('footer_bar').setContext(uid);
                         Zenoss.env.contextUid = uid;
                         // explicitly set the new security context (to update permissions)
@@ -339,7 +343,7 @@ Ext.onReady(function(){
                 if(response.success){
                     var tree = Ext.getCmp('manufacturers_tree');
                     tree.refresh();
-                    tree.getStore().on('load', function(s){
+                    tree.getStore().on('load', function(){
                         var node = tree.getRootNode().findChild("index", 0, true);
                         tree.getView().select(node);
                     }, this, {single:true});
@@ -354,9 +358,11 @@ Ext.onReady(function(){
                 t.ownerCt.ownerCt.searchfield.container.setWidth(t.body.getWidth());
             },
             afterrender: function(tree){
-                tree.getView().on('itemdblclick', function(e){
+                tree.getView().on('itemdblclick', function(){
                     var node = getSelectedManufacturer();
-                    if (Zenoss.Security.doesNotHavePermission('Manage DMD')) return false;
+                    if (Zenoss.Security.doesNotHavePermission('Manage DMD')) {
+                        return false;
+                    }
                     Zenoss.manufacturers.callEditManufacturerDialog(node.data.text.text, node.data.uid);
                 });
             }
@@ -479,7 +485,7 @@ Ext.onReady(function(){
                     rootId = tree.getRootNode().data.id,
 
                     msg = _t('Are you sure you want to delete the {0} {1}? <br/>There is <strong>no</strong> undo.');
-                if (rootId==mantree.root.id) {
+                if (rootId===mantree.root.id) {
                     msg = [msg, '<br/><br/><strong>',
                            _t('WARNING'), '</strong>:',
                            _t(' This will also delete all manufacturers in this {0}.'),
@@ -504,24 +510,24 @@ Ext.onReady(function(){
                 width:Ext.getBody().getViewSize().width*0.8,
                 submitHandler: function(e){
                     var params = {
-                                    'name'      :e.name,
-                                    'phone'     :e.phone,
-                                    'URL'       :e.URL,
-                                    'address1'  :e.address1,
-                                    'address2'  :e.address2,
-                                    'city'      :e.city,
-                                    'zip'       :e.zip,
-                                    'state'     :(e.state || ""),
-                                    'country'   :e.country,
-                                    'regexes'   :e.regexes_panel
-                                  }
+                        'name'      :e.name,
+                        'phone'     :e.phone,
+                        'URL'       :e.URL,
+                        'address1'  :e.address1,
+                        'address2'  :e.address2,
+                        'city'      :e.city,
+                        'zip'       :e.zip,
+                        'state'     :(e.state || ""),
+                        'country'   :e.country,
+                        'regexes'   :e.regexes_panel
+                    };
                     REMOTE.addManufacturer({'id':e.name}, function(response){
                             if(response.success){
                                 REMOTE.editManufacturer({'params':params}, function(response){
                                     if(response.success){
                                         var tree = Ext.getCmp('manufacturers_tree');
                                         tree.refresh();
-                                        tree.getStore().on('load', function(s){
+                                        tree.getStore().on('load', function(){
                                             var node = tree.getRootNode().findChild("uid", "/zport/dmd/Manufacturers/"+e.name, true);
                                             tree.getView().select(node);
                                         }, this, {single:true});
@@ -537,7 +543,7 @@ Ext.onReady(function(){
                 onSetContext: function(uid) {
                     Zenoss.env.PARENT_CONTEXT = uid;
                 },
-                onGetMenuItems: function(uid) {
+                onGetMenuItems: function() {
                     var menuItems = [];
                     menuItems.push({
                         xtype: 'menuitem',

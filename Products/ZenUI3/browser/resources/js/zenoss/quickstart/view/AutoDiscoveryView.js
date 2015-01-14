@@ -14,7 +14,7 @@
      **/
     function isIpRangeOrNetwork(val) {
         var pieces = val.split("."), i, block;
-        if (pieces.length != 4) {
+        if (pieces.length !== 4) {
             return false;
         }
 
@@ -40,7 +40,7 @@
          * by splitting the input.
          * returns true if any token in the input is valid.
          **/
-        ipRange: function(val, field) {
+        ipRange: function(val) {
             var values, i;
             values = val.split(",");
             values = values.concat(val.split("\n"));
@@ -112,7 +112,7 @@
                         addErrorToolTip(metadata, record);
                         var values = [], key;
                         for (key in props) {
-                            if (key.indexOf('Password') == -1) {
+                            if (key.indexOf('Password') === -1) {
                                 values.push(props[key]);
                             }
                         }
@@ -121,7 +121,7 @@
                 }, {
                     dataIndex: 'collector',
                     header: _t('Collector'),
-                    hidden: Zenoss.env.COLLECTORS.length == 1 ? true:  false
+                    hidden: Zenoss.env.COLLECTORS.length === 1 ? true:  false
                 },{
                     dataIndex: 'duration',
                     header: _t('Duration'),
@@ -159,7 +159,9 @@
                         router.deleteJobs({
                             jobids: [record.get('uuid')]
                         }, function(response) {
-                            store.remove(record);
+                            if (response.success) {
+                                store.remove(record);
+                            }
                         });
                     },
                     text: _t('Remove'),
@@ -223,9 +225,9 @@
                             xtype: 'combo',
                             width: 100,
                             // only show if we have multiple collectors
-                            hidden: Zenoss.env.COLLECTORS.length == 1,
+                            hidden: Zenoss.env.COLLECTORS.length === 1,
                             // if visible give it a good tabindex
-                            tabIndex: (Zenoss.env.COLLECTORS.length == 1) ? 100: 2,
+                            tabIndex: (Zenoss.env.COLLECTORS.length === 1) ? 100: 2,
                             labelAlign: 'top',
                             fieldLabel: 'Collector',
                             queryMode: 'local',

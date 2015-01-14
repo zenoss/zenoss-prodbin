@@ -30,7 +30,7 @@ Ext.define("Zenoss.DisplayField", {
 Ext.define("Zenoss.EditorWithButtons", {
     extend: "Ext.Editor",
     alias: ['widget.btneditor'],
-    onRender: function(ct, position) {
+    onRender: function() {
         Zenoss.EditorWithButtons.superclass.onRender.apply(this, arguments);
         this.editorpanel = new Ext.Panel({
             frame: true,
