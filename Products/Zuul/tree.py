@@ -53,7 +53,7 @@ class TreeNode(object):
         self._parent = parent or None
         self._severity = None
         # allow showing the event severity icons to be configurable
-        if not hasattr(self._root, 'showSeverityIcons'):
+        if not hasattr(self._root, '_showSeverityIcons'):
             self._root._showSeverityIcons = self._shouldShowSeverityIcons()
 
     def _shouldShowSeverityIcons(self):

@@ -174,7 +174,14 @@ class TreeRouter(DirectRouter):
             childData = Marshaller(child).marshal(keys)
             # set children so that there is not an expanding
             # icon next to this child
-            if len(child.children) == 0:
+            # see if there are any subtypes so we can show or not show the
+            # expanding icon without serializing all the children.
+            # Note that this is a performance optimization see ZEN-15857
+            organizer = child._get_object()
+            # this looks at the children's type without waking them up
+            hasChildren = any((o['meta_type'] for o in organizer._objects if o['meta_type'] == organizer.meta_type))
+            # reports have a different meta_type for the child organizers
+            if "report" not in organizer.meta_type.lower() and not hasChildren:
                 childData['children'] = []
             children.append(childData)
         children.sort(key=lambda e: (e['leaf'], e['uid'].lower()))

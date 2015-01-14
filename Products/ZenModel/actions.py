@@ -252,7 +252,7 @@ class IActionBase(object):
         """
         # use zopeurl in the zenactiond.conf file if it is defined else use the value from DMD
         zopeurl = self.options.get('zopeurl')
-        if zopeurl == Utils.getDefaultZopeUrl():
+        if zopeurl == Utils.getDefaultZopeUrl() and hasattr(self, "zenossHostname"):
             zopeurl = self.zenossHostname
 
         data = _signalToContextDict(signal, zopeurl, notification, self.guidManager)
@@ -504,6 +504,7 @@ class PageAction(IActionBase, TargetableAction):
         self.guidManager = GUIDManager(dmd)
         self.dmd = dmd
         self.page_command = dmd.pageCommand
+        self.zenossHostname = dmd.zenossHostname
 
     def executeOnTarget(self, notification, signal, target):
         log.debug('Executing Page %s action on %s', self.name, target)
@@ -664,6 +665,7 @@ class CommandAction(IActionBase, TargetableAction):
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
         self.dmd = dmd
+        self.zenossHostname = dmd.zenossHostname
 
     def execute(self, notification, signal):
         # check to see if we have any targets
@@ -767,6 +769,7 @@ class SNMPTrapAction(IActionBase):
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.zenossHostname = dmd.zenossHostname
 
     def execute(self, notification, signal):
         """
@@ -933,6 +936,7 @@ class SyslogAction(IActionBase):
      #      ALERT     1
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.zenossHostname = dmd.zenossHostname
 
     def execute(self, notification, signal):
         """

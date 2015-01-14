@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import logging, logging.handlers 
+import logging, logging.handlers
 import re
 import os
 import redis
@@ -103,13 +103,15 @@ class ZopeRequestLogger(object):
         self._redis_client = None
         self._redis_last_connection_attemp = time.time()
         self.redis_url = ZopeRequestLogger.get_redis_url()
+        # connect to redis when we need to log a request
+        self._redis_client = None
         self._log = logging.getLogger('zope_request_logger')
         self._log.propagate = False
         handler = logging.handlers.RotatingFileHandler(filename, mode='a', maxBytes=50*1024*1024, backupCount=5)
         #handler = logging.handlers.TimedRotatingFileHandler(filename, when='midnight', backupCount=3)
         handler.setFormatter(logging.Formatter("%(asctime)s{0}%(message)s".format(ZopeRequestLogger.SEPARATOR)))
         self._log.addHandler(handler)
-    
+
     def _extract_action_and_method_from_body(self, body):
         if body is None:
             return ''
@@ -175,10 +177,10 @@ class ZopeRequestLogger(object):
             # self._log_zope_requests = self._redis_client.get(ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS) in ("1", "true", "True", "t")
             self._log_zope_requests = os.path.isfile(os.path.join(ZopeRequestLogger.ZENHOME, 'etc', ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS))
             self._next_config_check = time.time() + 10 # set next time to check in 10 seconds
-        
+
         if not self._log_zope_requests:
             return
-        
+
         if self._redis_client is None:
             # Tries to reconnect to redis if we dont have a connection
             self._reconnect_to_redis()

@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -51,7 +51,7 @@
         alias:['widget.defaultseverity'],
         extend:"Severity",
         constructor: function(config) {
-            var severities = [[-1, "Default"], [0, "Critical"], [1, "Error"], [2, "Warning"], [3, "Info"], [4, "Debug"], [5, "Clear"]];
+            var severities = [[-1, "Default"]].concat(Zenoss.env.SEVERITIES);
             config = config || {};
             Ext.applyIf(config, {
                 store: severities

@@ -21,8 +21,8 @@
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                height: 150,
-                title: _t('Rename Device'),
+                height: 175,
+                title: _t('Reidentify Device'),
                 submitHandler: Ext.bind(this.renameDevice, this),
                 items: [{
                     xtype: 'hidden',
@@ -30,7 +30,13 @@
                     value: config.uid
                 },{
                     xtype: 'label',
-                    text: _t('Change the name of this device.')
+                    text: _t('Change the ID of this device.')
+                },{
+                    xtype: 'displayfield',
+                    value:  _t('WARNING: All graph data for this device will be lost!'),
+                    style: {
+                        fontWeight: "bold"
+                    }
                 },{
                     xtype: 'idfield',
                     name: 'newId',
