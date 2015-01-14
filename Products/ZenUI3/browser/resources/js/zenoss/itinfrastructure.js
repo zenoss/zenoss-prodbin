@@ -970,7 +970,9 @@ Zenoss.env.location_tree_data[0].expanded = true;
 
 var devtree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: true,
+    viewConfig: { 
+        loadMask: true
+    },
     id: 'devices',
     searchField: true,
     directFn: treeLoaderFn,
@@ -1022,7 +1024,9 @@ var devtree = {
 
 var grouptree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: false,
+    viewConfig: { 
+        loadMask: false
+    },
     id: 'groups',
     searchField: false,
     directFn: treeLoaderFn,
@@ -1051,7 +1055,9 @@ var grouptree = {
 
 var systree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: false,
+    viewConfig: { 
+        loadMask: false
+    },
     id: 'systemsTree',
     stateful: treeStateful,
     stateId: 'systems_tree',
@@ -1082,7 +1088,9 @@ var systree = {
 
 var loctree = {
     xtype: 'HierarchyTreePanel',
-    loadMask: false,
+    viewConfig: { 
+        loadMask: false
+    },
     stateful: treeStateful,
     stateId: 'loc_tree',
     id: 'locs',
@@ -1355,7 +1363,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 }
             },
             Zenoss.devices.deleteDevices,
-             {
+            {
                 text: _t('Select'),
                 listeners: {
                     afterrender: function(e){
@@ -1389,6 +1397,20 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         }
                     }
                 ]
+            },
+            {
+                text: _t('Configure'),
+                menu:[
+                    {
+                        id: 'nfrastructure_clearfilters',
+                        text: _t('Clear filters'),
+                        listeners: {
+                            click: function() {
+                                Ext.getCmp('device_grid').filterRow.clearFilters();
+                            }
+                        }
+                    }
+                    ]
             },'->',{
                 id: 'refreshdevice-button',
                 xtype: 'refreshmenu',

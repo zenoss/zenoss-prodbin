@@ -994,7 +994,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 d.addErrback(errback)
                 return d
             else:
-                self.log.error('ZenHub health check: ZenHub may be down.')
+                self.log.debug('ZenHub health check: ZenHub may be down.')
                 self._signalZenHubAnswering(False)
         except pb.DeadReferenceError:
             self.log.warning("ZenHub health check: DeadReferenceError - lost connection to ZenHub.")

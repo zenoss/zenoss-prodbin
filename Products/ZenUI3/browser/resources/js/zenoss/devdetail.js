@@ -464,8 +464,7 @@ device_graphs.on('resize', function(panel, width) {
 });
 
 var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
-    id: 'device_component_graphs',
-    components: Ext.pluck(Zenoss.env.componentTree, 'id')
+    id: 'device_component_graphs'
 });
 
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
@@ -517,6 +516,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
             }
             return 0;
         });
+
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         if (data.length) {
             rootNode.appendChild(Ext.Array.map(data, function(d) {
@@ -601,7 +601,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
             this.doLoadComponentTree(Zenoss.env.componentTree);
             delete Zenoss.env.componentTree;
         } else {
-            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, this.doLoadComponentTree, this);
+            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID, sorting_dict:Zenoss.component.nameMap}, this.doLoadComponentTree, this);
         }
     },
     filterNav: function(navpanel, config){
@@ -644,8 +644,13 @@ Ext.define('Zenoss.DeviceDetailNav', {
                     var pieces = token.split(Ext.util.History.DELIMITER),
                     type = pieces[0], rest = pieces[1];
                     var tosel = componentRootNode.findChild('id', type);
-                    selectOnRender(tosel, sm);
-                    return Ext.getCmp('component_card').selectByToken(rest);
+                    if (!tosel) {
+                        // the component nav hasn't loaded yet so wait until it does until we deeplink
+                        componentRootNode.on('append', findAndSelect, this, {single: true});
+                    } else {
+                        selectOnRender(tosel, sm);
+                        return Ext.getCmp('component_card').selectByToken(rest);
+                    }
                 }
 
                 var node = root.findChildBy(function(n){
@@ -1072,7 +1077,7 @@ Ext.getCmp('footer_bar').add([{
         }
     }, {
         xtype: 'menuitem',
-        text: _t('Rename Device') + '...',
+        text: _t('Reidentify Device') + '...',
         hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
             Ext.create('Zenoss.form.RenameDevice', {

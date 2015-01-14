@@ -440,7 +440,6 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                 #so we can't change the signature of install to take the
                 #previousVerison
                 zenPack.prevZenPackVersion = previousVersion
-                zenPack.currentServiceId = serviceId
                 zenPack.install(dmd)
                 zenPack.prevZenPackVersion = None
 
@@ -484,6 +483,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
         else:
             return zenPack, False, True
 
+    ZenPack.currentServiceId = serviceId
     zenPack, deferFileDeletion, existing = transactional_actions()
     packInfos = {}
     oldPacksDump = getPacksDump()

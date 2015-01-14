@@ -184,7 +184,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(data=data, totalCount=total,
                               hash=hash)
 
-    def getComponentTree(self, uid=None, id=None):
+    def getComponentTree(self, uid=None, id=None, sorting_dict=None):
         """
         Retrieves all of the components set up to be used in a
         tree.
@@ -215,6 +215,23 @@ class DeviceRouter(TreeRouter):
                     'description': 'components'},
                 iconCls='tree-severity-icon-small-' + datum['severity'],
                 leaf=True))
+        if sorting_dict:
+            sorting_keys_list = [key for key in sorting_dict.iterkeys()]
+            def cmp_items(first, second):
+                # Resolving keys from a dictionary of given names convention
+                x = str(first['text']['text'])
+                y = str(second['text']['text'])
+                if x in sorting_keys_list:
+                    x = sorting_dict[x][0]
+                if y in sorting_keys_list:
+                    y = sorting_dict[y][0]
+                if x < y:
+                    return -1
+                elif x > y:
+                    return 1
+                else:
+                    return 0
+            result.sort(cmp=cmp_items)
         return result
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,

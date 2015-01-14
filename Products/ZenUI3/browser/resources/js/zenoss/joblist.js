@@ -38,7 +38,6 @@ Ext.getCmp('center_panel').add({
             root: 'jobs',
             autoLoad: true,
             pageSize: Zenoss.settings.zenjobsGridBufferSize,
-            buffered: false,
             initialSortColumn: 'scheduled',
             initialSortDirection: 'DESC',
             totalProperty: 'totalCount',
