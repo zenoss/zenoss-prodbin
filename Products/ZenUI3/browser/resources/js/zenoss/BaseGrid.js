@@ -202,7 +202,7 @@
                         col.filterKey = col.dataIndex;
                     }
                 }
-                console.log(col.filterKey.startswith("gridcolumn"), col.filterKey);
+
                 var filterDivId = this.getFilterDivId(col.filterKey);
 
                 if (!col.filterField) {
