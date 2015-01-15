@@ -1,5 +1,5 @@
 /* global EventActionManager:true, moment:true */
-/* jshint freeze: false */
+/* jshint freeze: false, eqeqeq: false */
 /*TODO: move overriding the prototype to a util funciton */
 (function(){ // Local scope
 /**
@@ -1417,11 +1417,11 @@ Ext.override(Ext.form.Checkbox, {
 });
 
 String.prototype.startswith = function(str){
-    return (this.match('^'+str)===str);
+    return (this.match('^'+str)==str);
 };
 
 String.prototype.endswith = function(str){
-    return (this.match(str+'$')===str);
+    return (this.match(str+'$')==str);
 };
 
 /* Readable dates */
