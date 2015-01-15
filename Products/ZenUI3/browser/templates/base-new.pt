@@ -45,9 +45,9 @@
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
         <tal:block tal:content="structure provider:jssnippets"/>
-        <script src="/++resource++zenui/js/zenoss/codemirror/codemirror.js"></script>
-        <link rel="stylesheet" href="/++resource++zenui/js/zenoss/codemirror/codemirror.css" />
-        <script src="/++resource++zenui/js/zenoss/codemirror/mode/python/python.js"></script>
+        <script src="/++resource++zenui/js/codemirror/codemirror.js"></script>
+        <link rel="stylesheet" href="/++resource++zenui/js/codemirror/codemirror.css" />
+        <script src="/++resource++zenui/js/codemirror/mode/python/python.js"></script>
     </head>
 
     <body>
