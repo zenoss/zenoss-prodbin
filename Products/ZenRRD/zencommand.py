@@ -370,7 +370,8 @@ class SshPerformanceCollectionTask(BaseTask):
                self.name, self.configId, len(self._datasources))
 
     def cleanup(self):
-        self._connector.close()
+        if self._connector:
+            self._connector.close()
 
     @defer.inlineCallbacks
     def doTask(self):
@@ -406,12 +407,6 @@ class SshPerformanceCollectionTask(BaseTask):
             raise e
         else:
             self._returnToNormalSchedule()
-        finally:
-            try:
-                self._connector.close()
-            except Exception, ex:
-                log.warn("Failed to close device %s: error %s" %
-                         (self._devId, str(ex)))
 
     def _addDatasource(self, datasource):
         """
