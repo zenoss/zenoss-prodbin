@@ -184,7 +184,12 @@ class MySshClient(SshClient):
         # necessarily cause for concern.
         msg = "Connection %s lost" % self.description
         log.debug(msg)
-        self.close_defer.callback(msg)
+        if self.connect_defer and not self.connect_defer.called:
+            self.connect_defer.errback(reason)
+        if self.close_defer and not self.close_defer.called:
+            self.close_defer.callback(msg)
+
+
 
     def check(self, ip, timeout=2):
         """
@@ -211,8 +216,10 @@ class MySshClient(SshClient):
         @type reason: object
         """
         msg = reason.getErrorMessage()
-        self.connect_defer.errback(msg)
-        self.close_defer.errback(msg)
+        if self.connect_defer and not self.connect_defer.called:
+            self.connect_defer.errback(msg)
+        if self.close_defer and not self.close_defer.called:
+            self.close_defer.errback(msg)
 
         self.clientFinished()
 

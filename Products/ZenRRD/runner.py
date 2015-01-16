@@ -181,6 +181,7 @@ class SshRunner(object):
         " change required but no TTY available.\n",)
 
     connection = None
+    client = SshClient
     proxy = None
     exitCode = None
     output = ""
