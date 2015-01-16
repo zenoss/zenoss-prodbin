@@ -778,18 +778,24 @@ class UserSettings(ZenModelRM):
             else:
                 return
 
+        # update only email and page size if true
+        outOfTurnUpdate = False
         # Verify existing password
         curuser = self.getUser().getId()
-        if not oldpassword or not self.ZenUsers.authenticateCredentials(
-            curuser, oldpassword):
+        if not oldpassword or not self.ZenUsers.authenticateCredentials(curuser, oldpassword):
             if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Error',
-                    'Confirmation password is empty or invalid. Please'+
-                    ' confirm your password for security reasons.',
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
+                reqSettings = REQUEST.form
+                if str(self.defaultPageSize) == reqSettings['defaultPageSize'] and \
+                    self.email == reqSettings['email']:
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        'Confirmation password is empty or invalid. Please'+
+                        ' confirm your password for security reasons.',
+                        priority=messaging.WARNING
+                    )
+                    return self.callZenScreen(REQUEST)
+                else:
+                    outOfTurnUpdate = True
             else:
                 raise ValueError("Current password is incorrect.")
 
@@ -876,7 +882,15 @@ class UserSettings(ZenModelRM):
         # update Zenoss user folder settings
         if REQUEST:
             kw = REQUEST.form
-        self.manage_changeProperties(**kw)
+        if outOfTurnUpdate:
+            settings = {}
+            for key in ['defaultPageSize', 'email']:
+                setting = kw.get(key)
+                if setting:
+                    settings[key] = setting
+            self.manage_changeProperties(**settings)
+        else:
+            self.manage_changeProperties(**kw)
 
         # update password info
         if self.id=='admin':

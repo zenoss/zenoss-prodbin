@@ -265,15 +265,20 @@ setTimeout(function () {
 
 
 <script>
-    connect('pwconfirm', 'onkeyup', function(){
-        if($('pwconfirm').value) {
-            $('formsave').disabled = false;
-            setStyle('formsave', {'color':'#000'});
-        } else {
-            $('formsave').disabled = true;
-            setStyle('formsave', {'color':'#888'});
-        }
+
+    var saveInputs = ['pwconfirm', 'user_settings_email_input', 'user_settings_pagesize_input'];
+    Ext.each(saveInputs, function(input) {
+        connect(input, 'onkeyup', function() {
+            if($(input).value) {
+                $('formsave').disabled = false;
+                setStyle('formsave', {'color':'#000'});
+            } else {
+                $('formsave').disabled = true;
+                setStyle('formsave', {'color':'#888'});
+            }
+        });
     });
+
 </script>
 </form>
 </tal:block>
