@@ -290,7 +290,6 @@ class SshRunner(object):
             self.connection.tasks.discard(self.task)
             if not self.connection.tasks:  #last task using connection so can be closed
                 self.connection.clientFinished()
-                # if not self.connection.is_expired:
                 self.cleanUpPool(close=True)
             self.connection = None
 
