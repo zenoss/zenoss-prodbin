@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2014, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import unittest
@@ -24,7 +24,7 @@ class BasePublisherTestCase(unittest.TestCase):
         self.assertEquals(
                 {'metric':'m', 'value':1.0, 'timestamp':1, 'tags':{}},
                 publisher.build_metric( 'm', "1.0", 1, {}))
-    
+
 class HttpPostPublisherTestCase(unittest.TestCase):
     def testPut(self):
         publisher = HttpPostPublisher(None,None)
@@ -64,7 +64,7 @@ class UtilsTestCase(unittest.TestCase):
             1e9, '1e9', u'1e9',
             -1e9, '-1e9', u'-1e9',
             1.1e9, '1.1e9', u'1.1e9',
-            -1.1e9, '-1.1e9', u'-1.1e9',
+            -1.1e9, '-1.1e9', u'-1.1e9'
             ]
 
         for value in float_inputs:
@@ -90,6 +90,9 @@ class UtilsTestCase(unittest.TestCase):
 
         for value in bad_inputs:
             self.assertEquals(sanitized_float(value), None)
+
+        # make sure we can read exponential values if they have a capital E
+        self.assertEqual(sanitized_float("3.33333333333333E-5"), float("3.33333333333333E-5"))
 
 
 def test_suite():
