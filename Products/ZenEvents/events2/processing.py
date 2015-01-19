@@ -195,7 +195,7 @@ class Manager(object):
             # don't search interfaces for the ::1 IPv6 address
             elif ipToDecimal('::1') == ip_decimal:
                 ip_decimal = None
-        if ip_decimal is None:
+        if ip_decimal is None and not device_brains:
             return [], []
 
         net_cat = ICatalogTool(self._networks)
