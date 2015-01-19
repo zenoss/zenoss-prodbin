@@ -82,7 +82,7 @@ class DelayedMeter(object):
 
 
 NON_NUMERIC_CHARS = ''.join(
-    set(string.punctuation + string.ascii_letters) - set(['.', '-', '+', 'e']))
+    set(string.punctuation + string.ascii_letters) - set(['.', '-', '+', 'e', 'E']))
 
 
 def sanitized_float(unsanitized):
