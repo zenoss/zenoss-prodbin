@@ -1,6 +1,6 @@
 Products/README.txt
 Products/ZenUI3/browser/resources/js/deploy/
-
+Products/ZenUI3/node_modules
 #daemons
 bin/runzope
 bin/runzope.bat
@@ -25,4 +25,3 @@ bin/zenvmwareperf
 *.iml
 *.pyc
 *~
-
