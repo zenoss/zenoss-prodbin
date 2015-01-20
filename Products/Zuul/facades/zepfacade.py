@@ -588,6 +588,8 @@ class ZepFacade(ZuulFacade):
         @return: A dictionary of UUID -> { C{EventSeverity} -> { count, acknowledged_count } }
         """
         objects_severities = {}
+        tagUuids = list(tagUuids)
+        tagUuids.sort()
         number_of_uuids = len(tagUuids)
         batch_size = ZepFacade.SEVERITIES_BATCH_SIZE
 
@@ -603,8 +605,6 @@ class ZepFacade(ZuulFacade):
             end = (start + batch_size)
             if end > number_of_uuids:
                 end = number_of_uuids
-
-	    tagUuids = list(tagUuids)   # dirty hack :)
             uuids = tagUuids[start:end]
 
             eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=uuids, eventClass=eventClass)
