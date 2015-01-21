@@ -379,7 +379,7 @@ class MetricMixin(object):
                 newEnd = end
             else:
                 newEnd = self._parseTime(end, time.time())
-        if "end-" in start:
+        if isinstance(start, basestring) and  "end-" in start:
             fromTime = newEnd
         else:
             fromTime = time.time()
