@@ -20,7 +20,7 @@ from Products.ZCatalog.Catalog import CatalogError
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 
 class MacAddressIndex(Migrate.Step):
-    version = Migrate.Version(4, 9, 70)
+    version = Migrate.Version(5, 0, 0)
 
     def cutover(self, dmd):
         cat = dmd.zport.global_catalog
@@ -62,14 +62,14 @@ class MacAddressIndex(Migrate.Step):
                 log.debug("Catalogued object %s", obj.absolute_url_path())
 
                 if i % CHUNK_SIZE == 0:
-                    self.log_progress("rate=%.2f/sec count=%d" % 
+                    self.log_progress("rate=%.2f/sec count=%d" %
                         (CHUNK_SIZE/(time.time() - tstart), i))
                     tstart = time.time()
 
             results = ICatalogTool(dmd).search(fqdns)
             for brain in results.results:
                 i += 1
-                
+
                 try:
                     obj = brain.getObject()
                 except Exception as e:
@@ -81,7 +81,7 @@ class MacAddressIndex(Migrate.Step):
                 log.debug("Catalogued object %s", obj.absolute_url_path())
 
                 if i % CHUNK_SIZE == 0:
-                    self.log_progress("rate=%.2f/sec count=%d" % 
+                    self.log_progress("rate=%.2f/sec count=%d" %
                         (CHUNK_SIZE/(time.time() - tstart), i))
                     tstart = time.time()
 
@@ -89,5 +89,5 @@ class MacAddressIndex(Migrate.Step):
             log.info("Finished total time=%.2f rate=%.2f count=%d",
                 time.time()-starttotal, i/(time.time()-starttotal), i)
             setattr(dmd.zport, '_hasMacIndex', True)
-        
+
 MacAddressIndex()
