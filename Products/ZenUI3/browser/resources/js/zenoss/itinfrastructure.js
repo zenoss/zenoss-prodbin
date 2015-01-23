@@ -1373,8 +1373,8 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                                 which can be different depending on how tall the viewable grid is (and is NOT the pageSize, nor does it
                                 take the pageSize into account). This forces consistency.
                             */
-                            store.guaranteeRange(0, store.pageSize-1);
-                            textItem.setText(Ext.String.format(_t("{0} at a time"),  store.data.items.length) );
+                            var amount = Math.min(store.getTotalCount(), store.pageSize);
+                            textItem.setText(Ext.String.format(_t("{0} at a time"), amount) );
                         }, this);
                     }
                 },

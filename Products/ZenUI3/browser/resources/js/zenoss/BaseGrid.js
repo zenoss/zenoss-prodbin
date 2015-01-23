@@ -724,6 +724,10 @@
         after_request: function() {
             if (this.refresh_in_progress > 0)
                 this.refresh_in_progress -= 1;
+            if (this._previousScrollPosition && this.getView().getEl()) {
+                this.getView().getEl().dom.scrollTop = this._previousScrollPosition;
+                delete this._previousScrollPosition;
+            }
         },
         /**
          * Listeners for when you hide/show a column, the data isn't fetched yet so
@@ -756,6 +760,7 @@
             var store = this.getStore();
 
             if (! store.buffered || store.totalCount < store.pageSize) {
+                this._previousScrollPosition = this.getViewScrollPosition();
                 store.load({
                     callback: callback,
                     scope: scope || this
@@ -790,8 +795,14 @@
             if (view.getEl()) {
                 view.getEl().dom.scrollTop = 0;
             }
+        },
+        getViewScrollPosition: function() {
+            var view = this.getView();
+            if (view.getEl()) {
+                return view.getEl().dom.scrollTop;
+            }
+            return 0;
         }
-
     });
 
 
