@@ -17,7 +17,7 @@ import logging
 log = logging.getLogger( 'zen.migrate' )
 
 class UpdateDeviceClassCredentials(Migrate.Step):
-    version = Migrate.Version(4, 9, 70)
+    version = Migrate.Version(5, 0, 0)
 
 
     def cutover(self, dmd):
