@@ -8,9 +8,9 @@
 
     <i18n:registerTranslations directory="locales" />
 
-    <browser:resourceDirectory
-        name="zenossDocumentation"
-        directory="docs"
+    <browser:resource
+        name="zenossLicenses"
+        file="docs/licenses.html"
         />
 
     <include package=".browser"/>
