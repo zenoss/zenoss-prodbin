@@ -15,8 +15,12 @@
     tableName string: thresholdsummaryreport;
     batch python:here.ZenTableManager.getBatch(tableName,
         objects, sortedHeader='seconds', sortedSence='desc');
-    exportFields python:['deviceName', 'componentName', 'eventClassName', 
-        'count', 'duration', 'percentTime'];
+    exportFields python:[('deviceName', 'Device'),
+                         ('componentName', 'Component'),
+                         ('eventClassName', 'Event Class'),
+                         ('count', 'Count'),
+                         ('seconds', 'Duration'),
+                         ('percentTime', '%')];
     ">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
