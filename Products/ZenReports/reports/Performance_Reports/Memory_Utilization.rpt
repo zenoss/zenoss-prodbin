@@ -25,8 +25,12 @@
 	                                           sortedHeader='availableReal',
 	                                           sortedSence='desc',
 	                                           sortRule='zencmp');
-    exportFields python:['deviceName', 'totalReal', 'availableReal', 'cached',
- 						'buffered', 'percentUsed'];
+    exportFields python:[('deviceName', 'Device'),
+                         ('totalReal', 'Total'),
+                         ('availableReal', 'Available'),
+                         ('cached', 'Cache Memory'),
+                         ('buffered', 'Buffered Memory'),
+                         ('percentUsed', '% Util')];
 ">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
