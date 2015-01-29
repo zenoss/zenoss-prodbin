@@ -137,6 +137,13 @@
     />
 
 <browser:page
+    name="export_devices"
+    class=".device_export.DeviceExporter"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
     class=".pages.DeviceDetails"
     name="devicedetail"
     for="Products.ZenModel.Device.Device"
