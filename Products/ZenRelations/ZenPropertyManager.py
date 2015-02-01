@@ -664,7 +664,7 @@ def monkeypatchDescriptors(zprops, transformerFactories):
     """
     for id, type in zprops:
         factory = transformerFactories.get(type, IdentityTransformer)
-        descriptor = PropertyDescriptor(id, type, factory())
+        descriptor = PropertyDescriptor(id, type, factory)
         setattr(ZenPropertyManager, id, descriptor)
 
 def setDescriptors(dmd):
