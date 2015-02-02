@@ -244,10 +244,6 @@
                             allowBlank: false,
                             triggerAction: 'all'
                         }, {
-                            xtype: 'container',
-                            // spacing
-                            height: 70
-                        },{
                             xtype: 'button',
                             itemId: 'discoverButton',
                             anchor: "40%",

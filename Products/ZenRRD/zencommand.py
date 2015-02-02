@@ -184,7 +184,12 @@ class MySshClient(SshClient):
         # necessarily cause for concern.
         msg = "Connection %s lost" % self.description
         log.debug(msg)
-        self.close_defer.callback(msg)
+        if self.connect_defer and not self.connect_defer.called:
+            self.connect_defer.errback(reason)
+        if self.close_defer and not self.close_defer.called:
+            self.close_defer.callback(msg)
+
+
 
     def check(self, ip, timeout=2):
         """
@@ -211,8 +216,10 @@ class MySshClient(SshClient):
         @type reason: object
         """
         msg = reason.getErrorMessage()
-        self.connect_defer.errback(msg)
-        self.close_defer.errback(msg)
+        if self.connect_defer and not self.connect_defer.called:
+            self.connect_defer.errback(msg)
+        if self.close_defer and not self.close_defer.called:
+            self.close_defer.errback(msg)
 
         self.clientFinished()
 
@@ -370,7 +377,8 @@ class SshPerformanceCollectionTask(BaseTask):
                self.name, self.configId, len(self._datasources))
 
     def cleanup(self):
-        self._connector.close()
+        if self._connector:
+            self._connector.close()
 
     @defer.inlineCallbacks
     def doTask(self):
@@ -406,12 +414,6 @@ class SshPerformanceCollectionTask(BaseTask):
             raise e
         else:
             self._returnToNormalSchedule()
-        finally:
-            try:
-                self._connector.close()
-            except Exception, ex:
-                log.warn("Failed to close device %s: error %s" %
-                         (self._devId, str(ex)))
 
     def _addDatasource(self, datasource):
         """

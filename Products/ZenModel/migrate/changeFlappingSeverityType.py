@@ -20,7 +20,7 @@ log = logging.getLogger('zen.migrate')
 
 
 class FlappingSeverityType(Migrate.Step):
-    version = Migrate.Version(4, 9, 70)
+    version = Migrate.Version(5, 0, 0)
 
     def cutover(self, dmd):
 
@@ -30,7 +30,7 @@ class FlappingSeverityType(Migrate.Step):
         if existingFlappingAttr is not None and dmd.Events.getPropertyType('zFlappingSeverity') != 'int':
             log.debug("Removing/re-adding zFlappingSeverity property to Events event class")
             edict._delProperty("zFlappingSeverity")
-            edict._setProperty("zFlappingSeverity", int(existingFlappingAttr), type="int") 
-                
+            edict._setProperty("zFlappingSeverity", int(existingFlappingAttr), type="int")
+
 
 FlappingSeverityType = FlappingSeverityType()

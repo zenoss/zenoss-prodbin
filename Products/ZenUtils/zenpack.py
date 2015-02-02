@@ -376,13 +376,41 @@ class ZenPackCmd(ZenScriptBase):
                         depsSet.add(depName)
             zpsToSort[zpId] = depsSet
 
-        sortedPacks = toposort_flatten(zpsToSort)
-        if len(sortedPacks) != 0:
-            for pack in sortedPacks:
+        def doRestore(pack):
+            try:
                 self._restore(pack, zpsToRestore[pack][0], zpsToRestore[pack][1])
+                return True
+            except subprocess.CalledProcessError as cpe:
+                self.log.exception(cpe)
+                # Keep pack in list of sorted packs, and try again
+                # (ZEN-16380).  If B depends on A and A fails, then B will
+                # fail too, but that's OK, because it will just try again
+                return False
+
+        sortedPacks = toposort_flatten(zpsToSort)
+        triedReversing = False
+        if len(sortedPacks) > 0:
+            fixedSomething = True
+        while len(sortedPacks) > 0:
+            packListLen = len(sortedPacks)
+            # Keep track of all the packs that failed to restore
+            self.log.info("Attempting to install packs: %s", ", ".join(sortedPacks))
+            sortedPacks[:] = [ pack for pack in sortedPacks if not doRestore(pack) ]
+            if len(sortedPacks) == packListLen:
+                if triedReversing:
+                    self.log.error("Unable to install zenpacks: %s", ", ".join(sortedPacks))
+                    sys.exit(1)
+                else:
+                    # Try reversing the order or packs as a last ditch effort
+                    sortedPacks.reverse()
+                    triedReversing = True
+            elif len(sortedPacks) != 0:
+                self.log.info("Failed to install packs: %s, will try again", ", ".join(sortedPacks))
+
+        if not fixedSomething:
+            self.log.info("No broken zenpacks found")
         else:
-            if not fixedSomething:
-                self.log.info("No broken zenpacks found")
+            self.log.info("Successfully restored zenpacks!")
 
     def _linkedRestore(self, zp):
         """
@@ -398,15 +426,18 @@ class ZenPackCmd(ZenScriptBase):
 
     def _restore(self, zpId, version, filesOnly):
         # glob for backup
-        # This is meant to hand standard zenpack naming convention - for exmaple,
+        # This is meant to handle standard zenpack naming convention - for exmaple,
         #    ZenPacks.zenoss.OpenStack-1.2.4dev19_5159496-py2.7.egg
         backupDirs = (zenPath(".ZenPacks"), zenPath("packs"))
         dashIndex = version.find('-')
+        # If the version has a dash in it, replace it with an underscore
         if dashIndex != -1:
             version = list(version)
             version[dashIndex] = '_'
             version = ''.join(version)
-        patterns = [backupDir + "/%s-%s*" % (zpId, version) for backupDir in backupDirs]
+        patterns = [backupDir + "/%s-%s-*" % (zpId, version) for backupDir in backupDirs]
+        # Look through potential .egg locations, breaking out once we find one
+        # (AKA prefer the first location)
         for pattern in patterns:
             self.log.info("looking for %s", pattern)
             candidates = glob.glob(pattern)
@@ -415,29 +446,35 @@ class ZenPackCmd(ZenScriptBase):
         if len(candidates) == 0:
             self.log.info("could not find install candidate for %s %s", zpId, version)
             return
-        for candidate in candidates:
-            if candidate.lower().endswith(".egg"):
+        if len(candidates) > 1:
+            self.log.error("Found more than one install candidate for %s %s (%s), skipping",
+                          zpId, version, ", ".join(candidates))
+            return
+
+        # Make the code below this easier to read
+        candidate = candidates[0]
+        if candidate.lower().endswith(".egg"):
+            try:
+                shutil.copy(candidate, tempfile.gettempdir())
+                cmd = ["zenpack"]
+                if filesOnly:
+                    cmd.append("--files-only")
+                cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
                 try:
-                     shutil.copy(candidate, tempfile.gettempdir())
-                     cmd = ["zenpack"]
-                     if filesOnly:
-                         cmd.append("--files-only")
-                     cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
-                     try:
-                         with open(os.devnull, 'w') as fnull:
-                             # the first time fixes the easy-install path
-                             subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
-                     except Exception:
-                         pass
-                     # the second time runs the loaders
-                     subprocess.check_call(cmd)
-                finally:
-                     try:
-                         os.remove(os.path.join(tempfile.gettempdir(), os.path.basename(candidate)))
-                     except Exception:
-                         pass
-            else:
-                self.log.warning("non-egg zenpacks can not currently be restored automatically: %s", candidate)
+                    with open(os.devnull, 'w') as fnull:
+                        # the first time fixes the easy-install path
+                        subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
+                except Exception:
+                    pass
+                # the second time runs the loaders
+                subprocess.check_call(cmd)
+            finally:
+                try:
+                    os.remove(os.path.join(tempfile.gettempdir(), os.path.basename(candidate)))
+                except Exception:
+                    pass
+        else:
+            self.log.warning("non-egg zenpacks can not currently be restored automatically: %s", candidate)
 
     def preInstallCheck(self, eggInstall=True):
         """Check that prerequisite zenpacks are installed.
