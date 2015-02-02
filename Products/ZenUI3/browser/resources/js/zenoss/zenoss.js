@@ -3,16 +3,21 @@
 /*TODO: move overriding the prototype to a util funciton */
 (function(){ // Local scope
 /**
+ * Base namespace to contain all Zenoss-specific JavaScript.
+ */
+Ext.namespace('Zenoss');
+
+/**
  * Check compatibilty mode turned on
  */
 if(navigator.userAgent.indexOf("Trident") > -1 && navigator.userAgent.indexOf("MSIE 7.0") > -1){
     Ext.onReady(function(){
         Ext.Msg.show({
-        title: _t("Compatibility Mode Unsupported"),
-        msg: _t("Zenoss does not support running in IE Compatibility Mode."),
-        buttons: Ext.Msg.OK,
-        cls: "compatibilityModeAlert"
-    });
+            title: _t("Compatibility Mode Unsupported"),
+            msg: _t("Zenoss does not support running in IE Compatibility Mode."),
+            buttons: Ext.Msg.OK,
+            cls: "compatibilityModeAlert"
+        });
     });
 }
 /**
@@ -25,20 +30,17 @@ Ext.BLANK_IMAGE_URL = '/++resource++zenui/img/s.gif';
  **/
 Zenoss.logDirectRequests = false;
 
-    Ext.apply(Ext.direct.RemotingProvider.prototype, {
-        queueTransaction: Ext.Function.createInterceptor(Ext.direct.RemotingProvider.prototype.queueTransaction, function(transaction) {
-            // will render a stack trace on firefox
-            if (Zenoss.logDirectRequests) {
-                console.log(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
-                console.trace(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
-            }
-        })
-    });
+Ext.apply(Ext.direct.RemotingProvider.prototype, {
+    queueTransaction: Ext.Function.createInterceptor(Ext.direct.RemotingProvider.prototype.queueTransaction, function(transaction) {
+        // will render a stack trace on firefox
+        if (Zenoss.logDirectRequests) {
+            console.log(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+            console.trace(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+        }
+    })
+});
 
-/**
- * Base namespace to contain all Zenoss-specific JavaScript.
- */
-Ext.namespace('Zenoss');
+
 /**
  * Constants
  */
@@ -66,11 +68,11 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
-    /**
-     *
-     * @param except Return all columns except the ones
-     * where id is in this array.
-     */
+/**
+ *
+ * @param except Return all columns except the ones
+ * where id is in this array.
+ */
 Zenoss.env.getColumnDefinitions = function(except) {
     Ext.each(Zenoss.env.COLUMN_DEFINITIONS, function(col){
         if (Zenoss.events.customColumns[col.dataIndex]) {
@@ -192,6 +194,9 @@ Ext.Direct.on('event', function(e){
     }
 });
 
+/**
+ * After every router request show a flare is the "msg" property is set
+ **/
 Ext.Direct.on('event', function(e){
     if (Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.msg)) {
         var success = e.result.success || false,
@@ -313,55 +318,6 @@ Ext.Direct.on('event', function(e){
 });
 
 
-/*
-* Add the ability to specify an axis for autoScroll.
-* autoScroll: true works just as before, but now can also do:
-* autoScroll: 'x'
-* autoScroll: 'y'
-*
-* Code by Tom23, http://www.extjs.com/forum/showthread.php?t=80663
-*/
-
-Ext.Element.prototype.setOverflow = function(v, axis) {
-    axis = axis ? axis.toString().toUpperCase() : '';
-    var overflowProp = 'overflow';
-    if (axis === 'X' || axis === 'Y') {
-        overflowProp += axis;
-    }
-    if(v==='auto' && Ext.isMac && Ext.isGecko2){ // work around stupid FF 2.0/Mac scroll bar bug
-        this.dom.style[overflowProp] = 'hidden';
-        (function(){this.dom.style[overflowProp] = 'auto';}).defer(1, this);
-    }else{
-        this.dom.style[overflowProp] = v;
-    }
-};
-
-Ext.override(Ext.Panel, {
-    setAutoScroll : function() {
-        if(this.rendered && this.autoScroll){
-            var el = this.body || this.el;
-            if(el){
-                el.setOverflow('auto', this.autoScroll);
-            }
-        }
-    }
-});
-
-var origGetDragData = Ext.dd.DragZone.prototype.getDragData;
-Ext.override(Ext.dd.DragZone, {
-    getDragData: function(e) {
-        var t = Ext.lib.Event.getTarget(e);
-        // If it's a link, set the target to the ancestor cell so the browser
-        // doesn't do the default anchor-drag behavior. Otherwise everything
-        // works fine, so proceed as normal.
-        if (t.tagName==='A') {
-            e.target = e.getTarget('div.x-grid3-cell-inner');
-        }
-        return origGetDragData.call(this, e);
-    }
-});
-
-
 /**
  * @class Zenoss.PlaceholderPanel
  * @extends Ext.Panel
@@ -461,50 +417,6 @@ Ext.define("Zenoss.ExtraHooksSelectionModel", {
             this, arguments);
         this.resumeEvents();
         this.fireEvent('rangeselect', this);
-    }
-});
-
-
-/**
- * @class Zenoss.PostRefreshHookableDataView
- * @extends Ext.DataView
- * A DataView that fires a custom event after the view has refreshed.
- * @constructor
- */
-Zenoss.PostRefreshHookableDataView = Ext.extend(Ext.DataView, {
-    constructor: function() {
-        Zenoss.PostRefreshHookableDataView.superclass.constructor.apply(
-            this, arguments);
-        this.addEvents(
-            /**
-             * @event afterrefresh
-             * Fires after the view has been rendered.
-             * @param {DataView} this
-             */
-            'afterrefresh');
-    }
-});
-
-Ext.extend(Zenoss.PostRefreshHookableDataView, Ext.DataView, {
-    /**
-     * This won't survive upgrade.
-     */
-    refresh: function(){
-        this.clearSelections(false, true);
-        this.el.update("");
-        var records = this.store.getRange();
-        if(records.length < 1){
-            if(!this.deferEmptyText || this.hasSkippedEmptyText){
-                this.el.update(this.emptyText);
-            }
-            this.hasSkippedEmptyText = true;
-            this.all.clear();
-            return;
-        }
-        this.tpl.overwrite(this.el, this.collectData(records, 0));
-        this.fireEvent('afterrefresh', this);
-        this.all.fill(Ext.query(this.itemSelector, this.el.dom));
-        this.updateIndexes(0);
     }
 });
 
@@ -941,37 +853,6 @@ Ext.onReady(function() {
 });
 
 /**
- * @class Zenoss.ColumnFieldSet
- * @extends Ext.form.FieldSet
- * A FieldSet with a column layout
- * @constructor
- */
-Ext.define("Zenoss.ColumnFieldSet", {
-    extend: "Ext.form.FieldSet",
-    alias: ['widget.ColumnFieldSet'],
-    constructor: function(userConfig) {
-
-        var baseConfig = {
-            items: {
-                layout: 'column',
-                border: false,
-                items: userConfig.__inner_items__,
-                defaults: {
-                    layout: 'anchor',
-                    border: false,
-                    bodyStyle: 'padding-left: 15px'
-                }
-            }
-        };
-
-        delete userConfig.__inner_items__;
-        var config = Ext.apply(baseConfig, userConfig);
-        Zenoss.ColumnFieldSet.superclass.constructor.call(this, config);
-
-    } // constructor
-}); // Zenoss.ColumnFieldSet
-
-/**
  * General utilities
  */
 Ext.namespace('Zenoss.util');
@@ -998,22 +879,6 @@ Zenoss.util.isolatedRequest = function(func) {
 Zenoss.util.isSuccessful = function(response) {
     // Check the results of an Ext.Direct response for success.
     return response.result && response.result.success;
-};
-
-Zenoss.util.addLoadingMaskToGrid = function(grid){
-    // load mask stuff
-    grid.store.proxy.on('beforeload', function(){
-        var container = this.container;
-        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
-        var mask = container._treeLoadMask;
-        mask.show();
-    }, grid);
-    grid.store.proxy.on('load', function(){
-        var container = this.container;
-        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
-        var mask = container._treeLoadMask;
-        mask.hide();
-    }, grid);
 };
 
 Zenoss.env.SEVERITIES = [
@@ -1232,58 +1097,6 @@ Zenoss.util.callWhenReady = function(componentId, func, scope) {
 };
 
 /**
- * This converts server side types to Ext Controls,
- * it first looks for specific types based on the field name
- * and then reverts to a translation of the type.
- * @param {string} fieldId the "name" of the field (e.g. eventClass)
- * @param {string} type can be string, int, etc
- * @returns {string} The "xtype" of the control
- **/
-Zenoss.util.getExtControlType = function(fieldId, type) {
-    var customControls = {
-        'eventClass': 'EventClass',
-        'severity': 'Severity',
-        'dsnames': 'DataPointItemSelector'
-    },
-    types = {
-        'int': 'numberfield',
-        'string': 'textfield',
-        'boolean': 'checkbox',
-        'text': 'textarea'
-    };
-
-    // see if a component of this type is registered (then return it)
-    if (Ext.ComponentMgr.isRegistered(fieldId)) {
-        return fieldId;
-    }
-
-    // check our conversions defined above
-    if (customControls[fieldId]) {
-        return customControls[fieldId];
-    }
-
-    // default to "textfield" if we don't have it set up yet"
-    return (types[type] || 'textfield');
-};
-
-/**
- * The code searches for a column index using the column name
- * @param {array} columns represents the grid columns
- * @param {id} id the name of the column
- * @returns {int} the column index
- **/
-Zenoss.util.getColumnIndex = function(columns, id) {
-   var colIndex = -1;
-   Ext.each(columns, function(col, index) {
-       if (col.id === id) {
-           colIndex = index;
-           return false;
-       }
-   });
-   return colIndex;
-};
-
-/**
 * Used in BaseGrid.js by onFocus() and onResize() events.
  * Fixes misalignment between filter and header of a column in IE9.
  */
@@ -1319,32 +1132,6 @@ Zenoss.util.validateConfig = function() {
         }
     });
 };
-
-/**
- * Proxy that will only allow one request to be loaded at a time.  Requests
- * made while the proxy is already loading a previous requests will be discarded
- */
-Zenoss.ThrottlingProxy = Ext.extend(Ext.data.DirectProxy, {
-    constructor: function(){
-        Zenoss.ThrottlingProxy.superclass.constructor.apply(this, arguments);
-        this.loading = false;
-        //add event listeners for throttling
-        this.addListener('beforeload', function(proxy){
-            if (!proxy.loading){
-                proxy.loading = true;
-                return true;
-            }
-            return false;
-        });
-        this.addListener('load', function(proxy){
-            proxy.loading = false;
-        });
-        this.addListener('exception', function(proxy){
-            proxy.loading = false;
-        });
-
-    }
-});
 
 /**
  * Zenoss date patterns and manipulations
@@ -1393,18 +1180,6 @@ Zenoss.date.renderDateColumn = function(format) {
     };
 };
 
-
-// Fix an IE bug
-Ext.override(Ext.Shadow, {
-    realign: Ext.Function.createInterceptor(Ext.Shadow.prototype.realign,
-        function() {
-            if (Ext.isIE) {
-                var a = this.adjusts;
-                a.h = Math.max(a.h, 0);
-            }
-        }
-    )
-});
 
 // Force checkbox to fire valid
 var oldcbsetvalue = Ext.form.Checkbox.prototype.setValue;

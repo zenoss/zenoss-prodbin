@@ -633,4 +633,20 @@ Ext.override(Ext.util.Sorter, {
         }
         return oldMomentTz.apply(this, [name]);
     };
+
+
+    var origGetDragData = Ext.dd.DragZone.prototype.getDragData;
+    Ext.override(Ext.dd.DragZone, {
+        getDragData: function(e) {
+            var t = Ext.lib.Event.getTarget(e);
+            // If it's a link, set the target to the ancestor cell so the browser
+            // doesn't do the default anchor-drag behavior. Otherwise everything
+            // works fine, so proceed as normal.
+            if (t.tagName==='A') {
+                e.target = e.getTarget('div.x-grid3-cell-inner');
+            }
+            return origGetDragData.call(this, e);
+        }
+    });
+
 }());
