@@ -652,7 +652,6 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 this.lastHash = o.result.hash || this.lastHash;
             },
             this);
-        Zenoss.util.addLoadingMaskToGrid(this);
     },
     applyOptions: function(){
         // apply options to all future parameters, not just this operation.

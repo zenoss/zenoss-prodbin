@@ -728,6 +728,7 @@
         after_request: function() {
             if (this.refresh_in_progress > 0) {
                 this.refresh_in_progress -= 1;
+            }
             if (this._previousScrollPosition && this.getView().getEl()) {
                 this.getView().getEl().dom.scrollTop = this._previousScrollPosition;
                 delete this._previousScrollPosition;
