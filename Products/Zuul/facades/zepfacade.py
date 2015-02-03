@@ -197,6 +197,7 @@ class ZepFacade(ZuulFacade):
             filter['tag_filter'] = {'tag_uuids': tags}
 
         if count_range:
+            import pdb; pdb.set_trace();
             if not isinstance(count_range, (tuple, list)):
                 try:
                     count = int(count_range)

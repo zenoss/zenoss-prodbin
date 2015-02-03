@@ -8,6 +8,7 @@
 ##############################################################################
 
 import os
+import string
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.guid.interfaces import IGUIDManager
@@ -111,6 +112,8 @@ class GetDaemonLogs(BrowserView):
 
 class GetDoc(BrowserView):
     def __call__(self, bundle):
+
+        bundle = string.replace(bundle, "../", "")
         filename = os.path.join(zenPath("Products"), 'ZenUI3', 'docs', bundle)
         self.request.RESPONSE.setHeader('Content-Type', 'application/x-gzip')
         self.request.RESPONSE.setHeader('Content-Disposition', 'attachment;filename=' + os.path.basename(filename))
