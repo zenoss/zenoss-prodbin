@@ -1163,7 +1163,7 @@ var exporter = function (type) {
     var grid = Ext.getCmp("device_grid");
     var state = grid.getState();
 
-    fields = Ext.Array.pluck(grid.columns.filter(function (column) {
+    var fields = Ext.Array.pluck(grid.columns.filter(function (column) {
         return column.isVisible();
     }), 'dataIndex');
     fields[fields.indexOf('uid')] = 'deviceClass';

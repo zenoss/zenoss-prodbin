@@ -26,7 +26,7 @@ class DeviceExporter(BrowserView):
 
     def _query(self, params):
         device_router = DeviceFacade(self.context)
-        devices = device_router.getDevices(sort=params['sort'], dir=params['sdir'], params=params['params'])
+        devices = device_router.getDevices(sort=params['sort'], dir=params['sdir'], params=params['params'], limit=None)
         return Zuul.marshal(devices.results, params['fields'])
 
     @staticmethod
