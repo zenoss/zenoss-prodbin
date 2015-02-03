@@ -1159,6 +1159,26 @@ Zenoss.nav.register({
     ]
 });
 
+var exporter = function (type) {
+    var grid = Ext.getCmp("device_grid");
+    var state = grid.getState();
+
+    var fields = Ext.Array.pluck(grid.columns.filter(function (column) {
+        return column.isVisible();
+    }), 'dataIndex');
+    fields[fields.indexOf('uid')] = 'deviceClass';
+    fields[fields.indexOf('ipAddress')] = 'ipAddressString';
+    var params = {
+        type : type,
+        sort : state.sort.property,
+        sdir : state.sort.direction,
+        params : grid.filterRow.getSearchValues(),
+        fields : fields
+    };
+    Ext.get('devices_export_body').dom.value = Ext.encode(params);
+    Ext.get('devices_export_form').dom.submit();
+};
+
 Ext.define("Zenoss.InfraDetailNav", {
     alias:['widget.infradetailnav'],
     extend:"Zenoss.DetailNavPanel",
@@ -1411,6 +1431,21 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         }
                     }
                     ]
+            },{
+                text: _t('Export'),
+                menu: {
+                    items: [{
+                        text: 'XML',
+                        handler: function () {
+                            exporter('xml')
+                        }
+                    }, {
+                        text: 'CSV',
+                        handler: function () {
+                            exporter('csv')
+                        }
+                    }]
+                }
             },'->',{
                 id: 'refreshdevice-button',
                 xtype: 'refreshmenu',
