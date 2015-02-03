@@ -781,7 +781,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             for root, dirs, files in os.walk(os.path.join(docDir, category, product)):
                 for file in files:
                     if file.endswith(".pdf"):
-                        downloadable.append({"title": file, "filename": category + "/" + product + "/pdf/latest/" + file})
+                        downloadable.append({"title": file, "filename": category + "/" + product + "/pdf/" + file})
 
         return downloadable
 

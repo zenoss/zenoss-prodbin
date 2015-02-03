@@ -12,6 +12,7 @@ from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenModel.DataRoot import DataRoot
 from Products import Zuul
 from urllib import unquote
 
@@ -111,8 +112,16 @@ class GetDaemonLogs(BrowserView):
 
 class GetDoc(BrowserView):
     def __call__(self, bundle):
-        filename = os.path.join(zenPath("Products"), 'ZenUI3', 'docs', bundle)
-        self.request.RESPONSE.setHeader('Content-Type', 'application/x-gzip')
-        self.request.RESPONSE.setHeader('Content-Disposition', 'attachment;filename=' + os.path.basename(filename))
-        with open(filename) as f:
-            return f.read()
+        # check whitelist to make sure document requested is available
+        serveFile = False
+        for checkFile in self.context.dmd.getDocFilesInfo():
+            if bundle == checkFile['filename']:
+                serveFile = True
+                break
+
+        if serveFile:
+            filename = os.path.join(zenPath("Products"), 'ZenUI3', 'docs', bundle)
+            self.request.RESPONSE.setHeader('Content-Type', 'application/x-gzip')
+            self.request.RESPONSE.setHeader('Content-Disposition', 'attachment;filename=' + os.path.basename(filename))
+            with open(filename) as f:
+                return f.read()
