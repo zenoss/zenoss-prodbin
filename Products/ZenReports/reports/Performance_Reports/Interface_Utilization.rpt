@@ -60,9 +60,9 @@
     <tal:block tal:repeat="r batch">
         <tr tal:define="odd repeat/r/odd"
             tal:attributes="class python: test(odd,'odd','even')">
-           <td><a tal:attributes="href python: r.device.getPrimaryUrlPath()"
+           <td><a tal:attributes="href r/device/getPrimaryUrlPath"
                   tal:content="python: r.deviceName"/></td>
-           <td><a tal:attributes="href python: r.component.getPrimaryUrlPath()"
+           <td><a tal:attributes="href r/component/getPrimaryUrlPath"
                   tal:content="python: r.interface"/></td>
            <td tal:content="python: r.humanBits(r.speed, unitstr='b/s')"/>
            <td tal:content="python: r.humanBits(r.inputBits, unitstr='b/s')"/>
