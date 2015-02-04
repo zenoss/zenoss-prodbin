@@ -438,6 +438,8 @@ Ext.apply(Zenoss.devices, {
                             } else {
                                 deleteDevicesWithProgressBar(grid, uids, opts);
                             }
+                        } else {
+                            grid.setLoading(false);
                         }
                         setTimeout(refreshTreePanel, 1000);
                     }
