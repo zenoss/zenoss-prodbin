@@ -349,7 +349,8 @@ def getDisplayName(obj):
     Always returns something but it may not be pretty.
     """
     # TODO: better implementation, like getDisplayName() per class.
-    name = _getName(obj) or _getId(obj) or _getUid(obj)
+    name = obj.titleOrId() if hasattr(obj, 'titleOrId') else \
+            _getName(obj) or _getId(obj) or _getUid(obj)
     if name is None:
         return str(obj) #we tried our best
     return str(name() if callable(name) else name)
