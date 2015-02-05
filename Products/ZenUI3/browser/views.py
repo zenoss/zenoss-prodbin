@@ -82,7 +82,7 @@ class GotoRedirect(BrowserView):
             return response.write("Could not look up guid %s" % guid)
 
         path = obj.absolute_url_path()
-        return response.redirect(path)
+        return response.redirect(path + '?' + request.QUERY_STRING)
 
 class GetDaemonLogs(BrowserView):
     """

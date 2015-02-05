@@ -23,7 +23,8 @@ def immediate_view(ob):
 
 def Device(ob):
     id = '/'.join(ob.getPhysicalPath())
-    return id + '/devicedetail#deviceDetailNav:device_overview'
+    REQUEST = getattr(ob, 'REQUEST', {})
+    return id + '/devicedetail#' + REQUEST.get('fragment', 'deviceDetailNav:device_overview')
 
 def EventClass(ob):
     id = '.'.join(ob.getPhysicalPath())
