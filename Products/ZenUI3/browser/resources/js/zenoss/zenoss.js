@@ -568,6 +568,7 @@ Ext.define("Zenoss.RefreshMenuButton", {
         var menu = {
             xtype: 'statefulrefreshmenu',
             id: config.stateId || 'evc_refresh',
+            refreshWhenHidden: false,
             trigger: this,
             width: 127,
             items: [{
@@ -593,6 +594,7 @@ Ext.define("Zenoss.RefreshMenuButton", {
                 xtype: 'menucheckitem',
                 text: '1 minute',
                 value: 60,
+                checked: true,
                 group: 'refreshgroup'
             },{
                 xtype: 'menucheckitem',
@@ -633,6 +635,11 @@ Ext.define("Zenoss.RefreshMenuButton", {
         }
     },
     poll: function(){
+        // do not poll if the user is not looking at the tab, refreshWhenHidden will force the refresh
+        if (Ext.isString(document.visibilityState) && document.visibilityState == "hidden" && ! this.refreshWhenHidden) {
+            this.refreshTask.delay(this.interval*1000);
+            return;
+        }
         if (this.interval>0) {
             if ( !this.disabled ) {
                 if (Ext.isDefined(this.pollHandler)){

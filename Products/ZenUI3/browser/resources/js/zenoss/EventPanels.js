@@ -966,6 +966,7 @@
                         xtype: 'refreshmenu',
                         ref: 'refreshmenu',
                         id: 'refresh-button',
+                        refreshWhenHidden: true,
                         iconCls: 'refresh',
                         text: _t('Refresh'),
                         handler: function() {
