@@ -38,6 +38,9 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
 from Products.ZenUtils.Security import _createInitialUser
 
+import logging
+log = logging.getLogger("zen.pasmonkey")
+
 # monkey patch PAS to allow inituser files, but check to see if we need to
 # actually apply the patch, first -- support may have been added at some point
 pas = PluggableAuthService.PluggableAuthService
@@ -128,7 +131,70 @@ def validate(self, request, auth='', roles=_noroles):
     return None
 
 pas.validate = validate
+from Products.PluggableAuthService.utils import createViewName, createKeywords
+from Products.PluggableAuthService.interfaces.plugins import IPropertiesPlugin, IRolesPlugin
 
+def _findUser( self, plugins, user_id, name=None, request=None ):
+
+    """ user_id -> decorated_user
+    """
+    if user_id == self._emergency_user.getUserName():
+        return self._emergency_user
+
+    # See if the user can be retrieved from the cache
+    view_name = createViewName('_findUser', user_id)
+    keywords = createKeywords(user_id=user_id, name=name)
+    user = self.ZCacheable_get( view_name=view_name
+                              , keywords=keywords
+                              , default=None
+                              )
+
+    if user is None:
+
+        user = self._createUser( plugins, user_id, name )
+        propfinders = plugins.listPlugins( IPropertiesPlugin )
+
+        for propfinder_id, propfinder in propfinders:
+            # NOTE: for ZEN-15056 this is the only part of PAS that has changed
+            # we catch all swallowable exceptions when attempting to find users.
+            # if we don't do this then one plugin stacktracing will cause all
+            # users to not be able to login
+            data = None
+            try:
+                data = propfinder.getPropertiesForUser( user, request )
+            except PluggableAuthService._SWALLOWABLE_PLUGIN_EXCEPTIONS:
+                log.debug( 'UserPluginProperties %s error' % propfinder_id
+                            , exc_info=True
+                            )
+                continue
+            if data:
+                user.addPropertysheet( propfinder_id, data )
+
+        groups = self._getGroupsForPrincipal( user, request
+                                            , plugins=plugins )
+        user._addGroups( groups )
+
+        rolemakers = plugins.listPlugins( IRolesPlugin )
+
+        for rolemaker_id, rolemaker in rolemakers:
+
+            roles = rolemaker.getRolesForPrincipal( user, request )
+
+            if roles:
+                user._addRoles( roles )
+
+        user._addRoles( ['Authenticated'] )
+
+        # Cache the user if caching is enabled
+        base_user = aq_base(user)
+        if getattr(base_user, '_p_jar', None) is None:
+            self.ZCacheable_set( base_user
+                               , view_name=view_name
+                               , keywords=keywords
+                               )
+
+    return user.__of__( self )
+pas._findUser = _findUser
 # monkey patches for the PAS login form
 
 def manage_afterAdd(self, item, container):
