@@ -559,7 +559,8 @@ Ext.onReady(function() {
             else {
                 el.dom.style.display = "none";
             }
-            this.doLayout();
+            
+            this.getBody().doLayout();
         },
 
         findSection: function(section_id) {
