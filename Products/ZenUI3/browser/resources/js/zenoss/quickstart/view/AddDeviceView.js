@@ -136,9 +136,7 @@
                         Zenoss.remote.JobsRouter.deleteJobs({
                             jobids: [record.get('uuid')]
                         }, function(response) {
-                            if (response.success) {
-                                store.remove(record);
-                            }
+                            store.remove(record);
                         });
 
                         var uid = record.get('deviceUid');

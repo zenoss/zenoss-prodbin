@@ -300,9 +300,6 @@
             Zenoss.remote.JobsRouter.deleteJobs({
                 jobids: [record.get('uuid')]
             }, function(response) {
-                if (!response.success) {
-                    return;
-                }
                 if (record.get('status') !== "PENDING") {
                     Zenoss.remote.DeviceRouter.removeDevices({
                         uids: [record.get('deviceUid')],
