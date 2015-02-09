@@ -300,20 +300,19 @@
             Zenoss.remote.JobsRouter.deleteJobs({
                 jobids: [record.get('uuid')]
             }, function(response) {
-                if (!response.success) {
-                    return;
-                }
-                if (record.get('status') !== "PENDING") {
-                    Zenoss.remote.DeviceRouter.removeDevices({
-                        uids: [record.get('deviceUid')],
-                        action: 'delete',
-                        hashcheck: 1
-                    }, function() {
+                if (response.success) {
+                    if (record.get('status') !== "PENDING") {
+                        Zenoss.remote.DeviceRouter.removeDevices({
+                            uids: [record.get('deviceUid')],
+                            action: 'delete',
+                            hashcheck: 1
+                        }, function() {
+                            this._AddJob(record);
+                        },
+                        this);
+                    } else {
                         this._AddJob(record);
-                    },
-                    this);
-                } else {
-                    this._AddJob(record);
+                    }
                 }
             }, this);
         },
