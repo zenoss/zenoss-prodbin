@@ -454,13 +454,10 @@ class DeviceRouter(TreeRouter):
 
         devices = facade.getDevices(uid, start, limit, sort, dir, params)
         allKeys = ['name', 'ipAddress', 'productionState', 'events',
-                   'ipAddressString', 'serialNumber', 'tagNumber',
-                   'hwManufacturer', 'hwModel', 'osModel', 'osManufacturer',
-                   'collector', 'priority', 'systems', 'groups', 'location',
-                   'pythonClass', 'tagNumber', 'serialNumber',
-                   'hwModel', 'hwManufacturer',
-                   'osModel', 'osManufacturer',
-                   'groups', 'systems', 'location']
+                   'ipAddressString', 'serialNumber', 'hwManufacturer',
+                   'hwModel', 'osModel', 'osManufacturer', 'collector',
+                   'priority', 'systems', 'groups', 'location',
+                   'pythonClass', 'tagNumber']
         usedKeys = keys or allKeys
         if not 'uid' in usedKeys:
             usedKeys.append('uid')
