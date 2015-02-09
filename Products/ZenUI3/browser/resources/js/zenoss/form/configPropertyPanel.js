@@ -376,15 +376,6 @@
                             return Ext.htmlEncode(value);
                         }
                     },{
-                        dataIndex: 'label',
-                        header: _t('Label'),
-                        width: 200,
-                        sortable: true
-                    },{
-                        dataIndex: 'description',
-                        header: _t('Description'),
-                        flex: 1
-                    },{
                         dataIndex: 'valueAsString',
                         header: _t('Value'),
                         width: 180,
@@ -403,6 +394,15 @@
                             return Ext.htmlEncode(v);
                         },
                         sortable: false
+                    },{
+                        dataIndex: 'label',
+                        header: _t('Label'),
+                        width: 200,
+                        sortable: true
+                    },{
+                        dataIndex: 'description',
+                        header: _t('Description'),
+                        flex: 1
                     },{
                         //id: 'path',
                         dataIndex: 'path',
