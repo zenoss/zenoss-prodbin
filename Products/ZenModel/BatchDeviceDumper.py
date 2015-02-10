@@ -580,6 +580,10 @@ class BatchDeviceDumper(ZCmdBase):
             line = "loader='vmware', loader_arg_keys=['host', 'username', 'password', 'useSsl', 'id', 'collector']"
             return name, [line]
 
+        elif path == '/zport/dmd/Devices/vSphere':
+            line = "loader='VMware vSphere', loader_arg_keys=['title', 'hostname', 'username', 'password', 'ssl', 'collector']"
+            return name, [line]
+
         elif path == '/zport/dmd/Devices/CiscoUCS':
             line = "loader='ciscoucs', loader_arg_keys=['host', 'username', 'password', 'useSsl', 'port', 'collector']"
             return name, [line]
@@ -606,6 +610,13 @@ class BatchDeviceDumper(ZCmdBase):
                         )
             props = ["%s='%s'" % (key, value) for key, value in props.items()]
             props.append('useSsl=%s' % obj.zVMwareViEndpointUseSsl)
+            return props
+
+        elif path.startswith('/zport/dmd/Devices/vSphere'):
+            props = dict(hostname=obj.zVSphereEndpointHost, username=obj.zVSphereEndpointUser,
+                    password=obj.zVSphereEndpointPassword, ssl=obj.zVSphereEndpointUseSsl,
+                    title=obj.titleOrId(), collector=obj.perfServer().id)
+            props = ["%s='%s'" % (key, value) for key, value in props.items()]
             return props
 
         elif path.startswith('/zport/dmd/Devices/CiscoUCS'):
