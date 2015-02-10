@@ -63,6 +63,19 @@
     permission="zope2.Public"
     />
 
+<browser:viewletManager
+    name="xtrace-js"
+    provides=".interfaces.IXTraceSrcManager"
+    class=".javascript.XTraceSrcManager"
+    permission="zope2.Public"
+    />
+
+<browser:viewletManager
+    name="all-css"
+    provides=".interfaces.ICSSSrcManager"
+    class=".javascript.CSSSrcManager"
+    permission="zope2.Public"
+    />
 
 
 <!-- Viewlet manager for javascript src includes -->
@@ -87,7 +100,6 @@
     class=".MainPageRedirect"
     />
 -->
-
 
 <browser:resourceDirectory
     name="zenui"
@@ -223,6 +235,13 @@
     />
 
 <browser:page
+    template="templates/quickstart.pt"
+    name="quickstart"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.ManageDMD"
+    />
+
+<browser:page
     template="templates/base-new.pt"
     name="users"
     for="*"
@@ -333,6 +352,20 @@
     name="getDaemonLogs"
     for="Products.ZenModel.interfaces.IDataRoot"
     permission="zenoss.Common"
+    />
+
+<browser:page
+    template="templates/localDocumentation.pt"
+    name="localDocumentation"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:view
+    class=".views.GetDoc"
+    name="getDoc"
+    for="*"
+    permission="zope2.Public"
     />
 
 <browser:viewlet

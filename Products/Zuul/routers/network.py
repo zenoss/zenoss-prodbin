@@ -211,6 +211,10 @@ class NetworkRouter(TreeRouter):
             return DirectResponse.succeed(removedCount=removedCount,
                                           errorCount=errorCount)
 
+    def newDiscoveryJob(self, networks=None, zProperties=None, collector='localhost'):
+        jobs = self.api.newDiscoveryJob(networks=networks, zProperties=zProperties, collector=collector)
+        audit('UI.Discovery.Add', networks=networks, collector=collector)
+        return DirectResponse.succeed(data=Zuul.marshal(jobs))
 
 class Network6Router(NetworkRouter):
     """

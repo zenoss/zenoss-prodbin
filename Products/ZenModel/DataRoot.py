@@ -16,6 +16,7 @@ name space.
 """
 
 import re
+from persistent.list import PersistentList
 from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
@@ -80,6 +81,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     reportMetricsOptIn = True
     acceptedTerms = True
     instanceIdentifier = 'Zenoss'
+    zenossHostname = 'localhost:8080'
     smtpHost = 'localhost'
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
     smtpPort = 25
@@ -95,6 +97,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
     pauseHubNotifications = False
+    zendmdStartupCommands = []
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -103,7 +106,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'priorityConversions','type':'lines','mode':'w'},
         {'id':'priorityDashboardThresh','type':'int','mode':'w'},
         {'id':'statusConversions','type':'lines','mode':'w'},
-        {'id':'interfaceStateConversions','type':'lines','mode':'w'},        
+        {'id':'interfaceStateConversions','type':'lines','mode':'w'},
         {'id':'uuid', 'type': 'string', 'mode':'w'},
         {'id':'availableVersion', 'type': 'string', 'mode':'w'},
         {'id':'lastVersionCheck', 'type': 'long', 'mode':'w'},
@@ -111,6 +114,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'versionCheckOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'reportMetricsOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'instanceIdentifier', 'type': 'string', 'mode':'w'},
+        {'id':'zenossHostname', 'type': 'string', 'mode':'w'},
         {'id':'smtpHost', 'type': 'string', 'mode':'w'},
         {'id':'smtpPort', 'type': 'int', 'mode':'w'},
         {'id':'pageCommand', 'type': 'string', 'mode':'w'},
@@ -121,6 +125,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
+        {'id':'zendmdStartupCommands', 'type': 'lines', 'mode':'w'},
         )
 
     _relations =  (
@@ -169,15 +174,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'name'          : 'Portlets'
                 , 'action'        : 'editPortletPerms'
                 , 'permissions'   : ( "Manage DMD", )
-                },                
+                },
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
-                },
-                { 'id'            : 'backups'
-                , 'name'          : 'Backups'
-                , 'action'        : 'backupInfo'
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'eventConfig'
@@ -331,7 +331,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         map'''
         if numbValue is None:
             return 'Unknown'
-        
+
         numbValue = int(numbValue)
         for line in conversions:
             line = line.rstrip()
@@ -600,6 +600,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             obj = self.Devices.findDevice(devid)
         if not obj:
             return '<graph><Start name="%s"/></graph>' % objid
+        # for modpagespeed and others do not transform these results
+        if hasattr(self, "REQUEST"):
+            self.REQUEST.response.setHeader('Cache-Control', 'no-transform')
         return obj.getXMLEdges(int(depth), filter,
             start=(obj.id,obj.getPrimaryUrlPath()))
 
@@ -760,6 +763,28 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return getattr(self, 'productName', 'core')
 
 
+    def getProductHelpLink(self):
+        """
+        Return a URL to docs for the Zenoss product that is installed.
+        """
+        return "/zport/dmd/localDocumentation"
+        # return "http://www.zenoss.com/resources/documentation"
+
+
+    def getDocFilesInfo(self):
+        docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
+        product = self.getProductName()
+        docCategories = ['admin', 'install', 'notes', 'zenpacks']
+        downloadable = []
+
+        for category in docCategories:
+            for root, dirs, files in os.walk(os.path.join(docDir, category, product)):
+                for file in files:
+                    if file.endswith(".pdf"):
+                        downloadable.append({"title": file, "filename": category + "/" + product + "/pdf/" + file})
+
+        return downloadable
+
     def error_handler(self, error=None):
         """
         Returns pretty messages when errors are raised in templates.
@@ -859,5 +884,15 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             self._updateEmailNotifications(REQUEST)
         return super(DataRoot, self).zmanage_editProperties(REQUEST, redirect)
 
+    def addZendmdStartupCommand(self, command):
+        if not self.zendmdStartupCommands:
+            self.zendmdStartupCommands = PersistentList()
+        self.zendmdStartupCommands.append(command)
+
+    def getZenDMDStartupCommands(self):
+        return self.zendmdStartupCommands
+
+    def removeZendmdStartupCommand(self, command):
+        self.zendmdStartupCommands = PersistentList([x for x in self.zendmdStartupCommands if x != command])
 
 InitializeClass(DataRoot)

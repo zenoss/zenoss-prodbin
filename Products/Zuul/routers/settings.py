@@ -49,3 +49,15 @@ class SettingsRouter(DirectRouter):
             setattr(settings, key, value)
         audit('UI.InterfaceSettings.Edit', data_=newValues, oldData_=oldValues)
         return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def setDmdSettings(self, **kwargs):
+        """
+        Accepts key value pair of dmd settings
+        """
+        dmd = self.context.zport.dmd
+        for key, value in kwargs.iteritems():
+            if hasattr(dmd, key):
+                setattr(dmd, key, value)
+
+        return DirectResponse.succeed()

@@ -6,10 +6,13 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
-
+import calendar
+import time
+import re
 import json
 import logging
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 log = logging.getLogger("zen.MetricMixin")
 
 from Acquisition import aq_chain
@@ -17,6 +20,7 @@ from Products.ZenUtils import Map
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
+
 CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
@@ -42,7 +46,9 @@ class MetricMixin(object):
                 log.error('Unable to get RRD value for %s: %s', dsname, ex)
             _cache[cacheKey] = value
 
-        return value if value is not None else default
+        if value is None or value == {}:
+            return default
+        return value
 
     # alias the method for back compat
     cacheRRDValue = cacheValue
@@ -90,13 +96,21 @@ class MetricMixin(object):
         # couldn't get any metrics return an empty dictionary
         return {}
 
-    def getDefaultGraphDefs(self, drange=None):
-        """get the default graph list for this object"""
+    def getGraphObjects(self):
+        """
+        Returns GraphDefinition objects for all the templates bound
+        to this object.
+        """
         graphs = []
         for template in self.getRRDTemplates():
             for g in template.getGraphDefs():
                 graphs.append(g)
         return graphs
+
+    def getDefaultGraphDefs(self, drange=None):
+        """Backwards compatible layer for zenpacks. """
+        log.warn('As of zenoss 5.x and above getDefaultGraphDefs is not supported, use getGraphObjects instead.')
+        return []
 
     def getGraphDef(self, graphId):
         ''' Fetch a graph by id.  if not found return None
@@ -158,12 +172,28 @@ class MetricMixin(object):
         Overriding this method to return the uuid since that
         is what we want to store in the metric DB.
         """
-        return json.dumps({
-            'type': 'METRIC_DATA',
-            'contextUUID': self.getUUID(),
-            'deviceUUID': self.device().getUUID(),
-            'contextId': self.id
-        }, sort_keys=True)
+        return json.dumps(self.getMetricMetadata(), sort_keys=True)
+
+    def getResourceKey(self):
+        """
+        Formerly RRDView.GetRRDPath, this value is still used as the key for the
+        device or component in OpenTSDB.
+        """
+        d = self.device()
+        if not d:
+            return "Devices/" + self.id
+        skip = len(d.getPrimaryPath()) - 1
+        return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
+
+    def getMetricMetadata(self):
+        return {
+                'type': 'METRIC_DATA',
+                'contextKey': self.getResourceKey(),
+                'deviceId': self.device().id,
+                'contextId': self.id,
+                'deviceUUID': self.device().getUUID(),
+                'contextUUID': self.getUUID()
+                }
 
     def getRRDContextData(self, context):
         return context
@@ -233,3 +263,160 @@ class MetricMixin(object):
 
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()
+
+    def fetchRRDValues(self, dpnames, cf, resolution, start, end="now"):
+        """
+        Compat method for RRD. This returns a list of metrics.
+        The output looks something like this
+        >>> pprint(obj.fetchRRDValues('dsname_dpname', 'AVERAGE', 300, 'end-1d', 'now'))
+           ((1417452900, 1417539600, 300),
+            ('ds0',),
+          [(83.69137058,),
+            (83.69137058,),
+            (83.69137058,),
+            ... would be more here ...
+            (None,),
+            (None,)])
+        That maps to..
+            ((start, end, resolution),
+             ('ds0',),
+            [(v1,),
+             (v2,),
+             (v3,)])
+        To ensure backwards compatibility with RRD the following should be taken into account:
+        The number of values has to be == (end-start) / resolution. None's will be filled in for the missing slots
+        The expectation is that each value correspond to its time slot.
+        There's no expectation that the passed resolution is the returned resolution.
+
+        The start and end parameters can be specified as a UNIX
+        timestamps or a subset of RRDtool AT-STYLE time specification. See http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
+
+        You can also pass in OpenTSDB relative times, such as '1d-ago'.
+        """
+        results = []
+        if isinstance(dpnames, basestring):
+            dpnames = [dpnames]
+        facade = getFacade('metric', self.dmd)
+
+        # parse start and end into unix timestamps
+        start, end = self._rrdAtTimeToUnix(start, end)
+        for dpname in dpnames:
+            response = facade.queryServer(self, dpnames, cf=cf, start=start, end=end, downsample=resolution, returnSet="ALL")
+            values = response.get('results', [])
+            firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
+            secondRow = ('ds0',)
+            thirdRow = []
+            if values:
+                thirdRow = self._createRRDFetchResults(response.get('startTimeActual'), response.get('endTimeActual'), resolution, values)
+            results.append((firstRow, secondRow, thirdRow))
+        return results
+
+    def fetchRRDValue(self, dpname, cf, resolution, start, end="now"):
+        """
+        Calls fetcdh RRDValue but returns the first result.
+        """
+        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end)
+        if r:
+            return r[0]
+        return None
+
+    def _createRRDFetchResults(self, start, end, resolution, values):
+        """
+        Given a set of metrics returned from the metric server and the start, end and resolution
+        this method returns a metric for each "step" or a None if one can't be found.
+
+        Each entry in the buckets is a tuple of one item.
+        """
+        size = int((end - start) / resolution)
+
+        # create a list of None's for the return value
+        buckets = [(None,) for x in range(size)]
+        currentTime = start
+        if not values:
+            return buckets
+
+        # we are making the assumption we are only working with one datapoint
+        # also that the return set is sorted sequentially
+        try:
+            values = values[0]['datapoints']
+        except KeyError:
+            raise Exception("Unable to find datapoints from metric query results %s" % values)
+
+        for idx, _ in enumerate(buckets):
+            if len(values) == 0 or currentTime > end:
+                break
+            # if we only have one left and are at a higher time then include the value
+            # otherwise make sure our current time is somewhere between the next two steps to
+            # include it.
+            # This way the None's aren't pushed all the way to the end of the buckets
+            if (len(values) == 1 and currentTime > values[0]['timestamp'] or \
+                (len(values) > 1 and currentTime >= values[0]['timestamp'] and currentTime < values[1]['timestamp'])):
+                buckets[idx] = (values[0]['value'],)
+                values.pop(0)
+
+            # move to the next bucket
+            currentTime += resolution
+        return buckets
+
+    def _rrdAtTimeToUnix(self, start, end):
+        """
+        This is my best effort at parsing a sub-set of the "at" time of rrd to
+        unix timestamps.
+        This method will accept something of the following:
+           now == current time
+           -X['d' | 'm' | 's' | 'h'] // X is the number and d = day, m = minute etc
+           The start time can be relative to the end by passing in end like
+           end-1d // end minus one day
+        """
+        newEnd = newStart = None
+        # find out end first
+        if end == "now":
+            newEnd = time.time()
+        else:
+            # if it is an int or an OpenTSDB style string then we can just
+            # pass it to the metric facade
+            if not isinstance(end, basestring) or 'ago' in end:
+                newEnd = end
+            else:
+                newEnd = self._parseTime(end, time.time())
+        if "end-" in start:
+            fromTime = newEnd
+        else:
+            fromTime = time.time()
+        if not isinstance(start, basestring) or 'ago' in start:
+            newStart = start
+        else:
+            newStart = self._parseTime(start.replace("end-", ""), fromTime)
+        return newStart, newEnd
+
+    def _parseTime(self, token, fromTime):
+        dateMap = {
+            'd': 'days',
+            'm': 'minutes',
+            's': 'seconds',
+            'h': 'hours',
+            'w': 'weeks',
+            'y': 'years',
+            'month': 'months'
+        }
+        numbers = re.findall(r'\d+', token)
+        if len(numbers):
+            numberPart = int(numbers[0])
+        else:
+            numberPart = 1
+        characters = [x for x in token.replace("-", "") if x.isalpha()]
+        timePart = characters[0]
+        if numberPart < 25 and timePart == 'm':
+            timePart = 'month'
+
+        if not dateMap.get(timePart):
+            raise ValueError("Unable to parse the time from input %s" % token)
+
+        timePart = dateMap[timePart]
+        args = {
+            timePart: numberPart
+        }
+        delta = relativedelta(**args)
+        fromDateTime = datetime.fromtimestamp(fromTime)
+        newDate = fromDateTime - delta
+        return calendar.timegm(newDate.utctimetuple())

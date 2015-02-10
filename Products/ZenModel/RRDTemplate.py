@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -65,7 +65,7 @@ def YieldAllRRDTemplates(root, criteria=None):
 
     If the searchRRDTemplates catalog is not present then fall back to using
     DeviceClass.getAllRRDTemplatesPainfully().  In this case root must
-    be a DeviceClass and criteria is ignored. (This is compatible with 
+    be a DeviceClass and criteria is ignored. (This is compatible with
     previous DeviceClass.getAllRRDTemplates usage.)
 
     The searchRRDTemplates catalog was added in 2.2
@@ -134,11 +134,11 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-    { 
+    factory_type_information = (
+    {
         'immediate_view' : 'viewRRDTemplate',
         'actions'        :
-        ( 
+        (
             { 'id'            : 'overview'
             , 'name'          : 'Performance Template'
             , 'action'        : 'viewRRDTemplate'
@@ -178,7 +178,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """Return the path on which this template is defined.
         """
         return self.getPrimaryParent().getPrimaryDmdId(subrel="rrdTemplates")
-   
+
 
     def getGraphableThresholds(self):
         ''' Return a list of names of graphable thresholds
@@ -192,16 +192,16 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         # We check for the presence of datapoints on the datasources
         # to better handle situation where the datasource is broken
         # (usually because of a missing zenpack.)
-        datasources = [ds for ds in self.datasources() 
+        datasources = [ds for ds in self.datasources()
                         if hasattr(ds, 'datapoints')]
         return [dp.name() for ds in datasources for dp in ds.datapoints()]
 
-    
+
     def getRRDDataSources(self, dsType=None):
         """Return a list of all datapoints on this template.
         """
         if dsType is None: return self.datasources()
-        return [ds for ds in self.datasources() 
+        return [ds for ds in self.datasources()
                 if ds.sourcetype == dsType
                 or (dsType=='COMMAND' and ds.useZenCommand())]
 
@@ -218,23 +218,14 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     def getRRDDataPoint(self, name):
         """Return a datapoint based on its name.
         """
-        source = name
-        point = name
-        if name.find(SEPARATOR) >= 0:
-            source, point = name.split(SEPARATOR, 1)
-        ds = self.datasources._getOb(source, None)
-        if ds is None:
-            results = []
-            for ds in self.datasources():
-                for dp in ds.datapoints():
-                    if dp.name() == name:
-                        results.append(dp)
-            if len(results) == 1:
-                return results[0]
-        else:
-            return ds.datapoints._getOb(point)
+        # see ZEN-16251 because of th underscore in datasource name
+        # iterate through every datapoint we have until we have one that matches the
+        # name.
+        for ds in self.datasources():
+            for dp in ds.datapoints():
+                if dp.name() == name:
+                    return dp
         raise ConfigurationError('Unknown data point "%s"' % name)
-
 
     security.declareProtected('Add DMD Objects', 'manage_addRRDDataSource')
     def manage_addRRDDataSource(self, id, dsOption, REQUEST=None):
@@ -276,7 +267,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteRRDDataSources')
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
-        """Delete RRDDataSources from this DeviceClass 
+        """Delete RRDDataSources from this DeviceClass
         """
         def clean(rel, id):
             for obj in rel():
@@ -325,7 +316,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteRRDThresholds')
     def manage_deleteRRDThresholds(self, ids=(), REQUEST=None):
-        """Delete RRDThresholds from this DeviceClass 
+        """Delete RRDThresholds from this DeviceClass
         """
         if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
@@ -382,7 +373,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """Reorder the sequence of the GraphDefinitions.
         """
         from Products.ZenUtils.Utils import resequence
-        return resequence(self, self.getGraphDefs(), 
+        return resequence(self, self.getGraphDefs(),
                             seqmap, origseq, REQUEST)
 
 
@@ -449,7 +440,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         '''
         dsTypes = []
         for dsClass in self.getDataSourceClasses():
-            dsTypes += [(t, '%s.%s' % (dsClass.__name__, t)) 
+            dsTypes += [(t, '%s.%s' % (dsClass.__name__, t))
                             for t in dsClass.sourcetypes]
         return dsTypes
 
@@ -496,7 +487,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """
         return self.primaryAq().Events.getOrganizerNames()
 
-    
+
     def getUIPath(self, separator='/'):
         """
         Given a separator and a template this method returns the UI path that we display
@@ -519,5 +510,5 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         parts.append(obj.titleOrId())
         return separator + separator.join(parts)
 
-    
+
 InitializeClass(RRDTemplate)

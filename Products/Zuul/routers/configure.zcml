@@ -130,6 +130,13 @@
     />
 
 <browser:directRouter
+    name="host_router"
+    for="*"
+    class=".host.HostRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="mib_router"
     for="*"
     class=".mibs.MibRouter"
@@ -168,6 +175,13 @@
     name="devicedumpload_router"
     for="*"
     class=".devicedumpload.DeviceDumpLoadRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
+    name="users_router"
+    for="*"
+    class=".users.UsersRouter"
     namespace="Zenoss.remote"
     />
 

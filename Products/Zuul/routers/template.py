@@ -132,9 +132,9 @@ class TemplateRouter(TreeRouter):
         @param templateName: identifier of the template
         """
         facade = self._getFacade()
-        facade.makeLocalRRDTemplate(uid, templateName)
+        tplUid = facade.makeLocalRRDTemplate(uid, templateName)
         audit('UI.Template.MakeLocal', templateName, target=uid)
-        return DirectResponse.succeed()
+        return DirectResponse.succeed(tplUid=tplUid)
 
     @require('Manage DMD')
     def removeLocalRRDTemplate(self, uid, templateName):
@@ -145,9 +145,9 @@ class TemplateRouter(TreeRouter):
         @param templateName: identifier of the local template
         """
         facade = self._getFacade()
-        facade.removeLocalRRDTemplate(uid, templateName)
+        tplUid = facade.removeLocalRRDTemplate(uid, templateName)
         audit('UI.Template.RemoveLocal', templateName, target=uid)
-        return DirectResponse.succeed()
+        return DirectResponse.succeed(tplUid=tplUid)
 
     def getThresholds(self, uid, query=''):
         """

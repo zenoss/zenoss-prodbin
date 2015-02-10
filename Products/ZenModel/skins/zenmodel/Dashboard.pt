@@ -26,10 +26,11 @@
     if(state) var dashboardState = evalJSON(state);
 "></script>
 <script>
-var server_time = isoTimestamp(start_time).getTime();
+  var server_time = start_time;
+
 var updateTime = {
     run: function () {
-        server_time += 1000;
+        server_time += 1;
     },
     interval: 1000
 }
@@ -42,7 +43,7 @@ if (Ext.isIE) {
 }
 
 function getServerTimestamp() {    
-    var server_now = Zenoss.date.renderWithTimeZone(server_time/ 1000);
+    var server_now = Zenoss.date.renderWithTimeZone(server_time);
     return server_now;
 }
 
@@ -52,6 +53,10 @@ function initDashboardPortlets() {
     ContainerObject = new YAHOO.zenoss.portlet.PortletContainer(
         'portletContainer');
     YAHOO.zenoss.globalPortletContainer = ContainerObject;
+    // This ensures that portlets always fill up their container divs
+    Ext.EventManager.onWindowResize(function(){
+       ContainerObject.relayout();
+    });
     if (dashboardState) {
         ContainerObject.restore(dashboardState);
     } else {

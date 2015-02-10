@@ -9,6 +9,7 @@
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
         <tal:block tal:content="structure provider:head-extra"/>
+        <tal:block tal:content="structure provider:jssnippets"/>
     </head>
     <body class="zenui3">
 

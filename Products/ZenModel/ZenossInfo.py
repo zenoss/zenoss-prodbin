@@ -117,11 +117,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : 'zenossVersions'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'backups'
-                , 'name'          : 'Backups'
-                , 'action'        : '../dmd/backupInfo'
-                , 'permissions'   : ( "Manage DMD", )
-                },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
@@ -485,7 +480,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
     def isValidDaemon(self, daemon):
         # overriden by distributed collector -- see DistributedServer.py
-        return isZenBinFile(daemon)
+        return isZenBinFile(daemon) or daemon == 'event'
 
     def getDaemonName(self, daemon):
         # overridden by distributed collector -- see DistributedServer.py

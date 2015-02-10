@@ -1,16 +1,18 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
+import re
 import logging
 from Acquisition import aq_parent
 from zope.interface import implements
+from Products.ZenModel.IpNetwork import AutoDiscoveryJob
+from Products.ZenWidgets.messaging import IMessageSender
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenUtils.Utils import binPath
 from Products.Zuul import getFacade
@@ -27,6 +29,8 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 
 log = logging.getLogger('zen.NetworkFacade')
+_is_network = lambda x: bool(re.compile(r'^(\d+\.){3}\d+\/\d+$').search(x))
+_is_range = lambda x: bool(re.compile(r'^(\d+\.){3}\d+\-\d+$').search(x))
 
 
 class NetworkFacade(TreeFacade):
@@ -211,6 +215,63 @@ class NetworkFacade(TreeFacade):
             parent._delObject(ip.id)
             removeCount += 1
         return removeCount, errorCount
+
+    @info
+    def newDiscoveryJob(self, networks=None, zProperties=None, collector='localhost'):
+        nets = []
+        ranges = []
+        jobs = []
+        for row in networks:
+            if _is_network(row): nets.append(row)
+            elif _is_range(row): ranges.append(row)
+        if not nets and not ranges:
+            raise Exception('You must enter at least one network or IP range.')
+        if nets:
+            for net in nets:
+                # Make the network if it doesn't exist, so zendisc has
+                # something to discover
+                self._dmd.Networks.createNet(net)
+
+            netdesc = ("network %s" % nets[0] if len(nets)==1
+                    else "%s networks" % len(nets))
+            job = self.context.JobManager.addJob(
+                AutoDiscoveryJob,
+                description="Discover %s" % netdesc,
+                kwargs=dict(
+                    nets=nets,
+                    zProperties=zProperties,
+                    collector=collector
+                )
+                )
+            jobs.append(job)
+            IMessageSender(self._dmd).sendToUser(
+                    'Autodiscovery Task Created',
+                    'Discovery of the following networks is in progress: %s' % (
+                        ', '.join(nets))
+                )
+        if ranges:
+            # Ranges can just be sent to zendisc, as they are merely sets of
+            # IPs
+
+            rangedesc = ("IP range %s" % ranges[0]
+                        if len(ranges)==1
+                        else "%s IP ranges" % len(ranges))
+            job = self.context.JobManager.addJob(
+                AutoDiscoveryJob,
+                description="Discover %s" % rangedesc,
+                kwargs=dict(
+                    ranges=ranges,
+                    zProperties=zProperties,
+                    collector=collector
+                )
+                )
+            jobs.append(job)
+            IMessageSender(self._dmd).sendToUser(
+                    'Autodiscovery Task Created',
+                    'Discovery of the following IP ranges is in progress: %s' % (
+                        ', '.join(ranges))
+                )
+        return jobs
 
 
 class Network6Facade(NetworkFacade):

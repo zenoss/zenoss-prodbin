@@ -52,6 +52,9 @@ a:link, a:visited {
   color: white;
 }
 
+#repeatOptions {
+  width: 400px;
+}
 
 .inspector {
   font-family: helvetica, sans-serif;
@@ -1565,7 +1568,7 @@ pre {
 }
 .x-window-header-body{
     height:21px !important;
-} 
+}
 #devdetailbar .x-container, #devdetailbar #detailrainbow, #devdetailbar .x-toolbar-separator, #devdetailbar .devdetailitem{
     position:relative !important;
     float:left;
@@ -1581,7 +1584,6 @@ pre {
 }
 .x-ie #devdetailbar .devdetail-textitem span{
     display:inline-block;
-    height: 12px !important;
     line-height: 30px !important;
 }
 .x-ie span.status-up-large {
@@ -1626,7 +1628,7 @@ a.z-entity:hover{
     padding-right:20px !important;
 }
 #deviceoverviewpanel_summary-body{
-    overflow:auto !important; 
+    overflow:auto !important;
 }
 /* fix diff between ie and everything else on jobs button */
 .x-ie #jobswidget-btnWrap .x-btn-inner{
@@ -1634,10 +1636,10 @@ a.z-entity:hover{
 }
 /* fix for config step 2 color issues on textboxes */
 #manualdiscoverform .selected_row{
-    background: url() #fff;  
+    background: url() #fff;
 }
 
-/* some tabs style integration update on triggers  */ 
+/* some tabs style integration update on triggers  */
 .white-background-panel .x-tab-top-active{
     background-image:none !important;
     background-color: #ffffff !important;
@@ -1651,8 +1653,8 @@ a.z-entity:hover{
 .white-background-panel .x-tab-bar-top .x-tab-bar-strip{
     border-width: 0 ;
 }
-.white-background-panel .x-tab-bar-strip-default, .x-tab-bar-strip-default-plain{ 
-    background-color: #ffffff ;   
+.white-background-panel .x-tab-bar-strip-default, .x-tab-bar-strip-default-plain{
+    background-color: #ffffff ;
 }
 .white-background-panel .x-tab-bar-body .x-box-inner{
     overflow: visible;
@@ -1665,7 +1667,7 @@ a.z-entity:hover{
     height: 22px !important;
     border-bottom: none !important;
     background-color: #ddd;
-    background-image: none; 
+    background-image: none;
     box-shadow: none;
 }
 /* jobs FF bug fix. Forces FF to re-render the item resulting in correct placement */
@@ -1690,6 +1692,160 @@ a.z-entity:hover{
     position:absolute;
     top:40px;
 }
+/* adjust the footer to make up for the title */
+.zenerror {
+  display: block;
+  position: relative;
+  margin: auto;
+  top: 40px;
+  color: red;
+  text-align: center;
+  font-size: 18pt;
+  font-style: italic;
+}
+
+.nodata:before {
+  content: "No Data Available";
+}
+
+.nodata {
+  display: block;
+  position: relative;
+  margin: auto;
+  top: 40px;
+  color: blue;
+  text-align: center;
+  font-size: 18pt;
+  font-style: italic;
+}
+
+/* customize graph appearance */
+div.europagraph {
+    border: 1px solid #eee;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+img.europaGraphGear {
+    float:right;
+    position:relative;
+    top:-15px;
+    opacity:.5;
+    cursor:pointer
+}
+
+/* make graph points visible */
+.nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+  fill-opacity: .5 !important;
+  stroke-opacity: .5 !important;
+}
+
+.nv-legend-text.threshold {
+  fill: #888;
+  font-style: italic;
+}
+.zenfooter {
+    position: relative;
+    top: -15px;
+}
+/* style the graph titles */
+.graph_title {
+    margin: -6px 0 10px 0;
+    display: inline-block;
+    margin-bottom: -10px;
+    overflow: auto;
+    color: #4C4C4C;
+    padding-left: 10px;
+    margin-left: 10px;
+    font-size: 1.2em;
+    position: relative;
+    top: -15px;
+    overflow: hide;
+}
+.graph_description {
+    display: inline-block;
+    font-size: .6em;
+    border-left: solid 1px #CCC;
+    padding-left: 10px;
+    margin-left: 10px;
+}
+.message {
+  width: 100%;
+  height: 40%;
+  border-style: solid;
+  border-width: 1px;
+  background-color: #fafafa;
+  border-color: #c1c1c1;
+  margin-bottom: 25px;
+}
+
+/* customize graph appearance */
+
+/* make graph points visible */
+.nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+  fill-opacity: .5 !important;
+  stroke-opacity: .5 !important;
+}
+
+.nv-legend-text.threshold {
+  fill: #888;
+  font-style: italic;
+}
+
+/*****************************************************************************
+ * Styles to handle graph footers
+ */
+.zenfooter_content {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.zenfooter_box_column {
+  width: 12px;
+}
+
+.zenfooter_box {
+  width: 10px;
+  height: 10px;
+  border: solid 1px black;
+  float: left;
+  margin: 2px 2px 2px 2px;
+}
+
+.zenfooter_data,
+.footer_header {
+  padding-left: 10px;
+}
+
+.zenfooter_data_number {
+  text-align: right;
+  font-family: sans-serif;
+  font-size: 8pt;
+}
+
+.zenfooter_data_text {
+  text-align: left;
+  font-size: 8pt;
+}
+
+.zenfooter_header {
+  padding-left: 20px;
+  text-align: left;
+}
+
+.zenfooter_text {
+  font-size: 8pt;
+}
+
+.zenfooter_dates {
+  font-weight: bold;
+  text-align: center;
+}
+
+.zenfooter_dates_text {
+  font-weight: bold;
+  font-size: 8pt;
+  text-align: center;
+}
 /* with 17+ version of FF, button breaks. This fixes it */
 .toright .x-btn-icon{
     background-position: 0 -56px;
@@ -1699,7 +1855,7 @@ a.z-entity:hover{
 }
 .watch-list-objects .yui-ac-content{
     height: 150px;
-    overflow-y: auto !important; 
+    overflow-y: auto !important;
 }
 
 
@@ -1756,7 +1912,7 @@ a.z-entity:hover{
   color: #fff !important;
 }
 #blackTabs .x-tab button {
-  color: #888;  
+  color: #888;
 }
 #blackTabs .x-tab {
   border-color: #aaa;
@@ -1767,7 +1923,7 @@ a.z-entity:hover{
 #blackTabs #xform_mapping_panel{
     background: #fff;
     border: 2px solid #888;
-    border-bottom: 0px; 
+    border-bottom: 0px;
 }
 .transform-headers{
     padding:6px;
@@ -1777,7 +1933,7 @@ a.z-entity:hover{
 }
 .main_transform .x-panel-header-default {
   background-color: #607fa2;
-  background-image: none; 
+  background-image: none;
   border-color: #666;
 }
 .inherited_transforms .x-panel-header-default {
@@ -1815,7 +1971,7 @@ a.z-entity:hover{
     top: -1px !important;
 }
 .tree-nav{
-    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/resource-link.png);   
+    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/resource-link.png);
     background-repeat: no-repeat;
 }
 #manufacturer_info{
@@ -1875,4 +2031,12 @@ span.syntax-text  {
   height: 16px;
   margin: 0 0 4px;
   width: 16px;
+}
+
+.compatibilityModeAlert .x-window-body{
+  background: transparent;
+}
+
+.compatibilityModeAlert .x-window-header-body{
+  background: #000000;
 }

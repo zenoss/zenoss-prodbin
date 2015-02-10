@@ -182,9 +182,10 @@
                     if (col.isVisible() && col.getEl()) {
                         col.setWidth(col.getWidth() + 1);
                         col.setWidth(col.getWidth() - 1);
-                        return false;
+
                     }
                 });
+                this.view.el.dom.scrollLeft -= 1;
             }
 
         },
@@ -254,6 +255,7 @@
                 }
                 col.filterField.on('keydown', this.onKeyDown, this);
                 col.filterField.on('validitychange', this.onInvalidFilter, this);
+                col.filterField.on('focus', this.onFocus, this);
 
                 searchItems.push(col.filterField);
             });
@@ -343,6 +345,31 @@
 
             this.onChangeTask.delay(1000);
 
+        },
+        onFocus: function(field) {
+            /**
+             * When search field is in focus, we check its right x coordinate.
+             * If this coordinate is bigger than width of a document,
+             * we perform horizontal scroll on delta pixels.
+             * delta is a difference between right x
+             * coordinate of a search field and a document width.
+             */
+
+            var documentWidth = Ext.getBody().getViewSize().width;
+            var searchFieldRightXPosition = field.getEl().getX() + field.width;
+            var delta = searchFieldRightXPosition - documentWidth;
+            var shift = 20;
+
+            if (delta > 0) {
+                this.view.el.dom.scrollLeft += delta + shift;
+            }
+            /**
+             * check the case when search field right x coordinate is on the
+             * edge or very close (20px) to the right side of the window.
+             */
+            else if (delta > -shift && delta <= 0) {
+                this.view.el.dom.scrollLeft += shift;
+            }
         },
         onKeyDown:function (field, e) {
             // if they explicitly pressed enter then search now
@@ -454,6 +481,7 @@
             if (editor) {
                 editor.setWidth(newColumnWidth - 2);
             }
+             this.view.el.dom.scrollLeft -= 1;
         },
 
         scrollFilterField:function (e, target) {
@@ -476,7 +504,7 @@
             });
         },
         setFilter:function (colId, value) {
-            this.eachColumn(function (col) {
+            this.eachFilterColumn(function (col) {
                 if (col.filterKey == colId) {
                     col.filterField.setValue(value);
                 }
@@ -509,7 +537,7 @@
             Ext.applyIf(viewConfig, {
                 autoScroll:false,
                 stripeRows:true,
-                loadMask:true,
+                loadMask:false,
                 preserveScrollOnRefresh: true
             });
 
@@ -518,30 +546,47 @@
                 viewConfig:viewConfig
             });
             this.callParent([config]);
-            this.getStore().on("afterguaranteedrange", function () {
+            var after_request = function () {
                 if (!this._disableSavedSelection) {
                     this.applySavedSelection();
                 }
-            }, this);
+                // In case the new request returns less results that the previous
+                // to avoid displaying a page that does not exist
+                if(!this.getStore().buffered) {
+                    var store = this.getStore();
+                    var last_page = Math.floor(store.getTotalCount() / store.pageSize) + 1;
+                    if (store.currentPage > last_page) {
+                        store.loadPage(last_page);
+                    }
+                }
+            };
 
-            // once a uid is set always send that uid
-            this.getStore().on('beforeprefetch', function (store, operation) {
+            var before_request = function (store, operation) {
                 if (!operation) {
                     return true;
                 }
-
                 this.start = operation.start;
                 this.limit = operation.limit;
                 if (!Ext.isDefined(operation.params)) {
                     operation.params = {};
                 }
+                // once a uid is set always send that uid
                 if (this.uid) {
                     operation.params.uid = this.uid;
                 }
                 this.applyOptions(operation);
                 return true;
+            };
 
-            }, this);
+            if (this.getStore().buffered) {
+                this.getStore().on('beforeprefetch', before_request, this);
+                this.getStore().on("afterguaranteedrange", after_request, this);
+            }
+            else {
+                this.getStore().on('beforeload', before_request, this);
+                this.getStore().on("load", after_request, this);
+            }
+
             this.addEvents(
                 /**
                  * @event beforeactivate
@@ -632,17 +677,13 @@
                 invalidateScrollerOnRefresh:false,
                 scroll:'both',
                 verticalScroller: {
-                    numFromEdge: config.store.pageSize <= 25 ? 5 : Math.pow(config.store.pageSize, .7),
                     scrollToLoadBuffer: 100
                 },
-                bbar: {
-                    cls: 'commonlivegridinfopanel',
-                    items: [
-                        '->',
-                    {
-                        xtype:'livegridinfopanel',
-                        grid:this
-                    }]
+                bbar: { cls: 'commonlivegridinfopanel',
+                        items: [ {xtype:'pagingtoolbar', cls: 'commonlivegridinfopanel'},
+                                 '->',
+                                 {xtype:'livegridinfopanel', grid:this}
+                        ]
                 }
             });
             this.callParent([config]);
@@ -651,6 +692,42 @@
             this.callParent(arguments);
             this.headerCt.on('columnhide', this.onColumnChange, this);
             this.headerCt.on('columnshow', this.onColumnChange, this);
+
+            this.refresh_in_progress = 0;
+
+            if (this.getStore().buffered) {
+                this.getStore().on('beforeprefetch', this.before_request, this);
+                this.getStore().on("afterguaranteedrange", this.after_request, this);
+            } else {
+                this.getStore().on('beforeload', this.before_request, this);
+                this.getStore().on("load", this.after_request, this);
+            }
+
+            var paging_tb = this.down('pagingtoolbar');
+            if (paging_tb) {
+                // If we have an infinite grid we hide the paging toolbar
+                if (this.getStore().buffered)
+                    paging_tb.hide();
+                else {
+                    paging_tb.on('beforechange', this.scrollToTop, this);
+                    paging_tb.bindStore(this.getStore());
+                    paging_tb.down('#refresh').hide();
+                }
+            }
+        },
+        before_request: function() {
+            if (this.getStore().buffered)
+                this.refresh_in_progress = 1;
+            else
+                this.refresh_in_progress += 1;
+        },
+        after_request: function() {
+            if (this.refresh_in_progress > 0)
+                this.refresh_in_progress -= 1;
+            if (this._previousScrollPosition && this.getView().getEl()) {
+                this.getView().getEl().dom.scrollTop = this._previousScrollPosition;
+                delete this._previousScrollPosition;
+            }
         },
         /**
          * Listeners for when you hide/show a column, the data isn't fetched yet so
@@ -680,11 +757,10 @@
                 return;
             }
             this.saveSelection();
-            var store = this.getStore(),
-                // load the entire store if we are not paginated or the entire grid fits in one buffer
-                shouldLoad =  ! store.buffered || store.getCount() >= store.getTotalCount();
+            var store = this.getStore();
 
-            if (shouldLoad) {
+            if (! store.buffered || store.totalCount < store.pageSize) {
+                this._previousScrollPosition = this.getViewScrollPosition();
                 store.load({
                     callback: callback,
                     scope: scope || this
@@ -694,8 +770,18 @@
                 var start = Math.max(store.lastRequestStart, 0),
                     end = Math.min(start + store.pageSize - 1, store.totalCount),
                     page = store.pageMap.getPageFromRecordIndex(end);
-                // make sure we do not have the current view records in cache
+                // make sure we do not have any records in cache
                 store.pageMap.removeAtKey(page);
+
+                // If a refresh kicks off before the initial store load store.totalCount is NaN
+                if (isNaN(store.totalCount)) {
+                    end = start + store.pageSize - 1;
+                }
+
+                if (store.getCount() >= store.getTotalCount() && this.verticalScroller) {
+                    start = this.verticalScroller.getFirstVisibleRowIndex();
+                }
+
                 // this will fetch from the server and update the view since we removed it from cache
                 if (Ext.isFunction(callback)) {
                     store.guaranteeRange(start, end, callback, scope);
@@ -703,15 +789,20 @@
                     store.guaranteeRange(start, end);
                 }
             }
-
         },
         scrollToTop:function () {
             var view = this.getView();
             if (view.getEl()) {
                 view.getEl().dom.scrollTop = 0;
             }
+        },
+        getViewScrollPosition: function() {
+            var view = this.getView();
+            if (view.getEl()) {
+                return view.getEl().dom.scrollTop;
+            }
+            return 0;
         }
-
     });
 
 
@@ -751,9 +842,7 @@
                 defaultFilters:this.defaultFilters || {}
             });
 
-            if (this.displayFilters) {
-                filters.init(this);
-            }
+
             this.filterRow = filters;
         },
         getState:function () {
@@ -764,6 +853,11 @@
         applyState:function (state) {
             this.callParent([state]);
             if (this.displayFilters) {
+                 // defer rendering the filter rows until after the column state has been applied so
+                 // the filters have the correct column widths
+                 if (this.displayFilters) {
+                     this.filterRow.init(this);
+                 }
                 this.filterRow.applyState(state.filters);
             }
         },
@@ -776,6 +870,20 @@
         afterRender:function() {
             this.callParent();
             this.applyState(this.getState());
+        },
+        refresh:function (callback) {
+        if (!Zenoss.settings.enableLiveSearch) {
+            var values = this.getFilters(),
+                store = this.getStore();
+            if (!store.proxy.extraParams) {
+                store.proxy.extraParams = {};
+                }
+            store.proxy.extraParams.params = values;
+            if (this.filterRow.isValid()) {
+                this.saveState();
+                }
+            }
+        this.callParent([callback]);
         }
     });
 
@@ -811,10 +919,15 @@
                 /*  added this guaranteedrange hack to make up for the ext bug where-by
                     updating store doesn't fire the datachanged except on load.
                 */
-                this.grid.getStore().on('guaranteedrange', this.onDataChanged, this);
+                var store = this.grid.getStore();
+                if(store.buffered)
+                    store.on('guaranteedrange', this.onDataChanged, this);
+                else
+                    store.on('load', this.onDataChanged, this);
                 this.view.on('bodyscroll', this.onScroll, this);
                 this.view.on('resize', this.onResize, this);
             }
+            this.lastScrollLeft = 0;
             this.rowHeight = null;
             this.visibleRows = null;
             this.displayMsg = _t('DISPLAYING {0} - {1} of {2} ROWS');
@@ -823,6 +936,7 @@
         onResize: function() {
             this.visibleRows = null;
             this.onScroll();
+            Zenoss.util.refreshScrollPosition(this);
         },
         getNumberOfVisibleRows: function() {
             if (this.visibleRows) {
@@ -859,13 +973,11 @@
         },
         getStartCount: function() {
             var scrollTop = this.view.el.dom.scrollTop;
-
             if (this.rowHeight && scrollTop) {
                 return Math.ceil(scrollTop / this.rowHeight);
             }
-
             // ask the scroller, if the store is paginated
-            if (this.grid.verticalScroller && this.grid.verticalScroller.getFirstVisibleRowIndex){
+            if (this.grid.verticalScroller && this.grid.verticalScroller.getFirstVisibleRowIndex && this.grid.getStore().buffered){
                 var start = this.grid.verticalScroller.getFirstVisibleRowIndex();
                 if (start) {
                     return start;
@@ -904,17 +1016,41 @@
             if (pagingScroller) {
                 var start = Math.max(this.getStartCount(), 0),
                     end = Math.min(this.getEndCount(start), this.totalCount),
+                     currentScrollLeft = this.view.el.dom.scrollLeft,
                     msg;
 
-                msg = Ext.String.format(this.displayMsg, start + 1, end, this.totalCount);
-                this.setText(msg);
+                var store = this.grid.getStore();
+                if (!store.buffered) {
+                    var current_page = store.currentPage;
+                    if (current_page > 0) {
+                        var page_size = store.pageSize;
+                        var offset = (current_page - 1) * page_size
+                        start = offset + start
+                        end = offset + end
+                        var real_page_end = current_page * page_size;
+                        if (real_page_end > store.totalCount)
+                            real_page_end = store.totalCount;
+                        if ( end > real_page_end)
+                            end = real_page_end;
+                    }
+                }
+                msg = Ext.String.format(this.displayMsg, start + 1, end, store.totalCount);
+
+                 if (this.scrollLeft != currentScrollLeft) {
+                     this.scrollLeft = currentScrollLeft;
+                 } else {
+                     // only redraw the text if we're scrolling vertically; the DOM scrollLeft increment/decrement is a HACK
+                     // to work around a (suspected) ExtJS bug that causes the headers to become misaligned
+                     this.view.el.dom.scrollLeft += 1;
+                     this.setText(msg);
+                     this.view.el.dom.scrollLeft -= 1;
+                 }
             } else {
                 // Drat, we didn't have the paging scroller, so assume we are showing all
                 var showingAllMsg = _t('Found {0} records');
                 var msg = Ext.String.format(showingAllMsg, this.totalCount);
                 this.setText(msg);
             }
-
         }
     });
 

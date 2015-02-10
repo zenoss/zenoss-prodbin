@@ -27,7 +27,18 @@ class OrganizerInfo(InfoBase):
 
     description = property(_getDescription, _setDescription)
 
+class DeviceClassInfo(OrganizerInfo, HasEventsInfoMixin):
 
+    @property
+    def connectionInfo(self):
+        return self._object.getZ('zCredentialsZProperties')
+
+    @connectionInfo.setter
+    def connectionInfo(self, val):
+        if isinstance(val, basestring):
+            val = val.split("\n")
+        self._object.setZenProperty('zCredentialsZProperties', val)
+        
 class LocationOrganizerInfo(OrganizerInfo, HasEventsInfoMixin):
     implements(ILocationOrganizerInfo)
 

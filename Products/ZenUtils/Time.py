@@ -42,42 +42,6 @@ def LocalDateTimeFromMilli(milliseconds):
     return LocalDateTime(milliseconds / 1000)
 
 
-SERVER_TIMEZONE = None
-def getServerTimeZone():
-    """
-    This is suprisingly harder than you would think, but we need to guess
-    the olson timezone on the current server. Most Redhaty linuxes symlink
-    /etc/localtime. For the rest we need to compare the hash of what is in
-    /usr/share/zoneinfo
-    """
-    global SERVER_TIMEZONE
-    if not SERVER_TIMEZONE is None:
-        return SERVER_TIMEZONE
-    # try reading the link
-    if os.path.islink('/etc/localtime'):
-        tz = '/'.join(os.readlink('/etc/localtime').split('/')[-2:])
-        # some timezones like UTC are only one word so the directory will show up
-        if tz.startswith("zoneinfo/"):
-            tz = tz.replace("zoneinfo/", "")
-        SERVER_TIMEZONE = tz        
-        return SERVER_TIMEZONE
-    tzfile_digest = None
-    with open('/etc/localtime') as tzfile:    
-        tzfile_digest = sha224(tzfile.read()).hexdigest()    
-    
-    for root, dirs, filenames in os.walk("/usr/share/zoneinfo/"):
-        for filename in filenames:
-            fullname = os.path.join(root, filename)
-            f = open(fullname)
-            digest = sha224(f.read()).hexdigest()
-            if digest == tzfile_digest:
-                SERVER_TIMEZONE = '/'.join((fullname.split('/'))[-2:])
-                return SERVER_TIMEZONE
-            f.close()
-        # if we haven't found it don't keep trying next request
-        SERVER_TIMEZONE = ""
-        return SERVER_TIMEZONE
-
 def convertTimestampToTimeZone(timestamp, zone_name, fmt="%Y/%m/%d %H:%M:%S"):
     """
     This takes a integer timestamp (in seconds since epoch) and returns a
@@ -162,3 +126,10 @@ def isoToTimestamp(value):
     timeTuple = time.strptime(timeStr, '%Y-%m-%d %H:%M:%S')
     timestamp = time.mktime(timeTuple)
     return timestamp
+
+def getYear():
+    """
+    Return a string representing the current year.
+    """
+    return datetime.now().strftime('%Y')
+

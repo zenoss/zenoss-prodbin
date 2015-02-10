@@ -8,6 +8,7 @@
 ##############################################################################
 
 from collections import namedtuple
+import functools
 import unittest
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
@@ -16,12 +17,17 @@ from Products.ZenUtils.controlplane.application import (
 )
 
 
+class _TestDeployedAppLookup(DeployedAppLookup):
+    def getTenantId(self):
+        return "abc123"
+
+
 class _MockClient(object):
 
     def __init__(self, **kwargs):
-        self._data = kwargs if kwargs else {}
+        self._data = kwargs.get('data', {})
 
-    def queryServices(self, name=None, tags=None):
+    def queryServices(self, name=None, tags=None, tenantID=None):
         tags = tags if tags else ()
         keys = self._data.keys()
         for tag in tags:
@@ -73,8 +79,8 @@ class DeployedAppTest(BaseTestCase):
     """
     """
     def test001(self):
-        DeployedAppLookup.clientClass = _MockClient
-        lookup = DeployedAppLookup()
+        _TestDeployedAppLookup.clientClass = _MockClient
+        lookup = _TestDeployedAppLookup()
         result = lookup.query()
         self.assertEqual(result, ())
 
@@ -82,8 +88,8 @@ class DeployedAppTest(BaseTestCase):
         data = {
             (service1.id, tuple(service1.tags)): service1,
         }
-        DeployedAppLookup.clientClass =  _MockClient
-        lookup = DeployedAppLookup()
+        _TestDeployedAppLookup.clientClass = functools.partial(_MockClient, data=data)
+        lookup = _TestDeployedAppLookup()
         result = lookup.query()
         self.assertEqual(len(result), 1)
         app = result[0]

@@ -11,7 +11,7 @@ from datetime import datetime
 from zope.interface import implementer
 from Products.Zuul.interfaces import IApplicationInfo, IApplicationConfigurationInfo
 from Products.Zuul.decorators import info
-
+from Products.ZenUtils.application import ApplicationState
 
 @implementer(IApplicationInfo)
 class ApplicationInfo(object):
@@ -42,6 +42,10 @@ class ApplicationInfo(object):
     text = name
 
     @property
+    def hostId(self):
+        return self._object.hostId
+
+    @property
     def type(self):
         return "daemon"
 
@@ -57,7 +61,7 @@ class ApplicationInfo(object):
 
     @property
     def isRestarting(self):
-        return self._object.state == "RESTARTING"
+        return self._object.state == ApplicationState.RESTARTING
 
     @property
     def uptime(self):

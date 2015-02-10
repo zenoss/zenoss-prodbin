@@ -27,6 +27,7 @@ from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Exceptions import DeviceExistsError
 from Products.ZenRelations.ZenPropertyManager import iszprop
 from Products.ZenHub.services.ModelerService import ModelerService
+from Products.ZenRelations.zPropertyCategory import getzPropertyCategory
 
 
 DEFAULT_PING_THRESH = 168
@@ -151,7 +152,8 @@ class DiscoverService(ModelerService):
         deviceName = kw['deviceName']
         if deviceName:
             device = self.dmd.Devices.findDeviceByIdExact(deviceName)
-            if device and ip != device.manageIp:
+            if device and all((device.manageIp, not device._temp_device,
+                    ip != device.manageIp)):
                 kw['deviceName'] = ip
                 kw['title'] = deviceName
 
@@ -195,7 +197,7 @@ class DiscoverService(ModelerService):
                 updateAttributes = {}
                 for k,v in kw.items():
                     if k not in ('manageIp', 'deviceName', 'devicePath',
-                            'discoverProto'):
+                            'discoverProto', 'performanceMonitor'):
                         updateAttributes[k] = v
                 # use updateDevice so we don't clobber existing device properties.
                 e.dev.updateDevice(**updateAttributes)
@@ -249,15 +251,14 @@ class DiscoverService(ModelerService):
 
 
     @translateError
-    def remote_getSnmpConfig(self, devicePath):
+    def remote_getSnmpConfig(self, devicePath, snmpCategory='SNMP'):
         "Get the snmp configuration defaults for scanning a device"
         devroot = self.dmd.Devices.createOrganizer(devicePath)
-        ports = getattr(devroot, 'zSnmpDiscoveryPorts', None) or [devroot.zSnmpPort]
-        return (devroot.zSnmpCommunities,
-                ports,
-                devroot.zSnmpVer,
-                devroot.zSnmpTimeout,
-                devroot.zSnmpTries)
+        snmpConfig = {}
+        for name, value in devroot.zenPropertyItems():
+            if getzPropertyCategory(name) == snmpCategory:
+                snmpConfig[name] = value
+        return snmpConfig
 
 
     @translateError

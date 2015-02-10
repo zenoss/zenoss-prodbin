@@ -38,7 +38,9 @@ class MessagingRouter(DirectRouter):
         if isinstance(state_container, basestring) or state_container is None:
             state_container = PersistentMapping()
             userSettings._browser_state = state_container
-        state_container['state'] = state
+        if state != state_container.get('state', ''):
+            state_container['state'] = state
+
 
     def clearBrowserState(self, user=None):
         """

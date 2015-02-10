@@ -57,10 +57,10 @@ class ApplyDataMap(object):
 
     def __init__(self, datacollector=None):
         self.datacollector = datacollector
+        self.num_obj_changed=0
         self._dmd = None
         if datacollector:
             self._dmd = getattr(datacollector, 'dmd', None)
-
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
@@ -92,13 +92,13 @@ class ApplyDataMap(object):
             self._dmd.ZenEventManager.sendEvent(eventDict)
 
 
-    def applyDataMap(self, device, datamap, relname="", compname="", modname=""):
+    def applyDataMap(self, device, datamap, relname="", compname="", modname="", parentId=""):
         """Apply a datamap passed as a list of dicts through XML-RPC.
         """
         from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
         if relname:
             datamap = RelationshipMap(relname=relname, compname=compname,
-                                modname=modname, objmaps=datamap)
+                                      modname=modname, objmaps=datamap, parentId=parentId)
         else:
             datamap = ObjectMap(datamap, compname=compname, modname=modname)
         self._applyDataMap(device, datamap)
@@ -117,6 +117,9 @@ class ApplyDataMap(object):
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
         """
+        self.num_obj_changed=0;
+        log.debug("Started _applyDataMap for device %s",device.getId())
+        logname=""
         # This can cause breakage in unit testing when the device is persisted.
         if not hasattr(device.dmd, 'zport'):
             transaction.abort()
@@ -139,8 +142,25 @@ class ApplyDataMap(object):
 
         changed = False
 
-        if hasattr(datamap, "compname"):
-            if datamap.compname:
+        if hasattr(datamap, "parentId") or hasattr(datamap, "compname"):
+            if getattr(datamap, "parentId", None):
+                if device.id == datamap.parentId:
+                    tobj = device
+                else:
+                    tobj = device.componentSearch(id=datamap.parentId)
+                    if len(tobj) == 1:
+                        tobj = tobj[0].getObject()
+                    elif len(tobj) < 1:
+                        log.warn(
+                            "Unable to find a matching parentId '%s'",
+                            datamap.parentId)
+                        return False
+                    else:
+                        log.warn(
+                            "Too many object matching parentId '%s'.  Make sure all components have a unique id.",
+                            datamap.parentId)
+                        return False
+            elif datamap.compname:
                 try:
                     tobj = device.getObjByPath(datamap.compname)
                 except NotFound:
@@ -153,8 +173,10 @@ class ApplyDataMap(object):
             # so we index the minimum amount
             with pausedAndOptimizedIndexing():
                 if hasattr(datamap, "relname"):
+                    logname=datamap.relname
                     changed = self._updateRelationship(tobj, datamap)
                 elif hasattr(datamap, 'modname'):
+                    logname=datamap.compname
                     changed = self._updateObject(tobj, datamap)
                 else:
                     log.warn("plugin returned unknown map skipping")
@@ -166,6 +188,7 @@ class ApplyDataMap(object):
             trans = transaction.get()
             trans.setUser("datacoll")
             trans.note("data applied from automated collection")
+        log.debug("_applyDataMap for Device %s will modify %d objects for %s", device.getId(), self.num_obj_changed,logname)
         return changed
 
 
@@ -259,6 +282,17 @@ class ApplyDataMap(object):
         changed = False
         device = obj.device()
 
+        # Modeling should never change the id of a device. (ZEN-14518)
+        from Products.ZenModel.Device import Device
+        if isinstance(obj, Device) and 'id' in (x[0] for x in objmap.items()):
+            log.error(
+                "blocked changing %r property of %s: %r",
+                'id',
+                device.id,
+                objmap)
+
+            return False
+
         if isinstance(obj, Lockable) and obj.isLockedFromUpdates():
             if device.id == obj.id:
                 msg = 'Update Blocked: %s' % device.id
@@ -347,6 +381,7 @@ class ApplyDataMap(object):
             notify(IndexingEvent(obj))
         else:
             obj._p_deactivate()
+        self.num_obj_changed += 1 if changed else 0
         return changed
 
 
@@ -381,8 +416,7 @@ class ApplyDataMap(object):
         rel = device._getOb(relname, None)
         if not rel:
             raise ObjectCreationError(
-                    "No relation %s found on device %s (%s)" % (relname, device.id, device.__class__ ))
-                    #"No relation %s found on device %s" % (relname, device.id))
+                    "No relation %s found on object %s (%s)" % (relname, device.id, device.__class__ ))
         changed = False
         try:
             remoteObj = rel._getOb(remoteObj.id)
@@ -395,8 +429,9 @@ class ApplyDataMap(object):
             changed = True
             if not isinstance(rel, ToManyContRelationship):
                 notify(ObjectMovedEvent(remoteObj, rel, remoteObj.id, rel, remoteObj.id))
-        return self._updateObject(remoteObj, objmap) or changed, remoteObj
-
+        up_changed = self._updateObject(remoteObj, objmap)
+        self.num_obj_changed += 1 if not up_changed and changed else 0
+        return up_changed or changed, remoteObj
 
     def stop(self):
         pass

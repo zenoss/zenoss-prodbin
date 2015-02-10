@@ -18,6 +18,8 @@ import logging
 import transaction
 import urllib
 import time
+import pickle
+import os
 from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger("zen.Events")
@@ -40,6 +42,9 @@ from Products.ZenUtils.Utils import convToUnits, zdecode, getDisplayName
 from Products.ZenUtils.Time import SaveMessage
 from Products import Zuul
 from Products.Zuul.interfaces import IInfo
+from Products.ZenUtils.Utils import zenPath
+
+from zenoss.protocols.jsonformat import to_dict
 
 MAX_TRANSFORM_TIME = 2.0
 
@@ -135,6 +140,8 @@ class EventClassPropertyMixin(object):
         is hard to understand into something actionable by the user.
         """
         transformName = '/%s'% '/'.join(eventclass.getPhysicalPath()[4:])
+        evt.eventClass = transformName
+        self.pickleFailedEvent(evt)
         summary = "Error processing transform/mapping on Event Class %s" % \
             transformName
 
@@ -177,6 +184,11 @@ Transform:
 """ % (summary, badLineNo, exceptionText, badLineText,
         transformFormatted)
         log.warn(message)
+        # add the event that caused this exception to the transform event
+        # so the operator has context for debugging transforms
+        sourceEventText = str(evt._zepRawEvent._pb)
+        sourceEventDevice = evt.device
+        sourceEventComponent = evt.component
 
         # Now send an event
         zem = self.getDmd().ZenEventManager
@@ -195,10 +207,43 @@ Transform:
             # Set False if the root ('/') transform failed; avoids looping
             # infinitely on creating transform event failures.
             applyTransforms=False if (transformName == '/') else True,
+            sourceEventText=sourceEventText,
+            sourceEventDevice=sourceEventDevice,
+            sourceEventComponent=sourceEventComponent
         )
         zem.sendEvent(badEvt)
 
-
+    def pickleFailedEvent(self, evt):
+        pickleDir = zenPath('var/pickles/events')
+        if not os.path.exists(pickleDir):
+            log.warn("Create the %s dir to enable pickle capture of events, i.e. serviced service attach zeneventd su zenoss -c 'mkdir -p  %s'", pickleDir, pickleDir)
+            return
+        #delete files older than 1 hour
+        age = 3600
+        pickles_count = 0
+        for file in os.listdir(pickleDir):
+            now = time.time()
+            filepath = os.path.join(pickleDir, file)
+            modified = os.stat(filepath).st_mtime
+            if modified < now - age:
+                if os.path.isfile(filepath):
+                    if pickles_count == 0:
+                        log.info("Deleting old pickle files ...")
+                    try:
+                        os.remove(filepath)
+                        pickles_count += 1
+                    except Exception as e:
+                        log.exception("Unable to delete %s: %s", filepath, e)
+        log.info("Deleted %s old pickle files." % pickles_count)
+        date = time.localtime(time.time())
+        tstamp = time.strftime("%Y-%m-%d-%H%M%S", date)
+        filename = pickleDir + '/%s_%s_%s.pickle' % (evt.device, evt.evid, tstamp) 
+        try:
+            with open(filename, 'w') as f:
+                evtDict = to_dict(evt._event)
+                pickle.dump(evtDict, f)
+        except Exception as ex:
+            log.exception("Unable to store evt pickle data to %s: %s", filename, ex)
 
     def applyTransform(self, evt, device, component=None):
         """

@@ -17,13 +17,6 @@ class TestTime(BaseTestCase):
     Tests some of the time utility functions in Products/ZenUtils/Time.py
     """
 
-    def testGetServerTimeZone(self):
-        zone = Time.getServerTimeZone()
-        # this one is kinda difficult since it is dependent on the host system
-        # so lets just make sure we got something with no stack traces
-        self.assertTrue(zone is not None, "Was unable to get the timezone from the server")
-    
-
     def testConvertingTime(self):
         stamp = time.time()
         chicago_time = Time.convertTimestampToTimeZone(stamp, "America/Chicago", "%H")

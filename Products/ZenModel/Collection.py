@@ -154,7 +154,7 @@ class Collection(ZenModelRM):
             if REQUEST:
                 contents = None
                 if deletedItem.getRepresentedItem():
-                    contents = deleteItem.getRepresentedItem().id
+                    contents = deletedItem.getRepresentedItem().id
                 audit('UI.Collection.DeleteItem', self.id, item=deletedItem.id,
                       contents=contents)
 

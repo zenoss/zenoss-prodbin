@@ -25,10 +25,9 @@ from urlparse import urlparse
 from hashlib import sha1
 from itertools import chain
 from functools import partial
-from zenoss.collector.publisher.publisher import RedisListPublisher
-from zenoss.collector.publisher import publisher
+from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, task
 from twisted.internet.error import ConnectionLost, ReactorNotRunning, AlreadyCalled
 from twisted.spread import pb
 from twisted.python.failure import Failure
@@ -51,7 +50,14 @@ from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
-from zenoss.collector.publisher.publisher import HttpPostPublisher
+
+
+#field size limits for events
+DEFAULT_LIMIT=524288  #512k
+LIMITS={
+    'summary':256,
+    'message':4096
+}
 
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
@@ -130,7 +136,7 @@ class HubDown(Exception): pass
 
 
 class FakeRemote:
-    def callRemote(self, *unused):
+    def callRemote(self, *args, **kwargs):
         ex = HubDown("ZenHub is down")
         return defer.fail(ex)
 
@@ -539,7 +545,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     heartbeatTimeout = 60*3
     _customexitcode = 0
     _pushEventsDeferred = None
-    
+    _healthMonitorInterval = 30
+
     def __init__(self, noopts=0, keeproot=False, name=None):
         # if we were provided our collector name via the constructor instead of
         # via code, be sure to store it correctly.
@@ -581,6 +588,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         # Add a shutdown trigger to send a stop event and flush the event queue
         reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
 
+        # Set up a looping call to support the health check.
+        self.healthMonitor = task.LoopingCall(self._checkZenHub)
+        self.healthMonitor.start(self._healthMonitorInterval)
+
     def publisher(self):
         if not self._publisher:
             host, port = urlparse(self.options.redisUrl).netloc.split(':')
@@ -591,9 +602,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                    "value {port}, defaulting to {default}".
                                    format(port=port, default=publisher.defaultRedisPort))
                 port = publisher.defaultRedisPort
-            self._publisher = RedisListPublisher(
+            self._publisher = publisher.RedisListPublisher(
                 host, port, self.options.metricBufferSize,
-                channel=self.options.metricsChannel
+                channel=self.options.metricsChannel, maxOutstandingMetrics=self.options.maxOutstandingMetrics
             )
         return self._publisher
 
@@ -603,7 +614,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
             password = os.environ.get( "CONTROLPLANE_CONSUMER_PASSWORD", "")
             if url:
-              self._internal_publisher = HttpPostPublisher( username, password, url)
+              self._internal_publisher = publisher.HttpPostPublisher( username, password, url)
         return self._internal_publisher
             
     def metricWriter(self):
@@ -717,7 +728,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         d = self.perspective.callRemote('getService',
                                         serviceName,
                                         self.options.monitor,
-                                        serviceListeningInterface or self)
+                                        serviceListeningInterface or self,
+                                        self.options.__dict__)
         d.addCallback(callback, serviceName)
         d.addErrback(errback, serviceName)
         return d
@@ -831,13 +843,21 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """ Add event to queue of events to be sent.  If we have an event
         service then process the queue.
         """
-        if not reactor.running: return
-        event = event.copy()
-        event['agent'] = self.name
-        event['monitor'] = self.options.monitor
-        event['manager'] = self.fqdn
-        event.update(kw)
-        return event
+        if not reactor.running:
+            return
+        eventCopy = {}
+        for k, v in chain(event.items(), kw.items()):
+            if isinstance(v, basestring):
+                #default max size is 512k
+                size = LIMITS.get(k, DEFAULT_LIMIT)
+                eventCopy[k] = v[0:size] if len(v)>size else v
+            else:
+                eventCopy[k] = v
+
+        eventCopy['agent'] = self.name
+        eventCopy['monitor'] = self.options.monitor
+        eventCopy['manager'] = self.fqdn
+        return eventCopy
 
     @defer.inlineCallbacks
     def pushEventsLoop(self):
@@ -946,6 +966,63 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             except ImportError:
                 self.log.error("Unable to import class %s", c)
 
+    def _checkZenHub(self):
+        """
+        Check status of ZenHub (using ping method of service).
+        @return: if ping occurs, return deferred with result of ping attempt.
+        """
+        self.log.debug('_checkZenHub: entry')
+
+        def callback(result):
+            self.log.debug('ZenHub health check: Got result %s' % result)
+            if result == 'pong':
+                self.log.debug('ZenHub health check: Success - received pong from ZenHub ping service.')
+                self._signalZenHubAnswering(True)
+            else:
+                self.log.error('ZenHub health check did not respond as expected.')
+                self._signalZenHubAnswering(False)
+
+        def errback(error):
+            self.log.error('Error pinging ZenHub: %s (%s).' % (error, error.message))
+            self._signalZenHubAnswering(False)
+
+        try:
+            if self.perspective:
+                self.log.debug('ZenHub health check: perspective found. attempting remote ping call.')
+                d = self.perspective.callRemote('ping')
+                d.addCallback(callback)
+                d.addErrback(errback)
+                return d
+            else:
+                self.log.debug('ZenHub health check: ZenHub may be down.')
+                self._signalZenHubAnswering(False)
+        except pb.DeadReferenceError:
+            self.log.warning("ZenHub health check: DeadReferenceError - lost connection to ZenHub.")
+            self._signalZenHubAnswering(False)
+        except Exception as e:
+            self.log.error('ZenHub health check: caught %s exception: %s' % (e.__class__, e.message))
+            self._signalZenHubAnswering(False)
+
+
+    def _signalZenHubAnswering(self, answering):
+        """
+        Write or remove file that the ZenHub_answering health check uses to report status.
+        @param answering: true if ZenHub is answering, False, otherwise.
+        """
+        self.log.debug('_signalZenHubAnswering(%s)' % answering)
+        filename = 'zenhub_connected'
+        signalFilePath = zenPath('var', filename)
+        if answering:
+            self.log.debug('writing file at %s' % signalFilePath)
+            atomicWrite(signalFilePath, '')
+        else:
+            try:
+                self.log.debug('removing file at %s' % signalFilePath)
+                os.remove(signalFilePath)
+            except Exception as e:
+                self.log.debug('ignoring %s exception (%s) removing file %s' % (e.__class__, e.message, signalFilePath))
+
+
     def buildOptions(self):
         self.parser.add_option('--hubhost',
                                 dest='hubhost',
@@ -1043,4 +1120,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='string',
                                default=publisher.defaultMetricsChannel,
                                help='redis channel to which metrics are published')
+        self.parser.add_option('--maxOutstandingMetrics',
+                               dest='maxOutstandingMetrics',
+                               type='int',
+                               default=publisher.defaultMaxOutstandingMetrics,
+                               help='Max Number of metrics to allow in redis')
         ZenDaemon.buildOptions(self)

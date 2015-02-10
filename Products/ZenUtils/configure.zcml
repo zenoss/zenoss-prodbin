@@ -29,10 +29,23 @@
     <!-- attempt to secure the Zope Session cookie -->
     <subscriber handler=".Security.secureSessionCookie" />
 
+
+    <!-- Sets the zenoss_system password based on the value in global.conf -->
+    <subscriber
+            for="Products.ZenUtils.events.IZopeApplicationOpenedEvent"
+            handler=".ZauthUser.setPassword"
+            />
+
+
     <!-- Re-fires IDatabaseOpenedWithRoot as IZopeApplicationOpenedEvent for subscribers -->
     <subscriber
             for="zope.processlifetime.IDatabaseOpenedWithRoot"
             handler=".events.notifyZopeApplicationOpenedSubscribers"
+            />
+
+    <subscriber
+            for=".events.IZopeApplicationOpenedEvent"
+            handler=".events.registerUUID"
             />
 
     <!-- advertize that Zenoss provides pre/post backup events -->

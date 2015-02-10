@@ -15,6 +15,8 @@ from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 from Products.ZenUtils import Ext
 from Products.CMFCore.utils import getToolByName
+from Products.ZenModel.Quickstart import getTopQuickstartStep
+
 
 class SetAdminPasswordException(Exception):
     """There was a problem setting the admin password"""
@@ -72,5 +74,6 @@ class CreateUserView(BrowserView):
         self.context.dmd._rq = True
 
         # Send us on our way
-        response.redirect('qs-step2')
+        nextStep = getTopQuickstartStep(self.context.dmd)
+        response.redirect(nextStep)
         return response

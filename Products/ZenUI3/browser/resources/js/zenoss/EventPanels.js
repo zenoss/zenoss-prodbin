@@ -244,7 +244,7 @@
     Zenoss.events.EventPanelToolbarActions = {
         acknowledge: new Zenoss.ActionButton({
             iconCls: 'acknowledge',
-            tooltip: _t('Acknowledge events'),
+            tooltip: _t('Acknowledge events (Ctrl-Shift-a)'),
             permission: 'Manage Events',
             itemId: 'acknowledge',
             handler: function() {
@@ -253,7 +253,7 @@
         }),
         close: new Zenoss.ActionButton({
             iconCls: 'close',
-            tooltip: _t('Close events'),
+            tooltip: _t('Close events (Ctrl-Shift-c)'),
             permission: 'Manage Events',
             itemId: 'close',
             handler: function() {
@@ -272,7 +272,7 @@
         }),
         reopen: new Zenoss.ActionButton({
             iconCls: 'unacknowledge',
-            tooltip: _t('Unacknowledge events'),
+            tooltip: _t('Unacknowledge events (Ctrl-Shift-u)'),
             permission: 'Manage Events',
             itemId: 'unacknowledge',
             handler: function() {
@@ -281,7 +281,7 @@
         }),
         unclose: new Zenoss.ActionButton({
             iconCls: 'reopen',
-            tooltip: _t('Reopen events'),
+            tooltip: _t('Reopen events (Ctrl-Shift-o)'),
             permission: 'Manage Events',
             itemId: 'reopen',
             handler: function() {
@@ -333,6 +333,115 @@
         fields: ['id', 'event_type']
     });
 
+    Ext.define("Zenoss.form.ColumnItemSelector", {
+        extend:"Ext.ux.form.ItemSelector",
+        constructor: function(state_id, config) {
+            var cols = Zenoss.env.getColumnDefinitions();
+            var cols_to_display = Zenoss.env.getColumnIdsToRender(state_id);
+            var data = [];
+            Ext.Array.each(cols, function(col) {
+                data.push([col.id, col.header]);
+            });
+            Ext.applyIf(config, {
+                name: 'columnItemSelector',
+                id: 'columns_item_selector',
+                imagePath: "/++resource++zenui/img/xtheme-zenoss/icon",
+                valueField: 'id',
+                displayField: 'name',
+                autoScroll:true,
+                minHeight:500,
+                maxHeight:500,
+                height:500,
+                store:  Ext.create('Ext.data.ArrayStore', {
+                    data: data,
+                    model: 'Zenoss.model.IdName',
+                    sorters: [{
+                        property: 'name',
+                        direction: 'ASC'
+                    }]
+                }),
+                value: cols_to_display
+            });
+            this.superclass.constructor.call(this, config);
+        }
+    });
+
+    Ext.define('Zenoss.events.ColumnConfigDialog',{
+        extend:'Zenoss.dialog.BaseWindow',
+        title: _t('Column Configuration'),
+        id: 'events_column_config_dialog',
+        minHeight: 600,
+        minWidth: 600,
+        width: 600,
+        height: 600,
+        modal: true,
+        margins: {top:2, left:2, right: 2, bottom:20},
+        closeAction: 'destroy',
+        plain: true,
+        buttons: [
+            {
+                text: _t('Submit'),
+                xtype: 'DialogButton',
+                formBind: true,
+                handler: function(){
+                    var columns = Ext.getCmp('columns_item_selector').value;
+                    var dialog = Ext.getCmp('events_column_config_dialog');
+                    var grid = dialog.grid;
+
+                    Zenoss.env.recreateGridWithNewColumns(grid, columns);
+                }
+            },
+            {
+                text: _t('Cancel'),
+                xtype: 'DialogButton',
+                handler: function(){
+                    this.hide();
+                }
+            }
+        ],
+        constructor: function(grid)
+        {
+            this.superclass.constructor.call(this, { layout: {type:'vbox', align: 'stretch'} });
+
+            this.grid = grid;
+
+            var header_panel = Ext.widget('panel', {
+                xtype: 'panel',
+                margins: {top:10, left:2, right: 2, bottom:2},
+                layout: {
+                    type: 'hbox'
+                },
+                items: [ {
+                    flex: 1,
+                    xtype: 'panel',
+                    html: "<center><b>Available</b></center>"
+                },{
+                    flex: 1,
+                    xtype: 'panel',
+                    html: "<center><b>Selected</b></center>"
+                }
+                ]
+            });
+
+            var item_selector = Ext.create('Zenoss.form.ColumnItemSelector', this.grid.stateId, {});
+
+            var body_panel = Ext.widget('panel', {
+                layout: {type:'fit', autoSize: true},
+                margins: {top:0, left:10, right: 10, bottom: 10},
+                items:[ item_selector ]
+            });
+
+            this.add(header_panel);
+            this.add(body_panel);
+        }
+    });
+
+    Zenoss.events.showColumnConfigDialog = function(grid)
+    {
+        dialog = Ext.create('Zenoss.events.ColumnConfigDialog', grid);
+        dialog.show();
+    }
+
     Zenoss.EventConsoleTBar = Ext.extend(Zenoss.LargeToolbar, {
         constructor: function(config){
             var gridId = config.gridId,
@@ -362,6 +471,15 @@
                     }
                 }
             },{
+                id: 'adjust_columns_item_selector',
+                text: _t('Adjust columns'),
+                listeners: {
+                click: function(){
+                    var grid = Ext.getCmp(gridId);
+                    Zenoss.events.showColumnConfigDialog(grid);
+                    }
+                }
+            },{
                 text: _t("Restore defaults"),
                 handler: function(){
                     new Zenoss.dialog.SimpleMessageDialog({
@@ -374,7 +492,8 @@
                             xtype: 'DialogButton',
                             text: _t('OK'),
                             handler: function() {
-                                Ext.getCmp(gridId).resetGrid();
+                                var grid = Ext.getCmp(gridId);
+                                grid.resetGrid();
                             }
                         }, {
                             xtype: 'DialogButton',
@@ -568,6 +687,10 @@
                     if (grid) {
                         grid.refresh();
                     }
+                    var dpanel = Ext.getCmp('dpanelcontainer')
+                    if (dpanel && dpanel.isVisible()) {
+                        dpanel.refresh();
+                    }
                 },
                 findParams: function() {
                     var grid = Ext.getCmp(gridId);
@@ -604,7 +727,10 @@
                         store = grid.getStore(),
                         tbar = this,
                         view = grid.getView();
-                        store.on('guaranteedrange', this.doLastUpdated);
+                        if(store.buffered)
+                            store.on('guaranteedrange', this.doLastUpdated);
+                        else
+                            store.on('load', this.doLastUpdated);
                         view.on('buffer', this.doLastUpdated);
 
                         view.on('filterchange', function(){
@@ -709,6 +835,7 @@
                                     },
                                     items: [{
                                         xtype: 'textarea',
+                                        maxHeight: Ext.getBody().getViewSize().height * 0.4,
                                         name: 'note',
                                         fieldLabel: _t('note'),
                                         allowBlank: false
@@ -841,8 +968,16 @@
                         handler: function() {
                             var grid = Ext.getCmp(gridId);
                             if (grid.isVisible(true)) {
+                                // Indicating grid updating progress
+                                var box = Ext.getCmp('lastupdated');
+                                box.setText(_t('<span>Updating... </span><img src="/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif" width=12 height=12>'));
                                 grid.refresh();
                             }
+                        },
+                        pollHandler: function(btn) {
+                            var grid = Ext.getCmp(gridId);
+                            if (grid.refresh_in_progress == 0)
+                                this.handler(btn);
                         }
                     }
                 ], tbarItems)
@@ -880,7 +1015,8 @@
                 this.on('selectionchange', function(selectionmodel) {
                     // Disable buttons if nothing selected (and vice-versa)
                     var actionsToChange = ['acknowledge', 'close', 'reopen',
-                                           'unacknowledge', 'classify', 'addNote'],
+                                           'unacknowledge', 'classify',
+                                           'addNote', 'event-actions-menu'],
                         newDisabledValue = !selectionmodel.hasSelection() && selectionmodel.selectState !== 'All',
                         tbar = this.getGrid().tbar,
                         history_combo = Ext.getCmp('history_combo'),
@@ -1086,8 +1222,8 @@
             config = config || {};
             config.viewConfig = config.viewConfig || {};
             Ext.applyIf(config.viewConfig, {
-                getRowClass: Zenoss.events.getRowClass
-
+                getRowClass: Zenoss.events.getRowClass,
+		enableTextSelection: true
             });
 
             this.callParent(arguments);
@@ -1098,10 +1234,111 @@
         },
         initComponent: function() {
             this.getSelectionModel().grid = this;
+             // create keyboard shortcuts for the main event console
+            function nonInputHandler(func, scope){
+
+                return function(key, e) {
+                    if (e.target.tagName != "INPUT" && e.target.tagName != "TEXTAREA") {
+                        Ext.bind(func, scope)(key, e);
+                        e.preventDefault();
+                    }
+                };
+            }
+            this.map = new Ext.util.KeyMap({
+                target: document.body,
+                binding: [{
+                    key:  Ext.EventObject.A,
+                    ctrl: true,
+                    shift: false,
+                    alt: false,
+                    scope: this,
+                    fn: nonInputHandler(function(key, e) {
+                        this.getSelectionModel().selectEventState('All');
+                    }, this)
+                },{
+                    key:  Ext.EventObject.ESC,
+                    ctrl: false,
+                    shift: false,
+                    alt: false,
+                    scope:this,
+                    fn: nonInputHandler(function(key, e) {
+                        this.getSelectionModel().clearSelections();
+                        this.getSelectionModel().clearSelectState();
+                    }, this)
+                }, {
+                    // acknowledge
+                    key: Ext.EventObject.A,
+                    shift: true,
+                    ctrl: true,
+                    alt: false,
+                    fn: nonInputHandler(function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.acknowledge);
+                    }, this)
+                }, {
+                    // close
+                    key: Ext.EventObject.C,
+                    shift: true,
+                    ctrl: true,
+                    alt: false,
+                    fn: nonInputHandler(function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
+                    }, this)
+                }, {
+                    // reopen
+                    key: Ext.EventObject.O,
+                    shift: true,
+                    ctrl: true,
+                    alt: false,
+                    fn: nonInputHandler(function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
+                    }, this)
+                }, {
+                    // unack
+                    key: Ext.EventObject.U,
+                    shift: true,
+                    ctrl: true,
+                    alt: false,
+                    fn: nonInputHandler(function() {
+                        Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
+                    }, this)
+                }]
+
+            });
+            this.on('show', function(){ this.map.enable();}, this);
+            this.on('hide', function(){ this.map.disable();}, this);
+
             this.callParent(arguments);
         },
         onItemClick: function(){
             this.getSelectionModel().clearSelectState();
+        },
+        setGetFilterParameters: function() {
+            var params = Ext.Object.fromQueryString(location.search), 
+                cleared = false;
+            Ext.each(["severity", "eventState", "device", "component", "eventClass"], function(param) {
+                var v = params[param];
+                if (Ext.isDefined(v)) {
+                    if (!cleared) {
+                        // Clear filters first if anything is set, so we don't merge with existing state
+                        this.clearFilters();
+                        cleared = true;
+                    }
+                    // Do any modification of the values
+                    switch (param) {
+                        case "eventState":
+                        case "severity":
+                            v = v.split(',').map(function(item) {
+                              return parseInt(item, 10);
+                            });
+                            break;
+                        default:
+                            // Let it go through
+                            break;
+                    }
+                    // Set the filter value
+                    this.setFilter(param, v);
+                }
+            }, this);
         },
         listeners: {
             beforerender: function(){
@@ -1116,6 +1353,8 @@
                 var excludeNonActionablesCheckItem = Ext.getCmp('excludenonactionables_checkitem');
                 if (excludeNonActionablesCheckItem)
                     excludeNonActionablesCheckItem.setChecked(this.excludeNonActionables);
+
+                this.setGetFilterParameters();
             }
         },
         applyOptions: function() {
@@ -1246,22 +1485,9 @@
             return path + '?state=' + st;
         },
         resetGrid: function() {
-            Ext.state.Manager.clear(this.getItemId());
+            Ext.state.Manager.clear(this.stateId);
             this.clearFilters();
-            Zenoss.remote.EventsRouter.column_config({}, function(result){
-                var results = [],
-                store = this.getStore(),
-                grid = this,
-                filters = this.defaultFilters;
-                Ext.each(result, function(r){
-                    results[results.length] = Ext.decode(r);
-                });
-                var columns = results;
-                this.reconfigure(null, columns);
-                grid.filterRow.gridColumnMoveWithFilter();
-                // resort by default sorter
-                store.sort(store.sorters.get(0));
-            }, this);
+            this.fireEvent('recreateGrid', this);
         },
         updateRows: function(){
             this.refresh();
@@ -1345,9 +1571,6 @@
         }
     }); // SimpleEventGridPanel
 
-
-
-
     // Define all of the items that could be shown in an EventConsole toolbar.
     Zenoss.events.EventPanelToolbarSelectMenu = {
         text: _t('Select'),
@@ -1356,6 +1579,7 @@
             xtype: 'menu',
             items: [{
                 text: _t("All"),
+                tooltip: _t('Ctrl-a'),
                 handler: function(){
                     var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                     sm = grid.getSelectionModel();
@@ -1364,6 +1588,7 @@
                 }
             },{
                 text: 'None',
+                tooltip: _t('Esc'),
                 handler: function(){
                     var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                     sm = grid.getSelectionModel();
@@ -1389,7 +1614,6 @@
             });
             Zenoss.EventGridPanel.superclass.constructor.call(this, config);
         },
-
         onRowDblClick: function(view, record, e) {
             var evid = record.get('evid'),
                 combo = Ext.getCmp('history_combo'),
@@ -1399,7 +1623,9 @@
                         "status=1,width=600,height=500,resizable=1");
         },
         setContext: function(uid){
-            Zenoss.EventGridPanel.superclass.setContext.call(this, uid);
+            if (uid) {
+                this.uid = uid
+            }
 
             var toolbar = this.getDockedItems('toolbar')[0];
             if (toolbar && Ext.isDefined(toolbar.setContext)) {
@@ -1446,6 +1672,135 @@
         }
     });
 
+    // Functions related to creating the grid with only the columns that are going to be visible.
+    // We used to create the grid with all the available columns and then hide the ones that we dont want to display.
+    // From now on, the grid will only contain the visible columns.
+    // Grids that use this functionality:
+    //
+    //      -- File --             -- state_id --
+    //      EvConsole.js            evconsole
+    //      itinfrastructure.js     infrastructure_events
+    //      devdetail.js            device_events
+    //      EvHistory.js            histconsole
+    //
 
+    var getColumnDefinitionById = function(col_id)
+    {
+        var col_def = undefined;
+        Ext.each(Zenoss.env.getColumnDefinitions(), function(col) {
+            if (col.id == col_id) {
+                col_def = col;
+                return false;
+            }
+        });
+        return col_def;
+    };
+
+    var getDefaultColumnIdsToRender = function(state_id)
+    {
+        var column_ids_to_render = [];
+        Ext.each(Zenoss.env.COLUMN_DEFINITIONS, function(col) {
+            if( !col.hidden)
+                column_ids_to_render.push(col.id);
+        });
+
+        return column_ids_to_render;
+    };
+
+    // The columns to render are extracted from Zenoss.env.COLUMN_DEFINITIONS and
+    // the pre existing grid state.
+    Zenoss.env.getColumnIdsToRender = function(state_id)
+    {
+        var state = Ext.state.Manager.get(state_id);
+        var column_ids_to_render = [];
+
+        if (state !== undefined && state.columns !== undefined && state.columns.length > 0)
+        {
+            Ext.each(state.columns, function(col_state) {
+                var col_def = getColumnDefinitionById(col_state.id);
+                if ( (col_state.hidden == undefined && !col_def.hidden) || (col_state.hidden !== undefined && col_state.hidden == false) )
+                {
+                    column_ids_to_render.push(col_state.id);
+                }
+            });
+        }
+        else
+        {
+            column_ids_to_render = getDefaultColumnIdsToRender(state_id);
+        }
+
+        return column_ids_to_render;
+    };
+
+    var getColumnStateById = function(state_id, col_id)
+    {
+        var state = Ext.state.Manager.get(state_id);
+        var col_state = undefined;
+
+        if (state !== undefined && state.columns !== undefined && state.columns.length > 0)
+        {
+            Ext.each(state.columns, function(c_state) {
+                if (c_state.id == col_id)
+                {
+                    col_state = c_state;
+                    return false; // to exit the Ext.each
+                }
+            });
+        }
+
+        return col_state;
+    };
+
+    Zenoss.env.recreateGridWithNewColumns = function(grid, col_ids)
+    {
+        // We modify the grid's state to reflect the new column settings
+        // this way when the grid is recreated picks the new config.
+        var state_id = grid.stateId;
+
+        // We iterate the new cols and search for previous setting for
+        // them in the state. If found in the state we re use them
+        // in order to preserve the user's settings
+        var new_cols_state = [];
+        Ext.each(col_ids, function(col_id) {
+            var col_state = getColumnStateById(state_id, col_id);
+            if (col_state == undefined)
+            {
+                var col_def = getColumnDefinitionById(col_id);
+                col_state = {};
+                col_state.id = col_id;
+                if (col_def.hidden)
+                    col_state.hidden = false;
+            }
+            new_cols_state.push(col_state);
+        });
+
+        // Save the new state
+        var state = Ext.state.Manager.get(state_id);
+
+        if (state !== undefined)
+        {
+            state.columns = new_cols_state;
+            Ext.state.Manager.set(state);
+        }
+
+        // Sends this event so each grid can recreate itself
+        grid.fireEvent('recreateGrid', grid);
+    };
+
+    Zenoss.env.getColumnDefinitionsToRender = function(state_id)
+    {
+        var column_ids = Zenoss.env.getColumnIdsToRender(state_id);
+        var columns_to_render = [];
+
+        Ext.each(Zenoss.env.COLUMN_DEFINITIONS, function(col) {
+            var index = Ext.Array.indexOf(column_ids, col.id);
+            if (index > -1) {
+                columns_to_render.push(col);
+            }
+        });
+        return columns_to_render;
+    };
+
+// End of functions related to saving the state the columns to display
 
 })(); // end of function namespace scoping

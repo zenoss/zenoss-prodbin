@@ -63,7 +63,7 @@ class IMonitorInfo(IInfo):
     )
 
     pingTimeOut = Float(
-        title=_t("Ping Timeout (milliseconds)"),
+        title=_t("Ping Timeout (seconds)"),
         description=_t(
             "How long zenping will wait before timing out a ping request")
     )

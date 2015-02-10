@@ -13,10 +13,11 @@ Zenoss JSON API
 """
 
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
-from Products.Zuul.decorators import require
+from Products.Zuul.decorators import contextRequire
 from Products.Zuul.interfaces.tree import ICatalogTool
 from Products.Zuul.marshalling import Marshaller
 from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.System import System
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
@@ -29,7 +30,7 @@ class TreeRouter(DirectRouter):
     A common base class for routers that have a hierarchical tree structure.
     """
 
-    @require('Manage DMD')
+    @contextRequire("Manage DMD", 'contextUid')
     def addNode(self, type, contextUid, id, description=None):
         """
         Add a node to the existing tree underneath the node specified
@@ -68,7 +69,7 @@ class TreeRouter(DirectRouter):
             result['success'] = False
         return result
 
-    @require('Manage DMD')
+    @contextRequire("Manage DMD", 'uid')
     def deleteNode(self, uid):
         """
         Deletes a node from the tree.
@@ -97,6 +98,12 @@ class TreeRouter(DirectRouter):
             ))
             for child in childBrains:
                 audit(['UI', getDisplayType(child), 'Delete'], child.getPath())
+        elif isinstance(node, System):
+            # update devices systems if the parent system is being removed
+            for dev in facade.getDevices(uid):
+                newSystems = facade._removeOrganizer(node, dev._object.getSystemNames())
+                dev._object.setSystems(newSystems)
+            audit(['UI', getDisplayType(node), 'Delete'], node)
         else:
             audit(['UI', getDisplayType(node), 'Delete'], node)
 
@@ -165,6 +172,17 @@ class TreeRouter(DirectRouter):
         # explicitly marshall the children
         for child in childNodes:
             childData = Marshaller(child).marshal(keys)
+            # set children so that there is not an expanding
+            # icon next to this child
+            # see if there are any subtypes so we can show or not show the
+            # expanding icon without serializing all the children.
+            # Note that this is a performance optimization see ZEN-15857
+            organizer = child._get_object()
+            # this looks at the children's type without waking them up
+            hasChildren = any((o['meta_type'] for o in organizer._objects if o['meta_type'] == organizer.meta_type))
+            # reports have a different meta_type for the child organizers
+            if "report" not in organizer.meta_type.lower() and not hasChildren:
+                childData['children'] = []
             children.append(childData)
         children.sort(key=lambda e: (e['leaf'], e['uid'].lower()))
         obj = currentNode._object._unrestrictedGetObject()

@@ -9,6 +9,7 @@
 from contextlib import contextmanager
 from collections import defaultdict
 
+from uuid import uuid1
 from zope.interface import implements, Interface, Attribute
 from zope.event import notify
 from zope.component import getGlobalSiteManager
@@ -68,7 +69,15 @@ def notifyZopeApplicationOpenedSubscribers(event):
     finally:
         conn.close()
 
-
+def registerUUID(event):
+    """
+    attempts to make sure that dmd.uuid is set to a non-empty value
+    """
+    try:
+        if getattr(event.app.zport.dmd, "uuid", None) is None:
+           event.app.zport.dmd.uuid = str(uuid1())
+    except AttributeError:
+        pass
 
 def teeHandler(handler, buffer=None):
     """

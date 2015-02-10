@@ -17,12 +17,18 @@ class MaintenanceWindowInfo(InfoBase):
     enabled = ProxyProperty('enabled')
     #duration = ProxyProperty('duration')
     repeat = ProxyProperty('repeat')
-    skip = ProxyProperty('skip') 
+    skip = ProxyProperty('skip')
+    days = ProxyProperty('days')
+    occurrence = ProxyProperty('occurrence')
     startState = ProxyProperty('startProductionState')
-    
+
     @property
     def startProdState(self):    
-        return self._object.niceStartProductionState() 
+        return self._object.niceStartProductionState()
+
+    @property
+    def niceRepeat(self):    
+        return self._object.niceRepeat()
         
     @property
     def duration(self):    
@@ -41,6 +47,8 @@ class MaintenanceWindowInfo(InfoBase):
                                      durationHours=p['durationHours'],
                                      durationMinutes=p['durationMinutes'],
                                      repeat=p['repeat'],
+                                     days=p.get('days', 'Sunday'),
+                                     occurrence=p.get('occurrence', '1st'),
                                      startProductionState=p['startProductionState'],
                                      enabled=p['enabled']
                                 )      

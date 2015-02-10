@@ -1,18 +1,18 @@
 <!--
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 -->
 
 <metal:block  metal:define-macro="base-new">
     <!DOCTYPE html>
 <html>
-    <head>        
+    <head>
         <title>
             <tal:block tal:content="here/dmd/instanceIdentifier"/>:
             <tal:block metal:define-slot="title">
@@ -20,8 +20,8 @@
             </tal:block>
         </title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
-        <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
+        <link rel="icon" href="/zport/dmd/favicon.ico?v=3" type="image/x-icon"/>
+        <link rel="shortcut icon" href="/zport/dmd/favicon.ico?v=3" type="image/x-icon"/>
 
         <link rel="stylesheet" type="text/css"
               tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/xtheme-zenoss.css')"
@@ -38,6 +38,7 @@
             />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
+        <tal:block tal:content="structure provider:all-css"/>
         <script tal:define="container context/getPrimaryParent" tal:content="string:
             Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
         " tal:on-error="string:"></script>
@@ -72,12 +73,7 @@
                                     <div id="help-icon-container">
                                         <span></span><!-- ie needs empty span tags in some versions -->
                                         <a
-                                            tal:condition="python:here.dmd.getProductName()=='enterprise'"
-                                           tal:attributes="href string:http://community.zenoss.org/community/documentation/servicedynamics/resource_manager_administration?view=overview"
-                                           target="_blank" alt="Help">&nbsp;</a>
-                                        <a
-                                            tal:condition="python:here.dmd.getProductName()!='enterprise'"
-                                           tal:attributes="href string:http://www.zenoss.com/help?version=${here/dmd/About/getZenossVersionShort}"
+                                           tal:attributes="href python:here.dmd.getProductHelpLink()"
                                            target="_blank" alt="Help">&nbsp;</a>
                                     </div>
                                 </div>

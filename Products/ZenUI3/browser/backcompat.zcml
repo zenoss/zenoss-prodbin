@@ -200,13 +200,6 @@
     permission="zenoss.View"
     />
 
-<browser:page
-    template="../../ZenModel/skins/zenmodel/backupInfo.pt"
-    name="backupInfo"
-    for="*"
-    permission="zenoss.View"
-    />
-
 <adapter
     for="Products.ZenModel.MibNode.MibNode"
     provides=".interfaces.INewPath"
@@ -444,8 +437,15 @@
     for="Products.ZenModel.Manufacturer.Manufacturer"
     provides=".interfaces.INewPath"
     factory=".backcompat.Manufacturer"
-    />   
-    
+    />
+
+<adapter
+    for="Products.ZenModel.ProductClass.ProductClass"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.ProductClass"
+    />
+
+
 <adapter
     for="Products.ZenEvents.EventClassInst.EventClassInst"
     provides=".interfaces.INewPath"

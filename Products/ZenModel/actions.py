@@ -8,6 +8,7 @@
 ##############################################################################
 
 
+import os
 import re
 from time import strftime, localtime
 import socket
@@ -47,7 +48,7 @@ from Products.ZenUtils import Utils
 from Products.ZenUtils.IpUtil import getHostByName, isip
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
-from Products.ZenUtils.ZenTales import talesEvalStr, InvalidTalesException
+from Products.ZenUtils.ZenTales import talesEval, InvalidTalesException
 from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG,
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
@@ -98,9 +99,8 @@ def processTalSource(source, **kwargs):
             raise TalesMissingZenossDevice(message)
 
     try:
-        sourceStr = source
         context = kwargs.get('here')
-        return talesEvalStr(sourceStr, context, kwargs)
+        return talesEval(source, context, kwargs)
     except CompilerError as ex:
         message = "%s: %s" % (ex, source)
         log.error("%s context = %s data = %s", message, context, kwargs)
@@ -250,7 +250,12 @@ class IActionBase(object):
         """
         Parse the event data out from the signal
         """
-        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+        # use zopeurl in the zenactiond.conf file if it is defined else use the value from DMD
+        zopeurl = self.options.get('zopeurl')
+        if zopeurl == Utils.getDefaultZopeUrl() and hasattr(self, "zenossHostname"):
+            zopeurl = self.zenossHostname
+
+        data = _signalToContextDict(signal, zopeurl, notification, self.guidManager)
         return data
 
 
@@ -268,7 +273,7 @@ class TargetableAction(object):
         """
         pass
 
-    def getTargets(self, notification):
+    def getTargets(self, notification, signal = None):
         targets = set()
         for recipient in notification.recipients:
             if recipient['type'] in ['group', 'user']:
@@ -307,26 +312,29 @@ class TargetableAction(object):
         self.setupAction(notification.dmd)
 
         exceptionTargets = []
-        targets = self.getTargets(notification)
-        if self.shouldExecuteInBatch:
-            try:
-                log.debug("Executing batch action for targets.")
-                self.executeBatch(notification, signal, targets)
-            except Exception, e:
-                self.handleExecuteError(e, notification, targets)
-                exceptionTargets.extend(targets)
-        else:
-            log.debug("Executing action serially for targets.")
-            for target in targets:
+        targets = self.getTargets(notification, signal)
+        if targets:
+            if self.shouldExecuteInBatch:
                 try:
-                    self.executeOnTarget(notification, signal, target)
-                    log.debug('Done executing action for target: %s' % target)
+                    log.debug("Executing batch action for targets.")
+                    self.executeBatch(notification, signal, targets)
                 except Exception, e:
-                    self.handleExecuteError(e, notification, target)
-                    exceptionTargets.append(target)
+                    self.handleExecuteError(e, notification, targets)
+                    exceptionTargets.extend(targets)
+            else:
+                log.debug("Executing action serially for targets.")
+                for target in targets:
+                    try:
+                        self.executeOnTarget(notification, signal, target)
+                        log.debug('Done executing action for target: %s' % target)
+                    except Exception, e:
+                        self.handleExecuteError(e, notification, target)
+                        exceptionTargets.append(target)
 
-        if exceptionTargets:
-            raise TargetableActionException(self, notification, exceptionTargets)
+            if exceptionTargets:
+                raise TargetableActionException(self, notification, exceptionTargets)
+        else:
+            log.debug("No action executed because no targets were found")
 
 
 class EmailAction(IActionBase, TargetableAction):
@@ -350,6 +358,24 @@ class EmailAction(IActionBase, TargetableAction):
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.zenossHostname = dmd.zenossHostname
+
+    def _get_recipients_from_signal(self, notification, signal):
+        ''' Check for any recipients passed in the event details '''
+        raw_recipients = self._signalToContextDict(signal, notification)['evt'].details.get('recipients', '')
+        recipients = [ recipient.strip() for recipient in raw_recipients.split(',') if recipient.strip() ]
+        return set(recipients)
+
+    def getTargets(self, notification, signal = None):
+
+        targets = super(EmailAction, self).getTargets(notification)
+
+        if signal:
+            signal_targets = self._get_recipients_from_signal(notification, signal)
+            if signal_targets:
+                log.debug('Adding recipients found in the event details: {0}'.format(','.join(signal_targets)))
+                targets = targets.union(signal_targets)
+        return targets
 
     def _encodeBody(self, body):
         """
@@ -466,20 +492,29 @@ class PageAction(IActionBase, TargetableAction):
     id = 'page'
     name = 'Page'
     actionContentInfo = IPageActionContentInfo
+    shouldExecuteInBatch = False
 
-    def __init__(self):
-        super(PageAction, self).__init__()
+    def configure(self, options):
+        super(PageAction, self).configure(options)
+        self.pagingWorkersTimeout = options.get('pagingWorkersTimeout', 30)
+        self.processQueue = ProcessQueue(options.get('maxPagingWorkers', 1))
+        self.processQueue.start()
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.dmd = dmd
         self.page_command = dmd.pageCommand
+        self.zenossHostname = dmd.zenossHostname
 
     def executeOnTarget(self, notification, signal, target):
-        """
-        @TODO: handle the deferred parameter on the sendPage call.
-        """
-        log.debug('Executing action: Page')
+        log.debug('Executing Page %s action on %s', self.name, target)
+        environ = dict(os.environ)
+        environ["RECIPIENT"] = target
+        self._execute(notification, signal, environ)
 
+    def _execute(self, notification, signal, env={}):
+        self.setupAction(notification.dmd)
+        log.debug('Executing page action: %s', self.name)
         data = self._signalToContextDict(signal, notification)
         if signal.clear:
             log.debug('This is a clearing signal.')
@@ -487,16 +522,18 @@ class PageAction(IActionBase, TargetableAction):
         else:
             subject = processTalSource(notification.content['subject_format'], **data)
 
-        success, errorMsg = Utils.sendPage(
-            target, subject, self.page_command,
-            #deferred=self.options.cycle)
-            deferred=False)
+        msg = str(subject)
 
-        if success:
-            log.debug("Notification '%s' sent page to %s." % (notification, target))
-        else:
-            raise ActionExecutionException(
-                "Notification '%s' failed to send page to %s. (%s)" % (notification, target, errorMsg))
+        log.debug('Sending page message: "%s"', msg)
+        _protocol = SendPageProtocol(msg, notification)
+        log.debug('Queueing up page action process. Page command is %s', self.page_command)
+        self.processQueue.queueProcess(
+            '/bin/sh', ('/bin/sh', '-c', self.page_command),
+            env=env,
+            processProtocol=_protocol,
+            timeout=self.pagingWorkersTimeout,
+            timeout_callback=_protocol.timedOut
+        )
 
     def getActionableTargets(self, target):
         """
@@ -558,6 +595,58 @@ class EventCommandProtocol(ProcessProtocol):
                       component="zenactiond")
         self.notification.dmd.ZenEventManager.sendEvent(event)
 
+class SendPageProtocol(ProcessProtocol):
+    def __init__(self, msg, notification):
+        self.notification = notification
+        self.msg = msg
+        self.out = ''
+        self.err = ''
+
+    def connectionMade(self):
+        log.debug("Writing to subproccess stdin")
+        self.transport.write(self.msg)
+        self.transport.closeStdin()
+
+    def outReceived(self, data):
+        self.out += data
+
+    def errReceived(self, data):
+        self.err += data
+
+    def timedOut(self, reason):
+        message = "Paging command %s timed out -- %s: stdout: %s\nstderr: %s" % (
+                  self.notification.titleOrId(), self.out, self.err)
+        log.error(message)
+        self.sendEvent(reason, "Paging command timed out", message, SEVERITY_ERROR)
+        return reason
+
+    def processEnded(self, reason):
+        code = reason.value.exitCode
+        if code == 0:
+            message = "Paging message sent successfully (exit code 0) with the following output: %s %s" % (
+                     self.out, self.err)
+            log.info(message)
+            self.sendEvent(reason, "Paging failed", message, SEVERITY_CLEAR)
+        else:
+            message = "Failed to send paging message \"%s\" (exit code %s) -- %s: stdout: %s\nstderr: %s" % (
+                      self.msg, reason.getErrorMessage(), code, self.out, self.err)
+            log.error(message)
+            self.sendEvent(reason, "Paging command failed", message, SEVERITY_ERROR)
+
+    def sendEvent(self, reason, summary, message, severity):
+        eventKey = '_'.join([self.notification.action, self.notification.id])
+        event = Event(device="localhost",
+                      eventClass="/Cmd/Failed",
+                      summary="%s %s" % (self.notification.id, summary),
+                      message=message,
+                      eventKey=eventKey,
+                      notification=self.notification.titleOrId(),
+                      stdout=self.out,
+                      stderr=self.err,
+                      severity=severity,
+                      component="zenactiond")
+        self.notification.dmd.ZenEventManager.sendEvent(event)
+
 
 class CommandAction(IActionBase, TargetableAction):
     implements(IAction)
@@ -576,6 +665,7 @@ class CommandAction(IActionBase, TargetableAction):
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
         self.dmd = dmd
+        self.zenossHostname = dmd.zenossHostname
 
     def execute(self, notification, signal):
         # check to see if we have any targets
@@ -586,7 +676,7 @@ class CommandAction(IActionBase, TargetableAction):
 
     def executeOnTarget(self, notification, signal, target):
         log.debug('Executing command action: %s on %s', self.name, target)
-        environ ={}
+        environ = {}
         environ['user'] = getattr(self.dmd.ZenUsers, target, None)
         self._execute(notification, signal, environ)
 
@@ -600,7 +690,7 @@ class CommandAction(IActionBase, TargetableAction):
             command = notification.content['body_format']
 
         log.debug('Executing this command: %s', command)
-        
+
         actor = signal.event.occurrence[0].actor
         device = None
         if actor.element_uuid:
@@ -611,7 +701,9 @@ class CommandAction(IActionBase, TargetableAction):
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
         user_env_format = notification.content.get('user_env_format', '') or ''
-        env = dict( envvar.split('=') for envvar in user_env_format.split(';') if '=' in envvar)
+        env = os.environ.copy()
+        user_env = dict( envvar.split('=', 1) for envvar in user_env_format.split(';') if '=' in envvar)
+        env.update(user_env)
         environ = {'dev': device, 'component': component, 'dmd': notification.dmd, 'env': env}
         data = self._signalToContextDict(signal, notification)
         environ.update(data)
@@ -677,6 +769,7 @@ class SNMPTrapAction(IActionBase):
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.zenossHostname = dmd.zenossHostname
 
     def execute(self, notification, signal):
         """
@@ -843,6 +936,7 @@ class SyslogAction(IActionBase):
      #      ALERT     1
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
+        self.zenossHostname = dmd.zenossHostname
 
     def execute(self, notification, signal):
         """
@@ -858,7 +952,6 @@ class SyslogAction(IActionBase):
         facility = self.getFacility(notification.content, event)
         priority = self.getPriority(notification.content, event)
         device = self.getDeviceName(event)
-        #import pdb;pdb.set_trace()
 
         packet = self._makeSyslogPacket(facility, priority, event.last_seen_time,
                                         device, event.summary)

@@ -18,11 +18,13 @@ from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
 
 from zenoss.protocols.interfaces import IQueueSchema
-from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
+from zenoss.protocols.services.zep import ZepStatsClient, ZepServiceClient, \
+                                        EventSeverity, ZepConfigClient, \
+                                        ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import (
     EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig, EventNote,
-    EventSummaryUpdate, EventDetailSet,
+    EventSummaryUpdate, EventDetailSet, ZepStatistics
 )
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils import safeTuple
@@ -48,6 +50,12 @@ class InvalidQueryParameterException(Exception):
     Raised when a query is attempted with invalid search criteria.
     """
 
+class NoFiltersException(Exception):
+    """
+    Raised when an operation that requires filters is called without them.
+    closeEventSummaries, reopenEventSummaries or acknowledgeEventSummaries
+    raise this exception.
+    """
 
 class ZepFacade(ZuulFacade):
     implements(IZepFacade)
@@ -92,6 +100,13 @@ class ZepFacade(ZuulFacade):
     }
     ZENOSS_DETAIL_NEW_TO_OLD_MAPPING = dict((new, old) for old, new in ZENOSS_DETAIL_OLD_TO_NEW_MAPPING.iteritems())
 
+    JAVA_MIN_INTEGER = -2147483648
+    # Values that zep uses to index details with no value
+    ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE = JAVA_MIN_INTEGER
+    ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE = '\x07'
+
+    SEVERITIES_BATCH_SIZE = 400
+
     COUNT_REGEX = re.compile(r'^(?P<from>\d+)?:?(?P<to>\d+)?$')
 
     def __init__(self, context):
@@ -103,6 +118,7 @@ class ZepFacade(ZuulFacade):
         self.configClient = ZepConfigClient(zep_url, schema)
         self.heartbeatClient = ZepHeartbeatClient(zep_url, schema)
         self._guidManager = IGUIDManager(context.dmd)
+        self.statsClient = ZepStatsClient(zep_url, schema)
 
     def _create_identifier_filter(self, value):
         if not isinstance(value, (tuple, list, set)):
@@ -312,6 +328,11 @@ class ZepFacade(ZuulFacade):
 
         self.client.addNote(uuid, message, userUuid, userName)
 
+    def addNoteBulkAsync(self, uuids, message, userName, userUuid=None):
+        if userName and not userUuid:
+            userUuid = self._getUserUuid(userName)
+
+        self.client.addNoteBulkAsync(uuids, message, userUuid, userName)
 
     def postNote(self, uuid, note):
         self.client.postNote(uuid, from_dict(EventNote, note))
@@ -408,7 +429,7 @@ class ZepFacade(ZuulFacade):
         status, response = self.client.nextEventSummaryUpdate(from_dict(EventSummaryUpdateRequest, next_request))
         return status, to_dict(response)
 
-    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
+    def _processArgs(self, eventFilter, exclusionFilter, userName):
         if eventFilter:
             eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
@@ -418,36 +439,40 @@ class ZepFacade(ZuulFacade):
             userUuid, userName = self._findUserInfo()
         else:
             userUuid = self._getUserUuid(userName)
+
+        if eventFilter is None and exclusionFilter is None:
+            raise NoFiltersException("Cannot modify event summaries without at least one filter specified.")
+
+        return {'eventFilter': eventFilter, 'exclusionFilter': exclusionFilter,
+                'userName': userName, 'userUuid': userUuid}
+
+    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
+        arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+        eventFilter = arguments.get('eventFilter')
+        exclusionFilter = arguments.get('exclusionFilter')
+        userName = arguments.get('userName')
+        userUuid = arguments.get('userUuid')
         status, response = self.client.closeEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit, timeout=timeout)
         return status, to_dict(response)
 
     def acknowledgeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None,
                                   timeout=None):
-        if eventFilter:
-            eventFilter = from_dict(EventFilter, eventFilter)
-
-        if exclusionFilter:
-            exclusionFilter = from_dict(EventFilter, exclusionFilter)
-
-        if not userName:
-            userUuid, userName = self._findUserInfo()
-        else:
-            userUuid = self._getUserUuid(userName)
+        arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+        eventFilter = arguments.get('eventFilter')
+        exclusionFilter = arguments.get('exclusionFilter')
+        userName = arguments.get('userName')
+        userUuid = arguments.get('userUuid')
         status, response = self.client.acknowledgeEventSummaries(userUuid, userName, eventFilter, exclusionFilter,
                                                                  limit, timeout=timeout)
         return status, to_dict(response)
 
     def reopenEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None, timeout=None):
-        if eventFilter:
-            eventFilter = from_dict(EventFilter, eventFilter)
-        if exclusionFilter:
-            exclusionFilter = from_dict(EventFilter, exclusionFilter)
-
-        if not userName:
-            userUuid, userName = self._findUserInfo()
-        else:
-            userUuid = self._getUserUuid(userName)
+        arguments = self._processArgs(eventFilter, exclusionFilter, userName)
+        eventFilter = arguments.get('eventFilter')
+        exclusionFilter = arguments.get('exclusionFilter')
+        userName = arguments.get('userName')
+        userUuid = arguments.get('userUuid')
         status, response = self.client.reopenEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit, timeout=timeout)
         return status, to_dict(response)
@@ -497,21 +522,44 @@ class ZepFacade(ZuulFacade):
         return uuids
 
     def getEventSeveritiesByUuid(self, tagUuid, severities=(), status=()):
-        topLevelUuids = self._getTopLevelOrganizerUuids(tagUuid)
-        if topLevelUuids:
+        """ returns a dict of severities for the element tagUuid """
+        uuids = [ tagUuid ]
+        return self.getEventSeveritiesByUuids(uuids , severities=severities, status=status)[tagUuid]
+
+
+    def getEventSeveritiesByUuids(self, tagUuids, severities=(), status=()):
+        """ returns a dict whose keys are each uuid in tagUuids and values the dict of severities per uuid """
+        uuids = []
+        requested_uuids = {}
+        for uuid in tagUuids:
+            children_uuids = self._getTopLevelOrganizerUuids(uuid)
+            if children_uuids:
+                requested_uuids[uuid] = children_uuids
+                uuids.extend(children_uuids)
+            else:
+                requested_uuids[uuid] = [ uuid ]
+                uuids.append(uuid)
+
+        uuids = list(set(uuids))
+        severities = self.getEventSeverities(uuids, severities=severities, status=status)
+
+        severities_to_return = {}
+
+        for requested_uuid in requested_uuids.keys():
+            children_uuids = requested_uuids[requested_uuid]
             sevmap = {}
-            # Condense counts of child organizers into a flattened out count
-            for uuid, sevs in self.getEventSeverities(topLevelUuids, severities=severities, status=status).iteritems():
+            for uuid in children_uuids:
+                sevs = severities[uuid]
                 for sev, counts in sevs.iteritems():
                     counts_dict = sevmap.get(sev)
                     if counts_dict:
+                        # Condense counts of child organizers into a flattened out count
                         counts_dict['count'] += counts['count']
                         counts_dict['acknowledged_count'] += counts['acknowledged_count']
                     else:
                         sevmap[sev] = counts
-            return sevmap
-
-        return self.getEventSeverities(tagUuid, severities=severities, status=status)[tagUuid]
+            severities_to_return[requested_uuid] = sevmap
+        return severities_to_return
 
     def _createSeveritiesDict(self, eventTagSeverities):
         severities = {}
@@ -539,8 +587,30 @@ class ZepFacade(ZuulFacade):
         @rtype: dict
         @return: A dictionary of UUID -> { C{EventSeverity} -> { count, acknowledged_count } }
         """
-        eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=tagUuids, eventClass=eventClass)
-        return self._createSeveritiesDict(eventTagSeverities)
+        objects_severities = {}
+        number_of_uuids = len(tagUuids)
+        batch_size = ZepFacade.SEVERITIES_BATCH_SIZE
+
+        number_of_batches = number_of_uuids / batch_size
+        if (number_of_uuids % batch_size) > 0:
+            number_of_batches = number_of_batches + 1
+
+        if number_of_batches > 1:
+            log.info("Retrieving severities for {0} uuids.".format(number_of_uuids))
+
+        for batch in range(0, number_of_batches):
+            start = batch*batch_size
+            end = (start + batch_size)
+            if end > number_of_uuids:
+                end = number_of_uuids
+
+	    tagUuids = list(tagUuids)   # dirty hack :)
+            uuids = tagUuids[start:end]
+
+            eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=uuids, eventClass=eventClass)
+            objects_severities.update(self._createSeveritiesDict(eventTagSeverities))
+
+        return objects_severities
 
     def getWorstSeverityByUuid(self, tagUuid, default=SEVERITY_CLEAR, ignore=()):
         return self.getWorstSeverity([tagUuid], default=default, ignore=ignore)[tagUuid]
@@ -845,11 +915,27 @@ class ZepFacade(ZuulFacade):
         """
         Given an evid, update the detail key/value pairs in ZEP.
         """
+
+        if len(detailInfo) == 1 and isinstance(detailInfo.values()[0], EventDetailSet):
+            return self.client.updateDetails(evid, detailInfo.values()[0])
+
         detailSet = EventDetailSet()
         for key, value in detailInfo.items():
             detailSet.details.add(name=key, value=(value,))
 
-        return self.zep.client.updateDetails(evid, detailSet)
+        return self.client.updateDetails(evid, detailSet)
+
+    def getStats(self):
+        response, stats = self.statsClient.get()
+        statsList = []
+        for stat in stats.stats:
+            myst = {}
+            myst['name'] = stat.name
+            myst['description'] = stat.description
+            myst['value'] = stat.value
+            statsList.append(myst)
+        return statsList
+
 
 
 class ZepDetailsInfo:

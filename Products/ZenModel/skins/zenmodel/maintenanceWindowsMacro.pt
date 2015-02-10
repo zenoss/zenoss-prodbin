@@ -68,7 +68,7 @@ Optional titlebar stuff
     </td>
     <td class="tablevalues" tal:content="mw/niceStartDateTime"/>
     <td class="tablevalues" tal:content="mw/niceDuration"/>
-    <td class="tablevalues" tal:content="mw/repeat"/>
+    <td class="tablevalues" tal:content="mw/niceRepeat"/>
     <td class="tablevalues" tal:content="mw/niceStartProductionState"/>
     <td class="tablevalues" tal:content="mw/niceStopProductionState"/>
     <td class="tablevalues" tal:content="mw/enabled"/>

@@ -1,6 +1,6 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
-
+<form method=post tal:attributes="action string:${here/absolute_url_path}" name="editUserForm"  id="editUserForm" autocomplete="off">
 <script type="text/javascript">
 function ConfirmEmailTest() {
     return confirm(
@@ -18,7 +18,7 @@ function ConfirmPagerTest() {
 
 function resetPassword(){
     if (confirm("Are you sure you want to reset this user's password?")) {
-        /*  added a hidden input to act as the 'real' submit button 
+        /*  added a hidden input to act as the 'real' submit button
             next to the visible submit button. This 'real' submit button
             gets us around the use of the popup confirm submit button conflict.
             We simulate a click on this hidden 'real' submit button below
@@ -36,6 +36,12 @@ function clearBrowserState(event){
         Zenoss.remote.MessagingRouter.clearBrowserState();
     }
 }
+
+setTimeout(function () {
+        document.getElementById('user_settings_new_password_input').autocomplete = 'off';
+        document.getElementById('user_settings_confirmpassword_input').autocomplete = 'off';
+    }, 1);
+
 </script>
 
 
@@ -61,15 +67,15 @@ function clearBrowserState(event){
     <tr>
     <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
       <form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
-        <div style="background:#ddd;width:372px;height:40px;">
-            <div style="float:left;width:230px;height:40px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+        <div style="background:#ddd;width:374px;height:40px;">
+            <div style="float:left;width:226px;height:40px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
                 Automatically generate a new password and send it to the email listed below.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
               <input type="submit" name="manage_resetPassword:method" id="resetInitiator" style="display:none;" />
               <input type="button" value="Reset Password"
                      tabindex="-1"
-                     style="height:30px;width:132px;text-align:center;"
+                     style="height:30px;width:136px;text-align:center;"
                      onclick="resetPassword()"
                      class="tableheader"
                      id="passwordResetButton" />
@@ -87,12 +93,12 @@ function clearBrowserState(event){
     </tr>
     <tr tal:condition="here/isLoggedInUser">
     <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
-        <div style="background:#ddd;width:372px;height:50px;">
-            <div style="float:left;width:230px;height:50px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+        <div style="background:#ddd;width:374px;height:50px;">
+            <div style="float:left;width:226px;height:50px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
                 Reset all preferences such as grid columns and filters to their default values.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
-            <button id="user_settings_reset_prefs_submit" style="height:30px;width:132px;text-align:center;"
+            <button id="user_settings_reset_prefs_submit" style="height:30px;width:136px;text-align:center;"
                    onclick="clearBrowserState(event)"
                    class="tableheader">
                Reset Preferences
@@ -102,7 +108,7 @@ function clearBrowserState(event){
     </td>
     </tr>
 
-<form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
+
 
     <tr>
     <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
@@ -231,7 +237,7 @@ function clearBrowserState(event){
 
     <tr>
         <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
-            <strong>Enter current password to confirm changes</strong>
+            <strong>Current Password for  <tal:block tal:content="request/AUTHENTICATED_USER"/></strong>
         </td>
         <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan=3>
             <div style="float:left;">
@@ -249,7 +255,7 @@ function clearBrowserState(event){
     </tr>
 
 
-</form>
+
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
@@ -269,5 +275,6 @@ function clearBrowserState(event){
         }
     });
 </script>
+</form>
 </tal:block>
 </tal:block>

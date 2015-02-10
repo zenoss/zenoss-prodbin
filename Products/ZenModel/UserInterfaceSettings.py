@@ -28,6 +28,7 @@ class UserInterfaceSettings(ZenModelRM):
     _relations = ()
 
     _properties = (
+        {'id': 'enableInfiniteGridForEvents', 'type': 'boolean', 'mode': 'w'},
         {'id': 'enableLiveSearch', 'type': 'boolean', 'mode': 'w'},        
         {'id': 'incrementalTreeLoad', 'type': 'boolean', 'mode': 'w'},
         {'id': 'showEventSeverityIcons', 'type': 'boolean', 'mode': 'w'},
@@ -37,11 +38,13 @@ class UserInterfaceSettings(ZenModelRM):
         {'id': 'componentGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'eventConsoleBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'deviceMoveJobThreshold', 'type': 'int', 'mode': 'w'},
-        {'id': 'zenjobsRefreshInterval', 'type' : 'int', 'mode':'w'},        
+        {'id': 'zenjobsRefreshInterval', 'type' : 'int', 'mode':'w'},
+        {'id': 'zenjobsGridBufferSize', 'type' : 'int', 'mode':'w'},
         )
 
     # information about the properties that is used for the UI
     _propertyMetaData = {
+        'enableInfiniteGridForEvents': {'xtype': 'checkbox', 'name': _t('Enable Infinite Grids for Events'), 'defaultValue': True},
         'enableLiveSearch': {'xtype': 'checkbox', 'name': _t('Enable Live Filters'), 'defaultValue': True},
         'incrementalTreeLoad': {'xtype': 'checkbox', 'name': _t('Enable Incremental Tree Loading on the Infrastructure Page'), 'defaultValue': True},
         'showEventSeverityIcons': {'xtype': 'checkbox', 'name': _t('Show Tree Event Severity Icons (disabling may speed up the page load)'), 'defaultValue': True},
@@ -51,7 +54,8 @@ class UserInterfaceSettings(ZenModelRM):
         'eventConsoleBufferSize': {'xtype': 'numberfield', 'name': _t('Event Console Buffer Size'), 'defaultValue': 200, 'minValue': 50, 'maxValue': 1000, 'allowBlank': False},
         'deviceMoveJobThreshold': {'xtype': 'numberfield', 'name': _t('Device Move Job Threshold'), 'defaultValue': 5, 'minValue': 0, 'allowBlank': False},
         'zenjobsRefreshInterval': {'xtype': 'numberfield', 'name': _t('Job Notification Refresh Interval (seconds)'), 'defaultValue' : 10, 'minValue' : 1, 'maxValue': 300, 'allowBlank': False},
-        'showPageStatistics': {'xtype': 'checkbox', 'name': _t('Show Page Statistics (debug information)'), 'defaultValue' : False} 
+        'showPageStatistics': {'xtype': 'checkbox', 'name': _t('Show Page Statistics (debug information)'), 'defaultValue' : False},
+        'zenjobsGridBufferSize': {'xtype': 'numberfield', 'name': _t('Job Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 300, 'allowBlank': False}, 
     }
 
     def getInterfaceSettings(self):

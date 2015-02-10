@@ -71,9 +71,18 @@ class PrimaryPathManager(ZItem, Implicit, RoleManager):
     def primaryAq(self):
         """Return self with is acquisition path set to primary path"""
         parent = getattr(self, "__primary_parent__", _MARKER)
-        if parent is _MARKER: # dmd - no __primary_parent__
-            base = self.getPhysicalRoot().zport
-            return aq_base(self).__of__(base)
+        if parent is _MARKER:
+            # dmd is the only PrimaryPathManager with no __primary_parent__.
+            # Need to go get zport in a safe way to be the acquisition parent.
+            app = self.getPhysicalRoot()
+            basepath = getattr(self, "zPrimaryBasePath", ())
+            if basepath:
+                # Hooray, we can get zport.
+                zport = getattr(app, basepath[-1])
+                return aq_base(self).__of__(zport)
+            # No base path; probably in a test scenario. This is as far
+            # as we can go, anyway. Just return self as the root.
+            return aq_base(self)
         if parent is None: # Deleted object
             raise KeyError(self.id)
         return aq_base(self).__of__(parent.primaryAq())

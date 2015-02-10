@@ -19,6 +19,7 @@
             this.setDisabled(this.checkDisabled());
         },
         checkDisabled: function() {
+            if (this.permitted) return false;
             if (this.externallyDisabled) return true;
             if (!this.permitted && !this.filtered) return true;
             return false;

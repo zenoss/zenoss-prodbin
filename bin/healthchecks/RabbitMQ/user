@@ -1,0 +1,24 @@
+#! /bin/sh
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2014, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+# RabbitMQ/user
+#    Ensures that there exists a rabbitmq user with the management tag set and
+#   with the name and password passed in.
+
+set -e
+SENTINEL=/tmp/rabbit_credentials_ok
+if [ ! -e $SENTINEL ] ; then
+    USER=$1
+    PASSWORD=$2
+    rabbitmqctl add_user $USER $PASSWORD || true
+    rabbitmqctl change_password $USER $PASSWORD
+    rabbitmqctl set_user_tags $USER management
+    touch $SENTINEL
+fi

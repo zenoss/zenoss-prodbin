@@ -141,7 +141,8 @@ class ZPLObject(ZenPackLoader):
 
     def objectFiles(self, pack):
         def isXml(f): return f.endswith('.xml')
-        return findFiles(pack, 'objects', isXml)
+        return sorted(findFiles(pack, 'objects', isXml),
+              key = lambda f: -1 if f.endswith('objects.xml') else 0)
 
 
 class ZPLReport(ZPLObject):
@@ -206,8 +207,9 @@ class ZPLDaemons(ZenPackLoader):
         """
         for fs in findFiles(pack, 'daemons', filter=self.filter):
             name = fs.rsplit('/', 1)[-1]
-            logpath = pack.About._getLogPath(name).rsplit('/', 1)[0]
-            if logpath != zenPath('log'):
+            logpath = getattr(pack, 'About', False) and \
+                    pack.About._getLogPath(name).rsplit('/', 1)[0]
+            if logpath and logpath != zenPath('log'):
                 try:
                     with open(zenPath('etc', '%s.conf' % name), 'r') as conf: 
                         confFile = ConfigFile(conf) 

@@ -150,13 +150,14 @@ Ext.onReady(function () {
      **/
 
     notificationPanelConfig = {
-        id: 'notification_panel'
+        id: 'notification_panel',
+        invalidateScrollerOnRefresh: false
     };
 
     schedulesPanelConfig = {
-        id: 'schedules_panel'
+        id: 'schedules_panel',
+        invalidateScrollerOnRefresh: false
     };
-
 
     disableTabContents = function(tab) {
         // disable everything in this tab, but then re-enable the tab itself so
@@ -595,7 +596,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     {
                         xtype:'checkbox',
                         name: 'notification_globalWrite',
-                        id: 'notifications_recipients_globalwrite_checkbox',                        
+                        id: 'notifications_recipients_globalwrite_checkbox',
                         ref: '../globalWrite',
                         boxLabel: _t('Everyone can edit content'),
                         hideLabel: true
@@ -603,7 +604,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     {
                         xtype:'checkbox',
                         name: 'notification_globalManage',
-                        id: 'notifications_recipients_globalmanage_checkbox',                        
+                        id: 'notifications_recipients_globalmanage_checkbox',
                         ref: '../globalManage',
                         boxLabel: _t('Everyone can manage subscriptions'),
                         hideLabel: true
@@ -647,10 +648,15 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             ]
         });
 
+        var reloadNotificationGridFn = function() {
+            reloadNotificationGrid.apply(this, arguments);
+            schedules_panel.getStore().removeAll();
+        };
+
         var dialogue =  Ext.create('Zenoss.triggers.EditNotificationDialogue', {
             title: _t('Edit Notification'),
             directFn: router.updateNotification,
-            reloadFn: reloadNotificationGrid,
+            reloadFn: reloadNotificationGridFn,
             tabPanel: tab_panel
         });
 
@@ -799,7 +805,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     },{
                         xtype: 'DialogButton',
                         ref: '../../cancelButton',
-                        id: 'notifications_edit_cancel_button',                        
+                        id: 'notifications_edit_cancel_button',
                         text: _t('Cancel'),
                         handler: function(){
                             me.hide();
@@ -854,7 +860,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             xtype: 'datefield',
                             name: 'start',
                             ref: 'start',
-                            id: 'edit_notification_schedule_start_datefield',                            
+                            id: 'edit_notification_schedule_start_datefield',
                             format: 'm-d-Y',
                             allowBlank: false,
                             fieldLabel: _t('Start Date')
@@ -862,7 +868,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             xtype: 'timefield',
                             name: 'starttime',
                             ref: 'starttime',
-                            id: 'edit_notification_schedule_starttime_timefield',                            
+                            id: 'edit_notification_schedule_starttime_timefield',
                             allowBlank: false,
                             format: 'H:i',
                             submitFormat: 'H:i',
@@ -883,7 +889,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             }),
                             queryMode: 'local',
                             name: 'repeat',
-                            id: 'edit_notification_schedule_repeat_checkbox',                            
+                            id: 'edit_notification_schedule_repeat_checkbox',
                             allowBlank: false,
                             required: true,
                             editable: false,
@@ -895,7 +901,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             xtype: 'numberfield',
                             allowNegative: false,
                             allowDecimals: false,
-                            id: 'edit_notification_schedule_duration_numberfield',                            
+                            id: 'edit_notification_schedule_duration_numberfield',
                             name: 'duration',
                             ref: 'duration',
                             fieldLabel: _t('Duration (minutes)')
@@ -907,7 +913,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             ui: 'dialog-dark',
                             text: _t('Submit'),
                             ref: '../../submitButton',
-                            id: 'edit_notification_schedule_submit_button',                            
+                            id: 'edit_notification_schedule_submit_button',
                             handler: function(button) {
                                 if (config.submitHandler) {
                                     config.submitHandler(button);
@@ -923,7 +929,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                             xtype: 'button',
                             ui: 'dialog-dark',
                             ref: '../../cancelButton',
-                            id: 'edit_notification_schedule_cancel_button',                            
+                            id: 'edit_notification_schedule_cancel_button',
                             text: _t('Cancel'),
                             handler: function(button) {
                                 button.refOwner.hide();
@@ -1084,14 +1090,16 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     iconCls: 'add',
                     ref: '../addButton',
                     id: 'notifications_panel_add_button',
+                    disabled: Zenoss.Security.doesNotHavePermission("Update Notification"),
                     handler: function(button) {
                         displayNotificationAddDialogue();
                     }
                 },{
                     xtype: 'button',
                     iconCls: 'delete',
-                    id: 'notifications_panel_delete_button',                    
+                    id: 'notifications_panel_delete_button',
                     ref: '../deleteButton',
+                    disabled: Zenoss.Security.doesNotHavePermission("Update Notification"),
                     handler: function(button) {
                         var rows = button.refOwner.getSelectionModel().getSelection(),
                             row,
@@ -1133,7 +1141,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 },{
                     xtype: 'button',
                     iconCls: 'customize',
-                    id: 'notifications_panel_customize_button',                    
+                    id: 'notifications_panel_customize_button',
                     disabled:true,
                     ref: '../customizeButton',
                     handler: function(button){
@@ -1207,7 +1215,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     listeners: {
                         select: function(sm, record, rowIndex) {
                             // enable/disabled the edit button
-                            me.deleteButton.setDisabled(false);
+                            var disable = Zenoss.Security.doesNotHavePermission("Update Trigger"); 
+                            me.deleteButton.setDisabled(disable);
                             me.customizeButton.setDisabled(false);
                         },
                         deselect: function(sm, record, rowIndex) {
@@ -1223,8 +1232,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                var table = Ext.get(t.getView().el.id).query('table');
                                table[0].id = "trigger_grid_table";
                             }, 1000);    
-                         }                          
-                        
+                         }
                     },
                     itemdblclick: function(grid, rowIndex, event) {
                         var rows = grid.getSelectionModel().getSelection();
@@ -1238,6 +1246,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         xtype: 'button',
                         iconCls: 'add',
                         id: 'add__new_trigger_button',
+                        disabled: Zenoss.Security.doesNotHavePermission('Manage Trigger'),
                         ref: '../addButton',
                         handler: function(button) {
                             addTriggerDialogue.show();
@@ -1246,6 +1255,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         xtype: 'button',
                         iconCls: 'delete',
                         id: 'delete_old_trigger_button',
+                        disabled: Zenoss.Security.doesNotHavePermission('Manage Trigger'),
                         ref: '../deleteButton',
                         handler: function(button) {
                             var rows = me.getSelectionModel().getSelection(),
@@ -1371,13 +1381,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         if(Zenoss.SELENIUM){ 
                             Ext.defer(function(){
                                var table = Ext.get(t.getView().el.id).query('table');
-                               table[0].id = "schedules_panel_grid_table";                               
-                            }, 1000);                                     
+                               table[0].id = "schedules_panel_grid_table";
+                            }, 1000);
                             t.getStore().on('datachanged', function(){
-                                Ext.defer(function(){                            
+                                Ext.defer(function(){
                                     var table = Ext.get(t.getView().el.id).query('table');
                                     table[0].id = "schedules_panel_grid_table";
-                                }, 1000);                                    
+                                }, 1000);
                             });  
                         }    
                     }
@@ -1386,7 +1396,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     listeners: {
                         select: function(sm, record, rowIndex) {
                             var row = sm.getSelected();
-                            me.customizeButton.setDisabled(false);
+                            var disable = Zenoss.Security.doesNotHavePermission("Update Notification");
+                            me.customizeButton.setDisabled(disable);
                         },
                         deselect: function(sm, record, rowIndex) {
                             me.customizeButton.setDisabled(true);
@@ -1427,7 +1438,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 },{
                     xtype: 'button',
                     iconCls: 'delete',
-                    id: 'schedules_panel_delete_button',                    
+                    id: 'schedules_panel_delete_button',
                     ref: '../deleteButton',
                     disabled: true,
                     handler: function(button) {
@@ -1459,7 +1470,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 },{
                     xtype: 'button',
                     iconCls: 'customize',
-                    id: 'schedules_panel_customize_button',                    
+                    id: 'schedules_panel_customize_button',
                     disabled:true,
                     ref: '../customizeButton',
                     handler: function(button){
@@ -1484,8 +1495,9 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             this.customizeButton.setDisabled(true);
         },
         disableButtons: function(bool){
-            this.addButton.setDisabled(bool);
-            this.deleteButton.setDisabled(bool);
+            var isok = Zenoss.Security.doesNotHavePermission('Manage Trigger');
+            this.addButton.setDisabled(bool || isok);
+            this.deleteButton.setDisabled(bool || isok);
         }
     });
 
@@ -1535,7 +1547,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
 
     triggersPanelConfig = {
         id: 'triggers_grid_panel',
-        xtype: 'TriggersGridPanel'
+        xtype: 'TriggersGridPanel',
+        invalidateScrollerOnRefresh: false
     };
 
     detailPanelConfig = {
@@ -1594,7 +1607,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         split: 'true',
         width: 275,
         maxWidth: 275,
-        autoScroll: false,        
+        autoScroll: false,
         items: [
             {
                 id: 'trigger-master_panel_navigation',
@@ -1611,18 +1624,17 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 listeners: {
                     render: function(f){
                         f.getView().getSelectionModel().select(0);
-                        if(Zenoss.SELENIUM){ 
+                        if(Zenoss.SELENIUM){
                             Ext.defer(function(){
-                                var nodes = f.getView().getNodes(); 
-                                Ext.each(nodes, function(item, index, allNodes) { 
+                                var nodes = f.getView().getNodes();
+                                Ext.each(nodes, function(item, index, allNodes) {
                                     item.id = "trigger_tree_tr_"+index; 
                                     Ext.get(item.id).query('div')[0].id = 'trigger_tree_tr_div_'+index;
                                 });
-                            }, 1000);    
-                         }                   
-                        
+                            }, 1000);
+                         }
                     }
-                },                
+                },
                 store: masterPanelTreeStore
             }
         ]
@@ -1895,7 +1907,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         title: _t('Trigger'),
         listeners: {
             render: function(){
-                if(Zenoss.SELENIUM){            
+                if(Zenoss.SELENIUM){
                     Ext.getDom(this.tab.btnEl.id).id = "trigger_tab_button";
                     Ext.getDom(this.tab.tabBar.items.items[1].btnEl.id).id = "users_tab_button";
                 }    
@@ -1942,7 +1954,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         id: 'users_rule',
         title: _t('Users'),
         autoScroll: true,
-        height: bigWindowHeight-110,       
+        height: bigWindowHeight-110,
         items: [
             {
                 xtype: 'panel',
@@ -1969,7 +1981,6 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         boxLabel: _t('Everyone can manage users'),
                         hideLabel: true
                     }
-
                 ]
             },{
                 xtype: 'usersPermissionGrid',

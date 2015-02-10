@@ -213,7 +213,8 @@ class SearchFacade(ZuulFacade):
                           category=None,
                           resultSorter=None,
                           filterFn=None,
-                          start=0, limit=50, sort="excerpt", dir="ASC"
+                          start=0, limit=50, sort="excerpt", dir="ASC",
+                          maxResults=None,
                           ):
         """
         The actual implementation of querying each provider.  This consists
@@ -234,7 +235,8 @@ class SearchFacade(ZuulFacade):
             providerResults = adapter.getSearchResults( parsedQuery,
                                                         category=category,
                                                         filterFn=filterFn,
-                                                        sorter=resultSorter
+                                                        sorter=resultSorter,
+                                                        maxResults=maxResults
                                                         )
 
             if providerResults:
@@ -326,7 +328,7 @@ class SearchFacade(ZuulFacade):
                                        dir=dir
                                        )
 
-    def getQuickSearchResults(self, query, resultSorter=DEFAULT_SORTER):
+    def getQuickSearchResults(self, query, resultSorter=DEFAULT_SORTER, maxResults=None):
         """
         Execute the query against registered search providers, returning
         abbreviated results for display in the quick search drop-down list.
@@ -334,8 +336,8 @@ class SearchFacade(ZuulFacade):
         @param query query string
         @return list of ISearchResult-implementing objects
         """
-        return self._getSearchResults(query,
-                                      resultSorter=resultSorter)
+        return self._getSearchResults(query, resultSorter=resultSorter,
+                maxResults=maxResults)
 
     def getSavedSearchesByUser(self):
         """

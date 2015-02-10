@@ -13,12 +13,15 @@ import time
 import logging
 import json
 import zope.interface
+from zope.component import getUtilitiesFor
 from twisted.internet import defer,  reactor, task
 from twisted.python.failure import Failure
+from optparse import SUPPRESS_HELP
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
                                              IEventService,\
+                                             IConfigurationDispatchingFilter,\
                                              IFrameworkFactory,\
                                              ITaskSplitter,\
                                              IConfigurationListener,\
@@ -31,6 +34,7 @@ from Products.ZenUtils.Utils import importClass, unused
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.picklezipper import Zipper
 from Products.ZenUtils.observable import ObservableProxy
+from Products.ZenUtils import metrics
 
 log = logging.getLogger("zen.daemon")
 
@@ -191,6 +195,14 @@ class CollectorDaemon(RRDDaemon):
         zope.component.provideUtility(self, IEventService)
         zope.component.provideUtility(self, IDataService)
 
+        # register the collector's own preferences object so it may be easily
+        # retrieved by factories, tasks, etc.
+        zope.component.provideUtility(self.preferences,
+                                      ICollectorPreferences,
+                                      self.preferences.collectorName)
+
+        super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
+
         # setup daemon statistics
         self._statService = StatisticsService()
         self._statService.addStatistic("devices", "GAUGE")
@@ -200,14 +212,6 @@ class CollectorDaemon(RRDDaemon):
         self._statService.addStatistic("queuedTasks", "GAUGE")
         self._statService.addStatistic("missedRuns", "GAUGE")
         zope.component.provideUtility(self._statService, IStatisticsService)
-
-        # register the collector's own preferences object so it may be easily
-        # retrieved by factories, tasks, etc.
-        zope.component.provideUtility(self.preferences,
-                                      ICollectorPreferences,
-                                      self.preferences.collectorName)
-
-        super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
 
         self._deviceGuids = {}
         self._devices = set()
@@ -261,7 +265,19 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-
+        self.parser.add_option('--dispatch',
+                               dest='configDispatch',
+                               type='string',
+                               help = SUPPRESS_HELP)
+        self.parser.add_option('--workerid',
+                               dest = 'workerid',
+                               type = 'int',
+                               default = 0,
+                               help = SUPPRESS_HELP)
+        self.parser.add_option('--workers',
+                               type="int",
+                               default=1,
+                               help = SUPPRESS_HELP)
         self.parser.add_option('--writeStatistics',
                                dest='writeStatistics',
                                type='int',
@@ -281,6 +297,17 @@ class CollectorDaemon(RRDDaemon):
     def parseOptions(self):
         super(CollectorDaemon, self).parseOptions()
         self.preferences.options = self.options
+
+        options = self.options.__dict__
+        dispatchFilterName = options.get('configDispatch', '') if options else ''
+        filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
+        filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                        filterFactories.get('', None)
+        if filterFactory:
+            configFilter = filterFactory.getFilter(options)
+            if configFilter:
+                self.preferences.configFilter = configFilter
+                log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
 
     def connected(self):
         """
@@ -333,49 +360,66 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
-    def writeMetric(self, contextUUID, metric, value, metricType, contextId,
+    def writeMetric(self, contextKey, metric, value, metricType, contextId,
                     timestamp='N', min='U', max='U',
-                    threshEventData={}, deviceuuid=None):
+                    threshEventData={}, deviceId=None, contextUUID=None,
+                    deviceUUID=None):
 
         """
         Writes the metric to the metric publisher.
-        @param contextUUID: This is who the metric applies to. This is usually a component or a device.
+        @param contextKey: This is who the metric applies to. This is usually
+                            the return value of rrdPath() for a component or
+                            device.
         @param metric: the name of the metric, we expect it to be of the form datasource_datapoint
         @param value: the value of the metric
-        @param metricType: type of the metric (e.g. 'COUNTER', 'GUAGE', 'DERIVE' etc)
+        @param metricType: type of the metric (e.g. 'COUNTER', 'GAUGE', 'DERIVE' etc)
         @param contextId: used for the threshold events, the id of who this metric is for
         @param timestamp: defaults to time.time() if not specified, the time the metric occurred
         @param min: used in the derive the min value for the metric
         @param max: used in the derive the max value for the metric
         @param threshEventData: extra data put into threshold events
-        @param deviceuuid: the unique identifier of the device for
-        this metric, maybe the same as contextUUID if the context is a
-        device
+        @param deviceId: the id of the device for this metric
         @return: a deferred that fires when the metric gets published
         """
         timestamp = int(time.time()) if timestamp == 'N' else timestamp
-        data_source, data_point_name = metric.split("_")
         tags = {
-            'datasource': data_source,
-            'uuid': contextUUID
+            'contextUUID': contextUUID,
+            'key': contextKey
         }
-        if deviceuuid:
-            tags['device'] = deviceuuid
+        metric_name = metric
+        if deviceId:
+            tags['device'] = deviceId
+            metric_name = metrics.ensure_prefix(deviceId, metric_name)
 
         # write the raw metric to Redis
-        self._metric_writer.write_metric(
-            data_point_name, value, timestamp, tags)
-
+        self._metric_writer.write_metric(metric_name, value, timestamp, tags)
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
+            dkey = "%s:%s" % (contextUUID, metric)
             value = self._derivative_tracker.derivative(
-                contextUUID, (int(value), timestamp), min, max)
+                dkey, (int(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
         if value is not None:
-            self._threshold_notifier.notify(contextUUID, contextId, metric, timestamp,
-                                            value, threshEventData)
+            self._threshold_notifier.notify(contextUUID, contextId, metric,
+                    timestamp, value, threshEventData)
+
+    def writeMetricWithMetadata(self, metric, value, metricType, timestamp='N',
+            min='U', max='U', threshEventData={}, metadata=None):
+
+        metadata = metadata or {}
+        try:
+            key = metadata['contextKey']
+            contextId = metadata['contextId']
+            deviceId = metadata['deviceId']
+            contextUUID = metadata['contextUUID']
+        except KeyError as e:
+            raise Exception("Missing necessary metadata: %s" % e.message)
+        deviceUUID = metadata.get('deviceUUID')
+        return self.writeMetric(key, metric, value, metricType, contextId,
+                timestamp, min, max, threshEventData, deviceId, contextUUID,
+                deviceUUID)
 
     @deprecated
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
@@ -383,24 +427,22 @@ class CollectorDaemon(RRDDaemon):
         """
         Use writeMetric
         """
+        # we rely on the fact that rrdPath now returns more information than just the path
+        metricinfo, metric = path.rsplit('/', 1)
+        if 'METRIC_DATA' not in str(metricinfo):
+            raise Exception("Unable to write Metric with given path { %s } please see the rrdpath method" % str(metricinfo))
 
-        # we rely on the fact that rrdPath now returns the guid for an object
-        uuidInfo, metric = path.rsplit('/', 1)
-        if not 'METRIC_DATA'  in str(uuidInfo):
-            raise Exception("Unable to write Metric with given path { %s } please see the rrdpath method" % str(uuidInfo))
-
-        uuidInfo = json.loads(uuidInfo)
+        metadata = json.loads(metricinfo)
         # reroute to new writeMetric method
-        self.writeMetric(uuidInfo['contextUUID'],
+        self.writeMetricWithMetadata(
                 metric,
                 value,
                 rrdType,
-                uuidInfo['contextId'],
                 timestamp,
                 min,
                 max,
                 threshEventData,
-                uuidInfo.get('deviceUUID', None)
+                metadata
             )
 
     def stop(self, ignored=""):
@@ -438,9 +480,10 @@ class CollectorDaemon(RRDDaemon):
         if config is None:
             return
         self.log.debug("Device %s updated", config.configId)
-        if not self.options.device or self.options.device in (config.id, config.configId):
-            self._updateConfig(config)
+        if self._updateConfig(config):
             self._configProxy.updateConfigProxy(self.preferences, config)
+        else:
+            self.log.debug("Device %s config filtered", config.configId)
 
     def remote_updateDeviceConfigs(self, configs):
         """
@@ -448,7 +491,9 @@ class CollectorDaemon(RRDDaemon):
         """
         if configs is None:
             return
-        for config in Zipper.load(configs):
+        configs = Zipper.load(configs)
+        self.log.debug("remote_updateDeviceConfigs: workerid %s processing %s device configs", self.options.workerid, len(configs))
+        for config in configs:
             self.remote_updateDeviceConfig(config)
             
     def remote_notifyConfigChanged(self):
@@ -499,6 +544,18 @@ class CollectorDaemon(RRDDaemon):
                 self.stop()
 
     def _updateConfig(self, cfg):
+        """
+        Update device configuration. Returns true if config is updated, false if config is skipped
+        """
+
+        # guard against parsing updates during a disconnect
+        if cfg is None:
+            return False
+        configFilter = getattr(self.preferences, "configFilter", None) or (lambda x: True)
+        if not((not self.options.device and configFilter(cfg)) or self.options.device in (cfg.id, cfg.configId)):
+            self.log.info("Device %s config filtered", cfg.configId)
+            return False
+
         configId = cfg.configId
         self.log.debug("Processing configuration for %s", configId)
 
@@ -541,6 +598,8 @@ class CollectorDaemon(RRDDaemon):
             # all pending tasks have completed
             if not self.options.cycle:
                 self._pendingTasks.append(taskName)
+
+        return True
 
     @defer.inlineCallbacks
     def _updateDeviceConfigs(self, updatedConfigs, purgeOmitted):
@@ -653,7 +712,8 @@ class CollectorDaemon(RRDDaemon):
 
         interval = self.preferences.cycleInterval
         self.log.debug("Initializing maintenance Cycle")
-        maintenanceCycle = MaintenanceCycle(interval, self, self._maintenanceCycle)
+        heartbeatSender = self if self.worker_id == 0 else None
+        maintenanceCycle = MaintenanceCycle(interval, heartbeatSender, self._maintenanceCycle)
         maintenanceCycle.start()
 
     def _maintenanceCycle(self, ignored=None):
@@ -762,14 +822,29 @@ class CollectorDaemon(RRDDaemon):
     def _signalHandler(self, signum, frame):
         self._displayStatistics(True)
 
+    @property
+    def worker_count(self):
+        """
+        worker_count for this daemon
+        """
+        return getattr(self.options, 'workers', 1)
+
+    @property
+    def worker_id(self):
+        """
+        worker_id for this particular peer
+        """
+        return getattr(self.options, 'workerid', 0)
+
 
 class Statistic(object):
     zope.interface.implements(IStatistic)
 
-    def __init__(self, name, type):
+    def __init__(self, name, type, **kwargs):
         self.value = 0
         self.name = name
         self.type = type
+        self.kwargs = kwargs
 
 
 class StatisticsService(object):
@@ -778,14 +853,14 @@ class StatisticsService(object):
     def __init__(self):
         self._stats = {}
 
-    def addStatistic(self, name, type):
+    def addStatistic(self, name, type, **kwargs):
         if name in self._stats:
             raise NameError("Statistic %s already exists" % name)
 
         if type not in ('DERIVE', 'COUNTER', 'GAUGE'):
             raise TypeError("Statistic type %s not supported" % type)
 
-        stat = Statistic(name, type)
+        stat = Statistic(name, type, **kwargs)
         self._stats[name] = stat
 
     def getStatistic(self, name):
@@ -805,7 +880,7 @@ class StatisticsService(object):
 
             # These should always come back empty now because DaemonStats
             # posts the events for us
-            func(stat.name, stat.value)
+            func(stat.name, stat.value, **stat.kwargs)
 
             # counter is an ever-increasing value, but otherwise...
             if stat.type != 'COUNTER':

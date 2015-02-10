@@ -453,7 +453,7 @@ class PerformanceConf(Monitor, StatusColor):
         else:
             args.append(REQUEST)
             zendiscCmd = self._getZenDiscCommand(*args)
-            result = executeCommand(zendiscCmd, REQUEST)
+            result = self._executeCommand(zendiscCmd, REQUEST)
         return result
 
     def _getZenDiscCommand(
@@ -492,7 +492,7 @@ class PerformanceConf(Monitor, StatusColor):
         cmd = binPath(command)
         daemonCmd = [cmd]
         daemonCmd.extend(args)
-        result = executeCommand(daemonCmd, REQUEST)
+        result = self._executeCommand(daemonCmd, REQUEST)
         return result
 
     def collectDevice(
@@ -512,10 +512,7 @@ class PerformanceConf(Monitor, StatusColor):
         @type generateEvents: string
         """
         xmlrpc = isXmlRpc(REQUEST)
-        zenmodelerOpts = [
-            'run', '--now', '--monitor', self.id, '-d', device.id
-        ]
-        result = self._executeZenModelerCommand(zenmodelerOpts, background,
+        result = self._executeZenModelerCommand(device.id, self.id, background,
                                                 REQUEST, write)
         if result and xmlrpc:
             return result
@@ -525,29 +522,47 @@ class PerformanceConf(Monitor, StatusColor):
             return 0
 
     def _executeZenModelerCommand(
-            self, zenmodelerOpts, background=False, REQUEST=None, write=None):
+            self, deviceName, performanceMonitor="localhost", background=False, REQUEST=None, write=None):
         """
         Execute zenmodeler and return result
 
-        @param zenmodelerOpts: zenmodeler command-line options
-        @type zenmodelerOpts: string
+        @param deviceName: The name of the device
+        @type deviceName: string
+        @param performanceMonitor: Name of the collector
+        @type performanceMonitor: string
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         @return: results of command
         @rtype: string
         """
-        zm = binPath('zenmodeler')
-        zenmodelerCmd = [zm]
-        zenmodelerCmd.extend(zenmodelerOpts)
+        args = [deviceName, performanceMonitor]
         if background:
+            zenmodelerCmd = self._getZenModelerCommand(*args)
             log.info('queued job: %s', " ".join(zenmodelerCmd))
             result = self.dmd.JobManager.addJob(
                 SubprocessJob,
-                description="Run zenmodeler %s" % ' '.join(zenmodelerOpts),
+                description="Run zenmodeler %s" % ' '.join(zenmodelerCmd),
                 args=(zenmodelerCmd,)
             )
         else:
-            result = executeCommand(zenmodelerCmd, REQUEST, write)
+            args.append(REQUEST)
+            zenmodelerCmd = self._getZenModelerCommand(*args)
+            result = self._executeCommand(zenmodelerCmd, REQUEST, write)
+        return result
+
+    def _getZenModelerCommand(
+            self, deviceName, performanceMonitor, REQUEST=None):
+        zm = binPath('zenmodeler')
+        cmd = [zm]
+        options = [
+            'run', '--now', '-d', deviceName, '--monitor', performanceMonitor
+        ]
+        cmd.extend(options)
+        log.info('local zenmodelerCmd is "%s"' % ' '.join(cmd))
+        return cmd
+
+    def _executeCommand(self, remoteCommand, REQUEST=None, write=None):
+        result = executeCommand(remoteCommand, REQUEST, write)
         return result
 
 

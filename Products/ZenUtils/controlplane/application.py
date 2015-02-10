@@ -12,7 +12,9 @@ IApplication* control-plane implementations.
 """
 
 import logging
-
+import os
+from functools import wraps
+from Products.ZenUtils.controlplane import getConnectionSettings
 from collections import Sequence, Iterator
 from zope.interface import implementer
 
@@ -20,26 +22,11 @@ from Products.ZenUtils.application import (
     IApplicationManager, IApplication, IApplicationLog,
     IApplicationConfiguration, ApplicationState
 )
-from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from .client import ControlPlaneClient
 from .runstates import RunStates
 
 LOG = logging.getLogger("zen.controlplane")
-
-
-def getConnectionSettings(options=None):
-    if options is None:
-        o = globalConfToDict()
-    else:
-        o = options
-    settings = {
-        "host": o.get("controlplane-host"),
-        "port": o.get("controlplane-port"),
-        "user": o.get("controlplane-user", "zenoss"),
-        "password": o.get("controlplane-password", "zenoss"),
-    }
-    return settings
 
 
 @implementer(IApplicationManager)
@@ -51,19 +38,39 @@ class DeployedAppLookup(object):
     # The class of the Control Plane client
     clientClass = ControlPlaneClient
 
+    @staticmethod
+    def _applicationClass():
+        return DeployedApp
+
     def __init__(self):
         settings = getConnectionSettings()
-        self._client = self.clientClass(**settings)        
-        self._appcache = {}
+        self._client = self.clientClass(**settings)
+        # Cache RunState objects in order to persist state between requests
+        #  to support RESTARTING state.
+        self._statecache = {}
+
+    def getTenantId(self):
+        """
+        Returns the tenant ID from the environment.
+        """
+        tenantID_env = "CONTROLPLANE_TENANT_ID"
+        return os.environ.get(tenantID_env)
 
     def query(self, name=None, tags=None, monitorName=None):
         """
         Returns a sequence of IApplication objects.
         """
+        tenant_id = self.getTenantId()
+        if tenant_id is None:
+            LOG.error("ERROR: Could not determine the tenantID from the "
+                      "environment")
+            return ()
+
         # Retrieve services according to name and tags.
-        result = self._client.queryServices(name=name, tags=tags)
+        result = self._client.queryServices(name=name, tags=tags, tenantID=tenant_id)
         if not result:
             return ()
+
         # If monitorName is specified, filter for services which are
         # parented by the specified monitor.
         if monitorName:
@@ -71,7 +78,7 @@ class DeployedAppLookup(object):
             # applications.
             tags = set(tags) - set(["daemon"])
             tags.add("-daemon")
-            parents = self._client.queryServices(monitorName, list(tags))
+            parents = self._client.queryServices(name=monitorName, tags=list(tags), tenantID=tenant_id)
             # If the monitor name wasn't found, return an empty sequence.
             if not parents:
                 return ()
@@ -79,6 +86,7 @@ class DeployedAppLookup(object):
             result = (
                 svc for svc in result if svc.parentId == parentId
             )
+
         return tuple(self._getApp(service) for service in result)
 
     def get(self, id, default=None):
@@ -89,41 +97,52 @@ class DeployedAppLookup(object):
         service = self._client.getService(id)
         if not service:
             return default
+
         return self._getApp(service)
 
     def _getApp(self, service):
-        app = self._appcache.get(service.id)
-        if not app:
-            app = DeployedApp(service, self._client)
-            self._appcache[service.id] = app
-        return app
+        runstate = self._statecache.get(service.id)
+        if not runstate:
+            runstate = RunStates()
+            self._statecache[service.id] = runstate
+        return self._applicationClass()(service, self._client, runstate)
 
 
 @implementer(IApplication)
 class DeployedApp(object):
     """
-    Control and iteract with the deployed app via the control plane.
+    Control and interact with the deployed app via the control plane.
     """
+    UNKNOWN_STATUS = type('SENTINEL', (object,), {'__nonzero__': lambda x: False})()
 
-    def __init__(self, service, client):
+    def __init__(self, service, client, runstate):
         self._client = client
-        self._runstate = RunStates()
+        self._runstate = runstate
         self._service = service
-        self._instance = None
+        self._status = DeployedApp.UNKNOWN_STATUS
 
-    def _updateState(self):
+    def _initStatus(fn):
+        """
+        Decorator which calls updateStatus if status is uninitialized
+        """
+        @wraps(fn)
+        def wrapper(self, *args, **kwargs):
+            if self._status == DeployedApp.UNKNOWN_STATUS:
+                self.updateStatus(*args, **kwargs)
+            return fn(self)
+        return wrapper
+
+    def updateStatus(self):
         """
         Retrieves the current running instance of the application.
         """
-        result = self._client.queryServiceInstances(self._service.id)
-        instance = result[0] if result else None
-        if instance is None and self._instance:
+        result = self._client.queryServiceStatus(self._service.id)
+        instanceId_0 = [i for i in result.itervalues() if i.instanceId == 0]
+        self._status = instanceId_0[0] if instanceId_0 else None
+        if self._status is None:
             self._runstate.lost()
-        elif instance and (
-                self._instance is None
-                or self._runstate.state == ApplicationState.RESTARTING):
-            self._runstate.found()
-        self._instance = instance
+        else:
+            self._runstate.found(self._status)
 
     @property
     def id(self):
@@ -134,32 +153,37 @@ class DeployedApp(object):
         return self._service.name
 
     @property
+    @_initStatus
+    def hostId(self):
+        return self._status.hostId if self._status else None
+
+    @property
     def description(self):
         return self._service.description
 
     @property
+    @_initStatus
     def state(self):
-        self._updateState()
         return self._runstate.state
 
     @property
+    @_initStatus
     def startedAt(self):
         """
         When the service started.  Returns None if not running.
         """
-        return self._instance.startedAt if self._instance else None
+        return self._status.startedAt if self._status else None
 
     @property
+    @_initStatus
     def log(self):
         """
         The log of the application.
 
         :rtype str:
         """
-        if not self._instance:
-            self._updateState()
-        if self._instance:
-            return DeployedAppLog(self._instance, self._client)
+        if self._status:
+            return DeployedAppLog(self._status, self._client)
 
     @property
     def autostart(self):
@@ -174,6 +198,7 @@ class DeployedApp(object):
         value = self._service.LAUNCH_MODE.AUTO \
             if bool(value) else self._service.LAUNCH_MODE.MANUAL
         self._service.launch = value
+        # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
         self._client.updateService(self._service)
 
     @property
@@ -182,6 +207,7 @@ class DeployedApp(object):
         """
         return  _DeployedAppConfigList(self._service, self._client)
 
+    @_initStatus
     def start(self):
         """
         Starts the application.
@@ -191,8 +217,9 @@ class DeployedApp(object):
         if priorState != self._runstate.state:
             LOG.info("[%x] STARTING APP", id(self))
             self._service.desiredState = self._service.STATE.RUN
-            self._client.updateService(self._service)
+            self._client.startService(self._service.id)
 
+    @_initStatus
     def stop(self):
         """
         Stops the application.
@@ -202,27 +229,32 @@ class DeployedApp(object):
         if priorState != self._runstate.state:
             LOG.info("[%x] STOPPING APP", id(self))
             self._service.desiredState = self._service.STATE.STOP
-            self._client.updateService(self._service)
+            self._client.stopService(self._service.id)
 
     def restart(self):
         """
         Restarts the application.
         """
         # Make sure the current state is known.
-        self._updateState()
+        self.updateStatus()
         # temporary until proper 'reset' functionality is
         # available in controlplane.
         priorState = self._runstate.state
         self._runstate.restart()
         if priorState != self._runstate.state:
             LOG.info("[%x] RESTARTING APP", id(self))
-            if self._instance:
+            if self._status:
                 self._client.killInstance(
-                    self._instance.hostId, self._instance.id
+                    self._status.hostId, self._status.id
                 )
             else:
                 self._service.desiredState = self._service.STATE.RUN
-                self._client.updateService(self._service)
+                self._client.startService(self._service.id)
+
+    def update(self):
+        """
+        """
+        self._client.updateService(self._service)
 
 
 class _DeployedAppConfigList(Sequence):
@@ -305,7 +337,6 @@ class DeployedAppConfig(object):
     @content.setter
     def content(self, content):
         self._config["Content"] = content
-        self._client.updateService(self._service)
 
 
 @implementer(IApplicationLog)
@@ -314,7 +345,7 @@ class DeployedAppLog(object):
     """
 
     def __init__(self, instance, client):
-        self._instance = instance
+        self._status = instance
         self._client = client
 
     def last(self, count):
@@ -324,7 +355,7 @@ class DeployedAppLog(object):
         :rtype str:
         """
         result = self._client.getInstanceLog(
-            self._instance.serviceId, self._instance.id
+            self._status.serviceId, self._status.id
         )
         return result.split("\n")[-count:]
 

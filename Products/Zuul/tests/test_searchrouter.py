@@ -36,8 +36,7 @@ class DummyFacade(object):
     def __init__(self,dmd):
         pass
 
-    def getQuickSearchResults( self, query, maxResults=None,
-                          maxResultsPerCategory=None ):
+    def getQuickSearchResults(self, query, resultSorter=None, maxResults=None):
         return dict(results=search_results)
 
     def getSearchResults(self, query):

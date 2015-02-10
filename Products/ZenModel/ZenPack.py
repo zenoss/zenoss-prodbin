@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007,2008, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007,2008,2014 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -13,20 +13,32 @@ ZenPacks base definitions
 """
 
 import datetime
+import glob
+import json
 import string
 import subprocess
 import os
+import os.path
+import posixpath
 import sys
 import shutil
+import zipfile
+from collections import defaultdict
+from StringIO import StringIO
 
+from Acquisition import aq_base
 from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Utils import importClass, zenPath
+from Products.ZenUtils.Utils import importClass, zenPath, varPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.PkgResources import pkg_resources
+from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree
+from Products.ZenUtils.controlplane.application import getConnectionSettings
 from Products.ZenModel import ExampleLicenses
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.ZenPackLoader import *
 from Products.ZenWidgets import messaging
 from AccessControl import ClassSecurityInfo
@@ -58,6 +70,11 @@ class Version(VersionBase):
     def __init__(self, *args, **kw):
         VersionBase.__init__(self, 'Zenoss', *args, **kw)
 
+
+def needDir(path, perms=0750):
+    if not os.path.isdir(path):
+        os.mkdir(path, perms)
+    return path
 
 def eliminateDuplicates(objs):
     """
@@ -151,6 +168,22 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
                     ds.index_object()
 
 
+class DirectoryConfigContents(object):
+    """
+    Map-like object which, given a key consisting of an absolute path, returns
+    the contents of the file at that location relative to some root.  e.g., if
+    the contents of /foo/bar/baz/qux is 'barge', then
+        DirectoryConfigContents('/foo/bar')['/baz/qux'] == 'barge'
+    """
+    def __init__(self, path):
+        self._path = path
+    def __getitem__(self, key):
+        try:
+            return open(os.path.join(self._path, key.lstrip('/'))).read()
+        except:
+            raise KeyError(key)
+
+
 class ZenPack(ZenModelRM):
     """
     The root of all ZenPacks: has no implementation,
@@ -168,6 +201,9 @@ class ZenPack(ZenModelRM):
     compatZenossVers = ''
     prevZenPackName = ''
     prevZenPackVersion = None
+
+    # Control Plane service ID for container executing this installation
+    currentServiceId = ""
 
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
@@ -240,7 +276,44 @@ class ZenPack(ZenModelRM):
             loader.load(self, app)
         self.createZProperties(app)
         previousVersion = self.prevZenPackVersion
+        self.storeBackup()
         self.migrate(previousVersion)
+        self.installServices()
+
+    def storeBackup(self):
+        """
+        makes a backup of the zenpack src to allow restoring broken zenpacks
+        """
+        backupDir = zenPath(".ZenPacks")
+        if not os.path.isdir(backupDir):
+            os.makedirs(backupDir, 0750)
+
+        src = self.eggPath()
+        filename = ""
+        zip = None
+        try:
+            if src.lower().endswith(".egg"):
+                filename = os.path.join(backupDir, os.path.basename(src))
+                zip = zipfile.ZipFile(filename+".tmp", "w")
+                prefix = ""
+            else:
+                filename = os.path.join(backupDir, "%s-%s.zip" % (self.id, self.version))
+                zip = zipfile.ZipFile(filename+".tmp", "w")
+                prefix = self.id
+            ignore = len(src) + 1
+            for root, dirs, files in os.walk(src):
+                for file in files:
+                    f = os.path.join(root, file)
+                    archivename = os.path.join(prefix, f[ignore:])
+                    zip.write(f, archivename)
+            zip.close()
+            zip = None
+            os.rename(filename+".tmp", filename)
+        finally:
+            if zip:
+                zip.close()
+            if filename and os.path.exists(filename+".tmp"):
+                os.remove(filename+".tmp")
 
     def upgrade(self, app):
         """
@@ -277,6 +350,7 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
+        self.removeServices(self.getServiceTag())
 
     def backup(self, backupDir, logger):
         """
@@ -545,6 +619,22 @@ class ZenPack(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    def exportToSeparateFile(self, obj, subdir):
+        xml = StringIO()
+        xml.write("""<?xml version="1.0"?>\n""")
+        xml.write("<objects>\n")
+        xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
+        obj.exportXml(xml,['devices','networks','pack'],True)
+        xml.write("</objects>\n")
+
+        path = needDir(self.path('objects/%s' % subdir))
+        filename = '%s.xml' % '_'.join(obj.getPrimaryPath()[3:])
+
+        objects = file(os.path.join(path, filename), 'w')
+        objects.write(xml.getvalue())
+        objects.close()
+
+
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_exportPack')
     def manage_exportPack(self, download="no", REQUEST=None):
         """
@@ -566,9 +656,9 @@ class ZenPack(ZenModelRM):
                 return self.callZenScreen(REQUEST)
             raise ZenPackDevelopmentModeExeption(msg)
 
-        from StringIO import StringIO
-        xml = StringIO()
+        path = needDir(self.path('objects'))
 
+        xml = StringIO()
         # Write out packable objects
         # TODO: When the DTD gets created, add the reference here
         xml.write("""<?xml version="1.0"?>\n""")
@@ -576,21 +666,23 @@ class ZenPack(ZenModelRM):
 
         packables = eliminateDuplicates(self.packables())
         for obj in packables:
-            # obj = aq_base(obj)
-            xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
-            obj.exportXml(xml,['devices','networks','pack'],True)
+            if type(aq_base(obj)) in [RRDTemplate]:
+                self.exportToSeparateFile(obj, 'templates')
+            else:
+                xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
+                obj.exportXml(xml,['devices','networks','pack','rrdTemplates'],True)
+                if type(aq_base(obj)) in [DeviceClass]:
+                    for tpl in obj.rrdTemplates():
+                        self.exportToSeparateFile(tpl, 'templates')
+
         xml.write("</objects>\n")
-        path = self.path('objects')
-        if not os.path.isdir(path):
-            os.mkdir(path, 0750)
+
         objects = file(os.path.join(path, 'objects.xml'), 'w')
         objects.write(xml.getvalue())
         objects.close()
 
         # Create skins dir if not there
-        path = self.path('skins')
-        if not os.path.isdir(path):
-            os.makedirs(path, 0750)
+        needDir(self.path('skins'))
 
         # Create __init__.py
         init = self.path('__init__.py')
@@ -606,9 +698,7 @@ registerDirectory("skins", globals())
 
         if self.isEggPack():
             # Create the egg
-            exportDir = zenPath('export')
-            if not os.path.isdir(exportDir):
-                os.makedirs(exportDir, 0750)
+            exportDir = needDir(zenPath('export'))
             eggPath = self.eggPath()
             os.chdir(eggPath)
             if os.path.isdir(os.path.join(eggPath, 'dist')):
@@ -644,9 +734,7 @@ registerDirectory("skins", globals())
             finally:
                 fp.close()
             # Create the zip file
-            path = zenPath('export')
-            if not os.path.isdir(path):
-                os.makedirs(path, 0750)
+            path = needDir(zenPath('export'))
             from zipfile import ZipFile, ZIP_DEFLATED
             zipFilePath = os.path.join(path, '%s.zip' % self.id)
             zf = ZipFile(zipFilePath, 'w', ZIP_DEFLATED)
@@ -743,12 +831,20 @@ registerDirectory("skins", globals())
         return filenames
 
 
+    def getDaemonPath(self):
+        """
+        Returns the directory in which daemons are located
+        @return: string
+        """
+        return os.path.join(self.path(), 'daemons')
+
+
     def getDaemonNames(self):
         """
         Return a list of daemons in the daemon subdirectory that should be
         stopped/started before/after an install or an upgrade of the zenpack.
         """
-        daemonsDir = os.path.join(self.path(), 'daemons')
+        daemonsDir = self.getDaemonPath()
         if os.path.isdir(daemonsDir):
             daemons = [f for f in os.listdir(daemonsDir)
                         if os.path.isfile(os.path.join(daemonsDir,f))]
@@ -1088,8 +1184,237 @@ registerDirectory("skins", globals())
 
         return False
 
+
+    def getServiceTag(self):
+        """
+        The tag to be applied to all services associated with this ZenPack.
+        This routine can be overridden to use a custom tag.
+        :rtype string
+        """
+        return self.moduleName()
+
+
+    def getServiceDefinitionFiles(self):
+        """
+        Returns a list of files containing services to be installed.
+
+        This routine can be overridden in order to supply a non-standard list of
+         files. See installServicesFromFiles() for file format.
+        :returns: absolute file paths
+        :rtype: list of strings
+        """
+        return glob.glob(self.path('service_definition', '*.json'))
+
+
+    def installServices(self):
+        """
+        Install ControlPlane services for this ZenPack
+        @return: None
+        """
+        if not ZenPack.currentServiceId:
+            return
+        if self.getServiceDefinitionFiles():
+            sdFiles = self.getServiceDefinitionFiles()
+            toConfigPath = lambda x: os.path.join(os.path.dirname(x),'-CONFIGS-')
+            configFileMaps = [DirectoryConfigContents(toConfigPath(i)) for i in sdFiles]
+            self.installServicesFromFiles(sdFiles, configFileMaps, self.getServiceTag())
+        elif self.getDaemonNames():
+            templateLocation = zenPath('Products/ZenModel/data/default_service.json')
+            template = open(templateLocation, 'r').read()
+            daemonPaths = glob.glob(os.path.join(self.getDaemonPath(), '*'))
+            self.installDefaultCollectorServices(daemonPaths,
+                                                 template,
+                                                 self.getServiceTag())
+
+    @staticmethod
+    def normalizeService(service, configMap, tag):
+        """
+        Applies default actions to a service definition
+
+        @param service: service definition
+        @type service: dict
+        @param configMap: maps configfile name to contents
+        @type configMap:dict string->string
+        @param tag: tag to be applied to all services
+        @type tag: string
+        @return:
+        """
+        service.setdefault('Tags', []).append(tag)
+        if 'ImageID' in service and service['ImageID'] == '':
+            service['ImageID'] = os.environ['SERVICED_SERVICE_IMAGE']
+        for key, value in service.get('ConfigFiles', dict()).items():
+            if value.get('Content', '') == '':
+                try:
+                    value['Content'] = configMap[key]
+                except KeyError:
+                    pass
+
+        defaultLogConfigsPath = zenPath('Products/ZenModel/data/default_service_logconfigs.json')
+        defaultLogConfigsTemplate = open(defaultLogConfigsPath, 'r').read()
+        defaultLogConfigs = json.loads(defaultLogConfigsTemplate % {'zenhome': zenPath()})
+        logConfigs = service.setdefault('LogConfigs', [])
+        logConfigs.extend(lc for lc in defaultLogConfigs if lc not in logConfigs)
+        return service
+
+    def installDefaultCollectorServices(self, daemonPaths, template, tag):
+        """
+        Installs a service definition appropriate for a collector daemon for each
+        daemon in a list.  Generates a config file using the daemon's genconf.
+        Installs the service on each collector.
+
+        @param daemonPaths: paths to daemon executables
+        @type daemonPaths: list of strings
+        @param template: service definition template
+        @type template: string
+        @param tag: tag to be applied to all services
+        @type tag: string
+        @return: None
+        """
+        if not ZenPack.currentServiceId:
+            return
+
+        # Get 'Context' from root service
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        serviceTree = ServiceTree(cpClient.queryServices("*"))
+        tenant = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')[0]
+        context = tenant._data.get('Context', {})
+
+        # Determine template parameters
+        templateParams = defaultdict(lambda:'')
+        templateParams.update({'zenhome':zenPath(),
+                               'ZenPack.Default.RAMCommitment':"",
+                               'varpath':varPath()})
+        templateParams.update((key, val) for key, val in context.items()
+            if key.startswith('ZenPack.Default'))
+
+        serviceDefinitions = []
+        for daemonPath in daemonPaths:
+            daemon = os.path.basename(daemonPath)
+            if daemon == 'zenexample':
+                continue
+            configPath = os.path.join(zenPath(), 'etc', daemon+'.conf')
+            configContents = subprocess.check_output([daemonPath, 'genconf'])
+            configMap = {configPath: configContents}
+            templateParams.update(daemon=daemon, daemonpath=daemonPath)
+            service = json.loads(template % templateParams)
+            service = ZenPack.normalizeService(service, configMap, tag)
+            serviceDefinitions.append(json.dumps(service))
+        servicePaths = ['/hub/collector'] * len(serviceDefinitions)
+        self.installServiceDefinitions(serviceDefinitions, servicePaths)
+
+
+    def installServicesFromFiles(self, serviceFileNames, serviceConfigs, tag):
+        """
+        Install a set of control plane services
+
+        Each file is expected to contain a json encoded object with two fields:
+         servicePath: a service path indicating where this service should be installed.
+            See ServiceTree.matchServicePath for description of service path
+         serviceDefinition: a service definition object which will be sent to
+            controlplane.  Service definition examples may be be seen by running
+            $ serviced template list $TEMPLATE_ID
+        Each service will be tagged with the given tag in order to enable discovery
+        for ZenPack removal.  If a service definition has an ImageID field, but
+        the field is empty, the field will be set to the value of the
+        SERVICED_SERVICE_IMAGE environment variable.
+
+        :param serviceFileNames: file paths, each containing a service
+        :type serviceFileNames: list of strings
+        :param serviceConfigs: for each service, maps config name to contents
+        :type serviceConfigs: list of dicts string->string
+        :param tag: tag to be applied to all services
+        :type tag: string
+        """
+        if not ZenPack.currentServiceId:
+            return
+        paths, definitions = [],[]
+        for fileName, configMap in zip(serviceFileNames, serviceConfigs):
+            service = json.load(open(fileName, 'r'))
+            definition = ZenPack.normalizeService(service['serviceDefinition'],
+                                                  configMap, tag)
+            definitions.append(json.dumps(definition))
+            paths.append(service['servicePath'])
+        self.installServiceDefinitions(definitions, paths)
+
+
+    def installServiceDefinitions(self, serviceDefs, servicePaths):
+        """
+        Install a service into ControlPlane
+
+        Install a service (described by a service definition string) at a given
+             location in the service tree.  Multiple service/location pairs can
+             be specified.
+
+        :param serviceDefs: json encoded representation(s) of service definition
+        :type serviceDefs: string or iterable of strings
+        :param servicePaths: service path(s) at which to install service
+        :type servicePaths: string or iterable of strings.  See
+            ServiceTree.matchServicePath for description of service path
+        """
+        # No current service id indicates that we will not install services
+        if not ZenPack.currentServiceId:
+            return
+
+        # Handle case where input is single strings (vs parallel lists)
+        if isinstance(serviceDefs, basestring):
+            serviceDefs = [serviceDefs]
+        if isinstance(servicePaths, basestring):
+            servicePaths = [servicePaths]
+
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        serviceTree = ServiceTree(cpClient.queryServices("*"))
+
+        # Determine depth in service tree of each service.
+        cwd = '/' + '/'.join(['x']*len(serviceTree.getPath(ZenPack.currentServiceId)))
+        def pathComponentCount(path):
+            components = posixpath.normpath(posixpath.join(cwd, path)).split('/')
+            return sum(bool(i) for i in components)
+        depth =  [pathComponentCount(i) for i in servicePaths]
+
+        # Sort services by number of components in absolute path, ensuring that
+        #  parent services are created before child services.
+        serviceTuples = zip(servicePaths, serviceDefs, depth)
+        serviceTuples.sort(key=lambda x:x[2])
+
+        lastDepth = serviceTuples[0][2] if serviceTuples else None
+        for path, serviceDef, depth in serviceTuples:
+            # Update service tree in case we are adding a child to a new service
+            if depth != lastDepth:
+                serviceTree = ServiceTree(cpClient.queryServices("*"))
+                lastDepth = depth
+
+            parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId,
+                                                          path)
+            for parentService in parentServices:
+                cpClient.deployService(parentService.id, serviceDef)
+
+
+    def removeServices(self, tag):
+        """
+        Remove all services matching tag from control plane
+
+        :param tag: tag for which all services will be removed
+        :type tag: string
+        """
+        if not ZenPack.currentServiceId:
+            return
+
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        services = cpClient.queryServices("*")
+        serviceTree = ServiceTree(services)
+        serviceRoots = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')
+        for root in serviceRoots:
+            services = serviceTree.findMatchingServices(root, tag)
+            # Ensure that child services are deleted before parents
+            services.sort(key=lambda x:len(serviceTree.getPath(x)), reverse=True)
+            for service in services:
+                cpClient.deleteService(service.id)
+
+
     def getExampleLicenseNames(self):
         return sorted(ExampleLicenses.LICENSES.keys())
+
+
 
 
 # ZenPackBase is here for backwards compatibility with older installed

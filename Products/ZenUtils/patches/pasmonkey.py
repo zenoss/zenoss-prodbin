@@ -30,6 +30,7 @@ from cgi import parse_qs
 from Acquisition import aq_base
 from AccessControl.SpecialUsers import emergency_user
 from zope.event import notify
+from ZODB.POSException import POSKeyError
 from Products.PluggableAuthService import PluggableAuthService
 from Products.PluggableAuthService.plugins import CookieAuthHelper
 from Products.PluggableAuthService.interfaces.authservice import _noroles
@@ -52,7 +53,7 @@ def _resetCredentials(self, request, response=None):
     notify(UserLoggedOutEvent(self.zport.dmd.ZenUsers.getUserSettings()))
     try:
         _originalResetCredentials(self, request, response)
-    except KeyError:
+    except (KeyError, POSKeyError):
         # see defect ZEN-2942 If the time changes while the server is running
         # set the session database to a sane state.
         ts = self.unrestrictedTraverse('/temp_folder/session_data')
@@ -159,7 +160,14 @@ def login(self):
     pas_instance = self._getPAS()
 
     if pas_instance is not None:
-        pas_instance.updateCredentials(request, response, login, password)
+        try:
+            pas_instance.updateCredentials(request, response, login, password)
+        except (KeyError, POSKeyError):
+            # see defect ZEN-2942 If the time changes while the server is running
+            # set the session database to a sane state.
+            ts = self.unrestrictedTraverse('/temp_folder/session_data')
+            ts._reset()
+            _originalResetCredentials(self, request, response)
 
     came_from = request.form.get('came_from') or ''
     if came_from:
@@ -179,7 +187,9 @@ def login(self):
         url = "%s/zenoss_terms/?came_from=%s" % (
                     self.absolute_url(), urllib.quote(came_from))
     else:
-        url = came_from
+        # get rid of host part of URL (prevents open redirect attacks)
+        clean_url = ['', ''] + list(urlparse.urlsplit(came_from))[2:]
+        url = urlparse.urlunsplit(clean_url)
 
     fragment = request.get('fragment', '')
     if fragment:
@@ -190,6 +200,7 @@ def login(self):
 
     if self.dmd.uuid is None:
         self.dmd.uuid = str(uuid1())
+
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login

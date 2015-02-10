@@ -29,10 +29,6 @@ from Products.ZenHub.PBDaemon import (
     DefaultFingerprintGenerator, PBDaemon
 )
 
-from zenoss.collector.publisher.redis_client import RedisClient
-
-from zenoss.collector.publisher.publisher import HttpPostPublisher
-
 _TEST_EVENT = dict(
     device='device1',
     component='component1',
@@ -437,6 +433,7 @@ class TestInternalMetricWriter(BaseTestCase):
         self.daemon._internal_publisher = None
         os.environ["CONTROLPLANE_CONSUMER_URL"] = "http://localhost"
         publisher = self.daemon.internalPublisher()
+        from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher
         self.assertIsInstance( publisher, HttpPostPublisher)
 
 def test_suite():

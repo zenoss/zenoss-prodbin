@@ -163,7 +163,8 @@ Ext.onReady(function() {
     }    
     var closeWindowIfPopup = function(form, action) {
         // opener is defined as the window that opened the popup
-        if (!Ext.isEmpty(opener)) {
+        // if this popup is part of quick start step 2, dont close.
+        if (!Ext.isEmpty(opener) && !~window.location.href.indexOf("qs-step2")) {
             window.close();
         }
     };
@@ -265,7 +266,7 @@ Ext.onReady(function() {
                 }
             }]
         },{
-            frame: true,
+            frame: false,
             border: true,
             bodyStyle: 'padding: 5px',
             items: [{

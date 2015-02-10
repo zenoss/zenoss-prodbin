@@ -69,7 +69,7 @@ Ext.onReady(function(){
                             Zenoss.remote.EventClassesRouter.resequence({'uids':uids}, function(response){
                                 if (response.success) {
                                     // redraw the sequences cells with the new numbers:
-                                    Zenoss.message.info(_t('Saved new sequence (TEMP MESSAGE. REPLACE THIS FEEDBACK WITH SOMETHING BETTER)'));
+                                    Zenoss.message.info(_t('Saved new sequence.'));
                                     me.getSelectionModel().deselectAll();
                                     for (var i = 0; records.length > i; i++){
                                         records[i].set("sequence", i);
@@ -484,7 +484,7 @@ Ext.onReady(function(){
         extend:"Zenoss.FilterGridPanel",
         constructor: function(config) {
             config = config || {};
-
+            var me = this;
             Ext.applyIf(config, {
                 stateId: 'classes_mapping_grid',
                 id: 'classes_mapping_grid',
@@ -523,7 +523,7 @@ Ext.onReady(function(){
                                         data.push({'context':selected[i].data.uid.split('/instances/')[0], 'id':selected[i].data.id});
                                     }
                                     new Zenoss.dialog.SimpleMessageDialog({
-                                        title: _t('Delete Maintenance Window'),
+                                        title: _t('Delete Instance'),
                                         message: _t("Are you sure you want to delete the selected instances?"),
                                         buttons: [{
                                             xtype: 'DialogButton',
@@ -575,6 +575,20 @@ Ext.onReady(function(){
                                     data = selected[0].data;
                                     data['whichPanel'] = 'sequence';
                                     Zenoss.eventclasses.mappingDialog(grid, data);
+                                }
+                            }, {
+                                iconCls: 'adddevice',
+                                xtype: 'button',
+                                tooptip: _t('Add To ZenPack'),
+                                hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                                handler: function() {
+                                    var addtozenpack = new Zenoss.AddToZenPackWindow(),
+                                        records = me.getSelectionModel().getSelection();
+                                    if (records.length) {
+                                        var targets = Ext.Array.pluck(Ext.Array.pluck(records, "data"), "uid");
+                                        addtozenpack.setTarget(targets);
+                                        addtozenpack.show();
+                                    }
                                 }
                             }]
                         }

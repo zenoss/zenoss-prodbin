@@ -20,8 +20,41 @@
     Zenoss.env.device_uid = decodeURIComponent("${context/absolute_url_path}");
 '></script>
 
+<style>
+    .graph .node rect {
+       stroke: none;
+       stroke-width: 1px;
+       fill: white;
+    }
+     .openslot {
+       fill: black;
+       opacity: .3
+    }
+    .graph, .list {
+        cursor: pointer;
+    }
+    
+    .graph .edge {
+       cursor: pointer;
+       stroke: #4C4C4C;
+    }
 
-<script tal:content="view/getComponentTree"></script>
+    .graph .largeEdge {
+       cursor: pointer;
+       stroke-width: 20px;
+       fill: white;
+       stroke: white;
+    }
+    
+    
+    .modaltitle {
+        font-weight: bold;
+        font-size: 18px;
+        padding-top: 10px;
+        padding-left: 5px;
+    }
+  </style>
+
 <script tal:content="view/fetchLeftHandMenu"></script>
 <script tal:content="view/getInfoObject"></script>
 

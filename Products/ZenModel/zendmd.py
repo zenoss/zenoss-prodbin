@@ -208,7 +208,12 @@ def _customStuff():
     auditComment = audit.auditComment
     shell_stdout = []
     shell_stderr = []
-
+    # evaluate any command the user has defined to startup
+    for idx, line in enumerate(dmd.getZenDMDStartupCommands()):
+        try:
+            exec line in globals(), locals()
+        except Exception, e:
+            print "Error evaluating zendmd startup command #%s  %s, %s" %(idx, line, str(e))
     def reindex():
         sync()
         dmd.Devices.reIndex()
@@ -238,9 +243,9 @@ def _customStuff():
         Updates every index available for the object.
         """
         if hasattr(obj, 'index_object'):
-            obj.index_object()        
+            obj.index_object()
         notify(IndexingEvent(obj))
-        
+
     def lookupGuid(guid):
         """
         Given a guid this returns the object that it identifies

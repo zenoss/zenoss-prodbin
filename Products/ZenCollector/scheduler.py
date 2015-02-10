@@ -718,4 +718,5 @@ class Scheduler(object):
         """
         return task.state in (TaskStates.STATE_IDLE,
                               TaskStates.STATE_PAUSED,
-                              TaskStates.STATE_COMPLETED)
+                              TaskStates.STATE_COMPLETED,
+                              TaskStates.STATE_CONNECTING)

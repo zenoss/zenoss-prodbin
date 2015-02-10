@@ -538,7 +538,7 @@ var regexFieldSet = {
         regexIncludeTextField,
         regexExcludeTextField,
         regexReplaceTextField,
-        replacementTextField,
+        replacementTextField
     ]
 }; // regexFieldSet
 
@@ -584,7 +584,7 @@ Ext.getCmp('center_panel').add(
                 id: 'master_panel',
                 region: 'west',
                 layout: 'fit',
-                width: 250,                
+                width: 250,
                 split: true,
                 items: panel
             },{
@@ -630,15 +630,23 @@ Ext.getCmp('center_panel').add(
 
 var ContextGetter = Ext.extend(Object, {
     getUid: function() {
-        var selected = Ext.getCmp('processTree').getSelectionModel().getSelectedNode();
-        if ( ! selected ) {
+        var processes = Ext.getCmp('navGrid').getSelectionModel().getSelection()
+        if (processes.length != 1) {
             Ext.Msg.alert(_t('Error'), _t('You must select a process.'));
             return null;
         }
+        return processes[0].data.uid;
+    },
+    getOrganizerUid: function() {
+        var selected = Ext.getCmp('processTree').getSelectionModel().getSelectedNode();
+        if ( ! selected ) {
+                Ext.Msg.alert(_t('Error'), _t('You must select a process.'));
+                return null;
+            }
         return selected.data.uid;
     },
     hasTwoControls: function() {
-        return false;
+        return true;
     }
 });
 
@@ -695,6 +703,8 @@ Ext.define("Zenoss.SequenceStore", {
         Ext.applyIf(config, {
             model: 'Zenoss.SequenceModel',
             directFn: router.getSequence,
+            pageSize: 1000,
+            scrollToLoadBuffer: 0,
             root: 'data'
         });
         this.callParent(arguments);
@@ -708,6 +718,7 @@ Ext.define("Zenoss.SequenceGrid", {
     constructor: function(config) {
         Ext.applyIf(config, {
             sortableColumns: false,
+            multiSelect: true,
             forceFit: true,
             store: Ext.create('Zenoss.SequenceStore', {}),
             columns: [
@@ -777,7 +788,7 @@ Ext.define('Zenoss.SequenceModel2',  {
           {name: 'excludeRegex'},
           {name: 'monitor'},
           {name: 'count'},
-          {name: 'use'},
+          {name: 'use'}
         ]
 
 });
@@ -800,7 +811,7 @@ Ext.define("Zenoss.SequenceStore2", {
         Ext.apply(this, {
             single: false,
             count: 0,
-            uids: [],
+            uids: []
         });
         this.callParent(arguments);
         var regex = Ext.getCmp('regexIncludeTextField').getValue();
@@ -820,7 +831,7 @@ Ext.define("Zenoss.SequenceStore2", {
                 this.store.uids.push(rec);
             });
         }
-    },
+    }
 });
 
 
@@ -834,7 +845,7 @@ Ext.define("Zenoss.SequenceGrid2", {
             forceFit: false,
             enableDragDrop: false,
             viewConfig: {
-                forcefit: true,
+                forcefit: true
             },
             align : 'stretch',
             store: Ext.create('Zenoss.SequenceStore2', {}),
@@ -843,7 +854,7 @@ Ext.define("Zenoss.SequenceGrid2", {
                 {dataIndex: 'name', header: 'Name', menuDisabled: true, flex: 2},
                 {dataIndex: 'regex', header: 'Regex', menuDisabled: true, flex: 5},
                 {dataIndex: 'excludeRegex', header: 'XRegex', menuDisabled: true,  flex: 4},
-                {dataIndex: 'monitor', header: 'Monitor', menuDisabled: true, flex: 1},
+                {dataIndex: 'monitor', header: 'Monitor', menuDisabled: true, flex: 1}
             ]
         });
         this.callParent(arguments);
@@ -862,7 +873,7 @@ function readBlob() {
     var stop = file.size - 1;
 
     var reader = new FileReader();
-    
+
     // If we use onloadend, we need to check the readyState.
     reader.onloadend = function(evt) {
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
@@ -905,12 +916,12 @@ function errorHandler(e) {
 Ext.define('Zenoss.MatchedProcessModel',  {
     extend: 'Ext.data.Model',
     idProperty: 'uid',
-    fields: [ 
+    fields: [
           {name: 'uid'},
           {name: 'matched'},
           {name: 'processClass'},
           {name: 'processSet'},
-          {name: 'process'},
+          {name: 'process'}
         ]
 });
 
@@ -1005,7 +1016,7 @@ Ext.define("Zenoss.MatchProcessGrid", {
         Ext.applyIf(config, {
             enableDragDrop: false,
             viewConfig: {
-                forcefit: true,
+                forcefit: true
             },
             sortableColumns: true,
             forceFit: false,
@@ -1013,9 +1024,9 @@ Ext.define("Zenoss.MatchProcessGrid", {
             columns: [
                 {dataIndex: 'processClass', header: 'ProcessClass', sortable: true, sortType: 'asUCString', menuDisabled: true, flex: 1},
                 {dataIndex: 'processSet', header: 'ProcessSet', sortable: true, sortType: 'asUCString', menuDisabled: true, flex: 2},
-                {dataIndex: 'process', header: 'Process', sortable: true, sortType: 'asUCString', menuDisabled: false, flex: 5},
+                {dataIndex: 'process', header: 'Process', sortable: true, sortType: 'asUCString', menuDisabled: false, flex: 5}
             ]
-        })
+        });
         var regex = Ext.getCmp('regexIncludeTextField').getValue();
         var regexExclude = Ext.getCmp('regexExcludeTextField').getValue();
         this.callParent(arguments);
@@ -1025,7 +1036,7 @@ Ext.define("Zenoss.MatchProcessGrid", {
 Ext.define('Zenoss.ProcessModel2',  {
     extend: 'Ext.data.Model',
     idProperty: 'uid',
-    fields: [ 
+    fields: [
           {name: 'uid'},
           {name: 'process'},
         ]
@@ -1065,16 +1076,16 @@ Ext.define("Zenoss.ProcessGrid2", {
             store: Ext.create('Zenoss.ProcessStore2', {}),
             columns: [
                 {dataIndex: 'uid', layout:'anchor', header: 'Matched', sortable: true, sortType: 'asUCString', menuDisabled: true, flex: 1},
-                {dataIndex: 'process', header: 'Process', sortable: true, sortType: 'asUCString', menuDisabled: false, flex: 5},
+                {dataIndex: 'process', header: 'Process', sortable: true, sortType: 'asUCString', menuDisabled: false, flex: 5}
             ]
-        })
+        });
         this.callParent(arguments);
     }
 });
 
 var demoInput1 = [
                   '#',
-                  '# Use this dialog to test regular expressions against sample input. Process', 
+                  '# Use this dialog to test regular expressions against sample input. Process',
                   '# monitoring uses the output of the Linux command "ps axho args" (or its',
                   '# equivalent) as input for regular expression matching. You may run that command',
                   '# on a system and copy-paste the result in this field, or load sample input',
@@ -1093,7 +1104,7 @@ function getProcesses (operation, eOpts) {
     if (newContents.length > 0)
         newContents += '\n';
     processStore.each(function(record){
-        newContents += record.get("process") + '\n'
+        newContents += record.get("process") + '\n';
     });
     Ext.getCmp('input1').setValue(newContents);
     Ext.MessageBox.hide();
@@ -1111,7 +1122,7 @@ Ext.define("Zenoss.TestRegexDialog", {
             layout: {
                 type: 'vbox',
                 align : 'stretch',
-                pack  : 'start',
+                pack  : 'start'
             },
             items: [
                 {layout: {
@@ -1120,11 +1131,11 @@ Ext.define("Zenoss.TestRegexDialog", {
                     align: 'stretch'
                 },
                 items: [
-                    {title: 'Source', 
+                    {title: 'Source',
                         layout: {
                             type: 'vbox',
                             align : 'stretch',
-                            pack  : 'start',
+                            pack  : 'start'
                         },
                         items: [
                             {layout: {
@@ -1163,22 +1174,22 @@ Ext.define("Zenoss.TestRegexDialog", {
                                         listeners: {
                                             click: function() {
                                                 readBlob();
-                                            }   
+                                            }
                                         }
-                                    },
+                                    }
                             ]},
                             {title: 'Input'},
-                            {xtype: 'textareafield', grow: 'true', name: 'input1', id: 'input1', 
-                                value: demoInput1, 
+                            {xtype: 'textareafield', grow: 'true', name: 'input1', id: 'input1',
+                                value: demoInput1,
                                 flex:4},
                             {xtype: 'button',  ui: 'dialog-dark', autoWidth: true, text: _t('Clear'),
                                 listeners: {
                                     click: function() {
                                         Ext.getCmp('input1').setValue('');
-                                    }   
+                                    }
                                 }
                             }
-                        ], 
+                        ],
                         flex:1},
                         {
                             layout:'card',
@@ -1192,7 +1203,7 @@ Ext.define("Zenoss.TestRegexDialog", {
                                 {
                                     xtype: 'sequencegrid2',
                                     id: 'sequenceGrid2'
-                                }], 
+                                }],
                                 flex:1
                             },{
                                 id: 'card-1',
@@ -1200,19 +1211,19 @@ Ext.define("Zenoss.TestRegexDialog", {
                                 layout: {
                                     type: 'vbox',
                                     align : 'stretch',
-                                    pack  : 'start',
+                                    pack  : 'start'
                                 },
                                 items: [
                                     {fieldLabel: 'Include processes like', xtype: 'textfield', value: Ext.getCmp('regexIncludeTextField').getValue(), listeners: {change: function(field){Ext.getCmp('regexIncludeTextField').setValue(this.getValue());}}},
                                     {fieldLabel: 'Exclude processes like', xtype: 'textfield', value: Ext.getCmp('regexExcludeTextField').getValue(), listeners: {change: function(field){Ext.getCmp('regexExcludeTextField').setValue(this.getValue());}}},
                                     {fieldLabel: 'Replace command line text', xtype: 'textfield', value: Ext.getCmp('regexReplaceTextField').getValue(), listeners: {change: function(field){Ext.getCmp('regexReplaceTextField').setValue(this.getValue());}}},
-                                    {fieldLabel: 'With', xtype: 'textfield', value: Ext.getCmp('replacementTextField').getValue(), listeners: {change: function(field){Ext.getCmp('replacementTextField').setValue(this.getValue());}}},
+                                    {fieldLabel: 'With', xtype: 'textfield', value: Ext.getCmp('replacementTextField').getValue(), listeners: {change: function(field){Ext.getCmp('replacementTextField').setValue(this.getValue());}}}
                                 ], flex:1
                             }], flex:1
                         },
                 ], flex:5},
                 {title: 'Output', id: 'outputTitle', titleAlign: 'center'},
-                {xtype: 'matchProcessgrid', id: 'output1', flex:5},
+                {xtype: 'matchProcessgrid', id: 'output1', flex:5}
             ],
             buttons: [{
                 xtype: 'button',
@@ -1248,7 +1259,7 @@ Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
         if ( ! Ext.getCmp('regexTestDialog') ) {
             new Zenoss.TestRegexDialog(
             {
-                id: 'regexTestDialog',
+                id: 'regexTestDialog'
             });
         } else
             Ext.getCmp('regexTestDialog').show();
@@ -1269,7 +1280,7 @@ Ext.getCmp('footer_bar').buttonContextMenu.menu.add({
         if ( ! Ext.getCmp('regexTestDialog') ) {
             new Zenoss.TestRegexDialog(
             {
-                id: 'regexTestDialog',
+                id: 'regexTestDialog'
             });
         } else
             Ext.getCmp('regexTestDialog').show();

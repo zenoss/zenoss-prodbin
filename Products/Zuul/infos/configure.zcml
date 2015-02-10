@@ -176,6 +176,10 @@
              factory=".organizer.OrganizerInfo"
              />
 
+    <adapter provides="..interfaces.IDeviceClassInfo"
+             for="Products.ZenModel.DeviceClass.DeviceClass"
+             factory=".organizer.DeviceClassInfo"
+             />
     <adapter provides="..interfaces.ILocationOrganizerInfo"
              for="Products.ZenModel.Location.Location"
              factory=".organizer.LocationOrganizerInfo"
@@ -269,6 +273,10 @@
     <adapter factory=".eventclasses.EventClassInfo"
              for="Products.ZenEvents.EventClassInst.EventClassInst"
              provides="..interfaces.IEventClassInfo"/>
+    
+    <adapter factory=".user.UserInfo"
+             for="Products.ZenModel.UserSettings.UserSettings"
+             provides="..interfaces.IUserInfo"/>
 
     <adapter factory=".manufacturers.ManufacturersInfo"
              for="Products.ZenModel.Manufacturer.Manufacturer"
@@ -280,9 +288,14 @@
              />
 
    <adapter factory=".application.ApplicationInfo"
-            provides="Products.Zuul.interfaces.IApplicationInfo"
-            for="Products.ZenUtils.application.IApplication"
-            />
+           provides="Products.Zuul.interfaces.IApplicationInfo"
+           for="Products.ZenUtils.application.IApplication"
+           />
+
+   <adapter factory=".host.HostInfo"
+           provides="Products.Zuul.interfaces.IHostInfo"
+           for="Products.ZenUtils.host.IHost"
+           />
 
    <adapter factory=".application.ApplicationConfigurationInfo"
             provides="Products.Zuul.interfaces.IApplicationConfigurationInfo"

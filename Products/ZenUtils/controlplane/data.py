@@ -17,17 +17,17 @@ Application JSON format:
 
     /services/<service-id> 'get' result example
     {
-        "Id":              "9827-939070095",
+        "ID":              "9827-939070095",
         "Name":            "zentrap",
         "Startup":         "/bin/true",
         "Description":     "This is a collector deamon 4",
         "Instances":       0,
         #"Running": [
         #    {
-        #      "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
-        #      "ServiceId": "c412e4cf-48be-b53d-d144-867ffa596ffa",
-        #      "HostId": "007f0101",
-        #      "DockerId": "3b52fc18767f",
+        #      "ID": "28ea1c28-8491-2afc-fd9d-fe207046be05",
+        #      "ServiceID": "c412e4cf-48be-b53d-d144-867ffa596ffa",
+        #      "HostID": "007f0101",
+        #      "DockerID": "3b52fc18767f",
         #      "StartedAt": "2013-10-29T17:59:13-05:00",
         #    }
         #]
@@ -39,8 +39,8 @@ Application JSON format:
                 "Content": "\n# SAMPLE config file for mysql\n\n[mysqld]\n\ninnodb_buffer_pool_size = 16G\n\n"
             }
         },
-        "ImageId":         "zenoss",
-        "PoolId":          "default",
+        "ImageID":         "zenoss",
+        "PoolID":          "default",
         "DesiredState":    1,
         "Launch":          "auto",
         "Endpoints":       {
@@ -49,7 +49,7 @@ Application JSON format:
             "Application": "redis",
             "Purpose": "export"
         },
-        "ParentServiceId": "293482085035",
+        "ParentServiceID": "293482085035",
         "CreatedAt":       "0001-01-01T00:00:00Z",
         "UpdatedAt":       "2013-10-29T07:31:22-05:00"
     }
@@ -58,19 +58,19 @@ Application JSON format:
     /services/<service-id>/running example
     [
       {
-        "Id": "28ea1c28-8491-2afc-fd9d-fe207046be05",
-        "ServiceId": "c412e4cf-48be-b53d-d144-867ffa596ffa",
-        "HostId": "007f0101",
-        "DockerId": "3b52fc18767f",
+        "ID": "28ea1c28-8491-2afc-fd9d-fe207046be05",
+        "ServiceID": "c412e4cf-48be-b53d-d144-867ffa596ffa",
+        "HostID": "007f0101",
+        "DockerID": "3b52fc18767f",
         "StartedAt": "2013-10-29T17:59:13-05:00",
         "Name": "redis",
         "Startup": "/usr/sbin/redis-server",
         "Description": "",
         "Instances": 1,
-        "ImageId": "zenoss/redis",
-        "PoolId": "default",
+        "ImageID": "zenoss/redis",
+        "PoolID": "default",
         "DesiredState": 1,
-        "ParentServiceId": ""
+        "ParentServiceID": ""
       }
     ]
 
@@ -93,8 +93,9 @@ from functools import wraps
 from zope.component import createObject
 from zope.component.factory import Factory
 from zope.interface import implementer
-
-from .interfaces import IServiceDefinition, IServiceInstance
+from Products.ZenUtils.application import ApplicationState
+from .interfaces import IServiceDefinition, IServiceInstance, IServiceStatus
+from ..host import IHost
 
 
 class _Value(object):
@@ -120,18 +121,21 @@ class _Value(object):
 # The set of keys found in a service definition JSON object.
 # Used to identify such objects.
 _definitionKeys = set([
-    "Id", "Name", "ParentServiceId", "PoolId", "Description", "Launch",
+    "ID", "Name", "ParentServiceID", "PoolID", "Description", "Launch",
     "DesiredState", "Tags", "ConfigFiles"
 ])
 
 # The set of keys found in a service instance JSON object.
 # Used to identify such objects.
 _instanceKeys = set([
-    "Id", "ServiceId", "HostId", "DockerId", "StartedAt", "Name",
-    "Startup", "Description", "Instances", "ImageId",
-    "PoolId", "DesiredState", "ParentServiceId"
+    "ID", "ServiceID", "HostID", "DockerID", "StartedAt", "Name",
+    "Startup", "Description", "Instances", "ImageID",
+    "PoolID", "DesiredState", "ParentServiceID"
 ])
 
+_hostKeys = set([
+    "ID", "Name", "PoolID", "Cores", "Memory"
+])
 
 def _decodeServiceJsonObject(obj):
     foundKeys = _definitionKeys & set(obj.keys())
@@ -146,24 +150,38 @@ def _decodeServiceJsonObject(obj):
         return instance
     return obj
 
+def _decodeHostJsonObject(obj):
+    foundKeys = _hostKeys & set(obj.keys())
+    if foundKeys == _hostKeys:
+        instance = createObject("Host")
+        instance.__setstate__(obj)
+        return instance
+    return obj
+
 
 class ServiceJsonDecoder(json.JSONDecoder):
     """
     """
 
-    def __init__(self):
-        kwargs = {"object_hook": _decodeServiceJsonObject}
+    def __init__(self, **kwargs):
+        kwargs.update({"object_hook": _decodeServiceJsonObject})
         super(ServiceJsonDecoder, self).__init__(**kwargs)
+
+
+class HostJsonDecoder(json.JSONDecoder):
+    def __init__(self, **kwargs):
+        kwargs.update({"object_hook": _decodeHostJsonObject})
+        super(HostJsonDecoder, self).__init__(**kwargs)
 
 
 class ServiceJsonEncoder(json.JSONEncoder):
     """
     """
 
-    def encode(self, src):
-        data = src.__getstate__()
-        return super(ServiceJsonEncoder, self).encode(data)
-
+    def default(self, o):
+        if isinstance(o, ServiceDefinition):
+            return o.__getstate__()
+        return json.JSONEncoder.default(self, o)
 
 def _convertToDateTime(f):
     @wraps(f)
@@ -174,6 +192,21 @@ def _convertToDateTime(f):
             return datetime.strptime(trimmed, "%Y-%m-%dT%H:%M:%S")
     return wrapper
 
+def _convertToApplicationState(f):
+    @wraps(f)
+    def wrapper(*args, **kw):
+        src = f(*args, **kw)
+        return {
+            "Scheduled": ApplicationState.STARTING,
+            "Starting":  ApplicationState.STARTING,
+            "Pausing":   ApplicationState.STOPPING,
+            "Paused":    ApplicationState.STOPPED,
+            "Resuming":  ApplicationState.STARTING,
+            "Running":   ApplicationState.RUNNING,
+            "Stopping":  ApplicationState.STOPPING,
+            "Stopped":   ApplicationState.STOPPED
+        }.get(src['Value'], ApplicationState.UNKNOWN)
+    return wrapper
 
 @implementer(IServiceInstance)
 class ServiceInstance(object):
@@ -191,21 +224,21 @@ class ServiceInstance(object):
 
     @property
     def id(self):
-        return self._data.get("Id")
+        return self._data.get("ID")
 
     @property
     def resourceId(self):
         return "/services/%s/running/%s" % (
-            self._data.get("ServiceId"), self._data.get("Id")
+            self._data.get("ServiceID"), self._data.get("ID")
         )
 
     @property
     def serviceId(self):
-        return self._data.get("ServiceId")
+        return self._data.get("ServiceID")
 
     @property
     def hostId(self):
-        return self._data.get("HostId")
+        return self._data.get("HostID")
 
     @property
     @_convertToDateTime
@@ -223,6 +256,72 @@ class ServiceInstanceFactory(Factory):
             ServiceInstance, "ServiceInstance",
             "Control Plane Service Instance Description"
         )
+
+
+@implementer(IServiceStatus)
+class ServiceStatus(object):
+    """
+    """
+
+    def __getstate__(self):
+        return self._data
+
+    def __setstate__(self, data):
+        self._data = data
+
+    def __init__(self):
+        self._data = {}
+
+    @property
+    def id(self):
+        return self._data.get("State", {}).get("ID")
+
+    @property
+    def serviceId(self):
+        return self._data.get("State", {}).get("ServiceID")
+
+    @property
+    def instanceId(self):
+        return self._data.get("State", {}).get("InstanceID")
+
+    @property
+    def hostId(self):
+        return self._data.get("State", {}).get("HostID")
+
+    @property
+    @_convertToDateTime
+    def startedAt(self):
+        return self._data.get("State", {}).get("Started")
+
+    @property
+    @_convertToApplicationState
+    def status(self):
+        return self._data.get("Status")
+
+
+class ServiceStatusFactory(Factory):
+    """
+    Factory for ServiceStatus objects.
+    """
+
+    def __init__(self):
+        super(ServiceStatusFactory, self).__init__(
+            ServiceStatus, "ServiceStatus",
+            "Control Plane Service Status Description"
+        )
+
+
+class ServiceStatusJsonDecoder(json.JSONDecoder):
+    @staticmethod
+    def _decodeObject(obj):
+        if sorted(obj.keys()) == sorted(('State', 'Status')):
+            service = createObject("ServiceStatus")
+            service.__setstate__(obj)
+            return service
+        return obj
+    def __init__(self, **kwargs):
+        kwargs.update({"object_hook": ServiceStatusJsonDecoder._decodeObject})
+        super(ServiceStatusJsonDecoder, self).__init__(**kwargs)
 
 
 @implementer(IServiceDefinition)
@@ -256,15 +355,19 @@ class ServiceDefinition(object):
 
     @property
     def id(self):
-        return self._data.get("Id")
+        return self._data.get("ID")
 
     @property
     def parentId(self):
-        return self._data.get('ParentServiceId')
+        return self._data.get('ParentServiceID')
+
+    @property
+    def poolId(self):
+        return self._data.get('PoolID')
 
     @property
     def resourceId(self):
-        return "/services/%s" % (self._data.get("Id"),)
+        return "/services/%s" % (self._data.get("ID"),)
 
     @property
     def name(self):
@@ -343,9 +446,77 @@ class ServiceDefinitionFactory(Factory):
         )
 
 
+@implementer(IHost)
+class Host(object):
+    """
+    """
+    def __getstate__(self):
+        return self._data
+
+    def __setstate__(self, data):
+        self._data = data
+
+    def __init__(self):
+        self._data = {}
+
+    @property
+    def id(self):
+        return self._data.get("ID")
+
+    @property
+    def name(self):
+        return self._data.get("Name")
+
+    @property
+    def poolId(self):
+        return self._data.get("PoolID")
+
+    @property
+    def ipAddr(self):
+        return self._data.get("IPAddr")
+
+    @property
+    def cores(self):
+        return self._data.get("Cores")
+
+    @property
+    def memory(self):
+        return self._data.get("Memory")
+
+    @property
+    def privateNetwork(self):
+        return self._data.get("PrivateNetwork")
+
+    @property
+    @_convertToDateTime
+    def createdAt(self):
+        return self._data.get("CreatedAt")
+
+    @property
+    @_convertToDateTime
+    def updatedAt(self):
+        return self._data.get("UpdatedAt")
+
+    @property
+    def kernelVersion(self):
+        return self._data.get("KernelVersion")
+
+    @property
+    def kernelRelease(self):
+        return self._data.get("KernelRelease")
+
+class HostFactory(Factory):
+    """
+    Factory for Host objects.
+    """
+
+    def __init__(self):
+        super(HostFactory, self).__init__(Host, "Host", "Control Plane Host Definition")
+
 # Define the names to export via 'from data import *'.
 __all__ = (
     "ServiceJsonDecoder", "ServiceJsonEncoder",
     "ServiceDefinition", "ServiceDefinitionFactory",
-    "ServiceInstance", "ServiceInstanceFactory"
+    "ServiceInstance", "ServiceInstanceFactory",
+    "Host", "HostFactory"
 )

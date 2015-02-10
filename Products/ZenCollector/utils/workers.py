@@ -7,12 +7,14 @@
 # 
 ##############################################################################
 
-
 import multiprocessing
 import logging
 import signal
 import os
 import sys
+import ctypes
+from ctypes.util import find_library
+import optparse
 
 from time import sleep
 from twisted.internet import reactor
@@ -30,21 +32,30 @@ def workersBuildOptions(parser, default=1):
     parser.add_option('--workers',
                       type="int",
                       default=default,
-                      help="The number of processing workers to run "
-                           "(ignored when running in the foreground)")
+                      help=optparse.SUPPRESS_HELP)
 
-def exec_worker():
+def exec_worker(worker_id=None):
     """
     used to create a worker for an existing zenoss daemon. Removes the
     "workers" and "daemon" sys args and replace the current process by
     executing sys args
     """
+
+    #Here we are just registering parents death signal as this childs terminal signal as well.
+    #When the parent dies (for whatever reason), the child will get SIGTERM.
+    libc = ctypes.CDLL(find_library('c'))
+    PR_SET_PDEATHSIG = 1
+    libc.prctl(PR_SET_PDEATHSIG, signal.SIGTERM)
+
     argv = [sys.executable]
     # Remove unwanted parameters from worker processes
-    argv.extend(remove_args(sys.argv[:], ['-D','--daemon'], ['--workers']))
+    argv.extend(remove_args(sys.argv[:], ['-D','--daemon','-c','--cycle'], ['--workerid']))
+    if worker_id is not None:
+        argv.append('--workerid=%d'%worker_id)
     # Tell the worker process to log to the log file and not just to console
     argv.append('--duallog')
     try:
+        log.info("starting worker process")
         os.execvp(argv[0], argv)
     except:
         log.exception("Failed to start process")
@@ -52,15 +63,16 @@ def exec_worker():
 class ProcessWorkers(object):
     """
     class for starting and restarting Multiprocessing process from
-    within a twisted reactor
+    within a twisted reactor.
+    If workerTarget is None then exec_worker is chosen by default.
     """
-    def __init__(self, maxWorkers, workerTarget, workerName=None):
+    def __init__(self, maxWorkers, workerTarget=None , workerName=None):
         self._maxWorkers = maxWorkers
         self._workerTarget = workerTarget
         self._workerName = workerName
         #keeps track of number of workers started and restarted
         self._workerCount = 0
-        self._workers = []
+        self._workers ={}
         self._checking=False
         self._shutdown = False
 
@@ -72,14 +84,14 @@ class ProcessWorkers(object):
             log.debug("_sigchldhandler: shutting down, skipping")
 
     def sendSignal(self, signum):
-        for worker in self._workers:
+        for worker in self._workers.values():
             log.debug("Sending signal %s to %s" % (signum, worker.pid))
             os.kill(worker.pid, signum)
             
     def startWorkers(self):
         def _doStart():
-            for i in xrange(self._maxWorkers):
-                self._startWorker()
+            for i in xrange(1,self._maxWorkers+1):
+                self._workers[i] = self._startWorker(str(i))
             log.debug("Registering SIGCHLD handler")
             signal.signal(signal.SIGCHLD, self._sigchldhandler)
         reactor.callWhenRunning(_doStart)
@@ -109,7 +121,7 @@ class ProcessWorkers(object):
         self._shutdown = True
         if not self._shutdownWorkersNicely():
             self._shutdownWorkersForcefully()
-        self._workers = []
+        self._workers = {}
 
     def _shutdownWorkersNicely(self):
         """
@@ -117,7 +129,7 @@ class ProcessWorkers(object):
         Returns true if we think all the workers quit nicely.
         """
         no_problem_children = True
-        for worker in self._workers:
+        for worker in self._workers.values():
             log.info("Stopping worker %s..." % worker)
             if not worker.is_alive():
                 no_problem_children = False  # Worker may be starting up.
@@ -127,7 +139,7 @@ class ProcessWorkers(object):
         # (This logic is built into Python 3.3 via Process.sentinel)
         for i in range(MAX_SECONDS_TO_NICELY_SHUTDOWN_WORKERS):
             foundLivingWorker = False
-            for p in self._workers:
+            for p in self._workers.values():
                 if p.is_alive():
                     foundLivingWorker = True
                     break
@@ -150,7 +162,7 @@ class ProcessWorkers(object):
         #       Currently we loop every time, trying to kill all every time.
         #       This means "zenblah shutdown" will take 10 seconds instead of 5.
         for i in range(MAX_SECONDS_TO_FORCE_KILL_WORKERS):
-            for worker in self._workers:
+            for worker in self._workers.values():
                 try:
                     os.kill(worker.pid, signal.SIGKILL)
                     os.waitpid(worker.pid, os.WNOHANG)
@@ -172,31 +184,34 @@ class ProcessWorkers(object):
         try:
             self._checking = True
             log.debug("checking workers: current %s, max %s"%(len(self._workers), self._maxWorkers))
-            currentWorkers = []
-            currentWorkers.extend(self._workers)
-            for worker in currentWorkers:
-                if not worker.is_alive():
+            renewed_workers={}
+            for worker_id in self._workers:  
+                if not self._workers[worker_id].is_alive():
                     # It's possible this worker hasn't fully registered with the OS
                     # and will soon start, but it's unlikely we'd be here that soon.
-                    log.info("worker %s is dead" % worker)
-                    self._workers.remove(worker)
-            while len(self._workers) < self._maxWorkers:
-                log.debug("starting worker...")
-                self._startWorker()
+                    log.info("worker %s is dead. Starting worker again" % self._workers[worker_id])
+                    renewed_workers[worker_id] = self._startWorker(worker_id)
+            self._workers.update(renewed_workers)
         finally:
             self._checking = False
-            
-    def _startWorker(self):
-        self._workerCount +=1
-        workerName = None
+    
+    def _startWorker(self, worker_id):
+        workerName = worker_id
         if self._workerName:
-            workerName = '%s %s' % (self._workerName, self._workerCount)
-        log.debug('starting worker %s' % workerName)
+            workerName = '%s %s' % (self._workerName, worker_id)
+        log.warning('Starting worker %s' % workerName)
+        # if self._workerTarget is None, we just call exec_worker with _workerCount + 1 as worker_id
+        target = self._workerTarget
+        target_kwargs= {}
+        if self._workerTarget is None:
+            target = exec_worker
+            target_kwargs= {"worker_id":worker_id} 
         p = multiprocessing.Process(
-            target=self._workerTarget,
-            name=workerName
+            target=target,
+            name=workerName,
+            kwargs=target_kwargs
             )
         p.daemon = True
         p.start()
-        log.info("Started worker {0}: pid={0.pid}".format(p))
-        self._workers.append(p)
+        log.info("Started worker {0}: current pid={0.pid}".format(p))
+        return p

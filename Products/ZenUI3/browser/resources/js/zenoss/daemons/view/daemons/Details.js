@@ -58,7 +58,7 @@
                 xtype: 'form',
                 id: 'configs',
                 ref: 'configPanel',
-                layout: 'fit',
+                autoScroll: true,
                 buttonAlign: 'left',
                 buttons: [{
                     xtype: 'button',
@@ -69,6 +69,14 @@
                     text: _t('Cancel'),
                     ref: 'configCancelBtn'
                 }]
+            },{
+                xtype: 'panel',
+                ref: 'logs',
+                id: 'logs',
+                src: location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : "") + "/logview/#/dashboard/file/zenoss.json",
+                bodyStyle: {
+                    overflow: 'hidden'
+                }
             }];
             this.callParent(arguments);
         }

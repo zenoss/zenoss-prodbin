@@ -43,22 +43,22 @@
     name="IgnorableClasses"
     />
 
-    <adapter provides=".interfaces.IInvalidationOid"
+    <subscriber provides=".interfaces.IInvalidationOid"
              for="Products.ZenModel.DeviceComponent.DeviceComponent"
              factory=".invalidationoid.DeviceOidTransform"
             />
 
-    <adapter provides=".interfaces.IInvalidationOid"
+    <subscriber provides=".interfaces.IInvalidationOid"
              for="Products.ZenModel.DeviceHW.DeviceHW"
              factory=".invalidationoid.DeviceOidTransform"
             />
 
-    <adapter provides=".interfaces.IInvalidationOid"
+    <subscriber provides=".interfaces.IInvalidationOid"
              for="Products.ZenModel.OperatingSystem.OperatingSystem"
              factory=".invalidationoid.DeviceOidTransform"
             />
 
-    <adapter provides=".interfaces.IInvalidationOid"
+    <subscriber provides=".interfaces.IInvalidationOid"
              for="Products.ZenRelations.PrimaryPathObjectManager.PrimaryPathObjectManager"
              factory=".invalidationoid.DefaultOidTransform"
             />

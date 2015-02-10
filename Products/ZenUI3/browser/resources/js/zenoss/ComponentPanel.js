@@ -25,6 +25,8 @@ ZC.displayNames = function() {
     return NM;
 };
 
+var router = Zenoss.remote.TemplateRouter;
+
 function render_link(ob) {
     if (ob && ob.uid) {
         return Zenoss.render.link(ob.uid);
@@ -56,6 +58,27 @@ function getComponentEventPanelColumnDefinitions() {
     return cols;
 }
 
+function tbarButtoner(target, buttonDefs, combo, cardId, that) {
+    var tbar = target.getDockedItems()[0];
+    if (tbar._btns) {
+        Ext.each(tbar._btns, tbar.remove, tbar);
+    }
+    var btns = tbar.add(buttonDefs);
+    tbar.doLayout();
+    tbar._btns = btns;
+    combo.on('select', function(c, selected){
+        if (c.value!=cardId) {
+            Ext.each(btns, tbar.remove, tbar);
+        }
+    }, that, {single:true});
+}
+
+Ext.define('Zenoss.component.TplUidNameModel', {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: ['qtip', 'definition', 'hidden', 'leaf', 'description', 'name', 'text', 'id', 'meta_type', 'targetPythonClass', 'inspector_type', 'icon_cls', 'children', 'uid']
+});
+
 Zenoss.nav.register({
     Component: [{
         nodeType: 'subselect',
@@ -68,69 +91,14 @@ Zenoss.nav.register({
                     id: cardid,
                     xtype: 'graphpanel',
                     viewName: 'graphs',
-                    showToolbar: false,
                     text: _t('Graphs')
                 };
+
             if (!Ext.get('graph_panel')) {
                 target.add(graphs);
             }
-
             target.layout.setActiveItem(cardid);
             target.layout.activeItem.setContext(uid);
-            var tbar = target.getDockedItems()[0];
-            if (tbar._btns) {
-                Ext.each(tbar._btns, tbar.remove, tbar);
-            }
-            var btns = tbar.add([
-                '->',
-                 {
-                    xtype: 'drangeselector',
-                    listeners: {
-                        select: function(combo, records, index){
-                            var value = records[0].data.id,
-                                panel = Ext.getCmp(cardid);
-                            panel.setDrange(value);
-                        }
-                    }
-                },'-', {
-                    xtype: 'button',
-                    ref: '../resetBtn',
-                    text: _t('Reset'),
-                    handler: function(btn) {
-                        Ext.getCmp(cardid).setDrange();
-                    }
-                },'-',{
-                    xtype: 'tbtext',
-                    text: _t('Link Graphs?')
-                },{
-                    xtype: 'checkbox',
-                    ref: '../linkGraphs',
-                    checked: true,
-                    listeners: {
-                        change: function(chkBx, checked) {
-                            var panel = Ext.getCmp(cardid);
-                            panel.setLinked(checked);
-                        }
-                    }
-                }, '-', {
-                    xtype: 'graphrefreshbutton',
-                    stateId: 'ComponentGraphRefresh',
-                    iconCls: 'refresh',
-                    text: _t('Refresh'),
-                    handler: function(btn) {
-                        if (cardid && Ext.getCmp(cardid)) {
-                            Ext.getCmp(cardid).refresh();
-                        }
-                    }
-                }
-            ]);
-            tbar.doLayout();
-            tbar._btns = btns;
-            combo.on('select', function(c, selected){
-                if (c.value!="Graphs") {
-                    Ext.each(btns, tbar.remove, tbar);
-                }
-            }, this, {single:true});
         }
     },{
         nodeType: 'subselect',
@@ -152,12 +120,7 @@ Zenoss.nav.register({
                     columns: getComponentEventPanelColumnDefinitions()
                 });
             }
-            var tbar = target.getDockedItems()[0];
-            if (tbar._btns) {
-                Ext.each(tbar._btns, tbar.remove, tbar);
-            }
-
-            var btns = tbar.add([
+            var buttonDefs = [
                 '-',
                 new Zenoss.ActionButton({
                     iconCls: 'acknowledge',
@@ -206,15 +169,8 @@ Zenoss.nav.register({
                         window.open(url, '_newtab', "");
                     }
                 })
-            ]);
-
-            tbar.doLayout();
-            tbar._btns = btns;
-            combo.on('select', function(c, selected){
-                if (c.value!="Events") {
-                    Ext.each(btns, tbar.remove, tbar);
-                }
-            }, this, {single:true});
+            ];
+            tbarButtoner(target, buttonDefs, combo, "Events", this);
             showPanel();
         }
     },{
@@ -238,14 +194,146 @@ Zenoss.nav.register({
         id: 'ComponentTemplate',
         text: _t('Templates'),
         action: function(node, target, combo) {
-            var uid = combo.contextUid;
-            if (!Ext.get('templates_panel')) {
+            var cardid = 'templates_panel',
+                contextUid = combo.contextUid;
+            if (!Ext.get(cardid)) {
                 target.add(Ext.create('Zenoss.ComponentTemplatePanel',{
                     ref: 'componentTemplatePanel',
-                    id: 'templates_panel'
+                    id: cardid,
+                    contextUid: contextUid
                 }));
             }
-            target.componentTemplatePanel.setContext(uid);
+            var tplCombo = Ext.create('Ext.form.field.ComboBox', {
+                xtype: 'combo',
+                ref: '../templateCombo',
+                displayField: 'name',
+                valueField: 'uid',
+                initialSortColumn: 'name',
+                width: 200,
+                editable: false,
+                forceSelection: true,
+                autoSelect: true,
+                store: new Zenoss.NonPaginatedStore({
+                    model: 'Zenoss.component.TplUidNameModel',
+                    directFn: router.getObjTemplates,
+                    autoLoad: true,
+                    listeners: {
+                        beforeload: function(store, operation){
+                            if (!operation.params) {
+                                operation.params = {};
+                                operation.params.uid = contextUid;
+                            } else {
+                                operation.params.uid = contextUid;
+                                delete operation.params['query'];
+                            }
+                        },
+                        load: function(store, records, success, eOpts) {
+                            if (records.length == 0) {
+                                return;
+                            }
+                            if (!target.componentTemplatePanel) {
+                                return;
+                            }
+                            var tplUid = records[0].data.uid;
+                            target.componentTemplatePanel.setContext(tplUid);
+                            if (tplCombo.store) {
+                                tplCombo.setValue(tplUid);
+                            }
+                            if (tplCombo.refOwner) {
+                                if (tplUid.startswith(contextUid)) {
+                                    tplCombo.refOwner.createLocalCopyButton.disable();
+                                    tplCombo.refOwner.deleteLocalCopyButton.enable();
+                                } else {
+                                    tplCombo.refOwner.createLocalCopyButton.enable();
+                                    tplCombo.refOwner.deleteLocalCopyButton.disable();
+                                }
+                            }
+                        }
+                    }
+                }),
+                listeners: {
+                    select: function(combo, records, eOpts){
+                        var tplUid = records[0].data.uid;
+                        target.componentTemplatePanel.setContext(tplUid);
+                        if (tplUid.startswith(contextUid)) {
+                            this.refOwner.createLocalCopyButton.disable();
+                            this.refOwner.deleteLocalCopyButton.enable();
+                        } else {
+                            this.refOwner.createLocalCopyButton.enable();
+                            this.refOwner.deleteLocalCopyButton.disable();
+                        }
+                    }
+                }
+            });
+            var buttonDefs = [
+                '->',
+                {
+                    xtype: 'label',
+                    text: _t('Template:'),
+                    margin: '0 10 0 0'
+                },
+                tplCombo,
+                '-',
+                {
+                    ref: '../createLocalCopyButton',
+                    xtype: 'button',
+                    disabled: true,
+                    text: _t('Create Local Copy'),
+                    handler: function(btn) {
+                        var tplTbar = this.refOwner,
+                            templateName = tplTbar.templateCombo.getValue(),
+                            createLocalArgs;
+                        if (templateName) {
+                            createLocalArgs = {
+                                uid: contextUid,
+                                templateName: templateName
+                            };
+                            router.makeLocalRRDTemplate(createLocalArgs, function(response) {
+                                target.componentTemplatePanel.setContext(response.tplUid);
+                                tplTbar.createLocalCopyButton.disable();
+                                tplTbar.deleteLocalCopyButton.enable();
+                            });
+                        }
+                    }
+                },{
+                    ref: '../deleteLocalCopyButton',
+                    xtype: 'button',
+                    text: _t('Delete Local Copy'),
+                    disabled: true,
+                    tooltip: _t('Delete the local copy of this template'),
+                    handler: function(btn) {
+                        var tplTbar = this.refOwner,
+                            templateName = tplTbar.templateCombo.getValue(),
+                            removeLocalArgs;
+                        if (templateName) {
+                            // show a confirmation
+                            new Zenoss.dialog.SimpleMessageDialog({
+                                title: _t('Delete Copy'),
+                                message: Ext.String.format(_t("Are you sure you want to delete the local copy of this template? There is no undo.")),
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    text: _t('OK'),
+                                    handler: function() {
+                                        removeLocalArgs = {
+                                            uid: contextUid,
+                                            templateName: templateName
+                                        };
+                                        router.removeLocalRRDTemplate(removeLocalArgs, function(response) {
+                                            target.componentTemplatePanel.setContext(response.tplUid);
+                                            tplTbar.createLocalCopyButton.enable();
+                                            tplTbar.deleteLocalCopyButton.disable();
+                                        });
+                                    }
+                                }, {
+                                    xtype: 'DialogButton',
+                                    text: _t('Cancel')
+                                }]
+                            }).show();
+                        }
+                    }
+                }
+            ];
+            tbarButtoner(target, buttonDefs, combo, "Templates", this);
             target.layout.setActiveItem('templates_panel');
         }
     }]
@@ -426,17 +514,26 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         this.detailcontainer.removeAll();
                         this.componentnavcombo.reset();
                     },
-                    selectionchange: function(sm, selected) {
+                    select: function(sm, row) {
                         // top grid selection change
-                        var row = selected[0];
                         if (row) {
+                            // When infinite grids are resized the "selectionchange" event can be fired
+                            // even though the selected row hasn't changed.. This can be very expensive and cause rendering
+                            // errors when the layout manager tries to render the layouts of things that have already
+                            // been removed.
+                            if (this.previousRow && this.previousRow.id === row.id) {
+                                return;
+                            }
+                            this.previousRow = row;
                             this.detailcontainer.removeAll();
                             this.componentnavcombo.reset();
                             Zenoss.env.compUUID = row.data.uuid;
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
-                                token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
-                            Ext.History.add(token + delimiter + row.data.uid);
+                                token = Ext.History.getToken().split(delimiter, 1);
+                            Ext.util.History.suspendEvents(false);
+                            Ext.util.History.add(token + delimiter + this.componentType + delimiter + row.data.uid);
+                            Ext.util.History.resumeEvents();
                             Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.usesMonitorAttribute);
                         } else {
                             this.detailcontainer.removeAll();
@@ -501,15 +598,15 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 fields: config.fields
             });
         config.sortInfo = config.sortInfo || {};
-        config = Ext.applyIf(config, {
-            autoExpandColumn: 'name',
-            bbar: {},
-            store: new ZC.BaseComponentStore({
+    config = Ext.applyIf(config, {
+        autoExpandColumn: 'name',
+        bbar: {},
+        store: new ZC.BaseComponentStore({
                 model: modelId,
                 initialSortColumn: config.sortInfo.field || 'name',
                 initialSortDirection: config.sortInfo.direction || 'ASC',
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
-            }),
+        }),
             columns: [{
                 id: 'component_severity',
                 dataIndex: 'severity',
@@ -610,6 +707,12 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                     // and then select the component
                     var o = {componentUid:uid};
                     Ext.apply(o, store.getProxy().extraParams);
+                    // make sure we have the sort and the direction.
+                    // since this only happens on initia
+                    Ext.applyIf(o, {
+                        sort: me.getStore().sorters.first().property,
+                        dir: me.getStore().sorters.first().direction
+                    });
                     Zenoss.remote.DeviceRouter.findComponentIndex(o, function(r){
                         // will return a null if not found
                         if (Ext.isNumeric(r.index)) {
@@ -619,7 +722,10 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                         } else {
                             // We can't find the index, it might be an invalid UID so
                             // select the first item so the details section isn't blank.
-                            selectionModel.select(0);
+                            if (!selectionModel.getSelection()) {
+                                selectionModel.select(0);
+                            }
+
                         }
                     });
                 }
@@ -639,8 +745,14 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
 Ext.define("Zenoss.component.BaseComponentStore", {
     extend:"Zenoss.DirectStore",
     constructor: function(config) {
+        var bufferSize = Zenoss.settings.componentGridBufferSize;
+        // work around a bug in ExtJs 4.1.3. TODO: remove this after
+        // we update the library.
+        if (bufferSize < 100) {
+            bufferSize = 100;
+        }
         Ext.applyIf(config, {
-            pageSize: Zenoss.settings.componentGridBufferSize,
+            pageSize: bufferSize,
             directFn: config.directFn
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);
@@ -684,7 +796,7 @@ Ext.define("Zenoss.component.IpInterfacePanel", {
                 id: 'name',
                 dataIndex: 'name',
                 header: _t('IP Interface'),
-                width: 150
+                width: 250
             },{
                 id: 'ipAddresses',
                 dataIndex: 'ipAddressObjs',
@@ -926,7 +1038,7 @@ Ext.define("Zenoss.component.IpServicePanel", {
                 dataIndex: 'ipaddresses',
                 header: _t('IPs'),
                 renderer: function(ips) {
-                    return ips.join(', ');
+                  return Ext.isEmpty(ips) ? '' : ips.join(', ');
                 }
             },{
                 id: 'description',

@@ -61,7 +61,7 @@ class PropertiesRouter(DirectRouter):
         @param uid: unique identifier of an object
         """
         facade = self._getFacade()
-        data = facade.getZenProperties(uid, exclusionList=('zCollectorPlugins',))
+        data = facade.getZenProperties(uid, exclusionList=('zCollectorPlugins', 'zCredentialsZProperties'))
         
         data = self._filterData(params, data)
         if sort:
@@ -114,28 +114,44 @@ class PropertiesRouter(DirectRouter):
 
     @serviceConnectionError
     @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid') 
-    def setZenProperty(self, uid, zProperty, value):
+    def setZenProperty(self, uid, zProperty, value=None):
         """
-        Sets the zProperty value
+        Sets the zProperty value.
+        @type  uid: string
+        @param uid: unique identifier of an object
+        @type  zProperty: string or dictionary
+        @param zProperty: either a string that represents which zproperty we are changing or 
+        key value pair dictionary that is the list of zproperties we wish to change.
+        @type  value: anything
+        @param value: if we are modifying a single zproperty then it is the value, it is not used
+        if a dictionary is passed in for zProperty
+
         """
         facade = self._getFacade()
-            
+        properties = dict()
+        # allow for zProperty to be a map of zproperties that need to
+        # be saved in case there is more than one
+        if not isinstance(zProperty, dict):
+            properties[zProperty] = value
+        else:
+            properties = zProperty
+        for key, value in properties.iteritems():    
         # get old value for auditing
-        oldProperty = facade.getZenProperty(uid, zProperty)
-        oldValue = oldProperty['value'] if 'value' in oldProperty else ''
+            oldProperty = facade.getZenProperty(uid, key)
+            oldValue = oldProperty['value'] if 'value' in oldProperty else ''
 
-        # change it
-        facade.setZenProperty(uid, zProperty, value)
+            # change it
+            facade.setZenProperty(uid, key, value)
 
-        data = facade.getZenProperty(uid, zProperty)
-        value = str(value) if not value else value  # show 'False', '0', etc.  
-        oldValue = str(oldValue) if not oldValue else oldValue  # must match
-        obj = facade._getObject(uid)
-        
-        maskFields = 'value' if obj.zenPropIsPassword(zProperty) else None
-        audit('UI.zProperty.Edit', zProperty, maskFields_=maskFields,
-              data_={obj.meta_type: uid, 'value': value},
-              oldData_={'value': oldValue})          
+            data = facade.getZenProperty(uid, key)
+            value = str(value) if not value else value  # show 'False', '0', etc.  
+            oldValue = str(oldValue) if not oldValue else oldValue  # must match
+            obj = facade._getObject(uid)
+
+            maskFields = 'value' if obj.zenPropIsPassword(zProperty) else None
+            audit('UI.zProperty.Edit', zProperty, maskFields_=maskFields,
+                  data_={obj.meta_type: uid, 'value': value},
+                  oldData_={'value': oldValue})          
         
         return DirectResponse(data=Zuul.marshal(data))  
         

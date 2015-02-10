@@ -21,7 +21,7 @@ class PropertiesFacade(ZuulFacade):
 
     def getZenProperties(self, uid, exclusionList=()):
         """
-        Returns information about and the value of every zen property.  
+        Returns information about and the value of every zen property.
 
         @type  uid: string
         @param uid: unique identifier of an object
@@ -46,16 +46,16 @@ class PropertiesFacade(ZuulFacade):
             if not iscustprop(zProperty):
                 if prop['path'] == '/':
                     raise Exception('Unable to delete root definition of a property')
-                    
-            obj.deleteZenProperty(zProperty) 
-            
+
+            obj.deleteZenProperty(zProperty)
+
     def _checkType(self, obj, prop, type, value):
         """
         @param obj: the object returned in the caller from getObject(uid)
         @param prop: the id, zProperty, or cProperty
         @param type: the type of property value
         @param value: the value itself
-        """        
+        """
         # make sure it is the correct type
         ztype = obj.getPropertyType(prop)
         if ztype == 'int':
@@ -67,24 +67,30 @@ class PropertiesFacade(ZuulFacade):
         if ztype == 'date':
             value = value.replace('%20', ' ') # Ugh. Manually decode spaces
             value = DateTime(value)
-        return value    
- 
+        if ztype == "lines" and isinstance(value, basestring):
+            if value:
+                value = value.split("\n")
+            else:
+                # if there is an empty string passed in save it as an empty array
+                value = []
+        return value
+
     def addCustomProperty(self, id, value, label, uid, type):
         """
         adds a custom property from the UI
         """
         obj = self._getObject(uid)
-            
-        value = self._checkType(obj, id, type, value)  
-            
-        id = id.strip()    
+
+        value = self._checkType(obj, id, type, value)
+
+        id = id.strip()
         if not iscustprop(id):
             raise Exception("Invalid Custom Property. Must start with lower case c")
         elif obj.hasProperty(id):
             raise Exception("Custom Property already exists.")
         else:
             obj._setProperty(id, value, type, label)
-            
+
 
     def setZenProperty(self, uid, zProperty, value):
         """
@@ -100,13 +106,13 @@ class PropertiesFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         # make sure it is the correct type
-        value = self._checkType(obj, id, type, value)            
+        value = self._checkType(obj, zProperty, type, value)
         # do not save * as passwords
         if obj.zenPropIsPassword(zProperty) and value == obj.zenPropertyString(zProperty):
             return
-               
-        return obj.setZenProperty(zProperty, value)                       
-    
+
+        return obj.setZenProperty(zProperty, value)
+
     def getCustomProperties(self, uid, exclusionList=()):
         """
         Returns information about and the value of every zen property.
@@ -118,7 +124,7 @@ class PropertiesFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         return self.exportCustomProperties(obj, exclusionList)
-    
+
     def exportCustomProperties(self, obj, exclusionList=()):
         """
         TODO: This really belongs in ZenRelations/ZenRelationManager.py
@@ -156,7 +162,7 @@ class PropertiesFacade(ZuulFacade):
             else:
                 prop['value'] = obj.zenPropertyString(cId)
             props.append(prop)
-        return props  
+        return props
 
     def getZenProperty(self, uid, zProperty):
         """
@@ -180,4 +186,4 @@ class PropertiesFacade(ZuulFacade):
         if not obj.zenPropIsPassword(zProperty):
             prop['value'] = obj.getZ(zProperty)
             prop['valueAsString'] = obj.zenPropertyString(zProperty)
-        return prop         
+        return prop

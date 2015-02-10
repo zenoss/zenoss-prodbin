@@ -751,8 +751,19 @@ Ext.apply(Zenoss.devices, {
         // only global roles can do this action
         permissionContext: '/zport/dmd/Devices',
         handler: function(btn, e){
-            window.open('/zport/dmd/easyAddDevice', "multi_add",
-            "menubar=0,toolbar=0,resizable=0,height=630, width=800,location=0");
+            var loc = window.location.pathname;
+            window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#add-device', loc);
+        }
+    }),
+    addDeviceDiscovery: new Zenoss.Action({
+        text: _t('Discover Networks') + '...',
+        id: 'adddevice-discovery',
+        permission: 'Manage Device',
+        // only global roles can do this action
+        permissionContext: '/zport/dmd/Devices',
+        handler: function(btn, e){
+            var loc = window.location.pathname;
+            window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#discover-network', loc);
         }
     })
 });
@@ -848,7 +859,16 @@ function initializeTreeDrop(tree) {
                                 }
                             }
                         }, me);
-                    }
+                        // refresh node
+                        tree.getStore().load({
+                            callback:function () {
+                                tree.getRootNode().expand();
+                                if (tree.getRootNode().childNodes.length) {
+                                    tree.getRootNode().childNodes[0].expand();
+                                }
+                            }
+                        });
+                   }
                 }, {
                     xtype: 'DialogButton',
                     text: _t('Cancel')
@@ -971,7 +991,9 @@ var devtree = {
         children: Zenoss.env.device_tree_data
     },
     ddGroup: 'devicegriddd',
+    forceEnableDd: true,
     selectByToken: detailSelectByToken,
+    addNodeFn: REMOTE.addDeviceClassNode,
     selModel: Ext.create('Zenoss.TreeSelectionModel',{
         tree: 'devices',
         listeners: {
@@ -1018,6 +1040,7 @@ var grouptree = {
         children: Zenoss.env.group_tree_data
     },
     ddGroup: 'devicegriddd',
+    forceEnableDd: true,
     nodeName: 'Group',
     selModel: Ext.create('Zenoss.TreeSelectionModel',{
         tree: 'groups',
@@ -1046,6 +1069,7 @@ var systree = {
         children: Zenoss.env.system_tree_data
     },
     ddGroup: 'devicegriddd',
+    forceEnableDd: true,
     nodeName: 'System',
     router: REMOTE,
     selectRootOnLoad: false,
@@ -1076,6 +1100,7 @@ var loctree = {
         children: Zenoss.env.location_tree_data
     },
     ddGroup: 'devicegriddd',
+    forceEnableDd: true,
     nodeName: 'Location',
     router: REMOTE,
     addNodeFn: REMOTE.addLocationNode,
@@ -1329,12 +1354,13 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 menu:{
                     items: [
                         Zenoss.devices.addDevice,
-                        Zenoss.devices.addMultiDevicePopUP
+                        Zenoss.devices.addMultiDevicePopUP,
+                        Zenoss.devices.addDeviceDiscovery
                     ].concat(EXTENSIONS_adddevice)
                 }
             },
             Zenoss.devices.deleteDevices,
-             {
+            {
                 text: _t('Select'),
                 listeners: {
                     afterrender: function(e){
@@ -1347,8 +1373,8 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                                 which can be different depending on how tall the viewable grid is (and is NOT the pageSize, nor does it
                                 take the pageSize into account). This forces consistency.
                             */
-                            store.guaranteeRange(0, store.pageSize-1);
-                            textItem.setText(Ext.String.format(_t("{0} at a time"),  store.data.items.length) );
+                            var amount = Math.min(store.getTotalCount(), store.pageSize);
+                            textItem.setText(Ext.String.format(_t("{0} at a time"), amount) );
                         }, this);
                     }
                 },
@@ -1368,6 +1394,20 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         }
                     }
                 ]
+            },
+            {
+                text: _t('Configure'),
+                menu:[
+                    {
+                        id: 'nfrastructure_clearfilters',
+                        text: _t('Clear filters'),
+                        listeners: {
+                            click: function() {
+                                Ext.getCmp('device_grid').filterRow.clearFilters();
+                            }
+                        }
+                    }
+                    ]
             },'->',{
                 id: 'refreshdevice-button',
                 xtype: 'refreshmenu',
@@ -1381,6 +1421,12 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     if (grid.isVisible(true)) {
                         grid.refresh();
                         Ext.getCmp('organizer_events').refresh();
+                    }
+                },
+                pollHandler: function(btn) {
+                    var grid = Ext.getCmp('device_grid');
+                    if (grid.refresh_in_progress == 0) {
+                        this.handler(btn);
                     }
                 }
             },
@@ -1433,21 +1479,50 @@ Zenoss.Security.onPermissionsChange(function(){
     Ext.getCmp('commands-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands'));
     Ext.getCmp('addsingledevice-item').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
     Ext.getCmp('actions-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Change Device'));
+    Ext.getCmp('footer_add_button').setVisible(Zenoss.Security.hasPermission('Manage DMD'));
+    Ext.getCmp('footer_delete_button').setVisible(Zenoss.Security.hasPermission('Manage DMD'));
     Ext.getCmp('master_panel').details.setDisabled(Zenoss.Security.doesNotHavePermission('View'));
+    Ext.getCmp("context-configure-menu").setVisible(Zenoss.Security.hasPermission('Manage DMD'));
+    Ext.getCmp('context-configure-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
     //Ext.getCmp('organizer_events').setVisible();
 });
 
+var createEventsGrid = function(re_attach_to_container) {
+    var events_store = Ext.create('Zenoss.events.Store', {})
+    if (!Zenoss.settings.enableInfiniteGridForEvents)
+        events_store.buffered = false;
 
-var event_console = Ext.create('Zenoss.EventGridPanel', {
-    id: 'events_grid',
-    stateId: 'infrastructure_events',
-    columns: Zenoss.env.getColumnDefinitions(['DeviceClass']),
-    newwindowBtn: true,
-    actionsMenu: false,
-    commandsMenu: false,
-    store: Ext.create('Zenoss.events.Store', {})
-});
+    var event_console = Ext.create('Zenoss.EventGridPanel', {
+        id: 'events_grid',
+        stateId: 'infrastructure_events',
+        //columns: Zenoss.env.getColumnDefinitions(['DeviceClass']),
+        columns: Zenoss.env.getColumnDefinitionsToRender('infrastructure_events'),
+        newwindowBtn: true,
+        actionsMenu: false,
+        commandsMenu: false,
+        enableColumnHide: false,
+        store: events_store
+    });
 
+    if (re_attach_to_container == true)
+    {
+        var container_panel = Ext.getCmp('detail_panel');
+        container_panel.items.insert(1, event_console);
+        container_panel.layout.setActiveItem(1);
+    }
+
+    event_console.on('recreateGrid', function (grid) {
+        var container_panel = Ext.getCmp('detail_panel');
+        container_panel.remove(grid.id, true);
+        new_grid = createEventsGrid(true);
+        if (Zenoss.env.contextUid) {
+            new_grid.setContext(Zenoss.env.contextUid);
+        }
+    });
+    return event_console;
+};
+
+var event_console = createEventsGrid(false);
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
@@ -1458,7 +1533,7 @@ Ext.getCmp('center_panel').add({
         cls: 'x-zenoss-master-panel',
         region: 'west',
         split: true,
-        width: 275,        
+        width: 275,
         items: [{
             id: 'master_panel_details',
             text: _t('Infrastructure'),
@@ -1545,7 +1620,6 @@ Ext.getCmp('center_panel').add({
     }]
 });
 
-
 var bindTemplatesDialog = Ext.create('Zenoss.BindTemplatesDialog',{
     id: 'bindTemplatesDialog'
 });
@@ -1576,9 +1650,32 @@ function getOrganizerFields(mode) {
         anchor: '80%',
         allowBlank: true
     });
-    var rootId = devtree.root.id;// sometimes the page loads with nothing selected and throws error. Need a default.
-    if(getSelectionModel().getSelectedNode()) rootId = getSelectionModel().getSelectedNode().getOwnerTree().root.id;
-    if ( rootId === loctree.root.id ) {
+
+
+    var uid = "";
+    if (getSelectionModel().getSelectedNode()) {
+        uid = getSelectionModel().getSelectedNode().get('uid');
+    }
+    if (uid.startswith('/zport/dmd/Devices')) {
+        var store = Ext.create('Zenoss.ConfigProperty.Store', {
+            autoLoad: true
+        });
+        store.setBaseParam('uid', uid);
+        items.push({
+            xtype: 'combo',
+            id: 'connectionInfo',
+            queryMode: 'local',
+            displayField: 'id',
+            valueField: 'id',
+            multiSelect: true,
+            anchor: "80%",
+            name: 'connectionInfo',
+            fieldLabel: _t('Connection Information Properties'),
+            store: store
+        });
+    }
+
+    if ( uid.startswith('/zport/dmd/Locations') ) {
         items.push({
             xtype: 'textarea',
             id: 'address',
@@ -1704,7 +1801,7 @@ var footerBar = Ext.getCmp('footer_bar');
                             REMOTE.setInfo(values);
                         });
                         dialog.getForm().load({
-                            params: { uid: node.data.uid, keys: ['id', 'description', 'address'] },
+                            params: { uid: node.data.uid, keys: ['id', 'description', 'address', 'connectionInfo'] },
                             success: function(form, action) {
                                 dialog.show();
                             },

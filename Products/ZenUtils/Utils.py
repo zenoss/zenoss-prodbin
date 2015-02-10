@@ -737,31 +737,6 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     return result
 
 
-from twisted.internet.protocol import ProcessProtocol
-class SendPageProtocol(ProcessProtocol):
-    out = ''
-    err = ''
-    code = None
-
-    def __init__(self, msg):
-        self.msg = msg
-        self.out = ''
-        self.err = ''
-
-    def connectionMade(self):
-        self.transport.write(self.msg)
-        self.transport.closeStdin()
-
-    def outReceived(self, data):
-        self.out += data
-
-    def errReceived(self, data):
-        self.err += data
-
-    def processEnded(self, reason):
-        self.code = reason.value.exitCode
-
-
 def sendPage(recipient, msg, pageCommand, deferred=False):
     """
     Send a page.  Return a tuple: (success, message) where
@@ -780,27 +755,14 @@ def sendPage(recipient, msg, pageCommand, deferred=False):
     env = dict(os.environ)
     env["RECIPIENT"] = recipient
     msg = str(msg)
-    if deferred:
-        from twisted.internet import reactor
-        protocol = SendPageProtocol(msg)
-        reactor.spawnProcess(
-            protocol, '/bin/sh', ('/bin/sh', '-c', pageCommand), env)
-
-        # Bad practice to block on a deferred. This is done because our call
-        # chain is not asynchronous and we need to behave like a blocking call.
-        while protocol.code is None:
-            reactor.iterate(0.1)
-
-        return (not protocol.code, protocol.out)
-    else:
-        p = subprocess.Popen(pageCommand,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             shell=True,
-                             env=env)
-        p.stdin.write(msg)
-        p.stdin.close()
-        response = p.stdout.read()
+    p = subprocess.Popen(pageCommand,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         shell=True,
+                         env=env)
+    p.stdin.write(msg)
+    p.stdin.close()
+    response = p.stdout.read()
     return (not p.wait(), response)
 
 
@@ -816,7 +778,7 @@ def zdecode(context, value):
     @rtype: string
     """
     if isinstance(value, str):
-        decoding = getattr(context, 'zCollectorDecoding', 'latin-1')
+        decoding = getattr(context, 'zCollectorDecoding', 'utf-8')
         value = value.decode(decoding)
     return value
 
@@ -991,6 +953,14 @@ def sane_pathjoin(base_path, *args ):
 
     # os.path.join( '/blue', '' ) returns '/blue/' -- egads!
     return path.rstrip('/')
+
+
+def varPath(*args):
+    """
+    Return a path relative to /var/zenoss specified by joining args.  As with
+    zenPath(), the path is not guaranteed to exist on the filesystem.
+    """
+    return sane_pathjoin('/var/zenoss', *args)
 
 
 def zenPath(*args):
@@ -1729,7 +1699,7 @@ def getDefaultZopeUrl():
     """
     Returns the default Zope URL.
     """
-    return 'http://%s:%d' % (socket.getfqdn(), 8080)
+    return 'http://localhost:8080'
 
 
 def swallowExceptions(log, msg=None, showTraceback=True, returnValue=None):
@@ -1819,7 +1789,7 @@ def atomicWrite(filename, data, raiseException=True, createDir=False):
             raise ex
     return ex
 
-def setLogLevel(level=logging.DEBUG):
+def setLogLevel(level=logging.DEBUG, loggerName=None):
     """
     Change the logging level to allow for more insight into the
     in-flight mechanics of Zenoss.
@@ -1827,8 +1797,12 @@ def setLogLevel(level=logging.DEBUG):
     @parameter level: logging level at which messages display (eg logging.INFO)
     @type level: integer
     """
+    #set the specified logger to level
+    if loggerName:
+        logging.getLogger(loggerName).setLevel(level)
     log = logging.getLogger()
     log.setLevel(level)
+    #set root handlers to be able to log at given level
     for handler in log.handlers:
         if isinstance(handler, logging.StreamHandler):
             handler.setLevel(level)

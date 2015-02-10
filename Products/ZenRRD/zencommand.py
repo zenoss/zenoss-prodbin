@@ -13,7 +13,7 @@ __doc__ = """ZenCommand
 Run Command plugins periodically.
 
 """
-
+from datetime import datetime, timedelta
 import time
 from pprint import pformat
 import logging
@@ -173,9 +173,9 @@ class MySshClient(SshClient):
         # member variable for zenmodeler
         d = self.command_defers.pop(command, None)
         if d is None:
-            log.error("Internal error where deferred object not in dictionary." \
+            log.error("Internal error where deferred object not in dictionary for %s." \
                       " Command = '%s' Data = '%s' Code = '%s' Stderr = '%s'",
-                      command.split()[0], data, code, stderr)
+                      self.description, command.split()[0], data, code, stderr)
         elif not d.called:
             d.callback((data, code, stderr))
 
@@ -184,7 +184,12 @@ class MySshClient(SshClient):
         # necessarily cause for concern.
         msg = "Connection %s lost" % self.description
         log.debug(msg)
-        self.close_defer.callback(msg)
+        if self.connect_defer and not self.connect_defer.called:
+            self.connect_defer.errback(reason)
+        if self.close_defer and not self.close_defer.called:
+            self.close_defer.callback(msg)
+
+
 
     def check(self, ip, timeout=2):
         """
@@ -211,8 +216,10 @@ class MySshClient(SshClient):
         @type reason: object
         """
         msg = reason.getErrorMessage()
-        self.connect_defer.errback(msg)
-        self.close_defer.errback(msg)
+        if self.connect_defer and not self.connect_defer.called:
+            self.connect_defer.errback(msg)
+        if self.close_defer and not self.close_defer.called:
+            self.close_defer.errback(msg)
 
         self.clientFinished()
 
@@ -225,6 +232,7 @@ class DataPointConfig(pb.Copyable, pb.RemoteCopy):
     rrdCreateCommand = ''
     rrdMin = None
     rrdMax = None
+    metadata = None
 
     def __init__(self):
         self.data = {}
@@ -369,7 +377,8 @@ class SshPerformanceCollectionTask(BaseTask):
                self.name, self.configId, len(self._datasources))
 
     def cleanup(self):
-        self._connector.close()
+        if self._connector:
+            self._connector.close()
 
     @defer.inlineCallbacks
     def doTask(self):
@@ -380,6 +389,7 @@ class SshPerformanceCollectionTask(BaseTask):
         @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
+        self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
             yield self._connector.connect(self)
@@ -404,12 +414,6 @@ class SshPerformanceCollectionTask(BaseTask):
             raise e
         else:
             self._returnToNormalSchedule()
-        finally:
-            try:
-                self._connector.close()
-            except Exception, ex:
-                log.warn("Failed to close device %s: error %s" %
-                         (self._devId, str(ex)))
 
     def _addDatasource(self, datasource):
         """
@@ -565,15 +569,14 @@ class SshPerformanceCollectionTask(BaseTask):
                     'eventKey': datasource.getEventKey(dp),
                     'component': dp.component,
                 }
-                self._dataService.writeMetric(dp.contextUUID,
-                                              dp.dpName,
-                                              value,
-                                              dp.rrdType,
-                                              dp.componentId,
-                                              deviceuuid=dp.devuuid,
-                                              min=dp.rrdMin,
-                                              max=dp.rrdMax,
-                                              threshEventData=threshData)
+                self._dataService.writeMetricWithMetadata(
+                    dp.dpName,
+                    value,
+                    dp.rrdType,
+                    min=dp.rrdMin,
+                    max=dp.rrdMax,
+                    threshEventData=threshData,
+                    metadata=dp.metadata)
 
             eventList = results.events
             exitCode = getattr(datasource.result, 'exitCode', -1)
@@ -594,6 +597,14 @@ class SshPerformanceCollectionTask(BaseTask):
             # Send accumulated events
             for event in eventList:
                 self._eventService.sendEvent(event, device=self._devId)
+        doTask_end = datetime.now()
+        duration = doTask_end - self._doTask_start
+        if duration > timedelta(seconds=self.interval):
+            log.warn("Collection for %s took %s seconds; cycle interval is %s seconds." % (
+                self.configId, duration.total_seconds(), self.interval))
+        else:
+            log.debug("Collection time for %s was %s seconds; cycle interval is %s seconds." % ( 
+                self.configId, duration.total_seconds(), self.interval))
 
     def _makeCmdEvent(self, datasource, msg, severity=None, event_key=None):
         """

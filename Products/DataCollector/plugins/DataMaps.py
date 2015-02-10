@@ -7,24 +7,35 @@
 # 
 ##############################################################################
 
+import logging
+log = logging.getLogger("zen.plugins.DataMap")
 
 from pprint import pformat
-
+from pprint import pprint
 from twisted.spread import pb
 
 class PBSafe(pb.Copyable, pb.RemoteCopy): pass
 
 class RelationshipMap(PBSafe):
+    parentId = ""
     relname = ""
     compname = ""
 
-    def __init__(self, relname="", compname="", modname="", objmaps=[]):
+    def __init__(self, relname="", compname="", modname="", objmaps=[],
+            parentId=""):
+        self.parentId = parentId
         self.relname = relname
         self.compname = compname
-        self.maps = [ObjectMap(dm, modname=modname) for dm in objmaps ]
-    
+        if modname:
+            self.maps = [ObjectMap(dm, modname=modname) for dm in objmaps ]
+        else:
+            self.maps = [ObjectMap(dm) for dm in objmaps ]
+
     def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, pformat(self.maps))
+        display = self.__dict__.copy()
+        del display['maps']
+        display['objmaps'] = self.maps
+        return '<%s %s>' % (self.__class__.__name__, pformat(display))
 
     def __iter__(self):
         return iter(self.maps)

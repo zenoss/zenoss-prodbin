@@ -37,7 +37,7 @@ from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.IpUtil import asyncNameLookup, isip, parse_iprange, \
                                      getHostByName, ipunwrap
 from Products.ZenUtils.NJobs import NJobs
-from Products.ZenUtils.snmp import SnmpV1Config, SnmpV2cConfig
+from Products.ZenUtils.snmp import SnmpV1Config, SnmpV2cConfig, SnmpV3Config
 from Products.ZenUtils.snmp import SnmpAgentDiscoverer
 from Products.ZenModel.Exceptions import NoIPAddress
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
@@ -333,27 +333,52 @@ class ZenDisc(ZenModeler):
             """
             self.log.debug("findRemoteDeviceInfo.inner: Doing SNMP lookup on device %s", ip)
             yield self.config().callRemote('getSnmpConfig', devicePath)
-            communities, ports, version, timeout, retries = driver.next()
-            self.log.debug("findRemoteDeviceInfo.inner: override acquired community strings")
-            # Override the device class communities with the ones set on
-            # this device, if they exist
-            if deviceSnmpCommunities is not None:
-                communities = deviceSnmpCommunities
-
-            # Reverse the communities so that ones earlier in the list have a
-            # higher weight.
-            communities.reverse()
+            snmp_conf = driver.next()
 
             configs = []
-            for i, community in enumerate(communities):
+            ports = snmp_conf.get('zSnmpDiscoveryPorts') or [snmp_conf['zSnmpPort']]
+            timeout, retries = snmp_conf['zSnmpTimeout'], snmp_conf['zSnmpTries']
+            if snmp_conf['zSnmpVer'] == SnmpV3Config.version:
                 for port in ports:
-                    port = int(port)
-                    configs.append(SnmpV1Config(
-                        ip, weight=i, port=port, timeout=timeout,
-                        retries=retries, community=community))
-                    configs.append(SnmpV2cConfig(
-                        ip, weight=i+100, port=port, timeout=timeout,
-                        retries=retries, community=community))
+                    if snmp_conf['zSnmpPrivType'] and snmp_conf['zSnmpAuthType']:
+                        configs.append(SnmpV3Config(
+                            ip, port=port, timeout=timeout, retries=retries, weight=3,
+                            securityName=snmp_conf['zSnmpSecurityName'],
+                            authType=snmp_conf['zSnmpAuthType'],
+                            authPassphrase=snmp_conf['zSnmpAuthPassword'],
+                            privType=snmp_conf['zSnmpPrivType'],
+                            privPassphrase=snmp_conf['zSnmpPrivPassword']))
+                    elif snmp_conf['zSnmpAuthType']:
+                        configs.append(SnmpV3Config(
+                            ip, port=port, timeout=timeout, retries=retries, weight=2,
+                            securityName=snmp_conf['zSnmpSecurityName'],
+                            authType=snmp_conf['zSnmpAuthType'],
+                            authPassphrase=snmp_conf['zSnmpAuthPassword']))
+                    else:
+                        configs.append(SnmpV3Config(
+                            ip, port=port, timeout=timeout, retries=retries, weight=1,
+                            securityName=snmp_conf['zSnmpSecurityName']))
+            else:
+                self.log.debug("findRemoteDeviceInfo.inner: override acquired community strings")
+                # Override the device class communities with the ones set on
+                # this device, if they exist
+                communities = snmp_conf['zSnmpCommunities']
+                if deviceSnmpCommunities is not None:
+                    communities = deviceSnmpCommunities
+
+                # Reverse the communities so that ones earlier in the list have a
+                # higher weight.
+                communities.reverse()
+
+                for i, community in enumerate(communities):
+                    for port in ports:
+                        port = int(port)
+                        configs.append(SnmpV1Config(
+                            ip, weight=i, port=port, timeout=timeout,
+                            retries=retries, community=community))
+                        configs.append(SnmpV2cConfig(
+                            ip, weight=i + 100, port=port, timeout=timeout,
+                            retries=retries, community=community))
 
             yield SnmpAgentDiscoverer().findBestConfig(configs)
             driver.next()

@@ -69,7 +69,17 @@ class SyslogProcessingTest(BaseTestCase):
         
         self.assertEquals( evt.get('eventClassKey'), 'HTTP/42' )
         self.assertEquals( evt.get('summary'), 'Error on socket accept.' )
-        
+
+    def testCiscoStandardMessageSeverity(self):
+        """
+        Test that the event severity is correctly extracted from the
+        Cisco standard message body
+        """
+        msg = '2014 Jan 31 19:45:51 R2-N6K1-2010-P1 %ETH_PORT_CHANNEL-5-CREATED: port-channel1 created'
+        s = SyslogProcessor(self.sendEvent, 6, False, 'localhost', 3)
+        evt = s.parseTag( {}, msg )
+        self.assertEquals( evt.get('overwriteSeverity'), '5' )
+
     def testDellSyslog(self):
         """
         Test dell stuf

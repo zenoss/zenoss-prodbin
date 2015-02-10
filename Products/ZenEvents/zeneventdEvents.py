@@ -29,7 +29,7 @@ def onSigUsr1(daemon, event):
 
 @adapter(ZenEventD, BuildOptionsEvent)
 def onBuildOptions(daemon, event):
-    workersBuildOptions(daemon.parser, default=2)
+    workersBuildOptions(daemon.parser, default=1)
 
 @adapter(ZenEventD, DaemonCreatedEvent)
 def onDaemonCreated(daemon, event):
@@ -37,7 +37,7 @@ def onDaemonCreated(daemon, event):
     Called at the end of zeneventd's constructor.
     """
     register_eventlet()
-    if daemon.options.daemon:
+    if daemon.options.daemon or daemon.options.cycle:
         daemon._workers = ProcessWorkers(daemon.options.workers, exec_worker, "Event worker")
 
 @adapter(ZenEventD, DaemonStartRunEvent)
@@ -48,7 +48,7 @@ def onDaemonStartRun(daemon, event):
     """
     from .zeneventdWorkers import EventDEventletWorker
     # Free up unnecessary database resources in parent zeneventd process
-    if daemon.options.daemon:
+    if daemon.options.daemon or daemon.options.cycle:
         daemon.closedb()
         daemon.closeAll()
         daemon._workers.startWorkers()

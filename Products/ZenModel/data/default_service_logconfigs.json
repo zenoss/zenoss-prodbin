@@ -1,0 +1,9 @@
+[
+{
+  "filters": [
+    "supervisord"
+  ],
+  "path": "%(zenhome)s/log/audit.log",
+  "type": "zenossaudit"
+}
+]

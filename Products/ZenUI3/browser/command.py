@@ -37,6 +37,33 @@ class CommandView(StreamingView):
                 target = self.context.unrestrictedTraverse(uid)
                 self.execute(command, target)
 
+    def _get_printable_command(self, raw_command, compiled_command, target):
+        """
+        Returns a string that do not contain zproperty values
+        """
+        printable_command = compiled_command
+
+        zProps = []
+        if hasattr(target, 'zenPropertyIds'):
+            zProps = [zp for zp in target.zenPropertyIds() if zp in raw_command]
+
+        if len(zProps) > 0:
+            raw_items = raw_command.split()
+            compiled_items = compiled_command.split()
+            if len(raw_items) == len(compiled_items):
+                printable_items = []
+                for raw_item, compiled_item in zip(raw_items, compiled_items):
+                    item = compiled_item
+                    if any(p in raw_item for p in zProps):
+                        item = raw_item
+                    printable_items.append(item)
+                printable_command = ' '.join(printable_items)
+            else:
+                # We could not filter the zprops so we return the raw command
+                printable_command = raw_command
+
+        return printable_command
+
     def execute(self, cmd, target):
         try:
             compiled = str(self.context.compile(cmd, target))
@@ -45,7 +72,8 @@ class CommandView(StreamingView):
                               self.context.defaultTimeout)
             end = time.time() + timeout
             self.write('==== %s ====' % target.titleOrId())
-            self.write(compiled)
+            printable_command = self._get_printable_command(cmd.command, compiled, target)
+            self.write(printable_command)
 
             audit('UI.Command.Invoke', cmd.id, target=target.id)
             p = subprocess.Popen(shlex.split(compiled),
@@ -63,7 +91,7 @@ class CommandView(StreamingView):
                     p.kill()
                     raise
                 retcode = p.poll()
-                if retcode is not None:
+                if retcode is not None and not line:
                     # get anything else that is left
                     for line in p.stdout:
                         self.write(line)

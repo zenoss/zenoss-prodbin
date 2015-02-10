@@ -188,4 +188,6 @@ class ThresholdNotifier(object):
                 for key, value in thresh_event_data.items():
                     if ev.get(key, None) in ('', None):
                         ev[key] = value
+                if ev.get("component", None):
+                    ev['component_guid'] = context_uuid
                 self._send_callback(ev)

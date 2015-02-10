@@ -17,6 +17,7 @@ from zope.tal.talgenerator import TALGenerator
 from zope.tales.engine import Engine
 from zope.tal.talinterpreter import TALInterpreter
 from DateTime import DateTime
+from Products.Zuul.interfaces.info import IInfo
 
 class InvalidTalesException(Exception):
     pass
@@ -31,7 +32,11 @@ def talesEvalStr(expression, context, extra=None):
 def talesEval(express, context, extra=None):
     """Perform a TALES eval on the express using context.
     """
-    compiled = talesCompile(express)
+    try:
+        compiled = talesCompile(express)
+    except Exception as e:
+        compiled = talesCompile("string:%s" % express)
+
     contextDict = { 'context':context,
                     'here':context,
                     'nothing':None,
@@ -39,6 +44,12 @@ def talesEval(express, context, extra=None):
                     }
     if isinstance(extra, dict):
         contextDict.update(extra)
+
+    try:
+        contextDict['info'] = IInfo(context)
+    except TypeError:
+        pass
+
     try:
         res = compiled(getEngine().getContext(contextDict))
     except Exception, e:
@@ -77,6 +88,14 @@ def talEval(expression, context, extra=None):
     if isTales:
         return talesEvalStr(expression, context, extra)
 
+    contextDict = { 'context':context,
+                    'here':context,
+                    'nothing':None,
+                    'now': DateTime(),
+                    }
+    if isinstance(extra, dict):
+        contextDict.update(extra)
+
     # Next, as a convenience, replace all ${} blocks that aren't inside a <tal>
     # with <tal:block content="..."/> equivalent
     chunks = TAG.split(expression)
@@ -94,6 +113,6 @@ def talEval(expression, context, extra=None):
     parser.parseString(expression)
     program, macros = parser.getCode()
     output = cStringIO.StringIO()
-    context = Engine.getContext(context)
+    context = Engine.getContext(contextDict)
     TALInterpreter(program, macros, context, output, tal=True)()
     return output.getvalue()

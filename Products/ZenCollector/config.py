@@ -14,11 +14,14 @@ interface used within Zenoss Core. This implementation provides basic
 configuration retrieval services directly from a remote ZenHub service.
 """
 import logging
+
 log = logging.getLogger("zen.collector.config")
 import time
+from functools import partial
 
 import zope.component
 import zope.interface
+from zope.interface import implements
 from twisted.internet import defer
 from twisted.python.failure import Failure
 
@@ -28,7 +31,8 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IConfigurationProxy,\
                                              IScheduledTask,\
                                              IDataService,\
-                                             IEventService
+                                             IEventService,\
+                                             IConfigurationDispatchingFilter
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenHub.PBDaemon import HubDown
@@ -85,7 +89,9 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching configurations")
-        d = serviceProxy.callRemote('getDeviceConfigs', ids)
+        #get options from prefs.options and send to remote
+        d = serviceProxy.callRemote('getDeviceConfigs', ids,
+                options=prefs.options.__dict__)
         return d
 
     def deleteConfigProxy(self, prefs, id):
@@ -110,7 +116,11 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching device names")
-        d = serviceProxy.callRemote('getDeviceNames')
+        d = serviceProxy.callRemote('getDeviceNames', options=prefs.options.__dict__)
+        def printNames (names):
+            log.debug("workerid %s Fetched Names %s %s", prefs.options.workerid, len(names), names)  
+            return names
+        d.addCallback(printNames)
         return d
 
 

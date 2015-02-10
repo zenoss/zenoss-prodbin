@@ -125,7 +125,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                 durationMinutes:        padZero(c.duration_mins),
                 repeat:                 c.repeat,
                 startProductionState:   c.start_state,
-                enabled:                c.enabled
+                enabled:                c.enabled,
+                days:                   c.days,
+                occurrence:             c.occurrence
             }; 
           if(newEntry){ 
                 Zenoss.remote.DeviceManagementRouter.addMaintWindow({params:params}, function(response){
@@ -175,6 +177,8 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                     case "duration_hrs"   : record.setValue(duration.hrs);  break;
                                     case "duration_mins"  : record.setValue(duration.mins);  break;
                                     case "repeat"         : record.setValue(data.repeat);  break;
+                                    case "days"           : record.setValue(data.days);  break;
+                                    case "occurrence"     : record.setValue(data.occurrence);  break;
                                     case "enabled"        : record.setValue(data.enabled);  break;                        
                                 }
                             }      
@@ -359,26 +363,98 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                             {
                                 xtype: 'combo',
                                 name: 'repeat',
+                                id: 'repeat-combo',
                                 ref: 'repeat',
                                 margin: '0 20px 0 0',
                                 valueField: 'name',
                                 value:'Never',
+                                width: 160,
                                 displayField: 'name',
                                 typeAhead: false,
                                 forceSelection: true,
                                 triggerAction: 'all',
                                 fieldLabel: _t('Repeat'),
+                                listeners: {
+                                                'select': function(field, value){
+                                                    var cmb_occ = Ext.getCmp('occurrence-combo');
+                                                    var cmb_days = Ext.getCmp('days-combo');
+                                                    if (value && value[0].index == 5) {
+                                                        cmb_occ.enable();
+                                                        cmb_days.enable();
+                                                    } else {
+                                                        cmb_occ.disable();
+                                                        cmb_days.disable();                                                        
+                                                    }
+                                                }
+                                            },
                                 listConfig: {
-                                    maxWidth:185
+                                    maxWidth:160
                                 },
                                 store: new Ext.data.ArrayStore({
                                     model: 'Zenoss.model.Name',
                                     data: [
                                         ['Never'],['Daily'],['Every Weekday'],['Weekly'],
-                                        ['Monthly'],['First Sunday of the Month']
+                                        ['Monthly: day of month'],['Monthly: day of week']
                                     ]
                                 })                
                             },{
+                                xtype: 'combo',
+                                disabled: true,
+                                name: 'occurrence',
+                                id: 'occurrence-combo',
+                                ref: 'occurrence',
+                                margin: '0 20px 0 0',
+                                valueField: 'name',
+                                value:'1st',
+                                width: 70,
+                                displayField: 'name',
+                                typeAhead: false,
+                                forceSelection: true,
+                                triggerAction: 'all',
+                                fieldLabel: _t('Occurrence'),
+                                listConfig: {
+                                    maxWidth:70
+                                },
+                                store: new Ext.data.ArrayStore({
+                                    model: 'Zenoss.model.Name',
+                                    data: [
+                                        ['1st'], ['2nd'], ['3rd'], ['4th'], ['5th'], ['Last']
+                                    ]
+                                })                
+                            },{
+                                xtype: 'combo',
+                                disabled: true,
+                                name: 'days',
+                                id: 'days-combo',
+                                ref: 'days',
+                                margin: '0 20px 0 0',
+                                valueField: 'name',
+                                value:'Sunday',
+                                width: 95,
+                                displayField: 'name',
+                                typeAhead: false,
+                                forceSelection: true,
+                                triggerAction: 'all',
+                                fieldLabel: _t('Days'),
+                                listConfig: {
+                                    maxWidth:95
+                                },
+                                store: new Ext.data.ArrayStore({
+                                    model: 'Zenoss.model.Name',
+                                    data: [
+                                        ['Monday'], ['Tuesday'], ['Wednesday'],
+                                        ['Thursday'], ['Friday'], ['Saturday'],
+                                        ['Sunday']
+                                    ]
+                                })                
+                            }
+                       ] 
+                },  {
+                        xtype: 'panel',
+                        layout: 'hbox',
+                        margin: '0 0 30px 0',
+                        items: [
+                            {
                                 xtype: 'combo', 
                                 name: 'start_state',
                                 ref: 'start_state',
@@ -404,7 +480,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 })                
                             }
                        ] 
-                } 
+                }
             ],
             // explicitly do not allow enter to submit the dialog
             keys: {}
@@ -680,8 +756,11 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             {name: 'startTime_data', mapping:'startTime'},            
             {name: 'duration'}, 
             {name: 'duration_data', mapping:'duration'},
-            {name: 'repeat'},         
-            {name: 'startProdState'} 
+            {name: 'repeat'},
+            {name: 'niceRepeat'},           
+            {name: 'startProdState'},
+            {name: 'days'},
+            {name: 'occurrence'} 
         ]
     });
 
@@ -812,6 +891,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                                     durationHours:          duration.hrs,
                                     durationMinutes:        duration.mins,
                                     repeat:                 data.repeat,
+                                    days:                   data.days,
+                                    occurrence:             data.occurrence,
                                     startProductionState:   prodState,
                                     enabled:                enabled
                                 };                            
@@ -855,7 +936,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         id: 'maint_start',
                         dataIndex: 'startTime',  
                         header: _t('Start'),    
-                        width: 150,         
+                        width: 140,         
                         filter: false,                        
                         sortable: true,
                         renderer: function(val, o, fields){
@@ -870,7 +951,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         id: 'maint_duration',
                         dataIndex: 'duration',
                         header: _t('Duration'),
-                        width: 150,
+                        width: 140,
                         filter: false,                        
                         sortable: true,
                         renderer: function(val, o, fields){
@@ -884,9 +965,9 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         }
                     },{
                         id: 'maint_repeat',
-                        dataIndex: 'repeat',
+                        dataIndex: 'niceRepeat',
                         header: _t('Repeat'),
-                        width: 150,
+                        width: 170,
                         filter: false,                        
                         sortable: true
                     },{

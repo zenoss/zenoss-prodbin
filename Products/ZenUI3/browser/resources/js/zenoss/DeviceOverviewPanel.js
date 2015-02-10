@@ -35,6 +35,11 @@
                 obj.superclass.constructor.call(this, config);
                 this.addEvents('labelclick');
             },
+            /**
+             * Sets the display value for the "edit link" fields.
+             * Special case if there it is a manufacturer to edit the manufacturer object in place.
+             * TODO: Refactor this method so separate types for the different link fields as this method has gotten too complicated.
+             **/
             setValue: function(value) {
                 var origValue = value;
                 if (Ext.isEmpty(value)) {
@@ -53,13 +58,18 @@
                             if(value.uid.match(/products/)){
                                 Zenoss.manufacturers.launchProductDialog = function(){
                                     Zenoss.manufacturers.productsDialog(grid, data);
-                                }
-                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.id+'</a>';
+                                };
+                                value =  '<a title="Edit this Product details in place" href="javascript:void(0);" onClick="Zenoss.manufacturers.launchProductDialog()">'+value.name+'</a>';
                             }else{
                                 value = '<a title="Go to the grid for this Manufacturer" href="/zport/dmd/manufacturers#manufacturers_tree:.zport.dmd.Manufacturers.'+value.name+'" >'+value.name+'</a>';
                             }
-                        }else{
+                        } else if (Ext.isObject(value)) {
                             value = Zenoss.render.link(value);
+                        } else{
+                            // if it is a UID then render as a link to that item
+                            if (Ext.isString(value) && value.startswith('/zport/dmd/')) {
+                                value = Zenoss.render.link(value);
+                            }
                         }
                     }
                 }
@@ -101,7 +111,7 @@
             width: FIELDWIDTH,
             name: 'hwManufacturer',
             id: 'hwmanufacturercombo',
-            fieldLabel: _t('HW Manufacturer'),
+            fieldLabel: _t('Hardware Manufacturer'),
             listConfig: {
                 resizable: true, resizeHandles: 'e'
             },
@@ -120,7 +130,7 @@
                 resizable: true, resizeHandles: 'e'
             },
             name: 'hwProductName',
-            fieldLabel: _t('HW Product'),
+            fieldLabel: _t('Hardware Model'),
             id: 'hwproductcombo',
             manufacturer: name(vals.hwManufacturer)
         };
@@ -150,7 +160,7 @@
             },
             name: 'osProductName',
             id: 'osproductcombo',
-            fieldLabel: _t('OS Product'),
+            fieldLabel: _t('OS Model'),
             manufacturer: name(vals.osManufacturer)
         };
 
@@ -215,6 +225,102 @@
     }
 
 
+    /**
+     * Displays a dialog allowing the user to edit those zproperties
+     * which define the credentials for a server.
+     **/
+    var editConnectionInfo = function(uid) {
+        REMOTE.getConnectionInfo({
+            uid: uid
+        }, function (response) {
+            if (!response.success) {
+                return;
+            }
+            // build the form elements
+            var items = [], data = response.data, item, config, dialog, handler,i, id;
+            for (i=0;i<data.length;i++) {
+                id = data[i].id;
+                item = Zenoss.zproperties.createZPropertyField(data[i]);
+                item.name = id;
+
+                // make sure we always display the correct value
+                item.value = item.value || data[i].valueAsString;
+                items.push(item);
+            }
+
+            // this is executed after we save the zproperties
+            handler = function(values, remodel) {
+                // need to save the zproperty values
+                Zenoss.remote.PropertiesRouter.setZenProperty({
+                    uid: uid,
+                    zProperty: values
+                }, function(response){
+                    if (response.success){
+                        // refresh the overview page
+                        Ext.getCmp('device_overview').setContext(uid);
+                        if (remodel) {
+                            var win = new Zenoss.CommandWindow({
+                                uids: [uid],
+                                target: 'run_model',
+                                listeners: {
+                                    close: function(){
+                                        Ext.defer(function() {
+                                            window.top.location.reload();
+                                        }, 1000);
+                                    }
+                                },
+                                title: _t('Model Device')
+                            });
+                            win.show();
+                        }
+                    }
+                });
+            };
+
+            // display the dialog
+            config = {
+                submitHandler: handler,
+                minHeight: 250,
+                autoHeight: true,
+                width: 500,
+                title: _t('Edit Connection Information'),
+                listeners: {
+                    show: function() {
+                        dialog.getForm().query("field[ref='editConfig']")[0].focus(true, 500);
+                    }
+                },
+                items: items,
+                // explicitly do not allow enter to submit the dialog
+                keys: {
+
+                },
+                buttons:[{
+                    xtype: 'DialogButton',
+                    text: _t('Submit'),
+                    disabled: true,
+                    type: 'submit',
+                    ref: 'buttonSubmit'
+                }, {
+                    xtype: 'DialogButton',
+                    ui:'dialog-dark',
+                    ref: 'btnRemodel',
+                    text: _t('Submit and Remodel'),
+                    handler: function(btn) {
+                        // traverse back up to the dialog window to get the form
+                        var values = btn.up('window').getForm().getForm().getValues();
+                        handler(values, true);
+                    }
+                },{
+                    xtype: 'DialogButton',
+                    ref: 'buttonCancel',
+                    text: _t('Cancel')
+                }]
+            };
+            dialog = new Zenoss.SmartFormDialog(config);
+            dialog.show();
+        });
+    };
+
     var editCollector = function(values, uid) {
         var win = new Zenoss.FormDialog({
             autoHeight: true,
@@ -276,7 +382,7 @@
     var editGroups = function(currentGroups, uid, config) {
         var win = new Zenoss.FormDialog({
             width: 500,
-            height: 150,
+            autoHeight: true,
             title: config.title,
             items: [{
                 xtype: 'panel',
@@ -286,7 +392,7 @@
                 height: 5
             }, {
                 xtype: 'panel',
-                layout: 'hbox',
+                layout: 'vbox',
                 width: '100%',
                 items: [{
                     xtype: 'combo',
@@ -582,7 +688,17 @@
             this.footer.show();
         },
         addField: function(field) {
-            this.add(field);
+            // TODO: remove this after we upgrade extjs
+            // there is a bug in extjs 4.1.3 where when we try
+            // to add a field before we are rendered there is an exception
+            // registering listners
+            if (this.rendered) {
+                this.add(field);
+            } else {
+                this.on('afterrender', function(){
+                    this.add(field);
+                }, this, {single:true});
+            }
         },
         addFieldAfter: function(field, afterFieldName) {
             var position = this._indexOfFieldName(afterFieldName) +1;
@@ -631,6 +747,9 @@
                 forms: [],
                 listeners: {
                     add: function(me, container) {
+                        if (!container.items) {
+                            return;
+                        }
                         Ext.each(container.items.items, function(item) {
                             if (item.isXType('form')) {
                                 var f = item.getForm();
@@ -662,6 +781,19 @@
                             id: 'device-id-label',
                             name: 'device'
                         },{
+                            xtype: 'clicktoeditnolink',
+                            permission: 'Manage Device',
+                            listeners: {
+                                labelclick: function(p){
+                                    editConnectionInfo(this.contextUid);
+                                },
+                                scope: this
+                            },
+                            fieldLabel: _t('Connection Information'),
+                            name: 'deviceConnectionInfo',
+                            id: 'device-connection-editlink',
+                            hidden: Zenoss.Security.doesNotHavePermission('Manage Device')
+                        },{
                             fieldLabel: _t('Uptime'),
                             id: 'uptime-label',
                             name: 'uptime'
@@ -689,6 +821,17 @@
                             id: 'memory-displayfield',
                             name: 'memory',
                             fieldLabel: _t('Memory/Swap')
+                        }, {
+                            xtype: 'displayfield',
+                            id: 'ssh-link',
+                            name: 'sshLink',
+                            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                            setValue: function(val) {
+                                if (val) {
+                                    val = Ext.String.format("<a href='{0}'>{1}</a>", val, _t('Connect to this device'));
+                                    Ext.form.field.Display.prototype.setValue.apply(this, [val]);
+                                }
+                            }
                         }]
                     },{
                         id:'deviceoverviewpanel_idsummary',
@@ -708,7 +851,7 @@
                         items: [{
                             xtype: 'textfield',
                             name: 'name',
-                            fieldLabel: _t('Device Title'),
+                            fieldLabel: _t('Device Name'),
                             id: 'device-name-textfield',
                             allowBlank: false
                         },{
@@ -731,6 +874,11 @@
                             name: 'serialNumber',
                             id: 'serialnumber-textfield',
                             xtype: 'textfield'
+                        },{
+                            fieldLabel: _t('Rack Slot'),
+                            name: 'rackSlot',
+                            id: 'rackslot-textfield',
+                            xtype: 'textfield'
                         }]
                     },{
                         id:'deviceoverviewpanel_descriptionsummary',
@@ -738,11 +886,6 @@
                         frame:false,
 
                         items: [{
-                            fieldLabel: _t('Rack Slot'),
-                            name: 'rackSlot',
-                            id: 'rackslot-textfield',
-                            xtype: 'textfield'
-                        },{
                             xtype: 'clicktoeditnolink',
                             permission: 'Manage Device',
                             listeners: {
@@ -964,6 +1107,7 @@
         load: function() {
             var o = Ext.apply({keys:this.getFieldNames()}, this.baseParams), me = this;
             var callback = function(result) {
+                this.loadedData = result.data;
                 var D = result.data;
                 if (D.locking) {
                     D.locking = Zenoss.render.locking(D.locking);
@@ -978,6 +1122,11 @@
                 D.serialNumber = Ext.htmlDecode(D.serialNumber);
                 D.rackSlot = Ext.htmlDecode(D.rackSlot);
                 D.name = Ext.htmlDecode(D.name);
+                if (D.deviceConnectionInfo === false) {
+                    Ext.getCmp('device-connection-editlink').hide();
+                } else {
+                    Ext.getCmp('device-connection-editlink').show();
+                }
                 this.setValues(D);
 
                 // load zLinks and uptime in a separate request since they

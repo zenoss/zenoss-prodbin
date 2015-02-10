@@ -81,7 +81,7 @@
 </tal:block>
 
 <br/> 
-<form tal:attributes="action string:${here/absolute_url_path}" method="POST">
+<form tal:attributes="action string:${here/absolute_url_path} " id="zenossupdatecheckform" method="POST">
     <input type="hidden" name="zenScreenName" 
            tal:attributes="value string:zenossVersions" /> 
     <input type="hidden" name="manage_checkVersion:method" value="dome"/>
@@ -117,6 +117,7 @@
                           style="foreground-color: #FFF; background-color: #F00"/>
                 <span tal:condition='not:here/versionBehind' 
                       tal:content="here/dmd/availableVersion"/>
+                <a href="/++resource++zenossLicenses" target="_blank">(View Licenses)</a>
            </td>
         </tr>
         <tr class="even">

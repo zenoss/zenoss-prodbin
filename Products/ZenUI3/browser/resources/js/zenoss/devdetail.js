@@ -305,9 +305,16 @@ var componentCard = {
             text: _t('All'),
             handler: function(){
                 var grid = Ext.getCmp('component_card').componentgrid;
-                grid.getSelectionModel().selectRange(0, grid.store.getCount()-1);
-            }
-        },{
+                if(this.text === 'All'){
+                    grid.getSelectionModel().selectRange(0, grid.store.totalCount-1);
+                }else{
+                    if(grid.store.buffered){
+                        grid.store.guaranteeRange(0, grid.store.pageSize-1);
+                    }
+                    grid.getSelectionModel().selectRange(0, grid.store.pageSize-1);
+                }
+        }
+    },{
             text: _t('None'),
             handler: function(){
                 var grid = Ext.getCmp('component_card').componentgrid;
@@ -331,7 +338,7 @@ var componentCard = {
                         grid.filter(this.getValue());
                     },
                     listeners: {
-                        keypress: function(field, e) {
+                        keyup: function(field, e) {
                             if (e.getKey() === e.ENTER) {
                                 field.filterGrid();
                             } else {
@@ -486,15 +493,41 @@ Zenoss.EventActionManager.configure({
     }
 });
 
-var event_console = Ext.create('Zenoss.EventGridPanel', {
-    id: 'device_events',
-    stateId: 'device_events',
-    newwindowBtn: true,
-    actionsMenu: false,
-    commandsMenu: false,
-    store: Ext.create('Zenoss.events.Store', {}),
-    columns: Zenoss.env.getColumnDefinitions(['device'])
-});
+var createDevDetailEventsGrid = function(re_attach_to_container){
+        var dev_detail_store = Ext.create('Zenoss.events.Store', {});
+        if (!Zenoss.settings.enableInfiniteGridForEvents)
+            dev_detail_store.buffered = false;
+
+    var event_console = Ext.create('Zenoss.EventGridPanel', {
+        id: 'device_events',
+        stateId: 'device_events',
+        newwindowBtn: true,
+        actionsMenu: false,
+        commandsMenu: false,
+        enableColumnHide: false,
+        store: dev_detail_store,
+        columns: Zenoss.env.getColumnDefinitionsToRender('device_events')
+        //columns: Zenoss.env.getColumnDefinitions(['device'])
+    });
+
+    if (re_attach_to_container == true)
+    {
+        var container_panel = Ext.getCmp('detail_card_panel');
+        container_panel.items.insert(1, event_console);
+        container_panel.layout.setActiveItem(1);
+    }
+
+    event_console.on('recreateGrid', function (grid) {
+        var container_panel = Ext.getCmp('detail_card_panel');
+        container_panel.remove(grid.id, true);
+        grid = createDevDetailEventsGrid(true);
+        grid.setContext(Zenoss.env.device_uid);
+    });
+
+    return event_console;
+};
+
+    var event_console = createDevDetailEventsGrid(false);
 
 var modeler_plugins = Ext.create('Zenoss.form.ModelerPluginPanel', {
     id: 'device_modeler_plugins'
@@ -533,6 +566,7 @@ device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
     if (width >= extra_column_threshold && columns == 1) {
         panel.columns = 2;
     }
+
     if (width < extra_column_threshold && columns == 2) {
         panel.columns = 1;
     }
@@ -542,9 +576,9 @@ device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
 });
 
 var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
-    id: 'device_component_graphs',
-    components: Ext.pluck(Zenoss.env.componentTree, 'id')
+    id: 'device_component_graphs'
 });
+
 var softwares = Ext.create('Zenoss.software.SoftwareGridPanel', {
     id: 'softwares'
 });
@@ -665,7 +699,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
             this.doLoadComponentTree(Zenoss.env.componentTree);
             delete Zenoss.env.componentTree;
         } else {
-            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, this.doLoadComponentTree, this);
+            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID, sorting_dict:Zenoss.component.nameMap}, this.doLoadComponentTree, this);
         }
     },
     filterNav: function(navpanel, config){
@@ -691,12 +725,33 @@ Ext.define('Zenoss.DeviceDetailNav', {
     onGetNavConfig: function(contextId) {
         return Zenoss.nav.get('Device');
     },
+    previousToken: null,
     selectByToken: function(token) {
+        if (token == this.previousToken) {
+            return;
+        }
+        this.previousToken = token;
         var root = this.treepanel.getRootNode(),
+            componentRootNode = this.treepanel.getStore().getNodeById(UID),
             loader = this.treepanel.getStore(),
             sm = this.treepanel.getSelectionModel(),
             sel = sm.getSelectedNode(),
             findAndSelect = function() {
+                var nodeId = token;
+                // handle component deep linking
+                if (token.split(Ext.util.History.DELIMITER).length == 2) {
+                    var pieces = token.split(Ext.util.History.DELIMITER),
+                    type = pieces[0], rest = pieces[1];
+                    var tosel = componentRootNode.findChild('id', type);
+                    if (!tosel) {
+                        // the component nav hasn't loaded yet so wait until it does until we deeplink
+                        componentRootNode.on('append', findAndSelect, this, {single: true});
+                    } else {
+                        selectOnRender(tosel, sm);
+                        return Ext.getCmp('component_card').selectByToken(rest);
+                    }
+                }
+
                 var node = root.findChildBy(function(n){
                     return n.get('id')==token;
                 });
@@ -736,7 +791,9 @@ Ext.define('Zenoss.DeviceDetailNav', {
         var token = Ext.History.getToken(),
             mytoken = this.id + Ext.History.DELIMITER + node.get('id');
         if (!token || token.slice(0, mytoken.length)!=mytoken) {
+            Ext.History.suspendEvents();
             Ext.History.add(mytoken);
+            Ext.History.resumeEvents();
         }
         action(node, target);
     }
@@ -937,11 +994,28 @@ function addComponentHandler(item) {
     });
 }
 
+function modelDevice() {
+    var win = new Zenoss.CommandWindow({
+        uids: [UID],
+        target: 'run_model',
+        listeners: {
+            close: function(){
+                Ext.defer(function() {
+                    window.top.location.reload();
+                }, 1000);
+            }
+        },
+        title: _t('Model Device')
+    });
+    win.show();
+}
+
 Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
     id: 'component-add-menu',
     hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
     iconCls: 'add',
+    text: Ext.isIE9 ? _t('Add'): null,
     menuIds: [],
     listeners: {
         render: function(){
@@ -976,6 +1050,7 @@ Ext.getCmp('footer_bar').add([{
 },{
     xtype: 'ContextConfigureMenu',
     id: 'device_configure_menu',
+    text: Ext.isIE9 ? _t('Configure'): null,
     listeners: {
         render: function(){
             this.setContext(UID);
@@ -1083,21 +1158,7 @@ Ext.getCmp('footer_bar').add([{
         xtype: 'menuitem',
         text: _t('Model Device') + '...',
         hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
-        handler: function() {
-            var win = new Zenoss.CommandWindow({
-                uids: [UID],
-                target: 'run_model',
-                listeners: {
-                    close: function(){
-                        Ext.defer(function() {
-                            window.top.location.reload();
-                        }, 1000);
-                    }
-                },
-                title: _t('Model Device')
-            });
-            win.show();
-        }
+        handler: modelDevice
     },{
         xtype: 'menuitem',
         text: _t('Change Device Class') + '...',
@@ -1114,7 +1175,7 @@ Ext.getCmp('footer_bar').add([{
         }
     }, {
         xtype: 'menuitem',
-        text: _t('Rename Device') + '...',
+        text: _t('Reidentify Device') + '...',
         hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
             Ext.create('Zenoss.form.RenameDevice', {
@@ -1185,12 +1246,24 @@ Ext.getCmp('footer_bar').add([{
         }
     },
     menu: {}
+},'-', {
+
+    xtype: 'button',
+    text: _t('Model Device'),
+    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+    handler: modelDevice
+
 }]);
 
     if (Ext.isIE) {
         // work around a rendering bug in ExtJs see ticket ZEN-3054
         var viewport = Ext.getCmp('viewport');
         viewport.setHeight(viewport.getHeight() +1 );
+    }
+
+    // make sure we are always at least selecting the first item.
+    if (window.location.hash == "") {
+        Ext.History.add("deviceDetailNav:device_overview");
     }
 
 

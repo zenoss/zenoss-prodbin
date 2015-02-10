@@ -69,6 +69,11 @@ class ProcessSignalTask(object):
         """
         log.debug('processing message.')
 
+        chan = self.queueConsumer.consumer.p.chan
+        if not getattr(chan, '_flag_qos', False):
+            chan.basic_qos(prefetch_count=ZenActionD.MSGS_TO_PREFETCH)
+            chan._flag_qos = True
+
         if message.content.body == self.queueConsumer.MARKER:
             log.info("Received MARKER sentinel, exiting message loop")
             self.queueConsumer.acknowledge(message)
@@ -111,7 +116,7 @@ class ProcessSignalTask(object):
                 action = self.getAction(notification.action)
                 action.setupAction(notification.dmd)
                 if isinstance(action, TargetableAction):
-                    target = ','.join(action.getTargets(notification))
+                    target = ','.join(action.getTargets(notification, signal))
                 action.execute(notification, signal)
             except ActionMissingException, e:
                 log.error('Error finding action: {action}'.format(action = notification.action))
@@ -156,6 +161,9 @@ class ProcessSignalTask(object):
 
 
 class ZenActionD(ZCmdBase):
+
+    MSGS_TO_PREFETCH = 1
+
     def __init__(self):
         super(ZenActionD, self).__init__()
         self._consumer = None
@@ -182,6 +190,14 @@ class ZenActionD(ZCmdBase):
         self.parser.add_option('--maxcommands', dest="maxCommands", type="int", default=default_max_commands,
                                help='Max number of action commands to perform concurrently (default: %d)' % \
                                     default_max_commands)
+        default_max_pagingworkers = 1
+        self.parser.add_option('--maxpagingworkers', dest="maxPagingWorkers", type="int", default=default_max_pagingworkers,
+                               help='max number of paging workers to perform concurrently (default: %d)' % \
+                                       default_max_pagingworkers)
+        default_pagingworkers_timeout = 30
+        self.parser.add_option('--pagingworkerstimeout', dest="pagingWorkersTimeout", type="int", default=default_pagingworkers_timeout,
+                               help='Timeout, in seconds, for paging workers (default: %d)' % \
+                                       default_pagingworkers_timeout)
         default_url = getDefaultZopeUrl()
         self.parser.add_option('--zopeurl', dest='zopeurl', default=default_url,
                                help="http path to the root of the zope server (default: %s)" % default_url)
@@ -193,6 +209,9 @@ class ZenActionD(ZCmdBase):
             dest='maintenceWindowCycletime', default=60, type="int",
             help="How often to check to see if there are any maintenance windows to execute")
 
+        self.parser.add_option("--workerid", dest='workerid', type='int', default=None,
+                               help="ID of the worker instance.")
+
     def run(self):
         # Configure all actions with the command-line options
         self.abortIfWaiting()
@@ -203,11 +222,14 @@ class ZenActionD(ZCmdBase):
         dao = NotificationDao(self.dmd)
         task = ISignalProcessorTask(dao)
 
-        self._callHomeCycler.start()
-        self._schedule.start()  # maintenance windows
-        if self.options.daemon:
+        if self.options.workerid == 0 and (self.options.daemon or self.options.cycle):
+            self._callHomeCycler.start()
+            self._schedule.start()  # maintenance windows
+
+        if self.options.daemon or self.options.cycle:
             self._maintenanceCycle.start()  # heartbeats, etc.
-        if self.options.daemon and self.options.workers > 1:
+
+        if (self.options.daemon or self.options.cycle) and self.options.workers > 1:
             self._workers.startWorkers()
 
         self._consumer = QueueConsumer(task, self.dmd)

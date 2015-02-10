@@ -16,6 +16,12 @@ from Products.ZenUtils.Ext import DirectResponse
 from zenoss.protocols.services import ServiceConnectionError
 from zenoss.protocols.services.zep import ZepConnectionError
 
+import logging
+import threading
+
+log = logging.getLogger("zeneventserver")
+attempts = threading.local()
+
 @decorator
 def marshal(f, *args, **kwargs):
     result = f(*args, **kwargs)
@@ -117,10 +123,20 @@ def contextRequire(permission, contextKeywordArgument):
 
 @decorator
 def serviceConnectionError(func, *args, **kwargs):
+    count = getattr(attempts, 'value', 0)
     try:
-        return func(*args, **kwargs)
-    except ZepConnectionError:
-        msg = 'Connection refused. Check zeneventserver status on <a href="/zport/About/zenossInfo">Daemons</a>'
-    except ServiceConnectionError:
-        msg = 'Connection refused to a required daemon. Check status on <a href="/zport/About/zenossInfo">Daemons</a>'
+        f = func(*args, **kwargs)
+        setattr(attempts, 'value', 0)
+        return f
+    except ZepConnectionError, e:
+        count += 1
+        setattr(attempts, 'value', count)
+        log.warn('Connection refused. Check zeneventserver status on Services. Exception on thread: %s' % threading.current_thread().ident)
+        if count >= 10:
+            msg = 'Connection refused. Check zeneventserver status on <a href="zport/dmd/daemons">Services</a>'
+            setattr(attempts, 'value', 0)
+        else:
+            return
+    except ServiceConnectionError, e:
+        msg = 'Connection refused to a required daemon. Check status on <a href="zport/dmd/daemons">Services</a>'
     return DirectResponse.fail(msg, sticky=True)

@@ -22,6 +22,7 @@ from zope.interface import providedBy
 from Products.Zuul import marshal
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
+from Products.Zuul.decorators import require
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
 from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscriptionWindow
 from Products.ZenModel.Trigger import Trigger, InvalidTriggerActionType, DuplicateTriggerName
@@ -222,6 +223,7 @@ class TriggersFacade(ZuulFacade):
             )
         )
 
+    @require(MANAGE_TRIGGER)
     def createTrigger(self, name, uuid=None, rule=None):
         name = str(name)
 
@@ -257,6 +259,7 @@ class TriggersFacade(ZuulFacade):
         return trigger.uuid
 
 
+    @require(MANAGE_TRIGGER)
     def removeTrigger(self, uuid):
         user = getSecurityManager().getUser()
         trigger = self._guidManager.getObject(uuid)
@@ -322,6 +325,7 @@ class TriggersFacade(ZuulFacade):
                 ))
         return sorted(triggerList, key=lambda k: k['name'])
 
+    @require(UPDATE_TRIGGER)
     def updateTrigger(self, **data):
         user = getSecurityManager().getUser()
 
@@ -420,6 +424,7 @@ class TriggersFacade(ZuulFacade):
         notification = self.createNotification(newId, action)
         return IInfo(notification)
 
+    @require(UPDATE_NOTIFICATION)
     def createNotification(self, id, action, guid=None):
         notification = NotificationSubscription(id)
         notification.action = action
@@ -442,6 +447,7 @@ class TriggersFacade(ZuulFacade):
         return notification
 
 
+    @require(UPDATE_NOTIFICATION)
     def removeNotification(self, uid):
         user = getSecurityManager().getUser()
         notification = self._getObject(uid)
@@ -461,6 +467,7 @@ class TriggersFacade(ZuulFacade):
             log.warning('User not authorized to view this notification: %s' % uid)
             raise Exception('User not authorized to view this notification: %s' % uid)
 
+    @require(MANAGE_NOTIFICATION_SUBSCRIPTIONS)
     def updateNotificationSubscriptions(self, notification):
         triggerSubscriptions = []
         notification_guid = IGlobalIdentifier(notification).getGUID()
@@ -478,6 +485,7 @@ class TriggersFacade(ZuulFacade):
         self.triggers_service.updateSubscriptions(notification_guid, subscriptionSet)
 
 
+    @require(UPDATE_NOTIFICATION)
     def updateNotification(self, **data):
         log.debug(data)
 

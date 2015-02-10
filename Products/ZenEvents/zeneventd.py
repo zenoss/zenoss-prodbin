@@ -6,7 +6,16 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 # 
 ##############################################################################
-
+import os
+import logging
+def monkey_patch_rotatingfilehandler():
+  try:
+    from cloghandler import ConcurrentRotatingFileHandler
+    logging.handlers.RotatingFileHandler = ConcurrentRotatingFileHandler
+  except ImportError:
+    from warnings import warn
+    warn("ConcurrentLogHandler package not installed. Using RotatingFileLogHandler. While everything will still work fine, there is a potential for log files overlapping each other.")
+monkey_patch_rotatingfilehandler()
 
 from twisted.internet import reactor
 from twisted.internet import defer
@@ -37,7 +46,6 @@ from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
 from Products.ZenEvents.daemonlifecycle import DaemonCreatedEvent, SigTermEvent, SigUsr1Event
 from Products.ZenEvents.daemonlifecycle import DaemonStartRunEvent, BuildOptionsEvent
 
-import logging
 log = logging.getLogger("zen.eventd")
 
 EXCHANGE_ZEP_ZEN_EVENTS = '$ZepZenEvents'
@@ -248,7 +256,7 @@ class ZenEventD(ZCmdBase):
         super(ZenEventD, self).sigTerm(signum, frame)
 
     def run(self):
-        if self.options.daemon:
+        if self.options.daemon or self.options.cycle:
             self._maintenanceCycle.start()
         objectEventNotify(DaemonStartRunEvent(self))
 

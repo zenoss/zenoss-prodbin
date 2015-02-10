@@ -82,8 +82,12 @@ class ProcessRunner(ProcessProtocol):
     client = None
     proxy = None
     exitCode = None
-    output = []
-    stderr = []
+    output = None
+    stderr = None
+
+    def __init__(self):
+        self.output = []
+        self.stderr = []
 
     def connect(self, task=None):
         """
@@ -158,7 +162,7 @@ class ProcessRunner(ProcessProtocol):
             self.stderr = ''.join(self.stderr)
 
             msg = "Datasource: %s Received exit code: %s Output: \n%r"
-            data = self.command.ds, self.exitCode, self.output
+            data = [self.command.ds, self.exitCode, self.output]
             if self.stderr:
                 msg += "\nStandard Error:\n%r"
                 data.append(self.stderr)
@@ -185,7 +189,8 @@ class SshRunner(object):
 
     def __init__(self, proxy, client):
         self.proxy = proxy
-        self.client = client
+        self.client = client #note SshRunner only works with MySshClient from zencommand because of its is_expiredidden
+                             # run method and close_defer attr
 
         self.task = None
         self.deviceId = self.proxy.id
@@ -223,7 +228,7 @@ class SshRunner(object):
         self.connection = yield self._establishConnection()
         log.debug("Connected to %s [%s]", self.deviceId, self.manageIp)
         self.connection.tasks.add(self.task)
-        self.connection.close_defer.addCallback(self.cleanUpPool)
+        self.connection.close_defer.addCallback(self.cleanUpPool) # called when connection is closed, see MySshClient
 
     @defer.inlineCallbacks
     def _setupConnector(self):
@@ -283,10 +288,9 @@ class SshRunner(object):
         """
         if self.connection:
             self.connection.tasks.discard(self.task)
-            if not self.connection.tasks:
+            if not self.connection.tasks:  #last task using connection so can be closed
                 self.connection.clientFinished()
-                if not self.connection.is_expired:
-                    self.cleanUpPool()
+                self.cleanUpPool(close=True)
             self.connection = None
 
     def timeout(self, timedOut=True):
@@ -298,7 +302,7 @@ class SshRunner(object):
         if not self.command_defer.called:
             self.command_defer.errback(TimeoutError(self.command))
 
-    def cleanUpPool(self, connection=None):
+    def cleanUpPool(self, connection=None, close=False):
         """
         Deletes the connection from the pool (if it exists)
         """
@@ -308,6 +312,9 @@ class SshRunner(object):
             log.debug("Deleting connection %s from pool",
                       connection.description)
             del self._pool[self._poolkey]
+        if close and connection and connection.transport:
+                connection.transport.loseConnection()
+
 
     def processEnded(self, result):
         """
@@ -322,9 +329,10 @@ class SshRunner(object):
         if not self.connection.is_expired \
                 and self.stderr in SshRunner.EXPIRED_MESSAGES:
 
-            log.debug('Connection %s expired, cleaning up pool', 
+            log.debug('Connection %s expired, cleaning up pool',
                 self.connection.description)
             self.connection.is_expired = True
-            self.cleanUpPool()
+            self.cleanUpPool(close=True)
 
         return self
+

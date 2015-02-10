@@ -446,13 +446,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             ManagedEntity._setPropValue(self, id, value)
 
 
-    def applyDataMap(self, datamap, relname="", compname="", modname=""):
+    def applyDataMap(self, datamap, relname="", compname="", modname="", parentId=""):
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
         """
         adm = ApplyDataMap()
         adm.applyDataMap(self, datamap, relname=relname,
-                         compname=compname, modname=modname)
+                         compname=compname, modname=modname, parentId="")
 
 
     def path(self):
@@ -2057,6 +2057,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         templates = filter(lambda t: isinstance(self, t.getTargetPythonClass()), templates)
         return sorted(templates, key=lambda x: x.id.lower())
 
+    def getSnmpV3EngineId(self): 
+        return self.getProperty('zSnmpEngineId') 
+ 
+    def setSnmpV3EngineId(self, value): 
+        self.setZenProperty('zSnmpEngineId', value) 
 
     security.declareProtected(ZEN_VIEW, 'getLinks')
     def getLinks(self, OSI_layer='3'):

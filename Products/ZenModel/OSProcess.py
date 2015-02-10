@@ -165,8 +165,15 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         """
         Return the min process count threshold value
         """
-        if not self.minProcessCount and not self.maxProcessCount and \
-           self.osProcessClass():
+        if not self.minProcessCount and not self.maxProcessCount \
+            and not self.osProcessClass().minProcessCount \
+            and self.osProcessClass().getPrimaryParent():
+            try:
+                value = self.osProcessClass().getPrimaryParent().minProcessCount
+            except AttributeError:
+                value = None
+        elif not self.minProcessCount and not self.maxProcessCount \
+            and self.osProcessClass():
             value = self.osProcessClass().minProcessCount
         else:
             value = self.minProcessCount
@@ -177,8 +184,15 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         """
         Return the max process count threshold value
         """
-        if not self.minProcessCount and not self.maxProcessCount and \
-           self.osProcessClass():
+        if not self.minProcessCount and not self.maxProcessCount \
+            and not self.osProcessClass().maxProcessCount \
+            and self.osProcessClass().getPrimaryParent():
+            try:
+                value = self.osProcessClass().getPrimaryParent().maxProcessCount
+            except AttributeError:
+                value = None
+        elif not self.minProcessCount and not self.maxProcessCount \
+            and self.osProcessClass():
             value = self.osProcessClass().maxProcessCount
         else:
             value = self.maxProcessCount
@@ -301,7 +315,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
 
     def _getSendEventWhenBlockedFlag(self):
         if self.sendEventWhenBlockedFlag is None and self.osProcessClass():
-            return self.osProcessClass().getZ("zSendEventWhenBlockedFlag")
+            return self.osProcessClass().primaryAq().getZ("zSendEventWhenBlockedFlag")
         return self.sendEventWhenBlockedFlag
 
     def sendEventWhenBlocked(self):
@@ -309,7 +323,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
 
     def _getModelerLock(self):
         if self.modelerLock is None and self.osProcessClass():
-            return self.osProcessClass().getZ("zModelerLock")
+            return self.osProcessClass().primaryAq().getZ("zModelerLock")
         return self.modelerLock
 
     def isUnlocked(self):
@@ -333,7 +347,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         mind and reset it to the parents it will update with the parents.
         """
         if self.osProcessClass():
-            pclass = self.osProcessClass()
+            pclass = self.osProcessClass().primaryAq()
             if pclass.getZ("zModelerLock") == self.modelerLock:
                 self.modelerLock = None
                 # if they reset the modeler lock see if we can reset the

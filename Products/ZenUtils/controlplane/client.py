@@ -10,19 +10,27 @@
 """
 ControlPlaneClient
 """
-
 import fnmatch
 import json
+import logging
 import urllib
 import urllib2
 
 from cookielib import CookieJar
 from urlparse import urlunparse
 
-from .data import ServiceJsonDecoder, ServiceJsonEncoder
+from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
+                   ServiceStatusJsonDecoder)
 
-_DEFAULT_PORT = 8787
+
+_DEFAULT_PORT = 443
 _DEFAULT_HOST = "localhost"
+
+
+LOG = logging.getLogger("zen.controlplane.client")
+
+
+class ControlCenterError(Exception): pass
 
 
 class _Request(urllib2.Request):
@@ -60,7 +68,7 @@ class ControlPlaneClient(object):
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
 
-    def queryServices(self, name=None, tags=None):
+    def queryServices(self, name=None, tags=None, tenantID=None):
         """
         Returns a sequence of ServiceDefinition objects that match
         the given requirements.
@@ -75,6 +83,8 @@ class ControlPlaneClient(object):
             if isinstance(tags, (str, unicode)):
                 tags = [tags]
             query["tags"] = ','.join(tags)
+        if tenantID:
+            query["tenantID"] = tenantID
         response = self._dorequest("/services", query=query)
         body = ''.join(response.readlines())
         response.close()
@@ -99,11 +109,88 @@ class ControlPlaneClient(object):
         :param ServiceDefinition service: The modified definition
         """
         body = ServiceJsonEncoder().encode(service)
+        LOG.info("Updating service '%s':%s", service.name, service.id)
+        LOG.debug("Updating service %s", body)
         response = self._dorequest(
             service.resourceId, method="PUT", data=body
         )
         body = ''.join(response.readlines())
         response.close()
+
+    def startService(self, serviceId):
+        """
+        Start the given service
+
+        :param string ServiceId: The service to start
+        """
+        LOG.info("Starting service '%s", serviceId)
+        response = self._dorequest("/services/%s/startService" % serviceId,
+                                   method='PUT')
+        body = ''.join(response.readlines())
+        response.close()
+        return ServiceJsonDecoder().decode(body)
+
+    def stopService(self, serviceId):
+        """
+        Stop the given service
+
+        :param string ServiceId: The service to stop
+        """
+        LOG.info("Stopping service '%s", serviceId)
+        response = self._dorequest("/services/%s/stopService" % serviceId,
+                                   method='PUT')
+        body = ''.join(response.readlines())
+        response.close()
+        return ServiceJsonDecoder().decode(body)
+
+    def addService(self, serviceDefinition):
+        """
+        Add a new service
+
+        :param string serviceDefinition: json encoded representation of service
+        :returns string: json encoded representation of new service's links
+        """
+        LOG.info("Adding service")
+        LOG.debug(serviceDefinition)
+        response = self._dorequest(
+            "/services/add", method="POST", data=serviceDefinition
+        )
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def deleteService(self, serviceId):
+        """
+        Delete a service
+
+        :param string serviceId: Id of the service to delete
+        """
+        LOG.info("Removing service %s", serviceId)
+        response = self._dorequest(
+            "/services/%s" % serviceId, method="DELETE"
+        )
+        response.close()
+
+    def deployService(self, parentId, service):
+        """
+        Deploy a new service
+
+        :param string parentId: parent service id
+        :param string service: json encoded representation of service
+        :returns string: json encoded representation of new service's links
+        """
+        LOG.info("Deploying service")
+        data = {
+            'ParentID': parentId,
+            'Service': json.loads(service)
+        }
+        LOG.debug(data)
+        response = self._dorequest(
+            "/services/deploy", method="POST", data=json.dumps(data)
+        )
+        body = ''.join(response.readlines())
+        response.close()
+        return body
 
     def queryServiceInstances(self, serviceId):
         """
@@ -113,6 +200,34 @@ class ControlPlaneClient(object):
         body = ''.join(response.readlines())
         response.close()
         return ServiceJsonDecoder().decode(body)
+
+
+    def queryServiceStatus(self, serviceId):
+        """
+        Returns a sequence of ServiceInstance objects.
+        """
+        response = self._dorequest("/services/%s/status" % serviceId)
+        body = ''.join(response.readlines())
+        response.close()
+        return ServiceStatusJsonDecoder().decode(body)
+
+    def queryHosts(self):
+        """
+        Returns a sequence of Host objects.
+        """
+        response = self._dorequest("/hosts")
+        body = ''.join(response.readlines())
+        response.close()
+        return HostJsonDecoder().decode(body)
+
+    def getHost(self, hostId):
+        """
+        Returns a sequence of Host objects.
+        """
+        response = self._dorequest("/hosts/%" % hostId)
+        body = ''.join(response.readlines())
+        response.close()
+        return HostJsonDecoder().decode(body)
 
     def getInstance(self, serviceId, instanceId, default=None):
         """
@@ -155,7 +270,7 @@ class ControlPlaneClient(object):
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
-        url = urlunparse(("http", self._netloc, uri, "", query, ""))
+        url = urlunparse(("https", self._netloc, uri, "", query, ""))
         args = {}
         if method:
             args["method"] = method
@@ -184,8 +299,18 @@ class ControlPlaneClient(object):
                 if ex.getcode() == 401:
                     self._login()
                     continue
-                else:
-                    raise
+                elif ex.getcode() == 500:
+                    # Make the exception prettier and reraise it
+                    try:
+                        msg = json.load(ex)
+                    except ValueError:
+                        raise ex  # This stinks because we lose the stack
+                    detail = msg.get('Detail')
+                    if not detail:
+                        raise
+                    detail = detail.replace("Internal Server Error: ", "")
+                    raise ControlCenterError(detail)
+                raise
             else:
                 # break the loop so we skip the loop's else clause
                 break

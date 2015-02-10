@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -79,8 +79,18 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(m.next(t2+1) == c)
         self.assert_(m.next(c+1) == c2)
         c = mktime( (2006, 2, 5, 10, 45, 12, 0, 0, 0) )
-        m.set(t, P, m.FSOTM)
+        m.set(t, P, m.NTHWDAY)
         self.assert_(m.next(t+1) == c)
+        c = mktime( (2006, 1, 31, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Tuesday', 'Last')
+        self.assert_(m.next(t+1) == c)
+        c = mktime( (2006, 2, 19, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Sunday', '3rd')
+        self.assert_(m.next(t+1) == c)
+        c = mktime( (2006, 2, 22, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Wednesday', 'Last')
+        self.assert_(m.next(t+1) == c)
+
 
         # DST
         FSOTM_Map = {
@@ -103,7 +113,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
             c = mktime( (yy, mm, dd + 1, 12, 10, 9, 0, 0, -1) )
             self.assert_(m.next(tt + duration) == c)
 
-            m.set(tt, duration, m.FSOTM)
+            m.set(tt, duration, m.NTHWDAY)
             c = mktime( sunday + (12, 10, 9, 0, 0, -1) )
             self.assert_(m.next(tt + duration) == c)
 
@@ -126,7 +136,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(m.next(t + 1) == c)
 
         m.set(t, P, m.MONTHLY)
-        c = mktime( (2006, 3, 29, 10, 45, 12, 6, 36, 0) )
+        c = mktime( (2006, 3, 29, 9, 45, 12, 6, 36, 0) )
         self.assert_(m.next(t + 1) == c)
 
         m.set(t - DAY_SECONDS * 2, P, m.EVERY_WEEKDAY)
@@ -134,7 +144,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(m.next(t + 1) == c)
 
         c = mktime( (2006, 3, 5, 10, 45, 12, 0, 0, 0) )
-        m.set(t, P, m.FSOTM)
+        m.set(t, P, m.NTHWDAY)
         self.assert_(m.next(t+1) == c)
 
         m1 = MaintenanceWindow('t1')
@@ -227,7 +237,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
     def testSingleWindow(self):
         windowDefs = [
            [0, 2, state_Pre_Production],
-           [3, 2, state_Decommissioned],
+           [3, 2, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)
@@ -252,7 +262,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 4, state_Pre_Production],
-           [1, 2, state_Decommissioned],
+           [1, 2, state_Test],
         ]
         mws = self.setupWindows(windowDefs)
         dev_orig_state = mws.dev.productionState
@@ -279,7 +289,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 3, state_Pre_Production],
-           [1, 5, state_Decommissioned],
+           [1, 5, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)
@@ -310,7 +320,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 3, state_Pre_Production],
-           [1, 2, state_Decommissioned],
+           [1, 2, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)
@@ -338,7 +348,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 3, state_Pre_Production],
-           [1, 5, state_Decommissioned],
+           [1, 5, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)
@@ -371,7 +381,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         """
         windowDefs = [
            [0, 3, state_Pre_Production],
-           [1, 5, state_Decommissioned],
+           [1, 5, state_Test],
         ]
 
         mws = self.setupWindows(windowDefs)

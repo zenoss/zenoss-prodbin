@@ -42,10 +42,9 @@
     Ext.define('Daemons.view.daemons.List' ,{
         extend: 'Ext.tree.Panel',
         alias: 'widget.daemonslist',
-        title: _t('All Daemons'),
+        title: _t('All Services'),
         stores: ['Daemons'],
         multiSelect: true,
-        rootVisible: true,
         useArrows: true,
         animate: false,
         rootVisible: false,
@@ -116,20 +115,6 @@
                 dataIndex: 'uptime',
                 sortable: true
             }, {
-                text: _t('Logs'),
-                flex: .25,
-                tooltip: _t('Deamon logs'),
-                dataIndex: 'id',
-                sortable: true,
-                renderer: function(value, m, record) {
-                    if (record.isDaemon()) {
-                        return Ext.String.format("<a target='_blank' href='/zport/dmd/getDaemonLogs?id={0}'>{1}</a>",
-                                                 value,
-                                                 _t('View Logs'));
-                    }
-                    return "";
-                }
-            },{
                 xtype: 'actioncolumn',
                 text: _t('AutoStart'),
                 flex: .25,
@@ -194,6 +179,12 @@
                 defaultRenderer: function(v, meta, record, rowIdx, colIdx, store, view) {
                     return this.origRenderer.apply(this, arguments);
                 }
+            },{
+                text: _t('Host'),
+                flex: 0,
+                sortable: true,
+                dataIndex: 'hostId',
+                renderer: Zenoss.render.hostIdtoHostname
             }];
 
             this.callParent(arguments);

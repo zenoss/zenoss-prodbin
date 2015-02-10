@@ -28,7 +28,7 @@ from Products.Zuul.routers import TreeRouter
 from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
-from Products.Zuul.decorators import require, serviceConnectionError
+from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
@@ -41,7 +41,44 @@ class DeviceRouter(TreeRouter):
     """
 
     @serviceConnectionError
-    @require('Manage DMD')
+    @contextRequire("Manage DMD", 'contextUid')
+    def addDeviceClassNode(self, type, contextUid, id, description=None, connectionInfo=None):
+        """
+        Adds a new device class organizer specified by the parameter id to
+        the parent organizer specified by contextUid.
+
+        contextUid must be a path to a DeviceClass.
+
+        @type  type: string
+        @param type: Node type (always 'organizer' in this case)
+        @type  contextUid: string
+        @param contextUid: Path to the location organizer that will
+               be the new node's parent (ex. /zport/dmd/Devices/)
+        @type  id: string
+        @param id: The identifier of the new node
+        @type  description: string
+        @param description: (optional) Describes the new device class
+        @type  connectionInfo: list
+        @param connectionInfo: (optional) List of zproperties that constitute credentials for this device classs
+        @rtype:   dictionary
+        @return:  B{Properties}:
+           - success: (bool) Success of node creation
+           - nodeConfig: (dictionary) The new device class's properties
+        """
+        facade = self._getFacade()
+        organizer = facade.addDeviceClass(contextUid,
+                                                id,
+                                                description,
+                                                connectionInfo)
+        uid = organizer.uid
+
+        treeNode = facade.getTree(uid)
+        audit('UI.DeviceClass.Add', uid, description=description, connectionInfo=connectionInfo)
+        return DirectResponse.succeed("Device Class Added", nodeConfig=Zuul.marshal(treeNode))
+
+
+    @serviceConnectionError
+    @contextRequire("Manage DMD", 'contextUid')
     def addLocationNode(self, type, contextUid, id,
                         description=None, address=None):
         """
@@ -147,7 +184,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(data=data, totalCount=total,
                               hash=hash)
 
-    def getComponentTree(self, uid=None, id=None):
+    def getComponentTree(self, uid=None, id=None, sorting_dict=None):
         """
         Retrieves all of the components set up to be used in a
         tree.
@@ -178,6 +215,23 @@ class DeviceRouter(TreeRouter):
                     'description': 'components'},
                 iconCls='tree-severity-icon-small-' + datum['severity'],
                 leaf=True))
+        if sorting_dict:
+            sorting_keys_list = [key for key in sorting_dict.iterkeys()]
+            def cmp_items(first, second):
+                # Resolving keys from a dictionary of given names convention
+                x = str(first['text']['text'])
+                y = str(second['text']['text'])
+                if x in sorting_keys_list:
+                    x = sorting_dict[x][0]
+                if y in sorting_keys_list:
+                    y = sorting_dict[y][0]
+                if x < y:
+                    return -1
+                elif x > y:
+                    return 1
+                else:
+                    return 0
+            result.sort(cmp=cmp_items)
         return result
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
@@ -488,7 +542,11 @@ class DeviceRouter(TreeRouter):
             audit(['UI.Device', action], uid,
                   data_={targetType:target}, oldData_=oldData)
         try:
-            result = facade.moveDevices(uids, target, asynchronous=asynchronous)
+            targetObj = facade._getObject(target)
+            if Zuul.checkPermission(ZEN_ADMIN_DEVICE, targetObj):
+                result = facade.moveDevices(uids, target, asynchronous=asynchronous)
+            else:
+                return DirectResponse.fail(msg='User does not have permissions to move devices to {0}'.format(target))
         except Exception, e:
             log.exception("Failed to move devices")
             return DirectResponse.exception(e, 'Failed to move devices.')
@@ -729,13 +787,13 @@ class DeviceRouter(TreeRouter):
                 if isinstance(device, Device):
                     oldStates[uid] = self.context.convertProdState(device.productionState)
 
-            facade.setProductionState(uids, prodState)
             prodStateName = self.context.convertProdState(prodState)
 
             auditData = {'productionState': prodStateName}
             for uid in uids:
                 oldAuditData = {'productionState': oldStates[uid]}
                 audit('UI.Device.Edit', uid, oldData_=oldAuditData, data_=auditData)
+            facade.setProductionState(uids, prodState, asynchronous=True)
             return DirectResponse('Set %s devices to %s.' % (
                 len(uids), prodStateName))
         except Exception, e:
@@ -1019,6 +1077,7 @@ class DeviceRouter(TreeRouter):
                 audit('UI.Component.Delete', uid)
             return DirectResponse.succeed('Components deleted.')
         except Exception, e:
+            log.exception(e)
             return DirectResponse.exception(e, 'Failed to delete components.')
 
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
@@ -1690,6 +1749,22 @@ class DeviceRouter(TreeRouter):
         audit('UI.GeocodeCache.Clear')
         return DirectResponse.succeed()
 
+    def getConnectionInfo(self, uid):
+        """
+        Returns the zproperty information about those zproperties which comprise
+        the credentials
+        @rtype:   List of Dictionaries
+        @return:  B{Properties}:
+             - path: (string) where the property is defined
+             - type: (string) type of zproperty it is
+             - options: (Array) available options for the zproperty
+             - value (Array) value of the zproperty
+             - valueAsString (string)
+        """
+        facade = self._getFacade()
+        data = facade.getConnectionInfo(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
     @serviceConnectionError
     def getModelerPluginDocStrings(self, uid):
         """
@@ -1792,4 +1867,12 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getDevTypes(self, uid, filter=None):
+        """
+        Returns a list of devtypes for the wizard
+        """
+        facade = self._getFacade()
+        data = facade.getDevTypes(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))

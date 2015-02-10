@@ -16,6 +16,7 @@ appropriately and then return back a string
 
 import json
 import logging
+from datetime import datetime
 
 from Products.Five.browser import BrowserView
 
@@ -83,6 +84,8 @@ class EventsExporter(BrowserView):
             data = []
             for field in fields:
                 val = evt.get(field, '')
+                if field in ("lastTime", "firstTime") and val:
+                    val = datetime.utcfromtimestamp(val).isoformat()
                 data.append(str(val).replace('\n',' ').strip() if val or val is 0 else '')
             writer.writerow(data)
 
@@ -105,7 +108,8 @@ class EventsExporter(BrowserView):
 
 
         for fields, evt in self._query(archive, **params):
-            response.write('<ZenossEvent ReportTime=%s>\n' % quoteattr(evt['firstTime']))
+            firstTime = datetime.utcfromtimestamp(evt['firstTime']).isoformat()
+            response.write('<ZenossEvent ReportTime=%s>\n' % quoteattr(firstTime))
             response.write("""\t<SourceComponent>
 \t\t<DeviceClass>%s</DeviceClass>
 \t\t<device>%s</device>
@@ -119,6 +123,8 @@ class EventsExporter(BrowserView):
 
             for key, value in evt.iteritems():
                 if value is not None:
+                    if key in ("lastTime", "firstTime"):
+                        value = datetime.utcfromtimestamp(value).isoformat()
                     key = str(key).replace('.', '_')
                     response.write('\t<%s>%s</%s>\n' % (key, escape(str(value)), key))
 

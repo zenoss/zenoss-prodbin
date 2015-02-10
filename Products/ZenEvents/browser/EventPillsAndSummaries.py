@@ -10,9 +10,13 @@
 
 import re
 
+from Products import Zuul
 from Products.Five.browser import BrowserView
 from Products.ZenUtils.jsonutils import json
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
+                                                SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO,
+                                                SEVERITY_DEBUG)
 
 class SinglePill(BrowserView):
     def __call__(self):
@@ -98,11 +102,23 @@ def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
     """
     ret = {'columns':['Object', 'Events'], 'data':[]}
 
+    zep = Zuul.getFacade('zep')
+
+    uuids = [ obj.getUUID() for obj in objects ]
+
+    sevs = (SEVERITY_CRITICAL,SEVERITY_ERROR,SEVERITY_WARNING,SEVERITY_INFO,SEVERITY_DEBUG)
+    all_severities = zep.getEventSeveritiesByUuids(uuids, severities=sevs)
+    severities_per_uuid = {}
+    for uuid, severities in all_severities.iteritems():
+        severities_per_uuid[uuid] = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
+
     # build list of device-pill-pillsortkey tuples
     devdata = []
     for obj in objects:
         alink = obj.getPrettyLink()
-        pill = getEventPillME(obj, showGreen=True, prodState=prodState)
+        uuid = obj.getUUID()
+        obj_severities = severities_per_uuid[uuid]
+        pill = getEventPillME(obj, showGreen=True, prodState=prodState, severities=obj_severities)
         if isinstance(pill, (list, tuple)): pill = pill[0]
         devdata.append((alink, pill, _getPillSortKey(pill)))
     devdata.sort(key=lambda x:x[-1])
@@ -125,7 +141,7 @@ def _getPill(summary, url=None, number=3):
     iconTemplate = """
         <td class="severity-icon-small
             %(severity)s %(cssclass)s"
-            title="%(acked)s out of %(total)s acknowledged">
+            title="%(upper_severity)s: %(acked)s out of %(total)s events acknowledged">
             %(total)s
         </td>
     """
@@ -146,6 +162,7 @@ def _getPill(summary, url=None, number=3):
         cells.append(iconTemplate % {
             'cssclass': cssclass,
             'severity': stati[i],
+            'upper_severity': stati[i].upper(),
             'total': total,
             'acked': acked
         })

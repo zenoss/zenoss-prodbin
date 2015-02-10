@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -18,13 +18,18 @@ from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SE
 from Products.Zuul import getFacade
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.utils import safe_hasattr as hasattr
+from Products import Zuul
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
 
-def ProxyProperty(propertyName):
+def ProxyProperty(propertyName, convert=None):
     """This uses a closure to make a getter and
     setter for the property (assuming it exists).
+    @param convert function applied to property before being set, default None
     """
     def setter(self, value):
+        if convert:
+            value = convert(value)
         return setattr(self._object, propertyName, value)
 
     def getter(self):
@@ -138,8 +143,20 @@ class HasEventsInfoMixin(HasUuidInfoMixin):
     @property
     def events(self):
         severities = self.getEventSeverities()
+        events = {}
         zep = getFacade('zep')
-        return dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
+        events = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
+
+        # If the user does not have view permissions, we reset the rainbow
+        if hasattr(self, "_object") and not Zuul.checkPermission(ZEN_VIEW, self._object):
+            for sev, counts in events.iteritems():
+                counts['count'] = 0
+                counts['acknowledged_count'] = 0
+
+        return events
+
+
+
 
     def setWorstEventSeverity(self, severity):
         """
@@ -180,3 +197,19 @@ class BulkLoadMixin(object):
         if not hasattr(self, '_props'):
             return None
         return self._props.get(name)
+
+class BulkMetricLoadMixin(BulkLoadMixin):
+
+    def getFetchedDataPoint(self, name):
+        result = super(BulkMetricLoadMixin, self).getBulkLoadProperty(name)
+        if result is not None:
+            return result
+
+        # if we load the data and it turns out to be missing or None don't try to fetch again
+        if hasattr(self, "_metricsloaded") and self._metricsloaded:
+            return result
+
+        self._metricsloaded = True
+        facade = Zuul.getFacade('device', self._object.dmd)
+        facade.bulkLoadMetricData([self])
+        return super(BulkMetricLoadMixin, self).getBulkLoadProperty(name)

@@ -30,8 +30,8 @@ class ZenTableState:
         "filter",
         "sortedHeader",
         "sortedSence",
-        "onlyMonitored",
         "defaultValue"
+        "onlyMonitored"
         ]
 
     requestAtts = [
@@ -43,8 +43,8 @@ class ZenTableState:
         "sortRule",
         "start",
         "URL",
-        "onlyMonitored",
         "defaultValue",
+        "onlyMonitored",
         "generate"
         ]
 
@@ -59,7 +59,6 @@ class ZenTableState:
         self.sortedSence="asc"
         self.sortRule = "cmp"
         self.onlyMonitored = 0
-        self.defaultValue = ""
         self.defaultBatchSize = defaultBatchSize
         self.batchSize = defaultBatchSize
         self.start = 0
@@ -68,6 +67,7 @@ class ZenTableState:
         self.filterFields = []
         self.totalobjs = 0
         self.abbrStartLabel = 15
+        self.defaultValue = ""
         self.abbrEndLabel = 5
         self.abbrPadding = 5
         self.abbrSeparator = ".."
@@ -117,7 +117,7 @@ class ZenTableState:
             return
         for attname in self.requestAtts:
             if request.has_key(attname):
-                self.setTableState(attname, int(request[attname]) if attname == 'start' else request[attname])
+                self.setTableState(attname, int(request[attname]) if attname == 'start' else request[attname], request=request)
         if not request.has_key('onlyMonitored'):
             self.setTableState('onlyMonitored', 0)
         if request.get("first",False):
@@ -171,16 +171,19 @@ class ZenTableState:
     def _pageLabel(self, objects, index):
         """make label for page navigation if field isn't sorted use page #"""
         pageLabel = ""
-        if self.sortedHeader:
-            pageLabel = self._buildTextLabel(objects[index])
-        elif self.batchSize:
-            pageLabel = str(1+index/self.batchSize)
-        else:
-            pageLabel = '1'
+        # do not show the page label if there is only one page
+        if self.totalobjs > self.batchSize:
+            if self.sortedHeader:
+                pageLabel = self._buildTextLabel(objects[index])
+            elif self.batchSize:
+                pageLabel = str(1+index/self.batchSize)
+            else:
+                pageLabel = '1'
         return pageLabel
 
 
     def _buildTextLabel(self, item):
+        startAbbr = ""
         endAbbr = ""
         attr = getattr(item, self.sortedHeader, self.defaultValue)
         if callable(attr): attr = attr()
@@ -200,12 +203,22 @@ class ZenTableState:
         return label
 
 
-    def setTableState(self, attname, value, default=None, reset=False):
+    def setTableState(self, attname, value, default=None, reset=False, request=None):
         if attname == 'batchSize':
             if value in ['', '0']:
                 value = 0
             else:
-                value = int(value)
+                # If given parameter is not numeric this will catch it
+                try:
+                    value = int(value)
+                    if value <= 0:
+                        raise ValueError("Page size cannot be negative")
+                except ValueError:
+                    # Restore whatever was the previous value
+                    value = getattr(self, attname, None)
+                    if request is not None:
+                        # Set attribute in request to previous value so it gets stored properly
+                        request[attname] = value
         if not hasattr(self, attname) and default != None:
             setattr(self, attname, default)
             if reset and attname not in self.changesThatResetStart:

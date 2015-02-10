@@ -173,8 +173,6 @@ class TreeFacade(ZuulFacade):
                     if numbip(ip):
                         minip, maxip = getSubnetBounds(ip)
                         qs.append(Between('ipAddress', str(minip), str(maxip)))
-            elif key == 'deviceClass':
-                qs.append(MatchRegexp('uid', '(?i).*%s.*' % value))
             # ZEN-10057 - move filtering on indexed groups/systems/location from post-filter to query
             elif key in organizersToClass:
                 organizerQuery = self.findMatchingOrganizers(organizersToClass[key], organizersToPath[key], value)
@@ -288,3 +286,5 @@ from .manufacturersfacade import ManufacturersFacade
 from .metricfacade import MetricFacade
 from .application import ApplicationFacade
 from .monitor import MonitorFacade
+from userfacade import UserFacade
+from .hostfacade import HostFacade

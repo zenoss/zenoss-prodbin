@@ -27,10 +27,10 @@ class MetricFacadeTest(BaseTestCase):
 
     def testTagBuilder(self):
         dev = self.dmd.Devices.createInstance('device1')
-        self.assertTrue(dev.getUUID())
+        self.assertTrue(dev.getResourceKey())
         tags = self.facade._buildTagsFromContextAndMetric(dev, 'pepe')
-        self.assertEquals(tags.keys()[1], 'uuid')
-        self.assertEquals(tags.values()[1], [dev.getUUID()])
+        self.assertIn('key', tags)
+        self.assertIn(dev.getResourceKey(), tags['key'])
 
     def testMetricBuilder(self):
         dev = self.dmd.Devices.createInstance('device1')
@@ -40,7 +40,7 @@ class MetricFacadeTest(BaseTestCase):
         metric = template.datasources()[0].datapoints()[0]
         cf = "avg"
         metric = self.facade._buildMetric(dev, metric, cf)
-        self.assertEquals(metric['tags']['datasource'], ['test'])
+        self.assertEquals(metric['metric'], "device1/test_test")
         self.assertEquals(metric['aggregator'], 'avg')
 
     def testRequestBuilder(self):

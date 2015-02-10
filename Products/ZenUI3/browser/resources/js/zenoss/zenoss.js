@@ -1,5 +1,17 @@
 (function(){ // Local scope
-
+/**
+ * Check compatibilty mode turned on
+ */
+if(navigator.userAgent.indexOf("Trident") > -1 && navigator.userAgent.indexOf("MSIE 7.0") > -1){
+    Ext.onReady(function(){
+        Ext.Msg.show({
+        title: _t("Compatibility Mode Unsupported"),
+        msg: _t("Zenoss does not support running in IE Compatibility Mode."),
+        buttons: Ext.Msg.OK,
+        cls: "compatibilityModeAlert"
+    });
+    });
+}
 /**
  * Global Ext settings.
  */
@@ -213,7 +225,7 @@ function setCursorStyle(style) {
     if (document.body) {
         document.body.style.cursor = style;
     }
-}
+};
 
 Ext.Ajax.on('beforerequest', function(){
     setCursorStyle("wait");
@@ -671,6 +683,13 @@ Ext.define("Zenoss.RefreshMenuButton", {
         }, this);
         // 60 is the default interval; it matches the checked item above
         this.setInterval(60);
+        this.on('beforedestroy', this.removeRefreshTask, this, {single: true});
+    },
+    removeRefreshTask: function() {
+        if (this.refreshTask) {
+            this.refreshTask.cancel();
+            delete this.refreshTask;
+        }
     },
     setInterval: function(interval) {
         var isValid = false;
@@ -1230,6 +1249,41 @@ Zenoss.util.getExtControlType = function(fieldId, type) {
 };
 
 /**
+ * The code searches for a column index using the column name
+ * @param {array} columns represents the grid columns
+ * @param {id} id the name of the column
+ * @returns {int} the column index
+ **/
+Zenoss.util.getColumnIndex = function(columns, id) {
+   var colIndex = -1;
+   Ext.each(columns, function(col, index) {
+       if (col.id == id) {
+           colIndex = index;
+           return false;
+       }
+   });
+   return colIndex;
+};
+
+/**
+* Used in BaseGrid.js by onFocus() and onResize() events.
+ * Fixes misalignment between filter and header of a column in IE9.
+ */
+Zenoss.util.refreshScrollPosition = function(me) {
+    if (me.grid.view.getEl().dom.children[1]) {
+        if (me.grid.view.getHeight() < parseFloat(me.grid.view.getEl().dom.children[1].scrollHeight)){
+            me.view.el.dom.scrollTop += 1;
+            me.view.el.dom.scrollTop -= 1;
+        } else if (me.grid.view.getWidth() < parseFloat(me.grid.view.getEl().dom.children[1].style.width)){
+            me.view.el.dom.scrollLeft += 1;
+            me.view.el.dom.scrollLeft -= 1;
+        } else if (me.grid.columns[0].filterField) {
+            me.grid.columns[0].filterField.focus();
+        }
+    }
+};
+
+/**
  * Used by classes to validate config options that
  * are required.
  * Called like this:
@@ -1564,5 +1618,18 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
         {"abbr":"WY","name":"Wyoming","slogan":"Like No Place on Earth"}
     ];
 
+
+// Create a portlets object
+//
+Ext.define('PortletManager', {
+    mixins: {
+        observable: 'Ext.util.Observable'
+    },
+    constructor: function (config) {
+        this.mixins.observable.constructor.call(this, config);
+        this.addEvents('ready', 'beforeregister');
+    }
+});
+Zenoss.PortletManager = new PortletManager();
 
 })(); // End local scope

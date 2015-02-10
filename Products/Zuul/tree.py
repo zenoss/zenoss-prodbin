@@ -25,6 +25,8 @@ from Products.Zuul.infos import InfoBase
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import memoize
 from Products.ZenUtils.NaturalSort import natural_compare
+from Products import Zuul
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 import logging
 log = logging.getLogger("zen.tree")
 
@@ -51,7 +53,7 @@ class TreeNode(object):
         self._parent = parent or None
         self._severity = None
         # allow showing the event severity icons to be configurable
-        if not hasattr(self._root, 'showSeverityIcons'):
+        if not hasattr(self._root, '_showSeverityIcons'):
             self._root._showSeverityIcons = self._shouldShowSeverityIcons()
 
     def _shouldShowSeverityIcons(self):
@@ -116,10 +118,13 @@ class TreeNode(object):
 
     @property
     def iconCls(self):
+        icon = None
         if self._root._showSeverityIcons:
-            sev = self._loadSeverity();
-            return self.getIconCls(sev)
-        return None
+            obj = self._get_object()
+            if Zuul.checkPermission(ZEN_VIEW, obj):
+                sev = self._loadSeverity()
+                icon = self.getIconCls(sev)
+        return icon
 
     def getIconCls(self, sev):
         return 'tree-severity-icon-small-%s' % (sev or 'clear')
@@ -230,7 +235,6 @@ class CatalogTool(object):
         self.catalog = context.getPhysicalRoot().zport.global_catalog
         self.catalog._v_caches = getattr(self.catalog, "_v_caches", OOBTree())
 
-
     def getBrain(self, path):
         # Make sure it's actually a path
         if not isinstance(path, (tuple, basestring)):
@@ -238,6 +242,20 @@ class CatalogTool(object):
         elif isinstance(path, tuple):
             path = '/'.join(path)
         cat = self.catalog._catalog
+        try:
+            rid = cat.uids[path]
+            if rid:
+                return cat.__getitem__(rid)
+        except (KeyError, UncataloguedObjectException), e:
+            log.error("Unable to get brain. Trying to reindex: %s", path)
+            try:
+                dmd = self.context.dmd
+                obj = dmd.unrestrictedTraverse(path)
+                obj.index_object()
+                cat.catalogObject(obj, path)
+                log.info("Successfully reindexed: %s", path)
+            except Exception, e:
+                log.exception("Unable to reindex %s: %s", path, e)
         rid = cat.uids[path]
         if rid:
             return cat.__getitem__(rid)
@@ -391,7 +409,7 @@ class CatalogTool(object):
         #Optimizing!
         results = { brain: [True, IInfo(brain.getObject())] for brain in queryResults }
         for key, value in infoFilters.iteritems():
-            valRe = re.compile(".*" + value + ".*", re.IGNORECASE)
+            valRe = re.compile(".*" + unicode(value) + ".*", re.IGNORECASE)
             for result in results:
                 match, info = results[result]
                 if not match:

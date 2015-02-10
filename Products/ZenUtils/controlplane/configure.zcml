@@ -4,9 +4,14 @@
    xmlns:five="http://namespaces.zope.org/five">
 
    <utility
-      provides="Products.ZenUtils.application.IApplicationManager"
-      factory=".application.DeployedAppLookup"
-      />
+         provides="Products.ZenUtils.application.IApplicationManager"
+         factory=".application.DeployedAppLookup"
+         />
+
+   <utility
+         provides="Products.ZenUtils.host.IHostManager"
+         factory=".host.HostLookup"
+         />
 
    <utility
       factory=".data.ServiceDefinitionFactory"
@@ -14,8 +19,18 @@
       />
 
    <utility
-      factory=".data.ServiceInstanceFactory"
-      name="ServiceInstance"
+     factory=".data.ServiceInstanceFactory"
+     name="ServiceInstance"
+     />
+
+   <utility
+     factory=".data.ServiceStatusFactory"
+     name="ServiceStatus"
+     />
+
+    <utility
+      factory=".data.HostFactory"
+      name="Host"
       />
 
 </configure>

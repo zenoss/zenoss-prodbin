@@ -28,8 +28,7 @@ class JobsFacade(ZuulFacade):
             stop = None
         else:
             stop = start + limit
-        kwargs = dict(sort_on=sort, sort_limit=stop,
-            sort_order='descending' if dir=='DESC' else 'ascending')
+        kwargs = dict(sort_on=sort, sort_order='descending' if dir=='DESC' else 'ascending')
         if createdBy:
             kwargs['user'] = createdBy
         brains = self._dmd.JobManager.getCatalog()(
@@ -39,6 +38,10 @@ class JobsFacade(ZuulFacade):
         results = islice(brains, start, stop)
         return [b.getObject() for b in results], total
 
+    @info
+    def getInfo(self, jobid):
+        return self._dmd.JobManager.getJob(jobid)
+    
     def abortJob(self, id_):
         self._dmd.JobManager.getJob(id_).abort()
 

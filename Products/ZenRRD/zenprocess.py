@@ -235,6 +235,14 @@ class ProcessStats(OSProcessMatcher):
         if pid in self._pids:
             del self._pids[pid]
 
+    def _sync_pids(self, pids):
+        """
+        Removes PIDs that are no longer related to current process.
+
+        @parameter pids: iterable with PIDs that are related to current process
+        """
+        self._pids = {k: v for k, v in self._pids.iteritems() if k in pids}
+
 
 class Pid:
     """
@@ -662,6 +670,7 @@ class ZenProcessTask(ObservableMixin):
                 log.debug("There are %d pids by the name %s - %s",
                           len(pids), procStat._config.name, procStat._config.originalName)
             procName = procStat
+            procStat._sync_pids(pids)
             for pid in pids:
                 cpu = results.get(CPU + str(pid), None)
                 mem = results.get(MEM + str(pid), None)
@@ -773,17 +782,16 @@ class ZenProcessTask(ObservableMixin):
         @param rrdType: Metric data type (eg ABSOLUTE, DERIVE, COUNTER)
         @type rrdType: string
         """
-        uuid = pidName._config.contextUUID
-        devuuid = pidName._config.deviceuuid
+        metadata = pidName._config.metadata
         try:
-            self._dataService.writeMetric(uuid, statName, value, rrdType, pidName._config.name, min=min, deviceuuid=devuuid)
+            self._dataService.writeMetricWithMetadata(statName, value, rrdType,
+                    min=min, metadata=metadata)
         except Exception, ex:
-            summary = "Unable to save data for process-monitor metric %s" %\
-                      uuid
+            summary = "Unable to save data for process-monitor metric %s" % (
+                      metadata.get('contextKey'))
             log.critical(summary)
 
-            message = "Data was value= %s, type=%s" %\
-                      ( value, rrdType )
+            message = "Data was value= %s, type=%s" % (value, rrdType)
             log.critical(message)
             log.exception(ex)
 

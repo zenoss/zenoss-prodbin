@@ -14,6 +14,31 @@
         zpropertyConfigs = {};
 
     Ext.ns('Zenoss.zproperties');
+    Zenoss.zproperties.inferZPropertyLabel= function(id) {
+        var fieldLabel = id;
+        // special case for vsphere end point.
+        if (id.toLowerCase().indexOf('endpointhost') != -1) {
+            fieldLabel = _t("vSphere Endpoint Host");
+        }else if (id.toLowerCase().indexOf('winkdc') != -1) {
+            fieldLabel = _t('AD Domain Controller');
+        }else if (id.toLowerCase().indexOf('winscheme') != -1) {
+            fieldLabel = _t('Protocol (http/https)');
+        }else if (id.toLowerCase().indexOf('user') != -1) {
+            fieldLabel = _t('Username');
+        } else if (id.toLowerCase().indexOf('password') != -1) {
+            fieldLabel = _t('Password');
+        } else if (id.toLowerCase().indexOf('snmpcomm') != -1) {
+            fieldLabel = _t('SNMP Community String');
+        } else if (id.toLowerCase().indexOf('port') != -1) {
+            fieldLabel = _t('Port');
+        } else if (id.toLowerCase().indexOf('ssl') != -1) {
+            fieldLabel = _t('Use SSL?');
+        } else {
+            fieldLabel = id;
+        }
+        return fieldLabel;
+    };
+
     Ext.apply(zpropertyConfigs, {
         'int': {
             xtype: 'numberfield',
@@ -53,7 +78,7 @@
             xtype: Zenoss.Security.doesNotHavePermission('zProperties Edit') ? 'password' : 'textfield'
         },
         'zEventSeverity': {
-            xtype: 'severity'
+            xtype: 'defaultseverity'
         },
         'zFailSeverity': {
             xtype: 'severity'
@@ -77,12 +102,9 @@
         zpropertyConfigs[id] = config;
     };
 
-
-    function showEditConfigPropertyDialog(data, grid) {
-        var handler, uid, config, editConfig, dialog, type;
-        type = data.type;
-        editConfig = {};
-
+    Zenoss.zproperties.createZPropertyField = function(data) {
+        var editConfig = {},
+            type = data.type;
         // in case of drop down lists
         if (Ext.isArray(data.options) && data.options.length > 0 && type == 'string') {
             // make it a combo and the options is the store
@@ -95,10 +117,10 @@
 
         // set the default values common to all configs
         Ext.applyIf(editConfig, {
-            fieldLabel: _t('Value'),
+            fieldLabel: data.label || Zenoss.zproperties.inferZPropertyLabel(data.id),
             value: data.value,
             ref: 'editConfig',
-            checked: data.value,
+            checked: data.value || data.valueAsString,
             name: data.id,
             width: 250
         });
@@ -107,6 +129,14 @@
         if (type == 'lines' && Ext.isArray(editConfig.value)){
             editConfig.value = editConfig.value.join('\n');
         }
+        return editConfig;
+    };
+
+    function showEditConfigPropertyDialog(data, grid) {
+        var handler, uid, config, editConfig, dialog, type;
+
+        editConfig = Zenoss.zproperties.createZPropertyField(data);
+
 
         handler = function() {
             // save the junk and reload
@@ -159,10 +189,20 @@
                     value: data.path
                 },{
                     xtype: 'displayfield',
+                    name: 'description',
+                    ref: 'description',
+                    fieldLabel: _t('Description'),
+                    value: data.description
+                },{
+                    xtype: 'displayfield',
                     name: 'type',
                     ref: 'type',
                     fieldLabel: _t('Type'),
                     value: data.type
+                }, {
+                    // spacer for metadata/value
+                    height: 25,
+                    xtype: 'container'
                 }, editConfig
             ],
             // explicitly do not allow enter to submit the dialog
@@ -193,7 +233,9 @@
             {name: 'valueAsString'},
             {name: 'type'},
             {name: 'path'},
-            {name: 'options'}
+            {name: 'options'},
+            {name: 'label'},
+            {name: 'description'}
         ]
     });
 
@@ -335,15 +377,30 @@
                             return Ext.htmlEncode(value);
                         }
                     },{
+                        dataIndex: 'label',
+                        header: _t('Label'),
+                        width: 200,
+                        sortable: true
+                    },{
+                        dataIndex: 'description',
+                        header: _t('Description'),
+                        flex: 1
+                    },{
                         dataIndex: 'valueAsString',
                         header: _t('Value'),
-                        flex: 1,
                         width: 180,
                         renderer: function(v, row, record) {
                             if (Zenoss.Security.doesNotHavePermission("zProperties Edit") &&
                                 record.data.id == 'zSnmpCommunity') {
                                 return "*******";
                             }
+
+                            // if v is an object or array, it must be
+                            // stringified via JSON
+                            if(typeof v === "object"){
+                                v = JSON.stringify(v);
+                            }
+
                             return Ext.htmlEncode(v);
                         },
                         sortable: false

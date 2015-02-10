@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -426,6 +426,31 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
     def pythonClass(self):
         return self._object.__class__.__module__
 
+    @property
+    def sshLink(self):
+        """
+        Returns the "href" for connecting to this device. Assumes most
+        devices can be connected to by ssh.
+        """
+        ipAddress = self.ipAddressString
+        userName = self._object.getZ('zCommandUsername', 'root')
+        if not ipAddress:
+            return None
+        # for empty strings
+        if not userName:
+            userName = "root"
+        return "ssh://%s@%s" % (userName, ipAddress)
+
+    @property
+    def deviceConnectionInfo(self):
+        connectionInfo = []
+        zprops = self._object.deviceClass().primaryAq().getZ('zCredentialsZProperties', [])
+        if not zprops:
+            return False
+        for prop in zprops:
+            if not self._object.zenPropIsPassword(prop):
+                connectionInfo.append(str(self._object.zenPropertyString(prop)))
+        return " ".join(connectionInfo)
 
 class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     implements(IDeviceOrganizerInfo)

@@ -19,6 +19,7 @@ a different location).
 """
 
 import logging
+import math
 import re
 import ZTUtils
 from Globals import InitializeClass
@@ -34,6 +35,13 @@ from Products.ZenUtils.Utils import getTranslation
 log = logging.getLogger('zen.ZenTableManager')
 
 class TableStateNotFound(Exception): pass
+
+
+def convert(x): 
+    return 0.0 if isinstance(x, float) and math.isnan(x) else x 
+
+def zencmp(o1, o2): 
+    return cmp(convert(o1), convert(o2)) 
 
 
 def manage_addZenTableManager(context, id="", REQUEST = None):
@@ -241,7 +249,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
                 objects = [Wrapper(o.get(field, ''), o) for o in objects]
             else:
                 objects = [Wrapper(getattr(o, field, ''), o) for o in objects]
-            objects = sort(objects, (('field', rule, sence),))
+            objects = sort(objects, (('field', rule, sence),), {'zencmp': zencmp})
             return [w.cargo for w in objects]
 
         if (getattr(aq_base(request), 'sortedHeader', False)
@@ -273,7 +281,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def getTableHeaderHref(self, tableName, fieldName,
                             sortRule='cmp',params=""):
-        """build the href attribute for the table table headers"""
+        """build the href attribute for the table headers"""
 
         tableState = self.getTableState(tableName)
         sortedHeader = tableState.sortedHeader
@@ -282,8 +290,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             if sortedSence == 'asc':
                 sortedSence = 'desc'
             elif sortedSence == 'desc':
-                fieldName = ''
-                sortedSence = ''
+                sortedSence = 'asc'
         else:
             sortedSence = 'asc'
         href = "%s?tableName=%s&sortedHeader=%s&" % (

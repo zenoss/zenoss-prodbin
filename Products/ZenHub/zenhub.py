@@ -30,7 +30,9 @@ import signal
 import cPickle as pickle
 import os
 import subprocess
+import itertools
 from random import choice
+from zope.component import getAdapters, subscribers
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
@@ -58,11 +60,13 @@ from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid, IHubConfProvider, IHubHeartBeatCheck
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
+from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
 from Products.ZenHub.WorkerSelection import WorkerSelector
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CRITICAL, SEVERITY_CLEAR
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.metricwriter import DerivativeTracker
-from zenoss.collector.publisher.publisher import HttpPostPublisher
+from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
@@ -157,7 +161,8 @@ class HubAvitar(pb.Avatar):
     def perspective_getService(self,
                                serviceName,
                                instance = None,
-                               listener = None):
+                               listener = None,
+                               options = None):
         """
         Allow a collector to find a Hub service by name.  It also
         associates the service with a collector so that changes can be
@@ -173,12 +178,16 @@ class HubAvitar(pb.Avatar):
         """
         try:
             service = self.hub.getService(serviceName, instance)
+        except RemoteBadMonitor:
+            # This is a valid remote exception, so let it go through
+            # to the collector daemon to handle
+            raise
         except Exception:
             self.hub.log.exception("Failed to get service '%s'", serviceName)
             return None
         else:
             if service is not None and listener:
-                service.addListener(listener)
+                service.addListener(listener, options)
             return service
 
     def perspective_reportingForWork(self, worker):
@@ -406,6 +415,7 @@ class ZenHub(ZCmdBase):
         self.workerprocessmap = {}
         self.shutdown = False
         self.counters = collections.Counter()
+        self._invalidations_paused = False
 
         ZCmdBase.__init__(self)
         import Products.ZenHub
@@ -586,12 +596,29 @@ class ZenHub(ZCmdBase):
                                     yield oid
 
     def _transformOid(self, oid, obj):
-        oidTransform = IInvalidationOid(obj)
-        newOids = oidTransform.transformOid(oid)
-        if isinstance(newOids, str):
-            newOids = [newOids]
-        for newOid in newOids:
-            yield newOid
+        # First, get any subscription adapters registered as transforms
+        adapters = subscribers((obj,), IInvalidationOid)
+        # Next check for an old-style (regular adapter) transform
+        try:
+            adapters = itertools.chain(adapters, (IInvalidationOid(obj),))
+        except TypeError:
+            # No old-style adapter is registered
+            pass
+        transformed = set()
+        for adapter in adapters:
+            o = adapter.transformOid(oid)
+            if isinstance(o, basestring):
+                transformed.add(o)
+            elif hasattr(o, '__iter__'):
+                # If the transform didn't give back a string, it should have
+                # given back an iterable
+                transformed.update(o)
+        # Get rid of any useless Nones
+        transformed.discard(None)
+        # Get rid of the original oid, if returned. We don't want to use it IF
+        # any transformed oid came back.
+        transformed.discard(oid)
+        return transformed or (oid,)
 
     def doProcessQueue(self):
         """
@@ -605,9 +632,21 @@ class ZenHub(ZCmdBase):
             d = processor.processQueue(tuple(set(self._filter_oids(changes_dict))))
 
             def done(n):
-                if n:
-                    self.log.debug('Processed %s oids' % n)
-
+                if n == INVALIDATIONS_PAUSED:
+                    self.sendEvent({'summary': "Invalidation processing is "
+                                               "currently paused. To resume, set "
+                                               "'dmd.pauseHubNotifications = False'",
+                                    'severity': SEVERITY_CRITICAL,
+                                    'eventkey': INVALIDATIONS_PAUSED})
+                    self._invalidations_paused = True
+                else:
+                    msg = 'Processed %s oids' % n
+                    self.log.debug(msg)
+                    if self._invalidations_paused:
+                        self.sendEvent({'summary': msg,
+                                        'severity': SEVERITY_CLEAR,
+                                        'eventkey': INVALIDATIONS_PAUSED})
+                        self._invalidations_paused = False
             d.addCallback(done)
 
     def sendEvent(self, **kw):
@@ -664,8 +703,8 @@ class ZenHub(ZCmdBase):
         # Sanity check the names given to us
         if not self.dmd.Monitors.Performance._getOb(instance, False):
             raise RemoteBadMonitor("The provided performance monitor '%s'" %
-                                   self.options.monitor +
-                                   " is not in the current list")
+                                   instance +
+                                   " is not in the current list", None)
 
         try:
             return self.services[name, instance]
@@ -780,9 +819,7 @@ class ZenHub(ZCmdBase):
                 break
 
             job = self.workList.pop()
-            self.log.debug("get candidate workers for %s...", job.method)
             candidateWorkers = list(self.workerselector.getCandidateWorkerIds(job.method, self.workers))
-            self.log.debug("candidate workers are %r", candidateWorkers)
             for i in candidateWorkers:
                 worker = self.workers[i]
                 worker.busy = True
@@ -797,7 +834,6 @@ class ZenHub(ZCmdBase):
                     yield self.finished(job, result, worker, i)
                 break
             else:
-                self.log.debug("no worker available for %s" % job.method)
                 #could not complete this job, put it back in the queue once
                 #we're finished saturating the workers
                 incompleteJobs.append(job)
@@ -807,6 +843,7 @@ class ZenHub(ZCmdBase):
             self.workList.push(job)
 
         if incompleteJobs:
+            self.log.debug("No workers available for %d jobs." % len(incompleteJobs))
             reactor.callLater(0, self.giveWorkToWorkers)
 
         if requeue and not self.shutdown:

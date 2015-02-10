@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2009, 2014 all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -18,6 +18,7 @@ DAY_SECONDS = 24*60*60
 WEEK_SECONDS = 7*DAY_SECONDS
 
 import time
+import calendar
 import logging
 log = logging.getLogger("zen.MaintenanceWindows")
 
@@ -77,6 +78,8 @@ class MaintenanceWindow(ZenModelRM):
     started = None
     duration = 60
     repeat = 'Never'
+    days = 'Sunday'
+    occurrence = '1st'
     startProductionState = 300
     stopProductionState = RETURN_TO_ORIG_PROD_STATE
     enabled = True
@@ -88,6 +91,8 @@ class MaintenanceWindow(ZenModelRM):
         {'id':'started', 'type':'int', 'mode':'w'},
         {'id':'duration', 'type':'int', 'mode':'w'},
         {'id':'repeat', 'type':'string', 'mode':'w'},
+        {'id':'days', 'type':'string', 'mode':'w'},
+        {'id':'occurrence', 'type':'string', 'mode':'w'},
         {'id':'skip', 'type':'int', 'mode':'w'},
         )
 
@@ -113,19 +118,22 @@ class MaintenanceWindow(ZenModelRM):
     security = ClassSecurityInfo()
 
 
-    REPEAT = "Never/Daily/Every Weekday/Weekly/Monthly/First Sunday of the Month".split('/')
-    NEVER, DAILY, EVERY_WEEKDAY, WEEKLY, MONTHLY, FSOTM = REPEAT
-
+    REPEAT = "Never/Daily/Every Weekday/Weekly/Monthly: day of month/Monthly: day of week".split('/')
+    NEVER, DAILY, EVERY_WEEKDAY, WEEKLY, MONTHLY, NTHWDAY = REPEAT
+    DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    OCCURRENCE = ['1st', '2nd', '3rd', '4th', '5th', 'Last']
     def __init__(self, id):
         ZenModelRM.__init__(self, id)
         self.start = time.time()
         self.enabled = False
 
-    def set(self, start, duration, repeat, enabled=True):
+    def set(self, start, duration, repeat, days='Sunday', occurrence='1st', enabled=True):
         self.start = start
         self.duration = duration
         self.repeat = repeat
         self.enabled = enabled
+        self.days = days
+        self.occurrence = occurrence
 
     def displayName(self):
         if self.name is not None: return self.name
@@ -134,6 +142,14 @@ class MaintenanceWindow(ZenModelRM):
     def repeatOptions(self):
         "Provide the list of REPEAT options"
         return self.REPEAT
+    
+    def daysOptions(self):
+        "Provide the list of DAYS options"
+        return self.DAYS
+    
+    def occurrenceOptions(self):
+        "Provide the list of OCCURRENCE options"
+        return self.OCCURRENCE
 
     def getTargetId(self):
         return self.target().id
@@ -165,7 +181,12 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStartMinute(self):
         return time.localtime(self.start)[4]
-        
+
+    def niceRepeat(self):
+        if self.repeat == self.REPEAT[-1]:
+            return self.occurrence + ' ' + self.days + ' of the month'
+        return self.repeat
+
     security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,
@@ -176,6 +197,8 @@ class MaintenanceWindow(ZenModelRM):
                                      durationHours='00',
                                      durationMinutes='00',
                                      repeat='Never',
+                                     days='Sunday',
+                                     occurrence='1st',
                                      startProductionState=300,
                                      stopProductionState=RETURN_TO_ORIG_PROD_STATE,
                                      enabled=True,
@@ -250,6 +273,8 @@ class MaintenanceWindow(ZenModelRM):
             self.start = t
             self.duration = duration
             self.repeat = repeat
+            self.days = days
+            self.occurrence = occurrence
             self.startProductionState = startProductionState
             self.stopProductionState = stopProductionState
             self.skip = skip
@@ -257,9 +282,13 @@ class MaintenanceWindow(ZenModelRM):
             if self.started and self.nextEvent(now) < now:
                 self.end()
             if REQUEST:
+                flare = 'Maintenance window changes were saved.'
+                if self.enabled:
+                    flare += ' Next run on %s' % time.strftime(
+                        "%m/%d/%Y %H:%M:%S", time.localtime(self.next()))
                 messaging.IMessageSender(self).sendToBrowser(
                     'Window Updated',
-                    'Maintenance window changes were saved.'
+                    flare
                 )
                 audit('UI.MaintenanceWindow.Edit', self,
                       data_=self.getAuditData(),
@@ -287,14 +316,56 @@ class MaintenanceWindow(ZenModelRM):
         return bc
 
 
-    def next(self, now = None):
+    def occurDay(self, start, now, skip=1, day=6, occur=0):
+        date = time.localtime(start)
+        time_for_mktime = (date.tm_hour, date.tm_min, date.tm_sec, 0, 0, 1)
+        log.debug('start date: %s; day: %d; occur: %d; skip: %d', str(date), day,
+                  occur, skip)
+        # get a list of (mday, wday) tuples for current month
+        c = calendar.Calendar(firstweekday=0)
+        flatter = sum(c.monthdays2calendar(date.tm_year, date.tm_mon), [])
+        if occur == 5:
+            flatter = reversed(flatter)
+            tmp_occur = 0
+        else:
+            tmp_occur = occur
+        count = 0
+        #find Nth occurrence of week day
+        for mday, wday in flatter:
+            if wday == day and mday > 0:
+                count += 1
+                log.debug('found wday %d, mday %d, count %d', wday, mday, count)
+                if count == tmp_occur + 1 and mday >= date.tm_mday:
+                    log.debug('count matched, mday %d', mday)
+                    startTime = time.mktime(
+                        (date.tm_year, date.tm_mon, mday) + time_for_mktime)
+                    # do we need to skip this day?
+                    if skip > 1:
+                        log.debug('skipping this occurrence. skip = %d', skip)
+                        return self.occurDay(startTime + DAY_SECONDS, now, skip - 1,
+                                             day, tmp_occur)
+                    elif mday > date.tm_mday:
+                        log.debug('Window will start on: %s',
+                                  str(time.localtime(startTime)))
+                        return startTime
+                        # couldn't find start day in current month, switching to 1st day of the next month
+        if date.tm_mon == 12:
+            date = (date.tm_year + 1, 1, 1)
+        else:
+            date = (date.tm_year, date.tm_mon + 1, 1)
+        date += time_for_mktime
+        return self.occurDay(time.mktime(date), now, skip, day, occur)
+
+
+    def next(self, now=None):
         """
         From Unix time_t now value, return next time_t value
         for the window to start, or None
         This adjusts for DST changes.
         """
         return self.adjustDST(self._next(now))
-        
+
+
     def _next(self, now):
         if not self.enabled:
             return None
@@ -347,22 +418,14 @@ class MaintenanceWindow(ZenModelRM):
                 months += 1
             return m
 
-        elif self.repeat == self.FSOTM:
-            base = list(time.localtime(now))
-            # Move time to this year/month
-            base[2:6] = time.localtime(self.start)[2:6]
-            base = time.mktime(base)
-            # creep ahead by days until it's the FSOTM
-            # (not the most efficient implementation)
-            count = 0
-            while 1:
-                tm = time.localtime(base)
-                if base > now and 1 <= tm.tm_mday <= 7 and tm.tm_wday == 6:
-                    count += 1
-                    if count % self.skip == 0:
-                        break
-                base += DAY_SECONDS
-            return base
+        elif self.repeat == self.NTHWDAY:
+            #return self.occurDay(self.start, now, self.skip)
+            return self.occurDay(
+                                 self.start,
+                                 now,
+                                 self.skip,
+                                 self.DAYS.index(self.days),
+                                 self.OCCURRENCE.index(self.occurrence))
         raise ValueError('bad value for MaintenanceWindow repeat: %r' %self.repeat)
 
     def target(self):
@@ -483,6 +546,9 @@ class MaintenanceWindow(ZenModelRM):
                           device.id, self.displayName())
                 continue
 
+            if device.productionState < 300:
+                    continue
+
             self._p_changed = 1
             # Changes the current state for a device, but *not*
             # the preMWProductionState
@@ -492,7 +558,7 @@ class MaintenanceWindow(ZenModelRM):
                      self.displayName(), device.id, oldProductionState,
                      newProductionState)
             audit('System.Device.Edit', device, starting=str(not ending),
-                maintenanceWindow=self.displayName(), 
+                maintenanceWindow=self.displayName(),
                 productionState=newProductionState,
                 oldData_={'productionState':oldProductionState})
             device.setProdState(minProdState, maintWindowChange=True)
@@ -592,4 +658,3 @@ def createMaintenanceWindowCatalog(dmd):
     cat.addColumn('id')
     cat._catalog.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
     cat.addColumn('getPhysicalPath')
-

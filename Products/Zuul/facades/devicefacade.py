@@ -178,8 +178,19 @@ class DeviceFacade(TreeFacade):
         total = len(comps)
         hash_ = str(total)
 
+        def componentSortKey(parent):
+            val = getattr(parent, sort)
+            if val:
+                if isinstance(val, list):
+                    val = val[0]
+                if callable(val):
+                    val = val()
+                if IInfo.providedBy(val):
+                    val = val.name
+            return val
+
         # sort the components
-        sortedResults = list(sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse))
+        sortedResults = list(sorted(comps, key=componentSortKey, reverse=reverse))
 
         # limit the search results to the specified range
         if limit is None:
@@ -187,12 +198,45 @@ class DeviceFacade(TreeFacade):
         else:
             pagedResult = sortedResults[start:start + limit]
 
+        # fetch any rrd data necessary
+        self.bulkLoadMetricData(pagedResult)
+
         return SearchResults(iter(pagedResult), total, hash_, False)
 
     def getComponents(self, uid=None, types=(), meta_type=(), start=0,
                       limit=None, sort='name', dir='ASC', name=None, keys=()):
         return self._componentSearch(uid, types, meta_type, start, limit,
                                        sort, dir, name=name, keys=keys)
+
+    def bulkLoadMetricData(self, infos):
+        """
+        If the info objects have the attribute dataPointsToFetch we
+        will load all the datapoints in one metric service query
+        instead of one per info object
+        """
+        if len(infos) == 0:
+            return
+        datapoints = set()
+        indexedInfos = dict()
+        for info in infos:
+            indexedInfos[info._object.getResourceKey()] = info
+            if hasattr(info, "dataPointsToFetch"):
+                [datapoints.add(dp) for dp in info.dataPointsToFetch]
+
+        # in case no metrics were asked for
+        if len(datapoints) == 0:
+            return
+        # get the metric facade
+        mfacade = getFacade('metric', self._dmd)
+        # metric facade expects zenmodel objects or uids
+        results = mfacade.getMultiValues([i._object for i in infos], datapoints, returnSet="LAST")
+
+        # assign the metrics to the info objects
+        for resourceKey, record in results.iteritems():
+            if indexedInfos.get(resourceKey) is not None:
+                info = indexedInfos[resourceKey]
+                for key, val in record.iteritems():
+                    info.setBulkLoadProperty(key, val)
 
     def getComponentTree(self, uid):
         from Products.ZenEvents.EventManagerBase import EventManagerBase
@@ -208,7 +252,7 @@ class DeviceFacade(TreeFacade):
         # Do one big lookup of component events and merge back in to type later
         if not uuidMap:
             return []
-        
+
         zep = getFacade('zep')
         showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
         if showSeverityIcon:
@@ -333,16 +377,19 @@ class DeviceFacade(TreeFacade):
                               osManufacturer=osManufacturer,
                               osProductName=osProductName)
 
-    def setProductionState(self, uids, state):
-        devids = []
-        if isinstance(uids, basestring):
-            uids = (uids,)
-        for uid in uids:
-            dev = self._getObject(uid)
-            if isinstance(dev, Device):
-                dev.setProdState(int(state))
-                devids.append(dev.id)
-        return devids
+    def setProductionState(self, uids, state, asynchronous=False):
+        if asynchronous:
+            self._dmd.JobManager.addJob(
+                FacadeMethodJob,
+                description="Set state %s for %s" % (state, ','.join(uids)),
+                kwargs=dict(
+                    facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
+                    method="_setProductionState",
+                    uids=uids,
+                    state=state
+                ))
+        else:
+            self._setProductionState(uids, state)
 
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):
@@ -414,6 +461,14 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
         return exports
+
+    def _setProductionState(self, uids, state):
+        if isinstance(uids, basestring):
+            uids = (uids,)
+        for uid in uids:
+            dev = self._getObject(uid)
+            if isinstance(dev, Device):
+                dev.setProdState(int(state))
 
     @info
     def moveDevices(self, uids, target, asynchronous=True):
@@ -627,6 +682,12 @@ class DeviceFacade(TreeFacade):
         org.address = address
         return org
 
+    def addDeviceClass(self, contextUid, id, description = '', connectionInfo=None):
+        org = super(DeviceFacade, self).addOrganizer(contextUid, id, description)
+        if connectionInfo:
+            org.connectionInfo = connectionInfo
+        return org
+
     def getModelerPluginDocStrings(self, uid):
         """
         Returns a dictionary of documentation for modeler plugins, indexed
@@ -652,10 +713,20 @@ class DeviceFacade(TreeFacade):
             docs[plugin.pluginName] = pluginDocs
         return docs
 
+    def getConnectionInfo(self, uid):
+        obj = self._getObject(uid)
+        result = []
+        deviceClass = obj
+        if not isinstance(obj, DeviceClass):
+            deviceClass = obj.deviceClass()
+        for prop in deviceClass.primaryAq().getZ('zCredentialsZProperties', []):
+            result.append(obj.exportZProperty(prop))
+        return result
+
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         graphs = []
-        for graph in obj.getDefaultGraphDefs():
+        for graph in obj.getGraphObjects():
             info = getMultiAdapter((graph,obj), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
@@ -742,12 +813,12 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         for brain in obj.componentSearch():
             if graphDefs.get(brain.meta_type):
-                continue            
+                continue
             try:
                 component = brain.getObject()
             except:
                 pass
-            graphDefs[component.meta_type] = [g.id for g in component.getDefaultGraphDefs()]
+            graphDefs[component.meta_type] = [g.id for g in component.getGraphObjects()]
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
@@ -757,19 +828,21 @@ class DeviceFacade(TreeFacade):
         query = {}
         query['meta_type'] = meta_type
         components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
-        
-        
+        graphDef = None
+
         # get the graph def
         for comp in components:
             # find the first instance
-            for graph in comp.getDefaultGraphDefs():
+            for graph in comp.getGraphObjects():
                 if graph.id == graphId:
                     graphDef = graph
                     break
             if graphDef:
                 break
+        if not graphDef:
+            return []
 
-        if allOnSame:            
+        if allOnSame:
             return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
 
         graphs = []
@@ -777,4 +850,41 @@ class DeviceFacade(TreeFacade):
             info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
-    
+
+    def getDevTypes(self, uid):
+        """
+        Returns a list of devtypes for use for the wizard
+        """
+        devtypes = []
+        org = self._getObject(uid)
+        subOrgs = org.getSubOrganizers()
+        # include the top level organizers in the list of device types
+        organizers = [org] + subOrgs
+        for org in organizers:
+            if not hasattr(aq_base(org), 'devtypes') or not org.devtypes:
+                devtypes.append({
+                    'value': org.getPrimaryId(),
+                    'description': org.getOrganizerName(),
+                    'protocol': "",
+                })
+                continue
+            for t in org.devtypes:
+                try:
+                    desc, ptcl = t
+                except ValueError:
+                    continue
+
+                # Both must be defined
+                if not ptcl or not desc:
+                    continue
+
+                # special case for migrating from WMI to WinRM so we
+                # can allow the zenpack to be backwards compatible
+                if org.getOrganizerName() == '/Server/Microsoft/Windows' and ptcl == 'WMI':
+                    ptcl = "WinRM"
+                devtypes.append({
+                    'value': org.getPrimaryId(),
+                    'description': desc,
+                    'protocol': ptcl,
+                })
+        return sorted(devtypes, key=lambda x: x.get('description'))

@@ -87,6 +87,7 @@ class CmdPingCollectionPreferences(ZenStatus.PingCollectionPreferences):
     """
     pass
 
+
 class CmdPingTaskFactory(object):
     """
     A Factory to create command line PingTasks.
@@ -111,6 +112,7 @@ class CmdPingTaskFactory(object):
         self.interval = None
         self.config = None    
 
+
 class CmdPingTask(ZenStatus.PingTask):
     interface.implements(ZenStatus.interfaces.IPingTask)
 
@@ -127,16 +129,24 @@ class CmdPingTask(ZenStatus.PingTask):
 
     @defer.inlineCallbacks
     def _pingIp(self):
- 
         maxTries = self.config.tries
         attempts = 0
         exitCode = -1
         timestamp = None
         while attempts < maxTries:
             attempts += 1
+            # we need to increase the packet size to atleast 16 because 64bit
+            # version of ping does not return RTT data if packet length is
+            # < 16.  This is from
+            # :http://www.linuxcommand.org/man_pages/ping8.html: 'If the data
+            # space is at least of size of struct timeval ping  uses the
+            # beginning  bytes  of this space to include a timestamp which it
+            # uses in the computation of round trip times.  If the data space
+            # is shorter,  no round trip times are given.' Timeval is 16 bytes
+            # long on x86-64 and 8 bytes long on x86. 
             cmd, args = _getPingCmd(ip=self.config.ip, version=self.config.ipVersion, 
                 ttl=64, timeout=float(self._preferences.pingTimeOut), 
-		datalength=self._daemon.options.dataLength)
+                datalength=self._daemon.options.dataLength if self._daemon.options.dataLength>16 else 16)
             log.debug("%s %s", cmd, " ".join(args))
             timestamp = time.time()
             out, err, exitCode = yield utils.getProcessOutputAndValue(cmd, args)

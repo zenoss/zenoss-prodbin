@@ -483,6 +483,7 @@ class DataPointInfo(InfoBase):
         if self._object.isRate():
             if self._object.isCounter():
                 rateOptions['counter'] = True
+                rateOptions["resetThreshold"] = 1
             if self._object.rrdmax is not None:
                 rateOptions['counterMax'] = self._object.rrdmax
         return rateOptions
@@ -602,6 +603,14 @@ class GraphInfo(InfoBase):
     autoscale = ProxyProperty('autoscale')
     ceiling = ProxyProperty('ceiling')
 
+    @property
+    def description(self):
+        return self._object.getDescription()
+    
+    @description.setter
+    def description(self, value):
+        self._object.description = value
+        
     @property
     def rrdVariables(self):
         """

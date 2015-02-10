@@ -84,6 +84,12 @@ class ps(CommandParser):
             # '28835916 00:00:00 <defunct>'
             pid, cpu, cmdAndArgs = line.split(None, 2)
             rss = '0'
+        # Exiting and Idle processes look like this (no RSS data, TIME data == '-')
+        # '11337738                 - <exiting>'
+        # '11862166                 - <idle>'
+        # _extractProcessMetrics(self, line) method will try to parseCpuTime('-') with exception
+        if cpu == '-':
+            cpu = '00:00:00'
 
         return pid, rss, cpu, cmdAndArgs
 
@@ -101,7 +107,8 @@ class ps(CommandParser):
                           line, pid, rss, cpu, cmdAndArgs)
                 # ----------------------------------------------------------
 
-                return int(pid), int(rss), parseCpuTime(cpu), cmdAndArgs
+                # ps returns RSS value in KB, multiply it by 1024 for proper graph rendering (ZEN-15514)
+                return int(pid), int(rss) * 1024, parseCpuTime(cpu), cmdAndArgs
             except:
                 log.warn("Unable to parse entry '%s'", line)
 
@@ -136,6 +143,7 @@ class ps(CommandParser):
         processSet = cmd.displayName
 
         # report any processes that are missing, and post perf data
+        missingeventSent = False
         for dp in cmd.points:
             # cmd.points = list of tuples ... each tuple contains one of the following:
             #    dictionary, count
@@ -146,22 +154,28 @@ class ps(CommandParser):
                     results.values.append( (dp, cpu) )
                 if 'mem' in dp.id:
                     results.values.append( (dp, rss) )
-                if 'count'in dp.id:
+                if 'count' in dp.id:
                     results.values.append( (dp, len(pids)) )
             else:
+                if 'count' in dp.id:
+                    results.values.append((dp,0))
                 failSeverity = dp.data['failSeverity']
                 # alert on missing (the process set contains 0 processes...)
                 summary = 'Process set contains 0 running processes: %s' % processSet
                 message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
                             % (summary, cmd.includeRegex, cmd.deviceConfig.lastmodeltime)
-                self.sendEvent(results,
-                    device=cmd.deviceConfig.device,
-                    summary=summary,
-                    message=message,
-                    component=processSet,
-                    eventKey=cmd.generatedId,
-                    severity=failSeverity)
-                log.warning("(%s) %s" % (cmd.deviceConfig.device, message))
+                if missingeventSent != summary:
+                    self.sendEvent(results,
+                        device=cmd.deviceConfig.device,
+                        summary=summary,
+                        message=message,
+                        component=processSet,
+                        eventKey=cmd.generatedId,
+                        severity=failSeverity)
+                    log.warning("(%s) %s" % (cmd.deviceConfig.device, message))
+                    missingeventSent = summary
+        # When not instantiated for each call fixes missing messages
+        missingeventSent = False
 
         # Report process changes
         # Note that we can't tell the difference between a
@@ -177,14 +191,17 @@ class ps(CommandParser):
         afterProcessSetPIDs[processSet] = afterPids
 
         # Globals.MostRecentMonitoredTimePids is a global that simply keeps the most recent data ... used to retrieve the "before" at monitoring time
-        beforePidsProcesses = Globals.MostRecentMonitoredTimePids.get(processSet, None)
+        if Globals.MostRecentMonitoredTimePids.get(device, None):
+            beforePidsProcesses = Globals.MostRecentMonitoredTimePids[device].get(processSet, None)
+        else:
+            beforePidsProcesses = Globals.MostRecentMonitoredTimePids[device] = {}
         
         # the first time this runs ... there is no "before"
         # this occurs when beforePidsProcesses is an empty dict
         # we need to save off the current processes and continue til the next monitoring time when "before" and "after" will be present
         if beforePidsProcesses is None:
             log.debug("No existing 'before' process information for process set: %s ... skipping" % processSet)
-            Globals.MostRecentMonitoredTimePids[processSet] = afterPidsProcesses
+            Globals.MostRecentMonitoredTimePids[device][processSet] = afterPidsProcesses
             return
         
         beforePids = beforePidsProcesses.keys()
@@ -209,7 +226,7 @@ class ps(CommandParser):
                 summary=summary,
                 message=message,
                 component=processSet,
-                eventKey=cmd.generatedId+"_restarted",
+                eventKey=cmd.generatedId,
                 severity=cmd.severity)
             log.info("(%s) %s" % (cmd.deviceConfig.device, message))
 
@@ -231,4 +248,4 @@ class ps(CommandParser):
         for newPid in newPids:
             log.debug("found new process: %s (pid: %d) on %s" % (afterPidsProcesses[newPid], newPid, cmd.deviceConfig.device))
 
-        Globals.MostRecentMonitoredTimePids[processSet] = afterPidsProcesses
+        Globals.MostRecentMonitoredTimePids[device][processSet] = afterPidsProcesses

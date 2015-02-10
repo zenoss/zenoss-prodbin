@@ -13,6 +13,7 @@ from Products import Zuul
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.interfaces import IInfo, ITreeNode
 from Products.Zuul.routers import TreeRouter
+from Products.ZenUtils.controlplane.client import ControlCenterError
 
 
 log = logging.getLogger('zen.MonitorRouter')
@@ -63,7 +64,11 @@ class MonitorRouter(TreeRouter):
         @return: DirectResponse Upon success
         """
         facade = self._getFacade()
-        monitor = IInfo(facade.addMonitor(id, sourceId=sourceId, hubId=hubId, poolId=poolId))
+        try:
+            monitor = IInfo(facade.addMonitor(id, sourceId=sourceId, hubId=hubId, poolId=poolId))
+        except ControlCenterError as e:
+            log.error("Control Center error: %s", e.message)
+            return DirectResponse.fail(e.message)
         return DirectResponse.succeed(data=Zuul.marshal(monitor))
 
     def getCollectors(self, query=None):

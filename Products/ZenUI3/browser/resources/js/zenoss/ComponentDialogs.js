@@ -193,7 +193,7 @@
                     xtype: 'textfield',
                     fieldLabel: _t('Example Command Line'),
                     name: 'example',
-                    width: 300,
+                    width: 300
                 }]
             });
             this.callParent([config]);
