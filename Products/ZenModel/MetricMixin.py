@@ -340,7 +340,8 @@ class MetricMixin(object):
         try:
             values = values[0]['datapoints']
         except KeyError:
-            raise Exception("Unable to find datapoints from metric query results %s" % values)
+            log.error("Unable to find datapoints from metric query results %s", values)
+            return buckets
 
         for idx, _ in enumerate(buckets):
             if len(values) == 0 or currentTime > end:
