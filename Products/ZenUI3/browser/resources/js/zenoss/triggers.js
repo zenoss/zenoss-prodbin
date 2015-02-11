@@ -1141,6 +1141,9 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             // notification subscriptions are not context specific
             this.uid = uid;
             this.getStore().load();
+            Ext.getCmp('schedules_panel_add_button').disable();
+            Ext.getCmp('schedules_panel_delete_button').disable();
+            Ext.getCmp('schedules_panel_customize_button').disable();
         }
     });
 
