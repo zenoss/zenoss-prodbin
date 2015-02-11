@@ -252,7 +252,7 @@ dagre.layout = function() {
       // Edges to lay out. At mimimum must have `source` and `target` attributes.
       edges: [],
       // How much debug information to include?
-      debugLevel: 0,
+      debugLevel: 0
   };
 
   var timer = createTimer();
@@ -1609,7 +1609,7 @@ dot_parser = (function(){
    *
    * http://pegjs.majda.cz/
    */
-  
+
   function quote(s) {
     /*
      * ECMA-262, 5th ed., 7.8.4: All characters may appear literally in a
@@ -1632,7 +1632,7 @@ dot_parser = (function(){
       .replace(/[\x00-\x07\x0B\x0E-\x1F\x80-\uFFFF]/g, escape)
       + '"';
   }
-  
+
   var result = {
     /*
      * Parses the input with a generated parser. If the parsing is successfull,
@@ -1671,7 +1671,7 @@ dot_parser = (function(){
         "comment": parse_comment,
         "_": parse__
       };
-      
+
       if (startRule !== undefined) {
         if (parseFunctions[startRule] === undefined) {
           throw new Error("Invalid rule name: " + quote(startRule) + ".");
@@ -1679,28 +1679,28 @@ dot_parser = (function(){
       } else {
         startRule = "start";
       }
-      
+
       var pos = 0;
       var reportFailures = 0;
       var rightmostFailuresPos = 0;
       var rightmostFailuresExpected = [];
-      
+
       function padLeft(input, padding, length) {
         var result = input;
-        
+
         var padLength = length - input.length;
         for (var i = 0; i < padLength; i++) {
           result = padding + result;
         }
-        
+
         return result;
       }
-      
+
       function escape(ch) {
         var charCode = ch.charCodeAt(0);
         var escapeChar;
         var length;
-        
+
         if (charCode <= 0xFF) {
           escapeChar = 'x';
           length = 2;
@@ -1708,27 +1708,27 @@ dot_parser = (function(){
           escapeChar = 'u';
           length = 4;
         }
-        
+
         return '\\' + escapeChar + padLeft(charCode.toString(16).toUpperCase(), '0', length);
       }
-      
+
       function matchFailed(failure) {
         if (pos < rightmostFailuresPos) {
           return;
         }
-        
+
         if (pos > rightmostFailuresPos) {
           rightmostFailuresPos = pos;
           rightmostFailuresExpected = [];
         }
-        
+
         rightmostFailuresExpected.push(failure);
       }
-      
+
       function parse_start() {
         var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12;
         var pos0, pos1, pos2;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = [];
@@ -1876,11 +1876,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_stmtList() {
         var result0, result1, result2, result3, result4, result5, result6, result7;
         var pos0, pos1, pos2;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_stmt();
@@ -2029,10 +2029,10 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_stmt() {
         var result0;
-        
+
         result0 = parse_attrStmt();
         if (result0 === null) {
           result0 = parse_subgraphStmt();
@@ -2048,11 +2048,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_attrStmt() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_graph();
@@ -2095,11 +2095,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_inlineAttrStmt() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_id();
@@ -2163,11 +2163,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_nodeStmt() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_nodeId();
@@ -2203,11 +2203,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_edgeStmt() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_nodeIdOrSubgraph();
@@ -2266,11 +2266,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_subgraphStmt() {
         var result0, result1, result2, result3, result4, result5;
         var pos0, pos1, pos2, pos3;
-        
+
         pos0 = pos;
         pos1 = pos;
         pos2 = pos;
@@ -2391,11 +2391,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_attrList() {
         var result0, result1, result2, result3;
         var pos0, pos1, pos2;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_attrListBlock();
@@ -2466,11 +2466,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_attrListBlock() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = pos;
         pos1 = pos;
         if (input.charCodeAt(pos) === 91) {
@@ -2539,11 +2539,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_aList() {
         var result0, result1, result2, result3, result4, result5;
         var pos0, pos1, pos2;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_idDef();
@@ -2666,11 +2666,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_edgeRHS() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1, pos2;
-        
+
         pos0 = pos;
         pos1 = pos;
         pos2 = pos;
@@ -2774,11 +2774,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_idDef() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1, pos2;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_id();
@@ -2850,11 +2850,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_nodeIdOrSubgraph() {
         var result0;
         var pos0;
-        
+
         result0 = parse_subgraphStmt();
         if (result0 === null) {
           pos0 = pos;
@@ -2868,11 +2868,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_nodeId() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = pos;
         pos1 = pos;
         result0 = parse_id();
@@ -2908,11 +2908,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_port() {
         var result0, result1, result2, result3, result4, result5, result6;
         var pos0, pos1;
-        
+
         pos0 = pos;
         if (input.charCodeAt(pos) === 58) {
           result0 = ":";
@@ -2998,10 +2998,10 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_compassPt() {
         var result0;
-        
+
         if (input.charCodeAt(pos) === 110) {
           result0 = "n";
           pos++;
@@ -3112,11 +3112,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_id() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1, pos2, pos3;
-        
+
         reportFailures++;
         pos0 = pos;
         pos1 = pos;
@@ -3531,11 +3531,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_node() {
         var result0;
         var pos0;
-        
+
         pos0 = pos;
         if (input.substr(pos, 4).toLowerCase() === "node") {
           result0 = input.substr(pos, 4);
@@ -3554,11 +3554,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_edge() {
         var result0;
         var pos0;
-        
+
         pos0 = pos;
         if (input.substr(pos, 4).toLowerCase() === "edge") {
           result0 = input.substr(pos, 4);
@@ -3577,11 +3577,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_graph() {
         var result0;
         var pos0;
-        
+
         pos0 = pos;
         if (input.substr(pos, 5).toLowerCase() === "graph") {
           result0 = input.substr(pos, 5);
@@ -3600,11 +3600,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_digraph() {
         var result0;
         var pos0;
-        
+
         pos0 = pos;
         if (input.substr(pos, 7).toLowerCase() === "digraph") {
           result0 = input.substr(pos, 7);
@@ -3623,11 +3623,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_subgraph() {
         var result0;
         var pos0;
-        
+
         pos0 = pos;
         if (input.substr(pos, 8).toLowerCase() === "subgraph") {
           result0 = input.substr(pos, 8);
@@ -3646,11 +3646,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_strict() {
         var result0;
         var pos0;
-        
+
         pos0 = pos;
         if (input.substr(pos, 6).toLowerCase() === "strict") {
           result0 = input.substr(pos, 6);
@@ -3669,11 +3669,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_graphType() {
         var result0;
         var pos0;
-        
+
         result0 = parse_graph();
         if (result0 === null) {
           pos0 = pos;
@@ -3690,10 +3690,10 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_whitespace() {
         var result0, result1;
-        
+
         reportFailures++;
         if (/^[ \t\r\n]/.test(input.charAt(pos))) {
           result1 = input.charAt(pos);
@@ -3727,11 +3727,11 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse_comment() {
         var result0, result1, result2, result3;
         var pos0, pos1, pos2;
-        
+
         reportFailures++;
         pos0 = pos;
         if (input.substr(pos, 2) === "//") {
@@ -3901,21 +3901,21 @@ dot_parser = (function(){
         }
         return result0;
       }
-      
+
       function parse__() {
         var result0;
-        
+
         result0 = parse_whitespace();
         if (result0 === null) {
           result0 = parse_comment();
         }
         return result0;
       }
-      
-      
+
+
       function cleanupExpected(expected) {
         expected.sort();
-        
+
         var lastExpected = null;
         var cleanExpected = [];
         for (var i = 0; i < expected.length; i++) {
@@ -3926,7 +3926,7 @@ dot_parser = (function(){
         }
         return cleanExpected;
       }
-      
+
       function computeErrorPosition() {
         /*
          * The first idea was to use |String.split| to break the input up to the
@@ -3934,11 +3934,11 @@ dot_parser = (function(){
          * there. However IE's |split| implementation is so broken that it was
          * enough to prevent it.
          */
-        
+
         var line = 1;
         var column = 1;
         var seenCR = false;
-        
+
         for (var i = 0; i < Math.max(pos, rightmostFailuresPos); i++) {
           var ch = input.charAt(i);
           if (ch === "\n") {
@@ -3954,13 +3954,13 @@ dot_parser = (function(){
             seenCR = false;
           }
         }
-        
+
         return { line: line, column: column };
       }
-      
-      
+
+
           var directed;
-      
+
           function rightBiasedMerge(lhs, rhs) {
               var result = {};
               for (var k in lhs) {
@@ -3969,12 +3969,12 @@ dot_parser = (function(){
               for (var k in rhs) {
                   result[k] = rhs[k];
               }
-              return result;     
+              return result;
           }
-      
-      
+
+
       var result = parseFunctions[startRule]();
-      
+
       /*
        * The parser is now in one of the following three states:
        *
@@ -4003,7 +4003,7 @@ dot_parser = (function(){
         var offset = Math.max(pos, rightmostFailuresPos);
         var found = offset < input.length ? input.charAt(offset) : null;
         var errorPosition = computeErrorPosition();
-        
+
         throw new this.SyntaxError(
           cleanupExpected(rightmostFailuresExpected),
           found,
@@ -4012,20 +4012,20 @@ dot_parser = (function(){
           errorPosition.column
         );
       }
-      
+
       return result;
     },
-    
+
     /* Returns the parser source code. */
     toSource: function() { return this._source; }
   };
-  
+
   /* Thrown when a parser encounters a syntax error. */
-  
+
   result.SyntaxError = function(expected, found, offset, line, column) {
     function buildMessage(expected, found) {
       var expectedHumanized, foundHumanized;
-      
+
       switch (expected.length) {
         case 0:
           expectedHumanized = "end of input";
@@ -4038,12 +4038,12 @@ dot_parser = (function(){
             + " or "
             + expected[expected.length - 1];
       }
-      
+
       foundHumanized = found ? quote(found) : "end of input";
-      
+
       return "Expected " + expectedHumanized + " but " + foundHumanized + " found.";
     }
-    
+
     this.name = "SyntaxError";
     this.expected = expected;
     this.found = found;
@@ -4052,9 +4052,9 @@ dot_parser = (function(){
     this.line = line;
     this.column = column;
   };
-  
+
   result.SyntaxError.prototype = Error.prototype;
-  
+
   return result;
 })();
 })();
