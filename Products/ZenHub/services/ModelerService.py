@@ -17,6 +17,7 @@ from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
 from Products.DataCollector.Plugins import loadPlugins
+from Products.ZenEvents import Event
 import time
 import logging
 log = logging.getLogger('zen.ModelerService')
@@ -80,6 +81,14 @@ class ModelerService(PerformanceConfig):
 
             if device.isLockedFromUpdates():
                 skipModelMsg = "device %s is locked, skipping modeling" % device.id
+                self.dmd.ZenEventManager.sendEvent({
+                    'device': device.id,
+                    'severity': Event.Warning,
+                    'component': 'zenmodeler',
+                    'eventClass': '/Status/Update',
+                    'summary': skipModelMsg,
+                })
+
             if checkStatus and (device.getPingStatus() > 0
                                 or device.getSnmpStatus() > 0):
                 skipModelMsg = "device %s is down skipping modeling" % device.id
