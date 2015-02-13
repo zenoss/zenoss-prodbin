@@ -16,6 +16,7 @@ import Queue
 import errno
 import signal
 import subprocess
+import socket
 
 import transaction
 from AccessControl.SecurityManagement import (
@@ -30,6 +31,7 @@ from Products.ZenUtils.Utils import (
 from Products.ZenUtils.celeryintegration import (
         current_app, Task, states, get_task_logger
     )
+from Products.ZenEvents import Event
 
 from .exceptions import NoSuchJobException, SubprocessJobFailed
 
@@ -372,6 +374,7 @@ class SubprocessJob(Job):
             environ = newenviron
         process = None
         exitcode = None
+        output = ''
         handler = self.log.handlers[0]
         originalFormatter = handler.formatter
         lineFormatter = logging.Formatter('%(message)s')
@@ -394,6 +397,7 @@ class SubprocessJob(Job):
                     try:
                         handler.setFormatter(lineFormatter)
                         self.log.info(line.strip())
+                        output += line.strip()
                     finally:
                         handler.setFormatter(originalFormatter)
                 else:
@@ -407,5 +411,20 @@ class SubprocessJob(Job):
                 self.log.info("Subprocess killed.")
             raise
         if exitcode != 0:
+            device = socket.getfqdn()
+            job_record = self.dmd.JobManager.getJob(self.request.id)
+            description = job_record.job_description
+            summary = 'Job "%s" finished with failure result.' % description
+            message = "exit code %s for %s; %s" % (exitcode, SubprocessJob.getJobDescription(cmd), output)
+
+            self.dmd.ZenEventManager.sendEvent({
+                'device': device,
+                'severity': Event.Error,
+                'component': 'zenjobs',
+                'eventClass': '/App/Job/Fail',
+                'message': message,
+                'summary': summary,
+            })
+            
             raise SubprocessJobFailed(exitcode)
         return exitcode
