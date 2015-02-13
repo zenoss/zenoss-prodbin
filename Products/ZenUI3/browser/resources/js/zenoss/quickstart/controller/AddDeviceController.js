@@ -186,7 +186,7 @@
                 }
 
                 if (property.description) {
-                    item.inputAttrTpl = property.description;
+                    item.inputAttrTpl = " data-qtip='" + property.description + "' ";
                 }
 
                 fields.push(item);
