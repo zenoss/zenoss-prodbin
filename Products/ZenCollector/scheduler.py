@@ -373,7 +373,6 @@ class Scheduler(object):
                         attempts = 0
                     attempts += 1
                     log.debug("Waiting for cleanup of %s. Task %s postponing its start %d seconds (%d so far). Attempt: %s", configId, task_name, delay, delayed, attempts)
-
                     d = defer.Deferred()
                     d.addCallback(self._startTask, task_name, interval, configId, delayed, attempts)
                     reactor.callLater(delay, d.callback, None)
