@@ -247,6 +247,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         for id in ids:
             svc = self.serviceclasses._getOb(id)
             svc.setZenProperty("zMonitor", monitor)
+            svc._indexServiceClassInstances()
         if REQUEST: return self()
 
 
@@ -271,6 +272,8 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
             rec._operation = 1 # moving object state
             self.serviceclasses._delObject(id)
             target.serviceclasses._setObject(id, rec)
+            svc = target.serviceclasses._getOb(id)
+            svc._indexInstances()
         if REQUEST:
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
