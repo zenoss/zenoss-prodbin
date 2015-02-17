@@ -223,7 +223,7 @@
                             itemId: 'deviceType',
                             queryMode: 'local',
                             queryParam: false,
-                            width: 200,
+                            width: 220,
                             emptyText:  _t('Select one...'),
                             editable: true,
                             store: Ext.create('Zenoss.quickstart.Wizard.store.DeviceType', {}),
