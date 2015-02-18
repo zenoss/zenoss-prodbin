@@ -29,6 +29,12 @@ var deviceColumns = [
             return Zenoss.render.Device(record.data.uid, name);
         }
     },{
+        id: 'snmpSysName',
+        dataIndex: 'snmpSysName',
+        width: 150,
+        hidden: true,
+        header: _t('System Name')
+    },{
         width: 100,
         dataIndex: 'ipAddress',
         header: _t('IP Address'),
@@ -358,6 +364,7 @@ Ext.define('Zenoss.device.DeviceModel',{
     fields: [
         {name: 'uid', type: 'string'},
         {name: 'name', type: 'string'},
+        {name: 'snmpSysName', type: 'string'},
         {name: 'ipAddress', type: 'int'},
         {name: 'ipAddressString', type: 'string'},
         {name: 'productionState', type: 'string'},
