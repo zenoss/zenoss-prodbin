@@ -23,6 +23,7 @@ from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.jsonformat import to_dict
 from zenoss.protocols.eventlet.amqp import Publishable, getProtobufPubSub
 from Products.ZenCollector.utils.workers import workersBuildOptions
+from Products.ZenUtils.Utils import zenPath
 
 log = logging.getLogger("zen.eventd")
 
@@ -76,6 +77,10 @@ class EventDEventletWorker(ZCmdBase):
                     help='Sets the number of messages each worker gets from the queue at any given time. Default is 1. '
                     'Change this only if event processing is deemed slow. Note that increasing the value increases the '
                     'probability that events will be processed out of order.')
+        self.parser.add_option('--maxpickle', dest='maxpickle', default=100, type="int",
+                    help='Sets the number of pickle files in var/zeneventd/failed_transformed_events.')
+        self.parser.add_option('--pickledir', dest='pickledir', default=zenPath('var/zeneventd/failed_transformed_events'),
+                    type="string", help='Sets the path to save pickle files.')
 
     def _sigterm(self, signum=None, frame=None):
         log.debug("worker sigterm...")
