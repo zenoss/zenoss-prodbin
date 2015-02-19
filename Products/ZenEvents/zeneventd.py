@@ -34,6 +34,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.guid import guid
 from Products.ZenUtils.daemonconfig import IDaemonConfig
+from Products.ZenUtils.Utils import zenPath
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event, STATUS_DROPPED
 from zenoss.protocols.jsonformat import from_dict, to_dict
