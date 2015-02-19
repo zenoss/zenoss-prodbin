@@ -24,15 +24,17 @@ import time
 from datetime import datetime, timedelta
 
 import Globals
-from zope.component import getUtility, adapter
+from zope.component import getUtility, provideUtility, adapter
 
-from zope.interface import implements
+from zope.interface import implements, implementer
 from zope.component.event import objectEventNotify
 
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.guid import guid
+from Products.ZenUtils.daemonconfig import IDaemonConfig
+from Products.ZenUtils.Utils import zenPath
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event, STATUS_DROPPED
 from zenoss.protocols.jsonformat import from_dict, to_dict
@@ -237,6 +239,13 @@ class EventDTwistedWorker(object):
         if self._consumer:
             yield self._consumer.shutdown()
 
+@implementer(IDaemonConfig)
+class ZenEventDConfig:
+    def __init__(self, options):
+        self.options = options
+    def getConfig(self):
+        return self.options
+
 class ZenEventD(ZCmdBase):
 
     def __init__(self, *args, **kwargs):
@@ -248,6 +257,8 @@ class ZenEventD(ZCmdBase):
         self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
                                   self._heartbeatSender)
         objectEventNotify(DaemonCreatedEvent(self))
+        config = ZenEventDConfig(self.options)
+        provideUtility(config, IDaemonConfig, 'zeneventd_config')
 
     def sigTerm(self, signum=None, frame=None):
         log.info("Shutting down...")
@@ -277,6 +288,10 @@ class ZenEventD(ZCmdBase):
                     help='Sets the number of messages each worker gets from the queue at any given time. Default is 1. '
                     'Change this only if event processing is deemed slow. Note that increasing the value increases the '
                     'probability that events will be processed out of order.')
+        self.parser.add_option('--maxpickle', dest='maxpickle', default=100, type="int",
+                    help='Sets the number of pickle files in var/zeneventd/failed_transformed_events.')
+        self.parser.add_option('--pickledir', dest='pickledir', default=zenPath('var/zeneventd/failed_transformed_events'),
+                    type="string", help='Sets the path to save pickle files.')
         objectEventNotify(BuildOptionsEvent(self))
 
 
