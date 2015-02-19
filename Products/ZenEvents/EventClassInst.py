@@ -20,6 +20,7 @@ import urllib
 import time
 import pickle
 import os
+import zope.component
 from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger("zen.Events")
@@ -43,6 +44,7 @@ from Products.ZenUtils.Time import SaveMessage
 from Products import Zuul
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.daemonconfig import IDaemonConfig
 
 from zenoss.protocols.jsonformat import to_dict
 
@@ -213,31 +215,40 @@ Transform:
         )
         zem.sendEvent(badEvt)
 
-    def pickleFailedEvent(self, evt):
-        pickleDir = zenPath('var/pickles/events')
-        if not os.path.exists(pickleDir):
-            log.warn("Create the %s dir to enable pickle capture of events, i.e. serviced service attach zeneventd su zenoss -c 'mkdir -p  %s'", pickleDir, pickleDir)
-            return
-        #delete files older than 1 hour
-        age = 3600
+    def pickleFailedEvent(self, evt):     
+        obj = zope.component.getUtility(IDaemonConfig, 'zeneventd_config')
+        config = obj.getConfig()
+        # By default there are 100 pickle files in failed_transformed_events folder.
+        # To change this value set maxpickle value in /opt/zenoss/etc/zeneventd.conf
+        max_pickle = config.maxpickle-1
+        # By default the path to save pickle files is
+        # $ZENHOME/var/zeneventd/failed_transformed_events.
+        # To change this value set pickledir value in /opt/zenoss/etc/zeneventd.conf
+        pickle_dir = config.pickledir
+        if not os.path.exists(pickle_dir):
+            os.makedirs(pickle_dir)
+        file_list = []
         pickles_count = 0
-        for file in os.listdir(pickleDir):
-            now = time.time()
-            filepath = os.path.join(pickleDir, file)
+        for file in os.listdir(pickle_dir):
+            filepath = os.path.join(pickle_dir, file)            
             modified = os.stat(filepath).st_mtime
-            if modified < now - age:
-                if os.path.isfile(filepath):
-                    if pickles_count == 0:
-                        log.info("Deleting old pickle files ...")
-                    try:
-                        os.remove(filepath)
-                        pickles_count += 1
-                    except Exception as e:
-                        log.exception("Unable to delete %s: %s", filepath, e)
-        log.info("Deleted %s old pickle files." % pickles_count)
-        date = time.localtime(time.time())
-        tstamp = time.strftime("%Y-%m-%d-%H%M%S", date)
-        filename = pickleDir + '/%s_%s_%s.pickle' % (evt.device, evt.evid, tstamp) 
+            file_tuple = modified, file
+            file_list.append(file_tuple)
+        file_list.sort(reverse=True)
+        files_to_delete = file_list[max_pickle:]
+        for time, file in files_to_delete:
+            filepath = os.path.join(pickle_dir, file)
+            if os.path.isfile(filepath):
+                if pickles_count == 0:
+                    log.info("Deleting old pickle files ...")
+                try:
+                    os.remove(filepath)
+                    pickles_count += 1
+                except Exception as e:
+                    log.exception("Unable to delete %s: %s", filepath, e)
+        if pickles_count:
+            log.info("Deleted %s old pickle files." % pickles_count)
+        filename = pickle_dir + '/%s_%s.pickle' % (evt.device, evt.evid)        
         try:
             with open(filename, 'w') as f:
                 evtDict = to_dict(evt._event)
