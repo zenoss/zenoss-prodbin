@@ -23,6 +23,9 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
+<form id="devices_export_form" method="post" action="Devices/export_devices">
+    <input type="hidden" id="devices_export_body" name="body"/>
+</form>
 
 <script
     tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/itinfrastructure.js')"
