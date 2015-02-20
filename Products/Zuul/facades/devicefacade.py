@@ -278,6 +278,9 @@ class DeviceFacade(TreeFacade):
     def deleteComponents(self, uids):
         comps = imap(self._getObject, uids)
         for comp in comps:
+            if comp.isLockedFromDeletion():
+                raise Exception("Component %s is locked from deletion" % comp.id)
+
             if hasattr(comp, 'manage_deleteComponent'):
                 comp.manage_deleteComponent()
             else:
@@ -322,6 +325,11 @@ class DeviceFacade(TreeFacade):
         Return a list of device uids underneath an organizer. This includes
         all the devices belonging to an child organizers.
         """
+        devs = imap(self._getObject, uids)
+        for dev in devs:
+            if dev.isLockedFromDeletion():
+                raise Exception("Device %s is locked from deletion" % dev.id)
+                
         return self._deleteDevices(uids, deleteEvents, deletePerf)
 
     @info
