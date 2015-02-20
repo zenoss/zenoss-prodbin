@@ -86,6 +86,8 @@ unused(DataMaps, ObjectMap)
 
 from Products.ZenHub import XML_RPC_PORT
 from Products.ZenHub import PB_PORT
+from Products.ZenHub import OPTION_STATE
+from Products.ZenHub import CONNECT_TIMEOUT
 
 HubWorklistItem = collections.namedtuple('HubWorklistItem', 'priority recvtime deferred servicename instance method args')
 WorkerStats = collections.namedtuple('WorkerStats', 'status description lastupdate previdle')
@@ -443,7 +445,8 @@ class ZenHub(ZCmdBase):
         checker = self.loadChecker()
         pt = portal.Portal(er, [checker])
         interface = '::' if ipv6_available() else ''
-        reactor.listenTCP(self.options.pbport, pb.PBServerFactory(pt), interface=interface)
+        pbport = reactor.listenTCP(self.options.pbport, pb.PBServerFactory(pt), interface=interface)
+        self.setKeepAlive(pbport.socket)
 
         xmlsvc = AuthXmlRpcService(self.dmd, checker)
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc), interface=interface)
@@ -478,6 +481,15 @@ class ZenHub(ZCmdBase):
             # ValueError: signal only works in main thread
             # Ignore it as we've already set up the signal handler.
             pass
+
+    def setKeepAlive(self, sock):
+        import socket
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, OPTION_STATE)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, CONNECT_TIMEOUT)
+        interval = max(CONNECT_TIMEOUT / 4, 10)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
+        self.log.debug("set socket%s  CONNECT_TIMEOUT:%d  TCP_KEEPINTVL:%d", sock.getsockname(), CONNECT_TIMEOUT, interval)
 
     def sighandler_USR2(self, signum, frame):
         #log zenhub's worker stats
