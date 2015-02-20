@@ -18,6 +18,7 @@ from twisted.internet import defer, protocol, reactor
 from twisted.web.client import Agent, CookieAgent
 from twisted.web.iweb import IBodyProducer
 from twisted.web.http_headers import Headers
+from httplib import UNAUTHORIZED
 from zope.interface import implements
 from txredis import RedisClientFactory
 
@@ -212,8 +213,8 @@ class RedisListPublisher(BasePublisher):
                     yield client.ltrim(self._channel, 0, self._maxOutstandingMetrics - 1)
                     result, _ = yield client.execute()
                     yield self._metrics_published(
-                            result, metricCount=len(metrics),
-                            remaining=len(self._mq))
+                        result, metricCount=len(metrics),
+                        remaining=len(self._mq))
                 except Exception as e:
                     # since we may be in a mutli redis command state, attempt to discard it
                     try:
@@ -265,6 +266,10 @@ class HttpPostPublisher(BasePublisher):
         super(HttpPostPublisher, self).__init__(buflen, pubfreq)
         self._username = username
         self._password = password
+        self._needsAuth = False
+        self._authenticated = False
+        if self._username:
+            self._needsAuth = True
         self._cookieJar = CookieJar()
         self._agent = CookieAgent(Agent(reactor), self._cookieJar)
         self._url = url
@@ -272,7 +277,13 @@ class HttpPostPublisher(BasePublisher):
 
     def _metrics_published(self, response, llen, remaining=0):
         if response.code != 200:
+            if response.code == UNAUTHORIZED:
+                self._authenticated = False
+                self._cookieJar.clear()
             raise IOError("Expected HTTP 200, but received %d from %s" % (response.code, self._url))
+
+        if self._needsAuth:
+            self._authenticated = True
         log.debug("published %d metrics and received response: %s",
                   llen, response.code)
         finished = defer.Deferred()
@@ -310,19 +321,26 @@ class HttpPostPublisher(BasePublisher):
         serialized_metrics = json.dumps({"metrics": metrics})
         body_writer = StringProducer(serialized_metrics)
 
+        headers = Headers({
+            'User-Agent': ['Zenoss Metric Publisher'],
+            'Content-Type': ['application/json']})
+
+        if self._needsAuth and not self._authenticated:
+            log.info("Adding auth for metric http post %s", self._url)
+            headers.addRawHeader('Authorization',
+                                 basic_auth_string_content(self._username, self._password))
+
         d = self._agent.request(
-            'POST', self._url, Headers({
-                'Authorization': [basic_auth_string_content(
-                    self._username, self._password)],
-                'User-Agent': ['Zenoss Metric Publisher'],
-                'Content-Type': ['application/json']}),
+            'POST', self._url, headers,
             body_writer)
 
         d.addCallbacks(self._metrics_published, errback=self._publish_failed,
-                       callbackArgs=[len(metrics), len(self._mq)], errbackArgs=[metrics])
+        callbackArgs = [len(metrics), len(self._mq)], errbackArgs = [metrics])
         d.addCallbacks(self._response_finished, errback=self._publish_failed,
-                       errbackArgs=[metrics])
+        errbackArgs = [metrics])
+
         return d
+
 
     def _put(self, scheduled):
         """
@@ -331,10 +349,10 @@ class HttpPostPublisher(BasePublisher):
         """
         if scheduled:
             self._reschedule_pubtask(scheduled)
-
+            
         if len(self._mq) == 0:
             return defer.succeed(0)
-
+                    
         log.debug('trying to publish %d metrics', len(self._mq))
         return self._make_request()
 
