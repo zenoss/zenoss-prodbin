@@ -66,6 +66,10 @@ class QueueConsumer(object):
         df.addCallback(logCb)
         return df
 
+    def setPrefetch(self, prefetch):
+        if hasattr(self.consumer, "setPrefetch"):
+            self.consumer.setPrefetch(prefetch)
+
     def run(self):
         """
         Tell all the services to start up. Begin listening for queue messages.
