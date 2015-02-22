@@ -340,7 +340,7 @@ class HttpPostPublisher(BasePublisher):
         d.addCallbacks(self._metrics_published, errback=self._publish_failed,
         callbackArgs = [len(metrics), len(self._mq)], errbackArgs = [metrics])
         d.addCallbacks(self._response_finished, errback=self._publish_failed,
-        errbackArgs = [metrics])
+                       errbackArgs = [metrics])
 
         return d
 
