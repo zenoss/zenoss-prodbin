@@ -8,6 +8,8 @@
 ##############################################################################
 
 import logging
+import sys
+import os
 
 log = logging.getLogger("zen.publisher")
 
@@ -273,6 +275,7 @@ class HttpPostPublisher(BasePublisher):
         self._cookieJar = CookieJar()
         self._agent = CookieAgent(Agent(reactor), self._cookieJar)
         self._url = url
+        self._agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python" 
         reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
 
     def _metrics_published(self, response, llen, remaining=0):
@@ -322,7 +325,7 @@ class HttpPostPublisher(BasePublisher):
         body_writer = StringProducer(serialized_metrics)
 
         headers = Headers({
-            'User-Agent': ['Zenoss Metric Publisher'],
+            'User-Agent': ['Zenoss Metric Publisher: %s' % self._agent_suffix],
             'Content-Type': ['application/json']})
 
         if self._needsAuth and not self._authenticated:
