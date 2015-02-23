@@ -12,6 +12,9 @@ import requests
 import json
 import re
 import cookielib
+import Cookie
+import os
+import sys
 
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -55,10 +58,16 @@ class MetricFacade(ZuulFacade):
         super(MetricFacade, self).__init__(context)
         self._metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080/')
 
-        self._cookies = cookielib.CookieJar()
-        self._authorization = IAuthorizationTool( self.context)
+        self._req_session = requests.Session()
+        self._authCookie = {}
+        self._authorization = IAuthorizationTool(self.context)
+        self._credentials = None
         if _isRunningFromUI( context):
-            self._credentials = self._authorization.extractCredentials( context.REQUEST)
+            token = context.REQUEST.cookies.get('ZAuthToken', None)
+            if token:
+                self._authCookie = {'ZAuthToken': token}
+            else:
+                self._credentials = self._authorization.extractCredentials( context.REQUEST)
         else:
             self._credentials = self._authorization.extractGlobalConfCredentials()
 
@@ -288,16 +297,25 @@ class MetricFacade(ZuulFacade):
 
     def _post_request(self, path, request, timeout=10):
         uri = self._uri(METRIC_URL_PATH)
-        login = self._credentials['login']
-        password = self._credentials['password']
-        auth = base64.b64encode('%s:%s' % (login, password))
+        agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python" 
         headers = {
-            'Authorization': 'basic %s' % auth,
-            'content-type': 'application/json'
+            'content-type': 'application/json',
+            'User-Agent': 'Zenoss MetricFacade: %s' % agent_suffix
         }
+
+        if self._credentials:
+            login = self._credentials['login']
+            password = self._credentials['password']
+            auth = base64.b64encode('%s:%s' % (login, password))
+            headers['Authorization'] = 'basic %s' % auth
+        elif self._authCookie:
+            log.debug("using token auth")
+
+
+        log.info("METRICFACADE POST %s %s", uri, request)
         try:
-            response = requests.post(uri, json.dumps(request), headers=headers,
-                                     timeout=timeout, cookies=self._cookies)
+            response = self._req_session.post(uri, json.dumps(request), headers=headers,
+                                              timeout=timeout, cookies=self._authCookie)
         except requests.exceptions.Timeout, e:
             raise ServiceConnectionError('Timed out waiting for response from metric service: %s' % e, e)
         status_code = response.status_code

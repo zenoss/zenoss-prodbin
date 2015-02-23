@@ -9,4 +9,4 @@
 ##############################################################################
 
 auth=$(/opt/zenoss/bin/python -c "import yaml; import base64; f = open('/opt/zenoss/etc/metricshipper/metricshipper.yaml','r'); y = yaml.load(f); print 'basic '+base64.b64encode(y['username']+':'+y['password'])" 2>/dev/null)
-[ "$auth" != "" ] && curl -s -XPOST -H 'Content-Type: application/json' -H "Authorization: $auth" -d '{}' http://localhost:8080/api/metrics/store | grep -q 'may not be null'
+[ "$auth" != "" ] && curl -s -XPOST --cookie cookies.txt --cookie-jar cookies.txt -H 'Content-Type: application/json' -H "Authorization: $auth" -d '{}' http://localhost:8080/api/metrics/store | grep -q 'may not be null'
