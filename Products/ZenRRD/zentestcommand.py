@@ -1,10 +1,10 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2015, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -29,6 +29,7 @@ log = logging.getLogger("zen.zentestcommand")
 
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.DataCollector.SshClient import SshClient
 
 snmptemplate = ("snmpwalk -c%(zSnmpCommunity)s "
                 "-%(zSnmpVer)s %(manageIp)s %(oid)s")
@@ -39,19 +40,21 @@ class TestRunner(ZenScriptBase):
     def __init__(self):
         ZenScriptBase.__init__(self, connect=True)
         self.getDataRoot()
+        self.device = None
+        self.usessh = False
 
     def getCommand(self, devName=None, dsName=None):
         if not devName: devName = self.options.devName
         if not dsName: dsName = self.options.dsName
         devices = self.dmd.getDmdRoot("Devices")
-        device = devices.findDevice(devName)
-        if not device:
+        self.device = devices.findDevice(devName)
+        if not self.device:
             self.write('Could not find device %s.' % devName)
             sys.exit(1)
         dataSource = None
-        for templ in device.getRRDTemplates():
+        for templ in self.device.getRRDTemplates():
             for ds in templ.getRRDDataSources():
-                if ds.id==dsName: 
+                if ds.id==dsName:
                     dataSource = ds
                     break
                 if dataSource: break
@@ -60,14 +63,44 @@ class TestRunner(ZenScriptBase):
                                                                    devName))
             sys.exit(1)
         if dataSource.sourcetype=='COMMAND':
-            return dataSource.getCommand(device)
+            self.usessh = dataSource.usessh
+            return dataSource.getCommand(self.device)
         elif dataSource.sourcetype=='SNMP':
-            snmpinfo = copy(device.getSnmpConnInfo().__dict__)
+            snmpinfo = copy(self.device.getSnmpConnInfo().__dict__)
             snmpinfo['oid'] = dataSource.getDescription()
             return snmptemplate % snmpinfo
         else:
             self.write('No COMMAND or SNMP datasource %s applies to device %s.' % (
                                                             dsName, devName))
+
+    def remote_exec(self, cmd):
+        from twisted.internet import reactor
+        from Products.ZenUtils.Utils import DictAsObj
+        ssh_client_options = DictAsObj(
+            loginTries=self.device.zCommandLoginTries,
+            searchPath=self.device.zCommandSearchPath,
+            existenceTest=self.device.zCommandExistanceTest,
+            username=self.device.zCommandUsername,
+            password=self.device.zCommandPassword,
+            loginTimeout=self.device.zCommandLoginTimeout,
+            commandTimeout=self.device.zCommandCommandTimeout,
+            keyPath=self.device.zKeyPath,
+            concurrentSessions=self.device.zSshConcurrentSessions
+        )
+        connection = SshClient(self.device,
+                            self.device.manageIp,
+                            self.device.zCommandPort,
+                            options=ssh_client_options)
+        connection.clientFinished = reactor.stop
+        connection.workList.append(cmd)
+        connection._commands.append(cmd)
+        connection.run()
+        reactor.run()
+        # getResults() normally returns [(None, "command output")],
+        # or [(None,'')] in case of empty output,
+        # or [] when cmd was not executed in some reasons (e.g. wrong path)
+        for x in connection.getResults():
+            [self.write(y) for y in x if y]
 
     def execute(self, cmd):
         child = popen2.Popen4(cmd)
@@ -98,7 +131,11 @@ class TestRunner(ZenScriptBase):
             self.write("Must provide a device and datasource.")
             sys.exit(2)
         d = self.getCommand(device, dsName)
-        self.execute(d)
+        if self.usessh:
+            self.remote_exec(d)
+        else:
+            self.execute(d)
+
 
     def buildOptions(self):
         ZenScriptBase.buildOptions(self)
