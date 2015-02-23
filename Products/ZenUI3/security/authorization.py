@@ -8,6 +8,7 @@
 ##############################################################################
 
 import json
+import transaction
 from uuid import uuid1
 from Products.Five.browser import BrowserView
 from Products.Zuul.interfaces import IAuthorizationTool
@@ -23,7 +24,10 @@ class Authorization(BrowserView):
         if index == "login":
             return Login(self.context, self.request)
         if index == "validate":
-            return Validate(self.context, self.request)
+            try:
+                return Validate(self.context, self.request)
+            finally:
+                transaction.abort()
         raise Exception("Invalid authorization view %s" % index)
 
 class Login(BrowserView):
@@ -39,6 +43,7 @@ class Login(BrowserView):
         if self.uuid is None:
             self.request.response.setStatus(503)
             self.request.response.write( "System uninitialized - please execute setup wizard")
+            transaction.abort()
             return
 
         authorization = IAuthorizationTool( self.context.context)
@@ -51,12 +56,14 @@ class Login(BrowserView):
         if login is None or password is None:
             self.request.response.setStatus(401)
             self.request.response.write( "Missing Authentication Credentials")
+            transaction.abort()
             return
 
         # test authentication
         if not authorization.authenticateCredentials(login, password):
             self.request.response.setStatus(401)
             self.request.response.write( "Failed Authentication")
+            transaction.abort()
             return
 
         # create the session data
