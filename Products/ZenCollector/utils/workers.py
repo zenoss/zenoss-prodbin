@@ -130,7 +130,7 @@ class ProcessWorkers(object):
         """
         no_problem_children = True
         for worker in self._workers.values():
-            log.info("Stopping worker %s..." % worker)
+            log.info("Stopping worker %s (%s)" % (worker.pid, worker.name) )
             if not worker.is_alive():
                 no_problem_children = False  # Worker may be starting up.
             worker.terminate()
@@ -213,5 +213,5 @@ class ProcessWorkers(object):
             )
         p.daemon = True
         p.start()
-        log.info("Started worker {0}: current pid={0.pid}".format(p))
+        log.info("Started worker %s (%s)" % (p.pid, p.name) )
         return p
