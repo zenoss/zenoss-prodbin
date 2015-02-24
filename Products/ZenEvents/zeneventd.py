@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2015, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -92,6 +92,8 @@ class EventPipelineProcessor(object):
         class when it is done with the message
         """
 
+        pid = os.getpid()
+
         if self.SYNC_EVERY_EVENT:
             doSync = True
         else:
@@ -112,14 +114,17 @@ class EventPipelineProcessor(object):
                     zepevent = ZepRawEvent()
                     zepevent.event.CopyFrom(message)
                     if log.isEnabledFor(logging.DEBUG):
-                        log.debug("Received event: %s", to_dict(zepevent.event))
+                        log.debug("[pid %s] Received event: %s",  pid, to_dict(zepevent.event))
 
                     eventContext = EventContext(log, zepevent)
 
                     for pipe in self._pipes:
                         eventContext = pipe(eventContext)
                         if log.isEnabledFor(logging.DEBUG):
-                            log.debug('After pipe %s, event context is %s' % ( pipe.name, to_dict(eventContext.zepRawEvent) ))
+                            log.debug(
+                                        "[pid %s] After pipe %s, event context is %s",
+                                        pid, pipe.name, to_dict(eventContext.zepRawEvent)
+                                    )
                         if eventContext.event.status == STATUS_DROPPED:
                             raise DropEvent('Dropped by %s' % pipe, eventContext.event)
 
@@ -130,7 +135,7 @@ class EventPipelineProcessor(object):
                     # and retry ONE time
                     if retry:
                         retry=False
-                        log.debug("Resetting connection to catalogs")
+                        log.debug("[pid %s] Resetting connection to catalogs", pid)
                         self._manager.reset()
                     else:
                         raise
@@ -139,7 +144,8 @@ class EventPipelineProcessor(object):
             # we want these to propagate out
             raise
         except Exception as e:
-            log.info("Failed to process event, forward original raw event: %s", to_dict(zepevent.event))
+            log.info("[pid %s] Failed to process event, forward original raw event: %s",
+                    pid, to_dict(zepevent.event))
             # Pipes and plugins may raise ProcessingException's for their own reasons - only log unexpected
             # exceptions of other type (will insert stack trace in log)
             if not isinstance(e, ProcessingException):
@@ -166,7 +172,8 @@ class EventPipelineProcessor(object):
             eventContext.eventProxy.component = 'processMessage'
 
         if log.isEnabledFor(logging.DEBUG):
-            log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
+            log.debug("[pid %s] Publishing event: %s", pid, to_dict(eventContext.zepRawEvent))
+
 
         return eventContext.zepRawEvent
 
@@ -192,16 +199,18 @@ class TwistedQueueConsumerTask(BaseQueueConsumerTask):
 
     @defer.inlineCallbacks
     def processMessage(self, message):
+
+        pid = os.getpid()
         try:
             hydrated = hydrateQueueMessage(message, self._queueSchema)
         except Exception as e:
-            log.error("Failed to hydrate raw event: %s", e)
+            log.error("[pid %s] Failed to hydrate raw event: %s", pid, e)
             yield self.queueConsumer.acknowledge(message)
         else:
             try:
                 zepRawEvent = self.processor.processMessage(hydrated)
                 if log.isEnabledFor(logging.DEBUG):
-                    log.debug("Publishing event: %s", to_dict(zepRawEvent))
+                    log.debug("[pid %s] Publishing event: %s", pid, to_dict(zepRawEvent))
                 yield self.queueConsumer.publishMessage(EXCHANGE_ZEP_ZEN_EVENTS,
                     self._routing_key(zepRawEvent), zepRawEvent, declareExchange=False)
                 yield self.queueConsumer.acknowledge(message)
