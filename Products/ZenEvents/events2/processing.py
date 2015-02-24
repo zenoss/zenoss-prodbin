@@ -34,8 +34,10 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     )
 
 import logging
+import time
+import os
 
-log = logging.getLogger("zen.eventd")
+log = logging.getLogger("zen.eventd.processing")
 
 class ProcessingException(Exception):
     def __init__(self, message, event=None):
@@ -68,9 +70,11 @@ class Manager(object):
         COMPONENT: DeviceComponent,
     }
 
-    def __init__(self, dmd):
+    def __init__(self, dmd, CONF_LOG_PERF_AS_INFO=False, CONF_slowSegmentThreshold=1.0):
         self.dmd = dmd
         self._initCatalogs()
+        self.LOG_PERF_AS_INFO = CONF_LOG_PERF_AS_INFO
+        self.slowSegmentThreshold = CONF_slowSegmentThreshold
 
     def _initCatalogs(self):
         self._guidManager = IGUIDManager(self.dmd)
@@ -324,7 +328,6 @@ class CheckInputPipe(EventProcessorPipe):
     EventField.ACTOR, EventField.SUMMARY, EventField.SEVERITY)
 
     def __call__(self, eventContext):
-
         # Make sure summary and message are populated
         if not eventContext.event.HasField(
                 'message') and eventContext.event.HasField('summary'):
@@ -334,6 +337,7 @@ class CheckInputPipe(EventProcessorPipe):
             eventContext.event.summary = eventContext.event.message[:255]
 
         missingFields = ','.join(ifilterfalse(eventContext.event.HasField, self.REQUIRED_EVENT_FIELDS))
+
         if missingFields:
             raise DropEvent('Required event fields %s not found' % missingFields,
                             eventContext.event)
@@ -442,8 +446,16 @@ class IdentifierPipe(EventProcessorPipe):
         # iterate over all event identifier plugins
         for name, plugin in evtIdentifierPlugins:
             try:
+                plugin_start_time = time.time()
                 eventContext.log.debug("running identifier plugin, name=%s, plugin=%s" % (name,plugin))
                 plugin.resolveIdentifiers(eventContext, self._manager)
+                duration = time.time() - plugin_start_time
+                if duration > self._manager.slowSegmentThreshold:
+                    if self._manager.LOG_PERF_AS_INFO:
+                        log.info("[pid %s] IdentifierPipe plugin %s took %.2f seconds" % (os.getpid(), plugin, duration))
+                    else:
+                        log.debug("[pid %s] IdentifierPipe plugin %s took %.2f seconds" % (os.getpid(), plugin, duration))
+
             except EventIdentifierPluginAbort as e:
                 eventContext.log.debug(e)
                 raise
@@ -659,6 +671,7 @@ class AssignDefaultEventClassAndTagPipe(EventProcessorPipe):
 
         if eventClass:
             self._setEventFlappingSettings(eventContext, eventClass)
+
         return eventContext
 
     def _setEventFlappingSettings(self, eventContext, eventClass):
@@ -738,7 +751,14 @@ class TransformAndReidentPipe(EventProcessorPipe):
 
             # rerun any pipes necessary to reidentify event
             for pipe in self.reidentpipes:
+                pipe_start_time = time.time()
                 eventContext = pipe(eventContext)
+                duration = time.time() - pipe_start_time
+                if duration > self._manager.slowSegmentThreshold:
+                    if self._manager.LOG_PERF_AS_INFO:
+                        log.info("[pid %s] TransformAndReidentPipe pipe %s took %.2f seconds" % (os.getpid(), repr(pipe), duration))
+                    else:
+                        log.debug("[pid %s] TransformAndReidentPipe pipe %s took %.2f seconds" % (os.getpid(), repr(pipe), duration))
 
         return eventContext
 
@@ -801,9 +821,18 @@ class EventPluginPipe(EventProcessorPipe):
         self._eventPlugins = tuple(getUtilitiesFor(pluginInterface))
 
     def __call__(self, eventContext):
+
         for name, plugin in self._eventPlugins:
             try:
+                plugin_start_time = time.time()
                 plugin.apply(eventContext._eventProxy, self._manager.dmd)
+                duration = time.time() - plugin_start_time
+                if duration > self._manager.slowSegmentThreshold:
+                    if self._manager.LOG_PERF_AS_INFO:
+                        log.info("[pid %s] EventPluginPipe plugin %s took %.2f seconds" % (os.getpid(), name, duration))
+                    else:
+                        log.debug("[pid %s] EventPluginPipe plugin %s took %.2f seconds" % (os.getpid(), name, duration))
+
             except Exception as e:
                 eventContext.log.error(
                         'Event plugin %s encountered an error -- skipping.' % name)
