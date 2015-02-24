@@ -56,10 +56,11 @@ def record_pid(conn, cursor):
         stacktrace = ''.join(traceback.format_stack())
         info = "pid=%d tid=%d\n%s\n%s" % (pid, tid, cmd, stacktrace)
         cursor.execute(_record_pid_sql, (pid, info))
-        conn.autocommit(False)
     except:
         LOG.debug("Unable to record pid and thread_id to connection_info",
                  exc_info=True)
+    finally:
+        conn.autocommit(False)
 
 try:
     from relstorage.adapters.schema import MySQLSchemaInstaller
