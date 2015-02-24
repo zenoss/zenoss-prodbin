@@ -60,7 +60,7 @@ class EventPipelineProcessor(object):
 
     def __init__(self, dmd):
         self.dmd = dmd
-        self._manager = Manager(self.dmd)
+        self._manager = Manager(self.dmd, self.LOG_PERF_AS_INFO, self.slowSegmentThreshold)
         self._pipes = (
             EventPluginPipe(self._manager, IPreEventPlugin, 'PreEventPluginPipe'),
             CheckInputPipe(self._manager),
@@ -254,6 +254,11 @@ class ZenEventD(ZCmdBase):
     def __init__(self, *args, **kwargs):
         super(ZenEventD, self).__init__(*args, **kwargs)
         EventPipelineProcessor.SYNC_EVERY_EVENT = self.options.SYNC_EVERY_EVENT
+        EventPipelineProcessor.LOG_PERF_AS_INFO = self.options.LOG_PERF_AS_INFO
+        EventPipelineProcessor.USE_METROLOGY = self.options.USE_METROLOGY
+        EventPipelineProcessor.metricReportInterval = self.options.metricReportInterval
+        EventPipelineProcessor.slowEventThreshold = self.options.slowEventThreshold
+        EventPipelineProcessor.slowSegmentThreshold = self.options.slowSegmentThreshold
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                      'zeneventd',
                                                      self.options.maintenancecycle *3)
