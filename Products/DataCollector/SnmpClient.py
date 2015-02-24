@@ -100,7 +100,7 @@ class SnmpClient(BaseClient):
                 yield self.findSnmpCommunity()
                 snmp_config = driver.next()
                 if not snmp_config:
-                    log.warn(
+                    log.error(
                         'Failed to rediscover the SNMP connection info for %s',
                         self.device.manageIp)
                     return
@@ -115,7 +115,7 @@ class SnmpClient(BaseClient):
             else:
                 return
         except Snmpv3Error:
-            log.info("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
+            log.error("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
             return
         except Exception:
             log.exception("Unable to talk: " + self.connInfo.summary())
@@ -218,10 +218,10 @@ class SnmpClient(BaseClient):
         if isinstance(result, failure.Failure):
             from twisted.internet import error
             if isinstance(result.value, error.TimeoutError):
-                log.warning("Device %s timed out: are "
+                log.error("Device %s timed out: are "
                             "your SNMP settings correct?", self.hostname)
             elif isinstance(result.value, Snmpv3Error):
-                log.warning("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
+                log.error("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
             else:
                 log.exception("Device %s had an error: %s",self.hostname,result)
         self.proxy.close()
