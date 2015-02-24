@@ -47,6 +47,16 @@ def onBuildOptions(daemon, event):
                 help='Sets the number of pickle files in var/zeneventd/failed_transformed_events.')
     daemon.parser.add_option('--pickledir', dest='pickledir', default=zenPath('var/zeneventd/failed_transformed_events'),
                 type="string", help='Sets the path to save pickle files.')
+    daemon.parser.add_option('--sloweventthreshold', dest='slowEventThreshold', default=5.0, type='float',
+                help='threshold (in seconds) for logging slow processMessage calls')
+    daemon.parser.add_option('--slowsegmentthreshold', dest='slowSegmentThreshold', default=1.0, type='float',
+                help='threshold (in seconds) for logging slow segments (should be < sloweventthreshold)')
+    daemon.parser.add_option('--metricsinterval', dest='metricReportInterval', default=60, type='int',
+                help='Interval for logging Metrology rates')
+    daemon.parser.add_option('--logperfasinfo', dest='LOG_PERF_AS_INFO', default=False, action='store_true',
+                help='Output perf data at INFO level - otherwise it will log as DEBUG')
+    daemon.parser.add_option('--usemetrology', dest='USE_METROLOGY', default=False, action='store_true',
+                help='Use Metrology library for tracking processMessage performance')
 
 @adapter(ZenEventD, DaemonCreatedEvent)
 def onDaemonCreated(daemon, event):
