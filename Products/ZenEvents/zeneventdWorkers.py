@@ -7,6 +7,7 @@
 # 
 ##############################################################################
 
+
 import logging
 import os
 import signal
@@ -22,8 +23,6 @@ from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.jsonformat import to_dict
 from zenoss.protocols.eventlet.amqp import Publishable, getProtobufPubSub
 from Products.ZenCollector.utils.workers import workersBuildOptions
-from zope.component.event import objectEventNotify
-from Products.ZenEvents.daemonlifecycle import BuildOptionsEvent
 from Products.ZenUtils.Utils import zenPath
 
 log = logging.getLogger("zen.eventd")
@@ -55,16 +54,6 @@ class EventDEventletWorker(ZCmdBase):
         self._amqpConnectionInfo = getUtility(IAMQPConnectionInfo)
         self._queueSchema = getUtility(IQueueSchema)
 
-    # ZEN-15338: correctErrors, warnErrors to False to stop options from being commented out earlier
-    def getConfigFileDefaults(self, filename, correctErrors=False, warnErrors=False):
-        return super(EventDEventletWorker, self).getConfigFileDefaults(
-            filename, correctErrors=correctErrors)
-
-    # ZEN-15338: correctErrors, warnErrors to False to stop options from being commented out earlier
-    def validateConfigFile(self, filename, lines, correctErrors=False, warnErrors=False):
-        return super(EventDEventletWorker, self).validateConfigFile(
-            filename, lines, correctErrors=correctErrors, warnErrors=warnErrors)
-
     def run(self):
         self._shutdown = False
         signal.signal(signal.SIGTERM, self._sigterm)
@@ -80,10 +69,18 @@ class EventDEventletWorker(ZCmdBase):
             self._pubsub = None
 
     def buildOptions(self):
-        # ZEN-15338: Move parser options into zeneventdEvents.py
-        #  * Add all future parser options to zeneventdEvents.py
         super(EventDEventletWorker, self).buildOptions()
-        objectEventNotify(BuildOptionsEvent(self))
+        # don't comment out the workers option in zeneventd.conf (ZEN-2769)
+        workersBuildOptions(self.parser)
+        self.parser.add_option('--messagesperworker', dest='messagesPerWorker', default=1,
+                    type="int",
+                    help='Sets the number of messages each worker gets from the queue at any given time. Default is 1. '
+                    'Change this only if event processing is deemed slow. Note that increasing the value increases the '
+                    'probability that events will be processed out of order.')
+        self.parser.add_option('--maxpickle', dest='maxpickle', default=100, type="int",
+                    help='Sets the number of pickle files in var/zeneventd/failed_transformed_events.')
+        self.parser.add_option('--pickledir', dest='pickledir', default=zenPath('var/zeneventd/failed_transformed_events'),
+                    type="string", help='Sets the path to save pickle files.')
 
     def _sigterm(self, signum=None, frame=None):
         log.debug("worker sigterm...")
