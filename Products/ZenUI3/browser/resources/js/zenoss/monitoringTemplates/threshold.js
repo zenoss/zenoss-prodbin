@@ -151,11 +151,12 @@
 
 
         function displayEditDialog(response) {
+
             var win = Ext.create( 'Zenoss.form.DataSourceEditDialog', {
                 record: response.record,
                 items: response.form,
-                singleColumn: true,
-                width: 800,
+                width: 850,
+                singleColumn: response.form.items.length === 1 ? true : false,
                 xtype: 'datasourceeditdialog',
                 title: _t('Edit Threshold'),
                 directFn: router.setInfo,

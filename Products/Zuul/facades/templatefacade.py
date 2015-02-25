@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -268,7 +268,7 @@ class TemplateFacade(ZuulFacade):
         """
         threshold = self._getObject(uid)
         template = threshold.rrdTemplate()
-        info = IThresholdInfo(threshold)
+        info = IInfo(threshold)
         # don't show the "selected one" in the list of avaialble
         info.allDataPoints = [point for point in template.getRRDDataPointNames()]
         return info
@@ -375,7 +375,7 @@ class TemplateFacade(ZuulFacade):
         datasource = self._getObject(dataSourceUid)
         for dp in datasource.datapoints():
             self.addDataPointToGraph(dp.getPrimaryId(), graphUid, includeThresholds)
-            
+
     def addDataPointToGraph(self, dataPointUid, graphUid, includeThresholds=False):
         if isinstance(dataPointUid, basestring):
             uids = [dataPointUid]
