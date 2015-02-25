@@ -6,13 +6,8 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 # 
 ##############################################################################
-
-
-import Globals
 import os
 import logging
-import time
-
 def monkey_patch_rotatingfilehandler():
   try:
     from cloghandler import ConcurrentRotatingFileHandler
@@ -25,14 +20,16 @@ monkey_patch_rotatingfilehandler()
 from twisted.internet import reactor
 from twisted.internet import defer
 
+import time
 from datetime import datetime, timedelta
 
+import Globals
 from zope.component import getUtility, provideUtility, adapter
+
 from zope.interface import implements, implementer
 from zope.component.event import objectEventNotify
 
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
-from Products.ZenCollector.utils.workers import workersBuildOptions
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.guid import guid
@@ -57,6 +54,8 @@ EXCHANGE_ZEP_ZEN_EVENTS = '$ZepZenEvents'
 QUEUE_RAW_ZEN_EVENTS = '$RawZenEvents'
 
 class EventPipelineProcessor(object):
+
+    SYNC_EVERY_EVENT = False
 
     def __init__(self, dmd):
         self.dmd = dmd
@@ -240,7 +239,6 @@ class EventDTwistedWorker(object):
         if self._consumer:
             yield self._consumer.shutdown()
 
-
 @implementer(IDaemonConfig)
 class ZenEventDConfig:
     def __init__(self, options):
@@ -248,12 +246,11 @@ class ZenEventDConfig:
     def getConfig(self):
         return self.options
 
-
 class ZenEventD(ZCmdBase):
 
     def __init__(self, *args, **kwargs):
         super(ZenEventD, self).__init__(*args, **kwargs)
-        EventPipelineProcessor.SYNC_EVERY_EVENT = self.options.SYNC_EVERY_EVENT
+        EventPipelineProcessor.SYNC_EVERY_EVENT = self.options.syncEveryEvent
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                      'zeneventd',
                                                      self.options.maintenancecycle *3)
@@ -280,10 +277,23 @@ class ZenEventD(ZCmdBase):
         objectEventNotify(SigUsr1Event(self, signum))
 
     def buildOptions(self):
-        # ZEN-15338: Move parser options into zeneventdEvents.py
-        #  * Add all future parser options to zeneventdEvents.py
         super(ZenEventD, self).buildOptions()
+        maintenanceBuildOptions(self.parser)
+        self.parser.add_option('--synceveryevent', dest='syncEveryEvent',
+                    action="store_true", default=False,
+                    help='Force sync() before processing every event; default is to sync() no more often '
+                    'than once every 1/2 second.')
+        self.parser.add_option('--messagesperworker', dest='messagesPerWorker', default=1,
+                    type="int",
+                    help='Sets the number of messages each worker gets from the queue at any given time. Default is 1. '
+                    'Change this only if event processing is deemed slow. Note that increasing the value increases the '
+                    'probability that events will be processed out of order.')
+        self.parser.add_option('--maxpickle', dest='maxpickle', default=100, type="int",
+                    help='Sets the number of pickle files in var/zeneventd/failed_transformed_events.')
+        self.parser.add_option('--pickledir', dest='pickledir', default=zenPath('var/zeneventd/failed_transformed_events'),
+                    type="string", help='Sets the path to save pickle files.')
         objectEventNotify(BuildOptionsEvent(self))
+
 
 
 if __name__ == '__main__':
