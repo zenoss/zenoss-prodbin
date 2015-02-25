@@ -67,7 +67,8 @@ class QueueConsumer(object):
         return df
 
     def setPrefetch(self, prefetch):
-        self.consumer.setPrefetch(prefetch)
+        if hasattr(self.consumer, "setPrefetch"):
+            self.consumer.setPrefetch(prefetch)
 
     def run(self):
         """
