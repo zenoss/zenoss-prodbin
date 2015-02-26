@@ -30,13 +30,6 @@ class ModelerService(PerformanceConfig):
         PerformanceConfig.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
 
-    def get_devices(self, names):
-        return [x for x in self.config.devices() if x.id in names]
-
-    def get_device(self, name):
-        for device in self.get_devices([name]):
-            return device.primaryAq()
-
     def createDeviceProxy(self, dev, skipModelMsg=''):
         if self.plugins is None:
             self.plugins = {}
@@ -79,8 +72,10 @@ class ModelerService(PerformanceConfig):
     @translateError
     def remote_getDeviceConfig(self, names, checkStatus=False):
         result = []
-        devices = self.get_devices(names)
-        for device in devices:
+        for name in names:
+            device = self.getPerformanceMonitor().findDevice(name)
+            if not device:
+                continue
             device = device.primaryAq()
             skipModelMsg = ''
 
@@ -130,7 +125,7 @@ class ModelerService(PerformanceConfig):
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
-        device = self.get_device(device)
+        device = self.getPerformanceMonitor().findDevice(device)
         adm = ApplyDataMap(self)
         adm.setDeviceClass(device, devclass)
         def inner(map):
@@ -163,7 +158,7 @@ class ModelerService(PerformanceConfig):
 
     @translateError
     def remote_setSnmpLastCollection(self, device):
-        device = self.get_device(device)
+        device = self.getPerformanceMonitor().findDevice(device)
         self._setSnmpLastCollection(device)
 
     def _do_with_retries(self, action):

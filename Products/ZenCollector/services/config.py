@@ -237,11 +237,16 @@ class CollectorConfigService(HubService, ThresholdMixin):
     def _getDevices(self, deviceNames=None, deviceFilter=None):
 
         if not deviceNames:
-            return filter(deviceFilter, self._prefs.devices())
-        devices = []
-        for device in self._prefs.devices():
-            if device.id in deviceNames:
-                devices.append(device)
+            devices = filter(deviceFilter, self._prefs.devices())
+        else:
+            devices = []
+            for name in deviceNames:
+                device = self.dmd.Devices.findDeviceByIdExact(name)
+                if not device:
+                    continue
+                else:
+                    if deviceFilter(device):
+                        devices.append(device)
         return devices
 
     @translateError
