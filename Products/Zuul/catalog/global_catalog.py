@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -37,7 +37,6 @@ from Products.ZenModel.FileSystem import FileSystem
 from Products.ZenModel.Software import Software
 from Products.ZenModel.OperatingSystem import OperatingSystem
 from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
-
 from interfaces import IGloballyIndexed, IPathReporter, IIndexableWrapper
 
 _MARKER = object()
@@ -375,10 +374,10 @@ class FileSystemWrapper(ComponentWrapper):
 
 class DeviceOrganizerWrapper(SearchableMixin,IndexableWrapper):
     adapts(DeviceOrganizer)
-    
+
     def searchKeywords(self):
         obj = self._context
-        return (obj.getOrganizerName(), obj.description)
+        return (obj.getOrganizerName(), str(obj.description))
 
     def searchExcerpt(self):
         return self._context.getOrganizerName()
@@ -411,6 +410,7 @@ class GlobalCatalog(ZCatalog):
                 uid = uid or "/".join(obj.getPhysicalPath())
                 if not uid in self._catalog.uids:
                     del kwargs['idxs']
+
             ZCatalog.catalog_object(self, ob, uid, **kwargs)
 
     def uncatalog_object(self, path):

@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -387,7 +387,7 @@ class IpNetwork(DeviceOrganizer):
         """
         netobj = self.getSubNetwork(ip)
         if not netobj:
-            net = IpNetwork(ipwrap(ip), netmask, self.version)
+            net = IpNetwork(ipwrap(ip), netmask=netmask, version=self.version)
             self._setObject(ipwrap(ip), net)
         return self.getSubNetwork(ip)
 
