@@ -299,11 +299,7 @@
         },
         "redis_answering": {
             "Script": "redis-cli ping | grep -q PONG",
-            "Interval": 3.0
-        },
-        "logging": {
-            "Script": "f='%(zenhome)s/log/%(daemon)s.log'; [ -f $f ] && [ $(( $(date '+%%s') - $(stat -c '%%Z' $f) )) -lt 6 ]",
-            "Interval": 3.0
+            "Interval": 10.0
         }
     },
     "RAMCommitment": "%(ZenPack.Default.RAMCommitment)s",
