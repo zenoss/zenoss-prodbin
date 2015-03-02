@@ -20,8 +20,8 @@ from Products.ZenEvents.ZenEventClasses import Capacity
 import logging
 log = logging.getLogger('zen.TrendlineThreshold')
 
-PREDICTION_TIME_UNITS = ['days', 'weeks', 'months']
-PREDICTION_ALGORITHMS = ['linear']
+PROJECTION_TIME_UNITS = ['days', 'weeks', 'months']
+PROJECTION_ALGORITHMS = ['linear']
 
 class TrendlineThreshold(MinMaxThreshold):
     """
@@ -35,13 +35,13 @@ class TrendlineThreshold(MinMaxThreshold):
 
     # amount of time of data we want to use in our prediction
     pastData = 10 # the type is string for TALES interpretation
-    pastDataUnits = PREDICTION_TIME_UNITS[0]
+    pastDataUnits = PROJECTION_TIME_UNITS[0]
 
     # how far to calculate the prediction to see if we cross the threshold
     amountToPredict = 10 # the type is string for TALES interpretation
-    amountToPredictUnits = PREDICTION_TIME_UNITS[0]
+    amountToPredictUnits = PROJECTION_TIME_UNITS[0]
 
-    predictionAlgorithm = PREDICTION_ALGORITHMS[0]
+    projectionAlgorithm = PROJECTION_ALGORITHMS[0]
 
     _properties = MinMaxThreshold._properties + (
         {'id':'pastData', 'type':'integer',  'mode':'w'},

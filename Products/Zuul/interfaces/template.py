@@ -179,9 +179,9 @@ class ITrendlineThresholdInfo(IInfo):
                                       order=6,
                                       xtype="timespan",
                                       group=_t(u"Alerting"))
-    predictionAlgorithm = schema.Choice(title=_t(u"Algorithm"),
-                                        group=_t(u"Prediction Algorithm"),
-                                        vocabulary="trendlinepredictionalgorithm",
+    projectionAlgorithm = schema.Choice(title=_t(u"Algorithm"),
+                                        group=_t(u"Projection Algorithm"),
+                                        vocabulary="trendlineprojectionalgorithm",
                                         order=8)
 
 

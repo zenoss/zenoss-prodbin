@@ -16,11 +16,11 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUtils.Utils import snmptranslate
 from zope.schema.vocabulary import SimpleVocabulary
-from Products.ZenModel.TrendlineThreshold import PREDICTION_ALGORITHMS
+from Products.ZenModel.TrendlineThreshold import PROJECTION_ALGORITHMS
 
 
-def trendlinePredictionAlgorithmFactory(context):
-    return SimpleVocabulary.fromValues(PREDICTION_ALGORITHMS)
+def trendlineProjectionAlgorithmFactory(context):
+    return SimpleVocabulary.fromValues(PROJECTION_ALGORITHMS)
 
 def rrdTemplateDataPointFactory(context):
     return SimpleVocabulary.fromValues(context._object.rrdTemplate().getRRDDataPointNames())
@@ -608,7 +608,7 @@ class TrendlineThresholdInfo(InfoBase):
     dsname = property(_getDsName, _setDsName)
     minval = ProxyProperty("minval")
     maxval = ProxyProperty("maxval")
-    predictionAlgorithm = ProxyProperty('predictionAlgorithm')
+    projectionAlgorithm = ProxyProperty('projectionAlgorithm')
 
     # Past Data
     def _setPastData(self, value):
