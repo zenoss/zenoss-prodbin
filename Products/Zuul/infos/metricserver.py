@@ -13,6 +13,7 @@ from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces, IInfo
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
+from Products.ZenModel.TrendlineThreshold import TrendlineThreshold
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.GraphDefinition import GraphDefinition
@@ -20,6 +21,7 @@ from Products.ZenModel.ComplexGraphPoint import ComplexGraphPoint
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from Products.ZenEvents.Exceptions import rpnThresholdException
 from Products.ZenUtils import metrics
+from Products.Zuul.decorators import info
 
 __doc__ = """
 These adapters are responsible for serializing the graph
@@ -72,6 +74,20 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         return self._getGraphPoints(ThresholdGraphPoint)
 
     @property
+    @info
+    def projections(self):
+        """
+        Return all TrendlineThresholds as info objects
+        """
+        thresholdGraphPoints = self._getGraphPoints(ThresholdGraphPoint)
+        projections = []
+        for gp in thresholdGraphPoints:
+            tclass = gp._object.getThreshClass(self._context)
+            if isinstance(tclass, TrendlineThreshold):
+                projections.append(tclass)
+        return projections
+
+    @property
     def base(self):
         if self._object.base:
             return 1024
@@ -121,7 +137,6 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
     def color(self):
         if not self._multiContext:
             return self._object.getColor(self._object.sequence)
-
 
 class MetricServiceThreshold(ColorMetricServiceGraphPoint):
     adapts(ThresholdGraphPoint, ZenModelRM)

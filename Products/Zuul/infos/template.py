@@ -594,7 +594,18 @@ class TrendlineThresholdInfo(InfoBase):
     description = ProxyProperty("description")
     explanation = ProxyProperty("explanation")
     resolution = ProxyProperty("resolution")
-    dsname = ProxyProperty("dsname")
+
+    def _setDsName(self, value):
+        self._object.dsnames = [value]
+
+    def _getDsName(self):
+        """
+        This threshold only works with one data point
+        """
+        if len(self._object.dsnames):
+            return self._object.dsnames[0]
+
+    dsname = property(_getDsName, _setDsName)
     minval = ProxyProperty("minval")
     maxval = ProxyProperty("maxval")
     predictionAlgorithm = ProxyProperty('predictionAlgorithm')

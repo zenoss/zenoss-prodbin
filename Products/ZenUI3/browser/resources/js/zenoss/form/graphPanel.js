@@ -18,6 +18,7 @@
     function syntaxHighlight(json) {
         json = JSON.stringify(json, undefined, 4);
         json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        json = json.replace(/ /g, '&nbsp;');
         return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
             var cls = 'syntax-number';
             if (/^"/.test(match)) {
@@ -258,6 +259,7 @@
                 tags: this.tags,
                 datapoints: this.datapoints,
                 overlays: this.thresholds,
+                projections: this.projections,
                 type: this.type,
                 // lose the footer and yaxis label as the image gets smaller
                 footer: (height >= 350) ? true : false,
@@ -426,11 +428,6 @@
             var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
             var newend = newstart + rangeToMilliseconds(gp.drange);
-            var currTime = now();
-            if (newend > currTime) {
-                newend = currTime;
-                newstart = currTime - delta;
-            }
 
             this.fireEvent("updatelimits", {start:newstart, end:newend});
             this.fireEvent("updateimage", {start:newstart, end:newend});

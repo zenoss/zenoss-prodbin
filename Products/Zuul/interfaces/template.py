@@ -175,7 +175,7 @@ class ITrendlineThresholdInfo(IInfo):
     pastData = schema.TextLine(title=_t(u'Amount of Data Used in Projection'),
                                xtype="timespan",
                                group=_t(u"Alerting"), order=6)
-    amountToPredict = schema.TextLine(title=_t(u'Send an event if the threshold is breached in the next'),
+    amountToPredict = schema.TextLine(title=_t(u'Send an Event if the Threshold is Breached in the Next'),
                                       order=6,
                                       xtype="timespan",
                                       group=_t(u"Alerting"))

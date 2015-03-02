@@ -42,15 +42,12 @@ class TrendlineThreshold(MinMaxThreshold):
     amountToPredictUnits = PREDICTION_TIME_UNITS[0]
 
     predictionAlgorithm = PREDICTION_ALGORITHMS[0]
-    # datasource we are comparing, we can only have one
-    dsname = ""
 
     _properties = MinMaxThreshold._properties + (
         {'id':'pastData', 'type':'integer',  'mode':'w'},
         {'id':'pastDataUnits', 'type':'string',  'mode':'w'},
         {'id':'amountToPredict', 'type':'integer',  'mode':'w'},
         {'id':'amountToPredictUnits', 'type':'string',  'mode':'w'},
-        {'id':'dsname', 'type':'string',  'mode':'w'},
         )
 
     factory_type_information = (
@@ -70,11 +67,12 @@ class TrendlineThreshold(MinMaxThreshold):
         """
         mmt = TrendlineThresholdInstance(self.id,
                                       ThresholdContext(context),
-                                      self.dsname,
+                                      self.dsnames,
                                       minval=self.getMinval(context),
                                       maxval=self.getMaxval(context),
                                       eventClass=self.eventClass,
                                       severity=self.getSeverity(context),
+                                      escalateCount=0,
                                       eventFields=self.getEventFields(context),
               )
         return mmt
@@ -85,8 +83,8 @@ InitializeClass(TrendlineThreshold)
 
 
 class TrendlineThresholdInstance(MinMaxThresholdInstance):
-    # Not strictly necessary, but helps when restoring instances from
-    # pickle files that were not constructed with a count member.
     pass
+
+
 from twisted.spread import pb
 pb.setUnjellyableForClass(TrendlineThresholdInstance, TrendlineThresholdInstance)
