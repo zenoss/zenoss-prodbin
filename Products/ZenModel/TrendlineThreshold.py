@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2015, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -25,20 +25,20 @@ PROJECTION_ALGORITHMS = ['linear']
 
 class TrendlineThreshold(MinMaxThreshold):
     """
-    Threshold class that alerts against predicted values
+    Threshold class that alerts against projected values
     """
     meta_type = "TrendlineThreshold"
 
     eventClass = Capacity
-    # default to info since the prediction is unreliable
+    # default to info since the projection is unreliable
     severity = 2
 
-    # amount of time of data we want to use in our prediction
-    pastData = 10 # the type is string for TALES interpretation
+    # amount of time of data we want to use in our projected
+    pastData = 10
     pastDataUnits = PROJECTION_TIME_UNITS[0]
 
     # how far to calculate the prediction to see if we cross the threshold
-    amountToPredict = 10 # the type is string for TALES interpretation
+    amountToPredict = 10
     amountToPredictUnits = PROJECTION_TIME_UNITS[0]
 
     projectionAlgorithm = PROJECTION_ALGORITHMS[0]

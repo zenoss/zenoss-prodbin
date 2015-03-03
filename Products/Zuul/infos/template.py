@@ -606,12 +606,21 @@ class TrendlineThresholdInfo(InfoBase):
             return self._object.dsnames[0]
 
     dsname = property(_getDsName, _setDsName)
+
+    @property
+    def metric(self):
+        return self._getDsName()
+
     minval = ProxyProperty("minval")
     maxval = ProxyProperty("maxval")
     projectionAlgorithm = ProxyProperty('projectionAlgorithm')
 
     # Past Data
     def _setPastData(self, value):
+        """
+        The incoming value can either be an array of [pastData, units] the units or the pastData
+        depending on the type.
+        """
         if isinstance(value, list):
             self._object.pastData = value[0]
             self._object.pastDataUnits = value[1]

@@ -135,7 +135,7 @@ class IThresholdInfo(IInfo):
     type = schema.TextLine(title=_t(u'Type'),
                            readonly=True, order=2)
     dsnames = schema.List(title=_t(u'DataPoints'),
-                          xtype='datapointitemselector', order=4)
+                          xtype='datapointitemselector', order=3)
     severity = schema.TextLine(title=_t(u'Severity'),
                                xtype='severity', order=4)
     enabled = schema.Bool(title=_t(u'Enabled'), order=5)
