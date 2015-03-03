@@ -29,6 +29,7 @@
                         xtype: 'numberfield',
                         name: config.name,
                         value: config.value[0],
+                        minValue: 1,
                         width: 75
                     }, {
                         xtype: 'container',
