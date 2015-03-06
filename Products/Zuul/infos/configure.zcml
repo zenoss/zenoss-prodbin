@@ -43,9 +43,22 @@
              for="Products.ZenModel.ThresholdClass.ThresholdClass"
              provides="..interfaces.IThresholdInfo"/>
 
+
     <adapter factory=".template.MinMaxThresholdInfo"
              for="Products.ZenModel.MinMaxThreshold.MinMaxThreshold"
              provides="..interfaces.IMinMaxThresholdInfo"/>
+
+    <adapter factory=".template.TrendlineThresholdInfo"
+             for="Products.ZenModel.TrendlineThreshold.TrendlineThreshold"
+             provides="..interfaces.ITrendlineThresholdInfo"/>
+
+    <utility provides="zope.schema.interfaces.IVocabularyFactory"
+             component=".template.rrdTemplateDataPointFactory"
+             name="rrdtemplatedatapoints"/>
+
+    <utility provides="zope.schema.interfaces.IVocabularyFactory"
+             component=".template.trendlineProjectionAlgorithmFactory"
+             name="trendlineprojectionalgorithm"/>
 
     <adapter factory=".template.GraphInfo"
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
@@ -273,7 +286,7 @@
     <adapter factory=".eventclasses.EventClassInfo"
              for="Products.ZenEvents.EventClassInst.EventClassInst"
              provides="..interfaces.IEventClassInfo"/>
-    
+
     <adapter factory=".user.UserInfo"
              for="Products.ZenModel.UserSettings.UserSettings"
              provides="..interfaces.IUserInfo"/>

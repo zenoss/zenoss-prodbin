@@ -15,7 +15,10 @@ Ext.ns('Zenoss');
 var REMOTE = Zenoss.remote.JobsRouter;
 
 function lengthOrZero(o) {
-    return o===null ? 0 : o;
+    if (o) {
+        return o;
+    }
+    return 0;
 }
 
 function isObjectEmpty(o) {

@@ -51,6 +51,9 @@
         }, {
             "text": "FieldRow.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "TimeSpan.js",
+            "path": "resources/js/zenoss/form/"
         }, {
             "text": "InheritField.js",
             "path": "resources/js/zenoss/form/"
@@ -200,9 +203,9 @@
             "path": "resources/js/zenoss/"
         },{
             "text": "SettingsGrid.js",
-            "path": "resources/js/zenoss/form/"  
+            "path": "resources/js/zenoss/form/"
         },{
-            "text": "organizerdropdown.js", 
+            "text": "organizerdropdown.js",
             "path": "resources/js/zenoss/form/"
         },{
             "text": "modelerPluginPanel.js",
@@ -234,15 +237,15 @@
         },{
             "text": "CustomPropertyPanel.js",
             "path": "resources/js/zenoss/form/"
-        },{        
+        },{
             "text": "JobsWidget.js",
-            "path": "resources/js/zenoss/" 
-        },{        
+            "path": "resources/js/zenoss/"
+        },{
             "text": "Administration.js",
-            "path": "resources/js/zenoss/devicemanagement/"  
-        },{        
+            "path": "resources/js/zenoss/devicemanagement/"
+        },{
             "text": "OverriddenObjects.js",
-            "path": "resources/js/zenoss/"  
+            "path": "resources/js/zenoss/"
         },{
             "text": "PageStatistics.js",
             "path": "resources/js/zenoss/"

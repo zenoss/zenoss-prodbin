@@ -464,9 +464,13 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     def getThresholdClasses(self):
         from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
         from Products.ZenModel.ValueChangeThreshold import ValueChangeThreshold
-        thresholdClasses = [MinMaxThreshold, ValueChangeThreshold]
+        from Products.ZenModel.TrendlineThreshold import TrendlineThreshold
+        thresholdClasses = [MinMaxThreshold, ValueChangeThreshold, TrendlineThreshold]
         for zp in self.dmd.ZenPackManager.packs():
-            thresholdClasses += zp.getThresholdClasses()
+            try:
+                thresholdClasses += zp.getThresholdClasses()
+            except Exception, e:
+                log.exception("Unable to fetch thresholds from zenpack %s, please try reinstalling the zenpack. Error %s", zp, e)
         return map(lambda x: (x, x.__name__), thresholdClasses)
 
 

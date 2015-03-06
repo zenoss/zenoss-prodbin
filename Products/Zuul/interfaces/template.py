@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 from zope.interface import Interface
@@ -154,6 +154,35 @@ class IMinMaxThresholdInfo(IThresholdInfo):
     description = schema.TextLine(title=u'Description', order=2)
     explanation = schema.TextLine(title=u'Explanation', order=2)
     resolution = schema.TextLine(title=u'Resolution', order=2)
+
+class ITrendlineThresholdInfo(IInfo):
+    newId = schema.TextLine(title=_t(u'Name'),
+                            xtype="idfield",
+                            order=1)
+    type = schema.TextLine(title=_t(u'Type'),
+                           readonly=True, order=2)
+    enabled = schema.Bool(title=_t(u'Enabled'), order=3)
+    dsname = schema.Choice(title=_t(u"DataPoint"),
+                            required=True,
+                            vocabulary="rrdtemplatedatapoints", order=3)
+    description = schema.TextLine(title=u'Description', order=3)
+    severity = schema.TextLine(title=_t(u'Severity'),
+                                xtype='severity', order=3)
+    eventClass = schema.TextLine(title=_t(u'Event Class'),
+                                 xtype='eventclass', order=3)
+    minval = schema.TextLine(title=_t(u'Minimum Value'), order=8, group=_t(u"Alerting"))
+    maxval = schema.TextLine(title=u'Maximum Value', order=9, group=_t(u"Alerting"))
+    pastData = schema.TextLine(title=_t(u'Amount of Data Used in Projection'),
+                               xtype="timespan",
+                               group=_t(u"Alerting"), order=6)
+    amountToPredict = schema.TextLine(title=_t(u'Send an Event if the Threshold is Breached in the Next'),
+                                      order=6,
+                                      xtype="timespan",
+                                      group=_t(u"Alerting"))
+    projectionAlgorithm = schema.Choice(title=_t(u"Algorithm"),
+                                        group=_t(u"Projection Algorithm"),
+                                        vocabulary="trendlineprojectionalgorithm",
+                                        order=8)
 
 
 class IDataPointAlias(IInfo):
@@ -320,5 +349,3 @@ class ITemplateFacade(IFacade):
         Set the sequence of the graph definitions uniquely identified by the
         items in the uids paramter.
         """
-
-

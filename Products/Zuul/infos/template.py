@@ -15,6 +15,15 @@ from Products.Zuul.interfaces import template as templateInterfaces
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUtils.Utils import snmptranslate
+from zope.schema.vocabulary import SimpleVocabulary
+from Products.ZenModel.TrendlineThreshold import PROJECTION_ALGORITHMS
+
+
+def trendlineProjectionAlgorithmFactory(context):
+    return SimpleVocabulary.fromValues(PROJECTION_ALGORITHMS)
+
+def rrdTemplateDataPointFactory(context):
+    return SimpleVocabulary.fromValues(context._object.rrdTemplate().getRRDDataPointNames())
 
 class TemplateInfo(InfoBase):
     description = ProxyProperty('description')
@@ -572,6 +581,77 @@ class MinMaxThresholdInfo(ThresholdInfo):
     explanation = ProxyProperty("explanation")
     resolution = ProxyProperty("resolution")
 
+class TrendlineThresholdInfo(InfoBase):
+    implements(templateInterfaces.ITrendlineThresholdInfo)
+    @property
+    def newId(self):
+        return self._object.id
+
+    severity = ProxyProperty("severity")
+    enabled = ProxyProperty("enabled")
+    eventClass = ProxyProperty("eventClass")
+    escalateCount = ProxyProperty("escalateCount")
+    description = ProxyProperty("description")
+    explanation = ProxyProperty("explanation")
+    resolution = ProxyProperty("resolution")
+
+    def _setDsName(self, value):
+        self._object.dsnames = [value]
+
+    def _getDsName(self):
+        """
+        This threshold only works with one data point
+        """
+        if len(self._object.dsnames):
+            return self._object.dsnames[0]
+
+    dsname = property(_getDsName, _setDsName)
+
+    @property
+    def metric(self):
+        return self._getDsName()
+
+    minval = ProxyProperty("minval")
+    maxval = ProxyProperty("maxval")
+    projectionAlgorithm = ProxyProperty('projectionAlgorithm')
+
+    # Past Data
+    def _setPastData(self, value):
+        """
+        The incoming value can either be an array of [pastData, units] the units or the pastData
+        depending on the type.
+        """
+        if isinstance(value, list):
+            self._object.pastData = value[0]
+            self._object.pastDataUnits = value[1]
+        if isinstance(value, int):
+            self._object.pastData = value
+        if isinstance(value, basestring):
+            self._object.pastDataUnits = value
+
+    def _getPastData(self):
+        return [self._object.pastData, self._object.pastDataUnits]
+
+    pastData = property(_getPastData, _setPastData)
+
+    # Past Data
+    def _setAmountToPredict(self, value):
+        if isinstance(value, list):
+            self._object.amountToPredict = value[0]
+            self._object.amountToPredictUnits = value[1]
+        if isinstance(value, int):
+            self._object.amountToPredict = value
+        if isinstance(value, basestring):
+            self._object.amountToPredictUnits = value
+
+    def _getAmountToPredict(self):
+        return [self._object.amountToPredict, self._object.amountToPredictUnits]
+
+    amountToPredict = property(_getAmountToPredict, _setAmountToPredict)
+
+    @property
+    def type(self):
+        return self._object.getTypeName()
 
 class GraphInfo(InfoBase):
 
@@ -606,11 +686,11 @@ class GraphInfo(InfoBase):
     @property
     def description(self):
         return self._object.getDescription()
-    
+
     @description.setter
     def description(self, value):
         self._object.description = value
-        
+
     @property
     def rrdVariables(self):
         """
