@@ -74,9 +74,6 @@ class IpNetwork(DeviceOrganizer):
 
     buildLinks = True
 
-    # Organizer configuration
-    dmdRootName = "Networks"
-
     # Index name for IP addresses
     default_catalog = 'ipSearch'
 
@@ -135,6 +132,9 @@ class IpNetwork(DeviceOrganizer):
         self.version = version
         self.description = description
         self.title = ipunwrap(id)
+        self.dmdRootName = "Networks"
+        if version == 6:
+            self.dmdRootName = "IPv6Networks"
 
     security.declareProtected('Change Network', 'manage_addIpNetwork')
     def manage_addIpNetwork(self, newPath, REQUEST=None):
