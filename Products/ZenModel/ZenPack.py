@@ -1256,6 +1256,23 @@ registerDirectory("skins", globals())
         logConfigs.extend(lc for lc in defaultLogConfigs if lc not in logConfigs)
         return service
 
+    def templateParams(self):
+        # Get 'Context' from root service
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        serviceTree = ServiceTree(cpClient.queryServices("*"))
+        tenant = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')[0]
+        context = tenant._data.get('Context', {})
+
+        # Determine template parameters
+        templateParams = defaultdict(lambda:'')
+        templateParams.update({'zenhome':zenPath(),
+                               'ZenPack.Default.RAMCommitment':"",
+                               'varpath':varPath()})
+        templateParams.update((key, val) for key, val in context.items()
+            if key.startswith('ZenPack.Default'))
+        templateParams.update(daemondir=self.getDaemonPath())
+        return templateParams
+
     def installDefaultCollectorServices(self, daemonPaths, template, tag):
         """
         Installs a service definition appropriate for a collector daemon for each
@@ -1273,19 +1290,7 @@ registerDirectory("skins", globals())
         if not ZenPack.currentServiceId:
             return
 
-        # Get 'Context' from root service
-        cpClient = ControlPlaneClient(**getConnectionSettings())
-        serviceTree = ServiceTree(cpClient.queryServices("*"))
-        tenant = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')[0]
-        context = tenant._data.get('Context', {})
-
-        # Determine template parameters
-        templateParams = defaultdict(lambda:'')
-        templateParams.update({'zenhome':zenPath(),
-                               'ZenPack.Default.RAMCommitment':"",
-                               'varpath':varPath()})
-        templateParams.update((key, val) for key, val in context.items()
-            if key.startswith('ZenPack.Default'))
+        templateParams = self.templateParams()
 
         serviceDefinitions = []
         for daemonPath in daemonPaths:
@@ -1328,8 +1333,12 @@ registerDirectory("skins", globals())
         if not ZenPack.currentServiceId:
             return
         paths, definitions = [],[]
+
+        templateParams = self.templateParams()
+
         for fileName, configMap in zip(serviceFileNames, serviceConfigs):
-            service = json.load(open(fileName, 'r'))
+            with open(fileName, 'r') as fh:
+                service = json.loads(fh.read() % templateParams)
             definition = ZenPack.normalizeService(service['serviceDefinition'],
                                                   configMap, tag)
             definitions.append(json.dumps(definition))

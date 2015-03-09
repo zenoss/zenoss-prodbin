@@ -5,7 +5,8 @@
         "will be performed on it. The mapping keys for formatting are:",
         "    %(daemon)s : The name of the daemon (e.g., zenping)",
         "    %(zenhome)s : The location of $ZENHOME (e.g., /opt/zenoss)",
-        "    %(daemonpath)s : The absolute path of of the daemon executable"
+        "    %(daemonpath)s : The absolute path of of the daemon executable",
+        "    %(daemondir)s : The directory in which daemon is located"
     ],
     "Actions": {
         "debug": "su - zenoss -c '%(daemonpath)s debug'",
