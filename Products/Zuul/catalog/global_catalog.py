@@ -372,7 +372,7 @@ class FileSystemWrapper(ComponentWrapper):
         return self._context.name()
 
 
-class DeviceOrganizerWrapper(SearchableMixin,IndexableWrapper):
+class DeviceOrganizerWrapper(SearchableMixin, IndexableWrapper):
     adapts(DeviceOrganizer)
 
     def searchKeywords(self):
