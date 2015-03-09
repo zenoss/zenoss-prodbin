@@ -1,11 +1,14 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
-    xmlns:browser="http://namespaces.zope.org/browser">
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:meta="http://namespaces.zope.org/meta">
 
     <adapter factory = ".global_catalog.IndexableWrapper"/>
     <adapter factory = ".global_catalog.ComponentWrapper"/>
     <adapter factory = ".global_catalog.DeviceWrapper"/>
+
+    <meta:provides feature="searchOrganizers" />
     <adapter factory = ".global_catalog.DeviceOrganizerWrapper"/>
 
     <adapter
