@@ -198,6 +198,7 @@ def getObjByPath(base, path, restricted=0):
     @return: object pointed to by the path
     @rtype: object
     """
+    opath = path
     if not path:
         return base
 
