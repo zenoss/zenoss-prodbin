@@ -8,9 +8,16 @@
 #
 ##############################################################################
 
+
+runCustomUpgradeScripts() {
+    . $ZENHOME/bin/zenfunctions
+    $PYTHON ./upgrade_scripts/update_zep_schema.py
+}
+
 doUpgrade() {
     zenpack --restore || return "$?"
     zenmigrate || return "$?"
+    runCustomUpgradeScripts || return "$?"
     return 0
 }
 
