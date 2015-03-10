@@ -306,7 +306,7 @@ def getObjByPath(base, path, restricted=0):
                 if restricted and not securityManager.validate(
                     obj, obj, _none, next):
                     raise Unauthorized( name )
-            if getattr(nextx, 'getPrimaryUrlPath', None) and opath != nextx.getPrimaryUrlPath():
+            if getattr(next, 'getPrimaryUrlPath', None) and opath != next.getPrimaryUrlPath():
                 try:
                     next=obj[name]
                 except AttributeError:
