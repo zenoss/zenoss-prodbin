@@ -272,8 +272,6 @@ for a ZenPack.
         try:
             if id.startswith('/'):
                 obj = getObjByPath(self.app, id)
-                if obj.getPrimaryUrlPath() != id:
-                    obj = None
             else:
                 obj = self.context()._getOb(id)
         except (KeyError, AttributeError, NotFound):
