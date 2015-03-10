@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2011, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2015, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -28,7 +28,7 @@ class MigrateLocalhostPerf(Migrate.Step):
                 addHubRoot, addLocalhostHub, convertLocalhostHubToCC, convertAllMonitors, \
                 convertMonitor, convertLocalhostMonitorToCC
         except ImportError:
-            log.info("Required distributed collector module not found, skipping")
+            log.info("Distributed collector module not found, skipping")
         else:
             log.info("Migrating localhost hub + monitor")
             # Assume localhost hub + collector exist
