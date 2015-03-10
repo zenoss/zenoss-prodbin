@@ -30,7 +30,7 @@ def event(values):
         return "0"
     # Swap severitie's keys and values
     severities = {x.lower():y for y,x in EventClass.severities.items()}
-    # Get value of highly important event kind in values
+    # Get name of highly important event kind in values
     m = max(values, key=severities.__getitem__)
     # Report it
     return str(values[m])
