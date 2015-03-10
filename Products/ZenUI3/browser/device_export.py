@@ -19,13 +19,18 @@ log = logging.getLogger('zen.deviceexporter')
 
 
 def event(values):
-    # Get event's types with non-empty count field
-    values = {x:y.get('count') for x,y in values.items() if y.get('count')}
+    """
+    :param values: dictionary with total and acknowledged count for each event's severity
+    :return: total count of events with higher severity
+    """
+
+    # Get event's types with non-zero value of "count" field
+    values = {x:y.get('count') for x,y in values.iteritems() if y.get('count')}
     if not values:
         return "0"
     # Swap severitie's keys and values
     severities = {x.lower():y for y,x in EventClass.severities.items()}
-    # Get value of highly imortant event kind in values
+    # Get value of highly important event kind in values
     m = max(values, key=severities.__getitem__)
     # Report it
     return str(values[m])
@@ -85,7 +90,8 @@ class DeviceExporter(BrowserView):
                 if isinstance(value, list):
                     value = "|".join([v.get('name') for v in value])
                 if isinstance(value, dict):
-                    value = event(value) if field == 'events' else value.get('name', None)
-                data.append(str(value).strip() if value or value is 0 else '')
+                    value = event(value) if field == 'events' else value.get('name')
+                if not (value or value is 0):
+                    value = ''
+                data.append(str(value).strip())
             writer.writerow(data)
-
