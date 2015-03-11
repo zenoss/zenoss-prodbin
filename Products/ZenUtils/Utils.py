@@ -284,10 +284,10 @@ def getObjByPath(base, path, restricted=0):
                 if not validated:
                     raise Unauthorized( name )
         else:
-            ## Below this is a change from the standard traverse from zope
-            ## it allows a path to use acquisition which is not what
-            ## we want.  Our version will fail if one element of the
-            ## path doesn't exist. -EAD
+            # Below this is a change from the standard traverse from zope
+            # it allows a path to use acquisition which is not what
+            # we want.  Our version will fail if one element of the
+            # path doesn't exist. -EAD
             next=obj.get(name)
             if restricted and not securityManager.validate(
                 obj, obj, _none, next):
