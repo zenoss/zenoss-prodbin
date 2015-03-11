@@ -286,38 +286,19 @@ def getObjByPath(base, path, restricted=0):
                 if not validated:
                     raise Unauthorized( name )
         else:
-            if restricted:
-                next = guarded_getattr(obj, name, marker)
-            else:
-                next = _getattr(obj, name, marker)
-                ## Below this is a change from the standard traverse from zope
-                ## it allows a path to use acquisition which is not what
-                ## we want.  Our version will fail if one element of the
-                ## path doesn't exist. -EAD
-                #if hasattr(aq_base(obj), name):
-                #    next = _getattr(obj, name, marker)
-                #else:
-                #    raise NotFound, name
-            if next is marker:
-                try:
-                    next=obj[name]
-                except AttributeError:
-                    # Raise NotFound for easier debugging
-                    # instead of AttributeError: __getitem__
-                    raise NotFound( name )
-                if restricted and not securityManager.validate(
-                    obj, obj, _none, next):
-                    raise Unauthorized( name )
-            if getattr(next, 'getPrimaryUrlPath', None) and opath != next.getPrimaryUrlPath():
-                try:
-                    next=obj[name]
-                except AttributeError:
-                    # Raise NotFound for easier debugging
-                    # instead of AttributeError: __getitem__
-                    raise NotFound( name )
-                if restricted and not securityManager.validate(
-                    obj, obj, _none, next):
-                    raise Unauthorized( name )
+            ## Below this is a change from the standard traverse from zope
+            ## it allows a path to use acquisition which is not what
+            ## we want.  Our version will fail if one element of the
+            ## path doesn't exist. -EAD
+            #if hasattr(aq_base(obj), name):
+            #    next = _getattr(obj, name, marker)
+            #else:
+            #    raise NotFound, name
+            next = obj.get(name)
+            if restricted and not securityManager.validate(
+                obj, obj, _none, next):
+                raise Unauthorized( name )
+        
         obj = next
     return obj
 
