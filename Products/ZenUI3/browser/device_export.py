@@ -13,8 +13,27 @@ from Products.Five.browser import BrowserView
 from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul.facades.devicefacade import DeviceFacade
 from xml.etree.ElementTree import Element, tostring
+from Products.ZenEvents.EventClass import EventClass
 
 log = logging.getLogger('zen.deviceexporter')
+
+
+def event(values):
+    """
+    :param values: dictionary with total and acknowledged count for each event's severity
+    :return: total count of events with higher severity
+    """
+
+    # Get event's types with non-zero value of "count" field
+    values = {x:y.get('count') for x,y in values.iteritems() if y.get('count')}
+    if not values:
+        return "0"
+    # Swap severitie's keys and values
+    severities = {x.lower():y for y,x in EventClass.severities.items()}
+    # Get name of highly important event kind in values
+    m = max(values, key=severities.__getitem__)
+    # Report it
+    return str(values[m])
 
 
 class DeviceExporter(BrowserView):
@@ -30,16 +49,7 @@ class DeviceExporter(BrowserView):
         return Zuul.marshal(devices.results, params['fields'])
 
     @staticmethod
-    def _xml_event(value):
-        for event_kind, event_fields in value.iteritems():
-            event_kind_field = Element(event_kind)
-            for event_field_key, event_field_value in event_fields.iteritems():
-                event_field = Element(event_field_key)
-                event_field.text = str(event_field_value)
-                event_kind_field.append(event_field)
-            yield event_kind_field
-
-    def xml(self, response, devices, fields):
+    def xml(response, devices, fields):
         response.setHeader('Content-Type', 'text/xml; charset=utf-8')
         response.setHeader('Content-Disposition', 'attachment; filename=devices.xml')
         response.write('<?xml version="1.0" encoding="UTF-8"?>\n')
@@ -50,8 +60,7 @@ class DeviceExporter(BrowserView):
                 device_field = Element(field)
                 value = device.get(field, '')
                 if field == 'events':
-                    for event in self._xml_event(value):
-                        device_field.append(event)
+                    device_field.text = event(value)
                 elif field in ['systems', 'groups']:
                     for s in value:
                         sub_field = Element(field[:-1])
@@ -65,7 +74,7 @@ class DeviceExporter(BrowserView):
                 xml_device.append(device_field)
             response.write(tostring(xml_device))
         response.write("")
-        response.write('<ZenosDevices>\n')
+        response.write('</ZenosDevices>\n')
 
     @staticmethod
     def csv(response, devices, fields):
@@ -73,8 +82,7 @@ class DeviceExporter(BrowserView):
         response.setHeader('Content-Disposition', 'attachment; filename=devices.csv')
         from csv import writer
         writer = writer(response)
-        wrote_header = False
-        fields_to_write = [f for f in fields if f != 'events']
+        writer.writerow(fields)
         for device in devices:
             data = []
             for field in fields:
@@ -82,18 +90,8 @@ class DeviceExporter(BrowserView):
                 if isinstance(value, list):
                     value = "|".join([v.get('name') for v in value])
                 if isinstance(value, dict):
-                    if field == 'events':
-                        for event_type in value.keys():
-                            fields_to_write.append("%s_events_count" % event_type)
-                            fields_to_write.append("%s_events_acknowledged" % event_type)
-                            data.append(str(value.get(event_type).get('count')))
-                            data.append(str(value.get(event_type).get('acknowledged_count')))
-                    else:
-                        value = value.get('name', None)
-                if not field == 'events':
-                    data.append(str(value).strip() if value or value is 0 else '')
-            if not wrote_header:
-                writer.writerow(fields_to_write)
-                wrote_header = True
+                    value = event(value) if field == 'events' else value.get('name')
+                if not (value or value is 0):
+                    value = ''
+                data.append(str(value).strip())
             writer.writerow(data)
-
