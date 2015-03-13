@@ -89,6 +89,28 @@ def RemoveZenPack(dmd, packName, log=None,
     return True
 
 
+def topo_prioritize(target, graph):
+    """
+    Add an edge to the target from all other nodes which cannot be reached
+    from the target.  This has the effect of moving the node to the front of
+    a topological sort.  Edits the graph in place.
+    :param target: The node to prioritize
+    :param graph: dict node -> list[node], describing the edges of the graph
+    :return: none
+    """
+    # Get all nodes which are reachable from target
+    reachableNodes = set()
+    stack = [target]
+    while stack:
+        current = stack.pop(0)
+        reachableNodes.add(current)
+        stack.extend(graph.get(current, []))
+    # Add edge to of all nodes which are not reachable
+    for key, val in graph.iteritems():
+        if key not in reachableNodes:
+            val.add(target)
+
+
 class ZenPackCmd(ZenScriptBase):
     """Manage ZenPacks"""
 
@@ -375,6 +397,11 @@ class ZenPackCmd(ZenScriptBase):
                     if depName in zpsToRestore.keys():
                         depsSet.add(depName)
             zpsToSort[zpId] = depsSet
+
+        # If Impact needs upgrading, ensure that it's installed first
+        IMPACT = 'ZenPacks.zenoss.Impact'
+        if IMPACT in zpsToSort:
+            topo_prioritize(IMPACT, zpsToSort)
 
         def doRestore(pack):
             try:
