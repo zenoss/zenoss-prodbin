@@ -289,6 +289,8 @@ def getObjByPath(base, path, restricted=0):
             # we want.  Our version will fail if one element of the
             # path doesn't exist. -EAD
             next=obj.get(name)
+            if next is None:
+                raise NotFound(name)
             if restricted and not securityManager.validate(
                 obj, obj, _none, next):
                 raise Unauthorized( name )
