@@ -1,25 +1,25 @@
 /**
- * @var {string} $prefix 
- * The prefix to be applied to all CSS selectors. If this is changed, it must also be changed in your 
+ * @var {string} $prefix
+ * The prefix to be applied to all CSS selectors. If this is changed, it must also be changed in your
  * JavaScript application.
  */
 /**
- * @var {string} $theme-name 
+ * @var {string} $theme-name
  * The name of the theme. This must match the the output directory of the images.
  * (defaults to 'default')
  */
 /**
- * @var {boolean/string} $relative-image-path-for-uis 
+ * @var {boolean/string} $relative-image-path-for-uis
  * True to use a relative image path for all new UIs. If true, the path will be "../images/".
  * It can also be a string of the path value.
  * It defaults to false, which means it will look for the images in the ExtJS SDK folder.
  */
 /**
- * @var {string} $font-family 
+ * @var {string} $font-family
  * The default font-family to be used throughout the theme.
  */
 /**
- * @var {string} $base-gradient 
+ * @var {string} $base-gradient
  * The base gradient to be used throughout the theme.
  */
 /**
@@ -119,27 +119,27 @@ $menu-icon-group-checked: 'menu/group-checked.gif';
 $menu-icon-unchecked: 'menu/unchecked.gif';
 */
 /**
- * @var {string} $prefix 
- * The prefix to be applied to all CSS selectors. If this is changed, it must also be changed in your 
+ * @var {string} $prefix
+ * The prefix to be applied to all CSS selectors. If this is changed, it must also be changed in your
  * JavaScript application.
  */
 /**
- * @var {string} $theme-name 
+ * @var {string} $theme-name
  * The name of the theme. This must match the the output directory of the images.
  * (defaults to 'default')
  */
 /**
- * @var {boolean/string} $relative-image-path-for-uis 
+ * @var {boolean/string} $relative-image-path-for-uis
  * True to use a relative image path for all new UIs. If true, the path will be "../images/".
  * It can also be a string of the path value.
  * It defaults to false, which means it will look for the images in the ExtJS SDK folder.
  */
 /**
- * @var {string} $font-family 
+ * @var {string} $font-family
  * The default font-family to be used throughout the theme.
  */
 /**
- * @var {string} $base-gradient 
+ * @var {string} $base-gradient
  * The base gradient to be used throughout the theme.
  */
 /**
@@ -225,7 +225,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
  */
 /**
  * @mixin background-gradient
- * 
+ *
  * @param {Color} $background-color The background color of the gradient
  * @param {String/List} $type The type of gradient to be used. Can either be a String which is a predefined gradient, or it can
  *                            can be a list of color_stops. If none is set, it will still set the `background-color` to the $background-color.
@@ -233,10 +233,10 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
  */
 /**
  * Method which inserts a full background-image property for a theme image.
- * It checks if the file exists and if it doesn't, it'll throw an error. 
+ * It checks if the file exists and if it doesn't, it'll throw an error.
  * By default it will not include the background-image property if it is not found,
- * but this can be changed by changing the default value of $include-missing-images to 
- * be true. 
+ * but this can be changed by changing the default value of $include-missing-images to
+ * be true.
  */
 html, body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, code, form, fieldset, legend, input, textarea, p, blockquote, th, td {
   margin: 0;
@@ -7577,6 +7577,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   cursor: pointer; }
 .x-tree-panel .x-grid-cell-inner img {
   display: inline-block;
+  height: 18px;
   vertical-align: top; }
 
 .x-ie .x-tree-panel .x-tree-elbow, .x-ie .x-tree-panel .x-tree-elbow-end, .x-ie .x-tree-panel .x-tree-elbow-plus, .x-ie .x-tree-panel .x-tree-elbow-end-plus, .x-ie .x-tree-panel .x-tree-elbow-empty, .x-ie .x-tree-panel .x-tree-elbow-line {
