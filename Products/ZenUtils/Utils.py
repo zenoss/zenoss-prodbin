@@ -288,7 +288,7 @@ def getObjByPath(base, path, restricted=0):
             # it allows a path to use acquisition which is not what
             # we want.  Our version will fail if one element of the
             # path doesn't exist. -EAD
-            next=obj.get(name)
+            next=obj._getOb(name, None)
             if next is None:
                 raise NotFound(name)
             if restricted and not securityManager.validate(
