@@ -199,19 +199,11 @@ def findZenPackNames():
     return filter(None, map(zenPackName, dirs))
 
 
-def findZenPackDirectories():
-    """
-    Get the list of ZenPacks with tests
-
-    @return: list of ZenPack directories
-    @rtype: list of strings
-    """
-    # since we are in a container we know the path to the zenpacks
-    zenpackhome = ZENPACK_HOME
+def findZenPacksFromDirectory(directory):
     dirs = []
     try:
-        for item in os.listdir(zenpackhome):
-            fullpath = zenpackdir(item)
+        for item in os.listdir(directory):
+            fullpath = os.path.join(directory, item)
             if os.path.isdir(fullpath):
                 dir = expandPackDir(fullpath)
             elif item.endswith('.egg-link'):
@@ -227,6 +219,14 @@ def findZenPackDirectories():
         pass
     return dirs
 
+def findZenPackDirectories():
+    """
+    Get the list of ZenPacks with tests
+
+    @return: list of ZenPack directories
+    @rtype: list of strings
+    """
+    return findZenPacksFromDirectory(ZENPACK_HOME) + findZenPacksFromDirectory(zenhome("ZenPacks"))
 
 def findZenossProducts(include_zenpacks):
     """
