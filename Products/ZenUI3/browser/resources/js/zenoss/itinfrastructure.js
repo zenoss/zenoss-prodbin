@@ -864,6 +864,7 @@ function initializeTreeDrop(tree) {
                                 }
                                 setTimeout(refreshTreePanel, 500);
                             }
+                            resetGrid();
                         }, me);
                    }
                 }, {
@@ -972,7 +973,7 @@ Zenoss.env.location_tree_data[0].expanded = true;
 
 var devtree = {
     xtype: 'HierarchyTreePanel',
-    viewConfig: { 
+    viewConfig: {
         loadMask: true
     },
     id: 'devices',
@@ -1026,7 +1027,7 @@ var devtree = {
 
 var grouptree = {
     xtype: 'HierarchyTreePanel',
-    viewConfig: { 
+    viewConfig: {
         loadMask: false
     },
     id: 'groups',
@@ -1057,7 +1058,7 @@ var grouptree = {
 
 var systree = {
     xtype: 'HierarchyTreePanel',
-    viewConfig: { 
+    viewConfig: {
         loadMask: false
     },
     id: 'systemsTree',
@@ -1090,7 +1091,7 @@ var systree = {
 
 var loctree = {
     xtype: 'HierarchyTreePanel',
-    viewConfig: { 
+    viewConfig: {
         loadMask: false
     },
     stateful: treeStateful,
