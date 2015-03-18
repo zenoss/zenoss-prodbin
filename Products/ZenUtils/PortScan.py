@@ -111,7 +111,7 @@ class Scanner(object):
     def recordFailure(self, failure, host, port):
         hostData = self.data['failure'].setdefault(host, [])
         data = (port, failure.getErrorMessage())
-        log.debug('Failed to connect to %s:%d -- %s' (host, port, data[1]))
+        log.debug('Failed to connect to %s:%d -- %s' % (host, port, data[1]))
         hostData.append(data)
 
     def finishRun(self, unused=None):
