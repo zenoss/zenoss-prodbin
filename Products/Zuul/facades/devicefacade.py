@@ -329,7 +329,7 @@ class DeviceFacade(TreeFacade):
         for dev in devs:
             if dev.isLockedFromDeletion():
                 raise Exception("Device %s is locked from deletion" % dev.id)
-                
+
         return self._deleteDevices(uids, deleteEvents, deletePerf)
 
     @info
@@ -734,8 +734,14 @@ class DeviceFacade(TreeFacade):
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         graphs = []
-        for graph in obj.getGraphObjects():
-            info = getMultiAdapter((graph,obj), IMetricServiceGraphDefinition)
+        # getGraphObjects is expected to return a tuple of size 2.
+        # The graph definition and the context for that graph
+        # definition.
+        for graph, ctx in obj.getGraphObjects():
+            info = getMultiAdapter((graph, ctx), IMetricServiceGraphDefinition)
+            # if there is a separate context display that as the title
+            if ctx != obj:
+                info._showContextTitle = True
             graphs.append(info)
         return graphs
 
@@ -826,7 +832,7 @@ class DeviceFacade(TreeFacade):
                 component = brain.getObject()
             except:
                 pass
-            graphDefs[component.meta_type] = [g.id for g in component.getGraphObjects()]
+            graphDefs[component.meta_type] = [graphDef.id for graphDef,_ in component.getGraphObjects()]
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
@@ -841,7 +847,7 @@ class DeviceFacade(TreeFacade):
         # get the graph def
         for comp in components:
             # find the first instance
-            for graph in comp.getGraphObjects():
+            for graph, ctx in comp.getGraphObjects():
                 if graph.id == graphId:
                     graphDef = graph
                     break
