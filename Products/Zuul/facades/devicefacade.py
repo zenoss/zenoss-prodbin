@@ -832,7 +832,7 @@ class DeviceFacade(TreeFacade):
                 component = brain.getObject()
             except:
                 pass
-            graphDefs[component.meta_type] = [g[0].id for g in component.getGraphObjects()]
+            graphDefs[component.meta_type] = [graphDef.id for graphDef,_ in component.getGraphObjects()]
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
