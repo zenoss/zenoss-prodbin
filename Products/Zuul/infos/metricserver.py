@@ -32,6 +32,7 @@ class MetricServiceGraph(HasUuidInfoMixin):
     def __init__(self, graph, context):
         self._object = graph
         self._context = context
+        self._showContextTitle = False
 
 class MetricServiceGraphDefinition(MetricServiceGraph):
     adapts(GraphDefinition, ZenModelRM)
@@ -43,6 +44,8 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         # allow zenpacks to set a temporary title on the graph definition
         if hasattr(obj, "_v_title"):
             return obj._v_title
+        if self._showContextTitle:
+            return self.contextTitle
         return self._object.titleOrId()
 
     @property
@@ -53,7 +56,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
             title =  "%s - %s" %(title, self._context.titleOrId())
-        return "%s - %s" % (self.title, title)
+        return "%s - %s" % (self._object.titleOrId(), title)
 
     @property
     def type(self):
