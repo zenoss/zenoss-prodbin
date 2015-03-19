@@ -734,16 +734,10 @@ class DeviceFacade(TreeFacade):
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         graphs = []
-        for item in obj.getGraphObjects():
-            # getGraphObjects is expected to return a tuple of size 2.
-            # The graph definition and the context for that graph
-            # definition.
-            ctx = obj
-            if isinstance(item, tuple):
-                graph = item[0]
-                ctx = item[1]
-            else:
-                graph = item
+        # getGraphObjects is expected to return a tuple of size 2.
+        # The graph definition and the context for that graph
+        # definition.
+        for graph, ctx in obj.getGraphObjects():
             info = getMultiAdapter((graph, ctx), IMetricServiceGraphDefinition)
             # if there is a separate context display that as the title
             if ctx != obj:
