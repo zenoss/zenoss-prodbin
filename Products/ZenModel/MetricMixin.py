@@ -98,13 +98,13 @@ class MetricMixin(object):
 
     def getGraphObjects(self):
         """
-        Returns GraphDefinition objects for all the templates bound
+        Returns GraphDefinition objects and contexts in a tuple for all the templates bound
         to this object.
         """
         graphs = []
         for template in self.getRRDTemplates():
             for g in template.getGraphDefs():
-                graphs.append(g)
+                graphs.append((g, self))
         return graphs
 
     def getDefaultGraphDefs(self, drange=None):
