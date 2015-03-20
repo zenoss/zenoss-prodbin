@@ -70,6 +70,8 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def datapoints(self):
+        # make sure the sequence always makes sense. This will prevent graphs from all having the same color
+        self._object.manage_resequenceGraphPoints()
         return self._getGraphPoints(DataPointGraphPoint)
 
     @property
