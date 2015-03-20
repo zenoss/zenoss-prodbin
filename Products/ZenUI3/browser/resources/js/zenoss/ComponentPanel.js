@@ -533,9 +533,11 @@ Ext.define("Zenoss.component.ComponentPanel", {
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
                                 token = Ext.History.getToken().split(delimiter, 1);
-                            Ext.util.History.suspendEvents(false);
-                            Ext.util.History.add(token + delimiter + this.componentType + delimiter + row.data.uid);
-                            Ext.util.History.resumeEvents();
+                            token = token + delimiter + this.componentType + delimiter + row.data.uid;
+                            // set the currenttoken so the "change" event isn't fired. Events are not able
+                            // to be suspended because we don't know when the change event will be fired. 
+                            Ext.util.History.currentToken = token;
+                            Ext.util.History.setHash(token);
                             Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.usesMonitorAttribute);
                         } else {
                             this.detailcontainer.removeAll();
@@ -600,15 +602,15 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             fields: config.fields
         });
         config.sortInfo = config.sortInfo || {};
-    config = Ext.applyIf(config, {
-        autoExpandColumn: 'name',
-        bbar: {},
-        store: new ZC.BaseComponentStore({
+        config = Ext.applyIf(config, {
+            autoExpandColumn: 'name',
+            bbar: {},
+            store: new ZC.BaseComponentStore({
                 model: modelId,
                 initialSortColumn: config.sortInfo.field || 'name',
                 initialSortDirection: config.sortInfo.direction || 'ASC',
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
-        }),
+            }),
             columns: [{
                 id: 'component_severity',
                 dataIndex: 'severity',
