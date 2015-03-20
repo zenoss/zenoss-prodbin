@@ -82,7 +82,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     acceptedTerms = True
     instanceIdentifier = 'Zenoss'
     zenossHostname = 'localhost:8080'
-    smtpHost = 'localhost'
+    smtpHost = ''
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
     smtpPort = 25
     smtpUser = ''
@@ -541,7 +541,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
 
     def getDefaultEmailFrom(self):
-        return 'zenossuser_%s@%s' % (getSecurityManager().getUser().getId(), socket.getfqdn())
+        hostname = self.zenossHostname
+        hostname = hostname.replace("https://", "")
+        hostname = hostname.replace("http://", "")
+        return 'zenossuser_%s@%s' % (getSecurityManager().getUser().getId(), hostname)
 
 
     def getEmailFrom(self):
