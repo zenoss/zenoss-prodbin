@@ -761,30 +761,9 @@ Ext.getCmp('center_panel').add({
 });
 
 Ext.getCmp('templateTree').setContext(UID);
-Ext.create('Zenoss.BindTemplatesDialog', {
-    id: 'bindTemplatesDialog',
-    context: UID
-});
 
-Ext.create('Zenoss.ResetTemplatesDialog', {
-    id: 'resetTemplatesDialog',
-    context: UID
-});
 
-Ext.create('Zenoss.OverrideTemplatesDialog', {
-    id: 'overrideTemplatesDialog',
-    context: UID
-});
 
-Ext.create('Zenoss.AddLocalTemplatesDialog', {
-    id: 'addLocalTemplatesDialog',
-    context: UID
-});
-
-Ext.create('Zenoss.removeLocalTemplateDialog', {
-    id: 'removeLocalTemplatesDialog',
-    context: UID
-});
 
 var editDeviceClass = function(deviceClass, uid) {
 
@@ -951,35 +930,45 @@ Ext.getCmp('footer_bar').add([{
         text: _t('Bind Templates'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('bindTemplatesDialog').show();
+            Ext.create('Zenoss.BindTemplatesDialog', {
+                context: UID
+            }).show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Add Local Template'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('addLocalTemplatesDialog').show();
+            Ext.create('Zenoss.AddLocalTemplatesDialog', {
+                context: UID
+            }).show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Remove Local Template'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('removeLocalTemplatesDialog').show();
+            Ext.create('Zenoss.removeLocalTemplateDialog', {
+                context: UID
+            }).show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Reset Bindings'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('resetTemplatesDialog').show();
+            Ext.create('Zenoss.ResetTemplatesDialog', {
+                context: UID
+            }).show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Override Template Here'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('overrideTemplatesDialog').show();
+            Ext.create('Zenoss.OverrideTemplatesDialog', {
+                context: UID
+            }).show();
         }
     },'-',{
         xtype: 'menuitem',
