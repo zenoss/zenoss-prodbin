@@ -37,7 +37,7 @@ class MonitorRouter(TreeRouter):
         @return:  Object representing the tree
         """
         facade = self._getFacade()
-        monitors = facade.queryPerformanceMonitors()
+        monitors = facade.query()
         nodes = map(ITreeNode, monitors)
         data = Zuul.marshal(nodes)
         return data
@@ -75,5 +75,5 @@ class MonitorRouter(TreeRouter):
         facade = Zuul.getFacade('monitors', self.context)
         collectors = [IInfo(collector) for collector in facade.query()]
         return DirectResponse.succeed(data=Zuul.marshal(collectors))
-        
-                        
+
+
