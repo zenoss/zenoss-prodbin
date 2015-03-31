@@ -255,6 +255,13 @@ class EventsRouter(DirectRouter):
                 asof = time.time()
                 )
 
+        exclude_params = self._filterParser.findExclusionParams(params)
+        if len(exclude_params) > 0:
+            if exclusion_filter is None:
+                exclusion_filter = exclude_params
+            else:
+                exclusion_filter.update(exclude_params)
+
         filter = self._buildFilter([uid], params)
         if exclusion_filter is not None:
             exclusion_filter = self._buildFilter([uid], exclusion_filter)

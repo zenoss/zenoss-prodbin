@@ -176,9 +176,11 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
         index instances of this service class to ensure changes made on the
         Service Class are reflected in the instances indexes
         """
+        monitor = self.zMonitor
         for inst in self.instances(): 
-                inst = inst.primaryAq()
-                inst.index_object()
+            inst.monitor = monitor
+            inst = inst.primaryAq()
+            inst.index_object()
 
     security.declareProtected('Manage DMD', 'manage_editServiceClass')
     def manage_editServiceClass(self, name="", monitor=False, serviceKeys="",
@@ -190,9 +192,7 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
         id = self.prepId(name)
         if self.zMonitor != monitor:
             self.setZenProperty("zMonitor", monitor)
-            for inst in self.instances(): 
-                inst = inst.primaryAq()
-                inst.index_object()
+            self._indexInstances()
         redirect = self.rename(id)
         serviceKeys = [ l.strip() for l in serviceKeys.split('\n') ]
         if serviceKeys != self.serviceKeys:

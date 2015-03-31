@@ -5,7 +5,8 @@
         "will be performed on it. The mapping keys for formatting are:",
         "    %(daemon)s : The name of the daemon (e.g., zenping)",
         "    %(zenhome)s : The location of $ZENHOME (e.g., /opt/zenoss)",
-        "    %(daemonpath)s : The absolute path of of the daemon executable"
+        "    %(daemonpath)s : The absolute path of of the daemon executable",
+        "    %(daemondir)s : The directory in which daemon is located"
     ],
     "Actions": {
         "debug": "su - zenoss -c '%(daemonpath)s debug'",
@@ -299,11 +300,7 @@
         },
         "redis_answering": {
             "Script": "redis-cli ping | grep -q PONG",
-            "Interval": 3.0
-        },
-        "logging": {
-            "Script": "f='%(zenhome)s/log/%(daemon)s.log'; [ -f $f ] && [ $(( $(date '+%%s') - $(stat -c '%%Z' $f) )) -lt 6 ]",
-            "Interval": 3.0
+            "Interval": 10.0
         }
     },
     "RAMCommitment": "%(ZenPack.Default.RAMCommitment)s",
