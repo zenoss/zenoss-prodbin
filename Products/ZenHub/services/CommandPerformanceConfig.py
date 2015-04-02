@@ -145,6 +145,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                     cmd.primaryUrlPath = comp.processClassPrimaryUrlPath()
                     cmd.generatedId = comp.id
                     cmd.displayName = comp.displayName
+                    cmd.sequence = comp.osProcessClass().sequence
 
                 # If the datasource supports an environment dictionary, use it
                 cmd.env = getattr(ds, 'env', None)
