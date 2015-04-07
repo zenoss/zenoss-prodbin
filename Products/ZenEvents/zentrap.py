@@ -20,6 +20,7 @@ import socket
 import errno
 import base64
 import logging
+import os.path
 from collections import defaultdict
 from struct import unpack
 from ipaddr import IPAddress
@@ -32,9 +33,14 @@ import ctypes as c
 import Globals
 import zope.interface
 import zope.component
+from zope.interface import implements
 
 from twisted.python.failure import Failure
 from twisted.internet import defer
+
+from Products.ZenHub.interfaces import ICollectorEventTransformer, \
+                                       TRANSFORM_CONTINUE, \
+                                       TRANSFORM_DROP
 
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
@@ -51,6 +57,7 @@ from pynetsnmp import netsnmp, twistedsnmp
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.SnmpTrapConfig import User
 unused(Globals, DeviceProxy, User)
@@ -143,6 +150,11 @@ class SnmpTrapPreferences(CaptureReplay):
                                help=("Read from an existing connection "
                                      " rather than opening a new port."),
                                default=None)
+        parser.add_option('--trapfilterfile',
+                          dest='trapFilterFile',
+                          type='string',
+                          help=("File that contains trap oids to keep, should be in $ZENHOME/etc."),
+                          default=None)
 
         self.buildCaptureReplayOptions(parser)
 
@@ -673,14 +685,17 @@ class TrapTask(BaseTask, CaptureReplay):
         # PDU contains an SNMPv1 trap if the enterprise_length is greater
         # than zero in addition to the PDU version being 0.
         if pdu.version == SNMPv1 or pdu.enterprise_length > 0:
+            self.log.info("SNMPv1 trap, Addr: %s PDU Agent Addr: %s", str(addr), str(pdu.agent_addr))
             self.log.debug("SNMPv1 trap, Addr: %s PDU Agent Addr: %s", str(addr), str(pdu.agent_addr))
             eventType, result = self.decodeSnmpv1(addr, pdu)
         elif pdu.version in (SNMPv2, SNMPv3):
+            self.log.info("SNMPv2 or v3 trap, Addr: %s", str(addr))
             self.log.debug("SNMPv2 or v3 trap, Addr: %s", str(addr))
             eventType, result = self.decodeSnmpv2(addr, pdu)
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
+        self.log.info("asyncHandleTrap: oid=%s", result['oid')]
 
         community = self.getCommunity(pdu)
         self.sendTrapEvent(result, community, eventType,
@@ -755,10 +770,81 @@ class MibConfigTask(ObservableMixin):
     def cleanup(self):
         pass
 
+class TrapFilter(object):
+    implements(ICollectorEventTransformer)
+    """
+    Interface used to perform filtering of events at the collector. This could be
+    used to drop events, transform event content, etc.
+
+    These transformers are run sequentially before a fingerprint is generated for
+    the event, so they can set fields which are used by an ICollectorEventFingerprintGenerator.
+
+    The priority of the event transformer (the transformers are executed in
+    ascending order using the weight of each filter).
+    """
+    weight = 1
+    def __init__(self):
+        self._daemon = None
+        self._eventService = None
+        self._oids = set()
+        self._initialized = False
+
+    def _read_oids(self):
+        oids = set()
+        fileName = self._daemon.options.trapFilterFile
+        if fileName:
+            path = zenPath('etc', fileName)
+            if os.path.exists(path):
+                with open(path) as oidFile:
+                    for line in oidFile:
+                        line = line.strip()
+                        if not line.startswith('#'):
+                            #remove leading and trailing dots
+                            line = line.strip('.')
+                            oids.add(line)
+            else:
+                log.warn("Config file {0} was not found; no zentrap filters added.".format(path))
+        return oids
+
+    def initialize(self):
+        self._daemon = zope.component.getUtility(ICollector)
+        self._eventService = zope.component.queryUtility(IEventService)
+        self._oids = self._read_oids()
+        self._initialized = True
+
+    def transform(self, event):
+        """
+        Performs any transforms of the specified event at the collector.
+
+        @param event: The event to transform.
+        @type event: dict
+        @return: Returns TRANSFORM_CONTINUE if this event should be forwarded on
+                 to the next transformer in the sequence, TRANSFORM_STOP if no
+                 further transformers should be performed on this event, and
+                 TRANSFORM_DROP if the event should be dropped.
+        @rtype: int
+        """
+        result = TRANSFORM_CONTINUE
+        trapOid = event.get('oid', None)
+        if trapOid and self._initialized and self._oids:
+            log.info("Filtering trap %s", trapOid)
+            if self._dropOid(trapOid):
+                log.debug("Dropping trap %s", trapOid)
+                result = TRANSFORM_DROP
+        return result
+
+    def _dropOid(self, oid):
+        return oid not in self._oids
 
 class TrapDaemon(CollectorDaemon):
 
     _frameworkFactoryName = "nosip"
+
+    def __init__(self, *args, **kwargs):
+        self._trapFilter = TrapFilter()
+        zope.component.provideUtility(self._trapFilter, ICollectorEventTransformer)
+        super(TrapDaemon, self).__init__(*args, **kwargs)
+        self._trapFilter.initialize()
 
     def runPostConfigTasks(self, result=None):
         # 1) super sets self._prefs.task with the call to postStartupTasks
