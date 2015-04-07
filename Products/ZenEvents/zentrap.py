@@ -154,7 +154,7 @@ class SnmpTrapPreferences(CaptureReplay):
                           dest='trapFilterFile',
                           type='string',
                           help=("File that contains trap oids to keep, should be in $ZENHOME/etc."),
-                          default=None)
+                          default="zentrap.filter.conf")
 
         self.buildCaptureReplayOptions(parser)
 
@@ -593,7 +593,7 @@ class TrapTask(BaseTask, CaptureReplay):
             result[detail_name_stripped].append(str(value))
 
     def decodeSnmpv1(self, addr, pdu):
-        result = {}
+        result = {"_snmp_version": "1"}
 
         variables = self.getResult(pdu)
 
@@ -644,7 +644,7 @@ class TrapTask(BaseTask, CaptureReplay):
 
     def decodeSnmpv2(self, addr, pdu):
         eventType = 'unknown'
-        result = {"oid": "", "device": addr[0]}
+        result = {"_snmp_version": "2", "oid": "", "device": addr[0]}
         variables = self.getResult(pdu)
 
         vb_result = defaultdict(list)
@@ -685,17 +685,15 @@ class TrapTask(BaseTask, CaptureReplay):
         # PDU contains an SNMPv1 trap if the enterprise_length is greater
         # than zero in addition to the PDU version being 0.
         if pdu.version == SNMPv1 or pdu.enterprise_length > 0:
-            self.log.info("SNMPv1 trap, Addr: %s PDU Agent Addr: %s", str(addr), str(pdu.agent_addr))
             self.log.debug("SNMPv1 trap, Addr: %s PDU Agent Addr: %s", str(addr), str(pdu.agent_addr))
             eventType, result = self.decodeSnmpv1(addr, pdu)
         elif pdu.version in (SNMPv2, SNMPv3):
-            self.log.info("SNMPv2 or v3 trap, Addr: %s", str(addr))
             self.log.debug("SNMPv2 or v3 trap, Addr: %s", str(addr))
             eventType, result = self.decodeSnmpv2(addr, pdu)
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
-        self.log.info("asyncHandleTrap: oid=%s", result['oid')]
+        self.log.debug("asyncHandleTrap: eventType=%s oid=%s snmpVersion=%s", eventType, result['oid'], result['_snmp_version'])
 
         community = self.getCommunity(pdu)
         self.sendTrapEvent(result, community, eventType,
@@ -797,11 +795,16 @@ class TrapFilter(object):
             if os.path.exists(path):
                 with open(path) as oidFile:
                     for line in oidFile:
+                        if line.startswith('#'):
+                            continue
+
+                        # remove leading and trailing whitespace, dots
                         line = line.strip()
-                        if not line.startswith('#'):
-                            #remove leading and trailing dots
-                            line = line.strip('.')
+                        line = line.strip('.')
+                        if line:
                             oids.add(line)
+
+                log.info("Found %d filters in %s", len(oids), format(path))
             else:
                 log.warn("Config file {0} was not found; no zentrap filters added.".format(path))
         return oids
@@ -827,10 +830,13 @@ class TrapFilter(object):
         result = TRANSFORM_CONTINUE
         trapOid = event.get('oid', None)
         if trapOid and self._initialized and self._oids:
-            log.info("Filtering trap %s", trapOid)
+            log.debug("Filtering V%s trap %s", event.get('_snmp_version', "undefined"), trapOid)
             if self._dropOid(trapOid):
                 log.debug("Dropping trap %s", trapOid)
                 result = TRANSFORM_DROP
+        else:
+            log.debug("Skipping filter for oid=%s, initialized=%s len(oids)=%d",
+                trapOid, self._initialized, len(self._oids))
         return result
 
     def _dropOid(self, oid):
