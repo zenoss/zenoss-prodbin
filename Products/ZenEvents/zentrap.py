@@ -150,11 +150,11 @@ class SnmpTrapPreferences(CaptureReplay):
                                help=("Read from an existing connection "
                                      " rather than opening a new port."),
                                default=None)
-        parser.add_option('--trapfilterfile',
+        parser.add_option('--trapFilterFile',
                           dest='trapFilterFile',
                           type='string',
                           help=("File that contains trap oids to keep, should be in $ZENHOME/etc."),
-                          default="zentrap.filter.conf")
+                          default=None)
 
         self.buildCaptureReplayOptions(parser)
 
@@ -593,7 +593,7 @@ class TrapTask(BaseTask, CaptureReplay):
             result[detail_name_stripped].append(str(value))
 
     def decodeSnmpv1(self, addr, pdu):
-        result = {"_snmp_version": "1"}
+        result = {"snmpVersion": "1"}
 
         variables = self.getResult(pdu)
 
@@ -606,6 +606,10 @@ class TrapTask(BaseTask, CaptureReplay):
         enterprise = self.getEnterpriseString(pdu)
         generic = pdu.trap_type
         specific = pdu.specific_type
+
+        result["snmpV1Enterprise"] = enterprise
+        result["snmpV1GenericTrapType"] = generic
+        result["snmpV1SpecificTrap"] = specific
 
         # Try an exact match with a .0. inserted between enterprise and
         # specific OID. It seems that MIBs frequently expect this .0.
@@ -644,7 +648,7 @@ class TrapTask(BaseTask, CaptureReplay):
 
     def decodeSnmpv2(self, addr, pdu):
         eventType = 'unknown'
-        result = {"_snmp_version": "2", "oid": "", "device": addr[0]}
+        result = {"snmpVersion": "2", "oid": "", "device": addr[0]}
         variables = self.getResult(pdu)
 
         vb_result = defaultdict(list)
@@ -693,7 +697,7 @@ class TrapTask(BaseTask, CaptureReplay):
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
-        self.log.debug("asyncHandleTrap: eventType=%s oid=%s snmpVersion=%s", eventType, result['oid'], result['_snmp_version'])
+        self.log.debug("asyncHandleTrap: eventType=%s oid=%s snmpVersion=%s", eventType, result['oid'], result['snmpVersion'])
 
         community = self.getCommunity(pdu)
         self.sendTrapEvent(result, community, eventType,
@@ -768,6 +772,130 @@ class MibConfigTask(ObservableMixin):
     def cleanup(self):
         pass
 
+
+class BaseFilterDefinition(object):
+    def __init__(self, lineNumber=None, action=None):
+        self.lineNumber =  lineNumber
+        self.action = action
+
+class GenericTrapFilter(BaseFilterDefinition):
+    def __init__(self, lineNumber=None, action=None, genericTrap=None):
+        BaseFilterDefinition.__init__(self, lineNumber, action)
+        self.genericTrap = genericTrap
+
+    def __eq__(self, other):
+        """
+        >>> base1 = GenericTrapFilter(0, "include", "1")
+        >>> base2 = GenericTrapFilter(0, "include", "1")
+        >>> print base1 == base2
+        True
+        >>> base1 = GenericTrapFilter(0, "include", "1")
+        >>> base2 = GenericTrapFilter(0, "include", "2")
+        >>> print base1 == base2
+        False
+
+        If the traps are the same but actions are different, they are still equal
+        >>> base1 = GenericTrapFilter(0, "include", "1")
+        >>> base2 = GenericTrapFilter(0, "exclude", "1")
+        >>> print base1 == base2
+        True
+        >>> base1 = GenericTrapFilter(0, "include", "1")
+        >>> base2 = BaseFilterDefinition(0, "include")
+        >>> print base1 == base2
+        False
+        """
+        if isinstance(other, GenericTrapFilter):
+            return self.genericTrap == other.genericTrap
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        >>> base1 = GenericTrapFilter(0, "include", "1")
+        >>> base2 = GenericTrapFilter(0, "include", "1")
+        >>> print  base1.__hash__() == base2.__hash__()
+        True
+        >>> base1 = GenericTrapFilter(0, "include", "1")
+        >>> base2 = GenericTrapFilter(0, "include", "2")
+        >>> print  base1.__hash__() == base2.__hash__()
+        False
+
+        If the traps are the same but actions are different, they are still equal
+        >>> base1 = GenericTrapFilter(0, "include", "1")
+        >>> base2 = GenericTrapFilter(0, "exclude", "1")
+        >>> print  base1.__hash__() == base2.__hash__()
+        True
+        """
+        return hash(self.genericTrap)
+
+class OIDBasedFilter(BaseFilterDefinition):
+    def __init__(self, lineNumber=None, action=None, oid=None):
+        BaseFilterDefinition.__init__(self, lineNumber, action)
+        self.oid = oid
+
+    def levels(self):
+        return self.oid.count(".") if self.oid else 0
+
+    def __eq__(self, other):
+        """
+        >>> base1 = OIDBasedFilter(0, "include", "1.2.3.4.5")
+        >>> base2 = OIDBasedFilter(0, "include", "1.2.3.4.5")
+        >>> print  base1 == base2
+        True
+        >>> base1 = OIDBasedFilter(0, "include", "1.2.3.4.5")
+        >>> base2 = OIDBasedFilter(0, "include", "5.4.3.2.1")
+        >>> print  base1 == base2
+        False
+
+        If the oids are the same but actions are different, they are still equal
+        >>> base1 = OIDBasedFilter(0, "include", "1.2.3.4.5")
+        >>> base2 = OIDBasedFilter(0, "exclude", "1.2.3.4.5")
+        >>> print  base1 == base2
+        True
+        >>> base1 = OIDBasedFilter(0, "include", "1")
+        >>> base2 = BaseFilterDefinition(0, "include")
+        >>> print  base1 == base2
+        False
+        """
+        if isinstance(other, OIDBasedFilter):
+            return self.oid == other.oid
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        >>> base1 = OIDBasedFilter(0, "include", "1.2.3.4.5")
+        >>> base2 = OIDBasedFilter(0, "include", "1.2.3.4.5")
+        >>> print  base1.__hash__() == base2.__hash__()
+        True
+        >>> base1 = OIDBasedFilter(0, "include", "1.2.3.4.5")
+        >>> base2 = OIDBasedFilter(0, "include", "5.4.3.2.1")
+        >>> print  base1.__hash__() == base2.__hash__()
+        False
+
+        If the oids are the same but actions are different, they are still equal
+        >>> base1 = OIDBasedFilter(0, "include", "1.2.3.4.5")
+        >>> base2 = OIDBasedFilter(0, "exclude", "1.2.3.4.5")
+        >>> print  base1.__hash__() == base2.__hash__()
+        True
+        """
+        return hash(self.oid)
+
+class V1Filter(OIDBasedFilter):
+    def __init__(self, lineNumber=None, action=None, oid=None):
+        OIDBasedFilter.__init__(self, lineNumber, action, oid)
+        self.specificTrap = None
+
+class V2Filter(OIDBasedFilter):
+    def __init__(self, lineNumber=None, action=None, oid=None):
+        OIDBasedFilter.__init__(self, lineNumber, action, oid)
+
 class TrapFilter(object):
     implements(ICollectorEventTransformer)
     """
@@ -785,24 +913,152 @@ class TrapFilter(object):
         self._daemon = None
         self._eventService = None
         self._oids = set()
+
+        # Map of SNMP V1 Generic Trap filters where key is the generic trap number and value is a GenericTrapFilter
+        self._v1Traps = dict()
+
+        # Map of SNMP V1 enterprise-specific traps where key is the count of levels in an OID, and
+        # value is a map of unique V1Filter objects for that number of OID levels. The map of V1Filter objects is keyed
+        # by OID
+        self._v1Filters = dict()
+        self._v2Filters = dict()
         self._initialized = False
 
-    def _read_oids(self):
+    def _parseFilterDefinition(self, line, lineNumber):
+        """
+           Parse an SNMP filter definition of the format
+           include|exclude v1|v2 <version-specific options
+
+        @param line: The filter definition to parse
+        @type line: string
+        @param lineNumber: The line number of the filter defintion within the file
+        @type line: int
+        @return: Returns None on success, or an error message on failure
+        @rtype: string
+
+        >>> filter = TrapFilter()
+        >>> print  _parseFilterDefinition("a b", 0)
+        Incomplete definition at line 0
+        """
+        tokens = line.split()
+        if len(tokens) < 3:
+            return "Incomplete definition at line %d" % lineNumber
+
+        action = tokens[0].lower()
+        snmpVersion = tokens[1].lower()
+        if action != "include" and action != "exclude":
+            return "Invalid action '%s' at line %d; the only valid actions are 'include' or 'exclude'" % (action, lineNumber)
+        elif snmpVersion != "v1" and snmpVersion != "v2":
+            return "Invalid SNMP version '%s' at line %d" % (snmpVersion, lineNumber)
+
+        if snmpVersion == "v1":
+            return self._parseV1Filter(lineNumber, action, tokens[2:])
+
+        return self._parseV2Filter(lineNumber, action, tokens[2:])
+
+    def _parseV1Filter(self, lineNumber, action, remainingTokens):
+        """
+           Parse an SNMP V1 filter definition
+
+        @param lineNumber: The line number of the filter defintion within the file
+        @type line: int
+        @param action: The action for this line (include or exclude)
+        @type line: string
+        @param remainingTokens: The remaining (unparsed) tokens from the filter definition
+        @type line: string array
+        @return: Returns None on success, or an error message on failure
+        @rtype: string
+
+        >>> filter = TrapFilter()
+        >>> print  _parseV1Filter(0, "include", ['a', 'b', 'c'])
+        Too many fields found at line 0; at most 4 fields allowed for V1 filters
+        """
+        if len(remainingTokens) > 2:
+            return "Too many fields found at line %d; at most 4 fields allowed for V1 filters" % lineNumber
+
+        oidOrGenericTrap = remainingTokens[0].strip(".")
+        if not oidOrGenericTrap:
+            return "Empty OID at line %d" % lineNumber
+
+        if len(oidOrGenericTrap) == 1:
+            if not oidOrGenericTrap.isDigit() or not oidOrGenericTrap in "012345":
+                return "Invalid generic trap %s at line %d; must be one of 0-5" % (oidOrGenericTrap, lineNumber)
+
+            genericTrap = GenericTrapFilter(lineNumber, action, oidOrGenericTrap)
+            if genericTrap in self._v1Traps:
+                return "Generic trap %s at line %d conflicts with previous definition at line %d" & (oidOrGenericTrap, lineNumber, self._v1Traps.get(genericTrap).lineNumber)
+
+            self._v1Traps.add(genericTrap)
+            return True
+
+        v1FilterDef = V1Filter(lineNumber, action, oidOrGenericTrap)
+        if len(remainingTokens) == 2:
+            v1FilterDef.specificTrap = remainingTokens[1]
+
+        if v1FilterDef in self._v1Filters:
+            return "V1 trap %s at line %d conflicts with previous definition at line %d" % (oidOrGenericTrap, lineNumber, self._v1Filters.get(v1FilterDef).lineNumber)
+
+        self._v1Filters.add(v1FilterDef)
+        return None
+
+    def _parseV2Filter(self, lineNumber, action, remainingTokens):
+        """
+           Parse an SNMP V2 filter definition
+
+        @param lineNumber: The line number of the filter defintion within the file
+        @type line: int
+        @param action: The action for this line (include or exclude)
+        @type line: string
+        @param remainingTokens: The remaining (unparsed) tokens from the filter definition
+        @type line: string array
+        @return: Returns None on success, or an error message on failure
+        @rtype: string
+
+        >>> filter = TrapFilter()
+        >>> print  _parseV2Filter(0, "include", ['a', 'b'])
+        Too many fields found at line 0; at most 3 fields allowed for V2 filters
+        """
+        if len(remainingTokens) > 1:
+            return "Too many fields found at line %d; at most 3 fields allowed for V2 filters" % lineNumber
+
+        oid = remainingTokens[0].strip(".")
+        if not oid:
+            return "Empty OID at line %d" % lineNumber
+
+        v2FilterDef = V2Filter(lineNumber, action, oid)
+
+        mapByLevel = self._v2Filters.get(v2FilterDef.levels(), None)
+        if mapByLevel == None:
+            mapByLevel[oid] = {oid: v2FilterDef}
+            self._v2Filters.update({v2FilterDef.levels(), mapByLevel})
+        elif not mapByLevel[oid]:
+            mapByLevel[oid] = v2FilterDef
+        else:
+            return "V2 trap %s at line %d conflicts with previous definition at line %d" % (oid, lineNumber, mapByLevel[oid].lineNumber)
+        return None
+
+    def _read_filters(self):
         oids = set()
         fileName = self._daemon.options.trapFilterFile
         if fileName:
             path = zenPath('etc', fileName)
             if os.path.exists(path):
                 with open(path) as oidFile:
+                    lineNumber = 0
                     for line in oidFile:
+                        lineNumber += 1
                         if line.startswith('#'):
                             continue
 
                         # remove leading and trailing whitespace, dots
                         line = line.strip()
-                        line = line.strip('.')
-                        if line:
-                            oids.add(line)
+                        if not line:
+                            continue;
+
+                        oids.add(line)
+                        #if not self._parseFilterLine(line, lineNumber):
+                        #    log.error("Failed tp parse filter file %s at line %d. Exiting.", format(path), lineNumber)
+                        #    sys.exit(1)
 
                 log.info("Found %d filters in %s", len(oids), format(path))
             else:
@@ -812,7 +1068,7 @@ class TrapFilter(object):
     def initialize(self):
         self._daemon = zope.component.getUtility(ICollector)
         self._eventService = zope.component.queryUtility(IEventService)
-        self._oids = self._read_oids()
+        self._oids = self._read_filters()
         self._initialized = True
 
     def transform(self, event):
@@ -830,7 +1086,7 @@ class TrapFilter(object):
         result = TRANSFORM_CONTINUE
         trapOid = event.get('oid', None)
         if trapOid and self._initialized and self._oids:
-            log.debug("Filtering V%s trap %s", event.get('_snmp_version', "undefined"), trapOid)
+            log.debug("Filtering V%s trap %s", event.get('snmpVersion', "undefined"), trapOid)
             if self._dropOid(trapOid):
                 log.debug("Dropping trap %s", trapOid)
                 result = TRANSFORM_DROP
