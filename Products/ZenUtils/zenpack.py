@@ -754,12 +754,12 @@ class ZenPackCmd(ZenScriptBase):
                                action="store_true",
                                default=False,
                                help='List installed ZenPacks')
-        self.parser.add_option('--keep-for-restore',
+        self.parser.add_option('--keep-packs',
                                dest='keepPackNames',
                                action='append',
                                type='string',
                                default=None,
-                               help='For --restore, it allows the given zenpack not being erased')
+                               help='On --restore, list of packs names to not delete from disk if not found in zodb')
         self.parser.add_option('--link',
                                dest='link',
                                action="store_true",
