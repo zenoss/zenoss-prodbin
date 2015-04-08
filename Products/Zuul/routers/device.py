@@ -846,6 +846,24 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change priority.')
 
+    def moveCollectorDevices(self, srcCollector, dstCollector, hashcheck, uid=None, ranges=(),
+                     params=None, sort='name', dir='ASC', moveData=False,
+                     asynchronous=True):
+        """
+        Move all devices under one collector to another collector
+
+        The signature is exactly the same as setCollector(), except that the
+        'uids' parameter is replaces with 'srcCollector'
+
+        @type  srcCollector: string
+        @param srcCollector: The collector to move all devices from
+        """
+        monitorFacade = Zuul.getFacade('monitors', self.context)
+        srcCollectorObj = monitorFacade.get(srcCollector)
+        deviceUids = [ dev.getPrimaryId() for dev in srcCollectorObj.getDevices() ]
+        return self.setCollector(deviceUids, dstCollector, hashcheck, uid, ranges,
+                                 params, sort, dir, moveData, asynchronous)
+
     def setCollector(self, uids, collector, hashcheck, uid=None, ranges=(),
                      params=None, sort='name', dir='ASC', moveData=False,
                      asynchronous=True):
