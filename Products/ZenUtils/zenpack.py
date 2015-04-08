@@ -179,7 +179,7 @@ class ZenPackCmd(ZenScriptBase):
             installedEggs = [ p for p in iter_entry_points('zenoss.zenpacks') ]
             theOne = filter(lambda x: x.name == self.options.removePackName, installedEggs)
             if not theOne:
-                raise ZenPackNotFoundExeption("Specified zenpack not installed")
+                raise ZenPackNotFoundException("Specified zenpack not installed")
             if len(theOne) > 1:
                 raise ZenPackException("Multipe matching distributions for {} found - aborting.".format(self.options.removePackName))
             actualZPDir = theOne[0].dist.location
@@ -322,11 +322,15 @@ class ZenPackCmd(ZenScriptBase):
         # First take care of packs in the new image that aren't in the database
         fixedSomething = False
         for pack in self.onlyInImage():
-             with open(os.devnull, 'w') as fnull:
-                 log.info('Erasing zenpack from disk %s', pack)
-                 cmd = ['zenpack', '--erase', pack, '--files-only']
-                 subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
-                 fixedSomething = True
+            # skip those to be skipped
+            if pack in self.options.keepPackNames:
+                log.info('Keeping %s from being erased from disk', pack)
+                continue
+            with open(os.devnull, 'w') as fnull:
+                log.info('Erasing zenpack from disk %s', pack)
+                cmd = ['zenpack', '--erase', pack, '--files-only']
+                subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
+                fixedSomething = True
 
         zpsToRestore = {}
         linkedPacks = []
@@ -750,6 +754,12 @@ class ZenPackCmd(ZenScriptBase):
                                action="store_true",
                                default=False,
                                help='List installed ZenPacks')
+        self.parser.add_option('--keep',
+                               dest='keepPackNames',
+                               action='append',
+                               type='string',
+                               default=None,
+                               help='Ignore the given zenpack, (multiple)')
         self.parser.add_option('--link',
                                dest='link',
                                action="store_true",
