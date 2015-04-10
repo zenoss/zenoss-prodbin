@@ -33,7 +33,7 @@ from OFS.PropertyManager import PropertyManager
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass
-from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import getObjByPath, getObjByPath2
 
 from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenRelations.Exceptions import *
@@ -271,7 +271,7 @@ for a ZenPack.
         obj = None
         try:
             if id.startswith('/'):
-                obj = getObjByPath(self.app, id)
+                obj = getObjByPath2(self.app, id)
             else:
                 obj = self.context()._getOb(id)
         except (KeyError, AttributeError, NotFound):
