@@ -344,7 +344,8 @@ Ext.onReady(function() {
                     labelStyle: 'padding-left: 20px',
                     fieldLabel: 'Community Strings',
                     name: 'snmpcommunities',
-                    value: DEFAULT_SNMPCOMMUNITIES
+                    value: DEFAULT_SNMPCOMMUNITIES,
+                    allowBlank: false
                 }, Ext.apply(collectorDefinition, {
                     id: 'autodiscovery_collector',
                     name: 'autodiscovery_collector'
@@ -491,7 +492,8 @@ Ext.onReady(function() {
                         xtype: 'textarea',
                         fieldLabel: 'Community Strings',
                         name: 'snmpcomm_' + index,
-                        value: DEFAULT_SNMPCOMMUNITIES
+                        value: DEFAULT_SNMPCOMMUNITIES,
+                        allowBlank: false
                     }]
                 },
                 {
