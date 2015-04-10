@@ -12,6 +12,7 @@
 from Products.ZenEvents.TrapFilter import BaseFilterDefinition
 from Products.ZenEvents.TrapFilter import OIDBasedFilterDefinition
 from Products.ZenEvents.TrapFilter import GenericTrapFilterDefinition
+from Products.ZenEvents.TrapFilter import V2FilterDefinition
 from Products.ZenEvents.TrapFilter import TrapFilter
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
@@ -452,6 +453,198 @@ class TrapFilterTest(BaseTestCase):
         # Verify we find a conflict for glob-based OIDs where the action differs
         results = filter._parseV2FilterDefinition(102, "exclude", [".1.3.6.1.4.*"])
         self.assertEquals(results, "OID '1.3.6.1.4.*' conflicts with previous definition at line 101")
+
+    def testDropV2EventForSimpleExactMatch(self):
+        filterDef = V2FilterDefinition(99, "exclude", "1.2.3.4")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[4] = filtersByLevel
+
+        event = {"snmpVersion": "2", "oid": "1.2.3.4"}
+        self.assertTrue(filter._dropV2Event(event))
+
+        filterDef.action = "include"
+        self.assertFalse(filter._dropV2Event(event))
+
+    def testDropV2EventForSimpleGlobMatch(self):
+        filterDef = V2FilterDefinition(99, "exclude", "1.2.3.*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[4] = filtersByLevel
+
+        event = {"snmpVersion": "2", "oid": "1.2.3.4"}
+        self.assertTrue(filter._dropV2Event(event))
+
+        filterDef.action = "include"
+        self.assertFalse(filter._dropV2Event(event))
+
+    # This test uses 1 filters for each of two OID levels where the filter specifies an exact match
+    def testDropV2EventForSimpleExactMatches(self):
+        filterDef = V2FilterDefinition(99, "include", "1.2.3")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[3] = filtersByLevel
+
+        filterDef = V2FilterDefinition(99, "include", "1.2.3.4")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter._v2Filters[4] = filtersByLevel
+
+        event = {"snmpVersion": "2", "oid": "1.2.3"}
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.4"
+        self.assertFalse(filter._dropV2Event(event))
+
+        # OIDs with fewer or more levels than the existing filters should NOT match
+        event["oid"] = "1.2"
+        self.assertTrue(filter._dropV2Event(event))
+        event["oid"] = "1.2.3.4.9"
+        self.assertTrue(filter._dropV2Event(event))
+
+        # OIDs that differ only in the last level should NOT match
+        event["oid"] = "1.2.9"
+        self.assertTrue(filter._dropV2Event(event))
+        event["oid"] = "1.2.3.9"
+        self.assertTrue(filter._dropV2Event(event))
+
+    # This test uses 1 filters for each of two OID levels where the filter specifies a glob match
+    def testDropV2EventForSimpleGlobMatches(self):
+        filterDef = V2FilterDefinition(99, "include", "1.2.3.*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[4] = filtersByLevel
+
+        filterDef = V2FilterDefinition(99, "include", "1.2.3.4.5.*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter._v2Filters[6] = filtersByLevel
+
+        event = {"snmpVersion": "2", "oid": "1.2.3.4"}
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.99"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.99.5"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.4.99"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.4.5"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.4.5.99"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1"
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3"
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.99.4"
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.99.4.5.6"
+        self.assertTrue(filter._dropV2Event(event))
+
+    def testDropV2EventIncludeAll(self):
+        filterDef = V2FilterDefinition(99, "include", "*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[1] = filtersByLevel
+
+        event = {"snmpVersion": "2", "oid": "1"}
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1."
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3"
+        self.assertFalse(filter._dropV2Event(event))
+
+    def testDropV2EventExcludeAll(self):
+        filterDef = V2FilterDefinition(99, "exclude", "*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[1] = filtersByLevel
+
+        event = {"snmpVersion": "2", "oid": "1"}
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3"
+        self.assertTrue(filter._dropV2Event(event))
+
+    def testDropV2EventExcludeAllBut(self):
+        filterDef = V2FilterDefinition(99, "exclude", "*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[1] = filtersByLevel
+
+        filterDef = V2FilterDefinition(99, "include", "1.2.3.*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter._v2Filters[4] = filtersByLevel
+
+        filterDef = V2FilterDefinition(99, "include", "1.4.5")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter._v2Filters[3] = filtersByLevel
+
+        event = {"snmpVersion": "2", "oid": "1"}
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.2"
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3"
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.4.5.1"
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.4.5"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.4"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.4.5"
+        self.assertFalse(filter._dropV2Event(event))
+
+    def testDropV2EventIncludeAllBut(self):
+        filterDef = V2FilterDefinition(99, "include", "*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[1] = filtersByLevel
+
+        filterDef = V2FilterDefinition(99, "exclude", "1.2.3.*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter._v2Filters[4] = filtersByLevel
+
+        filterDef = V2FilterDefinition(99, "exclude", "1.4.5")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter._v2Filters[3] = filtersByLevel
+
+        event = {"snmpVersion": "2", "oid": "1"}
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.4.5.1"
+        self.assertFalse(filter._dropV2Event(event))
+
+        event["oid"] = "1.4.5"
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.4"
+        self.assertTrue(filter._dropV2Event(event))
+
+        event["oid"] = "1.2.3.4.5"
+        self.assertTrue(filter._dropV2Event(event))
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

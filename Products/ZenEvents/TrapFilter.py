@@ -31,6 +31,31 @@ from Products.ZenUtils.Utils import unused, zenPath
 log = logging.getLogger("zen.zentrap")
 
 
+def countOidLevels(oid):
+    """
+    @return: The number of levels in an OID
+    @rtype: int
+    """
+    return oid.count(".") + 1 if oid else 0
+
+def getNextHigherGlobbedOid(oid):
+    """
+    Gets the next highest globbed OID based on OID hierarchy.
+    For instance, given an oid of or "1.2.3.4" or 1.2.3.4.*", return "1.2.3.*".
+
+    @return: The next highest globbed OID up to just "*"
+    @rtype: string
+    """
+    dotIndex = oid.rfind(".")
+    if dotIndex != -1 and oid[dotIndex:] == ".*":
+        dotIndex = oid.rfind('.', 0, dotIndex)
+
+    if dotIndex < 1 or dotIndex == len(oid)-1:
+        nextGlobbedOID = "*"
+    else:
+        nextGlobbedOID = ''.join([oid[0:dotIndex], ".*"])
+    return nextGlobbedOID
+
 class BaseFilterDefinition(object):
     def __init__(self, lineNumber=None, action=None):
         self.lineNumber =  lineNumber
@@ -59,7 +84,7 @@ class OIDBasedFilterDefinition(BaseFilterDefinition):
         self.oid = oid
 
     def levels(self):
-        return self.oid.count(".") + 1 if self.oid else 0
+        return countOidLevels(self.oid)
 
     def __eq__(self, other):
         if isinstance(other, OIDBasedFilterDefinition):
@@ -199,14 +224,14 @@ class TrapFilter(object):
             else:
                 return "Missing specific trap number or '*'"
 
-        mapByLevel = self._v1Filters.get(filterDef.levels(), None)
-        if mapByLevel == None:
-            mapByLevel = {oid: filterDef}
-            self._v1Filters[filterDef.levels()] = mapByLevel
-        elif oid not in mapByLevel:
-            mapByLevel[oid] = filterDef
+        filtersByLevel = self._v1Filters.get(filterDef.levels(), None)
+        if filtersByLevel == None:
+            filtersByLevel = {oid: filterDef}
+            self._v1Filters[filterDef.levels()] = filtersByLevel
+        elif oid not in filtersByLevel:
+            filtersByLevel[oid] = filterDef
         else:
-            previousDefinition = mapByLevel[oid]
+            previousDefinition = filtersByLevel[oid]
             return "OID '%s' conflicts with previous definition at line %d" % (oid, previousDefinition.lineNumber)
         return None
 
@@ -241,14 +266,14 @@ class TrapFilter(object):
 
         filterDef = V2FilterDefinition(lineNumber, action, oid)
 
-        mapByLevel = self._v2Filters.get(filterDef.levels(), None)
-        if mapByLevel == None:
-            mapByLevel = {oid: filterDef}
-            self._v2Filters[filterDef.levels()] = mapByLevel
-        elif oid not in mapByLevel:
-            mapByLevel[oid] = filterDef
+        filtersByLevel = self._v2Filters.get(filterDef.levels(), None)
+        if filtersByLevel == None:
+            filtersByLevel = {oid: filterDef}
+            self._v2Filters[filterDef.levels()] = filtersByLevel
+        elif oid not in filtersByLevel:
+            filtersByLevel[oid] = filterDef
         else:
-            previousDefinition = mapByLevel[oid]
+            previousDefinition = filtersByLevel[oid]
             return "OID '%s' conflicts with previous definition at line %d" % (oid, previousDefinition.lineNumber)
         return None
 
@@ -331,18 +356,68 @@ class TrapFilter(object):
         @rtype: int
         """
         result = TRANSFORM_CONTINUE
-        trapOid = event.get('oid', None)
         snmpVersion = event.get('snmpVersion', None)
-        if trapOid and snmpVersion and self._filtersDefined:
-            log.debug("Filtering V%s trap %s", snmpVersion, trapOid)
-            if self._dropOid(trapOid):
-                log.debug("Dropping trap %s", trapOid)
+        if snmpVersion and self._filtersDefined:
+            log.debug("Filtering V%s event %s", snmpVersion, event)
+            if self._dropEvent(event):
+                log.debug("Dropping event %s", event)
                 result = TRANSFORM_DROP
         else:
             log.debug("Skipping filter for event=%s, filtersDefined=%s",
                       event, self._filtersDefined)
         return result
 
-    def _dropOid(self, oid):
-        # FIXME: implement the new filtering logic here
-        return False
+    def _dropEvent(self, event):
+        """
+        Determine if an event should be dropped. Assumes there are some filters defined, so the
+        default if no matching filter is found should be True (i.e. the event did not match any
+        existing filter to keep it, so drop it).
+
+        @param event: The event to drop or keep.
+        @return: Returns True if the event should be dropped; False if the event be kept.
+        @rtype: boolean
+        """
+        result = True
+        snmpVersion = event.get('snmpVersion', None)
+
+        if snmpVersion == "1":
+            result = self._dropV1Event(event)
+        elif snmpVersion == "2":
+            result = self._dropV2Event(event)
+
+        return result
+
+    def _dropV1Event(self, event):
+        return True
+
+    def _dropV2Event(self, event):
+        oid = event["oid"]
+
+        # First, try an exact match on the OID
+        filterDefinition = self._findV2Filter(oid)
+        if filterDefinition != None:
+            log.debug("_dropV2Event: matched definition %s", filterDefinition)
+            return filterDefinition.action == "exclude"
+
+        # Convert the OID to its globbed equivalent and try that
+        globbedValue = oid
+        while globbedValue != "*":
+            globbedValue = getNextHigherGlobbedOid(globbedValue)
+            filterDefinition = self._findV2Filter(globbedValue)
+            if filterDefinition:
+                break
+
+        if filterDefinition == None:
+            log.debug("_dropV2Event: no matching definitions found")
+            return True
+
+        log.debug("_dropV2Event: matched definition %s", filterDefinition)
+        return filterDefinition.action == "exclude"
+
+    def _findV2Filter(self, oid):
+        filterDefinition = None
+        oidLevels = countOidLevels(oid)
+        filtersByLevel = self._v2Filters.get(oidLevels, None)
+        if filtersByLevel != None and len(filtersByLevel) > 0:
+            filterDefinition = filtersByLevel.get(oid, None)
+        return filterDefinition
