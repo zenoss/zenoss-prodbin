@@ -152,6 +152,13 @@ function treeselectionchange(sm, newnodes) {
     }
     var newnode = newnodes[0];
     var uid = newnode.data.uid;
+    if (uid.match(/:backward:|:forward:/)) {
+        var uid = uid.split(':'), // uid = [actual_uid,direction,shift_value]
+            dir = ':' + uid[1] + ':';
+        Ext.getCmp(sm.id).refresh(null,null,uid[2],dir);
+        Ext.getCmp('NetworkDetailCardPanel').getInstancesGrid().refresh();
+        return;
+    }
 
     Ext.getCmp('NetworkDetailCardPanel').setContext(uid);
 

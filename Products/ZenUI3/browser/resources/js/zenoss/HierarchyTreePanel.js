@@ -729,8 +729,16 @@
             // is the top level organizer (e.g. Locations, Groups)
             return orgPieces[3] === targetPieces[3];
         },
-        refresh:function (callback, scope) {
-            this.getStore().load({
+        refresh:function (callback, scope, shift, direction) {
+            var store = this.getStore();
+            var uid = store.tree.root.data.uid;
+            if (shift) {
+                if (uid.match(/:backward:|:forward:/)) {
+                    uid = uid.split(':')[0];
+                }
+                store.tree.root.data.uid = uid + direction + shift;
+            }
+            store.load({
                 scope:this,
                 callback:function () {
                     this.getRootNode().expand();
