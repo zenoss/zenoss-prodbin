@@ -9,10 +9,10 @@
 
 #runtests -v -t unit Products.ZenEvents -m testZentrap
 
-from Products.ZenEvents.zentrap import BaseFilterDefinition
-from Products.ZenEvents.zentrap import OIDBasedFilterDefinition
-from Products.ZenEvents.zentrap import GenericTrapFilterDefinition
-from Products.ZenEvents.zentrap import TrapFilter
+from Products.ZenEvents.TrapFilter import BaseFilterDefinition
+from Products.ZenEvents.TrapFilter import OIDBasedFilterDefinition
+from Products.ZenEvents.TrapFilter import GenericTrapFilterDefinition
+from Products.ZenEvents.TrapFilter import TrapFilter
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class OIDBasedFilterDefinitionTest(BaseTestCase):

@@ -22,9 +22,7 @@ import zope.component
 
 from zope.interface import implements
 
-from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences, \
-    IEventService, \
-    IScheduledTask, IStatisticsService
+from Products.ZenCollector.interfaces import ICollector, IEventService
 from Products.ZenHub.interfaces import ICollectorEventTransformer, \
     TRANSFORM_CONTINUE, \
     TRANSFORM_DROP
@@ -222,7 +220,6 @@ class TrapFilter(object):
                 OID             is an valid OID
                 GLOBBED_OID     is an OID ending with ".*"
 
-
         @param lineNumber: The line number of the filter defintion within the file
         @type line: int
         @param action: The action for this line (include or exclude)
@@ -301,7 +298,7 @@ class TrapFilter(object):
 
                         errorMessage = self._parseFilterDefinition(line, lineNumber)
                         if errorMessage:
-                            log.error("Failed to parse filter file %s at line %d: %s", format(path), lineNumber, errorMessage)
+                            log.error("Failed to parse filter definition file %s at line %d: %s", format(path), lineNumber, errorMessage)
                             log.error("Exiting due to invalid filter definition file")
                             sys.exit(1)
 
@@ -311,7 +308,9 @@ class TrapFilter(object):
                 else:
                     log.warn("No zentrap filters found in %s", format(path))
             else:
-                log.warn("Config file %s was not found; no zentrap filters added.", format(path))
+                log.error("Could find filter definition file %s", format(path))
+                log.error("Exiting due to invalid filter definition file")
+                sys.exit(1)
 
     def initialize(self):
         self._daemon = zope.component.getUtility(ICollector)

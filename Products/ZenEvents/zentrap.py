@@ -39,6 +39,9 @@ from twisted.internet import defer
 from Products.ZenHub.interfaces import ICollectorEventTransformer
 
 from Products.ZenCollector.daemon import CollectorDaemon
+from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences, \
+    IEventService, \
+    IScheduledTask, IStatisticsService
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
                                         BaseTask, TaskStates
