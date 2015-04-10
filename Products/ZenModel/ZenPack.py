@@ -205,6 +205,9 @@ class ZenPack(ZenModelRM):
     # Control Plane service ID for container executing this installation
     currentServiceId = ""
 
+    # Whether or not to skip control center service mutation at install time
+    ignoreServiceInstall = False
+
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
     eggPack = False
@@ -278,7 +281,8 @@ class ZenPack(ZenModelRM):
         previousVersion = self.prevZenPackVersion
         self.storeBackup()
         self.migrate(previousVersion)
-        self.installServices()
+        if not ZenPack.ignoreServiceInstall:
+            self.installServices()
 
     def storeBackup(self):
         """
@@ -350,6 +354,9 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
+        
+        # Once ZEN-16599 is fixed, make sure this exits cleanly even if 
+        # the service to delete does not exist
         self.removeServices(self.getServiceTag())
 
     def backup(self, backupDir, logger):

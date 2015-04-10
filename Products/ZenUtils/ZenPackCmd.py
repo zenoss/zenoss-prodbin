@@ -225,10 +225,10 @@ class NonCriticalInstallError(Exception):
         Exception.__init__(self, message)
         self.message = message
 
-def InstallEggAndZenPack(dmd, eggPath, link=False, 
-                            filesOnly=False, sendEvent=True, 
+def InstallEggAndZenPack(dmd, eggPath, link=False,
+                            filesOnly=False, sendEvent=True,
                             previousVersion=None, forceRunExternal=False,
-                            fromUI=False, serviceId=None):
+                            fromUI=False, serviceId=None, ignoreServiceInstall=False):
     """
     Installs the given egg, instantiates the ZenPack, installs in
     dmd.ZenPackManager.packs, and runs the zenpacks's install method.
@@ -243,13 +243,14 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                 try:
                     zp = InstallDistAsZenPack(dmd,
                                               d,
-                                              eggPath, 
-                                              link, 
+                                              eggPath,
+                                              link,
                                               filesOnly=filesOnly,
                                               previousVersion=previousVersion,
                                               forceRunExternal=forceRunExternal,
-                                              fromUI=fromUI, 
-                                              serviceId=serviceId)
+                                              fromUI=fromUI,
+                                              serviceId=serviceId,
+                                              ignoreServiceInstall=ignoreServiceInstall)
                     zenPacks.append(zp)
                 except NonCriticalInstallError, ex:
                     nonCriticalErrorEncountered = True
@@ -340,7 +341,7 @@ def InstallEgg(dmd, eggPath, link=False):
 
 def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                          previousVersion=None, forceRunExternal=False,
-                         fromUI=False, serviceId=None):
+                         fromUI=False, serviceId=None, ignoreServiceInstall=False):
     """
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
@@ -422,6 +423,8 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                     cmd += ["--fromui"]
                 if serviceId:
                     cmd += ['--service-id', serviceId]
+                if ignoreServiceInstall:
+                    cmd += ['--ignore-service-install']
 
                 cmdStr = " ".join(cmd)
                 log.debug("launching sub process command: %s" % cmdStr)
@@ -440,6 +443,8 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                 #so we can't change the signature of install to take the
                 #previousVerison
                 zenPack.prevZenPackVersion = previousVersion
+                if ignoreServiceInstall:
+                    ZenPack.ignoreServiceInstall = True
                 zenPack.install(dmd)
                 zenPack.prevZenPackVersion = None
 
