@@ -224,7 +224,8 @@ class ZenPackCmd(ZenScriptBase):
                     filesOnly=self.options.filesOnly,
                     previousVersion= self.options.previousVersion,
                     fromUI=self.options.fromui,
-                    serviceId=self.options.serviceId)
+                    serviceId=self.options.serviceId,
+                    ignoreServiceInstall=self.options.ignoreServiceInstall)
             if os.path.isfile(self.options.installPackName):
                 packName = self.extract(self.options.installPackName)
             elif os.path.isdir(self.options.installPackName):
@@ -797,7 +798,12 @@ class ZenPackCmd(ZenScriptBase):
                                dest='serviceId',
                                default=os.getenv('CONTROLPLANE_SERVICED_ID', ''),
                                help=optparse.SUPPRESS_HELP)
-
+        self.parser.add_option('--ignore-service-install',
+                               dest='ignoreServiceInstall',
+                               action='store_true',
+                               default=False,
+                               help='On install of a zenpack, do not attempt to install '
+                                    'any associated services into the control center')
         self.parser.prog = "zenpack"
         ZenScriptBase.buildOptions(self)
         self.parser.defaults['logpath'] = zenPath('log')
