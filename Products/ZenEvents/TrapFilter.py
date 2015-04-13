@@ -199,7 +199,7 @@ class TrapFilter(object):
         if len(remainingTokens) > 0:
             oidOrGenericTrap = remainingTokens[0].strip(".")
         if len(oidOrGenericTrap) == 1 and oidOrGenericTrap != "*":
-            if not oidOrGenericTrap.isdigit() or not oidOrGenericTrap in "012345":
+            if not oidOrGenericTrap.isdigit() or oidOrGenericTrap not in "012345":
                 return "Invalid generic trap '%s'; must be one of 0-5" % (oidOrGenericTrap)
 
             genericTrapType = oidOrGenericTrap
@@ -307,7 +307,7 @@ class TrapFilter(object):
         if ".." in oid:
             return "Consecutive '.'s not allowed"
 
-        if not "." in oid:
+        if "." not in oid:
             return "At least one '.' required"
         return None
 

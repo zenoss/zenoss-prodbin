@@ -149,6 +149,9 @@ class TrapFilterTest(BaseTestCase):
         results = filter._validateOID("*5")
         self.assertEquals(results, "When using '*', only a single '*' at the end of OID is allowed")
 
+        results = filter._validateOID(".*")
+        self.assertEquals(results, "When using '*', only a single '*' at the end of OID is allowed")
+
     def testParseFilterDefinitionForEmptyLine(self):
         filter = TrapFilter()
         results = filter._parseFilterDefinition("", 99)
