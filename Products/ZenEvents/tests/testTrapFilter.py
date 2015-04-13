@@ -15,7 +15,11 @@ from Products.ZenEvents.TrapFilter import GenericTrapFilterDefinition
 from Products.ZenEvents.TrapFilter import V1FilterDefinition
 from Products.ZenEvents.TrapFilter import V2FilterDefinition
 from Products.ZenEvents.TrapFilter import TrapFilter
+from Products.ZenHub.interfaces import \
+    TRANSFORM_CONTINUE, \
+    TRANSFORM_DROP
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+
 
 class OIDBasedFilterDefinitionTest(BaseTestCase):
     def testEQByOID(self):
@@ -113,6 +117,11 @@ class TrapFilterTest(BaseTestCase):
         filter = TrapFilter()
         results = filter._validateOID("1.2.3-5.*")
         self.assertEquals(results, "Invalid character found; only digits, '.' and '*' allowed")
+
+    def testValidateOIDFailsForDoubleDots(self):
+        filter = TrapFilter()
+        results = filter._validateOID("1.2..3")
+        self.assertEquals(results, "Consecutive '.'s not allowed")
 
     def testValidateOIDFailsForInvalidGlobbing(self):
         filter = TrapFilter()
@@ -966,6 +975,109 @@ class TrapFilterTest(BaseTestCase):
 
         event["oid"] = "1.2.3.4.5"
         self.assertTrue(filter._dropV2Event(event))
+
+    def testDropEvent(self):
+        filterDef = V1FilterDefinition(99, "include", "*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v1Filters[1] = filtersByLevel
+
+        filterDef = V2FilterDefinition(99, "include", "*")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter._v2Filters[1] = filtersByLevel
+
+        event = {
+            "snmpVersion": "1",
+            "snmpV1GenericTrapType": "6",
+            "snmpV1Enterprise": "1.2.3",
+            "snmpV1SpecificTrap": "59"
+        }
+        self.assertFalse(filter._dropEvent(event))
+
+        event = {
+            "snmpVersion": "2",
+            "oid": "1.2.3",
+        }
+        self.assertFalse(filter._dropEvent(event))
+
+        event["snmpVersion"] = "invalidVersion"
+        self.assertTrue(filter._dropEvent(event))
+
+    def testTransformPassesV1Event(self):
+        filterDef = V1FilterDefinition(99, "include", "1.2.3")
+        filterDef.specificTrap = "59"
+        filtersByLevel = {"1.2.3-59": filterDef}
+        filter = TrapFilter()
+        filter._v1Filters[3] = filtersByLevel
+        filter._filtersDefined = True
+
+        event = {
+            "snmpVersion": "1",
+            "snmpV1GenericTrapType": "6",
+            "snmpV1Enterprise": filterDef.oid,
+            "snmpV1SpecificTrap": filterDef.specificTrap
+        }
+        self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
+
+    def testTransformDropsV1Event(self):
+        filterDef = V1FilterDefinition(99, "exclude", "1.2.3")
+        filterDef.specificTrap = "59"
+        filtersByLevel = {"1.2.3-59": filterDef}
+        filter = TrapFilter()
+        filter._v1Filters[3] = filtersByLevel
+        filter._filtersDefined = True
+
+        event = {
+            "snmpVersion": "1",
+            "snmpV1GenericTrapType": "6",
+            "snmpV1Enterprise": filterDef.oid,
+            "snmpV1SpecificTrap": filterDef.specificTrap
+        }
+        self.assertEquals(TRANSFORM_DROP, filter.transform(event))
+
+    def testTransformPassesV2Event(self):
+        filterDef = V2FilterDefinition(99, "include", "1.2.3")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[3] = filtersByLevel
+        filter._filtersDefined = True
+
+        event = {
+            "snmpVersion": "2",
+            "oid": filterDef.oid,
+        }
+        self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
+
+    def testTransformDropsV2Event(self):
+        filterDef = V2FilterDefinition(99, "exclude", "1.2.3")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._v2Filters[3] = filtersByLevel
+        filter._filtersDefined = True
+
+        event = {
+            "snmpVersion": "2",
+            "oid": filterDef.oid,
+        }
+        self.assertEquals(TRANSFORM_DROP, filter.transform(event))
+
+    def testTransformWithoutFilters(self):
+        filter = TrapFilter()
+        filter._filtersDefined = False
+
+        event = {
+            "snmpVersion": "1",
+            "snmpV1GenericTrapType": "6",
+            "snmpV1Enterprise": "1.2.3",
+            "snmpV1SpecificTrap": "59"
+        }
+        self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
+
+        event = {
+            "snmpVersion": "2",
+            "oid": "1.2.3",
+        }
+        self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
 
 def test_suite():
     from unittest import TestSuite, makeSuite
