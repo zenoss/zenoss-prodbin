@@ -53,7 +53,8 @@ from pynetsnmp import netsnmp, twistedsnmp
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
-from Products.ZenEvents.TrapFilter import TrapFilter
+from Products.ZenEvents.TrapFilter import TrapFilter, TrapFilterError
+from Products.ZenEvents.ZenEventClasses import Clear, Error
 from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.SnmpTrapConfig import User
@@ -774,11 +775,34 @@ class TrapDaemon(CollectorDaemon):
 
     _frameworkFactoryName = "nosip"
 
+    def _initializeTrapFilter(self):
+        try:
+            self._trapFilter.initialize()
+            initializationSucceededEvent = {
+                'eventClass': "/App/Initialized",
+                'summary': 'initialized',
+                'severity': Clear,
+            }
+            self.sendEvent(initializationSucceededEvent)
+
+        except TrapFilterError as e:
+            initializationFailedEvent = {
+                'eventClass': "/App/Initialized",
+                'summary': 'initialization failed',
+                'message': e.message,
+                'severity': Error,
+            }
+
+            log.error("Failed to initialize trap filter: %s", e.message)
+            self.sendEvent(initializationFailedEvent)
+            self.setExitCode(1)
+            self.stop()
+
     def __init__(self, *args, **kwargs):
         self._trapFilter = TrapFilter()
         zope.component.provideUtility(self._trapFilter, ICollectorEventTransformer)
+        kwargs["initializationCallback"] = self._initializeTrapFilter
         super(TrapDaemon, self).__init__(*args, **kwargs)
-        self._trapFilter.initialize()
 
     def runPostConfigTasks(self, result=None):
         # 1) super sets self._prefs.task with the call to postStartupTasks

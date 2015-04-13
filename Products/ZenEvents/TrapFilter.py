@@ -30,6 +30,11 @@ from Products.ZenUtils.Utils import unused, zenPath
 
 log = logging.getLogger("zen.zentrap")
 
+class TrapFilterError(Exception):
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return self.message
 
 def countOidLevels(oid):
     """
@@ -311,7 +316,7 @@ class TrapFilter(object):
             return "At least one '.' required"
         return None
 
-    def _read_filters(self):
+    def _readFilters(self):
         fileName = self._daemon.options.trapFilterFile
         if fileName:
             path = zenPath('etc', fileName)
@@ -330,9 +335,8 @@ class TrapFilter(object):
 
                         errorMessage = self._parseFilterDefinition(line, lineNumber)
                         if errorMessage:
-                            log.error("Failed to parse filter definition file %s at line %d: %s", format(path), lineNumber, errorMessage)
-                            log.error("Exiting due to invalid filter definition file")
-                            sys.exit(1)
+                            errorMessage = "Failed to parse filter definition file %s at line %d: %s" % (format(path), lineNumber, errorMessage)
+                            raise TrapFilterError(errorMessage)
 
                 self._filtersDefined = 0 != (len(self._v1Traps) + len(self._v1Filters) + len(self._v2Filters))
                 if self._filtersDefined:
@@ -340,14 +344,13 @@ class TrapFilter(object):
                 else:
                     log.warn("No zentrap filters found in %s", format(path))
             else:
-                log.error("Could find filter definition file %s", format(path))
-                log.error("Exiting due to invalid filter definition file")
-                sys.exit(1)
+                errorMessage = "Could find filter definition file %s" % format(path)
+                raise TrapFilterError(errorMessage)
 
     def initialize(self):
         self._daemon = zope.component.getUtility(ICollector)
         self._eventService = zope.component.queryUtility(IEventService)
-        self._read_filters()
+        self._readFilters()
         self._initialized = True
 
     def transform(self, event):
