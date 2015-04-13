@@ -311,7 +311,6 @@ class TrapFilter(object):
             return "At least one '.' required"
         return None
 
-
     def _read_filters(self):
         fileName = self._daemon.options.trapFilterFile
         if fileName:
@@ -396,6 +395,12 @@ class TrapFilter(object):
         return result
 
     def _dropV1Event(self, event):
+        genericTrap = event["snmpV1GenericTrapType"]
+        if genericTrap in "012345":
+            filterDefinition = self._v1Traps.get(genericTrap, None)
+            if filterDefinition == None:
+                return True
+            return filterDefinition.action == "exclude"
         return True
 
     def _dropV2Event(self, event):
