@@ -32,6 +32,7 @@ def set_build_tables_only_option():
 
 class ZodbPackMonkeyHelper(object):
 
+    VERSION = '1.1'
     REF_TABLE_NAME = 'object_ref'
     REVERSE_REF_INDEX = 'reverse_ref_index'
     PICKLE_FILENAME = 'zodbpack_skipped_oids.pickle'
@@ -140,6 +141,21 @@ class ZodbPackMonkeyHelper(object):
             queue.update(self._get_connected_oids_to(current_oid, references, visited))
         return connected_oids
 
+    def _validate_group(self, group, to_remove, references):
+        """
+        For some reason, zodbpack sometimes marks objects for removal even if those objects are
+        still referenced by objects that have not been marked for removal. We need to check that all objects to be removed
+        are only referenced by other objects that have also been marked for removal.
+        If we detect an oid that is referenced by an oid not marked for removal, we will just not delete it.
+        """
+        valid = True
+        for oid in group:
+            refs = references.refs_from[oid]
+            if not all( r in to_remove for r in refs):
+                valid = False
+                break
+        return valid
+
     def group_oids(self, cursor, to_remove):
     	"""
     	Return a list of grouped oids. Each group represents oids that are part
@@ -147,28 +163,34 @@ class ZodbPackMonkeyHelper(object):
     	transactional way to avoid PKE (todos o ninguno)
     	"""
         references = self._get_oid_references(cursor, to_remove)
-    	oids_to_remove = [ oid for (oid, tid) in to_remove ]
-    	visited = { oid:False for oid in oids_to_remove }
+        oids_to_remove = { oid for (oid, tid) in to_remove }  # Let's work only with oids to make code more readable
+        visited = { oid:False for oid in oids_to_remove }
 
+        # Group connected oids
         grouped_oids = []
         while visited:
             oid, vis = visited.popitem()
             visited[oid] = vis
             connected_oids = self._get_connected_oids(oid, references, visited)
             grouped_oids.append(connected_oids)
+
+        # For each group, check that it is safe to delete it and add the tid to the oids
         oid_tid_mapping = dict(to_remove)
-        oid_count = 0
         grouped_oids_with_tid = []
+        skipped_oids = []
+        to_remove = []
         for group in grouped_oids:
-            oid_count = oid_count + len(group)
             group_with_tid = []
             for oid in group:
                 group_with_tid.append((oid, oid_tid_mapping[oid]))
-            grouped_oids_with_tid.append(group_with_tid)
 
-        assert(oid_count==len(to_remove))
+            if self._validate_group(group, oids_to_remove, references):
+                grouped_oids_with_tid.append(group_with_tid)
+                to_remove.extend(group_with_tid)
+            else:
+                skipped_oids.extend(group_with_tid)
 
-        return grouped_oids_with_tid
+        return (grouped_oids_with_tid, to_remove, skipped_oids)
 
     def _get_count_in_table(self, cursor, oids_to_check, table_name, select_fields, where_fields):
         """ method to perform queries needed for tests """
@@ -195,7 +217,7 @@ class ZodbPackMonkeyHelper(object):
             result = "FAILED"
         log.info("{0}{1}".format(text, result.rjust(8)))
 
-    def run_post_pack_tests(self, cursor, to_remove, oids_not_removed):
+    def run_post_pack_tests(self, cursor, marked_for_removal, to_remove, oids_not_removed):
         """ 
         Checks that the db tables have been left in a consistent state
         """
@@ -206,7 +228,7 @@ class ZodbPackMonkeyHelper(object):
         to_remove = set([ str(oid) for oid, tid in to_remove ])
         not_removed = set([ str(oid) for oid, tid in oids_not_removed])
         removed = to_remove - to_remove.intersection(not_removed)
-        log.info("Validating results: {0} oids marked for removal / {1} oids removed / {2} oids skipped to avoid pke.".format(len(to_remove), len(removed), len(not_removed)))
+        log.info("Validating results: {0} oids marked for removal / {1} oids removed / {2} oids skipped.".format(marked_for_removal, len(to_remove), len(not_removed)))
 
         # Check tables state, deleted oids must not be in any of the tables and 
         # not deleted oids must be in all tables
@@ -308,9 +330,9 @@ try:
     def get_grouped_oids(cursor, oids_to_remove):
         """ Groups oids to be removed in groups of connected objects """
         group_start = time.time()
-        grouped_oids = []
+
         try:
-            grouped_oids = MONKEY_HELPER.group_oids(cursor, oids_to_remove)
+            result = MONKEY_HELPER.group_oids(cursor, oids_to_remove)
         except Exception as e:
             MONKEY_HELPER.log_exception(e, "Exception while grouping oids")
             raise e
@@ -320,7 +342,7 @@ try:
             explore_references_time = str(explore_references_time).split('.')[0]
             log.info("Exploring oid connections took {0} seconds.".format(explore_references_time))
 
-        return grouped_oids
+        return result
 
     from relstorage.adapters.packundo import HistoryFreePackUndo
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
@@ -432,13 +454,16 @@ try:
         self.locker.release_commit_lock(cursor)
 
         if prevent_pke_oids:
-            log.info("{0} oid groups were not deleted to prevent POSKey Errors. ({1} oids)".format(rollbacks, len(prevent_pke_oids)))
+            log.info("{0} oid groups were skipped. ({1} oids)".format(rollbacks, len(prevent_pke_oids)))
             # unmark the oids from pack_object so _pack_cleanup wont remove them from object_refs_added and object_ref
             MONKEY_HELPER.unmark_rolledback_oids(conn, cursor, prevent_pke_oids)
+            """
+            # This is one useful during debugging and testing only
             try:
                 MONKEY_HELPER.export_rolledback_oids(cursor, prevent_pke_oids)
             except Exception as e:
                 MONKEY_HELPER.log_exception(e, "Exception while exporting skipped oids.")
+            """
 
         return prevent_pke_oids
             
@@ -463,29 +488,40 @@ try:
                 self.runner.run_script_stmt(cursor, stmt)
                 to_remove = list(cursor)
 
-                total = len(to_remove)
-                log.info("pack: will remove %d object(s)", total)
+                marked_for_removal = len(to_remove)
+                log.info("pack: %d object(s) marked to be removed", marked_for_removal)
 
-                if total > 0:
+                if marked_for_removal > 0:
                     log.info("Grouping connected oids... (may take a while)")
-                    grouped_oids = get_grouped_oids(cursor, to_remove)
 
-                    # Hold the commit lock while packing to prevent deadlocks.
-                    # Pack in small batches of transactions only after we are able
-                    # to obtain a commit lock in order to minimize the
-                    # interruption of concurrent write operations.
-                    log.info("Removing objects...")
+                    grouped_oids, to_remove, skipped_oids = get_grouped_oids(cursor, to_remove)
 
-                    oids_processed = self.remove_isolated_oids(conn, cursor, grouped_oids, sleep, packed_func, total, 0)
+                    if skipped_oids:
+                        log.info("{0} oids will be skipped.".format(len(skipped_oids)))
+                        MONKEY_HELPER.unmark_rolledback_oids(conn, cursor, skipped_oids)
 
-                    prevent_pke_oids = self.remove_connected_oids(conn, cursor, grouped_oids, sleep, packed_func, total, oids_processed)
+                    total = len(to_remove)
+                    log.info("pack: will remove %d object(s)", total)
 
-                    self._pack_cleanup(conn, cursor)
+                    if total:
+                        # Hold the commit lock while packing to prevent deadlocks.
+                        # Pack in small batches of transactions only after we are able
+                        # to obtain a commit lock in order to minimize the
+                        # interruption of concurrent write operations.
+                        log.info("Removing objects...")
 
-                    try:
-                        MONKEY_HELPER.run_post_pack_tests(cursor, to_remove, prevent_pke_oids)
-                    except Exception as e:
-                        MONKEY_HELPER.log_exception(e, "Execption while running tests.")
+                        oids_processed = self.remove_isolated_oids(conn, cursor, grouped_oids, sleep, packed_func, total, 0)
+
+                        prevent_pke_oids = self.remove_connected_oids(conn, cursor, grouped_oids, sleep, packed_func, total, oids_processed)
+
+                        self._pack_cleanup(conn, cursor)
+
+                        try:
+                            if skipped_oids:
+                                prevent_pke_oids.extend(skipped_oids)
+                            MONKEY_HELPER.run_post_pack_tests(cursor, marked_for_removal, to_remove, prevent_pke_oids)
+                        except Exception as e:
+                            MONKEY_HELPER.log_exception(e, "Execption while running tests.")
 
             except:
                 log.exception("pack: failed")
