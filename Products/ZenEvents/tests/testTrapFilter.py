@@ -242,12 +242,30 @@ class TrapFilterTest(BaseTestCase):
         self.assert_(mapByLevel != None)
         self.assertEquals(len(mapByLevel), 2)
 
-        filterDef = mapByLevel["1.2.3.4"]
+        filterDef = mapByLevel["1.2.3.4-25"]
         self.assert_(filterDef != None)
         self.assertEquals(filterDef.lineNumber, 100)
         self.assertEquals(filterDef.action, "exclude")
         self.assertEquals(filterDef.oid, "1.2.3.4")
         self.assertEquals(filterDef.specificTrap, "25")
+
+        # Add a different specific trap for the same OID
+        results = filter._parseV1FilterDefinition(101, "exclude", ["1.2.3.4", "99"])
+        self.assertEquals(results, None)
+        self.assertEquals(len(filter._v1Traps), 0)
+        self.assertEquals(len(filter._v1Filters), 1)
+        self.assertEquals(len(filter._v2Filters), 0)
+
+        mapByLevel = filter._v1Filters[oidLevels]
+        self.assert_(mapByLevel != None)
+        self.assertEquals(len(mapByLevel), 3)
+
+        filterDef = mapByLevel["1.2.3.4-99"]
+        self.assert_(filterDef != None)
+        self.assertEquals(filterDef.lineNumber, 101)
+        self.assertEquals(filterDef.action, "exclude")
+        self.assertEquals(filterDef.oid, "1.2.3.4")
+        self.assertEquals(filterDef.specificTrap, "99")
 
         # Add another single-level OID
         results = filter._parseV1FilterDefinition(101, "exclude", ["*"])
@@ -644,7 +662,6 @@ class TrapFilterTest(BaseTestCase):
 
         event["oid"] = "1.2.3.4.5"
         self.assertTrue(filter._dropV2Event(event))
-
 
 def test_suite():
     from unittest import TestSuite, makeSuite

@@ -123,23 +123,27 @@ class TrapFilter(object):
     def __init__(self):
         self._daemon = None
         self._eventService = None
-        self._oids = set()
 
-        # Map of SNMP V1 Generic Trap filters where key is the generic trap number and value is a GenericTrapFilterDefinition
+        # Map of SNMP V1 Generic Trap filters where key is the generic trap number and
+        # value is a GenericTrapFilterDefinition
         self._v1Traps = dict()
 
         # Map of SNMP V1 enterprise-specific traps where key is the count of levels in an OID, and
-        # value is a map of unique V1FilterDefinition objects for that number of OID levels. The map of V1FilterDefinition objects is keyed
-        # by OID
+        # value is a map of unique V1FilterDefinition objects for that number of OID levels.
+        # The map of V1FilterDefinition objects is keyed by "OID[-specificTrap]"
         self._v1Filters = dict()
+
+        # Map of SNMP V2 enterprise-specific traps where key is the count of levels in an OID, and
+        # value is a map of unique V2FilterDefinition objects for that number of OID levels.
+        # The map of V2FilterDefinition objects is keyed by OID
         self._v2Filters = dict()
         self._filtersDefined = False
         self._initialized = False
 
     def _parseFilterDefinition(self, line, lineNumber):
         """
-           Parse an SNMP filter definition of the format
-           include|exclude v1|v2 <version-specific options
+           Parse an SNMP filter definition of the format:
+            include|exclude v1|v2 <version-specific options>
 
         @param line: The filter definition to parse
         @type line: string
@@ -224,14 +228,18 @@ class TrapFilter(object):
             else:
                 return "Missing specific trap number or '*'"
 
+        key = oid
+        if filterDef.specificTrap != None:
+            key = ''.join([oid, "-", filterDef.specificTrap])
+
         filtersByLevel = self._v1Filters.get(filterDef.levels(), None)
         if filtersByLevel == None:
-            filtersByLevel = {oid: filterDef}
+            filtersByLevel = {key: filterDef}
             self._v1Filters[filterDef.levels()] = filtersByLevel
-        elif oid not in filtersByLevel:
-            filtersByLevel[oid] = filterDef
+        elif key not in filtersByLevel:
+            filtersByLevel[key] = filterDef
         else:
-            previousDefinition = filtersByLevel[oid]
+            previousDefinition = filtersByLevel[key]
             return "OID '%s' conflicts with previous definition at line %d" % (oid, previousDefinition.lineNumber)
         return None
 
