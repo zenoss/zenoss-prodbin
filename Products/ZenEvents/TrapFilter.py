@@ -377,8 +377,8 @@ class TrapFilter(object):
     def _dropEvent(self, event):
         """
         Determine if an event should be dropped. Assumes there are some filters defined, so the
-        default if no matching filter is found should be True (i.e. the event did not match any
-        existing filter to keep it, so drop it).
+        default if no matching filter is found should be True; i.e. the event did not match any
+        existing filter that would include it, so therefore we should drop it.
 
         @param event: The event to drop or keep.
         @return: Returns True if the event should be dropped; False if the event be kept.
@@ -395,31 +395,55 @@ class TrapFilter(object):
         return result
 
     def _dropV1Event(self, event):
-        genericTrap = event["snmpV1GenericTrapType"]
-        if genericTrap in "012345":
+        genericTrap = event.get("snmpV1GenericTrapType", None)
+        if genericTrap != None and genericTrap in "012345":
             filterDefinition = self._v1Traps.get(genericTrap, None)
             if filterDefinition == None:
                 return True
             return filterDefinition.action == "exclude"
-        return True
+
+        if genericTrap != "6":
+            log.error("Generic trap '%s' is invalid for V1 event: %s", genericTrap, event)
+            return True
+
+        enterpriseOID = event.get("snmpV1Enterprise", None)
+        if enterpriseOID == None:
+            log.error("No OID found for enterprise-specific trap for V1 event: %s", event)
+            return True
+
+        specificTrap = event.get("snmpV1SpecificTrap", None)
+        if specificTrap != None:
+            key = ''.join([enterpriseOID, "-", specificTrap])
+            filterDefinition = self._findFilterByLevel(key, self._v1Filters)
+            if filterDefinition != None:
+                log.debug("_dropV1Event: matched definition %s", filterDefinition)
+                return filterDefinition.action == "exclude"
+
+        key = ''.join([enterpriseOID, "-", "*"])
+        filterDefinition = self._findFilterByLevel(key, self._v1Filters)
+        if filterDefinition != None:
+            log.debug("_dropV1Event: matched definition %s", filterDefinition)
+            return filterDefinition.action == "exclude"
+
+        filterDefinition = self.findClosestGlobbedFilter(enterpriseOID, self._v1Filters)
+        if filterDefinition == None:
+            log.debug("_dropV1Event: no matching definitions found")
+            return True
+
+        log.debug("_dropV1Event: matched definition %s", filterDefinition)
+        return filterDefinition.action == "exclude"
 
     def _dropV2Event(self, event):
         oid = event["oid"]
 
         # First, try an exact match on the OID
-        filterDefinition = self._findV2Filter(oid)
+        filterDefinition = self._findFilterByLevel(oid, self._v2Filters)
         if filterDefinition != None:
             log.debug("_dropV2Event: matched definition %s", filterDefinition)
             return filterDefinition.action == "exclude"
 
         # Convert the OID to its globbed equivalent and try that
-        globbedValue = oid
-        while globbedValue != "*":
-            globbedValue = getNextHigherGlobbedOid(globbedValue)
-            filterDefinition = self._findV2Filter(globbedValue)
-            if filterDefinition:
-                break
-
+        filterDefinition = self.findClosestGlobbedFilter(oid, self._v2Filters)
         if filterDefinition == None:
             log.debug("_dropV2Event: no matching definitions found")
             return True
@@ -427,10 +451,21 @@ class TrapFilter(object):
         log.debug("_dropV2Event: matched definition %s", filterDefinition)
         return filterDefinition.action == "exclude"
 
-    def _findV2Filter(self, oid):
+    def findClosestGlobbedFilter(self, oid, filtersByLevel):
+        filterDefinition = None
+        globbedValue = oid
+        while globbedValue != "*":
+            globbedValue = getNextHigherGlobbedOid(globbedValue)
+            filterDefinition = self._findFilterByLevel(globbedValue, filtersByLevel)
+            if filterDefinition:
+                break
+        return filterDefinition
+
+    def _findFilterByLevel(self, oid, filtersByLevel):
         filterDefinition = None
         oidLevels = countOidLevels(oid)
-        filtersByLevel = self._v2Filters.get(oidLevels, None)
-        if filtersByLevel != None and len(filtersByLevel) > 0:
-            filterDefinition = filtersByLevel.get(oid, None)
+        filtersByOid = filtersByLevel.get(oidLevels, None)
+        if filtersByOid != None and len(filtersByOid) > 0:
+            filterDefinition = filtersByOid.get(oid, None)
         return filterDefinition
+
