@@ -54,7 +54,7 @@ from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
 from Products.ZenEvents.TrapFilter import TrapFilter, TrapFilterError
-from Products.ZenEvents.ZenEventClasses import Clear, Error
+from Products.ZenEvents.ZenEventClasses import Clear, Critical, Error
 from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.SnmpTrapConfig import User
@@ -779,7 +779,10 @@ class TrapDaemon(CollectorDaemon):
         try:
             self._trapFilter.initialize()
             initializationSucceededEvent = {
-                'eventClass': "/App/Initialized",
+                'component': 'zentrap',
+                'device': self.options.monitor,
+                'eventClass': "/Status",
+                'eventKey': "TrapFilterInit",
                 'summary': 'initialized',
                 'severity': Clear,
             }
@@ -787,10 +790,13 @@ class TrapDaemon(CollectorDaemon):
 
         except TrapFilterError as e:
             initializationFailedEvent = {
-                'eventClass': "/App/Initialized",
+                'component': 'zentrap',
+                'device': self.options.monitor,
+                'eventClass': "/Status",
+                'eventKey': "TrapFilterInit",
                 'summary': 'initialization failed',
                 'message': e.message,
-                'severity': Error,
+                'severity': Critical,
             }
 
             log.error("Failed to initialize trap filter: %s", e.message)
