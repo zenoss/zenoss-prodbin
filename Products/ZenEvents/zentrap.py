@@ -36,10 +36,12 @@ import zope.component
 from twisted.python.failure import Failure
 from twisted.internet import defer
 
+from Products.ZenHub.interfaces import ICollectorEventTransformer
+
 from Products.ZenCollector.daemon import CollectorDaemon
-from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
-                                             IEventService, \
-                                             IScheduledTask, IStatisticsService
+from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences, \
+    IEventService, \
+    IScheduledTask, IStatisticsService
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
                                         BaseTask, TaskStates
@@ -51,6 +53,9 @@ from pynetsnmp import netsnmp, twistedsnmp
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
+from Products.ZenEvents.TrapFilter import TrapFilter, TrapFilterError
+from Products.ZenEvents.ZenEventClasses import Clear, Critical, Error
+from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.SnmpTrapConfig import User
 unused(Globals, DeviceProxy, User)
@@ -143,6 +148,11 @@ class SnmpTrapPreferences(CaptureReplay):
                                help=("Read from an existing connection "
                                      " rather than opening a new port."),
                                default=None)
+        parser.add_option('--trapFilterFile',
+                          dest='trapFilterFile',
+                          type='string',
+                          help=("File that contains trap oids to keep, should be in $ZENHOME/etc."),
+                          default=None)
 
         self.buildCaptureReplayOptions(parser)
 
@@ -581,7 +591,7 @@ class TrapTask(BaseTask, CaptureReplay):
             result[detail_name_stripped].append(str(value))
 
     def decodeSnmpv1(self, addr, pdu):
-        result = {}
+        result = {"snmpVersion": "1"}
 
         variables = self.getResult(pdu)
 
@@ -594,6 +604,10 @@ class TrapTask(BaseTask, CaptureReplay):
         enterprise = self.getEnterpriseString(pdu)
         generic = pdu.trap_type
         specific = pdu.specific_type
+
+        result["snmpV1Enterprise"] = enterprise
+        result["snmpV1GenericTrapType"] = generic
+        result["snmpV1SpecificTrap"] = specific
 
         # Try an exact match with a .0. inserted between enterprise and
         # specific OID. It seems that MIBs frequently expect this .0.
@@ -632,7 +646,7 @@ class TrapTask(BaseTask, CaptureReplay):
 
     def decodeSnmpv2(self, addr, pdu):
         eventType = 'unknown'
-        result = {"oid": "", "device": addr[0]}
+        result = {"snmpVersion": "2", "oid": "", "device": addr[0]}
         variables = self.getResult(pdu)
 
         vb_result = defaultdict(list)
@@ -681,6 +695,7 @@ class TrapTask(BaseTask, CaptureReplay):
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
+        self.log.debug("asyncHandleTrap: eventType=%s oid=%s snmpVersion=%s", eventType, result['oid'], result['snmpVersion'])
 
         community = self.getCommunity(pdu)
         self.sendTrapEvent(result, community, eventType,
@@ -759,6 +774,41 @@ class MibConfigTask(ObservableMixin):
 class TrapDaemon(CollectorDaemon):
 
     _frameworkFactoryName = "nosip"
+
+    def _initializeTrapFilter(self):
+        try:
+            self._trapFilter.initialize()
+            initializationSucceededEvent = {
+                'component': 'zentrap',
+                'device': self.options.monitor,
+                'eventClass': "/Status",
+                'eventKey': "TrapFilterInit",
+                'summary': 'initialized',
+                'severity': Clear,
+            }
+            self.sendEvent(initializationSucceededEvent)
+
+        except TrapFilterError as e:
+            initializationFailedEvent = {
+                'component': 'zentrap',
+                'device': self.options.monitor,
+                'eventClass': "/Status",
+                'eventKey': "TrapFilterInit",
+                'summary': 'initialization failed',
+                'message': e.message,
+                'severity': Critical,
+            }
+
+            log.error("Failed to initialize trap filter: %s", e.message)
+            self.sendEvent(initializationFailedEvent)
+            self.setExitCode(1)
+            self.stop()
+
+    def __init__(self, *args, **kwargs):
+        self._trapFilter = TrapFilter()
+        zope.component.provideUtility(self._trapFilter, ICollectorEventTransformer)
+        kwargs["initializationCallback"] = self._initializeTrapFilter
+        super(TrapDaemon, self).__init__(*args, **kwargs)
 
     def runPostConfigTasks(self, result=None):
         # 1) super sets self._prefs.task with the call to postStartupTasks
