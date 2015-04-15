@@ -192,12 +192,13 @@ class ZenPackCmd(ZenScriptBase):
             proxy = ZPProxy(self.options.removePackName, actualZPDir)
             for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
                 loader.unload(proxy, None)
-            EggPackCmd.DoEasyUninstall(self.options.removePackName)
-            if proxy.path().endswith(".egg") and os.path.exists(proxy.path()):
-                self.log.info("Deleting zenpack %s", proxy.path())
-                os.system('rm -rf "%s"' % proxy.path())
-            else:
-                self.log.error("Could not delete %s, skipping", proxy.path())
+
+            try:
+                os.system('pip uninstall -y "%s"' % self.options.removePackName)
+            except Exception as ex:
+                self.log.error('Could not uninstall "%s"' % self.options.removePackName)
+                raise ex    # treat it as a fatal error
+
             return
 
         self.connect()
@@ -324,13 +325,14 @@ class ZenPackCmd(ZenScriptBase):
         fixedSomething = False
         for pack in self.onlyInImage():
             # skip those to be skipped
-            if pack in self.options.keepPackNames:
+            if self.options.keepPackNames and pack in self.options.keepPackNames:
                 log.info('Keeping %s from being erased from disk', pack)
                 continue
             with open(os.devnull, 'w') as fnull:
                 log.info('Erasing zenpack from disk %s', pack)
                 cmd = ['zenpack', '--erase', pack, '--files-only']
                 subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
+
                 fixedSomething = True
 
         zpsToRestore = {}
@@ -755,12 +757,12 @@ class ZenPackCmd(ZenScriptBase):
                                action="store_true",
                                default=False,
                                help='List installed ZenPacks')
-        self.parser.add_option('--keep-packs',
+        self.parser.add_option('--keep-pack',
                                dest='keepPackNames',
                                action='append',
                                type='string',
                                default=None,
-                               help='On --restore, list of packs names to not delete from disk if not found in zodb')
+                               help='(Can be used multiple times) with --restore, pack name to not be deleted from disk if not found in zodb')
         self.parser.add_option('--link',
                                dest='link',
                                action="store_true",
