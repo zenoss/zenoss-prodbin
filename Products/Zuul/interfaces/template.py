@@ -172,6 +172,9 @@ class ITrendlineThresholdInfo(IInfo):
                                  xtype='eventclass', order=3)
     minval = schema.TextLine(title=_t(u'Minimum Value'), order=8, group=_t(u"Alerting"))
     maxval = schema.TextLine(title=u'Maximum Value', order=9, group=_t(u"Alerting"))
+    aggregateFunction = schema.Choice(title=_t(u"Aggregate Function"),
+                                        vocabulary="aggregatefunctions",
+                                        order=10)
     pastData = schema.TextLine(title=_t(u'Amount of Data Used in Projection'),
                                xtype="timespan",
                                group=_t(u"Alerting"), order=6)

@@ -60,6 +60,10 @@
              component=".template.trendlineProjectionAlgorithmFactory"
              name="trendlineprojectionalgorithm"/>
 
+    <utility provides="zope.schema.interfaces.IVocabularyFactory"
+             component=".template.aggregateFunctionsFactory"
+             name="aggregatefunctions"/>
+
     <adapter factory=".template.GraphInfo"
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides="..interfaces.IGraphInfo"/>

@@ -22,6 +22,7 @@ log = logging.getLogger('zen.TrendlineThreshold')
 
 PROJECTION_TIME_UNITS = ['days', 'weeks', 'months']
 PROJECTION_ALGORITHMS = ['linear']
+AGGREGATE_FUNCTIONS = ['max', 'avg']
 
 class TrendlineThreshold(MinMaxThreshold):
     """
@@ -32,6 +33,9 @@ class TrendlineThreshold(MinMaxThreshold):
     eventClass = Capacity
     # default to info since the projection is unreliable
     severity = 2
+
+    # when asking for projected data which function we use when downsampling the values
+    aggregateFunction = AGGREGATE_FUNCTIONS[0]
 
     # amount of time of data we want to use in our projected
     pastData = 10
@@ -48,6 +52,7 @@ class TrendlineThreshold(MinMaxThreshold):
         {'id':'pastDataUnits', 'type':'string',  'mode':'w'},
         {'id':'amountToPredict', 'type':'integer',  'mode':'w'},
         {'id':'amountToPredictUnits', 'type':'string',  'mode':'w'},
+        {'id':'aggregateFunction', 'type':'string',  'mode':'w'},
         )
 
     factory_type_information = (

@@ -16,8 +16,10 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUtils.Utils import snmptranslate
 from zope.schema.vocabulary import SimpleVocabulary
-from Products.ZenModel.TrendlineThreshold import PROJECTION_ALGORITHMS
+from Products.ZenModel.TrendlineThreshold import PROJECTION_ALGORITHMS, AGGREGATE_FUNCTIONS
 
+def aggregateFunctionsFactory(context):
+    return SimpleVocabulary.fromValues(AGGREGATE_FUNCTIONS)
 
 def trendlineProjectionAlgorithmFactory(context):
     return SimpleVocabulary.fromValues(PROJECTION_ALGORITHMS)
@@ -648,6 +650,8 @@ class TrendlineThresholdInfo(InfoBase):
         return [self._object.amountToPredict, self._object.amountToPredictUnits]
 
     amountToPredict = property(_getAmountToPredict, _setAmountToPredict)
+
+    aggregateFunction = ProxyProperty('aggregateFunction')
 
     @property
     def type(self):
