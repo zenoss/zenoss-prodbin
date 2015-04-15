@@ -21,7 +21,7 @@ import logging
 log = logging.getLogger('zen.TrendlineThreshold')
 
 PROJECTION_TIME_UNITS = ['days', 'weeks', 'months']
-PROJECTION_ALGORITHMS = ['linear']
+PROJECTION_ALGORITHMS = ['linear', 'polynomial']
 AGGREGATE_FUNCTIONS = ['max', 'avg']
 
 class TrendlineThreshold(MinMaxThreshold):
@@ -47,12 +47,16 @@ class TrendlineThreshold(MinMaxThreshold):
 
     projectionAlgorithm = PROJECTION_ALGORITHMS[0]
 
+    # json encoded parameters for this projection algorithm (for instance if polynomial then this has the value of "N")
+    projectionParameters = "{}"
+
     _properties = MinMaxThreshold._properties + (
         {'id':'pastData', 'type':'integer',  'mode':'w'},
         {'id':'pastDataUnits', 'type':'string',  'mode':'w'},
         {'id':'amountToPredict', 'type':'integer',  'mode':'w'},
         {'id':'amountToPredictUnits', 'type':'string',  'mode':'w'},
         {'id':'aggregateFunction', 'type':'string',  'mode':'w'},
+        {'id':'projectionParameters', 'type':'string',  'mode':'w'},
         )
 
     factory_type_information = (

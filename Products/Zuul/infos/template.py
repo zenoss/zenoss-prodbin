@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-
+import json
 from zope.interface import implements
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
@@ -652,6 +652,21 @@ class TrendlineThresholdInfo(InfoBase):
     amountToPredict = property(_getAmountToPredict, _setAmountToPredict)
 
     aggregateFunction = ProxyProperty('aggregateFunction')
+
+    def _setProjectionParameters(self, value):
+        parameters = value
+        if isinstance(parameters, basestring):
+            parameters = json.loads(parameters)
+        self._object.projectionParameters = parameters
+
+    def _getProjectionParameters(self):
+        return json.dumps(self._object.projectionParameters)
+
+    projectionParameters = property(_getProjectionParameters, _setProjectionParameters)
+
+    @property
+    def parameters(self):
+        return self._object.projectionParameters
 
     @property
     def type(self):

@@ -54,6 +54,9 @@
         },{
             "text": "TimeSpan.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "TrendlineProjectionParameters.js",
+            "path": "resources/js/zenoss/form/"
         }, {
             "text": "InheritField.js",
             "path": "resources/js/zenoss/form/"

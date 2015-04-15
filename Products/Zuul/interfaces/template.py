@@ -186,6 +186,10 @@ class ITrendlineThresholdInfo(IInfo):
                                         group=_t(u"Projection Algorithm"),
                                         vocabulary="trendlineprojectionalgorithm",
                                         order=8)
+    projectionParameters = schema.TextLine(title=_t(u"Projection Algorithm Parameters"),
+                                        group=_t(u"Projection Algorithm"),
+                                        xtype="trendlineprojectionparameters",
+                                        order=8)
 
 
 class IDataPointAlias(IInfo):
