@@ -38,6 +38,7 @@ from Products.Zuul.utils import safe_hasattr as hasattr
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.DataCollector import Classifier
 from Products.ZenCollector.interfaces import IEventService
+from Products.ZenCollector.daemon import parseWorkerOptions, addWorkerOptions
 
 from twisted.python.failure import Failure
 from twisted.internet import reactor
@@ -111,6 +112,7 @@ class ZenModeler(PBDaemon):
         self.finished = []
         self.devicegen = None
         self.counters = collections.Counter()
+        self.configFilter = None
 
         # Make sendEvent() available to plugins
         zope.component.provideUtility(self, IEventService)
@@ -976,6 +978,8 @@ class ZenModeler(PBDaemon):
                 dest='save_processed_results', action="store_true", default=False,
                 help="Save modeler plugin outputs for replay purposes in /tmp")
 
+        addWorkerOptions(self.parser)
+
         TCbuildOptions(self.parser, self.usage)
         if USE_WMI:
             addNTLMv2Option(self.parser)
@@ -1000,6 +1004,12 @@ class ZenModeler(PBDaemon):
 
         if USE_WMI:
             setNTLMv2Auth(self.options)
+
+        configFilter = parseWorkerOptions(options)
+        if configFilter:
+                self.configFilter = configFilter
+                self.log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
+
 
     def _timeoutClients(self):
         """
@@ -1069,7 +1079,7 @@ class ZenModeler(PBDaemon):
 
         d = self.config().callRemote('getDeviceListByOrganizer',
                                         self.options.path,
-                                        self.options.monitor)
+                                        self.options.monitor, self.options.__dict__)
         def handle(results):
             if hasattr(results, "type") and results.type is HubDown:
                 self.log.warning(

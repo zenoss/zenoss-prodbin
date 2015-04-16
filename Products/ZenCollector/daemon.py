@@ -265,19 +265,7 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-        self.parser.add_option('--dispatch',
-                               dest='configDispatch',
-                               type='string',
-                               help = SUPPRESS_HELP)
-        self.parser.add_option('--workerid',
-                               dest = 'workerid',
-                               type = 'int',
-                               default = 0,
-                               help = SUPPRESS_HELP)
-        self.parser.add_option('--workers',
-                               type="int",
-                               default=1,
-                               help = SUPPRESS_HELP)
+        addWorkerOptions(self.parser)
         self.parser.add_option('--writeStatistics',
                                dest='writeStatistics',
                                type='int',
@@ -298,16 +286,10 @@ class CollectorDaemon(RRDDaemon):
         super(CollectorDaemon, self).parseOptions()
         self.preferences.options = self.options
 
-        options = self.options.__dict__
-        dispatchFilterName = options.get('configDispatch', '') if options else ''
-        filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
-        filterFactory = filterFactories.get(dispatchFilterName, None) or \
-                        filterFactories.get('', None)
-        if filterFactory:
-            configFilter = filterFactory.getFilter(options)
-            if configFilter:
-                self.preferences.configFilter = configFilter
-                log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
+        configFilter = parseWorkerOptions(options)
+        if configFilter:
+            self.preferences.configFilter = configFilter
+            log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
 
     def connected(self):
         """
@@ -885,3 +867,26 @@ class StatisticsService(object):
             # counter is an ever-increasing value, but otherwise...
             if stat.type != 'COUNTER':
                 stat.value = 0
+
+def addWorkerOptions(parser):
+    parser.add_option('--dispatch',
+                           dest='configDispatch',
+                           type='string',
+                           help = SUPPRESS_HELP)
+    parser.add_option('--workerid',
+                           dest = 'workerid',
+                           type = 'int',
+                           default = 0,
+                           help = SUPPRESS_HELP)
+    parser.add_option('--workers',
+                           type="int",
+                           default=1,
+                           help = SUPPRESS_HELP)
+
+def parseWorkerOptions(options):
+    dispatchFilterName = options.get('configDispatch', '') if options else ''
+    filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
+    filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                    filterFactories.get('', None)
+    if filterFactory:
+        return filterFactory.getFilter(options)

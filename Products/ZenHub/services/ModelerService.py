@@ -10,6 +10,8 @@
 
 import Globals
 
+from itertools import ifilter
+from zope import component
 from Acquisition import aq_base
 from twisted.internet import defer, reactor
 from ZODB.transact import transact
@@ -18,6 +20,7 @@ from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenEvents import Event
+from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
 import time
 import logging
 log = logging.getLogger('zen.ModelerService')
@@ -108,17 +111,29 @@ class ModelerService(PerformanceConfig):
         monitor = self.dmd.Monitors.Performance._getOb(monitor)
         return [d.id for d in monitor.devices.objectValuesGen()]
 
+    def _getOptionsFilter(self, options):
+        deviceFilter = lambda x: True
+        if options:
+            dispatchFilterName = options.get('configDispatch', '') if options else ''
+            filterFactories = dict(component.getUtilitiesFor(IConfigurationDispatchingFilter))
+            filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                            filterFactories.get('', None)
+            if filterFactory:
+                deviceFilter = filterFactory.getFilter(options) or deviceFilter
+        return deviceFilter
+
     @translateError
-    def remote_getDeviceListByOrganizer(self, organizer, monitor=None):
+    def remote_getDeviceListByOrganizer(self, organizer, monitor=None, options=None):
         if monitor is None:
             monitor = self.instance
+        filter = self._getOptionsFilter(options)
         root = self.dmd.Devices.getOrganizer(organizer)
         #If getting all devices for a monitor, get them from the monitor
         if root.getPrimaryId() == '/zport/dmd/Devices':
             monitor = self.dmd.Monitors.Performance._getOb(monitor)
-            devices = ((d.id, d.snmpLastCollection) for d in monitor.devices.objectValuesGen())
+            devices = ((d.id, d.snmpLastCollection) for d in ifilter(filter, monitor.devices.objectValuesGen()))
         else:
-            devices= ((d.id, d.snmpLastCollection) for d in root.getSubDevicesGen()
+            devices= ((d.id, d.snmpLastCollection) for d in ifilter(filter, root.getSubDevicesGen())
                 if d.getPerformanceServerName() == monitor)
         return [d[0] for d in sorted(devices, key=lambda x:x[1])]
 
