@@ -516,6 +516,21 @@ class DeviceFacade(TreeFacade):
 
     @info
     def setCollector(self, uids, collector, moveData=False, asynchronous=True):
+        # Keep 'moveData' in signature even though it's unused now
+        if asynchronous:
+            prettyUids = ", ".join([uid.split('/')[-1] for uid in uids])
+            return self._dmd.JobManager.addJob(
+                FacadeMethodJob, description="Move devices %s to collector %s" % (prettyUids, collector),
+                kwargs=dict(
+                    facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
+                    method="_setCollector",
+                    uids=uids,
+                    collector=collector
+                ))
+        else:
+            return self._setCollector(uids, collector)
+    
+    def _setCollector(self, uids, collector, moveData=False, asynchronous=True):
         movedDevices = []
         for uid in uids:
             info = self.getInfo(uid)
@@ -524,12 +539,8 @@ class DeviceFacade(TreeFacade):
                 'fromCollector': info.collector,
             })
             info.collector = collector
-            notify(IndexingEvent(info._object))
 
-        event = DeviceCollectorChangeEvent(self.context, collector,
-                                          movedDevices, asynchronous)
-        notify(event) # This will put the job records on the event, maybe
-        return event.jobs if event.jobs else None
+        # If an event is desired at this point, use a DeviceCollectorChangeEvent here
 
     @info
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
