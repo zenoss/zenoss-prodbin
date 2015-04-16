@@ -118,10 +118,9 @@ class NetworkRouter(TreeRouter):
         return DirectResponse.succeed(tree=self.getTree())
 
     def _marshal(self, netid=None, shift=0, limit=None):
-        root = self.catalog.search(IpNetwork, depth=0, paths=[netid]).results.next()
-        root_object = root.getObject()
+        root_object = self.context.dmd.getObjByPath(netid)
         data = dict(
-            uid=root.getPath(),
+            uid=root_object.absolute_url_path(),
             children=[],
             text=dict(
                 count=root_object.countIpAddresses(),
