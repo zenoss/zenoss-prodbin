@@ -40,7 +40,7 @@
                             scope: this
                         }
                     },
-                    height: 100
+                    height: 200
                 }]
             });
             this.callParent(arguments);
