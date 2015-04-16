@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-
+import json
 from zope.interface import implements
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
@@ -16,8 +16,10 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUtils.Utils import snmptranslate
 from zope.schema.vocabulary import SimpleVocabulary
-from Products.ZenModel.TrendlineThreshold import PROJECTION_ALGORITHMS
+from Products.ZenModel.TrendlineThreshold import PROJECTION_ALGORITHMS, AGGREGATE_FUNCTIONS
 
+def aggregateFunctionsFactory(context):
+    return SimpleVocabulary.fromValues(AGGREGATE_FUNCTIONS)
 
 def trendlineProjectionAlgorithmFactory(context):
     return SimpleVocabulary.fromValues(PROJECTION_ALGORITHMS)
@@ -648,6 +650,23 @@ class TrendlineThresholdInfo(InfoBase):
         return [self._object.amountToPredict, self._object.amountToPredictUnits]
 
     amountToPredict = property(_getAmountToPredict, _setAmountToPredict)
+
+    aggregateFunction = ProxyProperty('aggregateFunction')
+
+    def _setProjectionParameters(self, value):
+        parameters = value
+        if isinstance(parameters, basestring):
+            parameters = json.loads(parameters)
+        self._object.projectionParameters = parameters
+
+    def _getProjectionParameters(self):
+        return json.dumps(self._object.projectionParameters)
+
+    projectionParameters = property(_getProjectionParameters, _setProjectionParameters)
+
+    @property
+    def parameters(self):
+        return self._object.projectionParameters
 
     @property
     def type(self):

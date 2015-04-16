@@ -163,15 +163,18 @@ class ITrendlineThresholdInfo(IInfo):
                            readonly=True, order=2)
     enabled = schema.Bool(title=_t(u'Enabled'), order=3)
     dsname = schema.Choice(title=_t(u"DataPoint"),
-                            required=True,
-                            vocabulary="rrdtemplatedatapoints", order=3)
+                           required=True,
+                           vocabulary="rrdtemplatedatapoints", order=3)
     description = schema.TextLine(title=u'Description', order=3)
     severity = schema.TextLine(title=_t(u'Severity'),
-                                xtype='severity', order=3)
+                               xtype='severity', order=3)
     eventClass = schema.TextLine(title=_t(u'Event Class'),
                                  xtype='eventclass', order=3)
     minval = schema.TextLine(title=_t(u'Minimum Value'), order=8, group=_t(u"Alerting"))
     maxval = schema.TextLine(title=u'Maximum Value', order=9, group=_t(u"Alerting"))
+    aggregateFunction = schema.Choice(title=_t(u"Aggregate Function"),
+                                      vocabulary="aggregatefunctions",
+                                      order=10)
     pastData = schema.TextLine(title=_t(u'Amount of Data Used in Projection'),
                                xtype="timespan",
                                group=_t(u"Alerting"), order=6)
@@ -183,6 +186,10 @@ class ITrendlineThresholdInfo(IInfo):
                                         group=_t(u"Projection Algorithm"),
                                         vocabulary="trendlineprojectionalgorithm",
                                         order=8)
+    projectionParameters = schema.TextLine(title=_t(u"Projection Algorithm Parameters"),
+                                           group=_t(u"Projection Algorithm"),
+                                           xtype="trendlineprojectionparameters",
+                                           order=8)
 
 
 class IDataPointAlias(IInfo):
