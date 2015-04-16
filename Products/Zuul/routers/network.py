@@ -120,7 +120,7 @@ class NetworkRouter(TreeRouter):
     def _marshal(self, netid=None, shift=0, limit=None):
         root_object = self.context.dmd.getObjByPath(netid)
         data = dict(
-            uid=root_object.absolute_url_path(),
+            uid=netid,
             children=[],
             text=dict(
                 count=root_object.countIpAddresses(),
