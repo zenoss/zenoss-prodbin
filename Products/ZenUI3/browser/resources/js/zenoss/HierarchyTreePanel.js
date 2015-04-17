@@ -730,7 +730,7 @@
             return orgPieces[3] === targetPieces[3];
         },
         refresh:function (callback, scope) {
-                this.getStore().load({
+            this.getStore().load({
                 scope:this,
                 callback:function () {
                     this.getRootNode().expand();
