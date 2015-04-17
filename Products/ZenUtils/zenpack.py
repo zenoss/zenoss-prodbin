@@ -316,7 +316,7 @@ class ZenPackCmd(ZenScriptBase):
         genericShippedPacks = [ Distribution.from_filename(pack).project_name for pack in shippedPacks ]
         databasePacks = self.dmd.ZenPackManager.packs.objectIds()
         installedPacks = [ p.name for p in iter_entry_points('zenoss.zenpacks') ]
-        inPacksNotInDB = set(genericShippedPacks) - set(databasePacks)
+        inPacksNotInDB = (set(installedPacks) | set(genericShippedPacks)) - set(databasePacks)
         packsToFix = inPacksNotInDB & set(installedPacks)
         return packsToFix
 
