@@ -649,6 +649,11 @@ Ext.override(Ext.util.Sorter, {
         }
     });
 
+    /* The following classes, prefixed with 'EXTJSIV-6824', exist to address the bug
+     * under that number, affecting multi-select in the tree selection model.  The 
+     * bug is fixed in 4.2.0, and this code should be remove when we upgrade to that release
+     */
+
     Ext.define('EXTJSIV-6824.selection.RowModel', {
         override: 'Ext.selection.RowModel',
         bindComponent: function(view) {
