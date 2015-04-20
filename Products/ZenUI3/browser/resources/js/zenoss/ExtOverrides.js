@@ -649,4 +649,394 @@ Ext.override(Ext.util.Sorter, {
         }
     });
 
+    /* The following classes, prefixed with 'EXTJSIV-6824', exist to address the bug
+     * under that number, affecting multi-select in the tree selection model.  The 
+     * bug is fixed in 4.2.0, and this code should be remove when we upgrade to that release
+     */
+
+    Ext.define('EXTJSIV-6824.selection.RowModel', {
+        override: 'Ext.selection.RowModel',
+        bindComponent: function(view) {
+            var me = this;
+
+            me.views = me.views || [];
+            me.views.push(view);
+            me.bindStore(view.getStore(), true);
+
+            view.on({
+                itemmousedown: me.onRowMouseDown,
+                itemclick: me.onRowClick,
+                scope: me
+            });
+
+            if (me.enableKeyNav) {
+                me.initKeyNav(view);
+            }
+        },
+        onRowMouseDown: function(view, record, item, index, e) {
+
+            // Record index will be -1 if the clicked record is a metadata record and not selectable
+            if (index !== -1) {
+                if (!this.allowRightMouseSelection(e)) {
+                    return;
+                }
+
+                if (!this.isSelected(record)) {
+                    this.mousedownAction = true;
+                    this.selectWithEvent(record, e);
+                }
+            }
+        },
+        onRowClick: function(view, record, item, index, e) {
+            if (this.mousedownAction) {
+                this.mousedownAction = false;
+            } else {
+                this.selectWithEvent(record, e);
+            }
+        }
+    });
+
+    Ext.define('EXTJSIV-6824.selection.TreeModel', {
+        override: 'Ext.selection.TreeModel',
+        onKeySpace: function(e, t) {
+            if (e.record.data.checked != null) {
+                this.toggleCheck(e);
+            } else {
+                this.callSuper(arguments);
+            }
+        },
+        onKeyEnter: function(e, t) {
+            if (e.record.data.checked != null) {
+                this.toggleCheck(e);
+            } else {
+                this.callSuper(arguments);
+            }
+        }
+    });
+
+    Ext.define('EXTJSIV-6824.tree.ViewDropZone', {
+        override: 'Ext.tree.ViewDropZone',
+        handleNodeDrop : function(data, targetNode, position) {
+            var me = this,
+                view = me.view,
+                parentNode = targetNode ? targetNode.parentNode : view.panel.getRootNode(),
+                Model = view.getStore().treeStore.model,
+                records, i, len, record,
+                insertionMethod, argList,
+                needTargetExpand,
+                transferData;
+
+            // If the copy flag is set, create a copy of the models
+            if (data.copy) {
+                records = data.records;
+                data.records = [];
+                for (i = 0, len = records.length; i < len; i++) {
+                    record = records[i];
+                    if (record.isNode) {
+                        data.records.push(record.copy(undefined, true));
+                    } else {
+                        // If it's not a node, make a node copy
+                        data.records.push(new Model(record[record.persistenceProperty], record.getId()));
+                    }
+                }
+            }
+
+            // Cancel any pending expand operation
+            me.cancelExpand();
+
+            if (position == 'before') {
+                insertionMethod = parentNode.insertBefore;
+                argList = [null, targetNode];
+                targetNode = parentNode;
+            }
+            else if (position == 'after') {
+                if (targetNode.nextSibling) {
+                    insertionMethod = parentNode.insertBefore;
+                    argList = [null, targetNode.nextSibling];
+                }
+                else {
+                    insertionMethod = parentNode.appendChild;
+                    argList = [null];
+                }
+                targetNode = parentNode;
+            }
+            else {
+                if (!(targetNode.isExpanded() || targetNode.isLoading())) {
+                    needTargetExpand = true;
+                }
+                insertionMethod = targetNode.appendChild;
+                argList = [null];
+            }
+            
+            // A function to transfer the data into the destination tree
+            transferData = function() {
+                var color,
+                    n;
+
+                // Insert the records into the target node
+                for (i = 0, len = data.records.length; i < len; i++) {
+                    argList[0] = data.records[i];
+                    insertionMethod.apply(targetNode, argList);
+                }
+
+                // If configured to sort on drop, do it according to the TreeStore's comparator
+                if (me.sortOnDrop) {
+                    targetNode.sort(targetNode.getOwnerTree().store.generateComparator());
+                }
+
+                // Kick off highlights after everything's been inserted, so they are
+                // more in sync without insertion/render overhead.
+                // Element.highlight can handle highlighting table nodes.
+                if (Ext.enableFx && me.dropHighlight) {
+                    color = me.dropHighlightColor;
+
+                    for (i = 0; i < len; i++) {
+                        n = view.getNode(data.records[i]);
+                        if (n) {
+                            Ext.fly(n).highlight(color);
+                        }
+                    }
+                }
+            };
+
+            // Remove nodes from their current place in case there's a delay while the target node loads
+            view.getSelectionModel().clearSelections();
+            for (i = 0, len = data.records.length; i < len; i++) {
+                record = data.records[i];
+                record.parentNode.removeChild(record);
+            }
+
+            // If dropping right on an unexpanded node, transfer the data after it is expanded.
+            if (needTargetExpand) {
+                targetNode.expand(false, transferData);
+            }
+            else if (targetNode.isLoading()) {
+                targetNode.on({
+                    expand: transferData,
+                    delay: 1,
+                    single: true
+                });
+            }
+            // Otherwise, call the data transfer function immediately
+            else {
+                transferData();
+            }
+        }
+    });
+
+    Ext.define('EXTJSIV-6824.view.DragZone', {
+        override: 'Ext.view.DragZone',
+        onItemMouseDown: function(view, record, item, index, e) {
+            if (!this.isPreventDrag(e, record, item, index)) {
+                this.view.focus();
+                this.handleMouseDown(e);
+            }
+        }
+    });
+
+    Ext.define('EXTJSIV-6824.selection.Model', {
+        override: 'Ext.selection.Model',
+        selectWithEvent: function(record, e, keepExisting) {
+            var me = this,
+                isSelected = me.isSelected(record);
+
+            switch (me.selectionMode) {
+                case 'MULTI':
+                    if (e.shiftKey && me.selectionStart) {
+                        me.selectRange(me.selectionStart, record, e.ctrlKey);
+                    } else if (e.ctrlKey && isSelected) {
+                        me.doDeselect(record, false);
+                    } else if (e.ctrlKey) {
+                        me.doSelect(record, true, false);
+                    } else if (isSelected && !e.shiftKey && !e.ctrlKey && me.selected.getCount() > 1) {
+                        me.doSelect(record, keepExisting, false);
+                    } else if (!isSelected) {
+                        me.doSelect(record, false);
+                    }
+                    break;
+                case 'SIMPLE':
+                    if (isSelected) {
+                        me.doDeselect(record);
+                    } else {
+                        me.doSelect(record, true);
+                    }
+                    break;
+                case 'SINGLE':
+                    // if allowDeselect is on and this record isSelected, deselect it
+                    if (me.allowDeselect && isSelected) {
+                        me.doDeselect(record);
+                    // select the record and do NOT maintain existing selections
+                    } else {
+                        me.doSelect(record, false);
+                    }
+                    break;
+            }
+
+            // selectionStart is a start point for shift/mousedown to create a range from.
+            // If the mousedowned record was not already selected, then it becomes the
+            // start of any range created from now on.
+            // If we drop to no records selected, then there is no range start any more.
+            if (!e.shiftKey) {
+                if (me.isSelected(record)) {
+                    me.selectionStart = record;
+                } else {
+                    me.selectionStart = null;
+                }
+            }
+        },
+        afterKeyNavigate: function(e, record) {
+            var me = this,
+                recIdx,
+                fromIdx,
+                isSelected = me.isSelected(record),
+                from = (me.selectionStart && me.isSelected(me.lastFocused)) ? me.selectionStart : (me.selectionStart = me.lastFocused),
+                key = e.getCharCode(),
+                isSpace = key === e.SPACE,
+                direction = key === e.UP || key === e.PAGE_UP ? 'up' : (key === e.DOWN || key === e.DOWN ? 'down' : null);
+
+            switch (me.selectionMode) {
+                case 'MULTI':
+                    
+                    if (isSpace) {
+                        // SHIFT+SPACE, select range
+                        if (e.shiftKey) {
+                            me.selectRange(from, record, e.ctrlKey);
+                        } else {
+                            // SPACE pessed on a selected item: deselect but leave it focused.
+                            // e.ctrlKey means "keep existing"
+                            if (isSelected) {
+                                me.doDeselect(record, e.ctrlKey);
+
+                                // This record is already focused. To get the focus effect put on it (as opposed to selected)
+                                // we have to focus null first.
+                                me.setLastFocused(null);
+                                me.setLastFocused(record);
+                            }
+                            // SPACE on an unselected item: select it
+                            else {
+                                me.doSelect(record, e.ctrlKey);
+                            }
+                        }
+                    }
+
+                    // SHIFT-navigate selects intervening rows from the last selected (or last focused) item and target item
+                    else if (e.shiftKey && from) {
+
+                        // If we are going back *into* the selected range, we deselect.
+                        fromIdx = me.store.indexOf(from);
+                        recIdx = me.store.indexOf(record);
+
+                        // If we are heading back TOWARDS the start rec - deselect skipped range...
+                        if (direction === 'up' && fromIdx <= recIdx && e.ctrlKey) {
+                            me.deselectRange(me.lastFocused, recIdx + 1);
+                        }
+                        else if (direction === 'down' && fromIdx >= recIdx && e.ctrlKey) {
+                            me.deselectRange(me.lastFocused, recIdx - 1);
+                        }
+
+                        // If we are heading AWAY from start point, or no CTRL key, so just select the range and let the CTRL control "keepExisting"...
+                        else if (from !== record) {
+                            me.selectRange(from, record, e.ctrlKey);
+                        }
+                        me.lastSelected = record;
+                        me.setLastFocused(record);
+                    }
+
+                    // CTRL-navigate onto a selected item just focuses it
+                    else if (e.ctrlKey && isSelected) {
+                        me.setLastFocused(record);
+                    }
+
+                    // CTRL-navigate, just move focus
+                    else if (e.ctrlKey) {
+                        me.setLastFocused(record);
+                    }
+
+                    // Just navigation - select the target
+                    else {
+                        me.doSelect(record, false);
+                    }
+                    break;
+                case 'SIMPLE':
+                    if (isSelected) {
+                        me.doDeselect(record);
+                    } else {
+                        me.doSelect(record, true);
+                    }
+                    break;
+                case 'SINGLE':
+                    // Space hit
+                    if (isSpace) {
+                        if (isSelected) {
+                            me.doDeselect(record);
+                            me.setLastFocused(record);
+                        } else {
+                            me.doSelect(record);
+                        }
+                    }
+
+                    // CTRL-navigation: just move focus
+                    else if (e.ctrlKey) {
+                        me.setLastFocused(record);
+                    }
+
+                    // if allowDeselect is on and this record isSelected, deselect it
+                    else if (me.allowDeselect && isSelected) {
+                        me.doDeselect(record);
+                    }
+                    
+                    // select the record and do NOT maintain existing selections
+                    else {
+                        me.doSelect(record, false);
+                    }
+                    break;
+            }
+
+            // selectionStart is a start point for shift/mousedown to create a range from.
+            // If the mousedowned record was not already selected, then it becomes the
+            // start of any range created from now on.
+            // If we drop to no records selected, then there is no range start any more.
+            if (!e.shiftKey) {
+                if (me.isSelected(record)) {
+                    me.selectionStart = record;
+                }
+            }
+        },
+        selectRange : function(startRow, endRow, keepExisting) {
+            var me = this,
+                store = me.store,
+                i,
+                toSelect = [];
+
+            if (me.isLocked()){
+                return;
+            }
+
+            if (!keepExisting) {
+                me.deselectAll(true);
+            }
+
+            if (!Ext.isNumber(startRow)) {
+                startRow = store.indexOf(startRow);
+            }
+            if (!Ext.isNumber(endRow)) {
+                endRow = store.indexOf(endRow);
+            }
+
+            // swap values
+            if (startRow > endRow){
+                i = endRow;
+                endRow = startRow;
+                startRow = i;
+            }
+
+            for (i = startRow; i <= endRow; i++){
+                if (!me.isSelected(store.getAt(i))) {
+                    toSelect.push(store.getAt(i));
+                }
+            }
+            me.doMultiSelect(toSelect, true);
+        }
+    });
+
 }());
