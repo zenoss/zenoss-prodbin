@@ -33,6 +33,12 @@ class ValueChangeThreshold(ThresholdClass):
     eventClass = Status_Perf
     severity = SEVERITY_INFO
 
+    _properties = ValueChangeThreshold._properties + (
+    {'id': 'escalateCount', 'type': 'int', 'mode': 'w'},
+    {'id': 'minval', 'type': 'string', 'mode': 'w'},
+    {'id': 'maxval', 'type': 'string', 'mode': 'w'}
+    )
+
     def createThresholdInstance(self, context):
         """Return the config used by the collector to process change thresholds
         """
