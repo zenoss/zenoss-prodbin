@@ -1005,10 +1005,9 @@ class ZenModeler(PBDaemon):
         if USE_WMI:
             setNTLMv2Auth(self.options)
 
-        configFilter = parseWorkerOptions(options)
+        configFilter = parseWorkerOptions(self.options.__dict__)
         if configFilter:
                 self.configFilter = configFilter
-                self.log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
 
 
     def _timeoutClients(self):
@@ -1115,7 +1114,10 @@ class ZenModeler(PBDaemon):
 
         self.log.debug("Starting collector loop...")
         yield self.getDeviceList()
-        self.devicegen = iter(driver.next())
+        deviceList = driver.next()
+        self.log.debug("getDeviceList returned %s devices", len(deviceList))
+        self.log.debug("getDeviceList returned %s devices", deviceList)
+        self.devicegen = iter(deviceList)
         d = drive(self.fillCollectionSlots)
         d.addErrback(self.fillError)
         yield d

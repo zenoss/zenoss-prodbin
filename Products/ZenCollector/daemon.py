@@ -286,10 +286,9 @@ class CollectorDaemon(RRDDaemon):
         super(CollectorDaemon, self).parseOptions()
         self.preferences.options = self.options
 
-        configFilter = parseWorkerOptions(options)
+        configFilter = parseWorkerOptions(self.options.__dict__)
         if configFilter:
             self.preferences.configFilter = configFilter
-            log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
 
     def connected(self):
         """
@@ -889,4 +888,6 @@ def parseWorkerOptions(options):
     filterFactory = filterFactories.get(dispatchFilterName, None) or \
                     filterFactories.get('', None)
     if filterFactory:
-        return filterFactory.getFilter(options)
+        filter = filterFactory.getFilter(options)
+        log.debug("Filter configured: %s:%s", filterFactory, filter)
+        return filter
