@@ -46,6 +46,8 @@ events from a single COMMAND datasource.
 """
 
 import json
+import logging
+log = logging.getLogger('zen.json')
 
 from Products.ZenRRD.CommandParser import CommandParser
 
@@ -98,6 +100,7 @@ class JSON(CommandParser):
                     continue
 
                 if point.id not in data['values'][point.component]:
+                    log.debug('No matches found in parsed data for datasource "%s.%s"', point.id, cmd.ds)
                     continue
 
                 result.values.append((
