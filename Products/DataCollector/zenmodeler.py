@@ -121,14 +121,14 @@ class ZenModeler(PBDaemon):
         self.started = False
         self.startDelay = 0
         self.immediate = 1
-        if self.options.daemon:
+        if self.options.daemon or self.options.cycle:
             if self.options.now:
-                self.log.debug("Run as a daemon, starting immediately.")
+                self.log.debug('option "now" specified, starting immediately.')
             else:
                 # self.startDelay = randint(10, 60) * 60
                 self.startDelay = randint(10, 60) * 1
                 self.immediate = 0
-                self.log.info("Run as a daemon, waiting %s seconds to start." %
+                self.log.info('option "now" not specified, waiting %s seconds to start.' %
                               self.startDelay)
         else:
             self.log.debug("Run in foreground, starting immediately.")
@@ -767,6 +767,7 @@ class ZenModeler(PBDaemon):
             self.niceDoggie(self.cycleTime())
 
         # We start modeling from here to accomodate the startup delay.
+
         if not self.started:
             if self.immediate == 0 and self.startat:
                 # This stuff relies on ARBITRARY_BEAT being < 60s
