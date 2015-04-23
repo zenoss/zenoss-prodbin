@@ -13,7 +13,6 @@ from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces, IInfo
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
-from Products.ZenModel.TrendlineThreshold import TrendlineThreshold
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.GraphDefinition import GraphDefinition
@@ -82,13 +81,13 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     @info
     def projections(self):
         """
-        Return all TrendlineThresholds as info objects
+        Return all projection type thresholds as info objects
         """
         thresholdGraphPoints = self._getGraphPoints(ThresholdGraphPoint)
         projections = []
         for gp in thresholdGraphPoints:
             tclass = gp._object.getThreshClass(self._context)
-            if isinstance(tclass, TrendlineThreshold):
+            if tclass.isProjection():
                 projections.append(tclass)
         return projections
 

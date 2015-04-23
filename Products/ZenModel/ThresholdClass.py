@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -28,7 +28,7 @@ class ThresholdClass(ZenModelRM, ZenPackable):
     security = ClassSecurityInfo()
     dsnames = []
     enabled = True
-
+    isProjection = False
     def __init__(self, id, buildRelations=True):
         self.id = id
         if buildRelations:
@@ -39,6 +39,7 @@ class ThresholdClass(ZenModelRM, ZenPackable):
         {'id':'severity',   'type':'int',    'mode':'w'},
         {'id':'dsnames', 'type':'lines', 'mode':'w', 'label': 'DataPoints'},
         {'id':'enabled', 'type':'boolean', 'mode':'w', 'label': 'Enabled'},
+        {'id':'isProjection', 'type':'boolean', 'mode':'w', 'label': 'Is Projection'},
         )
 
     _relations =  ZenPackable._relations + (
@@ -48,6 +49,8 @@ class ThresholdClass(ZenModelRM, ZenPackable):
     def getTypeName(self):
         return self.__class__.__name__
 
+    def isProjection(self):
+        return self.isProjection
 
     def breadCrumbs(self, terminator='dmd'):
         """Return the breadcrumb links for this object add ActionRules list.
@@ -64,7 +67,7 @@ class ThresholdClass(ZenModelRM, ZenPackable):
         match this type of threshold.
         """
 
-        
+
     def canGraph(self, graph):
         """Returns true if instances of this ThresholdClass can be
         placed on a users' graph"""
