@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -29,7 +29,7 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     within a context.  This is useful for error messages and path
     information in the collectors.  It's a copy of the key bits of
     information from the Model."""
-    
+
     def __init__(self, context):
         if isinstance(context, MonitorClass):
             self.deviceName = "{context.id} hub".format(context=context)
@@ -51,6 +51,7 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
             if self.componentName == self.deviceName:
                 self.componentName = ''
             self._contextKey = context.getUUID()
+        self._contextUid = context.getPrimaryId()
 
 
 
@@ -58,6 +59,13 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
         "Unique data that refers this context"
         return self.deviceName, self.componentName
 
+    @property
+    def contextUid(self):
+        """
+        Uid of the context
+        @return: str
+        """
+        return self._contextUid
 
     @property
     def contextKey(self):
@@ -73,7 +81,7 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
         raise NotImplementedError()
         # return os.path.join(self.rrdPath, dataPoint)
 
-    
+
 
 pb.setUnjellyableForClass(ThresholdContext, ThresholdContext)
 
@@ -83,7 +91,7 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
 
     # count is unknown if None
     count = None
-        
+
     def name(self):
         "return the name of this threshold (from the ThresholdClass)"
 
