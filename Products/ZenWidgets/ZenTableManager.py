@@ -145,7 +145,6 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def deleteTableState(self, tableName):
         """delete an existing table state"""
-        request = self.REQUEST
         tableStates = self.getTableStates()
 
         if tableName in tableStates:
