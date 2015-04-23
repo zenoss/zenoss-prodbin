@@ -143,6 +143,15 @@ class ZenTableManager(SimpleItem, PropertyManager):
                                         default=default, reset=reset)
 
 
+    def deleteTableState(self, tableName):
+        """delete an existing table state"""
+        request = self.REQUEST
+        tableStates = self.getTableStates()
+
+        if tableName in tableStates:
+            del tableStates[tableName]
+
+
     def getBatch(self, tableName, objects, **keys):
         """Filter, sort and batch objects and pass return set.
         """
