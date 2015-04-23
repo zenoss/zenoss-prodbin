@@ -197,4 +197,21 @@ class DeviceReport(BaseReport):
         return "\n".join(body)
 
 
+    @property
+    def convertedSortedHeader(self):
+        if self.sortedHeader == 'getId':
+            return 'titleOrId'
+        elif self.sortedHeader == 'getManageIp':
+            return 'ipAddressAsInt'
+        return self.sortedHeader
+
+
+    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    def zmanage_editProperties(self, REQUEST=None, redirect=False, audit=True):
+        """Edit a ZenModel object and return its proper page template
+        """
+        self.ZenTableManager.deleteTableState(self.title)
+        return BaseReport.zmanage_editProperties(self, REQUEST, redirect, audit)
+
+
 InitializeClass(DeviceReport)
