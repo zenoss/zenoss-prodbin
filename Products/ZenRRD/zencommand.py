@@ -514,9 +514,9 @@ class SshPerformanceCollectionTask(BaseTask):
                     # We need to process all OSProcess in a special way to
                     # avoid more than one OSProcess matching the same process
                     process_datasources = [datasource]
-                    process_datasources.extend(cachedDsList)
+                    process_datasources.extend(cache)
                     process_parseable_results = self._process_os_processes_results_in_sequence(process_datasources, datasource.result)
-                    parseableResults.extend(process_parseable_results)
+                    results.extend(process_parseable_results)
                     continue
                 for ds in cache:
                     ds.result = copy(datasource.result)
