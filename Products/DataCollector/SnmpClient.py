@@ -23,12 +23,20 @@ from pynetsnmp.twistedsnmp import snmpprotocol, Snmpv3Error
 
 from Products.ZenUtils.Driver import drive
 
+import zope.component
+
+from Products.ZenCollector.interfaces import IEventService
+from Products.ZenEvents import Event
+from Products.ZenEvents.ZenEventClasses import Status_Snmp
+
 global defaultTries, defaultTimeout
 defaultTries = 2
 defaultTimeout = 1
 defaultSnmpCommunity = 'public'
 
 DEFAULT_MAX_OIDS_BACK = 40
+
+STATUS_EVENT = {'eventClass' : Status_Snmp, 'eventGroup' : 'SnmpTest'}
 
 from BaseClient import BaseClient
 
@@ -50,6 +58,7 @@ class SnmpClient(BaseClient):
         from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
         self.connInfo = SnmpConnInfo(device)
         self.proxy = None
+        self._eventService = zope.component.queryUtility(IEventService)
 
     def initSnmpProxy(self):
         if self.proxy is not None: self.proxy.close()
@@ -213,6 +222,11 @@ class SnmpClient(BaseClient):
             if getdata or tabledata:
                 data.append((plugin, (getdata, tabledata)))
         return data
+
+    def _sendStatusEvent(self, summary, eventKey=None, severity=Event.Error):
+        self._eventService.sendEvent(STATUS_EVENT.copy(), severity=severity, device=self.device.id,
+                                     eventKey=eventKey, summary=summary)
+
     def clientFinished(self, result):
         log.info("snmp client finished collection for %s" % self.hostname)
         if isinstance(result, failure.Failure):
@@ -220,10 +234,15 @@ class SnmpClient(BaseClient):
             if isinstance(result.value, error.TimeoutError):
                 log.warning("Device %s timed out: are "
                             "your SNMP settings correct?", self.hostname)
+                summary = "SNMP agent down - no response received"
+                log.info("Sending event: %s", summary)
+                self._sendStatusEvent(summary, eventKey='agent_down')
             elif isinstance(result.value, Snmpv3Error):
                 log.warning("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
             else:
                 log.exception("Device %s had an error: %s",self.hostname,result)
+        else:
+            self._sendStatusEvent('SNMP agent up', eventKey='agent_down', severity=Event.Clear)
         self.proxy.close()
         """tell the datacollector that we are all done"""
         if self.datacollector:
