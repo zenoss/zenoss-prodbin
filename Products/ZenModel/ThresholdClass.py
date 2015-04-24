@@ -49,9 +49,6 @@ class ThresholdClass(ZenModelRM, ZenPackable):
     def getTypeName(self):
         return self.__class__.__name__
 
-    def isProjection(self):
-        return self.isProjection
-
     def breadCrumbs(self, terminator='dmd'):
         """Return the breadcrumb links for this object add ActionRules list.
         [('url','id'), ...]
