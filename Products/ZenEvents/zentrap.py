@@ -595,10 +595,6 @@ class TrapTask(BaseTask, CaptureReplay):
 
         variables = self.getResult(pdu)
 
-        # Sometimes the agent_addr is useless.
-        # Use addr[0] unchanged in this case.
-        # Note that SNMPv1 packets *cannot* come in via IPv6
-        new_addr = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
         result["device"] = addr[0]
 
         enterprise = self.getEnterpriseString(pdu)
