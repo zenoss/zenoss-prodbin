@@ -599,7 +599,7 @@ class TrapTask(BaseTask, CaptureReplay):
         # Use addr[0] unchanged in this case.
         # Note that SNMPv1 packets *cannot* come in via IPv6
         new_addr = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
-        result["device"] = addr[0] if new_addr == "0.0.0.0" or new_addr.startswith('127') else new_addr
+        result["device"] = addr[0]
 
         enterprise = self.getEnterpriseString(pdu)
         generic = pdu.trap_type
