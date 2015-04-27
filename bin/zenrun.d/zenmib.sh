@@ -14,6 +14,7 @@ __DEFAULT__() {
         nocommit=1
     fi
 
+    cd /mnt/pwd
     zenmib "$@"
     status=$?
     if [[ 1 = "$nocommit" ]]; then
@@ -22,7 +23,6 @@ __DEFAULT__() {
         return $status
     fi
 }
-
 
 help() {
     echo "usage:"
