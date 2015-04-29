@@ -49,6 +49,8 @@ class MetricServiceRequest(object):
 
     def getMetrics(self, uuid, dpNames, cf='AVERAGE', rate=False, downsample="1h-avg", start=None, end=None, deviceId=None, returnSet="EXACT"):
         metrics = []
+        if isinstance(dpNames, basestring):
+            dpNames = [dpNames]
         for dpName in dpNames:
             name = ensure_prefix(deviceId, dpName)
             metrics.append(dict(
