@@ -268,6 +268,26 @@ class ControlPlaneClient(object):
         )
         response.close()
 
+    def getServicesForMigration(self, serviceId):
+        """
+        """
+        query = {"includeChildren": "true"}
+        response = self._dorequest("/services/%s" % serviceId, query=query)
+        body = ''.join(response.readlines())
+        response.close()
+        return json.loads(body)
+
+    def postServicesForMigration(self, data, serviceId):
+        """
+        """
+        response = self._dorequest(
+            "/services/%s/migrate" % serviceId, method="POST", data=data
+        )
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
         url = urlunparse(("https", self._netloc, uri, "", query, ""))
