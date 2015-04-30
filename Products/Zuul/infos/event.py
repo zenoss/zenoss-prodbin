@@ -38,6 +38,21 @@ def _mergeAuditLogToNotes(evtsumm):
         evtsumm['notes'] = mergedNotes
     return evtsumm
 
+def _clean_html(html):
+    """
+    Cleans the document of each of the possible offending elements.
+    Extends implementation from `lxml` which requires root element and
+    adds it in case of its absence.
+    """
+    # Add root element to remove it after.
+    wrapped_html = '<p>%s</p>' % (html, )
+    cleaned_html = clean_html(wrapped_html)
+
+    if cleaned_html.startswith('<p>') and cleaned_html.endswith('</p>'):
+        return cleaned_html[3:-4]
+
+    return cleaned_html
+
 class EventCompatInfo(object):
     """
     Takes a zep event and maps it to the format that the UI expects
@@ -361,7 +376,7 @@ class EventCompatDetailInfo(EventCompatInfo):
                 for value in (v for v in values if v):
                     if not detail['name'].startswith('__meta__'):
                         try:
-                            d.append(dict(key=clean_html(detail['name']), value=clean_html(value)))
+                            d.append(dict(key=_clean_html(detail['name']), value=_clean_html(value)))
                         except ParserError:
                             d.append(dict(key=detail['name'], value=value))
         return d
