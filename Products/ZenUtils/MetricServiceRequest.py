@@ -29,8 +29,10 @@ class MetricServiceRequest(object):
     A convience class for fetching metrics from CentralQuery that can
     be used by twisted daemons.
     """
+    # use a shared cookie jar so all Metric requests can share the same session
+    cookieJar = CookieJar()
+
     def __init__(self, userAgent):
-        self.cookieJar = CookieJar()
         self._aggMapping = AGGREGATION_MAPPING
         urlstart = getGlobalConfiguration().get('metric-url', 'http://localhost:8080')
         self._metric_url = '%s/%s' % (urlstart, METRIC_URL_PATH)
