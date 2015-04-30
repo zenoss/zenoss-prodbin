@@ -271,16 +271,17 @@ class ControlPlaneClient(object):
     def getServicesForMigration(self, serviceId):
         """
         """
-        response = self._dorequest("/servicemigration/%s" % serviceId)
+        query = {"includeChildren": "true"}
+        response = self._dorequest("/services/%s" % serviceId, query=query)
         body = ''.join(response.readlines())
         response.close()
         return json.loads(body)
 
-    def postServicesForMigration(self, data):
+    def postServicesForMigration(self, data, serviceId):
         """
         """
         response = self._dorequest(
-            "/servicemigration", method="POST", data=data
+            "/services/%s/migrate" % serviceId, method="POST", data=data
         )
         body = ''.join(response.readlines())
         response.close()
