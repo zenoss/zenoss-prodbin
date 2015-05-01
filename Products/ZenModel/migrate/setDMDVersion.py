@@ -19,7 +19,7 @@ import Migrate
 
 
 class setDMDVersion(Migrate.Step):
-    version = Migrate.Version(5, 0, 70)
+    version = Migrate.Version(5, 0, 3)
 
     def cutover(self, dmd):
         ''' no-op cutover needed for Migrate.Step '''
