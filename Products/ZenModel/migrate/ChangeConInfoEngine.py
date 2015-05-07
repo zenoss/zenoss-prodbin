@@ -19,7 +19,7 @@ log = logging.getLogger('zen.Migrate')
 class ChangeConInfoEngine(Migrate.Step):
     " Change engine for connection_info table. "
 
-    version = Migrate.Version(4, 2, 4)
+    version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
         conf = GlobalConfig.globalConfToDict()
@@ -47,7 +47,6 @@ class ChangeConInfoEngine(Migrate.Step):
                  rc = s.wait()
                  if rc:
                      LOG.error("Error executing mysql: %s %s\n" % (stdout, stderr))
-                     sys.exit(1)
                  else:
                      return (stdout, stderr)
              except KeyboardInterrupt:
