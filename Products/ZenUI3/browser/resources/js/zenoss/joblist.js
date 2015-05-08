@@ -279,9 +279,14 @@ Ext.getCmp('center_panel').add({
                     html += "<b style='color:red;padding-bottom:8px;display:block;'>"+msg+"</b>";
                 }
                 for (var i=0; i < r.content.length; i++) {
-                    var color = i%2 ? '#b58900' : '#657B83';
+                    var color = '#657B83', str = r.content[i];
+                    if (str.indexOf("ERROR") > -1) {
+                        color = '#ff0000'; // red
+                    } else if (i%2) {
+                        color = '#b58900';
+                    }
                     html += "<pre style='font-family:Monaco,monospaced;font-size:12px;color:" +
-                        color + ";'>" + Ext.htmlEncode(r.content[i]) + '</pre>';
+                        color + ";'>" + Ext.htmlEncode(str) + '</pre>';
                 }
                 this.update(html);
                 var d = this.body.dom;
