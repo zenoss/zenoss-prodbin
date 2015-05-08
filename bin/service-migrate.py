@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os
 import sys
 import Globals
 import servicemigration as sm
