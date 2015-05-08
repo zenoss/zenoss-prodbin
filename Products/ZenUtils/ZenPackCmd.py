@@ -909,7 +909,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             deleteFiles = zp.shouldDeleteFilesOnRemoval()
             if uninstallEgg:
                 if zp.isDevelopment():
-                    zenPackDir = zenPath('ZenPacks')
+                    zenPackDir = varPath('ZenPacks')
                     cmd = ('%s setup.py develop -u '
                             % binPath('python') +
                             '--site-dirs=%s ' % zenPackDir +
