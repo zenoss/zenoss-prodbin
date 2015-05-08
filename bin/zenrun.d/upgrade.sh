@@ -9,8 +9,14 @@
 ##############################################################################
 
 doUpgrade() {
+    SERVICE_MIGRATION_PATH=`python /opt/zenoss/bin/service-migrate.py begin` || return "$?"
+    export MIGRATE_INPUTFILE=$SERVICE_MIGRATION_PATH
+    export MIGRATE_OUTPUTFILE=$SERVICE_MIGRATION_PATH
     zenpack --restore || return "$?"
     zenmigrate || return "$?"
+    unset MIGRATE_INPUTFILE
+    unset MIGRATE_OUTPUTFILE
+    python /opt/zenoss/bin/service-migrate.py end || return "$?"
     return 0
 }
 
