@@ -63,14 +63,14 @@ class ReconnectingPBClientFactory(PBClientFactory,
     # reconnect
     maxDelay = 300
 
-    def __init__(self, connectTimeout=30, pingPerspective=False, pingInterval=30, pingtimeout=120):
+    def __init__(self, connectTimeout=30, pingPerspective=True, pingInterval=30, pingtimeout=120):
         PBClientFactory.__init__(self)
         self._doingLogin = False
         self._doingGetPerspective = False
         self._scheduledConnectTimeout = None
         self._connectTimeout = connectTimeout
         # should the perspective be pinged. Perspective must have a ping method. Deprecated => Always False.
-        self._shouldPingPerspective = False
+        self._shouldPingPerspective = pingPerspective
         # how often to ping
         self._pingInterval = pingInterval
         # how long to wait for a ping before closing connection
