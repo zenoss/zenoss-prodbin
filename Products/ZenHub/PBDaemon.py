@@ -666,7 +666,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             d2.chainDeferred(d)
 
     def connect(self):
-        factory = ReconnectingPBClientFactory(connectTimeout=60)
+        pingInterval = self.options.zhPingInterval
+        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=True, pingInterval=pingInterval,
+                                              pingtimeout=pingInterval * 5)
         self.log.info("Connecting to %s:%d" % (self.options.hubhost, self.options.hubport))
         factory.connectTCP(self.options.hubhost, self.options.hubport)
         username = self.options.hubusername
