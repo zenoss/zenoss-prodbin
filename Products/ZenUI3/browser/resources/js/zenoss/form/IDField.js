@@ -48,15 +48,18 @@ Ext.define("Zenoss.form.IDField", {
         if (this.vtransaction) {
             Ext.Ajax.abort(this.vtransaction);
         }
-        function callback(response) {
-            this._previousResponseText = response.responseText;
-            return this.reportResponse(response.responseText);
-        }
         this.vtransaction = Ext.Ajax.request({
             url: context + '/checkValidId?id='+value,
             method: 'GET',
-            success: callback,
-            failure: callback,
+            success: function(response) {
+                this._previousResponseText = response.responseText;
+                return this.reportResponse(response.responseText);
+            },
+            failure: function(response) {
+                this.markInvalid(
+                    _t('That name is invalid or is already in use.')
+                );
+            },
             scope: this
         });
         return true;
