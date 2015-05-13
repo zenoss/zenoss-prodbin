@@ -56,7 +56,11 @@ Ext.define("Zenoss.form.IDField", {
             url: context + '/checkValidId?id='+value,
             method: 'GET',
             success: callback,
-            failure: callback,
+
+            failure: function(response) {
+                this.markInvalid(_t('That name is invalid or is already in use.'));
+                this.fireEvent('validitychange', this, false);
+            },
             scope: this
         });
         return true;
