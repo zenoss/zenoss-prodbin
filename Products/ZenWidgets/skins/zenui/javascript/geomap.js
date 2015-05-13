@@ -250,14 +250,12 @@ YAHOO.namespace('zenoss.geomap');
                 })(marker, index)); 
                 google.maps.event.addListener(marker, 'mouseover', (function(marker, index) { 
                     return function(){ 
+                        infowindow.close();
                         infowindow.setContent(_utils.infoContent(index)); 
                         infowindow.open(gmap, marker); 
                         marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1); 
                     }; 
                 })(marker, index)); 
-                google.maps.event.addListener(marker, 'mouseout', function() { 
-                    infowindow.close(); 
-                });
             }
             index++;
             if(index >= nodedata.length){
