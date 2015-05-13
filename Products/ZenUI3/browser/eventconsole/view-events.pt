@@ -23,6 +23,7 @@
 <script tal:content="string:
     Ext.onReady(function(){
         Zenoss.env.EVENTSGRID_STATEID = 'evconsole';
+        Zenoss.env.PARENT_CONTEXT = '${context/getPrimaryId}';
     });
 "></script>
 <script tal:content="string: 
