@@ -22,20 +22,24 @@ class UpdateZentrapConfigs(Migrate.Step):
     def cutover(self, dmd):
         ctx = sm.ServiceContext()
 
-        zentrap = filter(lambda s: s.name == "zentrap", ctx.services)[0]
+        zentraps = filter(lambda s: s.name == "zentrap", ctx.services)
 
-        # First update zentrap.conf.
-        cf = filter(lambda f: f.name == "/opt/zenoss/etc/zentrap.conf", zentrap.configFiles)[0]
-        cf.content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.5.1.0.conf"), 'r').read()
-
-        # Now add zentrap.filter.conf.
-        zentrap.configFiles.append( sm.ConfigFile (
+        cfFilter = sm.ConfigFile (
             name = "/opt/zenoss/etc/zentrap.filter.conf",
             filename = "/opt/zenoss/etc/zentrap.filter.conf",
             owner = "zenoss:zenoss",
             permissions = "0664",
             content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.filter.5.1.0.conf"), 'r').read()
-        ))
+        )
+
+        for zentrap in zentraps:
+
+            # First update zentrap.conf.
+            cf = filter(lambda f: f.name == "/opt/zenoss/etc/zentrap.conf", zentrap.configFiles)[0]
+            cf.content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.5.1.0.conf"), 'r').read()
+
+            # Now add zentrap.filter.conf.
+            zentrap.configFiles.append(cfFilter)
 
         # Commit our changes.
         ctx.commit()
