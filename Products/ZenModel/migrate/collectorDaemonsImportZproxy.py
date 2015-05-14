@@ -15,7 +15,7 @@ sm.require("1.0.0")
 class CollectorDaemonsImportZproxy(Migrate.Step):
     "Import zproxy in all collector daemons."
 
-    version = Migrate.Version(5,1,0)
+    version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
         ctx = sm.ServiceContext()
@@ -35,6 +35,12 @@ class CollectorDaemonsImportZproxy(Migrate.Step):
 
         # Add the endpoint to each daemon.
         for daemon in collectorDaemons:
+
+            # Make sure we're not already importing zproxy.
+            zpImports = filter(lambda ep: ep.name == "zproxy" and ep.purpose == "import", daemon.endpoints)
+            if len(zpImports) > 0:
+                continue
+
             daemon.endpoints.append(endpoint)
 
         # Commit our changes.
