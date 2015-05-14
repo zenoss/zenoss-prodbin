@@ -595,6 +595,8 @@ class EventDetailItemHandler(object):
                 log.warn("Expected key '%s' for details is missing from the zep.json file",
                           self.key)
                 return
+            for item in items:
+                item['key'] = "evt.%s" % item['key']
             detailItemSet = from_dict(EventDetailItemSet, dict(
                 # An empty array in details casues ZEP to puke
                 details = items
