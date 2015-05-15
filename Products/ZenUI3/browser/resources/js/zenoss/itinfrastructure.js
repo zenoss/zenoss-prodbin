@@ -1159,12 +1159,14 @@ var exporter = function (type) {
     var grid = Ext.getCmp("device_grid");
     var state = grid.getState();
 
+    var devicesPath = getSelectionModel().getSelectedNode().data.path;
     var fields = Ext.Array.pluck(grid.columns.filter(function (column) {
        return column.isVisible();
     }), 'dataIndex');
     fields[fields.indexOf('uid')] = 'deviceClass';
     fields[fields.indexOf('ipAddress')] = 'ipAddressString';
     var params = {
+        uid: devicesPath,
         type : type,
         sort : state.sort.property,
         sdir : state.sort.direction,
