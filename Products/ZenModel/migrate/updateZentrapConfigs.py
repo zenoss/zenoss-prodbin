@@ -29,14 +29,14 @@ class UpdateZentrapConfigs(Migrate.Step):
             filename = "/opt/zenoss/etc/zentrap.filter.conf",
             owner = "zenoss:zenoss",
             permissions = "0664",
-            content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.filter.5.1.0.conf"), 'r').read()
+            content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.filter.conf"), 'r').read()
         )
 
         for zentrap in zentraps:
 
             # First update zentrap.conf.
             cf = filter(lambda f: f.name == "/opt/zenoss/etc/zentrap.conf", zentrap.configFiles)[0]
-            cf.content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.5.1.0.conf"), 'r').read()
+            cf.content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.conf"), 'r').read()
 
             # Now add zentrap.filter.conf.
             zentrap.configFiles.append(cfFilter)
