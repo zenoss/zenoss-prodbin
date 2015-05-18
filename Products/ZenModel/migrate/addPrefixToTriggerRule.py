@@ -22,11 +22,11 @@ import zenoss.protocols.protobufs.zep_pb2 as zep
 from Products.Zuul import getFacade
 
 class addPrefixToTriggerRule(Migrate.Step):
-    version = Migrate.Version(5, 0, 70)
+    version = Migrate.Version(5, 0, 3)
     
     def cutover(self, dmd):
-        zepf = getFacade('zep')
-        trigf = getFacade('triggers')
+        zepf = getFacade('zep', dmd)
+        trigf = getFacade('triggers', dmd)
 
         details = zepf.getUnmappedDetails()
 
