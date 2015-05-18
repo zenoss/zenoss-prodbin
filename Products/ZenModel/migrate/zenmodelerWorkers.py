@@ -31,7 +31,7 @@ class zenmodelerWorkers(Migrate.Step):
         for modeler in modelers:
             modeler.startup = "su - zenoss -c \"/opt/zenoss/bin/zenmodeler run -c --duallog --workers {{.Instances}} --workerid $CONTROLPLANE_INSTANCE_ID --monitor {{(parent .).Name}} \""
             modeler.instanceLimits.minimum = 1
-            modeler.instanceLimits.maximum = 0
+            modeler.instanceLimits.maximum = None
 
         # Commit our changes.
         ctx.commit()
