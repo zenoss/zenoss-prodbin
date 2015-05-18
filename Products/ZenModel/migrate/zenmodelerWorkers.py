@@ -30,8 +30,8 @@ class zenmodelerWorkers(Migrate.Step):
         # Alter their startup command and instanceLimits.
         for modeler in modelers:
             modeler.startup = "su - zenoss -c \"/opt/zenoss/bin/zenmodeler run -c --duallog --workers {{.Instances}} --workerid $CONTROLPLANE_INSTANCE_ID --monitor {{(parent .).Name}} \""
-            modeler.instanceLimits.min = 1
-            modeler.instanceLimits.max = 1
+            modeler.instanceLimits.minimum = 1
+            modeler.instanceLimits.maximum = 0
 
         # Commit our changes.
         ctx.commit()
