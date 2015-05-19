@@ -626,20 +626,28 @@ class ZenPack(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
-    def exportToSeparateFile(self, obj, subdir):
-        xml = StringIO()
-        xml.write("""<?xml version="1.0"?>\n""")
-        xml.write("<objects>\n")
-        xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
-        obj.exportXml(xml,['devices','networks','pack'],True)
-        xml.write("</objects>\n")
+    def exportToSeparateFile(self, obj, subdir, exportZenPack=None):
+        def export(obj, subdir):
+            xml = StringIO()
+            xml.write("""<?xml version="1.0"?>\n""")
+            xml.write("<objects>\n")
+            xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
+            obj.exportXml(xml,['devices','networks','pack'],True)
+            xml.write("</objects>\n")
 
-        path = needDir(self.path('objects/%s' % subdir))
-        filename = '%s.xml' % '_'.join(obj.getPrimaryPath()[3:])
+            path = needDir(self.path('objects/%s' % subdir))
+            filename = '%s.xml' % '_'.join(obj.getPrimaryPath()[3:])
 
-        objects = file(os.path.join(path, filename), 'w')
-        objects.write(xml.getvalue())
-        objects.close()
+            objects = file(os.path.join(path, filename), 'w')
+            objects.write(xml.getvalue())
+            objects.close()
+
+        # export works for the template objects that don't have getZenPackName attribute
+        # and for those whose objPackName equals to exportedZenPack.id
+        objPackName = getattr(obj, 'getZenPackName', None)
+        if exportZenPack and objPackName and objPackName() != exportZenPack:
+            return
+        export(obj, subdir)
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_exportPack')
@@ -674,13 +682,13 @@ class ZenPack(ZenModelRM):
         packables = eliminateDuplicates(self.packables())
         for obj in packables:
             if type(aq_base(obj)) in [RRDTemplate]:
-                self.exportToSeparateFile(obj, 'templates')
+                self.exportToSeparateFile(obj, 'templates', self.id)
             else:
                 xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
                 obj.exportXml(xml,['devices','networks','pack','rrdTemplates'],True)
                 if type(aq_base(obj)) in [DeviceClass]:
                     for tpl in obj.rrdTemplates():
-                        self.exportToSeparateFile(tpl, 'templates')
+                        self.exportToSeparateFile(tpl, 'templates', self.id)
 
         xml.write("</objects>\n")
 
