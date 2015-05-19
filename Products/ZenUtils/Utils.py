@@ -188,7 +188,6 @@ def getObjByPath(base, path, restricted=0):
     """
     Get a Zope object by its path (e.g. '/Devices/Server/Linux').
     Mostly a stripdown of unrestrictedTraverse method from Zope 2.8.8.
-
     @param base: base part of a path
     @type base: string
     @param path: path to an object inside of the DMD
@@ -198,6 +197,8 @@ def getObjByPath(base, path, restricted=0):
     @return: object pointed to by the path
     @rtype: object
     """
+    # MODIFY THIS FUNCTION WITH GREAT CARE.  A LOT OF CODE DEPENDS ON IT
+    # BEHAVING AS IT DOES NOW.  BETTER YET, DON'T MODIFY IT.
     if not path:
         return base
 
@@ -306,6 +307,115 @@ def getObjByPath(base, path, restricted=0):
                 if restricted and not securityManager.validate(
                     obj, obj, _none, next):
                     raise Unauthorized( name )
+        obj = next
+    return obj
+
+def getObjByPath2(base, path, restricted=0):
+    """
+    Get a Zope object by its path (e.g. '/Devices/Server/Linux').
+    Mostly a stripdown of unrestrictedTraverse method from Zope 2.8.8.
+
+    @param base: base part of a path
+    @type base: string
+    @param path: path to an object inside of the DMD
+    @type path: string
+    @param restricted: flag indicated whether to use securityManager
+    @type restricted: integer
+    @return: object pointed to by the path
+    @rtype: object
+    """
+    if not path:
+        return base
+
+    _getattr = getattr
+    _none = None
+    marker = object()
+
+    if isinstance(path, str):
+        # Unicode paths are not allowed
+        path = path.split('/')
+    else:
+        path = list(path)
+
+    REQUEST = {'TraversalRequestNameStack': path}
+    path.reverse()
+    path_pop=path.pop
+
+    if len(path) > 1 and not path[0]:
+        # Remove trailing slash
+        path.pop(0)
+
+    if restricted:
+        securityManager = getSecurityManager()
+    else:
+        securityManager = _none
+
+    if not path[-1]:
+        # If the path starts with an empty string, go to the root first.
+        path_pop()
+        base = base.getPhysicalRoot()
+        if (restricted
+            and not securityManager.validate(None, None, None, base)):
+            raise Unauthorized( base )
+
+    obj = base
+    while path:
+        name = path_pop()
+
+        if name[0] == '_':
+            # Never allowed in a URL.
+            raise NotFound( name )
+
+        if name == '..':
+            next = aq_parent(obj)
+            if next is not _none:
+                if restricted and not securityManager.validate(
+                    obj, obj,name, next):
+                    raise Unauthorized( name )
+                obj = next
+                continue
+
+        bobo_traverse = _getattr(obj, '__bobo_traverse__', _none)
+        if bobo_traverse is not _none:
+            next = bobo_traverse(REQUEST, name)
+            if restricted:
+                if aq_base(next) is not next:
+                    # The object is wrapped, so the acquisition
+                    # context is the container.
+                    container = aq_parent(aq_inner(next))
+                elif _getattr(next, 'im_self', _none) is not _none:
+                    # Bound method, the bound instance
+                    # is the container
+                    container = next.im_self
+                elif _getattr(aq_base(obj), name, marker) == next:
+                    # Unwrapped direct attribute of the object so
+                    # object is the container
+                    container = obj
+                else:
+                    # Can't determine container
+                    container = _none
+                try:
+                    validated = securityManager.validate(
+                                           obj, container, name, next)
+                except Unauthorized:
+                    # If next is a simple unwrapped property, it's
+                    # parentage is indeterminate, but it may have been
+                    # acquired safely.  In this case validate will
+                    # raise an error, and we can explicitly check that
+                    # our value was acquired safely.
+                    validated = 0
+                    if container is _none and \
+                           guarded_getattr(obj, name, marker) is next:
+                        validated = 1
+                if not validated:
+                    raise Unauthorized( name )
+        else:
+            next=obj._getOb(name, None)
+            if next is None:
+                raise NotFound(name)
+            if restricted and not securityManager.validate(
+                obj, obj, _none, next):
+                raise Unauthorized( name )
         obj = next
     return obj
 
