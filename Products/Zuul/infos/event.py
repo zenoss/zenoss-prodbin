@@ -19,6 +19,7 @@ from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.Zuul.interfaces import IMarshallable
 from lxml.html.clean import clean_html
+from lxml.etree import ParserError
 
 
 _status_name = ProtobufEnum(EventSummary,'status').getPrettyName
