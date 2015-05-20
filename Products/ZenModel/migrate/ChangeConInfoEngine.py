@@ -19,7 +19,7 @@ log = logging.getLogger('zen.Migrate')
 class ChangeConInfoEngine(Migrate.Step):
     " Change engine for connection_info table. "
 
-    version = Migrate.Version(5,0,70)
+    version = Migrate.Version(5,0,3)
 
     def cutover(self, dmd):
         conf = GlobalConfig.globalConfToDict()
