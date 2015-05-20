@@ -189,7 +189,6 @@ class ifconfig(LinuxCommandPlugin):
 
         return relMap
 
-
     def parseIpconfig(self, ifconfig, device, relMap):
         """
         Parse the output of the ip addr command.
