@@ -20,7 +20,7 @@ from CommandParser import CommandParser
 
 class Linux_netstat_an(CommandParser):
     
-    command = 'netstat -an | grep 0.0.0.0:*'
+    command = 'netstat -ln | grep 0.0.0.0:*'
 
     def condition(self, device, log):
         pp = device.getPrimaryPath()
@@ -56,4 +56,4 @@ class Linux_netstat_an(CommandParser):
         return rm
 
     def description(self):
-        return "run netstat -an on server to build ipservices"
+        return "run netstat -ln on server to build ipservices"
