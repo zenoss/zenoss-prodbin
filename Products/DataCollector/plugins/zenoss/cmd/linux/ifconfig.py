@@ -15,6 +15,7 @@ ifconfig maps a linux ifconfig command to the interfaces relation.
 import re
 
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
+from pprint import pprint
 
 speedPattern = re.compile(r'(\d+)\s*[gm]bps', re.I)
 
@@ -66,7 +67,7 @@ class ifconfig(LinuxCommandPlugin):
     ip_ifstart = re.compile(r"^(\d+):\s(\w+):\s(.*)mtu\s(\d+)(.*)")
     ip_v4addr = re.compile(r"inet (\S+)")
     ip_v6addr = re.compile(r"inet6 (\S+)")
-    ip_hwaddr = re.compile(r"link/(\S+)\s(\S+)")
+    ip_hwaddr = re.compile(r"link/(\S+)\s(\S+)") 
 
     def process(self, device, results, log):
         log.info('Modeler %s processing data for device %s', self.name(), device.id)
@@ -226,7 +227,7 @@ class ifconfig(LinuxCommandPlugin):
                     iface.operStatus = 1
                 else:
                     iface.operStatus = 2
-                if "RUNNING" in flags:
+                if "LOWER_UP" in flags:
                     iface.adminStatus = 1
                 else:
                     iface.adminStatus = 2
@@ -259,7 +260,12 @@ class ifconfig(LinuxCommandPlugin):
             maddr = self.ip_hwaddr.search(line)
             if  maddr and iface:
                 iface.macaddress = maddr.groups()[1]
-
+                itype = maddr.groups()[0].replace("link/","",1)
+                if itype.startswith("ether"):
+                    itype = "ethernetCsmacd"
+                elif itype.startswith("loopback"):
+                    itype = "Local Loopback"
+                iface.type = itype.strip()
         return relMap
 
     def isIgnoredName(self, device, name):
