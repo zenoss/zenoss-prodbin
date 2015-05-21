@@ -15,7 +15,6 @@ ifconfig maps a linux ifconfig command to the interfaces relation.
 import re
 
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
-from pprint import pprint
 
 speedPattern = re.compile(r'(\d+)\s*[gm]bps', re.I)
 
@@ -67,7 +66,7 @@ class ifconfig(LinuxCommandPlugin):
     ip_ifstart = re.compile(r"^(\d+):\s(\w+):\s(.*)mtu\s(\d+)(.*)")
     ip_v4addr = re.compile(r"inet (\S+)")
     ip_v6addr = re.compile(r"inet6 (\S+)")
-    ip_hwaddr = re.compile(r"link/(\S+)\s(\S+)") 
+    ip_hwaddr = re.compile(r"link/(\S+)\s(\S+)")
 
     def process(self, device, results, log):
         log.info('Modeler %s processing data for device %s', self.name(), device.id)
