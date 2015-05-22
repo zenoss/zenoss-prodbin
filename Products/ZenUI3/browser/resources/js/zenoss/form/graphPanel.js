@@ -404,7 +404,7 @@
             if (Ext.isNumber(start)) {
                 return start;
             }
-            return new Date() - rangeToMilliseconds(start);
+            return parseInt(new Date() - rangeToMilliseconds(start));
         },
         convertEndToAbsolute: function(end) {
             if (end === CURRENT_TIME) {
@@ -439,7 +439,7 @@
             gp.drange = rangeToMilliseconds(gp.drange) * factor;
 
             var end = gp.end,
-                start = gp.end - gp.drange;
+                start = parseInt(gp.end - gp.drange);
 
             this.fireEvent("updatelimits", { start: start, end: end });
             this.fireEvent("updateimage", { start: start, end: end });
