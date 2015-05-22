@@ -417,7 +417,7 @@
             gp.start = this.convertStartToAbsoluteTime(gp.start);
             var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = (gp.start) - delta > 0 ? gp.start - delta : 0;
-            var newend = newstart + rangeToMilliseconds(gp.drange);
+            var newend = parseInt(newstart + rangeToMilliseconds(gp.drange));
 
             this.fireEvent("updatelimits", {start:newstart, end:newend});
             this.fireEvent("updateimage", {start:newstart, end:newend});
@@ -427,7 +427,7 @@
             gp.start = this.convertStartToAbsoluteTime(gp.start);
             var delta = Math.round(rangeToMilliseconds(gp.drange)/this.pan_factor);
             var newstart = gp.start + delta > 0 ? gp.start + delta : 0;
-            var newend = newstart + rangeToMilliseconds(gp.drange);
+            var newend = parseInt(newstart + rangeToMilliseconds(gp.drange));
 
             this.fireEvent("updatelimits", {start:newstart, end:newend});
             this.fireEvent("updateimage", {start:newstart, end:newend});
