@@ -226,7 +226,7 @@ class ifconfig(LinuxCommandPlugin):
                     iface.operStatus = 1
                 else:
                     iface.operStatus = 2
-                if "RUNNING" in flags:
+                if "LOWER_UP" in flags:
                     iface.adminStatus = 1
                 else:
                     iface.adminStatus = 2
@@ -259,7 +259,12 @@ class ifconfig(LinuxCommandPlugin):
             maddr = self.ip_hwaddr.search(line)
             if  maddr and iface:
                 iface.macaddress = maddr.groups()[1]
-
+                itype = maddr.groups()[0].replace("link/","",1)
+                if itype.startswith("ether"):
+                    itype = "ethernetCsmacd"
+                elif itype.startswith("loopback"):
+                    itype = "Local Loopback"
+                iface.type = itype.strip()
         return relMap
 
     def isIgnoredName(self, device, name):
