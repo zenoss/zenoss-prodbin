@@ -25,8 +25,8 @@ TRIM_TIME = time.time()
 LOG = logging.getLogger("zen.relstorage.mysql")
 
 _record_pid_sql = (
-    "INSERT INTO connection_info (connection_id, pid, info, ts) VALUES (connection_id(), %s, %s, current_timestamp) "
-    "ON DUPLICATE KEY UPDATE pid=%s, info=%s, ts=current_timestamp")
+    "replace into connection_info(connection_id, pid, info, ts) "
+    "select connection_id(), %s, %s, current_timestamp")
 
 _trim_sql = (
     "DELETE ci FROM connection_info AS ci \
@@ -55,7 +55,7 @@ def record_pid(conn, cursor):
         cmd = ' '.join(sys.argv)
         stacktrace = ''.join(traceback.format_stack())
         info = "pid=%d tid=%d\n%s\n%s" % (pid, tid, cmd, stacktrace)
-        cursor.execute(_record_pid_sql, (pid, info, pid, info))
+        cursor.execute(_record_pid_sql, (pid, info))
     except:
         LOG.debug("Unable to record pid and thread_id to connection_info",
                  exc_info=True)
@@ -106,7 +106,7 @@ try:
             ts TIMESTAMP NOT NULL,
             PRIMARY KEY(connection_id),
             KEY(pid)
-          ) ENGINE = InnoDB;
+          ) ENGINE = MyISAM;
         """
         self.runner.run_script(cursor, script)
 
