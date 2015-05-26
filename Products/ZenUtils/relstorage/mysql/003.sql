@@ -15,7 +15,7 @@ BEGIN
           ts TIMESTAMP NOT NULL,
           PRIMARY KEY(connection_id),
           KEY(pid)
-        ) ENGINE = InnoDB;
+        ) ENGINE = MyISAM;
 
         INSERT INTO `schema_version` (`version`, `installed_time`)
         VALUES(3, NOW());
