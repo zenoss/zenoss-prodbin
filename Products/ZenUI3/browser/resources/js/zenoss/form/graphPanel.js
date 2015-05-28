@@ -134,6 +134,12 @@
         type: 'line',
 
         /**
+         * @cfg {boolean} hasMenu
+         * Toggles building the gear menu.
+         */
+        hasMenu: true,
+
+        /**
          * @cfg {Array} datapoints
          * Datapoints we are sending to the metric service. This is an
          * array of objects. A datapoint object has the following
@@ -168,7 +174,6 @@
             config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
                 html: this.graphTemplate.apply(config),
-                maxWidth: 800,
                 cls: 'graph-panel',
                 bodyStyle: {
                     padding: "5px"
@@ -182,6 +187,11 @@
                     xtype: 'toolbar',
                     dock: 'top',
                     items: ['->',{
+                        text: 'Open in New Tab',
+                        handler: Ext.bind(function(btn, e) {
+                                this.newTab(this);
+                        }, this)
+                    },{
                         text: '&lt;',
                         width: 40,
                         handler: Ext.bind(function(btn, e) {
@@ -224,6 +234,9 @@
             }
         },
         buildMenu: function() {
+            if (! this.hasMenu) {
+                return
+            }
             var item = Ext.get(this.buttonId);
             this.menu = Ext.create('Ext.menu.Menu', {
                 items: [{
@@ -235,6 +248,9 @@
                 }, {
                     text: _t('Link to this Graph'),
                     handler: Ext.bind(this.displayLink, this)
+                }, {
+                    text: _t('Expand Graph'),
+                    handler: Ext.bind(this.expandGraph, this)
                 }]
             });
             item.on('click', function(event, t) {
@@ -283,7 +299,6 @@
             zenoss.visualization.chart.create(this.graphId, visconfig);
         },
         displayLink: function(){
-
             var config = {},
                 encodedConfig, link,
                 drange="null",
@@ -312,6 +327,40 @@
                     '<br/><br/><a href="' + link + '">Graph: ' + this.graphTitle +  ' </a>') + '</div>')),
                 title: _t('Link to this Graph')
             });
+        },
+        expandGraph: function(){
+            var config = {},
+                drange = "null",
+                exclusions = ["dockedItems"];
+
+            for(var i in this.initialConfig){
+                if(exclusions.indexOf(i) === -1){
+                    config[i] = this.initialConfig[i];
+                }
+            }
+            // see if we can find the date range selected
+            var graphPanel = this.up('graphpanel');
+            if (graphPanel && Ext.isNumber(graphPanel.drange)) {
+                drange = graphPanel.drange;
+            }
+
+            config.graphId = Ext.id();
+            config.autoscale = true;
+            config.hasMenu = false;
+            config.xtype = 'europagraph';
+            config.height = window.outerHeight * 0.75;
+            config.width = Math.min(window.outerWidth * 0.80, config.height * 1.6180339887);
+            delete config.html;
+
+            win = Ext.create('Zenoss.dialog.BaseWindow', {
+                cls: 'white-background-panel',
+                layout: 'fit',
+                width: config.width * 1.15,
+                height: config.height * 1.05,
+                resizable: false,
+                items: [config]
+            });
+            win.show();
         },
         displayDefinition: function(){
             Ext.create('Zenoss.dialog.BaseWindow', {
@@ -411,6 +460,28 @@
                 return now();
             }
             return end;
+        },
+        newTab: function(graph) {
+            var config = {},
+                encodedConfig,
+                link,
+                drange="null",
+                exclusions = ["dockedItems"];
+
+            for(var i in this.initialConfig){
+                if(exclusions.indexOf(i) === -1){
+                    config[i] = this.initialConfig[i];
+                }
+            }
+            // see if we can find the date range selected
+            var graphPanel = this.up('graphpanel');
+            if (graphPanel && Ext.isNumber(graphPanel.drange)) {
+                drange = graphPanel.drange;
+            }
+            encodedConfig = Zenoss.util.base64.encode(Ext.JSON.encode(config));
+            link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, encodedConfig);
+
+            window.open(link);
         },
         onPanLeft: function(graph) {
             var gp = this.graph_params;
