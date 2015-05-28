@@ -47,6 +47,8 @@ from Acquisition import aq_parent
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 from Products.ZenMessaging.audit import audit
 
+import servicemigration
+servicemigration.require("1.0.0")
 
 class ZenPackException(Exception):
     pass
@@ -281,7 +283,7 @@ class ZenPack(ZenModelRM):
         previousVersion = self.prevZenPackVersion
         self.storeBackup()
         self.migrate(previousVersion)
-        if not ZenPack.ignoreServiceInstall:
+        if not ZenPack.ignoreServiceInstall and previousVersion is None:
             self.installServices()
 
     def storeBackup(self):
@@ -354,10 +356,9 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
-        
-        # Once ZEN-16599 is fixed, make sure this exits cleanly even if 
-        # the service to delete does not exist
-        self.removeServices(self.getServiceTag())
+            # Once ZEN-16599 is fixed, make sure this exits cleanly even if 
+            # the service to delete does not exist
+            self.removeServices(self.getServiceTag())
 
     def backup(self, backupDir, logger):
         """
@@ -1201,16 +1202,12 @@ registerDirectory("skins", globals())
         return self.moduleName()
 
 
-    def getServiceDefinitionFiles(self):
+    def hasServiceDefinitions(self):
         """
-        Returns a list of files containing services to be installed.
-
-        This routine can be overridden in order to supply a non-standard list of
-         files. See installServicesFromFiles() for file format.
-        :returns: absolute file paths
-        :rtype: list of strings
+        Determines whether or not this ZenPack has service definitions
+        available for installation.
         """
-        return glob.glob(self.path('service_definition', '*.json'))
+        return any([self.isServicePath(p) for p in glob.glob(self.path('service_definition', '*'))])
 
 
     def installServices(self):
@@ -1220,11 +1217,8 @@ registerDirectory("skins", globals())
         """
         if not ZenPack.currentServiceId:
             return
-        if self.getServiceDefinitionFiles():
-            sdFiles = self.getServiceDefinitionFiles()
-            toConfigPath = lambda x: os.path.join(os.path.dirname(x),'-CONFIGS-')
-            configFileMaps = [DirectoryConfigContents(toConfigPath(i)) for i in sdFiles]
-            self.installServicesFromFiles(sdFiles, configFileMaps, self.getServiceTag())
+        if self.hasServiceDefinitions():
+            self.installServicesFromFiles()
         elif self.getDaemonNames():
             templateLocation = zenPath('Products/ZenModel/data/default_service.json')
             template = open(templateLocation, 'r').read()
@@ -1315,42 +1309,71 @@ registerDirectory("skins", globals())
         self.installServiceDefinitions(serviceDefinitions, servicePaths)
 
 
-    def installServicesFromFiles(self, serviceFileNames, serviceConfigs, tag):
-        """
-        Install a set of control plane services
+    def isServicePath(self, path):
+        paths = glob.glob(os.path.join(path, "*"))
+        if os.path.join(path, "service.json") not in paths:
+            return False
+        if not os.path.isfile(os.path.join(path, "service.json")):
+            return False
+        return True
 
-        Each file is expected to contain a json encoded object with two fields:
-         servicePath: a service path indicating where this service should be installed.
-            See ServiceTree.matchServicePath for description of service path
-         serviceDefinition: a service definition object which will be sent to
-            controlplane.  Service definition examples may be be seen by running
-            $ serviced template list $TEMPLATE_ID
-        Each service will be tagged with the given tag in order to enable discovery
-        for ZenPack removal.  If a service definition has an ImageID field, but
-        the field is empty, the field will be set to the value of the
-        SERVICED_SERVICE_IMAGE environment variable.
+    def loadService(self, path, templateParams, tag):
+        if not self.isServicePath(path):
+            raise Exception(path, "is not a service path.")
+        with open(os.path.join(path, "service.json"), 'r') as json_file:
+            service = json.loads(json_file.read() % templateParams)
 
-        :param serviceFileNames: file paths, each containing a service
-        :type serviceFileNames: list of strings
-        :param serviceConfigs: for each service, maps config name to contents
-        :type serviceConfigs: list of dicts string->string
-        :param tag: tag to be applied to all services
-        :type tag: string
-        """
-        if not ZenPack.currentServiceId:
-            return
-        paths, definitions = [],[]
+        container = None
+        if "servicePath" in service and "serviceDefinition" in service:
+            container = service
+            service = container["serviceDefinition"]
 
+        configFiles = service.setdefault("ConfigFiles", {})
+        for key, configFile in configFiles.iteritems():
+            with open(os.path.join(path, "-CONFIGS-", configFile["FileName"][1:]), 'r') as configData:
+                configFile["Content"] = configData.read()
+
+        service.setdefault('Tags', []).append(tag)
+
+        if 'ImageID' in service and service['ImageID'] == '':
+            service['ImageID'] = os.environ['SERVICED_SERVICE_IMAGE']
+
+        defaultLogConfigsPath = zenPath('Products/ZenModel/data/default_service_logconfigs.json')
+        defaultLogConfigsTemplate = open(defaultLogConfigsPath, 'r').read()
+        defaultLogConfigs = json.loads(defaultLogConfigsTemplate % {'zenhome': zenPath()})
+        logConfigs = service.setdefault('LogConfigs', [])
+        logConfigs.extend(lc for lc in defaultLogConfigs if lc not in logConfigs)
+
+        services = service["Services"] = []
+        paths = glob.glob(os.path.join(path, "*"))
+        for p in paths:
+            if os.path.isdir(p) and self.isServicePath(p):
+                services.append(self.loadService(p, templateParams, tag))
+
+        if container is not None:
+            return container
+        return service
+
+
+    def installServicesFromFiles(self):
         templateParams = self.templateParams()
+        tag = self.getServiceTag()
+        paths = glob.glob(self.path('service_definition', '*'))
+        services = []
+        for path in paths:
+            services.append(self.loadService(path, templateParams, tag))
 
-        for fileName, configMap in zip(serviceFileNames, serviceConfigs):
-            with open(fileName, 'r') as fh:
-                service = json.loads(fh.read() % templateParams)
-            definition = ZenPack.normalizeService(service['serviceDefinition'],
-                                                  configMap, tag)
-            definitions.append(json.dumps(definition))
-            paths.append(service['servicePath'])
-        self.installServiceDefinitions(definitions, paths)
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        serviceTree = ServiceTree(cpClient.queryServices("*"))
+
+        ctx = servicemigration.ServiceContext()
+
+        for service in services:
+            parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId, service["servicePath"])
+            for parentService in parentServices:
+                ctx._ServiceContext__deployService(json.dumps(service["serviceDefinition"]), parentService.id)
+
+        ctx.commit()
 
 
     def installServiceDefinitions(self, serviceDefs, servicePaths):
@@ -1407,7 +1430,7 @@ registerDirectory("skins", globals())
 
     def removeServices(self, tag):
         """
-        Remove all services matching tag from control plane
+        Remove all services matching tag from control center
 
         :param tag: tag for which all services will be removed
         :type tag: string
