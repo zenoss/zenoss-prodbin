@@ -87,7 +87,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         projections = []
         for gp in thresholdGraphPoints:
             tclass = gp._object.getThreshClass(self._context)
-            if tclass.isProjection:
+            if tclass and tclass.isProjection:
                 projections.append(tclass)
         return projections
 
