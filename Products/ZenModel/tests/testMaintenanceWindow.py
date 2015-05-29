@@ -136,7 +136,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(m.next(t + 1) == c)
 
         m.set(t, P, m.MONTHLY)
-        c = mktime( (2006, 3, 29, 9, 45, 12, 6, 36, 0) )
+        c = mktime( (2006, 3, 29, 10, 45, 12, 6, 36, 0) )
         self.assert_(m.next(t + 1) == c)
 
         m.set(t - DAY_SECONDS * 2, P, m.EVERY_WEEKDAY)

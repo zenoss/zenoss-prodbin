@@ -4,7 +4,7 @@
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
-# 
+#
 import functools
 import os
 import json
@@ -42,6 +42,7 @@ class _MockControlPlaneClient(object):
 class _MockService (object):
     def __init__(self, id, parentId = '', tags=[]):
         self.name = id.upper()
+        self._data = {}
         self.id = id
         self.parentId = parentId
         self.tags = tags
@@ -80,6 +81,12 @@ def setCurrentService(id):
         yield
     finally:
         ZenPack.currentServiceId = save
+
+
+def createMockLoadServiceDefinitions(fileDict):
+    def dummyServiceDefinitions(name):
+        return json.dumps(fileDict[name])
+    return dummyServiceDefinitions
 
 @contextmanager
 def setBuiltinOpen(fileDict):
@@ -162,8 +169,10 @@ class TestZenpackServices(ZenModelBaseTest):
             c={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'c'}},
         )
         client = _MockControlPlaneClient(services=_services)
-        with setControlPlaneClient(client), setCurrentService('zope'), setBuiltinOpen(fileDict):
-            ZenPack('id').installServicesFromFiles(fileDict.keys(), [{}] * len(fileDict.keys()), tag)
+        with setControlPlaneClient(client), setCurrentService('zope'):
+            z = ZenPack('id')
+            z._loadServiceDefinition = createMockLoadServiceDefinitions(fileDict)
+            z.installServicesFromFiles(fileDict.keys(), [{}] * len(fileDict.keys()), tag)
         self.assertEquals(len(fileDict), len(client.added))
         for i,j in ((i[0],json.loads(i[1])) for i in client.added):
             self.assertEquals(i, j[E_KEY])
@@ -188,8 +197,10 @@ class TestZenpackServices(ZenModelBaseTest):
             '/opt/zenoss/etc/other.conf': "boofar"
         }
         client = _MockControlPlaneClient(services=_services)
-        with setControlPlaneClient(client), setCurrentService('zope'), setBuiltinOpen(fileDict):
-            ZenPack('id').installServicesFromFiles(fileDict.keys(),
+        with setControlPlaneClient(client), setCurrentService('zope'):
+            z = ZenPack('id')
+            z._loadServiceDefinition = createMockLoadServiceDefinitions(fileDict)
+            z.installServicesFromFiles(fileDict.keys(),
                                                    [configMap],
                                                    tag)
         self.assertEquals(len(fileDict), len(client.added))
@@ -298,4 +309,3 @@ def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(TestZenpackServices))
     return suite
-
