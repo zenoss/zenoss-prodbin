@@ -1210,17 +1210,18 @@ registerDirectory("skins", globals())
         return any([self.isServicePath(p) for p in glob.glob(self.path('service_definition', '*'))])
 
 
-    def installServices(self):
+    def installServices(self, services=None):
         """
         Install ControlCenter services for this ZenPack
         @return: None
         """
         if not ZenPack.currentServiceId:
             return
-        if self.hasServiceDefinitions():
-            services = self.getServiceDefinitionsFromFiles()
-        elif self.getDaemonNames():
-            services = self.getDefaultCollectorServiceDefinitions()
+        if services is None:
+            if self.hasServiceDefinitions():
+                services = self.getServiceDefinitionsFromFiles()
+            elif self.getDaemonNames():
+                services = self.getDefaultCollectorServiceDefinitions()
         cpClient = ControlPlaneClient(**getConnectionSettings())
         serviceTree = ServiceTree(cpClient.queryServices("*"))
         ctx = servicemigration.ServiceContext()
@@ -1231,7 +1232,8 @@ registerDirectory("skins", globals())
         ctx.commit()
 
 
-    def normalizeService(self, service):
+    @staticmethod
+    def normalizeService(service, tag):
         """
         Applies default actions to a service definition
 
@@ -1239,7 +1241,7 @@ registerDirectory("skins", globals())
         @type service: dict
         @return:
         """
-        service.setdefault('Tags', []).append(self.getServiceTag())
+        service.setdefault('Tags', []).append(tag)
         if 'ImageID' in service and service['ImageID'] == '':
             service['ImageID'] = os.environ['SERVICED_SERVICE_IMAGE']
         defaultLogConfigsPath = zenPath('Products/ZenModel/data/default_service_logconfigs.json')
