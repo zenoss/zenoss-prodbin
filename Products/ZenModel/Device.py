@@ -510,7 +510,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: list
         """
         return self.getMonitoredComponents(collector=collector, type=type);
-    
+
     def _createComponentSearchPathIndex(self):
         indexName = 'getAllPaths'
         if indexName not in self.componentSearch.indexes():
@@ -542,7 +542,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         for c in self.getDeviceComponentsNoIndexGen():
             c.index_object()
         # see ZEN-4087 double index the first component when creating this catalog
-        # otherwise it will not appear in the list of components. 
+        # otherwise it will not appear in the list of components.
         if len(self.componentSearch):
             self.componentSearch()[0].getObject().index_object()
 
@@ -1180,7 +1180,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_editDevice')
     def manage_editDevice(self,
                 tag="", serialNumber="",
-                zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
+                zSnmpCommunity=None, zSnmpPort=161, zSnmpVer=None,
                 rackSlot="", productionState=1000, comments="",
                 hwManufacturer="", hwProductName="",
                 osManufacturer="", osProductName="",
@@ -2057,11 +2057,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         templates = filter(lambda t: isinstance(self, t.getTargetPythonClass()), templates)
         return sorted(templates, key=lambda x: x.id.lower())
 
-    def getSnmpV3EngineId(self): 
-        return self.getProperty('zSnmpEngineId') 
- 
-    def setSnmpV3EngineId(self, value): 
-        self.setZenProperty('zSnmpEngineId', value) 
+    def getSnmpV3EngineId(self):
+        return self.getProperty('zSnmpEngineId')
+
+    def setSnmpV3EngineId(self, value):
+        self.setZenProperty('zSnmpEngineId', value)
 
     security.declareProtected(ZEN_VIEW, 'getLinks')
     def getLinks(self, OSI_layer='3'):
@@ -2182,12 +2182,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Return the status number for this device of class statClass.
         """
-        
+
         # If this device is not monitored or has never been modeled, we do not
         # report on its status
         if not self._snmpLastCollection or not self.monitorDevice():
             return None
-        
+
         from Products.ZenEvents.ZenEventClasses import Status_Ping
         if statusclass == Status_Ping:
             from Products.Zuul import getFacade

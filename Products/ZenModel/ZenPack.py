@@ -354,8 +354,8 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
-        
-        # Once ZEN-16599 is fixed, make sure this exits cleanly even if 
+
+        # Once ZEN-16599 is fixed, make sure this exits cleanly even if
         # the service to delete does not exist
         self.removeServices(self.getServiceTag())
 
@@ -1344,8 +1344,14 @@ registerDirectory("skins", globals())
         templateParams = self.templateParams()
 
         for fileName, configMap in zip(serviceFileNames, serviceConfigs):
-            with open(fileName, 'r') as fh:
+            # use the built in "open" method for unit tests since they override it
+            fh = None
+            try:
+                fh = open(fileName, 'r')
                 service = json.loads(fh.read() % templateParams)
+            finally:
+                if fh:
+                    fh.close()
             definition = ZenPack.normalizeService(service['serviceDefinition'],
                                                   configMap, tag)
             definitions.append(json.dumps(definition))

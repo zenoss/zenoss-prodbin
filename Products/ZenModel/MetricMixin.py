@@ -112,7 +112,7 @@ class MetricMixin(object):
                                 for g in t.getGraphDefs()
                                     if g.id == graphId),
                          None)
-    
+
     def getDefaultGraphDefs(self, drange=None):
         """Backwards compatible layer for zenpacks. """
         log.warn('As of zenoss 5.x and above getDefaultGraphDefs is not supported, use getGraphObjects instead.')
@@ -274,7 +274,7 @@ class MetricMixin(object):
         """
         Compat method for RRD. This returns a list of metrics.
         The output looks something like this
-        >>> pprint(obj.fetchRRDValues('dsname_dpname', 'AVERAGE', 300, 'end-1d', 'now'))
+        $> pprint(obj.fetchRRDValues('dsname_dpname', 'AVERAGE', 300, 'end-1d', 'now'))
            ((1417452900, 1417539600, 300),
             ('ds0',),
           [(83.69137058,),
