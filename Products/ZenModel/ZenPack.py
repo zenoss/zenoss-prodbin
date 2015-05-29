@@ -1344,20 +1344,19 @@ registerDirectory("skins", globals())
         templateParams = self.templateParams()
 
         for fileName, configMap in zip(serviceFileNames, serviceConfigs):
-            # use the built in "open" method for unit tests since they override it
-            fh = None
-            try:
-                fh = open(fileName, 'r')
-                service = json.loads(fh.read() % templateParams)
-            finally:
-                if fh:
-                    fh.close()
+            serviceDef = self._loadServiceDefinition(fileName)
+            service = json.loads(serviceDef % templateParams)
             definition = ZenPack.normalizeService(service['serviceDefinition'],
                                                   configMap, tag)
             definitions.append(json.dumps(definition))
             paths.append(service['servicePath'])
         self.installServiceDefinitions(definitions, paths)
 
+    def _loadServiceDefinition(self, fileName):
+        content = ""
+        with open(fileName, 'r') as fh:
+            content = fh.read()
+        return content
 
     def installServiceDefinitions(self, serviceDefs, servicePaths):
         """
