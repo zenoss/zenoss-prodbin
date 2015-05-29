@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008-2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -26,7 +26,7 @@ class TestParsers(BaseTestCase):
         cmd = Object()
         cmd.deviceConfig = deviceConfig
         cmd.command = 'command'
-        
+
         cmd.includeRegex = ".*Job.*"
         cmd.excludeRegex = "nothing"
         cmd.replaceRegex = ".*"
@@ -63,7 +63,7 @@ class TestParsers(BaseTestCase):
 """
         #create empty data structure for results
         results = ParsedResults()
-        
+
         parser = ps()
         # populate results
         parser.processResults(cmd, ParsedResults())
@@ -75,7 +75,7 @@ class TestParsers(BaseTestCase):
         #assert results.values[0][1] == 623
         self.assertEqual(len([value for dp, value in results.values if value == 623]), 1)
         self.assertEqual(len([ev for ev in results.events if ev['severity'] == 0]), 3)
-        
+
         results = ParsedResults()
         cmd.result.output = """  PID   RSS     TIME COMMAND
 124 1 00:00:00 someJob a b c
@@ -87,10 +87,10 @@ class TestParsers(BaseTestCase):
         # someJob restarted
         # noSuchProcess started
         self.assertEqual(len(results.events), 1)
-        
+
         message = results.events[0]["message"]
         #print "message:", message
-        
+
         firstOpenBracket = message.find('[')+1
         firstClosedBracket = message.find(']')
         discardedPidsString = message[firstOpenBracket : firstClosedBracket]
@@ -108,7 +108,7 @@ class TestParsers(BaseTestCase):
 
         if len(discardedPids) != 3:
             raise AssertionError("unexpected number of discarded PIDs (%s)", len(discardedPids))
-        
+
         for discardedPid in discardedPids:
             if discardedPid != '345' and discardedPid != '123' and discardedPid != '234':
                 raise AssertionError("unexpected discarded pid", discardedPid)
@@ -119,7 +119,7 @@ class TestParsers(BaseTestCase):
         for newPid in newPids:
             if newPid != '124' and newPid != '456':
                 raise AssertionError("unexpected newPid pid", newPid)
-    
+
     def testPsCase10733(self):
         """
         Case 10733
@@ -174,17 +174,18 @@ class TestParsers(BaseTestCase):
         #print "results:", results
 
         self.assertEquals(len(results.values), 3)
-        self.assertEquals(len(results.events), 0)
+        # make sure we only have clear events
+        self.assertEquals(len([e for e in results.events if e.get('severity', None) != 0]), 0)
         for dp, value in results.values:
             if 'count' in dp.id:
                 self.assertEquals(value, 6)
             elif 'cpu' in dp.id:
                 self.assertEquals(value, 485221.0)
             elif 'mem' in dp.id:
-                self.assertEquals(value, 843732.0)
+                self.assertEquals(value, 843732.0 * 1024)
             else:
                 raise AssertionError("unexpected value")
-    
+
     def testPsCase15745(self):
         """
         Case 15745
@@ -233,7 +234,7 @@ class TestParsers(BaseTestCase):
         for ev in results.events:
             summary = ev['summary']
             self.assert_(summary.find('Process up') >= 0, "\'%s\' is not up")
-    
+
     def testPsZen5278(self):
         """
         Jira 5278 - defunct process matching
@@ -299,7 +300,7 @@ class TestParsers(BaseTestCase):
         cmd = Object()
         cmd.deviceConfig = deviceConfig
         cmd.command = 'command'
-        
+
         cmd.includeRegex = ".*myapp.*"
         cmd.excludeRegex = ".*(vim|tail|grep|tar|cat|bash).*"
         cmd.replaceRegex = ".*"
@@ -345,21 +346,21 @@ class TestParsers(BaseTestCase):
 """
         #create empty data structure for results
         results = ParsedResults()
-        
+
         parser = ps()
         # populate results
         parser.processResults(cmd, results)
         #print "results:", results
 
         self.assertEqual(len(results.values), 3)
-        
+
         for val in results.values:
             if val[0].id == 'cpu':
                 self.assertEqual(val[1], 7.0)
             elif val[0].id == 'count':
                 self.assertEqual(val[1], 2)
             elif val[0].id == 'mem':
-                self.assertEqual(val[1], 2.0)
+                self.assertEqual(val[1], 2.0 * 1024)
             else:
                 raise AssertionError("unexpected value:", val[0].id)
 
@@ -388,7 +389,7 @@ class TestParsers(BaseTestCase):
         cmd = Object()
         cmd.deviceConfig = deviceConfig
         cmd.command = 'command'
-        
+
         cmd.includeRegex = "tele.[^\/]*\/.*cel[^\/].*\/"
         cmd.excludeRegex = "nothing"
         cmd.replaceRegex = ".*(tele.[^\/]*)\/.*(cel[^\/].*)\/.*"
@@ -439,7 +440,7 @@ class TestParsers(BaseTestCase):
 """
         #create empty data structure for results
         results = ParsedResults()
-        
+
         parser = ps()
         # populate results
         parser.processResults(cmd, results)
@@ -475,7 +476,7 @@ class TestParsers(BaseTestCase):
             summary = ev['summary']
             if summary.find('Process up') < 0: # and they were still running with the same PIDs
                 raise AssertionError("unexpected event")
-    
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

@@ -49,7 +49,7 @@ class MetricFacadeTest(BaseTestCase):
     def testRequestBuilder(self):
         metric = ["laLoadInt1_laLoadInt1"]
         dev = self.dmd.Devices.createInstance('device1')
-        request = self.facade._buildRequest([dev], metric, None, None, "LAST")
+        request = self.facade._buildRequest([dev], metric, None, None, "LAST", "1m-avg")
         self.assertEquals(request['returnset'], 'LAST')
 
     def testMetricServiceGraphDefinitionProjections(self):

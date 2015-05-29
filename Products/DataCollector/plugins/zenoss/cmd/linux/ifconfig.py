@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2015, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -27,16 +27,16 @@ def parseDmesg(dmesg, relMap):
         if speedMatch:
             for objMap in relMap.maps:
                 if objMap.interfaceName in line:
-                    if 'Gbps' in speedMatch.group(0): 
+                    if 'Gbps' in speedMatch.group(0):
                         objMap.speed = int(speedMatch.group(1)) * 1e9
-                    else: 
+                    else:
                         objMap.speed = int(speedMatch.group(1)) * 1e6
                     break
     return relMap
 
 class ifconfig(LinuxCommandPlugin):
     # echo __COMMAND__ is used to delimit the results
-     command = 'if [ -x /sbin/ifconfig ]; then \
+    command = 'if [ -x /sbin/ifconfig ]; then \
                     /sbin/ifconfig -a; \
                 elif [ -x /usr/sbin/ip ]; then \
                     echo "### ip addr output"; /usr/sbin/ip addr; \
