@@ -872,7 +872,7 @@ Ext.onReady(function(){
                         var uid = me.uid;
                         Zenoss.remote.EventClassesRouter.getTransform({'uid':uid}, function(response){
                             if(response.success){
-                                var str = me.setDefaultString(response.data)
+                                var str = me.getDefaultString(response.data)
                                 me.items.items[0].setValue(str);
                             }
                         });
@@ -908,7 +908,7 @@ Ext.onReady(function(){
         setValue: function(value) {
             this.setTitle(_t("Transform for")+": "+value.transid);
             this.uid = "/zport/dmd"+value.transid;
-            var str = this.setDefaultString(value.trans)
+            var str = this.getDefaultString(value.trans)
             this.down('codeeditorfield').setValue(str);
         },
         reset: function() {
