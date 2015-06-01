@@ -922,7 +922,7 @@ Ext.onReady(function(){
         reset: function() {
             this.down('codeeditorfield').setValue('');
         },
-        setDefaultString: function(str){
+        getDefaultString: function(str){
             if (str == '') {
                return '\n'.repeat(10);
             }
