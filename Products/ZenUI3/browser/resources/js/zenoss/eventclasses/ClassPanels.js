@@ -851,7 +851,7 @@ Ext.onReady(function(){
             handles: 's',
             pinned: true
         },
-        height:150,
+        autoHeight: true,
         layout: 'fit',
         initComponent: function() {
             var me = this;
@@ -880,7 +880,8 @@ Ext.onReady(function(){
                         var uid = me.uid;
                         Zenoss.remote.EventClassesRouter.getTransform({'uid':uid}, function(response){
                             if(response.success){
-                                me.items.items[0].setValue(response.data);
+                                var str = me.getDefaultString(response.data)
+                                me.items.items[0].setValue(str);
                             }
                         });
                     }
@@ -915,11 +916,19 @@ Ext.onReady(function(){
         setValue: function(value) {
             this.setTitle(_t("Transform for")+": "+value.transid);
             this.uid = "/zport/dmd"+value.transid;
-            this.down('codeeditorfield').setValue(value.trans);
+            var str = this.getDefaultString(value.trans)
+            this.down('codeeditorfield').setValue(str);
         },
         reset: function() {
             this.down('codeeditorfield').setValue('');
+        },
+        getDefaultString: function(str){
+            if (str == '') {
+               return '\n'.repeat(10);
+            }
+            return str;
         }
+
     });
 
 });
