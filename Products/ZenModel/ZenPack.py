@@ -356,8 +356,6 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
-            # Once ZEN-16599 is fixed, make sure this exits cleanly even if 
-            # the service to delete does not exist
             self.removeServices(self.getServiceTag())
 
     def backup(self, backupDir, logger):
