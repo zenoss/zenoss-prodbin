@@ -465,7 +465,7 @@
 
                     if (!(sel && nodeId === sel.id)) {
                         var path = this.getNodePathById(nodeId);
-                        this.selectPath(path);
+                        this.selectNodeByPath(path);
                     }
                 }, this);
 
@@ -475,6 +475,107 @@
                 root.on('expand', selNode, this, {single:true});
             } else {
                 selNode();
+            }
+        },
+
+        /**
+         * Expand the tree along the given path.
+         *
+         * This is a copy of the the expandNode function from ExtJS with
+         * modifications to detect and skip path segments that do not
+         * exist in the tree.
+         *
+         * @param {String} path The path to expand. The path should include a leading separator.
+         * @param {String} [field] The field to get the data from. Defaults to the model idProperty.
+         * @param {String} [separator='/'] A separator to use.
+         * @param {Function} [callback] A function to execute when the expand finishes. The callback will be called with
+         * (success, lastNode) where success is if the expand was successful and lastNode is the last node that was expanded.
+         * @param {Object} [scope] The scope of the callback function
+         */
+        expandNodeByPath: function(path, field, separator, callback, scope) {
+            var me = this,
+                current = me.getRootNode(),
+                index = 1,
+                view = me.getView(),
+                keys,
+                expander;
+
+            field = field || me.getRootNode().idProperty;
+            separator = separator || '/';
+
+            if (Ext.isEmpty(path)) {
+                Ext.callback(callback, scope || me, [false, null]);
+                return;
+            }
+
+            keys = path.split(separator);
+            if (current.get(field) != keys[1]) {
+                Ext.callback(callback, scope || me, [false, current]);
+                return;
+            }
+
+            expander = function() {
+                if (++index === keys.length) {
+                    Ext.callback(callback, scope || me, [true, current]);
+                    return;
+                }
+                var node = current.findChild(field, keys[index]);
+                if (node) {
+                    current = node;
+                }
+                current.expand(false, expander);
+            };
+            current.expand(false, expander);
+        },
+
+        /**
+         * Expand the tree to the path of a particular node, then select it.
+         *
+         * This is a copy of the selectNode function from ExtJS with the
+         * modification to call the expandNodeByPath function defined above.
+         *
+         * @param {String} path The path to select. The path should include a leading separator.
+         * @param {String} [field] The field to get the data from. Defaults to the model idProperty.
+         * @param {String} [separator='/'] A separator to use.
+         * @param {Function} [callback] A function to execute when the select finishes. The callback will be called with
+         * (bSuccess, oLastNode) where bSuccess is if the select was successful and oLastNode is the last node that was expanded.
+         * @param {Object} [scope] The scope of the callback function
+         */
+        selectNodeByPath: function(path, field, separator, callback, scope) {
+            var me = this,
+                root,
+                keys,
+                last;
+
+            field = field || me.getRootNode().idProperty;
+            separator = separator || '/';
+
+            keys = path.split(separator);
+            last = keys.pop();
+            if (keys.length > 1) {
+                me.expandNodeByPath(
+                    keys.join(separator), field, separator,
+                    function(success, node) {
+                        var lastNode = node;
+                        if (success && node) {
+                            node = node.findChild(field, last);
+                            if (node) {
+                                me.getSelectionModel().select(node);
+                                Ext.callback(callback, scope || me, [true, node]);
+                                return;
+                            }
+                        }
+                        Ext.callback(callback, scope || me, [false, lastNode]);
+                    },
+                    me);
+            } else {
+                root = me.getRootNode();
+                if (root.getId() === last) {
+                    me.getSelectionModel().select(root);
+                    Ext.callback(callback, scope || me, [true, root]);
+                } else {
+                    Ext.callback(callback, scope || me, [false, null]);
+                }
             }
         },
 
