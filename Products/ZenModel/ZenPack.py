@@ -1384,42 +1384,29 @@ registerDirectory("skins", globals())
             servicePaths = [servicePaths]
 
         serviceDefs = [json.loads(sd) for sd in serviceDefs]
-        for sd, sp in zip(serviceDefs, servicePaths):
-            sd["parentServicePath"] = sp
+        existingPaths = {}
 
-        for sd in serviceDefs:
+        for sd, sp in zip(serviceDefs, servicePaths):
             sd["Services"] = []
-            sp = sd["parentServicePath"]
             sp = "" if sp == "/" else sp
-            paths = [sp + "/=" + sd["Name"]]
+            existingPaths[sp + "/=" + sd["Name"]] = sd
             for tag in sd["Tags"]:
-                paths.append(sp + "/" + tag)
-            sd["servicePaths"] = paths
+                existingPaths[sp + "/" + tag] = sd
 
         services = []
-        for sd in serviceDefs:
-            matched = False
-            for pd in serviceDefs:
-                if pd is sd:
-                    continue
-                if sd["parentServicePath"] in pd["servicePaths"]:
-                    pd["Services"].append(sd)
-                    matched = True
-            if matched:
-                del sd["parentServicePath"]
+        parentServicePaths = []
+        for sd, sp in zip(serviceDefs, servicePaths):
+            if sp in existingPaths:
+                existingPaths[sp]["Services"].append(sd)
             else:
                 services.append(sd)
-
-        for sd in serviceDefs:
-            del sd["servicePaths"]
+                parentServicePaths.append(sp)
 
         cpClient = ControlPlaneClient(**getConnectionSettings())
         serviceTree = ServiceTree(cpClient.queryServices("*"))
         ctx = servicemigration.ServiceContext()
 
-        for service in services:
-            parentServicePath = service["parentServicePath"]
-            del service["parentServicePath"]
+        for service, parentServicePath in zip(services, parentServicePaths):
             parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId, parentServicePath)
             for parentService in parentServices:
                 ctx._ServiceContext__deployService(json.dumps(service), parentService.id)
