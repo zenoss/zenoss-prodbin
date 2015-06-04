@@ -17,6 +17,7 @@ from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.ZenPack import ZenPack, DirectoryConfigContents
 import Products.ZenModel.ZenPack
 import __builtin__
+import servicemigration
 
 class _MockControlPlaneClient(object):
     def __call__(self, *args, **kwargs):
@@ -39,6 +40,19 @@ class _MockControlPlaneClient(object):
     def deleted(self):
         return self._deleted
 
+class _MockServiceMigrationContext(object):
+    def __call__(self, *args, **kwargs):
+        return self
+    def __init__(self):
+        self._added = []
+    def _ServiceContext__deployService(self, service, parentid):
+        self._added.append((parentid, service))
+    def commit(self):
+        return
+    @property
+    def added(self):
+        return self._added
+
 class _MockService (object):
     def __init__(self, id, parentId = '', tags=[]):
         self.name = id.upper()
@@ -49,6 +63,7 @@ class _MockService (object):
         self.poolId= 'default'
     def toJsonDict(self):
         return dict(Id = self.id,
+                    Name = self.name,
                     ParentId = self.parentId,
                     Tags = self.tags)
 
@@ -63,6 +78,15 @@ _services = [
     _MockService('zope', 'zenoss', ['daemon']),
     _MockService('hub1', 'zenoss', ['hub']),
 ]
+
+@contextmanager
+def setServiceMigrationContext(context):
+    try:
+        save = servicemigration.ServiceContext
+        servicemigration.ServiceContext = context
+        yield
+    finally:
+        servicemigration.ServiceContext = save
 
 @contextmanager
 def setControlPlaneClient(client):
@@ -104,33 +128,36 @@ def setBuiltinOpen(fileDict):
 
 class TestZenpackServices(ZenModelBaseTest):
     def testAddNoCurrentServiceId(self):
+        context = _MockServiceMigrationContext()
         client = _MockControlPlaneClient(services=_services)
         service = json.dumps(_MockService('id'), cls=_MockServiceEncoder)
-        with setControlPlaneClient(client):
+        with setControlPlaneClient(client), setServiceMigrationContext(context):
             ZenPack("id").installServiceDefinitions(service, "/hub")
-        self.assertEquals(client.added, [])
+        self.assertEquals(context.added, [])
 
     def testAddSingleService(self):
+        context = _MockServiceMigrationContext()
         client = _MockControlPlaneClient(services=_services)
         service = _MockService('id','pid')
         service.poolId = 'not_default'
         service = json.dumps(service, cls=_MockServiceEncoder)
-        with setControlPlaneClient(client), setCurrentService('zope'):
+        with setControlPlaneClient(client), setCurrentService('zope'), setServiceMigrationContext(context):
             ZenPack("id").installServiceDefinitions(service, "/hub")
-        self.assertEquals(len(client.added), 1)
-        parent, added = client.added[0][0], json.loads(client.added[0][1])
+        self.assertEquals(len(context.added), 1)
+        parent, added = context.added[0][0], json.loads(context.added[0][1])
         self.assertEquals(added['Id'], 'id')
         self.assertEquals(parent, 'hub1')
 
     def testAddMultipleServices(self):
+        context = _MockServiceMigrationContext()
         client = _MockControlPlaneClient(services=_services)
         services = [json.dumps(_MockService(i), cls=_MockServiceEncoder)
                     for i in ('id1', 'id2')]
         paths = ['/', '/hub']
-        with setControlPlaneClient(client), setCurrentService('zope'):
+        with setControlPlaneClient(client), setCurrentService('zope'), setServiceMigrationContext(context):
             ZenPack("id").installServiceDefinitions(services, paths)
-        self.assertEquals(len(client.added), 2)
-        added = [(i[0], json.loads(i[1])) for i in client.added]
+        self.assertEquals(len(context.added), 2)
+        added = [(i[0], json.loads(i[1])) for i in context.added]
         self.assertEquals(added[0][1]['Id'], 'id1')
         self.assertEquals(added[0][0], 'zenoss')
         self.assertEquals(added[1][1]['Id'], 'id2')
@@ -162,28 +189,30 @@ class TestZenpackServices(ZenModelBaseTest):
         P_KEY = 'servicePath'       # key defining path at which to install service
         D_KEY = 'serviceDefinition' # key defining service to be installed
         I_KEY = 'Id'                # key defining ID
+        N_KEY = 'Name'              # key defining Name
         # Mock the filesystem - maps path->json file contents
         fileDict = dict (
-            a={P_KEY: '/', D_KEY: {E_KEY:'zenoss', I_KEY:'a'}},
-            b={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'b'}},
-            c={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'c'}},
+            a={P_KEY: '/', D_KEY: {E_KEY:'zenoss', I_KEY:'a', N_KEY:'A'}},
+            b={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'b', N_KEY:'B'}},
+            c={P_KEY: '/hub', D_KEY: {E_KEY:'hub1', I_KEY:'c', N_KEY:'C'}},
         )
+        context = _MockServiceMigrationContext()
         client = _MockControlPlaneClient(services=_services)
-        with setControlPlaneClient(client), setCurrentService('zope'):
+        with setControlPlaneClient(client), setCurrentService('zope'), setServiceMigrationContext(context):
             z = ZenPack('id')
             z._loadServiceDefinition = createMockLoadServiceDefinitions(fileDict)
             z.installServicesFromFiles(fileDict.keys(), [{}] * len(fileDict.keys()), tag)
-        self.assertEquals(len(fileDict), len(client.added))
-        for i,j in ((i[0],json.loads(i[1])) for i in client.added):
+        self.assertEquals(len(fileDict), len(context.added))
+        for i,j in ((i[0],json.loads(i[1])) for i in context.added):
             self.assertEquals(i, j[E_KEY])
 
     def testConfigMap(self):
         tag='myZenpack'
-        client = _MockControlPlaneClient(services=_services)
         fileDict = {
             "service.json":{
                 'servicePath': '/',
                 'serviceDefinition': {
+                   'Name': "Svc",
                    'Id': 'svc',
                    'ConfigFiles': {
                        '/opt/zenoss/etc/service.conf': {},
@@ -196,15 +225,16 @@ class TestZenpackServices(ZenModelBaseTest):
             '/opt/zenoss/etc/service.conf': "foobar",
             '/opt/zenoss/etc/other.conf': "boofar"
         }
+        context = _MockServiceMigrationContext()
         client = _MockControlPlaneClient(services=_services)
-        with setControlPlaneClient(client), setCurrentService('zope'):
+        with setControlPlaneClient(client), setCurrentService('zope'), setServiceMigrationContext(context):
             z = ZenPack('id')
             z._loadServiceDefinition = createMockLoadServiceDefinitions(fileDict)
             z.installServicesFromFiles(fileDict.keys(),
                                                    [configMap],
                                                    tag)
-        self.assertEquals(len(fileDict), len(client.added))
-        for i, j in ((i[0], json.loads(i[1])) for i in client.added):
+        self.assertEquals(len(fileDict), len(context.added))
+        for i, j in ((i[0], json.loads(i[1])) for i in context.added):
             for key,val in configMap.iteritems():
                 self.assertEquals(j['ConfigFiles'][key]['Content'], val)
 
@@ -273,17 +303,17 @@ class TestZenpackServices(ZenModelBaseTest):
             with self.assertRaises(KeyError): dcc[1]
 
     def testNestedInstall(self):
+        context = _MockServiceMigrationContext()
         client = _MockControlPlaneClient(services=_services)
         services = [json.dumps(_MockService(i), cls=_MockServiceEncoder)
                     for i in ('svc1', 'root', 'svc2')]
         paths = ['/=ROOT', '/', '/=ROOT']
-        with setControlPlaneClient(client), setCurrentService('zope'):
+        with setControlPlaneClient(client), setCurrentService('zope'), setServiceMigrationContext(context):
             ZenPack("id").installServiceDefinitions(services, paths)
-        # Confirm that parent is installed before children
-        self.assertEquals(len(client.added), len(paths))
-        for i,v  in enumerate(('root', 'svc', 'svc')):
-            svc = json.loads(client.added[i][1])
-            self.assertIn(v, svc['Id'])
+        root = json.loads(context.added[0][1])
+        self.assertEquals(root["Name"], "ROOT")
+        self.assertIn("SVC1", [s["Name"] for s in root["Services"]])
+        self.assertIn("SVC2", [s["Name"] for s in root["Services"]])
 
     def testNestedRemove(self):
         tag = 'zp'
