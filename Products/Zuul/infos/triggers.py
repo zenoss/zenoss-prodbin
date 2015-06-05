@@ -82,22 +82,7 @@ class NotificationSubscriptionInfo(InfoBase):
 
     content = property(_getContent, _setContent)
 
-    def _getSubscriptions(self):
-
-        info_data = []
-        for trigger in getFacade('triggers').getTriggerList():
-            if trigger['uuid'] in self._object.subscriptions:
-                info_data.append(dict(
-                    uuid = trigger['uuid'],
-                    name = trigger['name']
-                ))
-
-        return info_data
-
-    def _setSubscriptions(self, value):
-        self._object.subscriptions = [value]
-
-    subscriptions = property(_getSubscriptions, _setSubscriptions)
+    subscriptions = []
 
 
 class NotificationWindowInfo(InfoBase):

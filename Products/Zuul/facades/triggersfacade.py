@@ -393,12 +393,33 @@ class TriggersFacade(ZuulFacade):
 
 
     def getNotifications(self):
+        return self.getNotificationInfos()
+
+    def getNotificationInfos(self):
+        triggers = self.getTriggerList()
+
+        def makeInfo(notification):
+            notificationInfo = IInfo(notification)
+            notificationInfo.subscriptions = [
+                {"uuid": trigger["uuid"], "name": trigger["name"]}
+                for trigger in triggers
+                if trigger["uuid"] in notification.subscriptions
+            ]
+            return notificationInfo
+
+        return (
+            makeInfo(notification)
+            for notification in self.getNotificationSubscriptions()
+        )
+
+    def getNotificationSubscriptions(self):
         self.synchronize()
-
         user = getSecurityManager().getUser()
-        for n in self.notificationPermissions.findNotifications(user, self._getNotificationManager().getChildNodes()):
-            yield IInfo(n)
-
+        return (
+            notification
+            for notification in self._getNotificationManager().getChildNodes()
+            if self.notificationPermissions.validate(user, notification)
+        )
 
     def _updateContent(self, notification, data=None):
 
@@ -934,17 +955,30 @@ class NotificationPermissionManager(object):
         return notification.globalManage or self.securityManager.checkPermission(MANAGE_NOTIFICATION_SUBSCRIPTIONS, notification)
 
 
+    def validate(self, user, notification):
+        """Checks whether the given user may read the notification, and if
+        so, updates the notification's userWrite and userManage statuses
+        to reflect the user's permission level on those privileges.
+
+        Returns True if the user may read the notification.
+        """
+        if not self.userCanViewNotification(user, notification):
+            return False
+
+        notification.userRead = True
+        notification.userWrite = \
+            self.userCanUpdateNotification(user, notification)
+        notification.userManage = \
+            self.userCanManageNotification(user, notification)
+        return True
+
     def findNotifications(self, user, notifications):
         """
         Find all notifications that the current user at least has the 'View'
         permission on.
         """
         for notification in notifications:
-            if self.userCanViewNotification(user, notification):
-                notification.userRead = True
-                notification.userWrite = self.userCanUpdateNotification(user, notification)
-                notification.userManage = self.userCanManageNotification(user, notification)
-
+            if self.validate(user, notification):
                 yield notification
 
     def clearPermissions(self, notification):
