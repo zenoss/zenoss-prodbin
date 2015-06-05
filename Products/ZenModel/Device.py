@@ -1124,7 +1124,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         # apply any zProperties to self
         for prop, value in zProperties.items():
-            if value is not None:
+            if value is not None and value != "":
                 # setZenProperty doesn't set it if it's the same value, so no
                 # need to check here
                 self.setZenProperty(prop, value)
