@@ -163,6 +163,22 @@ class TestZenpackServices(ZenModelBaseTest):
         self.assertEquals(added[1][1]['Id'], 'id2')
         self.assertEquals(added[1][0], 'hub1')
 
+    def testAddMultipleDotDotServices(self):
+        context = _MockServiceMigrationContext()
+        client = _MockControlPlaneClient(services=_services)
+        services = [json.dumps(dict(Name=n, Tags=[t])) for n, t in zip(["a", "b", "c", "d", "e"], ["1", "2", "3", "4", "5"])]
+        paths = [
+            "/hub/..",
+            "/=ZOPE",
+            "/=ZOPE/=b",
+            "/=ZOPE/=b/=c",
+            "/hub/../1"
+        ]
+        with setControlPlaneClient(client), setCurrentService('zope'), setServiceMigrationContext(context):
+            ZenPack("id").installServiceDefinitions(services, paths)
+        self.assertEquals(json.dumps([json.loads(a[1]) for a in context.added]),
+            '[{"Services": [{"Services": [], "Name": "e", "Tags": ["5"]}], "Name": "a", "Tags": ["1"]}, {"Services": [{"Services": [{"Services": [], "Name": "d", "Tags": ["4"]}], "Name": "c", "Tags": ["3"]}], "Name": "b", "Tags": ["2"]}]')
+
     def testRemoveNoCurrentServiceId(self):
         moduleName = "Zenpacks.zenoss.Test"
         services = _services + [_MockService('me','hub1',[moduleName])]
