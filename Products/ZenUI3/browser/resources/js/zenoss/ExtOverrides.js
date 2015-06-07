@@ -650,7 +650,7 @@ Ext.override(Ext.util.Sorter, {
     });
 
     /* The following classes, prefixed with 'EXTJSIV-6824', exist to address the bug
-     * under that number, affecting multi-select in the tree selection model.  The 
+     * under that number, affecting multi-select in the tree selection model.  The
      * bug is fixed in 4.2.0, and this code should be remove when we upgrade to that release
      */
 
@@ -699,14 +699,14 @@ Ext.override(Ext.util.Sorter, {
     Ext.define('EXTJSIV-6824.selection.TreeModel', {
         override: 'Ext.selection.TreeModel',
         onKeySpace: function(e, t) {
-            if (e.record.data.checked != null) {
+            if (e.record.data.checked !== null) {
                 this.toggleCheck(e);
             } else {
                 this.callSuper(arguments);
             }
         },
         onKeyEnter: function(e, t) {
-            if (e.record.data.checked != null) {
+            if (e.record.data.checked !== null) {
                 this.toggleCheck(e);
             } else {
                 this.callSuper(arguments);
@@ -744,12 +744,12 @@ Ext.override(Ext.util.Sorter, {
             // Cancel any pending expand operation
             me.cancelExpand();
 
-            if (position == 'before') {
+            if (position === 'before') {
                 insertionMethod = parentNode.insertBefore;
                 argList = [null, targetNode];
                 targetNode = parentNode;
             }
-            else if (position == 'after') {
+            else if (position === 'after') {
                 if (targetNode.nextSibling) {
                     insertionMethod = parentNode.insertBefore;
                     argList = [null, targetNode.nextSibling];
@@ -767,7 +767,7 @@ Ext.override(Ext.util.Sorter, {
                 insertionMethod = targetNode.appendChild;
                 argList = [null];
             }
-            
+
             // A function to transfer the data into the destination tree
             transferData = function() {
                 var color,
@@ -896,7 +896,7 @@ Ext.override(Ext.util.Sorter, {
 
             switch (me.selectionMode) {
                 case 'MULTI':
-                    
+
                     if (isSpace) {
                         // SHIFT+SPACE, select range
                         if (e.shiftKey) {
@@ -984,7 +984,7 @@ Ext.override(Ext.util.Sorter, {
                     else if (me.allowDeselect && isSelected) {
                         me.doDeselect(record);
                     }
-                    
+
                     // select the record and do NOT maintain existing selections
                     else {
                         me.doSelect(record, false);

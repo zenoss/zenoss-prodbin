@@ -1442,12 +1442,12 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     items: [{
                         text: 'XML',
                         handler: function () {
-                            exporter('xml')
+                            exporter('xml');
                         }
                     }, {
                         text: 'CSV',
                         handler: function () {
-                            exporter('csv')
+                            exporter('csv');
                         }
                     }]
                 }

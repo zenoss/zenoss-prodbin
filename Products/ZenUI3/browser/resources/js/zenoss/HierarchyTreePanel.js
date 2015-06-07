@@ -496,7 +496,6 @@
             var me = this,
                 current = me.getRootNode(),
                 index = 1,
-                view = me.getView(),
                 keys,
                 expander;
 
@@ -509,7 +508,7 @@
             }
 
             keys = path.split(separator);
-            if (current.get(field) != keys[1]) {
+            if (current.get(field) !== keys[1]) {
                 Ext.callback(callback, scope || me, [false, current]);
                 return;
             }

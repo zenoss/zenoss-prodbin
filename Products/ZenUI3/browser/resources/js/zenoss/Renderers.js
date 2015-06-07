@@ -351,7 +351,7 @@ Ext.apply(Zenoss.render, {
 
     Device: function(uid, name, fragment) {
         if (!Ext.isString(fragment)) {
-            fragment = 'deviceDetailNav:device_overview'
+            fragment = 'deviceDetailNav:device_overview';
         }
         // For now, link to the old device page
         return Zenoss.render.link(null, uid+'/devicedetail#'+fragment, name);
