@@ -27,6 +27,9 @@ class UserFacade(ZuulFacade):
     def setAdminPassword(self, newPassword):
         userManager = self._dmd.getPhysicalRoot().acl_users.userManager
         userManager.updateUserPassword('admin', newPassword)
+        # ZEN-18147 make sure we update both acl_users otherwise users
+        # will still be able to log in with the default password
+        self._dmd.zport.acl_users.userManager.updateUserPassword('admin', newPassword)
 
     def removeUsers(self, userIds):
         ids = userIds
@@ -40,7 +43,7 @@ class UserFacade(ZuulFacade):
         if dir == "DESC":
             sortedUsers.reverse()
         total = len(sortedUsers)
-        return SearchResults(iter(sortedUsers[start:limit]), total, total,areBrains=False)
+        return SearchResults(iter(sortedUsers[start:limit]), total, total, areBrains=False)
 
     def addUser(self, id, password, email, roles):
         propertiedUser = self._root.manage_addUser(id, password, roles)
