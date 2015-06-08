@@ -176,8 +176,6 @@ class TestZenpackServices(ZenModelBaseTest):
         ]
         with setControlPlaneClient(client), setCurrentService('zope'), setServiceMigrationContext(context):
             ZenPack("id").installServiceDefinitions(services, paths)
-        # self.assertEquals(json.dumps([json.loads(a[1]) for a in context.added]),
-        #     '[{"Services": [{"Services": [], "Name": "e", "Tags": ["5"]}], "Name": "a", "Tags": ["1"]}, {"Services": [{"Services": [{"Services": [], "Name": "d", "Tags": ["4"]}], "Name": "c", "Tags": ["3"]}], "Name": "b", "Tags": ["2"]}]')
         self.assertEquals([json.loads(a[1]) for a in context.added],
             [{
                 "Services": [{
