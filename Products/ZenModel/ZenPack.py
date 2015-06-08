@@ -47,6 +47,8 @@ from Acquisition import aq_parent
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 from Products.ZenMessaging.audit import audit
 
+import servicemigration
+servicemigration.require("1.0.0")
 
 class ZenPackException(Exception):
     pass
@@ -202,7 +204,7 @@ class ZenPack(ZenModelRM):
     prevZenPackName = ''
     prevZenPackVersion = None
 
-    # Control Plane service ID for container executing this installation
+    # Control Center service ID for container executing this installation
     currentServiceId = ""
 
     # Whether or not to skip control center service mutation at install time
@@ -281,7 +283,7 @@ class ZenPack(ZenModelRM):
         previousVersion = self.prevZenPackVersion
         self.storeBackup()
         self.migrate(previousVersion)
-        if not ZenPack.ignoreServiceInstall:
+        if not ZenPack.ignoreServiceInstall and previousVersion is None:
             self.installServices()
 
     def storeBackup(self):
@@ -354,10 +356,7 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
-
-        # Once ZEN-16599 is fixed, make sure this exits cleanly even if
-        # the service to delete does not exist
-        self.removeServices(self.getServiceTag())
+            self.removeServices(self.getServiceTag())
 
     def backup(self, backupDir, logger):
         """
@@ -1215,7 +1214,7 @@ registerDirectory("skins", globals())
 
     def installServices(self):
         """
-        Install ControlPlane services for this ZenPack
+        Install Control Center services for this ZenPack
         @return: None
         """
         if not ZenPack.currentServiceId:
@@ -1317,13 +1316,13 @@ registerDirectory("skins", globals())
 
     def installServicesFromFiles(self, serviceFileNames, serviceConfigs, tag):
         """
-        Install a set of control plane services
+        Install a set of control center services
 
         Each file is expected to contain a json encoded object with two fields:
          servicePath: a service path indicating where this service should be installed.
             See ServiceTree.matchServicePath for description of service path
          serviceDefinition: a service definition object which will be sent to
-            controlplane.  Service definition examples may be be seen by running
+            Control Center.  Service definition examples may be be seen by running
             $ serviced template list $TEMPLATE_ID
         Each service will be tagged with the given tag in order to enable discovery
         for ZenPack removal.  If a service definition has an ImageID field, but
@@ -1352,15 +1351,17 @@ registerDirectory("skins", globals())
             paths.append(service['servicePath'])
         self.installServiceDefinitions(definitions, paths)
 
+
     def _loadServiceDefinition(self, fileName):
         content = ""
         with open(fileName, 'r') as fh:
             content = fh.read()
         return content
 
+
     def installServiceDefinitions(self, serviceDefs, servicePaths):
         """
-        Install a service into ControlPlane
+        Install a service into Control Center
 
         Install a service (described by a service definition string) at a given
              location in the service tree.  Multiple service/location pairs can
@@ -1382,37 +1383,40 @@ registerDirectory("skins", globals())
         if isinstance(servicePaths, basestring):
             servicePaths = [servicePaths]
 
+        serviceDefs = [json.loads(sd) for sd in serviceDefs]
+        existingPaths = {}
+
+        for sd, sp in zip(serviceDefs, servicePaths):
+            sd["Services"] = []
+            sp = "" if sp == "/" else sp
+            existingPaths[sp + "/=" + sd["Name"]] = sd
+            for tag in sd["Tags"]:
+                existingPaths[sp + "/" + tag] = sd
+
+        services = []
+        parentServicePaths = []
+        for sd, sp in zip(serviceDefs, servicePaths):
+            if sp in existingPaths:
+                existingPaths[sp]["Services"].append(sd)
+            else:
+                services.append(sd)
+                parentServicePaths.append(sp)
+
         cpClient = ControlPlaneClient(**getConnectionSettings())
         serviceTree = ServiceTree(cpClient.queryServices("*"))
+        ctx = servicemigration.ServiceContext()
 
-        # Determine depth in service tree of each service.
-        cwd = '/' + '/'.join(['x']*len(serviceTree.getPath(ZenPack.currentServiceId)))
-        def pathComponentCount(path):
-            components = posixpath.normpath(posixpath.join(cwd, path)).split('/')
-            return sum(bool(i) for i in components)
-        depth =  [pathComponentCount(i) for i in servicePaths]
-
-        # Sort services by number of components in absolute path, ensuring that
-        #  parent services are created before child services.
-        serviceTuples = zip(servicePaths, serviceDefs, depth)
-        serviceTuples.sort(key=lambda x:x[2])
-
-        lastDepth = serviceTuples[0][2] if serviceTuples else None
-        for path, serviceDef, depth in serviceTuples:
-            # Update service tree in case we are adding a child to a new service
-            if depth != lastDepth:
-                serviceTree = ServiceTree(cpClient.queryServices("*"))
-                lastDepth = depth
-
-            parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId,
-                                                          path)
+        for service, parentServicePath in zip(services, parentServicePaths):
+            parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId, parentServicePath)
             for parentService in parentServices:
-                cpClient.deployService(parentService.id, serviceDef)
+                ctx._ServiceContext__deployService(json.dumps(service), parentService.id)
+
+        ctx.commit()
 
 
     def removeServices(self, tag):
         """
-        Remove all services matching tag from control plane
+        Remove all services matching tag from Control Center
 
         :param tag: tag for which all services will be removed
         :type tag: string
