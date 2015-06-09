@@ -136,6 +136,13 @@
     />
 
 <browser:page
+    class=".testing.UserInterfaceTests"
+    name="uitests"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.Common"
+    />
+
+<browser:page
     name="export_devices"
     class=".device_export.DeviceExporter"
     for="*"
@@ -155,20 +162,20 @@
     for="*"
     permission="zenoss.View"
     />
-    
+
 <browser:page
     template="templates/eventclasses.pt"
-    name="eventclasses" 
+    name="eventclasses"
     for="*"
     permission="zenoss.View"
-    />    
-    
+    />
+
 <browser:page
     template="templates/manufacturers.pt"
-    name="manufacturers" 
+    name="manufacturers"
     for="*"
     permission="zenoss.View"
-    />    
+    />
 
 <browser:page
     template="templates/process.pt"
