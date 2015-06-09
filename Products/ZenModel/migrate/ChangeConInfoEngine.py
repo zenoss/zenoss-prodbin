@@ -46,7 +46,7 @@ class ChangeConInfoEngine(Migrate.Step):
                  stdout, stderr = s.communicate(sql)
                  rc = s.wait()
                  if rc:
-                     LOG.error("Error executing mysql: %s %s\n" % (stdout, stderr))
+                     log.error("Error executing mysql: %s %s\n" % (stdout, stderr))
                  else:
                      return (stdout, stderr)
              except KeyboardInterrupt:
