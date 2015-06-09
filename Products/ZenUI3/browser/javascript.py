@@ -22,10 +22,34 @@ from Products.ZenUI3.navigation.manager import WeightOrderedViewletManager
 from Products.ZenUtils.extdirect.zope.metaconfigure import allDirectRouters
 from zope.publisher.browser import TestRequest
 from zope.component import getAdapter
+from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenModel.ZVersion import VERSION
 from Products.Zuul.decorators import memoize
 
 dummyRequest = TestRequest()
+
+# this will contained every registered resource directory
+_registered_resources = []
+
+
+@monkeypatch('Products.Five.browser.metaconfigure')
+def resourceDirectory(*args, **kwargs):
+    """
+    There isn't a way to ask the site manager for a list of registered
+    resource directories and since they are defined in zenpacks we don't
+    know the list ahead of time.
+    This is used so we can look for JS test files instead of requiring each one
+    to be explicitly registered somehow.
+    """
+    global _registered_resources
+    # will be name and directory
+    _registered_resources.append(kwargs)
+    return original(*args, **kwargs)
+
+
+def getAllZenPackResources():
+    # make a copy so the original isn't mutated
+    return [x for x in _registered_resources if "zenpack" in x['directory'].lower()]
 
 @memoize
 def getPathModifiedTime(path):
@@ -82,7 +106,7 @@ class CSSSrcBundleViewlet(ViewletBase):
             js = "".join(vals)
         return js
 
-    
+
 class JavaScriptSrcViewlet(ViewletBase):
     zope.interface.implements(IJavaScriptSrcViewlet)
     path = None
