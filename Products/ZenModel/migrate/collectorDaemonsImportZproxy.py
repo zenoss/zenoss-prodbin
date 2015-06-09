@@ -7,6 +7,9 @@
 #
 ##############################################################################
 
+import logging
+log = logging.getLogger("zen.migrate")
+
 import Migrate
 import servicemigration as sm
 sm.require("1.0.0")
@@ -18,7 +21,11 @@ class CollectorDaemonsImportZproxy(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
-        ctx = sm.ServiceContext()
+        try:
+            ctx = sm.ServiceContext()
+        except sm.ServiceMigrationError:
+            log.info("Couldn't generate service context, skipping.")
+            return
 
         # Get all services tagged "collector" and "daemon".
         collectorDaemons = filter(lambda s: all(x in s.tags for x in ["collector", "daemon"]), ctx.services)

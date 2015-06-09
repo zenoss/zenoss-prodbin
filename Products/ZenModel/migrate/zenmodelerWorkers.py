@@ -7,6 +7,9 @@
 #
 ##############################################################################
 
+import logging
+log = logging.getLogger("zen.migrate")
+
 import Migrate
 import servicemigration as sm
 sm.require("1.0.0")
@@ -22,7 +25,11 @@ class zenmodelerWorkers(Migrate.Step):
         if dmd.getProductName() == "core":
             return
 
-        ctx = sm.ServiceContext()
+        try:
+            ctx = sm.ServiceContext()
+        except sm.ServiceMigrationError:
+            log.info("Couldn't generate service context, skipping.")
+            return
 
         # Get all zenmodeler services.
         modelers = filter(lambda s: s.name == "zenmodeler", ctx.services)

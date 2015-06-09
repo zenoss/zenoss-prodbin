@@ -8,6 +8,8 @@
 ##############################################################################
 
 import os
+import logging
+log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
@@ -20,7 +22,12 @@ class UpdateZentrapConfigs(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
-        ctx = sm.ServiceContext()
+
+        try:
+            ctx = sm.ServiceContext()
+        except sm.ServiceMigrationError:
+            log.info("Couldn't generate service context, skipping.")
+            return
 
         zentraps = filter(lambda s: s.name == "zentrap", ctx.services)
 
@@ -43,5 +50,6 @@ class UpdateZentrapConfigs(Migrate.Step):
 
         # Commit our changes.
         ctx.commit()
+
 
 UpdateZentrapConfigs()
