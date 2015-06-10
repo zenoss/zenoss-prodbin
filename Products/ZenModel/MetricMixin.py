@@ -307,7 +307,7 @@ class MetricMixin(object):
         # parse start and end into unix timestamps
         start, end = self._rrdAtTimeToUnix(start, end)
         for dpname in dpnames:
-            response = facade.queryServer(self, dpnames, cf=cf, start=start, end=end, downsample=resolution, returnSet="ALL")
+            response = facade.queryServer(self, [dpname], cf=cf, start=start, end=end, downsample=resolution, returnSet="ALL")
             values = response.get('results', [])
             firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
             secondRow = ('ds0',)
@@ -321,7 +321,7 @@ class MetricMixin(object):
         """
         Calls fetcdh RRDValue but returns the first result.
         """
-        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end)
+        r = self.fetchRRDValues([dpname, ], cf, resolution, start, end=end)
         if r:
             return r[0]
         return None
