@@ -13,8 +13,8 @@ from decorator import decorator
 from AccessControl import Unauthorized
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectResponse
-from zenoss.protocols.services import ServiceConnectionError, ZepConnectionTimeout
-from zenoss.protocols.services.zep import ZepConnectionError
+from zenoss.protocols.services import ServiceConnectionError
+from zenoss.protocols.services.zep import ZepConnectionError, ZepConnectionTimeout
 
 import logging
 import threading
