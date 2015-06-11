@@ -174,6 +174,7 @@
             config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
                 html: this.graphTemplate.apply(config),
+                maxWidth: 800,
                 cls: 'graph-panel',
                 bodyStyle: {
                     padding: "5px"
@@ -187,7 +188,7 @@
                     xtype: 'toolbar',
                     dock: 'top',
                     items: ['->',{
-                        text: 'Open in New Tab',
+                        text: _t('Open in New Tab'),
                         handler: Ext.bind(function(btn, e) {
                                 this.newTab(this);
                         }, this)
@@ -350,6 +351,7 @@
             config.xtype = 'europagraph';
             config.height = window.outerHeight * 0.75;
             config.width = Math.min(window.outerWidth * 0.80, config.height * 1.6180339887);
+            config.maxWidth = 2000;
             delete config.html;
 
             win = Ext.create('Zenoss.dialog.BaseWindow', {
