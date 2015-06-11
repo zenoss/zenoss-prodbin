@@ -306,27 +306,30 @@ class MetricMixin(object):
 
         # parse start and end into unix timestamps
         start, end = self._rrdAtTimeToUnix(start, end)
-        for dpname in dpnames:
-            response = facade.queryServer(self, [dpname], cf=cf, start=start, end=end, downsample=resolution, returnSet="ALL")
-            values = response.get('results', [])
-            firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
-            secondRow = ('ds0',)
+        response = facade.queryServer(self, dpnames, cf=cf, start=start, end=end, downsample=resolution, returnSet="ALL")
+
+        values = response.get('results', [])
+        firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
+        secondRow = ('ds0',)
+
+        for value in values:
             thirdRow = []
-            if values:
-                thirdRow = self._createRRDFetchResults(response.get('startTimeActual'), response.get('endTimeActual'), resolution, values)
+            if value:
+                thirdRow = self._createRRDFetchResults(response.get('startTimeActual'), response.get('endTimeActual'), resolution, value)
             results.append((firstRow, secondRow, thirdRow))
+
         return results
 
     def fetchRRDValue(self, dpname, cf, resolution, start, end="now"):
         """
-        Calls fetcdh RRDValue but returns the first result.
+        Calls fetch RRDValue but returns the first result.
         """
         r = self.fetchRRDValues([dpname, ], cf, resolution, start, end=end)
         if r:
             return r[0]
         return None
 
-    def _createRRDFetchResults(self, start, end, resolution, values):
+    def _createRRDFetchResults(self, start, end, resolution, value):
         """
         Given a set of metrics returned from the metric server and the start, end and resolution
         this method returns a metric for each "step" or a None if one can't be found.
@@ -338,15 +341,15 @@ class MetricMixin(object):
         # create a list of None's for the return value
         buckets = [(None,) for x in range(size)]
         currentTime = start
-        if not values:
+        if not value:
             return buckets
 
         # we are making the assumption we are only working with one datapoint
         # also that the return set is sorted sequentially
         try:
-            values = values[0]['datapoints']
+            values = value['datapoints']
         except KeyError:
-            log.error("Unable to find datapoints from metric query results %s", values)
+            log.error("Unable to find datapoints from metric query results %s", value)
             return buckets
 
         for idx, _ in enumerate(buckets):

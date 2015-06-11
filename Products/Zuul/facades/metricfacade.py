@@ -171,16 +171,24 @@ class MetricFacade(ZuulFacade):
             # in theory it is possible that a passed in metric exists on one context
             # but not another.
             for subject in subjects:
-                dp = next((d for d in subject._getRRDDataPointsGen() if ds in d.name() ), None)
+                dp = next(
+                    (
+                        d
+                        for d in subject._getRRDDataPointsGen()
+                        if ds in d.name()
+                    ),
+                    None
+                )
                 if dp is None:
                     continue
                 else:
-                    # we have found a definition for a datapoint, use it and continue onp
+                    # we have found a definition for a datapoint, use it and continue on
                     metricnames[dp.name()] = ds
                     for subject in subjects:
                         datapoints.append(self._buildMetric(subject, dp, cf, extraRpn, format))
                     break
-
+            log.info("METRIC NAME: %s", metricnames)
+        log.info("DATAPOINTS: %s", datapoints)
         # no valid datapoint names were entered
         if not datapoints:
             return {}
@@ -199,7 +207,7 @@ class MetricFacade(ZuulFacade):
         if start is None and returnSet != "LAST":
             start = self._formatTime(datetime.today() - timedelta(seconds = self._dmd.defaultDateRange))
         elif start is None and returnSet == "LAST":
-            start = self._formatTime(datetime.today() - timedelta(seconds = 3600))
+            start = self._formatTime(datetime.today() - timedelta(seconds = 7200))
         request = self._buildRequest(subjects, datapoints, start, end, returnSet, downsample)
 
         # submit it to the client
@@ -312,7 +320,7 @@ class MetricFacade(ZuulFacade):
             log.debug("using token auth")
 
 
-        log.info("METRICFACADE POST %s %s", uri, request)
+        # log.info("METRICFACADE POST %s %s", uri, request)
         try:
             response = self._req_session.post(uri, json.dumps(request), headers=headers,
                                               timeout=timeout, cookies=self._authCookie)
