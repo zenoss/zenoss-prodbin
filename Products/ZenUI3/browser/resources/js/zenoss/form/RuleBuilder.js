@@ -293,9 +293,23 @@
             if (!comparison || !sub || Ext.isEmpty(pred)) { return; }
             var cmp = ZF.COMPARISONS[comparison];
             var clause = Ext.String.format(cmp.tpl, this.getBuilder().prefix + sub, Ext.encode(pred));
-            return Ext.String.format("({0})", clause);
+
+            var clause_code = Ext.String.format("({0})", clause);
+            if (sub.startsWith(Zenoss.env.ZP_DETAILS_TRIGGER_PREFIX)) {
+                // for custom details we add a check to ensure the detail is present
+                var replace_text = Zenoss.env.ZP_DETAILS_TRIGGER_PREFIX + '.';
+                var detail = sub.replace(replace_text, '');
+                var exists_code = Ext.String.format("hasattr({0}, \"{1}\")", Zenoss.env.ZP_DETAILS_TRIGGER_PREFIX, detail);
+                clause_code = Ext.String.format("({0} and {1})", exists_code, clause);
+            }
+            return clause_code;
         },
         setValue: function(expression) {
+            // If the clause is for a custom zenpack detail, we need to remove
+            // the hasattr condition
+            if (expression.startsWith("hasattr")) {
+                expression = expression.replace(/hasattr.* and /, '');
+            }
             for (var cmp in comparison_patterns) {
                 if (comparison_patterns.hasOwnProperty(cmp)) {
                     var pat = comparison_patterns[cmp];
