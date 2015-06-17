@@ -24,6 +24,7 @@ from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
 from pkg_resources import parse_requirements, Distribution, DistributionNotFound, get_distribution, parse_version, iter_entry_points
+from enum import Enum
 
 import Globals
 import transaction
@@ -321,23 +322,13 @@ class ZenPackCmd(ZenScriptBase):
         return packsToFix
 
     def restore(self):
-        # First take care of packs in the new image that aren't in the database
-        fixedSomething = False
-        for pack in self.onlyInImage():
-            # skip those to be skipped
-            if self.options.keepPackNames and pack in self.options.keepPackNames:
-                log.info('Keeping %s from being erased from disk', pack)
-                continue
-            with open(os.devnull, 'w') as fnull:
-                log.info('Erasing zenpack from disk %s', pack)
-                cmd = ['zenpack', '--erase', pack, '--files-only']
-                subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
 
-                fixedSomething = True
+        ZPSource = Enum("ZPSource", "database disk")
 
-        zpsToRestore = {}
+        zpsToRestore = {} # {'zpName': (version, filesOnly, zpSource)}
         linkedPacks = []
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
+            zpSource = None
             restoreZenPack = False
             version = None
             filesOnly = True
@@ -365,9 +356,11 @@ class ZenPackCmd(ZenScriptBase):
                     if versionCmp > 0:
                         version = get_distribution(zpId).version
                         filesOnly = False
+                        zpSource = ZPSource.disk
                     # Zodb has a higher version that what's in the distirbution's package
                     elif versionCmp < 0:
                         filesOnly = False
+                        zpSource = ZPSource.database
 
             except (AttributeError, DistributionNotFound):
                 restoreZenPack = True
@@ -376,20 +369,27 @@ class ZenPackCmd(ZenScriptBase):
                 continue
             if restoreZenPack:
                 # Add to list of packs to restore
-                zpsToRestore[zpId] = (version, filesOnly)
+                zpsToRestore[zpId] = (version, filesOnly, zpSource, False)
 
-        # Restore linekd packs first, separately
+        # Restore linked packs first, separately
         for pack in linkedPacks:
             self._linkedRestore(pack)
 
-        # Figure out which packs have dependencies, and sort them accordingly
+        # Figure out which packs have dependencies, and sort them accordingly.
+        # Respect the source of the pack
         zpsToSort = {}
         pattern = '(ZenPacks\.zenoss\.[a-zA-Z\.]*)'
-        for zpId in zpsToRestore.iterkeys():
-            zp = self.dmd.ZenPackManager.packs._objects[zpId]
-            deps = getattr(zp, 'dependencies', None)
-            if deps is None:
-                deps = zp.__Broken_state__['dependencies']
+        for zpId,zpDetails in zpsToRestore.items():
+            if zpDetails[2] == ZPSource.disk:
+                zp = get_distribution(zpId)
+                deps = {}
+                for dep in zp.requires():
+                    deps[dep.unsafe_name] = '' # TODO: need to have version as value in dict
+            else: # zpDetails[2] in (ZPSource.database, None):
+                zp = self.dmd.ZenPackManager.packs._objects[zpId]
+                deps = getattr(zp, 'dependencies', None)
+                if deps is None:
+                    deps = zp.__Broken_state__['dependencies']
             # Look to see if any packs have any other zenpack deps
             matches = filter(
                     lambda x: x,
@@ -403,6 +403,9 @@ class ZenPackCmd(ZenScriptBase):
                     depName = match.group(0)
                     if depName in zpsToRestore.keys():
                         depsSet.add(depName)
+                    elif depName not in [ pack.id for pack in self.dmd.ZenPackManager.packs() ]: # pack not installed in DB
+                        depsSet.add(depName)
+                        zpsToRestore[depName] = ('', False, None)
             zpsToSort[zpId] = depsSet
 
         # If Impact needs upgrading, ensure that it's installed first
@@ -441,6 +444,22 @@ class ZenPackCmd(ZenScriptBase):
             elif len(sortedPacks) != 0:
                 self.log.info("Failed to install packs: %s, will try again", ", ".join(sortedPacks))
 
+        transaction.commit()
+        self.dmd._p_jar.sync()
+
+        # take care of packs in the new image that aren't in the database
+        for pack in self.onlyInImage():
+            # skip those to be skipped
+            if pack in self.options.keepPackNames:
+                log.info('Keeping %s from being erased from disk', pack)
+                continue
+            with open(os.devnull, 'w') as fnull:
+                log.info('Erasing zenpack from disk %s', pack)
+                cmd = ['zenpack', '--erase', pack, '--files-only']
+                subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
+
+                fixedSomething = True
+
         if not fixedSomething:
             self.log.info("No broken zenpacks found")
         else:
@@ -469,23 +488,25 @@ class ZenPackCmd(ZenScriptBase):
             version = list(version)
             version[dashIndex] = '_'
             version = ''.join(version)
-        patterns = [backupDir + "/%s-%s-*" % (zpId, version) for backupDir in backupDirs]
+        if not version: # Get the one from packs
+            patterns = [ zenPath("packs") + "/%s-*" % (zpId) ] # TODO
+        else:
+            patterns = [backupDir + "/%s-%s-*" % (zpId, version) for backupDir in backupDirs]
         # Look through potential .egg locations, breaking out once we find one
         # (AKA prefer the first location)
         for pattern in patterns:
             self.log.info("looking for %s", pattern)
             candidates = glob.glob(pattern)
-            if len(candidates) > 0:
+            if len(candidates) == 1:
                 break
         if len(candidates) == 0:
             self.log.info("could not find install candidate for %s %s", zpId, version)
             return
-        if len(candidates) > 1:
+        if len(candidates) > 1: # Unlikely, but just in case
             self.log.error("Found more than one install candidate for %s %s (%s), skipping",
                           zpId, version, ", ".join(candidates))
             return
 
-        # Make the code below this easier to read
         candidate = candidates[0]
         if candidate.lower().endswith(".egg"):
             try:
@@ -495,6 +516,7 @@ class ZenPackCmd(ZenScriptBase):
                     cmd.append("--files-only")
                 cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
                 try:
+                    self.log.debug("running cmd `%s`", cmd.join(" "))
                     with open(os.devnull, 'w') as fnull:
                         # the first time fixes the easy-install path
                         subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
@@ -761,7 +783,7 @@ class ZenPackCmd(ZenScriptBase):
                                dest='keepPackNames',
                                action='append',
                                type='string',
-                               default=None,
+                               default=[],
                                help='(Can be used multiple times) with --restore, pack name to not be deleted from disk if not found in zodb')
         self.parser.add_option('--link',
                                dest='link',
