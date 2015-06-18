@@ -36,13 +36,14 @@ def parseDmesg(dmesg, relMap):
 
 class ifconfig(LinuxCommandPlugin):
     # echo __COMMAND__ is used to delimit the results
-    command = 'if [ -x /sbin/ifconfig ]; then \
-                    /sbin/ifconfig -a; \
-                elif [ -x /usr/sbin/ip ]; then \
-                    echo "### ip addr output"; /usr/sbin/ip addr; \
-                else \
-                    echo "No ifconfig or ip utilities were found."; exit 127; \
-                fi  && echo __COMMAND__ && /bin/dmesg'
+    command = 'export PATH=$PATH:/sbin:/usr/sbin; \
+               if which ifconfig >/dev/null 2>&1; then \
+                   ifconfig -a; \
+               elif which ip >/dev/null 2>&1; then \
+                   echo "### ip addr output"; ip addr; \
+               else \
+                   echo "No ifconfig or ip utilities were found."; exit 127; \
+               fi  && echo __COMMAND__ && /bin/dmesg'
     compname = "os"
     relname = "interfaces"
     modname = "Products.ZenModel.IpInterface"
