@@ -67,4 +67,5 @@ class AddPrefixToTriggerRule(Migrate.Step):
                         triggers_facade.updateTrigger(**trigger)
                         print "Trigger {0} updated.".format(trigger.get('name'))
 
-AddPrefixToTriggerRule()
+# Disabling this migrate script, because it requires zeneventserver to be running. ZEN-17256 ZEN-18175
+# AddPrefixToTriggerRule()
