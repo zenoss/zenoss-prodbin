@@ -11,6 +11,8 @@ Ext.ns('Zenoss.ui.Triggers');
 
 Ext.onReady(function () {
 
+    Zenoss.env.ZP_DETAILS_TRIGGER_PREFIX = "zp_det";
+
     var router = Zenoss.remote.TriggersRouter,
         ZFR = Zenoss.form.rule,
         STRINGCMPS = ZFR.STRINGCOMPARISONS,
@@ -1876,7 +1878,17 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         }
     ];
 
-    trigger_tab_subjects = trigger_tab_subjects.concat(Zenoss.env.ZP_DETAILS);
+    // Details added by zenpacks. Replace '.'' for '_' (if any). zep will do the same
+    // when evaluating the trigger. We also add a prefix. When zep creates the trigger context
+    // will have to create a dict whose name matches Zenoss.env.ZP_DETAILS_TRIGGER_PREFIX
+    zp_details = Zenoss.env.ZP_DETAILS;
+    Ext.each(zp_details,
+                function(detail){
+                        detail.value =  Zenoss.env.ZP_DETAILS_TRIGGER_PREFIX + '.' + detail.value.split(".").join("_");
+                }
+    );
+
+    trigger_tab_subjects = trigger_tab_subjects.concat(zp_details);
 
     var trigger_tab_content = {
         xtype:'panel',
