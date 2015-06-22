@@ -211,7 +211,7 @@ loader.insert();
     </tr>
 
     <tr>
-        <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
+        <td style="color:darkred;width:275px;height:50px" class="tableheader" align="left">
             <strong>Enter current password to confirm changes</strong>
         </td>
         <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan="3">
