@@ -25,11 +25,11 @@
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
-        <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>        
+        <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
         <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
-        
-        
-        
+
+
+
         <script>
         (function() {
             var ua = navigator.userAgent.toLowerCase();
@@ -42,7 +42,7 @@
             }
         })();
         </script>
-        
+
 
         <script>
         // Fix an IE bug
@@ -155,6 +155,13 @@
         </title>
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
+        <link rel="stylesheet" type="text/css" href="/++resource++extjs/resources/css/ext-all.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
+        <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
+        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
+
     </head>
     <body>
         <div id="contentPane">
@@ -331,7 +338,7 @@
     }
     function getServerTimestamp() {
         var server_now = Zenoss.date.renderWithTimeZone(server_time);
-        return server_now;        
+        return server_now;
     }
     function updateTime(){
         server_time += 1000;
