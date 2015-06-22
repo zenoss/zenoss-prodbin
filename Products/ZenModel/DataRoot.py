@@ -876,10 +876,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Handle our authentication mechanism
         """
-        curuser = self.dmd.ZenUsers.getUser().getId()
-        curpasswd = REQUEST.get('curPasswd')
-
-        if not self.dmd.ZenUsers.authenticateCredentials(curuser, curpasswd):
+        
+        if REQUEST:
+            curuser = self.dmd.ZenUsers.getUser().getId()
+            curpasswd = REQUEST.get('curPasswd')
+            
+            if not self.dmd.ZenUsers.authenticateCredentials(curuser, curpasswd):
             messaging.IMessageSender(self).sendToBrowser(
                 'Error',
                 'Confirmation password is empty or invalid. Please'+
@@ -888,8 +890,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             )
             return self.callZenScreen(REQUEST)
 
-
-        if REQUEST:
             app = self.unrestrictedTraverse('/')
             if REQUEST.get('userAuthType') == self.AUTH_TYPE_SESSION:
                 activateSessionBasedAuthentication(self.zport)
