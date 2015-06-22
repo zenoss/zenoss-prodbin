@@ -882,13 +882,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             curpasswd = REQUEST.get('curPasswd')
             
             if not self.dmd.ZenUsers.authenticateCredentials(curuser, curpasswd):
-            messaging.IMessageSender(self).sendToBrowser(
-                'Error',
-                'Confirmation password is empty or invalid. Please'+
-                ' confirm your password for security reasons.',
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'Confirmation password is empty or invalid. Please'
+                    ' confirm your password for security reasons.',
+                    priority=messaging.WARNING
+                )
+                return self.callZenScreen(REQUEST)
 
             app = self.unrestrictedTraverse('/')
             if REQUEST.get('userAuthType') == self.AUTH_TYPE_SESSION:

@@ -214,7 +214,7 @@ loader.insert();
         <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
             <strong>Enter current password to confirm changes</strong>
         </td>
-        <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan=3>
+        <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan="3">
             <div style="float:left;">
             <input style="margin-top:2px;" id="pwconfirm" class="tablevalues" type="password" name="curPasswd"
                 autocomplete="off"/>
