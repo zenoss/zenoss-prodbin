@@ -13,6 +13,7 @@ from random import choice
 from email.MIMEText import MIMEText
 import socket
 import logging
+import re
 log = logging.getLogger("zen.UserSettings")
 
 from Globals import DTMLFile
@@ -46,6 +47,7 @@ from ZenModelRM import ZenModelRM
 from Products.ZenUtils import Utils
 from zope.interface import implements
 
+PASSWD_COMPLEXITY = "(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
 
 class LocalAndLDAPUserEntries(Exception): pass
 
@@ -908,6 +910,15 @@ class UserSettings(ZenModelRM):
                     return self.callZenScreen(REQUEST)
                 else:
                     raise ValueError("Passwords cannot contain a ':' ")
+            elif not re.match(PASSWD_COMPLEXITY, password):
+                if REQUEST:
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        'Password must contain 8 or more characters'
+                        ' that are of at least one number, and one uppercase and lowercase letter.',
+                        priority=messaging.WARNING
+                    )
+                    return self.callZenScreen(REQUEST)
             elif password != sndpassword:
                 if REQUEST:
                     messaging.IMessageSender(self).sendToBrowser(

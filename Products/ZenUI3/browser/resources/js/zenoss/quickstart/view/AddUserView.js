@@ -15,10 +15,21 @@
         password: function(val, field) {
             if (field.initialPassField) {
                 var pwd = Ext.getCmp(field.initialPassField);
-                return (val === pwd.getValue());
+                var pattern = new RegExp("(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}")
+                if (val != pwd.getValue()){
+                    Ext.form.VTypes["passwordText"] = _t("The passwords you've typed don't match.");
+                    return false;
+                }
+                if (!val.match(pattern)){
+                    Ext.form.VTypes["passwordText"] = _t("that must contain 8 or more characters" +
+                                                    "that are of at least one number, and one uppercase and lowercase letter");
+                    return false;
+                }
+                return true;
             }
-        },
-        passwordText: _t("The passwords you've typed don't match.")
+
+        }
+
     });
     /**
      * @class Zenoss.quickstart.Wizard.view.AddUserView
