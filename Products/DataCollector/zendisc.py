@@ -432,6 +432,9 @@ class ZenDisc(ZenModeler):
                           discoverProto=None,
                           devicePath=devicepath,
                           performanceMonitor=self.options.monitor,
+                          locationPath=self.options.location,
+                          groupPaths=self.options.groups,
+                          systemPaths=self.options.systems,
                           productionState=prodState)
 
                 # If zProperties are set via a job, get them and pass them in
@@ -787,6 +790,13 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--prod_state', dest='productionState',
                     default=1000, type='int',
                     help="Initial production state for discovered devices")
+        self.parser.add_option('--location', dest='location',
+                    default=None,
+                    help="Initial location for discovered devices")
+        self.parser.add_option('--group', dest='groups', action="append",
+                    help="Group to which discovered devices should be added")
+        self.parser.add_option('--system', dest='systems', action="append",
+                    help="System to which discovered devices should be added")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true", default=False,
                     help="Remodel existing objects")
