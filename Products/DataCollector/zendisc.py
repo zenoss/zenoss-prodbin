@@ -276,8 +276,8 @@ class ZenDisc(ZenModeler):
 
     def discoverDevices(self,
                         ips,
-                        devicepath="/Discovered",
-                        prodState=1000):
+                        devicepath=None,
+                        prodState=None):
         """
         Discover devices by active ips that are not associated with a device.
 
@@ -290,6 +290,11 @@ class ZenDisc(ZenModeler):
         @return: Twisted/Zenoss Python iterable
         @rtype: Python iterable
         """
+        if devicepath is None:
+            devicepath = self.options.deviceclass
+        if prodState is None:
+            prodState = self.options.productionState
+
         def discoverDevice(ip):
             """
             Discover a particular device
@@ -387,7 +392,7 @@ class ZenDisc(ZenModeler):
         return drive(inner)
 
 
-    def discoverDevice(self, ip, devicepath="/Discovered", prodState=1000):
+    def discoverDevice(self, ip, devicepath=None, prodState=None):
         """
         Discover a device based on its IP address.
 
@@ -400,6 +405,11 @@ class ZenDisc(ZenModeler):
         @return: Twisted/Zenoss Python iterable
         @rtype: Python iterable
         """
+        if devicepath is None:
+            devicepath = self.options.deviceclass
+        if prodState is None:
+            prodState = self.options.productionState
+
         self.scanned += 1
         if self.options.maxdevices:
             if self.scanned >= self.options.maxdevices:
