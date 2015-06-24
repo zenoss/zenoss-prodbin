@@ -51,7 +51,7 @@ class ifconfig(LinuxCommandPlugin):
            'zInterfaceMapIgnoreNames', 'zInterfaceMapIgnoreTypes')
 
     # variables for ifconfig
-    ifstart = re.compile(r"^(\w+):?\s+")
+    ifstart = re.compile(r"^(\S+?):?\s+")
     oldiftype = re.compile(r"^\S+\s+Link encap:(.+)HWaddr (\S+)"
                            r"|^\S+\s+Link encap:(.+)")
     v4addr = re.compile(r"inet addr:(\S+).*Mask:(\S+)"
@@ -64,7 +64,7 @@ class ifconfig(LinuxCommandPlugin):
     newifctype = re.compile(r"txqueuelen\s+\d+\s+\(([^)]+)\)")
 
     # variables for ip tool (ip addr)
-    ip_ifstart = re.compile(r"^(\d+):\s(\w+):\s(.*)mtu\s(\d+)(.*)")
+    ip_ifstart = re.compile(r"^(\d+):\s(\S+):\s(.*)mtu\s(\d+)(.*)")
     ip_v4addr = re.compile(r"inet (\S+)")
     ip_v6addr = re.compile(r"inet6 (\S+)")
     ip_hwaddr = re.compile(r"link/(\S+)\s(\S+)")
