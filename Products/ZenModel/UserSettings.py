@@ -895,10 +895,7 @@ class UserSettings(ZenModelRM):
             self.manage_changeProperties(**kw)
 
         # update password info
-        if self.id=='admin':
-            userManager = self.getPhysicalRoot().acl_users.userManager
-        else:
-            userManager = self.acl_users.userManager
+        userManager = self.acl_users.userManager
         if password:
             if password.find(':') >= 0:
                 if REQUEST:
@@ -932,6 +929,10 @@ class UserSettings(ZenModelRM):
             else:
                 try:
                     userManager.updateUserPassword(self.id, password)
+                    # for admin we need to update both zport.acl_users and app.acl_users since he exists in both
+                    if self.id == 'admin':
+                        userManager = self.getPhysicalRoot().acl_users.userManager
+                        userManager.updateUserPassword(self.id, password)
                     updates['password'] = '****'
                 except KeyError:
                     self.getPhysicalRoot().acl_users.userManager.updateUserPassword(
