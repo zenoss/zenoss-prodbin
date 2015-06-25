@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -63,7 +63,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     )
 
     security = ClassSecurityInfo()
-    
+
     def device(self):
         """Overridden in lower classes if a device relationship exists.
         """
@@ -75,7 +75,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
 
         @rtype: string
         """
-        return self.convertProdState(self.productionState)
+        return str(self.convertProdState(self.productionState))
 
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, maintWindowChange=False, REQUEST=None):
@@ -103,5 +103,3 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
                                       self.getProductionStateString())
             )
             return self.callZenScreen(REQUEST)
-
-    

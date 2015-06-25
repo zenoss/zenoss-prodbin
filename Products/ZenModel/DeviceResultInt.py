@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -22,7 +22,7 @@ from Globals import InitializeClass
 from cgi import escape
 
 class DeviceResultInt:
-    
+
     security = ClassSecurityInfo()
 
     security.declareProtected('View', 'getDeviceName')
@@ -74,8 +74,10 @@ class DeviceResultInt:
         this interface'''
         d = self.device()
         if d:
-            return self.convertProdState(d.productionState)
-        return "None" 
+            # since this method is used as a case-insensitive index
+            # always return a string
+            return str(self.convertProdState(d.productionState))
+        return "None"
 
 
     security.declareProtected('View', 'getPingStatus')
@@ -111,7 +113,7 @@ class DeviceResultInt:
     getSnmpStatusNumber = getSnmpStatus
     security.declareProtected('View', 'getSnmpStatusNumber')
 
-    
+
     security.declareProtected('View', 'isResultLockedFromUpdates')
     def isResultLockedFromUpdates(self):
         """Return the locked from updates flag"""
@@ -155,7 +157,7 @@ class DeviceResultInt:
             if int:
                 return int.getIpAddress()
         return ""
-           
+
 
     security.declareProtected('View', 'getDeviceMacaddress')
     def getDeviceMacaddress(self):
@@ -182,7 +184,7 @@ class DeviceResultInt:
         ip_list = []
         dev = self.device()
         if dev:
-            ip_list = ( obj.getIpAddress() 
+            ip_list = ( obj.getIpAddress()
                          for obj in dev.os.interfaces.objectValuesAll() )
             ip_list = [ ip for ip in ip_list if ip and \
                          not ip.startswith('127.0.0.1') and \
