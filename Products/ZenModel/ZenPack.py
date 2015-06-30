@@ -678,7 +678,7 @@ class ZenPack(ZenModelRM):
                 xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
                 obj.exportXml(xml,['devices','networks','pack','rrdTemplates'],True)
                 if type(aq_base(obj)) in [DeviceClass]:
-                    for tpl in obj.rrdTemplates():
+                    for tpl in obj.getAllRRDTemplates():
                         self.exportToSeparateFile(tpl, 'templates')
 
         xml.write("</objects>\n")
