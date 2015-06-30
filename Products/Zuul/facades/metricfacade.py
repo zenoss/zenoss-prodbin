@@ -187,8 +187,6 @@ class MetricFacade(ZuulFacade):
                     for subject in subjects:
                         datapoints.append(self._buildMetric(subject, dp, cf, extraRpn, format))
                     break
-            log.info("METRIC NAME: %s", metricnames)
-        log.info("DATAPOINTS: %s", datapoints)
         # no valid datapoint names were entered
         if not datapoints:
             return {}
@@ -207,7 +205,7 @@ class MetricFacade(ZuulFacade):
         if start is None and returnSet != "LAST":
             start = self._formatTime(datetime.today() - timedelta(seconds = self._dmd.defaultDateRange))
         elif start is None and returnSet == "LAST":
-            start = self._formatTime(datetime.today() - timedelta(seconds = 7200))
+            start = self._formatTime(datetime.today() - timedelta(seconds = 3600))
         request = self._buildRequest(subjects, datapoints, start, end, returnSet, downsample)
 
         # submit it to the client
@@ -320,7 +318,7 @@ class MetricFacade(ZuulFacade):
             log.debug("using token auth")
 
 
-        # log.info("METRICFACADE POST %s %s", uri, request)
+        log.info("METRICFACADE POST %s %s", uri, request)
         try:
             response = self._req_session.post(uri, json.dumps(request), headers=headers,
                                               timeout=timeout, cookies=self._authCookie)
