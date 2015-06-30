@@ -80,7 +80,7 @@ class GotoRedirect(BrowserView):
             pass
 
         if not obj:
-            return response.write("Could not look up guid %s" % guid)
+            return response.write("Could not look up guid")
 
         path = obj.absolute_url_path()
         return response.redirect(path + '?' + request.QUERY_STRING)
