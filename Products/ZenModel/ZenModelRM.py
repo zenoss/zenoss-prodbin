@@ -86,6 +86,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         return ZenModelBase.zmanage_editProperties(self, REQUEST, redirect, audit)
 
 
+    security.declareProtected('Manage DMD', 'zmanage_addProperty')
     def zmanage_addProperty(self, id, value, type, label, visible,
                                 prefix='c', REQUEST=None):
         """Add a new property via the web.
@@ -123,6 +124,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
                 )
                 return self.callZenScreen(REQUEST)
 
+    security.declareProtected('ZEN_VIEW', 'zmanage_exportObject')
     def zmanage_exportObject(self, context=None, REQUEST=None):
         """Export objects to specific locations.
         """
@@ -205,6 +207,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         pass
 
+    security.declareProtected('Manage DMD', 'zmanage_delProperties')
     def zmanage_delProperties(self, ids=(), REQUEST=None):
         """Delete properties from an object.
         """
@@ -218,6 +221,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('Manage DMD', 'zmanage_delObjects')
     def zmanage_delObjects(self, ids=(), relation="", REQUEST=None):
         """Delete objects from this object or one of its relations.
         """

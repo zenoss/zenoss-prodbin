@@ -1223,6 +1223,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setTitle')
     def setTitle(self, newTitle):
         """
         Changes the title to newTitle and reindexes the object
@@ -1468,6 +1469,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             audit(['UI.Device', action], self, location=locationPath)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'addLocation')
     def addLocation(self, newLocationPath, REQUEST=None):
         """
         DEPRECATED
@@ -2233,5 +2235,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def getMacAddresses(self):
         return list(self.macaddresses or [])
+
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'lockFromDeletion')
+    def lockFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
+        super(Device, self).lockFromDeletion(sendEventWhenBlocked=sendEventWhenBlocked, REQUEST=REQUEST)
+
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'lockFromUpdates')
+    def lockFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
+        super(Device, self).lockFromUpdates(self, sendEventWhenBlocked=sendEventWhenBlocked, REQUEST=REQUEST)
+
+
 
 InitializeClass(Device)
