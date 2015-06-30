@@ -115,7 +115,7 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
         @param value: value of the datapoint
         @return: sequence of Events
         """
-        self.checkRaw(dataPoint, timestamp, value)
+        return self.checkRaw(dataPoint, timestamp, value)
 
     @deprecated
     def check(self, dataPoints):
