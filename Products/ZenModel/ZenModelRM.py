@@ -57,7 +57,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         from Products.Zuul.interfaces import ICatalogTool
         ICatalogTool(self).update(self)
 
-    security.declareProtected('Manage DMD', 'rename')
+    security.declareProtected(ZEN_MANAGE_DMD, 'rename')
     def rename(self, newId, REQUEST=None):
         """Delete device from the DMD"""
         renamed = False
@@ -76,7 +76,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         return renamed
 
 
-    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None, redirect=False, audit=True):
         """Edit a ZenModel object and return its proper page template
         """
@@ -86,6 +86,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         return ZenModelBase.zmanage_editProperties(self, REQUEST, redirect, audit)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_addProperty')
     def zmanage_addProperty(self, id, value, type, label, visible,
                                 prefix='c', REQUEST=None):
         """Add a new property via the web.
@@ -123,6 +124,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
                 )
                 return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_VIEW, 'zmanage_exportObject')
     def zmanage_exportObject(self, context=None, REQUEST=None):
         """Export objects to specific locations.
         """
@@ -205,6 +207,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         pass
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_delProperties')
     def zmanage_delProperties(self, ids=(), REQUEST=None):
         """Delete properties from an object.
         """
@@ -218,6 +221,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_delObjects')
     def zmanage_delObjects(self, ids=(), relation="", REQUEST=None):
         """Delete objects from this object or one of its relations.
         """
@@ -233,7 +237,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('View', 'getDmdKey')
+    security.declareProtected(ZEN_VIEW, 'getDmdKey')
     def getDmdKey(self):
         """
         Hook to get the name of an object.  Usually its self.getId() but is
@@ -247,7 +251,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         return self.getId()
 
 
-    security.declareProtected('View', 'primarySortKey')
+    security.declareProtected(ZEN_VIEW, 'primarySortKey')
     def primarySortKey(self):
         """
         Hook for the value used to sort this object.  Defaults to self.getId().
@@ -255,7 +259,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         return self.titleOrId()
 
 
-    security.declareProtected('View', 'viewName')
+    security.declareProtected(ZEN_VIEW, 'viewName')
     def viewName(self):
         return self.titleOrId()
 
