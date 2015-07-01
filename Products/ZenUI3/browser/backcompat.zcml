@@ -96,7 +96,7 @@
     template="../../ZenModel/skins/zenmodel/manageUserFolder.pt"
     name="manageUserFolder"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:defaultView
