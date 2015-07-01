@@ -95,7 +95,7 @@
          * The start time of the graph in unix seconds.
          * Defaults to <code>new DateTime().getTime()</code>.
          */
-        start: DATE_RANGES[0][0] ,
+        start: DATE_RANGES[0][0],
 
         /**
          * @cfg {int} end

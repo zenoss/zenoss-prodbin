@@ -171,16 +171,22 @@ class MetricFacade(ZuulFacade):
             # in theory it is possible that a passed in metric exists on one context
             # but not another.
             for subject in subjects:
-                dp = next((d for d in subject._getRRDDataPointsGen() if ds in d.name() ), None)
+                dp = next(
+                    (
+                        d
+                        for d in subject._getRRDDataPointsGen()
+                        if ds in d.name()
+                    ),
+                    None
+                )
                 if dp is None:
                     continue
                 else:
-                    # we have found a definition for a datapoint, use it and continue onp
+                    # we have found a definition for a datapoint, use it and continue on
                     metricnames[dp.name()] = ds
                     for subject in subjects:
                         datapoints.append(self._buildMetric(subject, dp, cf, extraRpn, format))
                     break
-
         # no valid datapoint names were entered
         if not datapoints:
             return {}
