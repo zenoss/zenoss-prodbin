@@ -115,7 +115,6 @@ Zenoss.nav.register({
                 target.add({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
-                    displayFilters: false,
                     stateId: 'component-event-console',
                     columns: getComponentEventPanelColumnDefinitions()
                 });
@@ -535,7 +534,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 token = Ext.History.getToken().split(delimiter, 1);
                             token = token + delimiter + this.componentType + delimiter + row.data.uid;
                             // set the currenttoken so the "change" event isn't fired. Events are not able
-                            // to be suspended because we don't know when the change event will be fired. 
+                            // to be suspended because we don't know when the change event will be fired.
                             Ext.util.History.currentToken = token;
                             Ext.util.History.setHash(token);
                             Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.usesMonitorAttribute);
