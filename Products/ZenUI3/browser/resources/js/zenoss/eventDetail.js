@@ -367,7 +367,7 @@ Ext.onReady(function() {
                     return val;
                 },
                 component: function(value, sourceData) {
-                    var val = sourceData.component_title;
+                    var val = Ext.htmlEncode(sourceData.component_title);
                     if (sourceData.component_url) {
                         val = Zenoss.render.default_uid_renderer(
                             sourceData.component_url,
