@@ -166,6 +166,13 @@ class RedisListPublisher(BasePublisher):
         @return: the number of metrics still in the queue
         """
         log.debug('published %d metrics to redis', metricCount)
+        if metricCount >= self._batch_size:
+            # Batch size starts at 2, and doubles on every success, up to 2**16.
+            # On failure, it drops to 2 again to allow redis to recover.
+
+            self._batch_size = min(2 * self._batch_size,
+                                   defaultMetricBufferSize)
+
         if remaining:
             reactor.callLater(0, self._put, False, False)
         return 0
@@ -175,10 +182,7 @@ class RedisListPublisher(BasePublisher):
         Batch size starts at 2, and doubles on every success, up to 2**16.
         On failure, it drops to 2 again to allow redis to recover.
         """
-        bs = self._batch_size
-        self._batch_size = min(2 * self._batch_size,
-                               defaultMetricBufferSize)
-        return bs
+        return self._batch_size
 
     def _put(self, scheduled, reschedule=True):
         """
@@ -190,6 +194,11 @@ class RedisListPublisher(BasePublisher):
 
         if len(self._mq) == 0:
             return defer.succeed(0)
+
+        if self._flushing:
+            #still flushing keep queuing up metrics
+            log.info("metric flush to redis in progress, skipping _put")
+            return defer.succeed(len(self._mq))
 
         if self._connection.state == 'connected':
             log.debug('trying to publish %d metrics', len(self._mq))
@@ -203,10 +212,13 @@ class RedisListPublisher(BasePublisher):
                 return defer.succeed(None)
 
             @defer.inlineCallbacks
-            def _flush():
+            def _flush(metrics):
                 if self._flushing:
-                    defer.returnValue(None)
-
+                    #this should never really happen, but here as a safety
+                    log.debug("rescheduling _flush")
+                    num = yield reactor.deferLater(0.25, _flush, metrics)
+                    defer.returnValue(num)
+                log.debug("flushing %s metrics, current batch size %s", len(metrics), self._batch_size)
                 client = self._redis.client
                 try:
                     self._flushing = True
@@ -217,6 +229,7 @@ class RedisListPublisher(BasePublisher):
                     yield self._metrics_published(
                         result, metricCount=len(metrics),
                         remaining=len(self._mq))
+                    defer.returnValue(len(self._mq))
                 except Exception as e:
                     # since we may be in a mutli redis command state, attempt to discard it
                     try:
@@ -229,7 +242,7 @@ class RedisListPublisher(BasePublisher):
                 finally:
                     self._flushing = False
 
-            return _flush()
+            return _flush(metrics)
 
     def _shutdown(self):
         def disconnect(c):
@@ -275,7 +288,7 @@ class HttpPostPublisher(BasePublisher):
         self._cookieJar = CookieJar()
         self._agent = CookieAgent(Agent(reactor), self._cookieJar)
         self._url = url
-        self._agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python" 
+        self._agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python"
         reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
 
     def _metrics_published(self, response, llen, remaining=0):
@@ -352,10 +365,10 @@ class HttpPostPublisher(BasePublisher):
         """
         if scheduled:
             self._reschedule_pubtask(scheduled)
-            
+
         if len(self._mq) == 0:
             return defer.succeed(0)
-                    
+
         log.debug('trying to publish %d metrics', len(self._mq))
         return self._make_request()
 
