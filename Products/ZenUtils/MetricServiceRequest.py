@@ -14,7 +14,7 @@ SEPARATOR_CHAR = "/"
 from StringIO import StringIO
 from cookielib import CookieJar
 from twisted.internet import reactor
-from twisted.web.client import Agent, CookieAgent, FileBodyProducer, readBody
+from twisted.web.client import Agent, CookieAgent, FileBodyProducer
 from twisted.web.http_headers import Headers
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.metrics import ensure_prefix
@@ -23,6 +23,7 @@ from Products.Zuul.interfaces import IAuthorizationTool
 import logging
 
 log = logging.getLogger('zen.metrics')
+
 
 class MetricServiceRequest(object):
     """
@@ -45,9 +46,6 @@ class MetricServiceRequest(object):
             'User-Agent': ['Zenoss: %s' % userAgent]
         })
         self.onMetricsFetched = None
-
-    def setMetricHandler(self, fn):
-        self.onMetricsFetched = fn
 
     def getMetrics(self, uuid, dpNames, cf='AVERAGE', rate=False, downsample="1h-avg", start=None, end=None, deviceId=None, returnSet="EXACT"):
         metrics = []
@@ -74,15 +72,4 @@ class MetricServiceRequest(object):
         )
         body = FileBodyProducer(StringIO(json.dumps(request)))
         d = self.agent.request('POST', self._metric_url, self._headers, body)
-        d.addCallbacks(self.handleMetricResponse, self.onError)
         return d
-
-    def onError(self, reason):
-        log.warn("Unable to fetch metrics from central query %s", reason)
-
-    def handleMetricResponse(self, response):
-        d = readBody(response)
-        if response.code > 199 and response.code < 300:
-            d.addCallback(self.onMetricsFetched)
-        else:
-            d.addCallback(self.onError)
