@@ -169,7 +169,6 @@ class RedisListPublisher(BasePublisher):
         if metricCount >= self._batch_size:
             # Batch size starts at 2, and doubles on every success, up to 2**16.
             # On failure, it drops to 2 again to allow redis to recover.
-
             self._batch_size = min(2 * self._batch_size,
                                    defaultMetricBufferSize)
 

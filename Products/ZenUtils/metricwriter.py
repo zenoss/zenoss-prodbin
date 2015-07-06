@@ -13,7 +13,6 @@ log = logging.getLogger("zen.MetricWriter")
 
 
 class MetricWriter(object):
-
     def __init__(self, publisher):
         self._publisher = publisher
         self._datapoints = 0
@@ -26,12 +25,13 @@ class MetricWriter(object):
         @param value:
         @param timestamp:
         @param tags:
-        @return:
+        @return deferred: metric was published or queued
         """
         try:
             log.debug("publishing metric %s %s %s %s", metric, value, timestamp, tags)
-            self._publisher.put(metric, value, timestamp, tags)
+            val = defer.maybeDeferred(self._publisher.put, metric, value, timestamp, tags)
             self._datapoints += 1
+            return val
         except Exception as x:
             log.exception(x)
 
@@ -42,6 +42,7 @@ class MetricWriter(object):
         @return: int
         """
         return self._datapoints
+
 
 class FilteredMetricWriter(object):
     def __init__(self, publisher, test_filter):
@@ -57,13 +58,14 @@ class FilteredMetricWriter(object):
         @param value:
         @param timestamp:
         @param tags:
-        @return:
+        @return deferred: metric was published or queued
         """
         try:
-            if self._test_filter( metric, value, timestamp, tags):
+            if self._test_filter(metric, value, timestamp, tags):
                 log.debug("publishing metric %s %s %s %s", metric, value, timestamp, tags)
-                self._publisher.put(metric, value, timestamp, tags)
+                val = defer.maybeDeferred(self._publisher.put, metric, value, timestamp, tags)
                 self._datapoints += 1
+                return val
         except Exception as x:
             log.exception(x)
 
@@ -74,6 +76,7 @@ class FilteredMetricWriter(object):
         @return: int
         """
         return self._datapoints
+
 
 class AggregateMetricWriter(object):
     def __init__(self, writers):
@@ -88,14 +91,16 @@ class AggregateMetricWriter(object):
         @param value:
         @param timestamp:
         @param tags:
-        @return:
+        @return deferred: metric was published or queued
         """
+        dList = []
         for writer in self._writers:
-	    try:
-                writer.write_metric( metric, value, timestamp, tags)
+            try:
+                dList.append(defer.maybeDeferred(writer.write_metric, metric, value, timestamp, tags))
             except Exception as x:
                 log.exception(x)
-	self._datapoints += 1
+        self._datapoints += 1
+        return defer.DeferredList(dList)
 
     @property
     def dataPoints(self):
@@ -105,8 +110,8 @@ class AggregateMetricWriter(object):
         """
         return self._datapoints
 
-class DerivativeTracker(object):
 
+class DerivativeTracker(object):
     def __init__(self):
         self._timed_metric_cache = {}
 
@@ -127,7 +132,7 @@ class DerivativeTracker(object):
                 return 0
             else:
                 delta = float(timed_metric[0] - last_timed_metric[0]) / \
-                    float(timed_metric[1] - last_timed_metric[1])
+                        float(timed_metric[1] - last_timed_metric[1])
                 if isinstance(min, (int, float)) and delta < min:
                     delta = min
                 if isinstance(max, (int, float)) and delta > max:
@@ -145,6 +150,7 @@ class ThresholdNotifier(object):
     against thresholds and send any events that are generated from
     threshold evaluation. Used by CollectorDaemon and DaemonStats.
     """
+
     def __init__(self, send_callback, thresholds):
         self._send_callback = send_callback
         if isinstance(thresholds, list):

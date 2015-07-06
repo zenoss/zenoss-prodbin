@@ -587,6 +587,7 @@ class SshPerformanceCollectionTask(BaseTask):
                 event['output'] = output
                 results.events.append(event)
 
+    @defer.inlineCallbacks
     def _storeResults(self, resultList):
         """
         Store the values in RRD files
@@ -601,14 +602,18 @@ class SshPerformanceCollectionTask(BaseTask):
                     'eventKey': datasource.getEventKey(dp),
                     'component': dp.component,
                 }
-                self._dataService.writeMetricWithMetadata(
-                    dp.dpName,
-                    value,
-                    dp.rrdType,
-                    min=dp.rrdMin,
-                    max=dp.rrdMax,
-                    threshEventData=threshData,
-                    metadata=dp.metadata)
+                try:
+                    yield self._dataService.writeMetricWithMetadata(
+                        dp.dpName,
+                        value,
+                        dp.rrdType,
+                        min=dp.rrdMin,
+                        max=dp.rrdMax,
+                        threshEventData=threshData,
+                        metadata=dp.metadata)
+                except Exception, e:
+                    log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(dp.metadata, e))
+
 
             eventList = results.events
             exitCode = getattr(datasource.result, 'exitCode', -1)
