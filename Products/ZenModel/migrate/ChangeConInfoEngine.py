@@ -23,18 +23,16 @@ class ChangeConInfoEngine(Migrate.Step):
 
     def cutover(self, dmd):
         conf = GlobalConfig.globalConfToDict()
+        host = conf.get('zodb-host')
+        port = conf.get('zodb-port')
+        user = conf.get('zodb-user')
+        passwd = conf.get('zodb-password')
+        zodb = conf.get('zodb-db','zodb')
+        zodb_session = zodb + "_session"
 
         def zendb(dbname, sql):
-
-             conf = GlobalConfig.globalConfToDict()
-             host = conf.get('zodb-host')
-             port = conf.get('zodb-port')
-             user = conf.get('zodb-user')
-             passwd = conf.get('zodb-password')
-
              env = os.environ.copy()
              env['MYSQL_PWD'] = passwd
-
              cmd = ['mysql',
                '--skip-column-names',
                '--user=%s' % user,
@@ -53,7 +51,7 @@ class ChangeConInfoEngine(Migrate.Step):
                  subprocess.call('stty sane', shell=True)
                  s.kill()
 
-        for db in ['zodb', 'zodb_session']:
+        for db in [zodb, zodb_session]:
 
             getEngine = "SELECT count(*) FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '%s' AND table_name = 'connection_info' and engine != 'InnoDB'" % db
             change_engine = "ALTER TABLE connection_info ENGINE=InnoDB"
