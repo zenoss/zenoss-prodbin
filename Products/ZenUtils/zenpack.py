@@ -18,6 +18,7 @@ import glob
 import optparse
 import subprocess
 import shutil
+import time
 import tempfile
 import re
 from toposort import toposort_flatten
@@ -115,13 +116,20 @@ def topo_prioritize(target, graph):
 class ZenPackCmd(ZenScriptBase):
     """Manage ZenPacks"""
 
-    def _verifyZepRunning(self):
+    def _verifyZepRunning(self, timeout=None, delay=1):
+        starttime = time.time()
         zep = getFacade('zep')
-        try:
-            zep.getConfig()
-            return True
-        except ServiceException:
-            return False
+        while True:
+            try:
+                zep.getConfig()
+                return True
+            except ServiceException:
+                elapsed = time.time() - starttime
+                if timeout is None or elapsed > timeout:
+                    log.info('ZEP did not become ready within %s seconds. Returning False.', timeout)
+                    return False
+                else:
+                    time.sleep(delay)
 
     def _sameVersion(self):
         """
@@ -208,7 +216,7 @@ class ZenPackCmd(ZenScriptBase):
             raise ZenPackNeedMigrateException('Your Zenoss database appears'
                 ' to be out of date. Try running zenmigrate to update.')
 
-        if (self.options.installPackName or self.options.removePackName) and not self._verifyZepRunning():
+        if (self.options.installPackName or self.options.removePackName) and not self._verifyZepRunning(timeout=600, delay=5):
             print >> sys.stderr, "Error: Required daemon zeneventserver not running."
             print >> sys.stderr, "Execute 'zeneventserver start' and retry the ZenPack installation."
             sys.exit(1)
