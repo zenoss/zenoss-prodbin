@@ -344,7 +344,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                         path = metadata.get('contextKey')
                         try:
                             # see SnmpPerformanceConfig line _getComponentConfig
-                            self._dataService.writeMetricWithMetadata(metric,
+                            yield self._dataService.writeMetricWithMetadata(metric,
                                     value, rrdType, min=rrdMin, max=rrdMax,
                                     metadata=metadata)
                         except Exception, e:

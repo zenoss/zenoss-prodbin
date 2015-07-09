@@ -360,6 +360,7 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
+    @defer.inlineCallbacks
     def writeMetric(self, contextKey, metric, value, metricType, contextId,
                     timestamp='N', min='U', max='U',
                     threshEventData={}, deviceId=None, contextUUID=None,
@@ -392,7 +393,7 @@ class CollectorDaemon(RRDDaemon):
             metric_name = metrics.ensure_prefix(deviceId, metric_name)
 
         # write the raw metric to Redis
-        self._metric_writer.write_metric(metric_name, value, timestamp, tags)
+        yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
@@ -434,7 +435,7 @@ class CollectorDaemon(RRDDaemon):
 
         metadata = json.loads(metricinfo)
         # reroute to new writeMetric method
-        self.writeMetricWithMetadata(
+        return self.writeMetricWithMetadata(
                 metric,
                 value,
                 rrdType,
