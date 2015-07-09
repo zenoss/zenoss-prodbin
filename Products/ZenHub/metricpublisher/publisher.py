@@ -196,7 +196,7 @@ class RedisListPublisher(BasePublisher):
 
         if self._flushing:
             #still flushing keep queuing up metrics
-            log.info("metric flush to redis in progress, skipping _put")
+            log.debug("metric flush to redis in progress, skipping _put")
             return defer.succeed(len(self._mq))
 
         if self._connection.state == 'connected':

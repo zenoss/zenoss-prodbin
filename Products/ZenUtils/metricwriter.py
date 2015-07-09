@@ -7,6 +7,7 @@
 #
 ##############################################################################
 import logging
+from twisted.internet import defer
 from Products.ZenRRD.Thresholds import Thresholds
 
 log = logging.getLogger("zen.MetricWriter")
