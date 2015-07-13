@@ -19,6 +19,7 @@ from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.Zuul.interfaces import IMarshallable
 from lxml.html.clean import clean_html
+from lxml.etree import ParserError
 
 
 _status_name = ProtobufEnum(EventSummary,'status').getPrettyName
@@ -36,6 +37,21 @@ def _mergeAuditLogToNotes(evtsumm):
             )
         evtsumm['notes'] = mergedNotes
     return evtsumm
+
+def _clean_html(html):
+    """
+    Cleans the document of each of the possible offending elements.
+    Extends implementation from `lxml` which requires root element and
+    adds it in case of its absence.
+    """
+    # Add root element to remove it after.
+    wrapped_html = '<p>%s</p>' % (html, )
+    cleaned_html = clean_html(wrapped_html)
+
+    if cleaned_html.startswith('<p>') and cleaned_html.endswith('</p>'):
+        return cleaned_html[3:-4]
+
+    return cleaned_html
 
 class EventCompatInfo(object):
     """
@@ -359,7 +375,10 @@ class EventCompatDetailInfo(EventCompatInfo):
                     values = list(values)
                 for value in (v for v in values if v):
                     if not detail['name'].startswith('__meta__'):
-                        d.append(dict(key=clean_html(detail['name']), value=clean_html(value)))
+                        try:
+                            d.append(dict(key=_clean_html(detail['name']), value=_clean_html(value)))
+                        except ParserError:
+                            d.append(dict(key=detail['name'], value=value))
         return d
 
     @property

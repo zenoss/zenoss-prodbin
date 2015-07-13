@@ -4,10 +4,10 @@
 	tableName here/title;
 	batch python: here.ZenTableManager.getBatch(
 		tableName, objects, 
-		sortedHeader=here.sortedHeader, 
+		sortedHeader=here.convertedSortedHeader, 
 		sortedSence=here.sortedSence); 
 	exportHeaders python: (hasattr(request, 'doExport') 
-							and here.reportHeaders()) or [];
+							and here.exportHeaders()) or [];
 	exportFields python:exportHeaders;
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">

@@ -36,6 +36,13 @@
   </tooltip>
 
   <tooltip>
+    <target>zenjobsRefreshInterval</target>
+    <anchor>top</anchor>
+    
+    <html>Set 0 to disable auto refresh.</html>
+  </tooltip>
+
+  <tooltip>
     <target>eventConsoleBufferSize</target>
     <anchor>top</anchor>
 

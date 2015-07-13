@@ -302,14 +302,17 @@ Ext.define("Zenoss.JobsWidget", {
         Ext.util.Cookies.set('jobswidget_update', this.lastchecked, cookieExpires);
     },
     update: function() {
-        REMOTE.userjobs({}, function(result){
-            if (result && result.jobs) {
-                var jobs = result.jobs;
-                this.update_button(result.totals);
-                this.update_menu(jobs);
-                this.check_for_recently_finished(jobs);
-            }
-        }, this);
+        if (!Zenoss.Security.doesNotHavePermission('Manage DMD') && Zenoss.settings.zenjobsRefreshInterval) {
+            REMOTE.userjobs({}, function(result){
+                if (result && result.jobs) {
+                    var jobs = result.jobs;
+                    this.update_button(result.totals);
+                    this.update_menu(jobs);
+                    this.check_for_recently_finished(jobs);
+                }
+
+            }, this);
+        }
     }
 });
 

@@ -17,6 +17,7 @@ from Products.ZenUtils.Utils import convToUnits, zdecode, getDisplayType
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenModel.BaseReport import BaseReport
+from itertools import izip_longest
 
 @deprecated
 def manage_addDeviceReport(context, id, title = None, REQUEST = None):
@@ -136,7 +137,17 @@ class DeviceReport(BaseReport):
             h.append((field, name))
         return h
 
-            
+
+    def exportHeaders(self):
+        h = []
+        for fieldName, colName in izip_longest(self.columns, self.colnames):
+            name = colName if colName is not None else fieldName
+            if fieldName == 'getId':
+                fieldName = 'titleOrId'
+            h.append((fieldName, name))
+        return h
+
+
     def reportBody(self, batch): 
         """body of this report create from a filtered and sorted batch.
         """
@@ -195,6 +206,23 @@ class DeviceReport(BaseReport):
                 body.append("</tr>")
         
         return "\n".join(body)
+
+
+    @property
+    def convertedSortedHeader(self):
+        if self.sortedHeader == 'getId':
+            return 'titleOrId'
+        elif self.sortedHeader == 'getManageIp':
+            return 'ipAddressAsInt'
+        return self.sortedHeader
+
+
+    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    def zmanage_editProperties(self, REQUEST=None, redirect=False, audit=True):
+        """Edit a ZenModel object and return its proper page template
+        """
+        self.ZenTableManager.deleteTableState(self.title)
+        return BaseReport.zmanage_editProperties(self, REQUEST, redirect, audit)
 
 
 InitializeClass(DeviceReport)
