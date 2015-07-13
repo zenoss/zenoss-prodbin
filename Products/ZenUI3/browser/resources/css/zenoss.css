@@ -1846,6 +1846,27 @@ img.europaGraphGear {
   font-size: 8pt;
   text-align: center;
 }
+
+.projectionPlots {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    width: 15%;
+}
+
+.info_icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    color: white;
+    background-color: #99bada;
+    display: block;
+    float: right;
+}
+
+.info_icon span {
+    padding-left: 4px;
+}
 /* with 17+ version of FF, button breaks. This fixes it */
 .toright .x-btn-icon{
     background-position: 0 -56px;
