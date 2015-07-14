@@ -167,7 +167,8 @@ def login(self):
             # set the session database to a sane state.
             ts = self.unrestrictedTraverse('/temp_folder/session_data')
             ts._reset()
-            _originalResetCredentials(self, request, response)
+            # try again and if it fails this time there isn't anything we can do
+            pas_instance.updateCredentials(request, response, login, password)
 
     came_from = request.form.get('came_from') or ''
     if came_from:
