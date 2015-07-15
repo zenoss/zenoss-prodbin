@@ -385,7 +385,7 @@
                 start = chart.request.start / 1000,
                 end = chart.request.end / 1000,
                 uid = this.uid;
-            console.log(Zenoss.date.renderWithTimeZone(start, "YYMMDD_hhmmss"));
+
             form = Ext.DomHelper.append(document.body, {
                 tag: 'form',
                 method: 'POST',
