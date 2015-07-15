@@ -354,7 +354,7 @@
             config.maxWidth = 2000;
             delete config.html;
 
-            win = Ext.create('Zenoss.dialog.BaseWindow', {
+            var win = Ext.create('Zenoss.dialog.BaseWindow', {
                 cls: 'white-background-panel',
                 layout: 'fit',
                 width: config.width * 1.15,
@@ -381,7 +381,11 @@
         exportData: function() {
             var chart = zenoss.visualization.chart.getChart(this.graphId),
                 plots = Ext.JSON.encode(chart.plots),
-                form;
+                form,
+                start = chart.request.start / 1000,
+                end = chart.request.end / 1000,
+                uid = this.uid;
+            console.log(Zenoss.date.renderWithTimeZone(start, "YYMMDD_hhmmss"));
             form = Ext.DomHelper.append(document.body, {
                 tag: 'form',
                 method: 'POST',
@@ -393,7 +397,22 @@
                     },
                     name: 'plots',
                     html: plots
-                }, {
+                },{
+                    tag: 'input',
+                    type: 'hidden',
+                    name: 'start',
+                    value: Zenoss.date.renderWithTimeZone(start, "YYMMDD_hhmmss")
+                },{
+                    tag: 'input',
+                    type: 'hidden',
+                    name: 'end',
+                    value: Zenoss.date.renderWithTimeZone(end, "YYMMDD_hhmmss")
+                },{
+                    tag: 'input',
+                    type: 'hidden',
+                    name: 'uid',
+                    value: uid
+                },{
                     tag: 'input',
                     type: 'hidden',
                     name: 'title',
