@@ -22,7 +22,20 @@ class ExportGraph(BrowserView):
         Takes the posted "plots" element and exports a CSV
         """
         title = self.request.form.get('title', 'graph_export')
+        start = self.request.form.get('start', "Unknown")
+        end = self.request.form.get('end', "Unknown")
+        uid = self.request.form.get('uid', None)
         plots = self.request.form.get('plots')
+        # come up with the title
+        if uid:
+            obj = self.context.unrestrictedTraverse(uid)
+            exportTitle = '{title}_{name}_from_{start}_to_{end}\n'.format(title=title.replace(' ', '_'),
+                                                                          start=start,
+                                                                          end=end,
+                                                                          name=obj.titleOrId())
+        else:
+            exportTitle = title.replace(' ', '_')
+
         if not plots:
             self.request.response.write("Unable to load chart data.")
             return
@@ -34,7 +47,9 @@ class ExportGraph(BrowserView):
         self.request.response.setHeader(
             'Content-Type', 'application/vnd.ms-excel')
         self.request.response.setHeader(
-            'Content-Disposition', 'attachment; filename=%s.csv'  % title.replace(' ', '_'))
+            'Content-Disposition', 'attachment; filename=%s.csv' % exportTitle)
+
+        # write the device information
 
         # construct the labels, Time will always be first
         labels = ['Time'] + [p['key'] for p in plots]
