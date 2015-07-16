@@ -29,10 +29,10 @@ class ExportGraph(BrowserView):
         # come up with the title
         if uid:
             obj = self.context.unrestrictedTraverse(uid)
-            exportTitle = '{title}_{name}_from_{start}_to_{end}\n'.format(title=title.replace(' ', '_'),
-                                                                          start=start,
-                                                                          end=end,
-                                                                          name=obj.titleOrId())
+            exportTitle = '{title}_{name}_from_{start}_to_{end}'.format(title=title.replace(' ', '_'),
+                                                                        start=start,
+                                                                        end=end,
+                                                                        name=obj.titleOrId())
         else:
             exportTitle = title.replace(' ', '_')
 
