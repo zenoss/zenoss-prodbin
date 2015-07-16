@@ -26,8 +26,10 @@ from Products.ZenModel.RRDDataSource import RRDDataSource
 from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.RRDDataPoint import RRDDataPoint
 from Products.ZenModel.ThresholdClass import ThresholdClass
+from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.GraphPoint import GraphPoint
+from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.DeviceClass import DeviceClass
 
 
@@ -151,12 +153,21 @@ class TemplateFacade(ZuulFacade):
     def deleteTemplate(self, uid):
         return self._deleteObject(uid)
 
+    def _removeDataPointFromGraphs(self, datapoint):
+        template = datapoint.datasource().rrdTemplate()
+        for graphDef in template.graphDefs():
+            for point in graphDef.graphPoints():
+                if datapoint.name() == point.dpName:
+                    self._deleteObject(point.getPrimaryId())
+
     def deleteDataSource(self, uid):
         """
         @param String uid: Unique Identifier of the data source we wish to delete
         """
         obj = self._getObject(uid)
         template = obj.rrdTemplate()
+        for datapoint in obj.datapoints():
+            self._removeDataPointFromGraphs(datapoint)
         template.manage_deleteRRDDataSources((obj.id,))
 
     def deleteDataPoint(self, uid):
@@ -165,6 +176,7 @@ class TemplateFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         datasource = obj.datasource()
+        self._removeDataPointFromGraphs(obj)
         datasource.manage_deleteRRDDataPoints((obj.id,))
 
     def _editDetails(self, info, data):
@@ -362,6 +374,16 @@ class TemplateFacade(ZuulFacade):
         """Removes the threshold
         @param string uid
         """
+        # look through all the graph definitions and remove any where the
+        # threshold point matches the threshold we are deleting
+        obj = self._getObject(uid)
+        template = obj.rrdTemplate()
+        for graphDef in template.graphDefs():
+            for point in graphDef.graphPoints():
+                if isinstance(point, ThresholdGraphPoint) and point.threshId == obj.id:
+                    self._deleteObject(point.getPrimaryId())
+
+        # finally delete the threshold
         return self._deleteObject(uid)
 
     def getGraphs(self, uid):
