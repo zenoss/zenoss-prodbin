@@ -375,6 +375,7 @@ class TemplateFacade(ZuulFacade):
         @param string uid
         """
         # look through all the graph definitions and remove any where the
+        # threshold point matches the threshold we are deleting
         obj = self._getObject(uid)
         template = obj.rrdTemplate()
         for graphDef in template.graphDefs():
