@@ -1043,7 +1043,7 @@ Ext.define("Zenoss.component.IpServicePanel", {
                 dataIndex: 'ipaddresses',
                 header: _t('IPs'),
                 renderer: function(ips) {
-                  return Ext.isEmpty(ips) ? '' : ips.join(', ');
+                  return Ext.isEmpty(ips) ? '' : Ext.isArray(ips) ? ips.join(', ') : ips.toString();
                 }
             },{
                 id: 'description',
