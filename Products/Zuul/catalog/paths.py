@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -47,6 +47,15 @@ class DefaultPathReporter(object):
         return [self.context.getPhysicalPath()]
 
 
+class ComponentPathReporter(DefaultPathReporter):
+    def getPaths(self):
+        paths = super(ComponentPathReporter, self).getPaths()
+        componentGroups = self.context.getComponentGroups()
+        if componentGroups:
+            paths.extend(relPath(self.context, "componentGroups"))
+        return paths
+
+
 class DevicePathReporter(DefaultPathReporter):
     def getPaths(self):
         paths = super(DevicePathReporter, self).getPaths()
@@ -57,15 +66,14 @@ class DevicePathReporter(DefaultPathReporter):
         return paths
 
 
-
-class ServicePathReporter(DefaultPathReporter):
+class ServicePathReporter(ComponentPathReporter):
     def getPaths(self):
         paths = super(ServicePathReporter, self).getPaths()
         paths.extend(relPath(self.context, 'serviceclass'))
         return paths
 
 
-class InterfacePathReporter(DefaultPathReporter):
+class InterfacePathReporter(ComponentPathReporter):
     def getPaths(self):
         paths = super(InterfacePathReporter, self).getPaths()
         for ip in self.context.ipaddresses.objectValuesGen():
@@ -73,14 +81,14 @@ class InterfacePathReporter(DefaultPathReporter):
         return paths
 
 
-class ProcessPathReporter(DefaultPathReporter):
+class ProcessPathReporter(ComponentPathReporter):
     def getPaths(self):
         paths = super(ProcessPathReporter, self).getPaths()
         paths.extend(relPath(self.context, 'osProcessClass'))
         return paths
 
 
-class ProductPathReporter(DefaultPathReporter):
+class ProductPathReporter(ComponentPathReporter):
     def getPaths(self):
         paths = super(ProductPathReporter, self).getPaths()
         paths.extend(relPath(self.context, 'productClass'))

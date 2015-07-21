@@ -36,6 +36,12 @@
         />
 
     <adapter
+        factory = ".paths.ComponentPathReporter"
+        for = "Products.ZenModel.ManagedEntity.ManagedEntity"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
         factory = ".paths.ServicePathReporter"
         for = "Products.ZenModel.Service.Service"
         provides = ".interfaces.IPathReporter"

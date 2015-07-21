@@ -178,12 +178,12 @@ function getSelectionModel(){
  * we only want to show one selection at any time.
  **/
 function deselectOtherTrees(treeid) {
-    var treeids = Zenoss.util.filter(['devices', 'groups', 'systemsTree', 'locs'],
+    var treeids = Zenoss.util.filter(Ext.ComponentQuery.query('HierarchyTreePanel'),
                                      function (t) {
-                                         return t !== treeid;
+                                         return t.id !== treeid;
                                      });
-    Ext.each(treeids, function(t) {
-        var tree = Ext.getCmp(t), sm = tree.getSelectionModel();
+    Ext.each(treeids, function(tree) {
+        var sm = tree.getSelectionModel();
         if (sm.getSelectedNode()) {
             // do not fire deselect listeners
             sm.deselect(sm.getSelectedNode(), true);
