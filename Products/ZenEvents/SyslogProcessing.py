@@ -275,7 +275,7 @@ class SyslogProcessor(object):
             evt.update(m.groupdict())
             break
         else:
-            slog.info("No matching parser: '%s'", msg)
+            slog.debug("No matching parser: '%s'", msg)
             evt['summary'] = msg
         return evt
 
