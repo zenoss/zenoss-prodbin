@@ -44,17 +44,13 @@ class DefaultPathReporter(object):
         self.context = context
 
     def getPaths(self):
-        return [self.context.getPhysicalPath()]
-
-
-class ComponentPathReporter(DefaultPathReporter):
-    def getPaths(self):
-        paths = super(ComponentPathReporter, self).getPaths()
+        paths = [self.context.getPhysicalPath()]
+        # since all component path reporters extend DefaultPathReporter
+        # we need to add our component Group hook in here as opposed to a subclass
         componentGroups = self.context.getComponentGroups()
         if componentGroups:
             paths.extend(relPath(self.context, "componentGroups"))
         return paths
-
 
 class DevicePathReporter(DefaultPathReporter):
     def getPaths(self):
@@ -66,14 +62,14 @@ class DevicePathReporter(DefaultPathReporter):
         return paths
 
 
-class ServicePathReporter(ComponentPathReporter):
+class ServicePathReporter(DefaultPathReporter):
     def getPaths(self):
         paths = super(ServicePathReporter, self).getPaths()
         paths.extend(relPath(self.context, 'serviceclass'))
         return paths
 
 
-class InterfacePathReporter(ComponentPathReporter):
+class InterfacePathReporter(DefaultPathReporter):
     def getPaths(self):
         paths = super(InterfacePathReporter, self).getPaths()
         for ip in self.context.ipaddresses.objectValuesGen():
@@ -81,14 +77,14 @@ class InterfacePathReporter(ComponentPathReporter):
         return paths
 
 
-class ProcessPathReporter(ComponentPathReporter):
+class ProcessPathReporter(DefaultPathReporter):
     def getPaths(self):
         paths = super(ProcessPathReporter, self).getPaths()
         paths.extend(relPath(self.context, 'osProcessClass'))
         return paths
 
 
-class ProductPathReporter(ComponentPathReporter):
+class ProductPathReporter(DefaultPathReporter):
     def getPaths(self):
         paths = super(ProductPathReporter, self).getPaths()
         paths.extend(relPath(self.context, 'productClass'))

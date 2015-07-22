@@ -1603,10 +1603,12 @@ Ext.getCmp('center_panel').add({
         }],
         listeners: {
             beforecardchange: function(me, card, index) {
+
                 var node, selectedNode, tree;
                 if (index===1) {
                     node = getSelectionModel().getSelectedNode().data;
                     card.setHeaderText(node.text.text, node.path);
+                    me.lastActiveItem = Ext.getCmp('detail_panel').layout.getActiveItem();
                 } else if (index===0) {
                     tree = Ext.getCmp('detail_nav').treepanel;
                     Ext.getCmp('detail_nav').items.each(function(item){
@@ -1615,7 +1617,7 @@ Ext.getCmp('center_panel').add({
                             tree.getSelectionModel().deselect(selectedNode);
                         }
                     });
-                    Ext.getCmp('detail_panel').layout.setActiveItem(0);
+                    Ext.getCmp('detail_panel').layout.setActiveItem(me.lastActiveItem);
                 }
             },
             cardchange: function(me, card, index) {
