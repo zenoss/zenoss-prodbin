@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -80,7 +80,7 @@ r'^\d+:\d+:(?P<component>[^:]+):\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+
 
 # 1-Oct-2009 23:00:00.383809:snapshotDelete.cc:290:INFO:8.2.5:Successfully deleted snapshot 'UNVSQLCLUSTERTEMPDB-2009-09-30-23:00:14.11563'.
 r'^\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)',
-) 
+)
 
 # compile regex parsers on load
 compiledParsers = []
@@ -90,7 +90,7 @@ for regex in parsers:
         regex, keepEntry = regex
     try:
         compiled = re.compile(regex, re.DOTALL)
-        compiledParsers.append((compiled, keepEntry)) 
+        compiledParsers.append((compiled, keepEntry))
     except:
         pass
 
@@ -101,7 +101,7 @@ class SyslogProcessor(object):
     in the Zenoss event console.
     """
 
-    def __init__(self,sendEvent,minpriority,parsehost,monitor,defaultPriority): 
+    def __init__(self,sendEvent,minpriority,parsehost,monitor,defaultPriority):
         """
         Initializer
 
@@ -144,11 +144,11 @@ class SyslogProcessor(object):
         slog.debug("host=%s, ip=%s", host, ipaddr)
         slog.debug(msg)
 
-        evt, msg = self.parsePRI(evt, msg) 
+        evt, msg = self.parsePRI(evt, msg)
         if evt['priority'] > self.minpriority: return
 
         evt, msg = self.parseHEADER(evt, msg)
-        evt = self.parseTag(evt, msg) 
+        evt = self.parseTag(evt, msg)
         if evt:
             # Cisco standard msg includes the severity in the tag
             if 'overwriteSeverity' in evt.keys():
@@ -165,7 +165,7 @@ class SyslogProcessor(object):
                 evt['message'] = unicode(evt['message'] )
             self.sendEvent(evt)
 
-        
+
     def parsePRI(self, evt, msg):
         """
         Parse RFC-3164 PRI part of syslog message to get facility and priority.
@@ -230,7 +230,7 @@ class SyslogProcessor(object):
         m = re.sub("Kiwi_Syslog_Daemon \d+: \d+: "
             "\S{3} [\d ]{2} [\d ]{2}:[\d ]{2}:[^:]+: ", "", msg)
         m = self.timeParse(msg)
-        if m: 
+        if m:
             slog.debug("parseHEADER timestamp=%s", m.group(1))
             evt['originalTime'] = m.group(1)
             msg = m.group(2).strip()
@@ -275,7 +275,7 @@ class SyslogProcessor(object):
             evt.update(m.groupdict())
             break
         else:
-            slog.info("No matching parser: '%s'", msg)
+            slog.debug("No matching parser: '%s'", msg)
             evt['summary'] = msg
         return evt
 

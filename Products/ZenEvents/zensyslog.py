@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -125,7 +125,7 @@ class SyslogPreferences(object):
     def postStartup(self):
         daemon = zope.component.getUtility(ICollector)
         daemon.defaultPriority = 1
-        
+
         # add our collector's custom statistics
         statService = zope.component.queryUtility(IStatisticsService)
         statService.addStatistic("events", "COUNTER")
@@ -219,7 +219,7 @@ class SyslogTask(BaseTask, DatagramProtocol):
         Expands a syslog message into a string format suitable for writing
         to the filesystem such that it appears the same as it would
         had the message been logged by the syslog daemon.
-        
+
         @param msg: syslog message
         @type msg: string
         @param client_address: IP info of the remote device (ipaddr, port)
@@ -264,12 +264,15 @@ class SyslogTask(BaseTask, DatagramProtocol):
     def datagramReceived(self, msg, client_address):
         """
         Consume the network packet
-        
+
         @param msg: syslog message
         @type msg: string
         @param client_address: IP info of the remote device (ipaddr, port)
         @type client_address: tuple of (string, number)
         """
+        if msg == "":
+            self.log.debug("Received empty datagram. Discarding.")
+            return
         (ipaddr, port) = client_address
         if self.options.logorig:
             if self.options.logformat == 'human':
@@ -287,7 +290,7 @@ class SyslogTask(BaseTask, DatagramProtocol):
     def gotHostname(self, response, data):
         """
         Send the resolved address, if possible, and the event via the thread
-        
+
         @param response: Twisted response
         @type response: Twisted response
         @param data: (msg, ipaddr, rtime)
