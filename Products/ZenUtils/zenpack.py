@@ -24,7 +24,7 @@ import re
 from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
-from pkg_resources import parse_requirements, Distribution, DistributionNotFound, get_distribution, parse_version, iter_entry_points
+from pkg_resources import parse_requirements, Distribution, DistributionNotFound, get_distribution, parse_version, iter_entry_points, EGG_NAME
 from enum import Enum
 
 import Globals
@@ -386,6 +386,7 @@ class ZenPackCmd(ZenScriptBase):
         # Figure out which packs have dependencies, and sort them accordingly.
         # Respect the source of the pack
         zpsToSort = {}
+
         pattern = '(ZenPacks\.zenoss\.[a-zA-Z\.]*)'
         for zpId,zpDetails in zpsToRestore.items():
             if zpDetails[2] == ZPSource.disk:
@@ -434,8 +435,7 @@ class ZenPackCmd(ZenScriptBase):
 
         sortedPacks = toposort_flatten(zpsToSort)
         triedReversing = False
-        if len(sortedPacks) > 0:
-            fixedSomething = True
+        fixedSomething = len(sortedPacks) > 0
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
             # Keep track of all the packs that failed to restore
@@ -485,37 +485,39 @@ class ZenPackCmd(ZenScriptBase):
         with open(os.devnull, 'w') as fnull:
             subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
 
-    def _restore(self, zpId, version, filesOnly):
-        # glob for backup
-        # This is meant to handle standard zenpack naming convention - for exmaple,
-        #    ZenPacks.zenoss.OpenStack-1.2.4dev19_5159496-py2.7.egg
-        backupDirs = (zenPath(".ZenPacks"), zenPath("packs"))
-        dashIndex = version.find('-')
-        # If the version has a dash in it, replace it with an underscore
-        if dashIndex != -1:
-            version = list(version)
-            version[dashIndex] = '_'
-            version = ''.join(version)
-        if not version: # Get the one from packs
-            patterns = [ zenPath("packs") + "/%s-*" % (zpId) ] # TODO
-        else:
-            patterns = [backupDir + "/%s-%s-*" % (zpId, version) for backupDir in backupDirs]
-        # Look through potential .egg locations, breaking out once we find one
-        # (AKA prefer the first location)
-        for pattern in patterns:
-            self.log.info("looking for %s", pattern)
-            candidates = glob.glob(pattern)
-            if len(candidates) == 1:
+    def _restore(self, zenpackID, zenpackVersion, filesOnly):
+        # if the version has a dash, replace with an underscore
+        zenpackVersion = zenpackVersion.replace("-", "_", 1)
+        # look for the egg
+        eggs = []
+        for dirpath in zenPath(".ZenPacks"), zenPath("packs"):
+            for f in os.listdir(dirpath):
+                # verify the .egg extension and strip it from the egg name
+                base, ext = os.path.splitext(f)
+                if ext != ".egg":
+                    break
+                # make sure this is the standard egg name format
+                match = EGG_NAME(base)
+                if not match:
+                    break
+                # extrapolate the values of the name and version
+                # NOTE: also has groupings for 'pyver' and 'plat' if needed for
+                # later.
+                name, version = match.group('name', 'ver')
+                if name == zenpackID and (not zenpackVersion or version == zenpackVersion):
+                    eggs.append(os.path.join(dirpath, f))
+            # no point in checking the other dirpaths if an egg has been found
+            if len(eggs) > 0:
                 break
-        if len(candidates) == 0:
-            self.log.info("could not find install candidate for %s %s", zpId, version)
+        if len(eggs) == 0:
+            self.log.info("Could not find install candidate for %s (%s)", zenpackID, zenpackVersion)
             return
-        if len(candidates) > 1: # Unlikely, but just in case
-            self.log.error("Found more than one install candidate for %s %s (%s), skipping",
-                          zpId, version, ", ".join(candidates))
+        elif len(eggs) > 1:
+            eggpaths = ", ".join(eggs)
+            self.log.error("Found more than one install candidate for %s (%s): %s [skipping]", zenpackID, zenpackVersion, eggpaths)
             return
-
-        candidate = candidates[0]
+        candidate = eggs[0]
+        self.log.info("Loading candidate %s", candidate)
         if candidate.lower().endswith(".egg"):
             try:
                 shutil.copy(candidate, tempfile.gettempdir())
