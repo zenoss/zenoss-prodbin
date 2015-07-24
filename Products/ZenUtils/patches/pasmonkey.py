@@ -32,11 +32,21 @@ from AccessControl.SpecialUsers import emergency_user
 from zope.event import notify
 from ZODB.POSException import POSKeyError
 from Products.PluggableAuthService import PluggableAuthService
+from Products.PluggableAuthService.PluggableAuthService import \
+        _SWALLOWABLE_PLUGIN_EXCEPTIONS
 from Products.PluggableAuthService.plugins import CookieAuthHelper
 from Products.PluggableAuthService.interfaces.authservice import _noroles
+from Products.PluggableAuthService.interfaces.plugins import \
+        IAuthenticationPlugin
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
 from Products.ZenUtils.Security import _createInitialUser
+
+from Products.PluggableAuthService.plugins import ZODBUserManager
+from Products.PluggableAuthService.plugins import SessionAuthHelper
+
+import logging
+log = logging.getLogger('PAS Patches')
 
 # monkey patch PAS to allow inituser files, but check to see if we need to
 # actually apply the patch, first -- support may have been added at some point
@@ -149,7 +159,6 @@ def login(self):
 
     FIXME - I don't think we need this any more now that the EULA is gone -EAD
     """
-
     request = self.REQUEST
     response = request['RESPONSE']
 
@@ -205,6 +214,103 @@ def login(self):
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login
+
+_originalZODBUserManager_authenticateCredentials = ZODBUserManager.ZODBUserManager.authenticateCredentials
+def authenticateCredentials( self, credentials ):
+    user_id = credentials.get('session_user_id', '')
+    info = credentials.get('session_user_info', '')
+
+    if user_id:
+        return user_id, info
+
+    return _originalZODBUserManager_authenticateCredentials(self, credentials)
+
+
+ZODBUserManager.ZODBUserManager.authenticateCredentials = authenticateCredentials
+
+def extractCredentials(self, request):
+    creds = {}
+
+    user_id = request.SESSION.get('__ac_logged_as', '')
+    info = request.SESSION.get('__ac_logged_info', '')
+    if user_id:
+        creds['session_user_id'] = user_id
+        creds['session_user_info'] = info
+
+        # Other authorization plugins may requrire this fields.
+        creds['login'] = ''
+        creds['password'] = ''
+    else:
+        # Look into the request now
+        login_pw = request._authUserPW()
+
+        if login_pw is not None:
+            name, password = login_pw
+            creds['login'] = name
+            creds['password'] = password
+
+    if creds:
+        creds['remote_host'] = request.get('REMOTE_HOST', '')
+
+        try:
+            creds['remote_address'] = request.getClientAddr()
+        except AttributeError:
+            creds['remote_address'] = request.get('REMOTE_ADDR', '')
+
+    return creds
+
+SessionAuthHelper.SessionAuthHelper.extractCredentials = extractCredentials
+
+def updateCredentials(self, request, response, login, new_password):
+    # PAS sends to this methos all credentials provided by user without
+    # checking.  So they need to be validate before session update.
+    pas_instance = self._getPAS()
+    plugins = pas_instance._getOb('plugins')
+    try:
+        authenticators = plugins.listPlugins(IAuthenticationPlugin)
+    except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+        log.debug('Authenticator plugin listing error', exc_info=True)
+        authenticators = ()
+
+    credentials = {
+        'login': login,
+        'password': new_password,
+        'extractor': 'sessionAuthHelper'}
+
+    # First try to authenticate against the emergency
+    # user and return immediately if authenticated
+    user_id, info = pas_instance._tryEmergencyUserAuthentication(credentials)
+
+    if user_id is None:
+        for authenticator_id, auth in authenticators:
+            try:
+                uid_and_info = auth.authenticateCredentials(credentials)
+
+                if uid_and_info is None:
+                    continue
+
+                user_id, info = uid_and_info
+
+            except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+                log.debug('AuthenticationPlugin %s error', authenticator_id,
+                          exc_info=True)
+                continue
+
+            if user_id is not None:
+                break
+
+    if user_id is not None:
+        request.SESSION.set('__ac_logged_as', user_id)
+        request.SESSION.set('__ac_logged_info', info)
+
+SessionAuthHelper.SessionAuthHelper.updateCredentials = updateCredentials
+
+
+def resetCredentials(self, request, response):
+    request.SESSION.set('__ac_logged_as', '')
+    request.SESSION.set('__ac_logged_info', '')
+
+SessionAuthHelper.SessionAuthHelper.resetCredentials = resetCredentials
 
 
 def termsCheck(self):
