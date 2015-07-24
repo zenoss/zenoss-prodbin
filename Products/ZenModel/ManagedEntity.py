@@ -106,11 +106,13 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
             return self.callZenScreen(REQUEST)
 
     def getComponentGroupNames(self):
+        # lazily create the relationship so we don't have to do a migrate script
         if not hasattr(self, "componentGroups"):
             return []
         return [group.getOrganizerName() for group in self.componentGroups()]
 
     def getComponentGroups(self):
+        # lazily create the relationship so we don't have to do a migrate script
         if not hasattr(self, "componentGroups"):
             return []
         return self.componentGroups()
@@ -118,15 +120,16 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     def setComponentGroups(self, groupPaths):
         relPaths = groupPaths
         if not hasattr(self, "componentGroups"):
-            return self.buildRelations()
+            self.buildRelations()
         objGetter = self.dmd.ComponentGroups.createOrganizer
         relName = "componentGroups"
-
+        # set the relations between the component (self) and the groups
         if not isinstance(relPaths, (list, tuple)):
             relPaths = [relPaths, ]
         relPaths = filter(lambda x: x.strip(), relPaths)
         rel = getattr(self, relName, None)
         curRelIds = {}
+        # set a relationship for every group
         for value in rel.objectValuesAll():
             curRelIds[value.getOrganizerName()] = value
         for path in relPaths:
@@ -135,7 +138,11 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
                 self.addRelation(relName, robj)
             else:
                 del curRelIds[path]
+
+        # remove any that were left over
         for obj in curRelIds.values():
             self.removeRelation(relName, obj)
+
+        # reindex
         self.index_object()
         notify(IndexingEvent(self, 'path', False))
