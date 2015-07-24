@@ -115,7 +115,7 @@ Zenoss.nav.register({
                 target.add({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
-                    displayFilters: true,
+                    displayFilters: false,
                     stateId: 'component-event-console',
                     columns: getComponentEventPanelColumnDefinitions()
                 });
