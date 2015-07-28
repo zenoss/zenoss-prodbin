@@ -34,6 +34,7 @@ log = logging.getLogger("zen.MetricFacade")
 DATE_FORMAT = "%Y/%m/%d-%H:%M:%S-%z"
 
 METRIC_URL_PATH = "/api/performance/query"
+WILDCARD_URL_PATH = "/api/performance/query2"
 
 AGGREGATION_MAPPING = {
     'average': 'avg',
