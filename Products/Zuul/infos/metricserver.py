@@ -249,10 +249,6 @@ class CollectorMetricServiceGraphDefinition(MetricServiceGraphDefinition):
     adapts(GraphDefinition, PerformanceConf)
     implements(templateInterfaces.IMetricServiceGraphDefinition)
 
-    def __init__(self, graphDef, context):
-        self._object = graphDef
-        self._context = context
-
     @property
     def tags(self):
         return dict(monitor=[self._context.id])
