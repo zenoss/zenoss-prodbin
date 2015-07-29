@@ -202,10 +202,11 @@ class SnmpClient(BaseClient):
                                               maxRepetitions=maxRepetitions,
                                               limit=sys.maxint)
                     self._tabledata[pname][tmap] = driver.next()
-            except Exception, ex:
-                if not isinstance( ex, error.TimeoutError ):
-                    log.exception("device %s plugin %s unexpected error",
-                                  self.hostname, pname)
+            except error.TimeoutError:
+                log.error("%s %s SNMP timeout", self.device.id, pname)
+            except Exception:
+                log.exception("device %s plugin %s unexpected error",
+                              self.hostname, pname)
 
 
     def getResults(self):
