@@ -361,7 +361,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             convs.append(tup)
         return convs
 
-    security.declarePublic('filterObjectsRegex')
+    security.declarePrivate('filterObjectsRegex')
     def filterObjectsRegex(self, filter, objects,
                             filteratt='id', negatefilter=0):
         """filter a list of objects based on a regex"""
