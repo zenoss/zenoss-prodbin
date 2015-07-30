@@ -120,7 +120,6 @@ class IDataPointInfo(IInfo):
     createCmd = schema.Text(title=_t(u'Create Command'))
     rrdmin = schema.TextLine(title=_t(u'RRD Minimum'))
     rrdmax = schema.TextLine(title=_t(u'RRD Maximum'))
-    isrow = schema.Bool(title=_t(u'Read Only'))
     aliases = schema.TextLine(title=_t(u'Alias'),
                               xtype='alias')
 
