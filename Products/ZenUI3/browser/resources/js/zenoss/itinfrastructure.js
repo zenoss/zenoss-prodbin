@@ -250,12 +250,8 @@ function gridOptions() {
 }
 
 function refreshTreePanel() {
-    var treeNames = ['devices', 'groups', 'systemsTree', 'loc_tree'];
-    Ext.each(treeNames, function(treeName) {
-        var tree = Ext.getCmp(treeName);
-        if (tree) {
-            tree.refresh();
-        }
+    Ext.each(Ext.ComponentQuery.query('HierarchyTreePanel'), function(tree) {
+        tree.refresh();
     });
     var selModel = getSelectionModel();
     if (selModel.tree) {
