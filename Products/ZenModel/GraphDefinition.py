@@ -507,7 +507,13 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         names = [line[line.find(':')+1:line.find('=')]
                     for line in cmds.split('\n')
                     if line[:line.find(':')] in ('DEF', 'CDEF', 'VDEF')]
-        return names
+        nameSet = set(names)
+        result = []
+        for name in names:
+            #only allow -raw variables if a corresponding -rpn variable is present
+            if name.endswith('-raw') and name.replace('-raw', '-rpn') in nameSet or not name.endswith('-raw'):
+                result.append(name)
+        return result
 
         
     def getFakeGraphCmds(self, upToPoint=None):
