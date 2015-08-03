@@ -264,8 +264,14 @@ SessionAuthHelper.SessionAuthHelper.extractCredentials = extractCredentials
 def updateCredentials(self, request, response, login, new_password):
     # PAS sends to this methos all credentials provided by user without
     # checking.  So they need to be validate before session update.
-    pas_instance = self._getPAS()
-    plugins = pas_instance._getOb('plugins')
+
+    # `admin` user located in another PAS instance.
+    if login == 'admin':
+        acl_users = self.getPhysicalRoot().acl_users
+    else:
+        acl_users = self.getPhysicalRoot().zport.dmd.acl_users
+
+    plugins = acl_users._getOb('plugins')
     try:
         authenticators = plugins.listPlugins(IAuthenticationPlugin)
     except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
@@ -279,13 +285,12 @@ def updateCredentials(self, request, response, login, new_password):
 
     # First try to authenticate against the emergency
     # user and return immediately if authenticated
-    user_id, info = pas_instance._tryEmergencyUserAuthentication(credentials)
+    user_id, info = acl_users._tryEmergencyUserAuthentication(credentials)
 
     if user_id is None:
         for authenticator_id, auth in authenticators:
             try:
                 uid_and_info = auth.authenticateCredentials(credentials)
-
                 if uid_and_info is None:
                     continue
 
