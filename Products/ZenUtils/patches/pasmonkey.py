@@ -28,6 +28,7 @@ import urlparse
 from uuid import uuid1
 from cgi import parse_qs
 from Acquisition import aq_base
+from AccessControl import AuthEncoding
 from AccessControl.SpecialUsers import emergency_user
 from zope.event import notify
 from ZODB.POSException import POSKeyError
@@ -227,6 +228,20 @@ def authenticateCredentials( self, credentials ):
 
 
 ZODBUserManager.ZODBUserManager.authenticateCredentials = authenticateCredentials
+
+
+def _pw_encrypt( self, password ):
+    """Returns the AuthEncoding encrypted password
+
+    If 'password' is already encrypted, it is returned
+    as is and not encrypted again.
+    """
+    if AuthEncoding.is_encrypted(password):
+        return password
+    return AuthEncoding.pw_encrypt(password, encoding='PBKDF2-SHA256')
+
+ZODBUserManager.ZODBUserManager._pw_encrypt = _pw_encrypt
+
 
 def extractCredentials(self, request):
     creds = {}

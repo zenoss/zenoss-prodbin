@@ -17,8 +17,9 @@ from patches import mysqladaptermonkey
 from patches import signalsmonkey
 from patches import advancedquerymonkey
 from patches import xmlmonkey
+from Products.ZenUtils import pbkdf2  # Register PBKDF2 for password hashing
 from Products.ZenUtils.Utils import unused
-unused(pasmonkey, dirviewmonkey, advancedquerymonkey, mysqladaptermonkey, signalsmonkey, xmlmonkey)
+unused(pasmonkey, dirviewmonkey, advancedquerymonkey, mysqladaptermonkey, signalsmonkey, xmlmonkey, pbkdf2)
 
 from Products.ZenUtils.MultiPathIndex import MultiPathIndex , \
                                              manage_addMultiPathIndex, \
