@@ -37,10 +37,10 @@ class PBKDF2DigestScheme:
 
             <iterations>$<base64_salt>$<base64_hash>
         """
-        salt = self._generate_salt(DEFAULT_SALT_LEN)
+        salt = _generate_salt(DEFAULT_SALT_LEN)
         iterations = DEFAULT_ITERATIONS_COUNT
 
-        password_hash = self._encrypt(pw, salt, iterations, DEFAULT_HASH_LEN)
+        password_hash = _encrypt(pw, salt, iterations, DEFAULT_HASH_LEN)
 
         return '%s$%s$%s' % (iterations, base64.b64encode(salt),
                              base64.b64encode(password_hash))
@@ -63,24 +63,25 @@ class PBKDF2DigestScheme:
         if iterations <= 0:
             return False
 
-        attempt_hash = self._encrypt(attempt, salt, iterations,
-                                     len(password_hash))
+        attempt_hash = _encrypt(attempt, salt, iterations, len(password_hash))
 
         return constant_time.bytes_eq(attempt_hash, password_hash)
 
-    def _generate_salt(self, salt_len):
-        """Generates random string for salt."""
-        return os.urandom(salt_len)
 
-    def _encrypt(self, password, salt, iterations, hash_len):
-        """Performs key derivation according to the PKCS#5 standard (v2.0), by
-        means of the PBKDF2 algorithm using HMAC-SHA256 as a pseudorandom
-        function.
-        """
-        backend = default_backend()
-        kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=hash_len,
-                         salt=salt, iterations=iterations, backend=backend)
-        return kdf.derive(password)
+def _generate_salt(salt_len):
+    """Generates random string for salt."""
+    return os.urandom(salt_len)
+
+
+def _encrypt(password, salt, iterations, hash_len):
+    """Performs key derivation according to the PKCS#5 standard (v2.0), by
+    means of the PBKDF2 algorithm using HMAC-SHA256 as a pseudorandom
+    function.
+    """
+    backend = default_backend()
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=hash_len,
+                     salt=salt, iterations=iterations, backend=backend)
+    return kdf.derive(password)
 
 
 registerScheme('PBKDF2-SHA256', PBKDF2DigestScheme())
