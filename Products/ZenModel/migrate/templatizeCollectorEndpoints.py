@@ -28,14 +28,14 @@ class TemplatizeCollectorEndpoints(Migrate.Step):
             return
 
         # Get all zentrap and zensyslog services.
-        services = filter(lambda s: s.name == "zentrap" || s.name == "zensyslog", ctx.services)
+        services = filter(lambda s: s.name in ("zentrap", "zensyslog"), ctx.services)
 
         # Make sure all public Endpoints use a templated name that will prefix
         # the endpoint with the name of the parent collector
         for svc in services:
             publicEndpoints = filter(lambda endpoint: endpoint.purpose == "export", svc.endpoints)
             for endpoint in publicEndpoints:
-                if !endpoint.application.startswith("{{(parent .).Name}}_"):
+                if not endpoint.application.startswith("{{(parent .).Name}}_"):
                     endpoint.application = "{{(parent .).Name}}_" + endpoint.application
 
         ctx.commit()
