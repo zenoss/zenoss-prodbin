@@ -46,6 +46,7 @@ class ServiceProxy(pb.Copyable, pb.RemoteCopy):
 
 pb.setUnjellyableForClass(ServiceProxy, ServiceProxy)
 
+TCP_PROTOCOLS = set(["tcp","tcp4"])
 
 class ZenStatusConfig(CollectorConfigService):
 
@@ -60,9 +61,11 @@ class ZenStatusConfig(CollectorConfigService):
     def _filterDevice(self, device):
         include = CollectorConfigService._filterDevice(self, device)
         hasTcpComponents = False
-        for svc in device.getMonitoredComponents(collector='zenstatus'):
-            if svc.getProtocol() == "tcp":
-                hasTcpComponents = True
+        if include:
+            for svc in device.getMonitoredComponents(collector='zenstatus'):
+                if svc.getProtocol() in TCP_PROTOCOLS:
+                    hasTcpComponents = True
+                    break
 
         return include and hasTcpComponents
 
@@ -73,7 +76,7 @@ class ZenStatusConfig(CollectorConfigService):
         # add each component
         proxy.components = []
         for svc in device.getMonitoredComponents(collector='zenstatus'):
-            if svc.getProtocol() == 'tcp':
+            if svc.getProtocol() in TCP_PROTOCOLS:
                 # get component status
                 status = svc.getStatus(Status_IpService)
                 proxy.components.append(ServiceProxy(svc, status))
