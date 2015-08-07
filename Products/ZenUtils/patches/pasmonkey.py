@@ -221,7 +221,7 @@ def authenticateCredentials( self, credentials ):
     user_id = credentials.get('session_user_id', '')
     info = credentials.get('session_user_info', '')
 
-    if user_id:
+    if user_id and self._getPAS().getUserById(user_id):
         return user_id, info
 
     return _originalZODBUserManager_authenticateCredentials(self, credentials)
