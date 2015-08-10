@@ -637,7 +637,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
                         componentRootNode.on('append', findAndSelect, this, {single: true});
                     } else {
                         selectOnRender(tosel, sm);
-                        return Ext.getCmp('component_card').selectByToken(rest);
+                        return Ext.getCmp('component_card').selectByToken(unescape(rest));
                     }
                 }
 
