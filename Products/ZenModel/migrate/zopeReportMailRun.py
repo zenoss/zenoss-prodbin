@@ -36,7 +36,7 @@ class ZopeReportMailRun(Migrate.Step):
         if len(reportmailRun) == 0:
             zope.runs.append(sm.Run(
                 "reportmail",
-                "${ZENHOME:-/opt/zenoss}/bin/reportmail"
+                "${ZENHOME:-/opt/zenoss}/bin/zenrun reportmail"
             ))
 
         # Commit our changes.
