@@ -11,19 +11,15 @@ import base64
 import requests
 import json
 import re
-import cookielib
-import Cookie
 import os
 import sys
 
 from collections import defaultdict
 from datetime import datetime, timedelta
-from zope import component
 from zenoss.protocols.services import ServiceResponseError, ServiceConnectionError
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.Five.browser import BrowserView
 from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
 from Products.ZenUtils import metrics
@@ -31,7 +27,7 @@ from Products.ZenUtils import metrics
 log = logging.getLogger("zen.MetricFacade")
 
 
-DATE_FORMAT = "%Y/%m/%d-%H:%M:%S-%z"
+DATE_FORMAT = "%Y/%m/%d-%H:%M:%S"
 
 METRIC_URL_PATH = "/api/performance/query"
 WILDCARD_URL_PATH = "/api/performance/query2"
@@ -41,17 +37,19 @@ AGGREGATION_MAPPING = {
     'minimum': 'min',
     'maximum': 'max',
     'total': 'sum',
-    #TODO: get last agg function working
+    # TODO: get last agg function working
     'last': None
 }
 
 _devname_pattern = re.compile('Devices/([^/]+)')
 
-def _isRunningFromUI( context):
-    if not safe_hasattr( context, 'REQUEST'):
+
+def _isRunningFromUI(context):
+    if not safe_hasattr(context, 'REQUEST'):
         return False
 
-    return safe_hasattr( context.REQUEST, 'SESSION')
+    return safe_hasattr(context.REQUEST, 'SESSION')
+
 
 class MetricFacade(ZuulFacade):
 
@@ -63,12 +61,12 @@ class MetricFacade(ZuulFacade):
         self._authCookie = {}
         self._authorization = IAuthorizationTool(self.context)
         self._credentials = None
-        if _isRunningFromUI( context):
+        if _isRunningFromUI(context):
             token = context.REQUEST.cookies.get('ZAuthToken', None)
             if token:
                 self._authCookie = {'ZAuthToken': token}
             else:
-                self._credentials = self._authorization.extractCredentials( context.REQUEST)
+                self._credentials = self._authorization.extractCredentials(context.REQUEST)
         else:
             self._credentials = self._authorization.extractGlobalConfCredentials()
 
@@ -126,7 +124,7 @@ class MetricFacade(ZuulFacade):
         return results
 
     def getValues(self, context, metrics, start=None, end=None,
-                     format="%.2lf", extraRpn="", cf="avg", returnSet="LAST", downsample=None):
+                  format="%.2lf", extraRpn="", cf="avg", returnSet="LAST", downsample=None):
         """
         Return a dict of key value pairs where metric names are the keys and
         the most recent value in the given time range is the value.
@@ -151,8 +149,26 @@ class MetricFacade(ZuulFacade):
             return results.values()[0]
         return {}
 
+    def _defaultStartAndEndTime(self, start, end, returnSet):
+        # check to see if the user entered a unix timestamp
+        if isinstance(start, (int, long, float)):
+            start = self._formatTime(datetime.fromtimestamp(start))
+
+        if isinstance(end, (int, long, float)):
+            end = self._formatTime(datetime.fromtimestamp(end))
+
+        # if no start time or end time specified use the
+        # defaultDateRange (which is acquired from the dmd)
+        if end is None:
+            end = self._formatTime(datetime.today())
+        if start is None and returnSet != "LAST":
+            start = self._formatTime(datetime.today() - timedelta(seconds=self._dmd.defaultDateRange))
+        elif start is None and returnSet == "LAST":
+            start = self._formatTime(datetime.today() - timedelta(seconds=3600))
+        return start, end
+
     def queryServer(self, contexts, metrics, start=None, end=None,
-                     format="%.2lf", extraRpn="", cf="avg", returnSet="LAST", downsample=None):
+                    format="%.2lf", extraRpn="", cf="avg", returnSet="LAST", downsample=None):
         subjects = []
         # make sure we are always dealing with a list
         if not isinstance(contexts, (list, tuple)):
@@ -192,54 +208,39 @@ class MetricFacade(ZuulFacade):
         if not datapoints:
             return {}
 
-        # check to see if the user entered a unix timestamp
-        if isinstance(start, (int, long, float)):
-            start = self._formatTime(datetime.fromtimestamp(start))
-
-        if isinstance(end, (int, long, float)):
-            end = self._formatTime(datetime.fromtimestamp(end))
-
-        # if no start time or end time specified use the
-        # defaultDateRange (which is acquired from the dmd)
-        if end is None:
-            end = self._formatTime(datetime.today())
-        if start is None and returnSet != "LAST":
-            start = self._formatTime(datetime.today() - timedelta(seconds = self._dmd.defaultDateRange))
-        elif start is None and returnSet == "LAST":
-            start = self._formatTime(datetime.today() - timedelta(seconds = 3600))
+        start, end = self._defaultStartAndEndTime(start, end, returnSet)
         request = self._buildRequest(subjects, datapoints, start, end, returnSet, downsample)
 
         # submit it to the client
         try:
-            response = self._post_request( self._uri(METRIC_URL_PATH), request)
+            response = self._post_request(self._uri(METRIC_URL_PATH), request)
             content = response.json()
         except ServiceResponseError, e:
             # there was an error returned by the metric service, log it here
             log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
             return {}
         except ServiceConnectionError, e:
-            log.error("Error connecting with request: %s \n%s", request, e )
+            log.error("Error connecting with request: %s \n%s", request, e)
             return {}
 
-
-        if content and content.get('results') is not None and returnSet=="LAST":
-           # Output of this request should be something like this:
-           # [{u'timestamp': 1376477481, u'metric': u'sysUpTime',
-           #   u'value': 2418182400.0, u'tags': {u'device':
-           #   u'55d1bbf8-efab-4175-b585-1d748b275b2a', u'uuid':
-           #   u'55d1bbf8-efab-4175-b585-1d748b275b2a', u'datasource':
-           #   u'sysUpTime'}}]
-           #
-           results = defaultdict(dict)
-           for item in content['results']:
-               key, metric = item['metric'].split('|', 1)
-               if item.get('datapoints'):
-                   results[key][metricnames[metric]] = float(format % item['datapoints'][0]['value'])
-           return results
+        if content and content.get('results') is not None and returnSet == "LAST":
+            # Output of this request should be something like this:
+            # [{u'timestamp': 1376477481, u'metric': u'sysUpTime',
+            #   u'value': 2418182400.0, u'tags': {u'device':
+            #   u'55d1bbf8-efab-4175-b585-1d748b275b2a', u'uuid':
+            #   u'55d1bbf8-efab-4175-b585-1d748b275b2a', u'datasource':
+            #   u'sysUpTime'}}]
+            #
+            results = defaultdict(dict)
+            for item in content['results']:
+                key, metric = item['metric'].split('|', 1)
+                if item.get('datapoints'):
+                    results[key][metricnames[metric]] = float(format % item['datapoints'][0]['value'])
+            return results
         else:
-           if returnSet == "ALL":
-               return content
-           return content.get('results')
+            if returnSet == "ALL":
+                return content
+            return content.get('results')
 
     def _buildRequest(self, contexts, metrics, start, end, returnSet, downsample):
         request = {
@@ -248,7 +249,7 @@ class MetricFacade(ZuulFacade):
             'end': end,
             'metrics': metrics
         }
-        if not downsample is None:
+        if downsample is not None:
             if isinstance(downsample, int):
                 request['downsample'] = "%ss-avg" % downsample
             else:
@@ -300,11 +301,10 @@ class MetricFacade(ZuulFacade):
         return t.strftime(DATE_FORMAT)
 
     def _uri(self, path):
-        return "%s/%s" %( self._metric_url, path)
+        return "%s/%s" % (self._metric_url, path)
 
     def _post_request(self, path, request, timeout=10):
-        uri = self._uri(METRIC_URL_PATH)
-        agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python" 
+        agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python"
         headers = {
             'content-type': 'application/json',
             'User-Agent': 'Zenoss MetricFacade: %s' % agent_suffix
@@ -318,10 +318,9 @@ class MetricFacade(ZuulFacade):
         elif self._authCookie:
             log.debug("using token auth")
 
-
-        log.info("METRICFACADE POST %s %s", uri, request)
+        log.debug("METRICFACADE POST %s %s", path, request)
         try:
-            response = self._req_session.post(uri, json.dumps(request), headers=headers,
+            response = self._req_session.post(path, json.dumps(request), headers=headers,
                                               timeout=timeout, cookies=self._authCookie)
         except requests.exceptions.Timeout, e:
             raise ServiceConnectionError('Timed out waiting for response from metric service: %s' % e, e)
@@ -329,3 +328,48 @@ class MetricFacade(ZuulFacade):
         if not (status_code >= 200 and status_code <= 299):
             raise ServiceResponseError(response.reason, status_code, request, response, response.content)
         return response
+
+    def _buildWildCardMetrics(self, device, metricName, cf='avg', isRate=False, format="%.2lf"):
+
+        # find out our aggregation function
+        agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
+        metric = dict(
+            metric=device.id + "/" + metricName,
+            aggregator=agg,
+            format=format,
+            tags={'contextUUID': ['*']},
+            rate=isRate,
+            name=device.getResourceKey() + metricName
+        )
+        return metric
+
+    def getMetricsByDevice(self, device, metrics, start=None,
+                           end=None, format="%.2lf", cf="avg", returnSet="LAST",
+                           downsample=None, timeout=10, isRate=False):
+        """
+        Gets a set of metrics for every component under a device.
+        """
+        start, end = self._defaultStartAndEndTime(start, end, returnSet)
+        if isinstance(metrics, basestring):
+            metrics = [metrics]
+        metricRequests = [self._buildWildCardMetrics(device, metric, cf, isRate, format) for metric in metrics]
+        request = self._buildRequest([device], metricRequests, start, end, returnSet, downsample)
+        request['queries'] = request['metrics']
+        del request['metrics']
+        content = None
+        try:
+            response = self._post_request(self._uri(WILDCARD_URL_PATH), request, timeout=timeout)
+            content = response.json()
+        except ServiceResponseError, e:
+            # there was an error returned by the metric service, log it here
+            log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
+            return []
+        except ServiceConnectionError, e:
+            log.error("Error connecting with request: %s \n%s", request, e)
+            return []
+
+        # check for bad status and log what happened
+        for status in content['statuses']:
+            if status['status'] == u'ERROR' and 'not such name' not in status['message']:
+                log.error(status['message'])
+        return content['series']
