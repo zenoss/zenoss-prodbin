@@ -250,7 +250,7 @@ class MetricFacade(ZuulFacade):
         }
         if not downsample is None:
             if isinstance(downsample, int):
-                request['downsample'] = "%s-avg" % downsample
+                request['downsample'] = "%ss-avg" % downsample
             else:
                 request['downsample'] = downsample
         return request
