@@ -344,9 +344,10 @@ class MetricFacade(ZuulFacade):
         return metric
 
     def getMetricsByDevice(self, device, metrics, start=None,
-                               end=None, format="%.2lf", cf="avg", returnSet="LAST",
-                               downsample=None, timeout=10, isRate=False):
+                           end=None, format="%.2lf", cf="avg", returnSet="LAST",
+                           downsample=None, timeout=10, isRate=False):
         """
+        Gets a set of metrics for every component under a device.
         """
         start, end = self._defaultStartAndEndTime(start, end, returnSet)
         if isinstance(metrics, basestring):
