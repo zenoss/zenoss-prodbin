@@ -167,6 +167,7 @@ class ZenPackCmd(ZenScriptBase):
         elif self.options.createPackName:
             audit('Shell.ZenPack.Create', zenpack=self.options.createPackName)
 
+        ZenPack.currentServiceId = self.options.serviceId
 
         if self.options.createPackName:
             devDir, packName = os.path.split(self.options.createPackName)
@@ -190,7 +191,7 @@ class ZenPackCmd(ZenScriptBase):
             if not theOne:
                 raise ZenPackNotFoundException("Specified zenpack not installed")
             if len(theOne) > 1:
-                raise ZenPackException("Multipe matching distributions for {} found - aborting.".format(self.options.removePackName))
+                raise ZenPackException("Multiple matching distributions for {} found - aborting.".format(self.options.removePackName))
             actualZPDir = theOne[0].dist.location
             class ZPProxy:
                 def __init__(self, zpId, actualPath):
