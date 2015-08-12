@@ -74,7 +74,7 @@ def executeNmapCmd(
     ping_timeout = pingTimeOut
 
     # Make sure the timeout fits within one cycle.
-    if ping_timeout + MAX_NMAP_OVERHEAD > cycle_interval:
+    if (ping_timeout + MAX_NMAP_OVERHEAD) > cycle_interval:
         ping_timeout = cycle_interval - MAX_NMAP_OVERHEAD
 
     # Give each host at least that much time to respond.
@@ -84,7 +84,7 @@ def executeNmapCmd(
     args.extend(["--max-rtt-timeout", "%.1fs" % ping_timeout])
 
     # Make sure we can safely complete the number of tries within one cycle.
-    if (ping_tries * ping_timeout + MAX_NMAP_OVERHEAD > cycle_interval):
+    if (ping_tries * ping_timeout + MAX_NMAP_OVERHEAD) > cycle_interval:
         ping_tries = int(math.floor(
             (cycle_interval - MAX_NMAP_OVERHEAD) / ping_timeout
         ))
@@ -111,7 +111,6 @@ def executeNmapCmd(
 
     if outputType != 'xml':
         raise ValueError("Unsupported nmap output type: %s" % outputType)
-
     args.extend(["-oX", '-'])  # outputXML to stdout
 
     # execute nmap
@@ -134,7 +133,7 @@ def executeNmapCmd(
 
     try:
         nmapResults = parseNmapXmlToDict(StringIO(out))
-        log.info("nmapResults -> %s", nmapResults)
+        log.debug("nmapResults -> %s", nmapResults)
         defer.returnValue(nmapResults)
     except Exception as e:
         input = open(inputFileFilename).read()
