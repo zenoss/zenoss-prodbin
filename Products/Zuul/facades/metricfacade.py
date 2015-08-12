@@ -362,7 +362,7 @@ class MetricFacade(ZuulFacade):
             content = response.json()
         except ServiceResponseError, e:
             # there was an error returned by the metric service, log it here
-            log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
+            log.error("Error fetching request: %s \nResponse from the server (return code %s): %s", request, e.status, e.content)
             return []
         except ServiceConnectionError, e:
             log.error("Error connecting with request: %s \n%s", request, e)

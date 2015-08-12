@@ -20,7 +20,7 @@ from Products.ZenModel.ComplexGraphPoint import ComplexGraphPoint
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from Products.ZenEvents.Exceptions import rpnThresholdException
 from Products.ZenUtils import metrics
-from Products.Zuul.decorators import info
+from Products.Zuul.decorators import info, memoize
 
 __doc__ = """
 These adapters are responsible for serializing the graph
@@ -38,11 +38,14 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     implements(templateInterfaces.IMetricServiceGraphDefinition)
 
     @property
+    @memoize
     def title(self):
         obj = self._object
         # allow zenpacks to set a temporary title on the graph definition
         if hasattr(obj, "_v_title"):
-            return obj._v_title
+            name = obj._v_title
+            del obj._v_title
+            return name
         if self._showContextTitle:
             return self.contextTitle
         return self._object.titleOrId()
