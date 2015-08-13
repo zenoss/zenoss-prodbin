@@ -31,10 +31,26 @@ from Products.ZenUtils.celeryintegration import states
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
+from ZPublisher.HTTPRequest import HTTPRequest
+from ZPublisher.HTTPResponse import HTTPResponse
+from ZPublisher.BaseRequest import RequestContainer
 
 log = logging.getLogger("zen.celeryintegration")
 
 CONNECTION_ENVIRONMENT = threading.local()
+
+
+def _getContext(app):
+    request = HTTPRequest(
+        None,
+        {
+            'SERVER_NAME':'localhost',
+            'SERVER_PORT':'8080',
+            'REQUEST_METHOD':'GET'
+        },
+        HTTPResponse(stdout=None)
+    )
+    return app.__of__(RequestContainer(REQUEST=request))
 
 
 class ConnectionCloser(object):
@@ -112,7 +128,7 @@ class ZODBBackend(BaseDictBackend):
         else:
             app = closer.connection.root()['Application']
 
-        return app.zport.dmd
+        return _getContext(app).zport.dmd
 
     @property
     def jobmgr(self):
