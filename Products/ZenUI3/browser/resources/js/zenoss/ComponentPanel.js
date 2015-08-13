@@ -689,7 +689,9 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                     var found = false, i=0;
                     store.each(function(r){
                         if (r.get('uid') === uid) {
-                            selectionModel.select(r);
+                            if (!selectionModel.isSelected(r)) {
+                                selectionModel.select(r);
+                            }
                             view.focusRow(r.index);
                             found = true;
                             store.un('guaranteedrange', gridSelect, me);
