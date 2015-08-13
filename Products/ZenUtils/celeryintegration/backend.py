@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import Globals
@@ -16,7 +16,6 @@ import logging
 import traceback
 
 from zope.component import getUtility
-from ZODB.POSException import ConflictError
 from ZODB.transact import transact
 from datetime import datetime
 
@@ -31,10 +30,26 @@ from Products.ZenUtils.celeryintegration import states
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
+from ZPublisher.HTTPRequest import HTTPRequest
+from ZPublisher.HTTPResponse import HTTPResponse
+from ZPublisher.BaseRequest import RequestContainer
 
 log = logging.getLogger("zen.celeryintegration")
 
 CONNECTION_ENVIRONMENT = threading.local()
+
+
+def _getContext(app):
+    request = HTTPRequest(
+        None,
+        {
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': '8080',
+            'REQUEST_METHOD': 'GET'
+        },
+        HTTPResponse(stdout=None)
+    )
+    return app.__of__(RequestContainer(REQUEST=request))
 
 
 class ConnectionCloser(object):
@@ -85,12 +100,13 @@ class ZODBBackend(BaseDictBackend):
             # Get the current database
             db = self._db
             if db is None:
-                # Try to get it off Globals (Zope, zendmd)
+                # Try to get the database off Globals (Zope, zendmd)
                 db = getattr(Globals, 'DB', None)
                 if db is None:
                     # Open a connection (CmdBase)
                     connectionFactory = getUtility(IZodbFactoryLookup).get()
-                    db, storage = connectionFactory.getConnection(**self.get_db_options())
+                    options = self.get_db_options()
+                    db, storage = connectionFactory.getConnection(**options)
                 self._db = db
             return db
 
@@ -112,7 +128,7 @@ class ZODBBackend(BaseDictBackend):
         else:
             app = closer.connection.root()['Application']
 
-        return app.zport.dmd
+        return _getContext(app).zport.dmd
 
     @property
     def jobmgr(self):
@@ -137,6 +153,7 @@ class ZODBBackend(BaseDictBackend):
                     try:
                         log.debug("Updating job %s - Pass %d", task_id, i+1)
                         _doupdate()
+                        log.debug("Job %s updated", task_id)
                         break
                     except NoSuchJobException:
                         log.debug(
@@ -147,10 +164,10 @@ class ZODBBackend(BaseDictBackend):
                         time.sleep(0.25)
                         self.jobmgr._p_jar.sync()
                 else:
-                    # only if for loop completes without breaking
+                    # only runs if the for loop completes without breaking
                     log.warn(
-                        "Unable to save properties %s to job %s",
-                        properties, task_id
+                        "Job not updated.  Unable to save properties "
+                        "%s to job %s", properties, task_id
                     )
             finally:
                 self.reset()
@@ -159,7 +176,6 @@ class ZODBBackend(BaseDictBackend):
         t = threading.Thread(target=_update)
         t.start()
         t.join()
-        log.debug("Job %s updated", task_id)
 
 # ----- BaseDictBackend Overrides -----------------------------------------
 
@@ -190,10 +206,11 @@ class ZODBBackend(BaseDictBackend):
         """
         status = self.get_status(task_id)
         if status in states.READY_STATES:
-            # Job's already done, no need to spin up thread.
+            # Job's already done, no need to spin up a thread.
             result = self.get_result(task_id)
         else:
             result_queue = Queue.Queue()
+
             def do_wait():
                 try:
                     time_elapsed = 0.0
@@ -211,6 +228,7 @@ class ZODBBackend(BaseDictBackend):
                             raise TimeoutError("The operation timed out.")
                 finally:
                     self.reset()
+
             t = threading.Thread(target=do_wait)
             t.start()
             t.join()
