@@ -10,14 +10,12 @@
 import logging
 import math
 import tempfile
-import os
 
 from cStringIO import StringIO
 from twisted.internet import utils, defer
 
 from Products.ZenStatus.nmap.PingResult import parseNmapXmlToDict
 from Products.ZenStatus import nmap
-from Products.ZenUtils.Utils import binPath
 
 log = logging.getLogger("zen.nmap")
 
@@ -116,7 +114,7 @@ def executeNmapCmd(
     # execute nmap
     if log.isEnabledFor(logging.DEBUG):
         log.debug("executing nmap %s", " ".join(args))
-    args = ["-n", _NMAP_BINARY,] + args
+    args = ["-n", _NMAP_BINARY] + args
     log.info("Executing /bin/sudo %s", ' '.join(args))
     out, err, exitCode = yield utils.getProcessOutputAndValue(
         "/bin/sudo", args
