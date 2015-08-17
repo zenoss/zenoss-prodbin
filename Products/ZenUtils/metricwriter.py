@@ -186,6 +186,8 @@ class ThresholdNotifier(object):
                 eventKeyPrefix = [context_id]
             for ev in self._thresholds.check(context_uuid, metric, timestamp, value):
                 parts = eventKeyPrefix[:]
+                if metric not in parts:   # We add the metric name to the eventKey. Some transforms use it
+                    parts.append(metric)
                 if 'eventKey' in ev:
                     parts.append(ev['eventKey'])
                 ev['eventKey'] = '|'.join(parts)
