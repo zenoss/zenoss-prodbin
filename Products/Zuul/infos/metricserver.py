@@ -156,6 +156,8 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
     @property
     def name(self):
+        if self._multiContext:
+            return "%s %s" % (self._context.id, self._object.id)
         # RPN expressions use the DataPointGraphPoint id to reference other datapoints for the graph, central query
         # uses the "name" property to resolve references in RPN expression.
         return self._object.id
