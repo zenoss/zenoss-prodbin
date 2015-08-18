@@ -342,4 +342,5 @@ class ControlPlaneClient(object):
 # Define the names to export via 'from client import *'.
 __all__ = (
     "ControlPlaneClient",
+    "ControlCenterError"
 )

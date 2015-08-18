@@ -34,7 +34,7 @@ from Products.ZenUtils.Utils import importClass, zenPath, varPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.PkgResources import pkg_resources
-from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree
+from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree, ControlCenterError
 from Products.ZenUtils.controlplane.application import getConnectionSettings
 from Products.ZenModel import ExampleLicenses
 from Products.ZenModel.DeviceClass import DeviceClass
@@ -1411,7 +1411,13 @@ registerDirectory("skins", globals())
             for parentService in parentServices:
                 ctx._ServiceContext__deployService(json.dumps(service), parentService.id)
 
-        ctx.commit()
+        try:
+            ctx.commit()
+        except ControlCenterError as e:
+            if e.message == "service exists":
+                log.info("Service exists, not deploying.")
+            else:
+                raise e
 
 
     def removeServices(self, tag):
