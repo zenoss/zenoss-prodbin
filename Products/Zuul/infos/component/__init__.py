@@ -53,6 +53,10 @@ class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin, BulkMetricLoadM
 
     pingStatus = status
 
+    @property
+    def icon(self):
+        return self._object.getIconPath()
+
 
 class ComponentFormBuilder(FormBuilder):
     def render(self, fieldsets=True):

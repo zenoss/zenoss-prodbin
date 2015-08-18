@@ -463,12 +463,17 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
     DEVICE_LOCATION_TAG_KEY = EventProxy.DEVICE_LOCATION_DETAIL_KEY
     DEVICE_SYSTEMS_TAG_KEY = EventProxy.DEVICE_SYSTEMS_DETAIL_KEY
     DEVICE_GROUPS_TAG_KEY = EventProxy.DEVICE_GROUPS_DETAIL_KEY
+    COMPONENT_GROUP_TAG_KEY = EventProxy.COMPONENT_GROUP_DETAIL_KEY
 
     DEVICE_TAGGERS = {
-        DEVICE_DEVICECLASS_TAG_KEY : (lambda device: device.deviceClass(), 'DeviceClass'),
+        DEVICE_DEVICECLASS_TAG_KEY: (lambda device: device.deviceClass(), 'DeviceClass'),
         DEVICE_LOCATION_TAG_KEY    : (lambda device: device.location(), 'Location'),
         DEVICE_SYSTEMS_TAG_KEY     : (lambda device: device.systems(), 'Systems'),
         DEVICE_GROUPS_TAG_KEY      : (lambda device: device.groups(), 'DeviceGroups'),
+    }
+
+    COMPONENT_TAGGERS = {
+        COMPONENT_GROUP_TAG_KEY: (lambda component: component.getComponentGroups(), 'ComponentGroups'),
     }
 
     def _addDeviceOrganizerNames(self, orgs, orgtypename, evtproxy, proxydetailkey, asDelimitedList=False):
@@ -507,6 +512,10 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
         self._addDeviceOrganizerNames(orgs, 'DeviceClass', evtproxy, EventProxy.DEVICE_CLASS_DETAIL_KEY)
         self._addDeviceOrganizerNames(orgs, 'DeviceGroups', evtproxy, EventProxy.DEVICE_GROUPS_DETAIL_KEY, asDelimitedList=True)
         self._addDeviceOrganizerNames(orgs, 'Systems', evtproxy, EventProxy.DEVICE_SYSTEMS_DETAIL_KEY, asDelimitedList=True)
+
+    def _addComponentOrganizers(self, eventContext, orgs):
+        evtproxy = eventContext.eventProxy
+        self._addDeviceOrganizerNames(orgs, 'ComponentGroups', evtproxy, EventProxy.COMPONENT_GROUP_DETAIL_KEY)
 
     def _findTypeIdAndElement(self, eventContext, sub_element):
         actor = eventContext.event.actor
@@ -580,13 +589,26 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
 
         component = eventContext.componentObject
         if component is None:
+
             if element_type_id == COMPONENT:
                 component = element
             elif sub_element_type_id == COMPONENT:
                 component = sub_element
 
             if component:
+                componentOrgs = {}
                 eventContext.setComponentObject(component)
+                for tagType, orgProcessValues in self.COMPONENT_TAGGERS.iteritems():
+                    getOrgFunc, orgTypeName = orgProcessValues
+                    objList = getOrgFunc(component)
+                    if objList:
+                        if not isinstance(objList, list):
+                            objList = [objList]
+                        uuids = set(sum((self._manager.getUuidsOfPath(obj) for obj in objList), []))
+                        if uuids:
+                            eventContext.eventProxy.tags.addAll(tagType, uuids)
+                        componentOrgs[orgTypeName] = [obj.getOrganizerName() for obj in objList]
+                self._addComponentOrganizers(eventContext, componentOrgs)
 
         return eventContext
 
