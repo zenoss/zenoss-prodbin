@@ -1,10 +1,10 @@
 ##############################################################################
-#
+# 
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-#
+# 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-#
+# 
 ##############################################################################
 
 
@@ -44,13 +44,8 @@ class DefaultPathReporter(object):
         self.context = context
 
     def getPaths(self):
-        paths = [self.context.getPhysicalPath()]
-        # since all component path reporters extend DefaultPathReporter
-        # we need to add our component Group hook in here as opposed to a subclass
-        componentGroups = self.context.getComponentGroups()
-        if componentGroups:
-            paths.extend(relPath(self.context, "componentGroups"))
-        return paths
+        return [self.context.getPhysicalPath()]
+
 
 class DevicePathReporter(DefaultPathReporter):
     def getPaths(self):
@@ -60,6 +55,7 @@ class DevicePathReporter(DefaultPathReporter):
         paths.extend(relPath(dev, 'systems'))
         paths.extend(relPath(dev, 'groups'))
         return paths
+
 
 
 class ServicePathReporter(DefaultPathReporter):

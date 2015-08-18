@@ -239,7 +239,6 @@ class EventProxy(object):
     DEVICE_GROUPS_DETAIL_KEY = 'zenoss.device.groups'
     DEVICE_LOCATION_DETAIL_KEY = 'zenoss.device.location'
     DEVICE_CLASS_DETAIL_KEY = 'zenoss.device.device_class'
-    COMPONENT_GROUP_DETAIL_KEY = 'zenoss.component.component_group'
 
     def __init__(self, eventProtobuf):
         self.__dict__['_event'] = ProtobufWrapper(eventProtobuf)

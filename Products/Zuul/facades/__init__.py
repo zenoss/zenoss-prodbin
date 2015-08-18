@@ -26,8 +26,7 @@ from Acquisition import aq_parent
 from zope.event import notify
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
-from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
-from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
+
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, Generic
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
@@ -262,13 +261,7 @@ class TreeFacade(ZuulFacade):
         parent.moveOrganizer(targetUid, [organizer.id])
         target = self._getObject(targetUid)
         # reindex all the devices under the organizer
-        childObjects = []
-        if isinstance(parent, DeviceOrganizer):
-            childObjects = parent.getSubDevices()
-        elif isinstance(parent, ComponentOrganizer):
-            childObjects = parent.getSubComponents()
-
-        for dev in childObjects:
+        for dev in parent.getSubDevices():
             dev.index_object()
             notify(IndexingEvent(dev, 'path'))
         return IOrganizerInfo(target._getOb(organizer.id))
