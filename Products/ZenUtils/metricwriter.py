@@ -183,7 +183,7 @@ class ThresholdNotifier(object):
             if 'eventKey' in thresh_event_data:
                 eventKeyPrefix = [thresh_event_data['eventKey']]
             else:
-                eventKeyPrefix = [context_id]
+                eventKeyPrefix = [metric]
             for ev in self._thresholds.check(context_uuid, metric, timestamp, value):
                 parts = eventKeyPrefix[:]
                 if 'eventKey' in ev:
