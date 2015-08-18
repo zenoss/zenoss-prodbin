@@ -34,7 +34,6 @@ from Products.ZenUtils import Time
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
 
-
 def lastDayPreviousMonth(seconds):
     parts = list(time.localtime(seconds))
     # use day 1 of this month
@@ -143,11 +142,11 @@ class MaintenanceWindow(ZenModelRM):
     def repeatOptions(self):
         "Provide the list of REPEAT options"
         return self.REPEAT
-
+    
     def daysOptions(self):
         "Provide the list of DAYS options"
         return self.DAYS
-
+    
     def occurrenceOptions(self):
         "Provide the list of OCCURRENCE options"
         return self.OCCURRENCE
@@ -495,11 +494,8 @@ class MaintenanceWindow(ZenModelRM):
         """
         target = self.target()
         from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
-        from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
         if isinstance(target, DeviceOrganizer):
             devices = target.getSubDevices()
-        elif isinstance(target, ComponentOrganizer):
-            devices = target.getSubComponents()
         else:
             devices = [target]
 
