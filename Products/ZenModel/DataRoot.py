@@ -15,6 +15,7 @@ data objects.  It can be used as a global acquisition
 name space.
 """
 
+import httplib
 import re
 from persistent.list import PersistentList
 from zope.interface import implements
@@ -47,6 +48,7 @@ from Products.ZenEvents.Exceptions import *
 from ZenModelRM import ZenModelRM
 from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW
 from interfaces import IDataRoot
+from zExceptions import Unauthorized
 
 def manage_addDataRoot(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -411,6 +413,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         elif isinstance(error_value, MySQLConnectionError) \
                 or isinstance(error_value, connectionFactory.exceptions.Error):
             return self.zenoss_mysql_error_message(error_value=error_value)
+        elif isinstance(error_value, Unauthorized):
+            self.REQUEST.response.status = httplib.UNAUTHORIZED
+            return
 
         from traceback import format_exception
         error_formatted = ''.join(format_exception(error_type, error_value, error_traceback))
