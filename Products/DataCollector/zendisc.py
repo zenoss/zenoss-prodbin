@@ -541,6 +541,7 @@ class ZenDisc(ZenModeler):
                 self.log.error("Error: %s", results)
         else:
             self.log.info("Result: %s", results)
+        self.main()
 
     @defer.inlineCallbacks
     def createDevice(self):
@@ -633,7 +634,7 @@ class ZenDisc(ZenModeler):
         """
         d = self.configure()
         d.addCallback(self.startDiscovery)
-        d.addErrback(self.printResults)
+        d.addErrback(self.reportError)
 
     @defer.inlineCallbacks
     def startDiscovery(self, data):
@@ -648,7 +649,6 @@ class ZenDisc(ZenModeler):
         else:
             results = [d.getId() for d in (yield self.collectNet())]
         self.printResults(results)
-        reactor.stop()
 
     def buildOptions(self):
         """
