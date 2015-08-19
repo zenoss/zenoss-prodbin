@@ -37,17 +37,19 @@ from Products.ZenCollector import interfaces
 from Products.ZenCollector.tasks import SimpleTaskFactory
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenEvents import ZenEventClasses 
+from Products.ZenUtils.Utils import unused
 from zenoss.protocols.protobufs import zep_pb2 as events
 
 # imports from within ZenStatus
 from Products.ZenStatus import PingTask
 from Products.ZenStatus.ping.CmdPingTask import CmdPingTask
-from PingResult import PingResult, parseNmapXmlToDict
+from PingResult import PingResult
 from Products.ZenStatus.PingCollectionPreferences import PingCollectionPreferences
 from Products.ZenStatus.interfaces import IPingTaskFactory, IPingTaskCorrelator
 from Products.ZenStatus import nmap
+from Products.ZenStatus.nmap.util import executeNmapCmd
 
-_NMAP_BINARY = "/usr/bin/nmap"
+unused(Globals)
 
 
 _CLEAR = 0
@@ -192,7 +194,7 @@ class NmapPingTask(BaseTask):
         newValue = (cycleInterval >= minCycleInterval)
         if self._cycleIntervalReasonable != newValue:
             self._cycleIntervalReasonable = newValue
-            if self._cycleIntervalReasonable == False:
+            if self._cycleIntervalReasonable is False:
                 raise nmap.ShortCycleIntervalError(cycleInterval)
         self._sendShortCycleInterval(cycleInterval)
 
@@ -222,7 +224,7 @@ class NmapPingTask(BaseTask):
         Send/Clear event to show that correlation is executed properly.
         """
         if ex is None:
-            msg = "correlation executed correctly" 
+            msg = "correlation executed correctly"
             severity = _CLEAR
         else:
             msg = "correlation did not execute correctly: %s" % ex
@@ -242,7 +244,7 @@ class NmapPingTask(BaseTask):
         Send/Clear event to show that nmap is executed properly.
         """
         if ex is None:
-            msg = "nmap executed correctly" 
+            msg = "nmap executed correctly"
             severity = _CLEAR
         else:
             msg = "nmap did not execute correctly: %s" % ex
@@ -256,91 +258,6 @@ class NmapPingTask(BaseTask):
             summary=msg,
         )
         self._eventService.sendEvent(evt)
-
-    @defer.inlineCallbacks
-    def _executeNmapCmd(self, inputFileFilename, traceroute=False, outputType='xml', num_devices=0):
-        """
-        Execute nmap and return its output.
-        """
-        args = []
-        args.extend(["-iL", inputFileFilename])  # input file
-        args.append("-sn")               # don't port scan the hosts
-        args.append("-PE")               # use ICMP echo
-        args.append("-n")                # don't resolve hosts internally
-        args.append("--privileged")      # assume we can open raw socket
-        args.append("--send-ip")         # don't allow ARP responses
-        args.append("-T5")               # "insane" speed
-        if self._daemon.options.dataLength > 0:
-            args.extend(["--data-length", str(self._daemon.options.dataLength)])
-
-        cycle_interval = self._daemon._prefs.pingCycleInterval
-        ping_tries     = self._daemon._prefs.pingTries
-        ping_timeout   = self._preferences.pingTimeOut
-
-        # Make sure the cycle interval is not unreasonably short.
-        self._detectCycleInterval()
-
-        # Make sure the timeout fits within one cycle.
-        if ping_timeout + MAX_NMAP_OVERHEAD > cycle_interval:
-            ping_timeout = cycle_interval - MAX_NMAP_OVERHEAD
-
-        # Give each host at least that much time to respond.
-        args.extend(["--min-rtt-timeout", "%.1fs" % ping_timeout])
-
-        # But not more, so we can be exact with our calculations.
-        args.extend(["--max-rtt-timeout", "%.1fs" % ping_timeout])
-
-        # Make sure we can safely complete the number of tries within one cycle.
-        if (ping_tries * ping_timeout + MAX_NMAP_OVERHEAD > cycle_interval):
-            ping_tries = int(math.floor((cycle_interval - MAX_NMAP_OVERHEAD) / ping_timeout))
-        args.extend(["--max-retries", "%d" % (ping_tries - 1)])
-
-        # Try to force nmap to go fast enough to finish within one cycle.
-        min_rate = int(math.ceil(num_devices / (1.0 * cycle_interval / ping_tries)))
-        args.extend(["--min-rate","%d" % min_rate])
-
-        if num_devices > 0:
-            min_parallelism = int(math.ceil(2 * num_devices * ping_timeout / cycle_interval))
-            if min_parallelism > MAX_PARALLELISM:
-                min_parallelism = MAX_PARALLELISM
-            if min_parallelism > DEFAULT_PARALLELISM:
-                args.extend(["--min-parallelism", "%d" % min_parallelism])
-        
-
-        if traceroute:
-            args.append("--traceroute")
-            # FYI, all bets are off as far as finishing within the cycle interval.
-
-        if outputType == 'xml':
-            args.extend(["-oX", '-']) # outputXML to stdout
-        else:
-            raise ValueError("Unsupported nmap output type: %s" % outputType)
-
-        # execute nmap
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug("executing nmap %s", " ".join(args))
-        out, err, exitCode = yield utils.getProcessOutputAndValue(
-            "/bin/sudo", ["-n", _NMAP_BINARY,] + args)
-
-        if exitCode != 0:
-            input = open(inputFileFilename).read()
-            log.debug("input file: %s", input)
-            log.debug("stdout: %s", out)
-            log.debug("stderr: %s", err)
-            raise nmap.NmapExecutionError(
-                exitCode=exitCode, stdout=out, stderr=err, args=args)
-
-        try:
-            nmapResults = parseNmapXmlToDict(StringIO(out))
-            defer.returnValue(nmapResults)
-        except Exception as e:
-            input = open(inputFileFilename).read()
-            log.debug("input file: %s", input)
-            log.debug("stdout: %s", out)
-            log.debug("stderr: %s", err)
-            log.exception(e)
-            raise nmap.NmapExecutionError(
-                exitCode=exitCode, stdout=out, stderr=err, args=args)
 
     @defer.inlineCallbacks
     def doTask(self):
@@ -388,7 +305,10 @@ class NmapPingTask(BaseTask):
             log.debug("No ips to ping!")
             raise StopIteration() # exit this generator
 
-        #only increment if we have tasks to ping
+        # Make sure the cycle interval is not unreasonably short.
+        self._detectCycleInterval()
+
+        # only increment if we have tasks to ping
         self._pings += 1
         with tempfile.NamedTemporaryFile(prefix='zenping_nmap_') as tfile:
             ips = []
@@ -414,7 +334,15 @@ class NmapPingTask(BaseTask):
             for attempt in range(0, self._daemon._prefs.pingTries):
 
                 start = time.time()
-                results = yield self._executeNmapCmd(tfile.name, doTraceroute, num_devices=len(ipTasks))
+                results = yield executeNmapCmd(
+                    tfile.name,
+                    traceroute=doTraceroute,
+                    num_devices=len(ipTasks),
+                    dataLength=self._daemon.options.dataLength,
+                    pingTries=self._daemon._prefs.pingTries,
+                    pingTimeOut=self._preferences.pingTimeOut,
+                    pingCycleInterval=self._daemon._prefs.pingCycleInterval
+                )
                 elapsed = time.time() - start
                 log.debug("Nmap execution took %f seconds", elapsed)
 
