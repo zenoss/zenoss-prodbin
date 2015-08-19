@@ -180,12 +180,12 @@ function getSelectionModel(){
  * we only want to show one selection at any time.
  **/
 function deselectOtherTrees(treeid) {
-    var treeids = Zenoss.util.filter(['devices', 'groups', 'systemsTree', 'locs'],
+    var treeids = Zenoss.util.filter(Ext.ComponentQuery.query('HierarchyTreePanel'),
                                      function (t) {
-                                         return t != treeid;
+                                         return t.id != treeid;
                                      });
-    Ext.each(treeids, function(t) {
-        var tree = Ext.getCmp(t), sm = tree.getSelectionModel();
+    Ext.each(treeids, function(tree) {
+        var sm = tree.getSelectionModel();
         if (sm.getSelectedNode()) {
             // do not fire deselect listeners
             sm.deselect(sm.getSelectedNode(), true);
@@ -1600,6 +1600,7 @@ Ext.getCmp('center_panel').add({
                 if (index==1) {
                     node = getSelectionModel().getSelectedNode().data;
                     card.setHeaderText(node.text.text, node.path);
+                    me.lastActiveItem = Ext.getCmp('detail_panel').layout.getActiveItem();
                 } else if (index===0) {
                     tree = Ext.getCmp('detail_nav').treepanel;
                     Ext.getCmp('detail_nav').items.each(function(item){
@@ -1608,7 +1609,7 @@ Ext.getCmp('center_panel').add({
                             tree.getSelectionModel().deselect(selectedNode);
                         }
                     });
-                    Ext.getCmp('detail_panel').layout.setActiveItem(0);
+                    Ext.getCmp('detail_panel').layout.setActiveItem(me.lastActiveItem);
                 }
             },
             cardchange: function(me, card, index, from , fromidx) {
