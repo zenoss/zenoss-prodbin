@@ -164,6 +164,14 @@
                                          '</div>'),
         constructor: function(config) {
             var padding = "padding:5px 5px 0px 0px;";
+            // backcompat from graph dimensions from rrd
+            // the properties were saved on each graph definition and we want to
+            // both preserve backward compabability
+            // so therefore
+            if (config.height === 100 && config.width === 500) {
+                config.height = 500;
+                delete config.width;
+            }
 
             // dynamically adjust the height;
             config.graphPadding = padding;
@@ -1012,14 +1020,6 @@
                 graphId = Ext.id();
 
                 graphTitle = graph.title;
-                // backcompat from graph dimensions from rrd
-                // the properties were saved on each graph definition and we want to
-                // both preserve backward compabability
-                // so therefore
-                if (graph.height === 100 && graph.width === 500) {
-                    graph.height = 500;
-                    delete graph.width;
-                }
 
                 delete graph.title;
                 graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
