@@ -564,13 +564,13 @@ def ensureIp(ip):
 def get_ip_version(ip):
     """
     Given an IP Address string, return the ip version (4, 6
-    or -1 if the ip is not valid)
+    or None if the ip is not valid)
     """
     try:
         ip_address = IPAddress(ip)
         return ip_address.version
     except ValueError:
-        return -1
+        return None
 
 def isRemotelyReachable(ip):
     """
