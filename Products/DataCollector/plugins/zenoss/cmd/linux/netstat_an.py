@@ -78,7 +78,7 @@ class SsServicesParser(BaseParser):
                     addr = '0.0.0.0'
                 else:
                     ip_version = IpUtil.get_ip_version(addr)
-                    if ip_version == -1:  # Not a valid ip
+                    if ip_version is None:  # Not a valid ip
                         continue
                     elif ip_version == 6:
                         proto = proto + '6'
