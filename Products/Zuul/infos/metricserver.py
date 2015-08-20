@@ -60,6 +60,14 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     def type(self):
         return "line"
 
+    @property
+    def height(self):
+        return self._object.height
+
+    @property
+    def width(self):
+        return self._object.width
+
     def _getGraphPoints(self, klass):
         graphDefs = self._object.getGraphPoints(True)
         infos = [getMultiAdapter((g, self._context), templateInterfaces.IMetricServiceGraphPoint)
