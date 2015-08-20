@@ -25,6 +25,7 @@ from Products.Jobber.facade import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenModel.ComponentGroup import ComponentGroup
 from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
@@ -825,14 +826,15 @@ class DeviceFacade(TreeFacade):
     def getGraphDefinitionsForComponent(self, uid):
         graphDefs = dict()
         obj = self._getObject(uid)
-        for brain in obj.componentSearch():
-            if graphDefs.get(brain.meta_type):
+        if isinstance(obj, ComponentGroup):
+            components = obj.getComponents()
+        else:
+            components = list(getObjectsFromCatalog(obj.componentSearch, None, log))
+
+        for component in components:
+            if graphDefs.get(component.meta_type):
                 continue
-            try:
-                component = brain.getObject()
-            except:
-                pass
-            graphDefs[component.meta_type] = [graphDef.id for graphDef,_ in component.getGraphObjects()]
+            graphDefs[component.meta_type] = [graphDef.id for graphDef, _ in component.getGraphObjects()]
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
@@ -841,7 +843,11 @@ class DeviceFacade(TreeFacade):
         # get the components we are rendering graphs for
         query = {}
         query['meta_type'] = meta_type
-        components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
+        if isinstance(obj, ComponentGroup):
+            components = [comp for comp in obj.getComponents() if comp.meta_type == meta_type]
+        else:
+            components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
+
         graphDef = None
 
         # get the graph def
