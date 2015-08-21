@@ -561,11 +561,24 @@ def ensureIp(ip):
             
     return '.'.join(octets)
 
+def get_ip_version(ip):
+    """
+    Given an IP Address string, return the ip version (4, 6
+    or None if the ip is not valid)
+    """
+    try:
+        ip_address = IPAddress(ip)
+        return ip_address.version
+    except ValueError:
+        return None
+
 def isRemotelyReachable(ip):
     """
     Given an IP Address string, returns a boolean if the given ip can be 
     reached remotely.
     """
-
-    ip_address = IPAddress(ip)
-    return not ip_address.is_link_local and not ip_address.is_loopback
+    try:
+        ip_address = IPAddress(ip)
+        return not ip_address.is_link_local and not ip_address.is_loopback
+    except ValueError:
+        return False

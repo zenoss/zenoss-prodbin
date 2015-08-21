@@ -14,7 +14,7 @@ Collect running IP services using `netstat -an` or `ss -lntu`
 
 import abc
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
-
+from Products.ZenUtils import IpUtil
 
 class BaseParser(object):
 
@@ -72,16 +72,16 @@ class SsServicesParser(BaseParser):
                 # see https://bugzilla.redhat.com/show_bug.cgi?id=1063927
                 if fields[1] == 'UNCONN':
                     proto = 'udp'
-                listar = fields[4].split(":")
-                addr = port = ""
-                if len(listar) == 2:
-                    addr, port = listar
-                    if addr == '*':
-                        addr = '0.0.0.0'
+
+                addr, port = fields[4].rsplit(":", 1)
+                if addr == '*':
+                    addr = '0.0.0.0'
                 else:
-                    addr = "0.0.0.0"
-                    port = listar[-1]
-                    proto = proto + '6'
+                    ip_version = IpUtil.get_ip_version(addr)
+                    if ip_version is None:  # Not a valid ip
+                        continue
+                    elif ip_version == 6:
+                        proto = proto + '6'
 
                 self.log.debug("Got %s %s port %s", addr, proto, port)
                 port = int(port)
@@ -131,15 +131,7 @@ class NetstatServicesParser(BaseParser):
                 proto = fields[0]
                 if proto == "raw":
                     continue
-                listar = fields[3].split(":")
-                addr = port = ""
-                if len(listar) == 2:
-                    addr, port = listar
-                elif len(listar) == 4:
-                    addr = "0.0.0.0"
-                    port = listar[-1]
-                else:
-                    continue
+                addr, port = fields[3].rsplit(":", 1)
 
                 self.log.debug("Got %s %s port %s", addr, proto, port)
 
@@ -195,7 +187,7 @@ class netstat_an(LinuxCommandPlugin):
         rm = self.relMap()
         ports = {}
         for proto, port, addr in parser.parse(results):
-            if addr == "127.0.0.1" or not port:  # Can't monitor things we can't reach
+            if not IpUtil.isRemotelyReachable(addr) or not port: # Can't monitor things we can't reach
                 continue
 
             if port > maxport:
