@@ -765,12 +765,14 @@ class ZenMib(ZCmdBase):
         mibName = pythonMib['moduleName']
 
         for name, values in pythonMib[leafType].items():
-            # smidump sometimes adds zeroes into OIDs 
-            oid = values['oid']
-            if '.0.' in oid:
-                values['oid'] = oid.replace('.0.', '.')
-                self.log.warn("Found a zero index  in OID '%s' -- converting to '%s'",
-                              oid, values['oid'])
+
+            if not self.options.keep_middle_zeros:
+                # smidump sometimes adds zeroes into OIDs 
+                oid = values['oid']
+                if '.0.' in oid:
+                    values['oid'] = oid.replace('.0.', '.')
+                    self.log.warn("Found a zero index  in OID '%s' -- converting to '%s'",
+                                  oid, values['oid'])
             
             try:
                 functor(name, **values)
@@ -1006,7 +1008,9 @@ class ZenMib(ZCmdBase):
                            default=[], action='append',
                            help="Execute the Python code previously generated" \
                                 " and saved.")
-
+        self.parser.add_option('--keepMiddleZeros', dest='keep_middle_zeros',
+                           default=False, action='store_true',
+                           help="Does not remove zeros found in the middle of the oid.")
 
 if __name__ == '__main__':
     zm = ZenMib()
