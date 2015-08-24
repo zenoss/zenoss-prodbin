@@ -25,6 +25,7 @@ __DEFAULT__() {
     else
         echo unknown zenpack sub-command: \"$1\"
         help
+        return 1
     fi
     return $?
 }
@@ -39,7 +40,7 @@ help() {
     echo "   zenpack list"
     echo "   zenpack restore"
     echo "   zenpack uninstall <zenpack_name>"
-    return 1
+    return 0
 }
 
 
@@ -127,6 +128,6 @@ uninstall() {
 
 list() {
     zenpack --list "$@"
-    return 1
+    return $?
 }
 

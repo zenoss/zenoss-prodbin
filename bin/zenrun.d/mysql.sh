@@ -13,7 +13,7 @@ help() {
     echo "usage:"
     echo "   mysql help"
     echo "   mysql rebuild_zodb_session"
-    return 1
+    return 0
 }
 
 rebuild_zodb_session() {
@@ -26,6 +26,6 @@ rebuild_zodb_session() {
         exit $rc
     fi
     echo "SUCCESS rebuilding $db"
-    exit 1
+    exit 0
 }
 
