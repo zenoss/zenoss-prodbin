@@ -536,7 +536,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         """
         Report the success + total counts from loading devices.
         """
-        msg = "Modeled %d of %d devices, with %d errors" % (
+        msg = "Processed %d of %d devices, with %d errors" % (
                   processed['processed'], processed['total'], processed['errors'] )
         self.log.info(msg)
         self.log.info("Unable to process %d entries", processed['unparseable'])
