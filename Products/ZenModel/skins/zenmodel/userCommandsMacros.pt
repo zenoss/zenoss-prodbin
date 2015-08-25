@@ -1,4 +1,4 @@
-<form method="post" tal:attributes="action string:${here/absolute_url}/dataRootManage"
+<form method="post" tal:attributes="action string:${here/absolute_url_path}/dataRootManage"
     metal:define-macro="userCommandsTable"
     tal:condition="python:here.has_permission('Define Commands View', here)">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
@@ -44,7 +44,7 @@ Optional titlebar stuff
               tal:attributes="value uc/getId"/>
 
   <a href="_" 
-        tal:attributes="href uc/absolute_url"
+        tal:attributes="href uc/absolute_url_path"
         tal:content="uc/getId">command</a>
     </td>
     <td class="tablevalues" align="left"
@@ -115,7 +115,7 @@ Optional titlebar stuff
               tal:attributes="value uc/getId"/>
 
   <a href="_" 
-        tal:attributes="href string:${uc/absolute_url}/userCommandDetail"
+        tal:attributes="href string:${uc/absolute_url_path}/userCommandDetail"
         tal:content="uc/getId">command</a>
     </td>
     <td class="tablevalues" align="left"

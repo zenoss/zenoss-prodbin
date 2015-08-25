@@ -107,7 +107,7 @@
         <div id="topbar"></div>
         <form name="loginform"
             method="POST"
-              tal:attributes="action string:${here/absolute_url}/login">
+              tal:attributes="action string:${here/absolute_url_path}/login">
                 <input type="hidden" name="came_from" value=""
                        tal:attributes="value request/came_from | string:"/>
                 <input type="hidden" name="submitted" value="true" />

@@ -36,7 +36,7 @@
             <tal:block tal:content="structure
              python:filesystem.urlLink(text=filesystem.mount(),
              url='%s/viewPerformanceDetail' % 
-             filesystem.absolute_url(), 
+             filesystem.absolute_url_path(), 
              attrs={'class':'tablevalues'})"/> 
         </td>
     </tr>
@@ -73,7 +73,7 @@
         <td class=tablevalues>
             <tal:block tal:content="structure 
                     python:disk.urlLink(text=disk.description(),
-                    url='%s/viewPerformanceDetail' % disk.absolute_url(),
+                    url='%s/viewPerformanceDetail' % disk.absolute_url_path(),
                     attrs={'class':'tablevalues'})"/>
         </td>
     </tr>

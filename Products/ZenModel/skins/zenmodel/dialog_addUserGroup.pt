@@ -5,14 +5,14 @@
 <span id="new_id_label">Group:&nbsp;</span>
 <input id="new_id" name="groupid">
 <input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url">
+        tal:attributes="value here/absolute_url_path">
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form_and_check(
-                                                '${here/absolute_url}')"
+                                                '${here/absolute_url_path}')"
                         name="manage_addGroup:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
