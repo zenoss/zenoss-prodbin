@@ -1,5 +1,5 @@
 <h2>Add Administered Device Class</h2>
-<form method="post" tal:attributes="action here/absolute_url" name="_">
+<form method="post" tal:attributes="action here/absolute_url_path" name="_">
 <input type="hidden" name="zenScreenName"
          tal:attributes="value string:administeredDevices" />
 <input type="hidden" name="redirect" value="true"/>

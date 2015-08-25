@@ -15,7 +15,7 @@ What users would you like to add to this group?
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form(
-                                                '${here/absolute_url}')"
+                                                '${here/absolute_url_path}')"
                         name="manage_addUsersToGroup:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
