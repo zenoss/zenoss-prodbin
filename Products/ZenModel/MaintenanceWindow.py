@@ -319,7 +319,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def occurDay(self, start, now, skip=1, day=6, occur=0):
         date = time.localtime(start)
-        time_for_mktime = (date.tm_hour, date.tm_min, date.tm_sec, 0, 0, 1)
+        time_for_mktime = (date.tm_hour, date.tm_min, date.tm_sec, 0, 0, -1)
         log.debug('start date: %s; day: %d; occur: %d; skip: %d', str(date), day,
                   occur, skip)
         # get a list of (mday, wday) tuples for current month
@@ -345,7 +345,7 @@ class MaintenanceWindow(ZenModelRM):
                         log.debug('skipping this occurrence. skip = %d', skip)
                         return self.occurDay(startTime + DAY_SECONDS, now, skip - 1,
                                              day, tmp_occur)
-                    elif mday > date.tm_mday:
+                    elif startTime >= now:
                         log.debug('Window will start on: %s',
                                   str(time.localtime(startTime)))
                         return startTime
