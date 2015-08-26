@@ -31,12 +31,13 @@ class ZopeReportMailRun(Migrate.Step):
 
         # get the zope service
         zope = filter(lambda s: s.name == "Zope", ctx.services)[0]
+
         # set the reportmail run
         reportmailRun = filter(lambda s: s.name == "reportmail", zope.runs)
         if len(reportmailRun) == 0:
             zope.runs.append(sm.Run(
                 "reportmail",
-                "${ZENHOME:-/opt/zenoss}/bin/zenrun reportmail"
+                "${ZENHOME:-/opt/zenoss}/bin/zenrun reportmail.sh"
             ))
 
         # Commit our changes.
