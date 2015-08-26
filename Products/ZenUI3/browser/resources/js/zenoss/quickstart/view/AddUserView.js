@@ -93,7 +93,8 @@
                         vtype: 'password',
                         name: 'admin-password2',
                         initialPassField: 'admin-password1',
-                        allowBlank: false
+                        allowBlank: false,
+                        msgTarget: 'under'
                     }]
                 },{
                     xtype: 'fieldset',
@@ -134,7 +135,8 @@
                         vtype: 'password',
                         name: 'password2',
                         initialPassField: 'password1',
-                        allowBlank: false
+                        allowBlank: false,
+                        msgTarget: 'under'
                     },{
                         fieldLabel: _t('Your email'),
                         vtype: 'email',
