@@ -308,8 +308,10 @@ class ZenDisc(ZenModeler):
                         ip, weight=i + 100, port=port, timeout=timeout,
                         retries=retries, community=community))
 
-        yield SnmpAgentDiscoverer().findBestConfig(configs)
+        config = yield SnmpAgentDiscoverer().findBestConfig(configs)
+
         self.log.debug("Finished SNMP lookup on device %s", ip)
+        defer.returnValue(config)
 
     @defer.inlineCallbacks
     def discoverDevice(self, ip, devicepath=None, prodState=None):
