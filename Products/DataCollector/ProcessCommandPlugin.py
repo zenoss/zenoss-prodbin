@@ -39,10 +39,10 @@ class ProcessCommandPlugin(CommandPlugin):
             log.error("Unable to get data for %s -- skipping model",
                       device.id)
             return None
-
+	results = unicode(results, errors="replace")  # without relying on "ps" command output
         psOutputLines = self._filterLines(results.splitlines())
 
-        cmds = map(lambda(s):s.strip(), psOutputLines)
+        cmds = map(lambda s: s.strip(), psOutputLines)
         cmds = filter(lambda(s):s, cmds)
         rm = self.relMap()
         matchData = device.osProcessClassMatchData

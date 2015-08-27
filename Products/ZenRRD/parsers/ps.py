@@ -134,8 +134,9 @@ class ps(CommandParser):
         def matches(processMetrics):
             pid, rss, cpu, cmdAndArgs = processMetrics
             return matcher.matches(cmdAndArgs)
-
-        lines = cmd.result.output.splitlines()[1:]
+	
+	data = unicode(cmd.result.output, errors="replace")  # without relying on "ps" command output
+	lines = data.splitlines()[1:]
         metrics = map(self._extractProcessMetrics, lines)
         matchingMetrics = filter(matches, metrics)
         

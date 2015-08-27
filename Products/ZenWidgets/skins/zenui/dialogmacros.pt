@@ -57,7 +57,7 @@ loader.insert({
 <form name="proxy_form" id="proxy_form"
     style="position:absolute;visibility:hidden"
     tal:attributes="action here/absolute_url_path"></form>
-<form method="post" name="proxyForm" action="here/absolute_url"> 
+<form method="post" name="proxyForm" action="here/absolute_url_path"> 
     <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/> 
 </form>
 </tal:block>

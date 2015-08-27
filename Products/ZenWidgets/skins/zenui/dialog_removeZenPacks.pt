@@ -20,5 +20,5 @@ contained Device Classes and Devices will also be deleted.
     onclick="$('dialog').hide()"/>
 <input type="submit" name="manage_removeZenPacks:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                            '${here/absolute_url}')"/>
+                            '${here/absolute_url_path}')"/>
 </div>

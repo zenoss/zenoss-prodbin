@@ -91,6 +91,21 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         m.set(t, P, m.NTHWDAY, 'Wednesday', 'Last')
         self.assert_(m.next(t+1) == c)
 
+        c = mktime( (2006, 3, 13, 10, 45, 12, 0, 0, 0) )
+        n = mktime( (2006, 3, 6, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Monday', '2nd')
+        self.assert_(m.next(n) == c)
+
+        c = mktime( (2006, 3, 29, 10, 45, 12, 0, 0, 0) )
+        n = mktime( (2006, 3, 6, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Wednesday', 'Last')
+        self.assert_(m.next(n) == c)
+
+        c = mktime( (2007, 1, 8, 10, 45, 12, 0, 0, 0) )
+        n = mktime( (2007, 1, 2, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Monday', '2nd')
+        self.assert_(m.next(n) == c)
+
 
         # DST
         FSOTM_Map = {

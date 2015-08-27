@@ -3,7 +3,7 @@
     To which pack would you like to add this object?<br/>
 </p>
 <br/>
-<form name='packomatic' tal:attributes="action here/absolute_url">
+<form name='packomatic' tal:attributes="action here/absolute_url_path">
 <p style="text-align:center;">
     <select class="tableheader" name="pack" 
             tal:define="targets here/eligiblePacks">
