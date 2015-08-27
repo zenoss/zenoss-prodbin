@@ -9,6 +9,9 @@
 ##############################################################################
 
 __DEFAULT__() {
+    # start up a zope instance that we can hit
+    echo "Starting zope..."
+    zopectl start
     reportmail "$@"
     status=$?
     # we never want to commit this container
