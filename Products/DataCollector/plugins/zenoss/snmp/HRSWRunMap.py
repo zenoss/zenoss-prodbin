@@ -58,7 +58,7 @@ class HRSWRunMap(SnmpPlugin):
         else:
             name = proc.get('_procName','').strip()
         if name:
-            return (name + ' ' + proc.get('_parameters','').strip()).rstrip()
+            return unicode((name + ' ' + proc.get('_parameters','').strip()).rstrip(), errors="replace")
         else:
             self._log.warn("Skipping process with no name")
 
