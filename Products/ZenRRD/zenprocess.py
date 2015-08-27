@@ -854,7 +854,7 @@ def mapResultsToDicts(showrawtables, results):
         path = paths.get(pid, '')
         if path and path.find('\\') == -1:
             name = path
-        arg = args.get(pid, '')
+        arg = unicode(args.get(pid, ''), errors="replace")
         procs.append( (pid, ( name + " " + arg).strip() ) )
 
     return procs
