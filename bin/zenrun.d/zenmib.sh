@@ -18,7 +18,7 @@ help() {
     echo "usage:"
     echo "   zenmib help"
     echo "   zenmib run [--nocommit] <zenmib_file_url>"
-    return 0
+    return 1
 }
 
 

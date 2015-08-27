@@ -13,7 +13,7 @@ help() {
     echo "usage:"
     echo "   mysql help"
     echo "   mysql rebuild_zodb_session"
-    return 0
+    return 1
 }
 
 rebuild_zodb_session() {
