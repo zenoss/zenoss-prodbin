@@ -10,9 +10,7 @@
 
 __DEFAULT__() {
     reportmail "$@"
-    status=$?
-    # we never want to commit this container
-    return 1
+    return $?
 }
 
 help() {
