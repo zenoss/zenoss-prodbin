@@ -18,8 +18,6 @@ import servicemigration as sm
 sm.require("1.0.0")
 
 
-
-
 class ConvertRunsToCommands(Migrate.Step):
 
     version = Migrate.Version(5, 0, 70)
@@ -34,20 +32,19 @@ class ConvertRunsToCommands(Migrate.Step):
         # Update the zope service commands.
         zopes = filter(lambda s: s.name == "Zope", ctx.services)
         if len(zopes) == 1:
-            zopes[0].commands = 
-                commandDictList(commandListDict(zopes[0].commands).update(zopeCommands))
+            zopes[0].commands = commandDictList(commandListDict(zopes[0].commands).update(zopeCommands))
         mariadbModels = filter(lambda s: s.name == "mariadb-model", ctx.services)
         if len(mariadbModels) == 1:
-            mariadbModels[0] =
-                commandDictList(commandListDict(mariadbModels[0].commands).update(mariadbModelCommands))
+            mariadbModels[0] = commandDictList(commandListDict(mariadbModels[0].commands).update(mariadbModelCommands))
         mariadbs = filter(lambda s: s.name == "mariadb", ctx.services)
         if len(mariadbs) == 1:
-            mariadbs[0] =
-                commandDictList(commandListDict(mariadbs[0].commands).update(mariadbCommands))
+            mariadbs[0] = commandDictList(commandListDict(mariadbs[0].commands).update(mariadbCommands))
         # Commit our changes.
         ctx.commit()
 
+
 ConvertRunsToCommands()
+
 
 def commandListDict(commandList):
     commandDict = {}
@@ -58,61 +55,65 @@ def commandListDict(commandList):
         }
     return commandDict
 
+
 def commandDictList(commandDict):
     commandList = []
     for k, v in commandDict.iteritems():
         commandList[k] = sm.Command(k, v.command, v.commitOnSuccess)
     return commandList
 
+
 zopeCommands = {
     "zendmd": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun zendmd",
-        "CommitOnSuccess": true
+        "CommitOnSuccess": True
     },
     "upgrade": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun upgrade.sh doUpgrade",
-        "CommitOnSuccess": false
+        "CommitOnSuccess": False
     },
     "apply-custom-patches": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun patch.sh applyPatches",
-        "CommitOnSuccess": true
+        "CommitOnSuccess": True
     },
     "reportmail": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun reportmail.sh",
-        "CommitOnSuccess": false
+        "CommitOnSuccess": False
     },
     "help": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun help.sh",
-        "CommitOnSuccess": false
+        "CommitOnSuccess": False
     },
     "zenpack-manager": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun zenpack-manager.sh --service-id={{.ID}}",
-        "CommitOnSuccess": true
+        "CommitOnSuccess": True
     },
     "zenpack": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun zenpack.sh --service-id={{.ID}}",
-        "CommitOnSuccess": false
+        "CommitOnSuccess": False
     },
     "install-percona": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun percona.sh install",
-        "CommitOnSuccess": true
+        "CommitOnSuccess": True
     },
     "zenmib": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun zenmib.sh",
-        "CommitOnSuccess": true
+        "CommitOnSuccess": True
     }
 }
+
 
 mariadbCommands = {
     "rebuild_zodb_session": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun mysql.sh rebuild_zodb_session",
-        "CommitOnSuccess": false
+        "CommitOnSuccess": False
     }
 }
+
 
 mariadbModelCommands = {
     "rebuild_zodb_session": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun mysql.sh rebuild_zodb_session",
-        "CommitOnSuccess": false
+        "CommitOnSuccess": False
     }
 }
