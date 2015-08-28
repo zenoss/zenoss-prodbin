@@ -32,13 +32,19 @@ class ConvertRunsToCommands(Migrate.Step):
         # Update the zope service commands.
         zopes = filter(lambda s: s.name == "Zope", ctx.services)
         if len(zopes) == 1:
-            zopes[0].commands = commandDictList(commandListDict(zopes[0].commands).update(zopeCommands))
+            temp = commandListDict(zopes[0].commands)
+            temp.update(zopeCommands)
+            zopes[0].commands = commandDictList(temp)
         mariadbModels = filter(lambda s: s.name == "mariadb-model", ctx.services)
         if len(mariadbModels) == 1:
-            mariadbModels[0] = commandDictList(commandListDict(mariadbModels[0].commands).update(mariadbModelCommands))
+            temp = commandListDict(mariadbModels[0].commands)
+            temp.update(mariadbModelCommands)
+            mariadbModels[0].commands = commandDictList(temp)
         mariadbs = filter(lambda s: s.name == "mariadb", ctx.services)
         if len(mariadbs) == 1:
-            mariadbs[0] = commandDictList(commandListDict(mariadbs[0].commands).update(mariadbCommands))
+            temp = commandListDict(mariadbs[0].commands)
+            temp.update(mariadbCommands)
+            mariadbs[0].commands = commandDictList(temp)
         # Commit our changes.
         ctx.commit()
 
@@ -59,7 +65,7 @@ def commandListDict(commandList):
 def commandDictList(commandDict):
     commandList = []
     for k, v in commandDict.iteritems():
-        commandList[k] = sm.Command(k, v.command, v.commitOnSuccess)
+        commandList.append(sm.Command(k, v["Command"], v["CommitOnSuccess"]))
     return commandList
 
 
