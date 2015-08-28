@@ -28,7 +28,6 @@ from optparse import SUPPRESS_HELP
 
 from twisted.internet import defer, reactor
 from twisted.names.error import DNSNameError
-from twisted.python.failure import Failure
 
 import Globals
 
@@ -52,19 +51,18 @@ from Products.ZenUtils.Utils import unused
 unused(Globals, DiscoverService, ModelerService, JobPropertiesProxy)
 
 
-def _collatePingResults(results):
+def _partitionPingResults(results):
     """Groups the results into a 'good' results and 'bad' results and
     returns each set as a tuple.
 
     @returns {tuple} (<good-results>, <bad-results>)
     """
-    good = []
-    bad = []
+    good, bad = [], []
     for result in results:
-        if not isinstance(result, Failure):
+        if result.isUp:
             good.append(result.address)
         else:
-            bad.append(result.value.address)
+            bad.append(result.address)
     return (good, bad)
 
 
@@ -107,10 +105,7 @@ class ZenDisc(ZenModeler):
         if self.log.isEnabledFor(logging.DEBUG):
             self.log.debug(
                 "Addresses found: %s", ", ".join(a for a in results))
-        defer.returnValue([
-            result if result.isUp else Failure(result)
-            for result in results.itervalues()
-        ])
+        defer.returnValue(results.values())
 
     @defer.inlineCallbacks
     def discoverIps(self, nets):
@@ -133,7 +128,7 @@ class ZenDisc(ZenModeler):
                 continue
             self.log.info("Discover network '%s'", net.getNetworkName())
             results = yield self.pingMany(net.fullIpList())
-            goodips, badips = _collatePingResults(results)
+            goodips, badips = _partitionPingResults(results)
             self.log.debug(
                 "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
             )
@@ -163,7 +158,7 @@ class ZenDisc(ZenModeler):
             # Parse to find ips included
             ips.extend(parse_iprange(rangelimit))
         results = yield self.pingMany(ips)
-        goodips, badips = _collatePingResults(results)
+        goodips, badips = _partitionPingResults(results)
         self.log.debug(
             "Found %d good IPs and %d bad IPs", len(goodips), len(badips))
         devices = yield self.discoverDevices(goodips)
@@ -416,12 +411,15 @@ class ZenDisc(ZenModeler):
             forceDiscovery = bool(self.options.device)
 
             # now create the device by calling zenhub
-            result = yield self.config().callRemote(
-                'createDevice', ipunwrap(ip), force=forceDiscovery, **kw
-            )
+            result = None
+            try:
+                result = yield self.config().callRemote(
+                    'createDevice', ipunwrap(ip), force=forceDiscovery, **kw
+                )
+            except Exception as ex:
+                raise ZentinelException(ex)
+
             self.log.debug("Got result from remote_createDevice: %s", result)
-            if isinstance(result, Failure):
-                raise ZentinelException(result.value)
             dev, created = result
 
             # if no device came back from createDevice we assume that it
@@ -524,22 +522,6 @@ class ZenDisc(ZenModeler):
                 foundDevices.append(result)
         defer.returnValue(foundDevices)
 
-    def printResults(self, results):
-        """
-        Display the results that we've obtained
-
-        @param results: what we've discovered
-        @type results: string
-        """
-        if isinstance(results, Failure):
-            if results.type is NoIPAddress:
-                self.log.error("Error: %s", results.value)
-            else:
-                self.log.error("Error: %s", results)
-        else:
-            self.log.info("Result: %s", results)
-        self.main()
-
     @defer.inlineCallbacks
     def createDevice(self):
         """
@@ -555,9 +537,7 @@ class ZenDisc(ZenModeler):
                 self.log.warn(
                     "Hostname lookup failed for %s: %s", deviceName, ex
                 )
-                defer.returnValue(Failure(
-                    NoIPAddress("No IP found for name %s" % deviceName)
-                ))
+                raise NoIPAddress("No IP found for name %s" % deviceName)
         self.log.info("Found IP %s for device %s", ip, deviceName)
         configs = yield self.config().callRemote(
             'getDeviceConfig', [deviceName]
@@ -635,17 +615,23 @@ class ZenDisc(ZenModeler):
 
     @defer.inlineCallbacks
     def startDiscovery(self, data):
-        if self.options.walk:
-            results = yield self.walkDiscovery()
-        elif self.options.device:
-            results = yield self.createDevice()
-            if results:
-                results = results.getId()
-        elif self.options.range:
-            results = [d.getId() for d in (yield self.discoverRanges())]
-        else:
-            results = [d.getId() for d in (yield self.collectNet())]
-        self.printResults(results)
+        try:
+            if self.options.walk:
+                results = yield self.walkDiscovery()
+            elif self.options.device:
+                results = yield self.createDevice()
+                if results:
+                    results = results.getId()
+            elif self.options.range:
+                results = [d.getId() for d in (yield self.discoverRanges())]
+            else:
+                results = [d.getId() for d in (yield self.collectNet())]
+            self.log.info("Result: %s", results)
+        except NoIPAddress as ex:
+            self.log.error("Error: %s", ex)
+        except Exception as ex:
+            self.log.exception(ex)
+        self.main()
 
     def buildOptions(self):
         """
