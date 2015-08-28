@@ -419,12 +419,15 @@ class ZenDisc(ZenModeler):
             forceDiscovery = bool(self.options.device)
 
             # now create the device by calling zenhub
-            result = yield self.config().callRemote(
-                'createDevice', ipunwrap(ip), force=forceDiscovery, **kw
-            )
+            result = None
+            try:
+                result = yield self.config().callRemote(
+                    'createDevice', ipunwrap(ip), force=forceDiscovery, **kw
+                )
+            except Exception as ex:
+                raise ZentinelException(ex)
+
             self.log.debug("Got result from remote_createDevice: %s", result)
-            if isinstance(result, Failure):
-                raise ZentinelException(result.value)
             dev, created = result
 
             # if no device came back from createDevice we assume that it
@@ -527,22 +530,6 @@ class ZenDisc(ZenModeler):
                 foundDevices.append(result)
         defer.returnValue(foundDevices)
 
-    def printResults(self, results):
-        """
-        Display the results that we've obtained
-
-        @param results: what we've discovered
-        @type results: string
-        """
-        if isinstance(results, Failure):
-            if results.type is NoIPAddress:
-                self.log.error("Error: %s", results.value)
-            else:
-                self.log.error("Error: %s", results)
-        else:
-            self.log.info("Result: %s", results)
-        self.main()
-
     @defer.inlineCallbacks
     def createDevice(self):
         """
@@ -638,17 +625,23 @@ class ZenDisc(ZenModeler):
 
     @defer.inlineCallbacks
     def startDiscovery(self, data):
-        if self.options.walk:
-            results = yield self.walkDiscovery()
-        elif self.options.device:
-            results = yield self.createDevice()
-            if results:
-                results = results.getId()
-        elif self.options.range:
-            results = [d.getId() for d in (yield self.discoverRanges())]
-        else:
-            results = [d.getId() for d in (yield self.collectNet())]
-        self.printResults(results)
+        try:
+            if self.options.walk:
+                results = yield self.walkDiscovery()
+            elif self.options.device:
+                results = yield self.createDevice()
+                if results:
+                    results = results.getId()
+            elif self.options.range:
+                results = [d.getId() for d in (yield self.discoverRanges())]
+            else:
+                results = [d.getId() for d in (yield self.collectNet())]
+            self.log.info("Result: %s", results)
+        except NoIPAddress as ex:
+            self.log.error("Error: %s", ex)
+        except Exception as ex:
+            self.log.exception(ex)
+        self.main()
 
     def buildOptions(self):
         """
