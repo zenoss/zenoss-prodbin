@@ -124,7 +124,14 @@
              </tal:block>
            </select>
         </td>
-      </tr><tr>
+      </tr>
+
+      <!-- Use this slot if you need additional parameters. -->
+      <tr id="extra-report-parameters">
+        <tal:block metal:define-slot="extra-report-parameters"/>
+      </tr>
+
+      <tr>
         <td class="tablevalues" colspan="6">
           <input class="tablevalues" type="Submit" value="Generate" name="generate" />
         </td> 
