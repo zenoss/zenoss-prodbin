@@ -270,6 +270,15 @@ class MetricMixin(object):
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()
 
+    def fetchMetrics(self, dpnames, cf, resolution, start, end="now",
+                     returnSet="ALL"):
+       """
+       Query the server for metrics and return the response.
+       """
+       facade = getFacade('metric', self.dmd)
+       return facade.queryServer(self, dpnames, cf=cf, start=start, end=end,
+                                 downsample=resolution, returnSet=returnSet)
+
     def fetchRRDValues(self, dpnames, cf, resolution, start, end="now"):
         """
         Compat method for RRD. This returns a list of metrics.
@@ -306,7 +315,7 @@ class MetricMixin(object):
 
         # parse start and end into unix timestamps
         start, end = self._rrdAtTimeToUnix(start, end)
-        response = facade.queryServer(self, dpnames, cf=cf, start=start, end=end, downsample=resolution, returnSet="ALL")
+        response = self.fetchMetrics(dpnames, cf=cf, resolution=resolution, start=start, end=end)
 
         values = response.get('results', [])
         firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)

@@ -210,7 +210,7 @@ class AliasPlugin(object):
         return None
 
     def _createRecord(self, device, component=None,
-            columnDatapointsMap={}, summary={}):
+            columnDatapointsMap={}, summary={}, templateArgs=None):
         """
         Creates a record for the given row context
         (that is, the device and/or component)
@@ -223,6 +223,8 @@ class AliasPlugin(object):
                                     the context will be used.
         @param summary: a dict of report parameters like start date,
                         end date, and rrd summary function
+        @param templateArgs the template tags from the ui
+
         @rtype L{Utils.Record}
         """
         def localGetValue(device, component, extra):
@@ -234,9 +236,10 @@ class AliasPlugin(object):
         for column, aliasDatapointPairs in columnDatapointsMap.iteritems():
             columnName = column.getColumnName()
             extra = dict(
-                    aliasDatapointPairs=aliasDatapointPairs,
-                    summary=summary
-                )
+                aliasDatapointPairs=aliasDatapointPairs,
+                summary=summary,
+                templateArgs=templateArgs
+            )
             value = localGetValue(device, component, extra)
             columnValueMap[columnName] = value
 
@@ -295,12 +298,13 @@ class AliasPlugin(object):
 
         return columnDatapointsMap
 
-    def run(self, dmd, args):
+    def run(self, dmd, args, templateArgs=None):
         """
         Generate the report using the columns and aliases
 
         @param dmd the dmd context to access the context objects
         @param args the report args from the ui
+        @param templateArgs the template tags from the ui
 
         @rtype a list of L{Utils.Record}s
         """
@@ -325,7 +329,7 @@ class AliasPlugin(object):
             if i % 100 == 0: transaction.abort()
             if componentPath is None:
                 record = self._createRecord(
-                        device, None, columnDatapointsMap, summary)
+                        device, None, columnDatapointsMap, summary, templateArgs)
                 report.append(record)
             else:
                 components = self._getComponents(device, componentPath)
