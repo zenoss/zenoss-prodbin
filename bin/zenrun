@@ -11,8 +11,6 @@
 
 # This script runs custom commands passed in to the container from the host.
 #
-# Return codes:
-#      0 - OK           Host to commit container into the image
 # Error Codes:
 #    255 - BADPARAM     Bad params
 #    254 - NOTFOUND     Script not found
@@ -26,7 +24,6 @@
 #   # Default action for undefined program calls
 #   __DEFAULT__() {
 #       /bin/helloworld $@
-#       return 1
 #   }
 #
 #   # ---
@@ -48,7 +45,7 @@ fi
 
 DESIRED_USER=${DESIRED_USER:-"zenoss"}
 if [[ "$(whoami)" != "$DESIRED_USER" ]]; then
-    exec su - "$DESIRED_USER" -c "DESIRED_USER=$DESIRED_USER NOCOMMIT=${NOCOMMIT:-false} $0 $*"
+    exec su - "$DESIRED_USER" -c "DESIRED_USER=$DESIRED_USER $0 $*"
 fi
 
 RUNPATH=${RUNPATH:-$(dirname $0)/zenrun.d}
@@ -56,14 +53,7 @@ PROGRAM=$1
 shift
 
 # Load the program
-if ${NOCOMMIT:-false}; then
-  if [[ -r $RUNPATH/$PROGRAM ]]; then
-    source $RUNPATH/$PROGRAM
-  else
-    $(which $PROGRAM) "$@"
-    exit 1
-  fi
-elif [[ -r $RUNPATH/$PROGRAM ]]; then
+if [[ -r $RUNPATH/$PROGRAM ]]; then
     source $RUNPATH/$PROGRAM
 elif [[ -r $PROGRAM ]]; then
     source $PROGRAM
@@ -89,8 +79,5 @@ else
     exit 253
 fi
 
-if ${NOCOMMIT:-false}; then
-    exit 1
-fi
 exit "$RC"
 

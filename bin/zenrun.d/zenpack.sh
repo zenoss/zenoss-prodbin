@@ -25,6 +25,7 @@ __DEFAULT__() {
     else
         echo unknown zenpack sub-command: \"$1\"
         help
+        return 1
     fi
     return $?
 }
@@ -33,100 +34,13 @@ __DEFAULT__() {
 help() {
     echo "usage:"
     echo "   zenpack help"
-    echo "   zenpack install <zenpack_egg_relpath>"
-    echo "   zenpack link <zenpack_egg_relpath>"
-    echo "   zenpack create <zenpack_name>"
     echo "   zenpack list"
-    echo "   zenpack restore"
-    echo "   zenpack uninstall <zenpack_name>"
     return 1
-}
-
-
-create() {
-    zenpack --create "$@"
-    return $?
-}
-
-restore() {
-    zenpack --restore "$@"
-    return $?
-}
-
-link() {
-    VARPATH_SOURCE=$(unset TERM; echo "from Products.ZenUtils.Utils import varPath;print varPath('ZenPackSource')" | zendmd --script /dev/stdin)
-    if ! [[ -d $VARPATH_SOURCE ]]; then
-        echo "Unable to determine install path for linked zenpack, or path does not exist"
-        echo "$VARPATH_SOURCE"
-        return 1
-    fi
-
-    zenpackPath="$1"
-    if [[ "${zenpackPath:0:1}" != "/" ]]; then
-        # Test for readability of /mnt/pwd
-        PWDPATH=/mnt/pwd
-        if [[ ! ( -r "$PWDPATH" && -x "$PWDPATH" ) ]] ; then
-            echo "Error: The current working directory must be world readable+executable"
-            return 1
-        fi
-        cd "$PWDPATH"
-    fi
-
-    # Test for presence of ZenPack file/dir
-    if [[ ! -r "$zenpackPath" ]]; then
-        echo "Unable to read ZenPack file: '$zenpackPath'"
-        echo "The ZenPack must be located in the current working directory and must be specified with a relative path."
-        return 1
-    fi
-
-    TARGET="$VARPATH_SOURCE"/$(basename "$zenpackPath")
-    if [[ -e $TARGET ]]; then
-        echo "Location $TARGET already exists, cannot copy zenpack"
-        return 1
-    fi
-
-    rsync -a "$zenpackPath"/ "$TARGET"/
-    # Get var path (/var/zenoss) to strip off of TARGET
-    VARPATH=$(unset TERM; echo "from Products.ZenUtils.Utils import varPath;print varPath()" | zendmd --script /dev/stdin)
-    sudo /opt/zenoss/bin/var_chown "${TARGET#$VARPATH}"
-
-    shift
-    zenpack --link --install "$TARGET" "$@"
-    return $?
-}
-
-install() {
-    zenpackPath=$1
-    if [[ "${zenpackPath:0:1}" != "/" ]]; then
-        # Test for readability of /mnt/pwd
-        PWDPATH=/mnt/pwd
-        if [[ ! ( -r "$PWDPATH" && -x "$PWDPATH" ) ]] ; then
-            echo "Error: The current working directory must be world readable+executable"
-            return 1
-        fi
-        cd "$PWDPATH"
-    fi
-
-    #Test for presence of ZenPack egg
-    if [[ ! -r "$zenpackPath" ]]; then
-        echo "Unable to read ZenPack file: '$zenpackPath'"
-        echo "The ZenPack must be located in the current working directory and must be specified with a relative path."
-        return 1
-    fi
-
-    zenpack --install "$@"
-    return $?
-}
-
-
-uninstall() {
-    zenpack --uninstall "$@"
-    return $?
 }
 
 
 list() {
     zenpack --list "$@"
-    return 1
+    return $?
 }
 

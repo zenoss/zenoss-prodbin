@@ -13,9 +13,7 @@ __DEFAULT__() {
     echo "Starting zope..."
     zopectl start
     reportmail "$@"
-    status=$?
-    # we never want to commit this container
-    return 1
+    return $?
 }
 
 help() {
