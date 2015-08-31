@@ -329,7 +329,7 @@ class AliasPlugin(object):
             if i % 100 == 0: transaction.abort()
             if componentPath is None:
                 record = self._createRecord(
-                        device, None, columnDatapointsMap, summary, templateArgs)
+                    device, None, columnDatapointsMap, summary, templateArgs)
                 report.append(record)
             else:
                 components = self._getComponents(device, componentPath)
@@ -337,6 +337,7 @@ class AliasPlugin(object):
                     i+=1
                     if i % 100 == 0: transaction.abort()
                     record = self._createRecord(
-                            device, component, columnDatapointsMap, summary)
+                        device, component, columnDatapointsMap, summary, 
+                        templateArgs)
                     report.append(record)
         return report
