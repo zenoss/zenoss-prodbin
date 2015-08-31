@@ -220,9 +220,11 @@ class IpInterface(OSComponent, Layer2Linkable):
         Reindexes all the ip addresses on this interface
         after it has been deleted
         """
+        device = self.device()
         ips = self.ipaddresses()
         super(IpInterface, self).manage_deleteComponent(REQUEST)
         for ip in ips:
+            self.dmd.getDmdRoot("ZenLinkManager").remove_device_network_from_cache(device.getId(), ip.network().getPrimaryUrlPath())
             ip.primaryAq().index_object()
 
     def manage_editProperties(self, REQUEST):
@@ -283,6 +285,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         ipobj.index_object()
         os = self.os()
         notify(ObjectMovedEvent(self, os, self.id, os, self.id))
+        self.dmd.getDmdRoot("ZenLinkManager").add_device_network_to_cache(self.device().getId(), ipobj.network().getPrimaryUrlPath())
 
 
 

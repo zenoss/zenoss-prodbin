@@ -16,8 +16,10 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from OFS.Folder import Folder
+from BTrees.OOBTree import OOBTree
 
 from json import dumps
+from Products.AdvancedQuery import Eq
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
 from Products.ZenModel.Device import Device
@@ -143,6 +145,63 @@ class Layer3Link(object):
     def getUids(self):
         return ("/".join(self.a.getPhysicalPath()), "/".join(self.b.getPhysicalPath()))
 
+class DeviceNetworksCache(object):
+    """
+    Data structure used to store the networks devices belong to.
+        OOBTree
+            Key:    Device.id
+            Value:  OOBtree
+                        Key:    Network
+                        Value:  number of ip addresses that belong to that network
+    """
+    def __init__(self):
+        self.cache = OOBTree()
+
+    def add_device_network(self, device_id, network_id):
+        """
+        device_id = Device.getId()
+        network_id = IpNetwork.getPrimaryUrlPath()
+        """
+        device_dict = self.cache.get(device_id)
+        if device_dict is None:
+            device_dict = OOBTree()
+            self.cache[device_id] = device_dict
+        network_value = device_dict.get(network_id, 0) + 1
+        device_dict[network_id] = network_value
+
+    def remove_device_network(self, device_id, network_id):
+        """
+        device_id = Device.getId()
+        network_id = IpNetwork.getPrimaryUrlPath()
+        """
+        device_dict = self.cache.get(device_id)
+        if device_dict:
+            network_value = device_dict.get(network_id, 0) - 1
+            if device_dict.has_key(network_id):
+                if network_value > 0:
+                    device_dict[network_id] = network_value
+                else:
+                    del device_dict[network_id]
+
+    def remove_device(self, device_id):
+        if self.cache.get(device_id):
+            del self.cache[device_id]
+
+    def get_device_networks(self, device_id):
+        nets = set()
+
+        if self.cache.get(device_id):
+            nets = set(self.cache.get(device_id).keys())
+
+        return nets
+
+    def __str__(self):
+        to_str = ""
+        for dev, nets in self.cache.iteritems():
+            to_str = to_str + "{0} => {1}\n".format(dev, len(nets.keys()))
+            for net in nets.keys():
+                to_str = to_str + "\t{0}\n".format(net)
+        return to_str
 
 class LinkManager(Folder):
     """ 
@@ -151,6 +210,7 @@ class LinkManager(Folder):
     def __init__(self, id, *args, **kwargs):
         Folder.__init__(self, id, *args, **kwargs)
         self.id = id
+        self.networks_per_device_cache = DeviceNetworksCache()
 
     def _getCatalog(self, layer=3):
         try: 
@@ -177,7 +237,8 @@ class LinkManager(Folder):
         gen2 = cat(**{nextcol:list(gen1ids)})
         return gen2, gen1ids
     
-    def getChildLinks(self, organizer):
+    # Deprecated. Left for testing purposes to compare perf and results with the new version
+    def getChildLinks_old(self, organizer):
         catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
         result = {}
         locs = organizer.children()
@@ -231,7 +292,64 @@ class LinkManager(Folder):
             if len(results) >= 2:
                 links = combinations(results.iteritems(), 2)
                 linkobs.extend(Layer3Link(self.dmd, dict(l)) for l in links)
+        return dumps([(x.getUids(), x.getStatus()) for x in linkobs])
 
+    def getChildLinks(self, organizer):
+        """
+        Find networks that are in more than one location,
+        build links between connected locations and
+        get the link status
+        """
+        catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
+
+        root_location_path_tuple = organizer.getPhysicalPath()
+        root_location_path = '/'.join(root_location_path_tuple)
+
+        locations = {}   # data structure to find to what top level location a device belongs to
+        for loc in organizer.children():
+            path_tuple = loc.getPrimaryPath()
+            path_key = path_tuple[len(root_location_path_tuple)]
+            locations[path_key] = path_tuple
+
+        devices_per_location = defaultdict(set)   # { location: set( device_id ) }
+        locations_per_network = defaultdict(set)  # { network:  set( location ) }
+
+        devices_search = catalog(path=root_location_path)
+
+        for device_result in devices_search:
+            device_id = device_result.id
+            # get the the parent location the device belongs to
+            device_location_full_path_tuple = next(ifilter(lambda x: 'Locations' in x, device_result.path))
+            location_search_key = device_location_full_path_tuple[len(root_location_path_tuple)]
+            device_parent_location = locations.get(location_search_key)
+            if device_parent_location:
+                device_location_path = '/'.join(device_parent_location)
+                devices_per_location[device_location_path].add( device_id )
+                device_networks = self.get_device_networks_from_cache(device_id)
+                for net in device_networks:
+                    locations_per_network[net].add(device_location_path)
+
+        # At this point, any net in locations_per_network with more that one location is a link
+        # if the net's zDrawMapLinks property is true
+        linkobs = []
+        linked_locations = defaultdict(set)  # { network: set( location ) }
+        cat = getToolByName(self, 'layer3_catalog')
+        for net, locs in locations_per_network.iteritems():
+            if len(locs) > 1:
+                if not getattr(self.dmd.unrestrictedTraverse(net), 'zDrawMapLinks', True):
+                    continue
+                results = defaultdict(list)
+                layer3_brains = set(cat.evalAdvancedQuery(Eq('networkId', net)))
+                net_locations = defaultdict(list) # { location : l3 brains } for current net
+                for loc in locs:
+                    # get l3 brains that belong to net and whose device is in devices_per_location[location]
+                    location_devices = devices_per_location[loc]
+                    location_brains = set( [ b for b in layer3_brains if b.deviceId in location_devices ] )
+                    layer3_brains = layer3_brains - location_brains
+                    net_locations[loc] = list(location_brains)
+
+                links = combinations(net_locations.iteritems(), 2)
+                linkobs.extend(Layer3Link(self.dmd, dict(l)) for l in links)
         return dumps([(x.getUids(), x.getStatus()) for x in linkobs])
 
     def getChildLinks_recursive(self, context):
@@ -287,4 +405,25 @@ class LinkManager(Folder):
                         n.setEndpoints(l, t)
                         result.add(n)
         return result
+
+    # Methods to access self.networks_per_device_cache
+    #
+    def add_device_network_to_cache(self, device_id, network_id):
+        if hasattr(self, "networks_per_device_cache"):
+            self.networks_per_device_cache.add_device_network(device_id, network_id)
+
+    def remove_device_network_from_cache(self, device_id, network_id):
+        if hasattr(self, "networks_per_device_cache"):
+            self.networks_per_device_cache.remove_device_network(device_id, network_id)
+
+    def remove_device_from_cache(self, device_id):
+        if hasattr(self, "networks_per_device_cache"):
+            self.networks_per_device_cache.remove_device(device_id)
+
+    def get_device_networks_from_cache(self, device_id):
+        if hasattr(self, "networks_per_device_cache"):
+            return self.networks_per_device_cache.get_device_networks(device_id)
+        else:
+            return set()
+
 InitializeClass(LinkManager)
