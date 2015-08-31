@@ -17,7 +17,7 @@ __DEFAULT__() {
 help() {
     echo "usage:"
     echo "   zenmib help"
-    echo "   zenmib run [--nocommit] <zenmib_file_url>"
+    echo "   zenmib run <zenmib_file_url>"
     return 1
 }
 

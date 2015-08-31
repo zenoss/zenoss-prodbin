@@ -72,7 +72,7 @@ def commandDictList(commandDict):
 zopeCommands = {
     "zendmd": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun zendmd",
-        "CommitOnSuccess": True
+        "CommitOnSuccess": False
     },
     "upgrade": {
         "Command": "${ZENHOME:-/opt/zenoss}/bin/zenrun upgrade.sh doUpgrade",
