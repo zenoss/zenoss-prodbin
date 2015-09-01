@@ -1811,6 +1811,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
         self.getDmdRoot("Monitors").deletePreviousCollectorForDevice(self.getId())
+        self.dmd.getDmdRoot("ZenLinkManager").remove_device_from_cache(self.getId())
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices':
