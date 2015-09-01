@@ -76,6 +76,13 @@ function pingStatusBase(bool) {
 
 Ext.apply(Zenoss.render, {
 
+    conditionalEscaping: function(data) {
+        if (Zenoss.settings.escapeHtmlInEvents)
+            return Ext.htmlEncode(data);
+        else
+            return data;
+    },
+
     bytesString: function(num) {
         return num===0 ? '0' :convertToUnits(num, 1024.0, 'B');
     },
@@ -475,11 +482,12 @@ Ext.apply(Zenoss.render, {
         if (!msg || msg === "None" ) {
             msg = record.data.summary;
         }
-        msg = Ext.htmlEncode(msg);
+        msg = Zenoss.render.conditionalEscaping(msg);
         msg = "<pre style='white-space:normal;'>" + msg + "</pre>";
         msg = msg.replace(/\"/g, '&quot;');
-        metadata.tdAttr = 'data-qtip="' + msg + '" data-qwidth="500"';
-        data = Ext.htmlEncode(data);
+        metadata.tdAttr = 'data-qtip="' + Zenoss.render.conditionalEscaping(msg) + '" data-qwidth="500"';
+
+        data = Zenoss.render.conditionalEscaping(data);
         return data;
     }
 

@@ -399,13 +399,13 @@ Ext.onReady(function() {
                     return Ext.htmlEncode(value);
                 },
                 summary: function(value, sourceData) {
-                    return Ext.htmlEncode(value);
+                    return Zenoss.render.conditionalEscaping(value);
                 },
                 dedupid: function(value, sourceData) {
                     return Ext.htmlEncode(value);
                 },
                 message: function(value, sourceData) {
-                    return Ext.htmlEncode(value);
+                    return Zenoss.render.conditionalEscaping(value);
                 },
                 eventClassKey: function(value, sourceData) {
                     return Ext.htmlEncode(value);
