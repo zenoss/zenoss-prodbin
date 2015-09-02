@@ -21,8 +21,8 @@
                     return false;
                 }
                 if (!val.match(pattern)){
-                    Ext.form.VTypes["passwordText"] = _t("that must contain 8 or more characters" +
-                                                    "that are of at least one number, and one uppercase and lowercase letter");
+                    Ext.form.VTypes["passwordText"] = _t("That must contain 8 or more characters" +
+                                                    " that are of at least one number, and one uppercase and lowercase letter.");
                     return false;
                 }
                 return true;
