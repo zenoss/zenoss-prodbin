@@ -111,7 +111,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'name'          : 'Portlets'
                 , 'action'        : '../dmd/editPortletPerms'
                 , 'permissions'   : ( "Manage DMD", )
-                },                
+                },
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : 'zenossVersions'
@@ -126,6 +126,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'name'          : 'User Interface'
                 , 'action'        : '../dmd/userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
+                },
+                {'id': 'support'
+                , 'name': 'Support'
+                , 'action': '../dmd/getSupport'
+                , 'permissions': ( "Manage DMD", )
                 },
            )
           },

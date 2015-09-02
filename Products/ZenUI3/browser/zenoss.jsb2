@@ -252,6 +252,9 @@
         },{
             "text": "ManufacturersPanels.js",
             "path": "resources/js/zenoss/manufacturers/"
+        },{
+            "text": "joblogdialog.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

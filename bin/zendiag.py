@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -68,16 +68,7 @@ files = [
 commands = [
     # name, program args
     ('lsZENHOME', ('ls', '-laR', zenhome)),
-    ('df', ('df', '-a')),
-    ('top', ('top', '-b', '-n', '3', '-c')),
-    ('vmstat', ('vmstat', '1', '3')),
-    ('free', ('free',)),
     ('zenpack', ('zenpack', '--list')),
-    ('pspython', ('ps', '-C', 'python', '-F')),
-    ('psjava', ('ps', '-C', 'java', '-F')),
-    ('uname', ('uname', '-a')),
-    ('uptime', ('uptime',)),
-    ('zenoss', ('zenoss', 'status')),
     ('mysqlstats', ('mysql', '--defaults-file=%s' % mysqlcreds,
                     '-e', 'show status')),
     ('heartbeats', ('mysql', '--defaults-file=%s' % mysqlcreds,
@@ -86,20 +77,9 @@ commands = [
                     '-e', 'select * from status')),
     ('mysqladmin status', ('mysqladmin', '-uroot', 'status')),
     ('mysqladmin variables', ('mysqladmin', '-uroot', 'variables')),
-    ('crontab', ('crontab', '-l')),
-    ('patches', ('sh', '-c', 'ls -l %s/Products/*.patch' % zenhome)),
-    ('javaVersion', ('/usr/bin/env', 'java', '-version')),
     ('zenpacks', ('ls', '-l', '%s/ZenPacks' % zenhome)),
-    ('ifconfig', ('/sbin/ifconfig', '-a')),
 ]
 # These commands only work if you are root
-root_commands = [
-    # name, program args
-    ('iptables', ('iptables', '-L')),
-    ('crontab', ('crontab', '-u', 'root', '-l')),
-]
-
-
 def zenhubConnections():
     "Scan the netstat connection information to see who is connected to zenhub"
     print "Scanning for zenhub connections..."
@@ -198,13 +178,13 @@ def zenossInfo():
         product_count=0
         for name in zsb.dmd.Manufacturers.getManufacturerNames():
             for product_name in zsb.dmd.Manufacturers.getProductNames(name):
-                product_count = product_count + 1 
+                product_count = product_count + 1
 
         # Hub collector Data
         collector_header = ['Hub and Collector Information']
         hub_data = []
         remote_count = 0
-        local_count = 0 
+        local_count = 0
         for hub in zsb.dmd.Monitors.Hub.getHubs():
             hub_data.append("Hub: %s" % hub.id)
             for collector in hub.collectors():
@@ -302,7 +282,6 @@ def md5s():
 # the python functions we'll call
 functions = [
     # name, python function, args
-    ('hubConn', zenhubConnections, (), {}),
     ('mysqlfiles', mysqlfiles, (), {}),
     ('zenossInfo', zenossInfo, (), {}),
     ('eventStats', eventStats, (), {}),

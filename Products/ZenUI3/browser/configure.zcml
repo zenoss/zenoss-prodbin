@@ -341,6 +341,13 @@
     />
 
 <browser:view
+    class=".views.GetSupportBundle"
+    name="getSupportBundle"
+    for="*"
+    permission="zenoss.ManageDMD"
+    />
+
+<browser:view
     class=".views.GotoRedirect"
     name="goto"
     for="Products.ZenModel.interfaces.IDataRoot"

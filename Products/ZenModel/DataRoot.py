@@ -192,6 +192,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'action'        : 'userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'support'
+                , 'name'          : 'Support'
+                , 'action'        : 'getSupport'
+                , 'permissions'   : ( "Manage DMD", )
+                }
             )
           },
         )
@@ -614,9 +619,15 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return obj.getXMLEdges(int(depth), filter,
             start=(obj.id,obj.getPrimaryUrlPath()))
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'getSupportBundleFilesInfo')
+    def getSupportBundleFilesInfo(self):
+        return self.getFilesInfo('support')
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
     def getBackupFilesInfo(self):
+        return self.getFilesInfo('backups')
+
+    def getFilesInfo(self, path):
         """
         Retrieve a list of dictionaries describing the files in
         $ZENHOME/backups.
@@ -634,7 +645,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 fmt = '%s bytes' % size
             return fmt
 
-        backupsDir = zenPath('backups')
+        backupsDir = zenPath(path)
         fileInfo = []
         if os.path.isdir(backupsDir):
             for dirPath, dirNames, fileNames in os.walk(backupsDir):
@@ -653,7 +664,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                         })
         fileInfo.sort(key=operator.itemgetter('modDate'))
         return fileInfo
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_createBackup')
     def manage_createBackup(self, includeEvents=None, includeMysqlLogin=None,
@@ -881,11 +891,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Handle our authentication mechanism
         """
-        
+
         if REQUEST:
             curuser = self.dmd.ZenUsers.getUser().getId()
             curpasswd = REQUEST.get('curPasswd')
-            
+
             if not self.dmd.ZenUsers.authenticateCredentials(curuser, curpasswd):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',

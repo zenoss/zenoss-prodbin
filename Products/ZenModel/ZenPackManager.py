@@ -81,7 +81,7 @@ class ZenPackManager(ZenModelRM):
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
                 , 'permissions'   : ( "Manage DMD", )
-                },                
+                },
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'
@@ -96,6 +96,11 @@ class ZenPackManager(ZenModelRM):
                 , 'name'          : 'User Interface'
                 , 'action'        : '../userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
+                },
+                {'id': 'support'
+                , 'name': 'Support'
+                , 'action': '../dmd/getSupport'
+                , 'permissions': ( "Manage DMD", )
                 },
             )
          },

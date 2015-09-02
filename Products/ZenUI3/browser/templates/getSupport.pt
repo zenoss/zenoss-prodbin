@@ -1,0 +1,91 @@
+<tal:block metal:use-macro="here/page_macros/old-new">
+    <tal:block metal:fill-slot="title">Support</tal:block>
+    <tal:block metal:fill-slot="contentPane">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
+            <tal:block metal:fill-slot="title">
+                Support
+            </tal:block>
+            <tal:block metal:fill-slot="body">
+                <form method="POST" name="supportBundleForm"
+                      onSubmit="return false;"
+                      tal:attributes="action here/getPrimaryUrlPath"
+                      tal:define="
+                        tabletitle string: Support;
+                        noselectionbar python:True;
+                        "
+                      i18n:domain="zenoss"
+                        >
+
+                    <input class="tableheader" type="button" value=" Gather Support Bundle "
+                           onclick="
+                                    Zenoss.remote.DeviceRouter.createSupportBundle({}, function(response){ if (response.success) { var win = Ext.create('Zenoss.JobLog', {
+                                            job: response.new_jobs,                                            
+                                            title: _t('Create Support Bundle')
+                                        });
+                                        win.on('destroy', function() { window.location.reload(); });
+                                        win.show();
+                                        } });"
+                      />
+                </form>
+                <br />
+            </tal:block>
+        </tal:block>
+
+        <form method="POST" name="supportBundlesForm"
+              tal:attributes="action string:${here/getPrimaryUrlPath};"
+              enctype="multipart/form-data"
+              tal:define="
+                    tabletitle string: Support Bundles;
+                    tableName string:supportTable;
+                    menu_id string:SupportBundleFiles_list;
+                    objects here/getSupportBundleFilesInfo;
+                    batch python:container.dmd.ZenTableManager.getBatch(tableName,objects);
+                    "
+                >
+        <input type="hidden" name="zenScreenName" tal:attributes="value string:getSupport"/>
+        <input type="hidden" name="redirect" value="true"/>
+            <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+            <tal:block metal:fill-slot="zentablecontents">
+
+                <!-- BEGIN TABLE CONTENTS -->
+
+                <tr>
+                    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'fileName','File Name')"/>
+                    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'size','Size')"/>
+                    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'modDate','Date')"/>
+                </tr>
+                <tal:block tal:repeat="file batch">
+                    <tr tal:define="odd repeat/file/odd"
+                        tal:attributes="class python:odd and 'odd' or 'even'">
+                        <td class="tablevalues" align="left">
+                             <input type="checkbox" name="fileNames:list" 
+                          tal:attributes="value file/fileName"/>
+                            <a tal:attributes="href string:${here/absolute_url_path}/getSupportBundle?bundle=${file/fileName}">
+                                <tal:block tal:replace="file/fileName"/>
+                            </a>
+                        </td>
+                        <td class="tablevalues" align="left"
+                            tal:content="file/sizeFormatted">
+                        </td>
+                        <td class="tablevalues" align="left"
+                            tal:content="file/modDateFormatted">
+                        </td>
+                    </tr>
+                </tal:block>
+                <tr>
+                    <td colspan="3" class="tableheader">
+                        <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+                    </td>
+                </tr>
+
+                <!-- END TABLE CONTENTS -->
+
+            </tal:block>
+            </tal:block>
+        </form>
+
+    </tal:block>
+</tal:block>

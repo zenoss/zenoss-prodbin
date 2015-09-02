@@ -126,6 +126,11 @@ class UserSettingsManager(ZenModelRM):
                 , 'action'        : '../userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                {'id': 'support'
+                , 'name': 'Support'
+                , 'action': '../dmd/getSupport'
+                , 'permissions': ( "Manage DMD", )
+                },
            )
          },
         )
