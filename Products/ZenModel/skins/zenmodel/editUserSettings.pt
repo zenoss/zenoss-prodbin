@@ -223,7 +223,7 @@ setTimeout(function () {
       <td class="tableheader" align="left">Set New Password</td>
       <td class="tablevalues">
         <input id="user_settings_new_password_input" class="tablevalues" type="password" name="password"
-            title="that must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter"
+            title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
             autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
        </td>
     </tr>
@@ -231,7 +231,7 @@ setTimeout(function () {
       <td class="tableheader" align="left">Confirm New Password</td>
       <td class="tablevalues">
         <input id="user_settings_confirmpassword_input" class="tablevalues" type="password" name="sndpassword"
-            title="that must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter"
+            title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
             autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
        </td>
     </tr>
