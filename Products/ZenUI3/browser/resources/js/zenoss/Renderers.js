@@ -77,7 +77,7 @@ function pingStatusBase(bool) {
 Ext.apply(Zenoss.render, {
 
     conditionalEscaping: function(data) {
-        if (Zenoss.settings.escapeHtmlInEvents)
+        if (!Zenoss.settings.enableHtmlInEventFields)
             return Ext.htmlEncode(data);
         else
             return data;
