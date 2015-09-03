@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -78,8 +78,7 @@ class ZentinelPortal ( PortalObjectBase ):
             msg = session.get('login_message')
             del session['login_message']
         elif 'submitted' in url:
-            msg = "Your session has expired, or the entered password, or " \
-                  "the username is incorrect."
+            msg = "Your session has expired or you have entered an incorrect username or password."
         else:
             msg = ""
 
