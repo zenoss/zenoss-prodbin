@@ -55,6 +55,9 @@ pas = PluggableAuthService.PluggableAuthService
 if not hasattr(pas, '_createInitialUser'):
     pas._createInitialUser =  _createInitialUser
 
+SESSION_RESET_WARNING = """
+A Poskey was detected in the session database so we are resetting it. All active sessions will be terminated. This is likely due to a clock issue on the host
+"""
 # Monkey patch PAS to monitor logouts (credential resets).
 # Have to check the request object to determine when we have an actual
 # logout instead of 'fake' logout (like the logout of the anonymous user)
@@ -67,6 +70,7 @@ def _resetCredentials(self, request, response=None):
     except (KeyError, POSKeyError):
         # see defect ZEN-2942 If the time changes while the server is running
         # set the session database to a sane state.
+        log.warning(SESSION_RESET_WARNING)
         ts = self.unrestrictedTraverse('/temp_folder/session_data')
         ts._reset()
         _originalResetCredentials(self, request, response)
@@ -175,6 +179,7 @@ def login(self):
         except (KeyError, POSKeyError):
             # see defect ZEN-2942 If the time changes while the server is running
             # set the session database to a sane state.
+            log.warning(SESSION_RESET_WARNING)
             ts = self.unrestrictedTraverse('/temp_folder/session_data')
             ts._reset()
             # try again and if it fails this time there isn't anything we can do
