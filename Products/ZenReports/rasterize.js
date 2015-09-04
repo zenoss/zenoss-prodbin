@@ -23,12 +23,11 @@ if (system.args.length < 5 || system.args.length > 7) {
         console.log('Username and password were not provided');
     }
 
-    page.viewportSize = { width: 800, height: 800 };
+    page.viewportSize = { width: 2800, height: 1600 };
     if (system.args.length > 5 && system.args[2].substr(-4) === ".pdf") {
         var pageFormat = system.args[5];
-        size = system.args[3].split('*');
-        page.paperSize = size.length === 2 ? { width: size[0], height: size[1], margin: '0px' }
-                                           : { format: pageFormat, orientation: 'portrait', margin: '1cm' };
+        page.paperSize = size.length === 2 ? { width: page.viewportSize.width + 200, height: page.viewportSize.height + 200, margin: '0px' }
+                                           : { format: pageFormat, orientation: 'landscape', margin: '1cm' };
     }
 
     if (system.args.length > 6) {
