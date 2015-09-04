@@ -106,6 +106,9 @@ def _sanitize_value(value, errors='replace'):
         for v in value:
             if isinstance(v, (str,set,list,dict,tuple)):
                 newvalue.append(_sanitize_value(v))
+            elif hasattr(v, "result"):
+                v.result = _sanitize_value(v.result)
+                newvalue.append(v)
             else:
                 newvalue.append(v)
     elif isinstance(value,set):
@@ -115,6 +118,8 @@ def _sanitize_value(value, errors='replace'):
                 newvalue.add(_sanitize_value(v))
             else:
                 newvalue.add(v)
+    elif hasattr(value, "result"):
+        newvalue.result = _sanitize_value(value.result)
 
     return newvalue
 
