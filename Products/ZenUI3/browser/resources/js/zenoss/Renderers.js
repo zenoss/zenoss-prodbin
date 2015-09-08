@@ -296,11 +296,11 @@ Ext.apply(Zenoss.render, {
 
     linkFromGrid: function(value) {
         var item;
-        if (typeof(value === 'object')) {
+        if (Ext.isObject(value)) {
             item = value;
             if(item === null){
                 return value;
-            }else if(item.url !== null) {
+            }else if(item.url) {
                 return Zenoss.render.link(null, item.url, item.text);
             }else if(item.uid) {
                 return Zenoss.render.link(item.uid, null, item.text);
