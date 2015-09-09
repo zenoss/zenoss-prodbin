@@ -124,7 +124,7 @@ COLUMN_CONFIG = {
         filter={
             'xtype':'multiselectmenu',
             'text':'...',
-             'cls': 'x-btn x-btn-default-toolbar-small',
+            'cls': 'x-btn x-btn-default-toolbar-small',
             'source': [{
                 'value': SEVERITY_CRITICAL,
                 'name': 'Critical'
@@ -166,7 +166,10 @@ COLUMN_CONFIG = {
 
     'eventClass': dict(
         header='Event Class',
-        filter='eventclass',
+        filter={
+            'xtype':'eventclass',
+            'forceSelection': False
+        },
         width=80,
         renderer='Zenoss.render.linkFromGrid',
         sortable=True),
