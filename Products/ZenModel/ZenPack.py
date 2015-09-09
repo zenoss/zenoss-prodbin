@@ -1304,7 +1304,7 @@ registerDirectory("skins", globals())
             service = json.loads(template % templateParams)
             service = ZenPack.normalizeService(service, configMap, tag)
             serviceDefinitions.append(json.dumps(service))
-        servicePaths = ['/hub/collector'] * len(serviceDefinitions)
+        servicePaths = ['/=Zenoss/=Collection/hub/collector'] * len(serviceDefinitions)
         self.installServiceDefinitions(serviceDefinitions, servicePaths)
 
 
@@ -1392,6 +1392,9 @@ registerDirectory("skins", globals())
                 serviceTree = ServiceTree(cpClient.queryServices("*"))
                 lastDepth = depth
 
+            # ZEN-19575: change the path to reflect the new service definition
+            if path == "/hub/collector":
+                path = "/=Zenoss/=Collection/hub/collector"
             parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId,
                                                           path)
             for parentService in parentServices:
