@@ -166,7 +166,7 @@ COLUMN_CONFIG = {
 
     'eventClass': dict(
         header='Event Class',
-        filter='textfield',
+        filter='eventclass',
         width=80,
         renderer='Zenoss.render.linkFromGrid',
         sortable=True),
