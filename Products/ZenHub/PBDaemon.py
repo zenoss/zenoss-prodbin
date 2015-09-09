@@ -985,7 +985,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 self._signalZenHubAnswering(False)
 
         def errback(error):
-            self.log.error('Error pinging ZenHub: %s (%s).' % (error, error.message))
+            self.log.error('Error pinging ZenHub: %s (%s).' % (error, getattr(error, 'message', '')))
             self._signalZenHubAnswering(False)
 
         try:
