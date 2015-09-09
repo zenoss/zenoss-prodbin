@@ -10,7 +10,9 @@
 
 import socket
 import re
+import os
 import logging
+import subprocess
 from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
@@ -22,6 +24,7 @@ from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
+from Products.Jobber.jobs import SubprocessJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
@@ -41,6 +44,7 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
 from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
+from Products.ZenUtils.Utils import binPath, zenPath
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
 
@@ -919,3 +923,17 @@ class DeviceFacade(TreeFacade):
                     'protocol': ptcl,
                 })
         return sorted(devtypes, key=lambda x: x.get('description'))
+
+    def createSupportBundle(self):
+        destpath = zenPath('support')
+        # make support bundle directory if it doesn't exist
+        if not os.path.isdir(destpath):
+            cmd = ['mkdir', '-p', destpath]
+            retcode = subprocess.call(cmd)
+            if retcode != 0:
+                raise Exception("Failed to create support path")
+        args = [binPath('zendiag.py')]
+        jobStatus = self._dmd.JobManager.addJob(SubprocessJob,
+                                                description="Create Support Bundle",
+                                                kwargs=dict(cmd=args))
+        return IInfo(jobStatus)

@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import os
@@ -51,6 +51,14 @@ class Robots(BrowserView):
         with open(os.path.dirname(__file__) +'/resources/txt/robots.txt') as f:
             return f.read()
 
+
+class GetSupportBundle(BrowserView):
+    def __call__(self, bundle):
+        filename = zenPath('support/' + bundle)
+        self.request.RESPONSE.setHeader('Content-Type', 'application/x-gzip')
+        self.request.RESPONSE.setHeader('Content-Disposition', 'attachment;filename=' + os.path.basename(filename))
+        with open(filename) as f:
+            return f.read()
 
 class GotoRedirect(BrowserView):
     """

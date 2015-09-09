@@ -1898,3 +1898,8 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getDevTypes(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def createSupportBundle(self):
+        facade = self._getFacade()
+        data = facade.createSupportBundle()
+        return DirectResponse.succeed(new_jobs=Zuul.marshal(data))
