@@ -47,9 +47,10 @@ class DefaultPathReporter(object):
         paths = [self.context.getPhysicalPath()]
         # since all component path reporters extend DefaultPathReporter
         # we need to add our component Group hook in here as opposed to a subclass
-        componentGroups = self.context.getComponentGroups()
-        if componentGroups:
-            paths.extend(relPath(self.context, "componentGroups"))
+        if getattr(self.context, "getComponentGroups", None) is not None:
+            componentGroups = self.context.getComponentGroups()
+            if componentGroups:
+                paths.extend(relPath(self.context, "componentGroups"))
         return paths
 
 class DevicePathReporter(DefaultPathReporter):

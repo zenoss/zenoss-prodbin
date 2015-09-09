@@ -45,12 +45,14 @@ log = logging.getLogger('zen.Zuul')
 organizersToClass = {
     "groups": "DeviceGroup",
     "systems": "System",
-    "location": "Location"
+    "location": "Location",
+    "deviceClass": "DeviceClass"
 }
 organizersToPath = {
     "groups": "Groups",
     "systems": "Systems",
-    "location": "Locations"
+    "location": "Locations",
+    "deviceClass": "Devices"
 
 }
 
@@ -196,7 +198,6 @@ class TreeFacade(ZuulFacade):
 
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
                    params=None, hashcheck=None):
-
         brains = self.getDeviceBrains(uid, start, limit, sort, dir, params,
                                       hashcheck)
 
