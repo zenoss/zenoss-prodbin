@@ -30,12 +30,19 @@ import time
 import datetime
 import zipfile
 
+import Globals
+from Products.ZenUtils.Utils import supportBundlePath
+
 
 # Yucky global
 fd, mysqlcreds = tempfile.mkstemp()
 
 archive_name = time.strftime("zendiag-%Y-%m-%d-%H-%M.zip")
-archive = zipfile.ZipFile(archive_name, 'w', compression=zipfile.ZIP_DEFLATED)
+archive = zipfile.ZipFile(
+    supportBundlePath(archive_name),
+    'w',
+    compression=zipfile.ZIP_DEFLATED
+)
 
 zenhome = ''
 

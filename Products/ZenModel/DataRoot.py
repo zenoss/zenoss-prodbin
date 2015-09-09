@@ -621,7 +621,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getSupportBundleFilesInfo')
     def getSupportBundleFilesInfo(self):
-        return self.getFilesInfo('support')
+        return self.getFilesInfo('var/ext/support')
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
     def getBackupFilesInfo(self):
