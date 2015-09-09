@@ -197,7 +197,7 @@ class MySshClient(SshClient):
         """
         return True
 
-    def clientFinished(self):
+    def clientFinished(self, error=None):
         """
         We don't need to track commands/results when they complete
         """
@@ -205,6 +205,8 @@ class MySshClient(SshClient):
         self.cmdmap = {}
         self._commands = []
         self.results = []
+        if error:
+            self.connect_defer.errback(error)
 
     def clientConnectionFailed(self, connector, reason):
         """
