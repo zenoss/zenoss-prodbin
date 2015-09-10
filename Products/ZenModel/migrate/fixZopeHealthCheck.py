@@ -47,7 +47,7 @@ class FixZopeHealthCheck(Migrate.Step):
         # Update all of the 'ready' healthchecks
         readyHealthChecks = filter(lambda healthCheck: healthCheck.name == "ready", service.healthChecks)
         for readyCheck in readyHealthChecks:
-            readyCheck.script = "curl --output /dev/null --silent --head --write-out \"%{http_code}\" http://localhost:8080/zport/dmd | grep 401 >/dev/null"
+            readyCheck.script = "curl --output /dev/null --silent --write-out \"%{http_code}\" http://localhost:8080/robots.txt | grep 200 >/dev/null"
 
         ctx.commit()
 
