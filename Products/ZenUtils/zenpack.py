@@ -469,11 +469,11 @@ class ZenPackCmd(ZenScriptBase):
                 # verify the .egg extension and strip it from the egg name
                 base, ext = os.path.splitext(f)
                 if ext != ".egg":
-                    break
+                    continue
                 # make sure this is the standard egg name format
                 match = EGG_NAME(base)
                 if not match:
-                    break
+                    continue
                 # extrapolate the values of the name and version
                 # NOTE: also has groupings for 'pyver' and 'plat' if needed for
                 # later.
