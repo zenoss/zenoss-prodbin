@@ -57,7 +57,7 @@ Sends out notifications based on triggers
 zenactiond
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenactiond.py.*--daemon.*
+.*zenactiond.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -83,7 +83,7 @@ Using protocols such as Telnet and SSH, runs a command on the remote machine and
 zencommand
 </property>
 <property type="string" id="regex" mode="w" >
-.*zencommand.py.*--daemon.*
+.*zencommand.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -106,7 +106,7 @@ Using protocols such as Telnet and SSH, runs a command on the remote machine and
 zeneventd
 </property>
 <property type="string" id="regex" mode="w" >
-.*zeneventd.py.*--daemon.*
+.*zeneventd.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -155,7 +155,7 @@ This daemon provides a stable interface to ZODB, via services that are requested
 zenhub
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenhub.py.*--daemon.*
+.*zenhub.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -181,7 +181,7 @@ An 'at'-style scheduler for running long-running commands.
 zenjobs
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenjobs.py.*--daemon.*
+.*zenjobs.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -207,7 +207,7 @@ Listen on the SMTP port (default 25) and convert e-mails into Zenoss events.
 zenmail
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenmail.py.*--daemon.*
+.*zenmail.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -239,7 +239,7 @@ Model a device using protocols such as WMI, SNMP, SSH.
 zenmodeler
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenmodeler.py.*--daemon.*
+.*zenmodeler.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -265,7 +265,7 @@ SNMP performance metric poller daemon
 zenperfsnmp
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenperfsnmp.py.*--daemon.*
+.*zenperfsnmp.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -291,7 +291,7 @@ IPv4 and IPv6 ICMP ECHO sending daemon
 zenping
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenping.py.*--daemon.*
+.*zenping.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -317,7 +317,7 @@ Connect to a POP3 server and convert any messages into Zenoss events.
 zenpop3
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenpop3.py.*--daemon.*
+.*zenpop3.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -343,7 +343,7 @@ SNMP based daemon that gathers process information, and based on what has been m
 zenprocess
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenprocess.py.*--daemon.*
+.*zenprocess.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -361,70 +361,6 @@ SNMP based daemon that gathers process information, and based on what has been m
 12
 </property>
 </object>
-<object id='zenrender' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
-<property id='zendoc' type='string'>
-Reads from RRD files to draw graphs for the UI.
-</property>
-<property type="string" id="name" mode="w" >
-zenrender
-</property>
-<property type="string" id="regex" mode="w" >
-.*zenrender.py.*
-</property>
-<property type="string" id="excludeRegex" mode="w" >
-.*(vim|tail|grep|tar|cat|bash).*
-</property>
-<property type="string" id="replaceRegex" mode="w" >
-.*
-</property>
-<property type="string" id="replacement" mode="w" >
-zenrender
-</property>
-<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
-False
-</property>
-<property type="boolean" id="ignoreParameters" mode="w" >
-False
-</property>
-<property type="text" id="description" mode="w" >
-Reads from RRD files to draw graphs for the UI.
-</property>
-<property type="int" id="sequence" mode="w" >
-17
-</property>
-</object>
-<object id='zenrrdcached' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
-<property id='zendoc' type='string'>
-Caching daemon that improves RRD write performance
-</property>
-<property type="string" id="name" mode="w" >
-rrdcached
-</property>
-<property type="string" id="regex" mode="w" >
-.*rrdcached
-</property>
-<property type="string" id="excludeRegex" mode="w" >
-.*(vim|tail|grep|tar|cat|bash).*
-</property>
-<property type="string" id="replaceRegex" mode="w" >
-.*
-</property>
-<property type="string" id="replacement" mode="w" >
-rrdcached
-</property>
-<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
-False
-</property>
-<property type="boolean" id="ignoreParameters" mode="w" >
-False
-</property>
-<property type="text" id="description" mode="w" >
-Caching daemon that improves RRD write performance
-</property>
-<property type="int" id="sequence" mode="w" >
-13
-</property>
-</object>
 <object id='zenstatus' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
 <property id='zendoc' type='string'>
 A daemon that opens a TCP connection to the remote service to determine if it is available.
@@ -433,7 +369,7 @@ A daemon that opens a TCP connection to the remote service to determine if it is
 zenstatus
 </property>
 <property type="string" id="regex" mode="w" >
-.*zenstatus.py.*--daemon.*
+.*zenstatus.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -448,7 +384,7 @@ False
 A daemon that opens a TCP connection to the remote service to determine if it is available.
 </property>
 <property type="int" id="sequence" mode="w" >
-14
+13
 </property>
 </object>
 <object id='zensyslog' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -459,7 +395,7 @@ Daemon that runs on the syslog ports and converts syslog messages to Zenoss even
 zensyslog
 </property>
 <property type="string" id="regex" mode="w" >
-.*zensyslog.py.*--daemon.*
+.*zensyslog.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -480,7 +416,7 @@ False
 Daemon that runs on the syslog ports and converts syslog messages to Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-15
+14
 </property>
 </object>
 <object id='zentrap' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -491,7 +427,7 @@ Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss 
 zentrap
 </property>
 <property type="string" id="regex" mode="w" >
-.*zentrap.py.*--daemon.*
+.*zentrap.py.*
 </property>
 <property type="string" id="excludeRegex" mode="w" >
 .*(vim|tail|grep|tar|cat|bash).*
@@ -512,7 +448,7 @@ False
 Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-16
+15
 </property>
 </object>
 </tomanycont>
