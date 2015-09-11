@@ -53,13 +53,11 @@ class UpdateOSProcessClasses(Migrate.Step):
                     continue
                 except Exception as e:
                     log.error("Unable to remove depricated OSProcess class %s: %s" % (klass,e))
-                    pass
 
             if klass.id in TEMPLATE:
                 try:
                     f.setInfo(path, {'includeRegex': TEMPLATE[klass.id]})
                 except Exception as e:
                     log.error("Unable to update OSProcess class %s: %s" % (klass, e))
-                    pass
 
 UpdateOSProcessClasses()
