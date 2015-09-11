@@ -14,22 +14,22 @@ from Products.Zuul import getFacade
 log = logging.getLogger('zen.migrate')
 
 TEMPLATE = {
- 'Zope': '.*runzope.*zenoss.*',
- 'zenactiond': '.*zenactiond.py.*',
- 'zencommand': '.*zencommand.py.*',
- 'zeneventd': '.*zeneventd.py.*',
- 'zeneventserver': '.*zeneventserver.*',
- 'zenhub': '.*zenhub.py.*',
- 'zenjobs': '.*zenjobs.py.*',
- 'zenmail': '.*zenmail.py.*',
- 'zenmodeler': '.*zenmodeler.py.*',
- 'zenperfsnmp': '.*zenperfsnmp.py.*',
- 'zenping': '.*zenping.py.*',
- 'zenpop3': '.*zenpop3.py.*',
- 'zenprocess': '.*zenprocess.py.*',
- 'zenstatus': '.*zenstatus.py.*',
- 'zensyslog': '.*zensyslog.py.*',
- 'zentrap': '.*zentrap.py.*'
+    'Zope': '.*runzope.*zenoss.*',
+    'zenactiond': '.*zenactiond.py.*',
+    'zencommand': '.*zencommand.py.*',
+    'zeneventd': '.*zeneventd.py.*',
+    'zeneventserver': '.*zeneventserver.*',
+    'zenhub': '.*zenhub.py.*',
+    'zenjobs': '.*zenjobs.py.*',
+    'zenmail': '.*zenmail.py.*',
+    'zenmodeler': '.*zenmodeler.py.*',
+    'zenperfsnmp': '.*zenperfsnmp.py.*',
+    'zenping': '.*zenping.py.*',
+    'zenpop3': '.*zenpop3.py.*',
+    'zenprocess': '.*zenprocess.py.*',
+    'zenstatus': '.*zenstatus.py.*',
+    'zensyslog': '.*zensyslog.py.*',
+    'zentrap': '.*zentrap.py.*'
 }
 
 DEPRECATED = ('zenrrdcached', 'zenrender')
