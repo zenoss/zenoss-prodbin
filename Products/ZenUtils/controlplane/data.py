@@ -353,6 +353,12 @@ class ServiceDefinition(object):
         """
         self._data = {}
 
+    def getRawData(self):
+        """
+        Getter for the _data attribute
+        """
+        return self._data
+
     @property
     def id(self):
         return self._data.get("ID")

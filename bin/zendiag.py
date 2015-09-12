@@ -14,9 +14,14 @@ import sys
 import time
 import datetime
 import os
+import shutil
 import zipfile
 import logging
 import subprocess
+import requests
+import json
+import tempfile
+from pprint import pformat, pprint
 logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s: %(message)s')
 log = logging.getLogger('zendiag')
 log.setLevel(logging.INFO)
@@ -26,6 +31,9 @@ from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.Utils import supportBundlePath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul import getFacade
+from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree, ControlCenterError
+from Products.ZenUtils.controlplane.application import getConnectionSettings
+from Products.ZenUtils.elastic.client import ElasticClient
 
 
 __doc__ = """zendiag
@@ -40,9 +48,10 @@ $ZENHOME is assumed to be set.
 
 class ZenDiag(object):
 
-    def __init__(self, zenhome):
+    def __init__(self, zenhome, log_days=7):
         self.zenhome = zenhome
         self.archive = self.generate_bundle()
+        self.log_days = log_days
         self.zsb = ZenScriptBase(noopts=True, connect=True)
 
     def run_and_log_command(self, name, cmd):
@@ -234,8 +243,7 @@ class ZenDiag(object):
         files = [
             # '/absolute/path/py',
             # '/file/or/directory,
-            os.path.join(self.zenhome, 'Products/ZenModel/ZVersion.py'),
-            os.path.join(self.zenhome, 'etc')
+            os.path.join(self.zenhome, 'Products/ZenModel/ZVersion.py')
         ]
 
         for filename in files:
@@ -256,34 +264,120 @@ class ZenDiag(object):
                     except Exception, ex:
                         log.exception("could not access %s", filename)
 
+    def get_cc_data(self):
+
+        if not os.getenv('CONTROLPLANE_TENANT_ID'):
+            log.warn('Unable to determine tenant ID, skipping Control Center data')
+            return
+        allServices = ControlPlaneClient(
+            **getConnectionSettings()
+        ).queryServices(tenantID=os.getenv('CONTROLPLANE_TENANT_ID'))
+
+        # 1) Get JSON for all deployed services
+
+        log.info('Gathering list of Control Center services')
+        servicesOutput = ''
+        for service in allServices:
+            servicesOutput += pformat(service.getRawData())
+        self.archiveText('zendiag/service-list.txt', servicesOutput)
+
+        # 2) Get all service logs for my tenant
+
+        eClient = ElasticClient()
+
+        # Determine the indicies to use
+        # TODO: This counts back using the days of indexes.  Techncially this is
+        # unreliable, but should be good enough for now.
+        indexes = sorted(eClient.getIndexes().keys())
+        if self.log_days and self.log_days < len(indexes):
+            indexes = indexes[-self.log_days:]
+        indexes = ','.join(indexes)
+        log.info('Searching across indexes: %s', indexes)
+
+        BATCH_SIZE=10000
+        try:
+            tmpdir = tempfile.mkdtemp()
+            logPath = os.path.join(tmpdir, 'logs')
+            os.mkdir(logPath)
+            for svc in allServices:
+                try:
+                    fpCache = {}
+                    docCount = eClient.doCount(indexes,  'service:({})'.format(svc.id))
+                    log.info('Found %s log messages for %s', docCount, svc.name)
+                    for beginIdx in xrange(0, docCount, BATCH_SIZE):
+                        # The host + file sorting are technically unnececcesary
+                        # here
+                        log.warn('Getting logs for %s', svc.name)
+                        # TODO: Use filters because faster
+                        theJson = eClient.doSearchURI(indexes, 'service:({})&size={}&from={}&sort=host:asc,file:asc,@timestamp:asc'.format(svc.id, BATCH_SIZE, beginIdx))
+                        log.warn('Done getting logs for %s', svc.name)
+                        for hit in theJson['hits']['hits']:
+                            fname = os.path.join(
+                                logPath,
+                                # svcname_logname_svcID_containerID.log
+                                '{}_{}_{}_{}.log'.format(svc.name.replace(' ', '-'), hit['_source']['file'].split('/')[-1], svc.id, hit['_source']['host'])
+                            )
+                            if fname not in fpCache:
+                                log.debug('Creating logfile %s', fname)
+                                fpCache[fname] = open(fname, 'w')
+                            fpCache[fname].write(hit['_source']['message'] + '\n')
+                finally:
+                    for fp in fpCache.values():
+                        fp.close()
+
+            # Add logs to zipfile after done processing each service
+            for root, dirs, files in os.walk(logPath):
+                for file in files:
+                    self.archive.write(
+                        os.path.join(root, file),
+                        'zendiag/logs/' + file
+                    )
+            # Delete to not fill up disk
+            shutil.rmtree(
+                os.path.join(logPath, '*'),
+                ignore_errors=True
+            )
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
     def wrapup(self):
         self.archive.close()
         log.info('Diagnostic data stored to %s', self.archive.filename)
 
-    def run(self, verbose=False):
+    def run(self, verbose=False, steps=[]):
         """
         Main method that gets invoked.  Call with parsed arguments.
         """
         if verbose:
             log.setLevel(logging.DEBUG)
-        self.get_database_info()
-        self.get_zep_info()
-        self.get_zenoss_info()
-        self.get_files()
+        stepDict= {
+            'database': self.get_database_info,
+            'zep': self.get_zep_info,
+            'zenoss': self.get_zenoss_info,
+            'files': self.get_files,
+            'control-center': self.get_cc_data
+        }
+        if steps:
+            [ stepDict[step]() for step in steps ]
+        else:
+            [ step() for step in stepDict.values() ]
+
         self.wrapup()
 
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Gather diagnostic data about Zenoss')
-    parser.add_argument('--verbose','-v', action='store_true',
+    parser.add_argument('--verbose', '-v', action='store_true',
                         help='Enable verbose logging')
+    parser.add_argument('--steps', choices=('database', 'control-center', 'zep', 'zenoss', 'files'),
+                        nargs='+', help='Collect specific peices of data')
+    parser.add_argument('--log-days', type=int, help='Number of days worth of logs to gather')
     argz = parser.parse_args()
 
     if not os.getenv('ZENHOME'):
         log.error('$ZENHOME is not set, exiting')
         sys.exit(1)
 
-    zd = ZenDiag(os.getenv('ZENHOME'))
-    zd.run(argz.verbose)
+    zd = ZenDiag(os.getenv('ZENHOME'), log_days=argz.log_days)
+    zd.run(argz.verbose, argz.steps)
 
