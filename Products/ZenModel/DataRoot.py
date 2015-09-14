@@ -38,7 +38,7 @@ import os
 import sys
 import string
 from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import zenPath, binPath
+from Products.ZenUtils.Utils import zenPath, binPath, supportBundlePath
 from Products.ZenUtils.Utils import extractPostContent
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
@@ -621,7 +621,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getSupportBundleFilesInfo')
     def getSupportBundleFilesInfo(self):
-        return self.getFilesInfo('support')
+        return self.getFilesInfo('var/ext/support')
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
     def getBackupFilesInfo(self):
@@ -770,6 +770,38 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteSupportBundles')
+    def manage_deleteSupportBundles(self, fileNames=(), REQUEST=None):
+        """
+        Delete the specified files from $ZENHOME/var/ext/support
+        """
+        supportDir = supportBundlePath()
+        removed = []
+        if os.path.isdir(supportDir):
+            for dirPath, dirNames, dirFileNames in os.walk(supportDir):
+                dirNames[:] = []
+                for fileName in fileNames:
+                    if fileName in dirFileNames:
+                        toRemove = os.path.join(dirPath, fileName)
+                        res = os.remove(toRemove)
+                        if not res:
+                            removed.append(toRemove)
+            if REQUEST:
+                audit('UI.Support.Delete', files=removed)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Support Bundles Deleted',
+                    '%s support bundles have been deleted.' % len(removed)
+                )
+        else:
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Support Bundle Directory Missing',
+                    'Unable to find $ZENHOME/var/ext/support.',
+                    messaging.WARNING
+                )
+
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
     def getProductName(self):
         """

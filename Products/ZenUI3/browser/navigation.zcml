@@ -266,7 +266,8 @@
                       /zport/dmd/userInterfaceConfig
                       /zport/dmd/zepConfig
                       /zport/dmd/manageLDAPConfig
-                      /zport/About"
+                      /zport/About
+                      /zport/dmd/getSupport"
             weight="0"
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"

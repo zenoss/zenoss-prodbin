@@ -1,12 +1,39 @@
 #! /usr/bin/env python
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2015, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+
+from argparse import ArgumentParser
+
+import sys
+import time
+import datetime
+import os
+import shutil
+import zipfile
+import logging
+import subprocess
+import requests
+import json
+import tempfile
+from pprint import pformat, pprint
+logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s: %(message)s')
+log = logging.getLogger('zendiag')
+log.setLevel(logging.INFO)
+
+import Globals
+from Products.ZenUtils.GlobalConfig import globalConfToDict
+from Products.ZenUtils.Utils import supportBundlePath
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.Zuul import getFacade
+from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree, ControlCenterError
+from Products.ZenUtils.controlplane.application import getConnectionSettings
+from Products.ZenUtils.elastic.client import ElasticClient
 
 
 __doc__ = """zendiag
@@ -14,483 +41,352 @@ __doc__ = """zendiag
 Gather basic details on an installation into a single zip file for
 reporting to Zenoss support.
 
+This is expected to run as the zenoss user using Zenoss' python, and
+designed to run on Zenoss 5.x, inside of Control Center.  Additionally,
+$ZENHOME is assumed to be set.
 """
-# It is important that this file produce few warnings/problems on a
-# standard box, and makes as few assumptions as possible about things
-# that should work.
 
-import getopt
-import glob
-import logging
-import os
-import subprocess
-import sys
-import tempfile
-import time
-import datetime
-import zipfile
+class ZenDiag(object):
 
+    def __init__(self, zenhome, log_days=7):
+        self.zenhome = zenhome
+        self.archive = self.generate_bundle()
+        self.log_days = log_days
+        self.zsb = ZenScriptBase(noopts=True, connect=True)
 
-# Yucky global
-fd, mysqlcreds = tempfile.mkstemp()
-
-archive_name = time.strftime("zendiag-%Y-%m-%d-%H-%M.zip")
-archive = zipfile.ZipFile(archive_name, 'w', compression=zipfile.ZIP_DEFLATED)
-
-zenhome = ''
-
-# try to guess at the usual locations
-for location in [os.environ.get('ZENHOME', '/not there'),
-                 '/opt/zenoss',
-                 '/home/zenoss',
-                 '/usr/local/zenoss']:
-    if os.path.exists(os.path.join(location, 'bin/zenoss')):
-        zenhome = location
-        sys.path.insert(0, zenhome)
-        break
-
-# files to put into the zip file
-files = [
-    # name, file
-    ('my.cnf', '/etc/mysql/my.cnf'),
-    ('my.cnf', '$ZENHOME/mysql/my.cnf'),
-    ('ZVersion', '$ZENHOME/Products/ZenModel/ZVersion.py'),
-    ('etc', '$ZENHOME/etc'),
-    ('log', '$ZENHOME/log'),
-    ('distro-deb', '/etc/debian_version'),
-    ('distro-rh', '/etc/redhat-release'),
-    ('distro-fed', '/etc/fedora-release'),
-    ('distro-suse', '/etc/SuSE-release'),
-    ('distro-conary', '/etc/distro-release'),
-]
-
-# commands to run to get information about resources, the os, etc.
-commands = [
-    # name, program args
-    ('lsZENHOME', ('ls', '-laR', zenhome)),
-    ('zenpack', ('zenpack', '--list')),
-    ('mysqlstats', ('mysql', '--defaults-file=%s' % mysqlcreds,
-                    '-e', 'show status')),
-    ('heartbeats', ('mysql', '--defaults-file=%s' % mysqlcreds,
-                    '-e', 'select * from heartbeat')),
-    ('mysqlstatus', ('mysql', '--defaults-file=%s' % mysqlcreds,
-                    '-e', 'select * from status')),
-    ('mysqladmin status', ('mysqladmin', '-uroot', 'status')),
-    ('mysqladmin variables', ('mysqladmin', '-uroot', 'variables')),
-    ('zenpacks', ('ls', '-l', '%s/ZenPacks' % zenhome)),
-]
-# These commands only work if you are root
-def zenhubConnections():
-    "Scan the netstat connection information to see who is connected to zenhub"
-    print "Scanning for zenhub connections..."
-    pids = os.popen('pgrep -f zenhub.py').read().split()
-    lines = os.popen('netstat -anp 2>/dev/null').read().split('\n')
-    result = lines[0:2]
-    for line in lines[2:]:
-        for pid in pids:
-            if line.find(pid) >= 0:
-                result.append(line)
-                break
-    return '\n'.join(result)
-
-
-def mysqlfiles():
-    "pull in the mysql files if you can find them and read them"
-    for path in '/var/lib/mysql/events', '$ZENHOME/../mysql/data/events':
+    def run_and_log_command(self, name, cmd):
+        output=''
         try:
-            os.listdir(path)
-            return os.popen('ls -l %s' % path).read()
-        except OSError, ex:             # permission denied
-            pass
-    return ''
+            log.debug('Running command %s', cmd)
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            log.info('Successfully ran %s', name)
+            self.archiveText('zendiag/{}.txt'.format(name), output)
+        except subprocess.CalledProcessError as e:
+            log.warn('Command failed:')
+            log.exception(e)
+            for line in output.splitlines():
+                log.warn(line)
 
 
-def eventStats():
-    try:
-        import Globals
-        from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-        from Products.Zuul import getFacade
-        zsb = ZenScriptBase(noopts=True, connect=True)
-        zsb.getDataRoot()
-        zepfacade = getFacade('zep')
-        statsList = zepfacade.getStats()
-        return '\n\n'.join([str(item) for item in statsList])
-    except Exception, ex:
-        log = logging.getLogger('zendiag')
-        log.exception(ex)
+    def generate_bundle(self):
+        """
+        Generate and return an empty zipfile to archive everything to
+        """
+        archive_name = time.strftime("zendiag-%Y-%m-%d-%H-%M.zip")
+        return zipfile.ZipFile(
+            supportBundlePath(archive_name),
+            'w',
+            compression=zipfile.ZIP_DEFLATED
+        )
+
+    def archiveText(self, name, output):
+        "if the output is interesting, put it into the archive"
+        if output:
+            zi = zipfile.ZipInfo(name)
+            # default perms for writestr are ---------, not -rw--------
+            zi.external_attr = 0600 << 16L
+            # default creation date is not today, but 1980.
+            zi.date_time = time.localtime(time.time())[:6]
+            self.archive.writestr(zi, output)
+
+    def get_database_info(self):
+        def do_database_cmds(db, config):
+            dbVals = {}
+            dbParams = [ '{}-{}'.format(db, param) for param in ['host', 'port', 'db', 'user', 'password'] ]
+            for option in dbParams:
+                if not config.get(option, None):
+                    log.warn('Missing parameter %s from config, skipping %s-related data', option, db)
+                    return
+                dbVals[option] = config.get(option)
+            # commands to run
+            cmds = {
+                "mysql-status-{}".format(db): "mysqladmin -u{} -p{} -h {} extended-status".format(dbVals['{}-user'.format(db)], dbVals['{}-password'.format(db)], dbVals['{}-host'.format(db)]),
+                "mysql-variables-{}".format(db): "mysqladmin -u{} -p{} -h {} variables".format(dbVals['{}-user'.format(db)], dbVals['{}-password'.format(db)], dbVals['{}-host'.format(db)])
+            }
+            # run the commands
+            for name,cmd in cmds.iteritems():
+                self.run_and_log_command(name, cmd)
+
+        config = globalConfToDict()
+        do_database_cmds('zodb', config)
+        do_database_cmds('zep', config)
+
+    def get_zep_info(self):
+        try:
+            log.info('Gathering zep stats info')
+            zepfacade = getFacade('zep')
+            statsList = zepfacade.getStats()
+            self.archiveText('zendiag/event_stats.txt', '\n\n'.join([str(item) for item in statsList]))
+        except Exception as ex:
+            log.exception(ex)
+
+    def get_zenoss_info(self):
+        """
+        Gather various peices of information about zenoss itself from inside a container
+        """
+
+        # 1) Get various things from zodb
+
+        def format_data(fmt, data):
+            return [fmt % datum for datum in data] + ['']
+
+        try:
+            log.info("Gathering info from zodb")
+            header_data = [
+                ('Report Data', datetime.datetime.now()),
+                ('Server Key', self.zsb.dmd.uuid),
+                ('Google Key', self.zsb.dmd.geomapapikey)]
+
+            counter = {}
+            decomm = 0
+            for d in self.zsb.dmd.Devices.getSubDevices():
+                if d.productionState < 0:
+                    decomm += 1
+                else:
+                    index = '%s %s' % \
+                        (d.getDeviceClassPath(), d.getProductionStateString())
+                    count = counter.get(index, 0)
+                    counter[index] = count + 1
+
+            totaldev = self.zsb.dmd.Devices.countDevices()
+
+            device_summary_header_data = [
+                ('Total Devices', totaldev),
+                ('Total Decommissioned Devices', decomm),
+                ('Total Monitored Devices', totaldev - decomm),
+            ]
+
+            device_summary_header = ['Device Breakdown by Class and State:']
+
+            counter_keylist = counter.keys()
+            counter_keylist.sort()
+            device_summary_data = [(k, counter[k]) for k in counter_keylist]
+
+            zenpacks_header = ['ZenPacks:']
+            zenpack_ids = self.zsb.dmd.ZenPackManager.packs.objectIds()
+
+            zenoss_versions_data = [
+                (record['header'], record['data']) for
+                    record in self.zsb.dmd.About.getAllVersions()]
+
+            uuid_data = [('uuid', self.zsb.dmd.uuid)]
+
+            event_start = time.time() - 24 * 60 * 60
+
+            product_count=0
+            for name in self.zsb.dmd.Manufacturers.getManufacturerNames():
+                for product_name in self.zsb.dmd.Manufacturers.getProductNames(name):
+                    product_count = product_count + 1
+
+            # Hub collector Data
+            collector_header = ['Hub and Collector Information']
+            hub_data = []
+            remote_count = 0
+            local_count = 0
+            for hub in self.zsb.dmd.Monitors.Hub.getHubs():
+                hub_data.append("Hub: %s" % hub.id)
+                for collector in hub.collectors():
+                        hub_data.append("\tCollector: %s IsLocal(): %s" % (collector.id, collector.id == 'localhost'))
+                        if not collector.id == 'localhost':
+                            hub_data.append("\tCollector(Remote): %s" % collector.id)
+                            remote_count = remote_count + 1
+                        else:
+                            hub_data.append("\tCollector(Local): %s " % collector.id)
+                            local_count = local_count + 1
+
+            zep = getFacade('zep')
+            tail_data = [
+                ('Evt Rules', self.zsb.dmd.Events.countInstances()),
+                ('Evt Count (Last 24 Hours)', zep.countEventsSince(event_start)),
+                ('Reports', self.zsb.dmd.Reports.countReports()),
+                ('Templates', self.zsb.dmd.Devices.rrdTemplates.countObjects()),
+                ('Systems', self.zsb.dmd.Systems.countChildren()),
+                ('Groups', self.zsb.dmd.Groups.countChildren()),
+                ('Locations', self.zsb.dmd.Locations.countChildren()),
+                ('Users', len(self.zsb.dmd.ZenUsers.getUsers())),
+                ('Product Count', product_count),
+                ('Local Collector Count', local_count),
+                ('Remote Collector Count', remote_count)]
+
+            detail_prefix = '    '
+            std_key_data_fmt = '%s: %s'
+            detail_std_key_data_fmt = detail_prefix + std_key_data_fmt
+            detail_data_fmt = detail_prefix + '%s'
+            center_justify_fmt = '%10s: %s'
+
+            return_data = (
+                format_data(std_key_data_fmt, header_data) +
+                format_data(std_key_data_fmt, device_summary_header_data) +
+                device_summary_header +
+                format_data(detail_std_key_data_fmt, device_summary_data) +
+                zenpacks_header +
+                format_data(detail_data_fmt, zenpack_ids) +
+                format_data(center_justify_fmt, zenoss_versions_data + uuid_data) +
+                collector_header +
+                format_data('%s', hub_data) +
+                format_data(std_key_data_fmt, tail_data))
+
+            self.archiveText('zendiag/zenoss-info.txt', '\n'.join(return_data))
+
+        except Exception, ex:
+            log.exception(ex)
+
+        # 2) Get a list of zenpacks
+        log.info('Gathering list of zenpacks')
+        self.run_and_log_command('zenpack-list', 'zenpack --list')
 
 
-def zenossInfo():
-    "get the About:Versions page data"
-
-    def format_data(fmt, data):
-        return [fmt % datum for datum in data] + ['']
-
-    try:
-        print "Gathering info from zodb..."
-        import Globals
-        from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-        from Products.Zuul import getFacade
-        zsb = ZenScriptBase(noopts=True, connect=True)
-        zsb.getDataRoot()
-
-        header_data = [
-            ('Report Data', datetime.datetime.now()),
-            ('Server Key', zsb.dmd.uuid),
-            ('Google Key', zsb.dmd.geomapapikey)]
-
-        counter = {}
-        decomm = 0
-        for d in zsb.dmd.Devices.getSubDevices():
-            if d.productionState < 0:
-                decomm += 1
-            else:
-                index = '%s %s' % \
-                    (d.getDeviceClassPath(), d.getProductionStateString())
-                count = counter.get(index, 0)
-                counter[index] = count + 1
-
-        totaldev = zsb.dmd.Devices.countDevices()
-
-        device_summary_header_data = [
-            ('Total Devices', totaldev),
-            ('Total Decommissioned Devices', decomm),
-            ('Total Monitored Devices', totaldev - decomm),
+    def get_files(self):
+        """
+        Arbitrary files to grab
+        """
+        files = [
+            # '/absolute/path/py',
+            # '/file/or/directory,
+            os.path.join(self.zenhome, 'Products/ZenModel/ZVersion.py')
         ]
 
-        device_summary_header = ['Device Breakdown by Class and State:']
-
-        counter_keylist = counter.keys()
-        counter_keylist.sort()
-        device_summary_data = [(k, counter[k]) for k in counter_keylist]
-
-        zenpacks_header = ['ZenPacks:']
-        zenpack_ids = zsb.dmd.ZenPackManager.packs.objectIds()
-
-        zenoss_versions_data = [
-            (record['header'], record['data']) for
-                record in zsb.dmd.About.getAllVersions()]
-
-        uuid_data = [('uuid', zsb.dmd.uuid)]
-
-        event_start = time.time() - 24 * 60 * 60
-
-        product_count=0
-        for name in zsb.dmd.Manufacturers.getManufacturerNames():
-            for product_name in zsb.dmd.Manufacturers.getProductNames(name):
-                product_count = product_count + 1
-
-        # Hub collector Data
-        collector_header = ['Hub and Collector Information']
-        hub_data = []
-        remote_count = 0
-        local_count = 0
-        for hub in zsb.dmd.Monitors.Hub.getHubs():
-            hub_data.append("Hub: %s" % hub.id)
-            for collector in hub.collectors():
-                    hub_data.append("\tCollector: %s IsLocal(): %s" % (collector.id,collector.isLocalHost()))
-                    if not collector.isLocalHost():
-                        hub_data.append("\tCollector(Remote): %s" % collector.id)
-                        remote_count = remote_count + 1
-                    else:
-                        hub_data.append("\tCollector(Local): %s " % collector.id)
-                        local_count = local_count + 1
-
-        zep = getFacade('zep')
-        tail_data = [
-            ('Evt Rules', zsb.dmd.Events.countInstances()),
-            ('Evt Count (Last 24 Hours)', zep.countEventsSince(event_start)),
-            ('Reports', zsb.dmd.Reports.countReports()),
-            ('Templates', zsb.dmd.Devices.rrdTemplates.countObjects()),
-            ('Systems', zsb.dmd.Systems.countChildren()),
-            ('Groups', zsb.dmd.Groups.countChildren()),
-            ('Locations', zsb.dmd.Locations.countChildren()),
-            ('Users', len(zsb.dmd.ZenUsers.getUsers())),
-            ('Product Count', product_count),
-            ('Local Collector Count', local_count),
-            ('Remote Collector Count', remote_count)]
-
-        detail_prefix = '    '
-        std_key_data_fmt = '%s: %s'
-        detail_std_key_data_fmt = detail_prefix + std_key_data_fmt
-        detail_data_fmt = detail_prefix + '%s'
-        center_justify_fmt = '%10s: %s'
-
-        return_data = (
-            format_data(std_key_data_fmt, header_data) +
-            format_data(std_key_data_fmt, device_summary_header_data) +
-            device_summary_header +
-            format_data(detail_std_key_data_fmt, device_summary_data) +
-            zenpacks_header +
-            format_data(detail_data_fmt, zenpack_ids) +
-            format_data(center_justify_fmt, zenoss_versions_data + uuid_data) +
-            collector_header +
-            format_data('%s', hub_data) +
-            format_data(std_key_data_fmt, tail_data))
-
-        return '\n'.join(return_data)
-
-    except Exception, ex:
-        log = logging.getLogger('zendiag')
-        log.exception(ex)
-
-def md5s():
-    "Calculate the md5sums of all files in zenhome"
-    from os import listdir, sep
-    from os.path import isdir,isfile
-    try:
-        # python 2.6+ version
-        import hashlib as md5
-    except Exception, ex:
-        # python 2.4 version
-        import md5
-        md5.md5 = md5.new
-
-    def sumfile(fobj):
-        '''Returns an md5 hash for an object with read() method.'''
-        m = md5.md5()
-        while True:
-            d = fobj.read(8096)
-            if not d:
-                break
-            m.update(d)
-        return m.hexdigest()
-
-    def walk(dir,prefix='',results=[]):
-        if prefix == '':
-            prefix = dir
-            if not prefix.endswith(sep):
-                prefix = prefix + sep
-        for fileobj in listdir(dir):
-            path = dir + sep + fileobj
-            if isdir(path):
-                ignoredirs = [ 'backups','doc','skel','perf','log' ]
-                if fileobj in ignoredirs: continue
-                walk(path,prefix=prefix,results=results)
-            elif isfile(path):
-                ignoreFiletypes = [ 'pyc','pyo','rrd' ]
-                if fileobj.rsplit('.',1)[-1] in ignoreFiletypes: continue
-                try:
-                    f = file(path,'rb')
-                    results.append("%s %s" % ( sumfile(f), path[len(prefix):]))
-                except:
-                    log.warning('Unable to access %s for md5' % path)
-        return results
-
-    return '\n'.join(walk(zenhome))
-
-# the python functions we'll call
-functions = [
-    # name, python function, args
-    ('mysqlfiles', mysqlfiles, (), {}),
-    ('zenossInfo', zenossInfo, (), {}),
-    ('eventStats', eventStats, (), {}),
-    ('md5s', md5s, (), {}),
-    ]
-
-
-def getmysqlcreds():
-    """Fetch the mysql creds from the object database and store them
-    in the global file for use in later commands.
-
-    returns True on success, False on failure
-    """
-    pids = os.popen('pgrep -f zeo.py').read().split('\n')
-    pids = [int(p) for p in pids if p]
-    if len(pids) < 1:
-        log.warning('zeo is not running')
-        return False
-    log.debug("Fetching mysql credentials")
-    print "Fetching mysql credentials"
-    mysqlpass = 'zenoss'
-    mysqluser = 'zenoss'
-    mysqlport = '3306'
-    mysqlhost = 'localhost'
-    sys.path.insert(0, os.path.join(zenhome, 'lib/python'))
-    try:
-        import Globals
-        from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-        zsb = ZenScriptBase(noopts=True, connect=True)
-        zsb.getDataRoot()
-        dmd = zsb.dmd
-        mysqlpass = dmd.ZenEventManager.password
-        mysqluser = dmd.ZenEventManager.username
-        mysqlport = dmd.ZenEventManager.port
-        mysqlhost = dmd.ZenEventManager.host
-    except Exception, ex:
-        log.exception("Unable to open global.conf for "
-                      "mysql credentials")
-        pass
-    os.write(fd, '''[client]
-password=%s
-user=%s
-port=%s
-host=%s
-database=events
-''' % (mysqlpass, mysqluser, mysqlport, mysqlhost) )
-    os.close(fd)
-    return True
-
-
-def archiveText(name, output):
-    "if the output is interesting, put it into the archive"
-    if output:
-        zi = zipfile.ZipInfo(name)
-        # default perms for writestr are ---------, not -rw--------
-        zi.external_attr = 0600 << 16L
-        # default creation date is not today, but 1980.
-        zi.date_time = time.localtime(time.time())[:6]
-        archive.writestr(zi, output)
-
-
-def process_functions(functions, skip):
-    "Call arbitrary python code to extract data"
-    for name, function, args, kw in functions:
-        if name in skip: continue
-        try:
-            print "Gathering info for function %s" % name
-            output = function(*args, **kw)
-            archiveText('zendiag/%s.txt' % name, output)
-        except Exception, ex:
-            log.exception("function %s failed", name)
-
-
-def process_commands(commands, skip):
-    "Run some commands and put the result into the archive file"
-    for name, program_args in commands:
-        if name in skip:
-            log.info("Skipping %s", name)
-            continue
-        try:
-            log.debug("Running %s (%s)" % (name, " ".join(program_args)))
-            print "Running %s (%s)" % (name, " ".join(program_args))
-            fp = subprocess.Popen(program_args,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE)
-            output, error = fp.communicate()
-            code = fp.wait()
-            if error:
-                log.info("%s command had an error: %s", name, error)
-            if code != 0:
-                log.info("%s command returned code %d", name, code)
-                if not output:
-                    output = "Error occured, exit code %d\n%s" % (code, error)
-            archiveText('zendiag/%s.txt' % name, output)
-            log.debug("Output for %s:\n%s", name, output)
-        except Exception, err:
-            log.exception("%s command failed", name)
-
-
-def process_files(files, skip):
-    "Archive some key files"
-    for name, filestr in files:
-        if name in skip:
-            log.info("Skipping %s", name)
-            continue
-        filename = filestr.replace('$ZENHOME', zenhome)
-        filenames = []
-        if os.path.isdir(filename):
-            basename = os.path.sep.join(filename.split(os.path.sep)[:-1])
-            for d, ds, fs in os.walk(filename):
-                for f in fs:
-                    fullname = os.path.join(d, f)
-                    zipname = fullname[len(basename):].lstrip('/')
-                    filenames.append((fullname, zipname))
-        else:
-            filenames.append((filename, filename.split(os.path.sep)[-1]))
-        for filename, zipname in filenames:
-            if os.path.exists(filename) and os.path.isfile(filename):
-                try:
-                    archive.write(filename, 'zendiag/files/%s' % zipname)
-                except Exception, ex:
-                    log.exception("could not access %s", filestr)
-
-
-def performance_graphs():
-    "Turn the collector performance data into graphs and send them back"
-    pattern = os.path.sep.join([zenhome, 'perf', 'Daemons', '*', '*.rrd'])
-    for filename in glob.glob(pattern):
-        try:
-            parts = filename.split(os.path.sep)
-            point = parts[-1][:-4]
-            collector = parts[-2]
-            graphName = '%s_%s.png' % (collector, point)
-            subprocess.call(('rrdtool',
-                             'graph',
-                             graphName,
-                             'DEF:ds0=%s:ds0:AVERAGE' % filename,
-                             'LINE1:ds0'),
-                            stdout=subprocess.PIPE)
-            archive.write(graphName, 'zendiag/Daemons/%s/%s.png' % (collector,
-                                                                       point))
-            os.unlink(graphName)
-        except Exception, ex:
-            log.exception("Exception generating an RRD Graph for %s" % filename)
-
-
-def usage():
-    print >>sys.stderr, """
-Usage:
-  $ZENHOME/bin/python zendiag.py [-v] [-s] [-h $ZENHOME]
-        -v         print in verbose messages about collection
-        -d         include the object database (Data.fs)
-        -s         suppress collection of some data (eg. -s Daemons)
-        -h         set ZENHOME explicity
-    """
-
-
-def main():
-    "Parse args and create a .zip file with the results"
-    global log, zenhome, mysqlcreds
-    try:
-        if sys.platform.find('linux') < 0:
-            print >>sys.stderr, "This script has not been ported to non-linux systems."
-            return
-
-        level = logging.WARNING
-        skip = set()
-        opts, ignored = getopt.getopt(sys.argv[1:], 's:vh:d?')
-        for opt, value in opts:
-            if   opt == '-s':
-                skip.add(value)
-            elif opt == '-d':
-                files.append( ('Data.fs', '$ZENHOME/var/Data.fs') )
-            elif opt == '-h':
-                zenhome = value
-            elif opt == '-v':
-                level = logging.DEBUG
+        for filename in files:
+            filenames = []
+            if os.path.isdir(filename):
+                basename = os.path.sep.join(filename.split(os.path.sep)[:-1])
+                for d, ds, fs in os.walk(filename):
+                    for f in fs:
+                        fullname = os.path.join(d, f)
+                        zipname = fullname[len(basename):].lstrip('/')
+                        filenames.append((fullname, zipname))
             else:
-                os.unlink(archive_name)
-                usage()
-                return
-        logging.basicConfig()
-        log = logging.getLogger('zendiag')
-        log.setLevel(level)
-        log.info('Starting zendiag')
+                filenames.append((filename, filename.split(os.path.sep)[-1]))
+            for filename, zipname in filenames:
+                if os.path.exists(filename) and os.path.isfile(filename):
+                    try:
+                        self.archive.write(filename, 'zendiag/files/%s' % zipname)
+                    except Exception, ex:
+                        log.exception("could not access %s", filename)
 
-        os.environ['ZENHOME'] = zenhome
-        os.environ['PATH'] += ":%s/bin" % zenhome
-        if not getmysqlcreds():
-            skip = skip.union(['zenpack',
-                               'mysqlstats',
-                               'heartbeats',
-                               'mysqlstatus',
-                               'zenossInfo'])
+    def get_cc_data(self):
+        if not os.getenv('CONTROLPLANE_TENANT_ID'):
+            log.warn('Unable to determine tenant ID, skipping Control Center data')
+            return
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        allServices= cpClient.queryServices(tenantID=os.getenv('CONTROLPLANE_TENANT_ID'))
 
-        if 'Daemons' not in skip:
-            performance_graphs()
-        process_functions(functions, skip)
-        process_files(files, skip)
-        process_commands(commands, skip)
-        #if os.getuid() == 0:
-        #    process_commands(root_commands, skip)
-        #else:
-        #    log.warning("Not running as root, ignoring commands that "
-        #                "require additional privileges")
-        archive.close()
-        print "Diagnostic data stored in %s" % archive_name
-    finally:
-        os.unlink(mysqlcreds)
+        # 2) Get JSON for all deployed services, pools, hosts
+
+        log.info('Gathering data from Control Center')
+
+        # services
+        servicesOutput = ''
+        for service in allServices:
+            servicesOutput += pformat(service.getRawData())
+        self.archiveText('zendiag/cc-service-list.txt', servicesOutput)
+
+        # pools
+        self.archiveText('zendiag/cc-pool-list.txt', cpClient.getPoolsData())
+        # hosts
+        self.archiveText('zendiag/cc-host-list.txt', cpClient.getHostsData())
+        # running services
+        self.archiveText('zendiag/cc-running-services.txt', cpClient.getRunningServicesData())
+        # storage
+        self.archiveText('zendiag/cc-storage-info.txt', cpClient.getStorageData())
+
+        # 3) Get all service logs for my tenant
+
+        eClient = ElasticClient()
+
+        # Determine the indicies to use
+        # TODO: This counts back using the days of indexes.  Techncially this is
+        # unreliable, but should be good enough for now.
+        indexes = sorted(eClient.getIndexes().keys())
+        if self.log_days and self.log_days < len(indexes):
+            indexes = indexes[-self.log_days:]
+        indexes = ','.join(indexes)
+        log.info('Searching across indexes: %s', indexes)
+
+        BATCH_SIZE=100000
+        try:
+            tmpdir = tempfile.mkdtemp()
+            logPath = os.path.join(tmpdir, 'logs')
+            os.mkdir(logPath)
+            for svc in allServices:
+                try:
+                    fpCache = {}
+                    docCount = eClient.doCount(indexes,  'service:({})'.format(svc.id))
+                    log.info('Found %s log messages for %s', docCount, svc.name)
+                    for beginIdx in xrange(0, docCount, BATCH_SIZE):
+                        # The host + file sorting are technically unnececcesary
+                        # here, but testing showed that their presence did not
+                        # introduce a noticable delay
+                        #
+                        # TODO: Use filters because faster
+                        theJson = eClient.doSearchURI(indexes, 'service:({})&size={}&from={}&sort=host:asc,file:asc,@timestamp:asc'.format(svc.id, BATCH_SIZE, beginIdx))
+                        for hit in theJson['hits']['hits']:
+                            fname = os.path.join(
+                                logPath,
+                                # svcname_logname_svcID_containerID.log
+                                '{}_{}_{}_{}.log'.format(svc.name.replace(' ', '-'), hit['_source']['file'].split('/')[-1], svc.id, hit['_source']['host'])
+                            )
+                            if fname not in fpCache:
+                                log.debug('Creating logfile %s', fname)
+                                fpCache[fname] = open(fname, 'w')
+                            fpCache[fname].write(hit['_source']['message'] + '\n')
+                finally:
+                    for fp in fpCache.values():
+                        fp.close()
+
+            # Add logs to zipfile after done processing each service, then
+            # delete them (to prevent blowing out disk space)
+            for root, dirs, files in os.walk(logPath):
+                for file in files:
+                    self.archive.write(
+                        os.path.join(root, file),
+                        'zendiag/logs/' + file
+                    )
+            shutil.rmtree(
+                os.path.join(logPath, '*'),
+                ignore_errors=True
+            )
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
+    def wrapup(self):
+        self.archive.close()
+        log.info('Diagnostic data stored to %s', self.archive.filename)
+
+    def run(self, verbose=False, steps=[]):
+        """
+        Main method that gets invoked.  Call with parsed arguments.
+        """
+        if verbose:
+            log.setLevel(logging.DEBUG)
+        stepDict= {
+            'database': self.get_database_info,
+            'zep': self.get_zep_info,
+            'zenoss': self.get_zenoss_info,
+            'files': self.get_files,
+            'control-center': self.get_cc_data
+        }
+        if steps:
+            [ stepDict[step]() for step in steps ]
+        else:
+            [ step() for step in stepDict.values() ]
+
+        self.wrapup()
+
 
 if __name__ == '__main__':
-    main()
+    parser = ArgumentParser(description='Gather diagnostic data about Zenoss')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='Enable verbose logging')
+    parser.add_argument('--steps', choices=('database', 'control-center', 'zep', 'zenoss', 'files'),
+                        nargs='+', help='Collect specific peices of data')
+    parser.add_argument('--log-days', type=int, help='Number of days worth of logs to gather')
+    argz = parser.parse_args()
+
+    if not os.getenv('ZENHOME'):
+        log.error('$ZENHOME is not set, exiting')
+        sys.exit(1)
+
+    zd = ZenDiag(os.getenv('ZENHOME'), log_days=argz.log_days)
+    zd.run(argz.verbose, argz.steps)
+

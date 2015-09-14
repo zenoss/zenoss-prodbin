@@ -44,7 +44,7 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
 from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
-from Products.ZenUtils.Utils import binPath, zenPath
+from Products.ZenUtils.Utils import binPath, zenPath, supportBundlePath
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
 
@@ -925,7 +925,7 @@ class DeviceFacade(TreeFacade):
         return sorted(devtypes, key=lambda x: x.get('description'))
 
     def createSupportBundle(self):
-        destpath = zenPath('support')
+        destpath = supportBundlePath()
         # make support bundle directory if it doesn't exist
         if not os.path.isdir(destpath):
             cmd = ['mkdir', '-p', destpath]
