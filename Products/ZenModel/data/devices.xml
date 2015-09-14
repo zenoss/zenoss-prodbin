@@ -176,7 +176,7 @@ False
 <property visible="True" label="Enable Password" type="password" id="zEnablePassword" description="Enable password for Cisco routers" >
 </property>
 <property visible="True" label="Nmap Port Scan Options" type="string" id="zNmapPortscanOptions" description="Options used on nmap when scanning ports. Used in IpServiceMap" >
--p 1-1024;-sT;--open;-oG -
+-p 1-1024 -sT --open -oG -
 </property>
 <property visible="True" label="SSH Concurrent Sessions" type="int" id="zSshConcurrentSessions" description="How many SSH sessions to open up to one device (some SSH servers have a limit)" >
 10
