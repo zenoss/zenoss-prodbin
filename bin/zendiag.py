@@ -265,23 +265,32 @@ class ZenDiag(object):
                         log.exception("could not access %s", filename)
 
     def get_cc_data(self):
-
         if not os.getenv('CONTROLPLANE_TENANT_ID'):
             log.warn('Unable to determine tenant ID, skipping Control Center data')
             return
-        allServices = ControlPlaneClient(
-            **getConnectionSettings()
-        ).queryServices(tenantID=os.getenv('CONTROLPLANE_TENANT_ID'))
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        allServices= cpClient.queryServices(tenantID=os.getenv('CONTROLPLANE_TENANT_ID'))
 
-        # 1) Get JSON for all deployed services
+        # 2) Get JSON for all deployed services, pools, hosts
 
-        log.info('Gathering list of Control Center services')
+        log.info('Gathering data from Control Center')
+
+        # services
         servicesOutput = ''
         for service in allServices:
             servicesOutput += pformat(service.getRawData())
-        self.archiveText('zendiag/service-list.txt', servicesOutput)
+        self.archiveText('zendiag/cc-service-list.txt', servicesOutput)
 
-        # 2) Get all service logs for my tenant
+        # pools
+        self.archiveText('zendiag/cc-pool-list.txt', cpClient.getPoolsData())
+        # hosts
+        self.archiveText('zendiag/cc-host-list.txt', cpClient.getHostsData())
+        # running services
+        self.archiveText('zendiag/cc-running-services.txt', cpClient.getRunningServicesData())
+        # storage
+        self.archiveText('zendiag/cc-storage-info.txt', cpClient.getStorageData())
+
+        # 3) Get all service logs for my tenant
 
         eClient = ElasticClient()
 
@@ -294,7 +303,7 @@ class ZenDiag(object):
         indexes = ','.join(indexes)
         log.info('Searching across indexes: %s', indexes)
 
-        BATCH_SIZE=10000
+        BATCH_SIZE=100000
         try:
             tmpdir = tempfile.mkdtemp()
             logPath = os.path.join(tmpdir, 'logs')
@@ -306,11 +315,11 @@ class ZenDiag(object):
                     log.info('Found %s log messages for %s', docCount, svc.name)
                     for beginIdx in xrange(0, docCount, BATCH_SIZE):
                         # The host + file sorting are technically unnececcesary
-                        # here
-                        log.warn('Getting logs for %s', svc.name)
+                        # here, but testing showed that their presence did not
+                        # introduce a noticable delay
+                        #
                         # TODO: Use filters because faster
                         theJson = eClient.doSearchURI(indexes, 'service:({})&size={}&from={}&sort=host:asc,file:asc,@timestamp:asc'.format(svc.id, BATCH_SIZE, beginIdx))
-                        log.warn('Done getting logs for %s', svc.name)
                         for hit in theJson['hits']['hits']:
                             fname = os.path.join(
                                 logPath,
@@ -325,14 +334,14 @@ class ZenDiag(object):
                     for fp in fpCache.values():
                         fp.close()
 
-            # Add logs to zipfile after done processing each service
+            # Add logs to zipfile after done processing each service, then
+            # delete them (to prevent blowing out disk space)
             for root, dirs, files in os.walk(logPath):
                 for file in files:
                     self.archive.write(
                         os.path.join(root, file),
                         'zendiag/logs/' + file
                     )
-            # Delete to not fill up disk
             shutil.rmtree(
                 os.path.join(logPath, '*'),
                 ignore_errors=True

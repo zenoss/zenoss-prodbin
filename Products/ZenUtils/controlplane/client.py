@@ -287,6 +287,41 @@ class ControlPlaneClient(object):
         response.close()
         return body
 
+    def getPoolsData(self):
+        """
+        Get all the pools and return raw json
+        """
+        response = self._dorequest("/pools")
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def getHostsData(self):
+        """
+        Get all the pools and return raw json
+        """
+        response = self._dorequest("/hosts")
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def getRunningServicesData(self):
+        """
+        Get all the running services and return raw json
+        """
+        response = self._dorequest("/running")
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def getStorageData(self):
+        """
+        Get the storage information and return raw json
+        """
+        response = self._dorequest("/storage")
+        body = ''.join(response.readlines())
+        response.close()
+        return body
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
