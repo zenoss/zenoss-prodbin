@@ -16,7 +16,7 @@ import Migrate
 from Products.ZenModel.LinkManager import DeviceNetworksCache
 
 class AddNetworksPerDeviceCache(Migrate.Step):
-    version = Migrate.Version(5, 1, 70)
+    version = Migrate.Version(5, 0, 70)
 
     def cutover(self, dmd):
         if not hasattr(dmd.ZenLinkManager, 'networks_per_device_cache'):

@@ -47,8 +47,8 @@ class IpServiceMap(PythonPlugin):
             readyopts = NMAPDEFAULTS + " " + device.manageIp
         nmapoptions = readyopts.split(" ") 
         log.info("running the following nmap command: %s %s" % \
-                  (binPath('nmap'), " ".join(nmapoptions)))
-        return getProcessOutput(binPath('nmap'), nmapoptions)
+                  ("/usr/bin/nmap", " ".join(nmapoptions)))
+        return getProcessOutput("/usr/bin/nmap", nmapoptions)
 
 
     def process(self, device, results, log):
