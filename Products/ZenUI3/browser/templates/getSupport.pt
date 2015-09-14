@@ -19,7 +19,7 @@
                     <input class="tableheader" type="button" value=" Gather Support Bundle "
                            onclick="
                                     Zenoss.remote.DeviceRouter.createSupportBundle({}, function(response){ if (response.success) { var win = Ext.create('Zenoss.JobLog', {
-                                            job: response.new_jobs,                                            
+                                            job: response.new_jobs,
                                             title: _t('Create Support Bundle')
                                         });
                                         win.on('destroy', function() { window.location.reload(); });
@@ -61,7 +61,7 @@
                     <tr tal:define="odd repeat/file/odd"
                         tal:attributes="class python:odd and 'odd' or 'even'">
                         <td class="tablevalues" align="left">
-                             <input type="checkbox" name="fileNames:list" 
+                             <input type="checkbox" name="fileNames:list"
                           tal:attributes="value file/fileName"/>
                             <a tal:attributes="href string:${here/absolute_url_path}/getSupportBundle?bundle=${file/fileName}">
                                 <tal:block tal:replace="file/fileName"/>
@@ -75,11 +75,6 @@
                         </td>
                     </tr>
                 </tal:block>
-                <tr>
-                    <td colspan="3" class="tableheader">
-                        <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
-                    </td>
-                </tr>
 
                 <!-- END TABLE CONTENTS -->
 

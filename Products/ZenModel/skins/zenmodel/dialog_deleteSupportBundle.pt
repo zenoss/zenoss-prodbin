@@ -1,0 +1,13 @@
+<h2>Delete Support Bundle</h2>
+<table>
+<tr><td>Are you sure you want to delete the selected support bundle(s)?</td></tr>
+</table>
+<br>
+<div align="center">
+<input type="submit" name="manage_deleteSupportBundles:method"
+   value="Delete"
+   tal:attributes="onclick string:return $$('dialog').submit_form('', 'supportBundlesForm')" />
+<input id="dialog_cancel" type="button" value="Cancel" 
+       onclick="$('dialog').hide()"/>
+</div>
+
