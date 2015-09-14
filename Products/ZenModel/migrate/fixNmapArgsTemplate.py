@@ -19,7 +19,8 @@ class fixNmapArgsTemplate(Migrate.Step):
 
     def cutover(self, dmd):
         
-        if hasattr(dmd.Devices, 'zNmapPortscanOptions'): dmd.Devices.zNmapPortscanOptions = '-p 1-1024 -sT --open -oG -'
+        if hasattr(dmd.Devices, 'zNmapPortscanOptions'): 
+        	dmd.Devices.zNmapPortscanOptions = '-p 1-1024 -sT --open -oG -'
 
 
 
