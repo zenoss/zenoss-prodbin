@@ -24,6 +24,7 @@ from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
 from Products.ZenUtils import metrics
 
+DEFAULT_METRIC_URL = 'http://localhost:8080/'
 Z_AUTH_TOKEN = 'ZAuthToken'
 
 log = logging.getLogger("zen.MetricFacade")
@@ -54,31 +55,30 @@ def _isRunningFromUI(context):
 
 
 class MetricConnection(object):
+    """
+    Manages communication to Metric Server.
+    """
 
-    """Manages communication to Metric Server."""
-
-    def __init__(self, auth_token, credentials, global_credentials):
+    def __init__(self, auth_token, credentials, global_credentials,
+                 agent_suffix='python'):
         """Metric connection constructor.
 
         :param auth_token: ZAuthToken used for authentication
         :param credentials: current user credentials
         :param global_credentials: global user credentials
+        :param agent_suffix: suffix to be added to user agent
         """
         self._metric_url = getGlobalConfiguration().get('metric-url',
-                                                        'http://localhost:8080/')
+                                                        DEFAULT_METRIC_URL)
 
         self._auth_token = auth_token
         self._credentials = credentials
         self._global_credentials = global_credentials
 
-        self._req_session = self._init_session()
+        self._req_session = self._init_session(agent_suffix)
 
-    def _init_session(self):
+    def _init_session(self, agent_suffix):
         req_session = requests.Session()
-
-        agent_suffix = 'python'
-        if sys.argv[0]:
-            agent_suffix = os.path.basename(sys.argv[0].rstrip(".py"))
 
         req_session.headers = {
             'content-type': 'application/json',
@@ -109,9 +109,7 @@ class MetricConnection(object):
             raise ServiceResponseError(response.reason, status_code, request,
                                        response, response.content)
 
-        content = response.json()
-
-        return content
+        return response.json()
 
     def _request(self, path, request, timeout):
         auth = None
@@ -160,10 +158,8 @@ class MetricConnection(object):
             log.error('Error fetching request: %s \n'
                       'Response from the server (return code %s): %s',
                       request, e.status, e.content)
-            return None
         except ServiceConnectionError as e:
             log.error('Error connecting with request: %s \n%s', request, e)
-            return None
 
 
 class MetricFacade(ZuulFacade):
@@ -189,8 +185,13 @@ class MetricFacade(ZuulFacade):
         else:
             credentials = None
 
+        agent_suffix = 'python'
+        if sys.argv[0]:
+            agent_suffix = os.path.basename(sys.argv[0].rstrip(".py"))
+
         self._metrics_connection = MetricConnection(auth_token, credentials,
-                                                    global_credentials)
+                                                    global_credentials,
+                                                    agent_suffix)
 
     def getLastValue(self, context, metric):
         """
@@ -487,7 +488,7 @@ class MetricFacade(ZuulFacade):
         for device in devices:
             for metric in metrics:
                 dp = self._getDataPoint(
-                    itertools.chain((device, ), device.getDeviceComponents()),
+                    itertools.chain((device,), device.getDeviceComponents()),
                     metric)
                 if dp is not None:
                     metricnames[dp.name()] = metric
@@ -506,7 +507,7 @@ class MetricFacade(ZuulFacade):
 
         # check for bad status and log what happened
         for status in content['statuses']:
-            if status['status'] == u'ERROR' and 'No such name' not in status['message']:
+            if status['status'] == u'ERROR' and u'No such name' not in status['message']:
                 log.error(status['message'])
 
         results = {}
