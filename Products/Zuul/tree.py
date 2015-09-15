@@ -256,9 +256,6 @@ class CatalogTool(object):
                 log.info("Successfully reindexed: %s", path)
             except Exception, e:
                 log.exception("Unable to reindex %s: %s", path, e)
-        rid = cat.uids[path]
-        if rid:
-            return cat.__getitem__(rid)
 
     def parents(self, path):
         # Make sure it's actually a path
