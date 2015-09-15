@@ -7,12 +7,12 @@
 #
 ##############################################################################
 import logging
-import base64
 import requests
 import json
 import re
 import os
 import sys
+import itertools
 
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -23,6 +23,9 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
 from Products.ZenUtils import metrics
+
+DEFAULT_METRIC_URL = 'http://localhost:8080/'
+Z_AUTH_TOKEN = 'ZAuthToken'
 
 log = logging.getLogger("zen.MetricFacade")
 
@@ -51,24 +54,144 @@ def _isRunningFromUI(context):
     return safe_hasattr(context.REQUEST, 'SESSION')
 
 
+class MetricConnection(object):
+    """
+    Manages communication to Metric Server.
+    """
+
+    def __init__(self, auth_token, credentials, global_credentials,
+                 agent_suffix='python'):
+        """Metric connection constructor.
+
+        :param auth_token: ZAuthToken used for authentication
+        :param credentials: current user credentials
+        :param global_credentials: global user credentials
+        :param agent_suffix: suffix to be added to user agent
+        """
+        self._metric_url = getGlobalConfiguration().get('metric-url',
+                                                        DEFAULT_METRIC_URL)
+
+        self._auth_token = auth_token
+        self._credentials = credentials
+        self._global_credentials = global_credentials
+
+        self._req_session = self._init_session(agent_suffix)
+
+    def _init_session(self, agent_suffix):
+        req_session = requests.Session()
+
+        req_session.headers = {
+            'content-type': 'application/json',
+            'User-Agent': 'Zenoss MetricFacade: %s' % agent_suffix
+        }
+
+        if self._auth_token:
+            req_session.cookies[Z_AUTH_TOKEN] = self._auth_token
+
+        return req_session
+
+    def _uri(self, path):
+        return "%s/%s" % (self._metric_url, path)
+
+    def _server_request(self, path, request, auth, timeout):
+        log.debug("METRICFACADE POST %s %s", path, request)
+        try:
+            response = self._req_session.post(self._uri(path),
+                                              json.dumps(request),
+                                              auth=auth,
+                                              timeout=timeout)
+        except requests.exceptions.Timeout as e:
+            raise ServiceConnectionError(
+                'Timed out waiting for response from metric service: %s' % e, e)
+        status_code = response.status_code
+        if not (status_code >= 200 and status_code <= 299):
+            log.error('Server response error: %s %s', status_code, response)
+            raise ServiceResponseError(response.reason, status_code, request,
+                                       response, response.content)
+
+        return response.json()
+
+    def _request(self, path, request, timeout):
+        auth = None
+        if not self._req_session.cookies.get(Z_AUTH_TOKEN):
+            if self._credentials:
+                auth = self._credentials
+            else:
+                auth = self._global_credentials
+
+        try:
+            return self._server_request(path, request, auth, timeout)
+        except ServiceResponseError as e:
+            if e.status == 401 and auth != self._global_credentials:
+                # Try using global credentials.
+                auth = self._global_credentials
+
+                if Z_AUTH_TOKEN in self._req_session.cookies:
+                    del self._req_session.cookies[Z_AUTH_TOKEN]
+
+                log.info('Authorization failed. Trying to use global credentials')
+                return self._server_request(path, request, auth, timeout)
+            else:
+                raise
+
+    def request(self, path, request, timeout=10):
+        """
+        Performs request to Metrics Server.
+
+        If `auth_token` is not None, it will be used for authentication.
+        Otherwise, check if `credentials` is not None and uses them. And
+        finally will use `global_credentials` if both of previous ones are None.
+
+        In case of authentication error, tries to use global credentials for
+        authentication.
+
+        :param path: path to API method on Metric Server without scheme, host
+                     and port. (i.e. /api/performance/query)
+        :param request: dict with request parameters
+        :param timeout: timeout in seconds to wait for response from server
+        :return: decoded response from server or None if error occurred
+        """
+        try:
+            return self._request(path, request, timeout)
+        except ServiceResponseError as e:
+            # there was an error returned by the metric service, log it here
+            log.error('Error fetching request: %s \n'
+                      'Response from the server (return code %s): %s',
+                      request, e.status, e.content)
+        except ServiceConnectionError as e:
+            log.error('Error connecting with request: %s \n%s', request, e)
+
+
 class MetricFacade(ZuulFacade):
 
     def __init__(self, context):
         super(MetricFacade, self).__init__(context)
-        self._metric_url = getGlobalConfiguration().get('metric-url', 'http://localhost:8080/')
 
-        self._req_session = requests.Session()
-        self._authCookie = {}
-        self._authorization = IAuthorizationTool(self.context)
-        self._credentials = None
+        authorization = IAuthorizationTool(self.context)
+
+        auth_token = None
+        credentials = None
+
+        global_credentials_dict = authorization.extractGlobalConfCredentials()
+        global_credentials = (global_credentials_dict['login'],
+                              global_credentials_dict['password'])
+
         if _isRunningFromUI(context):
-            token = context.REQUEST.cookies.get('ZAuthToken', None)
-            if token:
-                self._authCookie = {'ZAuthToken': token}
-            else:
-                self._credentials = self._authorization.extractCredentials(context.REQUEST)
+            auth_token = context.REQUEST.cookies.get(Z_AUTH_TOKEN, None)
+            if not auth_token:
+                credentials_dict = authorization.extractCredentials(context.REQUEST)
+                credentials = (credentials_dict['login'],
+                               credentials_dict['password'])
         else:
-            self._credentials = self._authorization.extractGlobalConfCredentials()
+            credentials = None
+
+        agent_suffix = 'python'
+        if sys.argv[0]:
+            agent_suffix = os.path.basename(sys.argv[0].rstrip(".py"))
+
+        self._metrics_connection = MetricConnection(auth_token, credentials,
+                                                    global_credentials,
+                                                    agent_suffix)
 
     def getLastValue(self, context, metric):
         """
@@ -212,15 +335,8 @@ class MetricFacade(ZuulFacade):
         request = self._buildRequest(subjects, datapoints, start, end, returnSet, downsample)
 
         # submit it to the client
-        try:
-            response = self._post_request(self._uri(METRIC_URL_PATH), request)
-            content = response.json()
-        except ServiceResponseError, e:
-            # there was an error returned by the metric service, log it here
-            log.error("Error fetching request: %s \nResponse from the server: %s", request, e.content)
-            return {}
-        except ServiceConnectionError, e:
-            log.error("Error connecting with request: %s \n%s", request, e)
+        content = self._metrics_connection.request(METRIC_URL_PATH, request)
+        if content is None:
             return {}
 
         if content and content.get('results') is not None and returnSet == "LAST":
@@ -300,35 +416,6 @@ class MetricFacade(ZuulFacade):
         """
         return t.strftime(DATE_FORMAT)
 
-    def _uri(self, path):
-        return "%s/%s" % (self._metric_url, path)
-
-    def _post_request(self, path, request, timeout=10):
-        agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python"
-        headers = {
-            'content-type': 'application/json',
-            'User-Agent': 'Zenoss MetricFacade: %s' % agent_suffix
-        }
-
-        if self._credentials:
-            login = self._credentials['login']
-            password = self._credentials['password']
-            auth = base64.b64encode('%s:%s' % (login, password))
-            headers['Authorization'] = 'basic %s' % auth
-        elif self._authCookie:
-            log.debug("using token auth")
-
-        log.debug("METRICFACADE POST %s %s", path, request)
-        try:
-            response = self._req_session.post(path, json.dumps(request), headers=headers,
-                                              timeout=timeout, cookies=self._authCookie)
-        except requests.exceptions.Timeout, e:
-            raise ServiceConnectionError('Timed out waiting for response from metric service: %s' % e, e)
-        status_code = response.status_code
-        if not (status_code >= 200 and status_code <= 299):
-            raise ServiceResponseError(response.reason, status_code, request, response, response.content)
-        return response
-
     def _buildWildCardMetrics(self, device, metricName, cf='avg', isRate=False, format="%.2lf"):
 
         # find out our aggregation function
@@ -356,16 +443,10 @@ class MetricFacade(ZuulFacade):
         request = self._buildRequest([device], metricRequests, start, end, returnSet, downsample)
         request['queries'] = request['metrics']
         del request['metrics']
-        content = None
-        try:
-            response = self._post_request(self._uri(WILDCARD_URL_PATH), request, timeout=timeout)
-            content = response.json()
-        except ServiceResponseError, e:
-            # there was an error returned by the metric service, log it here
-            log.error("Error fetching request: %s \nResponse from the server (return code %s): %s", request, e.status, e.content)
-            return []
-        except ServiceConnectionError, e:
-            log.error("Error connecting with request: %s \n%s", request, e)
+        content = self._metrics_connection.request(WILDCARD_URL_PATH,
+                                                   request,
+                                                   timeout=timeout)
+        if content is None:
             return []
 
         # check for bad status and log what happened
@@ -373,3 +454,70 @@ class MetricFacade(ZuulFacade):
             if status['status'] == u'ERROR' and 'not such name' not in status['message']:
                 log.error(status['message'])
         return content['series']
+
+    def _getDataPoint(self, devices, metric):
+        for subject in devices:
+            dp = next(
+                (
+                    d
+                    for d in subject._getRRDDataPointsGen()
+                    if metric in d.name()
+                ),
+                None
+            )
+            if dp is not None:
+                return dp
+
+        return None
+
+    def getMetricsForDevices(self, devices, metrics, start=None,
+                             end=None, format="%.2lf", cf="avg",
+                             downsample=None, timeout=10, isRate=False):
+        """
+        Gets a set of metrics for every component under a each device.
+        """
+        # Only EXACT resultsets are supported yet.
+        returnSet = 'EXACT'
+
+        start, end = self._defaultStartAndEndTime(start, end, returnSet)
+        if isinstance(metrics, basestring):
+            metrics = [metrics]
+
+        metricnames = {}
+        metricRequests = []
+        for device in devices:
+            for metric in metrics:
+                dp = self._getDataPoint(
+                    itertools.chain((device,), device.getDeviceComponents()),
+                    metric)
+                if dp is not None:
+                    metricnames[dp.name()] = metric
+                    metricRequests.append(
+                        self._buildWildCardMetrics(device, dp.name(), cf, isRate,
+                                                   format))
+
+        request = self._buildRequest(devices, metricRequests, start, end, returnSet, downsample)
+        request['queries'] = request['metrics']
+        del request['metrics']
+        content = self._metrics_connection.request(WILDCARD_URL_PATH,
+                                                   request,
+                                                   timeout=timeout)
+        if content is None:
+            return {}
+
+        # check for bad status and log what happened
+        for status in content['statuses']:
+            if status['status'] == u'ERROR' and u'No such name' not in status['message']:
+                log.error(status['message'])
+
+        results = {}
+        for row in content['series']:
+            _, metric = row['metric'].split('/', 1)
+            key = row['tags']['key']
+            if key not in results:
+                results[key] = defaultdict(list)
+            for ts, value in row.get('datapoints', []):
+                if value is not None and value != u'NaN':
+                    results[key][metricnames[metric]].append(dict(timestamp=ts, value=value))
+
+        return results
