@@ -72,6 +72,8 @@ class ZenDiag(object):
         """
         Generate and return an empty zipfile to archive everything to
         """
+        if not os.path.exists(supportBundlePath()):
+            os.makedirs(supportBundlePath())
         archive_name = time.strftime("zendiag-%Y-%m-%d-%H-%M.zip")
         return zipfile.ZipFile(
             supportBundlePath(archive_name),
