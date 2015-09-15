@@ -33,7 +33,7 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul import getFacade
 from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree, ControlCenterError
 from Products.ZenUtils.controlplane.application import getConnectionSettings
-from Products.ZenUtils.elastic.client import ElasticClient
+from Products.ZenUtils.elastic.client import ElasticClient, ElasticClientException
 
 
 __doc__ = """zendiag
@@ -313,7 +313,7 @@ class ZenDiag(object):
             for svc in allServices:
                 try:
                     fpCache = {}
-                    docCount = eClient.doCount(indexes,  'service:({})'.format(svc.id))
+                    docCount = eClient.doCount(indexes, 'service:({})'.format(svc.id))
                     log.info('Found %s log messages for %s', docCount, svc.name)
                     for beginIdx in xrange(0, docCount, BATCH_SIZE):
                         # The host + file sorting are technically unnececcesary
@@ -321,7 +321,13 @@ class ZenDiag(object):
                         # introduce a noticable delay
                         #
                         # TODO: Use filters because faster
-                        theJson = eClient.doSearchURI(indexes, 'service:({})&size={}&from={}&sort=host:asc,file:asc,@timestamp:asc'.format(svc.id, BATCH_SIZE, beginIdx))
+                        try:
+                            theJson = self._retry_elastic(
+                                5, eClient.doSearchURI, indexes, 'service:({})&size={}&from={}&sort=host:asc,file:asc,@timestamp:asc'.format(svc.id, BATCH_SIZE, beginIdx)
+                            )
+                        except:
+                            log.warn('Failed to gather all logs for service %s', svc.name)
+                            break
                         for hit in theJson['hits']['hits']:
                             fname = os.path.join(
                                 logPath,
@@ -350,6 +356,20 @@ class ZenDiag(object):
             )
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
+
+    def _retry_elastic(self, retries, func, *args, **kwargs):
+        """
+        Wrapper around elastic functions to do retries.
+        """
+        attempt = 0
+        while attempt < retries:
+            try:
+                result =func(*args, **kwargs)
+                return result
+            except ElasticClientException as ece:
+                log.warn('Request failed, retrying')
+                attempt += 1
+        raise Exception('Failed to make request to elastic after {} retries'.format(retries))
 
     def wrapup(self):
         self.archive.close()
