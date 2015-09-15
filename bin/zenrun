@@ -68,7 +68,7 @@ defaultExists=$?
 if [[ $defaultExists=0 && -z "$1" ]]; then
     __DEFAULT__
     RC="$?"
-elif declare -f $1 &> /dev/null; then
+elif declare -f -- "$1" &> /dev/null; then
     "$@"
     RC="$?"
 elif [[ $defaultExists=0 ]]; then

@@ -20,7 +20,7 @@ __DEFAULT__() {
     fi
     set -- "$@" $serviceid
 
-    if declare -f $1 &> /dev/null; then
+    if declare -f -- "$1" &> /dev/null; then
         "$@"
     else
         echo unknown zenpack sub-command: \"$1\"
