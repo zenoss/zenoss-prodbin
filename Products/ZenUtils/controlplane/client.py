@@ -368,9 +368,44 @@ class ControlPlaneClient(object):
             else:
                 # break the loop so we skip the loop's else clause
                 break
+
+
         else:
             # raises the last exception that was raised (the 401 error)
             raise
+
+    def _get_cookie_jar(self):
+        return self._cj
+
+    def cookies(self):
+        """
+        Get the cookie(s) being used.  If the cookie/cookiejar implementation
+        changes, this method should be revisited.
+
+        Return a list of dicts of cookies of the form:
+            {
+                'name':  'cookieName',
+                'value': 'cookieValue',
+                'domain': 'cookieDomain',
+                'path': 'cookiePath',
+                'expires': seconds from epoch to expore cookie, # leave blank to be a session cookie
+                'secure': False/True,
+            }
+        """
+        self._login()
+        cookies = []
+        for cookie in self._get_cookie_jar():
+            cookies.append(
+                {
+                    'name': cookie.name,
+                    'value': cookie.value,
+                    'domain': cookie.domain,
+                    'path': cookie.path,
+                    'expires': cookie.expires,
+                    'secure': cookie.discard
+                }
+            )
+        return cookies
 
 
 # Define the names to export via 'from client import *'.
