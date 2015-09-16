@@ -1,0 +1,400 @@
+#!/opt/zenoss/bin/python
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2015, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+"""Report of datapoints being collected."""
+
+import Globals
+
+# stdlib Imports
+import collections
+import datetime
+import functools
+import logging
+import optparse
+import sys
+
+# Zenoss Imports
+import transaction
+
+from Products.ZenModel.Device import Device
+from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.Utils import unused
+from Products.Zuul.interfaces import ICatalogTool
+
+unused(Globals)
+
+
+DEFAULT_FORMAT = 'csv'
+
+
+class CommandLineException(Exception):
+    pass
+
+
+class MonitoredDataPointReporter(ZenScriptBase):
+    def buildOptions(self):
+        super(MonitoredDataPointReporter, self).buildOptions()
+
+        group = optparse.OptionGroup(
+            self.parser,
+            "Monitored Datapoint Options")
+
+        group.add_option(
+            '--file',
+            dest='filename',
+            help='File to which output will be written (default: stdout)')
+
+        group.add_option(
+            '--format',
+            dest='format',
+            help='Output format: csv or json (default: {})'.format(
+                DEFAULT_FORMAT))
+
+        self.parser.add_option_group(group)
+
+    def run(self):
+        """Collect and write information on monitored datapoints."""
+        try:
+            fmt = self.get_format()
+        except CommandLineException as e:
+            sys.exit(e)
+
+        try:
+            fh = self.get_filehandle()
+        except CommandLineException as e:
+            sys.exit(e)
+
+        datapoints = self.all_datapoints()
+
+        if fmt == 'csv':
+            self.write_csv(fh, datapoints)
+        elif fmt == 'json':
+            self.write_json(fh, datapoints)
+
+        if fh is not sys.stdout:
+            fh.close()
+
+    def get_format(self):
+        """Return output format based on command line options.
+
+        Returns "csv" or "json". Can raise CommandLineException.
+
+        """
+        if not self.options.format and not self.options.filename:
+            return DEFAULT_FORMAT
+
+        if self.options.format:
+            fmt = self.options.format.lower()
+        else:
+            fmt = self.options.filename.split('.')[-1]
+            if not fmt:
+                return DEFAULT_FORMAT
+
+        if fmt not in ('csv', 'json'):
+            raise CommandLineException(
+                "{} is not a valid format. Must be csv or json."
+                .format(self.options.format))
+
+        return fmt
+
+    def get_filehandle(self):
+        """Return file handle for output based on command line options.
+
+        An open file handle will be returned. It may be sys.stdout or
+        another unclosable file handle.
+
+        """
+        if self.options.filename:
+            try:
+                return open(self.options.filename, 'w')
+            except Exception as e:
+                sys.exit(
+                    "Failed to open {} for writing: {}"
+                    .format(self.options.filename, e))
+        else:
+            return sys.stdout
+
+    def write_csv(self, fh, datapoints):
+        """Write datapoints to fh as CSV."""
+        import csv
+
+        csvwriter = csv.writer(fh)
+        csvwriter.writerow([
+            'resource_device_class',
+            'resource_meta_type',
+            'template_device_class',
+            'template_name',
+            'datasource_name',
+            'datasource_type',
+            'datasource_cycletime',
+            'datapoint_name',
+            'datapoint_rrdtype',
+            'datapoint_threshold',
+            'count',
+            ])
+
+        for datapoint in sorted(datapoints):
+            csvwriter.writerow([
+                datapoint.resource_device_class,
+                datapoint.resource_meta_type,
+                datapoint.template_device_class,
+                datapoint.template_name,
+                datapoint.datasource_name,
+                datapoint.datasource_type,
+                datapoint.datasource_cycletime,
+                datapoint.datapoint_name,
+                datapoint.datapoint_rrdtype,
+                'yes' if datapoint.datapoint_threshold else 'no',
+                datapoints[datapoint],
+                ])
+
+    def write_json(self, fh, datapoints):
+        """Write datapoints to fh as JSON."""
+        import json
+
+        datapoint_list = []
+        for datapoint, count in datapoints.items():
+            datapoint_list.append(dict({
+                'count': count,
+                }, **datapoint.__dict__))
+
+        json.dump(datapoint_list, fh)
+
+    def all_datapoints(self):
+        # Connect to ZODB.
+        self.connect()
+
+        total = ICatalogTool(self.dmd.Devices).search(
+            types=[Device, DeviceComponent]).total
+
+        self.log.info("starting: %s total devices and components", total)
+
+        progress = ProgressLogger(
+            self.log,
+            total=total,
+            interval=1)
+
+        datapoints = collections.Counter()
+
+        for device in self.dmd.Devices.getSubDevicesGen():
+            if not device.monitorDevice():
+                continue
+
+            datapoints.update(
+                self.datapoints_for_managed_entity(device))
+
+            progress.increment()
+
+            for component in device.getMonitoredComponents():
+                datapoints.update(
+                    self.datapoints_for_managed_entity(component))
+
+                progress.increment()
+
+                component._p_invalidate()
+
+            device._p_invalidate()
+            transaction.abort()
+
+        self.log.info(
+            "finished: %s monitored datapoints found in %s configurations",
+            sum(datapoints.values()),
+            len(datapoints))
+
+        return datapoints
+
+    def datapoints_for_managed_entity(self, managed_entity):
+        datapoints = collections.Counter()
+        for template in managed_entity.getRRDTemplates():
+            for datasource in template.datasources():
+                for datapoint in datasource.datapoints():
+                    record = DatapointRecord.from_datapoint(
+                        datapoint,
+                        managed_entity)
+
+                    if record:
+                        datapoints[record] += 1
+
+        return datapoints
+
+
+@functools.total_ordering
+class DatapointRecord(object):
+
+    """Representation of one unique datapoint.
+
+    Uniqueness is determined by all of the following fields matching:
+
+    * resource_device_class
+    * resource_meta_type
+    * template_device_class
+    * template_name
+    * datasource_name
+    * datasource_type
+    * datasource_cycletime
+    * datapoint_name
+    * datapoint_rrdtype
+    * datapoint_threshold
+
+    """
+
+    def __init__(
+            self,
+            resource_device_class,
+            resource_meta_type,
+            template_device_class,
+            template_name,
+            datasource_name,
+            datasource_type,
+            datasource_cycletime,
+            datapoint_name,
+            datapoint_rrdtype,
+            datapoint_threshold,
+            ):
+        self.resource_device_class = resource_device_class
+        self.resource_meta_type = resource_meta_type
+        self.template_device_class = template_device_class
+        self.template_name = template_name
+        self.datasource_name = datasource_name
+        self.datasource_type = datasource_type
+        self.datasource_cycletime = datasource_cycletime
+        self.datapoint_name = datapoint_name
+        self.datapoint_rrdtype = datapoint_rrdtype
+        self.datapoint_threshold = datapoint_threshold
+
+    @classmethod
+    def from_datapoint(cls, datapoint, context):
+        """Return DatapointRecord object given a datapoint and context.
+
+        The datapoint argument must be a RRDDataPoint instance, and
+        context must be a Device or DeviceComponent instance.
+
+        """
+        datasource = datapoint.datasource().primaryAq()
+        template = datasource.rrdTemplate().primaryAq()
+        device_class = template.deviceClass()
+        if not device_class:
+            return None
+
+        if callable(getattr(datasource, 'getCycleTime', None)):
+            cycletime = datasource.getCycleTime(context)
+        else:
+            cycletime = datasource.cycletime
+
+        # Determine if there is a threshold applied to this datapoint.
+        thresholded_dpnames = set()
+        for threshold in template.thresholds():
+            thresholded_dpnames.update(threshold.dsnames)
+
+        dpname = "{}_{}".format(datasource.id, datapoint.id)
+        datapoint_threshold = dpname in thresholded_dpnames
+
+        return cls(
+            resource_device_class=context.deviceClass().getOrganizerName(),
+            resource_meta_type=context.meta_type,
+            template_device_class=device_class.getOrganizerName(),
+            template_name=template.titleOrId(),
+            datasource_name=datasource.titleOrId(),
+            datasource_type=datasource.sourcetype,
+            datasource_cycletime=cycletime,
+            datapoint_name=datapoint.titleOrId(),
+            datapoint_rrdtype=datapoint.rrdtype,
+            datapoint_threshold=datapoint_threshold)
+
+    def __repr__(self):
+        return "%s(%r)" % (self.__class__, self.__dict__)
+
+    def __key__(self):
+        return (
+            self.resource_device_class,
+            self.resource_meta_type,
+            self.template_device_class,
+            self.template_name,
+            self.datasource_name,
+            self.datasource_type,
+            self.datasource_cycletime,
+            self.datapoint_name,
+            self.datapoint_rrdtype,
+            self.datapoint_threshold,
+            )
+
+    def __hash__(self):
+        return hash(self.__key__())
+
+    def __eq__(self, other):
+        return self.__key__() == other.__key__()
+
+    def __lt__(self, other):
+        return self.__key__() < other.__key__()
+
+
+class ProgressLogger(object):
+
+    """Periodic progress logging for long-running operations."""
+
+    def __init__(
+            self,
+            logger,
+            level=logging.INFO,
+            prefix='',
+            total=None,
+            interval=60):
+
+        self.logger = logger
+        self.level = level
+        self.prefix = prefix
+        self.total = total
+        self.interval = datetime.timedelta(seconds=interval)
+
+        self.pos = 0
+        self.start_time = datetime.datetime.now()
+        self.last_time = self.start_time
+
+    def increment(self, by=1):
+        """Increment internal position and emit progress log if needed."""
+        self.pos += by
+
+        now = datetime.datetime.now()
+        if now - self.last_time >= self.interval:
+            self.last_time = now
+
+            progress = '{} of {}'.format(
+                self.pos,
+                self.total if self.total else '?')
+
+            elapsed = now - self.start_time
+
+            if self.total:
+                per = elapsed / self.pos
+                remaining = per * (self.total - self.pos)
+
+                msg = '{}, elapsed={}, remaining={}'.format(
+                    progress,
+                    str(elapsed).split('.', 1)[0],
+                    str(remaining).split('.', 1)[0])
+            else:
+                msg = '{}, elapsed={}'.format(
+                    progress,
+                    str(elapsed).split('.', 1)[0])
+
+            if self.prefix:
+                msg = '{}: {}'.format(self.prefix, msg)
+
+            self.logger.log(self.level, msg)
+
+
+def main():
+    tool = MonitoredDataPointReporter()
+    tool.run()
+
+
+if __name__ == '__main__':
+    main()
