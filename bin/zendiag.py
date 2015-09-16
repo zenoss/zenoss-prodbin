@@ -237,6 +237,11 @@ class ZenDiag(object):
         log.info('Gathering list of zenpacks')
         self.run_and_log_command('zenpack-list', 'zenpack --list')
 
+        # 3) Get CSV of all monitored datapoints
+        log.info('Gathering list of monitored datapoints')
+        self.run_and_log_command(
+            'monitored-datapoints',
+            'monitored-datapoints -vWARNING')
 
     def get_files(self):
         """
