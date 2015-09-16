@@ -185,7 +185,7 @@
     />
 
 <browser:page
-    template="templates/daemons.pt"
+    class=".pages.DaemonsView"
     name="daemons"
     for="*"
     permission="zenoss.View"
