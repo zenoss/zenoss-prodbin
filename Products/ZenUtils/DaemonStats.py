@@ -94,8 +94,14 @@ class DaemonStats(object):
 
         if metric_type in {'DERIVE', 'COUNTER'}:
             # compute (and cache) a rate for COUNTER/DERIVE
+            if metric_type == 'COUNTER':
+                metric_min = 0
+            else:
+                metric_min = 'U'
+
             value = self._derivative_tracker.derivative(
-                context_id, (int(value), timestamp))
+                context_id, (int(value), timestamp),
+                min=metric_min)
 
         # check for threshold breaches and send events when needed
         self._threshold_notifier.notify(

@@ -378,6 +378,10 @@ class CollectorDaemon(RRDDaemon):
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
+            if metricType == 'COUNTER' and min == 'U':
+                # COUNTER implies only positive derivatives are valid.
+                min = 0
+
             dkey = "%s:%s" % (contextUUID, metric)
             value = self._derivative_tracker.derivative(
                 dkey, (int(value), timestamp), min, max)

@@ -122,27 +122,36 @@ class DerivativeTracker(object):
 
         @param name: used to track a specific metric over time
         @param timed_metric: tuple of (value, timestamp)
-        @param min: restricts minimum value returned
-        @param max: restricts maximum value returned
+        @param min: derivative will be None if below this value
+        @param max: derivative will be None if above this value
         @return: change from previous value if a previous value exists
         """
         last_timed_metric = self._timed_metric_cache.get(name)
+
+        # Store timed_metric for comparison next time.
+        self._timed_metric_cache[name] = timed_metric
+
         if last_timed_metric:
-            # identical timestamps?
             if timed_metric[1] == last_timed_metric[1]:
-                return 0
+                # Regardless of v0 and v1, two samples at the same time results
+                # in an infinity/nan rate.
+                return None
             else:
                 delta = float(timed_metric[0] - last_timed_metric[0]) / \
                         float(timed_metric[1] - last_timed_metric[1])
+
+                # Derivatives below min are invalid and result in None.
                 if isinstance(min, (int, float)) and delta < min:
-                    delta = min
+                    return None
+
+                # Derivatives above max are invalid and result in None.
                 if isinstance(max, (int, float)) and delta > max:
-                    delta = max
+                    return None
+
                 return delta
-        else:
-            # first value we've seen for path
-            self._timed_metric_cache[name] = timed_metric
-            return None
+
+        # None would be returned, but being explicit about it in this case.
+        return None
 
 
 class ThresholdNotifier(object):
