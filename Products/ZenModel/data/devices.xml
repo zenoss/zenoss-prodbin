@@ -1,187 +1,187 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-04-13 19:46:46.888537
+    Zenoss RelationshipManager export completed on 2015-09-17 15:16:13.450408
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-04-13 19:46:46.888537" zenoss_server="26689eb55894" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-17 15:16:13.450408" zenoss_server="b213fab12b7c" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
 </property>
-<property visible="True" label="Python Class" type="string" id="zPythonClass" description="Python module used when creating a new device instances." >
+<property visible="True" description="Python module used when creating a new device instances." type="string" id="zPythonClass" label="Python Class" >
 </property>
-<property visible="True" label="Production State Threshold" type="int" id="zProdStateThreshold" description="Production state threshold at which to start monitoring boxes." >
+<property visible="True" description="Production state threshold at which to start monitoring boxes." type="int" id="zProdStateThreshold" label="Production State Threshold" >
 300
 </property>
-<property visible="True" label="If Description" type="boolean" id="zIfDescription" description="Shows the interface description field in the interface list." >
+<property visible="True" description="Shows the interface description field in the interface list." type="boolean" id="zIfDescription" label="If Description" >
 False
 </property>
-<property visible="True" label="SNMP Communities" type="lines" id="zSnmpCommunities" description='Array of SNMP community strings that ZenModeler uses when collecting SNMP information. When you set this property, communities are tried in order; the first in the list that is successful is used as zSnmpCommunity. If none is successful, then the current value of zSnmpCommunity is used. The default value for the entire system is "public."' >
+<property visible="True" description='Array of SNMP community strings that ZenModeler uses when collecting SNMP information. When you set this property, communities are tried in order; the first in the list that is successful is used as zSnmpCommunity. If none is successful, then the current value of zSnmpCommunity is used. The default value for the entire system is "public."' type="lines" id="zSnmpCommunities" label="SNMP Communities" >
 ['public', 'private']
 </property>
-<property visible="True" label="SNMP Community String" type="string" id="zSnmpCommunity" description="Community string to be used when collecting SNMP information. If it is different than what is found by ZenModeler, it will be set on the modeled device." >
+<property visible="True" description="Community string to be used when collecting SNMP information. If it is different than what is found by ZenModeler, it will be set on the modeled device." type="string" id="zSnmpCommunity" label="SNMP Community String" >
 public
 </property>
-<property visible="True" label="SNMP Port" type="int" id="zSnmpPort" description="Port that the SNMP agent listens on." >
+<property visible="True" description="Port that the SNMP agent listens on." type="int" id="zSnmpPort" label="SNMP Port" >
 161
 </property>
-<property visible="True" label="SNMP Version" type="string" id="zSnmpVer" description="SNMP version used. Valid values are v1, v2c, v3." >
+<property visible="True" description="SNMP version used. Valid values are v1, v2c, v3." type="string" id="zSnmpVer" label="SNMP Version" >
 v2c
 </property>
-<property visible="True" label="SNMP Tries" type="int" id="zSnmpTries" description="Amount of tries to collect SNMP data" >
+<property visible="True" description="Amount of tries to collect SNMP data" type="int" id="zSnmpTries" label="SNMP Tries" >
 6
 </property>
-<property visible="True" label="SNMP Timeout" type="float" id="zSnmpTimeout" description="Timeout time in seconds for an SNMP request" >
+<property visible="True" description="Timeout time in seconds for an SNMP request" type="float" id="zSnmpTimeout" label="SNMP Timeout" >
 1
 </property>
-<property visible="True" label="SNMP Engine ID" type="string" id="zSnmpEngineId" description="Engine ID is the administratively unique identifier for the SNMPv3 engine" >
+<property visible="True" description="Engine ID is the administratively unique identifier for the SNMPv3 engine" type="string" id="zSnmpEngineId" label="SNMP Engine ID" >
 </property>
-<property visible="True" label="SNMP Security Name" type="string" id="zSnmpSecurityName" description="The Security Name (user) to use when making SNMPv3 requests." >
+<property visible="True" description="The Security Name (user) to use when making SNMPv3 requests." type="string" id="zSnmpSecurityName" label="SNMP Security Name" >
 </property>
-<property visible="True" label="SNMP Auth Password" type="password" id="zSnmpAuthPassword" description="The shared private key used for authentication. Must be at least 8 characters long." >
+<property visible="True" description="The shared private key used for authentication. Must be at least 8 characters long." type="password" id="zSnmpAuthPassword" label="SNMP Auth Password" >
 </property>
-<property visible="True" label="SNMP Private Password" type="password" id="zSnmpPrivPassword" description="The shared private key used for encrypting SNMP requests. Must be at least 8 characters long." >
+<property visible="True" description="The shared private key used for encrypting SNMP requests. Must be at least 8 characters long." type="password" id="zSnmpPrivPassword" label="SNMP Private Password" >
 </property>
-<property visible="True" label="SNMP Auth Type" type="string" id="zSnmpAuthType" description='Use "MD5" or "SHA" signatures to authenticate SNMP requests' >
+<property visible="True" description='Use "MD5" or "SHA" signatures to authenticate SNMP requests' type="string" id="zSnmpAuthType" label="SNMP Auth Type" >
 </property>
-<property visible="True" label="SNMP Priv Type" type="string" id="zSnmpPrivType" description='"DES" or "AES" cryptographic algorithms.' >
+<property visible="True" description='"DES" or "AES" cryptographic algorithms.' type="string" id="zSnmpPrivType" label="SNMP Priv Type" >
 </property>
-<property visible="True" label="SNMP Context" type="string" id="zSnmpContext" description="Defines the SNMPv3 CONTEXT specified by the -n flag" >
+<property visible="True" description="Defines the SNMPv3 CONTEXT specified by the -n flag" type="string" id="zSnmpContext" label="SNMP Context" >
 </property>
-<property visible="True" label="SNMP Collection Interval" type="int" id="zSnmpCollectionInterval" description="Defines, in seconds, how often the system collects performance information for each device." >
+<property visible="True" description="Defines, in seconds, how often the system collects performance information for each device." type="int" id="zSnmpCollectionInterval" label="SNMP Collection Interval" >
 300
 </property>
-<property visible="True" label="Router Map Collect Only (Local)" type="boolean" id="zRouteMapCollectOnlyLocal" description="Only collect local routes. (These usually are manually configured rather than learned through a routing protocol.)" >
+<property visible="True" description="Only collect local routes. (These usually are manually configured rather than learned through a routing protocol.)" type="boolean" id="zRouteMapCollectOnlyLocal" label="Router Map Collect Only (Local)" >
 False
 </property>
-<property visible="True" label="Route Map Collect Only (Indirect)" type="boolean" id="zRouteMapCollectOnlyIndirect" description="Only collect routes that are directly connected to the device." >
+<property visible="True" description="Only collect routes that are directly connected to the device." type="boolean" id="zRouteMapCollectOnlyIndirect" label="Route Map Collect Only (Indirect)" >
 False
 </property>
-<property visible="True" label="Route Map Max Routes" type="int" id="zRouteMapMaxRoutes" description="Maximum number of routes to model." >
+<property visible="True" description="Maximum number of routes to model." type="int" id="zRouteMapMaxRoutes" label="Route Map Max Routes" >
 500
 </property>
-<property visible="True" label="Interface Map Ignore Types" type="string" id="zInterfaceMapIgnoreTypes" description="Filters out interface maps that should not be discovered." >
+<property visible="True" description="Filters out interface maps that should not be discovered." type="string" id="zInterfaceMapIgnoreTypes" label="Interface Map Ignore Types" >
 </property>
-<property visible="True" label="Interface Map Ignore Names" type="string" id="zInterfaceMapIgnoreNames" description="Filters out interfaces that should not be discovered." >
+<property visible="True" description="Filters out interfaces that should not be discovered." type="string" id="zInterfaceMapIgnoreNames" label="Interface Map Ignore Names" >
 </property>
-<property visible="True" label="Interface Map Ignore Description" type="string" id="zInterfaceMapIgnoreDescriptions" description="Filters out interfaces based on description." >
+<property visible="True" description="Filters out interfaces based on description." type="string" id="zInterfaceMapIgnoreDescriptions" label="Interface Map Ignore Description" >
 </property>
-<property visible="True" label="File System Map Ignore Types" type="lines" id="zFileSystemMapIgnoreTypes" description="Do not use." >
+<property visible="True" description="Do not use." type="lines" id="zFileSystemMapIgnoreTypes" label="File System Map Ignore Types" >
 ['other', 'ram', 'virtualMemory', 'removableDisk', 'floppyDisk', 'compactDisk', 'ramDisk', 'flashMemory', 'networkDisk']
 </property>
-<property visible="True" label="File System Map Ignore Names" type="string" id="zFileSystemMapIgnoreNames" description="Sets a regular expression of file system names to ignore." >
+<property visible="True" description="Sets a regular expression of file system names to ignore." type="string" id="zFileSystemMapIgnoreNames" label="File System Map Ignore Names" >
 </property>
-<property visible="True" label="File System Size Offset" type="float" id="zFileSystemSizeOffset" description="SNMP typically reports the total space available to privileged users. Resource Manager (like the df command) reports capacity based on the space available to non-privileged users. The value of zFileSystemSizeOffset should be the fraction of the total space that is available to non-privileged users. The default reserved value is 5% of total space, so zFileSystemSizeOffset is preset to .95. If the reserved portion is different than 5%, then adjust the value of zFileSystemSizeOffset accordingly. The fraction should be set according to the value ( Used + Avail ) / Size when the df -PkH command is run at the command line." >
+<property visible="True" description="SNMP typically reports the total space available to privileged users. Resource Manager (like the df command) reports capacity based on the space available to non-privileged users. The value of zFileSystemSizeOffset should be the fraction of the total space that is available to non-privileged users. The default reserved value is 5% of total space, so zFileSystemSizeOffset is preset to .95. If the reserved portion is different than 5%, then adjust the value of zFileSystemSizeOffset accordingly. The fraction should be set according to the value ( Used + Avail ) / Size when the df -PkH command is run at the command line." type="float" id="zFileSystemSizeOffset" label="File System Size Offset" >
 1.0
 </property>
-<property visible="True" label="Hard Disk Map Match" type="string" id="zHardDiskMapMatch" description="Regular expression that uses the disk ID in the diskstats output to filter disk activity statistics for inclusion in performance monitoring." >
+<property visible="True" description="Regular expression that uses the disk ID in the diskstats output to filter disk activity statistics for inclusion in performance monitoring." type="string" id="zHardDiskMapMatch" label="Hard Disk Map Match" >
 </property>
-<property visible="True" label="Sysedge Disk Map Ignore Names" type="string" id="zSysedgeDiskMapIgnoreNames" description="" >
+<property visible="True" description="" type="string" id="zSysedgeDiskMapIgnoreNames" label="Sysedge Disk Map Ignore Names" >
 </property>
-<property visible="True" label="IP Service Map Max Port" type="int" id="zIpServiceMapMaxPort" description="Specifies the highest port to scan. The default is 1024." >
+<property visible="True" description="Specifies the highest port to scan. The default is 1024." type="int" id="zIpServiceMapMaxPort" label="IP Service Map Max Port" >
 1024
 </property>
-<property visible="True" label="Device Templates" type="lines" id="zDeviceTemplates" description="Sets the templates associated with this device. Linked by name." >
+<property visible="True" description="Sets the templates associated with this device. Linked by name." type="lines" id="zDeviceTemplates" label="Device Templates" >
 ['Device']
 </property>
-<property visible="True" label="Local IP Addresses" type="string" id="zLocalIpAddresses" description="" >
+<property visible="True" description="" type="string" id="zLocalIpAddresses" label="Local IP Addresses" >
 ^127|^0\.0|^169\.254|^224
 </property>
-<property visible="True" label="Local Interface Names" type="string" id="zLocalInterfaceNames" description='Regular expression that uses interface name to determine whether the IP addresses on an interface should be incorporated into the network map. For instance, a loopback interface "lo" might be excluded.' >
+<property visible="True" description='Regular expression that uses interface name to determine whether the IP addresses on an interface should be incorporated into the network map. For instance, a loopback interface "lo" might be excluded.' type="string" id="zLocalInterfaceNames" label="Local Interface Names" >
 ^lo|^vmnet
 </property>
-<property visible="True" label="Ignore SNMP Monitor?" type="boolean" id="zSnmpMonitorIgnore" description="Whether or not to ignore monitoring SNMP on a device." >
+<property visible="True" description="Whether or not to ignore monitoring SNMP on a device." type="boolean" id="zSnmpMonitorIgnore" label="Ignore SNMP Monitor?" >
 False
 </property>
-<property visible="True" label="Ignore Ping Monitor?" type="boolean" id="zPingMonitorIgnore" description="Whether or not to ping the device." >
+<property visible="True" description="Whether or not to ping the device." type="boolean" id="zPingMonitorIgnore" label="Ignore Ping Monitor?" >
 False
 </property>
-<property visible="True" label="Status Connection Timeout (seconds)" type="float" id="zStatusConnectTimeout" description="The amount of time that the zenstatus daemon should wait before marking an IP service down." >
+<property visible="True" description="The amount of time that the zenstatus daemon should wait before marking an IP service down." type="float" id="zStatusConnectTimeout" label="Status Connection Timeout (seconds)" >
 15.0
 </property>
-<property visible="True" label="Collector Plugins" type="lines" id="zCollectorPlugins" description="" >
+<property visible="True" description="" type="lines" id="zCollectorPlugins" label="Collector Plugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
-<property visible="True" label="Collector Client Timeout (seconds)" type="int" id="zCollectorClientTimeout" description="Allows you to set the timeout time of the collector client in seconds" >
+<property visible="True" description="Allows you to set the timeout time of the collector client in seconds" type="int" id="zCollectorClientTimeout" label="Collector Client Timeout (seconds)" >
 180
 </property>
-<property visible="True" label="Username" type="string" id="zCommandUsername" description="Specifies the user name to use when performing command collection and SSH." >
+<property visible="True" description="Specifies the user name to use when performing command collection and SSH." type="string" id="zCommandUsername" label="Username" >
 </property>
-<property visible="True" label="Password" type="password" id="zCommandPassword" description="Specifies the password to use when performing command logins and SSH." >
+<property visible="True" description="Specifies the password to use when performing command logins and SSH." type="password" id="zCommandPassword" label="Password" >
 </property>
-<property visible="True" label="Command Protocol" type="string" id="zCommandProtocol" description="Establishes the protocol to use when performing command collection. Possible values are SSH and telnet." >
+<property visible="True" description="Establishes the protocol to use when performing command collection. Possible values are SSH and telnet." type="string" id="zCommandProtocol" label="Command Protocol" >
 ssh
 </property>
-<property visible="True" label="Command Port" type="int" id="zCommandPort" description="Specifies the port to connect to when performing command collection." >
+<property visible="True" description="Specifies the port to connect to when performing command collection." type="int" id="zCommandPort" label="Command Port" >
 22
 </property>
-<property visible="True" label="Command Login Tries" type="int" id="zCommandLoginTries" description="Sets the number of times to attempt login." >
+<property visible="True" description="Sets the number of times to attempt login." type="int" id="zCommandLoginTries" label="Command Login Tries" >
 1
 </property>
-<property visible="True" label="Timeout for Login (seconds)" type="float" id="zCommandLoginTimeout" description="Specifies the time to wait for a login prompt." >
+<property visible="True" description="Specifies the time to wait for a login prompt." type="float" id="zCommandLoginTimeout" label="Timeout for Login (seconds)" >
 10.0
 </property>
-<property visible="True" label="Timeout for Commands (seconds)" type="float" id="zCommandCommandTimeout" description="Specifies the time to wait for a command to complete." >
+<property visible="True" description="Specifies the time to wait for a command to complete." type="float" id="zCommandCommandTimeout" label="Timeout for Commands (seconds)" >
 15.0
 </property>
-<property visible="True" label="Command Search Path" type="lines" id="zCommandSearchPath" description="Sets the path to search for any commands." >
+<property visible="True" description="Sets the path to search for any commands." type="lines" id="zCommandSearchPath" label="Command Search Path" >
 []
 </property>
-<property visible="True" label="Command Existance Test" type="string" id="zCommandExistanceTest" description="" >
+<property visible="True" description="" type="string" id="zCommandExistanceTest" label="Command Existance Test" >
 test -f %s
 </property>
-<property visible="True" label="Command Path" type="string" id="zCommandPath" description="Sets the default path where ZenCommand plug-ins are installed on the local Resource Manager box (or on a remote box where SSH is used to run the command)." >
+<property visible="True" description="Sets the default path where ZenCommand plug-ins are installed on the local Resource Manager box (or on a remote box where SSH is used to run the command)." type="string" id="zCommandPath" label="Command Path" >
 $ZENHOME/libexec
 </property>
-<property visible="True" label="Telnet Login" type="string" id="zTelnetLoginRegex" description="Regular expression to match the login prompt." >
+<property visible="True" description="Regular expression to match the login prompt." type="string" id="zTelnetLoginRegex" label="Telnet Login" >
 ogin:.$
 </property>
-<property visible="True" label="Telnet Password Regex" type="string" id="zTelnetPasswordRegex" description="Regular expression to match the password prompt." >
+<property visible="True" description="Regular expression to match the password prompt." type="string" id="zTelnetPasswordRegex" label="Telnet Password Regex" >
 assword:
 </property>
-<property visible="True" label="Telnet Success Regex" type="lines" id="zTelnetSuccessRegexList" description="List of regular expressions to match the command prompt." >
+<property visible="True" description="List of regular expressions to match the command prompt." type="lines" id="zTelnetSuccessRegexList" label="Telnet Success Regex" >
 ['\\$.$', '\\#.$']
 </property>
-<property visible="True" label="Enable Telnet?" type="boolean" id="zTelnetEnable" description="When logging into a Cisco device issue the enable command to enable access during command collection." >
+<property visible="True" description="When logging into a Cisco device issue the enable command to enable access during command collection." type="boolean" id="zTelnetEnable" label="Enable Telnet?" >
 False
 </property>
-<property visible="True" label="Telnet Enable Regex" type="string" id="zTelnetEnableRegex" description="Regular expression to match the enable prompt." >
+<property visible="True" description="Regular expression to match the enable prompt." type="string" id="zTelnetEnableRegex" label="Telnet Enable Regex" >
 assword:
 </property>
-<property visible="True" label="Telnet Term Length" type="boolean" id="zTelnetTermLength" description="On a Cisco device, set term length to Zero." >
+<property visible="True" description="On a Cisco device, set term length to Zero." type="boolean" id="zTelnetTermLength" label="Telnet Term Length" >
 True
 </property>
-<property visible="True" label="Telnet Prompt Timeout (seconds)" type="float" id="zTelnetPromptTimeout" description="Time to wait for the telnet prompt to return." >
+<property visible="True" description="Time to wait for the telnet prompt to return." type="float" id="zTelnetPromptTimeout" label="Telnet Prompt Timeout (seconds)" >
 10.0
 </property>
-<property visible="True" label="Key Path" type="string" id="zKeyPath" description="Sets the path to the SSH key for device access." >
+<property visible="True" description="Sets the path to the SSH key for device access." type="string" id="zKeyPath" label="Key Path" >
 ~/.ssh/id_dsa
 </property>
-<property visible="True" label="Max OID Per Request" type="int" id="zMaxOIDPerRequest" description="Sets the maximum number of OIDs to be sent by the SNMP collection daemons when querying information. Some devices have small buffers for handling this information so the number should be lowered." >
+<property visible="True" description="Sets the maximum number of OIDs to be sent by the SNMP collection daemons when querying information. Some devices have small buffers for handling this information so the number should be lowered." type="int" id="zMaxOIDPerRequest" label="Max OID Per Request" >
 40
 </property>
-<property visible="True" label="Links" type="string" id="zLinks" description="Specifies a place to enter any links associated with the device." >
+<property visible="True" description="Specifies a place to enter any links associated with the device." type="string" id="zLinks" label="Links" >
 </property>
-<property visible="True" label="Icon Path" type="string" id="zIcon" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." >
+<property visible="True" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." type="string" id="zIcon" label="Icon Path" >
 /zport/dmd/img/icons/noicon.png
 </property>
-<property visible="True" label="Log Collector Changes?" type="boolean" id="zCollectorLogChanges" description="Indicates whether to log changes." >
+<property visible="True" description="Indicates whether to log changes." type="boolean" id="zCollectorLogChanges" label="Log Collector Changes?" >
 False
 </property>
-<property visible="True" label="Enable Password" type="password" id="zEnablePassword" description="Enable password for Cisco routers" >
+<property visible="True" description="Enable password for Cisco routers" type="password" id="zEnablePassword" label="Enable Password" >
 </property>
-<property visible="True" label="Nmap Port Scan Options" type="string" id="zNmapPortscanOptions" description="Options used on nmap when scanning ports. Used in IpServiceMap" >
+<property visible="True" description="Options used on nmap when scanning ports. Used in IpServiceMap" type="string" id="zNmapPortscanOptions" label="Nmap Port Scan Options" >
 -p 1-1024 -sT --open -oG -
 </property>
-<property visible="True" label="SSH Concurrent Sessions" type="int" id="zSshConcurrentSessions" description="How many SSH sessions to open up to one device (some SSH servers have a limit)" >
+<property visible="True" description="How many SSH sessions to open up to one device (some SSH servers have a limit)" type="int" id="zSshConcurrentSessions" label="SSH Concurrent Sessions" >
 10
 </property>
-<property visible="True" label="Connection Information" type="lines" id="zCredentialsZProperties" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." >
+<property visible="True" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." type="lines" id="zCredentialsZProperties" label="Connection Information" >
 []
 </property>
 <property visible="True" description="" type="lines" id="zSnmpDiscoveryPorts" label="" >
@@ -190,7 +190,7 @@ False
 <property visible="True" type="date" id="cDateTest" >
 1900/01/01 00:00:00 US/Central
 </property>
-<property visible="True" label="Collector Decoding" type="string" description="Converts incoming characters to Unicode." id="zCollectorDecoding" >
+<property id="zCollectorDecoding" visible="True" type="string" description="Converts incoming characters to Unicode." label="Collector Decoding" >
 utf-8
 </property>
 <tomanycont id='zenMenus'>
@@ -574,6 +574,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="minval" mode="w" >
 here.getMinProcessCount()
@@ -1300,6 +1303,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="maxval" mode="w" >
 (here.speed or 1e9) / 8 * .75
 </property>
@@ -1319,6 +1325,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 </object>
 </tomanycont>
@@ -2120,6 +2129,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="maxval" mode="w" >
 (here.speed or 1e9) / 8 * .75
 </property>
@@ -2139,6 +2151,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 </object>
 </tomanycont>
@@ -2734,6 +2749,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 90
@@ -3665,6 +3683,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="minval" mode="w" >
 2
 </property>
@@ -4274,6 +4295,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 here.getTotalBlocks() * .9
@@ -5311,6 +5335,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="maxval" mode="w" >
 1200
 </property>
@@ -5330,6 +5357,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="minval" mode="w" >
 2
@@ -6256,6 +6286,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 90
@@ -7532,6 +7565,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="maxval" mode="w" >
 1200
 </property>
@@ -7551,6 +7587,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="minval" mode="w" >
 2
@@ -8879,6 +8918,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="maxval" mode="w" >
 1200
 </property>
@@ -8898,6 +8940,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="minval" mode="w" >
 2
@@ -10033,6 +10078,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="minval" mode="w" >
 2
 </property>
@@ -10729,6 +10777,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="maxval" mode="w" >
 here.getTotalBlocks() * .9
 </property>
@@ -11212,6 +11263,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 here.speed / 8 * .75
