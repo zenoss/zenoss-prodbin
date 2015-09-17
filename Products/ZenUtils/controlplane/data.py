@@ -314,7 +314,7 @@ class ServiceStatusFactory(Factory):
 class ServiceStatusJsonDecoder(json.JSONDecoder):
     @staticmethod
     def _decodeObject(obj):
-        if sorted(obj.keys()) == sorted(('State', 'Status')):
+        if sorted(obj.keys()) == sorted(('HealthCheckStatuses', 'State', 'Status')):
             service = createObject("ServiceStatus")
             service.__setstate__(obj)
             return service
