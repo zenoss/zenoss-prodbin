@@ -105,7 +105,7 @@ class MetricConnection(object):
                 'Timed out waiting for response from metric service: %s' % e, e)
         status_code = response.status_code
         if not (status_code >= 200 and status_code <= 299):
-            log.error('Server response error: %s %s', status_code, response)
+            log.debug('Server response error: %s %s', status_code, response)
             raise ServiceResponseError(response.reason, status_code, request,
                                        response, response.content)
 
@@ -129,7 +129,7 @@ class MetricConnection(object):
                 if Z_AUTH_TOKEN in self._req_session.cookies:
                     del self._req_session.cookies[Z_AUTH_TOKEN]
 
-                log.info('Authorization failed. Trying to use global credentials')
+                log.debug('Authorization failed. Trying to use global credentials')
                 return self._server_request(path, request, auth, timeout)
             else:
                 raise
