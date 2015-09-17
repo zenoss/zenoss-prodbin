@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-04-13 19:47:34.819791
+    Zenoss RelationshipManager export completed on 2015-09-17 15:16:41.068235
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-04-13 19:47:34.819791" zenoss_server="26689eb55894" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-17 15:16:41.068235" zenoss_server="b213fab12b7c" >
 <object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
@@ -384,7 +384,7 @@ False
 A daemon that opens a TCP connection to the remote service to determine if it is available.
 </property>
 <property type="int" id="sequence" mode="w" >
-13
+14
 </property>
 </object>
 <object id='zensyslog' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -416,7 +416,7 @@ False
 Daemon that runs on the syslog ports and converts syslog messages to Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-14
+15
 </property>
 </object>
 <object id='zentrap' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
@@ -448,7 +448,7 @@ False
 Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss events.
 </property>
 <property type="int" id="sequence" mode="w" >
-15
+16
 </property>
 </object>
 </tomanycont>

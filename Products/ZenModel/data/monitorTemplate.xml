@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-04-13 19:47:29.611302
+    Zenoss RelationshipManager export completed on 2015-09-17 15:16:38.025097
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-04-13 19:47:29.611302" zenoss_server="26689eb55894" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-17 15:16:38.025097" zenoss_server="b213fab12b7c" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -595,6 +595,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="maxval" mode="w" >
 1000
 </property>
@@ -614,6 +617,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 720*60*0.8
@@ -2368,6 +2374,9 @@ True
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
+</property>
 <property type="string" id="maxval" mode="w" >
 1000
 </property>
@@ -2387,6 +2396,9 @@ True
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
+</property>
+<property label="Is Projection" type="boolean" id="isProjection" mode="w" >
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 720*60*0.8
