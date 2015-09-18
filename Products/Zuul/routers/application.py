@@ -182,16 +182,17 @@ class ApplicationRouter(TreeRouter):
         The configFiles parameters is an array of dictionaries of the form:
         {
             filename: "blah",
-            contents: "line 1\nline 2\n..."
+            content: "line 1\nline 2\n..."
         }
         The filename parameter serves as the "id" of each configFile
         passed in.
         """
         facade = self._getFacade()
-        info = IInfo(facade.get(id))
-        for f in configFiles:
-            configFile = info.getConfigFileByFilename(f['filename'])
-            if configFile:
-                configFile.content = f['content']
-        facade.updateService(id) # save the updated config files to elastic
+        deployedApp = facade.get(id)
+        newConfigs = []
+        for deployedAppConfig in deployedApp.configurations:
+            if deployedAppConfig.filename in [ cf['filename'] for cf in configFiles ]:
+                deployedAppConfig.content = next((cf['content'] for cf in configFiles if cf['filename'] == deployedAppConfig.filename))
+            newConfigs.append(deployedAppConfig)
+        deployedApp.configurations = newConfigs
         return DirectResponse.succeed()

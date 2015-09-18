@@ -207,6 +207,18 @@ class DeployedApp(object):
         """
         return  _DeployedAppConfigList(self._service, self._client)
 
+    @configurations.setter
+    def configurations(self, configs):
+        """
+        Set the configurations on a service.  Takes a sequence of
+        DeployedAppConfig(s) as the sole argument
+        """
+        newConfigs = {}
+        for config in configs:
+            newConfigs[config.filename] = config._config
+        self._service.configFiles = newConfigs
+        self._client.updateService(self._service)
+
     @_initStatus
     def start(self):
         """
