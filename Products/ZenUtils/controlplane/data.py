@@ -429,6 +429,10 @@ class ServiceDefinition(object):
         """
         return self._data.get("ConfigFiles", {})
 
+    @configFiles.setter
+    def configFiles(self, configFiles):
+        self._data['ConfigFiles'] = configFiles
+
     @property
     @_convertToDateTime
     def createdAt(self):
