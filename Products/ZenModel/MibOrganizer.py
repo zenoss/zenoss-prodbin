@@ -235,7 +235,7 @@ class MibOrganizer(Organizer, ZenPackable):
         if not mypath:
             mypath = '/'
         commandArgs = [binPath('zenmib'), 'run', savedMIBPath,
-                '--path=%s' % mypath]
+                '--path=%s' % mypath, '--mibdepsdir=%s' % zenPath("/var/ext/uploadedMIBs")]
         return self.dmd.JobManager.addJob(SubprocessJob,
                    description="Load MIB at %s" % mypath,
                    kwargs=dict(cmd=commandArgs))
