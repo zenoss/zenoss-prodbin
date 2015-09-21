@@ -229,7 +229,7 @@ class MibOrganizer(Organizer, ZenPackable):
         """
         filename = REQUEST.upload.filename
         mibs = REQUEST.upload.read()
-        savedMIBPath = zenPath(_pathToMIB'/%s' % filename)
+        savedMIBPath = zenPath(_pathToMIB, filename)
         atomicWrite(savedMIBPath, mibs, raiseException=True, createDir=True)
 
         # create the job
