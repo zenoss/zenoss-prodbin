@@ -34,6 +34,7 @@ from Products.Zuul import getFacade
 from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree, ControlCenterError
 from Products.ZenUtils.controlplane.application import getConnectionSettings
 from Products.ZenUtils.elastic.client import ElasticClient, ElasticClientException
+from Products.ZenUtils.Utils import zenPath
 
 
 __doc__ = """zendiag
@@ -242,6 +243,12 @@ class ZenDiag(object):
         self.run_and_log_command(
             'monitored-datapoints',
             'monitored-datapoints -vWARNING')
+
+        # 4) Get callhome data
+        log.info('Including call home data')
+        callhome_path = zenPath('Products', 'ZenCallHome', 'callhome.py')
+        self.run_and_log_command(
+            'callhome', 'python {} --master'.format(callhome_path))
 
     def get_files(self):
         """
