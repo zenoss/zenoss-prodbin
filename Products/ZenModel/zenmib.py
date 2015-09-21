@@ -898,6 +898,7 @@ class ZenMib(ZCmdBase):
         """
         defaultMibDepDirs = [ 'ietf', 'iana', 'irtf', 'tubs', 'site' ]
         mibDepFileNames = set()
+        mibDepFileNames.update(self.pkgMgr.processDir(self.options.mibdepsdir))
         for subdir in defaultMibDepDirs:
             depDir = os.path.join(self.options.mibdepsdir, subdir)
             mibDepFileNames.update(self.pkgMgr.processDir(depDir))
