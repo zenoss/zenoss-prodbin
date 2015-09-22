@@ -48,6 +48,7 @@ class IApplication(Interface):
     autostart = Attribute("True if the application will run on startup")
     state = Attribute("Current running state of the application")
     startedAt = Attribute("When the application was started")
+    tags = Attribute("Tags of the application")
     log = Attribute("The IApplicationLog object")
     configurations = Attribute("The list of application configurations")
 

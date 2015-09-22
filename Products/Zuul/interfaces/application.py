@@ -60,6 +60,36 @@ class IApplicationInfo(IInfo):
     )
 
 
+class IGroupInfo(IInfo):
+    """
+    Read-only set of attributes describing a Zenoss application group.
+    """
+
+    id = TextLine(
+        title=_t("ID"),
+        description=_t("Identifier of the running service"),
+        readonly=True
+    )
+
+    description = TextLine(
+        title=_t("Description"),
+        description=_t("Brief description of the application's function"),
+        readonly=True
+    )
+
+    autostart = TextLine(
+        title=_t("AutoStart"),
+        description=_t("True if the application will run on startup"),
+        readonly=True
+    )
+
+    text = TextLine(
+        title=_t("Text"),
+        description=_t("Synonym for name."),
+        readonly=True
+    )
+
+
 class IApplicationConfigurationInfo(IInfo):
 
     filename = TextLine(
@@ -125,6 +155,6 @@ class IApplicationFacade(IFacade):
 
 
 __all__ = (
-    "IApplicationFacade", "IApplicationInfo",
+    "IApplicationFacade", "IApplicationInfo", "IGroupInfo",
     "IApplicationConfigurationInfo"
 )

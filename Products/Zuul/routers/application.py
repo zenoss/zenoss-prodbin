@@ -16,7 +16,7 @@ from Products.ZenMessaging.audit import audit
 from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.form.interfaces import IFormBuilder
-from Products.Zuul.interfaces import IInfo, ITreeNode
+from Products.Zuul.interfaces import IInfo, ITreeNode, IApplicationInfo, IGroupInfo
 
 log = logging.getLogger('zen.ApplicationRouter')
 
@@ -72,7 +72,13 @@ class ApplicationRouter(TreeRouter):
            - form: (dictionary) form fields for the object
         """
         app = self._getFacade().get(uid)
-        form = IFormBuilder(IInfo(app)).render(fieldsets=False)
+
+        if 'daemon' in app.tags:
+            appInfo = IApplicationInfo(app)
+        else:
+            appInfo = IGroupInfo(app)
+
+        form = IFormBuilder(appInfo).render(fieldsets=False)
         form = Zuul.marshal(form)
         return DirectResponse(form=form)
 

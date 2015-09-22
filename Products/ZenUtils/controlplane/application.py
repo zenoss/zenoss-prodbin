@@ -175,6 +175,10 @@ class DeployedApp(object):
         return self._status.startedAt if self._status else None
 
     @property
+    def tags(self):
+        return self._service.tags or []
+
+    @property
     @_initStatus
     def log(self):
         """

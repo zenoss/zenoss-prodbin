@@ -294,6 +294,11 @@
              factory="Products.Zuul.infos.zenpack.ZenPackInfo"
              />
 
+   <adapter factory=".application.GroupInfo"
+           provides="Products.Zuul.interfaces.IGroupInfo"
+           for="Products.ZenUtils.application.IApplication"
+           />
+
    <adapter factory=".application.ApplicationInfo"
            provides="Products.Zuul.interfaces.IApplicationInfo"
            for="Products.ZenUtils.application.IApplication"

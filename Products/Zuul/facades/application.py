@@ -63,6 +63,15 @@ class ApplicationFacade(object):
             return ()
         return tuple(result)
 
+    def queryAllServices(self):
+        """
+        Return an iterable producing all application objects.
+        """
+        result = self._svc.query()
+        if not result:
+            return ()
+        return tuple(result)
+
     def get(self, applicationId, default=None):
         """
         Returns the requested application object.
