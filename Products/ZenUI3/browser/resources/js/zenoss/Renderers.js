@@ -396,7 +396,7 @@ Ext.apply(Zenoss.render, {
     DeviceSystem: function(uid, name) {
         var value = uid.replace(/^\/zport\/dmd\/Systems/, '');
         value = value.replace(/\/devices\/.*$/, '');
-        var url = '/zport/dmd/itinfrastructure#systems:.zport.dmd.Systems' + value.replace(/\//g,'.');
+        var url = '/zport/dmd/itinfrastructure#systemsTree:.zport.dmd.Systems' + value.replace(/\//g,'.');
         if (!Ext.isString(name)) {
             name = value;
         }
