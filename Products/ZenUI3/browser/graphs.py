@@ -7,6 +7,7 @@
 #
 ##############################################################################
 import json
+from collections import OrderedDict
 import logging
 from Products.ZenUtils.Time import LocalDateTimeFromMilli
 from Products.Five.browser import BrowserView
@@ -65,11 +66,12 @@ class ExportGraph(BrowserView):
                 if not timestamps.get(time):
                     timestamps[time] = dict()
                 timestamps[time][p['key']] = value['y']
+        ordered_timestamps = OrderedDict(sorted(timestamps.items()))
 
         # writeExportRows works best with a dictionary of
         # data will looks something like this [{u'15 Minute': 0.72, u'5 Minute': 0.8, u'1 Minute': 0.88, 'Time': '2013/10/04 13:43:20.000'}, ...]
         data = []
-        for time, values in timestamps.iteritems():
+        for time, values in ordered_timestamps.iteritems():
             datum = dict(Time=LocalDateTimeFromMilli(time))
             datum.update(values)
             data.append(datum)
