@@ -23,6 +23,7 @@ from zExceptions import Redirect
 from AccessControl import getSecurityManager, ClassSecurityInfo
 
 from Products.Sessions.BrowserIdManager import constructBrowserIdManager
+from Products.BeakerSessionDataManager.sessiondata import addBeakerSessionDataManager
 
 from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore.utils import getToolByName
@@ -32,6 +33,7 @@ from Products.ZenUtils import Security, Time
 from Products.ZenUtils.Utils import prepId
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUI3.browser.interfaces import IErrorMessage
+
 
 from ZenossSecurity import *
 
@@ -332,7 +334,6 @@ class PortalGenerator:
     def setupSessionManager(self, p):
         """build a session manager and brower id manager for zport"""
         constructBrowserIdManager(p, cookiepath="/zport")
-        from  Products.BeakerSessionDataManager.sessiondata import addBeakerSessionDataManager
         sdmId = 'session_data_manager'
         app = p.getPhysicalRoot()
         if app.hasObject(sdmId):
