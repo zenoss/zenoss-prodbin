@@ -836,8 +836,8 @@ function initializeTreeDrop(tree) {
             devids = Ext.Array.pluck(Ext.pluck(e.records, 'data'), 'uid');
             // show the confirmation about devices
             new Zenoss.dialog.SimpleMessageDialog({
-                message: Ext.String.format(_t("Are you sure you want to move these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),devids.length, targetnode.data.text.text),
-                title: _t('Move Devices'),
+                message: Ext.String.format(_t("Are you sure you want to copy these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),devids.length, targetnode.data.text.text),
+                title: _t('Copy Devices'),
                 buttons: [{
                     xtype: 'DialogButton',
                     text: _t('OK'),
