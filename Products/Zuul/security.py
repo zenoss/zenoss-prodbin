@@ -78,7 +78,7 @@ class AuthorizationTool(object):
         @return:
         """
         sessionData = self._getSessionData()
-        if sessionData
+        if sessionData:
             return sessionData.get(sessionId, None)
         return None
 
