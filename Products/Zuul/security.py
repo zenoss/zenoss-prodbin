@@ -4,6 +4,7 @@ from App.config import getConfiguration
 from Products.Zuul.interfaces import IAuthorizationTool
 from Products.PluggableAuthService import interfaces
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from collective.beaker.interfaces import ISession
 
 import time
 
@@ -66,9 +67,9 @@ class AuthorizationTool(object):
         """
         if expires is None:
             expires = time.time() + 60 * getConfiguration().session_timeout_minutes
-        tokenId = request.SESSION.id
+        tokenId = request.SESSION.getId() 
         token = dict(id=tokenId, expires=expires)
-        self.context.temp_folder.session_data[tokenId] = token
+        request.SESSION.set(tokenId, token)
         return token
 
     def getToken(self, sessionId):
@@ -76,11 +77,20 @@ class AuthorizationTool(object):
         @param sessionId:
         @return:
         """
-        return self.context.temp_folder.session_data.get(sessionId, None)
+        sessionData = self._getSessionData()
+        if sessionData
+            return sessionData.get(sessionId, None)
+        return None
 
     def tokenExpired(self, sessionId):
         token = self.getToken(sessionId)
         if token is None:
             return True
-
         return time.time() >= token['expires']
+
+    def _getSessionData():
+        # For some reason Products.BeakerSessionDataManager doesn't support getSessionDataByKey 
+        #sess = self.context.session_data_manager.getSessionDataByKey(sessionId)
+        session = ISession(self.context.REQUEST)
+        return session.get_by_id(key)
+ 
