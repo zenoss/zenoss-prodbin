@@ -1384,12 +1384,12 @@ registerDirectory("skins", globals())
             servicePaths = [servicePaths]
 
         serviceDefs = [json.loads(sd) for sd in serviceDefs]
+        servicePaths = [p if p != "/hub/collector" else "/zenoss-application/zenoss-collection/hub/collector" for p in servicePaths]
         existingPaths = {}
 
         for sd, sp in zip(serviceDefs, servicePaths):
             sd["Services"] = []
             sp = "" if sp == "/" else sp
-            sp = "/zenoss-application/zenoss-collection/hub/collector" if sp == "/hub/collector" else sp
             existingPaths[sp + "/=" + sd["Name"]] = sd
             for tag in sd["Tags"]:
                 existingPaths[sp + "/" + tag] = sd
