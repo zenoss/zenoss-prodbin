@@ -13,10 +13,16 @@
 ##bind context=context
 ##title=Logout User
 # Attempt to logout the currently logged in user 
-
 req = context.REQUEST
 context.acl_users.resetCredentials(req, req.RESPONSE)
-req.SESSION.getBrowserIdManager().flushBrowserIdCookie()
+
+req.RESPONSE.expireCookie("_ZopeId", path='/zport')
+req.RESPONSE.expireCookie("beaker.session", path='/')
+req.RESPONSE.expireCookie("ZAuthToken", path='/')
+
+req.SESSION.clear()
+
+
 # we want to display logged_out when user is logged in with basic auth
 # need to figureout how to do this.
 #dest = '/zport/dmd/logged_out'
