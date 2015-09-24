@@ -1310,7 +1310,7 @@ registerDirectory("skins", globals())
             service = json.loads(template % templateParams)
             service = ZenPack.normalizeService(service, configMap, tag)
             serviceDefinitions.append(json.dumps(service))
-        servicePaths = ['/hub/collector'] * len(serviceDefinitions)
+        servicePaths = ['/zenoss-application/zenoss-collection/hub/collector'] * len(serviceDefinitions)
         self.installServiceDefinitions(serviceDefinitions, servicePaths)
 
 
@@ -1389,6 +1389,7 @@ registerDirectory("skins", globals())
         for sd, sp in zip(serviceDefs, servicePaths):
             sd["Services"] = []
             sp = "" if sp == "/" else sp
+            sp = "/zenoss-application/zenoss-collection/hub/collector" if sp == "/hub/collector" else sp
             existingPaths[sp + "/=" + sd["Name"]] = sd
             for tag in sd["Tags"]:
                 existingPaths[sp + "/" + tag] = sd
