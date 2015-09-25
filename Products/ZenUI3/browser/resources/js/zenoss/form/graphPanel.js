@@ -163,7 +163,7 @@
                                          '    <img id="{buttonId}" class="europaGraphGear" src="/++resource++zenui/img/gear.png"  />' +
                                          '</div>'),
         constructor: function(config) {
-            var padding = "padding:5px 5px 0px 0px;";
+            var padding = "padding:5px 5px 5px 0px;";
             // backcompat from graph dimensions from rrd
             // the properties were saved on each graph definition and we want to
             // both preserve backward compabability
@@ -175,7 +175,6 @@
 
             // dynamically adjust the height;
             config.graphPadding = padding;
-            config.height = this.adjustHeightBasedOnMetrics(config.height, config.datapoints);
             config.graphHeight = config.height - 50;
             config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
@@ -303,7 +302,26 @@
                 };
             }
             this.chartdefinition = visconfig;
-            zenoss.visualization.chart.create(this.graphId, visconfig);
+
+            var self = this;
+            var p = zenoss.visualization.chart.create(this.graphId, visconfig);
+            p.then(function(chart){
+                chart.afterRender = function(){
+                    // adjust height based on graph content
+                    var footerHeight = chart.$div.find(".zenfooter").outerHeight() || 0,
+                        graphHeight = self.height,
+                        legendHeight = chart.$div.find(".nv-legend")[0].getBBox().height,
+                        adjustedHeight = footerHeight + graphHeight + legendHeight;
+
+                    // if more than 1 legend row, recalculate panel height
+                    if(legendHeight > 20){
+                        chart.$div.height(adjustedHeight);
+                        self.setHeight(adjustedHeight + 60);
+                        chart.resize();
+                    }
+                };
+            });
+
         },
         displayLink: function(){
             var config = {},
