@@ -172,7 +172,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
         return len(self.results) == len(self._commands)
 
 
-    def clientFinished(self):
+    def clientFinished(self, error=None):
         """
         Tell the datacollector that we are all done
         """
