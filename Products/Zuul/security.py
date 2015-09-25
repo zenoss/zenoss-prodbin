@@ -77,7 +77,7 @@ class AuthorizationTool(object):
         @param sessionId:
         @return:
         """
-        sessionData = self._getSessionData()
+        sessionData = self._getSessionData(sessionId)
         if sessionData:
             return sessionData.get(sessionId, None)
         return None
@@ -88,9 +88,9 @@ class AuthorizationTool(object):
             return True
         return time.time() >= token['expires']
 
-    def _getSessionData():
+    def _getSessionData(self, id):
         # For some reason Products.BeakerSessionDataManager doesn't support getSessionDataByKey 
         #sess = self.context.session_data_manager.getSessionDataByKey(sessionId)
         session = ISession(self.context.REQUEST)
-        return session.get_by_id(key)
+        return session.get_by_id(id)
  
