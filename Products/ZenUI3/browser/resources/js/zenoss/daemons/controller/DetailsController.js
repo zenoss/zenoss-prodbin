@@ -92,7 +92,7 @@
                         // On a 401 response, Flare in the browser and stop the task
                         failure: function(response) {
                             if (response.status == 401) {
-                                Zenoss.message.warning("Unable to reach Elastic - log viewing may be impacted.  Refresh your borwser.");
+                                Zenoss.message.warning("Unable to reach Elastic - log viewing may be impacted.  Refresh your browser.");
                                 Ext.TaskManager.stop(logKeepaliveTask);
                             }
                         }
