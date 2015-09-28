@@ -81,6 +81,27 @@
                     }
                 }
             };
+
+            /**
+             * Start a timed task to keep the CC-issued cookie alive
+             **/
+            var logKeepaliveTask = {
+                run: function() {
+                    Ext.Ajax.request({
+                        url: location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : "") + "/api/controlplane/elastic",
+                        // On a 401 response, Flare in the browser and stop the task
+                        failure: function(response) {
+                            if (response.status == 401) {
+                                Zenoss.message.warning("Unable to reach Elastic - log viewing may be impacted.  Refresh your borwser.");
+                                Ext.TaskManager.stop(logKeepaliveTask);
+                            }
+                        }
+                    });
+                },
+                interval: 60000
+            };
+            Ext.TaskManager.start(logKeepaliveTask);
+
         },
         /**
          * This method is responsible for showing the card that
