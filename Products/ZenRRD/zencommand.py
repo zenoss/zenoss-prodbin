@@ -219,9 +219,9 @@ class MySshClient(SshClient):
         """
         msg = reason.getErrorMessage()
         if self.connect_defer and not self.connect_defer.called:
-            self.connect_defer.errback(msg)
+            self.connect_defer.errback(reason)
         if self.close_defer and not self.close_defer.called:
-            self.close_defer.errback(msg)
+            self.close_defer.errback(reason)
 
         self.clientFinished()
 
