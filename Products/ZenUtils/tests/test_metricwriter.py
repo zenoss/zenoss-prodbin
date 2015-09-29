@@ -11,15 +11,27 @@
 
 import unittest
 
-from Products.ZenUtils.metricwriter import DerivativeTracker
+from Products.ZenUtils import metricwriter
 
 
 class TestDerivativeTracker(unittest.TestCase):
 
     """Test DerivativeTracker class."""
 
+    def test_constraint_value(self):
+        a = self.assertEquals
+        f = metricwriter.constraint_value
+
+        a(f('U'), None)
+        a(f(''), None)
+        a(f('bah!'), None)
+        a(f(1), 1.0)
+        a(f(1.1), 1.1)
+        a(f('1'), 1.0)
+        a(f('1.1'), 1.1)
+
     def test_derivative(self):
-        tracker = DerivativeTracker()
+        tracker = metricwriter.DerivativeTracker()
 
         cases = [
             # COUNTER or DERIVE with minimum of 0. Most common case.
@@ -29,6 +41,14 @@ class TestDerivativeTracker(unittest.TestCase):
             ('counter',   0, 30,   0, 'U', None),
             ('counter',  55, 40,   0, 'U',  5.5),
             ('counter',  55, 40,   0, 'U', None),
+
+            # COUNTER or DERIVE with minimum of 0 as a string.
+            ('string',    0,  0, '0', 'U', None),
+            ('string',    0, 10, '0', 'U',  0.0),
+            ('string',   20, 20, '0', 'U',  2.0),
+            ('string',    0, 30, '0', 'U', None),
+            ('string',   55, 40, '0', 'U',  5.5),
+            ('string',   55, 40, '0', 'U', None),
 
             # DERIVE with no minimum or maximum. Rare aside from mistakes.
             ('derive',    0,  0, 'U', 'U', None),
@@ -52,7 +72,7 @@ class TestDerivativeTracker(unittest.TestCase):
             self.assertEqual(
                 result,
                 expected_result,
-                "{}(v={}, t={}, min={}, max={}) is {} instead of {}".format(
+                "{}(v={!r}, t={!r}, min={!r}, max={!r}) is {!r} instead of {!r}".format(
                     name, v, t, minval, maxval, result, expected_result))
 
 
