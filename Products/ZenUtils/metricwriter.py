@@ -7,6 +7,7 @@
 #
 ##############################################################################
 import logging
+import types
 from twisted.internet import defer
 from Products.ZenRRD.Thresholds import Thresholds
 
@@ -140,18 +141,51 @@ class DerivativeTracker(object):
                 delta = float(timed_metric[0] - last_timed_metric[0]) / \
                         float(timed_metric[1] - last_timed_metric[1])
 
+                # Get min/max into a usable float or None state.
+                min, max = map(constraint_value, (min, max))
+
                 # Derivatives below min are invalid and result in None.
-                if isinstance(min, (int, float)) and delta < min:
+                if min is not None and delta < min:
                     return None
 
                 # Derivatives above max are invalid and result in None.
-                if isinstance(max, (int, float)) and delta > max:
+                if max is not None and delta > max:
                     return None
 
                 return delta
 
         # None would be returned, but being explicit about it in this case.
         return None
+
+
+def constraint_value(value):
+    """Return float or None from raw rrdmin/rrdmax value.
+
+    >>> constraint_value('U')
+    >>> constraint_value('')
+    >>> constraint_value('no thanks')
+    >>> constraint_value(1)
+    1.0
+    >>> constraint_value(1.1)
+    1.1
+    >>> constraint_value('1')
+    1.0
+    >>> constraint_value('1.1')
+    1.1
+
+    """
+    if isinstance(value, float):
+        return value
+    elif isinstance(value, int):
+        return float(value)
+    elif isinstance(value, types.StringTypes):
+        if value in ('U', ''):
+            return None
+
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return None
 
 
 class ThresholdNotifier(object):
