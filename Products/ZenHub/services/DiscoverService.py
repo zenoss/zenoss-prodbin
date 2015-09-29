@@ -117,7 +117,6 @@ class DiscoverService(ModelerService):
         transaction.commit()
         return ips
 
-
     def sendIpStatusEvent(self, ipobj, sev=2):
         """Send an ip down event.  These are used to cleanup unused ips.
         """
@@ -135,7 +134,6 @@ class DiscoverService(ModelerService):
         self.sendEvent(dict(device=devname, ipAddress=ip, eventKey=ip,
             component=comp, eventClass=Status_Ping, summary=msg, severity=sev,
             agent="Discover"))
-
 
     @translateError
     def remote_createDevice(self, ip, force=False, **kw):
@@ -242,24 +240,21 @@ class DiscoverService(ModelerService):
             if ipobj: ips.append(ipobj.id)
         return ips
 
-
     @translateError
     def remote_getSubNetworks(self):
         "Fetch proxies for all the networks"
         return map(IpNetProxy,
                 self.dmd.Networks.getNetworkRoot().getSubNetworks())
 
-
     @translateError
-    def remote_getSnmpConfig(self, devicePath, snmpCategory='SNMP'):
+    def remote_getDeviceClassSnmpConfig(self, devicePath, category='SNMP'):
         "Get the snmp configuration defaults for scanning a device"
-        devroot = self.dmd.Devices.createOrganizer(devicePath)
+        devRoot = self.dmd.Devices.createOrganizer(devicePath)
         snmpConfig = {}
-        for name, value in devroot.zenPropertyItems():
-            if getzPropertyCategory(name) == snmpCategory:
+        for name, value in devRoot.zenPropertyItems():
+            if getzPropertyCategory(name) == category:
                 snmpConfig[name] = value
         return snmpConfig
-
 
     @translateError
     def remote_moveDevice(self, dev, path):

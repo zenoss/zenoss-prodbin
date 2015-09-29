@@ -235,7 +235,8 @@ class ZenDisc(ZenModeler):
         defer.returnValue(devices)
 
     @defer.inlineCallbacks
-    def findRemoteDeviceInfo(self, ip, devicePath, deviceSnmpCommunities=None):
+    def findRemoteDeviceInfo(self, ip, devicePath, deviceSnmpCommunities=None,
+                             deviceConfig=None):
         """
         Scan a device for ways of naming it: PTR DNS record or a SNMP name
 
@@ -251,12 +252,22 @@ class ZenDisc(ZenModeler):
         @rtype: deferred: Twisted deferred
         """
         self.log.debug("Doing SNMP lookup on device %s", ip)
-        snmp_conf = \
-            yield self.config().callRemote('getSnmpConfig', devicePath)
-
+        if deviceConfig is None:
+            snmp_conf = yield self.config().callRemote(
+                'getDeviceClassSnmpConfig', devicePath)
+            self.log.debug("Override acquired community strings")
+            # Override the device class communities with the ones set on
+            # this device, if they exist
+            communities = snmp_conf['zSnmpCommunities']
+            if deviceSnmpCommunities is not None:
+                communities = deviceSnmpCommunities
+        else:
+            snmp_conf = {k:v for k, v in deviceConfig.__dict__.iteritems()
+                         if k.startswith('zSnmp')}
+            communities = snmp_conf['zSnmpCommunities']
         configs = []
         ports = snmp_conf.get('zSnmpDiscoveryPorts') \
-            or [snmp_conf['zSnmpPort']]
+                or [snmp_conf['zSnmpPort']]
         timeout, retries = snmp_conf['zSnmpTimeout'], snmp_conf['zSnmpTries']
         if snmp_conf['zSnmpVer'] == SnmpV3Config.version:
             for port in ports:
@@ -282,13 +293,6 @@ class ZenDisc(ZenModeler):
                         timeout=timeout, retries=retries, weight=1,
                         securityName=snmp_conf['zSnmpSecurityName']))
         else:
-            self.log.debug("Override acquired community strings")
-            # Override the device class communities with the ones set on
-            # this device, if they exist
-            communities = snmp_conf['zSnmpCommunities']
-            if deviceSnmpCommunities is not None:
-                communities = deviceSnmpCommunities
-
             # Reverse the communities so that ones earlier in the list have a
             # higher weight.
             communities.reverse()
@@ -309,7 +313,8 @@ class ZenDisc(ZenModeler):
         defer.returnValue(config)
 
     @defer.inlineCallbacks
-    def discoverDevice(self, ip, devicepath=None, prodState=None):
+    def discoverDevice(self, ip, devicepath=None, prodState=None,
+                       deviceConfig=None):
         """
         Discover the device at the given IP address.
 
@@ -367,7 +372,7 @@ class ZenDisc(ZenModeler):
                 snmpCommunities = \
                     kw.get('zProperties', {}).get('zSnmpCommunities', None)
                 snmp_config = yield self.findRemoteDeviceInfo(
-                    ip, devicepath, snmpCommunities
+                    ip, devicepath, snmpCommunities, deviceConfig
                 )
                 if snmp_config:
                     if snmp_config.sysName:
@@ -551,7 +556,8 @@ class ZenDisc(ZenModeler):
         if not config or config.temp_device or self.options.remodel:
             device = yield self.discoverDevice(
                 ip, devicepath=self.options.deviceclass,
-                prodState=self.options.productionState
+                prodState=self.options.productionState,
+                deviceConfig=config
             )
             if device:
                 self.log.info("Discovered device %s.", device.id)
@@ -579,7 +585,8 @@ class ZenDisc(ZenModeler):
         if not me or self.options.remodel:
             me = yield self.discoverDevice(
                 myip, devicepath=self.options.deviceclass,
-                prodState=self.options.productionState
+                prodState=self.options.productionState,
+                deviceConfig=config
             )
         if not me:
             raise SystemExit("SNMP discover of self '%s' failed" % myname)

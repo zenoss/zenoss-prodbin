@@ -226,16 +226,11 @@
                 hosts = values.hosts,
                 deviceClass = values.deviceclass,
                 collector = values.collector,
-                zProperties = {}, key,
+                zProperties = this.getZProperties(values), key,
                 combo = this.getForm().query('combo[itemId="deviceType"]')[0],
                 grid = this.getGrid();
             // allow either commas to separate or new lines or both
             hosts = this.parseHosts(values.hosts);
-            for (key in values) {
-                if (key.startswith('z')) {
-                    zProperties[key] = values[key];
-                }
-            }
             var displayDeviceClass = combo.getStore().getAt(combo.getStore().findExact('value', deviceClass)).get('shortdescription');
             // go through each host and add a record
             Ext.Array.each(hosts, function(host){
@@ -257,6 +252,15 @@
                 record.set('pendingDelete', true);
                 this._AddJob(record);
             }, this);
+        },
+        getZProperties: function(values) {
+            var zProperties = {};
+            for (key in values) {
+                if (key.startswith('z')) {
+                    zProperties[key] = values[key];
+                }
+            }
+            return zProperties;
         },
         startGridRefresh: function() {
             this.refreshTask = Ext.util.TaskManager.newTask({
