@@ -520,7 +520,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 value = value.id
             elif callable(value):
                 value = value()
-            if value == None:
+            if value is None:
                 value = ''
             return str(value)
         for i, field in enumerate(fields):
