@@ -180,26 +180,24 @@ class ApplyDataMap(object):
             else:
                 tobj = device
 
-            # Delay indexing until the map has been fully processed
-            # so we index the minimum amount
-            with pausedAndOptimizedIndexing():
-                if hasattr(datamap, "relname"):
-                    logname=datamap.relname
-                    changed = self._updateRelationship(tobj, datamap)
-                elif hasattr(datamap, 'modname'):
-                    logname=datamap.compname
-                    changed = self._updateObject(tobj, datamap)
-                else:
-                    log.warn("plugin returned unknown map skipping")
+            if hasattr(datamap, "relname"):
+                logname = datamap.relname
+                changed = self._updateRelationship(tobj, datamap)
+            elif hasattr(datamap, 'modname'):
+                logname = datamap.compname
+                changed = self._updateObject(tobj, datamap)
+            else:
+                log.warn("plugin returned unknown map skipping")
 
-        if not changed:
-            transaction.abort()
-        else:
+        if changed:
             device.setLastChange()
-            trans = transaction.get()
-            trans.setUser("datacoll")
-            trans.note("data applied from automated collection")
-        log.debug("_applyDataMap for Device %s will modify %d objects for %s", device.getId(), self.num_obj_changed,logname)
+
+        log.debug(
+            "_applyDataMap for Device %s will modify %d objects for %s",
+            device.getId(),
+            self.num_obj_changed,
+            logname)
+
         return changed
 
 
