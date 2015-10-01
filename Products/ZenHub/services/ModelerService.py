@@ -21,6 +21,7 @@ from Products.DataCollector.DeviceProxy import DeviceProxy
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenEvents import Event
 from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
+from Products.ZenUtils.events import pausedAndOptimizedIndexing
 import time
 import logging
 log = logging.getLogger('zen.ModelerService')
@@ -146,7 +147,7 @@ class ModelerService(PerformanceConfig):
         def inner(map):
             def action():
                 start_time = time.time()
-                completed= bool(adm._applyDataMap(device, map))
+                completed= bool(adm._applyDataMap(device, map, commit=False))
                 end_time=time.time()-start_time
                 if hasattr(map, "relname"):
                     log.debug("Time in _applyDataMap for Device %s with relmap %s objects: %.2f", device.getId(),map.relname,end_time)
@@ -158,9 +159,10 @@ class ModelerService(PerformanceConfig):
             return self._do_with_retries(action)
 
         changed = False
-        for map in maps:
-            result = inner(map)
-            changed = changed or result
+        with pausedAndOptimizedIndexing():
+            for map in maps:
+                result = inner(map)
+                changed = changed or result
 
         if setLastCollection:
             self._setSnmpLastCollection(device)
