@@ -138,34 +138,42 @@ class ModelerService(PerformanceConfig):
                 if d.getPerformanceServerName() == monitor)
         return [d[0] for d in sorted(devices, key=lambda x:x[1])]
 
+    @transact
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
         device = self.getPerformanceMonitor().findDevice(device)
         adm = ApplyDataMap(self)
         adm.setDeviceClass(device, devclass)
-        def inner(map):
-            def action():
-                start_time = time.time()
-                completed= bool(adm._applyDataMap(device, map, commit=False))
-                end_time=time.time()-start_time
-                if hasattr(map, "relname"):
-                    log.debug("Time in _applyDataMap for Device %s with relmap %s objects: %.2f", device.getId(),map.relname,end_time)
-                elif hasattr(map,"modname"):
-                    log.debug("Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f",device.getId(),len(map.items()),end_time)
-                else:
-                    log.debug("Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap",device.getId(),end_time)
-                return completed
-            return self._do_with_retries(action)
 
         changed = False
         with pausedAndOptimizedIndexing():
             for map in maps:
-                result = inner(map)
-                changed = changed or result
+                start_time = time.time()
+                if adm._applyDataMap(device, map, commit=False):
+                    changed = True
+
+                end_time = time.time() - start_time
+                if hasattr(map, "relname"):
+                    log.debug(
+                        "Time in _applyDataMap for Device %s with relmap %s objects: %.2f",
+                        device.getId(),
+                        map.relname,
+                        end_time)
+                elif hasattr(map, "modname"):
+                    log.debug(
+                        "Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f",
+                        device.getId(),
+                        len(map.items()),
+                        end_time)
+                else:
+                    log.debug(
+                        "Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap",
+                        device.getId(),
+                        end_time)
 
         if setLastCollection:
-            self._setSnmpLastCollection(device)
+            device.setSnmpLastCollection()
 
         return changed
 
