@@ -20,6 +20,7 @@ from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.GraphPoint import GraphPoint
+from Products.ZenModel.ProductClass import ProductClass
 from Products.ZenModel.Software import Software
 from Products.Zuul.interfaces import ICatalogTool
 
@@ -35,7 +36,15 @@ class IgnorableClassesFilter(object):
     """
     implements(IInvalidationFilter)
 
-    CLASSES_TO_IGNORE = (IpAddress, IpNetwork, GraphDefinition, GraphPoint, Software)
+    CLASSES_TO_IGNORE = (
+        IpAddress,
+        IpNetwork,
+        GraphDefinition,
+        GraphPoint,
+        ProductClass,
+        Software,
+        )
+
     def initialize(self, context):
         pass
 
