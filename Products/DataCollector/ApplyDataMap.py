@@ -112,9 +112,20 @@ class ApplyDataMap(object):
         if deviceClass and device.getDeviceClassPath().startswith(CLASSIFIER_CLASS):
             device.changeDeviceClass(deviceClass)
 
+    def _applyDataMap(self, device, datamap, commit=True):
+        """Apply datamap to device. Return True if datamap changed device.
 
-    @transact
-    def _applyDataMap(self, device, datamap):
+        The default value for commit is True for backwards-compatibility
+        reasons. If you're a new caller to ApplyDataMap._applyData you should
+        probably set commit to False and handle your own transactions.
+
+        """
+        if commit:
+            return transact(self._applyDataMapImpl(device, datamap))
+        else:
+            return self._applyDataMapImpl(device, datamap)
+
+    def _applyDataMapImpl(self, device, datamap):
         """Apply a datamap to a device.
         """
         self.num_obj_changed=0;
