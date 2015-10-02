@@ -72,7 +72,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         loadPlugins(self.dmd)
         self.pid = os.getpid()
         self.services = {}
-        factory = ReconnectingPBClientFactory()
+        factory = ReconnectingPBClientFactory(pingPerspective=False)
         self.log.debug("Connecting to %s:%d",
                        self.options.hubhost,
                        self.options.hubport)
