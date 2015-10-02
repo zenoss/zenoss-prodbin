@@ -8,4 +8,5 @@
 #
 ##############################################################################
 
-/opt/zenoss/bin/redis-mon post
+(timeout 10s /opt/zenoss/bin/redis-mon post) &
+redis-cli ping
