@@ -12,7 +12,7 @@
         "debug": "su - zenoss -c '%(daemonpath)s debug'",
         "stats": "su - zenoss -c '%(daemonpath)s stats'"
     },
-    "Command": "su - zenoss -c \"%(daemonpath)s run -c --duallog %(ZenPack.Default.WorkerArgs)s --monitor {{(parent .).Name}}\"",
+    "Command": "su - zenoss -c \"%(daemonpath)s run -c --logfileonly %(ZenPack.Default.WorkerArgs)s --monitor {{(parent .).Name}}\"",
     "ConfigFiles": {
         "%(zenhome)s/etc/%(daemon)s.conf": {
             "####": "Note: Contents defined by the output of '%(daemon)s genconf' ",

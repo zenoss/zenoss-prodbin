@@ -162,7 +162,7 @@ class ZenDaemon(CmdBase):
                 '%(asctime)s %(levelname)s %(name)s: %(message)s')
 
         if self.options.watchdogPath or self.options.daemon \
-                or self.options.duallog:
+                or self.options.duallog or self.options.logfileonly:
             logdir = self.checkLogpath() or zenPath("log")
 
             handler = logging.handlers.RotatingFileHandler(
@@ -174,7 +174,8 @@ class ZenDaemon(CmdBase):
             handler.setFormatter(formatter)
             rootLog.addHandler(handler)
 
-        if not (self.options.watchdogPath or self.options.daemon):
+        if not (self.options.watchdogPath or self.options.daemon \
+                        or self.options.logfileonly or self.options.duallog):
             # We are logging to the console
             # Find the stream handler and make it match our desired log level
             if self.options.weblog:
@@ -186,7 +187,7 @@ class ZenDaemon(CmdBase):
                 rootLog.addHandler(consoleHandler)
 
             for handler in (h for h in rootLog.handlers
-                    if isinstance(h, logging.StreamHandler)):
+                            if isinstance(h, logging.StreamHandler)):
                 handler.setLevel(self.options.logseverity)
                 handler.setFormatter(formatter)
 
@@ -402,7 +403,10 @@ class ZenDaemon(CmdBase):
                 help="Launch into the background")
         self.parser.add_option('--duallog', default=False,
                 dest='duallog', action="store_true",
-                help="Log to console and log file")
+                help="DEPRECATED: Now behaves like --logfileonly")
+        self.parser.add_option('--logfileonly', default=False,
+                dest='logfileonly', action="store_true",
+                help="Log to log file and not console")
         self.parser.add_option('--weblog', default=False,
                 dest='weblog', action="store_true",
                 help="output log info in HTML table format")
