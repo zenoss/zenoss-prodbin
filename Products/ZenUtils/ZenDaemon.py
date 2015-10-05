@@ -175,7 +175,7 @@ class ZenDaemon(CmdBase):
             rootLog.addHandler(handler)
 
         if not (self.options.watchdogPath or self.options.daemon \
-                        or self.options.logfileonly or self.options.duallog):
+                        or self.options.logfileonly):
             # We are logging to the console
             # Find the stream handler and make it match our desired log level
             if self.options.weblog:
@@ -403,7 +403,7 @@ class ZenDaemon(CmdBase):
                 help="Launch into the background")
         self.parser.add_option('--duallog', default=False,
                 dest='duallog', action="store_true",
-                help="DEPRECATED: Now behaves like --logfileonly")
+                help="Log to console and log file")
         self.parser.add_option('--logfileonly', default=False,
                 dest='logfileonly', action="store_true",
                 help="Log to log file and not console")
