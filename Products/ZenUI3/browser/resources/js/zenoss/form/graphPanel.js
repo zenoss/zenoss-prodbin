@@ -661,7 +661,7 @@
 
             // get the browser's local timezone so we can offset that as well :/
             // NOTE: zone returns minutes, so convert to milliseconds
-            this.TZLocalMS = moment().zone() * 60 * 1000;
+            this.TZLocalMS = moment().utcOffset() * 60 * 1000;
 
             this.callParent(arguments);
         },
@@ -958,7 +958,7 @@
 
             // default start and end values in UTC time
             // NOTE: do not apply timezone adjustments to these values!
-            this.start = moment.utc().subtract("ms", this.drange);
+            this.start = moment.utc().subtract(this.drange, "ms");
             this.setEndToNow();
 
             // set start and end dates
@@ -1146,7 +1146,7 @@
             this.nowCheck.setValue(true);
 
             // update start to reflect new range
-            this.start = this.end.clone().subtract("ms", this.drange);
+            this.start = this.end.clone().subtract(this.drange, "ms");
 
             //  set the start and end dates to the selected range.
             this.updateStartDatePicker();
@@ -1182,7 +1182,7 @@
 
             // if the "now" checkbox is set and range isn't custom, start time should be updated as well
             if(this.nowCheck.getValue() && this.toolbar.query("drangeselector")[0].getValue() !== "custom"){
-                this.start = this.end.clone().subtract("ms", this.drange);
+                this.start = this.end.clone().subtract(this.drange, "ms");
                 this.updateStartDatePicker();
             }
         },
