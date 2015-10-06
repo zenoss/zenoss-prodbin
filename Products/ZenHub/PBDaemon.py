@@ -1096,7 +1096,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         self.parser.add_option('--zenhubpinginterval',
                                dest='zhPingInterval',
-                               default=30,
+                               default=120,
                                type='int',
                                help='How often to ping zenhub')
 
