@@ -306,18 +306,18 @@ Portlet.prototype = {
 
 PortletContainer.prototype = {
     __init__: function(target) {
-        this.container = $(target);
+        this.container = $MK(target);
         this.columns = [];
         this.portlets = {};
         this.columnContainer = null;
         this.isDirty = false;
     },
     goodConnection: function() {
-        setInnerHTML($('connectionmessage'),
+        setInnerHTML($MK('connectionmessage'),
                 'Last updated ' + getServerTimestamp() + '.');
     },
     brokenConnection: function() {
-        setInnerHTML($('connectionmessage'), 'Lost connection to the server.');
+        setInnerHTML($MK('connectionmessage'), 'Lost connection to the server.');
     },
     setContainerHeight: function() {
         var heights = [];
@@ -893,7 +893,7 @@ YAHOO.extend(YZP.PortletProxy, YAHOO.util.DDProxy, {
             var pt = DDM.interactionInfo.point;
             var region = DDM.interactionInfo.sourceRegion;
             if (!region.intersect(pt)) {
-                var destEl = $(id);
+                var destEl = $MK(id);
                 var destDD = DDM.getDDById(id);
                 destEl.appendChild(this.getEl());
                 destDD.isEmpty = false;
@@ -920,7 +920,7 @@ YAHOO.extend(YZP.PortletProxy, YAHOO.util.DDProxy, {
     },
     onDragOver: function(e, id) {
         var srcEl = this.getEl();
-        var destEl = $(id);
+        var destEl = $MK(id);
         if (destEl.className.toLowerCase() == 'zenoss-portlet') {
             var orig_p = srcEl.parentNode;
             var p = destEl.parentNode;
