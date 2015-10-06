@@ -58,7 +58,7 @@ UserMsgsPortlet.prototype = {
     markAsRead: function(record) {
         var data = record.getData()['Message'];
         var name = data.match(/msg\-row\-\d+/)[0];
-        var sUrl = $(name).value;
+        var sUrl = $MK(name).value;
         var d = doXHR(sUrl);
         var DT = this.dataTable;
         d.addCallback(function(){DT.deleteRow(record)});
