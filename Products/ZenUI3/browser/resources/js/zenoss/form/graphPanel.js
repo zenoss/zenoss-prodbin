@@ -344,14 +344,23 @@
             if (graphPanel && Ext.isNumber(graphPanel.drange)) {
                 drange = graphPanel.drange;
             }
-            encodedConfig = Zenoss.util.base64.encode(Ext.JSON.encode(config));
-            link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, encodedConfig);
-
-            new Zenoss.dialog.ErrorDialog({
-                message: Ext.String.format(_t('<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
-                    '<br/><br/><a href="' + link + '">Graph: ' + this.graphTitle +  ' </a>') + '</div>')),
-                title: _t('Link to this Graph')
-            });
+            // get the zipped + encoded config from the server
+            router.gzip_b64({string: Ext.JSON.encode(config)}, function(resp) {
+                if (resp.success && resp.data && resp.data.data !== undefined) {
+                    console.log(resp.data.data);
+                    link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, resp.data.data);
+                    if (link.length > 2000) {
+                        Zenoss.message.error('Unable to generate link, length is too great');
+                    } else {
+                        new Zenoss.dialog.ErrorDialog({
+                            message: Ext.String.format(_t('<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
+                                '<br/><br/><a href="' + link + '">Graph: ' + this.graphTitle +  ' </a>') + '</div>')),
+                            title: _t('Link to this Graph')
+                        });
+                    }
+                }
+            },
+            this);
         },
         expandGraph: function(){
             var config = {},
