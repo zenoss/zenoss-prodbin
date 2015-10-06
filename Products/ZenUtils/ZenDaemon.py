@@ -187,7 +187,7 @@ class ZenDaemon(CmdBase):
                 rootLog.addHandler(consoleHandler)
 
             for handler in (h for h in rootLog.handlers
-                            if isinstance(h, logging.StreamHandler)):
+                    if isinstance(h, logging.StreamHandler)):
                 handler.setLevel(self.options.logseverity)
                 handler.setFormatter(formatter)
 
