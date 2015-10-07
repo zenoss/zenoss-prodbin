@@ -142,7 +142,7 @@ YAHOO.namespace('zenoss.geomap');
             }));
         },
         maximizeMapHeight: function() {
-            mapdiv = $('geomapcontainer');
+            mapdiv = $MK('geomapcontainer');
             mapoffset = getElementPosition(mapdiv).y;
             maxbottom = getViewportDimensions().h;
             newdims = {'h':maxbottom-mapoffset};
@@ -436,7 +436,7 @@ YAHOO.namespace('zenoss.geomap');
     }
     /* SET UP AND RUN THE MAP */
     YAHOO.zenoss.geomap.initialize = function (container) {
-        addElementClass($('geomapcontainer'), "yui-skin-sam");
+        addElementClass($MK('geomapcontainer'), "yui-skin-sam");
         dialog = document.getElementById('geocodingdialog');
         var pollrate = document.location.search.split('=')[1]?document.location.search.split('=')[1]:polling;
         polling = pollrate;

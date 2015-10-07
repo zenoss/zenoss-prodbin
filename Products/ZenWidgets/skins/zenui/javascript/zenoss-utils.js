@@ -114,7 +114,7 @@ function unescapeHTML(str) {
 YAHOO.zenoss.unescapeHTML = unescapeHTML;
 
 function getSelectValues(element) {
-    var element = $(element);
+    var element = $MK(element);
     var values = [];
     forEach(element.options, function(opt){
         if(opt.selected) values.push(opt.value);
@@ -129,7 +129,7 @@ YAHOO.zenoss.getSelectValues = getSelectValues;
  ***********************************/
 
 function toggleElement(elementid) {
-    var element = $(elementid);
+    var element = $MK(elementid);
     if (element.visible == 0) {
         element.style.display = "none";
         element.visible = 1;
@@ -199,16 +199,16 @@ function deleteCookie(name,path,domain) {
 }
 
 function hideLeftPane() {
-    var leftPane = $('leftPane');
-    var rightPane = $('rightPane');
+    var leftPane = $MK('leftPane');
+    var rightPane = $MK('rightPane');
     //showElement('leftPaneToggle');
     makeInvisible(leftPane);
-    makeInvisible($('paneToggle'));
+    makeInvisible($MK('paneToggle'));
     setStyle('paneToggle', {
         'background-image':'url(img/paneToggle_bg_collapsed.gif)',
         'border-right':'1px solid black'
     });
-    if ($('breadCrumbPane')) {
+    if ($MK('breadCrumbPane')) {
     setStyle('breadCrumbPane', { 'padding-left':'35px'});}
     setStyle('rightPane', {'margin-left':'12px'});
     setStyle('leftPaneToggle', {
@@ -225,16 +225,16 @@ function hideLeftPane() {
 }
 
 function showLeftPane() {
-    var leftPane = $('leftPane');
-    var rightPane = $('rightPane');
+    var leftPane = $MK('leftPane');
+    var rightPane = $MK('rightPane');
     makeVisible(leftPane);
-    makeVisible($('paneToggle'));
+    makeVisible($MK('paneToggle'));
     //hideElement('leftPaneToggle');
     setStyle('paneToggle', {
         'background-image':'url(img/paneToggle_bg.gif)',
         'border-right':'1px solid black'
     });
-    if ($('breadCrumbPane')) {
+    if ($MK('breadCrumbPane')) {
     setStyle('breadCrumbPane', { 'padding-left':'120px'});}
     setStyle(rightPane, {'margin-left':'120px'});
     setStyle('leftPaneToggle', {
@@ -249,26 +249,26 @@ function showLeftPane() {
 }
 
 function toggleLeftPane() {
-    var leftPane = $('leftPane');
+    var leftPane = $MK('leftPane');
     if (!isVisible(leftPane)) { showLeftPane(); }
     else { hideLeftPane(); }
 }
 
 function doHiding() {
-    hideElement($('leftPane'));
-    hideElement($('paneToggle'));
+    hideElement($MK('leftPane'));
+    hideElement($MK('paneToggle'));
 }
 
 function doShowing() {
-    showElement($('leftPane'));
-    showElement($('paneToggle'));
+    showElement($MK('leftPane'));
+    showElement($MK('paneToggle'));
 }
 
 var t;
 function doHover() {
-    var leftPane = $('leftPane');
-    var paneToggle = $('paneToggle');
-    var leftPaneToggle = $('leftPaneToggle');
+    var leftPane = $MK('leftPane');
+    var paneToggle = $MK('paneToggle');
+    var leftPaneToggle = $MK('leftPaneToggle');
     var lpPopup = leftPane;
     setStyle(paneToggle, {
         'z-index':'10000'
@@ -284,7 +284,7 @@ function doHover() {
         clearTimeout(t);
         doShowing();
     });
-    connect($('paneToggle'), 'onmouseover', function(){
+    connect($MK('paneToggle'), 'onmouseover', function(){
         clearTimeout(t);
         doShowing();
     });
@@ -321,8 +321,8 @@ function doHover() {
 }
 
 function cancelHover() {
-    var leftPane = $('leftPane');
-    var paneToggle = $('paneToggle');
+    var leftPane = $MK('leftPane');
+    var paneToggle = $MK('paneToggle');
     if (leftPane && paneToggle) {
         setStyle(paneToggle, {'z-index':'1'});
         setStyle(leftPane, {'z-index':'1'});
@@ -351,7 +351,7 @@ function cancelHover() {
 
 function checkForCollapsed() {
     var x = getCookie('Zenoss_Collapsed_Menu');
-    if ($('leftPaneToggle')){
+    if ($MK('leftPaneToggle')){
     if (!x){
     disconnectAll('leftPaneToggle');
     connect('leftPaneToggle','onclick',toggleLeftPane);
@@ -420,7 +420,7 @@ function addSelectionBar() {
 
 function applyBrowserSpecificStyles() {
     if (navigator.userAgent.match('Mac')) {
-        var searchform=$("searchform-label");
+        var searchform=$MK("searchform-label");
         if (searchform)
             setStyle(searchform, {
                 'left':'-5em'
@@ -489,7 +489,7 @@ function wheel(event){
 function captureSubmit(e){
     switch (e.key().string) {
         case 'KEY_ENTER':
-            var submit = $('dialog_submit');
+            var submit = $MK('dialog_submit');
             submit.click();
             return;
         default:
@@ -498,12 +498,12 @@ function captureSubmit(e){
 
 
 function checkValidId(e){
-    var errmsg = $('errmsg');
-    var input = $('new_id');
-    var label = $('new_id_label');
+    var errmsg = $MK('errmsg');
+    var input = $MK('new_id');
+    var label = $MK('new_id_label');
     var new_id = escape(input.value);
-    var submit = $('dialog_submit');
-    var path = $('checkValidIdPath').value;
+    var submit = $MK('dialog_submit');
+    var path = $MK('checkValidIdPath').value;
 
     errmsg.innerHTML = "";
     Morph(input, {"style": {"color": "black"}});
@@ -575,10 +575,10 @@ var calcMenuPos = function(rel, menu) {
     var vDims = getViewportDimensions();
     var mDims = getElementDimensions(menu);
     var vPos = getViewportPosition();
-    finalDims = $(menu).className=='devmovemenuitems'?{x:0, y:0}:{x:0, y:24};
+    finalDims = $MK(menu).className=='devmovemenuitems'?{x:0, y:0}:{x:0, y:24};
     totalX = pPos.x + mDims.w;
     finalDims.x = totalX>=vDims.w+vPos.x?pDims.w-mDims.w:3+finalDims.x;
-    finalDims.x = $(menu).className=='devmovemenuitems'?4-pDims.w:finalDims.x;
+    finalDims.x = $MK(menu).className=='devmovemenuitems'?4-pDims.w:finalDims.x;
     finalDims.x -= 1;
     totalY = pPos.y + pDims.h + mDims.h;
     var topmenu = getElementsByTagAndClassName('div', 'menu_top', menu)[0];
@@ -588,7 +588,7 @@ var calcMenuPos = function(rel, menu) {
     } else {
         setStyle(topmenu, {'background-image':'url(img/menu_top.gif)'});
     }
-    if (isIE && $(menu).className!='devmovemenuitems') finalDims.y += 10;
+    if (isIE && $MK(menu).className!='devmovemenuitems') finalDims.y += 10;
     return finalDims;
 };
 
@@ -628,14 +628,14 @@ var showMenu = function(rel, menu) {
 };
 
 var showContextMenu = function() {
-    var menu = $('contextmenuitems');
+    var menu = $MK('contextmenuitems');
 
 };
 
 var dropOtherMenuButtons = function(button) {
     var lowerButton = function(btn) { setStyle(btn, {'z-index':'1'});};
     try {
-        mymenu = getFirstParentByTagAndClassName($(button).parentNode, 'div',
+        mymenu = getFirstParentByTagAndClassName($MK(button).parentNode, 'div',
         'tabletitlecontainer');
     } catch(e) {
         mymenu = null;
@@ -646,7 +646,7 @@ var dropOtherMenuButtons = function(button) {
 };
 
 var hideOtherSubmenus = function(menu, submenu) {
-    var smartHideSub = function(sub){if ($(submenu)!=sub) hideSubMenu(sub);};
+    var smartHideSub = function(sub){if ($MK(submenu)!=sub) hideSubMenu(sub);};
     map(smartHideSub, $$('div.submenu'));
 };
 
@@ -882,7 +882,7 @@ Dialog.Box.prototype = {
     __init__: function(id) {
         bindMethods(this);
         this.makeDimBg();
-        this.box = $(id);
+        this.box = $MK(id);
         this.framework = DIV(
             {'class':'dialog_container'},
             [
@@ -903,7 +903,7 @@ Dialog.Box.prototype = {
         insertSiblingNodesBefore(this.box, this.framework);
         setStyle(this.framework, {'position':'absolute'});
         removeElement(this.box);
-        appendChildNodes($('dialog_content'), this.box);
+        appendChildNodes($MK('dialog_content'), this.box);
         this.loadEvents = {};
         this.unloadEvents = {};
         this.box.addLoadEvent = bind(this.addLoadEvent, this);
@@ -932,8 +932,8 @@ Dialog.Box.prototype = {
         this.unloadEvents[id].push(func);
     },
     makeDimBg: function() {
-        if($('dialog_dim_bg')) {
-            this.dimbg = $('dialog_dim_bg');
+        if($MK('dialog_dim_bg')) {
+            this.dimbg = $MK('dialog_dim_bg');
         } else {
             this.dimbg = DIV({'id':'dialog_dim_bg'},null);
             setStyle(this.dimbg, {
@@ -979,7 +979,7 @@ Dialog.Box.prototype = {
             y:((dims.h/2)+vPos.y)-(bdims.h/2)
         });
         this.moveBox('front');
-        connect('dialog_close','onclick',function(){$('dialog').hide();});
+        connect('dialog_close','onclick',function(){$MK('dialog').hide();});
         var d2 = this.lock.acquire();
         d2.addCallback(bind(function() {
             try {
@@ -1024,11 +1024,11 @@ Dialog.Box.prototype = {
         d.addCallback(method(this, function(req){this.fill(id, req);}));
     },
     fill: function(dialogid, request) {
-        YAHOO.zenoss.setInnerHTML($('dialog_innercontent'), request.responseText);     
+        YAHOO.zenoss.setInnerHTML($MK('dialog_innercontent'), request.responseText);     
         if (dialogid in this.loadEvents){
             forEach(this.loadEvents[dialogid], function(f){f();});
         }    
-        var elements = getFormElements($('dialog_innercontent'));
+        var elements = getFormElements($MK('dialog_innercontent'));
         var first = elements[0];
         var textboxes = elements[1];
         var submits = elements[2];
@@ -1044,7 +1044,7 @@ Dialog.Box.prototype = {
         if (this.lock.locked) this.lock.release();
     },
     submit_form: function(action, formname) {
-        var f = formname?document.forms[formname]:(this.form?this.form:$('proxy_form'));
+        var f = formname?document.forms[formname]:(this.form?this.form:$MK('proxy_form'));
         setStyle(this.box, {'z-index':'-1'});
         this.box = removeElement(this.box);
         if (action != '') f.action = action;
@@ -1052,12 +1052,12 @@ Dialog.Box.prototype = {
         return true;
     },
     submit_form_and_check: function(action, formname, prep_id) {
-        var errmsg = $('errmsg');
-        var input = $('new_id');
-        var label = $('new_id_label');
+        var errmsg = $MK('errmsg');
+        var input = $MK('new_id');
+        var label = $MK('new_id_label');
         var new_id = escape(input.value);
-        var submit = $('dialog_submit');
-        var path = $('checkValidIdPath').value;
+        var submit = $MK('dialog_submit');
+        var path = $MK('checkValidIdPath').value;
         var myform = formname?document.forms[formname]:this.form;
         errmsg.innerHTML = "";
         Morph(input, {"style": {"color": "black"}});
@@ -1068,7 +1068,7 @@ Dialog.Box.prototype = {
         d.addCallback(bind(function (r) {
             if (r.responseText == 'True') {
                 var f = formname?document.forms[formname]:
-                    (this.form?this.form:$('proxy_form'));
+                    (this.form?this.form:$MK('proxy_form'));
                 setStyle(this.box, {'z-index':'-1'});
                 this.box = removeElement(this.box);
                 if (action != '') f.action = action;
