@@ -13,6 +13,9 @@ if (! ("console" in window)) {
     window.console = {};
     for (var i = 0; i <names.length; ++i) window.console[names[i]] = function() {};}
 
+// alias MochiKit to $MK to make way for jquery
+var $MK = $;
+
 // Set up the Javascript loader
 function getLoader(withtests) {
     /**

@@ -1758,7 +1758,7 @@ img.europaGraphGear {
     padding-left: 10px;
     margin-left: 10px;
     font-size: 1.2em;
-    overflow: hide;
+    overflow: hidden;
 }
 .graph_description {
     display: inline-block;

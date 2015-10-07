@@ -25,7 +25,7 @@ YAHOO.zenoss.zenautocomplete.ZenAutoComplete = Class.create();
 YAHOO.zenoss.zenautocomplete.ZenAutoComplete.prototype = {
     __init__: function(name, url, label, container, events) {
         bindMethods(this);
-        this.target = $(container);
+        this.target = $MK(container);
         this.label = label;
         this.eventconfig = events;
         this.setup();
@@ -84,7 +84,7 @@ YAHOO.zenoss.zenautocomplete.OrganizerBase = Subclass.create(
 YAHOO.zenoss.zenautocomplete.OrganizerBase.prototype = {
     __init__: function(organizer, label, container) {
         bindMethods(this);
-        this.target = $(container);
+        this.target = $MK(container);
         this.label = label;
         this.setup();
         YAHOO.zenoss.getOrganizers(organizer, this.makeAutoCompleter);
@@ -156,7 +156,7 @@ YAHOO.zenoss.zenautocomplete.OrganizerSearch = Subclass.create(
 YAHOO.zenoss.zenautocomplete.OrganizerSearch.prototype = {
     __init__: function(label, container) {
         bindMethods(this);
-        this.target = $(container);
+        this.target = $MK(container);
         this.label = label;
         this.setup();
         _getAllOrganizers(this.makeAutoCompleter);
@@ -168,7 +168,7 @@ YAHOO.zenoss.zenautocomplete.DevObjectSearch = Subclass.create(
 YAHOO.zenoss.zenautocomplete.DevObjectSearch.prototype = {
     __init__: function(label, container) {
         bindMethods(this);
-        this.target = $(container);
+        this.target = $MK(container);
         this.label = label;
         this.setup();
         _getOrganizersAndDevices(this.makeAutoCompleter);
@@ -180,7 +180,7 @@ YAHOO.zenoss.zenautocomplete.DevAndEventObjectSearch = Subclass.create(
 YAHOO.zenoss.zenautocomplete.DevAndEventObjectSearch.prototype = {
     __init__: function(label, container) {
         bindMethods(this);
-        this.target = $(container);
+        this.target = $MK(container);
         this.label = label;
         this.setup();
         _getOrganizersAndDevicesAndEventClasses(this.makeAutoCompleter);

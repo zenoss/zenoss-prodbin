@@ -14,9 +14,9 @@ loader = YAHOO.zenoss.getLoader();
 loader.require(['zenossutils']);
 loader.insert({
     onSuccess: function(){
-        mydialog = new Dialog.Box($('dialog'));
+        mydialog = new Dialog.Box($MK('dialog'));
         connect('dialog_close','onclick', mydialog.box.hide);
-        $('dialog').style.visibility = '';
+        $MK('dialog').style.visibility = '';
     }
 });
 </script>
