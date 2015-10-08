@@ -71,13 +71,17 @@ class ZenDiag(object):
 
     def generate_bundle(self):
         """
-        Generate and return an empty zipfile to archive everything to
+        Generate and return an empty zipfile to archive everything to.
+        The zipfile is generated in a tmp location.  Generally, you'll want
+        to move this to somewhere else when everything is done.
         """
+        # Make sure the bundle path exists
         if not os.path.exists(supportBundlePath()):
             os.makedirs(supportBundlePath())
         archive_name = time.strftime("zendiag-%Y-%m-%d-%H-%M.zip")
+
         return zipfile.ZipFile(
-            supportBundlePath(archive_name),
+            os.path.join(tempfile.mkdtemp(), archive_name),
             'w',
             compression=zipfile.ZIP_DEFLATED
         )
@@ -385,28 +389,38 @@ class ZenDiag(object):
 
     def wrapup(self):
         self.archive.close()
-        log.info('Diagnostic data stored to %s', self.archive.filename)
+        log.info('Moving archive from %s to %s', self.archive.filename, supportBundlePath())
+        shutil.move(self.archive.filename, supportBundlePath())
 
     def run(self, verbose=False, steps=[]):
         """
         Main method that gets invoked.  Call with parsed arguments.
         """
-        if verbose:
-            log.setLevel(logging.DEBUG)
-        stepDict= {
-            'database': self.get_database_info,
-            'zep': self.get_zep_info,
-            'zenoss': self.get_zenoss_info,
-            'files': self.get_files,
-            'control-center': self.get_cc_data
-        }
-        if steps:
-            [ stepDict[step]() for step in steps ]
+        try:
+            if verbose:
+                log.setLevel(logging.DEBUG)
+            stepDict= {
+                'database': self.get_database_info,
+                'zep': self.get_zep_info,
+                'zenoss': self.get_zenoss_info,
+                'files': self.get_files,
+                'control-center': self.get_cc_data
+            }
+            if steps:
+                [ stepDict[step]() for step in steps ]
+            else:
+                [ step() for step in stepDict.values() ]
+
+            self.wrapup()
+        except:
+            log.error('Failed to gather diagnostic data')
+            try:
+                if self.archive.filename and os.path.exists(self.archive.filename):
+                    shutil.rmtree(self.archive.filename)
+            except:
+                pass
         else:
-            [ step() for step in stepDict.values() ]
-
-        self.wrapup()
-
+            log.info('Diagnostic data successfully gathered')
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Gather diagnostic data about Zenoss')
