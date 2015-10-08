@@ -439,7 +439,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             else:
                 msg = "SSH authentication failed - no password or public key specified"
             self._handleFailure(msg, event_key="sshClientAuth")
-            self.factory.clientFinished(msg)
+            self.factory.clientFinished(LoginFailed(msg))
         else:
             sendEvent(self, "Authentication succeeded for username %s" % self.user, severity=Event.Clear,
                       event_key="sshClientAuth")
