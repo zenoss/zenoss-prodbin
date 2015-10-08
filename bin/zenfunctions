@@ -205,7 +205,7 @@ debug() {
         echo "Sending SIGUSR1 to $PID"
         kill -s USR1 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
         return $?
-    elif pgrep -fla -- '/serviced service proxy' >/dev/null 2>&1; then
+    elif pgrep -fla -- '/serviced/serviced-controller' >/dev/null 2>&1; then
         PIDS=`pgrep -f -- "py --configfile $CFGFILE"`
         if [ "$PIDS" ]; then
                 echo "Sending SIGUSR1 to PIDS: " $PIDS
