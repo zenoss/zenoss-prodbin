@@ -70,9 +70,8 @@
         permission="zope2.Public"
         class=".javascript.JavaScriptSrcBundleViewlet"
         paths="/++resource++zenui/js/timezone/moment.min.js
-               /++resource++zenui/js/timezone/moment-timezone.js
-               /++resource++zenui/js/timezone/jstz.js
-               /++resource++zenui/js/timezone/moment-timezone-data.js"
+               /++resource++zenui/js/timezone/moment-timezone-with-data.min.js
+               /++resource++zenui/js/timezone/jstz.js"
         />
 
 
