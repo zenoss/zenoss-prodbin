@@ -121,7 +121,7 @@ class ApplyDataMap(object):
 
         """
         if commit:
-            return transact(self._applyDataMapImpl(device, datamap))
+            return transact(self._applyDataMapImpl)(device, datamap)
         else:
             return self._applyDataMapImpl(device, datamap)
 
