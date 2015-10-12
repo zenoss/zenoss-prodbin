@@ -12,6 +12,9 @@ __doc__ = """ZenPack
 ZenPacks base definitions
 """
 
+import logging
+log = logging.getLogger('zen.ZenPack')
+
 import datetime
 import glob
 import json
@@ -258,17 +261,64 @@ class ZenPack(ZenModelRM):
           },
         )
 
-    packZProperties = [
-        ]
+    packZProperties = []
+    packZProperties_data = {}
 
     security = ClassSecurityInfo()
 
+    @classmethod
+    def getZProperties(cls):
+        """Return dict of zProperties added by this ZenPack.
+
+        packZProperties and packZProperties_data will be merged into the result
+        with packZProperties winning when they disagree on type or
+        defaultValue.
+
+        Example result:
+
+            {
+                'zMyZenPackProperty': {
+                    'type': 'string',
+                    'defaultValue': '',
+                    'category': 'Mine',
+                    'label': 'My Simple Property',
+                    'description': 'Set this to any value.'
+                }
+            }
+
+        """
+        pack_zproperties = {}
+        for p_id, p_value, p_type in cls.packZProperties:
+            pack_zproperties[p_id] = {
+                'type': p_type,
+                'defaultValue': p_value,
+                }
+
+        for p_id, p_data in cls.packZProperties_data.items():
+            if p_id not in pack_zproperties:
+                if 'type' not in p_data or 'defaultValue' not in p_data:
+                    log.error(
+                        "%s: type or defaultValue not set for %s property",
+                        cls.__module__,
+                        p_id)
+
+                    continue
+
+                pack_zproperties[p_id] = {
+                    'type': p_data['type'],
+                    'defaultValue': p_data['defaultValue'],
+                    }
+
+            for p_data_key, p_data_value in p_data.items():
+                pack_zproperties[p_id].setdefault(
+                    p_data_key, p_data_value)
+
+        return pack_zproperties
 
     def __init__(self, id, title=None, buildRelations=True):
         #self.dependencies = {'zenpacksupport':''}
         self.dependencies = {}
         ZenModelRM.__init__(self, id, title, buildRelations)
-
 
     def install(self, app):
         """
@@ -456,16 +506,19 @@ class ZenPack(ZenModelRM):
 
     def createZProperties(self, app):
         """
-        Create zProperties in the ZenPack's self.packZProperties
+        Create zProperties in the ZenPack's self.getZProperties().
 
         @param app: ZenPack
         @type app: ZenPack object
         """
         # for brand new installs, define an instance for each of the zenpacks
         # zprops on dmd.Devices
-        for name, value, pType in self.packZProperties:
+        for name, data in self.getZProperties().items():
             if not app.zport.dmd.Devices.hasProperty(name):
-                app.zport.dmd.Devices._setProperty(name, value, pType)
+                app.zport.dmd.Devices._setProperty(
+                    name,
+                    data.get('defaultValue', ''),
+                    data.get('type', 'string'))
 
 
     def removeZProperties(self, app):
@@ -475,7 +528,7 @@ class ZenPack(ZenModelRM):
         @param app: ZenPack
         @type app: ZenPack object
         """
-        for name, value, pType in self.packZProperties:
+        for name in self.getZProperties():
             if app.zport.dmd.Devices.hasProperty(name):
                 app.zport.dmd.Devices._delProperty(name)
 

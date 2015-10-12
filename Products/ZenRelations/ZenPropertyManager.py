@@ -674,14 +674,14 @@ def setDescriptors(dmd):
     to a callable factory that produces instances with transformForGet and
     transformForSet methods.
     """
-    zprops = set()
-    
+    zprops = {}
+
     # copy the core zProps
     # Z_PROPERTIES = id, defaultValue, type , label, description
     for item in Z_PROPERTIES:
         id = item[0]
         type = item[2]
-        zprops.add((id, type))
+        zprops[id] = (id, type)
         Z_PROPERTY_META_DATA[id] = dict()
         Z_PROPERTY_META_DATA[id]['type'] = type
         Z_PROPERTY_META_DATA[id]['defaultValue'] = item[1]
@@ -689,7 +689,7 @@ def setDescriptors(dmd):
             Z_PROPERTY_META_DATA[id]['label'] = item[3]
         if len(item) >= 5:
             Z_PROPERTY_META_DATA[id]['description'] = item[4]
-    
+
     # add zProps from zenpacks
     from Products.ZenUtils.PkgResources import pkg_resources
     for zpkg in pkg_resources.iter_entry_points('zenoss.zenpacks'):
@@ -697,25 +697,41 @@ def setDescriptors(dmd):
         fromlist = zpkg.module_name.split('.')[:-1]
         module = __import__(zpkg.module_name, globals(), locals(), fromlist)
         if hasattr(module, 'ZenPack'):
-            for prop_id, propt_default_value, prop_type in module.ZenPack.packZProperties:
-                zprops.add((prop_id, prop_type))
-            if hasattr(module.ZenPack, 'packZProperties_data'):
-                Z_PROPERTY_META_DATA.update(module.ZenPack.packZProperties_data)
-                # check for category to update
-                for key, value in module.ZenPack.packZProperties_data.iteritems():
-                    # if zproperties are only defined in data
-                    zprops.add((key, value.get('type')))
-                    if value.get('category'):
-                        setzPropertyCategory(key, value.get('category'))
-                        
-    # add zProps from dmd.Devices to catch any that are undefined elsewhere
-    for prop_id in dmd.Devices.zenPropertyIds():
-        prop_type = dmd.Devices.getPropertyType(prop_id)
-        if (prop_id, prop_type) not in zprops:
-            log.debug('Property {prop_id} is deprecated. It should be removed from the system.'.format(prop_id=prop_id))
-            zprops.add((prop_id, prop_type))
+            # Merge ZenPack.packZProperties and ZenPack.packZProperties_data.
+            # packZProperties wins if they disagree about type or defaultValue.
+            for p_id, p_data in module.ZenPack.getZProperties().items():
+                if p_id in zprops:
+                    log.warning(
+                        "%s tried to override existing %s property.",
+                        zpkg.module_name,
+                        p_id)
 
-    monkeypatchDescriptors(zprops, dmd.propertyTransformers)
+                    continue
+
+                zprops[p_id] = (p_id, p_data['type'])
+
+                category = p_data.get('category')
+                if category:
+                    setzPropertyCategory(p_id, category)
+
+                Z_PROPERTY_META_DATA[p_id] = {
+                    'type': p_data.get('type', 'string'),
+                    'defaultValue': p_data.get('defaultValue'),
+                    'label': p_data.get('label'),
+                    'description': p_data.get('description'),
+                    'category': category,
+                    }
+
+    # add zProps from dmd.Devices to catch any that are undefined elsewhere
+    for p_id in dmd.Devices.zenPropertyIds():
+        p_type = dmd.Devices.getPropertyType(p_id)
+        if p_id not in zprops:
+            zprops[p_id] = (p_id, p_type)
+            log.debug(
+                "Property %s is deprecated. It should be removed from the system.",
+                p_id)
+
+    monkeypatchDescriptors(zprops.values(), dmd.propertyTransformers)
 
 def updateDescriptors(type, transformer):
     """
