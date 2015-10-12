@@ -753,12 +753,13 @@ class DeviceFacade(TreeFacade):
         # getGraphObjects is expected to return a tuple of size 2.
         # The graph definition and the context for that graph
         # definition.
-        for graph, ctx in obj.getGraphObjects():
-            info = getMultiAdapter((graph, ctx), IMetricServiceGraphDefinition)
-            # if there is a separate context display that as the title
-            if ctx != obj:
-                info._showContextTitle = True
-            graphs.append(info)
+        if hasattr(obj, "getGraphObjects"):
+            for graph, ctx in obj.getGraphObjects():
+                info = getMultiAdapter((graph, ctx), IMetricServiceGraphDefinition)
+                # if there is a separate context display that as the title
+                if ctx != obj:
+                    info._showContextTitle = True
+                graphs.append(info)
         return graphs
 
     def addIpRouteEntry(self, uid, dest, routemask, nexthopid, interface,
