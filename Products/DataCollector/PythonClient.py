@@ -41,6 +41,10 @@ class PythonClient(BaseClient):
         BaseClient.__init__(self, device, datacollector)
         self.hostname = device.id
         self.plugins = plugins
+
+        # Track the order of plugins so we can sort their results.
+        self.pluginsOrder = {p: i for i, p in enumerate(self.plugins)}
+
         self.results = []
 
 
@@ -101,4 +105,5 @@ class PythonClient(BaseClient):
         @return: list of results
         @rtype: list of results
         """
-        return self.results
+        # Sort results by configured order of plugins.
+        return sorted(self.results, key=lambda x: self.pluginsOrder[x[0]])
