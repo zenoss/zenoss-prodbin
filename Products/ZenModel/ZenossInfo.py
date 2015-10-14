@@ -14,6 +14,7 @@ import sys
 import re
 from functools import wraps
 from urllib import unquote
+import subprocess
 from subprocess import Popen, PIPE
 from xml.dom.minidom import parse
 import shutil
@@ -153,6 +154,25 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getZenossVersionShort(self):
         return self.getZenossVersion().short()
     security.declarePublic('getZenossVersionShort')
+
+    @versionmeta("Control Center", "http://controlcenter.io/")
+    def getControlCenterVersion(self):
+        """
+        This is intended to run from within a container.
+        """
+        version = Version('ControlCenter')
+        if os.path.exists('/serviced/serviced'):
+            try:
+                output = subprocess.check_output(['/serviced/serviced', 'version'])
+                for line in output.split('\n'):
+                    splitLine = line.split()
+                    if splitLine[0] == 'Version:':
+                        version = Version.parse('ControlCenter {}'.format(splitLine[1]))
+                        break
+            except subprocess.CalledProcessError as e:
+                pass
+
+        return version
 
     @versionmeta("OS", "http://www.tldp.org")
     def getOSVersion(self):
@@ -324,6 +344,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 self.getNetSnmpVersion,
                 self.getPyNetSnmpVersion,
                 self.getWmiVersion,
+                self.getControlCenterVersion
             ]
         versions = []
         for func in versionfuncs:
