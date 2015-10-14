@@ -63,11 +63,10 @@ class ZenDiag(object):
             log.info('Successfully ran %s', name)
             self.archiveText('zendiag/{}.txt'.format(name), output)
         except subprocess.CalledProcessError as e:
-            log.warn('Command failed:')
-            log.exception(e)
+            # In case we actually got some output (which we probably didn't)
             for line in output.splitlines():
                 log.warn(line)
-
+            log.warn('Command "%s" failed: %s', cmd, str(e))
 
     def generate_bundle(self):
         """
