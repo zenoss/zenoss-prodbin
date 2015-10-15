@@ -897,10 +897,12 @@ class DeviceFacade(TreeFacade):
         # include the top level organizers in the list of device types
         organizers = [org] + subOrgs
         for org in organizers:
+            org_name = org.getOrganizerName()
+            org_id = org.getPrimaryId()
             if not hasattr(aq_base(org), 'devtypes') or not org.devtypes:
                 devtypes.append({
-                    'value': org.getPrimaryId(),
-                    'description': org.getOrganizerName(),
+                    'value': org_id,
+                    'description': org_name,
                     'protocol': "",
                 })
                 continue
@@ -916,10 +918,16 @@ class DeviceFacade(TreeFacade):
 
                 # special case for migrating from WMI to WinRM so we
                 # can allow the zenpack to be backwards compatible
-                if org.getOrganizerName() == '/Server/Microsoft/Windows' and ptcl == 'WMI':
+                # ZEN-19596:  Add support for Cluster and any sub-class for
+                #             Windows and Cluster
+                ms_dev_classes = ('/Server/Microsoft/{}'.format(cls)
+                                  for cls in ('Windows', 'Cluster'))
+                matched_org_to_dev_cls = any(org_name.startswith(cls)
+                                             for cls in ms_dev_classes)
+                if matched_org_to_dev_cls and ptcl == 'WMI':
                     ptcl = "WinRM"
                 devtypes.append({
-                    'value': org.getPrimaryId(),
+                    'value': org_id,
                     'description': desc,
                     'protocol': ptcl,
                 })
