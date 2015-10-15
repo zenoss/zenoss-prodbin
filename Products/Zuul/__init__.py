@@ -35,6 +35,7 @@ object.
 """
 
 import AccessControl
+import logging
 from OFS.ObjectManager import ObjectManager
 from zope import component
 from zope.interface import verify
@@ -215,3 +216,15 @@ def checkPermission(permission, context=None):
     manager = AccessControl.getSecurityManager()
     context = context or get_dmd()
     return manager.checkPermission(permission, context)
+
+
+def initialize(context):
+    """Called by ZopeStartup to initialize product."""
+
+    # ZEN-20490: The requests package logs what should be DEBUG information at
+    # the INFO level. We'll only log >=WARNING for requests unless Zope has
+    # been been configured for DEBUG logging.
+    root_level = logging.getLogger().getEffectiveLevel()
+    if root_level > logging.DEBUG:
+        requests_logger = logging.getLogger('requests')
+        requests_logger.setLevel(max(logging.WARNING, root_level))
