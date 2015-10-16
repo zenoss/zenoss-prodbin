@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2011, 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -26,12 +26,12 @@ if device and evt.eventKey:
         import re
         m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
         if not m: continue
-    
+
         # Get the total blocks from the model. Adjust by specified offset.
         totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
         totalBytes = totalBlocks * f.blockSize
         usedBytes = None
-        
+
         currentValue = float(m.groups()[0])
         if 'usedBlocks' in evt.eventKey:
             usedBytes = currentValue * f.blockSize
@@ -39,7 +39,7 @@ if device and evt.eventKey:
             usedBytes = totalBytes - (currentValue * 1048576)
         else:
             continue
-        
+
         # Calculate the used percent and amount free.
         usedBlocks = float(m.groups()[0])
         p = (usedBytes / totalBytes) * 100
@@ -67,7 +67,7 @@ class testTransforms(BaseTestCase):
     def _processEvent(self, event):
         # Don't return a sub-message from a C++ protobuf class - can crash as the parent is GC'd
         return self.processor.processMessage(event)
-    
+
     def testPerfFileSystemTransform(self):
         """
         Test to make sure that the standard transform on the /Perf/Filesystem
@@ -75,7 +75,7 @@ class testTransforms(BaseTestCase):
         """
         self.dmd.Events.createOrganizer('/Perf/Filesystem')
         self.dmd.Events.Perf.Filesystem.transform = perfFilesystemTransform
-        
+
         # Test an example event from a standard SNMP device.
         device = self.dmd.Devices.createInstance('snmpdevice')
         device.os.addFileSystem('/', False)
@@ -96,7 +96,7 @@ class testTransforms(BaseTestCase):
 
         processed = self._processEvent(event)
         self.assertEquals(processed.event.summary, 'disk space threshold: 80.3% used (21.9GB free)')
-        
+
         # Test an example event from a standard Perfmon device.
         device = self.dmd.Devices.createInstance('perfmondevice')
         device.os.addFileSystem('C', False)
@@ -114,10 +114,10 @@ class testTransforms(BaseTestCase):
         event.event_key = 'FreeMegabytes_FreeMegabytes'
         event.event_class = '/Perf/Filesystem'
         event.summary = 'threshold of low disk space not met: current value 4156.00'
-        
+
         processed = self._processEvent(event)
         self.assertEquals(processed.event.summary, 'disk space threshold: 49.2% used (4.1GB free)')
-    
+
         # Test an example event from a standard SSH device.
         device = self.dmd.Devices.createInstance('sshdevice')
         device.os.addFileSystem('/', False)
@@ -138,7 +138,7 @@ class testTransforms(BaseTestCase):
 
         processed = self._processEvent(event)
         self.assertEquals(processed.event.summary, 'disk space threshold: 49.1% used (72.6GB free)')
-    
+
     def testActorReidentificationFromEventClassKeyTransform(self):
         """
         Verify that changing the device in a transform properly reidentifies the device
@@ -149,10 +149,10 @@ class testTransforms(BaseTestCase):
 
         # Related: ZEN-1419
         # If you change a device from within a transform like so:
-        # 
+        #
         #   evt.device = 'my_new_device'
         #
-        # The processing pipeline will recognize this and re-run the 
+        # The processing pipeline will recognize this and re-run the
         # identification pipes. Before it re-runs these pipes though, it will
         # clear several properties related to the device, one of which is the
         # device/element UUID. During the Identification pipe, if the UUID
@@ -190,9 +190,9 @@ evt.device = '%s'
         processed = self._processEvent(event)
 
         self.assertEquals(device_b.id, processed.event.actor.element_identifier)
-        self.assertEquals(IGlobalIdentifier(device_b).getGUID(), 
+        self.assertEquals(IGlobalIdentifier(device_b).getGUID(),
                           processed.event.actor.element_uuid)
-        
+
     def testActorReidentificationFromEventClassKeyTransformWithComponent(self):
         """
         Verify that changing the device in a transform properly reidentifies
@@ -229,7 +229,7 @@ evt.device = '%s'
         processed = self._processEvent(event)
         self.assertEquals(IGlobalIdentifier(devB.getDeviceComponents()[0]).getGUID(),
                           processed.event.actor.element_sub_uuid)
-        
+
     def testIntSeverityTransform(self):
         """
         Transform the event severity to a string and see if it evaluates.
@@ -298,6 +298,28 @@ evt.device = '%s'
 
         processed = self._processEvent(event)
         self.assertEqual(STATUS_SUPPRESSED, processed.event.status)
+
+    def testIpAddressTransformWrongDevice(self):
+        evt_ip = '10.11.12.13'
+        evt_device = 'wrong_device'
+        transform = 'evt.device = "%s"; evt.ipAddress = "%s"' % (evt_device,
+                                                                 evt_ip)
+
+        self.dmd.Events.createOrganizer('/Status/Ping')
+        self.dmd.Events.Status.Ping.transform = transform
+
+        event = Event()
+        event.actor.element_identifier = 'localhost'
+        event.actor.element_type_id = DEVICE
+        event.severity = SEVERITY_ERROR
+        event.status = STATUS_SUPPRESSED
+        event.event_class = '/Status/Ping'
+        event.summary = 'test event'
+
+        processed = self._processEvent(event)
+        ip_data = [d for d in processed.event.details
+                   if d.name == 'zenoss.device.ip_address'][0]
+        self.assertEqual(ip_data.value, [evt_ip])
 
 
 def test_suite():
