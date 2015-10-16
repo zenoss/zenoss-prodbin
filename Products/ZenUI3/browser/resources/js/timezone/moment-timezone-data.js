@@ -2565,6 +2565,9 @@
             "Indian/Reunion": [
                 "3:41:52 - LMT 1911_5 3:41:52",
                 "4 - RET"
+            ],
+            "Pacific/Auckland": [
+                "12 NZ NZ%sT"
             ]
         },
         "rules": {
@@ -4652,6 +4655,24 @@
                 "1983 1983 2 21 7 0 0 0",
                 "2008 2008 9 0 8 2 0 1 S",
                 "2009 2009 2 0 8 2 0 0"
+            ],
+            "NZ": [
+                "1927 1927 10 6 7 2 0 1 S",
+                "1928 1928 2 4 7 2 0 0 M",
+                "1928 1933 9 8 0 2 0 0:30 S",
+                "1929 1933 2 15 0 2 0 0 M",
+                "1934 1940 3 0 8 2 0 0 M",
+                "1934 1940 8 0 8 2 0 0:30 S",
+                "1946 1946 0 1 7 0 0 0 S",
+                "1974 1974 10 1 0 2 2 1 D",
+                "1975 1975 1 0 8 2 2 0 S",
+                "1975 1988 9 0 8 2 2 1 D",
+                "1976 1989 2 1 0 2 2 0 S",
+                "1989 1989 9 8 0 2 2 1 D",
+                "1990 2006 9 1 0 2 2 1 D",
+                "1990 2007 2 15 0 2 2 0 S",
+                "2007 9999 8 0 8 2 2 1 D",
+                "2008 9999 3 1 0 2 2 0 S"
             ]
         },
         "links": {
@@ -4672,7 +4693,8 @@
             "Europe/Sarajevo": "Europe/Belgrade",
             "Europe/Skopje": "Europe/Belgrade",
             "Europe/Vatican": "Europe/Rome",
-            "Europe/Zagreb": "Europe/Belgrade"
+            "Europe/Zagreb": "Europe/Belgrade",
+            "NZ": "Pacific/Auckland"
         }
     };
     // keep the timezone data for the selector
