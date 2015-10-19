@@ -630,10 +630,12 @@ class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
             deviceDetailNames = set(deviceOrganizerTypeNames +
                                     self.DEVICE_TAGGERS.keys() +
                                     [
-                                        EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY,
                                         EventProxy.DEVICE_PRIORITY_DETAIL_KEY,
                                         EventProxy.PRODUCTION_STATE_DETAIL_KEY,
                                     ])
+
+            if self._manager.dmd.Devices.findDevice(evtproxy.device):
+                deviceDetailNames.add(EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY)
 
             # clear device context details
             for detail in deviceDetailNames:
