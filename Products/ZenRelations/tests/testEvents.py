@@ -29,7 +29,7 @@ from OFS.interfaces import IItem
 from Products.Five import zcml
 from Products.ZenRelations.RelationshipBase import IRelationship
 from Products.ZenRelations.RelationshipManager import RelationshipManager
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RelSchema, ToMany, ToManyCont, ToOne
 
 class EventLogger(object):
     def __init__(self):

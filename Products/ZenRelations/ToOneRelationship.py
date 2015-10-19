@@ -29,7 +29,7 @@ from App.Dialogs import MessageDialog
 from Acquisition import aq_base
 
 from zExceptions import NotFound
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
 from Products.ZenUtils.Utils import unused, getObjByPath
 from Products.ZenUtils.tbdetail import log_tb
 

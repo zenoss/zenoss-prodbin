@@ -11,7 +11,6 @@
 from Products.Five.browser import BrowserView
 
 from Products.ZenUtils.jsonutils import json
-from Products.ZenModel.ZenossSecurity import *
 from Products.ZenWidgets.interfaces import IUserMessages, IBrowserMessages
 from Products.ZenWidgets import messaging
 

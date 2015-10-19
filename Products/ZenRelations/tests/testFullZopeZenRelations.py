@@ -14,8 +14,8 @@ if __name__ == '__main__':
 
 import transaction
 
-from Products.ZenRelations.Exceptions import *
-from Products.ZenRelations.tests.TestSchema import *
+from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
+from Products.ZenRelations.tests.TestSchema import TestBaseClass, DataRoot, TS, Device, Server, IpInterface, Group, Location, Admin, Organizer, create, build
 from Products.ZenTestCase.BaseTestCase import standard_permissions
 
 from ZenRelationsBaseTest import ZenRelationsBaseTest

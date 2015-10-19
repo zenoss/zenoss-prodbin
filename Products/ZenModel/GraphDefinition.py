@@ -16,7 +16,7 @@ GraphDefinition defines the global options for a graph.
 import sys
 import string
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions

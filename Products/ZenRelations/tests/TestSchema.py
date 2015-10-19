@@ -10,8 +10,8 @@
 
 from OFS.PropertyManager import PropertyManager
 from Products.ZenRelations.RelationshipManager import RelationshipManager as RM
-from Products.ZenRelations.RelSchema import *
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.RelSchema import RelSchema, ToMany, ToManyCont, ToOne
+from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
 
 class TestBaseClass(RM):
     pass

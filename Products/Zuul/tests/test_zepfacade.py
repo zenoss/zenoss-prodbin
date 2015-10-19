@@ -13,7 +13,6 @@ import zope.component
 import zope.component.event
 from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.ZenUtils.guid import generate
-from Products.Zuul.interfaces import *
 from Products.Zuul import getFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
 

@@ -13,7 +13,7 @@ from Acquisition import aq_parent
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.Commandable import Commandable
 from Products.ZenModel.ZenPackable import ZenPackable
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from Globals import InitializeClass
 from EventFilter import EventFilter
 

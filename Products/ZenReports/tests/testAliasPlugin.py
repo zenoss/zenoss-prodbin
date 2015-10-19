@@ -11,10 +11,10 @@
 from datetime import datetime
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.Device import manage_createDevice
-from Products.ZenModel.tests.RRDTestUtils import *
-from Products.ZenReports.AliasPlugin import *
-from Products.ZenReports.tests.ReportTestUtils import *
-            
+from Products.ZenModel.tests.RRDTestUtils import DEFAULT_DSDP_MAP, TEST_TEMPLATE, addAlias, addAliases, assertAliasDatapointInMap, createTemplate, removeTemplate
+from Products.ZenReports.AliasPlugin import AliasPlugin, PythonColumnHandler, RRDColumnHandler, Column
+from Products.ZenReports.tests.ReportTestUtils import attributeAsRRDValue, replaceGetRRDValue, createTestDevice, getDeviceIdFromRecord, getComponentIdFromRecord, assertRecordIsCorrect
+
 class _TestPlugin(AliasPlugin):
     def __init__(self, columns=[], compositeColumns=[], componentPath=None ):
         self._columns=columns

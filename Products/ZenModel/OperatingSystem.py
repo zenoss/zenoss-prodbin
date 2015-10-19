@@ -17,9 +17,9 @@ from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
 from Products.ZenUtils.Utils import convToUnits
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
 from Products.ZenModel.Service import Service
 
 from IpInterface import manage_addIpInterface

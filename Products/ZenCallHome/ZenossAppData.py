@@ -13,7 +13,7 @@ from Products.ZenCallHome import IZenossData, IDeviceResource, IDeviceCpuCount, 
 from zope.interface import implements
 from zope.component import subscribers, getAdapters
 from Products.Zuul import getFacade
-from itertools import *
+from itertools import chain
 
 import logging
 from Products.Zuul.interfaces.tree import ICatalogTool

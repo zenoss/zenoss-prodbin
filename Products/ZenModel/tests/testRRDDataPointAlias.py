@@ -17,7 +17,7 @@ from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenModel.RRDDataPointAlias import RRDDataPointAlias,\
             EVAL_KEY, manage_addDataPointAlias
-from Products.ZenModel.tests.RRDTestUtils import *
+from Products.ZenModel.tests.RRDTestUtils import DEFAULT_DSDP_MAP, TEST_TEMPLATE, addAlias, addAliases, assertAliasDatapointInMap, createTemplate, removeTemplate
 
 def createDevice(dmd, deviceId):
     return manage_createDevice( dmd, deviceId )

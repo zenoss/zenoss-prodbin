@@ -30,7 +30,7 @@ from itertools import imap
 import Globals
 from ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath, readable_time, unused
-from ZenBackupBase import *
+from ZenBackupBase import BACKUP_DIR, CONFIG_FILE, CONFIG_SECTION, ZenBackupBase
 from zope.interface import implements
 from Products.Zuul.interfaces import IPreBackupEvent, IPostBackupEvent
 from zope.event import notify

@@ -28,7 +28,7 @@ from Globals import DevelopmentMode
 from Products.ZenModel.SiteError import SiteError
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenModel.ZenMenuable import ZenMenuable
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Security import activateSessionBasedAuthentication, activateCookieBasedAuthentication
@@ -43,7 +43,7 @@ from Products.ZenUtils.Utils import extractPostContent
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
-from Products.ZenEvents.Exceptions import *
+from Products.ZenEvents.Exceptions import MySQLConnectionError, ZenBackendFailure, ZenEventError, ZenEventNotFound, ZentinelException, pythonThresholdException, rpnThresholdException
 
 from ZenModelRM import ZenModelRM
 from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW

@@ -22,7 +22,7 @@ import Migrate
 
 from Products.ZenModel.RRDDataPoint import RRDDataPoint, SEPARATOR
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from Products.ZenModel.DeviceClass import DeviceClass
 DeviceClass._relations = DeviceClass._relations + (
         ("nagiosTemplates", ToManyCont(ToOne,"Products.ZenModel.NagiosTemplate","deviceClass")),

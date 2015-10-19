@@ -16,7 +16,7 @@ import time
 import logging
 from DateTime import DateTime
 
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
 from Products.ZenModel.Device import Device, manage_createDevice
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
 from Products.ZenModel.ZDeviceLoader import BaseDeviceLoader

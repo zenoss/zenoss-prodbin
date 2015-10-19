@@ -19,7 +19,7 @@ the device in the top level of the DevicesClass tree.
 
 from logging import info
 
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
 
 
 class BasicDeviceLoader:

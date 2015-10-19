@@ -32,7 +32,7 @@ from Products.ZenEvents import Event
 from Products.ZenUtils.Utils import getExitMessage
 from Products.ZenUtils.IpUtil import getHostByName
 
-from Exceptions import *
+from Exceptions import CommandNotFound, CommandTimeout, DataCollectorError, LoginFailed, NoServerFound, NoValidConnection, ObjectCreationError, StateTimeout, ZentinelException
 
 import CollectorClient
 

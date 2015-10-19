@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 
 
 class ZenPackable(object):

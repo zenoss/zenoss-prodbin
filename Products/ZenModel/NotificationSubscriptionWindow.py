@@ -13,7 +13,7 @@ import logging
 log = logging.getLogger("zen.notificationwindows")
 
 import time
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 
 class NotificationSubscriptionWindow(MaintenanceWindow):

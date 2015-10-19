@@ -15,7 +15,7 @@ Monitor
 
 import Migrate
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from Products.ZenModel.Device import Device
 
 

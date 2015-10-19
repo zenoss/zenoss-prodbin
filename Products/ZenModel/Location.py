@@ -21,7 +21,7 @@ from AccessControl import ClassSecurityInfo
 
 from AccessControl import Permissions as permissions
 from ZenossSecurity import ZEN_COMMON
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable

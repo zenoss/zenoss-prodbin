@@ -10,8 +10,8 @@
 
 import time
 
-from Products.ZenEvents.ZenEventClasses import *
-from Products.ZenEvents.Exceptions import *
+from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, Capacity, Change, Change_Add, Change_Add_Blocked, Change_Remove, Change_Remove_Blocked, Change_Set, Change_Set_Blocked, Clear, Cmd_Fail, Cmd_Ok, Critical, Debug, Error, Heartbeat, Info, Perf_Snmp, Perf_XmlRpc, Severities, Status_Heartbeat, Status_IpService, Status_Nagios, Status_OSProcess, Status_Perf, Status_Ping, Status_RRD, Status_Snmp, Status_Update, Status_Web, Status_WinService, Status_Wmi, Status_Wmi_Conn, Status_XmlRpc, Unknown, Warning
+from Products.ZenEvents.Exceptions import MySQLConnectionError, ZenBackendFailure, ZenEventError, ZenEventNotFound, ZentinelException, pythonThresholdException, rpnThresholdException
 
 from twisted.spread import pb
 

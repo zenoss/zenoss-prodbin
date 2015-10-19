@@ -7,8 +7,8 @@
 #
 ##############################################################################
 
-from .data import *
-from .client import *
+from .data import *  # noqa
+from .client import *  # noqa
 from servicetree import ServiceTree
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 import os

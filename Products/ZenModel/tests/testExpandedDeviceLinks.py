@@ -17,7 +17,7 @@ import logging
 from zope.interface import implements
 from zope.component import getGlobalSiteManager, adapts
 
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
 from Products.ZenModel.interfaces import IExpandedLinkProvider
 from Products.ZenModel.Device import Device, manage_createDevice
 

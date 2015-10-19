@@ -18,7 +18,7 @@
 
 import unittest
 
-from util.selTestUtils import *
+from util.selTestUtils import do_command_byname
 
 from SelTestBase import SelTestBase
 

@@ -16,7 +16,8 @@ if __name__ == '__main__':
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.RRDDataPoint import getDataPointsByAliases    
 from Products.ZenModel.RRDDataPointAlias import RRDDataPointAlias
-from Products.ZenModel.tests.RRDTestUtils import *
+from Products.ZenModel.tests.RRDTestUtils import (
+    addAliases, assertAliasDatapointInMap, createTemplate, removeTemplate)
 
 
 class TestRRDDataPoint(ZenModelBaseTest):

@@ -33,10 +33,10 @@ from AccessControl import getSecurityManager
 
 from OFS import Moniker
 from OFS.CopySupport import CopyError, _cb_decode, eInvalid, eNotFound, eNoData
-                            
+
 from App.Dialogs import MessageDialog
 
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
 
 class RelCopyContainer(CopyContainer):
 

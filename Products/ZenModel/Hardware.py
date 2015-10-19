@@ -21,7 +21,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets import messaging
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 
 from MEProduct import MEProduct
 

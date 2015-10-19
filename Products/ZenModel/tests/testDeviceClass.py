@@ -14,8 +14,8 @@ if __name__ == '__main__':
 
 from zExceptions import Redirect
 
-from Products.ZenModel.Exceptions import *
-from Products.ZenModel.DeviceClass import *
+from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
+from Products.ZenModel.DeviceClass import And, ClassSecurityInfo, DTMLFile, DateTime, DeviceClass, DeviceClassMovedEvent, DeviceExistsError, DeviceOrganizer, Eq, FakeRequest, ICatalogTool, IGlobalIdentifier, IndexingEvent, InitializeClass, MatchGlob, Or, RRDTemplate, RankByQueries_Max, StringIO, TemplateContainer, ToManyCont, ToOne, ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES, Z_PROPERTIES, ZenPackable, addDeviceClass, aq_base, aq_chain, getToolByName, importClass, log, logging, makeCaseInsensitiveFieldIndex, makeMultiPathIndex, makePathIndex, manage_addDeviceClass, messaging, notify, permissions, time, transact
 from Products.ZenModel.Device import Device
 from Products.Zuul import getFacade
 from ZenModelBaseTest import ZenModelBaseTest

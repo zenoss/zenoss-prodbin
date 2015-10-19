@@ -16,7 +16,6 @@ Available at:  /zport/dmd/messaging_router
 from Persistence import PersistentMapping
 from ZODB.transact import transact
 from Products.ZenUtils.Ext import DirectRouter
-#from Products.ZenModel.ZenossSecurity import *
 from Products.ZenWidgets.interfaces import IUserMessages, IBrowserMessages
 from Products.ZenWidgets import messaging
 

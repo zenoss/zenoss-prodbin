@@ -21,7 +21,7 @@ log = logging.getLogger('zen.RRDDatapoint')
 import Globals
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from Products.ZenWidgets import messaging
 
 from ZenModelRM import ZenModelRM

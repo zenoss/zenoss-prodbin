@@ -12,7 +12,7 @@ import time
 from zope.interface import implements
 from Products.CMFCore.utils import getToolByName
 from Products.ZenRelations.utils import ZenRelationshipNameChooser
-from Products.ZenWidgets.interfaces import *
+from Products.ZenWidgets.interfaces import IMessage, IMessageBox, IUserMessages, IBrowserMessages, IMessageSender
 
 
 # Constants representing priorities.

@@ -16,7 +16,7 @@ import sys
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import DTMLFile
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils.Utils import resequence
 from Products.ZenWidgets import messaging

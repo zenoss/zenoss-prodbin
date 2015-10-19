@@ -35,8 +35,8 @@ import zope.component
 
 from OFS.interfaces import IItem
 
-from RelSchema import *
-from Exceptions import *
+from RelSchema import RelSchema, ToMany, ToManyCont, ToOne
+from Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException, zenmarker
 
 from Products.ZenUtils.Utils import unused
 from Products.ZenModel.interfaces import IZenDocProvider

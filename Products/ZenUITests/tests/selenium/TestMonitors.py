@@ -18,8 +18,6 @@
 
 import unittest
 
-from util.selTestUtils import *
-
 from SelTestBase import SelTestBase
 
 class _TestMonitors(SelTestBase):

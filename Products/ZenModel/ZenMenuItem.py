@@ -13,7 +13,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenPackable import ZenPackable
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 
 import logging
 log = logging.getLogger("zen.Menu")

@@ -24,7 +24,7 @@ from Globals import InitializeClass
 from Acquisition import aq_base
 from zope import interface
 
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException`
 from Products.ZenRelations.utils import importClass
 
 from PrimaryPathObjectManager import PrimaryPathManager

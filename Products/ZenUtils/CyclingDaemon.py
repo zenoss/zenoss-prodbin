@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from Globals import *
+from Globals import DevelopmentMode, INSTANCE_HOME, data_dir, opened
 import socket
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getDefaultZopeUrl

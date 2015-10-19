@@ -28,17 +28,17 @@ from AccessControl import ClassSecurityInfo
 from zope.event import notify
 from zope.container.contained import ObjectMovedEvent
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 
 from Products.ZenUtils.Utils import localIpCheck, localInterfaceCheck, convToUnits
-from Products.ZenUtils.IpUtil import *
+from Products.ZenUtils.IpUtil import INTERFACE_DELIM, IPAddress, IPNetwork, IPV4_ADDR_LEN, IPV4_ADDR_TYPE, IPV4_ANY_ADDRESS, IPV6_ADDR_LEN, IPV6_ADDR_TYPE, IPV6_ANY_ADDRESS, IP_DELIM, InvalidIPRangeError, IpAddressError, ZentinelException, asyncIpLookup, asyncNameLookup, bitsToDecimalMask, bitsToMask, bitsToMaskNumb, bytesToCanonIp, checkip, decimalIpToStr, decimalNetFromIpAndNet, ensureIp, generateAddrInfos, getHostByName, getSubnetBounds, get_ip_version, getnet, getnetstr, hexToBits, hexToMask, ipFromIpMask, ipToDecimal, ipstrip, ipunwrap, ipunwrap_strip, ipwrap, isRemotelyReachable, isip, lookupPointer, maskToBits, netFromIpAndNet, numbip, parse_iprange, re, socket, strip, threads
 
 from ConfmonPropManager import ConfmonPropManager
 from OSComponent import OSComponent
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
 from Products.ZenModel.Linkable import Layer2Linkable
 
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import MANAGER_ROLE, MANAGE_NOTIFICATION_SUBSCRIPTIONS, MANAGE_TRIGGER, NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, NOTIFICATION_UPDATE_ROLE, NOTIFICATION_VIEW_ROLE, OWNER_ROLE, TRIGGER_MANAGER_ROLE, TRIGGER_UPDATE_ROLE, TRIGGER_VIEW_ROLE, UPDATE_NOTIFICATION, UPDATE_TRIGGER, VIEW_NOTIFICATION, VIEW_TRIGGER, ZEN_ADD, ZEN_ADMINISTRATORS_EDIT, ZEN_ADMINISTRATORS_VIEW, ZEN_ADMIN_DEVICE, ZEN_CHANGE_ADMIN_OBJECTS, ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_DEVICE, ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_CHANGE_EVENT_VIEWS, ZEN_CHANGE_SETTINGS, ZEN_COMMON, ZEN_DEFINE_COMMANDS_EDIT, ZEN_DEFINE_COMMANDS_VIEW, ZEN_DELETE, ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES, ZEN_EDIT_USER, ZEN_EDIT_USERGROUP, ZEN_MAINTENANCE_WINDOW_EDIT, ZEN_MAINTENANCE_WINDOW_VIEW, ZEN_MANAGER_ROLE, ZEN_MANAGE_DEVICE, ZEN_MANAGE_DEVICE_STATUS, ZEN_MANAGE_DMD, ZEN_MANAGE_EVENTMANAGER, ZEN_MANAGE_EVENTS, ZEN_RUN_COMMANDS, ZEN_SEND_EVENTS, ZEN_UPDATE, ZEN_USER_ROLE, ZEN_VIEW, ZEN_VIEW_HISTORY, ZEN_VIEW_MODIFICATIONS, ZEN_ZPROPERTIES_EDIT, ZEN_ZPROPERTIES_VIEW
 from Products.Zuul.catalog.events import IndexingEvent
 
 

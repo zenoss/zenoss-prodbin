@@ -17,7 +17,7 @@ import time
 from DateTime import DateTime
 
 from Acquisition import aq_base
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
 
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.IpService import IpService

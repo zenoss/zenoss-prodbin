@@ -12,8 +12,8 @@ import os, sys
 if __name__ == '__main__':
   execfile(os.path.join(sys.path[0], 'framework.py'))
 
-from Products.ZenRelations.tests.TestSchema import *
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.tests.TestSchema import TestBaseClass, DataRoot, TS, Device, Server, IpInterface, Group, Location, Admin, Organizer, create, build
+from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
 
 from ZenRelationsBaseTest import ZenRelationsBaseTest
 

@@ -27,7 +27,7 @@ from Products.ZenUtils.tbdetail import log_tb
 
 from ToManyRelationshipBase import ToManyRelationshipBase
 
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
 
 from persistent.list import PersistentList
 

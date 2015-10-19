@@ -23,7 +23,7 @@ from Globals import DTMLFile
 from Organizer import Organizer
 from ZenPackable import ZenPackable
 from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
 from Products.ZenUtils.Utils import unused, getDisplayType
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit

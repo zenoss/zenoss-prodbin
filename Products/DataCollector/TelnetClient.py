@@ -42,7 +42,7 @@ import logging
 log = logging.getLogger("zen.TelnetClient")
 
 import CollectorClient
-from Exceptions import *
+from Exceptions import CommandNotFound, CommandTimeout, DataCollectorError, LoginFailed, NoServerFound, NoValidConnection, ObjectCreationError, StateTimeout, ZentinelException
 
 from Products.ZenUtils.Utils import unused
 

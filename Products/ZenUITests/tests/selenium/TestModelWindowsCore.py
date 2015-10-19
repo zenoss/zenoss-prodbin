@@ -17,7 +17,7 @@
 
 import unittest
 
-from util.selTestUtils import *
+from util.selTestUtils import TimeoutError, do_command_byname, getByValue
 
 from SelTestBase import SelTestBase
 

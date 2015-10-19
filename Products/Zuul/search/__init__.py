@@ -8,6 +8,6 @@
 ##############################################################################
 
 
-from interfaces import *
-from facades import *
-from routers import *
+from interfaces import *  # noqa
+from facades import *  # noqa
+from routers import *  # noqa

@@ -16,7 +16,7 @@ import time
 from zope.interface import implements
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 from Products.ZenWidgets.interfaces import IMessage
 from Products.ZenWidgets.messaging import INFO
 
