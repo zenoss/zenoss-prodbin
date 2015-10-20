@@ -23,9 +23,13 @@ Ext.onReady(function(){
 
         var graph = new Zenoss.EuropaGraph(Ext.applyIf(config, {
             graphId: Ext.id(),
-            renderTo: 'graphView'
+            renderTo: 'graphView',
+            hasMenu: false,
         }));
         document.title = graph.graphTitle;
+
+        // remove "open in new tab" button
+        graph.newtab.destroy();
     }
 
     var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),

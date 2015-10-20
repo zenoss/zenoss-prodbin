@@ -194,6 +194,7 @@
                     dock: 'top',
                     items: ['->',{
                         text: _t('Open in New Tab'),
+                        ref: "../newtab",
                         handler: Ext.bind(function(btn, e) {
                                 this.newTab(this);
                         }, this)
