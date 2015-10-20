@@ -152,6 +152,13 @@ function treeselectionchange(sm, newnodes) {
     }
     var newnode = newnodes[0];
     var uid = newnode.data.uid;
+    if (uid.match(/:backward:|:forward:/)) {
+        var uid = uid.split(':'), // uid = [actual_uid,direction,shift_value]
+            dir = ':' + uid[1] + ':';
+        Ext.getCmp(sm.id).refresh(null,null,uid[2],dir);
+        Ext.getCmp('NetworkDetailCardPanel').getInstancesGrid().refresh();
+        return;
+    }
 
     Ext.getCmp('NetworkDetailCardPanel').setContext(uid);
 
@@ -180,6 +187,26 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
 
         Zenoss.Network.NetworkNavTree.superclass.constructor.call(this, config);
     },
+    refresh:function (callback, scope, shift, direction) {
+        var store = this.getStore();
+        var uid = store.tree.root.data.uid;
+        if (shift) {
+            if (uid.match(/:backward:|:forward:/)) {
+                uid = uid.split(':')[0];
+            }   
+            store.tree.root.data.uid = uid + direction + shift;
+        }   
+        store.load({
+            scope:this,
+            callback:function () {
+                this.getRootNode().expand();
+                Ext.callback(callback, scope || this);
+                if (this.getRootNode().childNodes.length) {
+                    this.getRootNode().childNodes[0].expand();
+                }   
+            }   
+        }); 
+    }, 
     selectByToken: function(tokenTreePath) {
         function selectTokenPath() {
             // called from onLoad and Ext.History.selectByToken defined in

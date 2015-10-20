@@ -35,6 +35,7 @@ class UserInterfaceSettings(ZenModelRM):
         {'id': 'showEventSeverityIcons', 'type': 'boolean', 'mode': 'w'},
         {'id': 'enableTreeFilters', 'type': 'boolean', 'mode': 'w'},
         {'id': 'showPageStatistics', 'type' : 'boolean', 'mode':'w'},
+        {'id': 'renderNetworksFromCatalog', 'type' : 'boolean', 'mode':'w'},
         {'id': 'deviceGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'componentGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'eventConsoleBufferSize', 'type': 'int', 'mode': 'w'},
@@ -58,6 +59,7 @@ class UserInterfaceSettings(ZenModelRM):
         'zenjobsRefreshInterval': {'xtype': 'numberfield', 'name': _t('Job Notification Refresh Interval (seconds)'), 'defaultValue' : 10, 'minValue' : 0, 'maxValue': 300, 'allowBlank': False},
         'showPageStatistics': {'xtype': 'checkbox', 'name': _t('Show Page Statistics (debug information)'), 'defaultValue' : False},
         'zenjobsGridBufferSize': {'xtype': 'numberfield', 'name': _t('Job Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 300, 'allowBlank': False}, 
+        'renderNetworksFromCatalog': {'xtype': 'checkbox', 'name': _t('Use catalog to display Network tree'), 'defaultValue': False},
     }
 
     def getInterfaceSettings(self):

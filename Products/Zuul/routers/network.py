@@ -25,6 +25,8 @@ from Products import Zuul
 from Products.Zuul.decorators import serviceConnectionError
 from Products.Zuul.routers import TreeRouter
 from Products.ZenMessaging.audit import audit
+from Products.ZenModel.IpNetwork import IpNetwork
+from Products.Zuul.interfaces import ICatalogTool
 
 log = logging.getLogger('zen.NetworkRouter')
 
@@ -36,6 +38,7 @@ class NetworkRouter(TreeRouter):
     def __init__(self, context, request):
         super(NetworkRouter, self).__init__(context, request)
         self.api = Zuul.getFacade('network')
+        self.catalog = ICatalogTool(self.context)
 
     def _getFacade(self):
         return Zuul.getFacade('network', self.context)
@@ -114,6 +117,45 @@ class NetworkRouter(TreeRouter):
         audit('UI.Network.DeleteSubnet', subnet=uid)
         return DirectResponse.succeed(tree=self.getTree())
 
+    def _marshal(self, netid=None, shift=0, limit=None):
+        root_object = self.context.dmd.getObjByPath(netid)
+        data = dict(
+            uid=netid,
+            children=[],
+            text=dict(
+                count=root_object.countIpAddresses(),
+                text=root_object.getNetworkName(),
+                description="ips"
+            )
+        )
+        network_brains = self.catalog.search(IpNetwork, depth=1, start=shift, limit=limit, paths=[netid])
+        for network_brain in network_brains:
+            tree = self.api.getTree(network_brain.getPath())
+            data["children"].append(Zuul.marshal(tree))
+        if not data["children"]:
+            return data
+        data["children"].append(dict(
+            uid="%s:forward:%s" % (netid, shift+int(limit)),
+            children=[],
+            text=dict(
+                count=0,
+                text='Next {0:d} networks'.format(limit),
+                description="ips"
+            )
+        ))
+        if not shift:
+            return data
+        data["children"].insert(0, dict(
+            uid="%s:backward:%s" % (netid, shift-int(limit)),
+            iconCls = "folder",
+            children=[],
+            text=dict(
+                count=0,
+                text='Previous {0:d} networks'.format(limit),
+                description="ips"
+            )
+        ))
+        return data
 
     def getTree(self, id='/zport/dmd/Networks'):
         """
@@ -126,8 +168,16 @@ class NetworkRouter(TreeRouter):
         @rtype:   [dictionary]
         @return:  Object representing the tree
         """
-        tree = self.api.getTree(id)
-        data = Zuul.marshal(tree)
+        networks_from_catalog = (self.context.dmd.UserInterfaceSettings
+                                 .getInterfaceSettings().get('renderNetworksFromCatalog'))
+        if not networks_from_catalog:
+            tree = self.api.getTree(id)
+            data = Zuul.marshal(tree)
+        else:
+            shift = 0
+            if 'backward' in id or 'forward' in id:
+                id, direction, shift = id.split(':')
+            data = self._marshal(netid=id, limit=50, shift=int(shift))
         return [data]
 
     def getInfo(self, uid, keys=None):
@@ -224,6 +274,7 @@ class Network6Router(NetworkRouter):
     def __init__(self, context, request):
         super(NetworkRouter, self).__init__(context, request)
         self.api = Zuul.getFacade('network6')
+        self.catalog = ICatalogTool(self.context)
 
     def _getFacade(self):
         return Zuul.getFacade('network6', self.context)
