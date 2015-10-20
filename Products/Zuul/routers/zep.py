@@ -323,12 +323,21 @@ class EventsRouter(DirectRouter):
             return self.queryArchive(limit=limit, start=start, sort=sort,
                                      dir=dir, params=params, exclusion_filter=exclusion_filter, keys=keys, uid=uid,
                                      detailFormat=detailFormat)
-        # special case for dmd/Devices in which case we want to show all events
-        # by default events are not tagged with the root device classes because it would be on all events
-        if uid == "/zport/dmd/Devices":
-            uids = [x.getPrimaryId() for x in self.context.dmd.Devices.children()]
-        else:
-            uids = [uid]
+
+        def child_uids(org):
+            """Return list of uids for children of Organizer org."""
+            return [x.getPrimaryId() for x in org.children()]
+
+        # Events don't get tagged with the top-level organizers. We compensate
+        # for that here so that the events view for Devices, Groups, Systems,
+        # and Locations will show aggregation of all of the top-level
+        # organizers children.
+        uids = {
+            '/zport/dmd/Devices': child_uids(self.context.dmd.Devices),
+            '/zport/dmd/Locations': child_uids(self.context.dmd.Locations),
+            '/zport/dmd/Groups': child_uids(self.context.dmd.Groups),
+            '/zport/dmd/Systems': child_uids(self.context.dmd.Systems),
+            }.get(uid, [uid])
 
         exclude_params = self._filterParser.findExclusionParams(params)
         if len(exclude_params) > 0:
