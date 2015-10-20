@@ -353,6 +353,10 @@ class ZepFacade(ZuulFacade):
 
     def getEventSummaries(self, offset, limit=1000, sort=None, filter=None, exclusion_filter=None, client_fn=None,
                           use_permissions=False):
+        for detail in filter.get('details', []):
+            for value in detail.get('value', []):
+                if value.startswith('*/'):
+                    detail['value'] = value[1:]
         if client_fn is None:
             client_fn = self.client.getEventSummaries
         if filter is not None and isinstance(filter,dict):
