@@ -356,6 +356,10 @@ class ZepFacade(ZuulFacade):
         if client_fn is None:
             client_fn = self.client.getEventSummaries
         if filter is not None and isinstance(filter,dict):
+            for detail in filter.get('details', []):
+                for value in detail.get('value', []):
+                    if value.startswith('*/'):
+                        detail['value'] = value[1:]
             filter = from_dict(EventFilter, filter)
         if exclusion_filter is not None and isinstance(exclusion_filter, dict):
             exclusion_filter = from_dict(EventFilter, exclusion_filter)
