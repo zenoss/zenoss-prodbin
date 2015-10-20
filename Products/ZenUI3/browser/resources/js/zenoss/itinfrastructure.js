@@ -1541,7 +1541,12 @@ var createEventsGrid = function(re_attach_to_container) {
         actionsMenu: false,
         commandsMenu: false,
         enableColumnHide: false,
-        store: events_store
+        store: events_store,
+        listeners: {
+            beforeshow: function(grid, uid) {
+                grid.refresh();
+            }
+        }
     });
 
     if (re_attach_to_container === true)
