@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,8 +12,12 @@ import os, sys
 if __name__ == '__main__':
   execfile(os.path.join(sys.path[0], 'framework.py'))
 
-from Products.ZenRelations.tests.TestSchema import TestBaseClass, DataRoot, TS, Device, Server, IpInterface, Group, Location, Admin, Organizer, create, build
-from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
+from Products.ZenRelations.tests.TestSchema import (
+    TestBaseClass, DataRoot, TS, Device, Server, IpInterface, Group, Location,
+    Admin, Organizer, create, build)
+from Products.ZenRelations.Exceptions import (
+    InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError,
+    ZenRelationsError, ZenSchemaError, ZentinelException)
 
 from ZenRelationsBaseTest import ZenRelationsBaseTest
 
@@ -26,8 +30,8 @@ class PrimaryPathManagerTest(ZenRelationsBaseTest):
         eth0 = self.create(dev.interfaces, IpInterface, "eth0")
         self.failUnless(eth0.getPrimaryPath() == ("dev", "interfaces", "eth0"))
         self.failUnless(eth0.getPrimaryId() == "dev/interfaces/eth0")
-        
-    
+
+
     def testGetPrimaryPath2(self):
         "absolute primary path of a contained object using fromNode"
         dev = self.build(self.dmd, Device, "dev")
@@ -35,7 +39,7 @@ class PrimaryPathManagerTest(ZenRelationsBaseTest):
         self.failUnless(eth0.getPrimaryPath("dev") ==
                         ("interfaces", "eth0"))
         self.failUnless(eth0.getPrimaryId("dev") == "/interfaces/eth0")
-       
+
 
     def testGetPrimaryPath3(self):
         "absolute primary path of a related object using zPrimaryBasePath"
@@ -61,7 +65,7 @@ class PrimaryPathManagerTest(ZenRelationsBaseTest):
 
 
 class RelationshipManagerTest(ZenRelationsBaseTest):
-    
+
     def testBuildRelations(self):
         "Check that relationships are built correctly."
         dev = self.build(self.dmd, Device, "dev")
@@ -71,7 +75,7 @@ class RelationshipManagerTest(ZenRelationsBaseTest):
                             "ToManyRelationship")
         self.failUnless(getattr(dev, "interfaces").meta_type ==
                             "ToManyContRelationship")
-    
+
 
     def testBuildRelationsWithInheritance(self):
         "Check that relationships are built correctly with inheritance."
@@ -84,7 +88,7 @@ class RelationshipManagerTest(ZenRelationsBaseTest):
                             "ToManyContRelationship")
         self.failUnless(getattr(server, "admin").meta_type ==
                             "ToOneRelationship")
-    
+
 
     def testLookupRelationSchema(self):
         dev = self.build(self.dmd, Device, "dev")
@@ -106,7 +110,7 @@ class RelationshipManagerTest(ZenRelationsBaseTest):
         self.assert_(id == "folder")
         self.assert_(dev._getOb(id) == folder)
 
-        
+
     def testGetProperties(self):
         pass
 
@@ -118,8 +122,8 @@ class RelationshipManagerTest(ZenRelationsBaseTest):
         self.failUnless(len(dev.interfaces()) == 0)
         self.failUnless(len(dev2.interfaces()) == 1)
         self.failUnless(dev2.interfaces.eth0.device() == dev2)
-                
-    
+
+
     def testMoveMeBetweenRels2(self):
         org1 = self.create(self.dmd, Organizer, 'org1')
         org2 = self.create(self.dmd, Organizer, 'org2')
@@ -133,8 +137,8 @@ class RelationshipManagerTest(ZenRelationsBaseTest):
         self.failUnless(org2.devices.dev.organizer() == org2)
         self.assert_(dev.interfaces.eth0)
         self.assert_(len(loc.devices()) > 0)
-                
-    
+
+
 from Products.ZenRelations.ToOneRelationship import manage_addToOneRelationship
 
 class ToOneRelationshipTest(ZenRelationsBaseTest):
@@ -145,7 +149,7 @@ class ToOneRelationshipTest(ZenRelationsBaseTest):
         manage_addToOneRelationship(dev, "admin")
         self.failUnless(hasattr(dev, "admin"))
 
-    
+
     def testmanage_addToOneRelationshipSchemaBad(self):
         """add a relationship with invalid schema"""
         dev = Server("server", buildRelations=False)
@@ -201,7 +205,7 @@ class ToOneRelationshipTest(ZenRelationsBaseTest):
 
 
     def testDeletingRelationship(self):
-        """Test deleting the relationship object itself, 
+        """Test deleting the relationship object itself,
         make sure the link is removed"""
         dev = self.build(self.app, Server, "dev")
         jim = self.build(self.app, Admin, "jim")
@@ -225,7 +229,7 @@ class ToManyContRelationshipTest(ZenRelationsBaseTest):
         self.create(dev.interfaces, IpInterface, "eth1")
         self.failUnless(len(dev.interfaces.findObjectsById("eth0"))==1)
 
-    
+
     def testaddRelationOneToManyCont(self):
         """Test froming a one to many contained relationship"""
         dev = self.build(self.app, Device, "dev")
@@ -285,7 +289,7 @@ class ToManyContRelationshipTest(ZenRelationsBaseTest):
         self.failUnless(len(dev.interfaces()) == 0)
         self.failUnless(eth.device() == None)
         self.failUnless(eth1.device() == None)
-        
+
 
     def testremoveRelationOneToManyCont4(self):
         """remove all objs from one to many contained relationship from relation"""
@@ -297,7 +301,7 @@ class ToManyContRelationshipTest(ZenRelationsBaseTest):
         self.failUnless(len(dev.interfaces()) == 0)
         self.failUnless(eth.device() == None)
         self.failUnless(eth1.device() == None)
-        
+
 
     def testsetObjectOneToManyContH(self):
         """Test setObject on ToManyCont where there is a recursive relation"""
@@ -406,7 +410,7 @@ class ToManyContRelationshipTest(ZenRelationsBaseTest):
         self.failUnless(eth1 in seen)
         self.failUnless(len(dev.interfaces()) == 2)
 
-    
+
 
 class ToManyRelationshipTest(ZenRelationsBaseTest):
 
@@ -437,7 +441,7 @@ class ToManyRelationshipTest(ZenRelationsBaseTest):
         dev.addRelation("location", loc)
         self.failUnless(dev in loc.devices())
         self.failUnless(dev.location() == loc)
-   
+
 
     def testaddRelationOneToManyOverwrite(self):
         """Test setting the one side of one to many twice with same object"""
@@ -504,7 +508,7 @@ class ToManyRelationshipTest(ZenRelationsBaseTest):
         self.failIf(dev in anna.devices())
         self.failUnless(len(anna.devices())==0)
 
-    
+
     def testremoveRelationOneToMany1(self):
         """Test removeRelation on a to many object itself """
         dev = self.create(self.app, Device, "dev")
@@ -516,7 +520,7 @@ class ToManyRelationshipTest(ZenRelationsBaseTest):
         self.failIf(dev in anna.devices())
         self.failUnless(len(anna.devices())==0)
 
-    
+
     def testremoveRelationOneToMany2(self):
         """Test removing from a to many relationship with two objects"""
         dev = self.create(self.app, Device, "dev")
@@ -541,7 +545,7 @@ class ToManyRelationshipTest(ZenRelationsBaseTest):
         dev.location.removeRelation(anna)
         self.failIf(dev.location() == anna)
         self.failIf(dev in anna.devices())
- 
+
 
     def testremoveRelationOneToMany4(self):
         """Test removing all from to one side of a one to many relationship"""

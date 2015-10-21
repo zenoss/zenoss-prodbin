@@ -17,7 +17,8 @@ and builds the nessesary rrd commands.
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
-from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.deprecated import deprecated

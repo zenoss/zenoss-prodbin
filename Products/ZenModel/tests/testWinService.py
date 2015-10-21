@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,7 +12,10 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
 from Products.ZenModel.WinService import WinService
 
 from ZenModelBaseTest import ZenModelBaseTest
@@ -36,8 +39,8 @@ class TestWinService(ZenModelBaseTest):
         self.wsvc.setServiceClass(svc)
         self.assert_(self.wsvc.name() == 'ALG')
         self.assert_(self.wsvc.getServiceClass() == svc)
-    
-    
+
+
     def testSetManageIp(self):
         self.wsvc.setManageIp('1.2.3.4/24')
         self.assert_(self.wsvc.getManageIp() == '1.2.3.4/24')

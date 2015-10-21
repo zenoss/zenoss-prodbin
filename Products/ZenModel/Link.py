@@ -9,7 +9,8 @@
 
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 
 
 class ILink(object):

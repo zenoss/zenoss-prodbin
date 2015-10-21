@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -14,8 +14,12 @@ if __name__ == '__main__':
 
 import transaction
 
-from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
-from Products.ZenRelations.tests.TestSchema import TestBaseClass, DataRoot, TS, Device, Server, IpInterface, Group, Location, Admin, Organizer, create, build
+from Products.ZenRelations.Exceptions import (
+    InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError,
+    ZenRelationsError, ZenSchemaError, ZentinelException)
+from Products.ZenRelations.tests.TestSchema import (
+    TestBaseClass, DataRoot, TS, Device, Server, IpInterface, Group, Location,
+    Admin, Organizer, create, build)
 from Products.ZenTestCase.BaseTestCase import standard_permissions
 
 from ZenRelationsBaseTest import ZenRelationsBaseTest
@@ -131,7 +135,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         copy = self.dataroot._getOb("copy_of_dev")
         self.failUnless(dev.pingStatus == copy.pingStatus)
         self.failUnless(dev.pingStatus == 3)
-        
+
 
     def testCopyPasteRMOneToOne(self):
         """Copy/paste to check RM with OneToOne relationship"""
@@ -216,7 +220,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         eth0 = create(self.dataroot, IpInterface, "eth0")
         dev.interfaces._setObject("eth0", eth0)
         self.failUnless(dev.interfaces._getOb("eth0") == eth0)
-        self.failUnless("interfaces" in 
+        self.failUnless("interfaces" in
             dev.interfaces.eth0.getPrimaryPath())
 
 
@@ -293,7 +297,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         self.failUnless(group.devices.hasobject(dev))
         self.failUnless(dev.groups.hasobject(group))
 
-    
+
     def testCopyPasteToFromOneToManyLink(self):
         """Copy/Paste to form a one to many link between device and location"""
         dev = build(self.dataroot, Device, "dev")

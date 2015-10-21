@@ -9,7 +9,8 @@
 ##############################################################################
 
 
-from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 
 class TemplateContainer(object):
     """

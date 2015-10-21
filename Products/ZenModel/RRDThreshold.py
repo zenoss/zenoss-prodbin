@@ -15,7 +15,8 @@ from AccessControl import ClassSecurityInfo, Permissions
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
-from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from Products.ZenUtils.ZenTales import talesEval
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 from Products.ZenModel.MinMaxThreshold import rpneval

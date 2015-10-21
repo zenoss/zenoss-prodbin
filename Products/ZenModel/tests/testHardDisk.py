@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,7 +12,10 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
 from Products.ZenModel.HardDisk import HardDisk
 
 from ZenModelBaseTest import ZenModelBaseTest
@@ -33,7 +36,7 @@ class TestHardDisk(ZenModelBaseTest):
         self.assert_(self.dev.getManageIp() == '1.2.3.4/24')
         self.dev.setManageIp('2.3.4.5/24')
         self.assert_(self.hdd.getManageIp() == '2.3.4.5/24')
-        
+
 
     def testGets(self):
         self.assert_(self.hdd.getInstDescription() == 'hdd')

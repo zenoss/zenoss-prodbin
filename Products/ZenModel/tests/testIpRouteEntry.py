@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -14,7 +14,10 @@ if __name__ == '__main__':
 
 import logging
 
-from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
 from Products.ZenModel.IpInterface import IpInterface
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
 

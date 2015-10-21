@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -17,7 +17,10 @@ import time
 from DateTime import DateTime
 
 from Acquisition import aq_base
-from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
 
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.IpService import IpService

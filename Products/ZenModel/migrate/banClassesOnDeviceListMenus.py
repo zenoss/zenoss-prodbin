@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -15,15 +15,32 @@ import Globals
 import logging
 log = logging.getLogger("zen.migrate")
 
-from Products.ZenModel.ZenossSecurity import MANAGER_ROLE, MANAGE_NOTIFICATION_SUBSCRIPTIONS, MANAGE_TRIGGER, NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, NOTIFICATION_UPDATE_ROLE, NOTIFICATION_VIEW_ROLE, OWNER_ROLE, TRIGGER_MANAGER_ROLE, TRIGGER_UPDATE_ROLE, TRIGGER_VIEW_ROLE, UPDATE_NOTIFICATION, UPDATE_TRIGGER, VIEW_NOTIFICATION, VIEW_TRIGGER, ZEN_ADD, ZEN_ADMINISTRATORS_EDIT, ZEN_ADMINISTRATORS_VIEW, ZEN_ADMIN_DEVICE, ZEN_CHANGE_ADMIN_OBJECTS, ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_DEVICE, ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_CHANGE_EVENT_VIEWS, ZEN_CHANGE_SETTINGS, ZEN_COMMON, ZEN_DEFINE_COMMANDS_EDIT, ZEN_DEFINE_COMMANDS_VIEW, ZEN_DELETE, ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES, ZEN_EDIT_USER, ZEN_EDIT_USERGROUP, ZEN_MAINTENANCE_WINDOW_EDIT, ZEN_MAINTENANCE_WINDOW_VIEW, ZEN_MANAGER_ROLE, ZEN_MANAGE_DEVICE, ZEN_MANAGE_DEVICE_STATUS, ZEN_MANAGE_DMD, ZEN_MANAGE_EVENTMANAGER, ZEN_MANAGE_EVENTS, ZEN_RUN_COMMANDS, ZEN_SEND_EVENTS, ZEN_UPDATE, ZEN_USER_ROLE, ZEN_VIEW, ZEN_VIEW_HISTORY, ZEN_VIEW_MODIFICATIONS, ZEN_ZPROPERTIES_EDIT, ZEN_ZPROPERTIES_VIEW
+from Products.ZenModel.ZenossSecurity import (
+    MANAGER_ROLE, MANAGE_NOTIFICATION_SUBSCRIPTIONS, MANAGE_TRIGGER,
+    NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, NOTIFICATION_UPDATE_ROLE,
+    NOTIFICATION_VIEW_ROLE, OWNER_ROLE, TRIGGER_MANAGER_ROLE,
+    TRIGGER_UPDATE_ROLE, TRIGGER_VIEW_ROLE, UPDATE_NOTIFICATION,
+    UPDATE_TRIGGER, VIEW_NOTIFICATION, VIEW_TRIGGER, ZEN_ADD,
+    ZEN_ADMINISTRATORS_EDIT, ZEN_ADMINISTRATORS_VIEW, ZEN_ADMIN_DEVICE,
+    ZEN_CHANGE_ADMIN_OBJECTS, ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_DEVICE,
+    ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_CHANGE_EVENT_VIEWS, ZEN_CHANGE_SETTINGS,
+    ZEN_COMMON, ZEN_DEFINE_COMMANDS_EDIT, ZEN_DEFINE_COMMANDS_VIEW, ZEN_DELETE,
+    ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES, ZEN_EDIT_USER,
+    ZEN_EDIT_USERGROUP, ZEN_MAINTENANCE_WINDOW_EDIT,
+    ZEN_MAINTENANCE_WINDOW_VIEW, ZEN_MANAGER_ROLE, ZEN_MANAGE_DEVICE,
+    ZEN_MANAGE_DEVICE_STATUS, ZEN_MANAGE_DMD, ZEN_MANAGE_EVENTMANAGER,
+    ZEN_MANAGE_EVENTS, ZEN_RUN_COMMANDS, ZEN_SEND_EVENTS, ZEN_UPDATE,
+    ZEN_USER_ROLE, ZEN_VIEW, ZEN_VIEW_HISTORY, ZEN_VIEW_MODIFICATIONS,
+    ZEN_ZPROPERTIES_EDIT, ZEN_ZPROPERTIES_VIEW)
+
 
 class BanClassesOnDeviceListMenus(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
 
-    def cutover(self, dmd):  
+    def cutover(self, dmd):
         # Build menus
         dmd.buildMenus({
-'Manage': [  
+'Manage': [
         {  'action': 'dialog_changeClass',
         'allowed_classes': ('Device', 'OperatingSystem'),
         'description': 'Change Class...',
@@ -59,11 +76,11 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'isdialog': True,
         'ordering': 50.0,
         'permissions': (ZEN_ADMIN_DEVICE,) },
-        {  'action': 'collectDevice', 
-        'allowed_classes': ( 'Device', 'OperatingSystem'), 
-        'description': 'Model Device', 
-        'id': 'modelDevice', 
-        'ordering': 88.0, 
+        {  'action': 'collectDevice',
+        'allowed_classes': ( 'Device', 'OperatingSystem'),
+        'description': 'Model Device',
+        'id': 'modelDevice',
+        'ordering': 88.0,
         'permissions': (ZEN_MANAGE_DEVICE,) },
         {  'action': 'dialog_lockDevices',
         'allowed_classes': ( 'DeviceClass',),
@@ -104,8 +121,8 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'description': 'Push Changes',
         'id': 'pushConfig_os',
         'ordering': 10.0,
-        'permissions': (ZEN_MANAGE_DEVICE,) } ], 
-'Device_list': [  
+        'permissions': (ZEN_MANAGE_DEVICE,) } ],
+'Device_list': [
         {  'action': 'dialog_setProductionState',
         'banned_classes': ['Monitor'],
         'description': 'Set Production State...',
@@ -229,8 +246,8 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'id': 'lockDevices_grid',
         'isdialog': True,
         'ordering': 2.0,
-        'permissions': (ZEN_MANAGE_DEVICE,) } ],   
-'Edit': [  
+        'permissions': (ZEN_MANAGE_DEVICE,) } ],
+'Edit': [
         {  'action': 'dialog_setProductionState_global',
         'allowed_classes': ( 'DeviceClass',
             'DeviceGroup',
@@ -245,7 +262,7 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'allowed_classes': ( 'DeviceClass',
             'DeviceGroup',
             'Location',
-            'System'), 
+            'System'),
         'description': 'Set Priority...',
         'id': 'setPriority',
         'isdialog': True,
@@ -255,7 +272,7 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'allowed_classes': ( 'DeviceClass',
             'DeviceGroup',
             'Location',
-            'System'), 
+            'System'),
         'description': 'Set Groups...',
         'id': 'setGroups',
         'isdialog': True,
@@ -265,7 +282,7 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'allowed_classes': ( 'DeviceClass',
             'DeviceGroup',
             'Location',
-            'System'),  
+            'System'),
         'description': 'Set Systems...',
         'id': 'setSystems',
         'isdialog': True,
@@ -276,7 +293,7 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'allowed_classes': ( 'DeviceClass',
             'DeviceGroup',
             'Location',
-            'System'),  
+            'System'),
         'id': 'setLocation',
         'isdialog': True,
         'ordering': 20.0,
@@ -290,18 +307,18 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
             'System'),
         'isdialog': True,
         'ordering': 15.0,
-        'permissions': (ZEN_CHANGE_DEVICE,) } ], 
+        'permissions': (ZEN_CHANGE_DEVICE,) } ],
 'More': [ {  'action': 'viewHistory',
-        'allowed_classes': ['Device', 
-            'System', 
-            'DeviceGroup', 
-            'Location', 
+        'allowed_classes': ['Device',
+            'System',
+            'DeviceGroup',
+            'Location',
             'DeviceClass',
-            'EventClass'], 
+            'EventClass'],
         'description': 'Modifications',
         'id': 'viewHistory',
         'ordering': 2.0,
-        'permissions': (ZEN_VIEW_HISTORY,) }, 
+        'permissions': (ZEN_VIEW_HISTORY,) },
         {  'action': '../viewHistory',
         'allowed_classes': ['OperatingSystem'],
         'description': 'Modifications',
@@ -313,7 +330,7 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'allowed_classes': ['EventClass'],
         'description': 'Transform',
         'ordering': 2.1,
-        'permissions'   : (ZEN_CHANGE_DEVICE,) }, 
+        'permissions'   : (ZEN_CHANGE_DEVICE,) },
         {  'action': 'zSortableProperty?prop=zCollectorPlugins',
         'allowed_classes': ['Device', 'DeviceClass'],
         'description': 'Collector Plugins',
@@ -349,7 +366,7 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
         'description': 'Overridden Objects',
         'id': 'overriddenObjects',
         'ordering': 21.0,
-        'permissions': (ZEN_ZPROPERTIES_VIEW,) } ], 
+        'permissions': (ZEN_ZPROPERTIES_VIEW,) } ],
         })
 
 BanClassesOnDeviceListMenus()

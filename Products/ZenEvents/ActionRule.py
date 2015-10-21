@@ -15,7 +15,8 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from Products.ZenEvents.EventFilter import EventFilter
 
 class ActionRule(ZenModelRM, EventFilter):

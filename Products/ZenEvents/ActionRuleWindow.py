@@ -14,7 +14,8 @@ log = logging.getLogger("zen.ActionRuleWindow")
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
-from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 
 class ActionRuleWindow(MaintenanceWindow):
 

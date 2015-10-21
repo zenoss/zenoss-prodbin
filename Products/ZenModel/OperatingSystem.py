@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -17,9 +17,13 @@ from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
 from Products.ZenUtils.Utils import convToUnits
-from Products.ZenRelations.RelSchema import RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 
-from Products.ZenModel.Exceptions import DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress, NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError, ZentinelException
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
 from Products.ZenModel.Service import Service
 
 from IpInterface import manage_addIpInterface
@@ -79,7 +83,7 @@ class OperatingSystem(Software):
     def __init__(self):
         id = "os"
         Software.__init__(self, id)
-        self._delObject("os")   # OperatingSystem is a software 
+        self._delObject("os")   # OperatingSystem is a software
                                 # but doens't have os relationship
 
 
@@ -88,7 +92,7 @@ class OperatingSystem(Software):
 
     def traceRoute(self, target, ippath):
         """
-        Trace the route to the target from this device using our routing 
+        Trace the route to the target from this device using our routing
         table and return an array of IP address strings showing the route.
 
         If the route is not traversable (ie a gap in the routing table),
@@ -97,7 +101,7 @@ class OperatingSystem(Software):
         @parameter target: destination IP to find
         @type target: DMD device object
         @parameter ippath: used to store intermediate results in calls. Call with []
-        @type ippath: array-like object used for 
+        @type ippath: array-like object used for
         @return: IP addresses to target device
         @rtype: array of strings
         """
@@ -178,8 +182,8 @@ class OperatingSystem(Software):
             dc.unlock()
         if REQUEST:
             return self.callZenScreen(REQUEST)
-            
-    def lockDeviceComponentsFromDeletion(self, context, componentNames=[], 
+
+    def lockDeviceComponentsFromDeletion(self, context, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock device components from deletion"""
         if not componentNames: return self()
@@ -191,7 +195,7 @@ class OperatingSystem(Software):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-    def lockDeviceComponentsFromUpdates(self, context, componentNames=[], 
+    def lockDeviceComponentsFromUpdates(self, context, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock device components from updates"""
         if not componentNames: return self()
@@ -266,7 +270,7 @@ class OperatingSystem(Software):
             )
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
-        
+
     def lockIpInterfacesFromDeletion(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock IpInterfaces from deletion"""
@@ -280,13 +284,13 @@ class OperatingSystem(Software):
             )
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
-        
-    def lockIpInterfacesFromUpdates(self, componentNames=[], 
+
+    def lockIpInterfacesFromUpdates(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock IpInterfaces from updates"""
         self.lockDeviceComponentsFromUpdates(self.interfaces, componentNames,
             sendEventWhenBlocked, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Interfaces Locked',
                 'Interfaces %s were locked from updates and deletion.' % (
@@ -301,7 +305,7 @@ class OperatingSystem(Software):
         org = self.dmd.Services
         wsc = org.unrestrictedTraverse(newClassName)
         if wsc is not None:
-            ws = manage_addWinService(self.winservices, 
+            ws = manage_addWinService(self.winservices,
                                     wsc.id,
                                     wsc.description,
                                     userCreated=userCreated,
@@ -326,7 +330,7 @@ class OperatingSystem(Software):
     def deleteWinServices(self, componentNames=[], REQUEST=None):
         """Delete WinServices"""
         self.deleteDeviceComponents(self.winservices, componentNames, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'WinServices Deleted',
                 'WinServices %s were deleted.' % (', '.join(componentNames))
@@ -337,20 +341,20 @@ class OperatingSystem(Software):
     def unlockWinServices(self, componentNames=[], REQUEST=None):
         """Unlock WinServices"""
         self.unlockDeviceComponents(self.winservices, componentNames, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'WinServices Unlocked',
                 'WinServices %s were unlocked.' % (', '.join(componentNames))
             )
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
-        
-    def lockWinServicesFromDeletion(self, componentNames=[], 
+
+    def lockWinServicesFromDeletion(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock WinServices from deletion"""
-        self.lockDeviceComponentsFromDeletion(self.winservices, componentNames, 
+        self.lockDeviceComponentsFromDeletion(self.winservices, componentNames,
             sendEventWhenBlocked, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'WinServices Locked',
                 'WinServices %s were locked from deletion.' % (
@@ -358,13 +362,13 @@ class OperatingSystem(Software):
             )
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
-        
-    def lockWinServicesFromUpdates(self, componentNames=[], 
+
+    def lockWinServicesFromUpdates(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock WinServices from updates"""
-        self.lockDeviceComponentsFromUpdates(self.winservices, componentNames, 
+        self.lockDeviceComponentsFromUpdates(self.winservices, componentNames,
             sendEventWhenBlocked, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'WinServices Locked',
                 'WinServices %s were locked from updates and deletion.' % (
@@ -372,12 +376,12 @@ class OperatingSystem(Software):
             )
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
-    
+
     def getSubOSProcessClassesGen(self, REQUEST=None):
         """Get OS Process
         """
         return self.getDmdRoot('Processes').getSubOSProcessClassesGen()
-        
+
     def addOSProcess(self, newClassName, example, userCreated, REQUEST=None):
         """Add an OSProcess.
         """
@@ -393,7 +397,7 @@ class OperatingSystem(Software):
     def deleteOSProcesses(self, componentNames=[], REQUEST=None):
         """Delete OSProcesses"""
         self.deleteDeviceComponents(self.processes, componentNames, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Processes Deleted',
                 'OS processes %s were deleted.' % (', '.join(componentNames))
@@ -404,7 +408,7 @@ class OperatingSystem(Software):
     def unlockOSProcesses(self, componentNames=[], REQUEST=None):
         """Unlock OSProcesses"""
         self.unlockDeviceComponents(self.processes, componentNames, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Processes Unlocked',
                 'OS Processes %s were unlocked.' % (', '.join(componentNames))
@@ -412,12 +416,12 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def lockOSProcessesFromDeletion(self, componentNames=[], 
+    def lockOSProcessesFromDeletion(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock OSProcesses from deletion"""
-        self.lockDeviceComponentsFromDeletion(self.processes, componentNames, 
+        self.lockDeviceComponentsFromDeletion(self.processes, componentNames,
             sendEventWhenBlocked, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Processes Locked',
                 'OS processes %s were locked from deletion.' % (
@@ -426,10 +430,10 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def lockOSProcessesFromUpdates(self, componentNames=[], 
+    def lockOSProcessesFromUpdates(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock OSProcesses from updates"""
-        self.lockDeviceComponentsFromUpdates(self.processes, componentNames, 
+        self.lockDeviceComponentsFromUpdates(self.processes, componentNames,
             sendEventWhenBlocked, REQUEST)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -449,7 +453,7 @@ class OperatingSystem(Software):
             ips = manage_addIpService(self.ipservices,
                                 ipsc.id,
                                 protocol,
-                                ipsc.port, 
+                                ipsc.port,
                                 userCreated=userCreated)
             self._p_changed = True
         elif REQUEST:
@@ -490,10 +494,10 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def lockIpServicesFromDeletion(self, componentNames=[], 
+    def lockIpServicesFromDeletion(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock IpServices from deletion"""
-        self.lockDeviceComponentsFromDeletion(self.ipservices, componentNames, 
+        self.lockDeviceComponentsFromDeletion(self.ipservices, componentNames,
             sendEventWhenBlocked, REQUEST)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -504,12 +508,12 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def lockIpServicesFromUpdates(self, componentNames=[], 
+    def lockIpServicesFromUpdates(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock IpServices from updates"""
         self.lockDeviceComponentsFromUpdates(self.ipservices, componentNames,
             sendEventWhenBlocked, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Services Locked',
                 'IP services %s were locked from updates and deletion.' % (
@@ -536,7 +540,7 @@ class OperatingSystem(Software):
     def deleteFileSystems(self, componentNames=[], REQUEST=None):
         """Delete FileSystems"""
         self.deleteDeviceComponents(self.filesystems, componentNames, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Filesystems Deleted',
                 'Filesystems %s were deleted.' % (', '.join(componentNames))
@@ -555,12 +559,12 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def lockFileSystemsFromDeletion(self, componentNames=[], 
+    def lockFileSystemsFromDeletion(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock FileSystems from deletion"""
-        self.lockDeviceComponentsFromDeletion(self.filesystems, componentNames, 
+        self.lockDeviceComponentsFromDeletion(self.filesystems, componentNames,
             sendEventWhenBlocked, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Filesystems Locked',
                 'Filesystems %s were locked from deletion.' % (
@@ -569,10 +573,10 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def lockFileSystemsFromUpdates(self, componentNames=[], 
+    def lockFileSystemsFromUpdates(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock FileSystems from updates"""
-        self.lockDeviceComponentsFromUpdates(self.filesystems, componentNames, 
+        self.lockDeviceComponentsFromUpdates(self.filesystems, componentNames,
             sendEventWhenBlocked, REQUEST)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -583,7 +587,7 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def addIpRouteEntry(self, dest, routemask, nexthopid, interface, 
+    def addIpRouteEntry(self, dest, routemask, nexthopid, interface,
                         routeproto, routetype, userCreated, REQUEST=None):
         """Add an IpRouteEntry.
         """
@@ -627,12 +631,12 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def lockIpRouteEntriesFromDeletion(self, componentNames=[], 
+    def lockIpRouteEntriesFromDeletion(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock IpRouteEntries from deletion"""
-        self.lockDeviceComponentsFromDeletion(self.routes, componentNames, 
+        self.lockDeviceComponentsFromDeletion(self.routes, componentNames,
             sendEventWhenBlocked, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Routes Locked',
                 'IP route entries %s were locked from deletion.' % (
@@ -641,12 +645,12 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def lockIpRouteEntriesFromUpdates(self, componentNames=[], 
+    def lockIpRouteEntriesFromUpdates(self, componentNames=[],
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock IpRouteEntries from updates"""
-        self.lockDeviceComponentsFromUpdates(self.routes, componentNames, 
+        self.lockDeviceComponentsFromUpdates(self.routes, componentNames,
             sendEventWhenBlocked, REQUEST)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Routes Locked',
                 'IP route entries %s were locked from updates and deletion.' % (

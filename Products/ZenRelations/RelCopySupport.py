@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -36,7 +36,9 @@ from OFS.CopySupport import CopyError, _cb_decode, eInvalid, eNotFound, eNoData
 
 from App.Dialogs import MessageDialog
 
-from Products.ZenRelations.Exceptions import InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError, ZenRelationsError, ZenSchemaError, ZentinelException
+from Products.ZenRelations.Exceptions import (
+    InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError,
+    ZenRelationsError, ZenSchemaError, ZentinelException)
 
 class RelCopyContainer(CopyContainer):
 
@@ -45,7 +47,7 @@ class RelCopyContainer(CopyContainer):
         seems to be a bug in the Zope code. We add it until the problem is
         fixed.
         """
-        checkValidId(self, new_id) 
+        checkValidId(self, new_id)
 
 
     def manage_linkObjects(self, ids = None, cb_copy_data=None, REQUEST=None):
@@ -57,10 +59,10 @@ class RelCopyContainer(CopyContainer):
                 self.manage_addRelation(relName, obj)
         except ZenRelationsError, e:
             if REQUEST: return MessageDialog(title = "Relationship Link Error",
-                                message = str(e), action = "manage_main")     
+                                message = str(e), action = "manage_main")
             else: raise
         if REQUEST: return self.manage_main(self, REQUEST)
-            
+
 
 
     def manage_unlinkObjects(self, ids = None, cb_copy_data=None, REQUEST=None):
@@ -72,10 +74,10 @@ class RelCopyContainer(CopyContainer):
             self.manage_removeRelation(relName)
         except ZenRelationsError, e:
             if REQUEST:return MessageDialog(title = "Relationship Unlink Error",
-                                message = str(e), action = "manage_main")     
+                                message = str(e), action = "manage_main")
             else: raise
         if REQUEST: return self.manage_main(self, REQUEST)
-            
+
 
 
     def _verifyObjectPaste(self, object, validate_src=1):
@@ -86,7 +88,7 @@ class RelCopyContainer(CopyContainer):
         if (pathres and '/'.join(self.getPhysicalPath()).find(pathres) == -1):
             raise CopyError, MessageDialog(title='Not Supported',
                   message='The object <EM>%s</EM> can not be pasted into' \
-                          ' the path <EM>%s</EM>' % 
+                          ' the path <EM>%s</EM>' %
                            (object.id, '/'.join(self.getPhysicalPath())),
                   action='manage_main')
         # We don't need this it checks for meta_type permissions
@@ -102,16 +104,16 @@ class RelCopyContainer(CopyContainer):
         check to see that we are a ToManyRelationship and return self.id.
         """
         if not ids:
-            if self.meta_type == "ToManyRelationship": 
+            if self.meta_type == "ToManyRelationship":
                 return self.getId()
             else:
                 raise ZenRelationsError("No relation name defined")
         if isinstance(ids, basestring): return ids
-        if len(ids) > 1: 
+        if len(ids) > 1:
             raise ZenRelationsError("You can only link to one relationship!")
-        return ids[0] 
-   
-    
+        return ids[0]
+
+
     def _verifyObjectLink(self):
         """
         When linking check that the user has "Copy or Move" permission
@@ -126,7 +128,7 @@ class RelCopyContainer(CopyContainer):
                 'this operation.')
             raise CopyError, MessageDialog(title = 'Insufficient Privileges',
                                 message = message, action = 'manage_main')
-                
+
 
 
 
@@ -140,7 +142,7 @@ class RelCopyContainer(CopyContainer):
                 cp=REQUEST['__cp']
         if cp is None:
             raise CopyError, eNoData
-        
+
         try:    cp=_cb_decode(cp)
         except: raise CopyError, eInvalid
 
@@ -151,6 +153,6 @@ class RelCopyContainer(CopyContainer):
             m = Moniker.loadMoniker(mdata)
             try: ob = m.bind(app)
             except: raise CopyError, eNotFound
-            self._verifyObjectLink() 
+            self._verifyObjectLink()
             oblist.append(ob)
         return oblist

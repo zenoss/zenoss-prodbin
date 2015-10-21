@@ -1,38 +1,43 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 from datetime import datetime
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.Device import manage_createDevice
-from Products.ZenModel.tests.RRDTestUtils import DEFAULT_DSDP_MAP, TEST_TEMPLATE, addAlias, addAliases, assertAliasDatapointInMap, createTemplate, removeTemplate
-from Products.ZenReports.AliasPlugin import AliasPlugin, PythonColumnHandler, RRDColumnHandler, Column
-from Products.ZenReports.tests.ReportTestUtils import attributeAsRRDValue, replaceGetRRDValue, createTestDevice, getDeviceIdFromRecord, getComponentIdFromRecord, assertRecordIsCorrect
+from Products.ZenModel.tests.RRDTestUtils import (
+    DEFAULT_DSDP_MAP, TEST_TEMPLATE, addAlias, addAliases,
+    assertAliasDatapointInMap, createTemplate, removeTemplate)
+from Products.ZenReports.AliasPlugin import (
+    AliasPlugin, PythonColumnHandler, RRDColumnHandler, Column)
+from Products.ZenReports.tests.ReportTestUtils import (
+    attributeAsRRDValue, replaceGetRRDValue, createTestDevice,
+    getDeviceIdFromRecord, getComponentIdFromRecord, assertRecordIsCorrect)
 
 class _TestPlugin(AliasPlugin):
     def __init__(self, columns=[], compositeColumns=[], componentPath=None ):
         self._columns=columns
         self._compositeColumns=compositeColumns
         self._componentPath=componentPath
-    
+
     def getColumns(self):
         return self._columns
-    
+
     def getCompositeColumns(self):
         return self._compositeColumns
-    
+
     def getComponentPath(self):
         return self._componentPath
 
 
 class TestAliasPlugin(BaseTestCase):
-        
+
     @replaceGetRRDValue( attributeAsRRDValue )
     def testPropertyColumns(self):
         rackSlot=44
@@ -43,13 +48,13 @@ class TestAliasPlugin(BaseTestCase):
         test1 = _TestPlugin(
                             [
                              Column('testCol1'), #NO VALUES
-                             Column('testCol2', 
+                             Column('testCol2',
                                     PythonColumnHandler('device.id') ),
-                             Column('testCol3', 
+                             Column('testCol3',
                                     PythonColumnHandler('device.rackSlot') )
                             ]
                             )
-        
+
         records=test1.run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
         self.assertEquals( 1, len( records ) )
         record=records[0]
@@ -57,7 +62,7 @@ class TestAliasPlugin(BaseTestCase):
         self.assertEquals( record.values['testCol1'], None )
         self.assertEquals( record.values['testCol2'], dev.id )
         self.assertEquals( record.values['testCol3'], rackSlot )
-        
+
     @replaceGetRRDValue( attributeAsRRDValue )
     def testPropertyAndRRDColumns(self):
         rackSlot=44
@@ -67,13 +72,13 @@ class TestAliasPlugin(BaseTestCase):
         dev2=createTestDevice( self.dmd, 'TestDevice2', dict(
                                 zDeviceTemplates=[template.id],
                                rackSlot=rackSlot ) )
-        dev3=createTestDevice( self.dmd, 'TestDevice3', 
+        dev3=createTestDevice( self.dmd, 'TestDevice3',
                               dict( rackSlot=rackSlot ) )
         test1 = _TestPlugin(
                             [
-                             Column('testCol1', 
+                             Column('testCol1',
                                     PythonColumnHandler('device.id') ),
-                             Column('testCol3', 
+                             Column('testCol3',
                                     PythonColumnHandler('device.rackSlot') ),
                              Column('testCol2',
                                     RRDColumnHandler( 'testAlias1' ) ),
@@ -81,12 +86,12 @@ class TestAliasPlugin(BaseTestCase):
                                     RRDColumnHandler( 'testAlias2' ) )
                             ]
                             )
-        
+
         testValue1=33
         testValue2=66
         dev2.dp1=testValue1
         dev2.dp2=testValue2
-        
+
         records=test1.run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
         self.assertEquals( 2, len( records ) )
         recordMap=dict( zip( map( getDeviceIdFromRecord, records ), records ) )
@@ -102,7 +107,7 @@ class TestAliasPlugin(BaseTestCase):
         record3=recordMap[dev3.id]
         self.assertEquals( None, record3.values['testCol2'])
         self.assertEquals( None, record3.values['testCol4'])
-        
+
     @replaceGetRRDValue( attributeAsRRDValue )
     def testComponentReport(self):
         rackSlot=88
@@ -110,15 +115,15 @@ class TestAliasPlugin(BaseTestCase):
         template=createTemplate(self.dmd, interfaceType)
         addAlias( template, 'ds1', 'dp1', 'testAlias1' )
         addAlias( template, 'ds1', 'dp2', 'testAlias2' )
-        
+
         dev4=createTestDevice( self.dmd, 'TestDevice2', dict(
                                 zDeviceTemplates=[template.id],
                                rackSlot=rackSlot ) )
         dev4.os.addIpInterface( 'testComponent1', False )
         testComponent1=dev4.os.interfaces._getOb( 'testComponent1' )
         testComponent1.type=interfaceType
-        
-        dev5=createTestDevice( self.dmd, 'TestDevice3', 
+
+        dev5=createTestDevice( self.dmd, 'TestDevice3',
                               dict( rackSlot=rackSlot ) )
         dev5.os.addIpInterface( 'testComponent2', False )
         testComponent2=dev5.os.interfaces._getOb( 'testComponent2' )
@@ -126,9 +131,9 @@ class TestAliasPlugin(BaseTestCase):
 
         test3 = _TestPlugin(
                             [
-                             Column('testCol1', 
+                             Column('testCol1',
                                     PythonColumnHandler('component.id') ),
-                             Column('testCol3', 
+                             Column('testCol3',
                                     PythonColumnHandler('device.rackSlot') ),
                              Column('testCol2',
                                     RRDColumnHandler( 'testAlias1' ) ),
@@ -137,12 +142,12 @@ class TestAliasPlugin(BaseTestCase):
                             ],
                             componentPath='os/interfaces'
                             )
-        
+
         testValue1=55
         testValue2=77
         testComponent1.dp1=testValue1
         testComponent1.dp2=testValue2
-        
+
         records=test3.run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
         self.assertEquals( 2, len( records ) )
         recordMap=dict( zip( map( getComponentIdFromRecord, records ), records ) )
@@ -159,7 +164,7 @@ class TestAliasPlugin(BaseTestCase):
         record2=recordMap[testComponent2.id]
         self.assertEquals( None, record2.values['testCol2'])
         self.assertEquals( None, record2.values['testCol4'])
-        
+
 
     @replaceGetRRDValue( attributeAsRRDValue )
     def testCompositeColumns(self):
@@ -171,13 +176,13 @@ class TestAliasPlugin(BaseTestCase):
         dev5=createTestDevice( self.dmd, 'TestDevice5', dict(
                                 zDeviceTemplates=[template.id],
                                rackSlot=rackSlot ) )
-        dev6=createTestDevice( self.dmd, 'TestDevice6', 
+        dev6=createTestDevice( self.dmd, 'TestDevice6',
                               dict( rackSlot=rackSlot ) )
         test3 = _TestPlugin(
                             [
-                             Column('testCol1', 
+                             Column('testCol1',
                                     PythonColumnHandler('device.id') ),
-                             Column('testCol3', 
+                             Column('testCol3',
                                     PythonColumnHandler('device.rackSlot') ),
                              Column('testCol2', RRDColumnHandler( 'testAlias5' ) ),
                              Column('testCol4', RRDColumnHandler( 'testAlias6') )
@@ -186,12 +191,12 @@ class TestAliasPlugin(BaseTestCase):
                              Column('testCol5',PythonColumnHandler('testCol2 and testCol4 and ( testCol2 + testCol4 ) / 10'))
                             ]
                             )
-        
+
         testValue1=120
         testValue2=240
         dev5.dp1=testValue1
         dev5.dp2=testValue2
-        
+
         records=test3.run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
         self.assertEquals( 2, len( records ) )
         recordMap=dict( zip( map( getDeviceIdFromRecord, records ), records ) )
@@ -204,7 +209,7 @@ class TestAliasPlugin(BaseTestCase):
         record5=recordMap[dev5.id]
         self.assertEquals( testValue1, record5.values['testCol2'] )
         self.assertEquals( testValue2, record5.values['testCol4'] )
-        self.assertEquals( ( testValue1 + testValue2 ) / 10, 
+        self.assertEquals( ( testValue1 + testValue2 ) / 10,
                              record5.values['testCol5'] )
         record6=recordMap[dev6.id]
         self.assertEquals( None, record6.values['testCol2'])
