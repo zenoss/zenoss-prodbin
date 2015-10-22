@@ -289,10 +289,9 @@ class ControlPlaneClient(object):
         self._opener.close()
 
     def _dorequest(self, uri, method=None, data=None, query=None):
-        request = self._makeRequest(
-            uri, method=method, data=data, query=query)
         # Try to perform the request up to five times
         for trycount in range(5):
+            request = self._makeRequest(uri, method=method, data=data, query=query)
             try:
                 return self._opener.open(request)
             except urllib2.HTTPError as ex:
