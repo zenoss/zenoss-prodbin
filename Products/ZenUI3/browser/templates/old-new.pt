@@ -122,7 +122,6 @@ Ext.onReady(function(){
 
 
     Zenoss.util.callWhenReady('center_panel', function(){
-        console.log('called when ready');
         Ext.getCmp('center_panel').add({
             layout: 'border',
             id: 'backcompat-layout-panel',
