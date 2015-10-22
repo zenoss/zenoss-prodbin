@@ -128,7 +128,7 @@ class UserSettingsManager(ZenModelRM):
                 },
                 {'id': 'support'
                 , 'name': 'Support'
-                , 'action': '../dmd/getSupport'
+                , 'action': '../dmd/support'
                 , 'permissions': ( "Manage DMD", )
                 },
            )
