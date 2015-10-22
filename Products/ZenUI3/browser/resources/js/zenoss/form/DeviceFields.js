@@ -23,7 +23,8 @@
                     directFn: config.directFn,
                     root: config.root || 'data',
                     model: config.model || 'Zenoss.model.NameValue',
-                    initialSortColumn: config.initialSortColumn || 'name'
+                    initialSortColumn: config.initialSortColumn || 'name',
+                    initialSortDirection: config.initialSortDirection || 'ASC'
                 }),
                 valueField: 'value',
                 displayField: 'name',
@@ -62,7 +63,9 @@
             config = Ext.apply(config || {}, {
                 directFn: Zenoss.remote.DeviceRouter.getPriorities,
                 cls: 'prioritycombo',
-                model: 'Zenoss.model.ValueIntModel'
+                model: 'Zenoss.model.ValueIntModel',
+                initialSortColumn: 'value',
+                initialSortDirection: 'DESC'
 
             });
             this.callParent([config]);
@@ -108,7 +111,9 @@
         constructor: function(config) {
             config = Ext.apply(config || {}, {
                 directFn: Zenoss.remote.DeviceRouter.getProductionStates,
-                model: 'Zenoss.model.ValueIntModel'
+                model: 'Zenoss.model.ValueIntModel',
+                initialSortColumn: 'value',
+                initialSortDirection: 'DESC'
             });
             this.callParent([config]);
         }
