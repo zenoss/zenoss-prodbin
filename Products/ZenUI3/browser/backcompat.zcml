@@ -477,13 +477,6 @@
     factory=".backcompat.DeviceGroup"
     />
 
-<browser:page
-        template="templates/getSupport.pt"
-        name="getSupport"
-        for="*"
-        permission="zenoss.View"
-        />
-
 <adapter
     for="Products.ZenModel.IpAddress.IpAddress"
     provides=".interfaces.INewPath"
