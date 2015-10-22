@@ -235,6 +235,13 @@
     />
 
 <browser:page
+    template="templates/support.pt"
+    name="support"
+    for="*"
+    permission="zenoss.Common"
+    />
+
+<browser:page
     template="templates/mibs.pt"
     name="mibs"
     for="*"

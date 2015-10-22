@@ -925,16 +925,3 @@ class DeviceFacade(TreeFacade):
                 })
         return sorted(devtypes, key=lambda x: x.get('description'))
 
-    def createSupportBundle(self):
-        destpath = supportBundlePath()
-        # make support bundle directory if it doesn't exist
-        if not os.path.isdir(destpath):
-            cmd = ['mkdir', '-p', destpath]
-            retcode = subprocess.call(cmd)
-            if retcode != 0:
-                raise Exception("Failed to create support path")
-        args = [binPath('zendiag.py')]
-        jobStatus = self._dmd.JobManager.addJob(SubprocessJob,
-                                                description="Create Support Bundle",
-                                                kwargs=dict(cmd=args))
-        return IInfo(jobStatus)

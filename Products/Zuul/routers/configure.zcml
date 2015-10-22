@@ -9,6 +9,13 @@
 
 
 <browser:directRouter
+    name="support_router"
+    for="*"
+    class=".support.SupportRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="messaging_router"
     for="*"
     class=".messaging.MessagingRouter"
@@ -35,13 +42,13 @@
     class=".eventclasses.EventClassesRouter"
     namespace="Zenoss.remote"
     />
-    
+
 <browser:directRouter
     name="manufacturers_router"
     for="*"
     class=".manufacturers.ManufacturersRouter"
     namespace="Zenoss.remote"
-    />    
+    />
 
 <browser:directRouter
     name="process_router"

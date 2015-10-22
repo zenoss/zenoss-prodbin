@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -30,7 +30,7 @@ class UserInterfaceSettings(ZenModelRM):
     _properties = (
         {'id': 'enableHtmlInEventFields', 'type': 'boolean', 'mode': 'w'},
         {'id': 'enableInfiniteGridForEvents', 'type': 'boolean', 'mode': 'w'},
-        {'id': 'enableLiveSearch', 'type': 'boolean', 'mode': 'w'},        
+        {'id': 'enableLiveSearch', 'type': 'boolean', 'mode': 'w'},
         {'id': 'incrementalTreeLoad', 'type': 'boolean', 'mode': 'w'},
         {'id': 'showEventSeverityIcons', 'type': 'boolean', 'mode': 'w'},
         {'id': 'enableTreeFilters', 'type': 'boolean', 'mode': 'w'},
@@ -57,7 +57,8 @@ class UserInterfaceSettings(ZenModelRM):
         'deviceMoveJobThreshold': {'xtype': 'numberfield', 'name': _t('Device Move Job Threshold'), 'defaultValue': 5, 'minValue': 0, 'allowBlank': False},
         'zenjobsRefreshInterval': {'xtype': 'numberfield', 'name': _t('Job Notification Refresh Interval (seconds)'), 'defaultValue' : 10, 'minValue' : 0, 'maxValue': 300, 'allowBlank': False},
         'showPageStatistics': {'xtype': 'checkbox', 'name': _t('Show Page Statistics (debug information)'), 'defaultValue' : False},
-        'zenjobsGridBufferSize': {'xtype': 'numberfield', 'name': _t('Job Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 300, 'allowBlank': False}, 
+        'zenjobsGridBufferSize': {'xtype': 'numberfield', 'name': _t('Job Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 300, 'allowBlank': False},
+        'supportBundlesGridBufferSize': {'xtype': 'numberfield', 'name': _t('Job Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 300, 'allowBlank': False},
     }
 
     def getInterfaceSettings(self):

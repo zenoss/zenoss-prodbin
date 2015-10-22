@@ -1,0 +1,20 @@
+<!--
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+-->
+
+<tal:block metal:use-macro="here/page_macros/old-new">
+    <tal:block metal:fill-slot="title">Support</tal:block>
+    <tal:block metal:fill-slot="contentPane">
+        <script
+            tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/support.js')"
+        >
+        </script>
+    </tal:block>
+</tal:block>
