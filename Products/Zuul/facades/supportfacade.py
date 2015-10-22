@@ -54,13 +54,6 @@ class SupportFacade(ZuulFacade):
                     if fileName in dirFileNames:
                         os.remove(os.path.join(dirPath, fileName))
         else:
-            """
-            messaging.IMessageSender(self).sendToBrowser(
-                'Support Bundle Directory Missing',
-                'Unable to find $ZENHOME/var/ext/support.',
-                messaging.WARNING
-            )
-            """
             raise Exception('Support bundle directory is missing')
 
     @info

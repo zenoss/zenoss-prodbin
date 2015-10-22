@@ -10,8 +10,6 @@
 
 Ext.onReady(function() {
 
-Ext.ns("Zenoss.support");
-
 function renderDate(utcseconds) {
     if (utcseconds) {
         var d = new Date(0);
@@ -50,7 +48,7 @@ Ext.define('Zenoss.LegacyInnerPanelItem', {
                 pageSize: Zenoss.settings.supportBundlesGridBufferSize,
                 initialSortColumn: 'modDate',
                 initialSortDirection: 'DESC',
-                //totalProperty: 'totalCount',
+                totalProperty: 'totalCount',
                 model: 'Zenoss.model.SupportBundle',
                 directFn: Zenoss.remote.SupportRouter.getBundlesInfo,
                 listeners: {
@@ -89,6 +87,7 @@ Ext.define('Zenoss.LegacyInnerPanelItem', {
                     text: _t('Add'),
                     tooltip: _t('Gather a support bundle in the background'),
                     handler: function() {
+                        var grid = this.up('#supportbundles');
                         var dialog = Ext.create('Zenoss.MessageDialog', {
                             message: 'The support bundle will continue to be gathered even if you close this window.  The newly gathered support bundle will not appear until the process has completed.  The job log may be monitored for progress.',
                             okHandler: function() {
@@ -99,7 +98,7 @@ Ext.define('Zenoss.LegacyInnerPanelItem', {
                                             title: _t('Create Support Bundle')
                                         });
                                         win.on('destroy', function() {
-                                            window.location.reload();
+                                            grid.refresh();
                                         });
                                         win.show();
                                     }
@@ -115,7 +114,7 @@ Ext.define('Zenoss.LegacyInnerPanelItem', {
                     tooltip: _t('Delete Support Bundles'),
                     disabled: true,
                     handler: function() {
-                        var grid = Ext.ComponentQuery.query('#supportbundles')[0];
+                        var grid = this.up('#supportbundles');
                         bundleNames = [];
                         Ext.each(grid.getSelectionModel().getSelection(), function(row) {
                             bundleNames.push(row.data.fileName);
@@ -133,21 +132,20 @@ Ext.define('Zenoss.LegacyInnerPanelItem', {
                     tooltip: _t('Download support bundle(s)'),
                     disabled: true,
                     handler: function() {
-                        var grid = Ext.ComponentQuery.query('#supportbundles')[0];
-                        Ext.each(grid.getSelectionModel().getSelection(), function(row) {
-                            console.log(row.data.fileName);
-                            var form = Ext.create('Ext.form.Panel', {
-                                renderTo: Ext.getBody(),
-                                standardSubmit: true,
-                                url: '/zport/dmd/getSupportBundle?bundle=' + row.data.fileName
-                            });
-                            form.submit({
-                                target: '_blank',
-                            });
-                            Ext.defer(function(){
-                                form.close();
-                            }, 100);
+                        var grid = this.up('#supportbundles');
+                        var filename = grid.getSelectionModel().getSelection()[0].data.fileName;
+
+                        var form = Ext.create('Ext.form.Panel', {
+                            renderTo: Ext.getBody(),
+                            standardSubmit: true,
+                            url: '/zport/dmd/getSupportBundle?bundle=' + filename
                         });
+                        form.submit({
+                            target: '_blank',
+                        });
+                        Ext.defer(function(){
+                            form.close();
+                        }, 100);
                     }
                 },'->',{
                     itemId: 'refreshbundles-button',
@@ -158,24 +156,22 @@ Ext.define('Zenoss.LegacyInnerPanelItem', {
                     text: _t('Refresh'),
                     tooltip: _t('Refresh Support Bundles List'),
                     handler: function() {
-                        var grid = Ext.ComponentQuery.query('#supportbundles')[0];
-                        grid.refresh();
+                        this.up('#supportbundles').refresh();
                     }
                 }]
             },
             listeners: {
                 selectionchange: function() {
-                    var grid = Ext.ComponentQuery.query('#supportbundles')[0];
                     // download button
-                    var downloadButton = Ext.ComponentQuery.query('#downloadbundles-button')[0].disable();
-                    if (grid.getSelectionModel().getSelection().length === 1) {
+                    var downloadButton = this.down('#downloadbundles-button');
+                    if (this.getSelectionModel().getSelection().length === 1) {
                         downloadButton.enable();
                     } else {
                         downloadButton.disable();
                     }
                     // delete button
-                    var deleteButton = Ext.ComponentQuery.query('#deletebundles-button')[0].disable();
-                    if (grid.getSelectionModel().getSelection().length > 0) {
+                    var deleteButton = this.down('#deletebundles-button');
+                    if (this.getSelectionModel().getSelection().length > 0) {
                         deleteButton.enable();
                     } else {
                         deleteButton.disable();
