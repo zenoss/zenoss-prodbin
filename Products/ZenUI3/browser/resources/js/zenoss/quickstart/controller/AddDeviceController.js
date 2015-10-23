@@ -247,14 +247,12 @@
                     deviceClass: deviceClass.replace('/zport/dmd/Devices', ''),
                     zProperties: zProperties,
                     collector: collector,
-                    model: true
+                    model: true,
+                    displayDeviceClass: displayDeviceClass,
+                    pendingDelete: true // so we don't update while we are still adding the job
                 };
                 var record = Ext.create('Zenoss.quickstart.Wizard.model.AddDeviceJobRecord', params);
                 grid.getStore().add(record);
-                record.set('deviceName', host);
-                record.set('displayDeviceClass', displayDeviceClass);
-                // so we don't update while we are still adding the job
-                record.set('pendingDelete', true);
                 this._AddJob(record);
             }, this);
         },
@@ -336,8 +334,8 @@
                         record.set('status', 'PENDING');
                         record.set('pendingDelete', false);
                         // update the uid incase they rename the host
-                        record.set("deviceUid", "/zport/dmd/Devices" +record.get('deviceClass') + "/devices/" + record.get('deviceName'));
-
+                        var deviceName = Zenoss.util.ipv6wrap(record.get('deviceName'));
+                        record.set("deviceUid", "/zport/dmd/Devices" + record.get('deviceClass') + "/devices/" + deviceName);
                     } else {
                         me.getGrid().getStore().remove(record);
                     }
