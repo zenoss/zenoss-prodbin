@@ -348,7 +348,6 @@
             // get the zipped + encoded config from the server
             router.gzip_b64({string: Ext.JSON.encode(config)}, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
-                    console.log(resp.data.data);
                     link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, resp.data.data);
                     if (link.length > 2000) {
                         Zenoss.message.error('Unable to generate link, length is too great');
@@ -518,7 +517,6 @@
         },
         newTab: function(graph) {
             var config = {},
-                encodedConfig,
                 link,
                 drange="null",
                 exclusions = ["dockedItems"];
@@ -533,10 +531,24 @@
             if (graphPanel && Ext.isNumber(graphPanel.drange)) {
                 drange = graphPanel.drange;
             }
-            encodedConfig = Zenoss.util.base64.encode(Ext.JSON.encode(config));
-            link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, encodedConfig);
 
-            window.open(link);
+            // create a new window that will later be
+            // redirected to the graph url
+            // NOTE: this circumvents popup blocking
+            var redirect = window.open("", "_blank");
+
+            // get the zipped + encoded config from the server
+            router.gzip_b64({string: Ext.JSON.encode(config)}, function(resp) {
+                if (resp.success && resp.data && resp.data.data !== undefined) {
+                    link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, resp.data.data);
+                    if (link.length > 2000) {
+                        Zenoss.message.error('Unable to generate link, length is too great');
+                    } else {
+                        redirect.location = link;
+                    }
+                }
+            });
+
         },
         onPanLeft: function(graph) {
             var gp = this.graph_params;
