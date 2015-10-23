@@ -1201,6 +1201,17 @@ Zenoss.date.renderDateColumn = function(format) {
     };
 };
 
+Ext.onReady(function(){
+    // For compatibility use the same data format for Zenoss.date.timeZones
+    // as before.
+    zones = {}
+
+    Ext.each(moment.tz.names(), function(zone) {
+        zones[zone] = zone;
+    });
+    Zenoss.date.timeZones = {zones: zones};
+});
+
 
 // Force checkbox to fire valid
 var oldcbsetvalue = Ext.form.Checkbox.prototype.setValue;
