@@ -142,7 +142,6 @@
                         });
 
                         var uid = record.get('deviceUid');
-
                         if (record.get('status') !== "PENDING") {
                             Zenoss.remote.DeviceRouter.removeDevices({
                                 uids: [uid],
