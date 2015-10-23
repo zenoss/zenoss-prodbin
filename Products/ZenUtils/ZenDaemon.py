@@ -161,6 +161,12 @@ class ZenDaemon(CmdBase):
         formatter = logging.Formatter(
                 '%(asctime)s %(levelname)s %(name)s: %(message)s')
 
+        if self.options.logfileonly:
+            #clear out existing handlers
+            hdlrs = rootLog.handlers
+            for hdlr in hdlrs:
+                rootLog.removeHandler(hdlr)
+
         if self.options.watchdogPath or self.options.daemon \
                 or self.options.duallog or self.options.logfileonly:
             logdir = self.checkLogpath() or zenPath("log")
