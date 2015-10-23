@@ -508,7 +508,7 @@ Ext.apply(Zenoss.devices, {
                                 vtype: 'hostnameorIP',
                                 name: 'deviceName',
                                 width:300,
-                                fieldLabel: _t('Name or IP'),
+                                fieldLabel: _t('Hostname or IP address'),
                                 id: "add-device-name",
                                 allowBlank: false
                             }, deviceClassCombo, {
