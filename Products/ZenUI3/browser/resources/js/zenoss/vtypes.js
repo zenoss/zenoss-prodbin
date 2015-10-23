@@ -82,6 +82,9 @@
         ipaddress: function(val) {
             return ipv4_regex.test(val) || ipv6_regex.test(val);
         },
+        ipv6address: function(val) {
+            return ipv6_regex.test(val);
+        },
         ipaddressText: _t('Invalid IP address'),
 
         ipaddresswithnetmask: function(val) {

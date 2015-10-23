@@ -1141,6 +1141,20 @@ Zenoss.util.validateConfig = function() {
 };
 
 /**
+* Used in AddDeviceController.js by _AddJob(record) method.
+ * Convert IPv6 addresses to a Zope-friendly format.
+ * Original source: Products.ZenUtils.IpUtil.py -> ipwrap(ip).
+ */
+Zenoss.util.ipv6wrap = function(string) {
+    if (Ext.form.VTypes.ipv6address(string)) {
+        var wrapped = string.replace(/:/g, '..');
+        return wrapped.replace(/%/g, '...');
+    }
+    return string;
+};
+
+
+/**
  * Zenoss date patterns and manipulations
  */
 Ext.namespace('Zenoss.date');
