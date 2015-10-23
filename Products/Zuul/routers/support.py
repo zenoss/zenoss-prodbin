@@ -41,7 +41,7 @@ class SupportRouter(DirectRouter):
     def deleteBundles(self, bundleNames):
         try:
             self.api.deleteSupportBundles(bundleNames)
-            return DirectResponse.succeed('Successfully deleted all bundle(s)')
+            return DirectResponse.succeed('Successfully deleted the support bundle(s)')
         except Exception as e:
             return DirectResponse.fail(e.message)
 
