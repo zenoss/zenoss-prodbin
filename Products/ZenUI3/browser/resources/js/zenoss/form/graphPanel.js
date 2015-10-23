@@ -1059,7 +1059,7 @@
                 graph = data[i];
                 graphId = Ext.id();
 
-                graphTitle = graph.title;
+                graphTitle = graph.contextTitle || graph.title;
 
                 delete graph.title;
                 graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
