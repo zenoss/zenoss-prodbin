@@ -21,7 +21,7 @@ import Migrate
 from Products.Zuul import getFacade
 
 class AddPrefixToTriggerRule(Migrate.Step):
-    version = Migrate.Version(5, 0, 4)
+    version = Migrate.Version(5, 0, 8)
 
     ZP_DETAILS_TRIGGER_PREFIX = "zp_det";
 
