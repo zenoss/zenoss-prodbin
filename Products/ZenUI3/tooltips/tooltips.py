@@ -1,23 +1,27 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import re
 import urllib
 import os.path
+import logging
 from xml.dom import minidom
 from zope.i18n.negotiator import negotiator
+from zope import component
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUI3.navigation import getSelectedNames
+from Products.ZenUI3.tooltips.interfaces import ITooltipProvider
 
+log = logging.getLogger('zen.tooltips')
 
 _datapath = os.path.join(os.path.dirname(__file__), 'data')
 _valpat = re.compile(r'<[^<>]+>(.*)</[^<>]+>', re.M|re.S)
@@ -30,6 +34,17 @@ _tipattrs = {
     'html':str, 'target':str, 'closable':bool, 'anchor':str, 'autoHide':bool
 }
 
+def catalog_required(fn):
+    """ A decorator to be used around _TooltipCatalog functions that require
+    its _catalog to be built.  A glorified way of lazy-loading the catalog to
+    make sure zcml is fully loaded beforehand.
+    """
+    def inner(*args, **kwargs):
+        if not args[0]._reloaded:
+            args[0].reload()
+        return fn(*args, **kwargs)
+    return inner
+
 class _TooltipCatalog(object):
     """
     Store the data pulled in from XML. This is a singleton and should not be
@@ -39,7 +54,7 @@ class _TooltipCatalog(object):
 
     def __init__(self):
         self._catalog = {}
-        self.reload()
+        self._reloaded = False
 
     def add(self, lang, view, tip):
         self._catalog.setdefault(view, {}).setdefault(lang, []).append(tip)
@@ -100,19 +115,30 @@ class _TooltipCatalog(object):
 
         os.path.walk(_datapath, _load_files, None)
 
+        # Now load up other tooltips.  The last one to override wins.
+        # Processed by name in alphabetical order
+        for name, klass in \
+                sorted(component.getUtilitiesFor(ITooltipProvider), key=lambda tup: tup[0]):
+            log.debug('Loading tooltip provider %s (%s)', name, klass)
+            os.path.walk(klass().path(), _load_files, None)
+        self._reloaded = True
+
+    @catalog_required
     def tips(self, view, lang="en"):
         """
         Look up the tooltips for a given screen and language.
         """
         return self._catalog.get(view, {}).get(lang, [])[:]
 
+
+    @catalog_required
     def pagehelp(self, navitem, lang="en"):
         """
         Look up the page-level help for a given screen and language.
         """
         return self._catalog.get('nav-help', {}).get(lang, {}).get(navitem,
                                                                    None)
-
+    @catalog_required
     def langs(self, view):
         """
         Returns a list of languages available for a given screen.
@@ -120,7 +146,6 @@ class _TooltipCatalog(object):
         return self._catalog.get(view, {}).keys()
 
 TooltipCatalog = _TooltipCatalog()
-
 
 class Tooltips(BrowserView):
     def __call__(self):
