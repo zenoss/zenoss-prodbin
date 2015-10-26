@@ -414,10 +414,17 @@
         exportData: function() {
             var chart = zenoss.visualization.chart.getChart(this.graphId),
                 plots = Ext.JSON.encode(chart.plots),
-                form,
-                start = chart.request.start / 1000,
-                end = chart.request.end / 1000,
+                form, start, end,
+                startDate = chart.getStartDate(),
+                endDate = chart.getEndDate(),
                 uid = this.uid;
+
+            if(!startDate || !endDate){
+                Zenoss.message.error('Cannot export data: graph missing start or end date');
+            }
+
+            start = startDate.unix();
+            end = endDate.unix();
 
             form = Ext.DomHelper.append(document.body, {
                 tag: 'form',
