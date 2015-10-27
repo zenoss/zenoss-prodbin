@@ -645,11 +645,11 @@ class BatchDeviceDumper(ZCmdBase):
 
         elif path.startswith('/zport/dmd/Monitors/Performance/'):
             # Collector
-            installtype = 'local' if obj._isLocalHost else 'remote'
+            installtype = 'local' if getattr(obj, '_isLocalHost', None) else 'remote'
             installcreds = "rootpasswd"
             password = 'not_stored'
             hubPath = obj.hub().getPrimaryUrlPath()
-            props = dict(host=obj.hostname, installtype=installtype,
+            props = dict(host=getattr(obj, 'hostname', 'localhost'), installtype=installtype,
                          hubPath=hubPath, rootPassword=password, id=obj.id,
                         )
             props = ["%s='%s'" % (key, value) for key, value in props.items()]
