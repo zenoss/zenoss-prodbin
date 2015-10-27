@@ -11,7 +11,7 @@
 import unittest
 from random import shuffle
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.Zuul.utils import getZProperties
+from Products.Zuul.utils import getZProperties, mutateRPN
 
 class Item(object):
     def __init__(self, num):
@@ -52,6 +52,19 @@ class UtilsTest(BaseTestCase):
                          "invariant should NOT be in the properties because we did not change it")
         self.assertNotEqual(devices.getProperty(testProperty), organizer.getProperty(testProperty),
                             "Organizers property should have changed")
+
+    def test_RPNMutate(self):
+        prefix = "test"
+        knownDatapointNames = ["test dp1", "test dp2", "test dp3"]
+        RPNs = {
+            "dp1,/,100,*": "test dp1,/,100,*",
+            "dp4,/,100,*": "dp4,/,100,*",
+            "dp2,+,dp1,/,dp4,-,100,*": "test dp2,+,test dp1,/,dp4,-,100,*"
+        }
+
+        for rpn, expectedResult in RPNs.iteritems():
+            result = mutateRPN(prefix, knownDatapointNames, rpn)
+            self.assertEquals(result, expectedResult)
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(UtilsTest),))

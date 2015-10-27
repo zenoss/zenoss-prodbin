@@ -247,6 +247,30 @@ def allowedRolesAndGroups(context):
 
     return roles
 
+def mutateRPN(prefix, knownDatapointNames, rpn):
+    """Return a RPN string
+
+    Given a prefix, a list of known datapoints, and an RPN, replace the tokens that are references to other
+    datapoints with a prefixed datapoint string.
+
+    >>> _mutateRPN("test", ["test dp1", "test dp2", "test dp3"], "dp1,/,100,*")
+    test dp1,/,100,*
+
+    >>> _mutateRPN("test", ["test dp1", "test dp2", "test dp3"], "dp4,/,100,*")
+    dp4,/,100,*
+
+    >>> _mutateRPN("test", ["test dp1", "test dp2", "test dp3"], "dp2,+,dp1,/,dp4,-,100,*")
+    test dp2,+,test dp1,/,dp4,-,100,*
+    """
+    newRPN = []
+    tokens = rpn.split(',')
+    for token in tokens:
+        testToken = "%s %s" % (prefix, token)
+        if testToken in knownDatapointNames:
+            newRPN.append(testToken)
+        else:
+            newRPN.append(token)
+    return ",".join(newRPN)
 
 class UncataloguedObjectException(Exception):
     """
