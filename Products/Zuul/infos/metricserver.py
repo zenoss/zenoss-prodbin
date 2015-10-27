@@ -11,6 +11,7 @@ from zope.interface import implements
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces, IInfo
+from Products.Zuul.utils import mutateRPN
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.ZenModel.ZenModelRM import ZenModelRM
@@ -131,6 +132,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
 
     def __init__(self, graph, context):
         self._multiContext = False
+        self._contextRPN = False
         super(ColorMetricServiceGraphPoint, self).__init__(graph, context)
 
     def setMultiContext(self):
@@ -141,6 +143,13 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         colors.
         """
         self._multiContext = True
+
+    def setMultiContextRPN(self, rpn):
+        """
+        This graph has the same metric for multiple contexts, so each RPN needs to use
+        a modified version of datapoint names
+        """
+        self._contextRPN = rpn
 
     @property
     def legend(self):
@@ -252,6 +261,9 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def expression(self):
         rpn = self._object.rpn
+        if self._contextRPN:
+            rpn = self._contextRPN
+
         if rpn:
             return "rpn:" + self._object.talesEval(rpn, self._context)
 
@@ -304,9 +316,27 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
         """
         graphDefs = self._object.getGraphPoints(True)
         infos = []
+        knownDatapointNames = []
+
         for context in self._context:
             infos.extend([getMultiAdapter((g, context), templateInterfaces.IMetricServiceGraphPoint)
                           for g in graphDefs if isinstance(g, klass) ])
-            for info in infos:
-                info.setMultiContext()
+
+        for info in infos:
+            info.setMultiContext()
+            if(hasattr(info, "name")):
+                knownDatapointNames.append(info.name)
+                if(getattr(info._object, "rpn", False)):
+                    knownDatapointNames.append(info.name + "-raw")
+
+        self._updateRPNForMultiContext(infos, knownDatapointNames)
+
         return infos
+
+    def _updateRPNForMultiContext(self, infos, knownDatapointNames):
+        for info in infos:
+            if getattr(info._object, "rpn", False):
+                newRPN = mutateRPN(info._context.id, knownDatapointNames, info._object.rpn)
+                info.setMultiContextRPN(newRPN)
+
+
