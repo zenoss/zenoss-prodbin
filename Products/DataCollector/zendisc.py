@@ -235,7 +235,8 @@ class ZenDisc(ZenModeler):
         defer.returnValue(devices)
 
     @defer.inlineCallbacks
-    def findRemoteDeviceInfo(self, ip, devicePath, deviceSnmpCommunities=None):
+    def findRemoteDeviceInfo(self, ip, devicePath, jobSnmpCommunities=None,
+                             deviceConfig=None):
         """
         Scan a device for ways of naming it: PTR DNS record or a SNMP name
 
@@ -251,43 +252,47 @@ class ZenDisc(ZenModeler):
         @rtype: deferred: Twisted deferred
         """
         self.log.debug("Doing SNMP lookup on device %s", ip)
-        snmp_conf = \
-            yield self.config().callRemote('getSnmpConfig', devicePath)
+        if not deviceConfig:
+            snmpConf = yield self.config().callRemote(
+                'getDeviceClassSnmpConfig', devicePath)
+        else:
+            snmpConf = {k:v for k, v in vars(deviceConfig).iteritems()
+                        if k.startswith('zSnmp')}
 
         configs = []
-        ports = snmp_conf.get('zSnmpDiscoveryPorts') \
-            or [snmp_conf['zSnmpPort']]
-        timeout, retries = snmp_conf['zSnmpTimeout'], snmp_conf['zSnmpTries']
-        if snmp_conf['zSnmpVer'] == SnmpV3Config.version:
+        ports = snmpConf.get('zSnmpDiscoveryPorts') \
+                or [snmpConf['zSnmpPort']]
+        timeout, retries = snmpConf['zSnmpTimeout'], snmpConf['zSnmpTries']
+        if snmpConf['zSnmpVer'] == SnmpV3Config.version:
             for port in ports:
-                if snmp_conf['zSnmpPrivType'] and snmp_conf['zSnmpAuthType']:
+                if snmpConf['zSnmpPrivType'] and snmpConf['zSnmpAuthType']:
                     configs.append(SnmpV3Config(
                         ip, port=port,
                         timeout=timeout, retries=retries, weight=3,
-                        securityName=snmp_conf['zSnmpSecurityName'],
-                        authType=snmp_conf['zSnmpAuthType'],
-                        authPassphrase=snmp_conf['zSnmpAuthPassword'],
-                        privType=snmp_conf['zSnmpPrivType'],
-                        privPassphrase=snmp_conf['zSnmpPrivPassword']))
-                elif snmp_conf['zSnmpAuthType']:
+                        securityName=snmpConf['zSnmpSecurityName'],
+                        authType=snmpConf['zSnmpAuthType'],
+                        authPassphrase=snmpConf['zSnmpAuthPassword'],
+                        privType=snmpConf['zSnmpPrivType'],
+                        privPassphrase=snmpConf['zSnmpPrivPassword']))
+                elif snmpConf['zSnmpAuthType']:
                     configs.append(SnmpV3Config(
                         ip, port=port,
                         timeout=timeout, retries=retries, weight=2,
-                        securityName=snmp_conf['zSnmpSecurityName'],
-                        authType=snmp_conf['zSnmpAuthType'],
-                        authPassphrase=snmp_conf['zSnmpAuthPassword']))
+                        securityName=snmpConf['zSnmpSecurityName'],
+                        authType=snmpConf['zSnmpAuthType'],
+                        authPassphrase=snmpConf['zSnmpAuthPassword']))
                 else:
                     configs.append(SnmpV3Config(
                         ip, port=port,
                         timeout=timeout, retries=retries, weight=1,
-                        securityName=snmp_conf['zSnmpSecurityName']))
+                        securityName=snmpConf['zSnmpSecurityName']))
         else:
             self.log.debug("Override acquired community strings")
             # Override the device class communities with the ones set on
             # this device, if they exist
-            communities = snmp_conf['zSnmpCommunities']
-            if deviceSnmpCommunities is not None:
-                communities = deviceSnmpCommunities
+            communities = snmpConf['zSnmpCommunities']
+            if jobSnmpCommunities:
+                communities = jobSnmpCommunities
 
             # Reverse the communities so that ones earlier in the list have a
             # higher weight.
@@ -309,7 +314,8 @@ class ZenDisc(ZenModeler):
         defer.returnValue(config)
 
     @defer.inlineCallbacks
-    def discoverDevice(self, ip, devicepath=None, prodState=None):
+    def discoverDevice(self, ip, devicepath=None, prodState=None,
+                       deviceConfig=None):
         """
         Discover the device at the given IP address.
 
@@ -364,20 +370,21 @@ class ZenDisc(ZenModeler):
             # name defined there for deviceName
             if not self.options.nosnmp:
                 self.log.debug("Scanning device with address %s", ip)
-                snmpCommunities = \
-                    kw.get('zProperties', {}).get('zSnmpCommunities', None)
-                snmp_config = yield self.findRemoteDeviceInfo(
-                    ip, devicepath, snmpCommunities
+                zProperties = kw.get('zProperties', {})
+                jobSnmpCommunities = zProperties.get('zSnmpCommunities', [])
+
+                snmpConfig = yield self.findRemoteDeviceInfo(
+                    ip, devicepath, jobSnmpCommunities, deviceConfig
                 )
-                if snmp_config:
-                    if snmp_config.sysName:
-                        kw['deviceName'] = snmp_config.sysName
-                    if snmp_config.version:
-                        kw['zSnmpVer'] = snmp_config.version
-                    if snmp_config.port:
-                        kw['zSnmpPort'] = snmp_config.port
-                    if snmp_config.community:
-                        kw['zSnmpCommunity'] = snmp_config.community
+                if snmpConfig:
+                    if snmpConfig.sysName:
+                        kw['deviceName'] = snmpConfig.sysName
+                    if snmpConfig.version:
+                        kw['zSnmpVer'] = snmpConfig.version
+                    if snmpConfig.port:
+                        kw['zSnmpPort'] = snmpConfig.port
+                    if snmpConfig.community:
+                        kw['zSnmpCommunity'] = snmpConfig.community
 
                 # Since we did not find any snmp info and we are in
                 # strict discovery mode, do not create a device
@@ -550,8 +557,10 @@ class ZenDisc(ZenModeler):
         config = configs[0] if configs else None
         if not config or config.temp_device or self.options.remodel:
             device = yield self.discoverDevice(
-                ip, devicepath=self.options.deviceclass,
-                prodState=self.options.productionState
+                ip,
+                devicepath=self.options.deviceclass,
+                prodState=self.options.productionState,
+                deviceConfig=config
             )
             if device:
                 self.log.info("Discovered device %s.", device.id)
