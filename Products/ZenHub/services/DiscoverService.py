@@ -242,24 +242,21 @@ class DiscoverService(ModelerService):
             if ipobj: ips.append(ipobj.id)
         return ips
 
-
     @translateError
     def remote_getSubNetworks(self):
         "Fetch proxies for all the networks"
         return map(IpNetProxy,
                 self.dmd.Networks.getNetworkRoot().getSubNetworks())
 
-
     @translateError
-    def remote_getSnmpConfig(self, devicePath, snmpCategory='SNMP'):
+    def remote_getDeviceClassSnmpConfig(self, devicePath, category='SNMP'):
         "Get the snmp configuration defaults for scanning a device"
-        devroot = self.dmd.Devices.createOrganizer(devicePath)
+        devRoot = self.dmd.Devices.createOrganizer(devicePath)
         snmpConfig = {}
-        for name, value in devroot.zenPropertyItems():
-            if getzPropertyCategory(name) == snmpCategory:
+        for name, value in devRoot.zenPropertyItems():
+            if getzPropertyCategory(name) == category:
                 snmpConfig[name] = value
         return snmpConfig
-
 
     @translateError
     def remote_moveDevice(self, dev, path):
