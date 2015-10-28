@@ -167,6 +167,7 @@ Ext.define('Zenoss.ReportTreePanel', {
             parentNode = node.parentNode,
             uid = node.data.uid,
             params = {uid: uid};
+            node.data = {};
 
         function callback(data) {
             if (data.success) {
