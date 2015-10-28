@@ -840,6 +840,11 @@ Ext.override(Ext.util.Sorter, {
             var me = this,
                 isSelected = me.isSelected(record);
 
+            //if it is a shift select and one row has been selected start the selection with that row.
+            if (e.shiftKey && me.hasSelection() && me.getSelection().length == 1 && !me.selectionStart) {
+                me.selectionStart = me.getSelection()[0];
+            }
+
             switch (me.selectionMode) {
                 case 'MULTI':
                     if (e.shiftKey && me.selectionStart) {
