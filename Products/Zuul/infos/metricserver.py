@@ -308,7 +308,7 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
     @property
     def contextTitle(self):
-        pass
+        return self._object.id
 
     def _getGraphPoints(self, klass):
         """
