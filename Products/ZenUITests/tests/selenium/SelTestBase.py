@@ -16,7 +16,7 @@
 
 import time, os, sys
 import unittest
-from util.selTestUtils import *
+from util.selTestUtils import TimeoutError, do_command_byname, getByValue
 from util.Input import InputPage
 
 from util.selenium import selenium
@@ -36,7 +36,7 @@ DEFAULT_DEVICE_CLASS = "/Server/Linux"  # Where to add classes by default
 # Check for local defs
 here = lambda x:os.path.join(os.path.dirname(__file__), x)
 if os.path.exists(here('_seleniumtestdata.py')):
-    from _seleniumtestdata import *
+    from _seleniumtestdata import *  # noqa
 
 usage = "testAll.py HOST SERVER"
 for i, var in enumerate(usage.split()[1:]):

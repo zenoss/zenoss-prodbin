@@ -1,17 +1,26 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import time
 
-from Products.ZenEvents.ZenEventClasses import *
-from Products.ZenEvents.Exceptions import *
+from Products.ZenEvents.ZenEventClasses import (
+    App_Start, App_Stop, Capacity, Change, Change_Add, Change_Add_Blocked,
+    Change_Remove, Change_Remove_Blocked, Change_Set, Change_Set_Blocked,
+    Clear, Cmd_Fail, Cmd_Ok, Critical, Debug, Error, Heartbeat, Info, Perf_Snmp,
+    Perf_XmlRpc, Severities, Status_Heartbeat, Status_IpService, Status_Nagios,
+    Status_OSProcess, Status_Perf, Status_Ping, Status_RRD, Status_Snmp,
+    Status_Update, Status_Web, Status_WinService, Status_Wmi, Status_Wmi_Conn,
+    Status_XmlRpc, Unknown, Warning)
+from Products.ZenEvents.Exceptions import (
+    MySQLConnectionError, ZenBackendFailure, ZenEventError, ZenEventNotFound,
+    ZentinelException, pythonThresholdException, rpnThresholdException)
 
 from twisted.spread import pb
 
@@ -23,7 +32,7 @@ def buildEventFromDict(evdict):
         for field in ("device", "component", "timeout"):
             if field not in evdict:
                 raise ZenEventError("Required event field %s not found: %s" % (field, evdict))
-        evt = EventHeartbeat(evdict['device'], evdict['component'], 
+        evt = EventHeartbeat(evdict['device'], evdict['component'],
                              evdict['timeout'])
     else:
         evt = Event(**evdict)
@@ -61,7 +70,7 @@ class Event(pb.Copyable, pb.RemoteCopy):
     Systems,
     DeviceGroups,
     """
-    
+
     def __init__(self, rcvtime=None, **kwargs):
         # not sure we need sub second time stamps
         # if we do uncomment and change event backend to use
@@ -77,7 +86,7 @@ class Event(pb.Copyable, pb.RemoteCopy):
         self.component = ''
         if kwargs: self.updateFromDict(kwargs)
 
-    
+
     def getEventFields(self):
         """return an array of event fields tuples (field,value)"""
         return [(x, getattr(self, x)) for x in self._fields]
@@ -91,8 +100,8 @@ class Event(pb.Copyable, pb.RemoteCopy):
 
     def updateFromFields(self, fields, data):
         """
-        Update event from list of fields and list of data values.  
-        They must have the same length.  To be used when pulling data 
+        Update event from list of fields and list of data values.
+        They must have the same length.  To be used when pulling data
         from the backend db.
         """
         self._fields = fields
@@ -123,7 +132,7 @@ class Event(pb.Copyable, pb.RemoteCopy):
         clearcls = self._clearClasses
         evclass = getattr(self, "eventClass", None)
         sev = getattr(self, 'severity', None)
-        if evclass and sev == 0: 
+        if evclass and sev == 0:
             clearcls.append(self.eventClass)
 
         # collapse out duplicates

@@ -1,22 +1,26 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 from datetime import datetime
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.ZenModel.tests.RRDTestUtils import *
-from Products.ZenReports.AliasPlugin import *
+from Products.ZenReports.AliasPlugin import (
+    AliasPlugin, PythonColumnHandler, RRDColumnHandler, Column)
 from Products.ZenReports.plugins.interface import interface
-from Products.ZenModel.tests.RRDTestUtils import *
-from Products.ZenReports.tests.ReportTestUtils import * 
+from Products.ZenModel.tests.RRDTestUtils import (
+    DEFAULT_DSDP_MAP, TEST_TEMPLATE, addAlias, addAliases,
+    assertAliasDatapointInMap, createTemplate, removeTemplate)
+from Products.ZenReports.tests.ReportTestUtils import (
+    attributeAsRRDValue, replaceGetRRDValue, createTestDevice,
+    getDeviceIdFromRecord, getComponentIdFromRecord, assertRecordIsCorrect)
 
-def createInterface( device, id, speed, inputOctets, outputOctets, 
+def createInterface( device, id, speed, inputOctets, outputOctets,
                       properties={} ):
     device.os.addIpInterface( id, False )
     interface = device.os.interfaces._getOb( id )
@@ -26,8 +30,8 @@ def createInterface( device, id, speed, inputOctets, outputOctets,
     for key, value in properties.iteritems():
         setattr( interface, key, value )
     return interface
-    
-def assertInterfaceRowIsCorrect(test, records, device, interface, 
+
+def assertInterfaceRowIsCorrect(test, records, device, interface,
                                  testSpeed, testInputOctets,
                                  testOutputOctets ):
     record = dict( zip( map( getComponentIdFromRecord, records ), records ) )[interface.id]
@@ -40,15 +44,15 @@ def assertInterfaceRowIsCorrect(test, records, device, interface,
                                         percentUsed=testPercentUsed
                                         ) )
 
-INTERFACE_TEMPLATE_ID = 'ethernetCsmacd' 
+INTERFACE_TEMPLATE_ID = 'ethernetCsmacd'
 
 def createInterfaceTemplate( dmd ):
         template=createTemplate(dmd, INTERFACE_TEMPLATE_ID,
                                 {'ds1':['ifOutputOctets_ifOutputOctets',],
                                  'ds2':['ifInputOctets_ifInputOctets',]} )
-        addAlias( template, 'ds1', 'ifOutputOctets_ifOutputOctets', 
+        addAlias( template, 'ds1', 'ifOutputOctets_ifOutputOctets',
                   'outputOctets__bytes' )
-        addAlias( template, 'ds2', 'ifInputOctets_ifInputOctets', 
+        addAlias( template, 'ds2', 'ifInputOctets_ifInputOctets',
                   'inputOctets__bytes' )
         return template
 
@@ -58,7 +62,7 @@ def createTestDeviceWithInterfaceTemplateBound( dmd, deviceId ):
     return device
 
 class TestInterfacePlugin(BaseTestCase):
-        
+
     @replaceGetRRDValue( attributeAsRRDValue )
     def testNoValues(self):
         template=createTemplate(self.dmd, 'TestTemplate1')
@@ -67,26 +71,26 @@ class TestInterfacePlugin(BaseTestCase):
 
         records=interface().run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
         self.assertEquals( 0, len( records ) )
-        
+
     @replaceGetRRDValue( attributeAsRRDValue )
     def testOneValue(self):
         testSpeed=100
         testInputOctets=5
         testOutputOctets=20
-        createInterfaceTemplate( self.dmd )      
-        device=createTestDeviceWithInterfaceTemplateBound( self.dmd, 
+        createInterfaceTemplate( self.dmd )
+        device=createTestDeviceWithInterfaceTemplateBound( self.dmd,
                                                           'TestDevice2' )
         interface1=createInterface( device, 'TestFilesystem2', testSpeed,
                                       testInputOctets, testOutputOctets )
-    
+
         plugin = interface()
         records = plugin.run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
-        
+
         self.assertEquals( 1, len( records ) )
-        assertInterfaceRowIsCorrect( self, records, device, interface1, 
+        assertInterfaceRowIsCorrect( self, records, device, interface1,
                                       testSpeed, testInputOctets,
                                       testOutputOctets )
-        
+
 
     @replaceGetRRDValue( attributeAsRRDValue )
     def testMultipleValues(self):
@@ -99,7 +103,7 @@ class TestInterfacePlugin(BaseTestCase):
                                              ( 'testfs5_2', 30, 20, 15 ),
                                              ( 'testfs5_3', 160, 20, 15 ) ] ),
                           ( 'testdevice6', [] )
-                        ]         
+                        ]
         createInterfaceTemplate( self.dmd )
         interfaceCount = 0
         testObjects = {}
@@ -112,19 +116,19 @@ class TestInterfacePlugin(BaseTestCase):
                                                interfaceProperties[0],
                                                interfaceProperties[1],
                                                interfaceProperties[2],
-                                               interfaceProperties[3]                                               
+                                               interfaceProperties[3]
                                                )
                 testInterfaces.append( interfaceN )
                 interfaceCount += 1
             testObjects[device]=testInterfaces
-        
+
         plugin = interface()
         records = plugin.run( self.dmd, {'deviceClass':'/Devices/Server', 'generate':True} )
-        
+
         self.assertEquals( interfaceCount, len( records ) )
         for device, interfaceObjects in testObjects.iteritems():
             for interfaceObject in interfaceObjects:
-                assertInterfaceRowIsCorrect( self, records, device, 
+                assertInterfaceRowIsCorrect( self, records, device,
                     interfaceObject,
                     interfaceObject.speed,
                     interfaceObject.ifInputOctets_ifInputOctets,

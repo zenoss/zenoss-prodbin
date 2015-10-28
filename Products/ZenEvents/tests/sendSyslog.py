@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from socket import *
+from socket import socket, AF_INET, SOCK_DGRAM
 
 s = socket(AF_INET, SOCK_DGRAM)
 import time

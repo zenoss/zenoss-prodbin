@@ -16,7 +16,8 @@ MultiGraphReportClass contain MultiGraphReports.
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from ReportClass import ReportClass
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from Globals import InitializeClass
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit

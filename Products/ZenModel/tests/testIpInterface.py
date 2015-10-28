@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -14,7 +14,10 @@ if __name__ == '__main__':
 
 import logging
 
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
 from Products.ZenModel.IpInterface import IpInterface
 
 from ZenModelBaseTest import ZenModelBaseTest
@@ -39,13 +42,13 @@ class TestIpInterface(ZenModelBaseTest):
         self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
         self.assert_(self.iface.getIpAddress() == '1.2.3.4/24')#2 birds...
         self.assert_(self.iface.getIp() == '1.2.3.4')#and 3
-        
+
         self.iface.addIpAddress('2.3.4.5')
         self.assert_('2.3.4.5/24' in self.iface.getIpAddresses())
         self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
         self.assert_(self.iface.getIpAddress() == '1.2.3.4/24')#it's primary
         self.assert_(self.iface.getIp() == '1.2.3.4')#ditto
-        
+
         self.iface.removeIpAddress('1.2.3.4')
         self.assert_('1.2.3.4/24' not in self.iface.getIpAddresses())
         self.assert_('2.3.4.5/24' in self.iface.getIpAddresses())
@@ -54,7 +57,7 @@ class TestIpInterface(ZenModelBaseTest):
 
     def testGetInterfaceMacaddress(self):
         self.assert_(self.iface.getInterfaceMacaddress() == '00:00:00:00:00:00')
-        
+
 
     def testViewName(self):
         self.assert_(self.iface.viewName() == 'test')
@@ -79,7 +82,7 @@ class TestIpInterface(ZenModelBaseTest):
     def testAddIpaddress(self):
         self.iface.addIpAddress('1.2.3.4')
         self.assert_(self.dmd.Networks.findIp('1.2.3.4'))
-        
+
 
     def testAddLocalIpAddresses(self):
         self.iface.addLocalIpAddress('127.0.0.2')
@@ -89,14 +92,14 @@ class TestIpInterface(ZenModelBaseTest):
     def testGetNetworkName(self):
         self.iface.addIpAddress('1.2.3.4')
         self.assert_(self.iface.getNetworkName() == '1.2.3.0/24')
-        
+
 
     def testSetIpAddresses(self):
         self.iface.setIpAddresses('1.2.3.4/24')
         self.assert_(self.dmd.Networks.findIp('1.2.3.4'))
         self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
         self.assert_(self.iface.getIpAddress() == '1.2.3.4/24')
-        
+
     def testSetIpAddresses2(self):
         self.iface.setIpAddresses(['1.2.3.4/24', '2.3.4.5/24'])
         self.assert_(self.dmd.Networks.findIp('1.2.3.4'))
@@ -104,13 +107,13 @@ class TestIpInterface(ZenModelBaseTest):
         self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
         self.assert_('2.3.4.5/24' in self.iface.getIpAddresses())
         self.assert_(self.iface.getIpAddress() == '1.2.3.4/24')
-        
+
         self.iface.setIpAddresses(['2.3.4.5/24', '3.4.5.6/24'])
         self.assert_('1.2.3.4/24' not in self.iface.getIpAddresses())
         self.assert_('2.3.4.5/24' in self.iface.getIpAddresses())
         self.assert_('3.4.5.6/24' in self.iface.getIpAddresses())
         self.assert_(self.iface.getIpAddress() == '2.3.4.5/24')
-        
+
         self.iface.setIpAddresses(['4.5.6.7/24'])
         self.assert_('2.3.4.5/24' not in self.iface.getIpAddresses())
         self.assert_('3.4.5.6/24' not in self.iface.getIpAddresses())

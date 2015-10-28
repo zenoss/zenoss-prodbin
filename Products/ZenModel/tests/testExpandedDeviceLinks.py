@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -17,7 +17,10 @@ import logging
 from zope.interface import implements
 from zope.component import getGlobalSiteManager, adapts
 
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
 from Products.ZenModel.interfaces import IExpandedLinkProvider
 from Products.ZenModel.Device import Device, manage_createDevice
 
@@ -41,10 +44,10 @@ class TestExpandedDeviceLinks(ZenModelBaseTest):
     def afterSetUp(self):
         super(TestExpandedDeviceLinks, self).afterSetUp()
         self.dev = self.dmd.Devices.createInstance("testdev")
-        
+
         getGlobalSiteManager().registerSubscriptionAdapter(
             testExpandedLinkProvider)
-                 
+
     def beforeTearDown(self):
         super(TestExpandedDeviceLinks, self).beforeTearDown()
         getGlobalSiteManager().unregisterSubscriptionAdapter(

@@ -14,7 +14,8 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenModel.BaseReport import BaseReport
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from Products.ZenUtils.Utils import resequence, getDisplayType
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenWidgets import messaging

@@ -13,7 +13,8 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenModel.BaseReport import BaseReport
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from GraphReportElement import GraphReportElement
 from Products.ZenUtils.Utils import getObjByPath, getDisplayType
 from Products.ZenUtils.ZenTales import talesCompile, getEngine

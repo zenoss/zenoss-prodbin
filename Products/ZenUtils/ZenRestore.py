@@ -18,6 +18,7 @@ import logging
 import sys
 import os
 import subprocess
+from subprocess import PIPE
 import tarfile
 import ConfigParser
 
@@ -25,7 +26,7 @@ import Globals
 from ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath, requiresDaemonShutdown
 
-from ZenBackupBase import *
+from ZenBackupBase import BACKUP_DIR, CONFIG_FILE, CONFIG_SECTION, ZenBackupBase
 
 
 class ZenRestore(ZenBackupBase):

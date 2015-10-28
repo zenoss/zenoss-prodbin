@@ -9,7 +9,9 @@
 
 
 import os
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import (ZEN_MANAGE_DMD, ZEN_VIEW,
+                                              ZEN_COMMON)
+
 
 def _portletpath(*args):
     """

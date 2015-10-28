@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -19,7 +19,10 @@ the device in the top level of the DevicesClass tree.
 
 from logging import info
 
-from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
 
 
 class BasicDeviceLoader:
@@ -65,10 +68,10 @@ class BasicDeviceLoader:
             perfMonitorName = self.getPerformanceMonitorName()
         info("setting performance monitor to %s" % perfMonitorName)
         device.setPerformanceMonitor(perfMonitorName)
-       
+
         return device
 
-    
+
     def getDevice(self, deviceName, devicePath,
                 snmpCommunity, snmpPort, loginName, loginPassword):
         """get a device if devicePath is None try classifier"""
@@ -108,7 +111,7 @@ class BasicDeviceLoader:
     def getSystemPath(self):
         """override if you need to derive the system name from something else"""
         pass
-       
+
 
     def getPerformanceMonitorName(self):
         """return the performance monitor name, default is localhost"""

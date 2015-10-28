@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,7 +12,7 @@ from AccessControl import ClassSecurityInfo, Permissions
 from ZenMenu import ZenMenu
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToMany, ToOne
 from Products.ZenUtils.Utils import cmpClassNames
 from Products.ZenWidgets import messaging
 
@@ -46,16 +46,16 @@ class ZenMenuable:
 
 
     security.declareProtected('Change Device', 'manage_addZenMenuItem')
-    def manage_addZenMenuItem(self, menuid, id=None, description='', action='', 
-            permissions=(Permissions.view,), isdialog=False, isglobal=True, 
-            banned_classes=(), allowed_classes=(), banned_ids=(), ordering=0.0, 
+    def manage_addZenMenuItem(self, menuid, id=None, description='', action='',
+            permissions=(Permissions.view,), isdialog=False, isglobal=True,
+            banned_classes=(), allowed_classes=(), banned_ids=(), ordering=0.0,
             REQUEST=None):
         """ Add ZenMenuItem
         """
-        menu = getattr(self.zenMenus, menuid, None) 
+        menu = getattr(self.zenMenus, menuid, None)
         if not menu: menu = self.manage_addZenMenu(menuid)
-        menu.manage_addZenMenuItem(id, description, action, 
-                permissions, isdialog, isglobal, 
+        menu.manage_addZenMenuItem(id, description, action,
+                permissions, isdialog, isglobal,
                 banned_classes, allowed_classes, banned_ids, ordering)
         if REQUEST:
             return self.callZenScreen(REQUEST)
@@ -64,13 +64,13 @@ class ZenMenuable:
     security.declareProtected('Change Device', 'manage_deleteZenMenuItem')
     def manage_deleteZenMenuItem(self, menuid, delids=(), REQUEST=None):
         """ Delete Menu Items """
-        menu = getattr(self.zenMenus, menuid, None) 
+        menu = getattr(self.zenMenus, menuid, None)
         if menu:
             menu.manage_deleteZenMenuItem(delids)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-                
+
     security.declareProtected('Change Device', 'manage_saveMenuItemOrdering')
     def manage_saveMenuItemOrdering(self, menuid, REQUEST=None):
         """ Delete Menu Items """
@@ -85,7 +85,7 @@ class ZenMenuable:
 
     security.declareProtected('Change Device', 'manage_addItemsToZenMenu')
     def manage_addItemsToZenMenu(self, menuid, items=None):
-        """ Add ZenMenuItems to a ZenMenu. 
+        """ Add ZenMenuItems to a ZenMenu.
             Accepts a list of dictionaries.
             Available keyword args:
               id
@@ -133,10 +133,10 @@ class ZenMenuable:
         """ Build menus for this context, acquiring ZenMenus
             which in turn acquire ZenMenuItems.
 
-            Pass it a menuid for a list of menuitems, 
-            a sequence of menuids for a dict of lists of items, 
+            Pass it a menuid for a list of menuitems,
+            a sequence of menuids for a dict of lists of items,
             or nothing for a dict of all available menus.
-        """ 
+        """
         if not context: context=self
         menus = {}
         if not isinstance(self, ZenMenuable): return None
@@ -153,7 +153,7 @@ class ZenMenuable:
                     its = c.zenMenuItems()
                     while its:
                         i = its.pop()
-                        def permfilter(p): 
+                        def permfilter(p):
                             return self.checkRemotePerm(p,context)
                         permok = filter(permfilter,
                             getattr(i,'permissions',('',)))
@@ -170,9 +170,9 @@ class ZenMenuable:
         for key in keys:
             menus[key] = menus[key].values()
             if not menus[key]: del menus[key]
-        if not menus: 
+        if not menus:
             return None
-        elif len(menus.keys())==1: 
+        elif len(menus.keys())==1:
             return menus.values()[0]
         else:
             return menus

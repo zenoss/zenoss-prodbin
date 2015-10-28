@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -23,13 +23,15 @@ from xml.dom.minidom import parse
 import Globals
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import (
+    InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError,
+    ZenRelationsError, ZenSchemaError, ZentinelException, zenmarker)
 
 #TODO: ZEN-1855 May want to remove this class
 class ImportDevices(ZCmdBase):
 
     def getDevicePath(self, device):
-        
+
         def _getParentDevClass(node):
             ancestor = node.parentNode
             while ancestor.getAttribute('class') != 'DeviceClass':
@@ -98,7 +100,7 @@ class ImportDevices(ZCmdBase):
                     dest="infile",
                     help="Input file for import. The default is stdin")
         print "Build option infile"
-        
+
         self.parser.add_option('-x', '--commitCount',
                     dest='commitCount',
                     default=20,
@@ -151,7 +153,7 @@ class ImportDevices(ZCmdBase):
 
     def commit(self):
         trans = transaction.get()
-        trans.note('Import from file %s using %s' 
+        trans.note('Import from file %s using %s'
                     % (self.options.infile, self.__class__.__name__))
         trans.commit()
 

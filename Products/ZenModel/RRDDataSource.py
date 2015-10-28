@@ -25,7 +25,8 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Products.PageTemplates.Expressions import getEngine
 
 from Products.ZenUtils.ZenTales import talesCompile
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from Products.ZenWidgets import messaging
 
 from ZenModelRM import ZenModelRM

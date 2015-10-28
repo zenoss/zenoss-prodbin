@@ -27,7 +27,8 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from Products.ZenUtils.ZenTales import talesEval
 
 from ZenModelRM import ZenModelRM

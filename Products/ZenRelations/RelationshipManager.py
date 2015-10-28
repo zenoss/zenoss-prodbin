@@ -1,18 +1,18 @@
 
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 __doc__ = """RelationshipManager
 
 RelationshipManager is a mix in class to manage relationships
-defined by the SchemaManager.  
+defined by the SchemaManager.
 """
 
 from xml.sax import saxutils
@@ -35,8 +35,10 @@ import zope.component
 
 from OFS.interfaces import IItem
 
-from RelSchema import *
-from Exceptions import *
+from RelSchema import RelSchema, ToMany, ToManyCont, ToOne
+from Exceptions import (
+    InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError,
+    ZenRelationsError, ZenSchemaError, ZentinelException, zenmarker)
 
 from Products.ZenUtils.Utils import unused
 from Products.ZenModel.interfaces import IZenDocProvider
@@ -48,7 +50,7 @@ def manage_addRelationshipManager(context, id, title=None, REQUEST = None):
     context._setObject(id, rm)
     if REQUEST:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
+
 
 addRelationshipManager = DTMLFile('dtml/addRelationshipManager',globals())
 
@@ -56,7 +58,7 @@ addRelationshipManager = DTMLFile('dtml/addRelationshipManager',globals())
 class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     """
     RelationshipManger is an ObjectManager like class that can contain
-    relationships (in fact relationships can only be added to a 
+    relationships (in fact relationships can only be added to a
     RelationshipManager).
 
     Relationships are defined on an RM by the hash _relations.  It
@@ -71,20 +73,20 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                     import of the two modules.
 
     _relations = (
-        ("toonename", ToOne(ToMany, remoteClassStr, remoteName)), 
-        ("tomanyname", ToMany(ToMany, remoteClassStr, remoteName)), 
+        ("toonename", ToOne(ToMany, remoteClassStr, remoteName)),
+        ("tomanyname", ToMany(ToMany, remoteClassStr, remoteName)),
         )
-    """ 
+    """
     zope.interface.implements(IItem)
 
     _relations = ()
 
     meta_type = 'Relationship Manager'
-   
+
     security = ClassSecurityInfo()
 
     manage_options = (
-        PrimaryPathObjectManager.manage_options + 
+        PrimaryPathObjectManager.manage_options +
         ZenPropertyManager.manage_options
         )
 
@@ -107,14 +109,14 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         if self.getPhysicalPath() == self.getPrimaryPath(): return self.id
         return self.getPrimaryId()
 
-    
+
     ##########################################################################
     #
     # Methods for relationship management.
     #
     ##########################################################################
 
-    
+
     def addRelation(self, name, obj):
         """Form a bi-directional relationship."""
         rel = getattr(self, name, None)
@@ -125,7 +127,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
 
     def removeRelation(self, name, obj = None, suppress_events=False):
         """
-        Remove an object from a relationship. 
+        Remove an object from a relationship.
         If no object is passed all objects are removed.
         """
         rel = getattr(self, name, None)
@@ -169,8 +171,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         for name, value in self.propertyItems():
             cobj._updateProperty(name, value)
         return aq_base(cobj)
-                
-    
+
+
     def _notifyOfCopyTo(self, container, op=0):
         """Manage copy/move/rename state for use in manage_beforeDelete."""
         unused(container)
@@ -195,7 +197,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         return destRelationship._getOb(self.id)
 
 
-    
+
     def moveObject(self, obj, destination):
         """
         Move obj from this RM to the destination RM
@@ -207,14 +209,14 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         return destination._getOb(obj.id)
 
 
-    
+
     ##########################################################################
     #
     # Functions for examining a RelationshipManager's schema
     #
     ##########################################################################
 
-    
+
     def buildRelations(self):
         """build our relations based on the schema defined in _relations"""
         if not getattr(self, "_relations", False): return
@@ -226,10 +228,10 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         for rname in relnames:
             self._delObject(rname)
 
-        
+
     def lookupSchema(cls, relname):
         """
-        Lookup the schema definition for a relationship. 
+        Lookup the schema definition for a relationship.
         All base classes are checked until RelationshipManager is found.
         """
         for name, schema in cls._relations:
@@ -238,7 +240,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                                 (relname, cls.__name__))
     lookupSchema = classmethod(lookupSchema)
 
-    
+
     def getRelationships(self):
         """Returns a dictionary of relationship objects keyed by their names"""
         return self.objectValues(spec=RELMETATYPES)
@@ -254,8 +256,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         log.debug("checking relations on object %s", self.getPrimaryId())
         for rel in self.getRelationships():
             rel.checkRelation(repair)
-                
-    
+
+
     ##########################################################################
     #
     # Functions for exporting RelationshipManager to XML
@@ -264,7 +266,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
 
     def exportXml(self, ofile, ignorerels=[], root=False, exportPasswords=False):
         """Return an xml based representation of a RelationshipManager
-        <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
+        <object id='/Devices/Servers/Windows/dhcp160.confmon.loc'
             module='Products.Confmon.IpInterface' class='IpInterface'>
             <property id='name'>jim</property>
             <toone></toone>
@@ -284,7 +286,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         self.exportXmlProperties(ofile, exportPasswords)
         self.exportXmlRelationships(ofile, ignorerels)
         exportHook = getattr(aq_base(self), 'exportXmlHook', None)
-        if exportHook and callable(exportHook): 
+        if exportHook and callable(exportHook):
             self.exportXmlHook(ofile, ignorerels)
         ofile.write("</object>\n")
 
@@ -292,7 +294,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     def exportXmlProperties(self,ofile, exportPasswords=False):
         """Return an xml representation of a RelationshipManagers properties
         <property id='name' type='type' mode='w' select_variable='selectvar'>
-            value 
+            value
         </property>
         value will be converted to is correct python type on import
         """
@@ -335,8 +337,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         for rel in self.getRelationships():
             if rel.id in ignorerels: continue
             rel.exportXml(ofile, ignorerels)
-        
-    
+
+
     ##########################################################################
     #
     # Methods called from UI code.
@@ -348,7 +350,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         """make a relationship"""
         self.addRelation(name, obj)
         if REQUEST: return self.callZenScreen(REQUEST)
-            
+
 
     security.declareProtected('Manage Relations', 'manage_removeRelation')
     def manage_removeRelation(self, name, id=None, REQUEST=None):
@@ -371,5 +373,5 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             raise Redirect( myp+'/manage_workspace' )
 
 
-    
+
 InitializeClass(RelationshipManager)

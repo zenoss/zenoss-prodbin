@@ -13,7 +13,8 @@ from AccessControl import ClassSecurityInfo
 import Globals
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenPackable import ZenPackable
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 
 class BadInstance(Exception): pass
 

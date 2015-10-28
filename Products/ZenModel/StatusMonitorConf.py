@@ -17,7 +17,8 @@ The configuration object for monitors.
 
 """
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 
 from Products.ZenModel.Monitor import Monitor
 from Products.ZenModel.StatusColor import StatusColor

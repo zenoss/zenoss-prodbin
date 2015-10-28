@@ -32,8 +32,25 @@ from Acquisition import aq_chain
 from zope.interface import implements
 
 from Products.ZenModel.interfaces import IIndexed
-from Products.ZenModel.ZenossSecurity import *
-from Products.ZenRelations.RelSchema import *
+from Products.ZenModel.ZenossSecurity import (
+    MANAGER_ROLE, MANAGE_NOTIFICATION_SUBSCRIPTIONS, MANAGE_TRIGGER,
+    NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, NOTIFICATION_UPDATE_ROLE,
+    NOTIFICATION_VIEW_ROLE, OWNER_ROLE, TRIGGER_MANAGER_ROLE,
+    TRIGGER_UPDATE_ROLE, TRIGGER_VIEW_ROLE, UPDATE_NOTIFICATION,
+    UPDATE_TRIGGER, VIEW_NOTIFICATION, VIEW_TRIGGER, ZEN_ADD,
+    ZEN_ADMINISTRATORS_EDIT, ZEN_ADMINISTRATORS_VIEW, ZEN_ADMIN_DEVICE,
+    ZEN_CHANGE_ADMIN_OBJECTS, ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_DEVICE,
+    ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_CHANGE_EVENT_VIEWS, ZEN_CHANGE_SETTINGS,
+    ZEN_COMMON, ZEN_DEFINE_COMMANDS_EDIT, ZEN_DEFINE_COMMANDS_VIEW, ZEN_DELETE,
+    ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES, ZEN_EDIT_USER,
+    ZEN_EDIT_USERGROUP, ZEN_MAINTENANCE_WINDOW_EDIT,
+    ZEN_MAINTENANCE_WINDOW_VIEW, ZEN_MANAGER_ROLE, ZEN_MANAGE_DEVICE,
+    ZEN_MANAGE_DEVICE_STATUS, ZEN_MANAGE_DMD, ZEN_MANAGE_EVENTMANAGER,
+    ZEN_MANAGE_EVENTS, ZEN_RUN_COMMANDS, ZEN_SEND_EVENTS, ZEN_UPDATE,
+    ZEN_USER_ROLE, ZEN_VIEW, ZEN_VIEW_HISTORY, ZEN_VIEW_MODIFICATIONS,
+    ZEN_ZPROPERTIES_EDIT, ZEN_ZPROPERTIES_VIEW)
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.EventView import EventView
 from Products.ZenModel.ZenPackable import ZenPackable
@@ -68,16 +85,16 @@ def transformsavepoint(errorCallback=lambda :None):
     except (Exception, SystemExit) as e:
         sp = None
         hadError = True
-        log.info("Transform error %s; aborting transaction", e) 
+        log.info("Transform error %s; aborting transaction", e)
         transaction.abort()
         errorCallback()
     finally:
         try:
             if sp and sp.valid:
-                log.debug("Reverting to savepoint after transform") 
+                log.debug("Reverting to savepoint after transform")
                 sp.rollback()
             elif not hadError:
-                log.debug("Aborting transaction after transform") 
+                log.debug("Aborting transaction after transform")
                 transaction.abort()
         except Exception:
             log.exception("Error rolling back transaction after transform")
@@ -173,7 +190,7 @@ class EventClassPropertyMixin(object):
                 badLineNo = tb[2][1]
         except Exception:
             pass
-        
+
         badLineText = transformLines[badLineNo-1]
         transformFormatted = self.formatTransform(transformLines, badLineNo)
 
@@ -215,7 +232,7 @@ Transform:
         )
         zem.sendEvent(badEvt)
 
-    def pickleFailedEvent(self, evt):     
+    def pickleFailedEvent(self, evt):
         obj = zope.component.getUtility(IDaemonConfig, 'zeneventd_config')
         config = obj.getConfig()
         # By default there are 100 pickle files in failed_transformed_events folder.
@@ -230,7 +247,7 @@ Transform:
         file_list = []
         pickles_count = 0
         for file in os.listdir(pickle_dir):
-            filepath = os.path.join(pickle_dir, file)            
+            filepath = os.path.join(pickle_dir, file)
             modified = os.stat(filepath).st_mtime
             file_tuple = modified, file
             file_list.append(file_tuple)
@@ -248,7 +265,7 @@ Transform:
                     log.exception("Unable to delete %s: %s", filepath, e)
         if pickles_count:
             log.info("Deleted %s old pickle files." % pickles_count)
-        filename = pickle_dir + '/%s_%s.pickle' % (evt.device, evt.evid)        
+        filename = pickle_dir + '/%s_%s.pickle' % (evt.device, evt.evid)
         try:
             with open(filename, 'w') as f:
                 evtDict = to_dict(evt._event)
@@ -553,7 +570,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
             'explanation':self.explanation,
             'resolution':self.resolution,
         }
-        
+
         redirect = self.rename(name)
         if eventClassKey and self.eventClassKey != eventClassKey:
             self.unindex_object()

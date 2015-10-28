@@ -18,7 +18,8 @@ __version__ = "$Revision: 1.15 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable

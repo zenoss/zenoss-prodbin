@@ -15,7 +15,7 @@ import signal
 import cPickle as pickle
 from itertools import chain
 
-from Globals import *
+from Globals import DevelopmentMode, INSTANCE_HOME, data_dir, opened
 
 import transaction
 from BTrees.OOBTree import OOSet

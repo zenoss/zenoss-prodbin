@@ -17,8 +17,6 @@
 
 import unittest
 
-from util.selTestUtils import *
-
 from SelTestBase import SelTestBase
 
 dynamicdev = 'gate2.zenoss.loc'

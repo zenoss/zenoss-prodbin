@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -14,10 +14,16 @@ if __name__ == '__main__':
 
 import StringIO
 
-from Products.ZenRelations.tests.TestSchema import *
-from Products.ZenRelations.tests.dataImportExport import *
+from Products.ZenRelations.tests.TestSchema import (
+    TestBaseClass, DataRoot, TS, Device, Server, IpInterface, Group, Location,
+    Admin, Organizer, create, build)
+from Products.ZenRelations.tests.dataImportExport import (
+    objnoprops, objwithprops, objwithtoone, objwithtomany, objwithtomanycont,
+    objwithoutskip, objwithskip, devicexml)
 
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import (
+    InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError,
+    ZenRelationsError, ZenSchemaError, ZentinelException)
 
 from ZenRelationsBaseTest import ZenRelationsBaseTest
 

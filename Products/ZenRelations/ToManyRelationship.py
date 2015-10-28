@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -27,7 +27,9 @@ from Products.ZenUtils.tbdetail import log_tb
 
 from ToManyRelationshipBase import ToManyRelationshipBase
 
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import (
+    InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError,
+    ZenRelationsError, ZenSchemaError, ZentinelException)
 
 from persistent.list import PersistentList
 

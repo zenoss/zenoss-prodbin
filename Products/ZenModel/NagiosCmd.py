@@ -11,7 +11,8 @@
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import (
+    RELMETATYPES, RelSchema, ToMany, ToManyCont, ToOne)
 
 from ZenModelRM import ZenModelRM
 

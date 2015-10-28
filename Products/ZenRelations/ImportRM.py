@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -36,7 +36,9 @@ from Products.ZenUtils.Utils import importClass
 from Products.ZenUtils.Utils import getObjByPath, getObjByPath2
 
 from Products.ZenModel.interfaces import IZenDocProvider
-from Products.ZenRelations.Exceptions import *
+from Products.ZenRelations.Exceptions import (
+    InvalidContainer, ObjectNotFound, RelationshipExistsError, ZenImportError,
+    ZenRelationsError, ZenSchemaError, ZentinelException)
 from Products.Zuul.catalog.events import IndexingEvent
 
 _STRING_PROPERTY_TYPES = ( 'string', 'text', 'password' )

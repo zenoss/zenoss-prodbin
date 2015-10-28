@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -14,8 +14,20 @@ if __name__ == '__main__':
 
 from zExceptions import Redirect
 
-from Products.ZenModel.Exceptions import *
-from Products.ZenModel.DeviceClass import *
+from Products.ZenModel.Exceptions import (
+    DeviceExistsError, IpAddressConflict, IpCatalogNotFound, NoIPAddress,
+    NoSnmp, PathNotFoundError, TraceRouteGap, WrongSubnetError, ZenModelError,
+    ZentinelException)
+from Products.ZenModel.DeviceClass import (
+    And, ClassSecurityInfo, DTMLFile, DateTime, DeviceClass,
+    DeviceClassMovedEvent, DeviceExistsError, DeviceOrganizer, Eq, FakeRequest,
+    ICatalogTool, IGlobalIdentifier, IndexingEvent, InitializeClass, MatchGlob,
+    Or, RRDTemplate, RankByQueries_Max, StringIO, TemplateContainer, ToManyCont,
+    ToOne, ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES, Z_PROPERTIES,
+    ZenPackable, addDeviceClass, aq_base, aq_chain, getToolByName, importClass,
+    log, logging, makeCaseInsensitiveFieldIndex, makeMultiPathIndex,
+    makePathIndex, manage_addDeviceClass, messaging, notify, permissions, time,
+    transact)
 from Products.ZenModel.Device import Device
 from Products.Zuul import getFacade
 from ZenModelBaseTest import ZenModelBaseTest
@@ -42,7 +54,7 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assert_(self.dev in devices.getSubDevices())
         self.assertEqual(devices.getPythonDeviceClass(), Device)
 
-    
+
     def testCreateInstanceDeviceAndIndex(self):
         devices = self.dmd.Devices
         self.assert_(isinstance(self.dev, Device))
@@ -55,12 +67,12 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assertRaises(Redirect, devices.searchDevices, "testdev2",
                           REQUEST=dict(junk=1))
 
-    
+
     def testSearchDevicesNoDevice(self):
         devices = self.dmd.Devices
         self.assertEqual(len(devices.searchDevices("adsf")), 0)
 
-    
+
     def testSearchDevicesMultipleDevices(self):
         devices = self.dmd.Devices
         self.assertEqual(len(devices.searchDevices("testdev*")), 2)
@@ -70,18 +82,18 @@ class TestDeviceClass(ZenModelBaseTest):
         foundDevices = self.dmd.Devices.searchDevices('testtitle2')
         self.assertEqual( len( foundDevices ), 1 )
         self.assertEqual( foundDevices[0].id, self.dev2.id )
-        
+
     def testFindExact(self):
-        
+
         id = 'testdev'
         devices = self.dmd.Devices
         devices.createInstance('TESTDEV')
-        #inexact        
+        #inexact
         self.assertEqual(len(devices._findDevice(id)), 2)
         #exact
         dev = devices.findDeviceByIdExact(id)
         self.assertEqual( dev.id, id )
-        
+
         self.assert_( not devices.findDeviceByIdExact(None) )
         self.assert_( not devices.findDeviceByIdExact('badid') )
 
@@ -131,16 +143,16 @@ class TestDeviceClass(ZenModelBaseTest):
 
         self.routers.moveDevices('/','testrouter')
         self.assert_(self.dev3 in self.dmd.Devices.getSubDevices())
-        self.assert_(self.dev3 not in 
+        self.assert_(self.dev3 not in
             self.dmd.Devices.NetworkDevice.Router.getSubDevices())
-                        
+
 
     def testZPythonClass(self):
         from Products.ZenModel.tests.CustDevice import CustDevice
         custdev = self.dmd.Devices.createOrganizer("/CustDev")
         custdev._setProperty('zPythonClass',
                              'Products.ZenModel.tests.CustDevice')
-        self.assertEqual(CustDevice, 
+        self.assertEqual(CustDevice,
                      self.dmd.Devices.CustDev.getPythonDeviceClass())
 
     def testMoveDevices(self):
@@ -172,7 +184,7 @@ class TestDeviceClass(ZenModelBaseTest):
         custdev = self.dmd.Devices.createOrganizer("/CustDev")
         custdev._setProperty('zPythonClass',
                              'Products.ZenModel.tests.CustDevice')
-        self.dmd.Devices.moveDevices('/CustDev', 'testdev') 
+        self.dmd.Devices.moveDevices('/CustDev', 'testdev')
         dev = self.dmd.Devices.findDevice('testdev')
         self.assertEqual(dev.getDeviceClassPath(), "/CustDev")
         self.assertEqual(dev.rackSlot, '15')
@@ -198,7 +210,7 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assertEqual(dev.__class__, Device)
         self.assertEqual(dev.location(), anna)
         self.assert_(group in dev.groups())
-     
+
     def testOrganizer(self):
         devices = self.dmd.Devices
         dc = devices.createOrganizer('/Test')
@@ -234,7 +246,7 @@ class TestDeviceClass(ZenModelBaseTest):
         # Test removal
         devices.unregister_devtype('Device', 'SNMP')
         self.assertEqual(devices.devtypes, [])
-        
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
