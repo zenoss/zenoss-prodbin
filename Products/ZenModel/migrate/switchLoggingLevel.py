@@ -44,12 +44,3 @@ class SwitchLoggingLevel(Migrate.Step):
         ctx.commit()
 
 SwitchLoggingLevel()
-
-
-
-
-
-
-
-
-
