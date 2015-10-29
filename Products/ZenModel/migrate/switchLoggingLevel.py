@@ -21,7 +21,7 @@ sm.require("1.0.0")
 
 class SwitchLoggingLevel(Migrate.Step):
 
-    version = Migrate.Version(5, 1, 70)
+    version = Migrate.Version(5, 0, 8)
 
     def cutover(self, dmd):
         try:
