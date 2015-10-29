@@ -213,14 +213,22 @@ Ext.define("Zenoss.TemplateTreePanel", {
                 templateName, dmdPath, path;
 
                 if (uid.search('/rrdTemplates/') !== -1) {
+                    // this is a device class
                     templateSplit = unescape(uid).split('/rrdTemplates/');
                     pathParts = templateSplit[0].split('/');
                     nameParts = templateSplit[1].split('/');
                     templateName = nameParts[0];
-                }else{
+                } else {
                     // it is a template on a device
-                    pathParts = uid.replace('/devices/', '/').split('/');
+                    pathParts = uid.split('/');
                     templateName = pathParts.pop();
+
+                    // determine if this is a component
+                    var devicesIndex = pathParts.indexOf("devices");
+                    if((pathParts.length - 1) > devicesIndex){
+                        pathParts.splice(devicesIndex + 2, 1);
+                        pathParts.splice(devicesIndex, 1);
+                    }
                 }
 
                 if ( pathParts.length === 4 ) {
