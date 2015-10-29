@@ -235,8 +235,7 @@ class ZenDisc(ZenModeler):
         defer.returnValue(devices)
 
     @defer.inlineCallbacks
-    def findRemoteDeviceInfo(self, ip, devicePath, jobSnmpCommunities=None,
-                             deviceConfig=None):
+    def findRemoteDeviceInfo(self, ip, devicePath, deviceSnmpCommunities=None):
         """
         Scan a device for ways of naming it: PTR DNS record or a SNMP name
 
@@ -252,12 +251,8 @@ class ZenDisc(ZenModeler):
         @rtype: deferred: Twisted deferred
         """
         self.log.debug("Doing SNMP lookup on device %s", ip)
-        if not deviceConfig:
-            snmp_conf = yield self.config().callRemote(
-                'getDeviceClassSnmpConfig', devicePath)
-        else:
-            snmp_conf = {k:v for k, v in vars(deviceConfig).iteritems()
-                        if k.startswith('zSnmp')}
+        snmp_conf = yield self.config().callRemote(
+            'getDeviceClassSnmpConfig', devicePath)
 
         configs = []
         ports = snmp_conf.get('zSnmpDiscoveryPorts') \
@@ -291,8 +286,8 @@ class ZenDisc(ZenModeler):
             # Override the device class communities with the ones set on
             # this device, if they exist
             communities = snmp_conf['zSnmpCommunities']
-            if jobSnmpCommunities:
-                communities = jobSnmpCommunities
+            if deviceSnmpCommunities:
+                communities = deviceSnmpCommunities
 
             # Reverse the communities so that ones earlier in the list have a
             # higher weight.
@@ -370,11 +365,14 @@ class ZenDisc(ZenModeler):
             # name defined there for deviceName
             if not self.options.nosnmp:
                 self.log.debug("Scanning device with address %s", ip)
-                zProperties = kw.get('zProperties', {})
-                jobSnmpCommunities = zProperties.get('zSnmpCommunities', [])
+                zProps = kw.get('zProperties', {})
+                deviceSnmpCommunities = zProps.get('zSnmpCommunities', None)
+                if not deviceSnmpCommunities and deviceConfig:
+                    deviceSnmpCommunities = getattr(
+                        deviceConfig, 'zSnmpCommunities', None)
 
                 snmp_config = yield self.findRemoteDeviceInfo(
-                    ip, devicepath, jobSnmpCommunities, deviceConfig
+                    ip, devicepath, deviceSnmpCommunities
                 )
                 if snmp_config:
                     if snmp_config.sysName:
