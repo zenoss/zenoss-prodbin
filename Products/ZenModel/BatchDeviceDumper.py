@@ -593,7 +593,7 @@ class BatchDeviceDumper(ZCmdBase):
             return name, [line]
 
         elif path.startswith('/zport/dmd/Monitors/Performance/'):
-            line = "loader='dc_collector', loader_arg_keys=['id', 'hubPath', 'host', 'rootPassword', 'installtype', 'installcreds']"
+            line = "loader='dc_collector', loader_arg_keys=['newCollectorId', 'hubPath', 'poolId']"
             return name, [line]
 
     def getLoaderProps(self, obj):
@@ -645,13 +645,8 @@ class BatchDeviceDumper(ZCmdBase):
 
         elif path.startswith('/zport/dmd/Monitors/Performance/'):
             # Collector
-            installtype = 'local' if obj._isLocalHost else 'remote'
-            installcreds = "rootpasswd"
-            password = 'not_stored'
             hubPath = obj.hub().getPrimaryUrlPath()
-            props = dict(host=obj.hostname, installtype=installtype,
-                         hubPath=hubPath, rootPassword=password, id=obj.id,
-                        )
+            props = dict(newCollectorId=obj.id, poolId=obj.poolId, hubPath=hubPath)
             props = ["%s='%s'" % (key, value) for key, value in props.items()]
 
             return props
