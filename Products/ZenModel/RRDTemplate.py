@@ -24,6 +24,7 @@ from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.PingDataSource import PingDataSource
 from Products.ZenModel.ConfigurationError import ConfigurationError
+from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenUtils.Utils import importClass
 from Products.ZenWidgets import messaging
 from RRDDataPoint import SEPARATOR
@@ -501,16 +502,24 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """
         obj = self.deviceClass()
         if obj is None:
-            # this template is in a Device
             obj = aq_parent(self)
             path = list(obj.getPrimaryPath())
-            # remove the "devices" relationship
-            path.pop(-2)
+            if isinstance(obj, DeviceComponent):
+                # remove the component relationship
+                path.pop(-2)
+                # remove the device relationship
+                path.pop(-3)
+            else:
+                # this template is in a Device
+                # remove the "devices" relationship
+                path.pop(-2)
+                path = path[:-1]
+                path.append(obj.titleOrId())
         else:
             # this template is in a DeviceClass.rrdTemplates relationship
-            path = list(obj.getPrimaryPath())
-        parts = path[4:-1]
-        parts.append(obj.titleOrId())
+            path = list(obj.getPrimaryPath())[:-1]
+            path.append(obj.titleOrId())
+        parts = path[4:]
         return separator + separator.join(parts)
 
 
