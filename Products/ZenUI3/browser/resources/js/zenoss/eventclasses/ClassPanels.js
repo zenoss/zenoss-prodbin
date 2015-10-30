@@ -297,8 +297,8 @@ Ext.onReady(function(){
                                             name: 'eventclasskey',
                                             margin: '0 40px 0 0',
                                             fieldLabel: _t('Event Class Key'),
-                                            regex: Zenoss.env.textMasks.allowedNameTextDash,
-                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
+                                            regex: Zenoss.env.textMasks.allowedNameTextDashDot,
+                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDashDot,
                                             width:320
                                         }
                                     ]
