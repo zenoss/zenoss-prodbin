@@ -166,7 +166,7 @@ class CmdBase(object):
             group = OptionGroup(self.parser, "Logging Options")
             group.add_option(
                 '-v', '--logseverity',
-                dest='logseverity', default='INFO', type='loglevel',
+                dest='logseverity', default='WARNING', type='loglevel',
                 help='Logging severity threshold',
             )
             group.add_option(
