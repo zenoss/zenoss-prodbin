@@ -118,16 +118,18 @@ pb.setUnjellyableForClass(ObjectMap, ObjectMap)
 
 class MultiArgs(PBSafe):
     """
-    Can be used as the value in an ObjectMap when the key is a function that 
+    Can be used as the value in an ObjectMap when the key is a function that
     takes multiple arguments.
     """
-    
+
     def __init__(self, *args):
         self.args = args
-        
-        
+
     def __repr__(self):
         return str(self.args)
-    
-    
+
+    def __eq__(self, other):
+        return self.args == other.args
+
+
 pb.setUnjellyableForClass(MultiArgs, MultiArgs)
