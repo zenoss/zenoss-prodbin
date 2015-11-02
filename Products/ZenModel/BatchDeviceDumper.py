@@ -589,11 +589,11 @@ class BatchDeviceDumper(ZCmdBase):
             return name, [line]
 
         elif path.startswith('/zport/dmd/Monitors/Hub/'):
-            line = "loader='dc_hub', loader_arg_keys=['id', 'hubHost', 'hubPort', 'hubPassword', 'zeoHost', 'xmlRpcPort', 'rootPassword', 'installcreds']"
+            line = "loader='dc_hub', loader_arg_keys=['hubId', 'poolId']"
             return name, [line]
 
         elif path.startswith('/zport/dmd/Monitors/Performance/'):
-            line = "loader='dc_collector', loader_arg_keys=['id', 'hubPath', 'host', 'rootPassword', 'installtype', 'installcreds']"
+            line = "loader='dc_collector', loader_arg_keys=['monitorId', 'poolId', 'hubPath']"
             return name, [line]
 
     def getLoaderProps(self, obj):
@@ -631,27 +631,15 @@ class BatchDeviceDumper(ZCmdBase):
 
         elif path.startswith('/zport/dmd/Monitors/Hub/'):
             # Hub
-            installcreds = 'No_creds' if obj.password is None else "rootpasswd"
-            password = 'not_stored'
-            props = dict(hubHost=obj.hostname, zeoHost=obj.zeodbHost,
-                         installcreds=installcreds, hubPassword=obj.password,
-                         rootPassword=password, id=obj.id,
-                        )
+            props = dict(hubId=obj.id, poolId=obj.poolId)
             props = ["%s='%s'" % (key, value) for key, value in props.items()]
 
-            props.append('hubPort=%s' % obj.port)
-            props.append('xmlRpcPort=%s' % obj.xmlrpcport)
             return props
 
         elif path.startswith('/zport/dmd/Monitors/Performance/'):
             # Collector
-            installtype = 'local' if obj._isLocalHost else 'remote'
-            installcreds = "rootpasswd"
-            password = 'not_stored'
             hubPath = obj.hub().getPrimaryUrlPath()
-            props = dict(host=obj.hostname, installtype=installtype,
-                         hubPath=hubPath, rootPassword=password, id=obj.id,
-                        )
+            props = dict(monitorId=obj.id, poolId=obj.poolId, hubPath=hubPath)
             props = ["%s='%s'" % (key, value) for key, value in props.items()]
 
             return props
