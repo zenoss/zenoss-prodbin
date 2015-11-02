@@ -32,7 +32,7 @@ class SwitchLoggingLevel(Migrate.Step):
 
         cqs = filter(lambda s: s.name == 'CentralQuery', ctx.services)
         if len(cqs) != 1:
-            log.info("Found %i services named 'CentralQuery'; skipping." % len(cqs))
+            log.info("Found %i services named 'CentralQuery'; skipping.", len(cqs))
             return
 
         cqconfig = filter(lambda cf: cf.name == '/opt/zenoss/etc/central-query/configuration.yaml', cqs[0].configFiles)
