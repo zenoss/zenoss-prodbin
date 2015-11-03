@@ -307,10 +307,34 @@ class ZenPropertyManager(object, PropertyManager):
             if label: pschema['label'] = label
 
         if type in ('selection', 'multiple selection'):
+            # NOTE: Moved `import messaging` here to lazify code and
+            # remove circular import.
+            from Products.ZenWidgets import messaging
+
             if not hasattr(self, value):
-                raise BadRequest, 'No select variable %s' % value
-            setprops(id=id,type=type, visible=visible,
+                IMessageSender(self).sendTosendToBrowser(
+                    'Wrong value in the `Value` field.',
+                    'Object has no %s attribute.' % value,
+                    priority=messaging.WARNING,
+                )
+                return
+
+            # NOTE: When creating selection properties, specify the name of
+            # another property as the Value. This property should return a list
+            # of strings will be used to provide choices for the selection.
+            select_values = getattr(self, value)
+            if not (isinstance(select_values, (list, tuple)) and
+                    all(isinstance(v, basestring) for v in select_values)):
+                IMessageSender(self).sendTosendToBrowser(
+                    'Wrong value in the `Value` field.',
+                    'Property in Value field should contain a list of strings.',
+                    priority=messaging.WARNING,
+                )
+                return
+
+            setprops(id=id, type=type, visible=visible,
                      select_variable=value)
+
             if type=='selection':
                 self._setPropValue(id, '')
             else:
