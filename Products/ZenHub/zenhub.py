@@ -901,6 +901,7 @@ class ZenHub(ZCmdBase):
             workerfd.write("logseverity %s\n" % self.options.logseverity)
             workerfd.write("zodb-cachesize %s\n" % self.options.zodb_cachesize)
             workerfd.write("calllimit %s\n" % self.options.worker_call_limit)
+            workerfd.write("ping-perspective %s\n" % self.options.ping_perspective)
 
     def createWorker(self):
         """Start a worker subprocess
@@ -1070,7 +1071,10 @@ class ZenHub(ZCmdBase):
         self.parser.add_option(
             "--zauth-password", dest="zauthPassword", 
             help="Password to use when publishing to metric consumer. Default is %default")
-            
+        self.parser.add_option('--ping-perspective', dest='pingPerspective',
+            default=True, action='store_true',
+            help="Enable or disable ping perspective")
+
         notify(ParserReadyForOptionsEvent(self.parser))
 
 class DefaultConfProvider(object):
