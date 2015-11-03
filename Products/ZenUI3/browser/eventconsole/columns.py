@@ -316,14 +316,14 @@ COLUMN_CONFIG = {
 
     'DeviceGroups': dict(
         header='Groups',
-        sortable=False,
+        sortable=True,
         filter='textfield',
         renderer='Zenoss.render.LinkFromGridUidGroup'
         ),
 
     'Systems'   : dict(
         header='Systems',
-        sortable=False,
+        sortable=True,
         filter='textfield',
         renderer='Zenoss.render.LinkFromGridUidGroup'),
 
