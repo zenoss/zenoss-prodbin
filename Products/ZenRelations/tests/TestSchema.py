@@ -84,7 +84,8 @@ class Organizer(TestBaseClass):
         self._setProperty("zInt", -1, type="int")
         self._setProperty("zString", "", type="string")
         self._setProperty("zBool", True, type="boolean")
-        self._setProperty("zLines", [], type="lines")
+        self._setProperty("zLines", ["one", "two"], type="lines")
+        self._setProperty("zSelect", "zLines", type="selection")
 
     def getZenRootNode(self):
         return self.unrestrictedTraverse("/zport/dmd/Orgs")
