@@ -184,8 +184,7 @@ class Manager(object):
                                             limit=limit,
                                             filterPermissions=False))
 
-        limit = None if limit is None else limit - len(device_brains)
-        if not limit:
+        if device_brains:
             return device_brains, []
 
         if ip_decimal is not None:
@@ -195,7 +194,7 @@ class Manager(object):
             # don't search interfaces for the ::1 IPv6 address
             elif ipToDecimal('::1') == ip_decimal:
                 ip_decimal = None
-        if ip_decimal is None and not device_brains:
+        if ip_decimal is None:
             return [], []
 
         net_cat = ICatalogTool(self._networks)
