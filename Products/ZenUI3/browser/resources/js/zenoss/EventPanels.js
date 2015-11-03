@@ -34,7 +34,7 @@
         var collectors = new Ext.data.ArrayStore({
                         data: Zenoss.env.COLLECTORS,
                         fields: ['name']
-        })
+                    })
         var defaultValue;
         if (Zenoss.env.COLLECTORS[0].indexOf('localhost') > -1){
             defaultValue = "localhost";
