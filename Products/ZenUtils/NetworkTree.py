@@ -94,8 +94,8 @@ def get_edges(rootnode, depth=1, withIcons=False, filter='/'):
         return color
     for nodea, nodeb in g:
         if withIcons:
-            yield ((nodea.titleOrId(), nodea.getIconPath(), getColor(nodea)),
-                   (nodeb.titleOrId(), nodeb.getIconPath(), getColor(nodeb)))
+            yield ((nodea.titleOrId(), nodea.getIconPath(), getColor(nodea), nodea.getId()),
+                   (nodeb.titleOrId(), nodeb.getIconPath(), getColor(nodeb), nodeb.getId()))
         else:
             yield (nodea.titleOrId(), nodeb.titleOrId())
 
