@@ -1006,10 +1006,12 @@ def edgesToXML(edges, start=()):
     xmlels = ['<Start name="%s" url="%s"/>' % start]
     nodeels = []
     edgeels = []
-    for a, b in edges:
-        node1 = nodet % (a[0], a[0], a[1], a[2])
-        node2 = nodet % (b[0], b[0], b[1], b[2])
-        edge1 = edget % (a[0], b[0])
+    for node_a, node_b in edges:
+        a_title, a_icon_path, a_color, a_id = node_a
+        b_title, b_icon_path, b_color, b_id = node_b
+        node1 = nodet % (a_id, a_title, a_icon_path, a_color)
+        node2 = nodet % (b_id, b_title, b_icon_path, b_color)
+        edge1 = edget % (a_title, b_id)
         if node1 not in nodeels: nodeels.append(node1)
         if node2 not in nodeels: nodeels.append(node2)
         if edge1 not in edgeels: edgeels.append(edge1)
