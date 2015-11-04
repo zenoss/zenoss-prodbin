@@ -2161,3 +2161,17 @@ def getTranslation(msgId, REQUEST, domain='zenoss'):
         if msg != msgId:
             return msg
     return msg
+
+def isHostname(hostname):
+    """
+    Checks whether the provided hostname is valid.
+    The validation is based on the following resources:
+        https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names
+        http://tools.ietf.org/html/rfc1034#section-3.1
+    """
+    labelSpec = re.compile("^(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+    if hostname and len(hostname) < 255:
+        if hostname.endswith('.'):
+            hostname = hostname[:-1]
+        return all(map(lambda x: labelSpec.match(x), hostname.split('.')))
+    return False
