@@ -1071,7 +1071,7 @@ class ZenHub(ZCmdBase):
         self.parser.add_option(
             "--zauth-password", dest="zauthPassword", 
             help="Password to use when publishing to metric consumer. Default is %default")
-        self.parser.add_option('--ping-perspective', dest='pingPerspective',
+        self.parser.add_option('--ping-perspective', dest='ping_perspective',
             default=True, action='store_true',
             help="Enable or disable ping perspective")
 
