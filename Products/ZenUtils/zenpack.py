@@ -46,6 +46,9 @@ from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import ZenPackCmd as EggPackCmd
 from Products.Zuul import getFacade
 
+from zope.component import getUtilitiesFor
+from Products.ZenUtils.ZenPackInstallFilter import IZenPackInstallFilter
+
 HIGHER_THAN_CRITICAL = 100
 LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING = 3
 
@@ -223,6 +226,11 @@ class ZenPackCmd(ZenScriptBase):
             sys.exit(1)
 
         if self.options.installPackName:
+            # Process each install filter utility - order does not matter
+            for name, util in getUtilitiesFor(IZenPackInstallFilter):
+                if not util.installable(self.options.installPackName):
+                    self.stop('Filter %s does not allow %s to be installed' \
+                              % (name, self.options.installPackName))
             if self.options.skipSameVersion and self._sameVersion():
                 return
             if not self.preInstallCheck(eggInstall):

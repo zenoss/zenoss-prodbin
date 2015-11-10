@@ -10,10 +10,16 @@
     <include package=".guid"/>
     <include package=".controlplane"/>
 
+    <utility provides=".ZenPackInstallFilter.IZenPackInstallFilter"
+             factory=".ZenPackInstallFilter.ZenPackInstallFilter"
+             name="list_filter"
+             />
+
+
     <utility provides=".ZodbFactory.IZodbFactoryLookup"
              factory=".ZodbFactory.ZodbFactoryLookup"
              />
-    
+
     <utility provides=".ZodbFactory.IZodbFactory"
              factory=".MySqlZodbFactory.MySqlZodbFactory"
              name="mysql"
