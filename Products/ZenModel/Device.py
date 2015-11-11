@@ -1303,9 +1303,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         # Set production state on all components that inherit from this device
         ret = super(Device, self).setProdState(state, maintWindowChange, REQUEST)
-        for component in self.getDeviceComponents():
-            if isinstance(component, ManagedEntity) and self.productionState == component.productionState:
-                notify(IndexingEvent(component.primaryAq(), ('productionState',), True))
         if REQUEST:
             audit('UI.Device.Edit', self, productionState=state,
                   maintenanceWindowChange=maintWindowChange)
