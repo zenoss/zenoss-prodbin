@@ -122,6 +122,8 @@ Zenoss.env.textMasks = {
         allowedNameTextMaskDash: /[\w\s\-]/i,
         allowedNameTextDash: /^[\w\s\-]+$/,
         allowedNameTextFeedbackDash: 'Only letters, numbers, underscores, dashes and spaces allowed',
+        allowedNameTextDashDot: /^[\w\s\-\.]+$/,
+        allowedNameTextFeedbackDashDot: 'Only letters, numbers, underscores, dashes, periods, and spaces allowed',
         allowedDescTextMask: /[\w\?,\s\.\-]/i,
         allowedDescText: /^[\w\?,\s\.\-]+$/,
         allowedDescTextFeedback: 'Allowed text: . - ? spaces, letters and numbers only'
